@@ -10,7 +10,8 @@ import { hasAction } from '../utils/action.js';
 import { getEntityTitle } from '../utils/ha/index.js';
 import { EntityRegistryManager } from '../utils/ha/registry/entity/index.js';
 import './icon.js';
-import './submenu.js';
+import './submenu/select-button.js';
+import './submenu/submenu-button';
 
 @customElement('advanced-camera-card-menu')
 export class AdvancedCameraCardMenu extends LitElement {
@@ -44,20 +45,20 @@ export class AdvancedCameraCardMenu extends LitElement {
     }
 
     if (button.type === 'custom:advanced-camera-card-menu-submenu') {
-      return html` <advanced-camera-card-submenu
+      return html` <advanced-camera-card-submenu-button
         .hass=${this.hass}
         .submenu=${button}
-        @action=${(ev) => this._controller.actionHandler(ev)}
+        @action=${(ev) => this._controller.handleAction(ev)}
       >
-      </advanced-camera-card-submenu>`;
+      </advanced-camera-card-submenu-button>`;
     } else if (button.type === 'custom:advanced-camera-card-menu-submenu-select') {
-      return html` <advanced-camera-card-submenu-select
+      return html` <advanced-camera-card-submenu-select-button
         .hass=${this.hass}
         .submenuSelect=${button}
         .entityRegistryManager=${this.entityRegistryManager}
-        @action=${(ev) => this._controller.actionHandler(ev)}
+        @action=${(ev) => this._controller.handleAction(ev)}
       >
-      </advanced-camera-card-submenu-select>`;
+      </advanced-camera-card-submenu-select-button>`;
     }
 
     const title =
@@ -73,7 +74,7 @@ export class AdvancedCameraCardMenu extends LitElement {
         hasDoubleClick: hasAction(button.double_tap_action),
       })}
       .label=${title ?? ''}
-      @action=${(ev) => this._controller.actionHandler(ev, button)}
+      @action=${(ev) => this._controller.handleAction(ev, button)}
     >
       <advanced-camera-card-icon
         ?allow-override-non-active-styles=${true}

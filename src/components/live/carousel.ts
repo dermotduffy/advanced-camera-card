@@ -399,6 +399,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
         ${this._renderNextPrevious('right', neighbors)}
       </advanced-camera-card-carousel>
       <advanced-camera-card-ptz
+        .hass=${this.hass}
         .config=${this.liveConfig.controls.ptz}
         .cameraManager=${this.cameraManager}
         .cameraID=${getStreamCameraID(view, this.viewFilterCameraID)}

@@ -55,7 +55,7 @@
 
 .ptz-move,
 .ptz-zoom,
-.ptz-home {
+.ptz-presets {
   position: relative;
   background-color: rgba(0, 0, 0, 0.3);
 }
@@ -68,27 +68,28 @@
 }
 
 :host([data-orientation='horizontal']) .ptz .ptz-zoom,
-:host([data-orientation='horizontal']) .ptz .ptz-home {
+:host([data-orientation='horizontal']) .ptz .ptz-presets {
   width: calc(var(--advanced-camera-card-ptz-icon-size) * 1.5);
 }
 :host([data-orientation='vertical']) .ptz .ptz-zoom,
-:host([data-orientation='vertical']) .ptz .ptz-home {
+:host([data-orientation='vertical']) .ptz .ptz-presets {
   height: calc(var(--advanced-camera-card-ptz-icon-size) * 1.5);
 }
 
 .ptz-zoom,
-.ptz-home {
+.ptz-presets {
   border-radius: var(--ha-card-border-radius, 4px);
 }
 
 /***********
  * PTZ Icons
  ***********/
-advanced-camera-card-icon {
+.ptz-move advanced-camera-card-icon {
   position: absolute;
   --mdc-icon-size: var(--advanced-camera-card-ptz-icon-size);
 }
-advanced-camera-card-icon:not(.disabled) {
+advanced-camera-card-icon:not(.disabled),
+advanced-camera-card-submenu:not(.disabled) {
   cursor: pointer;
 }
 .disabled {
@@ -115,34 +116,17 @@ advanced-camera-card-icon:not(.disabled) {
   transform: translateY(-50%);
 }
 
-:host([data-orientation='vertical']) .zoom_in {
-  right: 5px;
-  top: 50%;
+.ptz-presets,
+.ptz-zoom {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
 }
-:host([data-orientation='vertical']) .zoom_out {
-  left: 5px;
-  top: 50%;
+:host([data-orientation='vertical']) .ptz-presets,
+:host([data-orientation='vertical']) .ptz-zoom {
+  flex-direction: row;
 }
-:host([data-orientation='horizontal']) .zoom_in {
-  left: 50%;
-  top: 5px;
-}
-:host([data-orientation='horizontal']) .zoom_out {
-  left: 50%;
-  bottom: 5px;
-}
-
-:host([data-orientation='vertical']) .zoom_in,
-:host([data-orientation='vertical']) .zoom_out {
-  transform: translateY(-50%);
-}
-:host([data-orientation='horizontal']) .zoom_in,
-:host([data-orientation='horizontal']) .zoom_out {
-  transform: translateX(-50%);
-}
-
-.home {
-  top: 50%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-50%);
+:host([data-orientation='horizontal']) .ptz-presets,
+:host([data-orientation='horizontal']) .ptz-zoom {
+  flex-direction: column;
 }

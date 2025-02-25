@@ -1,11 +1,10 @@
 @use './button.scss';
+@import './z-index.scss';
 
 :host {
   pointer-events: auto;
-}
 
-mwc-list-item {
-  z-index: 20;
+  --mdc-menu-z-index: #{$z-index-submenu};
 }
 
 ha-icon-button {

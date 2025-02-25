@@ -153,6 +153,10 @@ export interface Icon {
   fallback?: string;
 }
 
+export interface Interaction {
+  action: string;
+}
+
 // *************************************************************************
 //                     Home Assistant API types.
 // *************************************************************************

@@ -1,0 +1,20 @@
+/************
+ * Managing z-indicies and stacking contexts is very challenging on the card,
+ * due to the volume of different potentially overlapping surfaces. In
+ * particular, care must be taken to not generate new stacking contexts
+ * inadvertently which would make "z-index" weaving challenging (e.g. submenu
+ * shown for PTZ presets, needs to render "over" the media drawer open/close
+ * control).
+ *************/
+
+$z-index-loading: 100;
+
+$z-index-submenu: 50;
+
+// Need menu to render above drawer (or the drawer button will render through
+// the menu).
+$z-index-menu: 40;
+
+$z-index-drawer: 30;
+
+$z-index-status-bar: 20;

@@ -23,18 +23,12 @@ export class AdvancedCameraCardSurroundBasic extends LitElement {
   protected _refDrawerRight: Ref<AdvancedCameraCardDrawer> = createRef();
   protected _boundDrawerHandler = this._drawerHandler.bind(this);
 
-  /**
-   * Component connected callback.
-   */
   connectedCallback(): void {
     super.connectedCallback();
     this.addEventListener('advanced-camera-card:drawer:open', this._boundDrawerHandler);
     this.addEventListener('advanced-camera-card:drawer:close', this._boundDrawerHandler);
   }
 
-  /**
-   * Component disconnected callback.
-   */
   disconnectedCallback(): void {
     super.disconnectedCallback();
     this.removeEventListener(
@@ -77,9 +71,6 @@ export class AdvancedCameraCardSurroundBasic extends LitElement {
       <slot name="below"></slot>`;
   }
 
-  /**
-   * Return compiled CSS styles.
-   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(surroundBasicStyle);
   }

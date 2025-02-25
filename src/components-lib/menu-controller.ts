@@ -1,7 +1,7 @@
-import { HASSDomEvent } from '@dermotduffy/custom-card-helpers';
 import { LitElement } from 'lit';
 import { orderBy } from 'lodash-es';
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
+import { SubmenuInteraction } from '../components/submenu/types.js';
 import {
   MENU_PRIORITY_MAX,
   type ActionType,
@@ -9,6 +9,7 @@ import {
   type MenuConfig,
   type MenuItem,
 } from '../config/types.js';
+import { Interaction } from '../types.js';
 import {
   convertActionToCardCustomAction,
   getActionConfigGivenAction,
@@ -86,21 +87,16 @@ export class MenuController {
     this.setExpanded(!this._expanded);
   }
 
-  public actionHandler(
-    ev: HASSDomEvent<{ action: string; config?: ActionsConfig }>,
-    config?: ActionsConfig,
+  public handleAction(
+    ev: CustomEvent<Interaction & Partial<SubmenuInteraction>>,
+    buttonConfig?: ActionsConfig,
   ): void {
     // These interactions should only be handled by the menu, as nothing
     // upstream has the user-provided configuration.
     ev.stopPropagation();
 
-    // If the event itself contains a configuration then use that. This is
-    // useful in cases where the registration of the event handler does not have
-    // access to the actual desired configuration (e.g. action events generated
-    // by a submenu).
-    if (ev.detail.config) {
-      config = ev.detail.config;
-    }
+    // If the action is from a submenu, use the attached action config.
+    const config: ActionsConfig | null = buttonConfig ?? ev.detail.item ?? null;
     if (!config) {
       return;
     }

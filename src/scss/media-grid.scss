@@ -43,10 +43,6 @@
         var(--advanced-camera-card-grid-column-size)
     )
   );
-
-  // When at item is selected, it may be enlarged -- it should render "in-front"
-  // of the other cameras that will then "move out of the way".
-  z-index: 2;
 }
 
 slot {

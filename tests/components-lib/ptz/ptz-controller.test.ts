@@ -200,6 +200,7 @@ describe('PTZController', () => {
               down: ['relative'],
               zoomIn: ['relative'],
               zoomOut: ['relative'],
+              presets: ['door', 'window'],
             },
           }),
         },
@@ -212,6 +213,148 @@ describe('PTZController', () => {
         tap_action: {
           action: 'fire-dom-event',
           advanced_camera_card_action: 'ptz_multi',
+        },
+      });
+    });
+
+    it('only presets', () => {
+      const controller = new PTZController(document.createElement('div'));
+      controller.setConfig(createConfig());
+
+      const store = createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: new Capabilities({
+            ptz: {
+              presets: ['door', 'window'],
+            },
+          }),
+        },
+      ]);
+
+      const cameraManager = createCameraManager(store);
+      controller.setCamera(cameraManager, 'camera.office');
+
+      expect(controller.getPTZActions()['presets']).toEqual([
+        {
+          actions: {
+            tap_action: {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'ptz_multi',
+              ptz_action: 'preset',
+              ptz_preset: 'door',
+            },
+          },
+          preset: 'door',
+        },
+        {
+          actions: {
+            tap_action: {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'ptz_multi',
+              ptz_action: 'preset',
+              ptz_preset: 'window',
+            },
+          },
+          preset: 'window',
+        },
+      ]);
+    });
+
+    it('should return digital PTZ actions without camera capabilities', () => {
+      const controller = new PTZController(document.createElement('div'));
+      controller.setConfig(createConfig());
+
+      expect(controller.getPTZActions()).toEqual({
+        down: {
+          end_tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_multi',
+            ptz_action: 'down',
+            ptz_phase: 'stop',
+          },
+          start_tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_multi',
+            ptz_action: 'down',
+            ptz_phase: 'start',
+          },
+        },
+        home: {
+          tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_multi',
+          },
+        },
+        left: {
+          end_tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_multi',
+            ptz_action: 'left',
+            ptz_phase: 'stop',
+          },
+          start_tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_multi',
+            ptz_action: 'left',
+            ptz_phase: 'start',
+          },
+        },
+        right: {
+          end_tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_multi',
+            ptz_action: 'right',
+            ptz_phase: 'stop',
+          },
+          start_tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_multi',
+            ptz_action: 'right',
+            ptz_phase: 'start',
+          },
+        },
+        up: {
+          end_tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_multi',
+            ptz_action: 'up',
+            ptz_phase: 'stop',
+          },
+          start_tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_multi',
+            ptz_action: 'up',
+            ptz_phase: 'start',
+          },
+        },
+        zoom_in: {
+          end_tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_multi',
+            ptz_action: 'zoom_in',
+            ptz_phase: 'stop',
+          },
+          start_tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_multi',
+            ptz_action: 'zoom_in',
+            ptz_phase: 'start',
+          },
+        },
+        zoom_out: {
+          end_tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_multi',
+            ptz_action: 'zoom_out',
+            ptz_phase: 'stop',
+          },
+          start_tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'ptz_multi',
+            ptz_action: 'zoom_out',
+            ptz_phase: 'start',
+          },
         },
       });
     });
@@ -274,105 +417,6 @@ describe('PTZController', () => {
       );
 
       expect(handler).not.toBeCalled();
-    });
-  });
-
-  describe('should identify useful actions', () => {
-    it('without a camera', () => {
-      const controller = new PTZController(document.createElement('div'));
-      expect(controller.hasUsefulAction()).toEqual({
-        pt: true,
-        z: true,
-        home: true,
-      });
-    });
-
-    it('without camera PTZ capabilities', () => {
-      const controller = new PTZController(document.createElement('div'));
-
-      const store = createStore([
-        {
-          cameraID: 'camera.office',
-          capabilities: createCapabilities({
-            ptz: {},
-          }),
-        },
-      ]);
-      const cameraManager = createCameraManager(store);
-      controller.setCamera(cameraManager, 'camera.office');
-
-      expect(controller.hasUsefulAction()).toEqual({
-        pt: true,
-        z: true,
-        home: true,
-      });
-    });
-
-    it('with camera pan and tilt capabilities', () => {
-      const controller = new PTZController(document.createElement('div'));
-      const store = createStore([
-        {
-          cameraID: 'camera.office',
-          capabilities: createCapabilities({
-            ptz: {
-              left: ['relative'],
-              right: ['relative'],
-              up: ['relative'],
-              down: ['relative'],
-            },
-          }),
-        },
-      ]);
-      controller.setCamera(createCameraManager(store), 'camera.office');
-
-      expect(controller.hasUsefulAction()).toEqual({
-        pt: true,
-        z: false,
-        home: false,
-      });
-    });
-
-    it('with camera zoom capabilities', () => {
-      const controller = new PTZController(document.createElement('div'));
-      const store = createStore([
-        {
-          cameraID: 'camera.office',
-          capabilities: createCapabilities({
-            ptz: {
-              zoomIn: ['relative'],
-              zoomOut: ['relative'],
-            },
-          }),
-        },
-      ]);
-      controller.setCamera(createCameraManager(store), 'camera.office');
-
-      expect(controller.hasUsefulAction()).toEqual({
-        pt: false,
-        z: true,
-        home: false,
-      });
-    });
-
-    it('with camera presets', () => {
-      const controller = new PTZController(document.createElement('div'));
-      const store = createStore([
-        {
-          cameraID: 'camera.office',
-          capabilities: createCapabilities({
-            ptz: {
-              presets: ['door'],
-            },
-          }),
-        },
-      ]);
-      controller.setCamera(createCameraManager(store), 'camera.office');
-
-      expect(controller.hasUsefulAction()).toEqual({
-        pt: false,
-        z: false,
-        home: true,
-      });
     });
   });
 });

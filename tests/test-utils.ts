@@ -1,4 +1,4 @@
-import { CurrentUser, HASSDomEvent } from '@dermotduffy/custom-card-helpers';
+import { CurrentUser } from '@dermotduffy/custom-card-helpers';
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { LitElement } from 'lit';
 import screenfull from 'screenfull';
@@ -39,9 +39,9 @@ import { StatusBarItemManager } from '../src/card-controller/status-bar-item-man
 import { StyleManager } from '../src/card-controller/style-manager';
 import { TriggersManager } from '../src/card-controller/triggers-manager';
 import { ViewManager } from '../src/card-controller/view/view-manager';
+import { SubmenuInteraction, SubmenuItem } from '../src/components/submenu/types';
 import { ConditionStateManager } from '../src/conditions/state-manager';
 import {
-  ActionsConfig,
   AdvancedCameraCardConfig,
   CameraConfig,
   InternalAdvancedCameraCardCustomAction,
@@ -52,7 +52,12 @@ import {
   internalAdvancedCameraCardCustomActionSchema,
   performanceConfigSchema,
 } from '../src/config/types';
-import { CapabilitiesRaw, ExtendedHomeAssistant, MediaLoadedInfo } from '../src/types';
+import {
+  CapabilitiesRaw,
+  ExtendedHomeAssistant,
+  Interaction,
+  MediaLoadedInfo,
+} from '../src/types';
 import { HassStateDifference } from '../src/utils/ha';
 import { Device } from '../src/utils/ha/registry/device/types';
 import { EntityRegistryManager } from '../src/utils/ha/registry/entity';
@@ -520,14 +525,24 @@ export const flushPromises = async (): Promise<void> => {
   await new Promise(process.nextTick);
 };
 
-export const createInteractionEvent = (
+export const createInteractionActionEvent = (
   action: string,
-  config?: ActionsConfig,
-): HASSDomEvent<{ action: string; config?: ActionsConfig }> => {
-  return new CustomEvent<{ action: string; config?: ActionsConfig }>('@action', {
+): CustomEvent<Interaction> => {
+  return new CustomEvent<Interaction>('@action', {
     detail: {
       action: action,
-      config: config,
+    },
+  });
+};
+
+export const createSubmenuInteractionActionEvent = (
+  action: string,
+  item: SubmenuItem,
+): CustomEvent<SubmenuInteraction> => {
+  return new CustomEvent<SubmenuInteraction>('@action', {
+    detail: {
+      action,
+      item,
     },
   });
 };

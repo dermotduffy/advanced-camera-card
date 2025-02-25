@@ -9,7 +9,6 @@ div.control-surround {
   position: absolute;
   bottom: 50%;
   transform: translateY(50%);
-  z-index: 0;
   padding-top: $drawer-padding-extend;
   padding-bottom: $drawer-padding-extend;
 }
@@ -46,13 +45,6 @@ advanced-camera-card-icon.control {
   padding-bottom: $drawer-padding-extend;
 
   transition: opacity 0.5s ease;
-}
-
-:host([open]) advanced-camera-card-icon.control,
-advanced-camera-card-icon.control:hover {
-  // When the drawer is open or hovered make the button to close it more
-  // prominent.
-  opacity: 1;
 }
 
 :host([location='left']) advanced-camera-card-icon.control {

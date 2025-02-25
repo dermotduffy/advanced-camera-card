@@ -10,6 +10,7 @@ import {
   createInternalCallbackAction,
   createLogAction,
   createMediaPlayerAction,
+  createPerformAction,
   createPTZAction,
   createPTZControlsAction,
   createPTZDigitalAction,
@@ -273,6 +274,24 @@ describe('createInternalCallbackAction', () => {
   });
 });
 
+describe('createPerformAction', () => {
+  it('should create perform action', () => {
+    expect(
+      createPerformAction('toggle', {
+        cardID: 'card_id',
+        target: { entity_id: 'light.office_main_lights' },
+        data: {},
+      }),
+    ).toEqual({
+      action: 'perform-action',
+      perform_action: 'toggle',
+      card_id: 'card_id',
+      target: { entity_id: 'light.office_main_lights' },
+      data: {},
+    });
+  });
+});
+
 describe('getActionConfigGivenAction', () => {
   const action = actionSchema.parse({
     action: 'fire-dom-event',
@@ -291,6 +310,18 @@ describe('getActionConfigGivenAction', () => {
 
   it('should handle tap actions', () => {
     expect(getActionConfigGivenAction('tap', { tap_action: action })).toBe(action);
+  });
+
+  it('should handle default tap action without an entity', () => {
+    expect(getActionConfigGivenAction('tap', {})).toBeNull();
+  });
+
+  it('should handle default tap action with an entity', () => {
+    expect(
+      getActionConfigGivenAction('tap', { entity: 'light.office_main_lights' }),
+    ).toEqual({
+      action: 'more-info',
+    });
   });
 
   it('should handle hold actions', () => {
