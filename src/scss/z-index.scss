@@ -7,14 +7,13 @@
  * control).
  *************/
 
-$z-index-loading: 100;
+// More-info dialog box has a z-index of 8, so everything meaningful needs to be
+// below that.
 
-$z-index-submenu: 50;
+$z-index-loading: 6;
+$z-index-submenu: 5;
 
-// Need menu to render above drawer (or the drawer button will render through
-// the menu).
-$z-index-menu: 40;
-
-$z-index-drawer: 30;
-
-$z-index-status-bar: 20;
+// Need menu to render above drawer (so the drawer button is below menu-submenus)
+$z-index-menu: 4;
+$z-index-drawer: 3;
+$z-index-status-bar: 2;
