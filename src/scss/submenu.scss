@@ -1,19 +1,8 @@
-@use './button.scss';
+@use './menu-button.scss';
 @import './z-index.scss';
 
 :host {
   pointer-events: auto;
 
   --mdc-menu-z-index: #{$z-index-submenu};
-}
-
-ha-icon-button {
-  // The main submenu icon is expected to follow Advanced Camera Card theming unless it
-  // is are active (in which case we want to take advantage of the whatever
-  // styling is appropriate, e.g. light icon partially lit).
-  --state-unavailable-color: var(--advanced-camera-card-button-color);
-  --state-inactive-color: var(--advanced-camera-card-button-color);
-
-  color: var(--advanced-camera-card-menu-button-inactive-color);
-  background-color: var(--advanced-camera-card-menu-button-background);
 }
