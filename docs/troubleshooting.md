@@ -173,7 +173,7 @@ between clicking the download button and the download starting.
 You're seeing the version of the card changing between reloads, or seeing
 log entries like:
 
-```Failed to execute 'define' on 'CustomElementRegistry': the name "focus-trap" has already been used with this registry window```
+`Failed to execute 'define' on 'CustomElementRegistry': the name "focus-trap" has already been used with this registry window`
 
 Verify that your dashboard resources contain only a single instance of the card
 (for HACS users, you should see only `/hacsfiles/advanced-camera-card/`. If you
