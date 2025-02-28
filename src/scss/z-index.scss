@@ -17,3 +17,6 @@ $z-index-submenu: 5;
 $z-index-menu: 4;
 $z-index-drawer: 3;
 $z-index-status-bar: 2;
+
+// The base z-index when the card is not hovered over. See note in card.scss .
+$z-index-card-flatten: 0;

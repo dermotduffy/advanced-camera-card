@@ -32,6 +32,14 @@
   --advanced-camera-card-height: auto;
 }
 
+// Without hovering over the card, it is "flattened" to avoid z-index weaving
+// from other cards. Tip: Best way to test this is with multiple Advanced Camera
+// Cards, opening a submenu on the 1st (e.g. media players) and verifying the
+// menu of the 2nd card is not visible through the opened submenu on the 1st.
+:host(:not(:hover)) {
+  z-index: #{$z-index-card-flatten};
+}
+
 advanced-camera-card-loading {
   position: absolute;
   inset: 0;
