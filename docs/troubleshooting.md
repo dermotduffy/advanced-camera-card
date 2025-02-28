@@ -168,6 +168,17 @@ documentation](https://docs.frigate.video/frigate/installation#docker).
 Large downloads may take a few seconds to assemble, so there may be a delay
 between clicking the download button and the download starting.
 
+### Duplicate versions / Duplicate element registrations
+
+You're seeing the version of the card changing between reloads, or seeing
+log entries like:
+
+```Failed to execute 'define' on 'CustomElementRegistry': the name "focus-trap" has already been used with this registry window```
+
+Verify that your dashboard resources contain only a single instance of the card
+(for HACS users, you should see only `/hacsfiles/advanced-camera-card/`. If you
+_also_ see `/hacsfiles/frigate-card/`, remove it, clear your caches and reload).
+
 ### `Forbidden media source identifier`
 
 - If you are using a custom `client_id` setting in your `frigate.yml` file (the
