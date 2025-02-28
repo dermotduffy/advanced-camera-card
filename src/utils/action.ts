@@ -9,7 +9,7 @@ import { PTZAction } from '../config/ptz.js';
 import {
   ActionPhase,
   ActionType,
-  Actions,
+  ActionsConfig,
   AdvancedCameraCardGeneralAction,
   AdvancedCameraCardUserSpecifiedView,
   CameraSelectActionConfig,
@@ -220,6 +220,7 @@ export function createInternalCallbackAction(
 export function createPerformAction(
   perform_action: string,
   options?: {
+    cardID?: string;
     data?: ServiceCallRequest['serviceData'];
     target?: ServiceCallRequest['target'];
   },
@@ -229,6 +230,7 @@ export function createPerformAction(
     perform_action: perform_action,
     ...(options?.target && { target: options.target }),
     ...(options?.data && { data: options.data }),
+    ...(options?.cardID && { card_id: options.cardID }),
   };
 }
 
@@ -240,13 +242,19 @@ export function createPerformAction(
  */
 export function getActionConfigGivenAction(
   interaction?: string,
-  config?: Actions | null,
+  config?: ActionsConfig | null,
 ): ActionType | ActionType[] | null {
   if (!interaction || !config) {
     return null;
   }
   if (interaction === 'tap' && config.tap_action) {
     return config.tap_action;
+  } else if (interaction === 'tap' && config.entity) {
+    // As a special case, if there is an entity specified, but no action, a
+    // more-info action is assumed (e.g. a menu-state-icon).
+    return {
+      action: 'more-info',
+    };
   } else if (interaction === 'hold' && config.hold_action) {
     return config.hold_action;
   } else if (interaction === 'double_tap' && config.double_tap_action) {

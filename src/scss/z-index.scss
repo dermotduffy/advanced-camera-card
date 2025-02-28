@@ -1,0 +1,22 @@
+/************
+ * Managing z-indicies and stacking contexts is very challenging on the card,
+ * due to the volume of different potentially overlapping surfaces. In
+ * particular, care must be taken to not generate new stacking contexts
+ * inadvertently which would make "z-index" weaving challenging (e.g. submenu
+ * shown for PTZ presets, needs to render "over" the media drawer open/close
+ * control).
+ *************/
+
+// More-info dialog box has a z-index of 8, so everything meaningful needs to be
+// below that.
+
+$z-index-loading: 6;
+$z-index-submenu: 5;
+
+// Need menu to render above drawer (so the drawer button is below menu-submenus)
+$z-index-menu: 4;
+$z-index-drawer: 3;
+$z-index-status-bar: 2;
+
+// The base z-index when the card is not hovered over. See note in card.scss .
+$z-index-card-flatten: 0;

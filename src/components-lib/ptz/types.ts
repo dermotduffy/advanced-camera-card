@@ -10,12 +10,13 @@ declare module 'view' {
   }
 }
 
-export type PTZActionNameToMultiAction = {
-  [K in PTZControlAction]?: Actions;
-};
-
-export interface PTZActionPresence {
-  pt: boolean;
-  z: boolean;
-  home: boolean;
+interface PTZPresetAction {
+  preset: string;
+  actions: Actions;
 }
+
+export type PTZControllerActions = {
+  [K in PTZControlAction]?: Actions;
+} & {
+  presets?: PTZPresetAction[];
+};

@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { StatusBarController } from '../../src/components-lib/status-bar-controller';
 import { StatusBarConfig, statusBarConfigSchema } from '../../src/config/types';
 import { setOrRemoveAttribute } from '../../src/utils/basic';
-import { createInteractionEvent, createLitElement } from '../test-utils';
+import { createInteractionActionEvent, createLitElement } from '../test-utils';
 
 const createConfig = (config?: unknown): StatusBarConfig => {
   return statusBarConfigSchema.parse(config);
@@ -300,7 +300,7 @@ describe('StatusBarController', () => {
       host.addEventListener('advanced-camera-card:action:execution-request', handler);
 
       const controller = new StatusBarController(host);
-      controller.actionHandler(createInteractionEvent('tap'));
+      controller.actionHandler(createInteractionActionEvent('tap'));
       expect(handler).not.toBeCalled();
     });
 
@@ -318,7 +318,7 @@ describe('StatusBarController', () => {
         tap_action: action,
       };
 
-      controller.actionHandler(createInteractionEvent('tap'), tapActionConfig);
+      controller.actionHandler(createInteractionActionEvent('tap'), tapActionConfig);
 
       expect(handler).toBeCalledWith(
         expect.objectContaining({

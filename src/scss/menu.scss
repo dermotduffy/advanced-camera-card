@@ -1,4 +1,4 @@
-@use './button.scss';
+@use './menu-button.scss';
 
 :host {
   --advanced-camera-card-menu-button-size: 40px;
@@ -10,9 +10,6 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-
-  // Allow submenus to overflow the menu "bar".
-  overflow: visible;
 }
 
 :host([data-style='outside']) {
@@ -140,14 +137,6 @@ div.opposing {
 // background color.
 :host([data-style='hidden']:not([expanded])) ha-icon-button {
   background: var(--advanced-camera-card-menu-background);
-}
-
-// Icons in the menu are expected to follow Advanced Camera Card theming unless they are
-// active (in which case we want to take advantage of the whatever styling is
-// appropriate, e.g. light icon partially lit).
-:host ha-icon-button {
-  --state-unavailable-color: var(--advanced-camera-card-button-color);
-  --state-inactive-color: var(--advanced-camera-card-button-color);
 }
 
 // Further theme related styling is dynamically applied by `menu.ts`, see

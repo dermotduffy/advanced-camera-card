@@ -1,8 +1,13 @@
 import { handleActionConfig } from '@dermotduffy/custom-card-helpers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MenuController } from '../../src/components-lib/menu-controller';
+import { SubmenuItem } from '../../src/components/submenu/types';
 import { MenuConfig, menuConfigSchema } from '../../src/config/types';
-import { createInteractionEvent, createLitElement } from '../test-utils';
+import {
+  createInteractionActionEvent,
+  createLitElement,
+  createSubmenuInteractionActionEvent,
+} from '../test-utils';
 
 vi.mock('@dermotduffy/custom-card-helpers');
 vi.mock('../../src/utils/ha');
@@ -365,7 +370,7 @@ describe('MenuController', () => {
   describe('should handle actions', () => {
     it('should bail without config', () => {
       const controller = new MenuController(createLitElement());
-      controller.actionHandler(createInteractionEvent('tap'));
+      controller.handleAction(createInteractionActionEvent('tap'));
       expect(vi.mocked(handleActionConfig)).not.toBeCalled();
     });
 
@@ -376,7 +381,7 @@ describe('MenuController', () => {
 
       const controller = new MenuController(host);
 
-      controller.actionHandler(createInteractionEvent('tap'), tapActionConfig);
+      controller.handleAction(createInteractionActionEvent('tap'), tapActionConfig);
       expect(handler).toBeCalledWith(
         expect.objectContaining({
           detail: { action: [action], config: tapActionConfig },
@@ -392,7 +397,9 @@ describe('MenuController', () => {
 
       const controller = new MenuController(host);
 
-      controller.actionHandler(createInteractionEvent('tap', tapActionConfig));
+      controller.handleAction(
+        createSubmenuInteractionActionEvent('tap', tapActionConfig as SubmenuItem),
+      );
       expect(handler).toBeCalledWith(
         expect.objectContaining({
           detail: { action: [action], config: tapActionConfig },
@@ -407,7 +414,7 @@ describe('MenuController', () => {
 
       const controller = new MenuController(host);
 
-      controller.actionHandler(createInteractionEvent('tap'), tapActionConfigMulti);
+      controller.handleAction(createInteractionActionEvent('tap'), tapActionConfigMulti);
 
       expect(handler).toBeCalledWith(
         expect.objectContaining({
@@ -429,7 +436,7 @@ describe('MenuController', () => {
         controller.setExpanded(true);
         expect(controller.isExpanded()).toBeTruthy();
 
-        controller.actionHandler(createInteractionEvent('tap'), tapActionConfig);
+        controller.handleAction(createInteractionActionEvent('tap'), tapActionConfig);
         expect(controller.isExpanded()).toBeFalsy();
       });
 
@@ -445,7 +452,7 @@ describe('MenuController', () => {
         controller.setExpanded(true);
         expect(controller.isExpanded()).toBeTruthy();
 
-        controller.actionHandler(createInteractionEvent('end_tap'), {
+        controller.handleAction(createInteractionActionEvent('end_tap'), {
           end_tap_action: action,
         });
         expect(controller.isExpanded()).toBeFalsy();
@@ -465,7 +472,7 @@ describe('MenuController', () => {
         controller.setExpanded(true);
         expect(controller.isExpanded()).toBeTruthy();
 
-        controller.actionHandler(createInteractionEvent('start_tap'), {
+        controller.handleAction(createInteractionActionEvent('start_tap'), {
           start_tap_action: action,
           end_tap_action: action,
         });
@@ -484,7 +491,7 @@ describe('MenuController', () => {
         controller.setExpanded(false);
         expect(controller.isExpanded()).toBeFalsy();
 
-        controller.actionHandler(createInteractionEvent('tap'), {
+        controller.handleAction(createInteractionActionEvent('tap'), {
           camera_entity: 'foo',
           tap_action: menuToggleAction,
         });
@@ -503,7 +510,10 @@ describe('MenuController', () => {
         controller.setExpanded(true);
         expect(controller.isExpanded()).toBeTruthy();
 
-        controller.actionHandler(createInteractionEvent('end_tap'), tapActionConfig);
+        controller.handleAction(
+          createInteractionActionEvent('end_tap'),
+          tapActionConfig,
+        );
         expect(controller.isExpanded()).toBeTruthy();
       });
     });

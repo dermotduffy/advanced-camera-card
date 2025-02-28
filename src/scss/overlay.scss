@@ -55,31 +55,3 @@ slot[name='bottom'],
 slot[name='right'] {
   justify-content: flex-end;
 }
-
-/*******************************
- * Match rounded corners to card
- *******************************/
-
-// Style is set on the children themselves, to avoid the need for the parent
-// outlay to prevent overflow (which needs to be enabled to menu items to be
-// visible). See similar approach in card.scss for outerlay.
-
-::slotted([slot='top']:first-child),
-::slotted([slot='left']:first-child) {
-  border-top-left-radius: var(--ha-card-border-radius, 4px);
-}
-
-::slotted([slot='top']:first-child),
-::slotted([slot='right']:first-child) {
-  border-top-right-radius: var(--ha-card-border-radius, 4px);
-}
-
-::slotted([slot='bottom']:last-child),
-::slotted([slot='left']:last-child) {
-  border-bottom-left-radius: var(--ha-card-border-radius, 4px);
-}
-
-::slotted([slot='bottom']:last-child),
-::slotted([slot='right']:last-child) {
-  border-bottom-right-radius: var(--ha-card-border-radius, 4px);
-}

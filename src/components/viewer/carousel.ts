@@ -396,6 +396,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       </advanced-camera-card-carousel>
       ${view
         ? html` <advanced-camera-card-ptz
+            .hass=${this.hass}
             .config=${this.viewerConfig?.controls.ptz}
             .forceVisibility=${view?.context?.ptzControls?.enabled}
           >

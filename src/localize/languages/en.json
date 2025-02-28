@@ -317,7 +317,7 @@
         "editor_label": "Live Controls",
         "ptz": {
           "editor_label": "PTZ",
-          "hide_home": "Hide home control",
+          "hide_home": "Hide home & preset controls",
           "hide_pan_tilt": "Hide pan & tilt control",
           "hide_zoom": "Hide zoom control",
           "mode": "Mode",
@@ -618,6 +618,7 @@
       "down": "Down",
       "home": "Home",
       "left": "Left",
+      "presets": "Presets",
       "right": "Right",
       "up": "Up",
       "zoom_in": "Zoom In",

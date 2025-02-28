@@ -1,10 +1,12 @@
-import { HASSDomEvent, HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CameraManager } from '../../camera-manager/manager';
 import { dispatchActionExecutionRequest } from '../../card-controller/actions/utils/execution-request';
 import { PTZAction } from '../../config/ptz';
 import { Actions, ActionsConfig, PTZControlsConfig } from '../../config/types';
+import { Interaction } from '../../types';
 import { createPTZMultiAction, getActionConfigGivenAction } from '../../utils/action';
-import { PTZActionNameToMultiAction, PTZActionPresence } from './types';
+import { SubmenuInteraction } from '../../components/submenu/types';
+import { PTZControllerActions } from './types';
 
 export class PTZController {
   private _host: HTMLElement;
@@ -47,9 +49,11 @@ export class PTZController {
   }
 
   public handleAction(
-    ev: HASSDomEvent<{ action: string }>,
-    config?: ActionsConfig | null,
+    ev: CustomEvent<Interaction & Partial<SubmenuInteraction>>,
+    buttonConfig?: ActionsConfig | null,
   ): void {
+    const config: ActionsConfig | null = buttonConfig ?? ev.detail.item ?? null;
+
     // Nothing else has the configuration for this action, so don't let it
     // propagate further.
     ev.stopPropagation();
@@ -64,34 +68,6 @@ export class PTZController {
     }
   }
 
-  public hasUsefulAction(): PTZActionPresence {
-    const allUsefulActions = {
-      pt: true,
-      z: true,
-      home: true,
-    };
-    if (!this._cameraID) {
-      // Will use digital PTZ.
-      return allUsefulActions;
-    }
-    const capabilities = this._cameraManager?.getCameraCapabilities(this._cameraID);
-    if (!capabilities || !capabilities.hasPTZCapability()) {
-      // Will use digital PTZ.
-      return allUsefulActions;
-    }
-
-    const ptzCapabilities = capabilities.getPTZCapabilities();
-    return {
-      pt:
-        !!ptzCapabilities?.up ||
-        !!ptzCapabilities?.down ||
-        !!ptzCapabilities?.left ||
-        !!ptzCapabilities?.right,
-      z: !!ptzCapabilities?.zoomIn || !!ptzCapabilities?.zoomOut,
-      home: !!ptzCapabilities?.presets?.length,
-    };
-  }
-
   public shouldDisplay(): boolean {
     return this._forceVisibility !== undefined
       ? this._forceVisibility
@@ -103,8 +79,15 @@ export class PTZController {
         : this._config?.mode === 'on';
   }
 
-  public getPTZActions(): PTZActionNameToMultiAction {
-    const getDefaultActions = (options?: {
+  public getPTZActions(): PTZControllerActions {
+    const cameraCapabilities = this._cameraID
+      ? this._cameraManager?.getCameraCapabilities(this._cameraID)
+      : null;
+    const hasRealPTZCapability =
+      cameraCapabilities && cameraCapabilities.hasPTZCapability();
+    const ptzCapabilities = cameraCapabilities?.getPTZCapabilities();
+
+    const getContinuousActions = (options?: {
       ptzAction?: PTZAction;
       preset?: string;
     }): Actions => ({
@@ -120,28 +103,61 @@ export class PTZController {
       }),
     });
 
-    const actions: PTZActionNameToMultiAction = {};
-    actions.up = getDefaultActions({
-      ptzAction: 'up',
+    const getDiscreteAction = (options?: {
+      ptzAction?: PTZAction;
+      preset?: string;
+    }): Actions => ({
+      tap_action: createPTZMultiAction({
+        ptzAction: options?.ptzAction,
+        ptzPreset: options?.preset,
+      }),
     });
-    actions.down = getDefaultActions({
-      ptzAction: 'down',
-    });
-    actions.left = getDefaultActions({
-      ptzAction: 'left',
-    });
-    actions.right = getDefaultActions({
-      ptzAction: 'right',
-    });
-    actions.zoom_in = getDefaultActions({
-      ptzAction: 'zoom_in',
-    });
-    actions.zoom_out = getDefaultActions({
-      ptzAction: 'zoom_out',
-    });
-    actions.home = {
-      tap_action: createPTZMultiAction(),
-    };
+
+    const actions: PTZControllerActions = {};
+    if (!hasRealPTZCapability || ptzCapabilities?.up) {
+      actions.up = getContinuousActions({
+        ptzAction: 'up',
+      });
+    }
+    if (!hasRealPTZCapability || ptzCapabilities?.down) {
+      actions.down = getContinuousActions({
+        ptzAction: 'down',
+      });
+    }
+    if (!hasRealPTZCapability || ptzCapabilities?.left) {
+      actions.left = getContinuousActions({
+        ptzAction: 'left',
+      });
+    }
+    if (!hasRealPTZCapability || ptzCapabilities?.right) {
+      actions.right = getContinuousActions({
+        ptzAction: 'right',
+      });
+    }
+    if (!hasRealPTZCapability || ptzCapabilities?.zoomIn) {
+      actions.zoom_in = getContinuousActions({
+        ptzAction: 'zoom_in',
+      });
+    }
+    if (!hasRealPTZCapability || ptzCapabilities?.zoomOut) {
+      actions.zoom_out = getContinuousActions({
+        ptzAction: 'zoom_out',
+      });
+    }
+    if (!hasRealPTZCapability || ptzCapabilities?.presets?.length) {
+      actions.home = getDiscreteAction();
+    }
+    for (const preset of ptzCapabilities?.presets ?? []) {
+      actions.presets ??= [];
+      actions.presets.push({
+        preset: preset,
+        actions: getDiscreteAction({
+          preset: preset,
+          ptzAction: 'preset',
+        }),
+      });
+    }
+
     return actions;
   }
 }

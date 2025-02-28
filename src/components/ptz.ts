@@ -1,4 +1,4 @@
-import { HASSDomEvent } from '@dermotduffy/custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import {
   CSSResultGroup,
   LitElement,
@@ -12,15 +12,21 @@ import { classMap } from 'lit/directives/class-map.js';
 import { actionHandler } from '../action-handler-directive.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { PTZController } from '../components-lib/ptz/ptz-controller.js';
-import { PTZActionPresence } from '../components-lib/ptz/types.js';
+import { PTZControllerActions } from '../components-lib/ptz/types.js';
 import { Actions, PTZControlsConfig } from '../config/types.js';
 import { localize } from '../localize/localize.js';
 import ptzStyle from '../scss/ptz.scss';
+import { Interaction } from '../types.js';
 import { hasAction } from '../utils/action.js';
+import { prettifyTitle } from '../utils/basic.js';
 import './icon.js';
+import './submenu';
+import { SubmenuInteraction, SubmenuItem } from './submenu/types.js';
 
 @customElement('advanced-camera-card-ptz')
 export class AdvancedCameraCardPTZ extends LitElement {
+  public hass?: HomeAssistant;
+
   @property({ attribute: false })
   public config?: PTZControlsConfig;
 
@@ -34,8 +40,7 @@ export class AdvancedCameraCardPTZ extends LitElement {
   public forceVisibility?: boolean;
 
   protected _controller = new PTZController(this);
-  protected _actions = this._controller.getPTZActions();
-  protected _actionPresence: PTZActionPresence | null = null;
+  protected _actions: PTZControllerActions | null = null;
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('config')) {
@@ -48,7 +53,7 @@ export class AdvancedCameraCardPTZ extends LitElement {
       this._controller.setForceVisibility(this.forceVisibility);
     }
     if (changedProps.has('cameraID') || changedProps.has('cameraManager')) {
-      this._actionPresence = this._controller.hasUsefulAction();
+      this._actions = this._controller.getPTZActions();
     }
   }
 
@@ -60,49 +65,89 @@ export class AdvancedCameraCardPTZ extends LitElement {
     const renderIcon = (
       name: string,
       icon: string,
-      actions?: Actions | null,
+      options?: {
+        actions?: Actions | null;
+        renderWithoutAction?: boolean;
+      },
     ): TemplateResult => {
       const classes = {
         [name]: true,
-        disabled: !actions,
+        disabled: !options?.actions && !options?.renderWithoutAction,
       };
 
-      return actions
+      return options?.actions || options?.renderWithoutAction
         ? html`<advanced-camera-card-icon
             class=${classMap(classes)}
             .icon=${{ icon: icon }}
-            .actionHandler=${actionHandler({
-              hasHold: hasAction(actions?.hold_action),
-              hasDoubleClick: hasAction(actions?.double_tap_action),
-            })}
             .title=${localize(`elements.ptz.${name}`)}
-            @action=${(ev: HASSDomEvent<{ action: string }>) =>
-              this._controller.handleAction(ev, actions)}
+            .actionHandler=${options.actions
+              ? actionHandler({
+                  hasHold: hasAction(options.actions?.hold_action),
+                  hasDoubleClick: hasAction(options.actions?.double_tap_action),
+                })
+              : undefined}
+            @action=${(ev: CustomEvent<Interaction>) =>
+              options.actions && this._controller.handleAction(ev, options.actions)}
           ></advanced-camera-card-icon>`
         : html``;
     };
 
+    const presetSubmenuItems: SubmenuItem[] | null = this._actions?.presets?.length
+      ? this._actions.presets.map((preset) => ({
+          title: prettifyTitle(preset.preset),
+          icon: 'mdi:cctv',
+          ...preset.actions,
+          hold_action: {
+            action: 'perform-action',
+            perform_action: 'camera.preset_recall',
+          },
+        }))
+      : null;
+
     const config = this._controller.getConfig();
     return html` <div class="ptz">
-      ${!config?.hide_pan_tilt && this._actionPresence?.pt
+      ${!config?.hide_pan_tilt &&
+      (this._actions?.left ||
+        this._actions?.right ||
+        this._actions?.up ||
+        this._actions?.down)
         ? html`<div class="ptz-move">
-            ${renderIcon('right', 'mdi:arrow-right', this._actions.right)}
-            ${renderIcon('left', 'mdi:arrow-left', this._actions.left)}
-            ${renderIcon('up', 'mdi:arrow-up', this._actions.up)}
-            ${renderIcon('down', 'mdi:arrow-down', this._actions.down)}
+            ${renderIcon('right', 'mdi:arrow-right', { actions: this._actions?.right })}
+            ${renderIcon('left', 'mdi:arrow-left', { actions: this._actions?.left })}
+            ${renderIcon('up', 'mdi:arrow-up', { actions: this._actions?.up })}
+            ${renderIcon('down', 'mdi:arrow-down', { actions: this._actions?.down })}
           </div>`
         : ''}
-      ${!config?.hide_zoom && this._actionPresence?.z
+      ${!config?.hide_zoom && (this._actions?.zoom_in || this._actions?.zoom_out)
         ? html` <div class="ptz-zoom">
-            ${renderIcon('zoom_in', 'mdi:plus', this._actions.zoom_in)}
-            ${renderIcon('zoom_out', 'mdi:minus', this._actions.zoom_out)}
+            ${renderIcon('zoom_in', 'mdi:plus', { actions: this._actions.zoom_in })}
+            ${renderIcon('zoom_out', 'mdi:minus', { actions: this._actions.zoom_out })}
           </div>`
         : html``}
-      ${!config?.hide_home && this._actionPresence?.home
-        ? html`<div class="ptz-home">
-            ${renderIcon('home', 'mdi:home', this._actions.home)}
+      ${!config?.hide_home && (this._actions?.home || presetSubmenuItems?.length)
+        ? html`<div class="ptz-presets">
+            ${renderIcon('home', 'mdi:home', { actions: this._actions?.home })}
+            ${presetSubmenuItems?.length
+              ? html`<advanced-camera-card-submenu
+                  class="presets"
+                  .hass=${this.hass}
+                  .items=${presetSubmenuItems}
+                  @action=${(ev: CustomEvent<SubmenuInteraction>) =>
+                    this._controller.handleAction(ev)}
+                >
+                  ${renderIcon(
+                    'presets',
+                    config?.orientation === 'vertical'
+                      ? 'mdi:dots-vertical'
+                      : 'mdi:dots-horizontal',
+                    {
+                      renderWithoutAction: true,
+                    },
+                  )}
+                </advanced-camera-card-submenu>`
+              : ''}
           </div>`
-        : html``}
+        : ''}
     </div>`;
   }
 

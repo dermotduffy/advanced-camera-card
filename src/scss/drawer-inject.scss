@@ -1,3 +1,5 @@
+@import './z-index.scss';
+
 :host {
   // Drawer width sizes to contents.
   width: unset;
@@ -28,7 +30,7 @@
 
   // Drawer renders behind the menu/status-bar overlay (otherwise the drawer
   // controls render on top of menu items)
-  z-index: 10;
+  z-index: #{$z-index-drawer};
 }
 
 :host([location='right']) #d {
