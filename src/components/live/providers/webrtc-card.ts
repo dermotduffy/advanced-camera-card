@@ -12,28 +12,28 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { CameraEndpoints } from '../../../camera-manager/types.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get-technology-for-video-rtc.js';
+import { VideoMediaPlayerController } from '../../../components-lib/media-player/video.js';
 import { CameraConfig, CardWideConfig } from '../../../config/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveWebRTCCardStyle from '../../../scss/live-webrtc-card.scss';
 import {
   AdvancedCameraCardError,
-  AdvancedCameraCardMediaPlayer,
-  FullscreenElement,
+  MediaPlayer,
+  MediaPlayerController,
   Message,
 } from '../../../types.js';
 import { mayHaveAudio } from '../../../utils/audio.js';
+import {
+  hideMediaControlsTemporarily,
+  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+  setControlsOnVideo,
+} from '../../../utils/controls.js';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
 } from '../../../utils/media-info.js';
-import {
-  hideMediaControlsTemporarily,
-  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
-  setControlsOnVideo,
-} from '../../../utils/media.js';
-import { screenshotMedia } from '../../../utils/screenshot.js';
 import { renderTask } from '../../../utils/task.js';
 import '../../message.js';
 import { renderMessage } from '../../message.js';
@@ -44,10 +44,7 @@ import { VideoRTC } from './go2rtc/video-rtc.js';
 // Create a wrapper for AlexxIT's WebRTC card
 //  - https://github.com/AlexxIT/WebRTC
 @customElement('advanced-camera-card-live-webrtc-card')
-export class AdvancedCameraCardLiveWebRTCCard
-  extends LitElement
-  implements AdvancedCameraCardMediaPlayer
-{
+export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements MediaPlayer {
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
@@ -65,61 +62,18 @@ export class AdvancedCameraCardLiveWebRTCCard
 
   protected hass?: HomeAssistant;
 
+  protected _mediaPlayerController = new VideoMediaPlayerController(
+    this,
+    () => this._getVideo(),
+    () => this.controls,
+  );
+
+  public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
+    return this._mediaPlayerController;
+  }
+
   // A task to await the load of the WebRTC component.
   protected _webrtcTask = new Task(this, this._getWebRTCCardElement, () => [1]);
-
-  public async play(): Promise<void> {
-    return this._getVideo()?.play();
-  }
-
-  public async pause(): Promise<void> {
-    this._getVideo()?.pause();
-  }
-
-  public async mute(): Promise<void> {
-    const player = this._getVideo();
-    if (player) {
-      player.muted = true;
-    }
-  }
-
-  public async unmute(): Promise<void> {
-    const player = this._getVideo();
-    if (player) {
-      player.muted = false;
-    }
-  }
-
-  public isMuted(): boolean {
-    return this._getVideo()?.muted ?? true;
-  }
-
-  public async seek(seconds: number): Promise<void> {
-    const player = this._getVideo();
-    if (player) {
-      player.currentTime = seconds;
-    }
-  }
-
-  public async setControls(controls?: boolean): Promise<void> {
-    const player = this._getVideo();
-    if (player) {
-      setControlsOnVideo(player, controls ?? this.controls);
-    }
-  }
-
-  public isPaused(): boolean {
-    return this._getVideo()?.paused ?? true;
-  }
-
-  public async getScreenshotURL(): Promise<string | null> {
-    const video = this._getVideo();
-    return video ? screenshotMedia(video) : null;
-  }
-
-  public getFullscreenElement(): FullscreenElement | null {
-    return this._getVideo();
-  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -253,7 +207,7 @@ export class AdvancedCameraCardLiveWebRTCCard
             hideMediaControlsTemporarily(video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
           }
           dispatchMediaLoadedEvent(this, video, {
-            player: this,
+            mediaPlayerController: this._mediaPlayerController,
             capabilities: {
               supportsPause: true,
               hasAudio: mayHaveAudio(video),

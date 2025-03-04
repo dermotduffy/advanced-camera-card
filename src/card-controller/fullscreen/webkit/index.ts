@@ -27,14 +27,16 @@ export class WebkitFullScreenProvider
 
   protected _stateChangeHandler = (change: ConditionStateChange): void => {
     if (
-      change.old.mediaLoadedInfo?.player?.getFullscreenElement() !==
-      change.new.mediaLoadedInfo?.player?.getFullscreenElement()
+      change.old.mediaLoadedInfo?.mediaPlayerController?.getFullscreenElement() !==
+      change.new.mediaLoadedInfo?.mediaPlayerController?.getFullscreenElement()
     ) {
-      const oldElement = change.old.mediaLoadedInfo?.player?.getFullscreenElement();
+      const oldElement =
+        change.old.mediaLoadedInfo?.mediaPlayerController?.getFullscreenElement();
       oldElement?.removeEventListener('webkitbeginfullscreen', this._handler);
       oldElement?.removeEventListener('webkitendfullscreen', this._endHandler);
 
-      const newElement = change.new.mediaLoadedInfo?.player?.getFullscreenElement();
+      const newElement =
+        change.new.mediaLoadedInfo?.mediaPlayerController?.getFullscreenElement();
       newElement?.addEventListener('webkitbeginfullscreen', this._handler);
       newElement?.addEventListener('webkitendfullscreen', this._endHandler);
     }
@@ -46,7 +48,7 @@ export class WebkitFullScreenProvider
     const element = this._api
       .getMediaLoadedInfoManager()
       .get()
-      ?.player?.getFullscreenElement();
+      ?.mediaPlayerController?.getFullscreenElement();
     return element instanceof HTMLVideoElement ? element : null;
   }
 

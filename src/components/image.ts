@@ -16,19 +16,16 @@ import { ZoomSettingsObserved } from '../components-lib/zoom/types';
 import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context';
 import { CameraConfig, ImageViewConfig } from '../config/types';
 import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../const';
-import basicBlockStyle from '../scss/basic-block.scss';
-import { AdvancedCameraCardMediaPlayer, FullscreenElement } from '../types.js';
+import imageStyle from '../scss/image.scss';
+import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../types.js';
 import { aspectRatioToString } from '../utils/basic';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
-import './image-base';
-import { resolveImageMode } from './image-base';
+import './image-updating-player';
+import { resolveImageMode } from './image-updating-player';
 import './zoomer.js';
 
 @customElement('advanced-camera-card-image')
-export class AdvancedCameraCardImage
-  extends LitElement
-  implements AdvancedCameraCardMediaPlayer
-{
+export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -44,47 +41,12 @@ export class AdvancedCameraCardImage
   @property({ attribute: false })
   public imageConfig?: ImageViewConfig;
 
-  protected _refImage: Ref<Element & AdvancedCameraCardMediaPlayer> = createRef();
-
-  public async play(): Promise<void> {
-    await this._refImage.value?.play();
+  public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
+    await this.updateComplete;
+    return (await this._refImage.value?.getMediaPlayerController()) ?? null;
   }
 
-  public async pause(): Promise<void> {
-    await this._refImage.value?.pause();
-  }
-
-  public async mute(): Promise<void> {
-    await this._refImage.value?.mute();
-  }
-
-  public async unmute(): Promise<void> {
-    await this._refImage.value?.unmute();
-  }
-
-  public isMuted(): boolean {
-    return !!this._refImage.value?.isMuted();
-  }
-
-  public async seek(seconds: number): Promise<void> {
-    await this._refImage.value?.seek(seconds);
-  }
-
-  public async setControls(controls?: boolean): Promise<void> {
-    await this._refImage.value?.setControls(controls);
-  }
-
-  public isPaused(): boolean {
-    return this._refImage.value?.isPaused() ?? true;
-  }
-
-  public async getScreenshotURL(): Promise<string | null> {
-    return (await this._refImage.value?.getScreenshotURL()) ?? null;
-  }
-
-  public getFullscreenElement(): FullscreenElement | null {
-    return this._refImage.value?.getFullscreenElement() ?? null;
-  }
+  protected _refImage: Ref<MediaPlayerElement> = createRef();
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('cameraConfig') || changedProps.has('imageConfig')) {
@@ -147,19 +109,19 @@ export class AdvancedCameraCardImage
     }
 
     return this._useZoomIfRequired(html`
-      <advanced-camera-card-image-base
+      <advanced-camera-card-image-updating-player
         ${ref(this._refImage)}
         .hass=${this.hass}
         .view=${this.viewManagerEpoch?.manager.getView()}
         .imageConfig=${this.imageConfig}
         .cameraConfig=${this.cameraConfig}
       >
-      </advanced-camera-card-image-base>
+      </advanced-camera-card-image-updating-player>
     `);
   }
 
   static get styles(): CSSResultGroup {
-    return unsafeCSS(basicBlockStyle);
+    return unsafeCSS(imageStyle);
   }
 }
 

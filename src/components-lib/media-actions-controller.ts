@@ -5,7 +5,7 @@ import {
   AutoPlayCondition,
   AutoUnmuteCondition,
 } from '../config/types.js';
-import { AdvancedCameraCardMediaPlayer } from '../types.js';
+import { MediaPlayerElement } from '../types.js';
 import { AdvancedCameraCardMediaLoadedEventTarget } from '../utils/media-info.js';
 import { Timer } from '../utils/timer.js';
 
@@ -22,7 +22,6 @@ export interface MediaActionsControllerOptions {
 }
 
 type RenderRoot = HTMLElement & AdvancedCameraCardMediaLoadedEventTarget;
-type PlayerElement = HTMLElement & AdvancedCameraCardMediaPlayer;
 
 /**
  * General note: Always unmute before playing, since Chrome may pause a piece of
@@ -43,12 +42,16 @@ export class MediaActionsController {
   protected _root: RenderRoot | null = null;
 
   protected _eventListeners = new Map<HTMLElement, () => void>();
-  protected _children: PlayerElement[] = [];
+  protected _children: MediaPlayerElement[] = [];
   protected _target: MediaActionsTarget | null = null;
   protected _mutationObserver = new MutationObserver(this._mutationHandler.bind(this));
   protected _intersectionObserver = new IntersectionObserver(
     this._intersectionHandler.bind(this),
   );
+
+  constructor() {
+    document.addEventListener('visibilitychange', this._visibilityHandler);
+  }
 
   public setOptions(options: MediaActionsControllerOptions): void {
     if (this._options?.microphoneState !== options.microphoneState) {
@@ -116,7 +119,7 @@ export class MediaActionsController {
     }
   }
   protected async _play(index: number): Promise<void> {
-    await this._children[index]?.play();
+    await (await this._children[index]?.getMediaPlayerController())?.play();
   }
   protected async _unmuteTargetIfConfigured(
     condition: AutoUnmuteCondition,
@@ -129,7 +132,7 @@ export class MediaActionsController {
     }
   }
   protected async _unmute(index: number): Promise<void> {
-    await this._children[index]?.unmute();
+    await (await this._children[index]?.getMediaPlayerController())?.unmute();
   }
 
   protected async _pauseAllIfConfigured(condition: AutoPauseCondition): Promise<void> {
@@ -150,7 +153,7 @@ export class MediaActionsController {
     }
   }
   protected async _pause(index: number): Promise<void> {
-    await this._children[index]?.pause();
+    await (await this._children[index]?.getMediaPlayerController())?.pause();
   }
 
   protected async _muteAllIfConfigured(condition: AutoMuteCondition): Promise<void> {
@@ -169,7 +172,7 @@ export class MediaActionsController {
     }
   }
   protected async _mute(index: number): Promise<void> {
-    await this._children[index]?.mute();
+    await (await this._children[index]?.getMediaPlayerController())?.mute();
   }
 
   protected _mutationHandler(
@@ -196,17 +199,21 @@ export class MediaActionsController {
     this._eventListeners.clear();
   }
 
-  public initialize(root: RenderRoot): void {
+  public setRoot(root: RenderRoot): boolean {
+    if (root === this._root) {
+      return false;
+    }
+
+    this._target = null;
     this._root = root;
     this._initializeRoot();
 
-    document.addEventListener('visibilitychange', this._visibilityHandler);
-
     this._intersectionObserver.disconnect();
-    this._intersectionObserver.observe(root);
+    this._intersectionObserver.observe(this._root);
 
     this._mutationObserver.disconnect();
     this._mutationObserver.observe(this._root, { childList: true, subtree: true });
+    return true;
   }
 
   protected _initializeRoot(): void {
@@ -217,7 +224,7 @@ export class MediaActionsController {
     this._removeChildHandlers();
 
     this._children = [
-      ...this._root.querySelectorAll<PlayerElement>(this._options.playerSelector),
+      ...this._root.querySelectorAll<MediaPlayerElement>(this._options.playerSelector),
     ];
 
     for (const [index, child] of this._children.entries()) {

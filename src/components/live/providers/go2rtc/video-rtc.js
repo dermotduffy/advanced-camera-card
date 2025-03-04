@@ -3,7 +3,7 @@ import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   setControlsOnVideo,
-} from '../../../../utils/media';
+} from '../../../../utils/controls.js';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
@@ -162,13 +162,13 @@ export class VideoRTC extends HTMLElement {
     this.microphoneStream = null;
 
     /**
-     * A reference to a containing AdvancedCameraCardMediaPlayer object.
-     * @type {AdvancedCameraCardMediaPlayer}}
+     * A reference to a MediaPlayerController for this video
+     * @type {MediaPlayerController | null}
      */
-    this.containingPlayer = null;
+    this.mediaPlayerController = null;
 
     /**
-     * Whether to show or hide video controls for videos created in future.
+     * Whether to show or hide video controls for videos created *in future*.
      * @type {boolean}}
      */
     this.controls = true;
@@ -353,7 +353,9 @@ export class VideoRTC extends HTMLElement {
         hideMediaControlsTemporarily(this.video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
       }
       dispatchMediaLoadedEvent(this, this.video, {
-        player: this.containingPlayer,
+        ...(this.mediaPlayerController && {
+          mediaPlayerController: this.mediaPlayerController,
+        }),
         capabilities: {
           // 2-way audio is only supported on WebRTC connections. The state of
           // `this.microphoneStream` is not taken into account here since
@@ -734,7 +736,9 @@ export class VideoRTC extends HTMLElement {
       if (!receivedFirstFrame) {
         receivedFirstFrame = true;
         dispatchMediaLoadedEvent(this, this.video, {
-          player: this.containingPlayer,
+          ...(this.mediaPlayerController && {
+            mediaPlayerController: this.mediaPlayerController,
+          }),
           technology: ['mjpeg'],
         });
       }
@@ -779,7 +783,9 @@ export class VideoRTC extends HTMLElement {
         context = canvas.getContext('2d');
 
         dispatchMediaLoadedEvent(this, video2, {
-          player: this.containingPlayer,
+          ...(this.mediaPlayerController && {
+            mediaPlayerController: this.mediaPlayerController,
+          }),
           technology: ['mp4'],
         });
       }

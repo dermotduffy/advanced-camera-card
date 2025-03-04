@@ -23,9 +23,9 @@ import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';
 import viewerCarouselStyle from '../../scss/viewer-carousel.scss';
 import {
-  AdvancedCameraCardMediaPlayer,
   ExtendedHomeAssistant,
   MediaLoadedInfo,
+  MediaPlayerController,
 } from '../../types.js';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { contentsChanged, setOrRemoveAttribute } from '../../utils/basic.js';
@@ -92,7 +92,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
 
   protected _media: ViewMedia[] | null = null;
   protected _mediaActionsController = new MediaActionsController();
-  protected _player: AdvancedCameraCardMediaPlayer | null = null;
+  protected _loadedMediaPlayerController: MediaPlayerController | null = null;
   protected _refCarousel: Ref<HTMLElement> = createRef();
 
   updated(changedProperties: PropertyValues): void {
@@ -110,8 +110,8 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       }
     }
 
-    if (!this._mediaActionsController.hasRoot() && this._refCarousel.value) {
-      this._mediaActionsController.initialize(this._refCarousel.value);
+    if (this._refCarousel.value) {
+      this._mediaActionsController.setRoot(this._refCarousel.value);
     }
   }
 
@@ -383,11 +383,11 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
           this._setViewSelectedIndex(ev.detail.index);
         }}
         @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
-          this._player = ev.detail.player ?? null;
+          this._loadedMediaPlayerController = ev.detail.mediaPlayerController ?? null;
           this._seekHandler();
         }}
         @advanced-camera-card:media:unloaded=${() => {
-          this._player = null;
+          this._loadedMediaPlayerController = null;
         }}
       >
         ${this.showControls ? this._renderNextPrevious('left', neighbors) : ''}
@@ -418,7 +418,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
   protected async _seekHandler(): Promise<void> {
     const view = this.viewManagerEpoch?.manager.getView();
     const seek = view?.context?.mediaViewer?.seek;
-    if (!this.hass || !seek || !this._media || !this._player) {
+    if (!this.hass || !seek || !this._media || !this._loadedMediaPlayerController) {
       return;
     }
     const selectedMedia = this._media[this._selected];
@@ -428,17 +428,17 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
 
     const seekTimeInMedia = selectedMedia.includesTime(seek);
     setOrRemoveAttribute(this, !seekTimeInMedia, 'unseekable');
-    if (!seekTimeInMedia && !this._player.isPaused()) {
-      this._player.pause();
-    } else if (seekTimeInMedia && this._player.isPaused()) {
-      this._player.play();
+    if (!seekTimeInMedia && !this._loadedMediaPlayerController.isPaused()) {
+      this._loadedMediaPlayerController.pause();
+    } else if (seekTimeInMedia && this._loadedMediaPlayerController.isPaused()) {
+      this._loadedMediaPlayerController.play();
     }
 
     const seekTime =
       (await this.cameraManager?.getMediaSeekTime(selectedMedia, seek)) ?? null;
 
     if (seekTime !== null) {
-      this._player.seek(seekTime);
+      this._loadedMediaPlayerController.seek(seekTime);
     }
   }
 

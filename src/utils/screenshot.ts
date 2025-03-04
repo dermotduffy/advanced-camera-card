@@ -1,16 +1,28 @@
 import { format } from 'date-fns';
 import { View } from '../view/view';
 
-export const screenshotMedia = (video: HTMLVideoElement): string | null => {
+export const screenshotImage = (image: HTMLImageElement): string | null => {
+  return screenshotElement(image, image.naturalWidth, image.naturalHeight);
+};
+
+export const screenshotVideo = (video: HTMLVideoElement): string | null => {
+  return screenshotElement(video, video.videoWidth, video.videoHeight);
+};
+
+const screenshotElement = (
+  src: CanvasImageSource,
+  width: number,
+  height: number,
+): string | null => {
   const canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+  canvas.width = width;
+  canvas.height = height;
 
   const ctx = canvas.getContext('2d');
   if (!ctx) {
     return null;
   }
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(src, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL('image/jpeg');
 };
 

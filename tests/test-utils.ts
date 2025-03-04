@@ -473,6 +473,15 @@ export const createLitElement = (): LitElement => {
   const element = document.createElement('div') as unknown as LitElement;
   element.addController = vi.fn();
   element.requestUpdate = vi.fn();
+
+  const promise: Promise<boolean> = new Promise((resolve) => {
+    resolve(false);
+  });
+
+  // Need to overwrite a read-only property.
+  Object.defineProperty(element, 'updateComplete', {
+    value: promise,
+  });
   return element;
 };
 

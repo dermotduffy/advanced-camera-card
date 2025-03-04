@@ -11,13 +11,14 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 import { CameraEndpoints } from '../../../camera-manager/types.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
+import { JSMPEGMediaPlayerController } from '../../../components-lib/media-player/jsmpeg.js';
 import { CameraConfig, CardWideConfig } from '../../../config/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveJSMPEGStyle from '../../../scss/live-jsmpeg.scss';
 import {
-  AdvancedCameraCardMediaPlayer,
   ExtendedHomeAssistant,
-  FullscreenElement,
+  MediaPlayer,
+  MediaPlayerController,
   Message,
 } from '../../../types.js';
 import { convertEndpointAddressToSignedWebsocket } from '../../../utils/endpoint.js';
@@ -39,10 +40,9 @@ const JSMPEG_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 const JSMPEG_URL_SIGN_REFRESH_THRESHOLD_SECONDS = 1 * 60 * 60;
 
 @customElement('advanced-camera-card-live-jsmpeg')
-export class AdvancedCameraCardLiveJSMPEG
-  extends LitElement
-  implements AdvancedCameraCardMediaPlayer
-{
+export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPlayer {
+  protected hass?: ExtendedHomeAssistant;
+
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
@@ -52,61 +52,21 @@ export class AdvancedCameraCardLiveJSMPEG
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
-  protected hass?: ExtendedHomeAssistant;
+  @state()
+  protected _message: Message | null = null;
 
   protected _jsmpegCanvasElement?: HTMLCanvasElement;
   protected _jsmpegVideoPlayer?: JSMpeg.VideoElement;
   protected _refreshPlayerTimer = new Timer();
 
-  @state()
-  protected _message: Message | null = null;
+  protected _mediaPlayerController = new JSMPEGMediaPlayerController(
+    this,
+    () => this._jsmpegVideoPlayer ?? null,
+    () => this._jsmpegCanvasElement ?? null,
+  );
 
-  public async play(): Promise<void> {
-    return this._jsmpegVideoPlayer?.play();
-  }
-
-  public async pause(): Promise<void> {
-    this._jsmpegVideoPlayer?.stop();
-  }
-
-  public async mute(): Promise<void> {
-    const player = this._jsmpegVideoPlayer?.player;
-    if (player) {
-      player.volume = 0;
-    }
-  }
-
-  public async unmute(): Promise<void> {
-    const player = this._jsmpegVideoPlayer?.player;
-    if (player) {
-      player.volume = 1;
-    }
-  }
-
-  public isMuted(): boolean {
-    return this._jsmpegVideoPlayer ? this._jsmpegVideoPlayer.player.volume === 0 : true;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async seek(_seconds: number): Promise<void> {
-    // JSMPEG does not support seeking.
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async setControls(_controls: boolean): Promise<void> {
-    // Not implemented.
-  }
-
-  public isPaused(): boolean {
-    return this._jsmpegVideoPlayer?.player?.paused ?? true;
-  }
-
-  public async getScreenshotURL(): Promise<string | null> {
-    return this._jsmpegCanvasElement?.toDataURL('image/jpeg') ?? null;
-  }
-
-  public getFullscreenElement(): FullscreenElement | null {
-    return this._jsmpegCanvasElement ?? null;
+  public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
+    return this._mediaPlayerController;
   }
 
   protected willUpdate(changedProperties: PropertyValues): void {
@@ -170,7 +130,7 @@ export class AdvancedCameraCardLiveJSMPEG
     // calls back to the player to check for pause status for menu buttons.
     if (this._jsmpegCanvasElement) {
       dispatchMediaLoadedEvent(this, this._jsmpegCanvasElement, {
-        player: this,
+        mediaPlayerController: this._mediaPlayerController,
         capabilities: {
           supportsPause: true,
         },

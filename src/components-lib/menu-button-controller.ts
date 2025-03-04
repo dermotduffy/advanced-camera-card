@@ -489,10 +489,10 @@ export class MenuButtonController {
   ): MenuItem | null {
     if (
       currentMediaLoadedInfo &&
-      currentMediaLoadedInfo.player &&
+      currentMediaLoadedInfo.mediaPlayerController &&
       currentMediaLoadedInfo.capabilities?.supportsPause
     ) {
-      const paused = currentMediaLoadedInfo.player.isPaused();
+      const paused = currentMediaLoadedInfo.mediaPlayerController?.isPaused();
       return {
         icon: paused ? 'mdi:play' : 'mdi:pause',
         ...config.menu.buttons.play,
@@ -512,10 +512,10 @@ export class MenuButtonController {
   ): MenuItem | null {
     if (
       currentMediaLoadedInfo &&
-      currentMediaLoadedInfo.player &&
+      currentMediaLoadedInfo.mediaPlayerController &&
       currentMediaLoadedInfo?.capabilities?.hasAudio
     ) {
-      const muted = currentMediaLoadedInfo.player.isMuted();
+      const muted = currentMediaLoadedInfo.mediaPlayerController?.isMuted();
       return {
         icon: muted ? 'mdi:volume-off' : 'mdi:volume-high',
         ...config.menu.buttons.mute,
@@ -533,7 +533,7 @@ export class MenuButtonController {
     config: AdvancedCameraCardConfig,
     currentMediaLoadedInfo?: MediaLoadedInfo | null,
   ): MenuItem | null {
-    if (currentMediaLoadedInfo && currentMediaLoadedInfo.player) {
+    if (currentMediaLoadedInfo && currentMediaLoadedInfo.mediaPlayerController) {
       return {
         icon: 'mdi:monitor-screenshot',
         ...config.menu.buttons.screenshot,

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { DownloadManager } from '../../src/card-controller/download-manager';
-import { AdvancedCameraCardMediaPlayer } from '../../src/types';
+import { MediaPlayerController } from '../../src/types';
 import { downloadMedia, downloadURL } from '../../src/utils/download.js';
 import {
   createCardAPI,
@@ -62,12 +62,12 @@ describe('DownloadManager.downloadScreenshot', () => {
 
   it('with url', async () => {
     const api = createCardAPI();
-    const player = mock<AdvancedCameraCardMediaPlayer>();
-    player.getScreenshotURL.mockResolvedValue('http://screenshot');
+    const mediaPlayerController = mock<MediaPlayerController>();
+    mediaPlayerController.getScreenshotURL.mockResolvedValue('http://screenshot');
 
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({
-        player: player,
+        mediaPlayerController,
       }),
     );
     const manager = new DownloadManager(api);
@@ -78,12 +78,12 @@ describe('DownloadManager.downloadScreenshot', () => {
 
   it('without url', async () => {
     const api = createCardAPI();
-    const player = mock<AdvancedCameraCardMediaPlayer>();
-    player.getScreenshotURL.mockResolvedValue(null);
+    const mediaPlayerController = mock<MediaPlayerController>();
+    mediaPlayerController.getScreenshotURL.mockResolvedValue(null);
 
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({
-        player: player,
+        mediaPlayerController,
       }),
     );
     const manager = new DownloadManager(api);

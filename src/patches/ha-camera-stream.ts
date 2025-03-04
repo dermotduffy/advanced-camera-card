@@ -12,18 +12,12 @@
 import { css, CSSResultGroup, html, nothing, PropertyValues, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
+import '../components/image-player.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
-import {
-  AdvancedCameraCardMediaPlayer,
-  FullscreenElement,
-  MediaLoadedInfo,
-} from '../types.js';
-import {
-  createMediaLoadedInfo,
-  dispatchExistingMediaLoadedInfoAsEvent,
-} from '../utils/media-info.js';
-import './ha-hls-player';
-import './ha-web-rtc-player';
+import { MediaLoadedInfo, MediaPlayer, MediaPlayerController } from '../types.js';
+import { dispatchExistingMediaLoadedInfoAsEvent } from '../utils/media-info.js';
+import './ha-hls-player.js';
+import './ha-web-rtc-player.js';
 
 customElements.whenDefined('ha-camera-stream').then(() => {
   // ========================================================================================
@@ -44,12 +38,12 @@ customElements.whenDefined('ha-camera-stream').then(() => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   class AdvancedCameraCardHaCameraStream
     extends customElements.get('ha-camera-stream')
-    implements AdvancedCameraCardMediaPlayer
+    implements MediaPlayer
   {
     // Due to an obscure behavior when this card is casted, this element needs
     // to use query rather than the ref directive to find the player.
     @query('.player:not(.hidden)')
-    protected _player: AdvancedCameraCardMediaPlayer;
+    protected _player: MediaPlayer;
 
     protected _mediaLoadedInfoPerStream: Record<StreamType, MediaLoadedInfo> = {};
     protected _mediaLoadedInfoDispatched: MediaLoadedInfo | null = null;
@@ -59,46 +53,9 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     // - https://github.com/home-assistant/frontend/blob/dev/src/components/ha-camera-stream.ts
     // ========================================================================================
 
-    public async play(): Promise<void> {
-      return this._player?.play();
-    }
-
-    public async pause(): Promise<void> {
-      this._player?.pause();
-    }
-
-    public async mute(): Promise<void> {
-      this._player?.mute();
-    }
-
-    public async unmute(): Promise<void> {
-      this._player?.unmute();
-    }
-
-    public isMuted(): boolean {
-      return this._player?.isMuted() ?? true;
-    }
-
-    public async seek(seconds: number): Promise<void> {
-      this._player?.seek(seconds);
-    }
-
-    public async setControls(controls?: boolean): Promise<void> {
-      if (this._player) {
-        this._player.setControls(controls ?? this.controls);
-      }
-    }
-
-    public isPaused(): boolean {
-      return this._player?.isPaused() ?? true;
-    }
-
-    public async getScreenshotURL(): Promise<string | null> {
-      return this._player ? await this._player.getScreenshotURL() : null;
-    }
-
-    public getFullscreenElement(): FullscreenElement | null {
-      return this._player?.getFullscreenElement() ?? null;
+    public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
+      await this.updateComplete;
+      return (await this._player?.getMediaPlayerController()) ?? null;
     }
 
     protected _storeMediaLoadedInfoHandler(
@@ -123,16 +80,17 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       }
       if (stream.type === STREAM_TYPE_MJPEG) {
         return html`
-          <img
-            @load=${(ev) =>
-              this._storeMediaLoadedInfo(
-                STREAM_TYPE_MJPEG,
-                createMediaLoadedInfo(ev, { player: this, technology: ['mjpeg'] }),
-              )}
-            .src=${typeof this._connected == 'undefined' || this._connected
+          <advanced-camera-card-image-player
+            @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
+              this._storeMediaLoadedInfo(STREAM_TYPE_MJPEG, ev.detail);
+              ev.stopPropagation();
+            }}
+            src=${typeof this._connected == 'undefined' || this._connected
               ? computeMJPEGStreamUrl(this.stateObj)
               : this._posterUrl || ''}
-          />
+            filetype="mjpeg"
+            class="player"
+          ></advanced-camera-card-image-player>
         `;
       }
 
@@ -146,8 +104,10 @@ customElements.whenDefined('ha-camera-stream').then(() => {
           .hass=${this.hass}
           .entityid=${this.stateObj.entity_id}
           .posterUrl=${this._posterUrl}
-          @advanced-camera-card:media:loaded=${(ev) =>
-            this._storeMediaLoadedInfoHandler(STREAM_TYPE_HLS, ev)}
+          @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
+            this._storeMediaLoadedInfoHandler(STREAM_TYPE_HLS, ev);
+            ev.stopPropagation();
+          }}
           @streams=${this._handleHlsStreams}
           class="player ${stream.visible ? '' : 'hidden'}"
         ></advanced-camera-card-ha-hls-player>`;
@@ -162,8 +122,10 @@ customElements.whenDefined('ha-camera-stream').then(() => {
           .hass=${this.hass}
           .entityid=${this.stateObj.entity_id}
           .posterUrl=${this._posterUrl}
-          @advanced-camera-card:media:loaded=${(ev) =>
-            this._storeMediaLoadedInfoHandler(STREAM_TYPE_WEB_RTC, ev)}
+          @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
+            this._storeMediaLoadedInfoHandler(STREAM_TYPE_WEB_RTC, ev);
+            ev.stopPropagation();
+          }}
           @streams=${this._handleWebRtcStreams}
           class="player ${stream.visible ? '' : 'hidden'}"
         ></advanced-camera-card-ha-web-rtc-player>`;

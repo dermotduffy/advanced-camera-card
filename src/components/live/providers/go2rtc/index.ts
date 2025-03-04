@@ -10,18 +10,17 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { CameraEndpoints } from '../../../../camera-manager/types.js';
 import { MicrophoneState } from '../../../../card-controller/types.js';
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
+import { VideoMediaPlayerController } from '../../../../components-lib/media-player/video.js';
 import { CameraConfig, MicrophoneConfig } from '../../../../config/types.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
 import {
   ExtendedHomeAssistant,
-  AdvancedCameraCardMediaPlayer,
-  FullscreenElement,
+  MediaPlayer,
+  MediaPlayerController,
   Message,
 } from '../../../../types.js';
 import { convertEndpointAddressToSignedWebsocket } from '../../../../utils/endpoint.js';
-import { setControlsOnVideo } from '../../../../utils/media.js';
-import { screenshotMedia } from '../../../../utils/screenshot.js';
 import { renderMessage } from '../../../message.js';
 import { VideoRTC } from './video-rtc.js';
 
@@ -35,10 +34,7 @@ customElements.define('advanced-camera-card-live-go2rtc-player', VideoRTC);
 const GO2RTC_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 
 @customElement('advanced-camera-card-live-go2rtc')
-export class AdvancedCameraCardGo2RTC
-  extends LitElement
-  implements AdvancedCameraCardMediaPlayer
-{
+export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer {
   // Not an reactive property to avoid resetting the video.
   public hass?: ExtendedHomeAssistant;
 
@@ -62,52 +58,14 @@ export class AdvancedCameraCardGo2RTC
 
   protected _player?: VideoRTC;
 
-  public async play(): Promise<void> {
-    return this._player?.video?.play();
-  }
+  protected _mediaPlayerController = new VideoMediaPlayerController(
+    this,
+    () => this._player?.video ?? null,
+    () => this.controls,
+  );
 
-  public async pause(): Promise<void> {
-    this._player?.video?.pause();
-  }
-
-  public async mute(): Promise<void> {
-    if (this._player?.video) {
-      this._player.video.muted = true;
-    }
-  }
-
-  public async unmute(): Promise<void> {
-    if (this._player?.video) {
-      this._player.video.muted = false;
-    }
-  }
-
-  public isMuted(): boolean {
-    return this._player?.video?.muted ?? true;
-  }
-
-  public async seek(seconds: number): Promise<void> {
-    if (this._player?.video) {
-      this._player.video.currentTime = seconds;
-    }
-  }
-
-  public async setControls(controls?: boolean): Promise<void> {
-    if (this._player?.video) {
-      setControlsOnVideo(this._player.video, controls ?? this.controls);
-    }
-  }
-
-  public isPaused(): boolean {
-    return this._player?.video?.paused ?? true;
-  }
-
-  public async getScreenshotURL(): Promise<string | null> {
-    return this._player?.video ? screenshotMedia(this._player.video) : null;
-  }
-
-  public getFullscreenElement(): FullscreenElement | null {
-    return this._player?.video ?? null;
+  public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
+    return this._mediaPlayerController;
   }
 
   disconnectedCallback(): void {
@@ -155,7 +113,7 @@ export class AdvancedCameraCardGo2RTC
     }
 
     this._player = new VideoRTC();
-    this._player.containingPlayer = this;
+    this._player.mediaPlayerController = this._mediaPlayerController;
     this._player.microphoneStream = this.microphoneState?.stream ?? null;
     this._player.src = address;
     this._player.visibilityCheck = false;

@@ -1,9 +1,7 @@
+@use 'basic-block.scss';
 @use 'media-background.scss';
 
 :host {
-  display: block;
-  height: 100%;
-  width: 100%;
   position: relative;
 }
 

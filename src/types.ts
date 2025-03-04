@@ -39,7 +39,8 @@ export interface MediaLoadedInfo {
   width: number;
   height: number;
   technology?: MediaTechnology[];
-  player?: AdvancedCameraCardMediaPlayer;
+
+  mediaPlayerController?: MediaPlayerController;
   capabilities?: MediaLoadedCapabilities;
 }
 
@@ -63,7 +64,7 @@ export type WebkitHTMLVideoElement = HTMLVideoElement & {
 
 export type FullscreenElement = HTMLElement;
 
-export interface AdvancedCameraCardMediaPlayer {
+export interface MediaPlayerController {
   play(): Promise<void>;
   pause(): Promise<void>;
   mute(): Promise<void>;
@@ -76,6 +77,12 @@ export interface AdvancedCameraCardMediaPlayer {
   isPaused(): boolean;
   getFullscreenElement(): FullscreenElement | null;
 }
+
+export interface MediaPlayer {
+  getMediaPlayerController(): Promise<MediaPlayerController | null>;
+}
+
+export type MediaPlayerElement<T extends HTMLElement = HTMLElement> = T & MediaPlayer;
 
 export type LovelaceCardWithEditor = LovelaceCard & {
   constructor: {

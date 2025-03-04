@@ -1,12 +1,16 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { generateScreenshotTitle, screenshotMedia } from '../../src/utils/screenshot';
+import {
+  generateScreenshotTitle,
+  screenshotImage,
+  screenshotVideo,
+} from '../../src/utils/screenshot';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View } from '../../src/view/view';
 import { TestViewMedia, createView } from '../test-utils';
 
 // @vitest-environment jsdom
-describe('screenshotMedia', () => {
+describe('screenshotVideo', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -19,7 +23,7 @@ describe('screenshotMedia', () => {
     canvas.getContext = getContext;
     vi.spyOn(document, 'createElement').mockReturnValue(canvas);
 
-    expect(screenshotMedia(video)).toBeNull();
+    expect(screenshotVideo(video)).toBeNull();
   });
 
   it('should screenshot', () => {
@@ -31,7 +35,36 @@ describe('screenshotMedia', () => {
     canvas.toDataURL = vi.fn().mockReturnValue('data:image/jpeg;base64');
     vi.spyOn(document, 'createElement').mockReturnValue(canvas);
 
-    expect(screenshotMedia(video)).toBe('data:image/jpeg;base64');
+    expect(screenshotVideo(video)).toBe('data:image/jpeg;base64');
+  });
+});
+
+describe('screenshotImage', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('should not screenshot without context', () => {
+    const image = document.createElement('img');
+
+    const canvas = document.createElement('canvas');
+    const getContext = vi.fn().mockReturnValue(null);
+    canvas.getContext = getContext;
+    vi.spyOn(document, 'createElement').mockReturnValue(canvas);
+
+    expect(screenshotImage(image)).toBeNull();
+  });
+
+  it('should screenshot', () => {
+    const image = document.createElement('img');
+
+    const canvas = document.createElement('canvas');
+    const getContext = vi.fn().mockReturnValue(mock<CanvasRenderingContext2D>());
+    canvas.getContext = getContext;
+    canvas.toDataURL = vi.fn().mockReturnValue('data:image/jpeg;base64');
+    vi.spyOn(document, 'createElement').mockReturnValue(canvas);
+
+    expect(screenshotImage(image)).toBe('data:image/jpeg;base64');
   });
 });
 

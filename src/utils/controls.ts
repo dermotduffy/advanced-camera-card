@@ -1,4 +1,3 @@
-import { AdvancedCameraCardMediaPlayer } from '../types';
 import { Timer } from './timer';
 
 // The number of seconds to hide the video controls for after loading (in order
@@ -58,31 +57,4 @@ export const hideMediaControlsTemporarily = (
   video._controlsHideTimer.start(seconds, () => {
     setControlsOnVideo(video, oldValue);
   });
-};
-
-/**
- * @param player The Advanced Camera Card Media Player object.
- * @param video An underlying video or media player upon which to call play.
- */
-export const playMediaMutingIfNecessary = async (
-  player: AdvancedCameraCardMediaPlayer,
-  video?: HTMLVideoElement | AdvancedCameraCardMediaPlayer,
-): Promise<void> => {
-  // If the play call fails, and the media is not already muted, mute it first
-  // and then try again. This works around some browsers that prevent
-  // auto-play unless the video is muted.
-  if (video?.play) {
-    try {
-      await video.play();
-    } catch (err: unknown) {
-      if ((err as Error).name === 'NotAllowedError' && !player.isMuted()) {
-        await player.mute();
-        try {
-          await video.play();
-        } catch (_) {
-          // Pass.
-        }
-      }
-    }
-  }
 };

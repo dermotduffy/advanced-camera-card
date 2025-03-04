@@ -1,7 +1,7 @@
 import {
-  AdvancedCameraCardMediaPlayer,
   MediaLoadedCapabilities,
   MediaLoadedInfo,
+  MediaPlayerController,
   MediaTechnology,
 } from '../types.js';
 import { dispatchAdvancedCameraCardEvent } from './basic.js';
@@ -17,7 +17,7 @@ const MEDIA_INFO_WIDTH_CUTOFF = MEDIA_INFO_HEIGHT_CUTOFF;
 export function createMediaLoadedInfo(
   source: Event | HTMLElement,
   options?: {
-    player?: AdvancedCameraCardMediaPlayer;
+    mediaPlayerController?: MediaPlayerController;
     capabilities?: MediaLoadedCapabilities;
     technology?: MediaTechnology[];
   },
@@ -45,7 +45,7 @@ export function createMediaLoadedInfo(
     return {
       width: (target as HTMLCanvasElement).width,
       height: (target as HTMLCanvasElement).height,
-      player: options?.player,
+      mediaPlayerController: options?.mediaPlayerController,
       ...options,
     };
   }
@@ -61,7 +61,7 @@ export function dispatchMediaLoadedEvent(
   target: HTMLElement,
   source: Event | HTMLElement,
   options?: {
-    player?: AdvancedCameraCardMediaPlayer;
+    mediaPlayerController?: MediaPlayerController;
     capabilities?: MediaLoadedCapabilities;
     technology?: MediaTechnology[];
   },

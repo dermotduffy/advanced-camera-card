@@ -1,10 +1,11 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 import { MicrophoneState } from '../../src/card-controller/types';
 import {
   MediaActionsController,
   MediaActionsControllerOptions,
 } from '../../src/components-lib/media-actions-controller';
-import { AdvancedCameraCardMediaPlayer } from '../../src/types';
+import { MediaPlayerController, MediaPlayerElement } from '../../src/types';
 import {
   IntersectionObserverMock,
   MutationObserverMock,
@@ -18,30 +19,22 @@ import { callVisibilityHandler, createTestSlideNodes } from '../utils/embla/test
 const getPlayer = (
   element: HTMLElement,
   selector: string,
-): (HTMLElement & AdvancedCameraCardMediaPlayer) | null => {
+): MediaPlayerElement | null => {
   return element.querySelector(selector);
 };
 
-const createPlayer = (): HTMLElement & AdvancedCameraCardMediaPlayer => {
+const createPlayerElement = (controller?: MediaPlayerController): MediaPlayerElement => {
   const player = document.createElement('video');
-
-  player['play'] = vi.fn();
-  player['pause'] = vi.fn();
-  player['mute'] = vi.fn();
-  player['unmute'] = vi.fn();
-  player['isMuted'] = vi.fn().mockReturnValue(true);
-  player['seek'] = vi.fn();
-  player['getScreenshotURL'] = vi.fn();
-  player['setControls'] = vi.fn();
-  player['isPaused'] = vi.fn();
-
-  return player as unknown as HTMLElement & AdvancedCameraCardMediaPlayer;
+  player['getMediaPlayerController'] = vi
+    .fn()
+    .mockResolvedValue(controller ?? mock<MediaPlayerController>());
+  return player as unknown as MediaPlayerElement;
 };
 
 const createPlayerSlideNodes = (n = 10): HTMLElement[] => {
   const divs = createTestSlideNodes({ n: n });
   for (const div of divs) {
-    div.appendChild(createPlayer());
+    div.appendChild(createPlayerElement());
   }
   return divs;
 };
@@ -61,11 +54,11 @@ describe('MediaActionsController', () => {
     vi.clearAllMocks();
   });
 
-  describe('should initialize', () => {
+  describe('should set root', () => {
     it('should have root', async () => {
       const controller = new MediaActionsController();
 
-      controller.initialize(createParent());
+      controller.setRoot(createParent());
 
       expect(controller.hasRoot()).toBeTruthy();
     });
@@ -76,13 +69,23 @@ describe('MediaActionsController', () => {
       const children = createPlayerSlideNodes();
       const parent = createParent({ children: children });
 
-      controller.initialize(parent);
+      controller.setRoot(parent);
       await controller.setTarget(0, true);
 
-      expect(getPlayer(children[0], 'video')?.play).not.toBeCalled();
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+      ).not.toBeCalled();
     });
 
-    it('should re-initialize after mutation', async () => {
+    it('should do nothing on resetting same root', () => {
+      const controller = new MediaActionsController();
+      const parent = createParent({ children: createPlayerSlideNodes() });
+
+      expect(controller.setRoot(parent)).toBeTruthy();
+      expect(controller.setRoot(parent)).toBeFalsy();
+    });
+
+    it('should re-setRoot after mutation', async () => {
       const controller = new MediaActionsController();
       controller.setOptions({
         playerSelector: 'video',
@@ -90,9 +93,11 @@ describe('MediaActionsController', () => {
       });
 
       const parent = createParent({ children: createPlayerSlideNodes(1) });
-      controller.initialize(parent);
+      controller.setRoot(parent);
 
-      const newPlayer = createPlayer();
+      const mediaPlayerController = mock<MediaPlayerController>();
+
+      const newPlayer = createPlayerElement(mediaPlayerController);
       const newChild = document.createElement('div');
       newChild.appendChild(newPlayer);
       parent.append(newChild);
@@ -101,7 +106,7 @@ describe('MediaActionsController', () => {
 
       await controller.setTarget(1, true);
 
-      expect(newPlayer.play).toBeCalled();
+      expect(mediaPlayerController.play).toBeCalled();
     });
   });
 
@@ -115,13 +120,15 @@ describe('MediaActionsController', () => {
 
       const children = createPlayerSlideNodes();
       const parent = createParent({ children: children });
-      controller.initialize(parent);
+      controller.setRoot(parent);
 
       controller.destroy();
 
       await controller.setTarget(0, true);
 
-      expect(getPlayer(children[0], 'video')?.play).not.toBeCalled();
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+      ).not.toBeCalled();
     });
   });
 
@@ -146,11 +153,13 @@ describe('MediaActionsController', () => {
         });
 
         const children = createPlayerSlideNodes();
-        controller.initialize(createParent({ children: children }));
+        controller.setRoot(createParent({ children: children }));
 
         await controller.setTarget(0, true);
 
-        expect(getPlayer(children[0], 'video')?.[func]).toBeCalledTimes(called ? 1 : 0);
+        expect(
+          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+        ).toBeCalledTimes(called ? 1 : 0);
       },
     );
 
@@ -162,13 +171,19 @@ describe('MediaActionsController', () => {
       });
 
       const children = createPlayerSlideNodes();
-      controller.initialize(createParent({ children: children }));
+      controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
-      expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(1);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+      ).toBeCalledTimes(1);
 
       await controller.setTarget(0, true);
-      expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(1);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+      ).toBeCalledTimes(1);
     });
 
     it('should unselect before selecting a new target', async () => {
@@ -180,13 +195,17 @@ describe('MediaActionsController', () => {
       });
 
       const children = createPlayerSlideNodes();
-      controller.initialize(createParent({ children: children }));
+      controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
       await controller.setTarget(1, true);
 
-      expect(getPlayer(children[0], 'video')?.pause).toBeCalled();
-      expect(getPlayer(children[0], 'video')?.mute).toBeCalled();
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.pause,
+      ).toBeCalled();
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
+      ).toBeCalled();
     });
 
     it('should select after target was previously visible', async () => {
@@ -198,17 +217,25 @@ describe('MediaActionsController', () => {
       });
 
       const children = createPlayerSlideNodes();
-      controller.initialize(createParent({ children: children }));
+      controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, false);
 
-      expect(getPlayer(children[0], 'video')?.play).not.toBeCalled();
-      expect(getPlayer(children[0], 'video')?.unmute).not.toBeCalled();
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+      ).not.toBeCalled();
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).not.toBeCalled();
 
       await controller.setTarget(0, true);
 
-      expect(getPlayer(children[0], 'video')?.play).toBeCalled();
-      expect(getPlayer(children[0], 'video')?.unmute).toBeCalled();
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+      ).toBeCalled();
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).toBeCalled();
     });
   });
 
@@ -221,12 +248,16 @@ describe('MediaActionsController', () => {
     });
 
     const children = createPlayerSlideNodes();
-    controller.initialize(createParent({ children: children }));
+    controller.setRoot(createParent({ children: children }));
 
     await controller.setTarget(0, true);
 
-    expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(1);
-    expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(1);
+    expect(
+      (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+    ).toBeCalledTimes(1);
+    expect(
+      (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+    ).toBeCalledTimes(1);
 
     controller.unsetTarget();
 
@@ -236,8 +267,12 @@ describe('MediaActionsController', () => {
     await flushPromises();
 
     // Play/Mute will not have been called again.
-    expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(1);
-    expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(1);
+    expect(
+      (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+    ).toBeCalledTimes(1);
+    expect(
+      (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+    ).toBeCalledTimes(1);
   });
 
   describe('should respond to media loaded', () => {
@@ -249,10 +284,13 @@ describe('MediaActionsController', () => {
       });
 
       const children = createPlayerSlideNodes();
-      controller.initialize(createParent({ children: children }));
+      controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
-      expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(1);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+      ).toBeCalledTimes(1);
 
       getPlayer(children[0], 'video')?.dispatchEvent(
         new Event('advanced-camera-card:media:loaded'),
@@ -260,7 +298,9 @@ describe('MediaActionsController', () => {
 
       await flushPromises();
 
-      expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(2);
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+      ).toBeCalledTimes(2);
     });
 
     it('should unmute after media load', async () => {
@@ -271,10 +311,12 @@ describe('MediaActionsController', () => {
       });
 
       const children = createPlayerSlideNodes();
-      controller.initialize(createParent({ children: children }));
+      controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
-      expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(1);
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).toBeCalledTimes(1);
 
       getPlayer(children[0], 'video')?.dispatchEvent(
         new Event('advanced-camera-card:media:loaded'),
@@ -282,7 +324,9 @@ describe('MediaActionsController', () => {
 
       await flushPromises();
 
-      expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(2);
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).toBeCalledTimes(2);
     });
 
     it('should take no action on unrelated media load', async () => {
@@ -294,7 +338,7 @@ describe('MediaActionsController', () => {
       });
 
       const children = createPlayerSlideNodes();
-      controller.initialize(createParent({ children: children }));
+      controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
 
@@ -304,8 +348,12 @@ describe('MediaActionsController', () => {
 
       await flushPromises();
 
-      expect(getPlayer(children[9], 'video')?.play).not.toBeCalled();
-      expect(getPlayer(children[9], 'video')?.unmute).not.toBeCalled();
+      expect(
+        (await getPlayer(children[9], 'video')?.getMediaPlayerController())?.play,
+      ).not.toBeCalled();
+      expect(
+        (await getPlayer(children[9], 'video')?.getMediaPlayerController())?.unmute,
+      ).not.toBeCalled();
     });
 
     it('should play and unmute on unselected but targeted media load', async () => {
@@ -317,12 +365,16 @@ describe('MediaActionsController', () => {
       });
 
       const children = createPlayerSlideNodes();
-      controller.initialize(createParent({ children: children }));
+      controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, false);
 
-      expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(1);
-      expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(1);
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+      ).toBeCalledTimes(1);
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).toBeCalledTimes(1);
 
       getPlayer(children[0], 'video')?.dispatchEvent(
         new Event('advanced-camera-card:media:loaded'),
@@ -330,8 +382,12 @@ describe('MediaActionsController', () => {
 
       await flushPromises();
 
-      expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(2);
-      expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(2);
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+      ).toBeCalledTimes(2);
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).toBeCalledTimes(2);
     });
   });
 
@@ -356,12 +412,14 @@ describe('MediaActionsController', () => {
         });
 
         const children = createPlayerSlideNodes();
-        controller.initialize(createParent({ children: children }));
+        controller.setRoot(createParent({ children: children }));
 
         await controller.setTarget(0, true);
         await controller.setTarget(0, false);
 
-        expect(getPlayer(children[0], 'video')?.[func]).toBeCalledTimes(called ? 1 : 0);
+        expect(
+          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+        ).toBeCalledTimes(called ? 1 : 0);
       },
     );
   });
@@ -389,11 +447,13 @@ describe('MediaActionsController', () => {
         });
 
         const children = createPlayerSlideNodes();
-        controller.initialize(createParent({ children: children }));
+        controller.setRoot(createParent({ children: children }));
         await controller.setTarget(0, true);
 
         // Not configured to take action on selection.
-        expect(getPlayer(children[0], 'video')?.[func]).not.toBeCalled();
+        expect(
+          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+        ).not.toBeCalled();
 
         Object.defineProperty(document, 'visibilityState', {
           value: 'visible',
@@ -402,7 +462,9 @@ describe('MediaActionsController', () => {
         await callVisibilityHandler();
 
         // Not configured to take action on selection.
-        expect(getPlayer(children[0], 'video')?.[func]).toBeCalledTimes(called ? 1 : 0);
+        expect(
+          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+        ).toBeCalledTimes(called ? 1 : 0);
       },
     );
   });
@@ -432,11 +494,13 @@ describe('MediaActionsController', () => {
         });
 
         const children = createPlayerSlideNodes();
-        controller.initialize(createParent({ children: children }));
+        controller.setRoot(createParent({ children: children }));
         await controller.setTarget(0, true);
 
         // Not configured to take action on selection.
-        expect(getPlayer(children[0], 'video')?.[func]).not.toBeCalled();
+        expect(
+          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+        ).not.toBeCalled();
 
         Object.defineProperty(document, 'visibilityState', {
           value: 'hidden',
@@ -445,7 +509,9 @@ describe('MediaActionsController', () => {
         await callVisibilityHandler();
 
         // Not configured to take action on selection.
-        expect(getPlayer(children[0], 'video')?.[func]).toBeCalledTimes(called ? 1 : 0);
+        expect(
+          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+        ).toBeCalledTimes(called ? 1 : 0);
       },
     );
   });
@@ -471,11 +537,13 @@ describe('MediaActionsController', () => {
         });
 
         const children = createPlayerSlideNodes();
-        controller.initialize(createParent({ children: children }));
+        controller.setRoot(createParent({ children: children }));
         await controller.setTarget(0, true);
 
         // Not configured to take action on selection.
-        expect(getPlayer(children[0], 'video')?.[func]).not.toBeCalled();
+        expect(
+          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+        ).not.toBeCalled();
 
         // There's always a first call to an intersection observer handler. In
         // this case the MediaActionsController ignores it.
@@ -484,7 +552,9 @@ describe('MediaActionsController', () => {
         await callIntersectionHandler(true);
 
         // Not configured to take action on selection.
-        expect(getPlayer(children[0], 'video')?.[func]).toBeCalledTimes(called ? 1 : 0);
+        expect(
+          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+        ).toBeCalledTimes(called ? 1 : 0);
       },
     );
   });
@@ -510,11 +580,13 @@ describe('MediaActionsController', () => {
         });
 
         const children = createPlayerSlideNodes();
-        controller.initialize(createParent({ children: children }));
+        controller.setRoot(createParent({ children: children }));
         await controller.setTarget(0, true);
 
         // Not configured to take action on selection.
-        expect(getPlayer(children[0], 'video')?.[func]).not.toBeCalled();
+        expect(
+          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+        ).not.toBeCalled();
 
         // There's always a first call to an intersection observer handler. In
         // this case the MediaActionsController ignores it.
@@ -523,7 +595,9 @@ describe('MediaActionsController', () => {
         await callIntersectionHandler(true);
 
         // Not configured to take action on selection.
-        expect(getPlayer(children[0], 'video')?.[func]).toBeCalledTimes(called ? 1 : 0);
+        expect(
+          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+        ).toBeCalledTimes(called ? 1 : 0);
       },
     );
   });
@@ -558,7 +632,7 @@ describe('MediaActionsController', () => {
       });
 
       const children = createPlayerSlideNodes();
-      controller.initialize(createParent({ children: children }));
+      controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
 
@@ -568,7 +642,9 @@ describe('MediaActionsController', () => {
         microphoneState: createMicrophoneState({ muted: false }),
       });
 
-      expect(getPlayer(children[0], 'video')?.unmute).toBeCalled();
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).toBeCalled();
     });
 
     it('should mute after delay after microphone muted', async () => {
@@ -581,7 +657,7 @@ describe('MediaActionsController', () => {
       });
 
       const children = createPlayerSlideNodes();
-      controller.initialize(createParent({ children: children }));
+      controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
 
@@ -593,7 +669,9 @@ describe('MediaActionsController', () => {
 
       vi.runOnlyPendingTimers();
 
-      expect(getPlayer(children[0], 'video')?.mute).toBeCalled();
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
+      ).toBeCalled();
     });
 
     it('should not mute after delay after microphone muted', async () => {
@@ -606,7 +684,7 @@ describe('MediaActionsController', () => {
       });
 
       const children = createPlayerSlideNodes();
-      controller.initialize(createParent({ children: children }));
+      controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
 
@@ -618,7 +696,9 @@ describe('MediaActionsController', () => {
 
       vi.runOnlyPendingTimers();
 
-      expect(getPlayer(children[0], 'video')?.mute).not.toBeCalled();
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
+      ).not.toBeCalled();
     });
   });
 });

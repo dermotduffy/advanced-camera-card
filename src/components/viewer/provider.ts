@@ -17,12 +17,12 @@ import { CardWideConfig, ViewerConfig } from '../../config/types.js';
 import '../../patches/ha-hls-player.js';
 import viewerProviderStyle from '../../scss/viewer-provider.scss';
 import {
-  AdvancedCameraCardMediaPlayer,
   ExtendedHomeAssistant,
-  FullscreenElement,
+  MediaPlayer,
+  MediaPlayerController,
+  MediaPlayerElement,
   ResolvedMedia,
 } from '../../types.js';
-import { mayHaveAudio } from '../../utils/audio.js';
 import { aspectRatioToString, errorToConsole } from '../../utils/basic.js';
 import {
   canonicalizeHAURL,
@@ -35,30 +35,16 @@ import {
   getWebProxiedURL,
   shouldUseWebProxy,
 } from '../../utils/ha/web-proxy.js';
-import {
-  dispatchMediaLoadedEvent,
-  dispatchMediaPauseEvent,
-  dispatchMediaPlayEvent,
-  dispatchMediaVolumeChangeEvent,
-} from '../../utils/media-info.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
-import {
-  hideMediaControlsTemporarily,
-  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
-  playMediaMutingIfNecessary,
-  setControlsOnVideo,
-} from '../../utils/media.js';
-import { screenshotMedia } from '../../utils/screenshot.js';
 import { ViewMediaClassifier } from '../../view/media-classifier.js';
 import { MediaQueriesClassifier } from '../../view/media-queries-classifier.js';
 import { VideoContentType, ViewMedia } from '../../view/media.js';
+import '../image-player.js';
 import { renderProgressIndicator } from '../progress-indicator.js';
+import '../video-player.js';
 
 @customElement('advanced-camera-card-viewer-provider')
-export class AdvancedCameraCardViewerProvider
-  extends LitElement
-  implements AdvancedCameraCardMediaPlayer
-{
+export class AdvancedCameraCardViewerProvider extends LitElement implements MediaPlayer {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -86,100 +72,14 @@ export class AdvancedCameraCardViewerProvider
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
-  protected _refAdvancedCameraCardMediaPlayer: Ref<
-    Element & AdvancedCameraCardMediaPlayer
-  > = createRef();
-  protected _refVideoProvider: Ref<HTMLVideoElement> = createRef();
-  protected _refImageProvider: Ref<HTMLImageElement> = createRef();
+  protected _refProvider: Ref<MediaPlayerElement> = createRef();
 
   @state()
   protected _url: string | null = null;
 
-  public async play(): Promise<void> {
-    await playMediaMutingIfNecessary(
-      this,
-      this._refAdvancedCameraCardMediaPlayer.value ?? this._refVideoProvider.value,
-    );
-  }
-
-  public async pause(): Promise<void> {
-    (
-      this._refAdvancedCameraCardMediaPlayer.value || this._refVideoProvider.value
-    )?.pause();
-  }
-
-  public async mute(): Promise<void> {
-    if (this._refAdvancedCameraCardMediaPlayer.value) {
-      this._refAdvancedCameraCardMediaPlayer.value?.mute();
-    } else if (this._refVideoProvider.value) {
-      this._refVideoProvider.value.muted = true;
-    }
-  }
-
-  public async unmute(): Promise<void> {
-    if (this._refAdvancedCameraCardMediaPlayer.value) {
-      this._refAdvancedCameraCardMediaPlayer.value?.mute();
-    } else if (this._refVideoProvider.value) {
-      this._refVideoProvider.value.muted = false;
-    }
-  }
-
-  public isMuted(): boolean {
-    if (this._refAdvancedCameraCardMediaPlayer.value) {
-      return this._refAdvancedCameraCardMediaPlayer.value?.isMuted() ?? true;
-    } else if (this._refVideoProvider.value) {
-      return this._refVideoProvider.value.muted;
-    }
-    return true;
-  }
-
-  public async seek(seconds: number): Promise<void> {
-    if (this._refAdvancedCameraCardMediaPlayer.value) {
-      return this._refAdvancedCameraCardMediaPlayer.value.seek(seconds);
-    } else if (this._refVideoProvider.value) {
-      hideMediaControlsTemporarily(this._refVideoProvider.value);
-      this._refVideoProvider.value.currentTime = seconds;
-    }
-  }
-
-  public async setControls(controls?: boolean): Promise<void> {
-    if (this._refAdvancedCameraCardMediaPlayer.value) {
-      return this._refAdvancedCameraCardMediaPlayer.value.setControls(controls);
-    } else if (this._refVideoProvider.value) {
-      setControlsOnVideo(
-        this._refVideoProvider.value,
-        controls ?? this.viewerConfig?.controls.builtin ?? true,
-      );
-    }
-  }
-
-  public isPaused(): boolean {
-    if (this._refAdvancedCameraCardMediaPlayer.value) {
-      return this._refAdvancedCameraCardMediaPlayer.value.isPaused();
-    } else if (this._refVideoProvider.value) {
-      return this._refVideoProvider.value.paused;
-    }
-    return true;
-  }
-
-  public async getScreenshotURL(): Promise<string | null> {
-    if (this._refAdvancedCameraCardMediaPlayer.value) {
-      return await this._refAdvancedCameraCardMediaPlayer.value.getScreenshotURL();
-    } else if (this._refVideoProvider.value) {
-      return screenshotMedia(this._refVideoProvider.value);
-    } else if (this._refImageProvider.value) {
-      return this._refImageProvider.value.src;
-    }
-    return null;
-  }
-
-  public getFullscreenElement(): FullscreenElement | null {
-    if (this._refAdvancedCameraCardMediaPlayer.value) {
-      return this._refAdvancedCameraCardMediaPlayer.value.getFullscreenElement();
-    } else if (this._refVideoProvider.value) {
-      return this._refVideoProvider.value;
-    }
-    return null;
+  public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
+    await this.updateComplete;
+    return (await this._refProvider.value?.getMediaPlayerController()) ?? null;
   }
 
   protected async _switchToRelatedClipView(): Promise<void> {
@@ -332,8 +232,10 @@ export class AdvancedCameraCardViewerProvider
               : undefined,
           )}
           .settings=${mediaID ? view?.context?.zoom?.[mediaID]?.requested : undefined}
-          @advanced-camera-card:zoom:zoomed=${() => this.setControls(false)}
-          @advanced-camera-card:zoom:unzoomed=${() => this.setControls()}
+          @advanced-camera-card:zoom:zoomed=${async () =>
+            (await this.getMediaPlayerController())?.setControls(false)}
+          @advanced-camera-card:zoom:unzoomed=${async () =>
+            (await this.getMediaPlayerController())?.setControls()}
           @advanced-camera-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
             handleZoomSettingsObservedEvent(ev, this.viewManagerEpoch?.manager, mediaID)}
         >
@@ -359,7 +261,7 @@ export class AdvancedCameraCardViewerProvider
       ${ViewMediaClassifier.isVideo(this.media)
         ? this.media.getVideoContentType() === VideoContentType.HLS
           ? html`<advanced-camera-card-ha-hls-player
-              ${ref(this._refAdvancedCameraCardMediaPlayer)}
+              ${ref(this._refProvider)}
               allow-exoplayer
               aria-label="${this.media.getTitle() ?? ''}"
               ?autoplay=${false}
@@ -373,54 +275,26 @@ export class AdvancedCameraCardViewerProvider
             >
             </advanced-camera-card-ha-hls-player>`
           : html`
-              <video
-                ${ref(this._refVideoProvider)}
+              <advanced-camera-card-video-player
+                ${ref(this._refProvider)}
+                url=${this._url}
                 aria-label="${this.media.getTitle() ?? ''}"
                 title="${this.media.getTitle() ?? ''}"
-                muted
-                playsinline
-                crossorigin="anonymous"
-                ?autoplay=${false}
                 ?controls=${this.viewerConfig.controls.builtin}
-                @loadedmetadata=${(ev: Event) => {
-                  if (ev.target && !!this.viewerConfig?.controls.builtin) {
-                    hideMediaControlsTemporarily(
-                      ev.target as HTMLVideoElement,
-                      MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
-                    );
-                  }
-                }}
-                @loadeddata=${(ev: Event) => {
-                  dispatchMediaLoadedEvent(this, ev, {
-                    player: this,
-                    capabilities: {
-                      supportsPause: true,
-                      hasAudio: mayHaveAudio(ev.target as HTMLVideoElement),
-                    },
-                    technology: ['hls'],
-                  });
-                }}
-                @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
-                @play=${() => dispatchMediaPlayEvent(this)}
-                @pause=${() => dispatchMediaPauseEvent(this)}
               >
-                <source src=${this._url} type="video/mp4" />
-              </video>
+              </advanced-camera-card-video-player>
             `
-        : html`<img
-            ${ref(this._refImageProvider)}
+        : html`<advanced-camera-card-image-player
+            ${ref(this._refProvider)}
+            url="${this._url}"
             aria-label="${this.media.getTitle() ?? ''}"
-            src="${this._url}"
             title="${this.media.getTitle() ?? ''}"
             @click=${() => {
               if (this.viewerConfig?.snapshot_click_plays_clip) {
                 this._switchToRelatedClipView();
               }
             }}
-            @load=${(ev: Event) => {
-              dispatchMediaLoadedEvent(this, ev, { player: this, technology: ['jpg'] });
-            }}
-          />`}
+          ></advanced-camera-card-image-player>`}
     `);
   }
 
