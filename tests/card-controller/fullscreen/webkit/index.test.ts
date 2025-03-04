@@ -2,10 +2,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { WebkitFullScreenProvider } from '../../../../src/card-controller/fullscreen/webkit';
 import { ConditionStateManager } from '../../../../src/conditions/state-manager';
-import {
-  AdvancedCameraCardMediaPlayer,
-  WebkitHTMLVideoElement,
-} from '../../../../src/types';
+import { MediaPlayerController, WebkitHTMLVideoElement } from '../../../../src/types';
 import { createCardAPI, createMediaLoadedInfo } from '../../../test-utils';
 
 const createWebkitVideoElement = (): HTMLVideoElement &
@@ -13,10 +10,10 @@ const createWebkitVideoElement = (): HTMLVideoElement &
   return document.createElement('video');
 };
 
-const createPlayer = (element: HTMLElement): AdvancedCameraCardMediaPlayer => {
-  const player = mock<AdvancedCameraCardMediaPlayer>();
-  player.getFullscreenElement.mockReturnValue(element);
-  return player;
+const createMediaPlayerController = (element: HTMLElement): MediaPlayerController => {
+  const mediaPlayerController = mock<MediaPlayerController>();
+  mediaPlayerController.getFullscreenElement.mockReturnValue(element);
+  return mediaPlayerController;
 };
 
 // @vitest-environment jsdom
@@ -57,10 +54,10 @@ describe('WebkitFullScreenProvider', () => {
       const element = createWebkitVideoElement();
       element.webkitDisplayingFullscreen = fullscreen;
 
-      const player = createPlayer(element);
+      const mediaPlayerController = createMediaPlayerController(element);
       vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
         createMediaLoadedInfo({
-          player: player,
+          mediaPlayerController,
         }),
       );
 
@@ -76,10 +73,10 @@ describe('WebkitFullScreenProvider', () => {
       const element = createWebkitVideoElement();
       element.webkitSupportsFullscreen = supported;
 
-      const player = createPlayer(element);
+      const mediaPlayerController = createMediaPlayerController(element);
       vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
         createMediaLoadedInfo({
-          player: player,
+          mediaPlayerController,
         }),
       );
 
@@ -96,10 +93,10 @@ describe('WebkitFullScreenProvider', () => {
       element.webkitEnterFullscreen = vi.fn();
       element.webkitSupportsFullscreen = true;
 
-      const player = createPlayer(element);
+      const mediaPlayerController = createMediaPlayerController(element);
       vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
         createMediaLoadedInfo({
-          player: player,
+          mediaPlayerController,
         }),
       );
 
@@ -116,10 +113,10 @@ describe('WebkitFullScreenProvider', () => {
       element.webkitExitFullscreen = vi.fn();
       element.webkitSupportsFullscreen = true;
 
-      const player = createPlayer(element);
+      const mediaPlayerController = createMediaPlayerController(element);
       vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
         createMediaLoadedInfo({
-          player: player,
+          mediaPlayerController,
         }),
       );
 
@@ -137,10 +134,10 @@ describe('WebkitFullScreenProvider', () => {
       element.webkitExitFullscreen = vi.fn();
       element.webkitSupportsFullscreen = false;
 
-      const player = createPlayer(element);
+      const mediaPlayerController = createMediaPlayerController(element);
       vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
         createMediaLoadedInfo({
-          player: player,
+          mediaPlayerController,
         }),
       );
 
@@ -160,10 +157,10 @@ describe('WebkitFullScreenProvider', () => {
       element.webkitEnterFullscreen = vi.fn();
       element.webkitExitFullscreen = vi.fn();
 
-      const player = createPlayer(element);
+      const mediaPlayerController = createMediaPlayerController(element);
       vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
         createMediaLoadedInfo({
-          player: player,
+          mediaPlayerController,
         }),
       );
 
@@ -190,9 +187,11 @@ describe('WebkitFullScreenProvider', () => {
           provider.connect();
 
           const element_1 = createWebkitVideoElement();
-          const player_1 = mock<AdvancedCameraCardMediaPlayer>();
-          player_1.getFullscreenElement.mockReturnValue(element_1);
-          const mediaLoadedInfo_1 = createMediaLoadedInfo({ player: player_1 });
+          const mediaPlayerController_1 = mock<MediaPlayerController>();
+          mediaPlayerController_1.getFullscreenElement.mockReturnValue(element_1);
+          const mediaLoadedInfo_1 = createMediaLoadedInfo({
+            mediaPlayerController: mediaPlayerController_1,
+          });
 
           stateManager.setState({ mediaLoadedInfo: mediaLoadedInfo_1 });
 
@@ -201,9 +200,11 @@ describe('WebkitFullScreenProvider', () => {
           expect(handler).toBeCalledTimes(1);
 
           const element_2 = createWebkitVideoElement();
-          const player_2 = mock<AdvancedCameraCardMediaPlayer>();
-          player_2.getFullscreenElement.mockReturnValue(element_2);
-          const mediaLoadedInfo_2 = createMediaLoadedInfo({ player: player_2 });
+          const mediaPlayerController_2 = mock<MediaPlayerController>();
+          mediaPlayerController_2.getFullscreenElement.mockReturnValue(element_2);
+          const mediaLoadedInfo_2 = createMediaLoadedInfo({
+            mediaPlayerController: mediaPlayerController_2,
+          });
 
           stateManager.setState({ mediaLoadedInfo: mediaLoadedInfo_2 });
 
@@ -243,14 +244,14 @@ describe('WebkitFullScreenProvider', () => {
     const element = createWebkitVideoElement();
     element.play = vi.fn();
 
-    const player = createPlayer(element);
+    const mediaPlayerController = createMediaPlayerController(element);
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({
-        player: player,
+        mediaPlayerController,
       }),
     );
 
-    const mediaLoadedInfo = createMediaLoadedInfo({ player });
+    const mediaLoadedInfo = createMediaLoadedInfo({ mediaPlayerController });
 
     stateManager.setState({ mediaLoadedInfo });
 

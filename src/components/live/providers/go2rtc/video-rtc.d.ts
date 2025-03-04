@@ -1,3 +1,5 @@
+import { MediaPlayerController } from '../../../../types';
+
 export class VideoRTC extends HTMLElement {
   DISCONNECT_TIMEOUT: number;
   RECONNECT_TIMEOUT: number;
@@ -29,9 +31,8 @@ export class VideoRTC extends HTMLElement {
   onmessage: Record<string, (msg: { type: string; value: string }) => void>;
 
   // Custom methods/members.
-  containingPlayer: AdvancedCameraCardMediaPlayer | null;
+  mediaPlayerController: MediaPlayerController | null;
   microphoneStream: MediaStream | null;
   reconnect();
-
   setControls(controls: boolean): void;
 }

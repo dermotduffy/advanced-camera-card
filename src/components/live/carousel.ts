@@ -429,16 +429,14 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   public updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
 
-    let initialized = false;
-    if (!this._mediaActionsController.hasRoot() && this._refCarousel.value) {
-      this._mediaActionsController.initialize(this._refCarousel.value);
-      initialized = true;
-    }
+    const rootChanged = this._refCarousel.value
+      ? this._mediaActionsController.setRoot(this._refCarousel.value)
+      : false;
 
     // If the view has changed, or if the media actions controller has just been
     // initialized, then call the necessary media action.
     // See: https://github.com/dermotduffy/advanced-camera-card/issues/1626
-    if (initialized || changedProperties.has('viewManagerEpoch')) {
+    if (rootChanged || changedProperties.has('viewManagerEpoch')) {
       this._setMediaTarget();
     }
   }

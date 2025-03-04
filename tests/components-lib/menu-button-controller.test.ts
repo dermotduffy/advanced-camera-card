@@ -19,7 +19,7 @@ import {
   MenuItem,
   ViewDisplayMode,
 } from '../../src/config/types';
-import { AdvancedCameraCardMediaPlayer } from '../../src/types';
+import { MediaPlayerController } from '../../src/types';
 import { createGeneralAction, createViewAction } from '../../src/utils/action';
 import { ViewMedia } from '../../src/view/media';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
@@ -1349,13 +1349,13 @@ describe('MenuButtonController', () => {
   });
 
   it('should have pause button', () => {
-    const player = mock<AdvancedCameraCardMediaPlayer>();
+    const mediaPlayerController = mock<MediaPlayerController>();
     const buttons = calculateButtons(controller, {
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supportsPause: true,
         },
-        player: player,
+        mediaPlayerController,
       }),
     });
 
@@ -1370,14 +1370,14 @@ describe('MenuButtonController', () => {
   });
 
   it('should have play button', () => {
-    const player = mock<AdvancedCameraCardMediaPlayer>();
-    player.isPaused.mockReturnValue(true);
+    const mediaPlayerController = mock<MediaPlayerController>();
+    mediaPlayerController.isPaused.mockReturnValue(true);
     const buttons = calculateButtons(controller, {
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supportsPause: true,
         },
-        player: player,
+        mediaPlayerController,
       }),
     });
 
@@ -1392,13 +1392,13 @@ describe('MenuButtonController', () => {
   });
 
   it('should have mute button', () => {
-    const player = mock<AdvancedCameraCardMediaPlayer>();
+    const mediaPlayerController = mock<MediaPlayerController>();
     const buttons = calculateButtons(controller, {
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           hasAudio: true,
         },
-        player: player,
+        mediaPlayerController,
       }),
     });
 
@@ -1413,14 +1413,14 @@ describe('MenuButtonController', () => {
   });
 
   it('should have unmute button', () => {
-    const player = mock<AdvancedCameraCardMediaPlayer>();
-    player.isMuted.mockReturnValue(true);
+    const mediaPlayerController = mock<MediaPlayerController>();
+    mediaPlayerController.isMuted.mockReturnValue(true);
     const buttons = calculateButtons(controller, {
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           hasAudio: true,
         },
-        player: player,
+        mediaPlayerController,
       }),
     });
 
@@ -1437,7 +1437,7 @@ describe('MenuButtonController', () => {
   it('should have screenshot button', () => {
     const buttons = calculateButtons(controller, {
       currentMediaLoadedInfo: createMediaLoadedInfo({
-        player: mock<AdvancedCameraCardMediaPlayer>(),
+        mediaPlayerController: mock<MediaPlayerController>(),
       }),
     });
 

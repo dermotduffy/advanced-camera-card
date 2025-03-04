@@ -33,7 +33,7 @@ export class DownloadManager {
     const url = await this._api
       .getMediaLoadedInfoManager()
       .get()
-      ?.player?.getScreenshotURL();
+      ?.mediaPlayerController?.getScreenshotURL();
     if (url) {
       downloadURL(url, generateScreenshotTitle(this._api.getViewManager().getView()));
     }

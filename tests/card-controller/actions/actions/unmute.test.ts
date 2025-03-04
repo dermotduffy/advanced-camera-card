@@ -1,15 +1,15 @@
 import { expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { UnmuteAction } from '../../../../src/card-controller/actions/actions/unmute';
-import { AdvancedCameraCardMediaPlayer } from '../../../../src/types';
+import { MediaPlayerController } from '../../../../src/types';
 import { createCardAPI, createMediaLoadedInfo } from '../../../test-utils';
 
 it('should handle unmute action', async () => {
   const api = createCardAPI();
-  const player = mock<AdvancedCameraCardMediaPlayer>();
+  const mediaPlayerController = mock<MediaPlayerController>();
   vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
     createMediaLoadedInfo({
-      player: player,
+      mediaPlayerController,
     }),
   );
   const action = new UnmuteAction(
@@ -22,5 +22,5 @@ it('should handle unmute action', async () => {
 
   await action.execute(api);
 
-  expect(player.unmute).toBeCalled();
+  expect(mediaPlayerController.unmute).toBeCalled();
 });

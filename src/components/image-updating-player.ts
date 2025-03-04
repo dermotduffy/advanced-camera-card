@@ -15,14 +15,15 @@ import isEqual from 'lodash-es/isEqual';
 import { CameraManager } from '../camera-manager/manager.js';
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
+import { UpdatingImageMediaPlayerController } from '../components-lib/media-player/updating-image.js';
 import { CameraConfig, ImageMode, ImageViewConfig } from '../config/types.js';
 import defaultImage from '../images/iris-screensaver.jpg';
 import { localize } from '../localize/localize.js';
-import imageStyle from '../scss/image.scss';
+import imageUpdatingPlayerStyle from '../scss/image-updating-player.scss';
 import {
-  AdvancedCameraCardMediaPlayer,
-  FullscreenElement,
   MediaLoadedInfo,
+  MediaPlayer,
+  MediaPlayerController,
   Message,
 } from '../types.js';
 import { contentsChanged } from '../utils/basic.js';
@@ -60,10 +61,13 @@ export const resolveImageMode = (options?: {
   return 'screensaver';
 };
 
-@customElement('advanced-camera-card-image-base')
-export class AdvancedCameraCardImageBase
+/**
+ * A media player to wrap a image that updates continuously.
+ */
+@customElement('advanced-camera-card-image-updating-player')
+export class AdvancedCameraCardImageUpdatingPlayer
   extends LitElement
-  implements AdvancedCameraCardMediaPlayer
+  implements MediaPlayer
 {
   @property({ attribute: false })
   public hass?: HomeAssistant;
@@ -93,46 +97,14 @@ export class AdvancedCameraCardImageBase
 
   protected _mediaLoadedInfo: MediaLoadedInfo | null = null;
 
-  public async play(): Promise<void> {
-    this._cachedValueController?.startTimer();
-  }
+  protected _mediaPlayerController = new UpdatingImageMediaPlayerController(
+    this,
+    () => this._refImage.value ?? null,
+    () => this._cachedValueController ?? null,
+  );
 
-  public async pause(): Promise<void> {
-    this._cachedValueController?.stopTimer();
-  }
-
-  public async mute(): Promise<void> {
-    // Not implemented.
-  }
-
-  public async unmute(): Promise<void> {
-    // Not implemented.
-  }
-
-  public isMuted(): boolean {
-    return true;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async seek(_seconds: number): Promise<void> {
-    // Not implemented.
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async setControls(_controls: boolean): Promise<void> {
-    // Not implemented.
-  }
-
-  public isPaused(): boolean {
-    return !this._cachedValueController?.hasTimer();
-  }
-
-  public async getScreenshotURL(): Promise<string | null> {
-    return this._cachedValueController?.value ?? null;
-  }
-
-  public getFullscreenElement(): FullscreenElement | null {
-    return this._refImage.value ?? null;
+  public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
+    return this._mediaPlayerController;
   }
 
   /**
@@ -366,7 +338,7 @@ export class AdvancedCameraCardImageBase
             src=${live(src)}
             @load=${(ev: Event) => {
               const mediaLoadedInfo = createMediaLoadedInfo(ev, {
-                player: this,
+                mediaPlayerController: this._mediaPlayerController,
                 capabilities: {
                   supportsPause: !!this.imageConfig?.refresh_seconds,
                 },
@@ -406,12 +378,12 @@ export class AdvancedCameraCardImageBase
   }
 
   static get styles(): CSSResultGroup {
-    return unsafeCSS(imageStyle);
+    return unsafeCSS(imageUpdatingPlayerStyle);
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'advanced-camera-card-image-base': AdvancedCameraCardImageBase;
+    'advanced-camera-card-image-updating-player': AdvancedCameraCardImageUpdatingPlayer;
   }
 }

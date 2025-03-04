@@ -25,14 +25,14 @@ import { STREAM_TROUBLESHOOTING_URL } from '../../const.js';
 import { localize } from '../../localize/localize.js';
 import liveProviderStyle from '../../scss/live-provider.scss';
 import {
-  AdvancedCameraCardMediaPlayer,
   ExtendedHomeAssistant,
-  FullscreenElement,
+  MediaPlayer,
+  MediaPlayerController,
+  MediaPlayerElement,
 } from '../../types.js';
 import { aspectRatioToString } from '../../utils/basic.js';
 import { dispatchMediaUnloadedEvent } from '../../utils/media-info.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
-import { playMediaMutingIfNecessary } from '../../utils/media.js';
 import '../icon.js';
 import { renderMessage } from '../message.js';
 import '../next-prev-control.js';
@@ -40,10 +40,7 @@ import '../ptz.js';
 import '../surround.js';
 
 @customElement('advanced-camera-card-live-provider')
-export class AdvancedCameraCardLiveProvider
-  extends LitElement
-  implements AdvancedCameraCardMediaPlayer
-{
+export class AdvancedCameraCardLiveProvider extends LitElement implements MediaPlayer {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -84,7 +81,7 @@ export class AdvancedCameraCardLiveProvider
   @state()
   protected _showStreamTroubleshooting = false;
 
-  protected _refProvider: Ref<LitElement & AdvancedCameraCardMediaPlayer> = createRef();
+  protected _refProvider: Ref<MediaPlayerElement> = createRef();
 
   // A note on dynamic imports:
   //
@@ -98,58 +95,9 @@ export class AdvancedCameraCardLiveProvider
   // background. These calls fail without waiting for loading here.
   protected _importPromises: Promise<unknown>[] = [];
 
-  public async play(): Promise<void> {
+  public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     await this.updateComplete;
-    await this._refProvider.value?.updateComplete;
-    await playMediaMutingIfNecessary(this, this._refProvider.value);
-  }
-
-  public async pause(): Promise<void> {
-    await this.updateComplete;
-    await this._refProvider.value?.updateComplete;
-    await this._refProvider.value?.pause();
-  }
-
-  public async mute(): Promise<void> {
-    await this.updateComplete;
-    await this._refProvider.value?.updateComplete;
-    await this._refProvider.value?.mute();
-  }
-
-  public async unmute(): Promise<void> {
-    await this.updateComplete;
-    await this._refProvider.value?.updateComplete;
-    await this._refProvider.value?.unmute();
-  }
-
-  public isMuted(): boolean {
-    return this._refProvider.value?.isMuted() ?? true;
-  }
-
-  public async seek(seconds: number): Promise<void> {
-    await this.updateComplete;
-    await this._refProvider.value?.updateComplete;
-    await this._refProvider.value?.seek(seconds);
-  }
-
-  public async setControls(controls?: boolean): Promise<void> {
-    await this.updateComplete;
-    await this._refProvider.value?.updateComplete;
-    await this._refProvider.value?.setControls(controls);
-  }
-
-  public isPaused(): boolean {
-    return this._refProvider.value?.isPaused() ?? true;
-  }
-
-  public async getScreenshotURL(): Promise<string | null> {
-    await this.updateComplete;
-    await this._refProvider.value?.updateComplete;
-    return (await this._refProvider.value?.getScreenshotURL()) ?? null;
-  }
-
-  public getFullscreenElement(): FullscreenElement | null {
-    return this._refProvider.value?.getFullscreenElement() ?? null;
+    return (await this._refProvider.value?.getMediaPlayerController()) ?? null;
   }
 
   /**
@@ -265,8 +213,10 @@ export class AdvancedCameraCardLiveProvider
               : undefined,
           )}
           .settings=${this.zoomSettings}
-          @advanced-camera-card:zoom:zoomed=${() => this.setControls(false)}
-          @advanced-camera-card:zoom:unzoomed=${() => this.setControls()}
+          @advanced-camera-card:zoom:zoomed=${async () =>
+            (await this.getMediaPlayerController())?.setControls(false)}
+          @advanced-camera-card:zoom:unzoomed=${async () =>
+            (await this.getMediaPlayerController())?.setControls()}
         >
           ${template}
         </advanced-camera-card-zoomer>`

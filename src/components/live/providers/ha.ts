@@ -7,13 +7,14 @@ import '../../../patches/ha-camera-stream';
 import '../../../patches/ha-hls-player.js';
 import '../../../patches/ha-web-rtc-player.js';
 import liveHAStyle from '../../../scss/live-ha.scss';
-import { AdvancedCameraCardMediaPlayer, FullscreenElement } from '../../../types.js';
+import {
+  MediaPlayer,
+  MediaPlayerController,
+  MediaPlayerElement,
+} from '../../../types.js';
 
 @customElement('advanced-camera-card-live-ha')
-export class AdvancedCameraCardLiveHA
-  extends LitElement
-  implements AdvancedCameraCardMediaPlayer
-{
+export class AdvancedCameraCardLiveHA extends LitElement implements MediaPlayer {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -23,46 +24,11 @@ export class AdvancedCameraCardLiveHA
   @property({ attribute: true, type: Boolean })
   public controls = false;
 
-  protected _playerRef: Ref<Element & AdvancedCameraCardMediaPlayer> = createRef();
+  protected _playerRef: Ref<MediaPlayerElement> = createRef();
 
-  public async play(): Promise<void> {
-    return this._playerRef.value?.play();
-  }
-
-  public async pause(): Promise<void> {
-    this._playerRef.value?.pause();
-  }
-
-  public async mute(): Promise<void> {
-    this._playerRef.value?.mute();
-  }
-
-  public async unmute(): Promise<void> {
-    this._playerRef.value?.unmute();
-  }
-
-  public isMuted(): boolean {
-    return this._playerRef.value?.isMuted() ?? true;
-  }
-
-  public async seek(seconds: number): Promise<void> {
-    this._playerRef.value?.seek(seconds);
-  }
-
-  public async setControls(controls?: boolean): Promise<void> {
-    this._playerRef.value?.setControls(controls ?? this.controls);
-  }
-
-  public isPaused(): boolean {
-    return this._playerRef.value?.isPaused() ?? true;
-  }
-
-  public async getScreenshotURL(): Promise<string | null> {
-    return (await this._playerRef.value?.getScreenshotURL()) ?? null;
-  }
-
-  public getFullscreenElement(): FullscreenElement | null {
-    return this._playerRef.value?.getFullscreenElement() ?? null;
+  public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
+    await this.updateComplete;
+    return (await this._playerRef.value?.getMediaPlayerController()) ?? null;
   }
 
   protected render(): TemplateResult | void {

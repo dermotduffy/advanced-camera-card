@@ -4,60 +4,26 @@ import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CameraConfig } from '../../../config/types';
 import basicBlockStyle from '../../../scss/basic-block.scss';
-import { AdvancedCameraCardMediaPlayer, FullscreenElement } from '../../../types.js';
-import '../../image-base.js';
+import {
+  MediaPlayer,
+  MediaPlayerController,
+  MediaPlayerElement,
+} from '../../../types.js';
+import '../../image-updating-player.js';
 
 @customElement('advanced-camera-card-live-image')
-export class AdvancedCameraCardLiveImage
-  extends LitElement
-  implements AdvancedCameraCardMediaPlayer
-{
+export class AdvancedCameraCardLiveImage extends LitElement implements MediaPlayer {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
-  protected _refImage: Ref<Element & AdvancedCameraCardMediaPlayer> = createRef();
+  protected _refImage: Ref<MediaPlayerElement> = createRef();
 
-  public async play(): Promise<void> {
-    await this._refImage.value?.play();
-  }
-
-  public async pause(): Promise<void> {
-    await this._refImage.value?.pause();
-  }
-
-  public async mute(): Promise<void> {
-    await this._refImage.value?.mute();
-  }
-
-  public async unmute(): Promise<void> {
-    await this._refImage.value?.unmute();
-  }
-
-  public isMuted(): boolean {
-    return !!this._refImage.value?.isMuted();
-  }
-
-  public async seek(seconds: number): Promise<void> {
-    await this._refImage.value?.seek(seconds);
-  }
-
-  public async setControls(controls?: boolean): Promise<void> {
-    await this._refImage.value?.setControls(controls);
-  }
-
-  public isPaused(): boolean {
-    return this._refImage.value?.isPaused() ?? true;
-  }
-
-  public async getScreenshotURL(): Promise<string | null> {
-    return (await this._refImage.value?.getScreenshotURL()) ?? null;
-  }
-
-  public getFullscreenElement(): FullscreenElement | null {
-    return this._refImage.value?.getFullscreenElement() ?? null;
+  public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
+    await this.updateComplete;
+    return (await this._refImage.value?.getMediaPlayerController()) ?? null;
   }
 
   protected render(): TemplateResult | void {
@@ -66,13 +32,13 @@ export class AdvancedCameraCardLiveImage
     }
 
     return html`
-      <advanced-camera-card-image-base
+      <advanced-camera-card-image-updating-player
         ${ref(this._refImage)}
         .hass=${this.hass}
         .imageConfig=${this.cameraConfig.image}
         .cameraConfig=${this.cameraConfig}
       >
-      </advanced-camera-card-image-base>
+      </advanced-camera-card-image-updating-player>
     `;
   }
 
