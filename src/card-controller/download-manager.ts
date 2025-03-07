@@ -1,5 +1,5 @@
 import { downloadMedia, downloadURL } from '../utils/download';
-import { generateScreenshotTitle } from '../utils/screenshot';
+import { generateScreenshotFilename } from '../utils/screenshot';
 import { CardDownloadAPI } from './types';
 
 export class DownloadManager {
@@ -35,7 +35,7 @@ export class DownloadManager {
       .get()
       ?.mediaPlayerController?.getScreenshotURL();
     if (url) {
-      downloadURL(url, generateScreenshotTitle(this._api.getViewManager().getView()));
+      downloadURL(url, generateScreenshotFilename(this._api.getViewManager().getView()));
     }
   }
 }
