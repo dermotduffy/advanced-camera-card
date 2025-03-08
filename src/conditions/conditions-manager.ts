@@ -1,15 +1,14 @@
-import { isEqual } from 'lodash-es';
 import { getConfigValue } from '../config/management';
 import { AdvancedCameraCardCondition } from '../config/types';
 import { isCompanionApp } from '../utils/companion';
 import {
-  ConditionsEvaluationData,
   ConditionsEvaluationResult,
   ConditionsListener,
   ConditionsManagerReadonlyInterface,
   ConditionState,
   ConditionStateChange,
   ConditionStateManagerReadonlyInterface,
+  ConditionsTriggerData,
 } from './types';
 
 /**
@@ -104,7 +103,7 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
     const state = options?.stateChange?.new ?? this._stateManager?.getState();
 
     let result = true;
-    let data: ConditionsEvaluationData = {};
+    let triggerData: ConditionsTriggerData = {};
 
     for (const condition of this._conditions) {
       const evaluation = this._evaluateCondition(
@@ -116,17 +115,20 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
         result = false;
         break;
       }
-      data = {
-        ...data,
-        ...evaluation.data,
+      triggerData = {
+        ...triggerData,
+        ...evaluation.triggerData,
       };
     }
 
     const evaluation: ConditionsEvaluationResult = result
-      ? { result, data }
+      ? { result, triggerData }
       : { result };
 
-    if (!isEqual(evaluation, this._evaluation)) {
+    if (
+      evaluation.result !== this._evaluation.result ||
+      (evaluation.triggerData && Object.keys(evaluation.triggerData).length)
+    ) {
       this._evaluation = evaluation;
       if (options?.callListeners ?? true) {
         this._listeners.forEach(
@@ -143,52 +145,54 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
   ): ConditionsEvaluationResult {
     switch (condition.condition) {
       case undefined:
-      case 'state':
+      case 'state': {
+        const fromState = oldState?.state?.[condition.entity]?.state;
+        const toState = newState?.state?.[condition.entity]?.state;
+
         return {
           result:
-            !!newState?.state &&
-            ((!condition.state &&
-              !condition.state_not &&
-              newState.state[condition.entity]?.state !==
-                oldState?.state?.[condition.entity]?.state) ||
-              ((!!condition.state || !!condition.state_not) &&
-                condition.entity in newState.state &&
-                (!condition.state ||
-                  (Array.isArray(condition.state)
-                    ? condition.state.includes(newState.state[condition.entity].state)
-                    : condition.state === newState.state[condition.entity].state)) &&
-                (!condition.state_not ||
-                  (Array.isArray(condition.state_not)
-                    ? !condition.state_not.includes(
-                        newState.state[condition.entity].state,
-                      )
-                    : condition.state_not !== newState.state[condition.entity].state)))),
-          data: {
-            state: {
-              entity: condition.entity,
-              ...(oldState?.state?.[condition.entity]?.state && {
-                from: oldState?.state?.[condition.entity]?.state,
-              }),
-              ...(newState?.state?.[condition.entity]?.state && {
-                to: newState?.state?.[condition.entity]?.state,
+            (!condition.state && !condition.state_not && toState !== fromState) ||
+            ((!!condition.state || !!condition.state_not) &&
+              !!toState &&
+              (!condition.state ||
+                (Array.isArray(condition.state)
+                  ? condition.state.includes(toState)
+                  : condition.state === toState)) &&
+              (!condition.state_not ||
+                (Array.isArray(condition.state_not)
+                  ? !condition.state_not.includes(toState)
+                  : condition.state_not !== toState))),
+          ...(fromState !== toState && {
+            triggerData: {
+              state: {
+                entity: condition.entity,
+                ...(fromState && { from: fromState }),
+                ...(toState && { to: toState }),
+              },
+            },
+          }),
+        };
+      }
+      case 'view': {
+        const oldView = oldState?.view;
+        const newView = newState?.view;
+
+        return {
+          result:
+            (!!newView && condition.views?.includes(newView)) ||
+            (newView !== oldView && !condition.views?.length),
+          ...(oldView !== newView && {
+            triggerData: {
+              ...((oldState?.view || newState?.view) && {
+                view: {
+                  ...(oldState?.view && { from: oldState.view }),
+                  ...(newState?.view && { to: newState.view }),
+                },
               }),
             },
-          },
+          }),
         };
-      case 'view':
-        return {
-          result:
-            (!!newState?.view && condition.views?.includes(newState.view)) ||
-            (newState?.view !== oldState?.view && !condition.views?.length),
-          data: {
-            ...((oldState?.view || newState?.view) && {
-              view: {
-                ...(oldState?.view && { from: oldState.view }),
-                ...(newState?.view && { to: newState.view }),
-              },
-            }),
-          },
-        };
+      }
       case 'fullscreen':
         return {
           result:
@@ -199,20 +203,26 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
         return {
           result: newState?.expand !== undefined && condition.expand === newState.expand,
         };
-      case 'camera':
+      case 'camera': {
+        const oldCamera = oldState?.camera;
+        const newCamera = newState?.camera;
+
         return {
           result:
-            (!!newState?.camera && !!condition.cameras?.includes(newState.camera)) ||
-            (newState?.camera !== oldState?.camera && !condition.cameras?.length),
-          data: {
-            ...((oldState?.camera || newState?.camera) && {
-              camera: {
-                ...(oldState?.camera && { from: oldState?.camera }),
-                ...(newState?.camera && { to: newState?.camera }),
-              },
-            }),
-          },
+            (!!newCamera && !!condition.cameras?.includes(newCamera)) ||
+            (newCamera !== oldCamera && !condition.cameras?.length),
+          ...(newCamera !== oldCamera && {
+            triggerData: {
+              ...((oldState?.camera || newState?.camera) && {
+                camera: {
+                  ...(oldState?.camera && { from: oldState?.camera }),
+                  ...(newState?.camera && { to: newState?.camera }),
+                },
+              }),
+            },
+          }),
         };
+      }
       case 'numeric_state':
         return {
           result:
@@ -287,24 +297,29 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
               new RegExp(condition.user_agent_re).test(newState.userAgent)),
         };
       case 'config': {
+        const newConfig = newState?.config;
+        const oldConfig = oldState?.config;
+
         return {
           result:
-            !!newState?.config &&
-            newState.config !== oldState?.config &&
+            !!newConfig &&
+            newConfig !== oldConfig &&
             (!condition.paths?.length ||
               condition.paths.some(
                 (key) =>
-                  getConfigValue(newState.config!, key) !==
-                  (oldState?.config ? getConfigValue(oldState?.config, key) : undefined),
+                  getConfigValue(newConfig, key) !==
+                  (oldConfig ? getConfigValue(oldConfig, key) : undefined),
               )),
-          data: {
-            config: {
-              ...((oldState?.config || newState?.config) && {
-                ...(oldState?.config && { from: oldState?.config }),
-                ...(newState?.config && { to: newState?.config }),
-              }),
+          ...(newConfig !== oldConfig && {
+            triggerData: {
+              config: {
+                ...((oldState?.config || newState?.config) && {
+                  ...(oldState?.config && { from: oldState?.config }),
+                  ...(newState?.config && { to: newState?.config }),
+                }),
+              },
             },
-          },
+          }),
         };
       }
       case 'initialized':

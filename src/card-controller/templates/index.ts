@@ -1,12 +1,12 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { HASS, renderTemplate } from 'ha-nunjucks/dist';
-import { ConditionsEvaluationData, ConditionState } from '../../conditions/types';
+import { ConditionsTriggerData, ConditionState } from '../../conditions/types';
 import { ActionType } from '../../config/types';
 
 interface TemplateContextInternal {
   camera?: string;
   view?: string;
-  trigger?: ConditionsEvaluationData;
+  trigger?: ConditionsTriggerData;
 }
 
 interface TemplateContext {
@@ -22,7 +22,7 @@ export class TemplateRenderer {
     data: unknown,
     options?: {
       conditionState?: ConditionState;
-      triggerData?: ConditionsEvaluationData;
+      triggerData?: ConditionsTriggerData;
     },
   ): ActionType => {
     return this._renderTemplateRecursively(
@@ -37,7 +37,7 @@ export class TemplateRenderer {
 
   protected _conditionStateToTemplateContext(
     conditionState?: ConditionState,
-    triggerData?: ConditionsEvaluationData,
+    triggerData?: ConditionsTriggerData,
   ): TemplateContext | undefined {
     if (!conditionState?.camera && !conditionState?.view && !triggerData) {
       return;

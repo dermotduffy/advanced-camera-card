@@ -1,6 +1,6 @@
 import { ActionContext } from 'action';
 import { z } from 'zod';
-import { ConditionsEvaluationData } from '../../conditions/types.js';
+import { ConditionsTriggerData } from '../../conditions/types.js';
 import { Actions, ActionsConfig, ActionType } from '../../config/types.js';
 import { getActionConfigGivenAction } from '../../utils/action.js';
 import { TemplateRenderer } from '../templates/index.js';
@@ -115,7 +115,7 @@ export class ActionsManager {
     action: ActionType | ActionType[],
     options?: {
       config?: AuxillaryActionConfig;
-      triggerData?: ConditionsEvaluationData;
+      triggerData?: ConditionsTriggerData;
     },
   ): Promise<void> {
     const hass = this._api.getHASSManager().getHASS();

@@ -42,7 +42,7 @@ describe('ConditionsManager', () => {
         stateManager.setState({ view: 'clips' });
         expect(listener).toHaveBeenLastCalledWith({
           result: true,
-          data: {
+          triggerData: {
             view: {
               to: 'clips',
             },
@@ -52,7 +52,7 @@ describe('ConditionsManager', () => {
         stateManager.setState({ view: 'timeline' });
         expect(listener).toHaveBeenLastCalledWith({
           result: true,
-          data: {
+          triggerData: {
             view: {
               from: 'clips',
               to: 'timeline',
@@ -61,6 +61,23 @@ describe('ConditionsManager', () => {
         });
 
         expect(listener).toBeCalledTimes(2);
+      });
+
+      it('should not re-trigger without a real change', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager(
+          [{ condition: 'view' as const }],
+          stateManager,
+        );
+
+        const listener = vi.fn();
+        manager.addListener(listener);
+
+        stateManager.setState({ view: 'clips' });
+        expect(listener).toHaveBeenCalledTimes(1);
+
+        stateManager.setState({ view: 'clips' });
+        expect(listener).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -120,7 +137,7 @@ describe('ConditionsManager', () => {
         stateManager.setState({ camera: 'bar' });
         expect(listener).toHaveBeenLastCalledWith({
           result: true,
-          data: {
+          triggerData: {
             camera: {
               to: 'bar',
             },
@@ -130,7 +147,7 @@ describe('ConditionsManager', () => {
         stateManager.setState({ camera: 'foo' });
         expect(listener).toHaveBeenLastCalledWith({
           result: true,
-          data: {
+          triggerData: {
             camera: {
               from: 'bar',
               to: 'foo',
@@ -139,6 +156,23 @@ describe('ConditionsManager', () => {
         });
 
         expect(listener).toBeCalledTimes(2);
+      });
+
+      it('should not re-trigger without a real change', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager(
+          [{ condition: 'camera' as const }],
+          stateManager,
+        );
+
+        const listener = vi.fn();
+        manager.addListener(listener);
+
+        stateManager.setState({ camera: 'bar' });
+        expect(listener).toHaveBeenCalledTimes(1);
+
+        stateManager.setState({ camera: 'bar' });
+        expect(listener).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -163,7 +197,7 @@ describe('ConditionsManager', () => {
           });
           expect(listener).toBeCalledWith({
             result: true,
-            data: {
+            triggerData: {
               state: {
                 entity: 'binary_sensor.foo',
                 to: 'on',
@@ -177,7 +211,7 @@ describe('ConditionsManager', () => {
           });
           expect(listener).toBeCalledWith({
             result: true,
-            data: {
+            triggerData: {
               state: {
                 entity: 'binary_sensor.foo',
                 from: 'on',
@@ -336,7 +370,7 @@ describe('ConditionsManager', () => {
           });
           expect(listener).toHaveBeenLastCalledWith({
             result: true,
-            data: {
+            triggerData: {
               // Only the last matching state will be included in the data.
               state: {
                 entity: 'switch.two',
@@ -354,7 +388,7 @@ describe('ConditionsManager', () => {
 
           expect(listener).toHaveBeenLastCalledWith({
             result: true,
-            data: {
+            triggerData: {
               // Only the last matching state will be included in the data.
               state: {
                 entity: 'switch.two',
@@ -365,6 +399,41 @@ describe('ConditionsManager', () => {
           });
 
           expect(listener).toBeCalledTimes(2);
+        });
+
+        it('should not re-trigger without a real change', () => {
+          const stateManager = new ConditionStateManager();
+          const manager = new ConditionsManager(
+            [{ condition: 'state' as const, entity: 'switch.one' }],
+            stateManager,
+          );
+
+          const listener = vi.fn();
+          manager.addListener(listener);
+
+          stateManager.setState({
+            state: {
+              'switch.one': createStateEntity({ state: 'on' }),
+            },
+          });
+          expect(listener).toBeCalledTimes(1);
+          expect(manager.getEvaluation()).toEqual({
+            result: true,
+            triggerData: {
+              // Only the last matching state will be included in the data.
+              state: {
+                entity: 'switch.one',
+                to: 'on',
+              },
+            },
+          });
+
+          stateManager.setState({
+            state: {
+              'switch.one': createStateEntity({ state: 'on' }),
+            },
+          });
+          expect(listener).toBeCalledTimes(1);
         });
       });
 
@@ -526,7 +595,7 @@ describe('ConditionsManager', () => {
         addEventListener.mock.calls[0][1]();
 
         // This should result in a callback to our state listener.
-        expect(callback).toBeCalledWith({ result: true, data: {} });
+        expect(callback).toBeCalledWith({ result: true, triggerData: {} });
 
         // Destroy the manager and ensure the event listener is removed.
         manager.destroy();
@@ -887,7 +956,7 @@ describe('ConditionsManager', () => {
         stateManager.setState({ config: config_1 });
         expect(listener).toHaveBeenLastCalledWith({
           result: true,
-          data: {
+          triggerData: {
             config: {
               to: config_1,
             },
@@ -897,7 +966,7 @@ describe('ConditionsManager', () => {
         stateManager.setState({ config: config_2 });
         expect(listener).toHaveBeenLastCalledWith({
           result: true,
-          data: {
+          triggerData: {
             config: {
               from: config_1,
               to: config_2,
@@ -971,6 +1040,23 @@ describe('ConditionsManager', () => {
         stateManager.setState({ fullscreen: true });
         expect(listener).toBeCalledTimes(2);
       });
+
+      it('should not re-trigger without a real change', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager(
+          [{ condition: 'config' as const }],
+          stateManager,
+        );
+
+        const listener = vi.fn();
+        manager.addListener(listener);
+
+        stateManager.setState({ config: config_1 });
+        expect(listener).toHaveBeenCalledTimes(1);
+
+        stateManager.setState({ config: config_1 });
+        expect(listener).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('with initialized condition', () => {
@@ -1001,7 +1087,7 @@ describe('ConditionsManager', () => {
 
       stateManager.setState({ fullscreen: true });
 
-      expect(listener).toBeCalledWith({ result: true, data: {} });
+      expect(listener).toBeCalledWith({ result: true, triggerData: {} });
       expect(listener).toBeCalledTimes(1);
 
       stateManager.setState({ fullscreen: false });
@@ -1013,7 +1099,7 @@ describe('ConditionsManager', () => {
 
       stateManager.setState({ fullscreen: true });
 
-      expect(listener).toBeCalledWith({ result: true, data: {} });
+      expect(listener).toBeCalledWith({ result: true, triggerData: {} });
       expect(listener).toBeCalledTimes(3);
     });
 
