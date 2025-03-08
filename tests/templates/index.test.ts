@@ -1,7 +1,7 @@
 import { renderTemplate } from 'ha-nunjucks';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TemplateRenderer } from '../../src/card-controller/templates';
-import { ConditionsEvaluationData, ConditionState } from '../../src/conditions/types';
+import { ConditionsTriggerData, ConditionState } from '../../src/conditions/types';
 import { createHASS } from '../test-utils';
 
 // ha-nunjucks attempts to make websocket calls initially so mock it out.
@@ -46,7 +46,7 @@ describe('TemplateRenderer', () => {
       camera: 'camera',
       view: 'view',
     };
-    const triggerData: ConditionsEvaluationData = {
+    const triggerData: ConditionsTriggerData = {
       camera: {
         to: 'camera',
         from: 'previous-camera',

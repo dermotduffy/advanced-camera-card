@@ -75,7 +75,7 @@ export class AutomationsManager {
 
       await this._api
         .getActionsManager()
-        .executeActions(actions, { triggerData: result.data });
+        .executeActions(actions, { triggerData: result.triggerData });
 
       --this._nestedAutomationExecutions;
     };
