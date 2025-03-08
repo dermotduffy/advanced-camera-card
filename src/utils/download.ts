@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { CameraManager } from '../camera-manager/manager';
 import { localize } from '../localize/localize';
 import { AdvancedCameraCardError, ExtendedHomeAssistant } from '../types';
@@ -50,5 +51,20 @@ export const downloadMedia = async (
     finalURL = response;
   }
 
-  downloadURL(finalURL);
+  downloadURL(finalURL, generateDownloadFilename(media));
+};
+
+const generateDownloadFilename = (media: ViewMedia): string => {
+  const toFilename = (input: string): string => {
+    return input.toLowerCase().replaceAll(/(\.|\s)+/g, '-');
+  };
+
+  const id = media.getID();
+  const startTime = media.getStartTime();
+
+  return (
+    toFilename(media.getCameraID()) +
+    (id ? `_${toFilename(id)}` : '') +
+    (startTime ? `_${format(startTime, `yyyy-MM-dd-HH-mm-ss`)}` : '')
+  );
 };

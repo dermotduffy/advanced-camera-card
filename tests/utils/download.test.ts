@@ -1,13 +1,18 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { downloadMedia, downloadURL } from '../../src/utils/download';
 import { homeAssistantSignPath } from '../../src/utils/ha';
 import { ViewMedia } from '../../src/view/media';
-import { createCameraManager, createHASS } from '../test-utils';
+import {
+  createCameraManager,
+  createHASS,
+  createStore,
+  TestViewMedia,
+} from '../test-utils';
 
 vi.mock('../../src/utils/ha');
 
-const media = new ViewMedia('clip', 'camera-1');
+const media = new ViewMedia('clip', 'camera.office');
 
 // @vitest-environment jsdom
 describe('downloadURL', () => {
@@ -60,9 +65,9 @@ describe('downloadURL', () => {
 });
 
 describe('downloadMedia', () => {
-  afterEach(() => {
-    vi.resetAllMocks();
-    global.window.location = mock<Location>();
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    global.window.location = mock<Location>({ origin: 'https://foo' });
   });
 
   it('should throw error when no media', () => {
@@ -107,11 +112,67 @@ describe('downloadMedia', () => {
     const cameraManager = createCameraManager();
     vi.mocked(cameraManager).getMediaDownloadPath.mockResolvedValue({
       sign: false,
-      endpoint: 'https://foo/',
+      endpoint: 'https://another/',
     });
     const windowSpy = vi.spyOn(window, 'open').mockReturnValue(null);
 
     await downloadMedia(createHASS(), cameraManager, media);
-    expect(windowSpy).toBeCalledWith('https://foo/', '_blank');
+    expect(windowSpy).toBeCalledWith('https://another/', '_blank');
+  });
+
+  describe('should generate useful download filenames', () => {
+    it('should generate filename with just camera ID', async () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera.office',
+          },
+        ]),
+      );
+      vi.mocked(cameraManager).getMediaDownloadPath.mockResolvedValue({
+        sign: false,
+        endpoint: 'https://foo/',
+      });
+
+      const link = document.createElement('a');
+      link.click = vi.fn();
+      link.setAttribute = vi.fn();
+      vi.spyOn(document, 'createElement').mockReturnValue(link);
+
+      await downloadMedia(createHASS(), cameraManager, media);
+
+      expect(link.setAttribute).toBeCalledWith('download', 'camera-office');
+    });
+
+    it('should generate filename with full details ID', async () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera.office',
+          },
+        ]),
+      );
+      vi.mocked(cameraManager).getMediaDownloadPath.mockResolvedValue({
+        sign: false,
+        endpoint: 'https://foo/',
+      });
+
+      const link = document.createElement('a');
+      link.click = vi.fn();
+      link.setAttribute = vi.fn();
+      vi.spyOn(document, 'createElement').mockReturnValue(link);
+
+      const media = new TestViewMedia({
+        cameraID: 'camera.office',
+        id: 'clip-id',
+        startTime: new Date('2025-03-06T21:31:29Z'),
+      });
+      await downloadMedia(createHASS(), cameraManager, media);
+
+      expect(link.setAttribute).toBeCalledWith(
+        'download',
+        'camera-office_clip-id_2025-03-06-21-31-29',
+      );
+    });
   });
 });

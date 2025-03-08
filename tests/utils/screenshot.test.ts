@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import {
-  generateScreenshotTitle,
+  generateScreenshotFilename,
   screenshotImage,
   screenshotVideo,
 } from '../../src/utils/screenshot';
@@ -79,19 +79,19 @@ describe('generateScreenshotTitle', () => {
   });
 
   it('should get title without view', () => {
-    expect(generateScreenshotTitle()).toBe('screenshot.jpg');
+    expect(generateScreenshotFilename()).toBe('screenshot.jpg');
   });
 
   it('should get title for live view', () => {
-    expect(generateScreenshotTitle(new View({ view: 'live', camera: 'camera-1' }))).toBe(
-      'live-camera-1-2023-06-13-21-54-01.jpg',
-    );
+    expect(
+      generateScreenshotFilename(new View({ view: 'live', camera: 'camera-1' })),
+    ).toBe('live_camera-1_2023-06-13-21-54-01.jpg');
   });
 
   it('should get title for image view', () => {
     expect(
-      generateScreenshotTitle(new View({ view: 'image', camera: 'camera-1' })),
-    ).toBe('image-camera-1-2023-06-13-21-54-01.jpg');
+      generateScreenshotFilename(new View({ view: 'image', camera: 'camera-1' })),
+    ).toBe('image_camera-1_2023-06-13-21-54-01.jpg');
   });
 
   it('should get title for media viewer view with id', () => {
@@ -106,7 +106,7 @@ describe('generateScreenshotTitle', () => {
       queryResults: new MediaQueriesResults({ results: [media], selectedIndex: 0 }),
     });
 
-    expect(generateScreenshotTitle(view)).toBe('media-camera-1-id1.jpg');
+    expect(generateScreenshotFilename(view)).toBe('media_camera-1_id1.jpg');
   });
 
   it('should get title for media viewer view without id', () => {
@@ -121,6 +121,6 @@ describe('generateScreenshotTitle', () => {
       queryResults: new MediaQueriesResults({ results: [media], selectedIndex: 0 }),
     });
 
-    expect(generateScreenshotTitle(view)).toBe('media-camera-1.jpg');
+    expect(generateScreenshotFilename(view)).toBe('media_camera-1.jpg');
   });
 });

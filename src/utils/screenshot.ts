@@ -26,16 +26,16 @@ const screenshotElement = (
   return canvas.toDataURL('image/jpeg');
 };
 
-export const generateScreenshotTitle = (view?: View | null): string => {
+export const generateScreenshotFilename = (view?: View | null): string => {
   if (view?.is('live') || view?.is('image')) {
-    return `${view.view}-${view.camera}-${format(
+    return `${view.view}_${view.camera}_${format(
       new Date(),
       `yyyy-MM-dd-HH-mm-ss`,
     )}.jpg`;
   } else if (view?.isViewerView()) {
     const media = view.queryResults?.getSelectedResult();
     const id = media?.getID() ?? null;
-    return `${view.view}-${view.camera}${id ? `-${id}` : ''}.jpg`;
+    return `${view.view}_${view.camera}${id ? `_${id}` : ''}.jpg`;
   }
   return 'screenshot.jpg';
 };
