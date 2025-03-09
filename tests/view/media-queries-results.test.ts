@@ -30,9 +30,11 @@ describe('dispatchViewContextChangeEvent', () => {
     expect(results.selectIndex(0)).toEqual(results);
     expect(results.getSelectedResult()).toBeNull();
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expect(results.selectResultIfFound((_media: ViewMedia) => true)).toEqual(results);
     expect(results.getSelectedResult()).toBeNull();
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     expect(results.selectBestResult((_media: ViewMedia[]) => null)).toEqual(results);
     expect(results.getSelectedResult()).toBeNull();
     expect(results.getMultipleSelectedResults()).toEqual([]);

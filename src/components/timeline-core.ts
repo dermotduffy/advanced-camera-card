@@ -483,7 +483,6 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
     if (panMode === 'seek') {
       newResults = results
         .clone()
-        .resetSelectedResult()
         .selectBestResult(
           (mediaArray) => findBestMediaIndex(mediaArray, targetTime, view?.camera),
           {
@@ -494,7 +493,6 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
     } else if (panMode === 'seek-in-camera') {
       newResults = results
         .clone()
-        .resetSelectedResult()
         .selectBestResult((mediaArray) => findBestMediaIndex(mediaArray, targetTime), {
           cameraID: view.camera,
         })
@@ -683,6 +681,9 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
       return;
     }
     const mediaQuery = this._createMediaQueries(queryType);
+    if (!mediaQuery || this._alreadyHasAcceptableMediaQuery(mediaQuery)) {
+      return;
+    }
 
     await this.viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
       params: {
@@ -1088,7 +1089,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
       !!this.cameraManager &&
       !!currentQueries &&
       !!currentResultTimestamp &&
-      isEqual(currentQueries, freshMediaQuery.getQueries()) &&
+      !!view?.query?.isSupersetOf(freshMediaQuery) &&
       this.cameraManager.areMediaQueriesResultsFresh<MediaQuery>(
         currentQueries,
         currentResultTimestamp,
@@ -1179,7 +1180,9 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
       this._timelineSource &&
       this._refTimeline.value &&
       this.timelineConfig &&
-      (changedProperties.has('timelineConfig') || changedProperties.has('cameraIDs'))
+      (!this._timeline ||
+        changedProperties.has('timelineConfig') ||
+        changedProperties.has('cameraIDs'))
     ) {
       if (this._timeline) {
         this._destroy();

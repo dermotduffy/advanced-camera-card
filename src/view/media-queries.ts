@@ -59,6 +59,44 @@ class MediaQueriesBase<T extends MediaQuery> {
     }
     return true;
   }
+
+  public isSupersetOf(that: MediaQueries): boolean {
+    // Queries are typically a single item, so quadratic complexity here is
+    // likely still a lot better than going to the network for a new set of
+    // query results.
+    for (const thatQuery of that.getQueries() ?? []) {
+      let haveMatch = false;
+      for (const thisQuery of this._queries ?? []) {
+        // Compare the query except the times, and then separately compare the
+        // times taking into account whether source time is larger than target
+        // time.
+        if (
+          isEqual(
+            {
+              ...thisQuery,
+              end: null,
+              start: null,
+            },
+            { ...thatQuery, end: null, start: null },
+          ) &&
+          ((!thisQuery.start && !thatQuery.start) ||
+            (thisQuery.start &&
+              thatQuery.start &&
+              thisQuery.start <= thatQuery.start)) &&
+          ((!thisQuery.end && !thatQuery.end) ||
+            (thisQuery.end && thatQuery.end && thisQuery.end >= thatQuery.end))
+        ) {
+          haveMatch = true;
+          break;
+        }
+      }
+
+      if (!haveMatch) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 export class EventMediaQueries extends MediaQueriesBase<EventQuery> {
