@@ -142,7 +142,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     if (
       this._player &&
       changedProps.has('microphoneState') &&
-      this._player?.microphoneStream !== this.microphoneState?.stream
+      this._player.microphoneStream !== (this.microphoneState?.stream ?? null)
     ) {
       this._player.microphoneStream = this.microphoneState?.stream ?? null;
 
