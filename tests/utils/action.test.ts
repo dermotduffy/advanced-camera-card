@@ -1,7 +1,7 @@
-import { hasAction as customCardHasAction } from '@dermotduffy/custom-card-helpers';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { actionSchema, INTERNAL_CALLBACK_ACTION } from '../../src/config/types';
+import { actionSchema, INTERNAL_CALLBACK_ACTION } from '../../src/config/types.js';
+import { hasAction as customCardHasAction } from '../../src/ha/has-action.js';
 import {
   convertActionToCardCustomAction,
   createCameraAction,
@@ -19,9 +19,9 @@ import {
   getActionConfigGivenAction,
   hasAction,
   stopEventFromActivatingCardWideActions,
-} from '../../src/utils/action';
+} from '../../src/utils/action.js';
 
-vi.mock('@dermotduffy/custom-card-helpers');
+vi.mock('../../src/ha/has-action.js');
 
 describe('convertActionToAdvancedCameraCardCustomAction', () => {
   it('should skip null action', () => {

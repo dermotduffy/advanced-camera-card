@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createCardAPI, createHASS, createLitElement } from '../../../test-utils';
-import { GenericAction } from '../../../../src/card-controller/actions/actions/generic';
-import { handleActionConfig } from '@dermotduffy/custom-card-helpers';
+import { createCardAPI, createHASS, createLitElement } from '../../../test-utils.js';
+import { GenericAction } from '../../../../src/card-controller/actions/actions/generic.js';
+import { handleActionConfig } from '../../../../src/ha/handle-action.js';
 
-vi.mock('@dermotduffy/custom-card-helpers');
+vi.mock('../../../../src/ha/handle-action.js');
 
 describe('should handle generic action', () => {
   it('without hass', async () => {

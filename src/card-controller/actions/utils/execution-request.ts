@@ -1,11 +1,11 @@
-import { dispatchAdvancedCameraCardEvent } from '../../../utils/basic';
+import { fireAdvancedCameraCardEvent } from '../../../utils/fire-advanced-camera-card-event';
 import { ActionExecutionRequest } from '../types';
 
 export const dispatchActionExecutionRequest = (
   element: HTMLElement,
   request: ActionExecutionRequest,
 ) => {
-  dispatchAdvancedCameraCardEvent(element, 'action:execution-request', request);
+  fireAdvancedCameraCardEvent(element, 'action:execution-request', request);
 };
 
 export interface ActionExecutionRequestEventTarget extends EventTarget {

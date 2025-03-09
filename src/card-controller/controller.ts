@@ -1,8 +1,8 @@
-import { LovelaceCardEditor } from '@dermotduffy/custom-card-helpers';
 import { ReactiveController } from 'lit';
 import { CameraManager } from '../camera-manager/manager';
 import { ConditionStateManager } from '../conditions/state-manager';
 import { AdvancedCameraCardConfig } from '../config/types';
+import { LovelaceCardEditor } from '../ha/types';
 import {
   createDeviceRegistryCache,
   DeviceRegistryManager,

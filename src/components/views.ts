@@ -16,8 +16,8 @@ import {
   CardWideConfig,
   RawAdvancedCameraCardConfig,
 } from '../config/types.js';
+import { HomeAssistant } from '../ha/types.js';
 import viewsStyle from '../scss/views.scss';
-import { ExtendedHomeAssistant } from '../types.js';
 import { DeviceRegistryManager } from '../utils/ha/registry/device/index.js';
 import { ResolvedMediaCache } from '../utils/ha/resolved-media.js';
 import './surround.js';
@@ -29,7 +29,7 @@ import './diagnostics.js';
 @customElement('advanced-camera-card-views')
 export class AdvancedCameraCardViews extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;

@@ -12,14 +12,10 @@ import { MicrophoneState } from '../../../../card-controller/types.js';
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
 import { VideoMediaPlayerController } from '../../../../components-lib/media-player/video.js';
 import { CameraConfig, MicrophoneConfig } from '../../../../config/types.js';
+import { HomeAssistant } from '../../../../ha/types.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
-import {
-  ExtendedHomeAssistant,
-  MediaPlayer,
-  MediaPlayerController,
-  Message,
-} from '../../../../types.js';
+import { MediaPlayer, MediaPlayerController, Message } from '../../../../types.js';
 import { convertEndpointAddressToSignedWebsocket } from '../../../../utils/endpoint.js';
 import { renderMessage } from '../../../message.js';
 import { VideoRTC } from './video-rtc.js';
@@ -36,7 +32,7 @@ const GO2RTC_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 @customElement('advanced-camera-card-live-go2rtc')
 export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer {
   // Not an reactive property to avoid resetting the video.
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;

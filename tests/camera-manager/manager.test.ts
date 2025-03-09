@@ -1,16 +1,15 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { add } from 'date-fns';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { Camera } from '../../src/camera-manager/camera';
-import { Capabilities } from '../../src/camera-manager/capabilities';
-import { CameraManagerEngine } from '../../src/camera-manager/engine';
+import { Camera } from '../../src/camera-manager/camera.js';
+import { Capabilities } from '../../src/camera-manager/capabilities.js';
 import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
+import { CameraManagerEngine } from '../../src/camera-manager/engine.js';
 import {
   CameraManager,
   QueryClassifier,
   QueryResultClassifier,
-} from '../../src/camera-manager/manager';
+} from '../../src/camera-manager/manager.js';
 import {
   CameraEndpoint,
   CameraEndpoints,
@@ -25,11 +24,12 @@ import {
   QueryResults,
   QueryResultsType,
   QueryType,
-} from '../../src/camera-manager/types';
-import { sortMedia } from '../../src/camera-manager/utils/sort-media';
-import { CardController } from '../../src/card-controller/controller';
-import { CameraConfig } from '../../src/config/types';
-import { ViewMedia } from '../../src/view/media';
+} from '../../src/camera-manager/types.js';
+import { sortMedia } from '../../src/camera-manager/utils/sort-media.js';
+import { CardController } from '../../src/card-controller/controller.js';
+import { CameraConfig } from '../../src/config/types.js';
+import { HomeAssistant } from '../../src/ha/types.js';
+import { ViewMedia } from '../../src/view/media.js';
 import {
   TestViewMedia,
   createCamera,
@@ -39,7 +39,7 @@ import {
   createConfig,
   createHASS,
   generateViewMediaArray,
-} from '../test-utils';
+} from '../test-utils.js';
 
 describe('QueryClassifier', async () => {
   it('should classify event query', async () => {

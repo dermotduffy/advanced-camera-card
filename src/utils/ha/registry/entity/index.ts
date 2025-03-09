@@ -1,7 +1,7 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { homeAssistantWSRequest } from '../../ws-request';
-import { errorToConsole } from '../../../basic';
-import { RegistryCache } from '../cache';
+import { HomeAssistant } from '../../../../ha/types.js';
+import { errorToConsole } from '../../../basic.js';
+import { homeAssistantWSRequest } from '../../ws-request.js';
+import { RegistryCache } from '../cache.js';
 import { Entity, EntityList, entityListSchema, entitySchema } from './types.js';
 
 export const createEntityRegistryCache = (): RegistryCache<Entity> => {

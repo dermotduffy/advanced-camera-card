@@ -87,7 +87,8 @@ export class ActionsManager {
    */
   public handleCustomActionEvent = (ev: Event): void => {
     if (!('detail' in ev)) {
-      // The event may not be a CustomEvent object, see:
+      // The event may or may not be a CustomEvent object. For example, whilst
+      // this card doesn't use custom-card-helpers, embedded elements may:
       // https://github.com/custom-cards/custom-card-helpers/blob/master/src/fire-event.ts#L70
       return;
     }

@@ -1,4 +1,5 @@
-import { ActionConfig, handleActionConfig } from '@dermotduffy/custom-card-helpers';
+import { handleActionConfig } from '../../../ha/handle-action';
+import { ActionConfig } from '../../../ha/types';
 import { CardActionsAPI } from '../../types';
 import { BaseAction } from './base';
 

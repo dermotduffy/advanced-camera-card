@@ -1,4 +1,4 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import { EntityRegistryManager } from '../../utils/ha/registry/entity';
 import { Entity } from '../../utils/ha/registry/entity/types';

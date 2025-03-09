@@ -1,7 +1,7 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import uniq from 'lodash-es/uniq';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { CameraConfig } from '../../config/types';
+import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import { PTZCapabilities, PTZMovementType } from '../../types';
 import { errorToConsole } from '../../utils/basic';

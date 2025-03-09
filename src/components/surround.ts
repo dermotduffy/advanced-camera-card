@@ -15,16 +15,17 @@ import {
   MiniTimelineControlConfig,
   ThumbnailsControlConfig,
 } from '../config/types.js';
+import { HomeAssistant } from '../ha/types.js';
 import basicBlockStyle from '../scss/basic-block.scss';
-import { ExtendedHomeAssistant } from '../types.js';
-import { contentsChanged, dispatchAdvancedCameraCardEvent } from '../utils/basic.js';
+import { contentsChanged } from '../utils/basic.js';
+import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 import './surround-basic.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
 @customElement('advanced-camera-card-surround')
 export class AdvancedCameraCardSurround extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;
@@ -112,7 +113,7 @@ export class AdvancedCameraCardSurround extends LitElement {
       // from the origin of the inbound event, so it can be handled by
       // <advanced-camera-card-surround> .
       if (this.thumbnailConfig && this._hasDrawer()) {
-        dispatchAdvancedCameraCardEvent(ev.composedPath()[0], 'drawer:' + action, {
+        fireAdvancedCameraCardEvent(ev.composedPath()[0], 'drawer:' + action, {
           drawer: this.thumbnailConfig.mode,
         });
       }

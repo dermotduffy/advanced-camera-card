@@ -46,19 +46,19 @@ import {
   TimelinePanMode,
   configDefaults,
 } from '../config/types';
+import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import timelineCoreStyle from '../scss/timeline-core.scss';
-import { ExtendedHomeAssistant } from '../types';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import {
   contentsChanged,
-  dispatchAdvancedCameraCardEvent,
   formatDateAndTime,
   isHoverableDevice,
   isTruthy,
   setOrRemoveAttribute,
 } from '../utils/basic';
 import { findBestMediaIndex } from '../utils/find-best-media-index';
+import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
 import { ViewMedia } from '../view/media';
 import { ViewMediaClassifier } from '../view/media-classifier';
 import {
@@ -108,7 +108,7 @@ interface ExtendedTimeline extends Timeline {
 // note below on why this is necessary.
 interface ThumbnailDataRequest {
   item: IdType;
-  hass?: ExtendedHomeAssistant;
+  hass?: HomeAssistant;
   cameraManager?: CameraManager;
   cameraConfig?: CameraConfig;
   media?: ViewMedia;
@@ -187,7 +187,7 @@ export class AdvancedCameraCardTimelineThumbnail extends LitElement {
 @customElement('advanced-camera-card-timeline-core')
 export class AdvancedCameraCardTimelineCore extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;
@@ -632,7 +632,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
       }
     }
 
-    dispatchAdvancedCameraCardEvent(this, `thumbnails:${drawerAction}`);
+    fireAdvancedCameraCardEvent(this, `thumbnails:${drawerAction}`);
 
     this._ignoreClick = false;
   }

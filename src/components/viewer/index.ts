@@ -3,10 +3,10 @@ import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { CardWideConfig, ViewerConfig } from '../../config/types.js';
+import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';
 import viewerStyle from '../../scss/viewer.scss';
-import { ExtendedHomeAssistant } from '../../types.js';
 import { ResolvedMediaCache } from '../../utils/ha/resolved-media.js';
 import { renderMessage } from '../message.js';
 import './grid';
@@ -24,7 +24,7 @@ declare module 'view' {
 @customElement('advanced-camera-card-viewer')
 export class AdvancedCameraCardViewer extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;

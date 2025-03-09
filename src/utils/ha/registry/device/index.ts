@@ -1,6 +1,6 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { homeAssistantWSRequest } from '../../ws-request';
+import { HomeAssistant } from '../../../../ha/types';
 import { errorToConsole } from '../../../basic';
+import { homeAssistantWSRequest } from '../../ws-request';
 import { RegistryCache } from '../cache';
 import { Device, DeviceList, deviceListSchema } from './types';
 

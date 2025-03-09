@@ -1,5 +1,5 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { describe, expect, it, vi } from 'vitest';
+import { HomeAssistant } from '../../../src/ha/types.js';
 import {
   canonicalizeHAURL,
   hasHAConnectionStateChanged,

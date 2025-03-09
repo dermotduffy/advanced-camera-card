@@ -9,7 +9,8 @@ import {
 import { property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import selectStyle from '../scss/select.scss';
-import { contentsChanged, dispatchAdvancedCameraCardEvent } from '../utils/basic';
+import { contentsChanged } from '../utils/basic';
+import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import { grSelectElements } from '../scoped-elements/gr-select';
 import isEqual from 'lodash-es/isEqual';
@@ -73,7 +74,7 @@ export class AdvancedCameraCardSelect extends ScopedRegistryHost(LitElement) {
       // (even when the user has not interacted with the control). Do not
       // dispatch events for this.
       if (!initialValueSet) {
-        dispatchAdvancedCameraCardEvent(this, 'select:change', value);
+        fireAdvancedCameraCardEvent(this, 'select:change', value);
       }
     }
   }

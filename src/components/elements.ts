@@ -1,4 +1,3 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import {
   CSSResultGroup,
   html,
@@ -8,9 +7,9 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { dispatchAdvancedCameraCardErrorEvent } from '../components-lib/message/dispatch.js';
 import { ConditionsManager } from '../conditions/conditions-manager.js';
 import { getConditionStateManagerViaEvent } from '../conditions/state-manager-via-event.js';
-import { dispatchAdvancedCameraCardErrorEvent } from '../components-lib/message/dispatch.js';
 import {
   AdvancedCameraCardConditional,
   MenuIcon,
@@ -24,10 +23,12 @@ import {
   StatusBarItem,
   StatusBarString,
 } from '../config/types.js';
+import { HomeAssistant } from '../ha/types.js';
 import { localize } from '../localize/localize.js';
 import elementsStyle from '../scss/elements.scss';
 import { AdvancedCameraCardError } from '../types.js';
-import { dispatchAdvancedCameraCardEvent, errorToConsole } from '../utils/basic.js';
+import { errorToConsole } from '../utils/basic.js';
+import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 
 /* A note on picture element rendering:
  *
@@ -169,7 +170,7 @@ export class AdvancedCameraCardElements extends LitElement {
   protected _menuRemoveHandler = (ev: Event): void => {
     // Re-dispatch event from this element (instead of the disconnected one, as
     // there is no parent of the disconnected element).
-    dispatchAdvancedCameraCardEvent<MenuItem>(
+    fireAdvancedCameraCardEvent<MenuItem>(
       this,
       'menu:remove',
       (ev as CustomEvent).detail,
@@ -179,7 +180,7 @@ export class AdvancedCameraCardElements extends LitElement {
   protected _statusBarRemoveHandler = (ev: Event): void => {
     // Re-dispatch event from this element (instead of the disconnected one, as
     // there is no parent of the disconnected element).
-    dispatchAdvancedCameraCardEvent<StatusBarItem>(
+    fireAdvancedCameraCardEvent<StatusBarItem>(
       this,
       'status-bar:remove',
       (ev as CustomEvent).detail,
@@ -346,7 +347,7 @@ export class AdvancedCameraCardElementsBaseItem<ConfigType> extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     if (this._config) {
-      dispatchAdvancedCameraCardEvent<ConfigType>(
+      fireAdvancedCameraCardEvent<ConfigType>(
         this,
         `${this._eventCategory}:add`,
         this._config,
@@ -356,7 +357,7 @@ export class AdvancedCameraCardElementsBaseItem<ConfigType> extends LitElement {
 
   disconnectedCallback(): void {
     if (this._config) {
-      dispatchAdvancedCameraCardEvent<ConfigType>(
+      fireAdvancedCameraCardEvent<ConfigType>(
         this,
         `${this._eventCategory}:remove`,
         this._config,

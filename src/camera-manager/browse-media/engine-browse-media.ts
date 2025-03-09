@@ -1,6 +1,6 @@
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { CameraConfig } from '../../config/types';
-import { ExtendedHomeAssistant } from '../../types';
+import { HomeAssistant } from '../../ha/types';
 import { canonicalizeHAURL } from '../../utils/ha';
 import { BrowseMediaManager } from '../../utils/ha/browse-media/browse-media-manager';
 import { BROWSE_MEDIA_CACHE_SECONDS } from '../../utils/ha/browse-media/types';
@@ -63,7 +63,7 @@ export class BrowseMediaCameraManagerEngine
   }
 
   public async getMediaDownloadPath(
-    hass: ExtendedHomeAssistant,
+    hass: HomeAssistant,
     _cameraConfig: CameraConfig,
     media: ViewMedia,
   ): Promise<CameraEndpoint | null> {

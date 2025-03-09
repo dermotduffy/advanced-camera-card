@@ -1,4 +1,3 @@
-import { HomeAssistant, LovelaceCardEditor } from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -30,9 +29,10 @@ import {
   StatusBarItem,
 } from './config/types';
 import { REPO_URL } from './const.js';
+import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
-import { ExtendedHomeAssistant, MediaLoadedInfo, Message } from './types.js';
+import { MediaLoadedInfo, Message } from './types.js';
 import { hasAction } from './utils/action.js';
 import { getReleaseVersion } from './utils/diagnostics';
 
@@ -110,11 +110,11 @@ class AdvancedCameraCard extends LitElement {
     return this._controller.getConfigManager().getConfig();
   }
 
-  get _hass(): ExtendedHomeAssistant | null {
+  get _hass(): HomeAssistant | null {
     return this._controller.getHASSManager().getHASS();
   }
 
-  set hass(hass: ExtendedHomeAssistant) {
+  set hass(hass: HomeAssistant) {
     this._controller.getHASSManager().setHASS(hass);
 
     // Manually set hass in the menu, elements and image. This is to allow these

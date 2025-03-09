@@ -1,7 +1,7 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { HASS, renderTemplate } from 'ha-nunjucks/dist';
-import { ConditionsTriggerData, ConditionState } from '../../conditions/types';
+import { ConditionState, ConditionsTriggerData } from '../../conditions/types';
 import { ActionType } from '../../config/types';
+import { HomeAssistant } from '../../ha/types';
 
 interface TemplateContextInternal {
   camera?: string;

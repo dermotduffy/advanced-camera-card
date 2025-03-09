@@ -1,9 +1,9 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { add } from 'date-fns';
 import chunk from 'lodash-es/chunk';
 import orderBy from 'lodash-es/orderBy';
 import { BrowseMediaMetadata } from '../../../camera-manager/browse-media/types';
 import { MemoryRequestCache } from '../../../camera-manager/cache';
+import { HomeAssistant } from '../../../ha/types';
 import { allPromises } from '../../basic';
 import { homeAssistantWSRequest } from '../ws-request';
 import {

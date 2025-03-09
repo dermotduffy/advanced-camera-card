@@ -1,6 +1,6 @@
 import { Task } from '@lit-labs/task';
 import { ReactiveControllerHost } from '@lit/reactive-element';
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { HomeAssistant } from '../ha/types';
 
 // See: https://github.com/sindresorhus/is-absolute-url
 // Scheme: https://tools.ietf.org/html/rfc3986#section-3.1

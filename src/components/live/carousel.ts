@@ -23,8 +23,8 @@ import {
   LiveConfig,
   TransitionEffect,
 } from '../../config/types.js';
+import { HomeAssistant } from '../../ha/types.js';
 import liveCarouselStyle from '../../scss/live-carousel.scss';
-import { ExtendedHomeAssistant } from '../../types.js';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { AutoLazyLoad } from '../../utils/embla/plugins/auto-lazy-load/auto-lazy-load.js';
@@ -56,7 +56,7 @@ interface CameraNeighbors {
 @customElement('advanced-camera-card-live-carousel')
 export class AdvancedCameraCardLiveCarousel extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;

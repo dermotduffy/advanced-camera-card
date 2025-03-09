@@ -1,4 +1,4 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { HomeAssistant } from '../../ha/types';
 import { FrigateEventChange, frigateEventChangeSchema } from './types';
 
 export interface FrigateEventWatcherRequest {

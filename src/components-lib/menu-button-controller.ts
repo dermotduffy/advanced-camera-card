@@ -1,4 +1,3 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map';
 import { CameraManager } from '../camera-manager/manager';
 import { FullscreenManager } from '../card-controller/fullscreen/fullscreen-manager';
@@ -11,6 +10,7 @@ import {
   MenuItem,
   VIEWS_USER_SPECIFIED,
 } from '../config/types';
+import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize.js';
 import { MediaLoadedInfo } from '../types';
 import {

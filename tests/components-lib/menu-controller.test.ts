@@ -1,15 +1,15 @@
-import { handleActionConfig } from '@dermotduffy/custom-card-helpers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { MenuController } from '../../src/components-lib/menu-controller';
-import { SubmenuItem } from '../../src/components/submenu/types';
-import { MenuConfig, menuConfigSchema } from '../../src/config/types';
+import { MenuController } from '../../src/components-lib/menu-controller.js';
+import { SubmenuItem } from '../../src/components/submenu/types.js';
+import { MenuConfig, menuConfigSchema } from '../../src/config/types.js';
+import { handleActionConfig } from '../../src/ha/handle-action.js';
 import {
   createInteractionActionEvent,
   createLitElement,
   createSubmenuInteractionActionEvent,
 } from '../test-utils';
 
-vi.mock('@dermotduffy/custom-card-helpers');
+vi.mock('../../src/ha/handle-action.js');
 vi.mock('../../src/utils/ha');
 
 const createMenuConfig = (config: unknown): MenuConfig => {

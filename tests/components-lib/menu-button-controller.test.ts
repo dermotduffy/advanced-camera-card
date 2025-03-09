@@ -1,29 +1,29 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import isEqual from 'lodash-es/isEqual';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { Capabilities } from '../../src/camera-manager/capabilities';
-import { CameraManager } from '../../src/camera-manager/manager';
-import { CameraManagerCameraMetadata } from '../../src/camera-manager/types';
-import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager';
-import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
-import { MicrophoneManager } from '../../src/card-controller/microphone-manager';
-import { ViewManager } from '../../src/card-controller/view/view-manager';
+import { Capabilities } from '../../src/camera-manager/capabilities.js';
+import { CameraManager } from '../../src/camera-manager/manager.js';
+import { CameraManagerCameraMetadata } from '../../src/camera-manager/types.js';
+import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager.js';
+import { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
+import { MicrophoneManager } from '../../src/card-controller/microphone-manager.js';
+import { ViewManager } from '../../src/card-controller/view/view-manager.js';
 import {
   MenuButtonController,
   MenuButtonControllerOptions,
-} from '../../src/components-lib/menu-button-controller';
+} from '../../src/components-lib/menu-button-controller.js';
 import {
   AdvancedCameraCardConfig,
   AdvancedCameraCardView,
   MenuItem,
   ViewDisplayMode,
-} from '../../src/config/types';
-import { MediaPlayerController } from '../../src/types';
-import { createGeneralAction, createViewAction } from '../../src/utils/action';
-import { ViewMedia } from '../../src/view/media';
-import { MediaQueriesResults } from '../../src/view/media-queries-results';
-import { View } from '../../src/view/view';
+} from '../../src/config/types.js';
+import { HomeAssistant } from '../../src/ha/types.js';
+import { MediaPlayerController } from '../../src/types.js';
+import { createGeneralAction, createViewAction } from '../../src/utils/action.js';
+import { MediaQueriesResults } from '../../src/view/media-queries-results.js';
+import { ViewMedia } from '../../src/view/media.js';
+import { View } from '../../src/view/view.js';
 import {
   createCameraConfig,
   createCameraManager,
@@ -36,7 +36,7 @@ import {
   createStore,
   createView,
   TestViewMedia,
-} from '../test-utils';
+} from '../test-utils.js';
 
 vi.mock('../../src/utils/media-player-controller.js');
 vi.mock('../../src/card-controller/microphone-manager.js');

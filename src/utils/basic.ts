@@ -14,26 +14,6 @@ import { AdvancedCameraCardError } from '../types';
 export type ModifyInterface<T, R> = Omit<T, keyof R> & R;
 
 /**
- * Dispatch an Advanced Camera Card event.
- * @param target The target from which send the event.
- * @param name The name of the Advanced Camera Card event to send.
- * @param detail An optional detail object to attach.
- */
-export function dispatchAdvancedCameraCardEvent<T>(
-  target: EventTarget,
-  name: string,
-  detail?: T,
-): void {
-  target.dispatchEvent(
-    new CustomEvent<T>(`advanced-camera-card:${name}`, {
-      bubbles: true,
-      composed: true,
-      detail: detail,
-    }),
-  );
-}
-
-/**
  * Prettify a title by converting '_' to spaces and capitalizing words.
  * @param input The input string.
  * @returns A prettified name.

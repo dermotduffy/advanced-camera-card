@@ -11,11 +11,11 @@ import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import { ThumbnailsControlConfig } from '../config/types.js';
+import { HomeAssistant } from '../ha/types.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
-import { ExtendedHomeAssistant } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
-import { dispatchAdvancedCameraCardEvent } from '../utils/basic.js';
 import { CarouselDirection } from '../utils/embla/carousel-controller.js';
+import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 import { MediaQueriesResults } from '../view/media-queries-results';
 import './carousel.js';
 import './thumbnail.js';
@@ -27,7 +27,7 @@ export interface ThumbnailCarouselTap {
 @customElement('advanced-camera-card-thumbnail-carousel')
 export class AdvancedCameraCardThumbnailCarousel extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;
@@ -111,7 +111,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
           @click=${(ev: Event) => {
             const view = this.viewManagerEpoch?.manager.getView();
             if (view && view.queryResults) {
-              dispatchAdvancedCameraCardEvent<ThumbnailCarouselTap>(
+              fireAdvancedCameraCardEvent<ThumbnailCarouselTap>(
                 this,
                 'thumbnail-carousel:tap',
                 {

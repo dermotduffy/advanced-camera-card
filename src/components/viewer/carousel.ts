@@ -19,14 +19,11 @@ import {
   TransitionEffect,
   ViewerConfig,
 } from '../../config/types.js';
+import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';
 import viewerCarouselStyle from '../../scss/viewer-carousel.scss';
-import {
-  ExtendedHomeAssistant,
-  MediaLoadedInfo,
-  MediaPlayerController,
-} from '../../types.js';
+import { MediaLoadedInfo, MediaPlayerController } from '../../types.js';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { contentsChanged, setOrRemoveAttribute } from '../../utils/basic.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
@@ -59,7 +56,7 @@ const ADVANCED_CAMERA_CARD_VIEWER_PROVIDER = 'advanced-camera-card-viewer-provid
 @customElement('advanced-camera-card-viewer-carousel')
 export class AdvancedCameraCardViewerCarousel extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;

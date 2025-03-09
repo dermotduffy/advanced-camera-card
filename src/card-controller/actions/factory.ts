@@ -1,6 +1,6 @@
-import { ActionConfig } from '@dermotduffy/custom-card-helpers';
 import { ActionContext } from 'action';
 import { ActionType, INTERNAL_CALLBACK_ACTION } from '../../config/types';
+import { ActionConfig } from '../../ha/types';
 import { convertActionToCardCustomAction } from '../../utils/action';
 import { CameraSelectAction } from './actions/camera-select';
 import { CameraUIAction } from './actions/camera-ui';

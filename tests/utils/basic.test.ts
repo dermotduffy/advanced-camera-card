@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, it, vi } from 'vitest';
-import { AdvancedCameraCardError } from '../../src/types';
+import { AdvancedCameraCardError } from '../../src/types.js';
 import {
   allPromises,
   arefloatsApproximatelyEqual,
@@ -9,7 +9,6 @@ import {
   contentsChanged,
   dayToDate,
   desparsifyArrays,
-  dispatchAdvancedCameraCardEvent,
   errorToConsole,
   formatDate,
   formatDateAndTime,
@@ -28,32 +27,8 @@ import {
   setify,
   setOrRemoveAttribute,
   sleep,
-} from '../../src/utils/basic';
-import { createSlot, createSlotHost } from '../test-utils';
-
-// @vitest-environment jsdom
-describe('dispatchAdvancedCameraCardEvent', () => {
-  it('should dispatch event without data', () => {
-    const element = document.createElement('div');
-    const handler = vi.fn();
-    element.addEventListener('advanced-camera-card:foo', handler);
-
-    dispatchAdvancedCameraCardEvent(element, 'foo');
-    expect(handler).toBeCalled();
-  });
-
-  it('should dispatch event with data', () => {
-    const element = document.createElement('div');
-    const data = { bar: 2 };
-    const handler = vi.fn((ev) => {
-      expect(ev.detail).toBe(data);
-    });
-
-    element.addEventListener('advanced-camera-card:foo', handler);
-    dispatchAdvancedCameraCardEvent(element, 'foo', data);
-    expect(handler).toBeCalled();
-  });
-});
+} from '../../src/utils/basic.js';
+import { createSlot, createSlotHost } from '../test-utils.js';
 
 describe('prettifyTitle', () => {
   it('should return undefined when passed undefined', () => {
@@ -130,6 +105,7 @@ describe('errorToConsole', () => {
   });
 });
 
+// @vitest-environment jsdom
 describe('isHoverableDevice', () => {
   afterAll(() => {
     vi.restoreAllMocks();
@@ -163,6 +139,7 @@ describe('formatDate', () => {
   });
 });
 
+// @vitest-environment jsdom
 describe('runWhenIdleIfSupported', () => {
   const originalRequestIdleCallback = window.requestIdleCallback;
   afterAll(() => {

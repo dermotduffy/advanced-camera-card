@@ -1,4 +1,3 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import {
   CSSResultGroup,
   html,
@@ -9,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { IconController } from '../components-lib/icon-controller';
+import { HomeAssistant } from '../ha/types';
 import iconStyle from '../scss/icon.scss';
 import { Icon } from '../types';
 

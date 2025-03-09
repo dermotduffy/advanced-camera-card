@@ -1,8 +1,8 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { NextPreviousControlConfig } from '../config/types.js';
+import { HomeAssistant } from '../ha/types.js';
 import controlStyle from '../scss/next-previous-control.scss';
 import { Icon } from '../types.js';
 import { renderTask } from '../utils/task.js';

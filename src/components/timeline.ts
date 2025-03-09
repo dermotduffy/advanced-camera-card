@@ -3,15 +3,15 @@ import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../camera-manager/manager';
 import { ViewManagerEpoch } from '../card-controller/view/types';
 import { CardWideConfig, TimelineConfig } from '../config/types';
+import { HomeAssistant } from '../ha/types';
 import basicBlockStyle from '../scss/basic-block.scss';
-import { ExtendedHomeAssistant } from '../types';
 import './surround.js';
 import './timeline-core.js';
 
 @customElement('advanced-camera-card-timeline')
 export class AdvancedCameraCardTimeline extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;

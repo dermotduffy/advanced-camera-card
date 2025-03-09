@@ -4,7 +4,7 @@ import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { localize } from '../localize/localize';
 import datePickerStyle from '../scss/date-picker.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
-import { dispatchAdvancedCameraCardEvent } from '../utils/basic';
+import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
 import './icon';
 
 export interface DatePickerEvent {
@@ -32,7 +32,7 @@ export class AdvancedCameraCardDatePicker extends LitElement {
     const changed = () => {
       const value = this._refInput.value?.value;
 
-      dispatchAdvancedCameraCardEvent<DatePickerEvent>(this, 'date-picker:change', {
+      fireAdvancedCameraCardEvent<DatePickerEvent>(this, 'date-picker:change', {
         date: value ? new Date(value) : null,
       });
     };

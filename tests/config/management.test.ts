@@ -1,7 +1,3 @@
-import {
-  CallServiceActionConfig,
-  PerformActionActionConfig,
-} from '@dermotduffy/custom-card-helpers';
 import { describe, expect, it } from 'vitest';
 import {
   copyConfig,
@@ -20,14 +16,18 @@ import {
   upgradeMoveToWithOverrides,
   upgradeObjectRecursively,
   upgradeWithOverrides,
-} from '../../src/config/management';
-import { PTZControlAction } from '../../src/config/ptz';
+} from '../../src/config/management.js';
+import { PTZControlAction } from '../../src/config/ptz.js';
 import {
   Actions,
   RawAdvancedCameraCardConfig,
   advancedCameraCardConfigSchema,
-} from '../../src/config/types';
-import { getParseErrorPaths } from '../../src/utils/zod';
+} from '../../src/config/types.js';
+import {
+  CallServiceActionConfig,
+  PerformActionActionConfig,
+} from '../../src/ha/types.js';
+import { getParseErrorPaths } from '../../src/utils/zod.js';
 
 describe('general functions', () => {
   it('should set value', () => {
