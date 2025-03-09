@@ -96,6 +96,170 @@ describe('EventMediaQueries', () => {
       newCameraIDs,
     );
   });
+
+  describe('should determine when queries are a superset', () => {
+    it('should return true with itself', () => {
+      const queries_1 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+          start: new Date('2025-03-07T00:00:00.000Z'),
+          end: new Date('2025-03-08T00:00:00.000Z'),
+        },
+      ]);
+      expect(queries_1.isSupersetOf(queries_1)).toBeTruthy();
+    });
+
+    it('should return true with an identical but shorter query', () => {
+      const queries_1 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+          start: new Date('2025-03-07T00:00:00.000Z'),
+          end: new Date('2025-03-08T00:00:00.000Z'),
+        },
+      ]);
+      const queries_2 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+          start: new Date('2025-03-07T01:00:00.000Z'),
+          end: new Date('2025-03-07T23:00:00.000Z'),
+        },
+      ]);
+      expect(queries_1.isSupersetOf(queries_2)).toBeTruthy();
+    });
+
+    it('should return false with an identical but longer query', () => {
+      const queries_1 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+          start: new Date('2025-03-07T00:00:00.000Z'),
+          end: new Date('2025-03-08T00:00:00.000Z'),
+        },
+      ]);
+      const queries_2 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+          start: new Date('2025-03-06T00:00:00.000Z'),
+          end: new Date('2025-03-08T00:00:00.000Z'),
+        },
+      ]);
+      expect(queries_1.isSupersetOf(queries_2)).toBeFalsy();
+    });
+
+    it('should return false with a non-matching query', () => {
+      const queries_1 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+          start: new Date('2025-03-07T00:00:00.000Z'),
+          end: new Date('2025-03-08T00:00:00.000Z'),
+        },
+      ]);
+      const queries_2 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['DIFFERENT']),
+          start: new Date('2025-03-07T00:00:00.000Z'),
+          end: new Date('2025-03-08T00:00:00.000Z'),
+        },
+      ]);
+      expect(queries_1.isSupersetOf(queries_2)).toBeFalsy();
+    });
+
+    it('should return true with a matching query where the source has multiple', () => {
+      const queries_1 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+          start: new Date('2025-03-07T00:00:00.000Z'),
+          end: new Date('2025-03-08T00:00:00.000Z'),
+        },
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['kitchen']),
+          start: new Date('2025-03-07T00:00:00.000Z'),
+          end: new Date('2025-03-08T00:00:00.000Z'),
+        },
+      ]);
+      const queries_2 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+          start: new Date('2025-03-07T00:00:00.000Z'),
+          end: new Date('2025-03-08T00:00:00.000Z'),
+        },
+      ]);
+      expect(queries_1.isSupersetOf(queries_2)).toBeTruthy();
+    });
+
+    it('should return false with a matching query where the target has multiple', () => {
+      const queries_1 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+          start: new Date('2025-03-07T00:00:00.000Z'),
+          end: new Date('2025-03-08T00:00:00.000Z'),
+        },
+      ]);
+      const queries_2 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+          start: new Date('2025-03-07T00:00:00.000Z'),
+          end: new Date('2025-03-08T00:00:00.000Z'),
+        },
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['kitchen']),
+          start: new Date('2025-03-07T00:00:00.000Z'),
+          end: new Date('2025-03-08T00:00:00.000Z'),
+        },
+      ]);
+      expect(queries_1.isSupersetOf(queries_2)).toBeFalsy();
+    });
+
+    it('should return true when queries do not have start or end', () => {
+      const queries_1 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+        },
+      ]);
+      const queries_2 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+        },
+      ]);
+      expect(queries_1.isSupersetOf(queries_2)).toBeTruthy();
+    });
+
+    it('should return true when target has no queries', () => {
+      const queries_1 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+        },
+      ]);
+      const queries_2 = new EventMediaQueries();
+      expect(queries_1.isSupersetOf(queries_2)).toBeTruthy();
+    });
+
+    it('should return false when source has no queries', () => {
+      const queries_1 = new EventMediaQueries();
+      const queries_2 = new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+        },
+      ]);
+      expect(queries_1.isSupersetOf(queries_2)).toBeFalsy();
+    });
+  });
 });
 
 describe('RecordingMediaQueries', () => {
