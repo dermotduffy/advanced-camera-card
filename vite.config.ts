@@ -13,6 +13,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'camera-manager/utils/*.ts',
   'card-controller/**/*.ts',
   'components-lib/**/!(timeline-source.ts)',
+  'conditions/**/*.ts',
   'config/**/*.ts',
   'const.ts',
   'types.ts',

@@ -1,5 +1,5 @@
 import { AdvancedCameraCardError, Message } from '../../types';
-import { dispatchAdvancedCameraCardEvent } from '../../utils/basic';
+import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 
 // Facilitates correct typing of event handlers.
 export interface AdvancedCameraCardMessageEventTarget extends EventTarget {
@@ -44,7 +44,7 @@ export const dispatchAdvancedCameraCardErrorEvent = (
   error: unknown,
 ): void => {
   if (error instanceof Error) {
-    dispatchAdvancedCameraCardEvent<Message>(element, 'message', {
+    fireAdvancedCameraCardEvent<Message>(element, 'message', {
       message: error.message,
       type: 'error',
       ...(error instanceof AdvancedCameraCardError && { context: error.context }),

@@ -1,4 +1,3 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import {
   CSSResultGroup,
   LitElement,
@@ -14,6 +13,7 @@ import { CameraManager } from '../camera-manager/manager.js';
 import { PTZController } from '../components-lib/ptz/ptz-controller.js';
 import { PTZControllerActions } from '../components-lib/ptz/types.js';
 import { Actions, PTZControlsConfig } from '../config/types.js';
+import { HomeAssistant } from '../ha/types.js';
 import { localize } from '../localize/localize.js';
 import ptzStyle from '../scss/ptz.scss';
 import { Interaction } from '../types.js';

@@ -1,8 +1,3 @@
-import {
-  ActionConfig,
-  ServiceCallRequest,
-  hasAction as customCardHasAction,
-} from '@dermotduffy/custom-card-helpers';
 import { CardActionsAPI } from '../card-controller/types.js';
 import { ZoomSettingsBase } from '../components-lib/zoom/types.js';
 import { PTZAction } from '../config/ptz.js';
@@ -29,6 +24,8 @@ import {
   ViewActionConfig,
   internalAdvancedCameraCardCustomActionSchema,
 } from '../config/types.js';
+import { hasAction as customCardHasAction } from '../ha/has-action.js';
+import { ActionConfig, ServiceCallRequest } from '../ha/types.js';
 import { arrayify } from './basic.js';
 
 /**

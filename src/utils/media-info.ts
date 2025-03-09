@@ -4,7 +4,7 @@ import {
   MediaPlayerController,
   MediaTechnology,
 } from '../types.js';
-import { dispatchAdvancedCameraCardEvent } from './basic.js';
+import { fireAdvancedCameraCardEvent } from './fire-advanced-camera-card-event.js';
 
 const MEDIA_INFO_HEIGHT_CUTOFF = 50;
 const MEDIA_INFO_WIDTH_CUTOFF = MEDIA_INFO_HEIGHT_CUTOFF;
@@ -75,17 +75,13 @@ export function dispatchMediaLoadedEvent(
 /**
  * Dispatch a pre-existing MediaLoadedInfo object as an event.
  * @param element The element to send the event.
- * @param MediaLoadedInfo The MediaLoadedInfo object to send.
+ * @param mediaLoadedInfo The MediaLoadedInfo object to send.
  */
 export function dispatchExistingMediaLoadedInfoAsEvent(
   target: EventTarget,
-  MediaLoadedInfo: MediaLoadedInfo,
+  mediaLoadedInfo: MediaLoadedInfo,
 ): void {
-  dispatchAdvancedCameraCardEvent<MediaLoadedInfo>(
-    target,
-    'media:loaded',
-    MediaLoadedInfo,
-  );
+  fireAdvancedCameraCardEvent<MediaLoadedInfo>(target, 'media:loaded', mediaLoadedInfo);
 }
 
 /**
@@ -93,19 +89,19 @@ export function dispatchExistingMediaLoadedInfoAsEvent(
  * @param element The element to send the event.
  */
 export function dispatchMediaUnloadedEvent(element: HTMLElement): void {
-  dispatchAdvancedCameraCardEvent(element, 'media:unloaded');
+  fireAdvancedCameraCardEvent(element, 'media:unloaded');
 }
 
 export function dispatchMediaVolumeChangeEvent(target: HTMLElement): void {
-  dispatchAdvancedCameraCardEvent(target, 'media:volumechange');
+  fireAdvancedCameraCardEvent(target, 'media:volumechange');
 }
 
 export function dispatchMediaPlayEvent(target: HTMLElement): void {
-  dispatchAdvancedCameraCardEvent(target, 'media:play');
+  fireAdvancedCameraCardEvent(target, 'media:play');
 }
 
 export function dispatchMediaPauseEvent(target: HTMLElement): void {
-  dispatchAdvancedCameraCardEvent(target, 'media:pause');
+  fireAdvancedCameraCardEvent(target, 'media:pause');
 }
 
 /**

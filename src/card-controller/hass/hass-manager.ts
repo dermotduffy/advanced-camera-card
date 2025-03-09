@@ -1,11 +1,11 @@
+import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
-import { ExtendedHomeAssistant } from '../../types';
 import { hasHAConnectionStateChanged } from '../../utils/ha';
 import { CardHASSAPI } from '../types';
 import { StateWatcher, StateWatcherSubscriptionInterface } from './state-watcher';
 
 export class HASSManager {
-  protected _hass: ExtendedHomeAssistant | null = null;
+  protected _hass: HomeAssistant | null = null;
   protected _api: CardHASSAPI;
   protected _stateWatcher: StateWatcher = new StateWatcher();
 
@@ -13,7 +13,7 @@ export class HASSManager {
     this._api = api;
   }
 
-  public getHASS(): ExtendedHomeAssistant | null {
+  public getHASS(): HomeAssistant | null {
     return this._hass;
   }
 
@@ -25,7 +25,7 @@ export class HASSManager {
     return this._stateWatcher;
   }
 
-  public setHASS(hass?: ExtendedHomeAssistant | null): void {
+  public setHASS(hass?: HomeAssistant | null): void {
     if (hasHAConnectionStateChanged(this._hass, hass)) {
       if (!hass?.connected) {
         this._api.getMessageManager().setMessageIfHigherPriority({

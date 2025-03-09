@@ -1,11 +1,11 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { CameraManager } from '../../camera-manager/manager';
-import { dispatchActionExecutionRequest } from '../../card-controller/actions/utils/execution-request';
-import { PTZAction } from '../../config/ptz';
-import { Actions, ActionsConfig, PTZControlsConfig } from '../../config/types';
-import { Interaction } from '../../types';
-import { createPTZMultiAction, getActionConfigGivenAction } from '../../utils/action';
-import { SubmenuInteraction } from '../../components/submenu/types';
+import { CameraManager } from '../../camera-manager/manager.js';
+import { dispatchActionExecutionRequest } from '../../card-controller/actions/utils/execution-request.js';
+import { SubmenuInteraction } from '../../components/submenu/types.js';
+import { PTZAction } from '../../config/ptz.js';
+import { Actions, ActionsConfig, PTZControlsConfig } from '../../config/types.js';
+import { HomeAssistant } from '../../ha/types.js';
+import { Interaction } from '../../types.js';
+import { createPTZMultiAction, getActionConfigGivenAction } from '../../utils/action.js';
 import { PTZControllerActions } from './types';
 
 export class PTZController {

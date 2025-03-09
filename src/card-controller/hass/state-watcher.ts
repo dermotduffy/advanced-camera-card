@@ -1,4 +1,4 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { HomeAssistant } from '../../ha/types';
 import { getHassDifferences, HassStateDifference } from '../../utils/ha';
 
 type StateWatcherCallback = (difference: HassStateDifference) => void;

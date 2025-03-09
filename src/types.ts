@@ -1,11 +1,5 @@
-import {
-  HomeAssistant,
-  LovelaceCard,
-  LovelaceCardConfig,
-  LovelaceCardEditor,
-  Themes,
-} from '@dermotduffy/custom-card-helpers';
 import { z } from 'zod';
+import { LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from './ha/types';
 
 export type ClipsOrSnapshots = 'clips' | 'snapshots';
 export type ClipsOrSnapshotsOrAll = 'clips' | 'snapshots' | 'all';
@@ -17,13 +11,6 @@ export class AdvancedCameraCardError extends Error {
     super(message);
     this.context = context;
   }
-}
-
-export interface ExtendedHomeAssistant extends HomeAssistant {
-  hassUrl(path?): string;
-  themes: Themes & {
-    darkMode?: boolean;
-  };
 }
 
 export interface MediaLoadedCapabilities {

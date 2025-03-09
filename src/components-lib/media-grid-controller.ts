@@ -3,11 +3,8 @@ import throttle from 'lodash-es/throttle';
 import Masonry from 'masonry-layout';
 import { ViewDisplayConfig } from '../config/types';
 import { MediaLoadedInfo } from '../types';
-import {
-  dispatchAdvancedCameraCardEvent,
-  getChildrenFromElement,
-  setOrRemoveAttribute,
-} from '../utils/basic';
+import { getChildrenFromElement, setOrRemoveAttribute } from '../utils/basic';
+import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
 import {
   AdvancedCameraCardMediaLoadedEventTarget,
   dispatchExistingMediaLoadedInfoAsEvent,
@@ -137,7 +134,7 @@ export class MediaGridController {
     }
 
     this._selected = id;
-    dispatchAdvancedCameraCardEvent(this._host, 'media-grid:selected', { selected: id });
+    fireAdvancedCameraCardEvent(this._host, 'media-grid:selected', { selected: id });
 
     const mediaLoadedInfo = this._mediaLoadedInfoMap.get(id);
     if (mediaLoadedInfo) {
@@ -155,7 +152,7 @@ export class MediaGridController {
   public unselectAll() {
     if (this._selected !== null) {
       dispatchMediaUnloadedEvent(this._host);
-      dispatchAdvancedCameraCardEvent(this._host, 'media-grid:unselected');
+      fireAdvancedCameraCardEvent(this._host, 'media-grid:unselected');
     }
     this._selected = null;
     this._updateSelectedStylesOnElements();

@@ -13,14 +13,10 @@ import { CameraEndpoints } from '../../../camera-manager/types.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import { JSMPEGMediaPlayerController } from '../../../components-lib/media-player/jsmpeg.js';
 import { CameraConfig, CardWideConfig } from '../../../config/types.js';
+import { HomeAssistant } from '../../../ha/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveJSMPEGStyle from '../../../scss/live-jsmpeg.scss';
-import {
-  ExtendedHomeAssistant,
-  MediaPlayer,
-  MediaPlayerController,
-  Message,
-} from '../../../types.js';
+import { MediaPlayer, MediaPlayerController, Message } from '../../../types.js';
 import { convertEndpointAddressToSignedWebsocket } from '../../../utils/endpoint.js';
 import {
   dispatchMediaLoadedEvent,
@@ -41,7 +37,7 @@ const JSMPEG_URL_SIGN_REFRESH_THRESHOLD_SECONDS = 1 * 60 * 60;
 
 @customElement('advanced-camera-card-live-jsmpeg')
 export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPlayer {
-  protected hass?: ExtendedHomeAssistant;
+  protected hass?: HomeAssistant;
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;

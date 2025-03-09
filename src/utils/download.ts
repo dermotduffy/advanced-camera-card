@@ -1,10 +1,11 @@
 import { format } from 'date-fns';
-import { CameraManager } from '../camera-manager/manager';
-import { localize } from '../localize/localize';
-import { AdvancedCameraCardError, ExtendedHomeAssistant } from '../types';
-import { ViewMedia } from '../view/media';
-import { errorToConsole } from './basic';
-import { homeAssistantSignPath } from './ha';
+import { CameraManager } from '../camera-manager/manager.js';
+import { HomeAssistant } from '../ha/types.js';
+import { localize } from '../localize/localize.js';
+import { AdvancedCameraCardError } from '../types.js';
+import { ViewMedia } from '../view/media.js';
+import { errorToConsole } from './basic.js';
+import { homeAssistantSignPath } from './ha/index.js';
 
 export const downloadURL = (url: string, filename = 'download'): void => {
   // The download attribute only works on the same origin.
@@ -27,7 +28,7 @@ export const downloadURL = (url: string, filename = 'download'): void => {
 };
 
 export const downloadMedia = async (
-  hass: ExtendedHomeAssistant,
+  hass: HomeAssistant,
   cameraManager: CameraManager,
   media: ViewMedia,
 ): Promise<void> => {

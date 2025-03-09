@@ -1,6 +1,5 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CameraProxyConfig } from '../../camera-manager/types';
-import { ExtendedHomeAssistant } from '../../types';
+import { HomeAssistant } from '../../ha/types';
 
 export const HASS_WEB_PROXY_DOMAIN = 'hass_web_proxy';
 
@@ -29,7 +28,7 @@ export const shouldUseWebProxy = (
  * @returns The signed URL, or null if the response was malformed.
  */
 export async function addDynamicProxyURL(
-  hass: ExtendedHomeAssistant,
+  hass: HomeAssistant,
   url_pattern: string,
   options?: {
     urlID?: string;

@@ -1,6 +1,6 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import pkg from '../../package.json';
 import { RawAdvancedCameraCardConfig } from '../config/types';
+import { HomeAssistant } from '../ha/types';
 import { getLanguage } from '../localize/localize';
 import { getIntegrationManifest } from './ha/integration';
 import { IntegrationManifest } from './ha/integration/types';

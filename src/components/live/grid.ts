@@ -13,14 +13,14 @@ import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
 import { CardWideConfig, LiveConfig } from '../../config/types.js';
+import { HomeAssistant } from '../../ha/types.js';
 import liveGridStyle from '../../scss/live-grid.scss';
-import { ExtendedHomeAssistant } from '../../types.js';
 import './carousel.js';
 
 @customElement('advanced-camera-card-live-grid')
 export class AdvancedCameraCardLiveGrid extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;

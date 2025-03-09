@@ -1,3 +1,6 @@
+import { HassServiceTarget } from 'home-assistant-js-websocket';
+import { z } from 'zod';
+import { MEDIA_CHUNK_SIZE_DEFAULT, MEDIA_CHUNK_SIZE_MAX } from '../const.js';
 import {
   CallServiceActionConfig,
   ConfirmationRestrictionConfig,
@@ -7,10 +10,7 @@ import {
   PerformActionActionConfig,
   ToggleActionConfig,
   UrlActionConfig,
-} from '@dermotduffy/custom-card-helpers';
-import { HassServiceTarget } from 'home-assistant-js-websocket';
-import { z } from 'zod';
-import { MEDIA_CHUNK_SIZE_DEFAULT, MEDIA_CHUNK_SIZE_MAX } from '../const.js';
+} from '../ha/types.js';
 import { capabilityKeys } from '../types.js';
 import { deepRemoveDefaults } from '../utils/zod.js';
 import {

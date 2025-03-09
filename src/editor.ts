@@ -1,8 +1,3 @@
-import {
-  fireEvent,
-  HomeAssistant,
-  LovelaceCardEditor,
-} from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -238,6 +233,8 @@ import {
   CONF_VIEW_TRIGGERS_UNTRIGGER_SECONDS,
   MEDIA_CHUNK_SIZE_MAX,
 } from './const.js';
+import { fireHASSEvent } from './ha/fire-hass-event.js';
+import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
 import editorStyle from './scss/editor.scss';
 import { arrayMove, prettifyTitle } from './utils/basic.js';
@@ -2510,7 +2507,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
 
   protected _updateConfig(config: RawAdvancedCameraCardConfig): void {
     this._config = config;
-    fireEvent(this, 'config-changed', { config: this._config });
+    fireHASSEvent(this, 'config-changed', { config: this._config });
   }
 
   protected render(): TemplateResult | void {

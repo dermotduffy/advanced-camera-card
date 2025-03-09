@@ -22,14 +22,10 @@ import {
   LiveProvider,
 } from '../../config/types.js';
 import { STREAM_TROUBLESHOOTING_URL } from '../../const.js';
+import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import liveProviderStyle from '../../scss/live-provider.scss';
-import {
-  ExtendedHomeAssistant,
-  MediaPlayer,
-  MediaPlayerController,
-  MediaPlayerElement,
-} from '../../types.js';
+import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../../types.js';
 import { aspectRatioToString } from '../../utils/basic.js';
 import { dispatchMediaUnloadedEvent } from '../../utils/media-info.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
@@ -42,7 +38,7 @@ import '../surround.js';
 @customElement('advanced-camera-card-live-provider')
 export class AdvancedCameraCardLiveProvider extends LitElement implements MediaPlayer {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;

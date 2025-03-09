@@ -1,6 +1,6 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { homeAssistantWSRequest } from '../ws-request';
-import { IntegrationManifest, integrationManifestSchema } from './types';
+import { HomeAssistant } from '../../../ha/types.js';
+import { homeAssistantWSRequest } from '../ws-request.js';
+import { IntegrationManifest, integrationManifestSchema } from './types.js';
 
 export const getIntegrationManifest = async (
   hass: HomeAssistant,

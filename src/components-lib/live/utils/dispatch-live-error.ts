@@ -1,5 +1,5 @@
-import { dispatchAdvancedCameraCardEvent } from '../../../utils/basic';
+import { fireAdvancedCameraCardEvent } from '../../../utils/fire-advanced-camera-card-event';
 
 export function dispatchLiveErrorEvent(element: EventTarget): void {
-  dispatchAdvancedCameraCardEvent(element, 'live:error');
+  fireAdvancedCameraCardEvent(element, 'live:error');
 }

@@ -1,4 +1,3 @@
-import { HASSDomEvent } from '@dermotduffy/custom-card-helpers';
 import { LitElement } from 'lit';
 import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
@@ -76,7 +75,7 @@ export class StatusBarController {
   }
 
   public actionHandler(
-    ev: HASSDomEvent<{ action: string; config?: ActionsConfig }>,
+    ev: CustomEvent<{ action: string; config?: ActionsConfig }>,
     config?: ActionsConfig,
   ): void {
     // These interactions should only be handled by the status bar, as nothing

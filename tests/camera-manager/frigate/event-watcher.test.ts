@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { FrigateEventWatcher } from '../../../src/camera-manager/frigate/event-watcher';
-import { createHASS } from '../../test-utils';
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { FrigateEventChange } from '../../../src/camera-manager/frigate/types';
+import { FrigateEventWatcher } from '../../../src/camera-manager/frigate/event-watcher.js';
+import { FrigateEventChange } from '../../../src/camera-manager/frigate/types.js';
+import { HomeAssistant } from '../../../src/ha/types.js';
+import { createHASS } from '../../test-utils.js';
 
 const createEventChange = (): FrigateEventChange => {
   return {

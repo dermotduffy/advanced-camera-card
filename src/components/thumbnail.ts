@@ -15,12 +15,12 @@ import { CameraManagerCameraMetadata } from '../camera-manager/types.js';
 import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import { dispatchAdvancedCameraCardErrorEvent } from '../components-lib/message/dispatch.js';
+import { HomeAssistant } from '../ha/types.js';
 import { localize } from '../localize/localize.js';
 import thumbnailDetailsStyle from '../scss/thumbnail-details.scss';
 import thumbnailFeatureTextStyle from '../scss/thumbnail-feature-text.scss';
 import thumbnailFeatureThumbnailStyle from '../scss/thumbnail-feature-thumbnail.scss';
 import thumbnailStyle from '../scss/thumbnail.scss';
-import type { ExtendedHomeAssistant } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import {
   errorToConsole,
@@ -43,7 +43,7 @@ export class AdvancedCameraCardThumbnailFeatureThumbnail extends LitElement {
   public thumbnail?: string;
 
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @state()
   protected _thumbnailError = false;
@@ -368,7 +368,7 @@ export class AdvancedCameraCardThumbnail extends LitElement {
   // a re-render. The HomeAssistant object may be required for thumbnail signing
   // (after initial signing the thumbnail is stored in a data URL, so the
   // signing will not expire).
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   // Performance: During timeline scrubbing, the view will be updated
   // continuously. As it is not needed for the thumbnail rendering itself, it

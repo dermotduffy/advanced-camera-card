@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
+import { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
 import {
   MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
   MEDIA_PLAYER_SUPPORT_STOP,
   MEDIA_PLAYER_SUPPORT_TURN_OFF,
 } from '../../src/const';
-import { ExtendedHomeAssistant } from '../../src/types';
-import { EntityRegistryManager } from '../../src/utils/ha/registry/entity';
+import { HomeAssistant } from '../../src/ha/types.js';
+import { EntityRegistryManager } from '../../src/utils/ha/registry/entity/index.js';
 import {
   createCameraConfig,
   createCameraManager,
@@ -18,9 +18,9 @@ import {
   createStateEntity,
   createStore,
   TestViewMedia,
-} from '../test-utils';
+} from '../test-utils.js';
 
-const createHASSWithMediaPlayers = (): ExtendedHomeAssistant => {
+const createHASSWithMediaPlayers = (): HomeAssistant => {
   const attributesSupported = {
     supported_features: MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
   };
@@ -292,7 +292,7 @@ describe('MediaPlayerManager', () => {
           );
           vi.mocked(api.getCameraManager().getCameraMetadata).mockReturnValue({
             title: 'camera title',
-            icon: 'icon',
+            icon: { icon: 'icon' },
           });
           vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
             createHASS({

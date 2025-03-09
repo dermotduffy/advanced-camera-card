@@ -1,8 +1,8 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { HassEntity } from 'home-assistant-js-websocket';
+import { STATES_ON } from '../../ha/const.js';
+import { HomeAssistant } from '../../ha/types.js';
 import {
   CardHelpers,
-  ExtendedHomeAssistant,
   LovelaceCardWithEditor,
   SignedPath,
   signedPathSchema,
@@ -18,7 +18,7 @@ import { homeAssistantWSRequest } from './ws-request.js';
  * @returns The signed URL, or null if the response was malformed.
  */
 export async function homeAssistantSignPath(
-  hass: ExtendedHomeAssistant,
+  hass: HomeAssistant,
   path: string,
   expires?: number,
 ): Promise<string | null> {
@@ -183,7 +183,7 @@ export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
  * @returns `true` if triggered, `false` otherwise.
  */
 export const isTriggeredState = (state?: string): boolean => {
-  return !!state && ['on', 'open'].includes(state);
+  return !!state && STATES_ON.includes(state);
 };
 
 /**
@@ -224,15 +224,9 @@ export function isHARelativeURL(url?: string): boolean {
  * location will be the Chromecast receiver, not HA).
  * @param url The media URL
  */
-export function canonicalizeHAURL(hass: ExtendedHomeAssistant, url: string): string;
-export function canonicalizeHAURL(
-  hass: ExtendedHomeAssistant,
-  url?: string,
-): string | null;
-export function canonicalizeHAURL(
-  hass: ExtendedHomeAssistant,
-  url?: string,
-): string | null {
+export function canonicalizeHAURL(hass: HomeAssistant, url: string): string;
+export function canonicalizeHAURL(hass: HomeAssistant, url?: string): string | null;
+export function canonicalizeHAURL(hass: HomeAssistant, url?: string): string | null {
   if (isHARelativeURL(url)) {
     return hass.hassUrl(url);
   }

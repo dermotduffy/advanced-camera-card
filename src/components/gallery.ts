@@ -14,10 +14,10 @@ import { CameraManager, ExtendedMediaQueryResult } from '../camera-manager/manag
 import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import { CardWideConfig, configDefaults, GalleryConfig } from '../config/types';
+import { HomeAssistant } from '../ha/types.js';
 import { localize } from '../localize/localize';
 import galleryCoreStyle from '../scss/gallery-core.scss';
 import galleryStyle from '../scss/gallery.scss';
-import { ExtendedHomeAssistant } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { errorToConsole, sleep } from '../utils/basic';
 import { scrollIntoView } from '../utils/scroll.js';
@@ -44,7 +44,7 @@ const MIN_GALLERY_EXTENSION_SECONDS = 0.5;
 @customElement('advanced-camera-card-gallery')
 export class AdvancedCameraCardGallery extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;
@@ -112,7 +112,7 @@ export class AdvancedCameraCardGallery extends LitElement {
 @customElement('advanced-camera-card-gallery-core')
 export class AdvancedCameraCardGalleryCore extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;

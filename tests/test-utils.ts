@@ -1,4 +1,3 @@
-import { CurrentUser } from '@dermotduffy/custom-card-helpers';
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { LitElement } from 'lit';
 import screenfull from 'screenfull';
@@ -52,12 +51,8 @@ import {
   internalAdvancedCameraCardCustomActionSchema,
   performanceConfigSchema,
 } from '../src/config/types';
-import {
-  CapabilitiesRaw,
-  ExtendedHomeAssistant,
-  Interaction,
-  MediaLoadedInfo,
-} from '../src/types';
+import { CurrentUser, HomeAssistant } from '../src/ha/types';
+import { CapabilitiesRaw, Interaction, MediaLoadedInfo } from '../src/types';
 import { HassStateDifference } from '../src/utils/ha';
 import { Device } from '../src/utils/ha/registry/device/types';
 import { EntityRegistryManager } from '../src/utils/ha/registry/entity';
@@ -104,11 +99,8 @@ export const createCamera = (
   return new Camera(config, engine, { capabilities: capabilities });
 };
 
-export const createHASS = (
-  states?: HassEntities,
-  user?: CurrentUser,
-): ExtendedHomeAssistant => {
-  const hass = mock<ExtendedHomeAssistant>();
+export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssistant => {
+  const hass = mock<HomeAssistant>();
   if (states) {
     hass.states = states;
   }

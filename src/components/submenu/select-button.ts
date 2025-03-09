@@ -1,4 +1,3 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import {
   CSSResultGroup,
   html,
@@ -10,6 +9,7 @@ import {
 import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { MenuSubmenu, MenuSubmenuItem, MenuSubmenuSelect } from '../../config/types.js';
+import { HomeAssistant } from '../../ha/types.js';
 import menuButtonStyle from '../../scss/menu-button.scss';
 import { getEntityTitle, isHassDifferent } from '../../utils/ha';
 import { getEntityStateTranslation } from '../../utils/ha/entity-state-translation.js';

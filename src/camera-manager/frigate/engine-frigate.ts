@@ -1,4 +1,3 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { add, endOfHour, format, fromUnixTime, startOfHour } from 'date-fns';
 import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
@@ -7,7 +6,7 @@ import uniqWith from 'lodash-es/uniqWith';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { PTZAction } from '../../config/ptz';
 import { ActionPhase, CameraConfig } from '../../config/types';
-import { ExtendedHomeAssistant } from '../../types';
+import { HomeAssistant } from '../../ha/types';
 import {
   allPromises,
   formatDate,
@@ -157,7 +156,7 @@ export class FrigateCameraManagerEngine
   }
 
   public async getMediaDownloadPath(
-    _hass: ExtendedHomeAssistant,
+    _hass: HomeAssistant,
     cameraConfig: CameraConfig,
     media: ViewMedia,
   ): Promise<CameraEndpoint | null> {

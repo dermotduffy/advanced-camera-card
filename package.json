@@ -19,7 +19,6 @@
   "license": "MIT",
   "dependencies": {
     "@cycjimmy/jsmpeg-player": "^6.0.5",
-    "@dermotduffy/custom-card-helpers": "^1.9.1",
     "@dermotduffy/panzoom": "^4.5.1",
     "@egjs/hammerjs": "^2.0.17",
     "@graphiteds/core": "^1.9.21",

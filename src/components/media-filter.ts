@@ -1,4 +1,3 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import {
   CSSResultGroup,
@@ -12,6 +11,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../camera-manager/manager';
+import { ViewManagerEpoch } from '../card-controller/view/types';
 import {
   MediaFilterController,
   MediaFilterCoreFavoriteSelection,
@@ -19,13 +19,13 @@ import {
   MediaFilterMediaType,
 } from '../components-lib/media-filter-controller';
 import { CardWideConfig } from '../config/types';
+import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import mediaFilterStyle from '../scss/media-filter.scss';
 import { AdvancedCameraCardDatePicker } from './date-picker';
 import './date-picker.js';
 import { AdvancedCameraCardSelect } from './select';
 import './select.js';
-import { ViewManagerEpoch } from '../card-controller/view/types';
 
 @customElement('advanced-camera-card-media-filter')
 class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {

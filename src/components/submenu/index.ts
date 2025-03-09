@@ -1,9 +1,9 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../../action-handler-directive.js';
+import { HomeAssistant } from '../../ha/types.js';
 import submenuStyle from '../../scss/submenu.scss';
 import {
   hasAction,

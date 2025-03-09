@@ -1,4 +1,4 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import { AdvancedCameraCardError } from '../../types';
 import { homeAssistantWSRequest } from '../../utils/ha/ws-request';

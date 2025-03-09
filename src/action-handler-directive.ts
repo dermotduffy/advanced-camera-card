@@ -1,8 +1,3 @@
-import type {
-  ActionHandlerDetail,
-  ActionHandlerOptions,
-} from '@dermotduffy/custom-card-helpers';
-import { fireEvent } from '@dermotduffy/custom-card-helpers';
 import { noChange } from 'lit';
 import {
   AttributePart,
@@ -10,6 +5,8 @@ import {
   DirectiveParameters,
   directive,
 } from 'lit/directive.js';
+import { fireHASSEvent } from './ha/fire-hass-event.js';
+import { ActionHandlerDetail, ActionHandlerOptions } from './ha/types.js';
 import { stopEventFromActivatingCardWideActions } from './utils/action.js';
 import { Timer } from './utils/timer.js';
 
@@ -88,7 +85,7 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
       // mousedown events (on Android).
       if (!this.started) {
         this.started = true;
-        fireEvent(element, 'action', { action: 'start_tap' });
+        fireHASSEvent(element, 'action', { action: 'start_tap' });
       }
     };
 
@@ -98,7 +95,7 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
 
       if (this.started) {
         this.started = false;
-        fireEvent(element, 'action', { action: 'end_tap' });
+        fireHASSEvent(element, 'action', { action: 'end_tap' });
       }
     };
 
@@ -122,21 +119,21 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
       endTap(ev);
 
       if (options?.hasHold && this.held) {
-        fireEvent(element, 'action', { action: 'hold' });
+        fireHASSEvent(element, 'action', { action: 'hold' });
       } else if (options?.hasDoubleClick) {
         if (
           (ev.type === 'click' && (ev as MouseEvent).detail < 2) ||
           !this.doubleClickTimer.isRunning()
         ) {
           this.doubleClickTimer.start(0.25, () =>
-            fireEvent(element, 'action', { action: 'tap' }),
+            fireHASSEvent(element, 'action', { action: 'tap' }),
           );
         } else {
           this.doubleClickTimer.stop();
-          fireEvent(element, 'action', { action: 'double_tap' });
+          fireHASSEvent(element, 'action', { action: 'double_tap' });
         }
       } else {
-        fireEvent(element, 'action', { action: 'tap' });
+        fireHASSEvent(element, 'action', { action: 'tap' });
       }
     };
 

@@ -1,8 +1,8 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import QuickLRU from 'quick-lru';
-import { homeAssistantWSRequest } from './ws-request';
+import { HomeAssistant } from '../../ha/types';
 import { ResolvedMedia, resolvedMediaSchema } from '../../types.js';
 import { errorToConsole } from '../basic';
+import { homeAssistantWSRequest } from './ws-request';
 
 // It's important the cache size be at least as large as the largest likely
 // media query or media items will from a given query will be evicted for other

@@ -5,14 +5,14 @@ import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LiveController } from '../../components-lib/live/live-controller.js';
 import { CardWideConfig, LiveConfig } from '../../config/types.js';
+import { HomeAssistant } from '../../ha/types.js';
 import basicBlockStyle from '../../scss/basic-block.scss';
-import { ExtendedHomeAssistant } from '../../types.js';
 import './grid.js';
 
 @customElement('advanced-camera-card-live')
 export class AdvancedCameraCardLive extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;

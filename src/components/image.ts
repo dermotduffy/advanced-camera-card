@@ -1,4 +1,3 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import {
   CSSResultGroup,
   html,
@@ -23,6 +22,7 @@ import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.j
 import './image-updating-player';
 import { resolveImageMode } from './image-updating-player';
 import './zoomer.js';
+import { HomeAssistant } from '../ha/types';
 
 @customElement('advanced-camera-card-image')
 export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {

@@ -1,8 +1,8 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 import { RawAdvancedCameraCardConfig } from '../config/types';
+import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { getDiagnostics } from '../utils/diagnostics';

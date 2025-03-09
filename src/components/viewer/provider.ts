@@ -14,10 +14,10 @@ import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
 import { CardWideConfig, ViewerConfig } from '../../config/types.js';
+import { HomeAssistant } from '../../ha/types.js';
 import '../../patches/ha-hls-player.js';
 import viewerProviderStyle from '../../scss/viewer-provider.scss';
 import {
-  ExtendedHomeAssistant,
   MediaPlayer,
   MediaPlayerController,
   MediaPlayerElement,
@@ -46,7 +46,7 @@ import '../video-player.js';
 @customElement('advanced-camera-card-viewer-provider')
 export class AdvancedCameraCardViewerProvider extends LitElement implements MediaPlayer {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;

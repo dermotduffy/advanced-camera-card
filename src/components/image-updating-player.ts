@@ -1,4 +1,3 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { HassEntity } from 'home-assistant-js-websocket';
 import {
   CSSResultGroup,
@@ -17,6 +16,7 @@ import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { UpdatingImageMediaPlayerController } from '../components-lib/media-player/updating-image.js';
 import { CameraConfig, ImageMode, ImageViewConfig } from '../config/types.js';
+import { HomeAssistant } from '../ha/types.js';
 import defaultImage from '../images/iris-screensaver.jpg';
 import { localize } from '../localize/localize.js';
 import imageUpdatingPlayerStyle from '../scss/image-updating-player.scss';

@@ -12,16 +12,16 @@ import { CameraManager } from '../../camera-manager/manager.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
 import { CardWideConfig, ViewerConfig } from '../../config/types.js';
+import { HomeAssistant } from '../../ha/types.js';
 import '../../patches/ha-hls-player.js';
 import basicBlockStyle from '../../scss/basic-block.scss';
-import { ExtendedHomeAssistant } from '../../types.js';
 import { ResolvedMediaCache } from '../../utils/ha/resolved-media.js';
 import './carousel';
 
 @customElement('advanced-camera-card-viewer-grid')
 export class AdvancedCameraCardViewerGrid extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;

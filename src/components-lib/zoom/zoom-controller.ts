@@ -1,11 +1,8 @@
 import Panzoom, { PanzoomEventDetail, PanzoomObject } from '@dermotduffy/panzoom';
 import round from 'lodash-es/round';
 import throttle from 'lodash-es/throttle';
-import {
-  arefloatsApproximatelyEqual,
-  dispatchAdvancedCameraCardEvent,
-  isHoverableDevice,
-} from '../../utils/basic';
+import { arefloatsApproximatelyEqual, isHoverableDevice } from '../../utils/basic';
+import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import {
   PartialZoomSettings,
   ZOOM_DEFAULT_PAN_X,
@@ -76,7 +73,7 @@ export class ZoomController {
       // Even though the click is stopped,the card still needs to gain focus so
       // that keyboard shortcuts will work immediately after the card is clicked
       // upon.
-      dispatchAdvancedCameraCardEvent(this._element, 'focus');
+      fireAdvancedCameraCardEvent(this._element, 'focus');
     }
     this._allowClick = true;
   };
@@ -211,11 +208,11 @@ export class ZoomController {
     if (unzoomed && this._zoomed) {
       this._zoomed = false;
       this._setTouchAction(true);
-      dispatchAdvancedCameraCardEvent(this._element, 'zoom:unzoomed');
+      fireAdvancedCameraCardEvent(this._element, 'zoom:unzoomed');
     } else if (!unzoomed && !this._zoomed) {
       this._zoomed = true;
       this._setTouchAction(false);
-      dispatchAdvancedCameraCardEvent(this._element, 'zoom:zoomed');
+      fireAdvancedCameraCardEvent(this._element, 'zoom:zoomed');
     }
 
     const converted = this._convertXYPanToPercent(pz.x, pz.y, pz.scale);
@@ -229,7 +226,7 @@ export class ZoomController {
       unzoomed: unzoomed,
     };
 
-    dispatchAdvancedCameraCardEvent(this._element, 'zoom:change', observed);
+    fireAdvancedCameraCardEvent(this._element, 'zoom:change', observed);
   }
 
   protected _isZoomEqual(a: PartialZoomSettings, b: PartialZoomSettings): boolean {

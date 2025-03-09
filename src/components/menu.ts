@@ -1,10 +1,10 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
 import { MenuController } from '../components-lib/menu-controller.js';
 import type { MenuConfig, MenuItem } from '../config/types.js';
+import { HomeAssistant } from '../ha/types.js';
 import menuStyle from '../scss/menu.scss';
 import { hasAction } from '../utils/action.js';
 import { getEntityTitle } from '../utils/ha/index.js';

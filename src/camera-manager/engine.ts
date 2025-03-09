@@ -1,7 +1,6 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { PTZAction } from '../config/ptz';
 import { ActionPhase, CameraConfig } from '../config/types';
-import { ExtendedHomeAssistant } from '../types';
+import { HomeAssistant } from '../ha/types';
 import { ViewMedia } from '../view/media';
 import { Camera } from './camera';
 import { CameraManagerReadOnlyConfigStore } from './store';
@@ -89,7 +88,7 @@ export interface CameraManagerEngine {
   ): ViewMedia[] | null;
 
   getMediaDownloadPath(
-    hass: ExtendedHomeAssistant,
+    hass: HomeAssistant,
     cameraConfig: CameraConfig,
     media: ViewMedia,
   ): Promise<CameraEndpoint | null>;

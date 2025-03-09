@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { PTZAction } from '../../config/ptz';
 import { ActionPhase, CameraConfig } from '../../config/types';
-import { ExtendedHomeAssistant } from '../../types';
+import { HomeAssistant } from '../../ha/types';
 import { getEntityTitle } from '../../utils/ha';
 import { ViewMedia } from '../../view/media';
 import { Camera } from '../camera';
@@ -153,7 +152,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
   }
 
   public async getMediaDownloadPath(
-    _hass: ExtendedHomeAssistant,
+    _hass: HomeAssistant,
     _cameraConfig: CameraConfig,
     _media: ViewMedia,
   ): Promise<CameraEndpoint | null> {

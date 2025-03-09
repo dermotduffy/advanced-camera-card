@@ -1,4 +1,3 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { Task } from '@lit-labs/task';
 import {
   CSSResultGroup,
@@ -14,6 +13,7 @@ import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispa
 import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get-technology-for-video-rtc.js';
 import { VideoMediaPlayerController } from '../../../components-lib/media-player/video.js';
 import { CameraConfig, CardWideConfig } from '../../../config/types.js';
+import { HomeAssistant } from '../../../ha/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveWebRTCCardStyle from '../../../scss/live-webrtc-card.scss';
 import {
