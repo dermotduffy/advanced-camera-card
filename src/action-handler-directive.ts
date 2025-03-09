@@ -27,7 +27,7 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
 
   protected holdTimer = new Timer();
   protected doubleClickTimer = new Timer();
-
+  private cancelled = false;
   protected held = false;
   protected started = false;
 
@@ -44,6 +44,7 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
       document.addEventListener(
         ev,
         () => {
+          this.cancelled = true;
           this.holdTimer.stop();
         },
         { passive: true },
@@ -76,6 +77,7 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
     });
 
     const start = (): void => {
+      this.cancelled = false;
       this.held = false;
       this.holdTimer.start(this.holdTime, () => {
         this.held = true;
@@ -107,7 +109,7 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
       }
 
       if (
-        ['touchend', 'touchcancel'].includes(ev.type) &&
+        (ev.type === 'touchcancel' || (ev.type === 'touchend' && this.cancelled)) &&
         // This action handler by default relies on synthetic click events for
         // touch devices, in order to ensure that embedded cards (e.g. WebRTC)
         // can use stock click handlers. The exception is for hold events.
