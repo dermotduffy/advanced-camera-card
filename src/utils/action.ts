@@ -2,48 +2,30 @@ import { CardActionsAPI } from '../card-controller/types.js';
 import { ZoomSettingsBase } from '../components-lib/zoom/types.js';
 import { PTZAction } from '../config/ptz.js';
 import {
+  ActionConfig,
   ActionPhase,
-  ActionType,
   ActionsConfig,
+  AdvancedCameraCardCustomActionConfig,
   AdvancedCameraCardGeneralAction,
   AdvancedCameraCardUserSpecifiedView,
   CameraSelectActionConfig,
   DisplayModeActionConfig,
   GeneralActionConfig,
   INTERNAL_CALLBACK_ACTION,
-  InternalAdvancedCameraCardCustomAction,
   InternalCallbackActionConfig,
   LogActionConfig,
   LogActionLevel,
   MediaPlayerActionConfig,
+  PerformActionActionConfig,
   PTZActionConfig,
   PTZControlsActionConfig,
   PTZDigitialActionConfig,
   PTZMultiActionConfig,
   SubstreamSelectActionConfig,
   ViewActionConfig,
-  internalAdvancedCameraCardCustomActionSchema,
 } from '../config/types.js';
-import { hasAction as customCardHasAction } from '../ha/has-action.js';
-import { ActionConfig, ServiceCallRequest } from '../ha/types.js';
+import { ServiceCallRequest } from '../ha/types.js';
 import { arrayify } from './basic.js';
-
-/**
- * Convert a generic Action to a AdvancedCameraCardCustomAction if it parses correctly.
- * @param action The generic action configuration.
- * @returns A AdvancedCameraCardCustomAction or null if it cannot be converted.
- */
-export function convertActionToCardCustomAction(
-  action: unknown,
-): InternalAdvancedCameraCardCustomAction | null {
-  if (!action) {
-    return null;
-  }
-  // Parse a custom event as other things could generate ll-custom events that
-  // are not related to Advanced Camera Card.
-  const parseResult = internalAdvancedCameraCardCustomActionSchema.safeParse(action);
-  return parseResult.success ? parseResult.data : null;
-}
 
 export function createGeneralAction(
   action: AdvancedCameraCardGeneralAction,
@@ -221,7 +203,7 @@ export function createPerformAction(
     data?: ServiceCallRequest['serviceData'];
     target?: ServiceCallRequest['target'];
   },
-): ActionType {
+): PerformActionActionConfig {
   return {
     action: 'perform-action' as const,
     perform_action: perform_action,
@@ -240,7 +222,7 @@ export function createPerformAction(
 export function getActionConfigGivenAction(
   interaction?: string,
   config?: ActionsConfig | null,
-): ActionType | ActionType[] | null {
+): ActionConfig | ActionConfig[] | null {
   if (!interaction || !config) {
     return null;
   }
@@ -270,11 +252,17 @@ export function getActionConfigGivenAction(
  * @param config The action config in question.
  * @returns `true` if there's a real action defined, `false` otherwise.
  */
-export const hasAction = (config?: ActionType | ActionType[]): boolean => {
-  // See note above on 'ActionConfig vs ActionType' for why this cast is
-  // necessary and harmless.
-  return arrayify(config).some((item) =>
-    customCardHasAction(item as ActionConfig | undefined),
+export const hasAction = (config?: ActionConfig | ActionConfig[]): boolean => {
+  return arrayify(config).some((item) => item.action !== 'none');
+};
+
+export const isAdvancedCameraCardCustomAction = (
+  action: ActionConfig,
+): action is AdvancedCameraCardCustomActionConfig => {
+  return (
+    action.action === 'fire-dom-event' &&
+    'advanced_camera_card_action' in action &&
+    typeof action.advanced_camera_card_action === 'string'
   );
 };
 

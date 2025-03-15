@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  advancedCameraCardConditionSchema,
+  advancedCameraCardCustomActionsBaseSchema,
   cameraConfigSchema,
   conditionalSchema,
   customSchema,
   dimensionsConfigSchema,
-  advancedCameraCardConditionSchema,
-  advancedCameraCardCustomActionsBaseSchema,
-  internalAdvancedCameraCardCustomActionSchema,
+  statusBarActionConfigSchema,
 } from '../../src/config/types';
 import { createConfig } from '../test-utils';
 
@@ -641,7 +641,7 @@ describe('should lazy evaluate schemas', () => {
         },
       ],
     };
-    expect(internalAdvancedCameraCardCustomActionSchema.parse(input)).toEqual(input);
+    expect(statusBarActionConfigSchema.parse(input)).toEqual(input);
   });
 });
 

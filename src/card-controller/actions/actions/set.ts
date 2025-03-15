@@ -1,9 +1,9 @@
 import { ActionContext } from 'action';
-import { ActionType } from '../../../config/types';
+import { ActionConfig, AuxillaryActionConfig } from '../../../config/types';
 import { arrayify } from '../../../utils/basic';
 import { CardActionsAPI } from '../../types';
 import { ActionFactory } from '../factory';
-import { Action, AuxillaryActionConfig } from '../types';
+import { Action } from '../types';
 
 export class ActionSet implements Action {
   protected _context: ActionContext;
@@ -13,7 +13,7 @@ export class ActionSet implements Action {
 
   constructor(
     context: ActionContext,
-    actions: ActionType | ActionType[],
+    actions: ActionConfig | ActionConfig[],
     options?: {
       config?: AuxillaryActionConfig;
       cardID?: string;

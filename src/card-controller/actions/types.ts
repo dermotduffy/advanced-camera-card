@@ -1,10 +1,6 @@
-import { ActionType } from '../../config/types';
+import { AdvancedCameraCardError } from '../../types.js';
+import { ActionConfig, AuxillaryActionConfig } from '../../config/types';
 import { CardActionsAPI } from '../types';
-
-export interface AuxillaryActionConfig {
-  camera_image?: string;
-  entity?: string;
-}
 
 export interface Action {
   execute(api: CardActionsAPI): Promise<void>;
@@ -12,7 +8,7 @@ export interface Action {
 }
 
 export interface ActionExecutionRequest {
-  action: ActionType[] | ActionType;
+  action: ActionConfig[] | ActionConfig;
   config?: AuxillaryActionConfig;
 }
 
@@ -21,3 +17,5 @@ export interface TargetedActionContext {
     inProgressAction?: Action;
   };
 }
+
+export class ActionAbortError extends AdvancedCameraCardError {}

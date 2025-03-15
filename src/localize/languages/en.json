@@ -1,4 +1,8 @@
 {
+  "actions": {
+    "abort": "Aborted action",
+    "confirmation": "Are you sure you want to perform this action"
+  },
   "common": {
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "An Advanced Camera Card",

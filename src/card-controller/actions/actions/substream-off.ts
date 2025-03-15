@@ -5,6 +5,8 @@ import { AdvancedCameraCardAction } from './base';
 
 export class SubstreamOffAction extends AdvancedCameraCardAction<GeneralActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
+    await super.execute(api);
+
     api.getViewManager().setViewByParameters({
       modifiers: [new SubstreamOffViewModifier()],
     });

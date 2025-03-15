@@ -43,12 +43,10 @@ import { ConditionStateManager } from '../src/conditions/state-manager';
 import {
   AdvancedCameraCardConfig,
   CameraConfig,
-  InternalAdvancedCameraCardCustomAction,
   PerformanceConfig,
   RawAdvancedCameraCardConfig,
   advancedCameraCardConfigSchema,
   cameraConfigSchema,
-  internalAdvancedCameraCardCustomActionSchema,
   performanceConfigSchema,
 } from '../src/config/types';
 import { CurrentUser, HomeAssistant } from '../src/ha/types';
@@ -60,16 +58,6 @@ import { Entity } from '../src/utils/ha/registry/entity/types';
 import { ViewMedia, ViewMediaType } from '../src/view/media';
 import { MediaQueriesResults } from '../src/view/media-queries-results';
 import { View, ViewParameters } from '../src/view/view';
-
-export const createAction = (
-  action: Record<string, unknown>,
-): InternalAdvancedCameraCardCustomAction | null => {
-  const result = internalAdvancedCameraCardCustomActionSchema.safeParse({
-    action: 'custom:advanced-camera-card-action',
-    ...action,
-  });
-  return result.success ? result.data : null;
-};
 
 export const createCameraConfig = (config?: unknown): CameraConfig => {
   return cameraConfigSchema.parse(config ?? {});

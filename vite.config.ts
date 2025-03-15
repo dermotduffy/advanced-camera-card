@@ -16,6 +16,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'conditions/**/*.ts',
   'config/**/*.ts',
   'const.ts',
+  'ha/**/*.ts',
   'types.ts',
   'utils/action.ts',
   'utils/audio.ts',

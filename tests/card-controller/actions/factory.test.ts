@@ -1,12 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
+import { CallServiceAction } from '../../../src/card-controller/actions/actions/call-service';
 import { CameraSelectAction } from '../../../src/card-controller/actions/actions/camera-select';
 import { CameraUIAction } from '../../../src/card-controller/actions/actions/camera-ui';
+import { CustomAction } from '../../../src/card-controller/actions/actions/custom';
 import { DefaultAction } from '../../../src/card-controller/actions/actions/default';
 import { DisplayModeSelectAction } from '../../../src/card-controller/actions/actions/display-mode-select';
 import { DownloadAction } from '../../../src/card-controller/actions/actions/download';
 import { ExpandAction } from '../../../src/card-controller/actions/actions/expand';
 import { FullscreenAction } from '../../../src/card-controller/actions/actions/fullscreen';
-import { GenericAction } from '../../../src/card-controller/actions/actions/generic';
 import { InternalCallbackAction } from '../../../src/card-controller/actions/actions/internal-callback';
 import { LogAction } from '../../../src/card-controller/actions/actions/log';
 import { MediaPlayerAction } from '../../../src/card-controller/actions/actions/media-player';
@@ -15,8 +16,12 @@ import { MicrophoneConnectAction } from '../../../src/card-controller/actions/ac
 import { MicrophoneDisconnectAction } from '../../../src/card-controller/actions/actions/microphone-disconnect';
 import { MicrophoneMuteAction } from '../../../src/card-controller/actions/actions/microphone-mute';
 import { MicrophoneUnmuteAction } from '../../../src/card-controller/actions/actions/microphone-unmute';
+import { MoreInfoAction } from '../../../src/card-controller/actions/actions/more-info';
 import { MuteAction } from '../../../src/card-controller/actions/actions/mute';
+import { NavigateAction } from '../../../src/card-controller/actions/actions/navigate';
+import { NoneAction } from '../../../src/card-controller/actions/actions/none';
 import { PauseAction } from '../../../src/card-controller/actions/actions/pause';
+import { PerformActionAction } from '../../../src/card-controller/actions/actions/perform-action';
 import { PlayAction } from '../../../src/card-controller/actions/actions/play';
 import { PTZAction } from '../../../src/card-controller/actions/actions/ptz';
 import { PTZControlsAction } from '../../../src/card-controller/actions/actions/ptz-controls';
@@ -28,13 +33,12 @@ import { StatusBarAction } from '../../../src/card-controller/actions/actions/st
 import { SubstreamOffAction } from '../../../src/card-controller/actions/actions/substream-off';
 import { SubstreamOnAction } from '../../../src/card-controller/actions/actions/substream-on';
 import { SubstreamSelectAction } from '../../../src/card-controller/actions/actions/substream-select';
+import { ToggleAction } from '../../../src/card-controller/actions/actions/toggle';
 import { UnmuteAction } from '../../../src/card-controller/actions/actions/unmute';
+import { URLAction } from '../../../src/card-controller/actions/actions/url';
 import { ViewAction } from '../../../src/card-controller/actions/actions/view';
 import { ActionFactory } from '../../../src/card-controller/actions/factory';
-import {
-  AdvancedCameraCardCustomAction,
-  INTERNAL_CALLBACK_ACTION,
-} from '../../../src/config/types';
+import { ActionConfig, INTERNAL_CALLBACK_ACTION } from '../../../src/config/types';
 
 // @vitest-environment jsdom
 describe('ActionFactory', () => {
@@ -55,23 +59,26 @@ describe('ActionFactory', () => {
     ).toBeNull();
   });
 
-  describe('generic', () => {
-    it('non advanced camera card action', () => {
+  describe('stock actions', () => {
+    it.each([
+      [{ action: 'more-info' as const }, MoreInfoAction],
+      [{ action: 'toggle' as const }, ToggleAction],
+      [{ action: 'navigate' as const, navigation_path: '/foo' }, NavigateAction],
+      [{ action: 'url' as const, url_path: 'https://card.camera' }, URLAction],
+      [
+        { action: 'perform-action' as const, perform_action: 'action' },
+        PerformActionAction,
+      ],
+      [{ action: 'call-service' as const, service: 'service' }, CallServiceAction],
+      [{ action: 'none' as const }, NoneAction],
+      [{ action: 'fire-dom-event' as const }, CustomAction],
+    ])('action: $action', (action: ActionConfig, classObject: object) => {
       const factory = new ActionFactory();
-      expect(factory.createAction({}, { action: 'fire-dom-event' })).toBeInstanceOf(
-        GenericAction,
-      );
-    });
-
-    it('non fire-dom-event', () => {
-      const factory = new ActionFactory();
-      expect(factory.createAction({}, { action: 'more-info' })).toBeInstanceOf(
-        GenericAction,
-      );
+      expect(factory.createAction({}, action)).toBeInstanceOf(classObject);
     });
   });
 
-  describe('actions', () => {
+  describe('custom actions', () => {
     it.each([
       [{ advanced_camera_card_action: 'camera_select' as const }, CameraSelectAction],
       [{ advanced_camera_card_action: 'camera_ui' as const }, CameraUIAction],
@@ -178,10 +185,10 @@ describe('ActionFactory', () => {
       ],
     ])(
       'advanced_camera_card_action: $advanced_camera_card_action',
-      (action: Partial<AdvancedCameraCardCustomAction>, classObject: object) => {
+      (action: Partial<ActionConfig>, classObject: object) => {
         const factory = new ActionFactory();
         expect(
-          factory.createAction({}, { action: 'fire-dom-event', ...action }),
+          factory.createAction({}, { ...action, action: 'fire-dom-event' }),
         ).toBeInstanceOf(classObject);
       },
     );

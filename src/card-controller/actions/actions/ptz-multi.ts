@@ -8,6 +8,8 @@ import { PTZDigitalAction } from './ptz-digital';
 
 export class PTZMultiAction extends AdvancedCameraCardAction<PTZMultiActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
+    await super.execute(api);
+
     const view = api.getViewManager().getView();
     let targetID: string | null = null;
     let type: PTZType | null = null;

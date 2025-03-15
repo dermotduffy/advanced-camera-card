@@ -1,6 +1,5 @@
 import { HASS, renderTemplate } from 'ha-nunjucks/dist';
 import { ConditionState, ConditionsTriggerData } from '../../conditions/types';
-import { ActionType } from '../../config/types';
 import { HomeAssistant } from '../../ha/types';
 
 interface TemplateContextInternal {
@@ -24,7 +23,7 @@ export class TemplateRenderer {
       conditionState?: ConditionState;
       triggerData?: ConditionsTriggerData;
     },
-  ): ActionType => {
+  ): unknown => {
     return this._renderTemplateRecursively(
       hass,
       data,
@@ -59,11 +58,15 @@ export class TemplateRenderer {
     hass: HomeAssistant,
     data: unknown,
     templateContext?: TemplateContext,
-  ): ActionType {
+  ): unknown {
     if (typeof data === 'string') {
-      // ha-nunjucks has a more complete model of the Home Assistant object, but
-      // does not export it as a type.
-      return renderTemplate(hass as unknown as typeof HASS, data, templateContext);
+      return renderTemplate(
+        // ha-nunjucks has a more complete model of the Home Assistant object, but
+        // does not export it as a type.
+        hass as unknown as typeof HASS,
+        data,
+        templateContext,
+      );
     } else if (Array.isArray(data)) {
       return data.map((item) =>
         this._renderTemplateRecursively(hass, item, templateContext),

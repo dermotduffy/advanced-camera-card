@@ -8,9 +8,10 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { MenuSubmenu, MenuSubmenuItem, MenuSubmenuSelect } from '../../config/types.js';
+import { MenuSubmenuItem, MenuSubmenuSelect } from '../../config/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import menuButtonStyle from '../../scss/menu-button.scss';
+import { Icon } from '../../types.js';
 import { getEntityTitle, isHassDifferent } from '../../utils/ha';
 import { getEntityStateTranslation } from '../../utils/ha/entity-state-translation.js';
 import { EntityRegistryManager } from '../../utils/ha/registry/entity/index.js';
@@ -31,7 +32,8 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
   @state()
   protected _optionTitles?: Record<string, string>;
 
-  protected _generatedSubmenu?: MenuSubmenu;
+  protected _generatedSubmenuItems?: MenuSubmenuItem[];
+  protected _generatedIcon?: Icon;
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     // No need to update the submenu unless the select entity has changed.
@@ -86,29 +88,7 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
       return;
     }
 
-    const title = getEntityTitle(this.hass, entityID);
-    const submenu: MenuSubmenu = {
-      ...(title && { title }),
-
-      // Override it with anything explicitly set in the submenuSelect.
-      ...this.submenuSelect,
-
-      icon: {
-        icon: this.submenuSelect.icon,
-        entity: entityID,
-        fallback: 'mdi:format-list-bulleted',
-      },
-
-      type: 'custom:advanced-camera-card-menu-submenu',
-      items: [],
-    };
-
-    // For cleanliness remove the options parameter which is unused by the
-    // submenu rendering itself (above). It is only in this method to populate
-    // the items correctly (below).
-    delete submenu['options'];
-
-    const items = submenu.items as MenuSubmenuItem[];
+    const items: MenuSubmenuItem[] = [];
 
     for (const option of options) {
       const title = this._optionTitles?.[option] ?? option;
@@ -136,31 +116,32 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
       });
     }
 
-    this._generatedSubmenu = submenu;
+    this._generatedSubmenuItems = items;
+    this._generatedIcon = {
+      icon: this.submenuSelect.icon,
+      entity: entityID,
+      fallback: 'mdi:format-list-bulleted',
+    };
   }
 
   protected render(): TemplateResult {
-    const submenu = this._generatedSubmenu;
-    if (!submenu) {
+    if (!this._generatedSubmenuItems || !this._generatedIcon || !this.submenuSelect) {
       return html``;
     }
 
-    const style = styleMap(submenu.style || {});
+    const title = getEntityTitle(this.hass, this.submenuSelect.entity);
+    const style = styleMap(this.submenuSelect.style || {});
     return html` <advanced-camera-card-submenu
       .hass=${this.hass}
-      .items=${submenu?.items}
+      .items=${this._generatedSubmenuItems}
     >
-      <ha-icon-button style="${style}" .label=${submenu.title || ''}>
+      <ha-icon-button style="${style}" .label=${title || ''}>
         <advanced-camera-card-icon
           ?allow-override-non-active-styles=${true}
           style="${style}"
-          title=${submenu.title || ''}
+          title=${title || ''}
           .hass=${this.hass}
-          .icon=${typeof submenu.icon === 'string'
-            ? {
-                icon: submenu.icon,
-              }
-            : submenu.icon}
+          .icon=${this._generatedIcon}
         ></advanced-camera-card-icon>
       </ha-icon-button>
     </advanced-camera-card-submenu>`;

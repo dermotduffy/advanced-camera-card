@@ -5,6 +5,8 @@ import { AdvancedCameraCardAction } from './base';
 
 export class MediaPlayerAction extends AdvancedCameraCardAction<MediaPlayerActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
+    await super.execute(api);
+
     const mediaPlayer = this._action.media_player;
     const mediaPlayerController = api.getMediaPlayerManager();
     const view = api.getViewManager().getView();
