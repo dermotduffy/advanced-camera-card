@@ -116,15 +116,6 @@ export type ViewDisplayConfig = z.infer<typeof viewDisplaySchema>;
 //                          Stock Actions
 // *************************************************************************
 
-// Declare schemas for existing types.
-// See: https://github.com/colinhacks/zod/issues/372#issuecomment-826380330
-const schemaForType =
-  <T>() =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  <S extends z.ZodType<T, any, any>>(arg: S) => {
-    return arg;
-  };
-
 // https://www.home-assistant.io/dashboards/actions/#options-for-confirmation
 const actionBaseSchema = z.object({
   confirmation: z
@@ -153,15 +144,13 @@ const toggleActionSchema = actionBaseSchema.extend({
 });
 export type ToggleActionConfig = z.infer<typeof toggleActionSchema>;
 
-const targetSchema = schemaForType<HassServiceTarget>()(
-  z.object({
-    entity_id: z.string().or(z.string().array()).optional(),
-    device_id: z.string().or(z.string().array()).optional(),
-    area_id: z.string().or(z.string().array()).optional(),
-    floor_id: z.string().or(z.string().array()).optional(),
-    label_id: z.string().or(z.string().array()).optional(),
-  }),
-);
+const targetSchema: z.ZodSchema<HassServiceTarget, z.ZodTypeDef> = z.object({
+  entity_id: z.string().or(z.string().array()).optional(),
+  device_id: z.string().or(z.string().array()).optional(),
+  area_id: z.string().or(z.string().array()).optional(),
+  floor_id: z.string().or(z.string().array()).optional(),
+  label_id: z.string().or(z.string().array()).optional(),
+});
 
 const performActionActionSchema = actionBaseSchema.extend({
   action: z.literal('perform-action'),
