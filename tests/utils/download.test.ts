@@ -18,13 +18,13 @@ const media = new ViewMedia('clip', 'camera.office');
 describe('downloadURL', () => {
   afterEach(() => {
     vi.restoreAllMocks();
-    global.window.location = mock<Location>();
   });
 
   it('should download same origin via link', () => {
     const location: Location & { origin: string } = mock<Location>();
     location.origin = 'http://foo';
-    global.window.location = location;
+
+    vi.spyOn(window, 'location', 'get').mockReturnValue(location);
 
     const link = document.createElement('a');
     link.click = vi.fn();
@@ -55,7 +55,8 @@ describe('downloadURL', () => {
     // Set the origin to the same.
     const location: Location & { origin: string } = mock<Location>();
     location.origin = 'http://foo';
-    global.window.location = location;
+
+    vi.spyOn(window, 'location', 'get').mockReturnValue(location);
 
     const windowSpy = vi.spyOn(window, 'open').mockReturnValue(null);
 
@@ -66,8 +67,13 @@ describe('downloadURL', () => {
 
 describe('downloadMedia', () => {
   beforeEach(() => {
+    vi.spyOn(window, 'location', 'get').mockReturnValue(
+      mock<Location>({ origin: 'https://foo' }),
+    );
+  });
+
+  afterEach(() => {
     vi.restoreAllMocks();
-    global.window.location = mock<Location>({ origin: 'https://foo' });
   });
 
   it('should throw error when no media', () => {

@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AuxillaryActionConfig } from '../../src/card-controller/actions/types.js';
 import { AutomationsManager } from '../../src/card-controller/automations-manager.js';
 import { ConditionStateManager } from '../../src/conditions/state-manager.js';
-import { ActionType } from '../../src/config/types.js';
+import { ActionConfig } from '../../src/config/types.js';
 import { createCardAPI } from '../test-utils.js';
 
 describe('AutomationsManager', () => {
@@ -151,9 +150,9 @@ describe('AutomationsManager', () => {
     vi.mocked(api.getActionsManager().executeActions).mockImplementation(
       async (
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _action: ActionType | ActionType[],
+        _action: ActionConfig | ActionConfig[],
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _config?: AuxillaryActionConfig,
+        _options?: unknown,
       ): Promise<void> => {
         fullscreen = !fullscreen;
         stateManager.setState({ fullscreen: fullscreen });

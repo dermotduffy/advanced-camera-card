@@ -54,6 +54,9 @@ describe('arrayify', () => {
     const data = [1, 2, 3];
     expect(arrayify(data)).toBe(data);
   });
+  it('should handle undefined', () => {
+    expect(arrayify()).toEqual([]);
+  });
 });
 
 describe('setify', () => {

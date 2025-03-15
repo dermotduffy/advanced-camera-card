@@ -3,17 +3,14 @@ import { orderBy } from 'lodash-es';
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
 import { SubmenuInteraction } from '../components/submenu/types.js';
 import {
+  ActionConfig,
   MENU_PRIORITY_MAX,
-  type ActionType,
   type ActionsConfig,
   type MenuConfig,
   type MenuItem,
 } from '../config/types.js';
 import { Interaction } from '../types.js';
-import {
-  convertActionToCardCustomAction,
-  getActionConfigGivenAction,
-} from '../utils/action';
+import { getActionConfigGivenAction } from '../utils/action';
 import { arrayify, isTruthy, setOrRemoveAttribute } from '../utils/basic.js';
 
 export class MenuController {
@@ -114,7 +111,7 @@ export class MenuController {
     let menuToggle = false;
 
     const toggleLessActions = actions.filter(
-      (item) => isTruthy(item) && !this._isUnknownActionMenuToggleAction(item),
+      (item) => isTruthy(item) && !this._isMenuToggleAction(item),
     );
     if (toggleLessActions.length != actions.length) {
       menuToggle = true;
@@ -171,8 +168,10 @@ export class MenuController {
     return this._config?.style === 'hidden';
   }
 
-  protected _isUnknownActionMenuToggleAction(action: ActionType): boolean {
-    const parsedAction = convertActionToCardCustomAction(action);
-    return !!parsedAction && parsedAction.advanced_camera_card_action == 'menu_toggle';
+  protected _isMenuToggleAction(action: ActionConfig): boolean {
+    return (
+      action.action === 'fire-dom-event' &&
+      action.advanced_camera_card_action === 'menu_toggle'
+    );
   }
 }

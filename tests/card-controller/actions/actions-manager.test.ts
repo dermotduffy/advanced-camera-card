@@ -1,4 +1,13 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import {
   ActionsManager,
@@ -8,13 +17,7 @@ import {
 import { TemplateRenderer } from '../../../src/card-controller/templates';
 import { AdvancedCameraCardView } from '../../../src/config/types';
 import { createLogAction } from '../../../src/utils/action';
-import {
-  createAction,
-  createCardAPI,
-  createConfig,
-  createHASS,
-  createView,
-} from '../../test-utils';
+import { createCardAPI, createConfig, createHASS, createView } from '../../test-utils';
 
 describe('ActionsManager', () => {
   describe('getMergedActions', () => {
@@ -138,7 +141,7 @@ describe('ActionsManager', () => {
       vi.restoreAllMocks();
     });
 
-    it('should handle interaction', () => {
+    it('should handle interaction', async () => {
       const api = createCardAPI();
       const element = document.createElement('div');
       vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
@@ -158,7 +161,7 @@ describe('ActionsManager', () => {
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
-      manager.handleInteractionEvent(
+      await manager.handleInteractionEvent(
         new CustomEvent<Interaction>('event', { detail: { action: 'tap' } }),
       );
       expect(consoleSpy).toBeCalled();
@@ -203,7 +206,7 @@ describe('ActionsManager', () => {
       vi.restoreAllMocks();
     });
 
-    it('should handle event', () => {
+    it('should handle event', async () => {
       const action = createLogAction('Hello, world!');
       const event = new CustomEvent('ll-custom', {
         detail: action,
@@ -213,15 +216,15 @@ describe('ActionsManager', () => {
       const manager = new ActionsManager(api);
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
-      manager.handleCustomActionEvent(event);
+      await manager.handleCustomActionEvent(event);
       expect(consoleSpy).toBeCalled();
     });
 
-    it('should not handle event without detail', () => {
+    it('should not handle event without detail', async () => {
       const manager = new ActionsManager(createCardAPI());
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
-      manager.handleCustomActionEvent(new Event('ll-custom'));
+      await manager.handleCustomActionEvent(new Event('ll-custom'));
       expect(consoleSpy).not.toBeCalled();
     });
   });
@@ -250,6 +253,77 @@ describe('ActionsManager', () => {
       await manager.executeActions(createLogAction('Hello, world!'));
       expect(consoleSpy).toBeCalled();
     });
+
+    it('should execute actions', async () => {
+      const api = createCardAPI();
+      const manager = new ActionsManager(api);
+
+      const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
+      await manager.executeActions(createLogAction('Hello, world!'));
+      expect(consoleSpy).toBeCalled();
+    });
+
+    it('should render templates', async () => {
+      const action = createLogAction('{{ acc.camera }}');
+
+      const templateRenderer = mock<TemplateRenderer>();
+      templateRenderer.renderRecursively.mockReturnValue(action);
+
+      const api = createCardAPI();
+      const hass = createHASS();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+      const conditionState = {
+        camera: 'camera',
+      };
+      vi.mocked(api.getConditionStateManager().getState).mockReturnValue(conditionState);
+
+      const manager = new ActionsManager(api, templateRenderer);
+      const config = { entity: 'light.office' };
+      const triggerData = { view: { from: 'previous-view', to: 'view' } };
+
+      await manager.executeActions(action, {
+        config,
+        triggerData,
+      });
+
+      expect(templateRenderer.renderRecursively).toBeCalledWith(hass, action, {
+        conditionState,
+        triggerData,
+      });
+    });
+
+    describe('should forward haptics', () => {
+      afterEach(() => {
+        vi.unstubAllGlobals();
+      });
+
+      it('should forward success haptic', async () => {
+        const handler = vi.fn();
+        window.addEventListener('haptic', handler);
+
+        const api = createCardAPI();
+        const manager = new ActionsManager(api);
+
+        await manager.executeActions({ action: 'none' });
+
+        expect(handler).toBeCalledWith(expect.objectContaining({ detail: 'success' }));
+      });
+
+      it('should forward warning haptic', async () => {
+        const handler = vi.fn();
+        window.addEventListener('haptic', handler);
+
+        const api = createCardAPI();
+        const manager = new ActionsManager(api);
+
+        vi.stubGlobal('confirm', vi.fn().mockReturnValue(false));
+
+        await manager.executeActions({ action: 'none', confirmation: true });
+
+        expect(handler).toBeCalledWith(expect.objectContaining({ detail: 'warning' }));
+      });
+    });
   });
 
   describe('uninitialize', () => {
@@ -266,18 +340,18 @@ describe('ActionsManager', () => {
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
       const promise = manager.executeActions([
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        createAction({
+        {
+          action: 'fire-dom-event',
           advanced_camera_card_action: 'sleep',
           duration: {
             m: 1,
           },
-        })!,
+        },
         createLogAction('Hello, world!'),
       ]);
 
       // Stop inflight actions.
-      manager.uninitialize();
+      await manager.uninitialize();
 
       // Advance timers (causes the sleep to end).
       vi.runOnlyPendingTimers();
@@ -286,36 +360,6 @@ describe('ActionsManager', () => {
 
       // Action set will not continue.
       expect(consoleSpy).not.toBeCalled();
-    });
-  });
-
-  it('should render templates', async () => {
-    const action = createLogAction('{{ acc.camera }}');
-
-    const templateRenderer = mock<TemplateRenderer>();
-    templateRenderer.renderRecursively.mockReturnValue(action);
-
-    const api = createCardAPI();
-    const hass = createHASS();
-    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
-
-    const conditionState = {
-      camera: 'camera',
-    };
-    vi.mocked(api.getConditionStateManager().getState).mockReturnValue(conditionState);
-
-    const manager = new ActionsManager(api, templateRenderer);
-    const config = { camera_image: 'camera-image' };
-    const triggerData = { view: { from: 'previous-view', to: 'view' } };
-
-    await manager.executeActions(action, {
-      config,
-      triggerData,
-    });
-
-    expect(templateRenderer.renderRecursively).toBeCalledWith(hass, action, {
-      conditionState,
-      triggerData,
     });
   });
 });

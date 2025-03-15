@@ -1,4 +1,4 @@
-import { AdvancedCameraCardCustomAction, ViewActionConfig } from '../config/types';
+import { AdvancedCameraCardCustomActionConfig, ViewActionConfig } from '../config/types';
 import {
   createCameraAction,
   createGeneralAction,
@@ -13,7 +13,7 @@ interface QueryStringViewIntent {
     default?: boolean;
     substream?: string;
   };
-  other?: AdvancedCameraCardCustomAction[];
+  other?: AdvancedCameraCardCustomActionConfig[];
 }
 
 export class QueryStringManager {
@@ -92,9 +92,9 @@ export class QueryStringManager {
     return result;
   }
 
-  protected _getActions(): AdvancedCameraCardCustomAction[] {
+  protected _getActions(): AdvancedCameraCardCustomActionConfig[] {
     const params = new URLSearchParams(window.location.search);
-    const actions: AdvancedCameraCardCustomAction[] = [];
+    const actions: AdvancedCameraCardCustomActionConfig[] = [];
     const actionRE = new RegExp(
       /^(advanced-camera-card|frigate-card)-action([.:](?<cardID>\w+))?[.:](?<action>\w+)/,
     );
@@ -104,14 +104,14 @@ export class QueryStringManager {
         continue;
       }
       const cardID: string | undefined = match.groups['cardID'];
-      const action = match.groups['action'];
+      const actionName = match.groups['action'];
 
-      let customAction: AdvancedCameraCardCustomAction | null = null;
-      switch (action) {
+      let action: AdvancedCameraCardCustomActionConfig | null = null;
+      switch (actionName) {
         case 'camera_select':
         case 'live_substream_select':
           if (value) {
-            customAction = createCameraAction(action, value, {
+            action = createCameraAction(actionName, value, {
               cardID: cardID,
             });
           }
@@ -121,7 +121,7 @@ export class QueryStringManager {
         case 'download':
         case 'expand':
         case 'menu_toggle':
-          customAction = createGeneralAction(action, {
+          action = createGeneralAction(actionName, {
             cardID: cardID,
           });
           break;
@@ -135,24 +135,24 @@ export class QueryStringManager {
         case 'snapshot':
         case 'snapshots':
         case 'timeline':
-          customAction = createViewAction(action, {
+          action = createViewAction(actionName, {
             cardID: cardID,
           });
           break;
         default:
           console.warn(
-            `Advanced Camera Card received unknown card action in query string: ${action}`,
+            `Advanced Camera Card received unknown card action in query string: ${actionName}`,
           );
       }
-      if (customAction) {
-        actions.push(customAction);
+      if (action) {
+        actions.push(action);
       }
     }
     return actions;
   }
 
   protected _isViewAction = (
-    action: AdvancedCameraCardCustomAction,
+    action: AdvancedCameraCardCustomActionConfig,
   ): action is ViewActionConfig => {
     switch (action.advanced_camera_card_action) {
       case 'clip':

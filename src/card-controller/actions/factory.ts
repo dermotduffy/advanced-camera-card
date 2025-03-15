@@ -1,15 +1,19 @@
 import { ActionContext } from 'action';
-import { ActionType, INTERNAL_CALLBACK_ACTION } from '../../config/types';
-import { ActionConfig } from '../../ha/types';
-import { convertActionToCardCustomAction } from '../../utils/action';
+import {
+  ActionConfig,
+  AuxillaryActionConfig,
+  INTERNAL_CALLBACK_ACTION,
+} from '../../config/types';
+import { isAdvancedCameraCardCustomAction } from '../../utils/action';
+import { CallServiceAction } from './actions/call-service';
 import { CameraSelectAction } from './actions/camera-select';
 import { CameraUIAction } from './actions/camera-ui';
+import { CustomAction } from './actions/custom';
 import { DefaultAction } from './actions/default';
 import { DisplayModeSelectAction } from './actions/display-mode-select';
 import { DownloadAction } from './actions/download';
 import { ExpandAction } from './actions/expand';
 import { FullscreenAction } from './actions/fullscreen';
-import { GenericAction } from './actions/generic';
 import { InternalCallbackAction } from './actions/internal-callback';
 import { LogAction } from './actions/log';
 import { MediaPlayerAction } from './actions/media-player';
@@ -18,8 +22,12 @@ import { MicrophoneConnectAction } from './actions/microphone-connect';
 import { MicrophoneDisconnectAction } from './actions/microphone-disconnect';
 import { MicrophoneMuteAction } from './actions/microphone-mute';
 import { MicrophoneUnmuteAction } from './actions/microphone-unmute';
+import { MoreInfoAction } from './actions/more-info';
 import { MuteAction } from './actions/mute';
+import { NavigateAction } from './actions/navigate';
+import { NoneAction } from './actions/none';
 import { PauseAction } from './actions/pause';
+import { PerformActionAction } from './actions/perform-action';
 import { PlayAction } from './actions/play';
 import { PTZAction } from './actions/ptz';
 import { PTZControlsAction } from './actions/ptz-controls';
@@ -31,39 +39,53 @@ import { StatusBarAction } from './actions/status-bar';
 import { SubstreamOffAction } from './actions/substream-off';
 import { SubstreamOnAction } from './actions/substream-on';
 import { SubstreamSelectAction } from './actions/substream-select';
+import { ToggleAction } from './actions/toggle';
 import { UnmuteAction } from './actions/unmute';
+import { URLAction } from './actions/url';
 import { ViewAction } from './actions/view';
-import { Action, AuxillaryActionConfig } from './types';
+import { Action } from './types';
 
 export class ActionFactory {
   public createAction(
     context: ActionContext,
-    action: ActionType,
+    action: ActionConfig,
     options?: {
       config?: AuxillaryActionConfig;
       cardID?: string;
     },
   ): Action | null {
-    const cardCustomAction = convertActionToCardCustomAction(action);
-    if (action.action !== 'fire-dom-event' || !cardCustomAction) {
-      // * There is a slight typing (but not functional) difference between
-      //   ActionType in this card and ActionConfig in `custom-card-helpers`. See
-      //   `ExtendedConfirmationRestrictionConfig` in `types.ts` for the source and
-      //   reason behind this difference.
-      return new GenericAction(context, action as ActionConfig, options?.config);
-    }
-
     if (
       // Command not intended for this card (e.g. query string command).
-      cardCustomAction.card_id &&
-      cardCustomAction.card_id !== options?.cardID
+      action.card_id &&
+      action.card_id !== options?.cardID
     ) {
       return null;
     }
 
-    switch (cardCustomAction.advanced_camera_card_action) {
+    switch (action.action) {
+      case 'more-info':
+        return new MoreInfoAction(context, action, options?.config);
+      case 'toggle':
+        return new ToggleAction(context, action, options?.config);
+      case 'navigate':
+        return new NavigateAction(context, action, options?.config);
+      case 'url':
+        return new URLAction(context, action, options?.config);
+      case 'perform-action':
+        return new PerformActionAction(context, action, options?.config);
+      case 'call-service':
+        return new CallServiceAction(context, action, options?.config);
+      case 'none':
+        return new NoneAction(context, action, options?.config);
+    }
+
+    if (!isAdvancedCameraCardCustomAction(action)) {
+      return new CustomAction(context, action, options?.config);
+    }
+
+    switch (action.advanced_camera_card_action) {
       case 'default':
-        return new DefaultAction(context, cardCustomAction, options?.config);
+        return new DefaultAction(context, action, options?.config);
       case 'clip':
       case 'clips':
       case 'image':
@@ -74,72 +96,68 @@ export class ActionFactory {
       case 'snapshots':
       case 'timeline':
       case 'diagnostics':
-        return new ViewAction(context, cardCustomAction, options?.config);
+        return new ViewAction(context, action, options?.config);
       case 'sleep':
-        return new SleepAction(context, cardCustomAction, options?.config);
+        return new SleepAction(context, action, options?.config);
       case 'download':
-        return new DownloadAction(context, cardCustomAction, options?.config);
+        return new DownloadAction(context, action, options?.config);
       case 'camera_ui':
-        return new CameraUIAction(context, cardCustomAction, options?.config);
+        return new CameraUIAction(context, action, options?.config);
       case 'expand':
-        return new ExpandAction(context, cardCustomAction, options?.config);
+        return new ExpandAction(context, action, options?.config);
       case 'fullscreen':
-        return new FullscreenAction(context, cardCustomAction, options?.config);
+        return new FullscreenAction(context, action, options?.config);
       case 'menu_toggle':
-        return new MenuToggleAction(context, cardCustomAction, options?.config);
+        return new MenuToggleAction(context, action, options?.config);
       case 'camera_select':
-        return new CameraSelectAction(context, cardCustomAction, options?.config);
+        return new CameraSelectAction(context, action, options?.config);
       case 'live_substream_select':
-        return new SubstreamSelectAction(context, cardCustomAction, options?.config);
+        return new SubstreamSelectAction(context, action, options?.config);
       case 'live_substream_off':
-        return new SubstreamOffAction(context, cardCustomAction, options?.config);
+        return new SubstreamOffAction(context, action, options?.config);
       case 'live_substream_on':
-        return new SubstreamOnAction(context, cardCustomAction, options?.config);
+        return new SubstreamOnAction(context, action, options?.config);
       case 'media_player':
-        return new MediaPlayerAction(context, cardCustomAction, options?.config);
+        return new MediaPlayerAction(context, action, options?.config);
       case 'microphone_connect':
-        return new MicrophoneConnectAction(context, cardCustomAction, options?.config);
+        return new MicrophoneConnectAction(context, action, options?.config);
       case 'microphone_disconnect':
-        return new MicrophoneDisconnectAction(
-          context,
-          cardCustomAction,
-          options?.config,
-        );
+        return new MicrophoneDisconnectAction(context, action, options?.config);
       case 'microphone_mute':
-        return new MicrophoneMuteAction(context, cardCustomAction, options?.config);
+        return new MicrophoneMuteAction(context, action, options?.config);
       case 'microphone_unmute':
-        return new MicrophoneUnmuteAction(context, cardCustomAction, options?.config);
+        return new MicrophoneUnmuteAction(context, action, options?.config);
       case 'mute':
-        return new MuteAction(context, cardCustomAction, options?.config);
+        return new MuteAction(context, action, options?.config);
       case 'unmute':
-        return new UnmuteAction(context, cardCustomAction, options?.config);
+        return new UnmuteAction(context, action, options?.config);
       case 'play':
-        return new PlayAction(context, cardCustomAction, options?.config);
+        return new PlayAction(context, action, options?.config);
       case 'pause':
-        return new PauseAction(context, cardCustomAction, options?.config);
+        return new PauseAction(context, action, options?.config);
       case 'screenshot':
-        return new ScreenshotAction(context, cardCustomAction, options?.config);
+        return new ScreenshotAction(context, action, options?.config);
       case 'display_mode_select':
-        return new DisplayModeSelectAction(context, cardCustomAction, options?.config);
+        return new DisplayModeSelectAction(context, action, options?.config);
       case 'ptz':
-        return new PTZAction(context, cardCustomAction, options?.config);
+        return new PTZAction(context, action, options?.config);
       case 'ptz_digital':
-        return new PTZDigitalAction(context, cardCustomAction, options?.config);
+        return new PTZDigitalAction(context, action, options?.config);
       case 'ptz_multi':
-        return new PTZMultiAction(context, cardCustomAction, options?.config);
+        return new PTZMultiAction(context, action, options?.config);
       case 'ptz_controls':
-        return new PTZControlsAction(context, cardCustomAction, options?.config);
+        return new PTZControlsAction(context, action, options?.config);
       case 'log':
-        return new LogAction(context, cardCustomAction, options?.config);
+        return new LogAction(context, action, options?.config);
       case 'status_bar':
-        return new StatusBarAction(context, cardCustomAction, options?.config);
+        return new StatusBarAction(context, action, options?.config);
       case INTERNAL_CALLBACK_ACTION:
-        return new InternalCallbackAction(context, cardCustomAction, options?.config);
+        return new InternalCallbackAction(context, action, options?.config);
     }
 
     /* istanbul ignore next: this path cannot be reached -- @preserve */
     console.warn(
-      `Advanced Camera Card received unknown card action: ${cardCustomAction['advanced_camera_card_action']}`,
+      `Advanced Camera Card received unknown card action: ${action['advanced_camera_card_action']}`,
     );
     /* istanbul ignore next: this path cannot be reached -- @preserve */
     return null;

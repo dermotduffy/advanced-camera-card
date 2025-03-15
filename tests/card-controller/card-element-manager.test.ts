@@ -14,7 +14,6 @@ import {
 describe('CardElementManager', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
-    global.window.location = mock<Location>();
   });
 
   it('should get element', () => {

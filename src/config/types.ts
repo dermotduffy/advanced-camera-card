@@ -1,16 +1,6 @@
 import { HassServiceTarget } from 'home-assistant-js-websocket';
 import { z } from 'zod';
 import { MEDIA_CHUNK_SIZE_DEFAULT, MEDIA_CHUNK_SIZE_MAX } from '../const.js';
-import {
-  CallServiceActionConfig,
-  ConfirmationRestrictionConfig,
-  MoreInfoActionConfig,
-  NavigateActionConfig,
-  NoActionConfig,
-  PerformActionActionConfig,
-  ToggleActionConfig,
-  UrlActionConfig,
-} from '../ha/types.js';
 import { capabilityKeys } from '../types.js';
 import { deepRemoveDefaults } from '../utils/zod.js';
 import {
@@ -123,12 +113,11 @@ const viewDisplaySchema = z
 export type ViewDisplayConfig = z.infer<typeof viewDisplaySchema>;
 
 // *************************************************************************
-//                            Actions
-//
-// Declare schemas to existing types:
-// - https://github.com/colinhacks/zod/issues/372#issuecomment-826380330
+//                          Stock Actions
 // *************************************************************************
 
+// Declare schemas for existing types.
+// See: https://github.com/colinhacks/zod/issues/372#issuecomment-826380330
 const schemaForType =
   <T>() =>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -152,108 +141,86 @@ const actionBaseSchema = z.object({
       }),
     )
     .optional(),
+
+  card_id: z
+    .string()
+    .regex(cardIDRegex, 'card_id parameter can only contain [a-z][A-Z][0-9_]-')
+    .optional(),
 });
 
-// HA accepts either a boolean or a ConfirmationRestrictionConfig object.
-// `custom-card-helpers` currently only supports the latter. For maximum
-// compatibility, this card supports what HA supports.
-interface ExtendedConfirmationRestrictionConfig {
-  confirmation?: boolean | ConfirmationRestrictionConfig;
-}
-
-const toggleActionSchema = schemaForType<
-  ToggleActionConfig & ExtendedConfirmationRestrictionConfig
->()(
-  actionBaseSchema.extend({
-    action: z.literal('toggle'),
-  }),
-);
+const toggleActionSchema = actionBaseSchema.extend({
+  action: z.literal('toggle'),
+});
+export type ToggleActionConfig = z.infer<typeof toggleActionSchema>;
 
 const targetSchema = schemaForType<HassServiceTarget>()(
   z.object({
-    entity_id: z.string().optional(),
-    device_id: z.string().optional(),
-    area_id: z.string().optional(),
+    entity_id: z.string().or(z.string().array()).optional(),
+    device_id: z.string().or(z.string().array()).optional(),
+    area_id: z.string().or(z.string().array()).optional(),
+    floor_id: z.string().or(z.string().array()).optional(),
+    label_id: z.string().or(z.string().array()).optional(),
   }),
 );
 
-const performActionActionSchema = schemaForType<
-  PerformActionActionConfig & ExtendedConfirmationRestrictionConfig
->()(
-  actionBaseSchema.extend({
-    action: z.literal('perform-action'),
-    perform_action: z.string(),
-    data: z.object({}).passthrough().optional(),
-    target: targetSchema.optional(),
-  }),
-);
+const performActionActionSchema = actionBaseSchema.extend({
+  action: z.literal('perform-action'),
+  perform_action: z.string(),
+  data: z.object({}).passthrough().optional(),
+  target: targetSchema.optional(),
+});
+export type PerformActionActionConfig = z.infer<typeof performActionActionSchema>;
 
 // Note: call-service is deprecated and will eventually go away. Please use
 // perform-action instead.
 // See: https://www.home-assistant.io/blog/2024/08/07/release-20248/#goodbye-service-calls-hello-actions-
-const callServiceActionSchema = schemaForType<
-  CallServiceActionConfig & ExtendedConfirmationRestrictionConfig
->()(
-  actionBaseSchema.extend({
-    action: z.literal('call-service'),
-    service: z.string(),
-    data: z.object({}).passthrough().optional(),
-    target: targetSchema.optional(),
-  }),
-);
+const callServiceActionSchema = actionBaseSchema.extend({
+  action: z.literal('call-service'),
+  service: z.string(),
+  data: z.object({}).passthrough().optional(),
+  target: targetSchema.optional(),
+});
+export type CallServiceActionConfig = z.infer<typeof callServiceActionSchema>;
 
-const navigateActionSchema = schemaForType<
-  NavigateActionConfig & ExtendedConfirmationRestrictionConfig
->()(
-  actionBaseSchema.extend({
-    action: z.literal('navigate'),
-    navigation_path: z.string(),
-  }),
-);
+const navigateActionSchema = actionBaseSchema.extend({
+  action: z.literal('navigate'),
+  navigation_path: z.string(),
+  navigation_replace: z.boolean().optional(),
+});
+export type NavigateActionConfig = z.infer<typeof navigateActionSchema>;
 
-const urlActionSchema = schemaForType<
-  UrlActionConfig & ExtendedConfirmationRestrictionConfig
->()(
-  actionBaseSchema.extend({
-    action: z.literal('url'),
-    url_path: z.string(),
-  }),
-);
+const urlActionSchema = actionBaseSchema.extend({
+  action: z.literal('url'),
+  url_path: z.string(),
+});
+export type URLActionConfig = z.infer<typeof urlActionSchema>;
 
-const moreInfoActionSchema = schemaForType<
-  MoreInfoActionConfig & ExtendedConfirmationRestrictionConfig
->()(
-  actionBaseSchema.extend({
-    action: z.literal('more-info'),
-  }),
-);
+const moreInfoActionSchema = actionBaseSchema.extend({
+  action: z.literal('more-info'),
+  entity: z.string().optional(),
+});
+export type MoreInfoActionConfig = z.infer<typeof moreInfoActionSchema>;
 
 const customActionSchema = actionBaseSchema
   .extend({
     action: z.literal('fire-dom-event'),
   })
   .passthrough();
+export type CustomActionConfig = z.infer<typeof customActionSchema>;
 
-const noActionSchema = schemaForType<
-  NoActionConfig & ExtendedConfirmationRestrictionConfig
->()(
-  actionBaseSchema.extend({
-    action: z.literal('none'),
-  }),
-);
+const noneActionSchema = actionBaseSchema.extend({
+  action: z.literal('none'),
+});
+export type NoneActionConfig = z.infer<typeof noneActionSchema>;
 
-export const advancedCameraCardCustomActionsBaseSchema = customActionSchema.extend({
+export const advancedCameraCardCustomActionsBaseSchema = actionBaseSchema.extend({
   action: z
-    .literal('custom:advanced-camera-card-action')
-    // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
-    .transform((): 'fire-dom-event' => 'fire-dom-event')
-    .or(z.literal('fire-dom-event')),
-
-  // Card this command is intended for.
-  card_id: z
-    .string()
-    .regex(cardIDRegex, 'card_id parameter can only contain [a-z][A-Z][0-9_]-')
-    .optional(),
+    .literal('fire-dom-event')
+    .or(
+      z
+        .literal('custom:advanced-camera-card-action')
+        .transform((): 'fire-dom-event' => 'fire-dom-event'),
+    ),
 });
 
 // *************************************************************************
@@ -374,18 +341,28 @@ const sleepActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend
 });
 export type SleepActionConfig = z.infer<typeof sleepActionConfigSchema>;
 
-const statusBarActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
-  advanced_camera_card_action: z.literal('status_bar'),
-  status_bar_action: z.enum(['add', 'remove', 'reset']),
-
-  // This needs to be lazily evaluated since statusBarItemSchema may itself
-  // contain actions.
+// For StatusBarActionConfig provide a manual type definition to avoid the `any`
+// that would be created by the lazy() evaluation below.
+// See: https://zod.dev/?id=recursive-types
+const statusBarActionConfigSchemaBase = advancedCameraCardCustomActionsBaseSchema.extend(
+  {
+    advanced_camera_card_action: z.literal('status_bar'),
+    status_bar_action: z.enum(['add', 'remove', 'reset']),
+  },
+);
+export type StatusBarActionConfig = z.infer<typeof statusBarActionConfigSchemaBase> & {
+  items?: StatusBarItem[];
+};
+export const statusBarActionConfigSchema: z.ZodSchema<
+  StatusBarActionConfig,
+  z.ZodTypeDef,
+  unknown
+> = statusBarActionConfigSchemaBase.extend({
   items: z
     .lazy(() => statusBarItemSchema)
     .array()
     .optional(),
 });
-export type StatusBarActionConfig = z.infer<typeof statusBarActionConfigSchema>;
 
 const LOG_ACTIONS_LEVELS = ['debug', 'info', 'warn', 'error'] as const;
 export type LogActionLevel = (typeof LOG_ACTIONS_LEVELS)[number];
@@ -397,27 +374,8 @@ const logActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
 });
 export type LogActionConfig = z.infer<typeof logActionConfigSchema>;
 
-const advancedCameraCardCustomActionSchema = z.union([
-  cameraSelectActionConfigSchema,
-  generalActionConfigSchema,
-  substreamSelectActionConfigSchema,
-  logActionConfigSchema,
-  mediaPlayerActionConfigSchema,
-  ptzActionConfigSchema,
-  ptzDigitalActionConfigSchema,
-  ptzMultiActionSchema,
-  ptzControlsActionConfigSchema,
-  viewActionConfigSchema,
-  viewDisplayModeActionConfigSchema,
-  sleepActionConfigSchema,
-  statusBarActionConfigSchema,
-]);
-export type AdvancedCameraCardCustomAction = z.infer<
-  typeof advancedCameraCardCustomActionSchema
->;
-
-// An action that can be used internally to call a callback.
-// Note: The internal callback action is kept out of schemas that can be user-specified.
+// An action that can be used internally to call a callback (it is not possible
+// for the user to pass this through via the configuration).
 export const INTERNAL_CALLBACK_ACTION = '__INTERNAL_CALLBACK_ACTION__';
 const internalCallbackActionConfigSchema =
   advancedCameraCardCustomActionsBaseSchema.extend({
@@ -430,55 +388,64 @@ export type InternalCallbackActionConfig = z.infer<
   typeof internalCallbackActionConfigSchema
 >;
 
-export const internalAdvancedCameraCardCustomActionSchema =
-  advancedCameraCardCustomActionSchema.or(internalCallbackActionConfigSchema);
-export type InternalAdvancedCameraCardCustomAction = z.infer<
-  typeof internalAdvancedCameraCardCustomActionSchema
->;
-
-// Cannot use discriminatedUnion since advancedCameraCardCustomActionSchema uses
-// a transform on the discriminated union key.
-export const actionSchema = z.union([
-  toggleActionSchema,
+const stockActionSchema = z.union([
   callServiceActionSchema,
-  performActionActionSchema,
-  navigateActionSchema,
-  urlActionSchema,
-  moreInfoActionSchema,
-  noActionSchema,
   customActionSchema,
-  advancedCameraCardCustomActionSchema,
+  moreInfoActionSchema,
+  navigateActionSchema,
+  noneActionSchema,
+  performActionActionSchema,
+  toggleActionSchema,
+  urlActionSchema,
 ]);
 
-const internalActionSchema = actionSchema.or(internalCallbackActionConfigSchema);
-export type ActionType = z.infer<typeof internalActionSchema>;
+const advancedCameraCardCustomActionSchema = z.union([
+  cameraSelectActionConfigSchema,
+  generalActionConfigSchema,
+  internalCallbackActionConfigSchema,
+  logActionConfigSchema,
+  mediaPlayerActionConfigSchema,
+  ptzActionConfigSchema,
+  ptzControlsActionConfigSchema,
+  ptzDigitalActionConfigSchema,
+  ptzMultiActionSchema,
+  sleepActionConfigSchema,
+  statusBarActionConfigSchema,
+  substreamSelectActionConfigSchema,
+  viewActionConfigSchema,
+  viewDisplayModeActionConfigSchema,
+]);
+export type AdvancedCameraCardCustomActionConfig = z.infer<
+  typeof advancedCameraCardCustomActionSchema
+>;
+
+const actionConfigSchema = z.union([
+  stockActionSchema,
+  advancedCameraCardCustomActionSchema,
+]);
+export type ActionConfig = z.infer<typeof actionConfigSchema>;
+
+export interface AuxillaryActionConfig {
+  entity?: string;
+}
 
 const actionsBaseSchema = z
   .object({
-    tap_action: actionSchema.or(actionSchema.array()).optional(),
-    hold_action: actionSchema.or(actionSchema.array()).optional(),
-    double_tap_action: actionSchema.or(actionSchema.array()).optional(),
-    start_tap_action: actionSchema.or(actionSchema.array()).optional(),
-    end_tap_action: actionSchema.or(actionSchema.array()).optional(),
+    tap_action: actionConfigSchema.or(actionConfigSchema.array()).optional(),
+    hold_action: actionConfigSchema.or(actionConfigSchema.array()).optional(),
+    double_tap_action: actionConfigSchema.or(actionConfigSchema.array()).optional(),
+    start_tap_action: actionConfigSchema.or(actionConfigSchema.array()).optional(),
+    end_tap_action: actionConfigSchema.or(actionConfigSchema.array()).optional(),
   })
   // Passthrough to allow (at least) entity/camera_image to go through. This
   // card doesn't need these attributes, but handleAction() in
   // custom_card_helpers may depending on how the action is configured.
   .passthrough();
 export type Actions = z.infer<typeof actionsBaseSchema>;
-
-export type ActionsConfig = Actions & {
-  camera_image?: string;
-  entity?: string;
-};
+export type ActionsConfig = Actions & AuxillaryActionConfig;
 
 const actionsSchema = z.object({
   actions: actionsBaseSchema.optional(),
-});
-
-const elementsBaseSchema = actionsBaseSchema.extend({
-  style: z.record(z.string().nullable().or(z.undefined()).or(z.number())).optional(),
-  title: z.string().nullable().optional(),
 });
 
 // *************************************************************************
@@ -488,6 +455,11 @@ const elementsBaseSchema = actionsBaseSchema.extend({
 // custom ones) as a convenience to present the user with a consistent error
 // display up-front regardless of where they made their error.
 // *************************************************************************
+
+const elementsBaseSchema = actionsBaseSchema.extend({
+  style: z.record(z.string().nullable().or(z.undefined()).or(z.number())).optional(),
+  title: z.string().nullable().optional(),
+});
 
 // https://www.home-assistant.io/lovelace/picture-elements/#state-badge
 const stateBadgeIconSchema = elementsBaseSchema.extend({
@@ -2009,7 +1981,7 @@ export type Overrides = z.infer<typeof overridesSchema>;
 //                       Automation Configuration
 // *************************************************************************
 
-const automationActionSchema = actionSchema.array();
+const automationActionSchema = actionConfigSchema.array();
 export type AutomationActions = z.infer<typeof automationActionSchema>;
 
 const automationSchema = z

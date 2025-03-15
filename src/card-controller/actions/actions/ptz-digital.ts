@@ -45,6 +45,8 @@ export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialAction
   }
 
   public async execute(api: CardActionsAPI): Promise<void> {
+    await super.execute(api);
+
     const view = api.getViewManager().getView();
     if (!view) {
       return;

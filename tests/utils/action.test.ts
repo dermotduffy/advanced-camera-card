@@ -1,9 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { actionSchema, INTERNAL_CALLBACK_ACTION } from '../../src/config/types.js';
-import { hasAction as customCardHasAction } from '../../src/ha/has-action.js';
+import { ActionConfig, INTERNAL_CALLBACK_ACTION } from '../../src/config/types.js';
 import {
-  convertActionToCardCustomAction,
   createCameraAction,
   createDisplayModeAction,
   createGeneralAction,
@@ -20,30 +18,6 @@ import {
   hasAction,
   stopEventFromActivatingCardWideActions,
 } from '../../src/utils/action.js';
-
-vi.mock('../../src/ha/has-action.js');
-
-describe('convertActionToAdvancedCameraCardCustomAction', () => {
-  it('should skip null action', () => {
-    expect(convertActionToCardCustomAction(null)).toBeFalsy();
-  });
-
-  it('should parse valid', () => {
-    expect(
-      convertActionToCardCustomAction({
-        action: 'custom:advanced-camera-card-action',
-        advanced_camera_card_action: 'download',
-      }),
-    ).toEqual({
-      action: 'fire-dom-event',
-      advanced_camera_card_action: 'download',
-    });
-  });
-
-  it('should not parse invalid', () => {
-    expect(convertActionToCardCustomAction('this is garbage')).toBeNull();
-  });
-});
 
 describe('createGeneralAction', () => {
   it('should create general action', () => {
@@ -293,10 +267,7 @@ describe('createPerformAction', () => {
 });
 
 describe('getActionConfigGivenAction', () => {
-  const action = actionSchema.parse({
-    action: 'fire-dom-event',
-    advanced_camera_card_action: 'clips',
-  });
+  const action = createViewAction('clips');
 
   it('should not handle undefined arguments', () => {
     expect(getActionConfigGivenAction()).toBeNull();
@@ -348,21 +319,29 @@ describe('getActionConfigGivenAction', () => {
 });
 
 describe('hasAction', () => {
-  const action = actionSchema.parse({
-    action: 'toggle',
-  });
+  const realAction = createViewAction('clips');
+  const noneAction: ActionConfig = {
+    action: 'none',
+  };
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should handle non-array case', () => {
-    expect(hasAction(action)).toBeFalsy();
-    expect(customCardHasAction).toBeCalledTimes(1);
+  it('should return true for real action', () => {
+    expect(hasAction(realAction)).toBeTruthy();
   });
-  it('should handle array case', () => {
-    expect(hasAction([action, action, action])).toBeFalsy();
-    expect(customCardHasAction).toBeCalledTimes(3);
+
+  it('should return false for none action', () => {
+    expect(hasAction(noneAction)).toBeFalsy();
+  });
+
+  it('should return true with an array of actions some real', () => {
+    expect(hasAction([noneAction, noneAction, realAction])).toBeTruthy();
+  });
+
+  it('should return false with an array of actions none real', () => {
+    expect(hasAction([noneAction, noneAction, noneAction])).toBeFalsy();
   });
 });
 

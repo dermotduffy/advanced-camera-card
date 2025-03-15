@@ -1,6 +1,7 @@
+import { Actions } from '../../config/types';
 import { Interaction } from '../../types';
 
-export interface SubmenuItem {
+export interface SubmenuItem extends Actions {
   title?: string;
   subtitle?: string;
   icon?: string;
@@ -8,10 +9,6 @@ export interface SubmenuItem {
   style?: Record<string, string>;
   enabled?: boolean;
   selected?: boolean;
-
-  hold_action?: unknown;
-  double_tap_action?: unknown;
-  [key: string]: unknown;
 }
 
 export interface SubmenuInteraction extends Interaction {

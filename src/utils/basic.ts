@@ -50,8 +50,8 @@ export function arrayMove(target: unknown[], from: number, to: number): unknown[
  * @param value: A value (which may be an array).
  * @returns An array.
  */
-export const arrayify = <T>(value: T | T[]): T[] => {
-  return Array.isArray(value) ? value : [value];
+export const arrayify = <T>(value?: T | T[]): T[] => {
+  return value ? (Array.isArray(value) ? value : [value]) : [];
 };
 
 /**

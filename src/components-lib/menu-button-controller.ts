@@ -6,7 +6,6 @@ import { MicrophoneManager } from '../card-controller/microphone-manager';
 import { ViewManager } from '../card-controller/view/view-manager';
 import {
   AdvancedCameraCardConfig,
-  AdvancedCameraCardCustomAction,
   MenuItem,
   VIEWS_USER_SPECIFIED,
 } from '../config/types';
@@ -21,8 +20,9 @@ import {
   createPTZControlsAction,
   createPTZMultiAction,
   createViewAction,
+  isAdvancedCameraCardCustomAction,
 } from '../utils/action';
-import { isTruthy } from '../utils/basic';
+import { arrayify, isTruthy } from '../utils/basic';
 import { isBeingCasted } from '../utils/casting';
 import { getEntityTitle } from '../utils/ha';
 import { getPTZTarget } from '../utils/ptz';
@@ -118,9 +118,9 @@ export class MenuButtonController {
       permanent: true,
       tap_action:
         config.menu?.style === 'hidden'
-          ? (createGeneralAction('menu_toggle') as AdvancedCameraCardCustomAction)
-          : (createGeneralAction('default') as AdvancedCameraCardCustomAction),
-      hold_action: createViewAction('diagnostics') as AdvancedCameraCardCustomAction,
+          ? createGeneralAction('menu_toggle')
+          : createGeneralAction('default'),
+      hold_action: createViewAction('diagnostics'),
     };
   }
 
@@ -191,7 +191,7 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           tap_action: createGeneralAction(
             hasSubstream(view) ? 'live_substream_off' : 'live_substream_on',
-          ) as AdvancedCameraCardCustomAction,
+          ),
         };
       } else if (streams.length > 2) {
         const menuItems = Array.from(streams, (streamID) => {
@@ -234,7 +234,7 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.live'),
           style: view.is('live') ? this._getEmphasizedStyle() : {},
-          tap_action: createViewAction('live') as AdvancedCameraCardCustomAction,
+          tap_action: createViewAction('live'),
         }
       : null;
   }
@@ -251,8 +251,8 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.clips'),
           style: view?.is('clips') ? this._getEmphasizedStyle() : {},
-          tap_action: createViewAction('clips') as AdvancedCameraCardCustomAction,
-          hold_action: createViewAction('clip') as AdvancedCameraCardCustomAction,
+          tap_action: createViewAction('clips'),
+          hold_action: createViewAction('clip'),
         }
       : null;
   }
@@ -269,8 +269,8 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.snapshots'),
           style: view?.is('snapshots') ? this._getEmphasizedStyle() : {},
-          tap_action: createViewAction('snapshots') as AdvancedCameraCardCustomAction,
-          hold_action: createViewAction('snapshot') as AdvancedCameraCardCustomAction,
+          tap_action: createViewAction('snapshots'),
+          hold_action: createViewAction('snapshot'),
         }
       : null;
   }
@@ -287,8 +287,8 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.recordings'),
           style: view.is('recordings') ? this._getEmphasizedStyle() : {},
-          tap_action: createViewAction('recordings') as AdvancedCameraCardCustomAction,
-          hold_action: createViewAction('recording') as AdvancedCameraCardCustomAction,
+          tap_action: createViewAction('recordings'),
+          hold_action: createViewAction('recording'),
         }
       : null;
   }
@@ -305,7 +305,7 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.image'),
           style: view?.is('image') ? this._getEmphasizedStyle() : {},
-          tap_action: createViewAction('image') as AdvancedCameraCardCustomAction,
+          tap_action: createViewAction('image'),
         }
       : null;
   }
@@ -322,7 +322,7 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.timeline'),
           style: view.is('timeline') ? this._getEmphasizedStyle() : {},
-          tap_action: createViewAction('timeline') as AdvancedCameraCardCustomAction,
+          tap_action: createViewAction('timeline'),
         }
       : null;
   }
@@ -342,7 +342,7 @@ export class MenuButtonController {
         ...config.menu.buttons.download,
         type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.download'),
-        tap_action: createGeneralAction('download') as AdvancedCameraCardCustomAction,
+        tap_action: createGeneralAction('download'),
       };
     }
     return null;
@@ -358,7 +358,7 @@ export class MenuButtonController {
           ...config.menu.buttons.camera_ui,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.menu.buttons.camera_ui'),
-          tap_action: createGeneralAction('camera_ui') as AdvancedCameraCardCustomAction,
+          tap_action: createGeneralAction('camera_ui'),
         }
       : null;
   }
@@ -385,18 +385,14 @@ export class MenuButtonController {
         style: unavailable || muted ? {} : this._getEmphasizedStyle(true),
         ...(!unavailable &&
           buttonType === 'momentary' && {
-            start_tap_action: createGeneralAction(
-              'microphone_unmute',
-            ) as AdvancedCameraCardCustomAction,
-            end_tap_action: createGeneralAction(
-              'microphone_mute',
-            ) as AdvancedCameraCardCustomAction,
+            start_tap_action: createGeneralAction('microphone_unmute'),
+            end_tap_action: createGeneralAction('microphone_mute'),
           }),
         ...(!unavailable &&
           buttonType === 'toggle' && {
             tap_action: createGeneralAction(
               muted ? 'microphone_unmute' : 'microphone_mute',
-            ) as AdvancedCameraCardCustomAction,
+            ),
           }),
       };
     }
@@ -412,7 +408,7 @@ export class MenuButtonController {
       ...config.menu.buttons.expand,
       type: 'custom:advanced-camera-card-menu-icon',
       title: localize('config.menu.buttons.expand'),
-      tap_action: createGeneralAction('expand') as AdvancedCameraCardCustomAction,
+      tap_action: createGeneralAction('expand'),
       style: inExpandedMode ? this._getEmphasizedStyle() : {},
     };
   }
@@ -428,9 +424,7 @@ export class MenuButtonController {
           ...config.menu.buttons.fullscreen,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.menu.buttons.fullscreen'),
-          tap_action: createGeneralAction(
-            'fullscreen',
-          ) as AdvancedCameraCardCustomAction,
+          tap_action: createGeneralAction('fullscreen'),
           style: inFullscreen ? this._getEmphasizedStyle() : {},
         }
       : null;
@@ -498,9 +492,7 @@ export class MenuButtonController {
         ...config.menu.buttons.play,
         type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.play'),
-        tap_action: createGeneralAction(
-          paused ? 'play' : 'pause',
-        ) as AdvancedCameraCardCustomAction,
+        tap_action: createGeneralAction(paused ? 'play' : 'pause'),
       };
     }
     return null;
@@ -521,9 +513,7 @@ export class MenuButtonController {
         ...config.menu.buttons.mute,
         type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.mute'),
-        tap_action: createGeneralAction(
-          muted ? 'unmute' : 'mute',
-        ) as AdvancedCameraCardCustomAction,
+        tap_action: createGeneralAction(muted ? 'unmute' : 'mute'),
       };
     }
     return null;
@@ -539,7 +529,7 @@ export class MenuButtonController {
         ...config.menu.buttons.screenshot,
         type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.screenshot'),
-        tap_action: createGeneralAction('screenshot') as AdvancedCameraCardCustomAction,
+        tap_action: createGeneralAction('screenshot'),
       };
     }
     return null;
@@ -637,7 +627,7 @@ export class MenuButtonController {
       title: localize('config.menu.buttons.ptz_home'),
       tap_action: createPTZMultiAction({
         targetID: target.targetID,
-      }) as AdvancedCameraCardCustomAction,
+      }),
     };
   }
 
@@ -675,30 +665,23 @@ export class MenuButtonController {
       button.start_tap_action,
       button.end_tap_action,
     ]) {
-      const actions = Array.isArray(actionSet) ? actionSet : [actionSet];
-      for (const action of actions) {
-        // All advanced camera card actions will have action of 'fire-dom-event' and
-        // styling only applies to those.
-        if (
-          !action ||
-          action.action !== 'fire-dom-event' ||
-          !('advanced_camera_card_action' in action)
-        ) {
+      for (const action of arrayify(actionSet)) {
+        if (!isAdvancedCameraCardCustomAction(action)) {
           continue;
         }
-        const customCardAction = action as AdvancedCameraCardCustomAction;
+
         if (
           VIEWS_USER_SPECIFIED.some(
             (viewName) =>
-              viewName === customCardAction.advanced_camera_card_action &&
-              options?.view?.is(customCardAction.advanced_camera_card_action),
+              viewName === action.advanced_camera_card_action &&
+              options?.view?.is(action.advanced_camera_card_action),
           ) ||
-          (customCardAction.advanced_camera_card_action === 'default' &&
+          (action.advanced_camera_card_action === 'default' &&
             options?.view?.is(config.view.default)) ||
-          (customCardAction.advanced_camera_card_action === 'fullscreen' &&
+          (action.advanced_camera_card_action === 'fullscreen' &&
             !!options?.fullscreenManager?.isInFullscreen()) ||
-          (customCardAction.advanced_camera_card_action === 'camera_select' &&
-            options?.view?.camera === customCardAction.camera)
+          (action.advanced_camera_card_action === 'camera_select' &&
+            options?.view?.camera === action.camera)
         ) {
           return this._getEmphasizedStyle();
         }

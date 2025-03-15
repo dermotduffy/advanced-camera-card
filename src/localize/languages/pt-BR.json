@@ -1,4 +1,8 @@
 {
+  "actions": {
+    "abort": "",
+    "confirmation": ""
+  },
   "common": {
     "advanced_camera_card": "",
     "advanced_camera_card_description": "",

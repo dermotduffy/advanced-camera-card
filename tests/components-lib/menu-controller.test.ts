@@ -2,15 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MenuController } from '../../src/components-lib/menu-controller.js';
 import { SubmenuItem } from '../../src/components/submenu/types.js';
 import { MenuConfig, menuConfigSchema } from '../../src/config/types.js';
-import { handleActionConfig } from '../../src/ha/handle-action.js';
 import {
   createInteractionActionEvent,
   createLitElement,
   createSubmenuInteractionActionEvent,
 } from '../test-utils';
-
-vi.mock('../../src/ha/handle-action.js');
-vi.mock('../../src/utils/ha');
 
 const createMenuConfig = (config: unknown): MenuConfig => {
   return menuConfigSchema.parse(config);
@@ -369,9 +365,13 @@ describe('MenuController', () => {
 
   describe('should handle actions', () => {
     it('should bail without config', () => {
-      const controller = new MenuController(createLitElement());
+      const host = createLitElement();
+      const handler = vi.fn();
+      host.addEventListener('advanced-camera-card:action:execution-request', handler);
+
+      const controller = new MenuController(host);
       controller.handleAction(createInteractionActionEvent('tap'));
-      expect(vi.mocked(handleActionConfig)).not.toBeCalled();
+      expect(handler).not.toBeCalled();
     });
 
     it('should execute simple action in non-hidden menu', () => {

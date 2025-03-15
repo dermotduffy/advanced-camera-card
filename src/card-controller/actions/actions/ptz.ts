@@ -28,6 +28,8 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
   }
 
   public async execute(api: CardActionsAPI): Promise<void> {
+    await super.execute(api);
+
     const view = api.getViewManager().getView();
     if (!view) {
       return;

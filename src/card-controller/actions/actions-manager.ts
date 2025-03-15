@@ -1,12 +1,19 @@
 import { ActionContext } from 'action';
 import { z } from 'zod';
 import { ConditionsTriggerData } from '../../conditions/types.js';
-import { Actions, ActionsConfig, ActionType } from '../../config/types.js';
+import {
+  ActionConfig,
+  Actions,
+  ActionsConfig,
+  AuxillaryActionConfig,
+} from '../../config/types.js';
+import { forwardHaptic } from '../../ha/haptic.js';
 import { getActionConfigGivenAction } from '../../utils/action.js';
+import { allPromises } from '../../utils/basic.js';
 import { TemplateRenderer } from '../templates/index.js';
 import { CardActionsManagerAPI } from '../types.js';
 import { ActionSet } from './actions/set.js';
-import { ActionExecutionRequest, AuxillaryActionConfig } from './types.js';
+import { ActionExecutionRequest } from './types.js';
 
 const INTERACTIONS = ['tap', 'double_tap', 'hold', 'start_tap', 'end_tap'] as const;
 export type InteractionName = (typeof INTERACTIONS)[number];
@@ -60,7 +67,7 @@ export class ActionsManager {
   /**
    * Handle an human interaction called on an element (e.g. 'tap').
    */
-  public handleInteractionEvent = (ev: Event): void => {
+  public handleInteractionEvent = async (ev: Event): Promise<void> => {
     const result = interactionEventSchema.safeParse(ev);
     if (!result.success) {
       return;
@@ -76,7 +83,7 @@ export class ActionsManager {
       // actions).
       actionConfig
     ) {
-      this.executeActions(actionConfig, { config });
+      await this.executeActions(actionConfig, { config });
     }
   };
 
@@ -85,14 +92,16 @@ export class ActionsManager {
    * cards to fire custom actions. This card itself should not call this, but
    * embedded elements may.
    */
-  public handleCustomActionEvent = (ev: Event): void => {
+  public handleCustomActionEvent = async (
+    ev: Event | CustomEvent<ActionConfig>,
+  ): Promise<void> => {
     if (!('detail' in ev)) {
       // The event may or may not be a CustomEvent object. For example, whilst
       // this card doesn't use custom-card-helpers, embedded elements may:
       // https://github.com/custom-cards/custom-card-helpers/blob/master/src/fire-event.ts#L70
       return;
     }
-    this.executeActions(ev.detail as ActionType);
+    await this.executeActions(ev.detail as ActionConfig);
   };
 
   /**
@@ -107,25 +116,25 @@ export class ActionsManager {
     });
   };
 
-  public uninitialize(): void {
+  public async uninitialize(): Promise<void> {
     // If there are any long-running actions, ensure they are stopped.
-    this._actionsInFlight.forEach((actionSet) => actionSet.stop());
+    await allPromises(this._actionsInFlight, (actionSet) => actionSet.stop());
   }
 
   public async executeActions(
-    action: ActionType | ActionType[],
+    action: ActionConfig | ActionConfig[],
     options?: {
       config?: AuxillaryActionConfig;
       triggerData?: ConditionsTriggerData;
     },
   ): Promise<void> {
     const hass = this._api.getHASSManager().getHASS();
-    const renderedAction =
+    const renderedAction: ActionConfig | ActionConfig[] =
       hass && this._templateRenderer
-        ? this._templateRenderer.renderRecursively(hass, action, {
+        ? (this._templateRenderer.renderRecursively(hass, action, {
             conditionState: this._api.getConditionStateManager().getState(),
             triggerData: options?.triggerData,
-          })
+          }) as ActionConfig | ActionConfig[])
         : action;
 
     const actionSet = new ActionSet(this._actionContext, renderedAction, {
@@ -134,7 +143,13 @@ export class ActionsManager {
     });
 
     this._actionsInFlight.push(actionSet);
-    await actionSet.execute(this._api);
+
+    try {
+      await actionSet.execute(this._api);
+      forwardHaptic('success');
+    } catch (e) {
+      forwardHaptic('warning');
+    }
     this._actionsInFlight = this._actionsInFlight.filter((a) => a !== actionSet);
   }
 }

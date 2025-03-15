@@ -3,8 +3,9 @@ import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class LogAction extends AdvancedCameraCardAction<LogActionConfig> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async execute(_api: CardActionsAPI): Promise<void> {
+  public async execute(api: CardActionsAPI): Promise<void> {
+    await super.execute(api);
+
     console[this._action.level](this._action.message);
   }
 }

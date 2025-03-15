@@ -4,6 +4,8 @@ import { AdvancedCameraCardAction } from './base';
 
 export class CameraSelectAction extends AdvancedCameraCardAction<CameraSelectActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
+    await super.execute(api);
+
     const selectCameraID =
       this._action.camera ??
       (this._action.triggered

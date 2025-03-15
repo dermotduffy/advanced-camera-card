@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
 import { SubstreamSelectViewModifier } from '../../src/card-controller/view/modifiers/substream-select';
@@ -7,13 +7,14 @@ import { createCardAPI } from '../test-utils';
 const setQueryString = (qs: string): void => {
   const location: Location = mock<Location>();
   location.search = qs;
-  global.window.location = location;
+
+  vi.spyOn(window, 'location', 'get').mockReturnValue(location);
 };
 
 // @vitest-environment jsdom
 describe('QueryStringManager', () => {
-  beforeEach(() => {
-    global.window.location = mock<Location>();
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('should reject malformed query string', async () => {

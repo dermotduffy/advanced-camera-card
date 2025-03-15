@@ -3,9 +3,9 @@ import { customElement, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../../action-handler-directive.js';
 import { MenuSubmenu } from '../../config/types.js';
-import { hasAction } from '../../ha/has-action.js';
 import { HomeAssistant } from '../../ha/types.js';
 import menuButtonStyle from '../../scss/menu-button.scss';
+import { hasAction } from '../../utils/action.js';
 import '../icon.js';
 import './index.js';
 
