@@ -2,7 +2,7 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { ClassInfo, classMap } from 'lit/directives/class-map.js';
 import { ref, Ref } from 'lit/directives/ref.js';
-import { CardWideConfig } from '../config/types.js';
+import { CardWideConfig } from '../config/schema/types';
 import messageStyle from '../scss/message.scss';
 import './icon.js';
 

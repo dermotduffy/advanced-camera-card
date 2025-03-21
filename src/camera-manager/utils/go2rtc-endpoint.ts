@@ -1,4 +1,4 @@
-import { CameraConfig } from '../../config/types';
+import { CameraConfig } from '../../config/schema/cameras';
 import { CameraEndpoint } from '../types';
 
 export const getDefaultGo2RTCEndpoint = (

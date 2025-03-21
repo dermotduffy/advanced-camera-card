@@ -1,4 +1,4 @@
-import { MediaPlayerActionConfig } from '../../../config/types';
+import { MediaPlayerActionConfig } from '../../../config/schema/actions/custom/media-player';
 import { getStreamCameraID } from '../../../utils/substream';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';

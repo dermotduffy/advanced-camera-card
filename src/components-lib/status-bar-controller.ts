@@ -2,12 +2,9 @@ import { LitElement } from 'lit';
 import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request';
-import {
-  ActionsConfig,
-  STATUS_BAR_PRIORITY_DEFAULT,
-  StatusBarConfig,
-  StatusBarItem,
-} from '../config/types';
+import { ActionsConfig, StatusBarItem } from '../config/schema/actions/types';
+import { STATUS_BAR_PRIORITY_DEFAULT } from '../config/schema/common/const';
+import { StatusBarConfig } from '../config/schema/status-bar';
 import { getActionConfigGivenAction } from '../utils/action';
 import { arrayify, setOrRemoveAttribute } from '../utils/basic';
 import { Timer } from '../utils/timer';

@@ -2,7 +2,7 @@ import EmblaCarousel, { EmblaCarouselType } from 'embla-carousel';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins';
 import isEqual from 'lodash-es/isEqual';
-import { TransitionEffect } from '../../config/types';
+import { TransitionEffect } from '../../config/schema/common/transition-effect.js';
 import { getChildrenFromElement } from '../basic.js';
 import { fireAdvancedCameraCardEvent } from '../fire-advanced-camera-card-event';
 import { TextDirection } from '../text-direction';

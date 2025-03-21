@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { StatusBarController } from '../../src/components-lib/status-bar-controller';
-import { StatusBarConfig, statusBarConfigSchema } from '../../src/config/types';
+import { StatusBarConfig, statusBarConfigSchema } from '../../src/config/schema/status-bar';
 import { setOrRemoveAttribute } from '../../src/utils/basic';
 import { createInteractionActionEvent, createLitElement } from '../test-utils';
 
@@ -79,7 +79,7 @@ describe('StatusBarController', () => {
       const controller = new StatusBarController(host);
       const items = [
         {
-          type: 'custom:advanced-camera-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string' as const,
           string: 'Test',
         },
       ];
@@ -92,22 +92,22 @@ describe('StatusBarController', () => {
       const host = createLitElement();
       const controller = new StatusBarController(host);
       const item1 = {
-        type: 'custom:advanced-camera-card-status-bar-string',
+        type: 'custom:advanced-camera-card-status-bar-string' as const,
         string: 'Item 1',
         priority: 40,
       };
       const item2 = {
-        type: 'custom:advanced-camera-card-status-bar-string',
+        type: 'custom:advanced-camera-card-status-bar-string' as const,
         string: 'Item 2',
         priority: 10,
       };
       const item3 = {
-        type: 'custom:advanced-camera-card-status-bar-string',
+        type: 'custom:advanced-camera-card-status-bar-string' as const,
         string: 'Item 3',
         priority: 60,
       };
       const item4 = {
-        type: 'custom:advanced-camera-card-status-bar-string',
+        type: 'custom:advanced-camera-card-status-bar-string' as const,
         string: 'Item 4',
         priority: undefined,
       };
@@ -120,12 +120,12 @@ describe('StatusBarController', () => {
       const host = createLitElement();
       const controller = new StatusBarController(host);
       const item1 = {
-        type: 'custom:advanced-camera-card-status-bar-string',
+        type: 'custom:advanced-camera-card-status-bar-string' as const,
         string: 'Item 1',
         priority: 100,
       };
       const exclusiveItem = {
-        type: 'custom:advanced-camera-card-status-bar-string',
+        type: 'custom:advanced-camera-card-status-bar-string' as const,
         string: 'Item 2',
         priority: 1,
         exclusive: true,
@@ -140,12 +140,12 @@ describe('StatusBarController', () => {
         const host = createLitElement();
         const controller = new StatusBarController(host);
         const insufficientItem = {
-          type: 'custom:advanced-camera-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string' as const,
           string: 'Item 1',
           sufficient: false,
         };
         const sufficientItem = {
-          type: 'custom:advanced-camera-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string' as const,
           string: 'Item 2',
           sufficient: true,
         };
@@ -159,12 +159,12 @@ describe('StatusBarController', () => {
         const host = createLitElement();
         const controller = new StatusBarController(host);
         const insufficientItem = {
-          type: 'custom:advanced-camera-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string' as const,
           string: 'Item 1',
           sufficient: false,
         };
         const sufficientItem = {
-          type: 'custom:advanced-camera-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string' as const,
           string: 'Item 2',
           sufficient: false,
         };
@@ -188,7 +188,7 @@ describe('StatusBarController', () => {
         );
 
         const sufficientItem = {
-          type: 'custom:advanced-camera-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string' as const,
           string: 'Item 1',
           priority: 100,
           sufficient: true,
@@ -210,7 +210,7 @@ describe('StatusBarController', () => {
         );
 
         const insufficientItem = {
-          type: 'custom:advanced-camera-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string' as const,
           string: 'Item 1',
           priority: 100,
           sufficient: false,
@@ -231,19 +231,19 @@ describe('StatusBarController', () => {
         );
 
         const sufficientString = {
-          type: 'custom:advanced-camera-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string' as const,
           string: 'String',
           priority: 100,
           sufficient: true,
         };
         const sufficientIcon = {
-          type: 'custom:advanced-camera-card-status-bar-icon',
+          type: 'custom:advanced-camera-card-status-bar-icon' as const,
           icon: 'Icon',
           priority: 100,
           sufficient: true,
         };
         const sufficientImage = {
-          type: 'custom:advanced-camera-card-status-bar-image',
+          type: 'custom:advanced-camera-card-status-bar-image' as const,
           image: 'Image',
           priority: 100,
           sufficient: true,
@@ -275,7 +275,7 @@ describe('StatusBarController', () => {
         );
 
         const sufficientItem = {
-          type: 'custom:advanced-camera-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string' as const,
           string: 'Item 1',
           priority: 100,
           sufficient: true,

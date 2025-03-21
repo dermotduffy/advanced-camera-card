@@ -6,7 +6,7 @@ import {
   Actions,
   ActionsConfig,
   AuxillaryActionConfig,
-} from '../../config/types.js';
+} from '../../config/schema/actions/types.js';
 import { forwardHaptic } from '../../ha/haptic.js';
 import { getActionConfigGivenAction } from '../../utils/action.js';
 import { allPromises } from '../../utils/basic.js';

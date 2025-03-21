@@ -1,4 +1,4 @@
-import { InternalCallbackActionConfig } from '../../../config/types';
+import { InternalCallbackActionConfig } from '../../../config/schema/actions/custom/internal';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 

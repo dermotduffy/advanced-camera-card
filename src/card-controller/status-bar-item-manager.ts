@@ -1,6 +1,7 @@
 import isEqual from 'lodash-es/isEqual';
 import { CameraManager } from '../camera-manager/manager';
-import { StatusBarConfig, StatusBarItem } from '../config/types';
+import { StatusBarItem } from '../config/schema/actions/types';
+import { StatusBarConfig } from '../config/schema/status-bar';
 import { MediaLoadedInfo } from '../types';
 import { View } from '../view/view';
 import { CardStatusBarAPI } from './types';

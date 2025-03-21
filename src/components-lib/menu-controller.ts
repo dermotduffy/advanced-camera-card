@@ -2,13 +2,10 @@ import { LitElement } from 'lit';
 import { orderBy } from 'lodash-es';
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
 import { SubmenuInteraction } from '../components/submenu/types.js';
-import {
-  ActionConfig,
-  MENU_PRIORITY_MAX,
-  type ActionsConfig,
-  type MenuConfig,
-  type MenuItem,
-} from '../config/types.js';
+import { ActionConfig, ActionsConfig } from '../config/schema/actions/types.js';
+import { MENU_PRIORITY_MAX } from '../config/schema/common/const.js';
+import { MenuItem } from '../config/schema/elements/custom/menu/types.js';
+import { MenuConfig } from '../config/schema/menu.js';
 import { Interaction } from '../types.js';
 import { getActionConfigGivenAction } from '../utils/action';
 import { arrayify, isTruthy, setOrRemoveAttribute } from '../utils/basic.js';

@@ -4,9 +4,10 @@ import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-fact
 import { FrigateCameraManagerEngine } from '../../src/camera-manager/frigate/engine-frigate';
 import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic';
 import { MotionEyeCameraManagerEngine } from '../../src/camera-manager/motioneye/engine-motioneye';
+import { ReolinkCameraManagerEngine } from '../../src/camera-manager/reolink/engine-reolink.js';
 import { Engine } from '../../src/camera-manager/types.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
-import { CardWideConfig } from '../../src/config/types.js';
+import { CardWideConfig } from '../../src/config/schema/types.js';
 import {
   createEntityRegistryCache,
   EntityRegistryManager,
@@ -18,7 +19,6 @@ import {
   createRegistryEntity,
   createStateEntity,
 } from '../test-utils';
-import { ReolinkCameraManagerEngine } from '../../src/camera-manager/reolink/engine-reolink.js';
 
 vi.mock('../../src/utils/ha/entity-registry');
 vi.mock('../../src/utils/ha/entity-registry/cache');

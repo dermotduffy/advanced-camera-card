@@ -2,7 +2,8 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
-import { CardWideConfig, ViewerConfig } from '../../config/types.js';
+import { CardWideConfig } from '../../config/schema/types.js';
+import { ViewerConfig } from '../../config/schema/viewer.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';

@@ -1,7 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import { CameraConfig } from '../../../config/types';
+import { CameraConfig } from '../../../config/schema/cameras';
 import { HomeAssistant } from '../../../ha/types';
 import basicBlockStyle from '../../../scss/basic-block.scss';
 import {

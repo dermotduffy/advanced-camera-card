@@ -1,4 +1,4 @@
-import { SleepActionConfig } from '../../../config/types';
+import { SleepActionConfig } from '../../../config/schema/actions/custom/sleep';
 import { sleep } from '../../../utils/basic';
 import { CardActionsAPI } from '../../types';
 import { timeDeltaToSeconds } from '../utils/time-delta';

@@ -1,4 +1,4 @@
-import { PTZActionConfig } from '../../../config/types';
+import { PTZActionConfig } from '../../../config/schema/actions/custom/ptz';
 import { getPTZTarget, ptzActionToCapabilityKey } from '../../../utils/ptz';
 import { Timer } from '../../../utils/timer';
 import { CardActionsAPI } from '../../types';

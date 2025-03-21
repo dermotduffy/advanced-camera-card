@@ -40,15 +40,16 @@ import { TriggersManager } from '../src/card-controller/triggers-manager';
 import { ViewManager } from '../src/card-controller/view/view-manager';
 import { SubmenuInteraction, SubmenuItem } from '../src/components/submenu/types';
 import { ConditionStateManager } from '../src/conditions/state-manager';
+import { CameraConfig, cameraConfigSchema } from '../src/config/schema/cameras';
+import {
+  PerformanceConfig,
+  performanceConfigSchema,
+} from '../src/config/schema/performance';
 import {
   AdvancedCameraCardConfig,
-  CameraConfig,
-  PerformanceConfig,
-  RawAdvancedCameraCardConfig,
   advancedCameraCardConfigSchema,
-  cameraConfigSchema,
-  performanceConfigSchema,
-} from '../src/config/types';
+} from '../src/config/schema/types';
+import { RawAdvancedCameraCardConfig } from '../src/config/types';
 import { CurrentUser, HomeAssistant } from '../src/ha/types';
 import { CapabilitiesRaw, Interaction, MediaLoadedInfo } from '../src/types';
 import { HassStateDifference } from '../src/utils/ha';

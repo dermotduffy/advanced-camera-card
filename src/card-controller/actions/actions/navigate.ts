@@ -1,4 +1,4 @@
-import { NavigateActionConfig } from '../../../config/types';
+import { NavigateActionConfig } from '../../../config/schema/actions/stock/navigate';
 import { fireHASSEvent } from '../../../ha/fire-hass-event';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';

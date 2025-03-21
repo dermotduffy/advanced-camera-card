@@ -3,7 +3,6 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import './components/icon.js';
 import './components/key-assigner.js';
-import { KeyboardShortcut } from './config/keyboard-shortcuts.js';
 import {
   copyConfig,
   deleteConfigValue,
@@ -13,21 +12,24 @@ import {
   setConfigValue,
   upgradeConfig,
 } from './config/management.js';
-import { setProfiles } from './config/profiles/index.js';
+import { setProfiles } from './config/profiles/set-profiles.js';
 import {
-  AdvancedCameraCardConfig,
   BUTTON_SIZE_MIN,
-  configDefaults,
   MENU_PRIORITY_MAX,
-  profilesSchema,
-  RawAdvancedCameraCardConfig,
-  RawAdvancedCameraCardConfigArray,
-  STATUS_BAR_HEIGHT_MIN,
   STATUS_BAR_PRIORITY_MAX,
+} from './config/schema/common/const.js';
+import {
   THUMBNAIL_WIDTH_MAX,
   THUMBNAIL_WIDTH_MIN,
-  ZOOM_MAX,
-  ZOOM_MIN,
+} from './config/schema/common/controls/thumbnails.js';
+import { ZOOM_MAX, ZOOM_MIN } from './config/schema/common/zoom.js';
+import { profilesSchema } from './config/schema/profiles.js';
+import { STATUS_BAR_HEIGHT_MIN } from './config/schema/status-bar.js';
+import { AdvancedCameraCardConfig, configDefaults } from './config/schema/types.js';
+import { KeyboardShortcut } from './config/schema/view.js';
+import {
+  RawAdvancedCameraCardConfig,
+  RawAdvancedCameraCardConfigArray,
 } from './config/types.js';
 import {
   CONF_CAMERAS,

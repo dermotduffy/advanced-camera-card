@@ -22,12 +22,10 @@ import './components/thumbnail-carousel.js';
 import './components/views.js';
 import { AdvancedCameraCardViews } from './components/views.js';
 import { ConditionStateManagerGetEvent } from './conditions/state-manager-via-event.js';
-import {
-  AdvancedCameraCardConfig,
-  MenuItem,
-  RawAdvancedCameraCardConfig,
-  StatusBarItem,
-} from './config/types';
+import { StatusBarItem } from './config/schema/actions/types.js';
+import { MenuItem } from './config/schema/elements/custom/menu/types.js';
+import { AdvancedCameraCardConfig } from './config/schema/types.js';
+import { RawAdvancedCameraCardConfig } from './config/types.js';
 import { REPO_URL } from './const.js';
 import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';

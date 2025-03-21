@@ -1,4 +1,4 @@
-import { StatusBarActionConfig } from '../../../config/types';
+import { StatusBarActionConfig } from '../../../config/schema/actions/types';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 

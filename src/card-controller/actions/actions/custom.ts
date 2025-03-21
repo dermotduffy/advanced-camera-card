@@ -1,4 +1,4 @@
-import { CustomActionConfig } from '../../../config/types';
+import { CustomActionConfig } from '../../../config/schema/actions/stock/custom';
 import { fireHASSEvent } from '../../../ha/fire-hass-event';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';

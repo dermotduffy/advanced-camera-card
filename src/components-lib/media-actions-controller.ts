@@ -4,7 +4,7 @@ import {
   AutoPauseCondition,
   AutoPlayCondition,
   AutoUnmuteCondition,
-} from '../config/types.js';
+} from '../config/schema/common/media-actions.js';
 import { MediaPlayerElement } from '../types.js';
 import { AdvancedCameraCardMediaLoadedEventTarget } from '../utils/media-info.js';
 import { Timer } from '../utils/timer.js';

@@ -1,6 +1,7 @@
 import merge from 'lodash-es/merge';
 import { ViewContext } from 'view';
-import { AdvancedCameraCardView, ViewDisplayMode } from '../config/types.js';
+import { AdvancedCameraCardView } from '../config/schema/common/const';
+import { ViewDisplayMode } from '../config/schema/common/display';
 import { MediaQueries } from './media-queries';
 import { MediaQueriesResults } from './media-queries-results';
 

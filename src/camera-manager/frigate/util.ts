@@ -1,5 +1,5 @@
 import { toZonedTime } from 'date-fns-tz';
-import { CameraConfig } from '../../config/types';
+import { CameraConfig } from '../../config/schema/cameras';
 import { ClipsOrSnapshots } from '../../types';
 import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
 import { FrigateEvent, FrigateRecording } from './types';

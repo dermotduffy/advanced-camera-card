@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
-import { ThumbnailsControlConfig } from '../config/types.js';
+import { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
 import { HomeAssistant } from '../ha/types.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';

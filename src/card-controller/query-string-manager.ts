@@ -1,4 +1,5 @@
-import { AdvancedCameraCardCustomActionConfig, ViewActionConfig } from '../config/types';
+import { ViewActionConfig } from '../config/schema/actions/custom/view';
+import { AdvancedCameraCardCustomActionConfig } from '../config/schema/actions/types';
 import {
   createCameraAction,
   createGeneralAction,

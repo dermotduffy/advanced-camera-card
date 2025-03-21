@@ -1,4 +1,4 @@
-import { CallServiceActionConfig } from '../../../config/types';
+import { CallServiceActionConfig } from '../../../config/schema/actions/stock/call-service';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 

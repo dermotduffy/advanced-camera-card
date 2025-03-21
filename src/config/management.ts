@@ -29,11 +29,8 @@ import {
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
 } from '../const';
 import { arrayify } from '../utils/basic';
-import {
-  AdvancedCameraCardCondition,
-  RawAdvancedCameraCardConfig,
-  RawAdvancedCameraCardConfigArray,
-} from './types';
+import { AdvancedCameraCardCondition } from './schema/conditions/types';
+import { RawAdvancedCameraCardConfig, RawAdvancedCameraCardConfigArray } from './types';
 
 // *************************************************************************
 //                  General Config Management Functions

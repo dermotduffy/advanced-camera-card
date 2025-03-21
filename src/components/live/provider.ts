@@ -14,13 +14,9 @@ import { CameraEndpoints } from '../../camera-manager/types.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
 import { PartialZoomSettings } from '../../components-lib/zoom/types.js';
-import {
-  CameraConfig,
-  CardWideConfig,
-  configDefaults,
-  LiveConfig,
-  LiveProvider,
-} from '../../config/types.js';
+import { CameraConfig, LiveProvider } from '../../config/schema/cameras.js';
+import { LiveConfig } from '../../config/schema/live.js';
+import { CardWideConfig, configDefaults } from '../../config/schema/types.js';
 import { STREAM_TROUBLESHOOTING_URL } from '../../const.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';

@@ -27,7 +27,7 @@ import {
 } from '../../src/camera-manager/types.js';
 import { sortMedia } from '../../src/camera-manager/utils/sort-media.js';
 import { CardController } from '../../src/card-controller/controller.js';
-import { CameraConfig } from '../../src/config/types.js';
+import { CameraConfig } from '../../src/config/schema/cameras.js';
 import { HomeAssistant } from '../../src/ha/types.js';
 import { ViewMedia } from '../../src/view/media.js';
 import {

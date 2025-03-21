@@ -1,4 +1,4 @@
-import { NoneActionConfig } from '../../../config/types';
+import { NoneActionConfig } from '../../../config/schema/actions/stock/none';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 

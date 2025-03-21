@@ -1,5 +1,8 @@
 import { ActionContext } from 'action';
-import { ActionConfig, AuxillaryActionConfig } from '../../../config/types';
+import {
+  ActionConfig,
+  AuxillaryActionConfig,
+} from '../../../config/schema/actions/types.js';
 import { localize } from '../../../localize/localize.js';
 import { isAdvancedCameraCardCustomAction } from '../../../utils/action';
 import { CardActionsAPI } from '../../types';

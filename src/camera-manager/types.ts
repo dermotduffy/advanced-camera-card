@@ -1,4 +1,5 @@
-import { AdvancedCameraCardView, SSLCiphers } from '../config/types';
+import { SSLCiphers } from '../config/schema/cameras';
+import { AdvancedCameraCardView } from '../config/schema/common/const';
 import { CapabilityKey, Icon } from '../types';
 import { ViewMedia } from '../view/media';
 

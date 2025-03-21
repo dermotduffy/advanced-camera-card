@@ -3,8 +3,8 @@ import cloneDeep from 'lodash-es/cloneDeep';
 import sum from 'lodash-es/sum';
 import PQueue from 'p-queue';
 import { CardCameraAPI } from '../card-controller/types.js';
-import { PTZAction } from '../config/ptz.js';
-import { ActionPhase, CameraConfig, CamerasConfig } from '../config/types.js';
+import { PTZAction, PTZActionPhase } from '../config/schema/actions/custom/ptz.js';
+import { CameraConfig, CamerasConfig } from '../config/schema/cameras.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 import { localize } from '../localize/localize.js';
 import {
@@ -16,7 +16,6 @@ import {
 } from '../utils/basic.js';
 import { getCameraID } from '../utils/camera.js';
 import { log } from '../utils/debug.js';
-import { getConfiguredPTZAction } from './utils/ptz.js';
 import { ViewMedia } from '../view/media.js';
 import { Capabilities } from './capabilities.js';
 import { CameraManagerEngineFactory } from './engine-factory.js';
@@ -56,6 +55,7 @@ import {
   RecordingSegmentsQueryResultsMap,
   ResultsMap,
 } from './types.js';
+import { getConfiguredPTZAction } from './utils/ptz.js';
 import { sortMedia } from './utils/sort-media.js';
 
 export class QueryClassifier {
@@ -785,7 +785,7 @@ export class CameraManager {
     cameraID: string,
     action: PTZAction,
     options?: {
-      phase?: ActionPhase;
+      phase?: PTZActionPhase;
       preset?: string;
     },
   ): Promise<void> {

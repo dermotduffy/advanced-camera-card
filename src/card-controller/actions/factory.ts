@@ -1,9 +1,6 @@
 import { ActionContext } from 'action';
-import {
-  ActionConfig,
-  AuxillaryActionConfig,
-  INTERNAL_CALLBACK_ACTION,
-} from '../../config/types';
+import { INTERNAL_CALLBACK_ACTION } from '../../config/schema/actions/custom/internal';
+import { ActionConfig, AuxillaryActionConfig } from '../../config/schema/actions/types';
 import { isAdvancedCameraCardCustomAction } from '../../utils/action';
 import { CallServiceAction } from './actions/call-service';
 import { CameraSelectAction } from './actions/camera-select';

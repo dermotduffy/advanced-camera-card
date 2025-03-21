@@ -1,5 +1,5 @@
 import { ViewContext } from 'view';
-import { AdvancedCameraCardView } from '../../config/types.js';
+import { AdvancedCameraCardView } from '../../config/schema/common/const.js';
 import { AdvancedCameraCardError } from '../../types.js';
 import { MediaQueriesResults } from '../../view/media-queries-results.js';
 import { MediaQueries } from '../../view/media-queries.js';

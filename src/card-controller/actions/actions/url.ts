@@ -1,4 +1,4 @@
-import { URLActionConfig } from '../../../config/types';
+import { URLActionConfig } from '../../../config/schema/actions/stock/url';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 

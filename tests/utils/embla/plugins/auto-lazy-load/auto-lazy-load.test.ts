@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { MEDIA_ACTION_NEGATIVE_CONDITIONS } from '../../../../../src/config/types';
+import { MEDIA_ACTION_NEGATIVE_CONDITIONS } from '../../../../../src/config/schema/common/media-actions';
 import { AutoLazyLoad } from '../../../../../src/utils/embla/plugins/auto-lazy-load/auto-lazy-load';
 import {
   callEmblaHandler,

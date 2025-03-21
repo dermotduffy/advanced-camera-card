@@ -1,4 +1,4 @@
-import { PTZControlsActionConfig } from '../../../config/types';
+import { PTZControlsActionConfig } from '../../../config/schema/actions/custom/ptz-controls';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 

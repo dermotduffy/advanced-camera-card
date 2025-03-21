@@ -1,4 +1,5 @@
-import { AdvancedCameraCardConfig, CameraConfig } from '../config/types';
+import { CameraConfig } from '../config/schema/cameras';
+import { AdvancedCameraCardConfig } from '../config/schema/types';
 import {
   MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
   MEDIA_PLAYER_SUPPORT_STOP,

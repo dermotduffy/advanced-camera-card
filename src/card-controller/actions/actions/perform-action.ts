@@ -1,4 +1,4 @@
-import { PerformActionActionConfig } from '../../../config/types';
+import { PerformActionActionConfig } from '../../../config/schema/actions/stock/perform-action';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 

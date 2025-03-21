@@ -1,5 +1,5 @@
 import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
-import { CameraConfig } from '../config/types';
+import { CameraConfig } from '../config/schema/cameras';
 import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import { BrowseMediaManager } from '../utils/ha/browse-media/browse-media-manager';

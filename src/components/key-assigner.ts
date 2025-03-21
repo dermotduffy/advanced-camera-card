@@ -9,9 +9,9 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { KeyAssignerController } from '../components-lib/key-assigner-controller';
-import { KeyboardShortcut } from '../config/keyboard-shortcuts';
-import keyAssignerStyle from '../scss/key-assigner.scss';
+import { KeyboardShortcut } from '../config/schema/view';
 import { localize } from '../localize/localize';
+import keyAssignerStyle from '../scss/key-assigner.scss';
 import './icon';
 
 @customElement('advanced-camera-card-key-assigner')

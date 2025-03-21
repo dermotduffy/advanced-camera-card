@@ -1,7 +1,7 @@
 import isEqual from 'lodash-es/isEqual';
 import throttle from 'lodash-es/throttle';
 import Masonry from 'masonry-layout';
-import { ViewDisplayConfig } from '../config/types';
+import { ViewDisplayConfig } from '../config/schema/common/display';
 import { MediaLoadedInfo } from '../types';
 import { getChildrenFromElement, setOrRemoveAttribute } from '../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';

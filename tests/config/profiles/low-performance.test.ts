@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
-import { setProfiles } from '../../../src/config/profiles';
 import { LOW_PERFORMANCE_PROFILE } from '../../../src/config/profiles/low-performance';
-import { advancedCameraCardConfigSchema } from '../../../src/config/types';
+import { setProfiles } from '../../../src/config/profiles/set-profiles';
+import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
 import { createRawConfig } from '../../test-utils';
 
 it('should contain expected defaults', () => {

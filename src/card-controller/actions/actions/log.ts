@@ -1,4 +1,4 @@
-import { LogActionConfig } from '../../../config/types';
+import { LogActionConfig } from '../../../config/schema/actions/custom/log';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 

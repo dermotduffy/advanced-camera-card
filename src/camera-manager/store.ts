@@ -1,4 +1,4 @@
-import { CameraConfig } from '../config/types';
+import { CameraConfig } from '../config/schema/cameras';
 import { CapabilityKey } from '../types';
 import { allPromises } from '../utils/basic';
 import { ViewMedia } from '../view/media';

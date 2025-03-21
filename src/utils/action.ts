@@ -1,29 +1,34 @@
 import { CardActionsAPI } from '../card-controller/types.js';
 import { ZoomSettingsBase } from '../components-lib/zoom/types.js';
-import { PTZAction } from '../config/ptz.js';
+import { CameraSelectActionConfig } from '../config/schema/actions/custom/camera-select.js';
+import { DisplayModeActionConfig } from '../config/schema/actions/custom/display-mode.js';
 import {
-  ActionConfig,
-  ActionPhase,
-  ActionsConfig,
-  AdvancedCameraCardCustomActionConfig,
   AdvancedCameraCardGeneralAction,
-  AdvancedCameraCardUserSpecifiedView,
-  CameraSelectActionConfig,
-  DisplayModeActionConfig,
   GeneralActionConfig,
+} from '../config/schema/actions/custom/general.js';
+import {
   INTERNAL_CALLBACK_ACTION,
   InternalCallbackActionConfig,
-  LogActionConfig,
-  LogActionLevel,
-  MediaPlayerActionConfig,
-  PerformActionActionConfig,
+} from '../config/schema/actions/custom/internal.js';
+import { LogActionConfig, LogActionLevel } from '../config/schema/actions/custom/log.js';
+import { MediaPlayerActionConfig } from '../config/schema/actions/custom/media-player.js';
+import { PTZControlsActionConfig } from '../config/schema/actions/custom/ptz-controls.js';
+import { PTZDigitialActionConfig } from '../config/schema/actions/custom/ptz-digital.js';
+import { PTZMultiActionConfig } from '../config/schema/actions/custom/ptz-multi.js';
+import {
+  PTZAction,
   PTZActionConfig,
-  PTZControlsActionConfig,
-  PTZDigitialActionConfig,
-  PTZMultiActionConfig,
-  SubstreamSelectActionConfig,
-  ViewActionConfig,
-} from '../config/types.js';
+  PTZActionPhase,
+} from '../config/schema/actions/custom/ptz.js';
+import { SubstreamSelectActionConfig } from '../config/schema/actions/custom/substream-select.js';
+import { ViewActionConfig } from '../config/schema/actions/custom/view.js';
+import { PerformActionActionConfig } from '../config/schema/actions/stock/perform-action.js';
+import {
+  ActionConfig,
+  ActionsConfig,
+  AdvancedCameraCardCustomActionConfig,
+} from '../config/schema/actions/types.js';
+import { AdvancedCameraCardUserSpecifiedView } from '../config/schema/common/const.js';
 import { ServiceCallRequest } from '../ha/types.js';
 import { arrayify } from './basic.js';
 
@@ -115,7 +120,7 @@ export function createPTZControlsAction(
 export function createPTZAction(options?: {
   cardID?: string;
   ptzAction?: PTZAction;
-  ptzPhase?: ActionPhase;
+  ptzPhase?: PTZActionPhase;
   ptzPreset?: string;
   cameraID?: string;
 }): PTZActionConfig {
@@ -132,7 +137,7 @@ export function createPTZAction(options?: {
 
 export function createPTZDigitalAction(options?: {
   cardID?: string;
-  ptzPhase?: ActionPhase;
+  ptzPhase?: PTZActionPhase;
   ptzAction?: PTZAction;
   absolute?: ZoomSettingsBase;
   targetID?: string;
@@ -151,7 +156,7 @@ export function createPTZDigitalAction(options?: {
 export function createPTZMultiAction(options?: {
   cardID?: string;
   ptzAction?: PTZAction;
-  ptzPhase?: ActionPhase;
+  ptzPhase?: PTZActionPhase;
   ptzPreset?: string;
   targetID?: string;
 }): PTZMultiActionConfig {

@@ -1,4 +1,4 @@
-import { CameraConfig } from '../../config/types';
+import { CameraConfig } from '../../config/schema/cameras';
 
 export const getCameraEntityFromConfig = (
   cameraConfig?: CameraConfig,

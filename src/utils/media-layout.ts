@@ -1,4 +1,4 @@
-import { MediaLayoutConfig } from '../config/types';
+import { MediaLayoutConfig } from '../config/schema/camera/media-layout';
 
 /**
  * Update element style from a media configuration.

@@ -1,5 +1,8 @@
+import {
+  ActionConfig,
+  AuxillaryActionConfig,
+} from '../../config/schema/actions/types.js';
 import { AdvancedCameraCardError } from '../../types.js';
-import { ActionConfig, AuxillaryActionConfig } from '../../config/types';
 import { CardActionsAPI } from '../types';
 
 export interface Action {

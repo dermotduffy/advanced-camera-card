@@ -1,5 +1,5 @@
 import { getConfigValue } from '../config/management';
-import { AdvancedCameraCardCondition } from '../config/types';
+import { AdvancedCameraCardCondition } from '../config/schema/conditions/types';
 import { isCompanionApp } from '../utils/companion';
 import {
   ConditionsEvaluationResult,

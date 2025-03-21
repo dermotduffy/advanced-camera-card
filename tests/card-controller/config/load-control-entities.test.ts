@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { assert, describe, expect, it, vi } from 'vitest';
 import { setRemoteControlEntityFromConfig } from '../../../src/card-controller/config/load-control-entities';
+import { INTERNAL_CALLBACK_ACTION } from '../../../src/config/schema/actions/custom/internal';
+import { isAdvancedCameraCardCustomAction } from '../../../src/utils/action';
 import { createCardAPI, createConfig, createHASS, createStore } from '../../test-utils';
-import { INTERNAL_CALLBACK_ACTION } from '../../../src/config/types';
 
 describe('setRemoteControlEntityFromConfig', () => {
   it('without control entity', () => {
@@ -119,8 +120,9 @@ describe('setRemoteControlEntityFromConfig', () => {
     setRemoteControlEntityFromConfig(api);
 
     const addOptionsAction = vi.mocked(api.getAutomationsManager().addAutomations).mock
-      .calls[0][0][0].actions[0];
-    expect(addOptionsAction.advanced_camera_card_action).toBe(INTERNAL_CALLBACK_ACTION);
+      .calls[0][0][0].actions?.[0];
+    assert(addOptionsAction && isAdvancedCameraCardCustomAction(addOptionsAction));
+    assert(addOptionsAction.advanced_camera_card_action === INTERNAL_CALLBACK_ACTION);
 
     addOptionsAction.callback(api);
     expect(hass.callService).toBeCalledWith(

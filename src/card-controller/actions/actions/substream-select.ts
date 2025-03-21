@@ -1,4 +1,4 @@
-import { SubstreamSelectActionConfig } from '../../../config/types';
+import { SubstreamSelectActionConfig } from '../../../config/schema/actions/custom/substream-select';
 import { CardActionsAPI } from '../../types';
 import { SubstreamSelectViewModifier } from '../../view/modifiers/substream-select';
 import { AdvancedCameraCardAction } from './base';

@@ -4,7 +4,7 @@ import { Camera } from '../../src/camera-manager/camera.js';
 import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic.js';
 import { CameraProxyConfig } from '../../src/camera-manager/types.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
-import { ProxyConfig } from '../../src/config/types.js';
+import { ProxyConfig } from '../../src/config/schema/cameras.js';
 import {
   callStateWatcherCallback,
   createCameraConfig,
