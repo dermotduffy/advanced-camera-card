@@ -36,7 +36,7 @@ type Conditional = {
   conditions: StockCondition[];
   elements?: PictureElements;
 };
-const conditionalSchema: z.ZodSchema<Conditional, z.ZodTypeDef> = z.object({
+export const conditionalSchema: z.ZodSchema<Conditional, z.ZodTypeDef> = z.object({
   type: z.literal('conditional'),
   conditions: stockConditionSchema.array(),
   elements: z.lazy(() => pictureElementsSchema),

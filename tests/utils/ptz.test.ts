@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Capabilities } from '../../src/camera-manager/capabilities';
-import { AdvancedCameraCardView } from '../../src/config/types';
+import { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../../src/const';
 import {
   getPTZTarget,

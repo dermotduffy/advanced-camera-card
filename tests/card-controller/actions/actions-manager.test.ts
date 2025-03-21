@@ -15,7 +15,7 @@ import {
   InteractionName,
 } from '../../../src/card-controller/actions/actions-manager';
 import { TemplateRenderer } from '../../../src/card-controller/templates';
-import { AdvancedCameraCardView } from '../../../src/config/types';
+import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import { createLogAction } from '../../../src/utils/action';
 import { createCardAPI, createConfig, createHASS, createView } from '../../test-utils';
 

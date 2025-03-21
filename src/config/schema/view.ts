@@ -77,7 +77,7 @@ export const viewConfigDefault = {
 const interactionModeSchema = z.enum(['all', 'inactive', 'active']).default('inactive');
 export type InteractionMode = z.infer<typeof interactionModeSchema>;
 
-const triggersSchema = z.object({
+export const triggersSchema = z.object({
   actions: z
     .object({
       interaction_mode: interactionModeSchema,
@@ -97,6 +97,7 @@ const triggersSchema = z.object({
     .default(viewConfigDefault.triggers.show_trigger_status),
   untrigger_seconds: z.number().default(viewConfigDefault.triggers.untrigger_seconds),
 });
+export type TriggersOptions = z.infer<typeof triggersSchema>;
 
 const themeName = z.enum(['ha', 'dark', 'light', 'traditional']);
 export type ThemeName = z.infer<typeof themeName>;

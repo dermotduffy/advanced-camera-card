@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
-import { StatusBarString } from '../../src/config/types';
+import { StatusBarString } from '../../src/config/schema/actions/types';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import {
   TestViewMedia,
@@ -21,8 +21,7 @@ describe('StatusBarItemManager', () => {
     manager.addDynamicStatusBarItem(testItem);
     manager.addDynamicStatusBarItem(testItem);
 
-    expect(manager.calculateItems()).toContain(testItem);
-    expect(manager.calculateItems().find((item) => item === testItem).length === 1);
+    expect(manager.calculateItems()).toEqual([testItem]);
   });
 
   it('should remove', () => {

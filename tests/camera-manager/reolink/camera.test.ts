@@ -4,7 +4,7 @@ import { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { ReolinkCamera } from '../../../src/camera-manager/reolink/camera';
 import { CameraProxyConfig } from '../../../src/camera-manager/types';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
-import { ProxyConfig } from '../../../src/config/types';
+import { ProxyConfig } from '../../../src/config/schema/cameras';
 import { EntityRegistryManager } from '../../../src/utils/ha/registry/entity';
 import { createCameraConfig, createHASS, createRegistryEntity } from '../../test-utils';
 

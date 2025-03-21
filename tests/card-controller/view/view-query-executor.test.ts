@@ -3,7 +3,7 @@ import { mock } from 'vitest-mock-extended';
 import { applyViewModifiers } from '../../../src/card-controller/view/modifiers';
 import { QueryExecutor } from '../../../src/card-controller/view/query-executor';
 import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
-import { AdvancedCameraCardView } from '../../../src/config/types';
+import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import {
   EventMediaQueries,
   RecordingMediaQueries,

@@ -10,7 +10,7 @@ import {
 } from '../../../src/card-controller/view/types';
 import { ViewManager } from '../../../src/card-controller/view/view-manager';
 import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
-import { AdvancedCameraCardView } from '../../../src/config/types';
+import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import { ViewMedia } from '../../../src/view/media';
 import { EventMediaQueries } from '../../../src/view/media-queries';
 import { MediaQueriesResults } from '../../../src/view/media-queries-results';

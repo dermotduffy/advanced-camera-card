@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StyleManager } from '../../src/card-controller/style-manager';
-import { AdvancedCameraCardView, ThemeName } from '../../src/config/types';
+import { AdvancedCameraCardView } from '../../src/config/schema/common/const';
+import { ThemeName } from '../../src/config/schema/view';
 import { createCardAPI, createConfig, createView } from '../test-utils';
 
 // @vitest-environment jsdom

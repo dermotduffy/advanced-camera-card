@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getCameraEntityFromConfig } from '../../../src/camera-manager/utils/camera-entity-from-config.js';
-import { CameraConfig, cameraConfigSchema } from '../../../src/config/types.js';
+import { CameraConfig, cameraConfigSchema } from '../../../src/config/schema/cameras.js';
 
 describe('getCameraEntityFromConfig', () => {
   const createCameraConfig = (config: Partial<CameraConfig>): CameraConfig => {

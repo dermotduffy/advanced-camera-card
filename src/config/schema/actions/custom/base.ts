@@ -10,6 +10,3 @@ export const advancedCameraCardCustomActionsBaseSchema = actionBaseSchema.extend
         .transform((): 'fire-dom-event' => 'fire-dom-event'),
     ),
 });
-export type AdvancedCameraCardCustomActionBase = z.infer<
-  typeof advancedCameraCardCustomActionsBaseSchema
->;

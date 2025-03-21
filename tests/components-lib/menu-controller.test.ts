@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MenuController } from '../../src/components-lib/menu-controller.js';
 import { SubmenuItem } from '../../src/components/submenu/types.js';
-import { MenuConfig, menuConfigSchema } from '../../src/config/types.js';
+import { MenuConfig, menuConfigSchema } from '../../src/config/schema/menu.js';
 import {
   createInteractionActionEvent,
   createLitElement,

@@ -26,7 +26,7 @@ export type StatusBarActionConfig = z.infer<
   status_bar_action: 'add' | 'remove' | 'reset';
   items?: StatusBarItem[];
 };
-const statusBarActionConfigSchema: z.ZodSchema<
+export const statusBarActionConfigSchema: z.ZodSchema<
   StatusBarActionConfig,
   z.ZodTypeDef,
   unknown
