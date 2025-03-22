@@ -2,11 +2,8 @@ import { add } from 'date-fns';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CardController } from '../../src/card-controller/controller';
 import { TriggersManager } from '../../src/card-controller/triggers-manager';
-import {
-  AdvancedCameraCardView,
-  TriggersOptions,
-  triggersSchema,
-} from '../../src/config/types';
+import { AdvancedCameraCardView } from '../../src/config/schema/common/const';
+import { TriggersOptions, triggersSchema } from '../../src/config/schema/view';
 import {
   createCameraConfig,
   createCameraManager,

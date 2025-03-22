@@ -1,4 +1,5 @@
-import { CameraConfig, RawAdvancedCameraCardConfig } from '../config/types.js';
+import { CameraConfig } from '../config/schema/cameras';
+import { RawAdvancedCameraCardConfig } from '../config/types';
 
 /**
  * Get a camera id.

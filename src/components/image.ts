@@ -13,8 +13,10 @@ import { CameraManager } from '../camera-manager/manager';
 import { ViewManagerEpoch } from '../card-controller/view/types';
 import { ZoomSettingsObserved } from '../components-lib/zoom/types';
 import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context';
-import { CameraConfig, ImageViewConfig } from '../config/types';
+import { CameraConfig } from '../config/schema/cameras';
+import { ImageViewConfig } from '../config/schema/image';
 import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../const';
+import { HomeAssistant } from '../ha/types';
 import imageStyle from '../scss/image.scss';
 import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../types.js';
 import { aspectRatioToString } from '../utils/basic';
@@ -22,7 +24,6 @@ import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.j
 import './image-updating-player';
 import { resolveImageMode } from './image-updating-player';
 import './zoomer.js';
-import { HomeAssistant } from '../ha/types';
 
 @customElement('advanced-camera-card-image')
 export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {

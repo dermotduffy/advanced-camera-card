@@ -1,6 +1,6 @@
 import uniq from 'lodash-es/uniq';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
-import { CameraConfig } from '../../config/types';
+import { CameraConfig } from '../../config/schema/cameras';
 import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import { PTZCapabilities, PTZMovementType } from '../../types';

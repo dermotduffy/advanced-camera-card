@@ -1,10 +1,6 @@
 import { StyleInfo } from 'lit/directives/style-map';
-import {
-  AdvancedCameraCardConfig,
-  configDefaults,
-  ThemeConfig,
-  ThemeName,
-} from '../config/types';
+import { AdvancedCameraCardConfig, configDefaults } from '../config/schema/types';
+import { ThemeConfig, ThemeName } from '../config/schema/view';
 import { aspectRatioToStyle, setOrRemoveAttribute } from '../utils/basic';
 import { View } from '../view/view';
 import { CardStyleAPI } from './types';

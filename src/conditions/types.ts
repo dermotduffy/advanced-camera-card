@@ -1,6 +1,7 @@
 import { HassEntities } from 'home-assistant-js-websocket';
 import { KeysState, MicrophoneState } from '../card-controller/types';
-import { AdvancedCameraCardConfig, ViewDisplayMode } from '../config/types';
+import { ViewDisplayMode } from '../config/schema/common/display';
+import { AdvancedCameraCardConfig } from '../config/schema/types';
 import { CurrentUser } from '../ha/types';
 import { MediaLoadedInfo } from '../types';
 

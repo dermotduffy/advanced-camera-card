@@ -2,7 +2,7 @@ import { EmblaCarouselType, EmblaEventType } from 'embla-carousel';
 import { CreateOptionsType } from 'embla-carousel/components/Options';
 import { OptionsHandlerType } from 'embla-carousel/components/OptionsHandler';
 import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins';
-import { LazyUnloadCondition } from '../../../../config/types';
+import { LazyUnloadCondition } from '../../../../config/schema/common/media-actions';
 
 declare module 'embla-carousel/components/Plugins' {
   interface EmblaPluginsType {

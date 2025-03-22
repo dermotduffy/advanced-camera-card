@@ -1,7 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
-import { CameraConfig } from '../../../config/types';
+import { CameraConfig } from '../../../config/schema/cameras';
 import { HomeAssistant } from '../../../ha/types';
 import '../../../patches/ha-camera-stream';
 import '../../../patches/ha-hls-player.js';

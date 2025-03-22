@@ -1,6 +1,6 @@
 import { CameraManager } from '../camera-manager/manager';
 import { CapabilitySearchOptions } from '../camera-manager/types';
-import { AdvancedCameraCardView } from '../config/types';
+import { AdvancedCameraCardView } from '../config/schema/common/const';
 
 /**
  * Get cameraIDs that are relevant for a given view name based on camera

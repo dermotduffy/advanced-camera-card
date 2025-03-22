@@ -4,11 +4,9 @@ import { FullscreenManager } from '../card-controller/fullscreen/fullscreen-mana
 import { MediaPlayerManager } from '../card-controller/media-player-manager';
 import { MicrophoneManager } from '../card-controller/microphone-manager';
 import { ViewManager } from '../card-controller/view/view-manager';
-import {
-  AdvancedCameraCardConfig,
-  MenuItem,
-  VIEWS_USER_SPECIFIED,
-} from '../config/types';
+import { VIEWS_USER_SPECIFIED } from '../config/schema/common/const';
+import { MenuItem } from '../config/schema/elements/custom/menu/types';
+import { AdvancedCameraCardConfig } from '../config/schema/types';
 import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize.js';
 import { MediaLoadedInfo } from '../types';

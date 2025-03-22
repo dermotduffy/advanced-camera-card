@@ -1,5 +1,5 @@
-import { PTZAction } from '../config/ptz';
-import { ActionPhase, CameraConfig } from '../config/types';
+import { PTZAction, PTZActionPhase } from '../config/schema/actions/custom/ptz';
+import { CameraConfig } from '../config/schema/cameras';
 import { HomeAssistant } from '../ha/types';
 import { ViewMedia } from '../view/media';
 import { Camera } from './camera';
@@ -134,7 +134,7 @@ export interface CameraManagerEngine {
     cameraConfig: CameraConfig,
     action: PTZAction,
     options?: {
-      phase?: ActionPhase;
+      phase?: PTZActionPhase;
       preset?: string;
     },
   ): Promise<void>;

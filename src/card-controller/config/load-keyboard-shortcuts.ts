@@ -1,8 +1,5 @@
-import {
-  KeyboardShortcuts,
-  PTZKeyboardShortcutName,
-} from '../../config/keyboard-shortcuts';
-import { PTZAction } from '../../config/ptz';
+import { PTZAction } from '../../config/schema/actions/custom/ptz';
+import { KeyboardShortcuts, PTZKeyboardShortcutName } from '../../config/schema/view';
 import { createPTZMultiAction } from '../../utils/action';
 import { CardConfigLoaderAPI, TaggedAutomation } from '../types';
 

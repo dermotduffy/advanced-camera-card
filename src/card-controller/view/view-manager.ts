@@ -1,5 +1,5 @@
 import { ViewContext } from 'view';
-import { AdvancedCameraCardView } from '../../config/types';
+import { AdvancedCameraCardView } from '../../config/schema/common/const';
 import { log } from '../../utils/debug';
 import { getStreamCameraID } from '../../utils/substream';
 import { MediaQueriesClassifier } from '../../view/media-queries-classifier';
@@ -7,6 +7,7 @@ import { View } from '../../view/view';
 import { getCameraIDsForViewName } from '../../view/view-to-cameras';
 import { CardViewAPI } from '../types';
 import { ViewFactory } from './factory';
+import { applyViewModifiers } from './modifiers';
 import {
   QueryExecutorOptions,
   ViewFactoryOptions,
@@ -15,7 +16,6 @@ import {
   ViewModifier,
 } from './types';
 import { ViewQueryExecutor } from './view-query-executor';
-import { applyViewModifiers } from './modifiers';
 
 export class ViewManager implements ViewManagerInterface {
   protected _view: View | null = null;

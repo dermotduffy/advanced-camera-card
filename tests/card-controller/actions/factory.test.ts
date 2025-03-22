@@ -38,7 +38,8 @@ import { UnmuteAction } from '../../../src/card-controller/actions/actions/unmut
 import { URLAction } from '../../../src/card-controller/actions/actions/url';
 import { ViewAction } from '../../../src/card-controller/actions/actions/view';
 import { ActionFactory } from '../../../src/card-controller/actions/factory';
-import { ActionConfig, INTERNAL_CALLBACK_ACTION } from '../../../src/config/types';
+import { INTERNAL_CALLBACK_ACTION } from '../../../src/config/schema/actions/custom/internal';
+import { ActionConfig } from '../../../src/config/schema/actions/types';
 
 // @vitest-environment jsdom
 describe('ActionFactory', () => {

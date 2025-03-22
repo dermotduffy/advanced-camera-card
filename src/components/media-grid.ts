@@ -9,7 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { MediaGridController } from '../components-lib/media-grid-controller.js';
-import { ViewDisplayConfig } from '../config/types';
+import { ViewDisplayConfig } from '../config/schema/common/display.js';
 import mediaGridStyle from '../scss/media-grid.scss';
 
 @customElement('advanced-camera-card-media-grid')

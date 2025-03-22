@@ -1,12 +1,12 @@
 import {
   endOfDay,
   endOfMonth,
-  endOfYesterday,
   endOfToday,
-  startOfToday,
+  endOfYesterday,
   format,
   parse,
   startOfDay,
+  startOfToday,
   startOfYesterday,
   sub,
 } from 'date-fns';
@@ -17,13 +17,13 @@ import uniqWith from 'lodash-es/uniqWith';
 import { CameraManager } from '../camera-manager/manager';
 import { DateRange, PartialDateRange } from '../camera-manager/range';
 import { DataQuery, MediaMetadata, QueryType } from '../camera-manager/types';
+import { ViewManagerInterface } from '../card-controller/view/types';
 import { SelectOption, SelectValues } from '../components/select';
-import { CardWideConfig } from '../config/types';
+import { CardWideConfig } from '../config/schema/types';
 import { localize } from '../localize/localize';
 import { errorToConsole, formatDate, prettifyTitle } from '../utils/basic';
 import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
-import { ViewManagerInterface } from '../card-controller/view/types';
 
 interface MediaFilterControls {
   events: boolean;

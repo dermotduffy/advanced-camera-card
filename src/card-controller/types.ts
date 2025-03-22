@@ -1,6 +1,6 @@
 import type { CameraManager } from '../camera-manager/manager';
 import type { ConditionStateManager } from '../conditions/state-manager';
-import type { Automation } from '../config/types';
+import type { Automation } from '../config/schema/automations';
 import type { EntityRegistryManager } from '../utils/ha/registry/entity';
 import type { ResolvedMediaCache } from '../utils/ha/resolved-media';
 import type { ActionsManager } from './actions/actions-manager';

@@ -7,12 +7,10 @@ import {
 } from '../../../src/camera-manager/frigate/media';
 import { FrigateEvent, eventSchema } from '../../../src/camera-manager/frigate/types.js';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
-import { PTZAction } from '../../../src/config/ptz';
-import {
-  AdvancedCameraCardView,
-  CameraConfig,
-  RawAdvancedCameraCardConfig,
-} from '../../../src/config/types';
+import { PTZAction } from '../../../src/config/schema/actions/custom/ptz';
+import { CameraConfig } from '../../../src/config/schema/cameras';
+import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
+import { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import {
   EntityRegistryManager,
   createEntityRegistryCache,

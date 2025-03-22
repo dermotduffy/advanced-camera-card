@@ -1,6 +1,6 @@
 import { add, endOfDay, parse, startOfDay } from 'date-fns';
 import orderBy from 'lodash-es/orderBy';
-import { CameraConfig } from '../../config/types';
+import { CameraConfig } from '../../config/schema/cameras';
 import { HomeAssistant } from '../../ha/types';
 import { allPromises, formatDate, isValidDate } from '../../utils/basic';
 import {

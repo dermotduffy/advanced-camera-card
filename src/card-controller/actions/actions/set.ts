@@ -1,5 +1,8 @@
 import { ActionContext } from 'action';
-import { ActionConfig, AuxillaryActionConfig } from '../../../config/types';
+import {
+  ActionConfig,
+  AuxillaryActionConfig,
+} from '../../../config/schema/actions/types';
 import { arrayify } from '../../../utils/basic';
 import { CardActionsAPI } from '../../types';
 import { ActionFactory } from '../factory';

@@ -37,15 +37,14 @@ import {
   AdvancedCameraCardTimelineItem,
   TimelineDataSource,
 } from '../components-lib/timeline-source';
+import { CameraConfig } from '../config/schema/cameras';
+import { AdvancedCameraCardView } from '../config/schema/common/const';
+import { ThumbnailsControlBaseConfig } from '../config/schema/common/controls/thumbnails';
 import {
-  AdvancedCameraCardView,
-  CameraConfig,
-  CardWideConfig,
-  ThumbnailsControlBaseConfig,
   TimelineCoreConfig,
   TimelinePanMode,
-  configDefaults,
-} from '../config/types';
+} from '../config/schema/common/controls/timeline';
+import { CardWideConfig, configDefaults } from '../config/schema/types';
 import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import timelineCoreStyle from '../scss/timeline-core.scss';

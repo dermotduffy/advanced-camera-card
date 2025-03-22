@@ -1,4 +1,4 @@
-import { DisplayModeActionConfig } from '../../../config/types';
+import { DisplayModeActionConfig } from '../../../config/schema/actions/custom/display-mode';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 

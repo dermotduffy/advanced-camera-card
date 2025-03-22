@@ -1,8 +1,9 @@
 import { CameraManager } from '../../camera-manager/manager.js';
 import { dispatchActionExecutionRequest } from '../../card-controller/actions/utils/execution-request.js';
 import { SubmenuInteraction } from '../../components/submenu/types.js';
-import { PTZAction } from '../../config/ptz.js';
-import { Actions, ActionsConfig, PTZControlsConfig } from '../../config/types.js';
+import { PTZAction } from '../../config/schema/actions/custom/ptz.js';
+import { Actions, ActionsConfig } from '../../config/schema/actions/types.js';
+import { PTZControlsConfig } from '../../config/schema/common/controls/ptz.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { Interaction } from '../../types.js';
 import { createPTZMultiAction, getActionConfigGivenAction } from '../../utils/action.js';

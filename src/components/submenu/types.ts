@@ -1,4 +1,4 @@
-import { Actions } from '../../config/types';
+import { Actions } from '../../config/schema/actions/types';
 import { Interaction } from '../../types';
 
 export interface SubmenuItem extends Actions {

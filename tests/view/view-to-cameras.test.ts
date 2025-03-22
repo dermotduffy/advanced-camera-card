@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { AdvancedCameraCardView } from '../../src/config/types';
+import { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import { CapabilityKey } from '../../src/types';
 import { getCameraIDsForViewName } from '../../src/view/view-to-cameras';
 import {

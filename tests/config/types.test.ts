@@ -1,13 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import {
-  advancedCameraCardConditionSchema,
-  advancedCameraCardCustomActionsBaseSchema,
-  cameraConfigSchema,
-  conditionalSchema,
-  customSchema,
-  dimensionsConfigSchema,
-  statusBarActionConfigSchema,
-} from '../../src/config/types';
+import { advancedCameraCardCustomActionsBaseSchema } from '../../src/config/schema/actions/custom/base';
+import { statusBarActionConfigSchema } from '../../src/config/schema/actions/types';
+import { cameraConfigSchema } from '../../src/config/schema/cameras';
+import { advancedCameraCardConditionSchema } from '../../src/config/schema/conditions/types';
+import { dimensionsConfigSchema } from '../../src/config/schema/dimensions';
+import { customSchema } from '../../src/config/schema/elements/stock/custom';
+import { conditionalSchema } from '../../src/config/schema/elements/types';
 import { createConfig } from '../test-utils';
 
 // @vitest-environment jsdom
@@ -741,22 +739,24 @@ describe('config defaults', () => {
       { condition: 'view', views: ['live'] },
     ];
 
-    expect(
-      createConfig({
+    const elements = [
+      {
+        type: 'custom:advanced-camera-card-conditional',
         elements: [
           {
-            type: 'custom:advanced-camera-card-conditional',
-            elements: [
-              {
-                type: 'icon',
-                icon: 'mdi:pig',
-              },
-            ],
-            conditions: conditions,
+            type: 'icon',
+            icon: 'mdi:pig',
           },
         ],
-      }).elements[0].conditions,
-    ).toEqual(conditions);
+        conditions: conditions,
+      },
+    ];
+
+    expect(
+      createConfig({
+        elements: elements,
+      }).elements,
+    ).toEqual(elements);
   });
 
   it('should include all stock actions', () => {

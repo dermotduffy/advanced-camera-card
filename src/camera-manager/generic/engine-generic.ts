@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
-import { PTZAction } from '../../config/ptz';
-import { ActionPhase, CameraConfig } from '../../config/types';
+import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
+import { CameraConfig } from '../../config/schema/cameras';
 import { HomeAssistant } from '../../ha/types';
 import { getEntityTitle } from '../../utils/ha';
 import { ViewMedia } from '../../view/media';
@@ -241,7 +241,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     _cameraConfig: CameraConfig,
     _action: PTZAction,
     _options?: {
-      phase?: ActionPhase;
+      phase?: PTZActionPhase;
       preset?: string;
     },
   ): Promise<void> {

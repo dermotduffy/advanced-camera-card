@@ -12,12 +12,10 @@ import {
   MenuButtonController,
   MenuButtonControllerOptions,
 } from '../../src/components-lib/menu-button-controller.js';
-import {
-  AdvancedCameraCardConfig,
-  AdvancedCameraCardView,
-  MenuItem,
-  ViewDisplayMode,
-} from '../../src/config/types.js';
+import { AdvancedCameraCardView } from '../../src/config/schema/common/const.js';
+import { ViewDisplayMode } from '../../src/config/schema/common/display.js';
+import { MenuItem } from '../../src/config/schema/elements/custom/menu/types.js';
+import { AdvancedCameraCardConfig } from '../../src/config/schema/types.js';
 import { HomeAssistant } from '../../src/ha/types.js';
 import { MediaPlayerController } from '../../src/types.js';
 import { createGeneralAction, createViewAction } from '../../src/utils/action.js';

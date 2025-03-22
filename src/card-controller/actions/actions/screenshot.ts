@@ -1,4 +1,4 @@
-import { GeneralActionConfig } from '../../../config/types';
+import { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 

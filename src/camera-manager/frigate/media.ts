@@ -1,6 +1,6 @@
 import { fromUnixTime } from 'date-fns';
 import isEqual from 'lodash-es/isEqual';
-import { CameraConfig } from '../../config/types';
+import { CameraConfig } from '../../config/schema/cameras';
 import {
   EventViewMedia,
   RecordingViewMedia,

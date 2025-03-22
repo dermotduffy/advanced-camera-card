@@ -2,7 +2,7 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../../action-handler-directive.js';
-import { MenuSubmenu } from '../../config/types.js';
+import { MenuSubmenu } from '../../config/schema/elements/custom/menu/submenu.js';
 import { HomeAssistant } from '../../ha/types.js';
 import menuButtonStyle from '../../scss/menu-button.scss';
 import { hasAction } from '../../utils/action.js';

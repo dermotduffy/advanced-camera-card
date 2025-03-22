@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ViewFactory } from '../../../src/card-controller/view/factory';
 import { ViewModifier } from '../../../src/card-controller/view/types';
-import { AdvancedCameraCardView, ViewDisplayMode } from '../../../src/config/types';
+import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
+import { ViewDisplayMode } from '../../../src/config/schema/common/display';
 import { View } from '../../../src/view/view';
 import {
   createCameraManager,

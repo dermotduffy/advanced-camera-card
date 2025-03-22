@@ -6,7 +6,7 @@ import { FrigateEventWatcher } from '../../../src/camera-manager/frigate/event-w
 import { getPTZInfo } from '../../../src/camera-manager/frigate/requests';
 import { FrigateEventChange } from '../../../src/camera-manager/frigate/types';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
-import { CameraTriggerEventType } from '../../../src/config/types';
+import { CameraTriggerEventType } from '../../../src/config/schema/cameras';
 import { EntityRegistryManager } from '../../../src/utils/ha/registry/entity';
 import { Entity } from '../../../src/utils/ha/registry/entity/types';
 import { createCameraConfig, createHASS, createRegistryEntity } from '../../test-utils';

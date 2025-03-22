@@ -1,7 +1,7 @@
 import { ReactiveController } from 'lit';
 import { CameraManager } from '../camera-manager/manager';
 import { ConditionStateManager } from '../conditions/state-manager';
-import { AdvancedCameraCardConfig } from '../config/types';
+import { AdvancedCameraCardConfig } from '../config/schema/types';
 import { LovelaceCardEditor } from '../ha/types';
 import {
   createDeviceRegistryCache,

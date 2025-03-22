@@ -3,7 +3,8 @@ import { mock } from 'vitest-mock-extended';
 import { GenericCameraManagerEngine } from '../../../src/camera-manager/generic/engine-generic';
 import { Engine, QueryResultsType, QueryType } from '../../../src/camera-manager/types';
 import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
-import { CameraConfig, RawAdvancedCameraCardConfig } from '../../../src/config/types';
+import { CameraConfig } from '../../../src/config/schema/cameras';
+import { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import {
   TestViewMedia,
   createCameraConfig,

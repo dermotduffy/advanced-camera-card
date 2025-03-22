@@ -7,7 +7,8 @@ import {
   getConfigValue,
   setConfigValue,
 } from '../../config/management';
-import { Overrides, RawAdvancedCameraCardConfig } from '../../config/types';
+import { Overrides } from '../../config/schema/overrides';
+import { RawAdvancedCameraCardConfig } from '../../config/types';
 import { localize } from '../../localize/localize';
 import { AdvancedCameraCardError } from '../../types';
 import { desparsifyArrays } from '../../utils/basic';

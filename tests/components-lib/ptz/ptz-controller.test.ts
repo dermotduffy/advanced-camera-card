@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Capabilities } from '../../../src/camera-manager/capabilities';
 import { PTZController } from '../../../src/components-lib/ptz/ptz-controller';
-import { PTZControlAction } from '../../../src/config/ptz';
-import { PTZControlsConfig, ptzControlsConfigSchema } from '../../../src/config/types';
+import { PTZControlAction } from '../../../src/config/schema/actions/custom/ptz';
+import {
+  PTZControlsConfig,
+  ptzControlsConfigSchema,
+} from '../../../src/config/schema/common/controls/ptz';
 import { createCameraManager, createCapabilities, createStore } from '../../test-utils';
 
 const createConfig = (config?: Partial<PTZControlsConfig>): PTZControlsConfig => {

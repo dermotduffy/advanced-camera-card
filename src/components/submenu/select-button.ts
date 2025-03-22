@@ -8,7 +8,8 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { MenuSubmenuItem, MenuSubmenuSelect } from '../../config/types.js';
+import { MenuSubmenuSelect } from '../../config/schema/elements/custom/menu/submenu-select.js';
+import { MenuSubmenuItem } from '../../config/schema/elements/custom/menu/submenu.js';
 import { HomeAssistant } from '../../ha/types.js';
 import menuButtonStyle from '../../scss/menu-button.scss';
 import { Icon } from '../../types.js';

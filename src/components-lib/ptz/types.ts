@@ -1,5 +1,5 @@
-import { PTZControlAction } from '../../config/ptz';
-import { Actions } from '../../config/types';
+import { PTZControlAction } from '../../config/schema/actions/custom/ptz';
+import { Actions } from '../../config/schema/actions/types';
 
 interface PTZControlsViewContext {
   enabled?: boolean;

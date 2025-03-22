@@ -1,5 +1,5 @@
 import { CameraManager } from '../camera-manager/manager';
-import { PTZAction } from '../config/ptz';
+import { PTZAction } from '../config/schema/actions/custom/ptz';
 import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../const';
 import { PTZCapabilities } from '../types';
 import { View } from '../view/view';

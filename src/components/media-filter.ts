@@ -18,7 +18,7 @@ import {
   MediaFilterCoreWhen,
   MediaFilterMediaType,
 } from '../components-lib/media-filter-controller';
-import { CardWideConfig } from '../config/types';
+import { CardWideConfig } from '../config/schema/types';
 import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import mediaFilterStyle from '../scss/media-filter.scss';

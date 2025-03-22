@@ -1,6 +1,6 @@
 import { LitElement, ReactiveController } from 'lit';
 import isEqual from 'lodash-es/isEqual';
-import { KeyboardShortcut } from '../config/keyboard-shortcuts';
+import { KeyboardShortcut } from '../config/schema/view';
 import { setOrRemoveAttribute } from '../utils/basic';
 
 export class KeyAssignerController implements ReactiveController {

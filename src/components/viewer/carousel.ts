@@ -13,12 +13,9 @@ import { CameraManager } from '../../camera-manager/manager.js';
 import { RemoveContextPropertyViewModifier } from '../../card-controller/view/modifiers/remove-context-property.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
-import {
-  CardWideConfig,
-  configDefaults,
-  TransitionEffect,
-  ViewerConfig,
-} from '../../config/types.js';
+import { TransitionEffect } from '../../config/schema/common/transition-effect.js';
+import { CardWideConfig, configDefaults } from '../../config/schema/types.js';
+import { ViewerConfig } from '../../config/schema/viewer.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';

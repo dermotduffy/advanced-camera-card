@@ -1,5 +1,5 @@
 import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
-import { CameraConfig } from '../config/types';
+import { CameraConfig } from '../config/schema/cameras';
 import { localize } from '../localize/localize';
 import { HassStateDifference, isTriggeredState } from '../utils/ha';
 import { Capabilities } from './capabilities';

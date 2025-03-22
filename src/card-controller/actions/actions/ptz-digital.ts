@@ -6,7 +6,8 @@ import {
   ZOOM_DEFAULT_SCALE,
 } from '../../../components-lib/zoom/types';
 import { generateViewContextForZoom } from '../../../components-lib/zoom/zoom-view-context';
-import { PTZDigitialActionConfig, ZOOM_MAX, ZOOM_MIN } from '../../../config/types';
+import { PTZDigitialActionConfig } from '../../../config/schema/actions/custom/ptz-digital';
+import { ZOOM_MAX, ZOOM_MIN } from '../../../config/schema/common/zoom';
 import { getPTZTarget } from '../../../utils/ptz';
 import { Timer } from '../../../utils/timer';
 import { CardActionsAPI } from '../../types';

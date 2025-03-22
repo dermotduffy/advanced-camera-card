@@ -1,13 +1,13 @@
 import isEqual from 'lodash-es/isEqual';
 import { ConditionsManager } from '../../conditions/conditions-manager.js';
 import { isConfigUpgradeable } from '../../config/management.js';
-import { setProfiles } from '../../config/profiles/index.js';
+import { setProfiles } from '../../config/profiles/set-profiles.js';
 import {
   AdvancedCameraCardConfig,
-  advancedCameraCardConfigSchema,
   CardWideConfig,
-  RawAdvancedCameraCardConfig,
-} from '../../config/types.js';
+  advancedCameraCardConfigSchema,
+} from '../../config/schema/types.js';
+import { RawAdvancedCameraCardConfig } from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
 import { getParseErrorPaths } from '../../utils/zod.js';
 import { InitializationAspect } from '../initialization-manager.js';

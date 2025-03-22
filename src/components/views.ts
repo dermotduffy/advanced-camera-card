@@ -11,11 +11,8 @@ import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { MicrophoneState } from '../card-controller/types.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
-import {
-  AdvancedCameraCardConfig,
-  CardWideConfig,
-  RawAdvancedCameraCardConfig,
-} from '../config/types.js';
+import { AdvancedCameraCardConfig, CardWideConfig } from '../config/schema/types.js';
+import { RawAdvancedCameraCardConfig } from '../config/types.js';
 import { HomeAssistant } from '../ha/types.js';
 import viewsStyle from '../scss/views.scss';
 import { DeviceRegistryManager } from '../utils/ha/registry/device/index.js';

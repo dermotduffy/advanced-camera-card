@@ -16,13 +16,10 @@ import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
-import {
-  CameraConfig,
-  CardWideConfig,
-  configDefaults,
-  LiveConfig,
-  TransitionEffect,
-} from '../../config/types.js';
+import { CameraConfig } from '../../config/schema/cameras.js';
+import { TransitionEffect } from '../../config/schema/common/transition-effect.js';
+import { LiveConfig } from '../../config/schema/live.js';
+import { CardWideConfig, configDefaults } from '../../config/schema/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import liveCarouselStyle from '../../scss/live-carousel.scss';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';

@@ -17,16 +17,12 @@ import {
   upgradeObjectRecursively,
   upgradeWithOverrides,
 } from '../../src/config/management.js';
-import { PTZControlAction } from '../../src/config/ptz.js';
-import {
-  Actions,
-  RawAdvancedCameraCardConfig,
-  advancedCameraCardConfigSchema,
-} from '../../src/config/types.js';
-import {
-  CallServiceActionConfig,
-  PerformActionActionConfig,
-} from '../../src/ha/types.js';
+import { PTZControlAction } from '../../src/config/schema/actions/custom/ptz.js';
+import { CallServiceActionConfig } from '../../src/config/schema/actions/stock/call-service.js';
+import { PerformActionActionConfig } from '../../src/config/schema/actions/stock/perform-action.js';
+import { Actions } from '../../src/config/schema/actions/types.js';
+import { advancedCameraCardConfigSchema } from '../../src/config/schema/types.js';
+import { RawAdvancedCameraCardConfig } from '../../src/config/types.js';
 import { getParseErrorPaths } from '../../src/utils/zod.js';
 
 describe('general functions', () => {

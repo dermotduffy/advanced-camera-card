@@ -3,7 +3,7 @@ import { ZodError } from 'zod';
 import { ConfigManager } from '../../../src/card-controller/config/config-manager';
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
 import { ConditionStateManager } from '../../../src/conditions/state-manager';
-import { advancedCameraCardConfigSchema } from '../../../src/config/types';
+import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
 import { createCardAPI, flushPromises } from '../../test-utils';
 
 describe('ConfigManager', () => {

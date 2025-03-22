@@ -10,11 +10,9 @@ import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
-import {
-  CardWideConfig,
-  MiniTimelineControlConfig,
-  ThumbnailsControlConfig,
-} from '../config/types.js';
+import { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
+import { MiniTimelineControlConfig } from '../config/schema/common/controls/timeline.js';
+import { CardWideConfig } from '../config/schema/types.js';
 import { HomeAssistant } from '../ha/types.js';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { contentsChanged } from '../utils/basic.js';

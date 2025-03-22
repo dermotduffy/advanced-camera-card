@@ -1,9 +1,6 @@
-import {
-  VIEW_DEFAULT,
-  AdvancedCameraCardConfig,
-  AdvancedCameraCardView,
-  ViewDisplayMode,
-} from '../../config/types';
+import { AdvancedCameraCardView, VIEW_DEFAULT } from '../../config/schema/common/const';
+import { ViewDisplayMode } from '../../config/schema/common/display';
+import { AdvancedCameraCardConfig } from '../../config/schema/types';
 import { localize } from '../../localize/localize';
 import { View, ViewParameters } from '../../view/view';
 import { getCameraIDsForViewName } from '../../view/view-to-cameras';

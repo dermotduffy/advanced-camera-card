@@ -1,12 +1,17 @@
-import { PTZAction, PTZBaseAction } from '../../config/ptz';
-import { ActionConfig, ActionPhase, CameraConfig } from '../../config/types';
+import {
+  PTZAction,
+  PTZActionPhase,
+  PTZBaseAction,
+} from '../../config/schema/actions/custom/ptz';
+import { ActionConfig } from '../../config/schema/actions/types';
+import { CameraConfig } from '../../config/schema/cameras';
 import { PTZCapabilities, PTZMovementType } from '../../types';
 
 export const getConfiguredPTZAction = (
   cameraConfig: CameraConfig,
   action: PTZAction,
   options?: {
-    phase?: ActionPhase;
+    phase?: PTZActionPhase;
     preset?: string;
   },
 ): ActionConfig | ActionConfig[] | null => {
@@ -25,7 +30,7 @@ const hasConfiguredPTZAction = (
   cameraConfig: CameraConfig,
   action: PTZBaseAction,
   options?: {
-    phase?: ActionPhase;
+    phase?: PTZActionPhase;
     preset?: string;
   },
 ): boolean => {
