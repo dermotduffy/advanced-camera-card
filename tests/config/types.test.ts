@@ -739,22 +739,24 @@ describe('config defaults', () => {
       { condition: 'view', views: ['live'] },
     ];
 
-    expect(
-      createConfig({
+    const elements = [
+      {
+        type: 'custom:advanced-camera-card-conditional',
         elements: [
           {
-            type: 'custom:advanced-camera-card-conditional',
-            elements: [
-              {
-                type: 'icon',
-                icon: 'mdi:pig',
-              },
-            ],
-            conditions: conditions,
+            type: 'icon',
+            icon: 'mdi:pig',
           },
         ],
-      }).elements[0].conditions,
-    ).toEqual(conditions);
+        conditions: conditions,
+      },
+    ];
+
+    expect(
+      createConfig({
+        elements: elements,
+      }).elements,
+    ).toEqual(elements);
   });
 
   it('should include all stock actions', () => {
