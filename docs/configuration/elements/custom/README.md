@@ -245,6 +245,7 @@ elements:
       - enabled: true
         icon: mdi:google
         selected: false
+        state_color: false
         style:
           color: white
         tap_action:
