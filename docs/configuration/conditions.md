@@ -45,6 +45,21 @@ conditions:
 | `condition` | Must be `config`.                                                                                                                                     |
 | `paths`     | An optional array of configuration paths (e.g. `menu.style`). If provided condition matches if _ANY_ of the provided configuration paths has changed. |
 
+## `display_mode`
+
+Matches when card display mode changes (e.g. `single` or `grid` mode). See the display settings for [`live`](live.md?id=display) or [`media_viewer`](media-viewer.md?id=display).
+
+```yaml
+conditions:
+  - condition: display_mode
+    # [...]
+```
+
+| Parameter      | Description                 |
+| -------------- | --------------------------- |
+| `condition`    | Must be `display_mode`.     |
+| `display_mode` | Must be `single` or `grid`. |
+
 ## `expand`
 
 Matches based on whether the card is in "expanded" mode.
@@ -291,6 +306,8 @@ conditions:
   - condition: config
     paths:
       - "menu.style"
+  - condition: display_mode
+    display_mode: single
   - condition: expand
     expand: true
   - condition: fullscreen

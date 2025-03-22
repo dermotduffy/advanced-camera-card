@@ -121,6 +121,7 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
       icon: this.submenuSelect.icon,
       entity: entityID,
       fallback: 'mdi:format-list-bulleted',
+      stateColor: this.submenuSelect.state_color,
     };
   }
 

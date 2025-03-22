@@ -391,6 +391,693 @@ describe('config defaults', () => {
       },
     });
   });
+
+  it('should include all stock elements', () => {
+    const stockElements = [
+      {
+        type: 'icon',
+        icon: 'mdi:dog',
+        entity: 'camera.office',
+      },
+      {
+        type: 'custom:element',
+        data: 'foo',
+      },
+      {
+        type: 'image',
+        entity: 'camera.office',
+        image: 'image',
+        camera_image: 'camera_image',
+        camera_view: 'camera_view',
+        state_image: {},
+        filter: 'filter',
+        state_filter: { on: '/foo' },
+        aspect_ratio: '16 / 9',
+      },
+      {
+        type: 'custom:advanced-camera-card-menu-icon',
+        icon: 'mdi:cat',
+        entity: 'camera.kitchen',
+      },
+      {
+        type: 'custom:advanced-camera-card-menu-state-icon',
+        entity: 'camera.kitchen',
+        icon: 'mdi:sheep',
+        state_color: false,
+      },
+      {
+        type: 'state-badge',
+        entity: 'sensor.kitchen_dining_multisensor_air_temperature',
+        style: {
+          left: '100px',
+          top: '50px',
+        },
+        title: 'Temperature',
+      },
+      {
+        type: 'state-icon',
+        entity: 'light.office_main_lights',
+        icon: 'mdi:lamp',
+        state_color: true,
+        style: {
+          left: '100px',
+          top: '100px',
+        },
+      },
+      {
+        type: 'state-label',
+        entity: 'sensor.kitchen_motion_sensor_battery',
+        attribute: 'battery_voltage',
+        prefix: 'Volts',
+        title: 'Battery Voltage',
+        style: {
+          left: '100px',
+          top: '150px',
+        },
+      },
+      {
+        type: 'state-label',
+        entity: 'sensor.kitchen_motion_sensor_battery',
+        attribute: 'battery_voltage',
+        prefix: 'Volts: ',
+        title: 'Battery Voltage',
+        style: {
+          backgroundColor: 'black',
+          left: '100px',
+          top: '200px',
+        },
+      },
+      {
+        type: 'service-button',
+        title: 'Light on',
+        service: 'homeassistant.turn_on',
+        service_data: {
+          entity: 'light.office_main_lights',
+        },
+        style: {
+          left: '100px',
+          top: '250px',
+        },
+      },
+      {
+        type: 'icon',
+        icon: 'mdi:cow',
+        title: 'Moo',
+        style: {
+          left: '100px',
+          top: '300px',
+        },
+      },
+      {
+        type: 'image',
+        entity: 'light.office_main_lights',
+        title: 'Image',
+        state_image: {
+          on: 'https://picsum.photos/id/1003/1181/1772',
+          off: 'https://picsum.photos/id/102/4320/3240',
+        },
+        state_filter: {
+          on: 'brightness(110%) saturate(1.2)',
+          off: 'brightness(50%) hue-rotate(45deg)',
+        },
+        style: {
+          left: '100px',
+          top: '350px',
+          height: '50px',
+          width: '100px',
+        },
+      },
+      {
+        type: 'conditional',
+        conditions: [
+          {
+            condition: 'state',
+            entity: 'light.office_main_lights',
+            state: 'on',
+            state_not: 'off',
+          },
+        ],
+        elements: [
+          {
+            type: 'icon',
+            icon: 'mdi:dog',
+            title: 'Woof',
+            style: {
+              left: '100px',
+              top: '400px',
+            },
+          },
+        ],
+      },
+    ];
+
+    expect(
+      createConfig({
+        elements: stockElements,
+      }).elements,
+    ).toEqual(stockElements);
+  });
+
+  it('should include all custom elements', () => {
+    const customElements = [
+      {
+        type: 'custom:advanced-camera-card-menu-icon',
+        alignment: 'matching',
+        enabled: true,
+        entity: 'light.office_main_lights',
+        icon: 'mdi:car',
+        permanent: false,
+        priority: 50,
+        style: {
+          color: 'white',
+        },
+        title: 'Vroom',
+      },
+      {
+        type: 'custom:advanced-camera-card-menu-state-icon',
+        alignment: 'matching',
+        enabled: true,
+        entity: 'light.office_main_lights',
+        icon: 'mdi:chair-rolling',
+        permanent: false,
+        priority: 50,
+        state_color: true,
+        style: {
+          color: 'white',
+        },
+        title: 'Office lights',
+      },
+      {
+        type: 'custom:advanced-camera-card-menu-submenu',
+        alignment: 'matching',
+        enabled: true,
+        entity: 'light.office_main_lights',
+        icon: 'mdi:menu',
+        items: [
+          {
+            enabled: true,
+            entity: 'light.office_main_lights',
+            icon: 'mdi:lightbulb',
+            selected: false,
+            state_color: true,
+            style: {
+              color: 'white',
+            },
+            tap_action: {
+              action: 'toggle',
+            },
+            title: 'Lights',
+          },
+          {
+            enabled: true,
+            icon: 'mdi:google',
+            selected: false,
+            state_color: false,
+            style: {
+              color: 'white',
+            },
+            tap_action: {
+              action: 'url',
+              url_path: 'https://www.google.com',
+            },
+            title: 'Google',
+          },
+        ],
+        permanent: false,
+        priority: 50,
+        style: {
+          color: 'white',
+        },
+        title: 'Office lights',
+      },
+      {
+        type: 'custom:advanced-camera-card-menu-submenu-select',
+        alignment: 'matching',
+        enabled: true,
+        entity: 'input_select.kitchen_scene',
+        icon: 'mdi:lamps',
+        options: {
+          'scene.kitchen_cooking_scene': {
+            enabled: true,
+            icon: 'mdi:chef-hat',
+            selected: false,
+            state_color: true,
+            style: {
+              color: 'white',
+            },
+            title: 'Cooking time!',
+          },
+          'scene.kitchen_tv_scene': {
+            icon: 'mdi:television',
+            title: 'TV!',
+          },
+        },
+        permanent: false,
+        priority: 50,
+        state_color: true,
+        style: {
+          color: 'white',
+        },
+        title: 'Kitchen Scene',
+      },
+      {
+        type: 'custom:advanced-camera-card-conditional',
+        elements: [
+          {
+            type: 'icon',
+            icon: 'mdi:pig',
+            title: 'Oink',
+            style: {
+              left: '300px',
+              top: '100px',
+            },
+          },
+        ],
+        conditions: [
+          {
+            condition: 'view',
+            views: ['live'],
+          },
+        ],
+      },
+      {
+        type: 'custom:advanced-camera-card-status-bar-string',
+        enabled: true,
+        exclusive: false,
+        expand: false,
+        string: 'Intruder alert!',
+        priority: 50,
+        sufficient: false,
+      },
+      {
+        type: 'custom:advanced-camera-card-status-bar-icon',
+        enabled: true,
+        exclusive: false,
+        expand: false,
+        icon: 'mdi:cow',
+        priority: 50,
+        sufficient: false,
+      },
+      {
+        type: 'custom:advanced-camera-card-status-bar-image',
+        enabled: true,
+        exclusive: false,
+        expand: false,
+        image: 'https://my.site.com/status.png',
+        priority: 50,
+        sufficient: false,
+      },
+    ];
+
+    expect(
+      createConfig({
+        elements: customElements,
+      }).elements,
+    ).toEqual(customElements);
+  });
+
+  it('should include all conditions', () => {
+    const conditions = [
+      { condition: 'camera', cameras: ['camera.office'] },
+      { condition: 'config', paths: ['menu.style'] },
+      { condition: 'display_mode', display_mode: 'single' },
+      { condition: 'expand', expand: true },
+      { condition: 'fullscreen', fullscreen: true },
+      { condition: 'initialized' },
+      { condition: 'interaction', interaction: true },
+      {
+        condition: 'key',
+        alt: false,
+        ctrl: false,
+        key: 'F',
+        meta: false,
+        shift: false,
+        state: 'down',
+      },
+      { condition: 'media_loaded', media_loaded: true },
+      { condition: 'microphone', connected: true, muted: true },
+      {
+        condition: 'numeric_state',
+        entity: 'sensor.office_temperature',
+        above: 10,
+        below: 20,
+      },
+      { condition: 'screen', media_query: '(orientation: landscape)' },
+      {
+        condition: 'state',
+        entity: 'climate.office',
+        state: 'heat',
+        state_not: 'off',
+      },
+      { condition: 'triggered', triggered: ['camera.office'] },
+      { condition: 'user', users: ['581fca7fdc014b8b894519cc531f9a04'] },
+      {
+        condition: 'user_agent',
+        user_agent:
+          'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        user_agent_re: 'Chrome/',
+        companion: true,
+      },
+      { condition: 'view', views: ['live'] },
+    ];
+
+    expect(
+      createConfig({
+        elements: [
+          {
+            type: 'custom:advanced-camera-card-conditional',
+            elements: [
+              {
+                type: 'icon',
+                icon: 'mdi:pig',
+              },
+            ],
+            conditions: conditions,
+          },
+        ],
+      }).elements[0].conditions,
+    ).toEqual(conditions);
+  });
+
+  it('should include all stock actions', () => {
+    const stockActions = [
+      {
+        action: 'more-info',
+      },
+      {
+        action: 'toggle',
+      },
+      {
+        action: 'call-service',
+        service: 'homeassistant.toggle',
+        data: {
+          entity_id: 'light.office_main_lights',
+        },
+      },
+      {
+        action: 'navigate',
+        navigation_path: '/lovelace/2',
+      },
+      {
+        action: 'url',
+        url_path: 'https://www.home-assistant.io/',
+      },
+      {
+        action: 'none',
+      },
+      {
+        action: 'fire-dom-event',
+        key: 'value',
+      },
+      {
+        action: 'perform-action',
+        perform_action: 'homeassistant.toggle',
+        target: {
+          entity_id: 'light.office_main_lights',
+        },
+      },
+    ];
+
+    expect(
+      createConfig({
+        live: {
+          actions: {
+            tap_action: stockActions,
+          },
+        },
+      }).live.actions?.tap_action,
+    ).toEqual(stockActions);
+  });
+
+  it('should include all custom actions', () => {
+    const customActions = [
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'camera_select',
+        camera: 'camera.front_door',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'camera_ui',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'clip',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'clips',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'default',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'diagnostics',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'display_mode_select',
+        display_mode: 'grid',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'download',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'expand',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'fullscreen',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'image',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'live',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'live_substream_off',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'live_substream_on',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'live_substream_select',
+        camera: 'camera.front_door_hd',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'log',
+        message: 'Hello, world!',
+        level: 'debug',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'media_player',
+        media_player: 'media_player.nesthub50be',
+        media_player_action: 'play',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'media_player',
+        media_player: 'media_player.nesthub',
+        media_player_action: 'stop',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'menu_toggle',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'microphone_connect',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'microphone_disconnect',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'microphone_mute',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'microphone_unmute',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'mute',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'pause',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'play',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'ptz',
+        ptz_action: 'preset',
+        ptz_preset: 'doorway',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'ptz_controls',
+        enabled: true,
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'ptz_digital',
+        absolute: {
+          zoom: 5,
+          pan: {
+            x: 58,
+            y: 14,
+          },
+        },
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'ptz_multi',
+        ptz_action: 'left',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'recording',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'recordings',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'screenshot',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'sleep',
+        duration: {
+          h: 1,
+          m: 20,
+          s: 56,
+          ms: 422,
+        },
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'snapshot',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'snapshots',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'timeline',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'unmute',
+      },
+
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'status_bar',
+        status_bar_action: 'add',
+        items: [
+          {
+            type: 'custom:advanced-camera-card-status-bar-string',
+            enabled: true,
+            exclusive: false,
+            expand: false,
+            string: 'Intruder alert!',
+            priority: 50,
+            sufficient: false,
+          },
+          {
+            type: 'custom:advanced-camera-card-status-bar-icon',
+            enabled: true,
+            exclusive: false,
+            expand: false,
+            icon: 'mdi:cow',
+            priority: 50,
+            sufficient: false,
+          },
+          {
+            type: 'custom:advanced-camera-card-status-bar-image',
+            enabled: true,
+            exclusive: false,
+            expand: false,
+            image: 'https://my.site.com/status.png',
+            priority: 50,
+            sufficient: false,
+          },
+        ],
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'status_bar',
+        status_bar_action: 'remove',
+        items: [
+          {
+            type: 'custom:advanced-camera-card-status-bar-string',
+            enabled: true,
+            exclusive: false,
+            expand: false,
+            string: 'Intruder alert!',
+            priority: 50,
+            sufficient: false,
+          },
+          {
+            type: 'custom:advanced-camera-card-status-bar-icon',
+            enabled: true,
+            exclusive: false,
+            expand: false,
+            icon: 'mdi:cow',
+            priority: 50,
+            sufficient: false,
+          },
+          {
+            type: 'custom:advanced-camera-card-status-bar-image',
+            enabled: true,
+            exclusive: false,
+            expand: false,
+            image: 'https://my.site.com/status.png',
+            priority: 50,
+            sufficient: false,
+          },
+        ],
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'status_bar',
+        status_bar_action: 'reset',
+      },
+    ];
+
+    expect(
+      createConfig({
+        live: {
+          actions: {
+            tap_action: customActions,
+          },
+        },
+      }).live.actions?.tap_action,
+    ).toEqual(
+      // Action type will be transformed to fire-dom-event.
+      customActions.map((action) => ({ ...action, action: 'fire-dom-event' })),
+    );
+  });
 });
 
 it('should transform dimensions.aspect_ratio', () => {

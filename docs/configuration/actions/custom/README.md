@@ -616,36 +616,48 @@ elements:
       advanced_camera_card_action: menu_toggle
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-p-circle
+    title: Microphone connect
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: microphone_connect
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-q-circle
+    title: Microphone disconnect
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: microphone_disconnect
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-r-circle
     title: Microphone mute
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: microphone_mute
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-q-circle
+    icon: mdi:alpha-s-circle
     title: Microphone unmute
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: microphone_unmute
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-r-circle
+    icon: mdi:alpha-t-circle
     title: Mute
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: mute
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-s-circle
+    icon: mdi:alpha-u-circle
     title: Pause
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: pause
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-t-circle
+    icon: mdi:alpha-v-circle
     title: Play
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: play
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-u-circle
+    icon: mdi:alpha-x-circle
     title: Real PTZ Preset
     tap_action:
       action: custom:advanced-camera-card-action
@@ -653,14 +665,14 @@ elements:
       ptz_action: preset
       ptz_preset: doorway
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-v-circle
+    icon: mdi:alpha-y-circle
     title: Show PTZ Controls
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: ptz_controls
       enabled: true
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-w-circle
+    icon: mdi:alpha-z-circle
     title: Go to precise digital location
     tap_action:
       action: custom:advanced-camera-card-action
@@ -671,32 +683,32 @@ elements:
           x: 58
           y: 14
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-x-circle
+    icon: mdi:alpha-a-circle-outline
     title: Smart select between real and digital PTZ
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: ptz_multi
       ptz_action: left
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-y-circle
+    icon: mdi:alpha-b-circle-outline
     title: Show most recent recording
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: recording
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-a-circle-outline
+    icon: mdi:alpha-c-circle-outline
     title: Show recordings
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: recordings
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-b-circle-outline
+    icon: mdi:alpha-d-circle-outline
     title: Screenshot
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: screenshot
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-c-circle-outline
+    icon: mdi:alpha-e-circle-outline
     title: Sleep
     tap_action:
       action: custom:advanced-camera-card-action
@@ -707,31 +719,31 @@ elements:
         s: 56
         ms: 422
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-d-circle-outline
+    icon: mdi:alpha-f-circle-outline
     title: Show most recent snapshot
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: snapshot
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-e-circle-outline
+    icon: mdi:alpha-g-circle-outline
     title: Show snapshots
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: snapshots
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-f-circle-outline
+    icon: mdi:alpha-h-circle-outline
     title: Show timeline
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: timeline
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-g-circle-outline
+    icon: mdi:alpha-i-circle-outline
     title: Unmute
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: unmute
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-h-circle-outline
+    icon: mdi:alpha-j-circle-outline
     title: Add status bar contents
     tap_action:
       - action: custom:advanced-camera-card-action
@@ -760,7 +772,7 @@ elements:
             priority: 50
             sufficient: false
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-i-circle-outline
+    icon: mdi:alpha-k-circle-outline
     title: Remove status bar contents
     tap_action:
       - action: custom:advanced-camera-card-action
@@ -789,7 +801,7 @@ elements:
             priority: 50
             sufficient: false
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-i-circle-outline
+    icon: mdi:alpha-l-circle-outline
     title: Reset status bar contents
     tap_action:
       - action: custom:advanced-camera-card-action

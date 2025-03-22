@@ -117,15 +117,4 @@ elements:
     tap_action:
       action: fire-dom-event
       key: value
-  - type: icon
-    icon: mdi:numeric-8-box
-    title: Perform action
-    style:
-      left: 200px
-      top: 400px
-    tap_action:
-      action: perform-action
-      perform_action: homeassistant.toggle
-      target:
-        entity_id: light.office_main_lights
 ```
