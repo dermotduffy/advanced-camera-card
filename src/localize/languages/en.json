@@ -237,8 +237,8 @@
         "timeline": {
           "editor_label": "Mini Timeline",
           "format": {
-            "editor_label": "Time & date format",
-            "24h": "Use 24-hour clock"
+            "24h": "Use 24-hour clock",
+            "editor_label": "Time & date format"
           },
           "mode": "Mode",
           "modes": {
@@ -259,6 +259,12 @@
         "editor_label": "Display",
         "grid_columns": "Exact number of grid columns",
         "grid_max_columns": "Maximum number of grid columns",
+        "grid_selected_position": "Position of selected media in grid",
+        "grid_selected_positions": {
+          "default": "Selected item in default position",
+          "first": "Selected item is first in grid",
+          "last": "Selected item is last in grid"
+        },
         "grid_selected_width_factor": "Increase selected media width by this factor",
         "mode": "Mode"
       },
@@ -465,8 +471,8 @@
     },
     "remote_control": {
       "entities": {
-        "editor_label": "Remote Control Entities",
-        "camera": "Input Select entity to control camera"
+        "camera": "Input Select entity to control camera",
+        "editor_label": "Remote Control Entities"
       }
     },
     "status_bar": {
@@ -528,8 +534,8 @@
       "theme": {
         "themes": {
           "dark": "Dark",
-          "ha": "Home Assistant",
           "editor_label": "Themes",
+          "ha": "Home Assistant",
           "light": "Light",
           "traditional": "Traditional"
         }

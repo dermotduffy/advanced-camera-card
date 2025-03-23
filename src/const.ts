@@ -192,6 +192,8 @@ export const CONF_MEDIA_VIEWER_DISPLAY_GRID_COLUMNS =
   `${CONF_MEDIA_VIEWER}.display.grid_columns` as const;
 export const CONF_MEDIA_VIEWER_DISPLAY_GRID_MAX_COLUMNS =
   `${CONF_MEDIA_VIEWER}.display.grid_max_columns` as const;
+export const CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_POSITION =
+  `${CONF_MEDIA_VIEWER}.display.grid_selected_position` as const;
 export const CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_WIDTH_FACTOR =
   `${CONF_MEDIA_VIEWER}.display.grid_selected_width_factor` as const;
 export const CONF_MEDIA_VIEWER_DRAGGABLE = `${CONF_MEDIA_VIEWER}.draggable` as const;
@@ -294,6 +296,8 @@ export const CONF_LIVE_DISPLAY_GRID_COLUMNS =
   `${CONF_LIVE}.display.grid_columns` as const;
 export const CONF_LIVE_DISPLAY_GRID_MAX_COLUMNS =
   `${CONF_LIVE}.display.grid_max_columns` as const;
+export const CONF_LIVE_DISPLAY_GRID_SELECTED_POSITION =
+  `${CONF_LIVE}.display.grid_selected_position` as const;
 export const CONF_LIVE_DISPLAY_GRID_SELECTED_WIDTH_FACTOR =
   `${CONF_LIVE}.display.grid_selected_width_factor` as const;
 export const CONF_LIVE_DRAGGABLE = `${CONF_LIVE}.draggable` as const;

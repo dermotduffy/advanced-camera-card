@@ -259,6 +259,12 @@
         "editor_label": "",
         "grid_columns": "",
         "grid_max_columns": "",
+        "grid_selected_position": "",
+        "grid_selected_positions": {
+          "default": "",
+          "first": "",
+          "last": ""
+        },
         "grid_selected_width_factor": "",
         "mode": ""
       },

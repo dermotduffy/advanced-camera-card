@@ -1,11 +1,12 @@
 import Masonry from 'masonry-layout';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { MediaLoadedInfo } from '../../src/types';
 import {
+  ExtendedMasonry,
   MediaGridConstructorOptions,
   MediaGridController,
 } from '../../src/components-lib/media-grid-controller';
+import { MediaLoadedInfo } from '../../src/types';
 import { dispatchExistingMediaLoadedInfoAsEvent } from '../../src/utils/media-info';
 import {
   MutationObserverMock,
@@ -18,7 +19,7 @@ vi.mock('lodash-es/throttle', () => ({
   default: vi.fn((fn) => fn),
 }));
 
-const masonry = mock<Masonry>();
+const masonry = mock<ExtendedMasonry>();
 vi.mock('masonry-layout', () => ({
   default: vi.fn().mockImplementation(() => {
     return masonry;
@@ -85,6 +86,8 @@ describe('MediaGridController', () => {
     vi.clearAllMocks();
     vi.stubGlobal('MutationObserver', MutationObserverMock);
     vi.stubGlobal('ResizeObserver', ResizeObserverMock);
+
+    masonry.items = [];
   });
 
   it('should be constructable', () => {
@@ -525,5 +528,64 @@ describe('MediaGridController', () => {
     triggerResizeObserver('host');
     expect(Masonry).not.toBeCalled();
     expect(masonry.layout).not.toBeCalled();
+  });
+
+  describe('describe should sort grid elements correctly', () => {
+    it('should respect placement when grid_selected_position is default', () => {
+      const children = createChildren();
+      const parent = createParent({ children: children });
+
+      // Simulate wrapped children in masonry object.
+      masonry.items = children.map((child) => ({ element: child }));
+
+      const controller = createController(parent);
+      controller.setDisplayConfig({ mode: 'grid', grid_selected_position: 'default' });
+
+      controller.selectCell('1');
+
+      expect(masonry.items).toEqual([
+        { element: children[0] },
+        { element: children[1] },
+        { element: children[2] },
+      ]);
+    });
+
+    it('should respect placement when grid_selected_position is first', () => {
+      const children = createChildren(['0', '1', '2']);
+      const parent = createParent({ children: children });
+
+      // Simulate wrapped children in masonry object.
+      masonry.items = children.map((child) => ({ element: child }));
+
+      const controller = createController(parent);
+      controller.setDisplayConfig({ mode: 'grid', grid_selected_position: 'first' });
+
+      controller.selectCell('1');
+
+      expect(masonry.items).toEqual([
+        { element: children[1] },
+        { element: children[0] },
+        { element: children[2] },
+      ]);
+    });
+
+    it('should respect placement when grid_selected_position is last', () => {
+      const children = createChildren(['0', '1', '2']);
+      const parent = createParent({ children: children });
+
+      // Simulate wrapped children in masonry object.
+      masonry.items = children.map((child) => ({ element: child }));
+
+      const controller = createController(parent);
+      controller.setDisplayConfig({ mode: 'grid', grid_selected_position: 'last' });
+
+      controller.selectCell('1');
+
+      expect(masonry.items).toEqual([
+        { element: children[0] },
+        { element: children[2] },
+        { element: children[1] },
+      ]);
+    });
   });
 });

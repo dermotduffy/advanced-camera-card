@@ -259,6 +259,12 @@
         "editor_label": "Visualització",
         "grid_columns": "Nombre exacte de columnes de la graella",
         "grid_max_columns": "Nombre màxim de columnes de la graella",
+        "grid_selected_position": "",
+        "grid_selected_positions": {
+          "default": "",
+          "first": "",
+          "last": ""
+        },
         "grid_selected_width_factor": "Augmenta l'amplada del suport multimèdia seleccionat en aquest factor",
         "mode": "Mode"
       },
