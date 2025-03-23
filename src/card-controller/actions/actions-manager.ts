@@ -8,7 +8,10 @@ import {
   AuxillaryActionConfig,
 } from '../../config/schema/actions/types.js';
 import { forwardHaptic } from '../../ha/haptic.js';
-import { getActionConfigGivenAction } from '../../utils/action.js';
+import {
+  getActionConfigGivenAction,
+  isAdvancedCameraCardCustomAction,
+} from '../../utils/action.js';
 import { allPromises } from '../../utils/basic.js';
 import { TemplateRenderer } from '../templates/index.js';
 import { CardActionsManagerAPI } from '../types.js';
@@ -101,7 +104,16 @@ export class ActionsManager {
       // https://github.com/custom-cards/custom-card-helpers/blob/master/src/fire-event.ts#L70
       return;
     }
-    await this.executeActions(ev.detail as ActionConfig);
+    const action: ActionConfig = ev.detail;
+
+    // If the received action is not a custom action specifically for this card
+    // to handle, ignore it. Otherwise, we can get action "loops". See:
+    // https://github.com/dermotduffy/advanced-camera-card/issues/1969
+    if (!isAdvancedCameraCardCustomAction(action)) {
+      return;
+    }
+
+    await this.executeActions(action);
   };
 
   /**

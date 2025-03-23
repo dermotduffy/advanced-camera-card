@@ -206,7 +206,7 @@ describe('ActionsManager', () => {
       vi.restoreAllMocks();
     });
 
-    it('should handle event', async () => {
+    it('should handle advanced camera card event', async () => {
       const action = createLogAction('Hello, world!');
       const event = new CustomEvent('ll-custom', {
         detail: action,
@@ -218,6 +218,27 @@ describe('ActionsManager', () => {
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
       await manager.handleCustomActionEvent(event);
       expect(consoleSpy).toBeCalled();
+    });
+
+    it('should not handle generic event', async () => {
+      const event = new CustomEvent('ll-custom', {
+        detail: {
+          type: 'fire-dom-event',
+          foo: 'bar',
+        },
+      });
+
+      const card = document.createElement('div');
+      const handler = vi.fn();
+      card.addEventListener('ll-custom', handler);
+
+      const api = createCardAPI();
+      vi.mocked(api.getCardElementManager().getElement).mockReturnValue(card);
+      const manager = new ActionsManager(api);
+
+      await manager.handleCustomActionEvent(event);
+
+      expect(handler).not.toBeCalled();
     });
 
     it('should not handle event without detail', async () => {

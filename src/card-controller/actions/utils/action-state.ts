@@ -2,11 +2,11 @@ import merge from 'lodash-es/merge';
 import { Action, TargetedActionContext } from '../types';
 import { ActionContext } from 'action';
 
-export const stopInProgressForThisTarget = (
+export const stopInProgressForThisTarget = async (
   targetID: string,
   context?: TargetedActionContext,
-): void => {
-  context?.[targetID]?.inProgressAction?.stop();
+): Promise<void> => {
+  await context?.[targetID]?.inProgressAction?.stop();
 };
 
 export const setInProgressForThisTarget = (
@@ -14,7 +14,7 @@ export const setInProgressForThisTarget = (
   context: ActionContext,
   contextKey: keyof ActionContext,
   action: Action,
-) => {
+): void => {
   merge(context, {
     [contextKey]: {
       [targetID]: {
