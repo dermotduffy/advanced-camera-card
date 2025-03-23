@@ -34,13 +34,21 @@ export interface MediaGridConstructorOptions {
   displayConfig?: ViewDisplayConfig;
 }
 
+export interface ExtendedMasonry extends Masonry {
+  // Expose the items array to allow for custom ordering (used for the
+  // `grid_selected_position` parameter).
+  items: {
+    element: MediaGridChild;
+  }[];
+}
+
 export class MediaGridController {
   protected _host: HTMLElement;
 
   protected _selected: GridID | null;
   protected _mediaLoadedInfoMap: Map<GridID, MediaLoadedInfo> = new Map();
   protected _gridContents: MediaGridContents = new Map();
-  protected _masonry: Masonry | null = null;
+  protected _masonry: ExtendedMasonry | null = null;
   protected _displayConfig: ViewDisplayConfig | null = null;
   protected _hostWidth: number;
   protected _idAttribute: string;
@@ -128,6 +136,34 @@ export class MediaGridController {
     return this._selected;
   }
 
+  protected _sortItemsInGrid(): void {
+    const existingItems = this._masonry?.items;
+    const selectedItem = existingItems?.find(
+      (item) => item.element.getAttribute(this._idAttribute) === this._selected,
+    );
+
+    // If `grid_selected_position` is set to 'first' or 'last', move the
+    // selected item to the start or end of the list respectively.
+    if (
+      !!this._displayConfig?.grid_selected_position &&
+      ['first', 'last'].includes(this._displayConfig.grid_selected_position) &&
+      existingItems &&
+      selectedItem &&
+      this._masonry
+    ) {
+      // Implementation note: With the latest version of the Masonry library
+      // (4.2.2) using the prepended() and appended() methods in quick sucession
+      // causes the layout to not show the newly added items. Instead, access
+      // the items in place and swap them around.
+      const otherItems = existingItems?.filter((item) => item !== selectedItem);
+      const newItems =
+        this._displayConfig.grid_selected_position === 'first'
+          ? [selectedItem, ...otherItems]
+          : [...otherItems, selectedItem];
+      this._masonry.items = newItems;
+    }
+  }
+
   public selectCell(id: GridID) {
     if (this._selected === id) {
       return;
@@ -141,11 +177,12 @@ export class MediaGridController {
       dispatchExistingMediaLoadedInfoAsEvent(this._host, mediaLoadedInfo);
     }
 
+    this._sortItemsInGrid();
     this._updateSelectedStylesOnElements();
 
-    // Sizes may change when an element is selected, so re-do the layout (must
-    // come after the call to _updateStylesOnElements in order to ensure the
-    // right styles are applied first).
+    // Sizes and positions may change when an element is selected, so re-do the
+    // layout (must come after the call to _updateStylesOnElements in order to
+    // ensure the right styles are applied first).
     this._throttledLayout();
   }
 
@@ -203,6 +240,7 @@ export class MediaGridController {
       this._cellResizeObserver.observe(child);
     }
 
+    this._sortItemsInGrid();
     this._updateSelectedStylesOnElements();
     this._setColumnSizeStyles();
   }
@@ -275,7 +313,7 @@ export class MediaGridController {
       percentPosition: true,
       transitionDuration: '0.2s',
       gutter: MEDIA_GRID_HORIZONTAL_GUTTER_WIDTH,
-    });
+    }) as ExtendedMasonry;
     this._masonry.addItems?.([...this._gridContents.values()]);
     this._throttledLayout();
   }

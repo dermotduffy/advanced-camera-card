@@ -153,12 +153,15 @@ live:
     # [...]
 ```
 
-| Option                       | Default  | Description                                                                                                                                                                                                         |
-| ---------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `grid_columns`               |          | If specified the grid will always have exactly this number of columns.                                                                                                                                              |
-| `grid_max_columns`           | `4`      | If specified, and `grid_columns` is not specified, the grid will not render more than this number of columns. The precise number will be calculated based on the [grid layout algorithm](grid-layout-algorithm.md). |
-| `grid_selected_width_factor` | `2`      | How much to scale up the selected media item in a grid. A value of `1` will not scale the selected item at all, the default value of `2` will scale the media item width to twice what it would otherwise be, etc.  |
-| `mode`                       | `single` | Whether to display a `single` live camera in a carousel, or all cameras in a `grid` configuration.                                                                                                                  |
+| Option                       | Default   | Description                                                                                                                                                                                                                                                                                                                      |
+| ---------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `grid_columns`               |           | If specified the grid will always have exactly this number of columns.                                                                                                                                                                                                                                                           |
+| `grid_max_columns`           | `4`       | If specified, and `grid_columns` is not specified, the grid will not render more than this number of columns.                                                                                                                                                                                                                    |
+| `grid_selected_position`     | `default` | Controls where the selected item should be laid out in the grid. If `default`, the cameras are laid out in the order they are specified in the configuration and selecting a camera does not change this order. If `first`, the selected camera is moved to the start of the grid, if `last` it is moved to the end of the grid. |
+| `grid_selected_width_factor` | `2`       | How much to scale up the selected media item in a grid. A value of `1` will not scale the selected item at all, the default value of `2` will scale the media item width to twice what it would otherwise be, etc.                                                                                                               |
+| `mode`                       | `single`  | Whether to display a `single` live camera in a carousel, or all cameras in a `grid` configuration.                                                                                                                                                                                                                               |
+
+See the [grid layout algorithm](grid-layout-algorithm.md) for more details on how the grid lays elements out.
 
 ## `microphone`
 
@@ -238,6 +241,7 @@ live:
     mute_after_microphone_mute_seconds: 60
   display:
     mode: single
+    grid_selected_position: default
     grid_selected_width_factor: 2
     grid_max_columns: 4
   actions:

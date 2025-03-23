@@ -126,6 +126,7 @@ import {
   CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
   CONF_LIVE_DISPLAY_GRID_COLUMNS,
   CONF_LIVE_DISPLAY_GRID_MAX_COLUMNS,
+  CONF_LIVE_DISPLAY_GRID_SELECTED_POSITION,
   CONF_LIVE_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
   CONF_LIVE_DISPLAY_MODE,
   CONF_LIVE_DRAGGABLE,
@@ -167,6 +168,7 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
   CONF_MEDIA_VIEWER_DISPLAY_GRID_COLUMNS,
   CONF_MEDIA_VIEWER_DISPLAY_GRID_MAX_COLUMNS,
+  CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_POSITION,
   CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
   CONF_MEDIA_VIEWER_DISPLAY_MODE,
   CONF_MEDIA_VIEWER_DRAGGABLE,
@@ -647,6 +649,22 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: '', label: '' },
     { value: 'single', label: localize('display_modes.single') },
     { value: 'grid', label: localize('display_modes.grid') },
+  ];
+
+  protected _gridSelectPositions: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'default',
+      label: localize('config.common.display.grid_selected_positions.default'),
+    },
+    {
+      value: 'first',
+      label: localize('config.common.display.grid_selected_positions.first'),
+    },
+    {
+      value: 'last',
+      label: localize('config.common.display.grid_selected_positions.last'),
+    },
   ];
 
   protected _castMethods: EditorSelectOption[] = [
@@ -1651,14 +1669,11 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
   protected _renderViewDisplay(
     domain: string,
     configPathMode: string,
+    configPathSelectedPosition: string,
     configPathSelectedWidthFactor: string,
     configPathColumns: string,
     configPathMaxColumns: string,
   ): TemplateResult | void {
-    // grid_select_width_factor: z.number().min(0).optional(),
-    // grid_max_columns: z.number().min(0).optional(),
-    // grid_columns: z.number().min(0).optional(),
-
     return this._putInSubmenu(
       domain,
       true,
@@ -1668,6 +1683,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._renderOptionSelector(configPathMode, this._displayModes, {
           label: localize('config.common.display.mode'),
         })}
+        ${this._renderOptionSelector(
+          configPathSelectedPosition,
+          this._gridSelectPositions,
+          {
+            label: localize('config.common.display.grid_selected_position'),
+          },
+        )}
         ${this._renderNumberInput(configPathSelectedWidthFactor, {
           min: 0,
           label: localize('config.common.display.grid_selected_width_factor'),
@@ -2711,6 +2733,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${this._renderViewDisplay(
                   MENU_LIVE_DISPLAY,
                   CONF_LIVE_DISPLAY_MODE,
+                  CONF_LIVE_DISPLAY_GRID_SELECTED_POSITION,
                   CONF_LIVE_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
                   CONF_LIVE_DISPLAY_GRID_COLUMNS,
                   CONF_LIVE_DISPLAY_GRID_MAX_COLUMNS,
@@ -2898,6 +2921,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
               ${this._renderViewDisplay(
                 MENU_MEDIA_VIEWER_DISPLAY,
                 CONF_MEDIA_VIEWER_DISPLAY_MODE,
+                CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_POSITION,
                 CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
                 CONF_MEDIA_VIEWER_DISPLAY_GRID_COLUMNS,
                 CONF_MEDIA_VIEWER_DISPLAY_GRID_MAX_COLUMNS,
