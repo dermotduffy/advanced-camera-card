@@ -478,7 +478,8 @@ describe('should handle ptz action', () => {
           }),
         },
       ]);
-      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
+      const cameraManager = createCameraManager(store);
+      vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
       vi.mocked(api.getViewManager().getView).mockReturnValue(
         createView({ camera: 'camera.office' }),
       );
@@ -497,11 +498,24 @@ describe('should handle ptz action', () => {
       await vi.runOnlyPendingTimersAsync();
       expect(api.getCameraManager().executePTZAction).toBeCalledTimes(2);
 
+      // Emulate the stop being called while the action is running, but before
+      // the *next* timer is scheduled.
+      let resolve: () => void;
+      const promise: Promise<void> = new Promise((_resolve) => {
+        resolve = _resolve;
+      });
+      vi.mocked(cameraManager.executePTZAction).mockReturnValueOnce(promise);
+
+      await vi.runOnlyPendingTimersAsync();
+      expect(api.getCameraManager().executePTZAction).toBeCalledTimes(3);
+
       action.stop();
+
+      resolve!();
       await vi.runOnlyPendingTimersAsync();
 
       // There should be no additional calls.
-      expect(api.getCameraManager().executePTZAction).toBeCalledTimes(2);
+      expect(api.getCameraManager().executePTZAction).toBeCalledTimes(3);
     });
   });
 });

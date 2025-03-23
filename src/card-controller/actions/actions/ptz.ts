@@ -22,8 +22,10 @@ declare module 'action' {
 
 export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
   protected _timer = new Timer();
+  protected _stopped = false;
 
   public async stop(): Promise<void> {
+    this._stopped = true;
     this._timer.stop();
   }
 
@@ -79,7 +81,7 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
 
     if (this._action.ptz_phase === 'start') {
       // Scenario: Asked to start a continuous move, camera only supports relative moves natively.
-      stopInProgressForThisTarget(ptzCameraID, this._context.ptz);
+      await stopInProgressForThisTarget(ptzCameraID, this._context.ptz);
       setInProgressForThisTarget(ptzCameraID, this._context, 'ptz', this);
 
       const singleStep = async (): Promise<void> => {
@@ -89,15 +91,26 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
             .executePTZAction(ptzCameraID, this._action.ptz_action, {
               preset: this._action.ptz_preset,
             }));
-        // Only start the timer for the next step after this step returns.
-        this._timer.start(ptzConfiguration.r2c_delay_between_calls_seconds, singleStep);
+
+        if (!this._stopped) {
+          // Only start the timer for the next step after this step returns, and
+          // only if this action has not been stopped.
+          // See: https://github.com/dermotduffy/advanced-camera-card/issues/1967
+          this._timer.start(
+            ptzConfiguration.r2c_delay_between_calls_seconds,
+            singleStep,
+          );
+        }
       };
 
+      this._stopped = false;
       await singleStep();
     } else if (this._action.ptz_phase === 'stop') {
       // Scenario: Asked to stop continuous move, camera only supports relative moves natively.
-      stopInProgressForThisTarget(ptzCameraID, this._context.ptz);
+      await stopInProgressForThisTarget(ptzCameraID, this._context.ptz);
     } else {
+      this._stopped = false;
+
       // Relative move (but camera only supports continuous).
       await api
         .getCameraManager()

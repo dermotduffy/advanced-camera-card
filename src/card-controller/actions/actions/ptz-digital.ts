@@ -67,7 +67,7 @@ export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialAction
 
     /* istanbul ignore else: the else path cannot be reached -- @preserve */
     if (this._action.ptz_phase === 'start') {
-      stopInProgressForThisTarget(targetID, this._context.ptzDigital);
+      await stopInProgressForThisTarget(targetID, this._context.ptzDigital);
       setInProgressForThisTarget(targetID, this._context, 'ptzDigital', this);
 
       await this._stepChange(api, targetID);
@@ -75,7 +75,7 @@ export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialAction
         this._stepChange(api, targetID),
       );
     } else if (this._action.ptz_phase === 'stop') {
-      stopInProgressForThisTarget(targetID, this._context.ptzDigital);
+      await stopInProgressForThisTarget(targetID, this._context.ptzDigital);
       delete this._context.ptzDigital?.[targetID];
     }
   }
