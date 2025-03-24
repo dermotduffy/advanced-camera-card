@@ -14,6 +14,21 @@ certain configurations (in `overrides`) or to display "picture elements" (in
     - [condition_2]
 ```
 
+## `and`
+
+Evaluates to `true` if _all_ embedded conditions evaluate to `true`.
+
+```yaml
+conditions:
+  - condition: and
+    # [...]
+```
+
+| Parameter    | Description                                                                                                    |
+| ------------ | -------------------------------------------------------------------------------------------------------------- |
+| `condition`  | Must be `and`.                                                                                                 |
+| `conditions` | A list of other conditions _all_ of which must evaluate `true` in order for this condition to evaluate `true`. |
+
 ## `camera`
 
 Matches based on the selected camera. Does not match other cameras (whether
@@ -174,6 +189,21 @@ conditions:
 When multiple parameters are specified they must all match for the condition to
 match.
 
+## `not`
+
+Evaluates to `true` if _all_ embedded conditions evaluate to `false`.
+
+```yaml
+conditions:
+  - condition: not
+    # [...]
+```
+
+| Parameter    | Description                                                                                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------- |
+| `condition`  | Must be `not`.                                                                                                  |
+| `conditions` | A list of other conditions _all_ of which must evaluate `false` in order for this condition to evaluate `true`. |
+
 ## `numeric_state`
 
 Matches based on numeric Home Assistant state.
@@ -185,6 +215,21 @@ conditions:
 ```
 
 See [Home Assistant conditions documentation](https://www.home-assistant.io/dashboards/conditional/#numeric-state).
+
+## `or`
+
+Evaluates to `true` if _any_ embedded condition evaluates to `true`.
+
+```yaml
+conditions:
+  - condition: or
+    # [...]
+```
+
+| Parameter    | Description                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------- |
+| `condition`  | Must be `or`.                                                                                            |
+| `conditions` | A list of conditions _any_ of which must evaluate `true` in order for this condition to evaluate `true`. |
 
 ## `screen`
 

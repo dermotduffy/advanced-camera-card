@@ -696,6 +696,7 @@ describe('config defaults', () => {
 
   it('should include all conditions', () => {
     const conditions = [
+      { condition: 'and', conditions: [{ condition: 'initialized' }] },
       { condition: 'camera', cameras: ['camera.office'] },
       { condition: 'config', paths: ['menu.style'] },
       { condition: 'display_mode', display_mode: 'single' },
@@ -714,12 +715,14 @@ describe('config defaults', () => {
       },
       { condition: 'media_loaded', media_loaded: true },
       { condition: 'microphone', connected: true, muted: true },
+      { condition: 'not', conditions: [{ condition: 'initialized' }] },
       {
         condition: 'numeric_state',
         entity: 'sensor.office_temperature',
         above: 10,
         below: 20,
       },
+      { condition: 'or', conditions: [{ condition: 'initialized' }] },
       { condition: 'screen', media_query: '(orientation: landscape)' },
       {
         condition: 'state',

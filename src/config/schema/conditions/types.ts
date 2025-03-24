@@ -17,12 +17,54 @@ import { screenConditionSchema } from './stock/screen';
 import { stateConditionSchema } from './stock/state';
 import { usersConditionSchema } from './stock/users';
 
-export const advancedCameraCardConditionSchema = z.discriminatedUnion('condition', [
+// https://www.home-assistant.io/docs/scripts/conditions/#or-condition
+type OrCondition = {
+  condition: 'or';
+  conditions: AdvancedCameraCardCondition[];
+};
+const orConditionSchema: z.ZodSchema<OrCondition> = z.object({
+  condition: z.literal('or'),
+  conditions: z
+    .lazy(() => advancedCameraCardConditionSchema)
+    .array()
+    .min(1),
+});
+
+// https://www.home-assistant.io/docs/scripts/conditions/#and-condition
+type AndCondition = {
+  condition: 'and';
+  conditions: AdvancedCameraCardCondition[];
+};
+const andConditionSchema: z.ZodSchema<AndCondition> = z.object({
+  condition: z.literal('and'),
+  conditions: z
+    .lazy(() => advancedCameraCardConditionSchema)
+    .array()
+    .min(1),
+});
+
+// https://www.home-assistant.io/docs/scripts/conditions/#not-condition
+type NotCondition = {
+  condition: 'not';
+  conditions: AdvancedCameraCardCondition[];
+};
+const notConditionSchema: z.ZodSchema<NotCondition> = z.object({
+  condition: z.literal('not'),
+  conditions: z
+    .lazy(() => advancedCameraCardConditionSchema)
+    .array()
+    .min(1),
+});
+
+export const advancedCameraCardConditionSchema = z.union([
   // Stock conditions:
   numericStateConditionSchema,
   screenConditionSchema,
   stateConditionSchema,
   usersConditionSchema,
+  orConditionSchema,
+  andConditionSchema,
+  notConditionSchema,
 
   // Custom conditions:
   cameraConditionSchema,
