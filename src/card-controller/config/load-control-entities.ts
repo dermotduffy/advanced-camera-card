@@ -1,3 +1,5 @@
+import { isEqual } from 'lodash-es';
+import { RemoteControlEntityPriority } from '../../config/schema/remote-control';
 import {
   createCameraAction,
   createInternalCallbackAction,
@@ -10,11 +12,14 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
 
   api.getAutomationsManager().deleteAutomations(automationTag);
 
-  const cameraControlEntity = api.getConfigManager().getConfig()?.remote_control
-    ?.entities?.camera;
+  const remoteControlConfig = api.getConfigManager().getConfig()?.remote_control;
+  const cameraControlEntity = remoteControlConfig?.entities.camera;
   if (!cameraControlEntity) {
     return;
   }
+
+  const cameraPriority: RemoteControlEntityPriority =
+    remoteControlConfig.entities.camera_priority;
 
   const createSelectOptionAction = (option: string) =>
     createPerformAction('input_select.select_option', {
@@ -34,7 +39,7 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
       conditions: [
         {
           condition: 'config' as const,
-          paths: ['remote_control.entities.camera'],
+          paths: ['cameras', 'remote_control.entities.camera'],
         },
       ],
       actions: [
@@ -43,8 +48,6 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
         createInternalCallbackAction((api: CardActionsAPI) =>
           setCameraOptionsOnEntity(cameraControlEntity, api),
         ),
-        // Set the selected option to the current camera ID.
-        createSelectOptionAction('{{ advanced_camera_card.camera }}'),
       ],
       tag: automationTag,
     },
@@ -57,6 +60,29 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
       actions: [
         // When the camera changes, update the entity to match.
         createSelectOptionAction('{{ advanced_camera_card.trigger.camera.to }}'),
+      ],
+      tag: automationTag,
+    },
+    {
+      // Immediately on the start, the HA state for the entity will be updated.
+      // However, that will almost certainly not trigger the condition below
+      // this one, as automations only run *after* the card is initialized (and
+      // it very likely will not yet be). Instead, wait to be initialized, then
+      // set the camera.
+      conditions: [
+        {
+          condition: 'initialized' as const,
+        },
+      ],
+      actions: [
+        cameraPriority === 'entity'
+          ? // Set the currently selected camera to the state of the entity.
+            createCameraAction(
+              'camera_select',
+              `{{ hass.states["${cameraControlEntity}"].state }}`,
+            )
+          : // Set the selected option in the entity to the current camera ID.
+            createSelectOptionAction('{{ advanced_camera_card.camera }}'),
       ],
       tag: automationTag,
     },
@@ -85,11 +111,18 @@ const setCameraOptionsOnEntity = async (entity: string, api: CardActionsAPI) => 
   const hass = api.getHASSManager().getHASS();
   const cameraIDs = api.getCameraManager().getStore().getCameraIDs();
 
+  const existingOptions = (hass?.states[entity]?.attributes?.options ?? []).sort();
+  const desiredOptions = [...cameraIDs].sort();
+
+  if (isEqual(existingOptions, desiredOptions)) {
+    return;
+  }
+
   await hass?.callService(
     'input_select',
     'set_options',
     {
-      options: [...cameraIDs],
+      options: desiredOptions,
     },
     {
       entity_id: entity,

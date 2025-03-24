@@ -291,6 +291,11 @@ describe('config defaults', () => {
           box_shadow: true,
         },
       },
+      remote_control: {
+        entities: {
+          camera_priority: 'card',
+        },
+      },
       status_bar: {
         height: 40,
         items: {

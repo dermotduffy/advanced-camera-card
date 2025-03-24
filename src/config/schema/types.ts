@@ -19,7 +19,7 @@ import {
   performanceConfigSchema,
 } from './performance';
 import { profilesSchema } from './profiles';
-import { remoteControlConfigSchema } from './remote-control';
+import { remoteControlConfigDefault, remoteControlConfigSchema } from './remote-control';
 import { statusBarConfigDefault, statusBarConfigSchema } from './status-bar';
 import { timelineConfigSchema } from './timeline';
 import { viewConfigDefault, viewConfigSchema } from './view';
@@ -84,4 +84,5 @@ export const configDefaults = {
   timeline: timelineConfigDefault,
   performance: performanceConfigDefault,
   debug: debugConfigDefault,
+  remote_control: remoteControlConfigDefault,
 };
