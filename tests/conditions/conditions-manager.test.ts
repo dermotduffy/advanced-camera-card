@@ -1072,6 +1072,188 @@ describe('ConditionsManager', () => {
       stateManager.setState({ initialized: false });
       expect(manager.getEvaluation().result).toBeFalsy();
     });
+
+    it('with simple OR condition', () => {
+      const stateManager = new ConditionStateManager();
+      const manager = new ConditionsManager(
+        [
+          {
+            condition: 'or' as const,
+            conditions: [
+              {
+                condition: 'fullscreen' as const,
+                fullscreen: true,
+              },
+              {
+                condition: 'expand' as const,
+                expand: true,
+              },
+            ],
+          },
+        ],
+        stateManager,
+      );
+
+      expect(manager.getEvaluation().result).toBeFalsy();
+      stateManager.setState({ fullscreen: true });
+      expect(manager.getEvaluation().result).toBeTruthy();
+      stateManager.setState({ expand: true });
+      expect(manager.getEvaluation().result).toBeTruthy();
+      stateManager.setState({ fullscreen: false });
+      expect(manager.getEvaluation().result).toBeTruthy();
+      stateManager.setState({ expand: false });
+      expect(manager.getEvaluation().result).toBeFalsy();
+    });
+
+    it('with triggered OR condition', () => {
+      const stateManager = new ConditionStateManager();
+
+      // This is not a terribly realistic example, but chosen so that trigger
+      // data for both camera and view should be returned.
+      const manager = new ConditionsManager(
+        [
+          {
+            condition: 'or' as const,
+            conditions: [
+              { condition: 'camera' as const },
+              { condition: 'view' as const },
+            ],
+          },
+        ],
+        stateManager,
+      );
+
+      expect(manager.getEvaluation().result).toBeFalsy();
+
+      stateManager.setState({ camera: 'camera-1' });
+      expect(manager.getEvaluation().result).toBeTruthy();
+      expect(manager.getEvaluation().triggerData).toEqual({
+        camera: { to: 'camera-1' },
+      });
+
+      stateManager.setState({ view: 'view-1' });
+      expect(manager.getEvaluation().result).toBeTruthy();
+      expect(manager.getEvaluation().triggerData).toEqual({
+        view: { to: 'view-1' },
+      });
+
+      stateManager.setState({ camera: 'camera-2', view: 'view-2' });
+      expect(manager.getEvaluation().result).toBeTruthy();
+      expect(manager.getEvaluation().triggerData).toEqual({
+        camera: { to: 'camera-2', from: 'camera-1' },
+
+        // View data will not be here as the view condition is not evaluated,
+        // since the camera one will evaluate to true first.
+      });
+    });
+
+    it('with simple AND condition', () => {
+      const stateManager = new ConditionStateManager();
+      const manager = new ConditionsManager(
+        [
+          {
+            condition: 'and' as const,
+            conditions: [
+              {
+                condition: 'fullscreen' as const,
+                fullscreen: true,
+              },
+              {
+                condition: 'expand' as const,
+                expand: true,
+              },
+            ],
+          },
+        ],
+        stateManager,
+      );
+
+      expect(manager.getEvaluation().result).toBeFalsy();
+      stateManager.setState({ fullscreen: true });
+      expect(manager.getEvaluation().result).toBeFalsy();
+      stateManager.setState({ expand: true });
+      expect(manager.getEvaluation().result).toBeTruthy();
+      stateManager.setState({ fullscreen: false });
+      expect(manager.getEvaluation().result).toBeFalsy();
+      stateManager.setState({ expand: false });
+      expect(manager.getEvaluation().result).toBeFalsy();
+    });
+
+    it('with triggered AND condition', () => {
+      const stateManager = new ConditionStateManager();
+
+      // This is not a terribly realistic example, but chosen so that trigger
+      // data for both camera and view should be returned.
+      const manager = new ConditionsManager(
+        [
+          {
+            condition: 'and' as const,
+            conditions: [
+              { condition: 'camera' as const },
+              { condition: 'view' as const },
+            ],
+          },
+        ],
+        stateManager,
+      );
+
+      expect(manager.getEvaluation().result).toBeFalsy();
+
+      stateManager.setState({ camera: 'camera-1' });
+      expect(manager.getEvaluation().result).toBeFalsy();
+
+      stateManager.setState({ view: 'view-1' });
+      expect(manager.getEvaluation().result).toBeFalsy();
+
+      stateManager.setState({ camera: 'camera-2', view: 'view-2' });
+      expect(manager.getEvaluation().result).toBeTruthy();
+      expect(manager.getEvaluation().triggerData).toEqual({
+        camera: { from: 'camera-1', to: 'camera-2' },
+        view: { from: 'view-1', to: 'view-2' },
+      });
+
+      stateManager.setState({ view: 'view-3' });
+      expect(manager.getEvaluation().result).toBeFalsy();
+    });
+
+    it('with not condition', () => {
+      const stateManager = new ConditionStateManager();
+      const manager = new ConditionsManager(
+        [
+          {
+            condition: 'not' as const,
+            conditions: [
+              {
+                condition: 'fullscreen' as const,
+                fullscreen: true,
+              },
+              {
+                condition: 'expand' as const,
+                expand: true,
+              },
+            ],
+          },
+        ],
+        stateManager,
+      );
+
+      expect(manager.getEvaluation().result).toBeTruthy();
+
+      stateManager.setState({ fullscreen: true });
+      expect(manager.getEvaluation().result).toBeTruthy();
+
+      stateManager.setState({ expand: true });
+      expect(manager.getEvaluation().result).toBeFalsy();
+
+      stateManager.setState({ fullscreen: false });
+      expect(manager.getEvaluation().result).toBeTruthy();
+
+      stateManager.setState({ expand: false });
+      expect(manager.getEvaluation().result).toBeTruthy();
+
+      // `not` conditions never have trigger data (as nothing is triggering).
+      expect(manager.getEvaluation().triggerData).toEqual({});
+    });
   });
 
   describe('should handle listeners correctly', () => {

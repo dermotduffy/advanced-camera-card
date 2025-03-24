@@ -22,7 +22,6 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
 
   protected _listeners: ConditionsListener[] = [];
   protected _mediaQueries: MediaQueryList[] = [];
-  protected _hasHAStateConditions = false;
   protected _evaluation: ConditionsEvaluationResult = { result: false };
 
   constructor(
@@ -30,13 +29,6 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
     stateManager?: ConditionStateManagerReadonlyInterface | null,
   ) {
     this._conditions = conditions;
-
-    this._hasHAStateConditions = conditions.some(
-      (condition) =>
-        !condition.condition ||
-        ['state', 'numeric_state', 'user'].includes(condition.condition),
-    );
-
     conditions.forEach((condition) => {
       if (condition.condition === 'screen') {
         const mql = window.matchMedia(condition.media_query);
@@ -82,17 +74,6 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
   protected _mediaQueryHandler = () => this._evaluate();
 
   protected _stateManagerHandler = (stateChange: ConditionStateChange): void => {
-    // As a performance optmization, if only Home Assistant state has changed
-    // (very frequent), and there aren't any related conditions, don't bother
-    // calling for the evealuation / listeners.
-    if (
-      Object.keys(stateChange.change).length === 1 &&
-      'state' in stateChange.change &&
-      !this._hasHAStateConditions
-    ) {
-      return;
-    }
-
     this._evaluate({ stateChange });
   };
 
@@ -324,6 +305,42 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
       }
       case 'initialized':
         return { result: !!newState?.initialized };
+      case 'or':
+        for (const subCondition of condition.conditions) {
+          const evaluation = this._evaluateCondition(subCondition, newState, oldState);
+          if (evaluation.result) {
+            return evaluation;
+          }
+        }
+        return { result: false };
+      case 'and': {
+        let triggerData: ConditionsTriggerData = {};
+        for (const subCondition of condition.conditions) {
+          const evaluation = this._evaluateCondition(subCondition, newState, oldState);
+          if (!evaluation.result) {
+            return { result: false };
+          }
+          triggerData = {
+            ...triggerData,
+            ...evaluation.triggerData,
+          };
+        }
+        return { result: true, triggerData };
+      }
+      case 'not': {
+        // "Not" is just an inversed `and`. There is no trigger data for "not
+        // triggering".
+        return {
+          result: !this._evaluateCondition(
+            {
+              ...condition,
+              condition: 'and',
+            },
+            newState,
+            oldState,
+          ).result,
+        };
+      }
     }
   }
 }

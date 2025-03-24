@@ -50,6 +50,9 @@ Trigger template values must be proceeded by `advanced_camera_card.trigger` (or
 conditions](../conditions.md?id=state), only data from the last listed state
 condition is available.
 
+!> If you use an [`or`](../conditions.md?id=or) condition, only the trigger data
+for the first matching trigger will be included.
+
 Please [request](https://github.com/dermotduffy/advanced-camera-card/issues) if
 you need data from additional conditions.
 
