@@ -1,9 +1,9 @@
 import { fireAdvancedCameraCardEvent } from '../../../utils/fire-advanced-camera-card-event';
-import { ActionExecutionRequest } from '../types';
+import { ActionsExecutionRequest } from '../types';
 
 export const dispatchActionExecutionRequest = (
   element: HTMLElement,
-  request: ActionExecutionRequest,
+  request: ActionsExecutionRequest,
 ) => {
   fireAdvancedCameraCardEvent(element, 'action:execution-request', request);
 };
@@ -13,7 +13,7 @@ export interface ActionExecutionRequestEventTarget extends EventTarget {
     event: 'advanced-camera-card:action:execution-request',
     listener: (
       this: ActionExecutionRequestEventTarget,
-      ev: CustomEvent<ActionExecutionRequest>,
+      ev: CustomEvent<ActionsExecutionRequest>,
     ) => void,
     options?: AddEventListenerOptions | boolean,
   ): void;
@@ -26,7 +26,7 @@ export interface ActionExecutionRequestEventTarget extends EventTarget {
     event: 'advanced-camera-card:action:execution-request',
     listener: (
       this: ActionExecutionRequestEventTarget,
-      ev: CustomEvent<ActionExecutionRequest>,
+      ev: CustomEvent<ActionsExecutionRequest>,
     ) => void,
     options?: boolean | EventListenerOptions,
   ): void;

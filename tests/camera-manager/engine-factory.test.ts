@@ -8,10 +8,7 @@ import { ReolinkCameraManagerEngine } from '../../src/camera-manager/reolink/eng
 import { Engine } from '../../src/camera-manager/types.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { CardWideConfig } from '../../src/config/schema/types.js';
-import {
-  createEntityRegistryCache,
-  EntityRegistryManager,
-} from '../../src/utils/ha/registry/entity/index.js';
+import { EntityRegistryManager } from '../../src/utils/ha/registry/entity/types.js';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';
 import {
   createCameraConfig,
@@ -19,6 +16,7 @@ import {
   createRegistryEntity,
   createStateEntity,
 } from '../test-utils';
+import { EntityRegistryManagerMock } from '../utils/ha/registry/entity/mock.js';
 
 vi.mock('../../src/utils/ha/entity-registry');
 vi.mock('../../src/utils/ha/entity-registry/cache');
@@ -28,8 +26,7 @@ const createFactory = (options?: {
   cardWideConfig?: CardWideConfig;
 }): CameraManagerEngineFactory => {
   return new CameraManagerEngineFactory(
-    options?.entityRegistryManager ??
-      new EntityRegistryManager(createEntityRegistryCache()),
+    options?.entityRegistryManager ?? new EntityRegistryManagerMock(),
   );
 };
 
@@ -44,15 +41,9 @@ describe('getEngineForCamera()', () => {
 
     it('from auto detection', async () => {
       const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
-      const entityRegistryManager = new EntityRegistryManager(
-        createEntityRegistryCache(),
-      );
-
-      entityRegistryManager.getEntity = vi
-        .fn()
-        .mockResolvedValue(
-          createRegistryEntity({ entity_id: 'camera.foo', platform: 'frigate' }),
-        );
+      const entityRegistryManager = new EntityRegistryManagerMock([
+        createRegistryEntity({ entity_id: 'camera.foo', platform: 'frigate' }),
+      ]);
 
       expect(
         await createFactory({
@@ -81,15 +72,9 @@ describe('getEngineForCamera()', () => {
 
     it('from auto detection', async () => {
       const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
-      const entityRegistryManager = new EntityRegistryManager(
-        createEntityRegistryCache(),
-      );
-
-      entityRegistryManager.getEntity = vi
-        .fn()
-        .mockResolvedValue(
-          createRegistryEntity({ entity_id: 'camera.foo', platform: 'motioneye' }),
-        );
+      const entityRegistryManager = new EntityRegistryManagerMock([
+        createRegistryEntity({ entity_id: 'camera.foo', platform: 'motioneye' }),
+      ]);
 
       expect(
         await createFactory({
@@ -109,15 +94,9 @@ describe('getEngineForCamera()', () => {
 
     it('from auto detection', async () => {
       const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
-      const entityRegistryManager = new EntityRegistryManager(
-        createEntityRegistryCache(),
-      );
-
-      entityRegistryManager.getEntity = vi
-        .fn()
-        .mockResolvedValue(
-          createRegistryEntity({ entity_id: 'camera.foo', platform: 'reolink' }),
-        );
+      const entityRegistryManager = new EntityRegistryManagerMock([
+        createRegistryEntity({ entity_id: 'camera.foo', platform: 'reolink' }),
+      ]);
 
       expect(
         await createFactory({
@@ -137,15 +116,9 @@ describe('getEngineForCamera()', () => {
 
     it('from auto detection', async () => {
       const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
-      const entityRegistryManager = new EntityRegistryManager(
-        createEntityRegistryCache(),
-      );
-
-      entityRegistryManager.getEntity = vi
-        .fn()
-        .mockResolvedValue(
-          createRegistryEntity({ entity_id: 'camera.foo', platform: 'generic' }),
-        );
+      const entityRegistryManager = new EntityRegistryManagerMock([
+        createRegistryEntity({ entity_id: 'camera.foo', platform: 'generic' }),
+      ]);
 
       expect(
         await createFactory({
@@ -159,11 +132,7 @@ describe('getEngineForCamera()', () => {
         engine: 'auto',
         webrtc_card: { entity: 'camera.foo' },
       });
-      const entityRegistryManager = new EntityRegistryManager(
-        createEntityRegistryCache(),
-      );
-
-      entityRegistryManager.getEntity = vi.fn().mockResolvedValue(null);
+      const entityRegistryManager = new EntityRegistryManagerMock();
 
       expect(
         await createFactory({
@@ -182,10 +151,7 @@ describe('getEngineForCamera()', () => {
         engine: 'auto',
         webrtc_card: { entity: 'camera.foo' },
       });
-      const entityRegistryManager = new EntityRegistryManager(
-        createEntityRegistryCache(),
-      );
-      entityRegistryManager.getEntity = vi.fn().mockResolvedValue(null);
+      const entityRegistryManager = new EntityRegistryManagerMock();
 
       expect(
         async () =>
@@ -225,9 +191,8 @@ describe('getEngineForCamera()', () => {
 
   it('should throw error on invalid entity', async () => {
     const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
-    const entityRegistryManager = new EntityRegistryManager(createEntityRegistryCache());
-
-    entityRegistryManager.getEntity = vi.fn().mockRejectedValue(new Error());
+    const entityRegistryManager = mock<EntityRegistryManager>();
+    entityRegistryManager.getEntity.mockRejectedValue(new Error());
 
     await expect(
       createFactory({

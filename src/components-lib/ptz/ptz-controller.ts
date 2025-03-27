@@ -63,7 +63,7 @@ export class PTZController {
     const action = getActionConfigGivenAction(interaction, config);
     if (action) {
       dispatchActionExecutionRequest(this._host, {
-        action: action,
+        actions: action,
         ...(config && { config: config }),
       });
     }

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   createEntityRegistryCache,
-  EntityRegistryManager,
+  EntityRegistryManagerLive,
 } from '../../../../../src/utils/ha/registry/entity';
 import { homeAssistantWSRequest } from '../../../../../src/utils/ha/ws-request';
 import { createHASS, createRegistryEntity } from '../../../../test-utils.js';
@@ -21,7 +21,7 @@ describe('EntityRegistryManager', () => {
 
       cache.add(testEntity);
 
-      const manager = new EntityRegistryManager(cache);
+      const manager = new EntityRegistryManagerLive(cache);
       expect(await manager.getEntity(createHASS(), 'test')).toEqual(testEntity);
 
       expect(homeAssistantWSRequest).not.toHaveBeenCalled();
@@ -30,7 +30,7 @@ describe('EntityRegistryManager', () => {
     it('should fetch and cache when not cached', async () => {
       const testEntity = createRegistryEntity({ entity_id: 'test' });
 
-      const manager = new EntityRegistryManager(createEntityRegistryCache());
+      const manager = new EntityRegistryManagerLive(createEntityRegistryCache());
       vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce(testEntity);
 
       expect(await manager.getEntity(createHASS(), 'test')).toEqual(testEntity);
@@ -43,7 +43,7 @@ describe('EntityRegistryManager', () => {
     it('should return null when entity does not exist', async () => {
       vi.mocked(homeAssistantWSRequest).mockRejectedValueOnce(new Error('Not found'));
 
-      const manager = new EntityRegistryManager(createEntityRegistryCache());
+      const manager = new EntityRegistryManagerLive(createEntityRegistryCache());
       expect(await manager.getEntity(createHASS(), 'missing')).toBeNull();
 
       vi.mocked(expect(console.warn)).toBeCalledWith('Not found');
@@ -57,7 +57,7 @@ describe('EntityRegistryManager', () => {
     const cache = createEntityRegistryCache();
     cache.add(cachedEntity);
 
-    const manager = new EntityRegistryManager(cache);
+    const manager = new EntityRegistryManagerLive(cache);
     vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce(notCachedEntity);
     vi.mocked(homeAssistantWSRequest).mockRejectedValueOnce(new Error('Not found'));
 
@@ -79,7 +79,7 @@ describe('EntityRegistryManager', () => {
       const entity = createRegistryEntity({ entity_id: 'cached' });
       vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce([entity]);
 
-      const manager = new EntityRegistryManager(createEntityRegistryCache());
+      const manager = new EntityRegistryManagerLive(createEntityRegistryCache());
 
       await manager.fetchEntityList(hass);
 
@@ -103,7 +103,7 @@ describe('EntityRegistryManager', () => {
       const hass = createHASS();
       vi.mocked(homeAssistantWSRequest).mockRejectedValueOnce(new Error('Fetch error'));
 
-      const manager = new EntityRegistryManager(createEntityRegistryCache());
+      const manager = new EntityRegistryManagerLive(createEntityRegistryCache());
 
       await manager.fetchEntityList(hass);
 
@@ -121,7 +121,7 @@ describe('EntityRegistryManager', () => {
       notMatchingEntity,
     ]);
 
-    const manager = new EntityRegistryManager(createEntityRegistryCache());
+    const manager = new EntityRegistryManagerLive(createEntityRegistryCache());
     expect(
       await manager.getMatchingEntities(
         hass,

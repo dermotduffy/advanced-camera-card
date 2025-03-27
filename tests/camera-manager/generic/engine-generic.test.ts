@@ -331,10 +331,4 @@ describe('GenericCameraManagerEngine', () => {
       });
     });
   });
-
-  it('should execute PTZ action', () => {
-    const hass = createHASS();
-    createEngine().executePTZAction(hass, createCameraConfig(), 'left');
-    expect(hass.callService).not.toBeCalled();
-  });
 });

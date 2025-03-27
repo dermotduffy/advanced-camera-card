@@ -15,7 +15,7 @@ import menuButtonStyle from '../../scss/menu-button.scss';
 import { Icon } from '../../types.js';
 import { getEntityTitle, isHassDifferent } from '../../utils/ha';
 import { getEntityStateTranslation } from '../../utils/ha/entity-state-translation.js';
-import { EntityRegistryManager } from '../../utils/ha/registry/entity/index.js';
+import { EntityRegistryManager } from '../../utils/ha/registry/entity/types.js';
 import '../icon.js';
 import './index.js';
 

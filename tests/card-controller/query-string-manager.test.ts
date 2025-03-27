@@ -77,13 +77,15 @@ describe('QueryStringManager', () => {
       expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
       await manager.executeIfNecessary();
 
-      expect(api.getActionsManager().executeActions).toBeCalledWith([
-        {
-          action: 'fire-dom-event',
-          card_id: 'id',
-          advanced_camera_card_action: action,
-        },
-      ]);
+      expect(api.getActionsManager().executeActions).toBeCalledWith({
+        actions: [
+          {
+            action: 'fire-dom-event',
+            card_id: 'id',
+            advanced_camera_card_action: action,
+          },
+        ],
+      });
     });
   });
 

@@ -29,7 +29,7 @@ import {
   BrowseMedia,
   browseMediaSchema,
 } from '../../../src/utils/ha/browse-media/types';
-import { EntityRegistryManager } from '../../../src/utils/ha/registry/entity';
+import { EntityRegistryManager } from '../../../src/utils/ha/registry/entity/types';
 import { ResolvedMediaCache } from '../../../src/utils/ha/resolved-media';
 import { homeAssistantWSRequest } from '../../../src/utils/ha/ws-request';
 import {
@@ -39,6 +39,7 @@ import {
   createRegistryEntity,
   createStore,
 } from '../../test-utils';
+import { EntityRegistryManagerMock } from '../../utils/ha/registry/entity/mock';
 
 vi.mock('../../../src/utils/ha/ws-request');
 
@@ -184,7 +185,7 @@ const createEngine = (options?: {
   entityRegistryManager?: EntityRegistryManager;
 }): ReolinkCameraManagerEngine => {
   return new ReolinkCameraManagerEngine(
-    options?.entityRegistryManager ?? mock<EntityRegistryManager>(),
+    options?.entityRegistryManager ?? new EntityRegistryManagerMock(),
     mock<StateWatcher>(),
     options?.browseMediaManager ?? new BrowseMediaManager(),
     new ResolvedMediaCache(),
@@ -192,15 +193,15 @@ const createEngine = (options?: {
   );
 };
 
-const createPopulatedEngine = (): ReolinkCameraManagerEngine => {
-  const entityRegistryManager = mock<EntityRegistryManager>();
-  const entity = createRegistryEntity({
-    unique_id: '85270002TS7D4RUP_0_main',
-    platform: 'reolink',
-    config_entry_id: '01J8XHYTNH77WE3C654K03KX1F',
-  });
-  vi.mocked(entityRegistryManager.getEntity).mockResolvedValue(entity);
+const cameraEntity = createRegistryEntity({
+  entity_id: 'camera.office',
+  unique_id: '85270002TS7D4RUP_0_main',
+  platform: 'reolink',
+  config_entry_id: '01J8XHYTNH77WE3C654K03KX1F',
+});
 
+const createPopulatedEngine = (): ReolinkCameraManagerEngine => {
+  const entityRegistryManager = new EntityRegistryManagerMock([cameraEntity]);
   return createEngine({ entityRegistryManager });
 };
 
@@ -243,14 +244,7 @@ describe('ReolinkCameraManagerEngine', () => {
   });
 
   it('should create camera', async () => {
-    const entityRegistryManager = mock<EntityRegistryManager>();
-    const entity = createRegistryEntity({
-      unique_id: '85270002TS7D4RUP_0_main',
-      platform: 'reolink',
-    });
-    vi.mocked(entityRegistryManager.getEntity).mockResolvedValue(entity);
-
-    const engine = createEngine({ entityRegistryManager });
+    const engine = createPopulatedEngine();
     const config = createCameraConfig({
       camera_entity: 'camera.office',
       unique_id: 'office',
@@ -589,15 +583,15 @@ describe('ReolinkCameraManagerEngine', () => {
 
     describe('should ignore invalid cameras', () => {
       it('camera without a config entry id', async () => {
-        const entityRegistryManager = mock<EntityRegistryManager>();
         const entity = createRegistryEntity({
+          entity_id: 'camera.office',
           unique_id: '85270002TS7D4RUP_0_main',
           platform: 'reolink',
 
           // Cannot fetch events without a config_entry_id.
           config_entry_id: null,
         });
-        vi.mocked(entityRegistryManager.getEntity).mockResolvedValue(entity);
+        const entityRegistryManager = new EntityRegistryManagerMock([entity]);
 
         const engine = createEngine({ entityRegistryManager });
         const store = await createStoreWithReolinkCamera(engine);
@@ -1098,15 +1092,15 @@ describe('ReolinkCameraManagerEngine', () => {
 
     describe('should ignore invalid cameras', () => {
       it('should get no metdata for camera without a config entry id', async () => {
-        const entityRegistryManager = mock<EntityRegistryManager>();
         const entity = createRegistryEntity({
+          entity_id: 'camera.office',
           unique_id: '85270002TS7D4RUP_0_main',
           platform: 'reolink',
 
           // Cannot fetch events without a config_entry_id.
           config_entry_id: null,
         });
-        vi.mocked(entityRegistryManager.getEntity).mockResolvedValue(entity);
+        const entityRegistryManager = new EntityRegistryManagerMock([entity]);
 
         const engine = createEngine({ entityRegistryManager });
         const store = await createStoreWithReolinkCamera(engine);

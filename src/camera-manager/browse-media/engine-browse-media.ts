@@ -4,7 +4,7 @@ import { HomeAssistant } from '../../ha/types';
 import { canonicalizeHAURL } from '../../utils/ha';
 import { BrowseMediaManager } from '../../utils/ha/browse-media/browse-media-manager';
 import { BROWSE_MEDIA_CACHE_SECONDS } from '../../utils/ha/browse-media/types';
-import { EntityRegistryManager } from '../../utils/ha/registry/entity';
+import { EntityRegistryManager } from '../../utils/ha/registry/entity/types';
 import { ResolvedMediaCache, resolveMedia } from '../../utils/ha/resolved-media';
 import { ViewMedia } from '../../view/media';
 import { RequestCache } from '../cache';

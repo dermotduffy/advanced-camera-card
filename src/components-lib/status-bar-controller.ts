@@ -86,7 +86,7 @@ export class StatusBarController {
     }
 
     dispatchActionExecutionRequest(this._host, {
-      action: arrayify(action),
+      actions: arrayify(action),
       config: config,
     });
   }

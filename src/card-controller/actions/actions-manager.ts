@@ -1,11 +1,9 @@
 import { ActionContext } from 'action';
 import { z } from 'zod';
-import { ConditionsTriggerData } from '../../conditions/types.js';
 import {
   ActionConfig,
   Actions,
   ActionsConfig,
-  AuxillaryActionConfig,
 } from '../../config/schema/actions/types.js';
 import { forwardHaptic } from '../../ha/haptic.js';
 import {
@@ -16,7 +14,7 @@ import { allPromises } from '../../utils/basic.js';
 import { TemplateRenderer } from '../templates/index.js';
 import { CardActionsManagerAPI } from '../types.js';
 import { ActionSet } from './actions/set.js';
-import { ActionExecutionRequest } from './types.js';
+import { ActionsExecutionRequest, ActionsExecutor } from './types.js';
 
 const INTERACTIONS = ['tap', 'double_tap', 'hold', 'start_tap', 'end_tap'] as const;
 export type InteractionName = (typeof INTERACTIONS)[number];
@@ -30,7 +28,7 @@ const interactionEventSchema = z.object({
   detail: interactionSchema,
 });
 
-export class ActionsManager {
+export class ActionsManager implements ActionsExecutor {
   protected _api: CardActionsManagerAPI;
   protected _actionsInFlight: ActionSet[] = [];
   protected _actionContext: ActionContext = {};
@@ -86,7 +84,7 @@ export class ActionsManager {
       // actions).
       actionConfig
     ) {
-      await this.executeActions(actionConfig, { config });
+      await this.executeActions({ actions: actionConfig, config });
     }
   };
 
@@ -113,7 +111,7 @@ export class ActionsManager {
       return;
     }
 
-    await this.executeActions(action);
+    await this.executeActions({ actions: action });
   };
 
   /**
@@ -121,11 +119,9 @@ export class ActionsManager {
    * Card itself (e.g. menu, PTZ controller).
    */
   public handleActionExecutionRequestEvent = async (
-    ev: CustomEvent<ActionExecutionRequest>,
+    ev: CustomEvent<ActionsExecutionRequest>,
   ): Promise<void> => {
-    await this.executeActions(ev.detail.action, {
-      config: ev.detail.config,
-    });
+    await this.executeActions(ev.detail);
   };
 
   public async uninitialize(): Promise<void> {
@@ -133,24 +129,18 @@ export class ActionsManager {
     await allPromises(this._actionsInFlight, (actionSet) => actionSet.stop());
   }
 
-  public async executeActions(
-    action: ActionConfig | ActionConfig[],
-    options?: {
-      config?: AuxillaryActionConfig;
-      triggerData?: ConditionsTriggerData;
-    },
-  ): Promise<void> {
+  public async executeActions(request: ActionsExecutionRequest): Promise<void> {
     const hass = this._api.getHASSManager().getHASS();
     const renderedAction: ActionConfig | ActionConfig[] =
       hass && this._templateRenderer
-        ? (this._templateRenderer.renderRecursively(hass, action, {
+        ? (this._templateRenderer.renderRecursively(hass, request.actions, {
             conditionState: this._api.getConditionStateManager().getState(),
-            triggerData: options?.triggerData,
+            triggerData: request?.triggerData,
           }) as ActionConfig | ActionConfig[])
-        : action;
+        : request.actions;
 
     const actionSet = new ActionSet(this._actionContext, renderedAction, {
-      config: options?.config,
+      config: request.config,
       cardID: this._api.getConfigManager().getConfig()?.card_id,
     });
 

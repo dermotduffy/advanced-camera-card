@@ -9,8 +9,9 @@ import {
 } from '../utils/ha/registry/device';
 import {
   createEntityRegistryCache,
-  EntityRegistryManager,
+  EntityRegistryManagerLive,
 } from '../utils/ha/registry/entity';
+import { EntityRegistryManager } from '../utils/ha/registry/entity/types';
 import { ResolvedMediaCache } from '../utils/ha/resolved-media';
 import { ActionsManager } from './actions/actions-manager';
 import { AutomationsManager } from './automations-manager';
@@ -100,7 +101,7 @@ export class CardController
   protected _deviceRegistryManager = new DeviceRegistryManager(
     createDeviceRegistryCache(),
   );
-  protected _entityRegistryManager = new EntityRegistryManager(
+  protected _entityRegistryManager = new EntityRegistryManagerLive(
     createEntityRegistryCache(),
   );
   protected _resolvedMediaCache = new ResolvedMediaCache();

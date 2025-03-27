@@ -7,7 +7,7 @@ import {
   MEDIA_PLAYER_SUPPORT_TURN_OFF,
 } from '../../src/const';
 import { HomeAssistant } from '../../src/ha/types.js';
-import { EntityRegistryManager } from '../../src/utils/ha/registry/entity/index.js';
+import { EntityRegistryManager } from '../../src/utils/ha/registry/entity/types.js';
 import {
   createCameraConfig,
   createCameraManager,
@@ -19,6 +19,7 @@ import {
   createStore,
   TestViewMedia,
 } from '../test-utils.js';
+import { EntityRegistryManagerMock } from '../utils/ha/registry/entity/mock.js';
 
 const createHASSWithMediaPlayers = (): HomeAssistant => {
   const attributesSupported = {
@@ -68,13 +69,16 @@ describe('MediaPlayerManager', () => {
 
   describe('should initialize', () => {
     it('correctly', async () => {
-      const entityRegistryManager = mock<EntityRegistryManager>();
-      entityRegistryManager.getEntities.mockResolvedValue(
-        new Map([
-          ['media_player.ok1', createRegistryEntity({ hidden_by: '' })],
-          ['media_player.ok2', createRegistryEntity({ hidden_by: 'user' })],
-        ]),
-      );
+      const entityRegistryManager = new EntityRegistryManagerMock([
+        createRegistryEntity({
+          entity_id: 'media_player.ok1',
+          hidden_by: '',
+        }),
+        createRegistryEntity({
+          entity_id: 'media_player.ok2',
+          hidden_by: 'user',
+        }),
+      ]);
 
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
@@ -150,13 +154,16 @@ describe('MediaPlayerManager', () => {
     });
 
     it('should reinitialize when there is a config change', async () => {
-      const entityRegistryManager = mock<EntityRegistryManager>();
-      entityRegistryManager.getEntities.mockResolvedValue(
-        new Map([
-          ['media_player.ok1', createRegistryEntity({ hidden_by: '' })],
-          ['media_player.ok2', createRegistryEntity({ hidden_by: 'user' })],
-        ]),
-      );
+      const entityRegistryManager = new EntityRegistryManagerMock([
+        createRegistryEntity({
+          entity_id: 'media_player.ok1',
+          hidden_by: '',
+        }),
+        createRegistryEntity({
+          entity_id: 'media_player.ok2',
+          hidden_by: 'user',
+        }),
+      ]);
 
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(

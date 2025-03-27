@@ -6,6 +6,7 @@ import {
   PTZControlsConfig,
   ptzControlsConfigSchema,
 } from '../../../src/config/schema/common/controls/ptz';
+import { PTZMovementType } from '../../../src/types';
 import { createCameraManager, createCapabilities, createStore } from '../../test-utils';
 
 const createConfig = (config?: Partial<PTZControlsConfig>): PTZControlsConfig => {
@@ -122,14 +123,14 @@ describe('PTZController', () => {
       const store = createStore([
         {
           cameraID: 'camera.office',
-          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+          capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
         },
       ]);
       const cameraManager = createCameraManager(store);
       vi.mocked(cameraManager).getCameraCapabilities.mockReturnValue(
         createCapabilities({
           ptz: {
-            left: ['relative'],
+            left: [PTZMovementType.Relative],
           },
         }),
       );
@@ -158,12 +159,12 @@ describe('PTZController', () => {
           cameraID: 'camera.office',
           capabilities: new Capabilities({
             ptz: {
-              left: ['relative'],
-              right: ['relative'],
-              up: ['relative'],
-              down: ['relative'],
-              zoomIn: ['relative'],
-              zoomOut: ['relative'],
+              left: [PTZMovementType.Relative],
+              right: [PTZMovementType.Relative],
+              up: [PTZMovementType.Relative],
+              down: [PTZMovementType.Relative],
+              zoomIn: [PTZMovementType.Relative],
+              zoomOut: [PTZMovementType.Relative],
             },
           }),
         },
@@ -197,12 +198,12 @@ describe('PTZController', () => {
           cameraID: 'camera.office',
           capabilities: new Capabilities({
             ptz: {
-              left: ['relative'],
-              right: ['relative'],
-              up: ['relative'],
-              down: ['relative'],
-              zoomIn: ['relative'],
-              zoomOut: ['relative'],
+              left: [PTZMovementType.Relative],
+              right: [PTZMovementType.Relative],
+              up: [PTZMovementType.Relative],
+              down: [PTZMovementType.Relative],
+              zoomIn: [PTZMovementType.Relative],
+              zoomOut: [PTZMovementType.Relative],
               presets: ['door', 'window'],
             },
           }),
@@ -387,7 +388,7 @@ describe('PTZController', () => {
       expect(handler).toBeCalledWith(
         expect.objectContaining({
           detail: {
-            action: action,
+            actions: action,
             config: config,
           },
         }),

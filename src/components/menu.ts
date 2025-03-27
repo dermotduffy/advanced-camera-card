@@ -9,7 +9,7 @@ import { HomeAssistant } from '../ha/types.js';
 import menuStyle from '../scss/menu.scss';
 import { hasAction } from '../utils/action.js';
 import { getEntityTitle } from '../utils/ha/index.js';
-import { EntityRegistryManager } from '../utils/ha/registry/entity/index.js';
+import { EntityRegistryManager } from '../utils/ha/registry/entity/types.js';
 import './icon.js';
 import './submenu/select-button.js';
 import './submenu/submenu-button';

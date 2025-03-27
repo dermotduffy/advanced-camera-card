@@ -48,8 +48,8 @@ export const getConfiguredPTZMovementType = (
 
   return continuous || relative
     ? [
-        ...(continuous ? ['continuous' as const] : []),
-        ...(relative ? ['relative' as const] : []),
+        ...(continuous ? [PTZMovementType.Continuous] : []),
+        ...(relative ? [PTZMovementType.Relative] : []),
       ]
     : null;
 };

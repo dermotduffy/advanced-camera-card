@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { HomeAssistant } from '../../../../ha/types';
 
 export const entitySchema = z.object({
   config_entry_id: z.string().nullable(),
@@ -17,3 +18,13 @@ export type Entity = z.infer<typeof entitySchema>;
 
 export const entityListSchema = entitySchema.array();
 export type EntityList = z.infer<typeof entityListSchema>;
+
+export interface EntityRegistryManager {
+  getEntity(hass: HomeAssistant, entityID: string): Promise<Entity | null>;
+  getEntities(hass: HomeAssistant, entityIDs: string[]): Promise<Map<string, Entity>>;
+  getMatchingEntities(
+    hass: HomeAssistant,
+    func: (arg: Entity) => boolean,
+  ): Promise<Entity[]>;
+  fetchEntityList(hass: HomeAssistant): Promise<void>;
+}

@@ -1,5 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { Capabilities } from '../../../../src/camera-manager/capabilities';
 import { PTZAction } from '../../../../src/card-controller/actions/actions/ptz';
+import { PTZMovementType } from '../../../../src/types';
 import {
   createCameraConfig,
   createCameraManager,
@@ -7,7 +9,6 @@ import {
   createStore,
   createView,
 } from '../../../test-utils';
-import { Capabilities } from '../../../../src/camera-manager/capabilities';
 
 describe('should handle ptz action', () => {
   it('should execute simple action', async () => {
@@ -20,7 +21,7 @@ describe('should handle ptz action', () => {
     const store = createStore([
       {
         cameraID: 'camera.office',
-        capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+        capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
       },
     ]);
     vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
@@ -53,7 +54,7 @@ describe('should handle ptz action', () => {
       const store = createStore([
         {
           cameraID: 'camera.office',
-          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+          capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
         },
       ]);
       vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
@@ -93,7 +94,7 @@ describe('should handle ptz action', () => {
         },
         {
           cameraID: 'camera.office_hd',
-          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+          capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
         },
       ]);
       vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
@@ -210,7 +211,7 @@ describe('should handle ptz action', () => {
           cameraID: 'camera.office',
           capabilities: new Capabilities({
             ptz: {
-              left: ['relative'],
+              left: [PTZMovementType.Relative],
               presets: [],
             },
           }),
@@ -281,7 +282,7 @@ describe('should handle ptz action', () => {
         cameraID: 'camera.office',
         capabilities: new Capabilities({
           ptz: {
-            left: ['continuous'],
+            left: [PTZMovementType.Continuous],
           },
         }),
       },
@@ -329,7 +330,7 @@ describe('should handle ptz action', () => {
           cameraID: 'camera.office',
           capabilities: new Capabilities({
             ptz: {
-              left: ['continuous'],
+              left: [PTZMovementType.Continuous],
             },
           }),
         },
@@ -375,7 +376,7 @@ describe('should handle ptz action', () => {
           cameraID: 'camera.office',
           capabilities: new Capabilities({
             ptz: {
-              left: ['continuous'],
+              left: [PTZMovementType.Continuous],
             },
           }),
         },
@@ -419,7 +420,7 @@ describe('should handle ptz action', () => {
           cameraID: 'camera.office',
           capabilities: new Capabilities({
             ptz: {
-              left: ['relative'],
+              left: [PTZMovementType.Relative],
             },
           }),
         },
@@ -473,7 +474,7 @@ describe('should handle ptz action', () => {
           cameraID: 'camera.office',
           capabilities: new Capabilities({
             ptz: {
-              left: ['relative'],
+              left: [PTZMovementType.Relative],
             },
           }),
         },

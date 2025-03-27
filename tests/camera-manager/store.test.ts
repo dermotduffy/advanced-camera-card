@@ -6,7 +6,7 @@ import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-fact
 import { CameraManagerStore } from '../../src/camera-manager/store.js';
 import { Engine } from '../../src/camera-manager/types.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
-import { EntityRegistryManager } from '../../src/utils/ha/registry/entity/index.js';
+import { EntityRegistryManager } from '../../src/utils/ha/registry/entity/types.js';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media.js';
 import { TestViewMedia, createCameraConfig } from '../test-utils.js';
 

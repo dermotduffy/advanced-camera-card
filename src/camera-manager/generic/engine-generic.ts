@@ -235,16 +235,4 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
         }
       : null;
   }
-
-  public async executePTZAction(
-    _hass: HomeAssistant,
-    _cameraConfig: CameraConfig,
-    _action: PTZAction,
-    _options?: {
-      phase?: PTZActionPhase;
-      preset?: string;
-    },
-  ): Promise<void> {
-    // Pass.
-  }
 }
