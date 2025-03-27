@@ -116,7 +116,7 @@ export class MenuController {
 
     if (toggleLessActions.length) {
       dispatchActionExecutionRequest(this._host, {
-        action: actions,
+        actions: actions,
         config: config,
       });
     }

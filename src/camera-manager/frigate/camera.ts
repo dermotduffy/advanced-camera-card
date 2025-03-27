@@ -1,12 +1,13 @@
 import uniq from 'lodash-es/uniq';
+import { ActionsExecutor } from '../../card-controller/actions/types';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
+import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
 import { CameraConfig } from '../../config/schema/cameras';
 import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import { PTZCapabilities, PTZMovementType } from '../../types';
 import { errorToConsole } from '../../utils/basic';
-import { EntityRegistryManager } from '../../utils/ha/registry/entity';
-import { Entity } from '../../utils/ha/registry/entity/types';
+import { Entity, EntityRegistryManager } from '../../utils/ha/registry/entity/types';
 import { Camera, CameraInitializationOptions } from '../camera';
 import { Capabilities } from '../capabilities';
 import { CameraManagerEngine } from '../engine';
@@ -55,6 +56,55 @@ export class FrigateCamera extends Camera {
     }
 
     return await super.initialize(options);
+  }
+
+  public async executePTZAction(
+    executor: ActionsExecutor,
+    action: PTZAction,
+    options?: {
+      phase?: PTZActionPhase;
+      preset?: string;
+    },
+  ): Promise<boolean> {
+    if (await super.executePTZAction(executor, action, options)) {
+      return true;
+    }
+
+    const cameraEntity = this.getConfig().camera_entity;
+    if ((action === 'preset' && !options?.preset) || !cameraEntity) {
+      return false;
+    }
+
+    // Awkward translation between card action and service parameters:
+    // https://github.com/blakeblackshear/frigate-hass-integration/blob/dev/custom_components/frigate/services.yaml
+    await executor.executeActions({
+      actions: {
+        action: 'perform-action',
+        perform_action: 'frigate.ptz',
+        data: {
+          action:
+            options?.phase === 'stop'
+              ? 'stop'
+              : action === 'zoom_in' || action === 'zoom_out'
+                ? 'zoom'
+                : action === 'preset'
+                  ? 'preset'
+                  : 'move',
+          ...(options?.phase !== 'stop' && {
+            argument:
+              action === 'zoom_in'
+                ? 'in'
+                : action === 'zoom_out'
+                  ? 'out'
+                  : action === 'preset'
+                    ? options?.preset
+                    : action,
+          }),
+        },
+        target: { entity_id: cameraEntity },
+      },
+    });
+    return true;
   }
 
   protected async _initializeConfig(
@@ -194,10 +244,10 @@ export class FrigateCamera extends Camera {
     // Note: The Frigate integration only supports continuous PTZ movements
     // (regardless of the actual underlying camera capability).
     const panTilt: PTZMovementType[] = [
-      ...(ptzInfo.features?.includes('pt') ? ['continuous' as const] : []),
+      ...(ptzInfo.features?.includes('pt') ? [PTZMovementType.Continuous] : []),
     ];
     const zoom: PTZMovementType[] = [
-      ...(ptzInfo.features?.includes('zoom') ? ['continuous' as const] : []),
+      ...(ptzInfo.features?.includes('zoom') ? [PTZMovementType.Continuous] : []),
     ];
     const presets = ptzInfo.presets;
 

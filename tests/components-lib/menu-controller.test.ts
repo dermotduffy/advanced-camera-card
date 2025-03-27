@@ -384,7 +384,7 @@ describe('MenuController', () => {
       controller.handleAction(createInteractionActionEvent('tap'), tapActionConfig);
       expect(handler).toBeCalledWith(
         expect.objectContaining({
-          detail: { action: [action], config: tapActionConfig },
+          detail: { actions: [action], config: tapActionConfig },
         }),
       );
       expect(controller.isExpanded()).toBeFalsy();
@@ -402,7 +402,7 @@ describe('MenuController', () => {
       );
       expect(handler).toBeCalledWith(
         expect.objectContaining({
-          detail: { action: [action], config: tapActionConfig },
+          detail: { actions: [action], config: tapActionConfig },
         }),
       );
     });
@@ -418,7 +418,7 @@ describe('MenuController', () => {
 
       expect(handler).toBeCalledWith(
         expect.objectContaining({
-          detail: { action: [action, action, action], config: tapActionConfigMulti },
+          detail: { actions: [action, action, action], config: tapActionConfigMulti },
         }),
       );
     });

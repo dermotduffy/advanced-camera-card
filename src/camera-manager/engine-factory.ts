@@ -3,7 +3,7 @@ import { CameraConfig } from '../config/schema/cameras';
 import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import { BrowseMediaManager } from '../utils/ha/browse-media/browse-media-manager';
-import { EntityRegistryManager } from '../utils/ha/registry/entity';
+import { EntityRegistryManager } from '../utils/ha/registry/entity/types';
 import { ResolvedMediaCache } from '../utils/ha/resolved-media';
 import { RecordingSegmentsCache, RequestCache } from './cache';
 import { CameraManagerEngine } from './engine';

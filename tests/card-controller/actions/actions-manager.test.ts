@@ -258,7 +258,7 @@ describe('ActionsManager', () => {
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
       await manager.handleActionExecutionRequestEvent(
         new CustomEvent('advanced-camera-card:action:execution-request', {
-          detail: { action: createLogAction('Hello, world!') },
+          detail: { actions: createLogAction('Hello, world!') },
         }),
       );
       expect(consoleSpy).toBeCalled();
@@ -271,7 +271,7 @@ describe('ActionsManager', () => {
       const manager = new ActionsManager(api);
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
-      await manager.executeActions(createLogAction('Hello, world!'));
+      await manager.executeActions({ actions: createLogAction('Hello, world!') });
       expect(consoleSpy).toBeCalled();
     });
 
@@ -280,7 +280,7 @@ describe('ActionsManager', () => {
       const manager = new ActionsManager(api);
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
-      await manager.executeActions(createLogAction('Hello, world!'));
+      await manager.executeActions({ actions: createLogAction('Hello, world!') });
       expect(consoleSpy).toBeCalled();
     });
 
@@ -303,10 +303,7 @@ describe('ActionsManager', () => {
       const config = { entity: 'light.office' };
       const triggerData = { view: { from: 'previous-view', to: 'view' } };
 
-      await manager.executeActions(action, {
-        config,
-        triggerData,
-      });
+      await manager.executeActions({ actions: action, config, triggerData });
 
       expect(templateRenderer.renderRecursively).toBeCalledWith(hass, action, {
         conditionState,
@@ -326,7 +323,7 @@ describe('ActionsManager', () => {
         const api = createCardAPI();
         const manager = new ActionsManager(api);
 
-        await manager.executeActions({ action: 'none' });
+        await manager.executeActions({ actions: { action: 'none' } });
 
         expect(handler).toBeCalledWith(expect.objectContaining({ detail: 'success' }));
       });
@@ -340,7 +337,9 @@ describe('ActionsManager', () => {
 
         vi.stubGlobal('confirm', vi.fn().mockReturnValue(false));
 
-        await manager.executeActions({ action: 'none', confirmation: true });
+        await manager.executeActions({
+          actions: { action: 'none', confirmation: true },
+        });
 
         expect(handler).toBeCalledWith(expect.objectContaining({ detail: 'warning' }));
       });
@@ -360,16 +359,18 @@ describe('ActionsManager', () => {
       const manager = new ActionsManager(api);
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
-      const promise = manager.executeActions([
-        {
-          action: 'fire-dom-event',
-          advanced_camera_card_action: 'sleep',
-          duration: {
-            m: 1,
+      const promise = manager.executeActions({
+        actions: [
+          {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'sleep',
+            duration: {
+              m: 1,
+            },
           },
-        },
-        createLogAction('Hello, world!'),
-      ]);
+          createLogAction('Hello, world!'),
+        ],
+      });
 
       // Stop inflight actions.
       await manager.uninitialize();

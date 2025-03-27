@@ -1,4 +1,6 @@
+import { ActionsExecutor } from '../card-controller/actions/types';
 import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
+import { PTZAction, PTZActionPhase } from '../config/schema/actions/custom/ptz';
 import { CameraConfig } from '../config/schema/cameras';
 import { localize } from '../localize/localize';
 import { HassStateDifference, isTriggeredState } from '../utils/ha';
@@ -6,6 +8,7 @@ import { Capabilities } from './capabilities';
 import { CameraManagerEngine } from './engine';
 import { CameraNoIDError } from './error';
 import { CameraEventCallback, CameraProxyConfig } from './types';
+import { getConfiguredPTZAction } from './utils/ptz';
 
 export interface CameraInitializationOptions {
   stateWatcher: StateWatcherSubscriptionInterface;
@@ -81,6 +84,22 @@ export class Camera {
           ? 'default'
           : this._config.proxy.ssl_ciphers,
     };
+  }
+
+  public async executePTZAction(
+    executor: ActionsExecutor,
+    action: PTZAction,
+    options?: {
+      phase?: PTZActionPhase;
+      preset?: string;
+    },
+  ): Promise<boolean> {
+    const configuredAction = getConfiguredPTZAction(this.getConfig(), action, options);
+    if (configuredAction) {
+      await executor.executeActions({ actions: configuredAction });
+      return true;
+    }
+    return false;
   }
 
   protected _stateChangeHandler = (difference: HassStateDifference): void => {

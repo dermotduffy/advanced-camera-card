@@ -29,6 +29,7 @@ import { sortMedia } from '../../src/camera-manager/utils/sort-media.js';
 import { CardController } from '../../src/card-controller/controller.js';
 import { CameraConfig } from '../../src/config/schema/cameras.js';
 import { HomeAssistant } from '../../src/ha/types.js';
+import { PTZMovementType } from '../../src/types.js';
 import { ViewMedia } from '../../src/view/media.js';
 import {
   TestViewMedia,
@@ -1069,7 +1070,7 @@ describe('CameraManager', async () => {
             snapshots: true,
 
             ptz: {
-              left: ['continuous'],
+              left: [PTZMovementType.Continuous],
             },
           }),
         },
@@ -1098,25 +1099,10 @@ describe('CameraManager', async () => {
 
       manager.executePTZAction('id', 'left', {});
 
-      expect(engine.executePTZAction).not.toBeCalled();
+      // No visible action.
     });
 
-    it('without hass', async () => {
-      const api = createCardAPI();
-      const engine = mock<CameraManagerEngine>();
-      const manager = createCameraManager(api, engine);
-
-      const hass = createHASS();
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
-      expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
-
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
-      manager.executePTZAction('id', 'left');
-
-      expect(engine.executePTZAction).not.toBeCalled();
-    });
-
-    it('successfully from config', async () => {
+    it('successfully', async () => {
       const api = createCardAPI();
       const engine = mock<CameraManagerEngine>();
       const hass = createHASS();
@@ -1140,29 +1126,7 @@ describe('CameraManager', async () => {
 
       manager.executePTZAction('another', 'left');
 
-      expect(api.getActionsManager().executeActions).toBeCalledWith(action);
-      expect(engine.executePTZAction).not.toBeCalled();
-    });
-
-    it('successfully from engine', async () => {
-      const api = createCardAPI();
-      const engine = mock<CameraManagerEngine>();
-      const hass = createHASS();
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
-      const manager = createCameraManager(api, engine);
-
-      expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
-
-      const action = 'left';
-      const options = {};
-      manager.executePTZAction('id', action, options);
-
-      expect(engine.executePTZAction).toBeCalledWith(
-        hass,
-        expect.anything(),
-        action,
-        options,
-      );
+      expect(api.getActionsManager().executeActions).toBeCalledWith({ actions: action });
     });
   });
 

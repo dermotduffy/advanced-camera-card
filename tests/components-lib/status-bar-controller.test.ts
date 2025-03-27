@@ -325,7 +325,7 @@ describe('StatusBarController', () => {
 
       expect(handler).toBeCalledWith(
         expect.objectContaining({
-          detail: { action: [action], config: tapActionConfig },
+          detail: { actions: [action], config: tapActionConfig },
         }),
       );
     });

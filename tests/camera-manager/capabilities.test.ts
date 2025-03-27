@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { Capabilities } from '../../src/camera-manager/capabilities';
-import { CapabilityKey, PTZCapabilities, capabilityKeys } from '../../src/types';
+import {
+  CapabilityKey,
+  PTZCapabilities,
+  PTZMovementType,
+  capabilityKeys,
+} from '../../src/types';
 
 describe('Capabilities', () => {
   it('default capabilities', () => {
@@ -73,7 +78,7 @@ describe('Capabilities', () => {
 
     it('when set', () => {
       const ptz: PTZCapabilities = {
-        left: ['continuous' as const],
+        left: [PTZMovementType.Continuous],
         presets: ['1', '2'],
       };
       const capabilities = new Capabilities({

@@ -17,7 +17,6 @@ import { getViewMediaFromBrowseMediaArray } from '../browse-media/utils/browse-m
 import { isMediaWithinDates } from '../browse-media/utils/within-dates';
 import { MemoryRequestCache } from '../cache';
 import { Camera } from '../camera';
-import { Capabilities } from '../capabilities';
 import { CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT } from '../engine';
 import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
@@ -37,7 +36,6 @@ import {
   QueryResultsType,
   QueryReturnType,
 } from '../types';
-import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 import { ReolinkCamera } from './camera';
 import { BrowseMediaReolinkCameraMetadata, ReolinkEventQueryResults } from './types';
 
@@ -144,26 +142,6 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     cameraConfig: CameraConfig,
   ): Promise<Camera> {
     const camera = new ReolinkCamera(cameraConfig, this, {
-      capabilities: new Capabilities(
-        {
-          'favorite-events': false,
-          'favorite-recordings': false,
-          'remote-control-entity': true,
-          clips: true,
-          live: true,
-          menu: true,
-          recordings: false,
-          seek: false,
-          snapshots: false,
-          substream: true,
-          trigger: true,
-          ptz: getPTZCapabilitiesFromCameraConfig(cameraConfig) ?? undefined,
-        },
-        {
-          disable: cameraConfig.capabilities?.disable,
-          disableExcept: cameraConfig.capabilities?.disable_except,
-        },
-      ),
       eventCallback: this._eventCallback,
     });
     return await camera.initialize({

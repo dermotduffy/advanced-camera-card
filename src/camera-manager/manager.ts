@@ -55,7 +55,6 @@ import {
   RecordingSegmentsQueryResultsMap,
   ResultsMap,
 } from './types.js';
-import { getConfiguredPTZAction } from './utils/ptz.js';
 import { sortMedia } from './utils/sort-media.js';
 
 export class QueryClassifier {
@@ -789,23 +788,12 @@ export class CameraManager {
       preset?: string;
     },
   ): Promise<void> {
-    const cameraConfig = this._store.getCameraConfig(cameraID);
-    if (!cameraConfig) {
+    const camera = this._store.getCamera(cameraID);
+    if (!camera) {
       return;
     }
-    const configuredAction = getConfiguredPTZAction(cameraConfig, action, options);
-    if (configuredAction) {
-      return await this._api.getActionsManager().executeActions(configuredAction);
-    }
-
-    const hass = this._api.getHASSManager().getHASS();
-    const engine = this._store.getEngineForCameraID(cameraID);
-
-    if (!engine || !hass) {
-      return;
-    }
-    return await this._requestLimit.add(() =>
-      engine.executePTZAction(hass, cameraConfig, action, options),
+    await this._requestLimit.add(() =>
+      camera.executePTZAction(this._api.getActionsManager(), action, options),
     );
   }
 }

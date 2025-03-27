@@ -7,20 +7,16 @@ import {
 } from '../../../src/camera-manager/frigate/media';
 import { FrigateEvent, eventSchema } from '../../../src/camera-manager/frigate/types.js';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
-import { PTZAction } from '../../../src/config/schema/actions/custom/ptz';
 import { CameraConfig } from '../../../src/config/schema/cameras';
 import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import { RawAdvancedCameraCardConfig } from '../../../src/config/types';
-import {
-  EntityRegistryManager,
-  createEntityRegistryCache,
-} from '../../../src/utils/ha/registry/entity';
 import { ViewMedia } from '../../../src/view/media';
 import { TestViewMedia, createCameraConfig, createHASS } from '../../test-utils';
+import { EntityRegistryManagerMock } from '../../utils/ha/registry/entity/mock';
 
 const createEngine = (): FrigateCameraManagerEngine => {
   return new FrigateCameraManagerEngine(
-    new EntityRegistryManager(createEntityRegistryCache()),
+    new EntityRegistryManagerMock(),
     new StateWatcher(),
     new RecordingSegmentsCache(),
     new RequestCache(),
@@ -398,104 +394,6 @@ describe('getCameraEndpoints', () => {
           );
         },
       );
-    });
-  });
-});
-
-describe('executePTZAction', () => {
-  describe('preset', () => {
-    it('should reject without preset argument', () => {
-      const hass = createHASS();
-      const cameraConfig = createCameraConfig({ camera_entity: 'camera.office' });
-
-      createEngine().executePTZAction(hass, cameraConfig, 'preset');
-
-      expect(hass.callService).not.toBeCalled();
-    });
-
-    it('should succeed', () => {
-      const hass = createHASS();
-      const cameraConfig = createCameraConfig({ camera_entity: 'camera.office' });
-
-      createEngine().executePTZAction(hass, cameraConfig, 'preset', {
-        preset: 'preset-foo',
-      });
-
-      expect(hass.callService).toBeCalledWith('frigate', 'ptz', {
-        entity_id: 'camera.office',
-        action: 'preset',
-        argument: 'preset-foo',
-      });
-    });
-  });
-
-  describe('zoom', () => {
-    describe.each([['zoom_in' as const], ['zoom_out' as const]])(
-      '%s',
-      (actionName: PTZAction) => {
-        it('start', () => {
-          const hass = createHASS();
-          const cameraConfig = createCameraConfig({ camera_entity: 'camera.office' });
-
-          createEngine().executePTZAction(hass, cameraConfig, actionName);
-
-          expect(hass.callService).toBeCalledWith('frigate', 'ptz', {
-            entity_id: 'camera.office',
-            action: 'zoom',
-            argument: actionName === 'zoom_in' ? 'in' : 'out',
-          });
-        });
-
-        it('stop', () => {
-          const hass = createHASS();
-          const cameraConfig = createCameraConfig({ camera_entity: 'camera.office' });
-
-          createEngine().executePTZAction(hass, cameraConfig, actionName, {
-            phase: 'stop',
-          });
-
-          expect(hass.callService).toBeCalledWith('frigate', 'ptz', {
-            entity_id: 'camera.office',
-            action: 'stop',
-          });
-        });
-      },
-    );
-  });
-
-  describe('move', () => {
-    describe.each([
-      ['left' as const],
-      ['right' as const],
-      ['up' as const],
-      ['down' as const],
-    ])('%s', (actionName: PTZAction) => {
-      it('start', () => {
-        const hass = createHASS();
-        const cameraConfig = createCameraConfig({ camera_entity: 'camera.office' });
-
-        createEngine().executePTZAction(hass, cameraConfig, actionName);
-
-        expect(hass.callService).toBeCalledWith('frigate', 'ptz', {
-          entity_id: 'camera.office',
-          action: 'move',
-          argument: actionName,
-        });
-      });
-
-      it('stop', () => {
-        const hass = createHASS();
-        const cameraConfig = createCameraConfig({ camera_entity: 'camera.office' });
-
-        createEngine().executePTZAction(hass, cameraConfig, actionName, {
-          phase: 'stop',
-        });
-
-        expect(hass.callService).toBeCalledWith('frigate', 'ptz', {
-          entity_id: 'camera.office',
-          action: 'stop',
-        });
-      });
     });
   });
 });

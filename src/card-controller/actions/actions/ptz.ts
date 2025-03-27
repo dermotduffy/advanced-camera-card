@@ -1,4 +1,5 @@
 import { PTZActionConfig } from '../../../config/schema/actions/custom/ptz';
+import { PTZMovementType } from '../../../types';
 import { getPTZTarget, ptzActionToCapabilityKey } from '../../../utils/ptz';
 import { Timer } from '../../../utils/timer';
 import { CardActionsAPI } from '../../types';
@@ -66,7 +67,7 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
     if (
       (capabilityKey &&
         ptzCapabilities[capabilityKey]?.includes(
-          this._action.ptz_phase ? 'continuous' : 'relative',
+          this._action.ptz_phase ? PTZMovementType.Continuous : PTZMovementType.Relative,
         )) ||
       this._action.ptz_action === 'preset'
     ) {

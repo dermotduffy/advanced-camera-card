@@ -2,7 +2,13 @@ import { HomeAssistant } from '../../../../ha/types.js';
 import { errorToConsole } from '../../../basic.js';
 import { homeAssistantWSRequest } from '../../ws-request.js';
 import { RegistryCache } from '../cache.js';
-import { Entity, EntityList, entityListSchema, entitySchema } from './types.js';
+import {
+  Entity,
+  EntityList,
+  entityListSchema,
+  EntityRegistryManager,
+  entitySchema,
+} from './types.js';
 
 export const createEntityRegistryCache = (): RegistryCache<Entity> => {
   return new RegistryCache<Entity>((entity) => entity.entity_id);
@@ -12,7 +18,7 @@ export const createEntityRegistryCache = (): RegistryCache<Entity> => {
 // as necessary. Some calls require every entity to be fetched, which may be
 // non-trivial in size (after which they are cached forever).
 
-export class EntityRegistryManager {
+export class EntityRegistryManagerLive implements EntityRegistryManager {
   protected _cache: RegistryCache<Entity>;
   protected _fetchedEntityList = false;
 

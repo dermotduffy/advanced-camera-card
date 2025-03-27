@@ -81,7 +81,10 @@ export interface CardHelpers {
   createCardElement(config: LovelaceCardConfig): Promise<LovelaceCardWithEditor>;
 }
 
-export type PTZMovementType = 'relative' | 'continuous';
+export enum PTZMovementType {
+  Relative = 'relative',
+  Continuous = 'continuous',
+}
 
 export interface PTZCapabilities {
   left?: PTZMovementType[];

@@ -29,7 +29,7 @@ import { ViewManager } from '../../src/card-controller/view/view-manager';
 import { ConditionStateManager } from '../../src/conditions/state-manager';
 import { AdvancedCameraCardEditor } from '../../src/editor';
 import { DeviceRegistryManager } from '../../src/utils/ha/registry/device';
-import { EntityRegistryManager } from '../../src/utils/ha/registry/entity';
+import { EntityRegistryManagerLive } from '../../src/utils/ha/registry/entity';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';
 
 vi.mock('../../src/camera-manager/manager');
@@ -160,7 +160,7 @@ describe('CardController', () => {
 
     it('getEntityRegistryManager', () => {
       expect(createController().getEntityRegistryManager()).toBe(
-        vi.mocked(EntityRegistryManager).mock.instances[0],
+        vi.mocked(EntityRegistryManagerLive).mock.instances[0],
       );
     });
 

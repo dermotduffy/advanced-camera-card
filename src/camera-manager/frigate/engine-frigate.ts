@@ -4,7 +4,6 @@ import orderBy from 'lodash-es/orderBy';
 import throttle from 'lodash-es/throttle';
 import uniqWith from 'lodash-es/uniqWith';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
-import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
 import { CameraConfig } from '../../config/schema/cameras';
 import { HomeAssistant } from '../../ha/types';
 import {
@@ -14,7 +13,7 @@ import {
   runWhenIdleIfSupported,
 } from '../../utils/basic';
 import { getEntityTitle } from '../../utils/ha';
-import { EntityRegistryManager } from '../../utils/ha/registry/entity';
+import { EntityRegistryManager } from '../../utils/ha/registry/entity/types';
 import { ViewMedia } from '../../view/media';
 import { ViewMediaClassifier } from '../../view/media-classifier';
 import { RecordingSegmentsCache, RequestCache } from '../cache';
@@ -1004,45 +1003,5 @@ export class FrigateCameraManagerEngine
       ...(go2rtc && { go2rtc: go2rtc }),
       ...(jsmpeg && { jsmpeg: jsmpeg }),
     };
-  }
-
-  public async executePTZAction(
-    hass: HomeAssistant,
-    cameraConfig: CameraConfig,
-    action: PTZAction,
-    options?: {
-      phase?: PTZActionPhase;
-      preset?: string;
-    },
-  ): Promise<void> {
-    const cameraEntity = cameraConfig.camera_entity;
-
-    if (action === 'preset' && !options?.preset) {
-      return;
-    }
-
-    // Awkward translation between card action and service parameters:
-    // https://github.com/blakeblackshear/frigate-hass-integration/blob/dev/custom_components/frigate/services.yaml
-    await hass.callService('frigate', 'ptz', {
-      entity_id: cameraEntity,
-      action:
-        options?.phase === 'stop'
-          ? 'stop'
-          : action === 'zoom_in' || action === 'zoom_out'
-            ? 'zoom'
-            : action === 'preset'
-              ? 'preset'
-              : 'move',
-      ...(options?.phase !== 'stop' && {
-        argument:
-          action === 'zoom_in'
-            ? 'in'
-            : action === 'zoom_out'
-              ? 'out'
-              : action === 'preset'
-                ? options?.preset
-                : action,
-      }),
-    });
   }
 }

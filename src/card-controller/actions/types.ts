@@ -1,3 +1,4 @@
+import { ConditionsTriggerData } from '../../conditions/types.js';
 import {
   ActionConfig,
   AuxillaryActionConfig,
@@ -10,9 +11,14 @@ export interface Action {
   stop(): Promise<void>;
 }
 
-export interface ActionExecutionRequest {
-  action: ActionConfig[] | ActionConfig;
+export interface ActionsExecutionRequest {
+  actions: ActionConfig[] | ActionConfig;
   config?: AuxillaryActionConfig;
+  triggerData?: ConditionsTriggerData;
+}
+
+export interface ActionsExecutor {
+  executeActions(request: ActionsExecutionRequest): Promise<void>;
 }
 
 export interface TargetedActionContext {

@@ -69,7 +69,7 @@ export class QueryStringManager {
 
   protected async _executeNonViewRelated(intent: QueryStringViewIntent): Promise<void> {
     if (intent.other) {
-      await this._api.getActionsManager().executeActions(intent.other);
+      await this._api.getActionsManager().executeActions({ actions: intent.other });
     }
   }
 
