@@ -18,20 +18,21 @@ interface ReolinkCameraInitializationOptions extends CameraInitializationOptions
 
 class ReolinkInitializationError extends CameraInitializationError {}
 
-interface PTZActionToButtonEntity {
+interface PTZButtonEntities {
   stop?: string;
   left?: string;
   right?: string;
   up?: string;
   down?: string;
-  zoomIn?: string;
-  zoomOut?: string;
+  zoom_in?: string;
+  zoom_out?: string;
 }
+type PTZButton = keyof PTZButtonEntities;
 
 export class ReolinkCamera extends BrowseMediaCamera {
   protected _channel: number | null = null;
   protected _reolinkUniqueID: string | null = null;
-  protected _ptzButtons: PTZActionToButtonEntity | null = null;
+  protected _ptzButtons: PTZButtonEntities | null = null;
 
   public async initialize(options: ReolinkCameraInitializationOptions): Promise<Camera> {
     await super.initialize(options);
@@ -65,18 +66,29 @@ export class ReolinkCamera extends BrowseMediaCamera {
   ): Promise<void> {
     const config = this.getConfig();
 
-    const ptzButtonMap = await this._getPTZButtonEntities(hass, entityRegistry);
+    const ptzButtons = await this._getPTZButtons(hass, entityRegistry);
     const configPTZCapabilities = getPTZCapabilitiesFromCameraConfig(this.getConfig());
-    const reolinkPTZCapabilities = ptzButtonMap
-      ? Object.keys(ptzButtonMap).reduce(
-          (acc, key) =>
-            key === 'stop' ? acc : { [key]: [PTZMovementType.Continuous], ...acc },
-          {},
-        )
-      : null;
+
+    const reolinkPTZCapabilities: PTZCapabilities = {};
+    for (const key of Object.keys(ptzButtons ?? {})) {
+      switch (key) {
+        case 'left':
+        case 'right':
+        case 'up':
+        case 'down':
+          reolinkPTZCapabilities[key] = [PTZMovementType.Continuous];
+          break;
+        case 'zoom_in':
+          reolinkPTZCapabilities.zoomIn = [PTZMovementType.Continuous];
+          break;
+        case 'zoom_out':
+          reolinkPTZCapabilities.zoomOut = [PTZMovementType.Continuous];
+          break;
+      }
+    }
 
     const combinedPTZCapabilities: PTZCapabilities | null =
-      configPTZCapabilities || reolinkPTZCapabilities
+      configPTZCapabilities || Object.keys(reolinkPTZCapabilities).length
         ? {
             ...reolinkPTZCapabilities,
             ...configPTZCapabilities,
@@ -103,13 +115,13 @@ export class ReolinkCamera extends BrowseMediaCamera {
         disableExcept: config.capabilities?.disable_except,
       },
     );
-    this._ptzButtons = ptzButtonMap;
+    this._ptzButtons = ptzButtons;
   }
 
-  protected async _getPTZButtonEntities(
+  protected async _getPTZButtons(
     hass: HomeAssistant,
     entityRegistry: EntityRegistryManager,
-  ): Promise<PTZActionToButtonEntity | null> {
+  ): Promise<PTZButtonEntities | null> {
     /* istanbul ignore next: this path cannot be reached as an exception is
        thrown in initialize() if this value is not found -- @preserve */
     if (!this._reolinkUniqueID) {
@@ -127,29 +139,29 @@ export class ReolinkCamera extends BrowseMediaCamera {
         ent.entity_id.startsWith('button.'),
     );
 
-    const capabilityMap = {
-      _ptz_stop: 'stop',
-      _ptz_left: 'left',
-      _ptz_right: 'right',
-      _ptz_up: 'up',
-      _ptz_down: 'down',
-      _ptz_zoom_in: 'zoomIn',
-      _ptz_zoom_out: 'zoomOut',
-    };
+    const uniqueSuffixes: PTZButton[] = [
+      'stop',
+      'left',
+      'right',
+      'up',
+      'down',
+      'zoom_in',
+      'zoom_out',
+    ];
 
-    const buttonMap: PTZActionToButtonEntity = {};
+    const buttons: PTZButtonEntities = {};
     for (const buttonEntity of buttonEntities) {
-      for (const [uniqueIDSuffix, capability] of Object.entries(capabilityMap)) {
+      for (const uniqueIDSuffix of uniqueSuffixes) {
         if (
           buttonEntity.unique_id &&
           String(buttonEntity.unique_id).endsWith(uniqueIDSuffix)
         ) {
-          buttonMap[capability] = buttonEntity.entity_id;
+          buttons[uniqueIDSuffix] = buttonEntity.entity_id;
         }
       }
     }
 
-    return Object.keys(buttonMap).length ? buttonMap : null;
+    return Object.keys(buttons).length ? buttons : null;
   }
 
   public getChannel(): number | null {

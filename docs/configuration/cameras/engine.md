@@ -9,7 +9,7 @@ A "Camera Engine" defines what "type" of camera is being configured (e.g. `friga
 | `frigate`   | :white_check_mark: | :white_check_mark:       | :white_check_mark:       | :white_check_mark:       | :white_check_mark:       | :white_check_mark:          | :white_check_mark:               | :white_check_mark:       | :heavy_multiplication_x: | :white_check_mark:       | :white_check_mark:       | :white_check_mark:       | :heavy_multiplication_x:                       | :white_check_mark:       |
 | `generic`   | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x:    | :white_check_mark:               | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x:                       | :heavy_multiplication_x: |
 | `motioneye` | :white_check_mark: | :white_check_mark:       | :white_check_mark:       | :heavy_multiplication_x: | :white_check_mark:       | :heavy_multiplication_x:    | :white_check_mark:               | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :white_check_mark:                             | :white_check_mark:       |
-| `reolink`   | :white_check_mark: | :white_check_mark:       | :heavy_multiplication_x: | :heavy_multiplication_x: | :white_check_mark:       | :heavy_multiplication_x:    | :white_check_mark:               | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :white_check_mark:                             | :heavy_multiplication_x: |
+| `reolink`   | :white_check_mark: | :white_check_mark:       | :heavy_multiplication_x: | :heavy_multiplication_x: | :white_check_mark:       | :eight_spoked_asterisk:     | :white_check_mark:               | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :white_check_mark:                             | :heavy_multiplication_x: |
 
 ### Live providers supported per Engine
 
@@ -100,6 +100,12 @@ cameras:
 | ------------------ | ------- | ------------------------------------------------------------------------------------------------------------------ |
 | `media_resolution` | `low`   | Whether to retrieve `high` or `low` resolution media items.                                                        |
 | `url`              |         | The URL of the Reolink camera/NVR UI. If set, this value will be (exclusively) used for a `Camera UI` menu button. |
+
+### PTZ Support
+
+Zero-configuration PTZ support is available for Reolink if your camera supports it.
+
+!> For Home Assistant control of Reolink camera PTZ functions, the relevent `button` entities must be enabled. To verify, navigate to `Settings -> Devices & services -> Reolink -> [Choose Device]`, and ensure the `PTZ` entities are enabled. Disabled entities are shown under the `+X disabled entities` label. :eight_spoked_asterisk:
 
 ## Fully expanded reference
 
