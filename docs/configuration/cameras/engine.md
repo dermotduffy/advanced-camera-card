@@ -105,7 +105,7 @@ cameras:
 
 Zero-configuration PTZ support is available for Reolink if your camera supports it.
 
-?> For Home Assistant control of Reolink camera PTZ functions, the relevent `button` entities need to be enabled. To verify navigate to `Settings -> Devices & services -> Reolink -> [Choose Device]`, and ensure the `PTZ` entities are enabled. Disabled entities are shown under the `+X disabled entities` label. :eight_spoked_asterisk:
+!> For Home Assistant control of Reolink camera PTZ functions, the relevent `button` entities must be enabled. To verify, navigate to `Settings -> Devices & services -> Reolink -> [Choose Device]`, and ensure the `PTZ` entities are enabled. Disabled entities are shown under the `+X disabled entities` label. :eight_spoked_asterisk:
 
 ## Fully expanded reference
 
