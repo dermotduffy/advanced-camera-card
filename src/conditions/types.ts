@@ -1,8 +1,7 @@
-import { HassEntities } from 'home-assistant-js-websocket';
 import { KeysState, MicrophoneState } from '../card-controller/types';
 import { ViewDisplayMode } from '../config/schema/common/display';
 import { AdvancedCameraCardConfig } from '../config/schema/types';
-import { CurrentUser } from '../ha/types';
+import { HomeAssistant } from '../ha/types';
 import { MediaLoadedInfo } from '../types';
 
 export interface ConditionState {
@@ -16,9 +15,8 @@ export interface ConditionState {
   keys?: KeysState;
   mediaLoadedInfo?: MediaLoadedInfo | null;
   microphone?: MicrophoneState;
-  state?: HassEntities;
+  hass?: HomeAssistant;
   triggered?: Set<string>;
-  user?: CurrentUser;
   userAgent?: string;
   view?: string;
 }

@@ -96,6 +96,7 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
     hass.user = user;
   }
   hass.connection.subscribeMessage = vi.fn();
+  hass.connection.sendMessagePromise = vi.fn();
   return hass;
 };
 

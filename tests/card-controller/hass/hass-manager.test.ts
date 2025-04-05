@@ -9,7 +9,6 @@ import {
   createHASS,
   createStateEntity,
   createStore,
-  createUser,
   createView,
 } from '../../test-utils';
 
@@ -50,17 +49,13 @@ describe('HASSManager', () => {
   it('should set condition manager state', () => {
     const api = createCardAPI();
     const manager = new HASSManager(api);
-
-    const states = { 'switch.foo': createStateEntity() };
-    const user = createUser({ id: 'user_1' });
-    const hass = createHASS(states, user);
+    const hass = createHASS();
 
     manager.setHASS(hass);
 
     expect(api.getConditionStateManager().setState).toBeCalledWith(
       expect.objectContaining({
-        state: states,
-        user: user,
+        hass: hass,
       }),
     );
   });

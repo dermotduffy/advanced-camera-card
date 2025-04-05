@@ -47,8 +47,7 @@ export class HASSManager {
     this._hass = hass;
 
     this._api.getConditionStateManager().setState({
-      state: this._hass.states,
-      user: this._hass.user,
+      hass: this._hass,
     });
 
     // Theme may depend on HASS.

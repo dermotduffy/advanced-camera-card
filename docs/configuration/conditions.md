@@ -272,6 +272,28 @@ almost certainly not useful / reliable as a condition.
 
 See [Home Assistant conditions documentation](https://www.home-assistant.io/dashboards/conditional/#state).
 
+## `template`
+
+Matches based on a template.
+
+```yaml
+conditions:
+  - condition: template
+    # [...]
+```
+
+| Parameter        | Description                                                                        |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| `condition`      | Must be `template`.                                                                |
+| `value_template` | The Home Assistant template to check, e.g. `{{ states('switch.office') == 'on' }}` |
+
+See [Home Assistant conditions documentation](https://www.home-assistant.io/docs/scripts/conditions/#template-condition).
+
+?> The Advanced Camera Card uses
+[ha-nunjucks](https://github.com/Nerwyn/ha-nunjucks) to process templates.
+Consult its documentation for the wide variety of different template values
+supported.
+
 ## `triggered`
 
 Matches based on whether the selected camera has been triggered.

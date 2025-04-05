@@ -15,6 +15,7 @@ import { viewConditionSchema } from './custom/view';
 import { numericStateConditionSchema } from './stock/numeric';
 import { screenConditionSchema } from './stock/screen';
 import { stateConditionSchema } from './stock/state';
+import { templateConditionSchema } from './stock/template';
 import { usersConditionSchema } from './stock/users';
 
 // https://www.home-assistant.io/docs/scripts/conditions/#or-condition
@@ -65,6 +66,7 @@ export const advancedCameraCardConditionSchema = z.union([
   orConditionSchema,
   andConditionSchema,
   notConditionSchema,
+  templateConditionSchema,
 
   // Custom conditions:
   cameraConditionSchema,
