@@ -1,9 +1,12 @@
+import { HassEntities } from 'home-assistant-js-websocket';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MicrophoneState } from '../../src/card-controller/types';
 import { ConditionsManager } from '../../src/conditions/conditions-manager';
 import { ConditionStateManager } from '../../src/conditions/state-manager';
+import { HomeAssistant } from '../../src/ha/types';
 import {
   createConfig,
+  createHASS,
   createMediaLoadedInfo,
   createStateEntity,
   createUser,
@@ -193,7 +196,9 @@ describe('ConditionsManager', () => {
           manager.addListener(listener);
 
           stateManager.setState({
-            state: { 'binary_sensor.foo': createStateEntity({ state: 'on' }) },
+            hass: createHASS({
+              'binary_sensor.foo': createStateEntity({ state: 'on' }),
+            }),
           });
           expect(listener).toBeCalledWith({
             result: true,
@@ -207,7 +212,9 @@ describe('ConditionsManager', () => {
           expect(listener).toBeCalledTimes(1);
 
           stateManager.setState({
-            state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
+            hass: createHASS({
+              'binary_sensor.foo': createStateEntity({ state: 'off' }),
+            }),
           });
           expect(listener).toBeCalledWith({
             result: true,
@@ -238,11 +245,13 @@ describe('ConditionsManager', () => {
 
             expect(manager.getEvaluation().result).toBeFalsy();
             stateManager.setState({
-              state: { 'binary_sensor.foo': createStateEntity() },
+              hass: createHASS({ 'binary_sensor.foo': createStateEntity() }),
             });
             expect(manager.getEvaluation().result).toBeTruthy();
             stateManager.setState({
-              state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
+              hass: createHASS({
+                'binary_sensor.foo': createStateEntity({ state: 'off' }),
+              }),
             });
             expect(manager.getEvaluation().result).toBeFalsy();
           });
@@ -262,15 +271,19 @@ describe('ConditionsManager', () => {
 
             expect(manager.getEvaluation().result).toBeFalsy();
             stateManager.setState({
-              state: { 'binary_sensor.foo': createStateEntity() },
+              hass: createHASS({ 'binary_sensor.foo': createStateEntity() }),
             });
             expect(manager.getEvaluation().result).toBeTruthy();
             stateManager.setState({
-              state: { 'binary_sensor.foo': createStateEntity({ state: 'active' }) },
+              hass: createHASS({
+                'binary_sensor.foo': createStateEntity({ state: 'active' }),
+              }),
             });
             expect(manager.getEvaluation().result).toBeTruthy();
             stateManager.setState({
-              state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
+              hass: createHASS({
+                'binary_sensor.foo': createStateEntity({ state: 'off' }),
+              }),
             });
             expect(manager.getEvaluation().result).toBeFalsy();
           });
@@ -292,11 +305,13 @@ describe('ConditionsManager', () => {
 
             expect(manager.getEvaluation().result).toBeFalsy();
             stateManager.setState({
-              state: { 'binary_sensor.foo': createStateEntity() },
+              hass: createHASS({ 'binary_sensor.foo': createStateEntity() }),
             });
             expect(manager.getEvaluation().result).toBeFalsy();
             stateManager.setState({
-              state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
+              hass: createHASS({
+                'binary_sensor.foo': createStateEntity({ state: 'off' }),
+              }),
             });
             expect(manager.getEvaluation().result).toBeTruthy();
           });
@@ -316,14 +331,20 @@ describe('ConditionsManager', () => {
           );
 
           expect(manager.getEvaluation().result).toBeFalsy();
-          stateManager.setState({ state: { 'binary_sensor.foo': createStateEntity() } });
-          expect(manager.getEvaluation().result).toBeFalsy();
           stateManager.setState({
-            state: { 'binary_sensor.foo': createStateEntity({ state: 'active' }) },
+            hass: createHASS({ 'binary_sensor.foo': createStateEntity() }),
           });
           expect(manager.getEvaluation().result).toBeFalsy();
           stateManager.setState({
-            state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
+            hass: createHASS({
+              'binary_sensor.foo': createStateEntity({ state: 'active' }),
+            }),
+          });
+          expect(manager.getEvaluation().result).toBeFalsy();
+          stateManager.setState({
+            hass: createHASS({
+              'binary_sensor.foo': createStateEntity({ state: 'off' }),
+            }),
           });
           expect(manager.getEvaluation().result).toBeTruthy();
         });
@@ -341,10 +362,14 @@ describe('ConditionsManager', () => {
           );
 
           expect(manager.getEvaluation().result).toBeFalsy();
-          stateManager.setState({ state: { 'binary_sensor.foo': createStateEntity() } });
+          stateManager.setState({
+            hass: createHASS({ 'binary_sensor.foo': createStateEntity() }),
+          });
           expect(manager.getEvaluation().result).toBeTruthy();
           stateManager.setState({
-            state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
+            hass: createHASS({
+              'binary_sensor.foo': createStateEntity({ state: 'off' }),
+            }),
           });
           expect(manager.getEvaluation().result).toBeFalsy();
         });
@@ -363,10 +388,10 @@ describe('ConditionsManager', () => {
           manager.addListener(listener);
 
           stateManager.setState({
-            state: {
+            hass: createHASS({
               'switch.one': createStateEntity({ state: 'on' }),
               'switch.two': createStateEntity({ state: 'off' }),
-            },
+            }),
           });
           expect(listener).toHaveBeenLastCalledWith({
             result: true,
@@ -380,10 +405,10 @@ describe('ConditionsManager', () => {
           });
 
           stateManager.setState({
-            state: {
+            hass: createHASS({
               'switch.one': createStateEntity({ state: 'off' }),
               'switch.two': createStateEntity({ state: 'on' }),
-            },
+            }),
           });
 
           expect(listener).toHaveBeenLastCalledWith({
@@ -411,10 +436,11 @@ describe('ConditionsManager', () => {
           const listener = vi.fn();
           manager.addListener(listener);
 
+          const hass = createHASS({
+            'switch.one': createStateEntity({ state: 'on' }),
+          });
           stateManager.setState({
-            state: {
-              'switch.one': createStateEntity({ state: 'on' }),
-            },
+            hass,
           });
           expect(listener).toBeCalledTimes(1);
           expect(manager.getEvaluation()).toEqual({
@@ -428,11 +454,7 @@ describe('ConditionsManager', () => {
             },
           });
 
-          stateManager.setState({
-            state: {
-              'switch.one': createStateEntity({ state: 'on' }),
-            },
-          });
+          stateManager.setState({ hass });
           expect(listener).toBeCalledTimes(1);
         });
       });
@@ -453,11 +475,11 @@ describe('ConditionsManager', () => {
 
           expect(manager.getEvaluation().result).toBeFalsy();
           stateManager.setState({
-            state: { 'sensor.foo': createStateEntity({ state: '11' }) },
+            hass: createHASS({ 'sensor.foo': createStateEntity({ state: '11' }) }),
           });
           expect(manager.getEvaluation().result).toBeTruthy();
           stateManager.setState({
-            state: { 'binary_sensor.foo': createStateEntity({ state: '9' }) },
+            hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: '9' }) }),
           });
           expect(manager.getEvaluation().result).toBeFalsy();
         });
@@ -477,13 +499,71 @@ describe('ConditionsManager', () => {
 
           expect(manager.getEvaluation().result).toBeFalsy();
           stateManager.setState({
-            state: { 'sensor.foo': createStateEntity({ state: '11' }) },
+            hass: createHASS({ 'sensor.foo': createStateEntity({ state: '11' }) }),
           });
           expect(manager.getEvaluation().result).toBeFalsy();
           stateManager.setState({
-            state: { 'sensor.foo': createStateEntity({ state: '9' }) },
+            hass: createHASS({ 'sensor.foo': createStateEntity({ state: '9' }) }),
           });
           expect(manager.getEvaluation().result).toBeTruthy();
+        });
+      });
+
+      describe('with template condition', () => {
+        const createHASSForTemplateCondition = (states: HassEntities): HomeAssistant => {
+          const hass = createHASS(states);
+          vi.mocked(hass.connection.sendMessagePromise).mockResolvedValue([]);
+          return hass;
+        };
+
+        it('should evaluate true when template evalutes to true', () => {
+          const stateManager = new ConditionStateManager();
+          const manager = new ConditionsManager(
+            [
+              {
+                condition: 'template' as const,
+                value_template: '{{ is_state("sensor.foo", "on") }}',
+              },
+            ],
+            stateManager,
+          );
+
+          expect(manager.getEvaluation().result).toBeFalsy();
+
+          stateManager.setState({
+            hass: createHASSForTemplateCondition({
+              'sensor.foo': createStateEntity({ state: 'on' }),
+            }),
+          });
+          expect(manager.getEvaluation().result).toBeTruthy();
+
+          stateManager.setState({
+            hass: createHASSForTemplateCondition({
+              'sensor.foo': createStateEntity({ state: 'off' }),
+            }),
+          });
+          expect(manager.getEvaluation().result).toBeFalsy();
+        });
+
+        it('should evaluate false when template evalutes to non-boolean', () => {
+          const stateManager = new ConditionStateManager();
+          const manager = new ConditionsManager(
+            [
+              {
+                condition: 'template' as const,
+                // This does not result in a boolean.
+                value_template: '{{ hass.states["light.office"].state }}',
+              },
+            ],
+            stateManager,
+          );
+
+          stateManager.setState({
+            hass: createHASSForTemplateCondition({
+              'light.office': createStateEntity({ state: 'on' }),
+            }),
+          });
+          expect(manager.getEvaluation().result).toBeFalsy();
         });
       });
 
@@ -503,7 +583,7 @@ describe('ConditionsManager', () => {
         manager.addListener(listener);
 
         stateManager.setState({
-          state: { 'sensor.foo': createStateEntity({ state: '11' }) },
+          hass: createHASS({ 'sensor.foo': createStateEntity({ state: '11' }) }),
         });
 
         expect(listener).not.toBeCalled();
@@ -524,11 +604,11 @@ describe('ConditionsManager', () => {
 
       expect(manager.getEvaluation().result).toBeFalsy();
       stateManager.setState({
-        user: createUser({ id: 'user_1' }),
+        hass: createHASS({}, createUser({ id: 'user_1' })),
       });
       expect(manager.getEvaluation().result).toBeTruthy();
       stateManager.setState({
-        user: createUser({ id: 'user_WRONG' }),
+        hass: createHASS({}, createUser({ id: 'user_WRONG' })),
       });
       expect(manager.getEvaluation().result).toBeFalsy();
     });

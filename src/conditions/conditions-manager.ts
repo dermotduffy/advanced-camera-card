@@ -1,3 +1,4 @@
+import { TemplateRenderer } from '../card-controller/templates';
 import { getConfigValue } from '../config/management';
 import { AdvancedCameraCardCondition } from '../config/schema/conditions/types';
 import { isCompanionApp } from '../utils/companion';
@@ -23,6 +24,7 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
   protected _listeners: ConditionsListener[] = [];
   protected _mediaQueries: MediaQueryList[] = [];
   protected _evaluation: ConditionsEvaluationResult = { result: false };
+  protected _templateRenderer: TemplateRenderer = new TemplateRenderer();
 
   constructor(
     conditions: AdvancedCameraCardCondition[],
@@ -127,8 +129,8 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
     switch (condition.condition) {
       case undefined:
       case 'state': {
-        const fromState = oldState?.state?.[condition.entity]?.state;
-        const toState = newState?.state?.[condition.entity]?.state;
+        const fromState = oldState?.hass?.states?.[condition.entity]?.state;
+        const toState = newState?.hass?.states?.[condition.entity]?.state;
 
         return {
           result:
@@ -207,17 +209,18 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
       case 'numeric_state':
         return {
           result:
-            !!newState?.state &&
-            condition.entity in newState.state &&
-            newState.state[condition.entity].state !== undefined &&
+            !!newState?.hass?.states &&
+            condition.entity in newState.hass?.states &&
+            newState.hass.states[condition.entity].state !== undefined &&
             (condition.above === undefined ||
-              Number(newState.state[condition.entity].state) > condition.above) &&
+              Number(newState.hass.states[condition.entity].state) > condition.above) &&
             (condition.below === undefined ||
-              Number(newState.state[condition.entity].state) < condition.below),
+              Number(newState.hass.states[condition.entity].state) < condition.below),
         };
       case 'user':
         return {
-          result: !!newState?.user && condition.users.includes(newState.user.id),
+          result:
+            !!newState?.hass?.user && condition.users.includes(newState.hass.user.id),
         };
       case 'media_loaded':
         return {
@@ -341,6 +344,16 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
           ).result,
         };
       }
+      case 'template':
+        return {
+          result:
+            !!newState?.hass &&
+            this._templateRenderer.renderRecursively(
+              newState.hass,
+              condition.value_template,
+              { conditionState: newState },
+            ) === true,
+        };
     }
   }
 }

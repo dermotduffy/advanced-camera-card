@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ConditionStateManager } from '../../src/conditions/state-manager';
-import { createStateEntity } from '../test-utils';
+import { createHASS, createStateEntity } from '../test-utils';
 
 describe('ConditionStateManager', () => {
   afterEach(() => {
@@ -46,9 +46,9 @@ describe('ConditionStateManager', () => {
       expect(listener).toBeCalledTimes(1);
 
       manager.setState({
-        state: {
+        hass: createHASS({
           'binary_sensor.foo': createStateEntity(),
-        },
+        }),
       });
       expect(listener).toBeCalledTimes(2);
 
@@ -56,24 +56,24 @@ describe('ConditionStateManager', () => {
       expect(listener).toBeCalledTimes(2);
 
       manager.setState({
-        state: {
+        hass: createHASS({
           'binary_sensor.foo': createStateEntity(),
-        },
+        }),
       });
-      expect(listener).toBeCalledTimes(2);
-
-      manager.setState({ fullscreen: false });
       expect(listener).toBeCalledTimes(3);
 
       manager.setState({ fullscreen: false });
-      expect(listener).toBeCalledTimes(3);
+      expect(listener).toBeCalledTimes(4);
+
+      manager.setState({ fullscreen: false });
+      expect(listener).toBeCalledTimes(4);
 
       manager.setState({
-        state: {
+        hass: createHASS({
           'binary_sensor.foo': createStateEntity({ state: 'off' }),
-        },
+        }),
       });
-      expect(listener).toBeCalledTimes(4);
+      expect(listener).toBeCalledTimes(5);
     });
   });
 
