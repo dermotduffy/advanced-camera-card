@@ -218,6 +218,25 @@ export function createPerformAction(
   };
 }
 
+export function createSelectOptionAction(
+  domain: 'select' | 'input_select',
+  entityID: string,
+  option: string,
+  options?: {
+    cardID?: string;
+  },
+): PerformActionActionConfig {
+  return createPerformAction(`${domain}.select_option`, {
+    ...options,
+    target: {
+      entity_id: entityID,
+    },
+    data: {
+      option: option,
+    },
+  });
+}
+
 /**
  * Get an action configuration given a config and an interaction (e.g. 'tap').
  * @param interaction The interaction: `tap`, `hold` or `double_tap`
