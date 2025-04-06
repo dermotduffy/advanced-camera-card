@@ -7,7 +7,12 @@ import { ActionsExecutor } from '../../../src/card-controller/actions/types';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { ProxyConfig } from '../../../src/config/schema/cameras';
 import { EntityRegistryManagerLive } from '../../../src/utils/ha/registry/entity';
-import { createCameraConfig, createHASS, createRegistryEntity } from '../../test-utils';
+import {
+  createCameraConfig,
+  createHASS,
+  createRegistryEntity,
+  createStateEntity,
+} from '../../test-utils';
 import { EntityRegistryManagerMock } from '../../utils/ha/registry/entity/mock';
 
 describe('ReolinkCamera', () => {
@@ -51,6 +56,11 @@ describe('ReolinkCamera', () => {
     unique_id: '85270002TS7D4RUP_0_ptz_stop',
     platform: 'reolink',
   });
+  const selectEntityPTZ = createRegistryEntity({
+    entity_id: 'select.office_reolink_ptz_preset',
+    unique_id: '85270002TS7D4RUP_0_ptz_preset',
+    platform: 'reolink',
+  });
 
   const ptzPopulatedEntityRegistryManager = new EntityRegistryManagerMock([
     cameraEntity,
@@ -61,6 +71,7 @@ describe('ReolinkCamera', () => {
     buttonEntityPTZZoomIn,
     buttonEntityPTZZoomOut,
     buttonEntityPTZStop,
+    selectEntityPTZ,
 
     // Unrelated button.
     createRegistryEntity({
@@ -175,6 +186,36 @@ describe('ReolinkCamera', () => {
           down: ['continuous'],
           zoomIn: ['continuous'],
           zoomOut: ['continuous'],
+        });
+      });
+
+      it('should find PTZ select entity', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS({
+            'select.office_reolink_ptz_preset': createStateEntity({
+              state: 'foo',
+              attributes: {
+                options: ['preset-one', 'preset-two'],
+              },
+            }),
+          }),
+          entityRegistryManager: ptzPopulatedEntityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+        });
+
+        expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
+          left: ['continuous'],
+          right: ['continuous'],
+          up: ['continuous'],
+          down: ['continuous'],
+          zoomIn: ['continuous'],
+          zoomOut: ['continuous'],
+          presets: ['preset-one', 'preset-two'],
         });
       });
 
@@ -426,6 +467,79 @@ describe('ReolinkCamera', () => {
             },
           },
         ],
+      });
+    });
+
+    it('should ignore relative actions', async () => {
+      const config = createCameraConfig({
+        camera_entity: 'camera.office_reolink',
+      });
+      const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+      await camera.initialize({
+        hass: createHASS(),
+        entityRegistryManager: ptzPopulatedEntityRegistryManager,
+        stateWatcher: mock<StateWatcher>(),
+      });
+      const executor = mock<ActionsExecutor>();
+
+      await camera.executePTZAction(executor, 'left');
+      expect(executor.executeActions).not.toHaveBeenCalled();
+    });
+
+    describe('should execute preset', () => {
+      it('for existing preset', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS({
+            'select.office_reolink_ptz_preset': createStateEntity({
+              state: 'foo',
+              attributes: {
+                options: ['preset-one', 'preset-two'],
+              },
+            }),
+          }),
+          entityRegistryManager: ptzPopulatedEntityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+        });
+        const executor = mock<ActionsExecutor>();
+
+        await camera.executePTZAction(executor, 'preset', { preset: 'preset-two' });
+        expect(executor.executeActions).toHaveBeenLastCalledWith({
+          actions: [
+            {
+              action: 'perform-action',
+              perform_action: 'select.select_option',
+              target: {
+                entity_id: 'select.office_reolink_ptz_preset',
+              },
+              data: {
+                option: 'preset-two',
+              },
+            },
+          ],
+        });
+      });
+
+      it('for non-existant preset', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: ptzPopulatedEntityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+        });
+        const executor = mock<ActionsExecutor>();
+
+        await camera.executePTZAction(executor, 'preset');
+        expect(executor.executeActions).not.toHaveBeenCalled();
       });
     });
   });

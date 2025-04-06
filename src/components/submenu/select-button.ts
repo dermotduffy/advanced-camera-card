@@ -10,9 +10,11 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { MenuSubmenuSelect } from '../../config/schema/elements/custom/menu/submenu-select.js';
 import { MenuSubmenuItem } from '../../config/schema/elements/custom/menu/submenu.js';
+import { computeDomain } from '../../ha/compute-domain.js';
 import { HomeAssistant } from '../../ha/types.js';
 import menuButtonStyle from '../../scss/menu-button.scss';
 import { Icon } from '../../types.js';
+import { createSelectOptionAction } from '../../utils/action.js';
 import { getEntityTitle, isHassDifferent } from '../../utils/ha';
 import { getEntityStateTranslation } from '../../utils/ha/entity-state-translation.js';
 import { EntityRegistryManager } from '../../utils/ha/registry/entity/types.js';
@@ -83,6 +85,7 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
     }
 
     const entityID = this.submenuSelect.entity;
+    const entityDomain = computeDomain(entityID);
     const stateObj = this.hass.states[entityID];
     const options = stateObj?.attributes?.options;
     if (!stateObj || !options) {
@@ -98,19 +101,8 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
         selected: stateObj.state === option,
         enabled: true,
         title: title || option,
-        ...((entityID.startsWith('select.') || entityID.startsWith('input_select.')) && {
-          tap_action: {
-            action: 'perform-action',
-            perform_action: entityID.startsWith('select.')
-              ? 'select.select_option'
-              : 'input_select.select_option',
-            target: {
-              entity_id: entityID,
-            },
-            data: {
-              option: option,
-            },
-          },
+        ...((entityDomain === 'select' || entityDomain === 'input_select') && {
+          tap_action: createSelectOptionAction(entityDomain, entityID, option),
         }),
         // Apply overrides the user may have specified for a given option.
         ...(this.submenuSelect.options && this.submenuSelect.options[option]),

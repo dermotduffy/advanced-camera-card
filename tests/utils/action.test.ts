@@ -14,6 +14,7 @@ import {
   createPTZControlsAction,
   createPTZDigitalAction,
   createPTZMultiAction,
+  createSelectOptionAction,
   createViewAction,
   getActionConfigGivenAction,
   hasAction,
@@ -263,6 +264,24 @@ describe('createPerformAction', () => {
       card_id: 'card_id',
       target: { entity_id: 'light.office_main_lights' },
       data: {},
+    });
+  });
+});
+
+describe('createSelectOptionAction', () => {
+  it('should create select option action', () => {
+    expect(
+      createSelectOptionAction('select', 'select.foo', 'option', {
+        cardID: 'card_id',
+      }),
+    ).toEqual({
+      action: 'perform-action',
+      perform_action: 'select.select_option',
+      card_id: 'card_id',
+      target: { entity_id: 'select.foo' },
+      data: {
+        option: 'option',
+      },
     });
   });
 });

@@ -3,7 +3,7 @@ import { RemoteControlEntityPriority } from '../../config/schema/remote-control'
 import {
   createCameraAction,
   createInternalCallbackAction,
-  createPerformAction,
+  createSelectOptionAction,
 } from '../../utils/action';
 import { CardActionsAPI, CardConfigLoaderAPI, TaggedAutomation } from '../types';
 
@@ -20,16 +20,6 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
 
   const cameraPriority: RemoteControlEntityPriority =
     remoteControlConfig.entities.camera_priority;
-
-  const createSelectOptionAction = (option: string) =>
-    createPerformAction('input_select.select_option', {
-      target: {
-        entity_id: cameraControlEntity,
-      },
-      data: {
-        option: option,
-      },
-    });
 
   // Control entities functionality is implemented entirely by populating
   // automations.
@@ -59,7 +49,11 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
       ],
       actions: [
         // When the camera changes, update the entity to match.
-        createSelectOptionAction('{{ advanced_camera_card.trigger.camera.to }}'),
+        createSelectOptionAction(
+          'input_select',
+          cameraControlEntity,
+          '{{ advanced_camera_card.trigger.camera.to }}',
+        ),
       ],
       tag: automationTag,
     },
@@ -82,7 +76,11 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
               `{{ hass.states["${cameraControlEntity}"].state }}`,
             )
           : // Set the selected option in the entity to the current camera ID.
-            createSelectOptionAction('{{ advanced_camera_card.camera }}'),
+            createSelectOptionAction(
+              'input_select',
+              cameraControlEntity,
+              '{{ advanced_camera_card.camera }}',
+            ),
       ],
       tag: automationTag,
     },
