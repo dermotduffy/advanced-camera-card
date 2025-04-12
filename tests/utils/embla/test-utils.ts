@@ -35,15 +35,6 @@ export const callEmblaHandler = (
   }
 };
 
-export const callVisibilityHandler = async (): Promise<void> => {
-  const mock = vi.mocked(global.document.addEventListener).mock;
-  for (const [evt, cb] of mock.calls) {
-    if (evt === 'visibilitychange' && typeof cb === 'function') {
-      await (cb as EventListener | ((_: unknown) => Promise<void>))(new Event('foo'));
-    }
-  }
-};
-
 export const callResizeHandler = (
   entries: {
     target: HTMLElement;

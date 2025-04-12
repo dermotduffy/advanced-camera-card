@@ -24,7 +24,6 @@ import { MediaLoadedInfo, MediaPlayerController } from '../../types.js';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { contentsChanged, setOrRemoveAttribute } from '../../utils/basic.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
-import { AutoLazyLoad } from '../../utils/embla/plugins/auto-lazy-load/auto-lazy-load.js';
 import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
 import AutoSize from '../../utils/embla/plugins/auto-size/auto-size.js';
 import { ResolvedMediaCache } from '../../utils/ha/resolved-media.js';
@@ -36,7 +35,6 @@ import { renderMessage } from '../message.js';
 import '../next-prev-control.js';
 import '../ptz.js';
 import './provider.js';
-import { AdvancedCameraCardViewerProvider } from './provider.js';
 
 interface MediaNeighbor {
   index: number;
@@ -137,15 +135,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
    * @returns A list of EmblaOptionsTypes.
    */
   protected _getPlugins(): EmblaCarouselPlugins {
-    return [
-      AutoLazyLoad({
-        ...(this.viewerConfig?.lazy_load && {
-          lazyLoadCallback: (_index, slide) => this._lazyloadSlide(slide),
-        }),
-      }),
-      AutoMediaLoadedInfo(),
-      AutoSize(),
-    ];
+    return [AutoMediaLoadedInfo(), AutoSize()];
   }
 
   /**
@@ -209,23 +199,6 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       },
       modifiers: [new RemoveContextPropertyViewModifier('mediaViewer', 'seek')],
     });
-  }
-
-  /**
-   * Lazy load a slide.
-   * @param slide The slide to lazy load.
-   */
-  protected _lazyloadSlide(slide: Element): void {
-    if (slide instanceof HTMLSlotElement) {
-      slide = slide.assignedElements({ flatten: true })[0];
-    }
-
-    const viewerProvider = slide?.querySelector(
-      'advanced-camera-card-viewer-provider',
-    ) as AdvancedCameraCardViewerProvider | null;
-    if (viewerProvider) {
-      viewerProvider.load = true;
-    }
   }
 
   /**
@@ -450,7 +423,6 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
         .viewerConfig=${this.viewerConfig}
         .resolvedMediaCache=${this.resolvedMediaCache}
         .cameraManager=${this.cameraManager}
-        .load=${!this.viewerConfig.lazy_load}
         .cardWideConfig=${this.cardWideConfig}
       ></advanced-camera-card-viewer-provider>
     </div>`;

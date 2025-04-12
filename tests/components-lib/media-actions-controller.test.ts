@@ -11,10 +11,11 @@ import {
   MutationObserverMock,
   callIntersectionHandler,
   callMutationHandler,
+  callVisibilityHandler,
   createParent,
   flushPromises,
 } from '../test-utils';
-import { callVisibilityHandler, createTestSlideNodes } from '../utils/embla/test-utils';
+import { createTestSlideNodes } from '../utils/embla/test-utils';
 
 const getPlayer = (
   element: HTMLElement,
@@ -47,7 +48,7 @@ describe('MediaActionsController', () => {
   });
 
   afterAll(() => {
-    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   beforeEach(() => {
@@ -455,11 +456,7 @@ describe('MediaActionsController', () => {
           (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
         ).not.toBeCalled();
 
-        Object.defineProperty(document, 'visibilityState', {
-          value: 'visible',
-          writable: true,
-        });
-        await callVisibilityHandler();
+        await callVisibilityHandler(true);
 
         // Not configured to take action on selection.
         expect(
@@ -502,11 +499,7 @@ describe('MediaActionsController', () => {
           (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
         ).not.toBeCalled();
 
-        Object.defineProperty(document, 'visibilityState', {
-          value: 'hidden',
-          writable: true,
-        });
-        await callVisibilityHandler();
+        await callVisibilityHandler(false);
 
         // Not configured to take action on selection.
         expect(

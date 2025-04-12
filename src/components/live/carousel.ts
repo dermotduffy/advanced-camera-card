@@ -24,7 +24,6 @@ import { HomeAssistant } from '../../ha/types.js';
 import liveCarouselStyle from '../../scss/live-carousel.scss';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
-import { AutoLazyLoad } from '../../utils/embla/plugins/auto-lazy-load/auto-lazy-load.js';
 import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
 import AutoSize from '../../utils/embla/plugins/auto-size/auto-size.js';
 import { getStreamCameraID } from '../../utils/substream.js';
@@ -36,7 +35,6 @@ import '../next-prev-control.js';
 import '../ptz.js';
 import { AdvancedCameraCardPTZ } from '../ptz.js';
 import './provider.js';
-import { AdvancedCameraCardLiveProvider } from './provider.js';
 
 const ADVANCED_CAMERA_CARD_LIVE_PROVIDER = 'advanced-camera-card-live-provider';
 
@@ -140,19 +138,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   }
 
   protected _getPlugins(): EmblaCarouselPlugins {
-    return [
-      AutoLazyLoad({
-        ...(this.liveConfig?.lazy_load && {
-          lazyLoadCallback: (index, slide) =>
-            this._lazyloadOrUnloadSlide('load', index, slide),
-        }),
-        lazyUnloadConditions: this.liveConfig?.lazy_unload,
-        lazyUnloadCallback: (index, slide) =>
-          this._lazyloadOrUnloadSlide('unload', index, slide),
-      }),
-      AutoMediaLoadedInfo(),
-      AutoSize(),
-    ];
+    return [AutoMediaLoadedInfo(), AutoSize()];
   }
 
   /**
@@ -217,23 +203,6 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     }
   }
 
-  protected _lazyloadOrUnloadSlide(
-    action: 'load' | 'unload',
-    _index: number,
-    slide: Element,
-  ): void {
-    if (slide instanceof HTMLSlotElement) {
-      slide = slide.assignedElements({ flatten: true })[0];
-    }
-
-    const liveProvider = slide?.querySelector(
-      ADVANCED_CAMERA_CARD_LIVE_PROVIDER,
-    ) as AdvancedCameraCardLiveProvider | null;
-    if (liveProvider) {
-      liveProvider.load = action === 'load';
-    }
-  }
-
   protected _renderLive(
     cameraID: string,
     cameraConfig: CameraConfig,
@@ -248,7 +217,6 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     return html`
       <div class="embla__slide">
         <advanced-camera-card-live-provider
-          ?load=${!this.liveConfig.lazy_load}
           .microphoneState=${view?.camera === cameraID
             ? this.microphoneState
             : undefined}
