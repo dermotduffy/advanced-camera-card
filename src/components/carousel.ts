@@ -97,7 +97,18 @@ export class AdvancedCameraCardCarousel extends LitElement {
   }
 
   protected updated(changedProps: PropertyValues): void {
-    if (!this._carousel && this._refRoot.value && this._refParent.value) {
+    if (
+      !this._carousel &&
+      this._refRoot.value &&
+      this._refParent.value &&
+      // Never construct a carousel if the node is not connected. There can be a
+      // race condition between the Lit update lifecycle, and the
+      // disconnect/connect callbacks, causing a carousel to potentially be
+      // created after the node is disconnected. This could cause a dangling
+      // carousel and hold open connections that should have been closed.
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/1992
+      this.isConnected
+    ) {
       this._carousel = new CarouselController(
         this._refRoot.value,
         this._refParent.value,

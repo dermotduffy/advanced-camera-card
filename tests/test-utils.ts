@@ -383,15 +383,22 @@ export const requestAnimationFrameMock = (callback: FrameRequestCallback) => {
   return 1;
 };
 
+export const getMockIntersectionObserver = (n = 0): IntersectionObserver | null => {
+  const mockResult = vi.mocked(IntersectionObserver).mock.results[n];
+  if (mockResult.type !== 'return') {
+    return null;
+  }
+  return mockResult.value;
+};
+
 export const callIntersectionHandler = async (
   intersecting = true,
   n = 0,
 ): Promise<void> => {
-  const mockResult = vi.mocked(IntersectionObserver).mock.results[n];
-  if (mockResult.type !== 'return') {
+  const observer = getMockIntersectionObserver(n);
+  if (!observer) {
     return;
   }
-  const observer = mockResult.value;
   await (
     vi.mocked(IntersectionObserver).mock.calls[n][0] as
       | IntersectionObserverCallback
@@ -420,6 +427,20 @@ export const callMutationHandler = async (n = 0): Promise<void> => {
     [],
     observer,
   );
+};
+
+export const callVisibilityHandler = async (visible: boolean): Promise<void> => {
+  Object.defineProperty(document, 'visibilityState', {
+    value: visible ? 'visible' : 'hidden',
+    writable: true,
+  });
+
+  const mock = vi.mocked(global.document.addEventListener).mock;
+  for (const [evt, cb] of mock.calls) {
+    if (evt === 'visibilitychange' && typeof cb === 'function') {
+      await (cb as EventListener | ((_: unknown) => Promise<void>))(new Event('foo'));
+    }
+  }
 };
 
 export const createSlotHost = (options?: {
@@ -453,6 +474,7 @@ export const createParent = (options?: { children?: HTMLElement[] }): HTMLElemen
 export const createLitElement = (): LitElement => {
   const element = document.createElement('div') as unknown as LitElement;
   element.addController = vi.fn();
+  element.removeController = vi.fn();
   element.requestUpdate = vi.fn();
 
   const promise: Promise<boolean> = new Promise((resolve) => {

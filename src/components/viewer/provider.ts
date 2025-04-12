@@ -11,6 +11,7 @@ import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
 import { CardWideConfig } from '../../config/schema/types.js';
@@ -61,12 +62,6 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   @property({ attribute: false })
   public resolvedMediaCache?: ResolvedMediaCache;
 
-  // Whether or not to load the viewer media. If `false`, no contents are
-  // rendered until this attribute is set to `true` (this is useful for lazy
-  // loading).
-  @property({ attribute: false })
-  public load = false;
-
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 
@@ -74,6 +69,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   public cardWideConfig?: CardWideConfig;
 
   protected _refProvider: Ref<MediaPlayerElement> = createRef();
+  protected _lazyLoadController: LazyLoadController | null = null;
 
   @state()
   protected _url: string | null = null;
@@ -127,7 +123,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       !this.media ||
       !mediaContentID ||
       !this.hass ||
-      (this.viewerConfig?.lazy_load && !this.load)
+      !this._lazyLoadController?.isLoaded()
     ) {
       return;
     }
@@ -185,15 +181,25 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (
-      changedProps.has('load') ||
+      changedProps.has('viewerConfig') ||
+      (!this._lazyLoadController && this.viewerConfig)
+    ) {
+      this._lazyLoadController?.destroy();
+      this._lazyLoadController?.removeController();
+      this._lazyLoadController = new LazyLoadController(
+        this,
+        this.viewerConfig?.lazy_load,
+      );
+      this._lazyLoadController.addListener((loaded) => loaded && this._setURL());
+    }
+
+    if (
       changedProps.has('media') ||
       changedProps.has('viewerConfig') ||
       changedProps.has('resolvedMediaCache') ||
       changedProps.has('hass')
     ) {
-      this._setURL().then(() => {
-        this.requestUpdate();
-      });
+      this._setURL();
     }
 
     if (changedProps.has('viewerConfig') && this.viewerConfig?.zoomable) {
@@ -246,7 +252,12 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   }
 
   protected render(): TemplateResult | void {
-    if (!this.load || !this.media || !this.hass || !this.viewerConfig) {
+    if (
+      !this._lazyLoadController?.isLoaded() ||
+      !this.media ||
+      !this.hass ||
+      !this.viewerConfig
+    ) {
       return;
     }
 

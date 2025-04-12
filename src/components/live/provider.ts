@@ -12,6 +12,7 @@ import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
 import { MicrophoneState } from '../../card-controller/types.js';
+import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
 import { PartialZoomSettings } from '../../components-lib/zoom/types.js';
 import { CameraConfig, LiveProvider } from '../../config/schema/cameras.js';
@@ -45,12 +46,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   @property({ attribute: false })
   public liveConfig?: LiveConfig;
 
-  // Whether or not to load the video for this camera. If `false`, no contents
-  // are rendered until this attribute is set to `true` (this is useful for lazy
-  // loading).
-  @property({ attribute: true, type: Boolean })
-  public load = false;
-
   // Label that is used for ARIA support and as tooltip.
   @property({ attribute: false })
   public label = '';
@@ -74,6 +69,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   protected _showStreamTroubleshooting = false;
 
   protected _refProvider: Ref<MediaPlayerElement> = createRef();
+  protected _lazyLoadController: LazyLoadController | null = null;
 
   // A note on dynamic imports:
   //
@@ -144,11 +140,23 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('load')) {
-      if (!this.load) {
-        this._isVideoMediaLoaded = false;
-        dispatchMediaUnloadedEvent(this);
-      }
+    if (
+      changedProps.has('liveConfig') ||
+      (!this._lazyLoadController && this.liveConfig)
+    ) {
+      this._lazyLoadController?.destroy();
+      this._lazyLoadController?.removeController();
+      this._lazyLoadController = new LazyLoadController(
+        this,
+        this.liveConfig?.lazy_load,
+        this.liveConfig?.lazy_unload,
+      );
+      this._lazyLoadController.addListener((loaded: boolean) => {
+        if (!loaded) {
+          this._isVideoMediaLoaded = false;
+          dispatchMediaUnloadedEvent(this);
+        }
+      });
     }
 
     if (changedProps.has('liveConfig')) {
@@ -216,7 +224,12 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   }
 
   protected render(): TemplateResult | void {
-    if (!this.load || !this.hass || !this.liveConfig || !this.cameraConfig) {
+    if (
+      !this._lazyLoadController?.isLoaded() ||
+      !this.hass ||
+      !this.liveConfig ||
+      !this.cameraConfig
+    ) {
       return;
     }
 
