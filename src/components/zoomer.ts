@@ -40,6 +40,7 @@ export class AdvancedCameraCardZoomer extends LitElement {
     this._zoom?.deactivate();
     this.removeEventListener('advanced-camera-card:zoom:zoomed', this._zoomHandler);
     this.removeEventListener('advanced-camera-card:zoom:unzoomed', this._unzoomHandler);
+    super.disconnectedCallback();
   }
 
   protected willUpdate(changedProps: PropertyValues): void {

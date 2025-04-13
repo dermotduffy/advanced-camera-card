@@ -30,7 +30,6 @@ export class AdvancedCameraCardSurroundBasic extends LitElement {
   }
 
   disconnectedCallback(): void {
-    super.disconnectedCallback();
     this.removeEventListener(
       'advanced-camera-card:drawer:open',
       this._boundDrawerHandler,
@@ -39,6 +38,7 @@ export class AdvancedCameraCardSurroundBasic extends LitElement {
       'advanced-camera-card:drawer:close',
       this._boundDrawerHandler,
     );
+    super.disconnectedCallback();
   }
 
   protected _drawerHandler(ev: Event) {

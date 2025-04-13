@@ -68,6 +68,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   disconnectedCallback(): void {
     this._player = undefined;
     this._message = null;
+    super.disconnectedCallback();
   }
 
   connectedCallback(): void {

@@ -301,6 +301,7 @@ export class AdvancedCameraCardElementsConditional extends LitElement {
 
   disconnectedCallback(): void {
     this._conditionManager?.destroy();
+    super.disconnectedCallback();
   }
 
   protected _createConditionManager(): void {
