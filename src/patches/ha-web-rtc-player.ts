@@ -54,6 +54,24 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
       return this._mediaPlayerController;
     }
 
+    private async _startWebRtc(): Promise<void> {
+      // There is a race condition in the underlying HA frontend code between
+      // the element connection and the async start of the WebRTC session. If
+      // the element is rapidly connected and disconnected, the RTC connection
+      // may be left permanently "dangling" causing leaks. To reproduce (without
+      // this workaround), watch the number of open connections on the go2rtc
+      // UI, then edit and rapidly save a dashboard with this card -- the number
+      // of open connections will not return to 1.
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/1992
+      await super._startWebRtc();
+
+      // Workaround: After attempting to start a WebRTC session, check if the
+      // element is connected and if not then clean up correctly.
+      if (!this.isConnected) {
+        this._cleanUp();
+      }
+    }
+
     // =====================================================================================
     // Minor modifications from:
     // - https://github.com/home-assistant/frontend/blob/dev/src/components/ha-web-rtc-player.ts
