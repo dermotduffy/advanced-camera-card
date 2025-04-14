@@ -64,16 +64,16 @@ export class AdvancedCameraCardThumbnailFeatureThumbnail extends LitElement {
    * Component connected callback.
    */
   connectedCallback(): void {
-    this._intersectionObserver.observe(this);
     super.connectedCallback();
+    this._intersectionObserver.observe(this);
   }
 
   /**
    * Component disconnected callback.
    */
   disconnectedCallback(): void {
-    super.disconnectedCallback();
     this._intersectionObserver.disconnect();
+    super.disconnectedCallback();
   }
 
   protected willUpdate(changedProps: PropertyValues): void {

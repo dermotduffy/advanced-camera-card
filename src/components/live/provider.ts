@@ -128,6 +128,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   public disconnectedCallback(): void {
     this._isVideoMediaLoaded = false;
+    super.disconnectedCallback();
   }
 
   protected _videoMediaShowHandler(): void {
