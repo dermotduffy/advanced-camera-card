@@ -69,10 +69,15 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   public cardWideConfig?: CardWideConfig;
 
   protected _refProvider: Ref<MediaPlayerElement> = createRef();
-  protected _lazyLoadController: LazyLoadController | null = null;
+  protected _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
   @state()
   protected _url: string | null = null;
+
+  constructor() {
+    super();
+    this._lazyLoadController.addListener((loaded) => loaded && this._setURL());
+  }
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     await this.updateComplete;
@@ -184,13 +189,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       changedProps.has('viewerConfig') ||
       (!this._lazyLoadController && this.viewerConfig)
     ) {
-      this._lazyLoadController?.destroy();
-      this._lazyLoadController?.removeController();
-      this._lazyLoadController = new LazyLoadController(
-        this,
-        this.viewerConfig?.lazy_load,
-      );
-      this._lazyLoadController.addListener((loaded) => loaded && this._setURL());
+      this._lazyLoadController.setConfiguration(this.viewerConfig?.lazy_load);
     }
 
     if (

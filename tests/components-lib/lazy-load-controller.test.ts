@@ -37,13 +37,14 @@ describe('LazyLoadController', () => {
     vi.restoreAllMocks();
   });
 
-  it('should be loaded by default', () => {
+  it('should be unloaded by default', () => {
     const controller = new LazyLoadController(createLitElement());
-    expect(controller.isLoaded()).toBe(true);
+    expect(controller.isLoaded()).toBe(false);
   });
 
   it('should not be loaded by default when lazy load is set to true', () => {
-    const controller = new LazyLoadController(createLitElement(), true);
+    const controller = new LazyLoadController(createLitElement());
+    controller.setConfiguration(true);
     expect(controller.isLoaded()).toBe(false);
   });
 
@@ -61,10 +62,8 @@ describe('LazyLoadController', () => {
   });
 
   it('should remove handlers and listeners on destroy', () => {
-    const controller = new LazyLoadController(createLitElement(), true, [
-      'unselected',
-      'hidden',
-    ]);
+    const controller = new LazyLoadController(createLitElement());
+    controller.setConfiguration(true, ['unselected', 'hidden']);
     controller.hostConnected();
 
     const listener = vi.fn();
@@ -84,9 +83,26 @@ describe('LazyLoadController', () => {
     expect(listener).not.toBeCalled();
   });
 
+  describe('should set configuration', () => {
+    it('should set loaded if lazy loading set to false', () => {
+      const listener = vi.fn();
+      const controller = new LazyLoadController(createLitElement());
+      controller.addListener(listener);
+
+      expect(controller.isLoaded()).toBe(false);
+      expect(listener).not.toBeCalled();
+
+      controller.setConfiguration(false);
+
+      expect(controller.isLoaded()).toBe(true);
+      expect(listener).toBeCalled();
+    });
+  });
+
   describe('should lazy load', () => {
     it('should load when both visible and intersecting', () => {
-      const controller = new LazyLoadController(createLitElement(), true);
+      const controller = new LazyLoadController(createLitElement());
+      controller.setConfiguration(true);
       controller.hostConnected();
 
       expect(controller.isLoaded()).toBe(false);
@@ -102,6 +118,9 @@ describe('LazyLoadController', () => {
   describe('should lazy unload', () => {
     it('should unload on DOM disconnection', () => {
       const controller = new LazyLoadController(createLitElement());
+
+      // No lazy loading.
+      controller.setConfiguration(false);
       controller.hostConnected();
 
       expect(controller.isLoaded()).toBe(true);
@@ -127,11 +146,8 @@ describe('LazyLoadController', () => {
       ])(
         'when unload conditions are: %s',
         (unloadConditions: LazyUnloadCondition[], shouldBeLoaded: boolean) => {
-          const controller = new LazyLoadController(
-            createLitElement(),
-            true,
-            unloadConditions,
-          );
+          const controller = new LazyLoadController(createLitElement());
+          controller.setConfiguration(true, unloadConditions);
           controller.hostConnected();
 
           callIntersectionHandler(true);
@@ -153,11 +169,8 @@ describe('LazyLoadController', () => {
       ])(
         'when unload conditions are: %s',
         (unloadConditions: LazyUnloadCondition[], shouldBeLoaded: boolean) => {
-          const controller = new LazyLoadController(
-            createLitElement(),
-            true,
-            unloadConditions,
-          );
+          const controller = new LazyLoadController(createLitElement());
+          controller.setConfiguration(true, unloadConditions);
           controller.hostConnected();
 
           callIntersectionHandler(true);
@@ -173,10 +186,8 @@ describe('LazyLoadController', () => {
 
   it('should call listeners', () => {
     const listener = vi.fn();
-    const controller = new LazyLoadController(createLitElement(), true, [
-      'unselected',
-      'hidden',
-    ]);
+    const controller = new LazyLoadController(createLitElement());
+    controller.setConfiguration(true, ['unselected', 'hidden']);
     controller.hostConnected();
     controller.addListener(listener);
 
