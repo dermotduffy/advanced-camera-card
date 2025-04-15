@@ -69,7 +69,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   protected _showStreamTroubleshooting = false;
 
   protected _refProvider: Ref<MediaPlayerElement> = createRef();
-  protected _lazyLoadController: LazyLoadController | null = null;
+  protected _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
   // A note on dynamic imports:
   //
@@ -82,6 +82,16 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   // call mute() when the <advanced-camera-card-live> element first renders in the
   // background. These calls fail without waiting for loading here.
   protected _importPromises: Promise<unknown>[] = [];
+
+  constructor() {
+    super();
+    this._lazyLoadController.addListener((loaded: boolean) => {
+      if (!loaded) {
+        this._isVideoMediaLoaded = false;
+        dispatchMediaUnloadedEvent(this);
+      }
+    });
+  }
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     await this.updateComplete;
@@ -145,19 +155,10 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       changedProps.has('liveConfig') ||
       (!this._lazyLoadController && this.liveConfig)
     ) {
-      this._lazyLoadController?.destroy();
-      this._lazyLoadController?.removeController();
-      this._lazyLoadController = new LazyLoadController(
-        this,
+      this._lazyLoadController.setConfiguration(
         this.liveConfig?.lazy_load,
         this.liveConfig?.lazy_unload,
       );
-      this._lazyLoadController.addListener((loaded: boolean) => {
-        if (!loaded) {
-          this._isVideoMediaLoaded = false;
-          dispatchMediaUnloadedEvent(this);
-        }
-      });
     }
 
     if (changedProps.has('liveConfig')) {

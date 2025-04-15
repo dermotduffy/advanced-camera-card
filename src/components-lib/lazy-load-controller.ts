@@ -7,22 +7,25 @@ export class LazyLoadController implements ReactiveController {
   private _host: ReactiveControllerHost & HTMLElement;
   private _documentVisible = true;
   private _intersects = false;
-  private _loaded: boolean;
+  private _loaded = false;
   private _unloadConditions: LazyUnloadCondition[] | null = null;
   private _intersectionObserver = new IntersectionObserver(
     this._intersectionHandler.bind(this),
   );
   private _listeners: LazyLoadListener[] = [];
 
-  constructor(
-    host: ReactiveControllerHost & HTMLElement,
+  constructor(host: ReactiveControllerHost & HTMLElement) {
+    this._host = host;
+    this._host.addController(this);
+  }
+
+  public setConfiguration(
     lazyLoad?: boolean,
     lazyUnloadConditions?: LazyUnloadCondition[],
   ) {
-    this._host = host;
-    this._host.addController(this);
-
-    this._loaded = !lazyLoad;
+    if (!lazyLoad && !this._loaded) {
+      this._setLoaded(true);
+    }
     this._unloadConditions = lazyUnloadConditions ?? null;
   }
 
