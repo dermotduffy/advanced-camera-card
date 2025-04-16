@@ -126,7 +126,7 @@ describe('ReolinkCamera', () => {
         ).rejects.toThrowError('Could not initialize Reolink camera');
       });
 
-      it('without a channel in the unique_id', async () => {
+      it('without a valid unique_id', async () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
@@ -148,26 +148,74 @@ describe('ReolinkCamera', () => {
             }),
         ).rejects.toThrowError('Could not initialize Reolink camera');
       });
-    });
 
-    it('successfully with main camera', async () => {
-      const config = createCameraConfig({
-        camera_entity: 'camera.office_reolink',
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/1964
+      it('successfully with an NVR-connected camera with user-specified channel', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+          reolink: {
+            channel: 42,
+          },
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+        const entityRegistryManager = new EntityRegistryManagerMock([
+          createRegistryEntity({
+            entity_id: 'camera.office_reolink',
+            unique_id: '9527000HXU4V1VHZ_9527000I7E5F1GYU_main',
+            platform: 'reolink',
+          }),
+        ]);
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+        });
+
+        expect(camera.getChannel()).toBe(42);
       });
-      const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-      const entityRegistryManager = new EntityRegistryManagerMock([cameraEntity]);
 
-      await camera.initialize({
-        hass: createHASS(),
-        entityRegistryManager,
-        stateWatcher: mock<StateWatcher>(),
+      it('successfully with an NVR-connected camera without user-specified channel', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+        const entityRegistryManager = new EntityRegistryManagerMock([
+          createRegistryEntity({
+            entity_id: 'camera.office_reolink',
+            unique_id: '9527000HXU4V1VHZ_9527000I7E5F1GYU_main',
+            platform: 'reolink',
+          }),
+        ]);
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+        });
+
+        expect(camera.getChannel()).toBe(0);
       });
 
-      expect(camera.getChannel()).toBe(0);
+      it('successfully with a directly connected camera', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+        const entityRegistryManager = new EntityRegistryManagerMock([cameraEntity]);
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+        });
+
+        expect(camera.getChannel()).toBe(0);
+      });
     });
 
     describe('successfully with PTZ', () => {
-      it('should find PTZ button entities', async () => {
+      it('should find PTZ button entities with a directly connected camera', async () => {
         const config = createCameraConfig({
           camera_entity: 'camera.office_reolink',
         });
@@ -184,6 +232,40 @@ describe('ReolinkCamera', () => {
           right: ['continuous'],
           up: ['continuous'],
           down: ['continuous'],
+          zoomIn: ['continuous'],
+          zoomOut: ['continuous'],
+        });
+      });
+
+      it('should find PTZ button entities with NVR-connected camera', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            createRegistryEntity({
+              entity_id: 'camera.office_reolink',
+              unique_id: '9527000HXU4V1VHZ_9527000I7E5F1GYU_main',
+              platform: 'reolink',
+            }),
+            createRegistryEntity({
+              entity_id: 'button.office_reolink_ptz_zoom_in',
+              unique_id: '9527000HXU4V1VHZ_9527000I7E5F1GYU_ptz_zoom_in',
+              platform: 'reolink',
+            }),
+            createRegistryEntity({
+              entity_id: 'button.office_reolink_ptz_zoom_out',
+              unique_id: '9527000HXU4V1VHZ_9527000I7E5F1GYU_ptz_zoom_out',
+              platform: 'reolink',
+            }),
+          ]),
+          stateWatcher: mock<StateWatcher>(),
+        });
+
+        expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           zoomIn: ['continuous'],
           zoomOut: ['continuous'],
         });

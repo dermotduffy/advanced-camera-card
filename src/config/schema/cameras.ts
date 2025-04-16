@@ -228,6 +228,7 @@ export const cameraConfigSchema = z
     reolink: z
       .object({
         url: z.string().optional(),
+        channel: z.number().optional(),
         media_resolution: z
           .enum(['high', 'low'])
           .default(cameraConfigDefault.reolink.media_resolution),
