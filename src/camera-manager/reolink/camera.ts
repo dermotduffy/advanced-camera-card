@@ -12,6 +12,9 @@ import { CameraInitializationError } from '../error';
 import { CameraProxyConfig } from '../types';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
+// Reolink channels are zero indexed.
+const REOLINK_DEFAULT_CHANNEL = 0;
+
 interface ReolinkCameraInitializationOptions extends CameraInitializationOptions {
   entityRegistryManager: EntityRegistryManager;
   hass: HomeAssistant;
@@ -32,8 +35,16 @@ interface PTZEntities {
 type PTZEntity = keyof PTZEntities;
 
 export class ReolinkCamera extends BrowseMediaCamera {
-  protected _channel: number | null = null;
-  protected _reolinkUniqueID: string | null = null;
+  // The HostID identifying the camera or NVR.
+  protected _reolinkHostID: string | null = null;
+
+  // For NVRs, the Camera UID.
+  protected _reolinkCameraUID: string | null = null;
+
+  // The channel number as used by the Reolink integration.
+  protected _reolinkChannel: number | null = null;
+
+  // Entities used for PTZ control.
   protected _ptzEntities: PTZEntities | null = null;
 
   public async initialize(options: ReolinkCameraInitializationOptions): Promise<Camera> {
@@ -45,21 +56,47 @@ export class ReolinkCamera extends BrowseMediaCamera {
 
   protected _initializeChannel(): void {
     const uniqueID = this._entity?.unique_id;
+
+    // Reolink camera unique IDs are dual-mode, they may be in either of these
+    // forms:
+    //  - Directly connected cameras: [HostID]_[Channel #]_[...]
+    //    (e.g. `95270002FS8D4RUP_0_sub`)
+    //  - NVR/Hub connected cameras: [HostID]_[Camera UID]_[...]
+    //    (e.g. `9527000HXU4V1VHZ_9527000I7E5F1GYU_sub`)
+    //
+    // The channel number is always numeric and assumed to be <1000, see similar
+    // comparisons in the integration itself:
+    // https://github.com/home-assistant/core/blob/dev/homeassistant/components/reolink/media_source.py#L174
+    //
+    // In the latter form, the channel number cannot be inferred from the entity
+    // and must only be taken from the user config instead.
+
     const match = uniqueID
-      ? String(uniqueID).match(/(?<uniqueid>.*)_(?<channel>\d+)/)
+      ? String(uniqueID).match(
+          /^(?<hostid>[A-Za-z0-9]+)_(?<channel_or_uid>[A-Za-z0-9]+)_/,
+        )
       : null;
 
-    const channel = match && match.groups?.channel ? Number(match.groups.channel) : null;
-    const reolinkUniqueID = match?.groups?.uniqueid ?? null;
+    const hostid = match?.groups?.hostid ?? null;
+    const channelOrUID = match?.groups?.channel_or_uid ?? null;
 
-    if (channel === null || reolinkUniqueID === null) {
+    if (hostid === null || channelOrUID === null) {
       throw new ReolinkInitializationError(
         localize('error.camera_initialization_reolink'),
         this.getConfig(),
       );
     }
-    this._channel = channel;
-    this._reolinkUniqueID = reolinkUniqueID;
+
+    const channelCandidate = Number(channelOrUID);
+    const isValidChannel = !isNaN(channelCandidate) && channelCandidate <= 999;
+    const channel =
+      this._config.reolink.channel ??
+      (isValidChannel ? channelCandidate : REOLINK_DEFAULT_CHANNEL);
+    const reolinkCameraUID = !isValidChannel ? channelOrUID : null;
+
+    this._reolinkChannel = channel;
+    this._reolinkHostID = hostid;
+    this._reolinkCameraUID = reolinkCameraUID;
   }
 
   protected async _initializeCapabilities(
@@ -144,11 +181,11 @@ export class ReolinkCamera extends BrowseMediaCamera {
   ): Promise<PTZEntities | null> {
     /* istanbul ignore next: this path cannot be reached as an exception is
        thrown in initialize() if this value is not found -- @preserve */
-    if (!this._reolinkUniqueID) {
+    if (!this._reolinkHostID) {
       return null;
     }
 
-    const uniqueIDPrefix = `${this._reolinkUniqueID}_${this._channel}_`;
+    const uniqueIDPrefix = this._getPTZEntityUniqueIDPrefix();
     const allRelevantEntities = await entityRegistry.getMatchingEntities(
       hass,
       (ent: Entity) =>
@@ -196,7 +233,11 @@ export class ReolinkCamera extends BrowseMediaCamera {
   }
 
   public getChannel(): number | null {
-    return this._channel;
+    return this._reolinkChannel;
+  }
+
+  protected _getPTZEntityUniqueIDPrefix(): string {
+    return `${this._reolinkHostID}_${this._reolinkCameraUID ?? this._reolinkChannel}_`;
   }
 
   public getProxyConfig(): CameraProxyConfig {
