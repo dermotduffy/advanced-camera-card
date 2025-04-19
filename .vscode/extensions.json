@@ -1,16 +1,14 @@
 {
   "recommendations": [
-    "github.vscode-pull-request-github",
-    "eamodio.gitlens",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "bierner.lit-html",
     "runem.lit-plugin",
     "davidanson.vscode-markdownlint",
     "redhat.vscode-yaml",
-    "lokalise.i18n-ally",
     "vitest.explorer",
     "inlang.vs-code-extension",
-    "yoavbls.pretty-ts-errors"
+    "yoavbls.pretty-ts-errors",
+    "github.vscode-pull-request-github",
+    "github.vscode-github-actions"
   ]
 }

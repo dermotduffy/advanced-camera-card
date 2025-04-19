@@ -9,15 +9,15 @@
   },
   "updateRemoteUserUID": true,
   "workspaceFolder": "${localWorkspaceFolder}",
-  "initializeCommand": [".devcontainer/initialize.sh"],
+  "initializeCommand": [".devcontainer/scripts/devcontainer_initialize.sh"],
   "postCreateCommand": ["yarn", "install"],
-  "forwardPorts": [10001, "hass:8123", "frigate:5000"],
+  "forwardPorts": [10001, "homeassistant:8123", "frigate:5000"],
   "portsAttributes": {
     "10001": {
       "label": "Rollup",
       "onAutoForward": "silent"
     },
-    "hass:8123": {
+    "homeassistant:8123": {
       "label": "Home Assistant",
       "onAutoForward": "silent"
     },
@@ -29,17 +29,16 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "github.vscode-pull-request-github",
-        "eamodio.gitlens",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "bierner.lit-html",
         "runem.lit-plugin",
         "davidanson.vscode-markdownlint",
         "redhat.vscode-yaml",
-        "lokalise.i18n-ally",
         "vitest.explorer",
         "inlang.vs-code-extension",
+        "YoavBls.pretty-ts-errors",
+        "github.vscode-pull-request-github",
+        "github.vscode-github-actions",
         "ms-azuretools.vscode-docker"
       ],
       "settings": {
@@ -50,10 +49,7 @@
         "editor.formatOnSave": true,
         "editor.formatOnType": true,
         "files.trimTrailingWhitespace": true,
-        "[json]": {
-          "editor.defaultFormatter": "esbenp.prettier-vscode"
-        },
-        "[jsonc]": {
+        "[json][jsonc][yaml][markdown][typescript][javascript]": {
           "editor.defaultFormatter": "esbenp.prettier-vscode"
         }
       }
