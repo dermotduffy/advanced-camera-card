@@ -8,12 +8,12 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker-host.sock
       - .:${LOCAL_WORKSPACE_FOLDER}:cached
-  hass:
+  homeassistant:
     extends:
       file: .devcontainer/frigate-hass-integration/docker-compose.yml
-      service: hass
+      service: homeassistant
     volumes:
-      - .devcontainer/preconfig:/preconfig.d/02-card:ro
+      - .devcontainer/homeassistant_preconfig:/preconfig.d/02-card:ro
   frigate:
     extends:
       file: .devcontainer/frigate-hass-integration/docker-compose.yml
