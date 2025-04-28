@@ -259,11 +259,11 @@
         "editor_label": "Affichage",
         "grid_columns": "Nombre de colonnes de la grille",
         "grid_max_columns": "Nombre maximum de colonnes de la grille",
-        "grid_selected_position": "",
+        "grid_selected_position": "Position du média sélectionné dans la grille",
         "grid_selected_positions": {
-          "default": "",
-          "first": "",
-          "last": ""
+          "default": "L'élément sélectionné en position par défaut",
+          "first": "L'élément sélectionné apparaît en premier dans la grille",
+          "last": "L'élément sélectionné apparaît en dernier dans la grille"
         },
         "grid_selected_width_factor": "Augmenter la largeur du média sélectionnée par ce facteur",
         "mode": "Mode"
