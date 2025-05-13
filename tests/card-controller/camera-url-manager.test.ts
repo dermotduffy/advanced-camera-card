@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { CameraEndpoint } from '../../src/camera-manager/types';
 import { CameraURLManager } from '../../src/card-controller/camera-url-manager';
 import { CardCameraURLAPI } from '../../src/card-controller/types';
+import { Endpoint } from '../../src/types';
 import { createCardAPI, createViewWithMedia } from '../test-utils';
 
 const createAPIWithMedia = (): CardCameraURLAPI => {
@@ -20,7 +20,7 @@ describe('CameraURLManager', () => {
     const api = createAPIWithMedia();
     const manager = new CameraURLManager(api);
 
-    const endpoint: CameraEndpoint = {
+    const endpoint: Endpoint = {
       endpoint: 'http://frigate',
     };
 

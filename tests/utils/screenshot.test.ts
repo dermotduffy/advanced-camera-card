@@ -5,7 +5,7 @@ import {
   screenshotImage,
   screenshotVideo,
 } from '../../src/utils/screenshot';
-import { MediaQueriesResults } from '../../src/view/media-queries-results';
+import { QueryResults } from '../../src/view/query-results';
 import { View } from '../../src/view/view';
 import { TestViewMedia, createView } from '../test-utils';
 
@@ -103,7 +103,7 @@ describe('generateScreenshotTitle', () => {
     const view = createView({
       view: 'media',
       camera: 'camera-1',
-      queryResults: new MediaQueriesResults({ results: [media], selectedIndex: 0 }),
+      queryResults: new QueryResults({ results: [media], selectedIndex: 0 }),
     });
 
     expect(generateScreenshotFilename(view)).toBe('media_camera-1_id1.jpg');
@@ -118,7 +118,7 @@ describe('generateScreenshotTitle', () => {
     const view = createView({
       view: 'media',
       camera: 'camera-1',
-      queryResults: new MediaQueriesResults({ results: [media], selectedIndex: 0 }),
+      queryResults: new QueryResults({ results: [media], selectedIndex: 0 }),
     });
 
     expect(generateScreenshotFilename(view)).toBe('media_camera-1.jpg');

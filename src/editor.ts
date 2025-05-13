@@ -90,6 +90,11 @@ import {
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_DIMENSIONS_HEIGHT,
+  CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
+  CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+  CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SIZE,
   CONF_IMAGE_ENTITY,
   CONF_IMAGE_ENTITY_PARAMETERS,
   CONF_IMAGE_MODE,
@@ -238,16 +243,14 @@ import {
   MEDIA_CHUNK_SIZE_MAX,
 } from './const.js';
 import { fireHASSEvent } from './ha/fire-hass-event.js';
+import { getEntitiesFromHASS } from './ha/get-entities.js';
+import { getEntityTitle } from './ha/get-entity-title.js';
+import { sideLoadHomeAssistantElements } from './ha/side-load-ha-elements.js';
 import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
 import editorStyle from './scss/editor.scss';
 import { arrayMove, prettifyTitle } from './utils/basic.js';
 import { getCameraID } from './utils/camera.js';
-import {
-  getEntitiesFromHASS,
-  getEntityTitle,
-  sideLoadHomeAssistantElements,
-} from './utils/ha';
 
 const MENU_CAMERAS = 'cameras';
 const MENU_CAMERAS_CAPABILITIES = 'cameras.capabilities';
@@ -265,6 +268,7 @@ const MENU_CAMERAS_PROXY = 'cameras.proxy';
 const MENU_CAMERAS_REOLINK = 'cameras.reolink';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC_CARD = 'cameras.webrtc_card';
+const MENU_FOLDER_GALLERY_CONTROLS_THUMBNAILS = 'folder_gallery.controls.thumbnails';
 const MENU_LIVE_CONTROLS = 'live.controls';
 const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
 const MENU_LIVE_CONTROLS_PTZ = 'live.controls.ptz';
@@ -337,6 +341,11 @@ const options: EditorOptions = {
     name: localize('editor.live'),
     secondary: localize('editor.live_secondary'),
   },
+  folder_gallery: {
+    icon: 'folder-multiple',
+    name: localize('editor.folder_gallery'),
+    secondary: localize('editor.folder_gallery_secondary'),
+  },
   media_gallery: {
     icon: 'grid',
     name: localize('editor.media_gallery'),
@@ -398,14 +407,15 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
 
   protected _viewModes: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'live', label: localize('config.view.views.live') },
-    { value: 'clips', label: localize('config.view.views.clips') },
-    { value: 'snapshots', label: localize('config.view.views.snapshots') },
-    { value: 'recordings', label: localize('config.view.views.recordings') },
     { value: 'clip', label: localize('config.view.views.clip') },
-    { value: 'snapshot', label: localize('config.view.views.snapshot') },
-    { value: 'recording', label: localize('config.view.views.recording') },
+    { value: 'clips', label: localize('config.view.views.clips') },
+    { value: 'folder', label: localize('config.view.views.folder') },
     { value: 'image', label: localize('config.view.views.image') },
+    { value: 'live', label: localize('config.view.views.live') },
+    { value: 'recording', label: localize('config.view.views.recording') },
+    { value: 'recordings', label: localize('config.view.views.recordings') },
+    { value: 'snapshot', label: localize('config.view.views.snapshot') },
+    { value: 'snapshots', label: localize('config.view.views.snapshots') },
     { value: 'timeline', label: localize('config.view.views.timeline') },
   ];
 
@@ -2626,6 +2636,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${this._renderMenuButton('clips') /* */}
                 ${this._renderMenuButton('snapshots')}
                 ${this._renderMenuButton('recordings')}
+                ${this._renderMenuButton('folders')}
                 ${this._renderMenuButton('image') /* */}
                 ${this._renderMenuButton('download')}
                 ${this._renderMenuButton('camera_ui')}
@@ -2848,6 +2859,20 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 )}
               </div>
             `
+          : ''}
+        ${this._renderOptionSetHeader('folder_gallery')}
+        ${this._expandedMenus[MENU_OPTIONS] === 'folder_gallery'
+          ? html` <div class="values">
+              ${this._renderThumbnailsControls(
+                MENU_FOLDER_GALLERY_CONTROLS_THUMBNAILS,
+                CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SIZE,
+                CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+                CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
+                this._defaults.folder_gallery.controls.thumbnails,
+              )}
+            </div>`
           : ''}
         ${this._renderOptionSetHeader('media_gallery')}
         ${this._expandedMenus[MENU_OPTIONS] === 'media_gallery'

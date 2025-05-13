@@ -1,4 +1,4 @@
-import orderBy from 'lodash-es/orderBy';
+import { orderBy } from 'lodash-es';
 
 interface Range<T extends Date | number> {
   start: T;

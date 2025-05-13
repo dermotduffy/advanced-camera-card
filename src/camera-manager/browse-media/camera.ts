@@ -1,6 +1,6 @@
+import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
-import { Entity, EntityRegistryManager } from '../../utils/ha/registry/entity/types';
 import { Camera, CameraInitializationOptions } from '../camera';
 import { CameraInitializationError } from '../error';
 

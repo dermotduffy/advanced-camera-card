@@ -1,13 +1,9 @@
-import { afterAll, expect, it, vi } from 'vitest';
-import { createCardAPI } from '../../../test-utils';
+import { expect, it, vi } from 'vitest';
 import { SleepAction } from '../../../../src/card-controller/actions/actions/sleep';
-import { sleep } from '../../../../src/utils/basic';
+import { sleep } from '../../../../src/utils/sleep';
+import { createCardAPI } from '../../../test-utils';
 
-vi.mock('../../../../src/utils/basic');
-
-afterAll(() => {
-  vi.restoreAllMocks();
-});
+vi.mock('../../../../src/utils/sleep');
 
 it('should handle sleep action', async () => {
   const api = createCardAPI();

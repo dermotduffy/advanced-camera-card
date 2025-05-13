@@ -1,11 +1,11 @@
-import { CameraEndpoint } from '../camera-manager/types';
+import { homeAssistantSignPath } from '../ha/sign-path';
 import { HomeAssistant } from '../ha/types';
+import { Endpoint } from '../types';
 import { errorToConsole } from './basic';
-import { homeAssistantSignPath } from './ha';
 
 export const convertEndpointAddressToSignedWebsocket = async (
   hass: HomeAssistant,
-  endpoint: CameraEndpoint,
+  endpoint: Endpoint,
   expires?: number,
 ): Promise<string | null> => {
   if (!endpoint.sign) {

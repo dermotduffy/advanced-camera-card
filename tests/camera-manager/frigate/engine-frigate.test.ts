@@ -1,31 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { RecordingSegmentsCache, RequestCache } from '../../../src/camera-manager/cache';
+import { RecordingSegmentsCache } from '../../../src/camera-manager/cache';
 import { FrigateCameraManagerEngine } from '../../../src/camera-manager/frigate/engine-frigate';
 import {
   FrigateEventViewMedia,
   FrigateRecordingViewMedia,
 } from '../../../src/camera-manager/frigate/media';
 import { FrigateEvent, eventSchema } from '../../../src/camera-manager/frigate/types.js';
+import { CameraManagerRequestCache } from '../../../src/camera-manager/types';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { CameraConfig } from '../../../src/config/schema/cameras';
 import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import { RawAdvancedCameraCardConfig } from '../../../src/config/types';
-import { ViewMedia } from '../../../src/view/media';
+import { ViewMedia, ViewMediaType } from '../../../src/view/item';
+import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import { TestViewMedia, createCameraConfig, createHASS } from '../../test-utils';
-import { EntityRegistryManagerMock } from '../../utils/ha/registry/entity/mock';
 
 const createEngine = (): FrigateCameraManagerEngine => {
   return new FrigateCameraManagerEngine(
     new EntityRegistryManagerMock(),
     new StateWatcher(),
     new RecordingSegmentsCache(),
-    new RequestCache(),
+    new CameraManagerRequestCache(),
   );
 };
 
 const createRecordingMedia = (): FrigateRecordingViewMedia => {
   return new FrigateRecordingViewMedia(
-    'recording',
+    ViewMediaType.Recording,
     'camera-1',
     {
       cameraID: 'camera-1',
@@ -58,7 +59,7 @@ const createEvent = (): FrigateEvent => {
 
 const createClipMedia = (): FrigateEventViewMedia => {
   return new FrigateEventViewMedia(
-    'clip',
+    ViewMediaType.Clip,
     'camera-1',
     createEvent(),
     'event-clip-content-id',
@@ -68,7 +69,7 @@ const createClipMedia = (): FrigateEventViewMedia => {
 
 const createSnapshotMedia = (): FrigateEventViewMedia => {
   return new FrigateEventViewMedia(
-    'snapshot',
+    ViewMediaType.Snapshot,
     'camera-1',
     createEvent(),
     'event-snapshot-content-id',
@@ -133,7 +134,9 @@ describe('getMediaDownloadPath', () => {
     const endpoint = await createEngine().getMediaDownloadPath(
       createHASS(),
       createFrigateCameraConfig(),
-      new ViewMedia('clip', 'camera-1'),
+      new ViewMedia(ViewMediaType.Clip, {
+        cameraID: 'camera-1',
+      }),
     );
     expect(endpoint).toBeNull();
   });
@@ -247,9 +250,9 @@ describe('getCameraEndpoints', () => {
     });
 
     describe('with event media type', () => {
-      it.each([['clip' as const], ['snapshot' as const]])(
+      it.each([[ViewMediaType.Clip], [ViewMediaType.Snapshot]])(
         '%s',
-        (mediaType: 'clip' | 'snapshot') => {
+        (mediaType: ViewMediaType) => {
           const endpoints = createEngine().getCameraEndpoints(
             createCameraConfig({
               frigate: {
@@ -284,7 +287,10 @@ describe('getCameraEndpoints', () => {
             },
           }),
           {
-            media: new TestViewMedia({ mediaType: 'recording', startTime: startTime }),
+            media: new TestViewMedia({
+              mediaType: ViewMediaType.Recording,
+              startTime: startTime,
+            }),
           },
         );
 
@@ -306,7 +312,7 @@ describe('getCameraEndpoints', () => {
             },
           }),
           {
-            media: new TestViewMedia({ mediaType: 'recording' }),
+            media: new TestViewMedia({ mediaType: ViewMediaType.Recording }),
           },
         );
 

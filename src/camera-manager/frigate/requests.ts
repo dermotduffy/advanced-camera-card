@@ -1,7 +1,7 @@
 import { HomeAssistant } from '../../ha/types';
+import { homeAssistantWSRequest } from '../../ha/ws-request';
 import { localize } from '../../localize/localize';
 import { AdvancedCameraCardError } from '../../types';
-import { homeAssistantWSRequest } from '../../utils/ha/ws-request';
 import { RecordingSegment } from '../types';
 import {
   EventSummary,

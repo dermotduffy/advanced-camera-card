@@ -5,10 +5,7 @@ import {
   format,
 } from 'date-fns';
 import { StyleInfo } from 'lit/directives/style-map';
-import isEqualWith from 'lodash-es/isEqualWith';
-import mergeWith from 'lodash-es/mergeWith';
-import round from 'lodash-es/round';
-import uniq from 'lodash-es/uniq';
+import { isEqualWith, mergeWith, round, uniq } from 'lodash-es';
 import { AdvancedCameraCardError } from '../types';
 
 export type ModifyInterface<T, R> = Omit<T, keyof R> & R;
@@ -186,11 +183,6 @@ export const isSuperset = (superset: Set<unknown>, subset: Set<unknown>) => {
     }
   }
   return true;
-};
-
-// Usage of this function needs to be justified with a comment.
-export const sleep = async (seconds: number) => {
-  await new Promise((r) => setTimeout(r, seconds * 1000));
 };
 
 export const isValidDate = (date: Date): boolean => {

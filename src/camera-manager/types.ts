@@ -1,7 +1,8 @@
+import { ExpiringEqualityCache } from '../cache/expiring-cache';
 import { SSLCiphers } from '../config/schema/cameras';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
-import { CapabilityKey, Icon } from '../types';
-import { ViewMedia } from '../view/media';
+import { CapabilityKey, Endpoint, Icon } from '../types';
+import { ViewMedia } from '../view/item';
 
 // ====
 // Base
@@ -28,11 +29,11 @@ export enum Engine {
   Reolink = 'reolink',
 }
 
-export interface DataQuery {
+export interface CameraQuery {
   type: QueryType;
   cameraIDs: Set<string>;
 }
-export type PartialDataQuery = Partial<DataQuery>;
+export type PartialCameraQuery = Partial<CameraQuery>;
 
 interface TimeBasedDataQuery {
   start: Date;
@@ -44,7 +45,7 @@ interface LimitedDataQuery {
 }
 
 export interface MediaQuery
-  extends DataQuery,
+  extends CameraQuery,
     Partial<TimeBasedDataQuery>,
     Partial<LimitedDataQuery> {
   favorite?: boolean;
@@ -100,11 +101,6 @@ interface CapabilitySearchAllAny {
 }
 export type CapabilitySearchOptions = CapabilityKey | CapabilitySearchAllAny;
 
-export interface CameraManagerMediaCapabilities {
-  canFavorite: boolean;
-  canDownload: boolean;
-}
-
 export interface CameraManagerCameraMetadata {
   title: string;
   icon: Icon;
@@ -118,16 +114,11 @@ export interface CameraEndpointsContext {
   view?: AdvancedCameraCardView;
 }
 
-export interface CameraEndpoint {
-  endpoint: string;
-  sign?: boolean;
-}
-
 export interface CameraEndpoints {
-  ui?: CameraEndpoint;
-  go2rtc?: CameraEndpoint;
-  jsmpeg?: CameraEndpoint;
-  webrtcCard?: CameraEndpoint;
+  ui?: Endpoint;
+  go2rtc?: Endpoint;
+  jsmpeg?: Endpoint;
+  webrtcCard?: Endpoint;
 }
 
 export interface CameraProxyConfig {
@@ -156,6 +147,11 @@ export interface CameraEvent {
   snapshot?: boolean;
 }
 export type CameraEventCallback = (ev: CameraEvent) => void;
+
+export class CameraManagerRequestCache extends ExpiringEqualityCache<
+  CameraQuery,
+  QueryResults
+> {}
 
 // ===========
 // Event Query
@@ -202,7 +198,7 @@ export interface RecordingQueryResults extends QueryResults {
 // Recording Segments Query
 // ========================
 
-export interface RecordingSegmentsQuery extends DataQuery, TimeBasedDataQuery {
+export interface RecordingSegmentsQuery extends CameraQuery, TimeBasedDataQuery {
   type: QueryType.RecordingSegments;
 }
 export type PartialRecordingSegmentsQuery = Partial<RecordingSegmentsQuery>;
@@ -216,7 +212,7 @@ export interface RecordingSegmentsQueryResults extends QueryResults {
 // Media metadata Query
 // ====================
 
-export interface MediaMetadataQuery extends DataQuery {
+export interface MediaMetadataQuery extends CameraQuery {
   type: QueryType.MediaMetadata;
 }
 

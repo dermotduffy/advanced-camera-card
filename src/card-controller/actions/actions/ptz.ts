@@ -86,12 +86,15 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
       setInProgressForThisTarget(ptzCameraID, this._context, 'ptz', this);
 
       const singleStep = async (): Promise<void> => {
-        this._action.ptz_action &&
-          (await api
+        /* istanbul ignore else: the else path cannot be reached as ptz_action
+        being present is checked above -- @preserve */
+        if (this._action.ptz_action) {
+          await api
             .getCameraManager()
             .executePTZAction(ptzCameraID, this._action.ptz_action, {
               preset: this._action.ptz_preset,
-            }));
+            });
+        }
 
         if (!this._stopped) {
           // Only start the timer for the next step after this step returns, and
@@ -121,13 +124,16 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
         });
 
       this._timer.start(ptzConfiguration.c2r_delay_between_calls_seconds, async () => {
-        this._action.ptz_action &&
-          (await api
+        /* istanbul ignore else: the else path cannot be reached as ptz_action
+        being present is checked above -- @preserve */
+        if (this._action.ptz_action) {
+          await api
             .getCameraManager()
             .executePTZAction(ptzCameraID, this._action.ptz_action, {
               preset: this._action.ptz_preset,
               phase: 'stop',
-            }));
+            });
+        }
       });
     }
   }

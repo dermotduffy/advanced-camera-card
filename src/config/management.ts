@@ -1,8 +1,4 @@
-import cloneDeep from 'lodash-es/cloneDeep';
-import get from 'lodash-es/get';
-import isEqual from 'lodash-es/isEqual';
-import set from 'lodash-es/set';
-import unset from 'lodash-es/unset';
+import { cloneDeep, get, isEqual, set, unset } from 'lodash-es';
 import {
   CONF_AUTOMATIONS,
   CONF_CAMERAS,

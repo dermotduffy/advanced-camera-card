@@ -7,6 +7,8 @@
     - [`engine`](engine.md)
   - [`conditions`](../conditions.md)
   - [`dimensions`](../dimensions.md)
+  - [`folder_gallery`](../folder-gallery.md)
+  - [`folders`](../folders.md)
   - [`elements`](../elements/README.md)
   - [`image`](../image.md)
   - [`live`](../live.md)

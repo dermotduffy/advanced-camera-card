@@ -16,6 +16,7 @@ import { MediaActionsController } from '../../components-lib/media-actions-contr
 import { TransitionEffect } from '../../config/schema/common/transition-effect.js';
 import { CardWideConfig, configDefaults } from '../../config/schema/types.js';
 import { ViewerConfig } from '../../config/schema/viewer.js';
+import { ResolvedMediaCache } from '../../ha/resolved-media.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';
@@ -26,9 +27,9 @@ import { contentsChanged, setOrRemoveAttribute } from '../../utils/basic.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
 import AutoSize from '../../utils/embla/plugins/auto-size/auto-size.js';
-import { ResolvedMediaCache } from '../../utils/ha/resolved-media.js';
 import { getTextDirection } from '../../utils/text-direction.js';
-import { ViewMedia } from '../../view/media.js';
+import { ViewItemClassifier } from '../../view/item-classifier.js';
+import { ViewMedia } from '../../view/item.js';
 import '../carousel';
 import type { EmblaCarouselPlugins } from '../carousel.js';
 import { renderMessage } from '../message.js';
@@ -80,32 +81,12 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
   public showControls = true;
 
   @state()
-  protected _selected = 0;
+  protected _selected: number | null = null;
 
   protected _media: ViewMedia[] | null = null;
   protected _mediaActionsController = new MediaActionsController();
   protected _loadedMediaPlayerController: MediaPlayerController | null = null;
   protected _refCarousel: Ref<HTMLElement> = createRef();
-
-  updated(changedProperties: PropertyValues): void {
-    super.updated(changedProperties);
-
-    if (changedProperties.has('viewManagerEpoch')) {
-      // Seek into the video if the seek time has changed (this is also called
-      // on media load, since the media may or may not have been loaded at
-      // this point).
-      if (
-        this.viewManagerEpoch?.manager.getView()?.context?.mediaViewer !==
-        this.viewManagerEpoch?.oldView?.context?.mediaViewer
-      ) {
-        this._seekHandler();
-      }
-    }
-
-    if (this._refCarousel.value) {
-      this._mediaActionsController.setRoot(this._refCarousel.value);
-    }
-  }
 
   public connectedCallback(): void {
     super.connectedCallback();
@@ -145,7 +126,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
    */
   protected _getMediaNeighbors(): MediaNeighbors | null {
     const mediaCount = this._media?.length ?? 0;
-    if (!this._media) {
+    if (!this._media || this._selected === null) {
       return null;
     }
 
@@ -180,16 +161,20 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       // index).
       return;
     }
-
     const newResults = view?.queryResults
       ?.clone()
-      .selectIndex(index, this.viewFilterCameraID);
+      .selectResultIfFound((item) => item === this._media?.[index], {
+        main: true,
+        cameraID: this.viewFilterCameraID,
+      });
     if (!newResults) {
       return;
     }
-    const cameraID = newResults
-      .getSelectedResult(this.viewFilterCameraID)
-      ?.getCameraID();
+
+    const selectedItem = newResults.getSelectedResult(this.viewFilterCameraID);
+    const cameraID = ViewItemClassifier.isMedia(selectedItem)
+      ? selectedItem.getCameraID()
+      : null;
 
     this.viewManagerEpoch?.manager.setViewByParameters({
       params: {
@@ -243,33 +228,43 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     }
 
     if (changedProps.has('viewManagerEpoch')) {
-      const view = this.viewManagerEpoch?.manager.getView();
-      const newMedia = view?.queryResults?.getResults(this.viewFilterCameraID) ?? null;
-      const newSelected =
-        view?.queryResults?.getSelectedIndex(this.viewFilterCameraID) ?? 0;
-      const newSeek = view?.context?.mediaViewer?.seek;
+      const newView = this.viewManagerEpoch?.manager.getView();
 
-      if (newMedia !== this._media || newSelected !== this._selected || !newSeek) {
+      if (!newView?.context?.mediaViewer?.seek) {
         setOrRemoveAttribute(this, false, 'unseekable');
-        this._media = newMedia;
-        this._selected = newSelected;
       }
 
-      if (!newMedia?.length) {
-        // No media will be rendered.
-        this._mediaActionsController.unsetTarget();
-      } else {
-        if (this.viewFilterCameraID) {
-          this._mediaActionsController.setTarget(
-            newSelected,
-            // Camera in this carousel is only selected if the camera from the
-            // view matches the filtered camera.
-            view?.camera === this.viewFilterCameraID,
-          );
-        } else {
-          // Carousel is not filtered, so the targeted camera is always selected.
-          this._mediaActionsController.setTarget(newSelected, true);
-        }
+      const oldView = this.viewManagerEpoch?.oldView;
+      const oldItems =
+        oldView?.queryResults?.getResults(this.viewFilterCameraID) ?? null;
+      const newItems =
+        newView?.queryResults?.getResults(this.viewFilterCameraID) ?? null;
+      let resetMedia = false;
+      if (!this._media || oldItems !== newItems) {
+        this._media =
+          newItems?.filter((item) => ViewItemClassifier.isMedia(item)) ?? null;
+        resetMedia = true;
+      }
+
+      const oldSelectedItem = oldView?.queryResults?.getSelectedResult(
+        this.viewFilterCameraID,
+      );
+      const newSelectedItem = newView?.queryResults?.getSelectedResult(
+        this.viewFilterCameraID,
+      );
+
+      // _selected is an index, it needs to be updated if either the selected
+      // item or the media changes.
+      if (oldSelectedItem !== newSelectedItem || resetMedia) {
+        const newSelected =
+          this._media?.findIndex((item) => item === newSelectedItem) ?? null;
+
+        // If there's no selected item, just choose the last (most recent one) to
+        // avoid rendering a blank. This could happen if the selected item was a
+        // folder.
+        this._selected =
+          newSelected ??
+          (this._media && this._media.length ? this._media.length - 1 : null);
       }
     }
   }
@@ -327,12 +322,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       });
     }
 
-    // If there's no selected media, just choose the last (most recent one) to
-    // avoid rendering a blank. This situation should not occur in practice, as
-    // this view should not be called without a selected media.
-    const selectedMedia = this._media[this._selected] ?? this._media[mediaCount - 1];
-
-    if (!this.hass || !this.cameraManager || !selectedMedia) {
+    if (!this.hass || !this.cameraManager || this._selected === null) {
       return;
     }
 
@@ -379,13 +369,61 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     `;
   }
 
+  updated(changedProperties: PropertyValues): void {
+    super.updated(changedProperties);
+
+    const rootChanged = this._refCarousel.value
+      ? this._mediaActionsController.setRoot(this._refCarousel.value)
+      : false;
+
+    // If the view has changed, or if the media actions controller has just been
+    // initialized, then call the necessary media action.
+    // See: https://github.com/dermotduffy/advanced-camera-card/issues/1626
+    if (rootChanged || changedProperties.has('viewManagerEpoch')) {
+      this._setMediaTarget();
+    }
+
+    if (changedProperties.has('viewManagerEpoch')) {
+      // Seek into the video if the seek time has changed (this is also called
+      // on media load, since the media may or may not have been loaded at
+      // this point).
+      if (
+        this.viewManagerEpoch?.manager.getView()?.context?.mediaViewer !==
+        this.viewManagerEpoch?.oldView?.context?.mediaViewer
+      ) {
+        this._seekHandler();
+      }
+    }
+  }
+
+  protected _setMediaTarget(): void {
+    if (!this._media?.length || this._selected === null) {
+      this._mediaActionsController.unsetTarget();
+    } else {
+      this._mediaActionsController.setTarget(
+        this._selected,
+        // Camera in this carousel is only selected if the camera from the view
+        // matches the filtered camera.
+        this.viewFilterCameraID
+          ? this.viewManagerEpoch?.manager.getView()?.camera === this.viewFilterCameraID
+          : true,
+      );
+    }
+  }
+
   /**
    * Fire a media show event when a slide is selected.
    */
   protected async _seekHandler(): Promise<void> {
     const view = this.viewManagerEpoch?.manager.getView();
     const seek = view?.context?.mediaViewer?.seek;
-    if (!this.hass || !seek || !this._media || !this._loadedMediaPlayerController) {
+    if (
+      !this.hass ||
+      !seek ||
+      !this._media ||
+      !this._loadedMediaPlayerController ||
+      this._selected === null
+    ) {
       return;
     }
     const selectedMedia = this._media[this._selected];

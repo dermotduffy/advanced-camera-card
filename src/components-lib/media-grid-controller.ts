@@ -1,5 +1,4 @@
-import isEqual from 'lodash-es/isEqual';
-import throttle from 'lodash-es/throttle';
+import { isEqual, throttle } from 'lodash-es';
 import Masonry from 'masonry-layout';
 import { ViewDisplayConfig } from '../config/schema/common/display';
 import { MediaLoadedInfo } from '../types';

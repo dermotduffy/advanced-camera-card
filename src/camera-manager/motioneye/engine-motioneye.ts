@@ -1,32 +1,29 @@
 import { add, endOfDay, parse, startOfDay } from 'date-fns';
-import orderBy from 'lodash-es/orderBy';
+import { orderBy } from 'lodash-es';
 import { CameraConfig } from '../../config/schema/cameras';
-import { HomeAssistant } from '../../ha/types';
-import { allPromises, formatDate, isValidDate } from '../../utils/basic';
-import {
-  BrowseMediaStep,
-  BrowseMediaTarget,
-} from '../../utils/ha/browse-media/browse-media-manager';
+import { getViewMediaFromBrowseMediaArray } from '../../ha/browse-media/browse-media-to-view-media';
 import {
   BROWSE_MEDIA_CACHE_SECONDS,
   BrowseMedia,
+  BrowseMediaCache,
+  BrowseMediaMetadata,
   MEDIA_CLASS_IMAGE,
   MEDIA_CLASS_VIDEO,
   RichBrowseMedia,
-} from '../../utils/ha/browse-media/types';
-import { ViewMedia } from '../../view/media';
+} from '../../ha/browse-media/types';
+import { BrowseMediaStep, BrowseMediaTarget } from '../../ha/browse-media/walker';
+import { isMediaWithinDates } from '../../ha/browse-media/within-dates';
+import { HomeAssistant } from '../../ha/types';
+import { Endpoint } from '../../types';
+import { allPromises, formatDate, isValidDate } from '../../utils/basic';
+import { ViewMedia } from '../../view/item';
 import { BrowseMediaCamera } from '../browse-media/camera';
 import { BrowseMediaCameraManagerEngine } from '../browse-media/engine-browse-media';
-import { BrowseMediaMetadata } from '../browse-media/types';
-import { getViewMediaFromBrowseMediaArray } from '../browse-media/utils/browse-media-to-view-media';
-import { isMediaWithinDates } from '../browse-media/utils/within-dates';
-import { MemoryRequestCache } from '../cache';
 import { Camera } from '../camera';
 import { Capabilities } from '../capabilities';
 import { CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT } from '../engine';
 import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraEndpoint,
   CameraEndpoints,
   CameraEndpointsContext,
   CameraManagerCameraMetadata,
@@ -67,8 +64,8 @@ const MOTIONEYE_REPL_SUBSTITUTIONS: Record<string, string> = {
 const MOTIONEYE_REPL_REGEXP = new RegExp(/(%Y|%m|%d|%H|%M|%S)/g);
 
 export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine {
-  protected _directoryCache = new MemoryRequestCache<string, BrowseMedia>();
-  protected _fileCache = new MemoryRequestCache<string, BrowseMedia>();
+  protected _directoryCache = new BrowseMediaCache<BrowseMediaMetadata>();
+  protected _fileCache = new BrowseMediaCache<BrowseMediaMetadata>();
 
   public getEngineType(): Engine {
     return Engine.MotionEye;
@@ -224,7 +221,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     };
 
     // For motionEye snapshots and clips are mutually exclusive.
-    return await this._browseMediaManager.walkBrowseMedias(
+    return await this._browseMediaWalker.walk(
       hass,
       [
         ...(matchOptions?.hasClip !== false && !matchOptions?.hasSnapshot
@@ -291,7 +288,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
       );
 
       const limit = perCameraQuery.limit ?? CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT;
-      const media = await this._browseMediaManager.walkBrowseMedias(
+      const media = await this._browseMediaWalker.walk(
         hass,
         [
           {
@@ -431,7 +428,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     cameraConfig: CameraConfig,
     context?: CameraEndpointsContext,
   ): CameraEndpoints | null {
-    const getUIEndpoint = (): CameraEndpoint | null => {
+    const getUIEndpoint = (): Endpoint | null => {
       return cameraConfig.motioneye?.url
         ? {
             endpoint: cameraConfig.motioneye.url,

@@ -1,6 +1,6 @@
 import PQueue from 'p-queue';
 import { loadLanguages } from '../localize/localize';
-import { sideLoadHomeAssistantElements } from '../utils/ha';
+import { sideLoadHomeAssistantElements } from '../ha/side-load-ha-elements';
 import { Initializer } from '../utils/initializer/initializer';
 import { CardInitializerAPI } from './types';
 
@@ -40,6 +40,10 @@ export class InitializationManager {
 
   public wasEverInitialized(): boolean {
     return this._everInitialized;
+  }
+
+  public isInitialized(aspect: InitializationAspect): boolean {
+    return this._initializer.isInitialized(aspect);
   }
 
   public isInitializedMandatory(): boolean {

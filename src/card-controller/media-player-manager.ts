@@ -5,12 +5,12 @@ import {
   MEDIA_PLAYER_SUPPORT_STOP,
   MEDIA_PLAYER_SUPPORT_TURN_OFF,
 } from '../const';
+import { Entity } from '../ha/registry/entity/types';
+import { supportsFeature } from '../ha/supports-feature';
 import { localize } from '../localize/localize';
 import { errorToConsole } from '../utils/basic';
-import { supportsFeature } from '../utils/ha';
-import { Entity } from '../utils/ha/registry/entity/types';
-import { ViewMedia } from '../view/media';
-import { ViewMediaClassifier } from '../view/media-classifier';
+import { ViewMedia } from '../view/item';
+import { ViewItemClassifier } from '../view/item-classifier';
 import { CardMediaPlayerAPI } from './types';
 
 export class MediaPlayerManager {
@@ -196,7 +196,7 @@ export class MediaPlayerManager {
     await hass.callService('media_player', 'play_media', {
       entity_id: mediaPlayer,
       media_content_id: media.getContentID(),
-      media_content_type: ViewMediaClassifier.isVideo(media) ? 'video' : 'image',
+      media_content_type: ViewItemClassifier.isVideo(media) ? 'video' : 'image',
       extra: {
         ...(title && { title: title }),
         ...(thumbnail && { thumb: thumbnail }),

@@ -28,8 +28,7 @@ describe('MicrophoneManager', () => {
 
   afterEach(() => {
     vi.resetAllMocks();
-    vi.unstubAllGlobals;
-    navigator.mediaDevices;
+    vi.unstubAllGlobals();
   });
 
   const createMockStream = (mute?: boolean): MediaStream => {

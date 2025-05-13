@@ -1,7 +1,7 @@
 import { CameraConfig } from '../config/schema/cameras';
 import { CapabilityKey } from '../types';
 import { allPromises } from '../utils/basic';
-import { ViewMedia } from '../view/media';
+import { ViewMedia } from '../view/item';
 import { Camera } from './camera';
 import { CameraManagerEngine } from './engine';
 import { CapabilitySearchOptions, Engine } from './types';
@@ -133,7 +133,8 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
   }
 
   public getCameraConfigForMedia(media: ViewMedia): CameraConfig | null {
-    return this.getCameraConfig(media.getCameraID());
+    const cameraID = media.getCameraID();
+    return cameraID ? this.getCameraConfig(cameraID) : null;
   }
 
   public getEngineOfType(engine: Engine): CameraManagerEngine | null {
@@ -163,7 +164,8 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
   }
 
   public getEngineForMedia(media: ViewMedia): CameraManagerEngine | null {
-    return this.getEngineForCameraID(media.getCameraID());
+    const cameraID = media.getCameraID();
+    return cameraID ? this.getEngineForCameraID(cameraID) : null;
   }
 
   /**

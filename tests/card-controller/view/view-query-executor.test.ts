@@ -5,10 +5,11 @@ import { QueryExecutor } from '../../../src/card-controller/view/query-executor'
 import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
 import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import {
-  EventMediaQueries,
-  RecordingMediaQueries,
-} from '../../../src/view/media-queries';
-import { MediaQueriesResults } from '../../../src/view/media-queries-results';
+  EventMediaQuery,
+  FolderViewQuery,
+  RecordingMediaQuery,
+} from '../../../src/view/query';
+import { QueryResults } from '../../../src/view/query-results';
 import { View } from '../../../src/view/view';
 import { createCardAPI, createView } from '../../test-utils';
 import { createPopulatedAPI } from './test-utils';
@@ -19,15 +20,15 @@ describe('ViewQueryExecutor', () => {
       const executor = mock<QueryExecutor>();
       const viewQueryExecutor = new ViewQueryExecutor(createCardAPI(), executor);
 
-      const query = new EventMediaQueries();
-      const queryResults = new MediaQueriesResults();
+      const query = new EventMediaQuery();
+      const queryResults = new QueryResults();
       const view = createView({
         query: query,
       });
 
-      executor.execute.mockResolvedValue(queryResults);
+      executor.executeQuery.mockResolvedValue({ query, queryResults });
 
-      const queryExecutorOptions = {};
+      const queryExecutorOptions = { useCache: true };
       const modifiers = await viewQueryExecutor.getExistingQueryModifiers(
         view,
         queryExecutorOptions,
@@ -37,7 +38,7 @@ describe('ViewQueryExecutor', () => {
 
       expect(view.query).toBe(query);
       expect(view.queryResults).toBe(queryResults);
-      expect(executor.execute).toBeCalledWith(query, queryExecutorOptions);
+      expect(executor.executeQuery).toBeCalledWith(query, queryExecutorOptions);
     });
 
     it('should not return modifier when query absent', async () => {
@@ -58,7 +59,7 @@ describe('ViewQueryExecutor', () => {
 
       expect(view.query).toBeNull();
       expect(view.queryResults).toBeNull();
-      expect(executor.execute).not.toBeCalled();
+      expect(executor.executeMediaQuery).not.toBeCalled();
     });
   });
 
@@ -79,8 +80,8 @@ describe('ViewQueryExecutor', () => {
       });
 
       it('should set query and queryResults for events', async () => {
-        const query = new EventMediaQueries();
-        const queryResults = new MediaQueriesResults();
+        const query = new EventMediaQuery();
+        const queryResults = new QueryResults();
 
         const executor = mock<QueryExecutor>();
         executor.executeDefaultEventQuery.mockResolvedValue({
@@ -108,11 +109,12 @@ describe('ViewQueryExecutor', () => {
           },
         });
         expect(executor.executeDefaultRecordingQuery).not.toHaveBeenCalled();
+        expect(executor.executeDefaultFolderQuery).not.toHaveBeenCalled();
       });
 
       it('should set query and queryResults for recordings', async () => {
-        const query = new RecordingMediaQueries();
-        const queryResults = new MediaQueriesResults();
+        const query = new RecordingMediaQuery();
+        const queryResults = new QueryResults();
 
         const executor = mock<QueryExecutor>();
         executor.executeDefaultRecordingQuery.mockResolvedValue({
@@ -150,6 +152,7 @@ describe('ViewQueryExecutor', () => {
           },
         });
         expect(executor.executeDefaultEventQuery).not.toBeCalled();
+        expect(executor.executeDefaultFolderQuery).not.toHaveBeenCalled();
       });
 
       describe('should set timeline window', async () => {
@@ -227,14 +230,15 @@ describe('ViewQueryExecutor', () => {
         expect(view?.queryResults).toBeNull();
         expect(executor.executeDefaultEventQuery).not.toHaveBeenCalled();
         expect(executor.executeDefaultRecordingQuery).not.toHaveBeenCalled();
+        expect(executor.executeDefaultFolderQuery).not.toHaveBeenCalled();
       });
     });
 
     describe('with a media view', () => {
       it('should set query and queryResults for events', async () => {
         const executor = mock<QueryExecutor>();
-        const query = new EventMediaQueries();
-        const queryResults = new MediaQueriesResults();
+        const query = new EventMediaQuery();
+        const queryResults = new QueryResults();
 
         executor.executeDefaultEventQuery.mockResolvedValue({
           query: query,
@@ -260,6 +264,7 @@ describe('ViewQueryExecutor', () => {
           },
         });
         expect(executor.executeDefaultRecordingQuery).not.toHaveBeenCalled();
+        expect(executor.executeDefaultFolderQuery).not.toHaveBeenCalled();
       });
     });
 
@@ -276,8 +281,8 @@ describe('ViewQueryExecutor', () => {
           eventsMediaType: 'clips' | 'snapshots',
         ) => {
           const executor = mock<QueryExecutor>();
-          const query = new EventMediaQueries();
-          const queryResults = new MediaQueriesResults();
+          const query = new EventMediaQuery();
+          const queryResults = new QueryResults();
 
           executor.executeDefaultEventQuery.mockResolvedValue({
             query: query,
@@ -306,6 +311,7 @@ describe('ViewQueryExecutor', () => {
             },
           });
           expect(executor.executeDefaultRecordingQuery).not.toHaveBeenCalled();
+          expect(executor.executeDefaultFolderQuery).not.toHaveBeenCalled();
         },
       );
     });
@@ -315,8 +321,8 @@ describe('ViewQueryExecutor', () => {
         '%s',
         async (viewName: AdvancedCameraCardView) => {
           const executor = mock<QueryExecutor>();
-          const query = new RecordingMediaQueries();
-          const queryResults = new MediaQueriesResults();
+          const query = new RecordingMediaQuery();
+          const queryResults = new QueryResults();
 
           executor.executeDefaultRecordingQuery.mockResolvedValue({
             query: query,
@@ -344,8 +350,50 @@ describe('ViewQueryExecutor', () => {
               useCache: false,
             },
           });
+          expect(executor.executeDefaultFolderQuery).not.toHaveBeenCalled();
         },
       );
+    });
+
+    describe('with a folder view', () => {
+      it('should execute default folder query with folder view', async () => {
+        const executor = mock<QueryExecutor>();
+        const query = new FolderViewQuery();
+        const queryResults = new QueryResults();
+
+        executor.executeDefaultFolderQuery.mockResolvedValue({
+          query: query,
+          queryResults: queryResults,
+        });
+
+        const viewQueryExecutor = new ViewQueryExecutor(createPopulatedAPI(), executor);
+        const view = createView({ view: 'folder', camera: 'camera.office' });
+
+        const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
+        applyViewModifiers(view, modifiers);
+
+        expect(view?.query).toBe(query);
+        expect(view?.queryResults).toBe(queryResults);
+        expect(executor.executeDefaultEventQuery).not.toBeCalled();
+        expect(executor.executeDefaultRecordingQuery).not.toBeCalled();
+        expect(executor.executeDefaultFolderQuery).toBeCalledWith({
+          useCache: false,
+        });
+      });
+
+      it('should execute default folder query with folder view and handle null results', async () => {
+        const executor = mock<QueryExecutor>();
+        executor.executeDefaultFolderQuery.mockResolvedValue(null);
+
+        const viewQueryExecutor = new ViewQueryExecutor(createPopulatedAPI(), executor);
+        const view = createView({ view: 'folder', camera: 'camera.office' });
+
+        const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
+        applyViewModifiers(view, modifiers);
+
+        expect(view?.query).toBeNull();
+        expect(view?.queryResults).toBeNull();
+      });
     });
 
     describe('when setting or removing seek time', () => {

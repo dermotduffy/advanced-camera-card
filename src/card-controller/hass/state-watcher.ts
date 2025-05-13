@@ -1,5 +1,5 @@
-import { HomeAssistant } from '../../ha/types';
-import { getHassDifferences, HassStateDifference } from '../../utils/ha';
+import { getHassDifferences } from '../../ha/get-hass-differences';
+import { HassStateDifference, HomeAssistant } from '../../ha/types';
 
 type StateWatcherCallback = (difference: HassStateDifference) => void;
 

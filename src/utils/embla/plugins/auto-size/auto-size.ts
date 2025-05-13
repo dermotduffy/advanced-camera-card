@@ -1,7 +1,7 @@
 import { EmblaCarouselType } from 'embla-carousel';
 import { LooseOptionsType } from 'embla-carousel/components/Options';
 import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins';
-import debounce from 'lodash-es/debounce';
+import { debounce } from 'lodash-es';
 import { EmblaReInitController } from '../../reinit-controller';
 
 declare module 'embla-carousel/components/Plugins' {

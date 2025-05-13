@@ -36,6 +36,7 @@ menu:
 | `display_mode` | The `display_mode` button allows changing between single and grid views.                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `download`     | The `download` menu button: allow direct download of the media being displayed.                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `expand`       | The `expand` menu button: expand the card into a popup/dialog.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `folders`      | The `folders` menu button to select a folder of media to view in the [`folder_gallery`](./folder-gallery.md). Will only appear if [`folders`](./folders.md) are configured.                                                                                                                                                                                                                                                                                                                           |
 | `fullscreen`   | The `fullscreen` menu button: expand the card to consume the fullscreen. Please note that fullscreen behavior on iPhone is limited, see [troubleshooting](../troubleshooting.md?id=fullscreen-doesn39t-work-on-iphone).                                                                                                                                                                                                                                                                               |
 | `image`        | The `image` view menu button: brings the user to the static `image` view.                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `iris`         | The main Advanced Camera Card `iris` menu button: brings the user to the default configured view (`view.default`), or collapses/expands the menu if the `menu.style` is `hidden` .                                                                                                                                                                                                                                                                                                                    |
@@ -80,66 +81,56 @@ This card supports several menu styles.
 menu:
   alignment: left
   buttons:
-    iris:
-      priority: 50
-      enabled: true
-      alignment: matching
-      icon: iris
-    cameras:
-      priority: 50
-      enabled: true
-      alignment: matching
-      icon: mdi:video-switch
-    substreams:
-      priority: 50
-      enabled: true
-      alignment: matching
-      icon: mdi:video-input-component
-    live:
-      priority: 50
-      enabled: true
-      alignment: matching
-      icon: mdi:cctv
-    clips:
-      priority: 50
-      enabled: true
-      alignment: matching
-      icon: mdi:filmstrip
-    snapshots:
-      priority: 50
-      enabled: true
-      alignment: matching
-      icon: mdi:camera
-    image:
-      priority: 50
-      enabled: false
-      alignment: matching
-      icon: mdi:image
-    timeline:
-      priority: 50
-      enabled: true
-      alignment: matching
-      icon: mdi:chart-gantt
-    download:
-      priority: 50
-      enabled: true
-      alignment: matching
-      icon: mdi:download
     camera_ui:
       priority: 50
       enabled: true
       alignment: matching
       icon: mdi:web
-    fullscreen:
+    cameras:
       priority: 50
       enabled: true
       alignment: matching
-      icon: mdi:fullscreen
+      icon: mdi:video-switch
+    clips:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:filmstrip
+    download:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:download
     expand:
       priority: 50
       enabled: true
       alignment: matching
       icon: mdi:arrow-expand-all
+    folders:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:folder-multiple
+    fullscreen:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:fullscreen
+    image:
+      priority: 50
+      enabled: false
+      alignment: matching
+      icon: mdi:image
+    iris:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: iris
+    live:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:cctv
     media_player:
       priority: 50
       enabled: false
@@ -171,6 +162,21 @@ menu:
       enabled: true
       alignment: matching
       icon: mdi:home
+    snapshots:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:camera
+    substreams:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:video-input-component
+    timeline:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:chart-gantt
   button_size: 40
   position: top
   style: hidden

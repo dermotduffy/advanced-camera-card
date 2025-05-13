@@ -142,6 +142,7 @@ This card supports several different views.
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `clip`       | Shows a viewer for the most recent clip for this camera. Can also be accessed by holding down the `clips` menu icon.                               |
 | `clips`      | Shows a gallery of clips for this camera.                                                                                                          |
+| `folder`     | Shows a gallery of media from a [`folder`](./folders.md).                                                                                          |
 | `image`      | Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view.interaction_seconds`). |
 | `live`       | Shows the live camera view with the configured [live provider](./cameras/live-provider.md).                                                        |
 | `recording`  | Shows a viewer for the most recent recording for this camera. Can also be accessed by holding down the `recordings` menu icon.                     |

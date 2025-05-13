@@ -18,7 +18,7 @@ export const renderTask = <R>(
   options?: {
     cardWideConfig?: CardWideConfig;
     inProgressFunc?: () => TemplateResult | void;
-    errorFunc?: (e: Error) => void;
+    errorFunc?: (e: Error) => TemplateResult | void;
   },
 ): TemplateResult => {
   const progressConfig = {
@@ -31,9 +31,7 @@ export const renderTask = <R>(
       options?.inProgressFunc?.() ?? renderProgressIndicator(progressConfig),
     error: (e: unknown) => {
       errorToConsole(e as Error);
-      if (options?.errorFunc) {
-        options.errorFunc(e as Error);
-      }
+      return options?.errorFunc?.(e as Error);
     },
     complete: completeFunc,
   })}`;

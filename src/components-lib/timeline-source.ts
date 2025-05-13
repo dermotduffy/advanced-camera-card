@@ -12,7 +12,7 @@ import { capEndDate } from '../camera-manager/utils/cap-end-date';
 import { convertRangeToCacheFriendlyTimes } from '../camera-manager/utils/range-to-cache-friendly';
 import { ClipsOrSnapshotsOrAll } from '../types';
 import { errorToConsole, ModifyInterface } from '../utils/basic.js';
-import { ViewMedia } from '../view/media';
+import { ViewMedia } from '../view/item';
 
 // Allow timeline freshness to be at least this number of seconds out of date
 // (caching times in the data-engine may increase the effective delay).
@@ -139,10 +139,11 @@ export class TimelineDataSource {
     for (const media of mediaArray ?? []) {
       const startTime = media.getStartTime();
       const id = media.getID();
-      if (id && startTime) {
+      const cameraID = media.getCameraID();
+      if (id && startTime && cameraID) {
         data.push({
           id: id,
-          group: media.getCameraID(),
+          group: cameraID,
           content: '',
           media: media,
           start: startTime.getTime(),

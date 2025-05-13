@@ -7,16 +7,14 @@ import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-fact
 import { CameraManagerEngine } from '../../src/camera-manager/engine.js';
 import {
   CameraManager,
-  QueryClassifier,
+  CameraQueryClassifier,
   QueryResultClassifier,
 } from '../../src/camera-manager/manager.js';
 import {
-  CameraEndpoint,
   CameraEndpoints,
   CameraEndpointsContext,
   CameraEvent,
   CameraManagerCameraMetadata,
-  CameraManagerMediaCapabilities,
   Engine,
   EventQuery,
   EventQueryResults,
@@ -25,12 +23,13 @@ import {
   QueryResultsType,
   QueryType,
 } from '../../src/camera-manager/types.js';
-import { sortMedia } from '../../src/camera-manager/utils/sort-media.js';
 import { CardController } from '../../src/card-controller/controller.js';
+import { sortItems } from '../../src/card-controller/view/sort.js';
 import { CameraConfig } from '../../src/config/schema/cameras.js';
 import { HomeAssistant } from '../../src/ha/types.js';
-import { PTZMovementType } from '../../src/types.js';
-import { ViewMedia } from '../../src/view/media.js';
+import { Endpoint, PTZMovementType } from '../../src/types.js';
+import { ViewFolder, ViewItem, ViewMedia } from '../../src/view/item.js';
+import { ViewItemCapabilities } from '../../src/view/types.js';
 import {
   TestViewMedia,
   createCamera,
@@ -38,53 +37,66 @@ import {
   createCapabilities,
   createCardAPI,
   createConfig,
+  createFolder,
   createHASS,
   generateViewMediaArray,
 } from '../test-utils.js';
 
 describe('QueryClassifier', async () => {
   it('should classify event query', async () => {
-    expect(QueryClassifier.isEventQuery({ type: QueryType.Event })).toBeTruthy();
-    expect(QueryClassifier.isEventQuery({ type: QueryType.Recording })).toBeFalsy();
+    expect(CameraQueryClassifier.isEventQuery({ type: QueryType.Event })).toBeTruthy();
     expect(
-      QueryClassifier.isEventQuery({ type: QueryType.RecordingSegments }),
+      CameraQueryClassifier.isEventQuery({ type: QueryType.Recording }),
     ).toBeFalsy();
-    expect(QueryClassifier.isEventQuery({ type: QueryType.MediaMetadata })).toBeFalsy();
+    expect(
+      CameraQueryClassifier.isEventQuery({ type: QueryType.RecordingSegments }),
+    ).toBeFalsy();
+    expect(
+      CameraQueryClassifier.isEventQuery({ type: QueryType.MediaMetadata }),
+    ).toBeFalsy();
   });
   it('should classify recording query', async () => {
-    expect(QueryClassifier.isRecordingQuery({ type: QueryType.Event })).toBeFalsy();
-    expect(QueryClassifier.isRecordingQuery({ type: QueryType.Recording })).toBeTruthy();
     expect(
-      QueryClassifier.isRecordingQuery({ type: QueryType.RecordingSegments }),
+      CameraQueryClassifier.isRecordingQuery({ type: QueryType.Event }),
     ).toBeFalsy();
     expect(
-      QueryClassifier.isRecordingQuery({ type: QueryType.MediaMetadata }),
+      CameraQueryClassifier.isRecordingQuery({ type: QueryType.Recording }),
+    ).toBeTruthy();
+    expect(
+      CameraQueryClassifier.isRecordingQuery({ type: QueryType.RecordingSegments }),
+    ).toBeFalsy();
+    expect(
+      CameraQueryClassifier.isRecordingQuery({ type: QueryType.MediaMetadata }),
     ).toBeFalsy();
   });
   it('should classify recording segments query', async () => {
     expect(
-      QueryClassifier.isRecordingSegmentsQuery({ type: QueryType.Event }),
+      CameraQueryClassifier.isRecordingSegmentsQuery({ type: QueryType.Event }),
     ).toBeFalsy();
     expect(
-      QueryClassifier.isRecordingSegmentsQuery({ type: QueryType.Recording }),
+      CameraQueryClassifier.isRecordingSegmentsQuery({ type: QueryType.Recording }),
     ).toBeFalsy();
     expect(
-      QueryClassifier.isRecordingSegmentsQuery({ type: QueryType.RecordingSegments }),
+      CameraQueryClassifier.isRecordingSegmentsQuery({
+        type: QueryType.RecordingSegments,
+      }),
     ).toBeTruthy();
     expect(
-      QueryClassifier.isRecordingSegmentsQuery({ type: QueryType.MediaMetadata }),
+      CameraQueryClassifier.isRecordingSegmentsQuery({ type: QueryType.MediaMetadata }),
     ).toBeFalsy();
   });
   it('should classify media metadata query', async () => {
-    expect(QueryClassifier.isMediaMetadataQuery({ type: QueryType.Event })).toBeFalsy();
     expect(
-      QueryClassifier.isMediaMetadataQuery({ type: QueryType.Recording }),
+      CameraQueryClassifier.isMediaMetadataQuery({ type: QueryType.Event }),
     ).toBeFalsy();
     expect(
-      QueryClassifier.isMediaMetadataQuery({ type: QueryType.RecordingSegments }),
+      CameraQueryClassifier.isMediaMetadataQuery({ type: QueryType.Recording }),
     ).toBeFalsy();
     expect(
-      QueryClassifier.isMediaMetadataQuery({ type: QueryType.MediaMetadata }),
+      CameraQueryClassifier.isMediaMetadataQuery({ type: QueryType.RecordingSegments }),
+    ).toBeFalsy();
+    expect(
+      CameraQueryClassifier.isMediaMetadataQuery({ type: QueryType.MediaMetadata }),
     ).toBeTruthy();
   });
 });
@@ -641,7 +653,7 @@ describe('CameraManager', async () => {
 
       const results = new Map([[baseEventQuery, baseEventQueryResults]]);
       engine.getEvents.mockResolvedValue(results);
-      const media = sortMedia(generateViewMediaArray({ count: 5 }));
+      const media = sortItems(generateViewMediaArray({ count: 5 }));
       engine.generateMediaFromEvents.mockReturnValue(media);
 
       expect(await manager.executeMediaQueries([baseEventQuery])).toEqual(media);
@@ -697,7 +709,7 @@ describe('CameraManager', async () => {
 
       const results = new Map([[baseRecordingQuery, baseRecordingQueryResults]]);
       engine.getRecordings.mockResolvedValue(results);
-      const media = sortMedia(generateViewMediaArray({ count: 5 }));
+      const media = sortItems(generateViewMediaArray({ count: 5 }));
       engine.generateMediaFromRecordings.mockReturnValue(media);
 
       expect(await manager.executeMediaQueries([baseRecordingQuery])).toEqual(media);
@@ -718,7 +730,7 @@ describe('CameraManager', async () => {
   describe('should extend media queries', () => {
     const dateBase = new Date('2024-03-01T20:01:00');
     const mediaTwoCameras = generateViewMediaArray({ count: 5 });
-    const mediaMixedStart: ViewMedia[] = [
+    const mediaMixedStart: ViewItem[] = [
       new TestViewMedia({
         startTime: dateBase,
       }),
@@ -728,6 +740,7 @@ describe('CameraManager', async () => {
       new TestViewMedia({
         startTime: add(dateBase, { days: 2 }),
       }),
+      new ViewFolder(createFolder()),
     ];
 
     it('without hass', async () => {
@@ -748,7 +761,7 @@ describe('CameraManager', async () => {
         generateViewMediaArray({ count: 5 }),
         {
           queries: [{ ...baseEventQuery, limit: 50 }],
-          results: sortMedia(generateViewMediaArray({ count: 5 })),
+          results: sortItems(generateViewMediaArray({ count: 5 })),
         },
       ],
       [
@@ -759,7 +772,7 @@ describe('CameraManager', async () => {
         generateViewMediaArray({ count: 5, cameraIDs: ['office'] }),
         {
           queries: [{ ...baseEventQuery, limit: 50 }],
-          results: sortMedia(mediaTwoCameras),
+          results: sortItems(mediaTwoCameras),
         },
       ],
       [
@@ -793,7 +806,7 @@ describe('CameraManager', async () => {
         mediaTwoCameras,
         {
           queries: [{ ...baseEventQuery, limit: 50, start: dateBase }],
-          results: sortMedia(mediaMixedStart.concat(mediaTwoCameras)),
+          results: sortItems(mediaMixedStart.concat(mediaTwoCameras)),
         },
         'later' as const,
       ],
@@ -811,7 +824,7 @@ describe('CameraManager', async () => {
         mediaTwoCameras,
         {
           queries: [{ ...baseEventQuery, limit: 50, start: dateBase }],
-          results: sortMedia(mediaMixedStart.concat(mediaTwoCameras)),
+          results: sortItems(mediaMixedStart.concat(mediaTwoCameras)),
         },
         'earlier' as const,
       ],
@@ -823,7 +836,7 @@ describe('CameraManager', async () => {
         inputQueries: Map<EventQuery, EventQueryResults>,
 
         // The previously received media.
-        inputMediaResults: ViewMedia[],
+        inputResults: ViewItem[],
 
         // The queries expected to be dispatched.
         newChunkQueries: EventQuery[],
@@ -834,7 +847,7 @@ describe('CameraManager', async () => {
         // The expect extended queries and results.
         expected?: {
           queries: EventQuery[];
-          results: ViewMedia[];
+          results: ViewItem[];
         } | null,
         direction?: 'earlier' | 'later',
       ) => {
@@ -853,7 +866,7 @@ describe('CameraManager', async () => {
         expect(
           await manager.extendMediaQueries(
             [...inputQueries.keys()],
-            inputMediaResults,
+            inputResults,
             direction ?? 'later',
           ),
         ).toEqual(expected);
@@ -895,7 +908,7 @@ describe('CameraManager', async () => {
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
 
-      const result: CameraEndpoint = {
+      const result: Endpoint = {
         endpoint: 'http://localhost/path/to/media',
       };
       vi.mocked(engine.getMediaDownloadPath).mockResolvedValue(result);
@@ -919,7 +932,7 @@ describe('CameraManager', async () => {
 
       expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
 
-      const result: CameraManagerMediaCapabilities = {
+      const result: ViewItemCapabilities = {
         canFavorite: false,
         canDownload: false,
       };

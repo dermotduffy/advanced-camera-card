@@ -1,9 +1,9 @@
-import merge from 'lodash-es/merge';
+import { merge } from 'lodash-es';
 import { ViewContext } from 'view';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
 import { ViewDisplayMode } from '../config/schema/common/display';
-import { MediaQueries } from './media-queries';
-import { MediaQueriesResults } from './media-queries-results';
+import { Query } from './query';
+import { QueryResults } from './query-results';
 
 declare module 'view' {
   interface ViewContext {
@@ -16,8 +16,8 @@ declare module 'view' {
 interface ViewEvolveParameters {
   view?: AdvancedCameraCardView;
   camera?: string;
-  query?: MediaQueries | null;
-  queryResults?: MediaQueriesResults | null;
+  query?: Query | null;
+  queryResults?: QueryResults | null;
   context?: ViewContext | null;
   displayMode?: ViewDisplayMode | null;
 }
@@ -37,8 +37,8 @@ export const mergeViewContext = (
 export class View {
   public view: AdvancedCameraCardView;
   public camera: string;
-  public query: MediaQueries | null;
-  public queryResults: MediaQueriesResults | null;
+  public query: Query | null;
+  public queryResults: QueryResults | null;
   public context: ViewContext | null;
   public displayMode: ViewDisplayMode | null;
 
@@ -123,9 +123,9 @@ export class View {
   }
 
   /**
-   * Determine if a view is a gallery.
+   * Determine if a view is a media gallery.
    */
-  public isGalleryView(): boolean {
+  public isMediaGalleryView(): boolean {
     return ['clips', 'snapshots', 'recordings'].includes(this.view);
   }
 

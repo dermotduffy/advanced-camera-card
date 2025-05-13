@@ -1,8 +1,8 @@
 import { expect, it } from 'vitest';
 import { SetQueryViewModifier } from '../../../../src/card-controller/view/modifiers/set-query';
+import { EventMediaQuery } from '../../../../src/view/query';
+import { QueryResults } from '../../../../src/view/query-results';
 import { createView } from '../../../test-utils';
-import { EventMediaQueries } from '../../../../src/view/media-queries';
-import { MediaQueriesResults } from '../../../../src/view/media-queries-results';
 
 it('should do nothing without arguments', () => {
   const view = createView();
@@ -16,8 +16,8 @@ it('should do nothing without arguments', () => {
 
 it('should set query and results', () => {
   const view = createView();
-  const query = new EventMediaQueries();
-  const queryResults = new MediaQueriesResults();
+  const query = new EventMediaQuery();
+  const queryResults = new QueryResults();
 
   const modifier = new SetQueryViewModifier({
     query: query,

@@ -1,6 +1,5 @@
 import Panzoom, { PanzoomEventDetail, PanzoomObject } from '@dermotduffy/panzoom';
-import round from 'lodash-es/round';
-import throttle from 'lodash-es/throttle';
+import { round, throttle } from 'lodash-es';
 import { arefloatsApproximatelyEqual, isHoverableDevice } from '../../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import {

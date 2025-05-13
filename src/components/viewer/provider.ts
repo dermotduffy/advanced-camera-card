@@ -16,31 +16,24 @@ import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { ViewerConfig } from '../../config/schema/viewer.js';
-import { HomeAssistant } from '../../ha/types.js';
-import '../../patches/ha-hls-player.js';
-import viewerProviderStyle from '../../scss/viewer-provider.scss';
-import {
-  MediaPlayer,
-  MediaPlayerController,
-  MediaPlayerElement,
-  ResolvedMedia,
-} from '../../types.js';
-import { aspectRatioToString, errorToConsole } from '../../utils/basic.js';
-import {
-  canonicalizeHAURL,
-  homeAssistantSignPath,
-  isHARelativeURL,
-} from '../../utils/ha/index.js';
-import { ResolvedMediaCache, resolveMedia } from '../../utils/ha/resolved-media.js';
+import { canonicalizeHAURL } from '../../ha/canonical-url.js';
+import { isHARelativeURL } from '../../ha/is-ha-relative-url.js';
+import { ResolvedMediaCache, resolveMedia } from '../../ha/resolved-media.js';
+import { homeAssistantSignPath } from '../../ha/sign-path.js';
+import { HomeAssistant, ResolvedMedia } from '../../ha/types.js';
 import {
   addDynamicProxyURL,
   getWebProxiedURL,
   shouldUseWebProxy,
-} from '../../utils/ha/web-proxy.js';
+} from '../../ha/web-proxy.js';
+import '../../patches/ha-hls-player.js';
+import viewerProviderStyle from '../../scss/viewer-provider.scss';
+import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../../types.js';
+import { aspectRatioToString, errorToConsole } from '../../utils/basic.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
-import { ViewMediaClassifier } from '../../view/media-classifier.js';
-import { MediaQueriesClassifier } from '../../view/media-queries-classifier.js';
-import { VideoContentType, ViewMedia } from '../../view/media.js';
+import { ViewItemClassifier } from '../../view/item-classifier.js';
+import { VideoContentType, ViewMedia } from '../../view/item.js';
+import { QueryClassifier } from '../../view/query-classifier.js';
 import '../image-player.js';
 import { renderProgressIndicator } from '../progress-indicator.js';
 import '../video-player.js';
@@ -93,8 +86,8 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       !this.media ||
       // If this specific media item has no clip, then do nothing (even if all
       // the other media items do).
-      !ViewMediaClassifier.isEvent(this.media) ||
-      !MediaQueriesClassifier.areEventQueries(view.query)
+      !ViewItemClassifier.isEvent(this.media) ||
+      !QueryClassifier.isEventQuery(view.query)
     ) {
       return;
     }
@@ -103,7 +96,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     const clipQuery = view.query.clone();
     clipQuery.convertToClipsQueries();
 
-    const queries = clipQuery.getQueries();
+    const queries = clipQuery.getQuery();
     if (!queries) {
       return;
     }
@@ -154,7 +147,8 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       return;
     }
 
-    const camera = this.cameraManager?.getStore().getCamera(this.media.getCameraID());
+    const cameraID = this.media.getCameraID();
+    const camera = cameraID ? this.cameraManager?.getStore().getCamera(cameraID) : null;
     const proxyConfig = camera?.getProxyConfig();
 
     if (proxyConfig && shouldUseWebProxy(this.hass, proxyConfig, 'media')) {
@@ -224,7 +218,9 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     }
     const cameraID = this.media.getCameraID();
     const mediaID = this.media.getID() ?? undefined;
-    const cameraConfig = this.cameraManager?.getStore().getCameraConfig(cameraID);
+    const cameraConfig = cameraID
+      ? this.cameraManager?.getStore().getCameraConfig(cameraID) ?? null
+      : null;
     const view = this.viewManagerEpoch?.manager.getView();
 
     return this.viewerConfig?.zoomable
@@ -269,7 +265,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     // Note: crossorigin="anonymous" is required on <video> below in order to
     // allow screenshot of motionEye videos which currently go cross-origin.
     return this._useZoomIfRequired(html`
-      ${ViewMediaClassifier.isVideo(this.media)
+      ${ViewItemClassifier.isVideo(this.media)
         ? this.media.getVideoContentType() === VideoContentType.HLS
           ? html`<advanced-camera-card-ha-hls-player
               ${ref(this._refProvider)}

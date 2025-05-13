@@ -9,7 +9,6 @@ import {
   vi,
 } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { RequestCache } from '../../../src/camera-manager/cache';
 import {
   ReolinkCameraManagerEngine,
   ReolinkQueryResultsClassifier,
@@ -17,6 +16,7 @@ import {
 import { ReolinkEventQueryResults } from '../../../src/camera-manager/reolink/types';
 import { CameraManagerStore } from '../../../src/camera-manager/store';
 import {
+  CameraManagerRequestCache,
   Engine,
   EventQuery,
   QueryResultsType,
@@ -24,14 +24,12 @@ import {
   QueryType,
 } from '../../../src/camera-manager/types';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
-import { BrowseMediaManager } from '../../../src/utils/ha/browse-media/browse-media-manager';
-import {
-  BrowseMedia,
-  browseMediaSchema,
-} from '../../../src/utils/ha/browse-media/types';
-import { EntityRegistryManager } from '../../../src/utils/ha/registry/entity/types';
-import { ResolvedMediaCache } from '../../../src/utils/ha/resolved-media';
-import { homeAssistantWSRequest } from '../../../src/utils/ha/ws-request';
+import { BrowseMedia, browseMediaSchema } from '../../../src/ha/browse-media/types';
+import { BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
+import { EntityRegistryManager } from '../../../src/ha/registry/entity/types';
+import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
+import { homeAssistantWSRequest } from '../../../src/ha/ws-request';
+import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
   createCamera,
   createCameraConfig,
@@ -39,9 +37,8 @@ import {
   createRegistryEntity,
   createStore,
 } from '../../test-utils';
-import { EntityRegistryManagerMock } from '../../utils/ha/registry/entity/mock';
 
-vi.mock('../../../src/utils/ha/ws-request');
+vi.mock('../../../src/ha/ws-request');
 
 const TEST_CAMERAS: BrowseMedia = {
   title: 'Reolink',
@@ -181,15 +178,15 @@ const TEST_FILES: BrowseMedia = {
 };
 
 const createEngine = (options?: {
-  browseMediaManager?: BrowseMediaManager;
+  browseMediaManager?: BrowseMediaWalker;
   entityRegistryManager?: EntityRegistryManager;
 }): ReolinkCameraManagerEngine => {
   return new ReolinkCameraManagerEngine(
     options?.entityRegistryManager ?? new EntityRegistryManagerMock(),
     mock<StateWatcher>(),
-    options?.browseMediaManager ?? new BrowseMediaManager(),
+    options?.browseMediaManager ?? new BrowseMediaWalker(),
     new ResolvedMediaCache(),
-    new RequestCache(),
+    new CameraManagerRequestCache(),
   );
 };
 

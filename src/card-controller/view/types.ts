@@ -1,9 +1,9 @@
 import { ViewContext } from 'view';
 import { AdvancedCameraCardView } from '../../config/schema/common/const.js';
 import { AdvancedCameraCardError } from '../../types.js';
-import { MediaQueriesResults } from '../../view/media-queries-results.js';
-import { MediaQueries } from '../../view/media-queries.js';
-import { ViewMedia } from '../../view/media.js';
+import { ViewItem } from '../../view/item.js';
+import { QueryResults } from '../../view/query-results.js';
+import { Query } from '../../view/query.js';
 import { View, ViewParameters } from '../../view/view.js';
 
 export interface ViewModifier {
@@ -20,15 +20,15 @@ export interface QueryExecutorOptions {
       favorCameraID?: string;
     };
     id?: string;
-    func?: (media: ViewMedia) => boolean;
+    func?: (media: ViewItem) => boolean;
   };
-  rejectResults?: (results: MediaQueriesResults) => boolean;
+  rejectResults?: (results: QueryResults) => boolean;
   useCache?: boolean;
 }
 
 export interface QueryExecutorResult {
-  query: MediaQueries;
-  queryResults: MediaQueriesResults;
+  query: Query;
+  queryResults: QueryResults;
 }
 
 export interface ViewFactoryOptions {

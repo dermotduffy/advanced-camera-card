@@ -4,11 +4,11 @@ import { CameraManager } from '../../camera-manager/manager.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { ViewerConfig } from '../../config/schema/viewer.js';
+import { ResolvedMediaCache } from '../../ha/resolved-media.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';
 import viewerStyle from '../../scss/viewer.scss';
-import { ResolvedMediaCache } from '../../utils/ha/resolved-media.js';
 import { renderMessage } from '../message.js';
 import './grid';
 
@@ -53,7 +53,8 @@ export class AdvancedCameraCardViewer extends LitElement {
       return;
     }
 
-    if (!this.viewManagerEpoch.manager.getView()?.queryResults?.hasResults()) {
+    const view = this.viewManagerEpoch?.manager.getView();
+    if (!view?.queryResults || !view.queryResults.hasResults()) {
       // Directly render an error message (instead of dispatching it upwards)
       // to preserve the mini-timeline if the user pans into an area with no
       // media.

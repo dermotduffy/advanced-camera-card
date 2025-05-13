@@ -10,13 +10,14 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { MicrophoneState } from '../card-controller/types.js';
+import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import { AdvancedCameraCardConfig, CardWideConfig } from '../config/schema/types.js';
 import { RawAdvancedCameraCardConfig } from '../config/types.js';
+import { DeviceRegistryManager } from '../ha/registry/device/index.js';
+import { ResolvedMediaCache } from '../ha/resolved-media.js';
 import { HomeAssistant } from '../ha/types.js';
 import viewsStyle from '../scss/views.scss';
-import { DeviceRegistryManager } from '../utils/ha/registry/device/index.js';
-import { ResolvedMediaCache } from '../utils/ha/resolved-media.js';
 import './surround.js';
 
 // As a special case: The diagnostics view is not dynamically loaded in case
@@ -33,6 +34,9 @@ export class AdvancedCameraCardViews extends LitElement {
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public viewItemManager?: ViewItemManager;
 
   @property({ attribute: false })
   public config?: AdvancedCameraCardConfig;
@@ -64,14 +68,16 @@ export class AdvancedCameraCardViews extends LitElement {
       if (view?.is('live') || this._shouldLivePreload()) {
         import('./live/index.js');
       }
-      if (view?.isGalleryView()) {
-        import('./gallery.js');
+      if (view?.isMediaGalleryView()) {
+        import('./gallery/media-gallery.js');
       } else if (view?.isViewerView()) {
         import('./viewer/index.js');
       } else if (view?.is('image')) {
         import('./image.js');
       } else if (view?.is('timeline')) {
         import('./timeline.js');
+      } else if (view?.is('folder')) {
+        import('./gallery/folder-gallery.js');
       }
     }
 
@@ -138,6 +144,7 @@ export class AdvancedCameraCardViews extends LitElement {
       .thumbnailConfig=${!this.hide ? thumbnailConfig : undefined}
       .timelineConfig=${!this.hide ? miniTimelineConfig : undefined}
       .cameraManager=${this.cameraManager}
+      .viewItemManager=${this.viewItemManager}
       .cardWideConfig=${this.cardWideConfig}
     >
       ${!this.hide && view?.is('image') && cameraConfig
@@ -150,15 +157,16 @@ export class AdvancedCameraCardViews extends LitElement {
           >
           </advanced-camera-card-image>`
         : ``}
-      ${!this.hide && view?.isGalleryView()
-        ? html` <advanced-camera-card-gallery
+      ${!this.hide && view?.isMediaGalleryView()
+        ? html` <advanced-camera-card-media-gallery
             .hass=${this.hass}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .galleryConfig=${this.config.media_gallery}
             .cameraManager=${this.cameraManager}
+            .viewItemManager=${this.viewItemManager}
             .cardWideConfig=${this.cardWideConfig}
           >
-          </advanced-camera-card-gallery>`
+          </advanced-camera-card-media-gallery>`
         : ``}
       ${!this.hide && view?.isViewerView()
         ? html`
@@ -179,6 +187,7 @@ export class AdvancedCameraCardViews extends LitElement {
             .viewManagerEpoch=${this.viewManagerEpoch}
             .timelineConfig=${this.config.timeline}
             .cameraManager=${this.cameraManager}
+            .viewItemManager=${this.viewItemManager}
             .cardWideConfig=${this.cardWideConfig}
           >
           </advanced-camera-card-timeline>`
@@ -190,6 +199,14 @@ export class AdvancedCameraCardViews extends LitElement {
             .deviceRegistryManager=${this.deviceRegistryManager}
           >
           </advanced-camera-card-diagnostics>`
+        : ``}
+      ${!this.hide && view?.is('folder')
+        ? html` <advanced-camera-card-folder-gallery
+            .hass=${this.hass}
+            .viewManagerEpoch=${this.viewManagerEpoch}
+            .viewItemManager=${this.viewItemManager}
+            .galleryConfig=${this.config.folder_gallery}
+          ></advanced-camera-card-folder-gallery>`
         : ``}
       ${
         // Note: Subtle difference in condition below vs the other views in

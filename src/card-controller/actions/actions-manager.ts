@@ -10,7 +10,7 @@ import {
   getActionConfigGivenAction,
   isAdvancedCameraCardCustomAction,
 } from '../../utils/action.js';
-import { allPromises } from '../../utils/basic.js';
+import { allPromises, errorToConsole } from '../../utils/basic.js';
 import { TemplateRenderer } from '../templates/index.js';
 import { CardActionsManagerAPI } from '../types.js';
 import { ActionSet } from './actions/set.js';
@@ -53,12 +53,14 @@ export class ActionsManager implements ActionsExecutor {
     let specificActions: Actions | undefined = undefined;
     if (view?.is('live')) {
       specificActions = config?.live.actions;
-    } else if (view?.isGalleryView()) {
+    } else if (view?.isMediaGalleryView()) {
       specificActions = config?.media_gallery?.actions;
     } else if (view?.isViewerView()) {
       specificActions = config?.media_viewer.actions;
     } else if (view?.is('image')) {
       specificActions = config?.image?.actions;
+    } else if (view?.is('folder')) {
+      specificActions = config?.folder_gallery?.actions;
     } else {
       return {};
     }
@@ -150,6 +152,7 @@ export class ActionsManager implements ActionsExecutor {
       await actionSet.execute(this._api);
       forwardHaptic('success');
     } catch (e) {
+      errorToConsole(e as Error);
       forwardHaptic('warning');
     }
     this._actionsInFlight = this._actionsInFlight.filter((a) => a !== actionSet);

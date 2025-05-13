@@ -1,13 +1,13 @@
-import uniq from 'lodash-es/uniq';
+import { uniq } from 'lodash-es';
 import { ActionsExecutor } from '../../card-controller/actions/types';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
 import { CameraConfig } from '../../config/schema/cameras';
+import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import { PTZCapabilities, PTZMovementType } from '../../types';
 import { errorToConsole } from '../../utils/basic';
-import { Entity, EntityRegistryManager } from '../../utils/ha/registry/entity/types';
 import { Camera, CameraInitializationOptions } from '../camera';
 import { Capabilities } from '../capabilities';
 import { CameraManagerEngine } from '../engine';

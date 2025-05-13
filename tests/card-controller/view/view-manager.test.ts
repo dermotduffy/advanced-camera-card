@@ -2,6 +2,7 @@ import { ViewContext } from 'view';
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { QueryType } from '../../../src/camera-manager/types';
+import { CardController } from '../../../src/card-controller/controller';
 import { ViewFactory } from '../../../src/card-controller/view/factory';
 import { SetQueryViewModifier } from '../../../src/card-controller/view/modifiers/set-query';
 import {
@@ -11,9 +12,9 @@ import {
 import { ViewManager } from '../../../src/card-controller/view/view-manager';
 import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
 import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
-import { ViewMedia } from '../../../src/view/media';
-import { EventMediaQueries } from '../../../src/view/media-queries';
-import { MediaQueriesResults } from '../../../src/view/media-queries-results';
+import { ViewMedia, ViewMediaType } from '../../../src/view/item';
+import { EventMediaQuery } from '../../../src/view/query';
+import { QueryResults } from '../../../src/view/query-results';
 import { View } from '../../../src/view/view';
 import {
   createCameraManager,
@@ -22,6 +23,14 @@ import {
   createStore,
   createView,
 } from '../../test-utils';
+
+const createInitializedCardAPI = (initialized?: boolean): CardController => {
+  const api = createCardAPI();
+  vi.mocked(api.getInitializationManager().isInitialized).mockReturnValue(
+    initialized ?? true,
+  );
+  return api;
+};
 
 describe('should act correctly when view is set', () => {
   it('basic view', () => {
@@ -34,7 +43,7 @@ describe('should act correctly when view is set', () => {
     const factory = mock<ViewFactory>();
     factory.getViewDefault.mockReturnValue(view);
 
-    const api = createCardAPI();
+    const api = createInitializedCardAPI();
     const manager = new ViewManager(api, { viewFactory: factory });
 
     manager.setViewDefault();
@@ -61,7 +70,7 @@ describe('should act correctly when view is set', () => {
     const factory = mock<ViewFactory>();
     factory.getViewDefault.mockReturnValue(view_1);
 
-    const api = createCardAPI();
+    const api = createInitializedCardAPI();
     const manager = new ViewManager(api, { viewFactory: factory });
 
     manager.setViewDefault();
@@ -88,7 +97,7 @@ describe('should act correctly when view is set', () => {
 });
 
 it('setViewWithMergedContext', () => {
-  const api = createCardAPI();
+  const api = createInitializedCardAPI();
   const factory = mock<ViewFactory>();
 
   const manager = new ViewManager(api, { viewFactory: factory });
@@ -120,7 +129,7 @@ it('getEpoch', () => {
 
 it('reset', () => {
   const factory = mock<ViewFactory>();
-  const manager = new ViewManager(createCardAPI(), { viewFactory: factory });
+  const manager = new ViewManager(createInitializedCardAPI(), { viewFactory: factory });
 
   manager.reset();
   expect(manager.getView()).toBeNull();
@@ -138,11 +147,37 @@ it('reset', () => {
   expect(manager.hasView()).toBeFalsy();
 });
 
+describe('should not set view without cameras being initialized', () => {
+  it('should ignore requests to set generic view without cameras being initialized', () => {
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(createView());
+
+    const manager = new ViewManager(createInitializedCardAPI(false), {
+      viewFactory: factory,
+    });
+    manager.setViewDefault();
+
+    expect(manager.getView()).toBeNull();
+  });
+
+  it('should ignore requests to set view then modify without cameras being initialized', () => {
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(createView());
+
+    const manager = new ViewManager(createInitializedCardAPI(false), {
+      viewFactory: factory,
+    });
+    manager.setViewDefaultWithNewQuery();
+
+    expect(manager.getView()).toBeNull();
+  });
+});
+
 it('setViewDefault', () => {
   const factory = mock<ViewFactory>();
   factory.getViewDefault.mockReturnValue(createView());
 
-  const manager = new ViewManager(createCardAPI(), { viewFactory: factory });
+  const manager = new ViewManager(createInitializedCardAPI(), { viewFactory: factory });
   manager.setViewDefault();
 
   expect(manager.getView()?.view).toBe('live');
@@ -153,7 +188,7 @@ it('setViewByParameters', () => {
   const factory = mock<ViewFactory>();
   factory.getViewByParameters.mockReturnValue(createView());
 
-  const manager = new ViewManager(createCardAPI(), { viewFactory: factory });
+  const manager = new ViewManager(createInitializedCardAPI(), { viewFactory: factory });
   manager.setViewByParameters();
 
   expect(manager.getView()?.view).toBe('live');
@@ -167,7 +202,7 @@ it('setViewDefaultWithNewQuery', async () => {
   const viewQueryExecutor = mock<ViewQueryExecutor>();
   viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([]);
 
-  const manager = new ViewManager(createCardAPI(), {
+  const manager = new ViewManager(createInitializedCardAPI(), {
     viewFactory: viewFactory,
     viewQueryExecutor: viewQueryExecutor,
   });
@@ -184,7 +219,7 @@ it('setViewByParametersWithNewQuery', async () => {
   const viewQueryExecutor = mock<ViewQueryExecutor>();
   viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([]);
 
-  const manager = new ViewManager(createCardAPI(), {
+  const manager = new ViewManager(createInitializedCardAPI(), {
     viewFactory: viewFactory,
     viewQueryExecutor: viewQueryExecutor,
   });
@@ -201,7 +236,7 @@ it('setViewByParametersWithExistingQuery', async () => {
   const viewQueryExecutor = mock<ViewQueryExecutor>();
   viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([]);
 
-  const manager = new ViewManager(createCardAPI(), {
+  const manager = new ViewManager(createInitializedCardAPI(), {
     viewFactory: viewFactory,
     viewQueryExecutor: viewQueryExecutor,
   });
@@ -220,7 +255,7 @@ describe('should handle exceptions', () => {
       throw error;
     });
 
-    const api = createCardAPI();
+    const api = createInitializedCardAPI();
     const manager = new ViewManager(api, { viewFactory: viewFactory });
     manager.setViewDefault();
 
@@ -235,7 +270,7 @@ describe('should handle exceptions', () => {
       throw error;
     });
 
-    const api = createCardAPI();
+    const api = createInitializedCardAPI();
     const manager = new ViewManager(api, { viewFactory: viewFactory });
     await manager.setViewDefaultWithNewQuery();
 
@@ -250,7 +285,7 @@ describe('should handle exceptions', () => {
     const viewQueryExecutor = mock<ViewQueryExecutor>();
     viewQueryExecutor.getNewQueryModifiers.mockRejectedValue(error);
 
-    const api = createCardAPI();
+    const api = createInitializedCardAPI();
     const manager = new ViewManager(api, {
       viewFactory: viewFactory,
       viewQueryExecutor: viewQueryExecutor,
@@ -280,7 +315,7 @@ describe('isViewSupportedByCamera', () => {
     ['timeline' as const, false],
     ['media' as const, false],
   ])('%s', (viewName: AdvancedCameraCardView, expected: boolean) => {
-    const api = createCardAPI();
+    const api = createInitializedCardAPI();
     vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
     vi.mocked(api.getCameraManager().getStore).mockReturnValue(
       createStore([
@@ -317,7 +352,9 @@ describe('hasMajorMediaChange', () => {
     const factory = mock<ViewFactory>();
     factory.getViewDefault.mockReturnValue(createView({ view: 'live' }));
 
-    const manager = new ViewManager(createCardAPI(), { viewFactory: factory });
+    const manager = new ViewManager(createInitializedCardAPI(), {
+      viewFactory: factory,
+    });
     manager.setViewDefault();
 
     expect(manager.hasMajorMediaChange(createView({ view: 'clips' }))).toBeTruthy();
@@ -327,7 +364,9 @@ describe('hasMajorMediaChange', () => {
     const factory = mock<ViewFactory>();
     factory.getViewDefault.mockReturnValue(createView({ camera: 'camera-1' }));
 
-    const manager = new ViewManager(createCardAPI(), { viewFactory: factory });
+    const manager = new ViewManager(createInitializedCardAPI(), {
+      viewFactory: factory,
+    });
     manager.setViewDefault();
 
     expect(manager.hasMajorMediaChange(createView({ camera: 'camera-2' }))).toBeTruthy();
@@ -345,7 +384,9 @@ describe('hasMajorMediaChange', () => {
       createView({ context: { live: { overrides: overrides_1 } } }),
     );
 
-    const manager = new ViewManager(createCardAPI(), { viewFactory: factory });
+    const manager = new ViewManager(createInitializedCardAPI(), {
+      viewFactory: factory,
+    });
     manager.setViewDefault();
 
     expect(
@@ -367,7 +408,9 @@ describe('hasMajorMediaChange', () => {
       createView({ view: 'clips', context: { live: { overrides: overrides_1 } } }),
     );
 
-    const manager = new ViewManager(createCardAPI(), { viewFactory: factory });
+    const manager = new ViewManager(createInitializedCardAPI(), {
+      viewFactory: factory,
+    });
     manager.setViewDefault();
 
     expect(
@@ -378,16 +421,25 @@ describe('hasMajorMediaChange', () => {
   });
 
   it('should consider result change as major in other view', () => {
-    const media = [new ViewMedia('clip', 'camera-1'), new ViewMedia('clip', 'camera-2')];
-    const queryResults_1 = new MediaQueriesResults({ results: media, selectedIndex: 0 });
-    const queryResults_2 = new MediaQueriesResults({ results: media, selectedIndex: 1 });
+    const media = [
+      new ViewMedia(ViewMediaType.Clip, {
+        cameraID: 'camera-1',
+      }),
+      new ViewMedia(ViewMediaType.Clip, {
+        cameraID: 'camera-2',
+      }),
+    ];
+    const queryResults_1 = new QueryResults({ results: media, selectedIndex: 0 });
+    const queryResults_2 = new QueryResults({ results: media, selectedIndex: 1 });
 
     const factory = mock<ViewFactory>();
     factory.getViewDefault.mockReturnValue(
       createView({ view: 'media', queryResults: queryResults_1 }),
     );
 
-    const manager = new ViewManager(createCardAPI(), { viewFactory: factory });
+    const manager = new ViewManager(createInitializedCardAPI(), {
+      viewFactory: factory,
+    });
     manager.setViewDefault();
 
     expect(
@@ -398,14 +450,23 @@ describe('hasMajorMediaChange', () => {
   });
 
   it('should not consider selected result change as major in live view', () => {
-    const media = [new ViewMedia('clip', 'camera-1'), new ViewMedia('clip', 'camera-2')];
-    const queryResults_1 = new MediaQueriesResults({ results: media, selectedIndex: 0 });
-    const queryResults_2 = new MediaQueriesResults({ results: media, selectedIndex: 1 });
+    const media = [
+      new ViewMedia(ViewMediaType.Clip, {
+        cameraID: 'camera-1',
+      }),
+      new ViewMedia(ViewMediaType.Clip, {
+        cameraID: 'camera-2',
+      }),
+    ];
+    const queryResults_1 = new QueryResults({ results: media, selectedIndex: 0 });
+    const queryResults_2 = new QueryResults({ results: media, selectedIndex: 1 });
 
     const factory = mock<ViewFactory>();
     factory.getViewDefault.mockReturnValue(createView({ queryResults: queryResults_1 }));
 
-    const manager = new ViewManager(createCardAPI(), { viewFactory: factory });
+    const manager = new ViewManager(createInitializedCardAPI(), {
+      viewFactory: factory,
+    });
     manager.setViewDefault();
 
     expect(
@@ -424,7 +485,7 @@ describe('should initialize', () => {
     const viewFactory = mock<ViewFactory>();
     viewFactory.getViewDefault.mockReturnValue(view);
 
-    const api = createCardAPI();
+    const api = createInitializedCardAPI();
     const manager = new ViewManager(api, {
       viewFactory: viewFactory,
     });
@@ -452,14 +513,14 @@ it('should adopt query and results when changing to gallery from viewer', async 
   const baseView = createView({
     view: 'media',
     camera: 'camera.office',
-    query: new EventMediaQueries([
+    query: new EventMediaQuery([
       {
         type: QueryType.Event,
         cameraIDs: new Set(['camera.office']),
         hasClip: true,
       },
     ]),
-    queryResults: new MediaQueriesResults(),
+    queryResults: new QueryResults(),
   });
 
   const viewFactory = mock<ViewFactory>();
@@ -470,7 +531,7 @@ it('should adopt query and results when changing to gallery from viewer', async 
   const viewQueryExecutor = mock<ViewQueryExecutor>();
   viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([]);
 
-  const manager = new ViewManager(createCardAPI(), {
+  const manager = new ViewManager(createInitializedCardAPI(), {
     viewFactory: viewFactory,
     viewQueryExecutor: viewQueryExecutor,
   });
@@ -496,8 +557,8 @@ describe('should apply async view modifications', () => {
     const viewFactory = mock<ViewFactory>();
     viewFactory.getViewDefault.mockReturnValue(createView({ view: 'live' }));
 
-    const query = new EventMediaQueries();
-    const queryResults = new MediaQueriesResults();
+    const query = new EventMediaQuery();
+    const queryResults = new QueryResults();
 
     const viewQueryExecutor = mock<ViewQueryExecutor>();
     viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([
@@ -507,7 +568,7 @@ describe('should apply async view modifications', () => {
       }),
     ]);
 
-    const manager = new ViewManager(createCardAPI(), {
+    const manager = new ViewManager(createInitializedCardAPI(), {
       viewFactory: viewFactory,
       viewQueryExecutor: viewQueryExecutor,
     });
@@ -523,12 +584,12 @@ describe('should apply async view modifications', () => {
     const viewFactory = mock<ViewFactory>();
     viewFactory.getViewDefault.mockReturnValueOnce(createView({ view: 'live' }));
 
-    const query = new EventMediaQueries();
-    const queryResults = new MediaQueriesResults();
+    const query = new EventMediaQuery();
+    const queryResults = new QueryResults();
 
     const viewQueryExecutor = mock<ViewQueryExecutor>();
 
-    const manager = new ViewManager(createCardAPI(), {
+    const manager = new ViewManager(createInitializedCardAPI(), {
       viewFactory: viewFactory,
       viewQueryExecutor: viewQueryExecutor,
     });
@@ -572,7 +633,7 @@ describe('should apply async view modifications', () => {
       viewFactory.getViewDefault.mockReturnValueOnce(createView({ view: 'live' }));
       const viewQueryExecutor = mock<ViewQueryExecutor>();
 
-      const manager = new ViewManager(createCardAPI(), {
+      const manager = new ViewManager(createInitializedCardAPI(), {
         viewFactory: viewFactory,
         viewQueryExecutor: viewQueryExecutor,
       });
@@ -608,7 +669,7 @@ describe('should apply async view modifications', () => {
       viewFactory.getViewDefault.mockReturnValueOnce(createView({ view: 'live' }));
       const viewQueryExecutor = mock<ViewQueryExecutor>();
 
-      const manager = new ViewManager(createCardAPI(), {
+      const manager = new ViewManager(createInitializedCardAPI(), {
         viewFactory: viewFactory,
         viewQueryExecutor: viewQueryExecutor,
       });
@@ -644,7 +705,7 @@ describe('should apply async view modifications', () => {
       viewFactory.getViewDefault.mockReturnValueOnce(createView({ view: 'live' }));
       const viewQueryExecutor = mock<ViewQueryExecutor>();
 
-      const manager = new ViewManager(createCardAPI(), {
+      const manager = new ViewManager(createInitializedCardAPI(), {
         viewFactory: viewFactory,
         viewQueryExecutor: viewQueryExecutor,
       });
@@ -681,14 +742,14 @@ it('should adopt query and results when changing to gallery from viewer', async 
   const baseView = createView({
     view: 'media',
     camera: 'camera.office',
-    query: new EventMediaQueries([
+    query: new EventMediaQuery([
       {
         type: QueryType.Event,
         cameraIDs: new Set(['camera.office']),
         hasClip: true,
       },
     ]),
-    queryResults: new MediaQueriesResults(),
+    queryResults: new QueryResults(),
   });
 
   const viewFactory = mock<ViewFactory>();
@@ -699,7 +760,7 @@ it('should adopt query and results when changing to gallery from viewer', async 
   const viewQueryExecutor = mock<ViewQueryExecutor>();
   viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([]);
 
-  const manager = new ViewManager(createCardAPI(), {
+  const manager = new ViewManager(createInitializedCardAPI(), {
     viewFactory: viewFactory,
     viewQueryExecutor: viewQueryExecutor,
   });

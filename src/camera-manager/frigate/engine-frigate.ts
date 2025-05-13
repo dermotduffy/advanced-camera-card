@@ -1,22 +1,21 @@
 import { add, endOfHour, format, fromUnixTime, startOfHour } from 'date-fns';
-import isEqual from 'lodash-es/isEqual';
-import orderBy from 'lodash-es/orderBy';
-import throttle from 'lodash-es/throttle';
-import uniqWith from 'lodash-es/uniqWith';
+import { isEqual, orderBy, throttle, uniqWith } from 'lodash-es';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { CameraConfig } from '../../config/schema/cameras';
+import { getEntityTitle } from '../../ha/get-entity-title';
+import { EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
+import { Endpoint } from '../../types';
 import {
   allPromises,
   formatDate,
   prettifyTitle,
   runWhenIdleIfSupported,
 } from '../../utils/basic';
-import { getEntityTitle } from '../../utils/ha';
-import { EntityRegistryManager } from '../../utils/ha/registry/entity/types';
-import { ViewMedia } from '../../view/media';
-import { ViewMediaClassifier } from '../../view/media-classifier';
-import { RecordingSegmentsCache, RequestCache } from '../cache';
+import { ViewMedia, ViewMediaType } from '../../view/item';
+import { ViewItemClassifier } from '../../view/item-classifier';
+import { ViewItemCapabilities } from '../../view/types';
+import { RecordingSegmentsCache } from '../cache';
 import { Camera } from '../camera';
 import {
   CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
@@ -26,13 +25,12 @@ import { GenericCameraManagerEngine } from '../generic/engine-generic';
 import { DateRange } from '../range';
 import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraEndpoint,
   CameraEndpoints,
   CameraEndpointsContext,
   CameraEventCallback,
   CameraManagerCameraMetadata,
-  CameraManagerMediaCapabilities,
-  DataQuery,
+  CameraManagerRequestCache,
+  CameraQuery,
   Engine,
   EngineOptions,
   EventQuery,
@@ -112,7 +110,7 @@ export class FrigateCameraManagerEngine
   protected _entityRegistryManager: EntityRegistryManager;
   protected _frigateEventWatcher: FrigateEventWatcher;
   protected _recordingSegmentsCache: RecordingSegmentsCache;
-  protected _requestCache: RequestCache;
+  protected _requestCache: CameraManagerRequestCache;
 
   // Garbage collect segments at most once an hour.
   protected _throttledSegmentGarbageCollector = throttle(
@@ -125,7 +123,7 @@ export class FrigateCameraManagerEngine
     entityRegistryManager: EntityRegistryManager,
     stateWatcher: StateWatcherSubscriptionInterface,
     recordingSegmentsCache: RecordingSegmentsCache,
-    requestCache: RequestCache,
+    requestCache: CameraManagerRequestCache,
     eventCallback?: CameraEventCallback,
   ) {
     super(stateWatcher, eventCallback);
@@ -158,13 +156,13 @@ export class FrigateCameraManagerEngine
     _hass: HomeAssistant,
     cameraConfig: CameraConfig,
     media: ViewMedia,
-  ): Promise<CameraEndpoint | null> {
+  ): Promise<Endpoint | null> {
     if (FrigateViewMediaClassifier.isFrigateEvent(media)) {
       return {
         endpoint:
           `/api/frigate/${cameraConfig.frigate.client_id}` +
           `/notifications/${media.getID()}/` +
-          `${ViewMediaClassifier.isClip(media) ? 'clip.mp4' : 'snapshot.jpg'}` +
+          `${ViewItemClassifier.isClip(media) ? 'clip.mp4' : 'snapshot.jpg'}` +
           `?download=true`,
         sign: true,
       };
@@ -541,7 +539,7 @@ export class FrigateCameraManagerEngine
 
   protected _getCameraIDMatch(
     store: CameraManagerReadOnlyConfigStore,
-    query: DataQuery,
+    query: CameraQuery,
     instanceID: string,
     cameraName: string,
   ): string | null {
@@ -588,17 +586,17 @@ export class FrigateCameraManagerEngine
       if (!cameraConfig) {
         continue;
       }
-      let mediaType: 'clip' | 'snapshot' | null = null;
+      let mediaType: ViewMediaType | null = null;
       if (
         !query.hasClip &&
         !query.hasSnapshot &&
         (event.has_clip || event.has_snapshot)
       ) {
-        mediaType = event.has_clip ? 'clip' : 'snapshot';
+        mediaType = event.has_clip ? ViewMediaType.Clip : ViewMediaType.Snapshot;
       } else if (query.hasSnapshot && event.has_snapshot) {
-        mediaType = 'snapshot';
+        mediaType = ViewMediaType.Snapshot;
       } else if (query.hasClip && event.has_clip) {
-        mediaType = 'clip';
+        mediaType = ViewMediaType.Clip;
       }
       if (!mediaType) {
         continue;
@@ -646,7 +644,7 @@ export class FrigateCameraManagerEngine
     return output;
   }
 
-  public getQueryResultMaxAge(query: DataQuery): number | null {
+  public getQueryResultMaxAge(query: CameraQuery): number | null {
     if (query.type === QueryType.Event) {
       return EVENT_REQUEST_CACHE_MAX_AGE_SECONDS;
     } else if (query.type === QueryType.Recording) {
@@ -664,11 +662,12 @@ export class FrigateCameraManagerEngine
   ): Promise<number | null> {
     const start = media.getStartTime();
     const end = media.getEndTime();
-    if (!start || !end || target < start || target > end) {
+    const cameraID = media.getCameraID();
+
+    if (!start || !end || target < start || target > end || !cameraID) {
       return null;
     }
 
-    const cameraID = media.getCameraID();
     const query: RecordingSegmentsQuery = {
       cameraIDs: new Set([cameraID]),
       start: start,
@@ -898,9 +897,9 @@ export class FrigateCameraManagerEngine
     return seekMilliseconds / 1000;
   }
 
-  public getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities {
+  public getMediaCapabilities(media: ViewMedia): ViewItemCapabilities {
     return {
-      canFavorite: ViewMediaClassifier.isEvent(media),
+      canFavorite: ViewItemClassifier.isEvent(media),
       canDownload: true,
     };
   }
@@ -926,7 +925,7 @@ export class FrigateCameraManagerEngine
     cameraConfig: CameraConfig,
     context?: CameraEndpointsContext,
   ): CameraEndpoints | null {
-    const getUIEndpoint = (): CameraEndpoint | null => {
+    const getUIEndpoint = (): Endpoint | null => {
       if (!cameraConfig.frigate.url) {
         return null;
       }
@@ -976,7 +975,7 @@ export class FrigateCameraManagerEngine
       };
     };
 
-    const getJSMPEG = (): CameraEndpoint | null => {
+    const getJSMPEG = (): Endpoint | null => {
       return {
         endpoint:
           `/api/frigate/${cameraConfig.frigate.client_id}` +

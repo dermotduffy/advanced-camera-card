@@ -2,6 +2,8 @@
 
 The `media_gallery` is used for providing an overview of all `clips`, `snapshots` and `recordings` in a thumbnail gallery.
 
+?> Media from configured folders (not from configured cameras) is presented in the [`folder_gallery`](./folder-gallery.md) not the `media_gallery`.
+
 ```yaml
 media_gallery:
   # [...]
@@ -10,7 +12,7 @@ media_gallery:
 | Option     | Default | Description                                                                                                               |
 | ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `actions`  |         | [Actions](actions/README.md) to use for all views that use the `media_gallery` (e.g. `clips`, `snapshots`, `recordings`). |
-| `controls` |         | Configuration for the Media viewer controls. See below.                                                                   |
+| `controls` |         | Configuration for the Media Gallery controls. See below.                                                                  |
 
 ## `controls`
 

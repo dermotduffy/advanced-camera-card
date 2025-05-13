@@ -1,8 +1,8 @@
 import { LitElement, ReactiveControllerHost } from 'lit';
 import { ActionEventTarget } from '../action-handler-directive';
+import { isCardInPanel } from '../ha/panel';
 import { setOrRemoveAttribute } from '../utils/basic';
 import { isBeingCasted } from '../utils/casting';
-import { isCardInPanel } from '../utils/ha';
 import { ActionExecutionRequestEventTarget } from './actions/utils/execution-request';
 import { InitializationAspect } from './initialization-manager';
 import { CardElementAPI } from './types';

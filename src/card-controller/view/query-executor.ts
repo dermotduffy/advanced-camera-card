@@ -1,13 +1,17 @@
 import { CapabilitySearchOptions, MediaQuery } from '../../camera-manager/types';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const';
 import { ClipsOrSnapshotsOrAll } from '../../types';
-import { findBestMediaIndex } from '../../utils/find-best-media-index';
+import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
+import { ViewItem } from '../../view/item';
 import {
-  EventMediaQueries,
+  EventMediaQuery,
+  FolderViewQuery,
   MediaQueries,
-  RecordingMediaQueries,
-} from '../../view/media-queries';
-import { MediaQueriesResults } from '../../view/media-queries-results';
+  Query,
+  RecordingMediaQuery,
+} from '../../view/query';
+import { QueryClassifier } from '../../view/query-classifier';
+import { QueryResults } from '../../view/query-results';
 import { CardViewAPI } from '../types';
 import { QueryExecutorOptions, QueryExecutorResult } from './types';
 
@@ -48,14 +52,8 @@ export class QueryExecutor {
     if (!rawQueries) {
       return null;
     }
-    const queries = new EventMediaQueries(rawQueries);
-    const results = await this.execute(queries, options?.executorOptions);
-    return results
-      ? {
-          query: queries,
-          queryResults: results,
-        }
-      : null;
+    const queries = new EventMediaQuery(rawQueries);
+    return await this.executeMediaQuery(queries, options?.executorOptions);
   }
 
   public async executeDefaultRecordingQuery(options?: {
@@ -76,16 +74,30 @@ export class QueryExecutor {
     if (!rawQueries) {
       return null;
     }
-    const queries = new RecordingMediaQueries(rawQueries);
-    const results = await this.execute(queries, options?.executorOptions);
-    return results ? { query: queries, queryResults: results } : null;
+    const queries = new RecordingMediaQuery(rawQueries);
+    return await this.executeMediaQuery(queries, options?.executorOptions);
   }
 
-  public async execute(
+  public async executeQuery(
+    query: Query,
+    executorOptions?: QueryExecutorOptions,
+  ): Promise<QueryExecutorResult | null> {
+    /* istanbul ignore else: this path cannot be reached -- @preserve */
+    if (QueryClassifier.isMediaQuery(query)) {
+      return await this.executeMediaQuery(query, executorOptions);
+    } else if (QueryClassifier.isFolderQuery(query)) {
+      return await this._executeFolderQuery(query, executorOptions);
+    }
+
+    /* istanbul ignore next: this path cannot be reached -- @preserve */
+    return null;
+  }
+
+  public async executeMediaQuery(
     query: MediaQueries,
     executorOptions?: QueryExecutorOptions,
-  ): Promise<MediaQueriesResults | null> {
-    const queries = query.getQueries();
+  ): Promise<QueryExecutorResult | null> {
+    const queries = query.getQuery();
     if (!queries) {
       return null;
     }
@@ -95,11 +107,17 @@ export class QueryExecutor {
       .executeMediaQueries<MediaQuery>(queries, {
         useCache: executorOptions?.useCache,
       });
-    if (!mediaArray) {
-      return null;
-    }
+    const queryResults = mediaArray
+      ? this._generateQueriesResults(mediaArray, executorOptions)
+      : null;
+    return queryResults ? { query, queryResults } : null;
+  }
 
-    const queryResults = new MediaQueriesResults({ results: mediaArray });
+  private _generateQueriesResults(
+    itemArray: ViewItem[],
+    executorOptions?: QueryExecutorOptions,
+  ): QueryResults | null {
+    const queryResults = new QueryResults({ results: itemArray });
     if (executorOptions?.rejectResults?.(queryResults)) {
       return null;
     }
@@ -111,15 +129,45 @@ export class QueryExecutor {
     } else if (executorOptions?.selectResult?.func) {
       queryResults.selectResultIfFound(executorOptions.selectResult.func);
     } else if (executorOptions?.selectResult?.time) {
-      queryResults.selectBestResult((media) =>
-        findBestMediaIndex(
-          media,
+      queryResults.selectBestResult((itemArray) =>
+        findBestMediaTimeIndex(
+          itemArray,
           executorOptions.selectResult?.time?.time as Date,
           executorOptions.selectResult?.time?.favorCameraID,
         ),
       );
     }
     return queryResults;
+  }
+
+  public async executeDefaultFolderQuery(
+    executorOptions?: QueryExecutorOptions,
+  ): Promise<QueryExecutorResult | null> {
+    const defaultFolder = this._api.getFoldersManager().getFolder();
+    return defaultFolder
+      ? this._executeFolderQuery(
+          new FolderViewQuery({ folder: defaultFolder }),
+          executorOptions,
+        )
+      : null;
+  }
+
+  private async _executeFolderQuery(
+    query: FolderViewQuery,
+    executorOptions?: QueryExecutorOptions,
+  ): Promise<QueryExecutorResult | null> {
+    const rawQuery = query.getQuery();
+    if (!rawQuery) {
+      return null;
+    }
+    const itemArray = await this._api
+      .getFoldersManager()
+      .expandFolder(rawQuery, { useCache: executorOptions?.useCache });
+
+    const queryResults = itemArray
+      ? this._generateQueriesResults(itemArray, executorOptions)
+      : null;
+    return queryResults ? { query, queryResults } : null;
   }
 
   protected _getChunkLimit(): number {

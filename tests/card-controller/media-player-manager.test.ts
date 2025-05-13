@@ -6,8 +6,10 @@ import {
   MEDIA_PLAYER_SUPPORT_STOP,
   MEDIA_PLAYER_SUPPORT_TURN_OFF,
 } from '../../src/const';
+import { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
 import { HomeAssistant } from '../../src/ha/types.js';
-import { EntityRegistryManager } from '../../src/utils/ha/registry/entity/types.js';
+import { ViewMediaType } from '../../src/view/item.js';
+import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {
   createCameraConfig,
   createCameraManager,
@@ -19,7 +21,6 @@ import {
   createStore,
   TestViewMedia,
 } from '../test-utils.js';
-import { EntityRegistryManagerMock } from '../utils/ha/registry/entity/mock.js';
 
 const createHASSWithMediaPlayers = (): HomeAssistant => {
   const attributesSupported = {
@@ -484,38 +485,35 @@ describe('MediaPlayerManager', () => {
     describe('media', () => {
       describe('successfully with', () => {
         it.each([
-          ['clip' as const, 'video' as const],
-          ['snapshot' as const, 'image' as const],
-        ])(
-          '%s',
-          async (mediaType: 'clip' | 'snapshot', contentType: 'video' | 'image') => {
-            const media = new TestViewMedia({
-              title: 'media title',
-              thumbnail: 'http://thumbnail',
-              contentID: 'media-source://contentid',
-              mediaType: mediaType,
-            });
-            const api = createCardAPI();
-            vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-            const manager = new MediaPlayerManager(api);
+          [ViewMediaType.Clip, 'video' as const],
+          [ViewMediaType.Snapshot, 'image' as const],
+        ])('%s', async (mediaType: ViewMediaType, contentType: 'video' | 'image') => {
+          const media = new TestViewMedia({
+            title: 'media title',
+            thumbnail: 'http://thumbnail',
+            contentID: 'media-source://contentid',
+            mediaType,
+          });
+          const api = createCardAPI();
+          vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+          const manager = new MediaPlayerManager(api);
 
-            await manager.playMedia('media_player.foo', media);
+          await manager.playMedia('media_player.foo', media);
 
-            expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
-              'media_player',
-              'play_media',
-              {
-                entity_id: 'media_player.foo',
-                media_content_id: 'media-source://contentid',
-                media_content_type: contentType,
-                extra: {
-                  title: 'media title',
-                  thumb: 'http://thumbnail',
-                },
+          expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
+            'media_player',
+            'play_media',
+            {
+              entity_id: 'media_player.foo',
+              media_content_id: 'media-source://contentid',
+              media_content_type: contentType,
+              extra: {
+                title: 'media title',
+                thumb: 'http://thumbnail',
               },
-            );
-          },
-        );
+            },
+          );
+        });
       });
 
       it('without hass', async () => {

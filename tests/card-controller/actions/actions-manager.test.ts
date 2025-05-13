@@ -62,6 +62,14 @@ describe('ActionsManager', () => {
           },
         },
       },
+      folder_gallery: {
+        actions: {
+          tap_action: {
+            action: 'navigate',
+            navigation_path: '6',
+          },
+        },
+      },
     };
 
     afterAll(() => {
@@ -115,6 +123,15 @@ describe('ActionsManager', () => {
             tap_action: {
               action: 'navigate',
               navigation_path: '5',
+            },
+          },
+        ],
+        [
+          'folder' as const,
+          {
+            tap_action: {
+              action: 'navigate',
+              navigation_path: '6',
             },
           },
         ],
@@ -313,6 +330,7 @@ describe('ActionsManager', () => {
 
     describe('should forward haptics', () => {
       afterEach(() => {
+        vi.restoreAllMocks();
         vi.unstubAllGlobals();
       });
 
@@ -329,6 +347,8 @@ describe('ActionsManager', () => {
       });
 
       it('should forward warning haptic', async () => {
+        vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+
         const handler = vi.fn();
         window.addEventListener('haptic', handler);
 

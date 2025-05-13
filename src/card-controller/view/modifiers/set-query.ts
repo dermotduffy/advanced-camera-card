@@ -1,16 +1,13 @@
-import { MediaQueries } from '../../../view/media-queries';
-import { MediaQueriesResults } from '../../../view/media-queries-results';
+import { Query } from '../../../view/query';
+import { QueryResults } from '../../../view/query-results';
 import { View } from '../../../view/view';
 import { ViewModifier } from '../types';
 
 export class SetQueryViewModifier implements ViewModifier {
-  protected _query?: MediaQueries | null;
-  protected _queryResults?: MediaQueriesResults | null;
+  protected _query?: Query | null;
+  protected _queryResults?: QueryResults | null;
 
-  constructor(options?: {
-    query?: MediaQueries | null;
-    queryResults?: MediaQueriesResults | null;
-  }) {
+  constructor(options?: { query?: Query | null; queryResults?: QueryResults | null }) {
     this._query = options?.query;
     this._queryResults = options?.queryResults;
   }

@@ -36,16 +36,14 @@ const keyboardShortcutsSchema = z.object({
 });
 export type KeyboardShortcuts = z.infer<typeof keyboardShortcutsSchema>;
 
-const KEYBOARD_SHORTCUT_PTZ_NAMES = [
-  'ptz_down',
-  'ptz_home',
-  'ptz_left',
-  'ptz_right',
-  'ptz_up',
-  'ptz_zoom_in',
-  'ptz_zoom_out',
-] as const;
-export type PTZKeyboardShortcutName = (typeof KEYBOARD_SHORTCUT_PTZ_NAMES)[number];
+export type PTZKeyboardShortcutName =
+  | 'ptz_down'
+  | 'ptz_home'
+  | 'ptz_left'
+  | 'ptz_right'
+  | 'ptz_up'
+  | 'ptz_zoom_in'
+  | 'ptz_zoom_out';
 
 export const viewConfigDefault = {
   default: VIEW_DEFAULT,

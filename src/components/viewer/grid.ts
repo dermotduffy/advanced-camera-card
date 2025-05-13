@@ -14,9 +14,9 @@ import { MediaGridSelected } from '../../components-lib/media-grid-controller.js
 import { CardWideConfig } from '../../config/schema/types.js';
 import { ViewerConfig } from '../../config/schema/viewer.js';
 import { HomeAssistant } from '../../ha/types.js';
+import { ResolvedMediaCache } from '../../ha/resolved-media.js';
 import '../../patches/ha-hls-player.js';
 import basicBlockStyle from '../../scss/basic-block.scss';
-import { ResolvedMediaCache } from '../../utils/ha/resolved-media.js';
 import './carousel';
 
 @customElement('advanced-camera-card-viewer-grid')

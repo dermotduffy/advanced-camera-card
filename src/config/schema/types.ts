@@ -8,9 +8,11 @@ import { imageConfigDefault } from './common/image';
 import { DebugConfig, debugConfigDefault, debugConfigSchema } from './debug';
 import { dimensionsConfigSchema } from './dimensions';
 import { pictureElementsSchema } from './elements/types';
-import { galleryConfigDefault, galleryConfigSchema } from './gallery';
+import { folderGalleryConfigDefault, folderGalleryConfigSchema } from './folder-gallery';
+import { foldersConfigSchema } from './folders';
 import { imageConfigSchema } from './image';
 import { liveConfigDefault, liveConfigSchema } from './live';
+import { mediaGalleryConfigDefault, mediaGalleryConfigSchema } from './media-gallery';
 import { menuConfigDefault, menuConfigSchema } from './menu';
 import { overridesSchema } from './overrides';
 import {
@@ -43,7 +45,8 @@ export const advancedCameraCardConfigSchema = z.object({
   menu: menuConfigSchema,
   status_bar: statusBarConfigSchema,
   live: liveConfigSchema,
-  media_gallery: galleryConfigSchema,
+  media_gallery: mediaGalleryConfigSchema,
+  folder_gallery: folderGalleryConfigSchema,
   media_viewer: viewerConfigSchema,
   image: imageConfigSchema,
   elements: pictureElementsSchema,
@@ -54,6 +57,8 @@ export const advancedCameraCardConfigSchema = z.object({
   automations: automationsSchema.optional(),
 
   profiles: profilesSchema,
+
+  folders: foldersConfigSchema.optional(),
 
   // Configuration overrides.
   overrides: overridesSchema,
@@ -78,11 +83,12 @@ export const configDefaults = {
   menu: menuConfigDefault,
   status_bar: statusBarConfigDefault,
   live: liveConfigDefault,
-  media_gallery: galleryConfigDefault,
+  media_gallery: mediaGalleryConfigDefault,
   media_viewer: viewerConfigDefault,
   image: imageConfigDefault,
   timeline: timelineConfigDefault,
   performance: performanceConfigDefault,
   debug: debugConfigDefault,
   remote_control: remoteControlConfigDefault,
+  folder_gallery: folderGalleryConfigDefault,
 };

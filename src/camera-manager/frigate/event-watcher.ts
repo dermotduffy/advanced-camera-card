@@ -53,6 +53,7 @@ export class FrigateEventWatcher implements FrigateEventWatcherSubscriptionInter
     let json: unknown;
     try {
       json = JSON.parse(data);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       console.warn('Received non-JSON payload as Frigate event', data);
       return;

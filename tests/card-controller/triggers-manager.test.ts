@@ -14,8 +14,9 @@ import {
   flushPromises,
 } from '../test-utils';
 
-vi.mock('lodash-es/throttle', () => ({
-  default: vi.fn((fn) => fn),
+vi.mock('lodash-es', async () => ({
+  ...(await vi.importActual('lodash-es')),
+  throttle: vi.fn((fn) => fn),
 }));
 
 const baseTriggersConfig: TriggersOptions = {

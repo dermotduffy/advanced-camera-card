@@ -1,5 +1,5 @@
 import { CardKeyboardStateAPI, KeysState } from './types';
-import isEqual from 'lodash-es/isEqual';
+import { isEqual } from 'lodash-es';
 
 export class KeyboardStateManager {
   protected _api: CardKeyboardStateAPI;

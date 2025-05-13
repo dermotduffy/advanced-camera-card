@@ -1,5 +1,6 @@
 import { MediaPlayerActionConfig } from '../../../config/schema/actions/custom/media-player';
 import { getStreamCameraID } from '../../../utils/substream';
+import { ViewItemClassifier } from '../../../view/item-classifier';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
@@ -9,15 +10,19 @@ export class MediaPlayerAction extends AdvancedCameraCardAction<MediaPlayerActio
 
     const mediaPlayer = this._action.media_player;
     const mediaPlayerController = api.getMediaPlayerManager();
-    const view = api.getViewManager().getView();
-    const media = view?.queryResults?.getSelectedResult() ?? null;
 
     if (this._action.media_player_action === 'stop') {
       await mediaPlayerController.stop(mediaPlayer);
-    } else if (view?.is('live')) {
+      return;
+    }
+
+    const view = api.getViewManager().getView();
+    const item = view?.queryResults?.getSelectedResult() ?? null;
+
+    if (view?.is('live')) {
       await mediaPlayerController.playLive(mediaPlayer, getStreamCameraID(view));
-    } else if (view?.isViewerView() && media) {
-      await mediaPlayerController.playMedia(mediaPlayer, media);
+    } else if (view?.isViewerView() && item && ViewItemClassifier.isMedia(item)) {
+      await mediaPlayerController.playMedia(mediaPlayer, item);
     }
   }
 }

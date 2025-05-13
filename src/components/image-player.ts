@@ -4,7 +4,12 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { ImageMediaPlayerController } from '../components-lib/media-player/image';
 import imagePlayerStyle from '../scss/image-player.scss';
-import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../types';
+import {
+  MediaPlayer,
+  MediaPlayerController,
+  MediaPlayerElement,
+  MediaTechnology,
+} from '../types';
 import { dispatchMediaLoadedEvent } from '../utils/media-info';
 
 /**
@@ -16,7 +21,7 @@ export class AdvancedCameraCardImagePlayer extends LitElement implements MediaPl
   public url?: string;
 
   @property()
-  public filetype?: string;
+  public technology?: MediaTechnology;
 
   protected _refImage: Ref<MediaPlayerElement<HTMLImageElement>> = createRef();
   protected _mediaPlayerController = new ImageMediaPlayerController(
@@ -37,7 +42,7 @@ export class AdvancedCameraCardImagePlayer extends LitElement implements MediaPl
           ...(this._mediaPlayerController && {
             mediaPlayerController: this._mediaPlayerController,
           }),
-          technology: [this.filetype ?? 'jpg'],
+          technology: [this.technology ?? ('jpg' as const)],
         });
       }}
     />`;

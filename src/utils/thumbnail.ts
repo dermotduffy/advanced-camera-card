@@ -17,24 +17,22 @@ const fetchThumbnail = async (
   hass: HomeAssistant,
   thumbnailURL: string,
 ): Promise<string | null> => {
-  if (!hass || !thumbnailURL) {
-    return null;
-  }
   if (thumbnailURL.startsWith('data:') || thumbnailURL.match(ABSOLUTE_URL_REGEX)) {
     return thumbnailURL;
   }
   return new Promise((resolve, reject) => {
-    if (!hass) {
-      reject();
-      return;
-    }
     hass
       .fetchWithAuth(thumbnailURL)
       // Since we are fetching with an authorization header, we cannot just put the
       // URL directly into the document; we need to embed the image. We could do this
       // using blob URLs, but then we would need to keep track of them in order to
       // release them properly. Instead, we embed the thumbnail using base64.
-      .then((response) => response.blob())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(response.statusText);
+        }
+        return response.blob();
+      })
       .then((blob) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -73,7 +71,7 @@ export const createFetchThumbnailTask = (
       if (!haveHASS || !hass || !thumbnailURL) {
         return null;
       }
-      return fetchThumbnail(hass, thumbnailURL);
+      return await fetchThumbnail(hass, thumbnailURL);
     },
     autoRun: autoRun,
   });

@@ -1,4 +1,4 @@
-import throttle from 'lodash-es/throttle';
+import { throttle } from 'lodash-es';
 import { setOrRemoveAttribute } from '../utils/basic';
 import { Timer } from '../utils/timer';
 import { CardInteractionAPI } from './types';

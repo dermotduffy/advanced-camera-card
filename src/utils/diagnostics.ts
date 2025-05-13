@@ -1,11 +1,11 @@
 import pkg from '../../package.json';
 import { RawAdvancedCameraCardConfig } from '../config/types';
+import { getIntegrationManifest } from '../ha/integration';
+import { IntegrationManifest } from '../ha/integration/types';
+import { DeviceRegistryManager } from '../ha/registry/device';
 import { HomeAssistant } from '../ha/types';
+import { HASS_WEB_PROXY_DOMAIN } from '../ha/web-proxy';
 import { getLanguage } from '../localize/localize';
-import { getIntegrationManifest } from './ha/integration';
-import { IntegrationManifest } from './ha/integration/types';
-import { DeviceRegistryManager } from './ha/registry/device';
-import { HASS_WEB_PROXY_DOMAIN } from './ha/web-proxy';
 
 type FrigateDevices = Record<string, string>;
 
@@ -64,6 +64,7 @@ const getIntegrationDiagnostics = async (
   if (hass) {
     try {
       manifest = await getIntegrationManifest(hass, integration);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       // Silently ignore integrations not being found.
     }

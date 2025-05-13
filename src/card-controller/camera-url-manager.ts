@@ -1,3 +1,4 @@
+import { ViewItemClassifier } from '../view/item-classifier';
 import { CardCameraURLAPI } from './types';
 
 export class CameraURLManager {
@@ -20,11 +21,11 @@ export class CameraURLManager {
 
   public getCameraURL(): string | null {
     const view = this._api.getViewManager().getView();
-    const media = view?.queryResults?.getSelectedResult() ?? null;
+    const item = view?.queryResults?.getSelectedResult() ?? null;
     const endpoints = view?.camera
       ? this._api.getCameraManager().getCameraEndpoints(view.camera, {
           view: view.view,
-          ...(media && { media: media }),
+          ...(item && ViewItemClassifier.isMedia(item) && { media: item }),
         }) ?? null
       : null;
     return endpoints?.ui?.endpoint ?? null;

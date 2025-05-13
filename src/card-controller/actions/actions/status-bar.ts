@@ -3,7 +3,6 @@ import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class StatusBarAction extends AdvancedCameraCardAction<StatusBarActionConfig> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 

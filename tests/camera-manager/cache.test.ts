@@ -1,17 +1,29 @@
 import { add, sub } from 'date-fns';
-import sortBy from 'lodash-es/sortBy';
+import { sortBy } from 'lodash-es';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  MemoryRequestCache,
-  RecordingSegmentsCache,
-} from '../../src/camera-manager/cache.js';
+import { RecordingSegmentsCache } from '../../src/camera-manager/cache.js';
 import { DateRange } from '../../src/camera-manager/range.js';
-import { RecordingSegment } from '../../src/camera-manager/types.js';
+import {
+  CameraManagerRequestCache,
+  CameraQuery,
+  Engine,
+  EventQuery,
+  QueryResultsType,
+  QueryReturnType,
+  QueryType,
+  RecordingSegment,
+} from '../../src/camera-manager/types.js';
 
 describe('MemoryRequestCache', () => {
-  const cache = new MemoryRequestCache();
-  const request = { request: 'foo' };
-  const response = { response: 'bar' };
+  const cache = new CameraManagerRequestCache();
+  const request: CameraQuery = {
+    type: QueryType.Event,
+    cameraIDs: new Set(['camera-1']),
+  };
+  const response: QueryReturnType<EventQuery> = {
+    type: QueryResultsType.Event,
+    engine: Engine.Generic,
+  };
 
   beforeEach(() => {
     cache.clear();

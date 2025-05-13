@@ -3,10 +3,7 @@ import { mock } from 'vitest-mock-extended';
 import { BrowseMediaCamera } from '../../../src/camera-manager/browse-media/camera';
 import { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
-import {
-  Entity,
-  EntityRegistryManager,
-} from '../../../src/utils/ha/registry/entity/types';
+import { Entity, EntityRegistryManager } from '../../../src/ha/registry/entity/types';
 import { createCameraConfig, createHASS } from '../../test-utils';
 
 describe('BrowseMediaCamera', () => {

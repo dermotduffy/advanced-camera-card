@@ -3,10 +3,12 @@ import {
   Connection,
   HassConfig,
   HassEntities,
+  HassEntity,
   HassServices,
   HassServiceTarget,
   MessageBase,
 } from 'home-assistant-js-websocket';
+import { z } from 'zod';
 
 declare global {
   interface HASSDomEvents {
@@ -233,3 +235,21 @@ export interface ActionHandlerOptions {
   hasHold?: boolean;
   hasDoubleClick?: boolean;
 }
+
+export interface HassStateDifference {
+  entityID: string;
+  oldState?: HassEntity;
+  newState: HassEntity;
+}
+
+// *************************************************************************
+//                     Home Assistant API types.
+// *************************************************************************
+// Server side data-type defined here:
+// https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_source/models.py
+
+export const resolvedMediaSchema = z.object({
+  url: z.string(),
+  mime_type: z.string(),
+});
+export type ResolvedMedia = z.infer<typeof resolvedMediaSchema>;

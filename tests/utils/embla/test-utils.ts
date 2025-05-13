@@ -2,7 +2,7 @@ import { EmblaCarouselType, EmblaEventType } from 'embla-carousel';
 import { EngineType } from 'embla-carousel/components/Engine';
 import { LooseOptionsType } from 'embla-carousel/components/Options';
 import { OptionsHandlerType } from 'embla-carousel/components/OptionsHandler';
-import merge from 'lodash-es/merge';
+import { merge } from 'lodash-es';
 import { vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 

@@ -1,5 +1,6 @@
 import { StyleInfo } from 'lit/directives/style-map';
 import { CameraManager } from '../camera-manager/manager';
+import { FoldersManager } from '../card-controller/folders/manager';
 import { FullscreenManager } from '../card-controller/fullscreen/fullscreen-manager';
 import { MediaPlayerManager } from '../card-controller/media-player-manager';
 import { MicrophoneManager } from '../card-controller/microphone-manager';
@@ -7,12 +8,14 @@ import { ViewManager } from '../card-controller/view/view-manager';
 import { VIEWS_USER_SPECIFIED } from '../config/schema/common/const';
 import { MenuItem } from '../config/schema/elements/custom/menu/types';
 import { AdvancedCameraCardConfig } from '../config/schema/types';
+import { getEntityTitle } from '../ha/get-entity-title';
 import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize.js';
 import { MediaLoadedInfo } from '../types';
 import {
   createCameraAction,
   createDisplayModeAction,
+  createFolderAction,
   createGeneralAction,
   createMediaPlayerAction,
   createPTZControlsAction,
@@ -22,15 +25,17 @@ import {
 } from '../utils/action';
 import { arrayify, isTruthy } from '../utils/basic';
 import { isBeingCasted } from '../utils/casting';
-import { getEntityTitle } from '../utils/ha';
 import { getPTZTarget } from '../utils/ptz';
 import { getStreamCameraID, hasSubstream } from '../utils/substream';
+import { ViewItemClassifier } from '../view/item-classifier';
+import { QueryClassifier } from '../view/query-classifier';
 import { View } from '../view/view';
 import { getCameraIDsForViewName } from '../view/view-to-cameras';
 
 export interface MenuButtonControllerOptions {
   currentMediaLoadedInfo?: MediaLoadedInfo | null;
   showCameraUIButton?: boolean;
+  foldersManager?: FoldersManager | null;
   fullscreenManager?: FullscreenManager | null;
   inExpandedMode?: boolean;
   microphoneManager?: MicrophoneManager | null;
@@ -97,6 +102,7 @@ export class MenuButtonController {
       this._getDisplayModeButton(config, cameraManager, options?.view),
       this._getPTZControlsButton(config, cameraManager, options?.view),
       this._getPTZHomeButton(config, cameraManager, options?.view),
+      this._getFoldersButton(config, options?.foldersManager, options?.view),
 
       ...this._dynamicMenuButtons.map((button) => ({
         style: this._getStyleFromActions(config, button, options),
@@ -330,10 +336,11 @@ export class MenuButtonController {
     cameraManager: CameraManager,
     view?: View | null,
   ): MenuItem | null {
-    const selectedMedia = view?.queryResults?.getSelectedResult();
-    const mediaCapabilities = selectedMedia
-      ? cameraManager?.getMediaCapabilities(selectedMedia)
-      : null;
+    const selectedItem = view?.queryResults?.getSelectedResult();
+    const mediaCapabilities =
+      selectedItem && ViewItemClassifier.isMedia(selectedItem)
+        ? cameraManager?.getMediaCapabilities(selectedItem)
+        : null;
     if (view?.isViewerView() && mediaCapabilities?.canDownload && !isBeingCasted()) {
       return {
         icon: 'mdi:download',
@@ -626,6 +633,50 @@ export class MenuButtonController {
       tap_action: createPTZMultiAction({
         targetID: target.targetID,
       }),
+    };
+  }
+
+  protected _getFoldersButton(
+    config: AdvancedCameraCardConfig,
+    foldersManager?: FoldersManager | null,
+    view?: View | null,
+  ): MenuItem | null {
+    const folders = [...(foldersManager?.getFolders() ?? [])];
+    if (!folders?.length) {
+      return null;
+    }
+
+    if (folders.length === 1) {
+      const folderConfig = folders[0][1];
+      return {
+        icon: folderConfig.icon ?? 'mdi:folder',
+        ...config.menu.buttons.folders,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: folderConfig.title ?? localize('config.menu.buttons.folders'),
+        tap_action: createFolderAction(),
+      };
+    }
+
+    const selectedFolder = QueryClassifier.isFolderQuery(view?.query)
+      ? view.query.getQuery()?.folder
+      : null;
+    const submenuItems = folders.map(([id, folder]) => {
+      const action = createFolderAction({ folderID: id });
+      return {
+        enabled: true,
+        title: folder.title ?? folder.id,
+        icon: folder.icon ?? 'mdi:folder',
+        selected: folder === selectedFolder,
+        ...(action && { tap_action: action }),
+      };
+    });
+
+    return {
+      icon: 'mdi:folder-multiple',
+      ...config.menu.buttons.folders,
+      type: 'custom:advanced-camera-card-menu-submenu',
+      title: localize('config.menu.buttons.folders'),
+      items: submenuItems,
     };
   }
 

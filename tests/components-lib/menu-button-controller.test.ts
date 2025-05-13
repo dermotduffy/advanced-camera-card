@@ -1,9 +1,10 @@
-import isEqual from 'lodash-es/isEqual';
+import { isEqual } from 'lodash-es';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { Capabilities } from '../../src/camera-manager/capabilities.js';
 import { CameraManager } from '../../src/camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../../src/camera-manager/types.js';
+import { FoldersManager } from '../../src/card-controller/folders/manager.js';
 import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager.js';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager.js';
@@ -17,16 +18,18 @@ import { ViewDisplayMode } from '../../src/config/schema/common/display.js';
 import { MenuItem } from '../../src/config/schema/elements/custom/menu/types.js';
 import { AdvancedCameraCardConfig } from '../../src/config/schema/types.js';
 import { HomeAssistant } from '../../src/ha/types.js';
-import { MediaPlayerController } from '../../src/types.js';
+import { MediaPlayerController, PTZMovementType } from '../../src/types.js';
 import { createGeneralAction, createViewAction } from '../../src/utils/action.js';
-import { MediaQueriesResults } from '../../src/view/media-queries-results.js';
-import { ViewMedia } from '../../src/view/media.js';
+import { ViewMedia, ViewMediaType } from '../../src/view/item.js';
+import { QueryResults } from '../../src/view/query-results.js';
+import { FolderViewQuery } from '../../src/view/query.js';
 import { View } from '../../src/view/view.js';
 import {
   createCameraConfig,
   createCameraManager,
   createCapabilities,
   createConfig,
+  createFolder,
   createHASS,
   createMediaCapabilities,
   createMediaLoadedInfo,
@@ -858,8 +861,12 @@ describe('MenuButtonController', () => {
       );
       const view = createView({
         view: 'media',
-        queryResults: new MediaQueriesResults({
-          results: [new ViewMedia('clip', 'camera-1')],
+        queryResults: new QueryResults({
+          results: [
+            new ViewMedia(ViewMediaType.Clip, {
+              cameraID: 'camera-1',
+            }),
+          ],
           selectedIndex: 0,
         }),
       });
@@ -893,8 +900,8 @@ describe('MenuButtonController', () => {
         createMediaCapabilities({ canDownload: true }),
       );
       const view = createView({
-        queryResults: new MediaQueriesResults({
-          results: [new ViewMedia('clip', 'camera-1')],
+        queryResults: new QueryResults({
+          results: [new ViewMedia(ViewMediaType.Clip, { cameraID: 'camera-1' })],
           selectedIndex: 0,
         }),
       });
@@ -915,8 +922,8 @@ describe('MenuButtonController', () => {
       );
       const view = createView({
         view: 'live',
-        queryResults: new MediaQueriesResults({
-          results: [new ViewMedia('clip', 'camera-1')],
+        queryResults: new QueryResults({
+          results: [new ViewMedia(ViewMediaType.Clip, { cameraID: 'camera-1' })],
           selectedIndex: 0,
         }),
       });
@@ -1499,7 +1506,7 @@ describe('MenuButtonController', () => {
       const store = createStore([
         {
           cameraID: 'camera-1',
-          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+          capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
         },
       ]);
 
@@ -1519,7 +1526,7 @@ describe('MenuButtonController', () => {
       const store = createStore([
         {
           cameraID: 'camera-1',
-          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+          capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
         },
       ]);
 
@@ -1539,7 +1546,7 @@ describe('MenuButtonController', () => {
       const store = createStore([
         {
           cameraID: 'camera-1',
-          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+          capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
         },
       ]);
 
@@ -1573,7 +1580,7 @@ describe('MenuButtonController', () => {
       const store = createStore([
         {
           cameraID: 'camera-1',
-          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+          capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
         },
       ]);
 
@@ -1605,7 +1612,7 @@ describe('MenuButtonController', () => {
       const store = createStore([
         {
           cameraID: 'camera-1',
-          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+          capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
         },
       ]);
 
@@ -1643,7 +1650,7 @@ describe('MenuButtonController', () => {
         },
         {
           cameraID: 'camera-2',
-          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+          capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
         },
       ]);
       const view = createView({
@@ -1701,7 +1708,7 @@ describe('MenuButtonController', () => {
         const view = createView({
           view: viewName,
           camera: 'camera-1',
-          queryResults: new MediaQueriesResults({
+          queryResults: new QueryResults({
             results: [new TestViewMedia({ id: 'media-1' })],
             selectedIndex: 0,
           }),
@@ -1748,6 +1755,143 @@ describe('MenuButtonController', () => {
         }
       },
     );
+  });
+
+  describe('should have folders button', () => {
+    it('should have no folders button without folders', () => {
+      const foldersManager = mock<FoldersManager>();
+      foldersManager.getFolders.mockReturnValue(new Map().entries());
+
+      const buttons = calculateButtons(controller, {
+        foldersManager,
+      });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            icon: 'mdi:folder',
+          }),
+        ]),
+      );
+    });
+
+    it('should have a folders button for a single folder', () => {
+      const foldersManager = mock<FoldersManager>();
+      foldersManager.getFolders.mockReturnValue(
+        new Map([['folder-0', createFolder({ id: 'folder-0' })]]).entries(),
+      );
+
+      const buttons = calculateButtons(controller, {
+        foldersManager,
+      });
+
+      expect(buttons).toContainEqual({
+        icon: 'mdi:folder',
+        enabled: true,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Folders',
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'folder' },
+      });
+    });
+
+    it('should have a folders submenu for multiple folder with a selected folder', () => {
+      const foldersManager = mock<FoldersManager>();
+      const selectedFolder = createFolder({ id: 'folder-selected' });
+      const folders = new Map([
+        ['folder-0', createFolder({ id: 'folder-0' })],
+        ['folder-selected', selectedFolder],
+      ]);
+      foldersManager.getFolders.mockReturnValue(folders.entries());
+
+      const view = createView({
+        query: new FolderViewQuery({
+          folder: selectedFolder,
+        }),
+      });
+
+      const buttons = calculateButtons(controller, {
+        foldersManager,
+        view,
+      });
+
+      expect(buttons).toContainEqual({
+        icon: 'mdi:folder-multiple',
+        enabled: true,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-submenu',
+        title: 'Folders',
+        items: [
+          {
+            enabled: true,
+            icon: 'mdi:folder',
+            selected: false,
+            tap_action: {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'folder',
+              folder: 'folder-0',
+            },
+            title: 'folder-0',
+          },
+          {
+            enabled: true,
+            icon: 'mdi:folder',
+            selected: true,
+            tap_action: {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'folder',
+              folder: 'folder-selected',
+            },
+            title: 'folder-selected',
+          },
+        ],
+      });
+    });
+
+    it('should have a folders submenu for multiple folder without a selected folder', () => {
+      const foldersManager = mock<FoldersManager>();
+      const folders = new Map([
+        ['folder-0', createFolder({ id: 'folder-0' })],
+        ['folder-1', createFolder({ id: 'folder-1' })],
+      ]);
+      foldersManager.getFolders.mockReturnValue(folders.entries());
+
+      const buttons = calculateButtons(controller, {
+        foldersManager,
+      });
+
+      expect(buttons).toContainEqual({
+        icon: 'mdi:folder-multiple',
+        enabled: true,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-submenu',
+        title: 'Folders',
+        items: [
+          {
+            enabled: true,
+            icon: 'mdi:folder',
+            selected: false,
+            tap_action: {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'folder',
+              folder: 'folder-0',
+            },
+            title: 'folder-0',
+          },
+          {
+            enabled: true,
+            icon: 'mdi:folder',
+            selected: false,
+            tap_action: {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'folder',
+              folder: 'folder-1',
+            },
+            title: 'folder-1',
+          },
+        ],
+      });
+    });
   });
 
   describe('should handle dynamic buttons', () => {

@@ -29,7 +29,9 @@ export class ViewQueryExecutor {
     return view.query
       ? [
           new SetQueryViewModifier({
-            queryResults: await this._executor.execute(view.query, queryExecutorOptions),
+            queryResults: (
+              await this._executor.executeQuery(view.query, queryExecutorOptions)
+            )?.queryResults,
           }),
         ]
       : [];
@@ -83,6 +85,12 @@ export class ViewQueryExecutor {
       return results ? [new SetQueryViewModifier(results)] : [];
     };
 
+    const executeFolderQuery = async (): Promise<ViewModifier[]> => {
+      const results =
+        await this._executor.executeDefaultFolderQuery(queryExecutorOptions);
+      return results ? [new SetQueryViewModifier(results)] : [];
+    };
+
     switch (view.view) {
       case 'live':
         if (config.live.controls.thumbnails.mode !== 'none') {
@@ -110,6 +118,9 @@ export class ViewQueryExecutor {
       case 'recording':
       case 'recordings':
         viewModifiers.push(...(await executeMediaQuery(mediaType)));
+        break;
+      case 'folder':
+        viewModifiers.push(...(await executeFolderQuery()));
         break;
     }
 

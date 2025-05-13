@@ -11,13 +11,14 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { MenuSubmenuSelect } from '../../config/schema/elements/custom/menu/submenu-select.js';
 import { MenuSubmenuItem } from '../../config/schema/elements/custom/menu/submenu.js';
 import { computeDomain } from '../../ha/compute-domain.js';
+import { getEntityStateTranslation } from '../../ha/entity-state-translation.js';
+import { getEntityTitle } from '../../ha/get-entity-title.js';
+import { isHassDifferent } from '../../ha/is-hass-different.js';
+import { EntityRegistryManager } from '../../ha/registry/entity/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import menuButtonStyle from '../../scss/menu-button.scss';
 import { Icon } from '../../types.js';
 import { createSelectOptionAction } from '../../utils/action.js';
-import { getEntityTitle, isHassDifferent } from '../../utils/ha';
-import { getEntityStateTranslation } from '../../utils/ha/entity-state-translation.js';
-import { EntityRegistryManager } from '../../utils/ha/registry/entity/types.js';
 import '../icon.js';
 import './index.js';
 

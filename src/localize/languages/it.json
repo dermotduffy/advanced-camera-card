@@ -6,7 +6,9 @@
   "common": {
     "advanced_camera_card": "",
     "advanced_camera_card_description": "",
+    "folder": "",
     "live": "Live",
+    "no_folder": "",
     "no_media": "Nessun contenuto multimediale da visualizzare",
     "recordings": "Registrazioni",
     "version": "Versione"
@@ -404,6 +406,7 @@
         "download": "Download",
         "enabled": "Pulsante abilitato",
         "expand": "Espandere",
+        "folders": "",
         "fullscreen": "A schermo intero",
         "icon": "Icona",
         "image": "Immagine",
@@ -571,6 +574,7 @@
         "clip": "Clip più recente",
         "clips": "Galleria delle clip",
         "current": "Vista corrente",
+        "folder": "",
         "image": "Immagine statica",
         "live": "Dal vivo",
         "recording": "",
@@ -594,6 +598,8 @@
     "delete": "Elimina",
     "dimensions": "",
     "dimensions_secondary": "",
+    "folder_gallery": "",
+    "folder_gallery_secondary": "",
     "image": "Immagine",
     "image_secondary": "Opzioni di visualizzazione dell'immagine statica",
     "live": "Live",
@@ -636,6 +642,7 @@
     }
   },
   "error": {
+    "awaiting_folder": "",
     "awaiting_live": "",
     "awaiting_media": "",
     "camera_initialization": "",
@@ -646,6 +653,7 @@
     "download_no_media": "Nessun media da scaricare",
     "download_sign_failed": "Impossibile firmare URL multimediale per il download",
     "duplicate_camera_id": "Duplicato ID dellla telecamera Frigate, utilizzare il parametro 'ID' per identificare in modo univoco le telecamere",
+    "duplicate_folder_id": "",
     "empty_response": "Ricevuto risposta vuota da Home Assistant per la richiesta",
     "failed_response": "Impossibile ricevere risposta da Home Assistant per la richiesta",
     "failed_retain": "Impossibile conservare l'evento",

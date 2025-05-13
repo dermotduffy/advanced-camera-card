@@ -9,12 +9,9 @@ import { ActionsExecutor } from '../../../src/card-controller/actions/types';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { PTZAction } from '../../../src/config/schema/actions/custom/ptz';
 import { CameraTriggerEventType } from '../../../src/config/schema/cameras';
-import {
-  Entity,
-  EntityRegistryManager,
-} from '../../../src/utils/ha/registry/entity/types';
+import { Entity, EntityRegistryManager } from '../../../src/ha/registry/entity/types';
+import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import { createCameraConfig, createHASS, createRegistryEntity } from '../../test-utils';
-import { EntityRegistryManagerMock } from '../../utils/ha/registry/entity/mock';
 
 vi.mock('../../../src/camera-manager/frigate/requests');
 
@@ -91,8 +88,8 @@ describe('FrigateCamera', () => {
           entityRegistryManager: entityRegistryManager,
           stateWatcher: mock<StateWatcher>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
-        }),
-          expect(camera.getConfig().frigate.camera_name).toBe('fnt_dr');
+        });
+        expect(camera.getConfig().frigate.camera_name).toBe('fnt_dr');
       });
 
       it('with a camera_entity without camera_name match', async () => {
@@ -115,8 +112,8 @@ describe('FrigateCamera', () => {
           entityRegistryManager: entityRegistryManager,
           stateWatcher: mock<StateWatcher>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
-        }),
-          expect(camera.getConfig().frigate.camera_name).toBeUndefined();
+        });
+        expect(camera.getConfig().frigate.camera_name).toBeUndefined();
       });
 
       it('with a camera_entity without platform match', async () => {
@@ -139,8 +136,8 @@ describe('FrigateCamera', () => {
           entityRegistryManager: entityRegistryManager,
           stateWatcher: mock<StateWatcher>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
-        }),
-          expect(camera.getConfig().frigate.camera_name).toBeUndefined();
+        });
+        expect(camera.getConfig().frigate.camera_name).toBeUndefined();
       });
     });
   });
@@ -161,8 +158,8 @@ describe('FrigateCamera', () => {
         entityRegistryManager: mock<EntityRegistryManager>(),
         stateWatcher: mock<StateWatcher>(),
         frigateEventWatcher: mock<FrigateEventWatcher>(),
-      }),
-        expect(camera.getCapabilities()?.has('favorite-events')).toBeTruthy();
+      });
+      expect(camera.getCapabilities()?.has('favorite-events')).toBeTruthy();
       expect(camera.getCapabilities()?.has('favorite-recordings')).toBeFalsy();
       expect(camera.getCapabilities()?.has('seek')).toBeTruthy();
       expect(camera.getCapabilities()?.has('clips')).toBeTruthy();
@@ -188,8 +185,8 @@ describe('FrigateCamera', () => {
         entityRegistryManager: mock<EntityRegistryManager>(),
         stateWatcher: mock<StateWatcher>(),
         frigateEventWatcher: mock<FrigateEventWatcher>(),
-      }),
-        expect(camera.getCapabilities()?.has('favorite-events')).toBeFalsy();
+      });
+      expect(camera.getCapabilities()?.has('favorite-events')).toBeFalsy();
       expect(camera.getCapabilities()?.has('favorite-recordings')).toBeFalsy();
       expect(camera.getCapabilities()?.has('seek')).toBeFalsy();
       expect(camera.getCapabilities()?.has('clips')).toBeFalsy();
@@ -248,8 +245,8 @@ describe('FrigateCamera', () => {
           entityRegistryManager: mock<EntityRegistryManager>(),
           stateWatcher: mock<StateWatcher>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
-        }),
-          expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
+        });
+        expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           left: ['continuous'],
           right: ['continuous'],
@@ -284,8 +281,8 @@ describe('FrigateCamera', () => {
           entityRegistryManager: mock<EntityRegistryManager>(),
           stateWatcher: mock<StateWatcher>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
-        }),
-          expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
+        });
+        expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           left: [],
           right: [],
@@ -319,13 +316,13 @@ describe('FrigateCamera', () => {
         entityRegistryManager: mock<EntityRegistryManager>(),
         stateWatcher: mock<StateWatcher>(),
         frigateEventWatcher: eventWatcher,
-      }),
-        expect(eventWatcher.subscribe).toBeCalledWith(
-          hass,
-          expect.objectContaining({
-            instanceID: 'CLIENT_ID',
-          }),
-        );
+      });
+      expect(eventWatcher.subscribe).toBeCalledWith(
+        hass,
+        expect.objectContaining({
+          instanceID: 'CLIENT_ID',
+        }),
+      );
     });
 
     it('should not subscribe with no trigger events', async () => {
@@ -349,8 +346,8 @@ describe('FrigateCamera', () => {
         entityRegistryManager: mock<EntityRegistryManager>(),
         stateWatcher: mock<StateWatcher>(),
         frigateEventWatcher: eventWatcher,
-      }),
-        expect(eventWatcher.subscribe).not.toBeCalled();
+      });
+      expect(eventWatcher.subscribe).not.toBeCalled();
     });
 
     it('should not subscribe without trigger capability', async () => {
@@ -395,8 +392,8 @@ describe('FrigateCamera', () => {
         entityRegistryManager: mock<EntityRegistryManager>(),
         stateWatcher: mock<StateWatcher>(),
         frigateEventWatcher: eventWatcher,
-      }),
-        expect(eventWatcher.subscribe).not.toBeCalled();
+      });
+      expect(eventWatcher.subscribe).not.toBeCalled();
     });
 
     it('should unsubscribe on destroy', async () => {
@@ -416,8 +413,8 @@ describe('FrigateCamera', () => {
         entityRegistryManager: mock<EntityRegistryManager>(),
         stateWatcher: mock<StateWatcher>(),
         frigateEventWatcher: eventWatcher,
-      }),
-        expect(eventWatcher.unsubscribe).not.toBeCalled();
+      });
+      expect(eventWatcher.unsubscribe).not.toBeCalled();
 
       await camera.destroy();
       expect(eventWatcher.unsubscribe).toBeCalled();

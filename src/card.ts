@@ -247,12 +247,13 @@ class AdvancedCameraCard extends LitElement {
           this._config,
           this._controller.getCameraManager(),
           {
-            inExpandedMode: this._controller.getExpandManager().isExpanded(),
-            fullscreenManager: this._controller.getFullscreenManager(),
             currentMediaLoadedInfo: this._controller.getMediaLoadedInfoManager().get(),
-            showCameraUIButton: this._controller.getCameraURLManager().hasCameraURL(),
+            foldersManager: this._controller.getFoldersManager(),
+            fullscreenManager: this._controller.getFullscreenManager(),
+            inExpandedMode: this._controller.getExpandManager().isExpanded(),
             mediaPlayerController: this._controller.getMediaPlayerManager(),
             microphoneManager: this._controller.getMicrophoneManager(),
+            showCameraUIButton: this._controller.getCameraURLManager().hasCameraURL(),
             view: view,
             viewManager: this._controller.getViewManager(),
           },
@@ -371,6 +372,7 @@ class AdvancedCameraCard extends LitElement {
             .hass=${this._hass}
             .viewManagerEpoch=${this._controller.getViewManager().getEpoch()}
             .cameraManager=${cameraManager}
+            .viewItemManager=${this._controller.getViewItemManager()}
             .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
             .config=${this._controller.getConfigManager().getConfig()}
             .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
