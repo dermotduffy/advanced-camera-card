@@ -105,6 +105,31 @@ describe('FoldersExecutor', () => {
     });
   });
 
+  describe('generateDefaultFolderQuery', () => {
+    it('should generate default folder query', () => {
+      const folder: FolderConfig = createFolder();
+      const query: FolderQuery = {
+        folder,
+        path: ['media-source://'],
+      };
+
+      const haFolderEngine = mock<HAFoldersEngine>();
+      haFolderEngine.generateDefaultFolderQuery.mockReturnValue(query);
+      const executor = new FoldersExecutor({ ha: haFolderEngine });
+
+      expect(executor.generateDefaultFolderQuery(folder)).toEqual(query);
+    });
+
+    it('should return null for non-existent folder engine', () => {
+      const folder: FolderConfig = {
+        type: 'UNKNOWN',
+      } as unknown as FolderConfig;
+      const executor = new FoldersExecutor();
+
+      expect(executor.generateDefaultFolderQuery(folder)).toBeNull();
+    });
+  });
+
   describe('expandFolder', () => {
     it('should reject folders of the wrong type', async () => {
       const query = {
@@ -120,6 +145,7 @@ describe('FoldersExecutor', () => {
       const folder = createFolder();
       const query: FolderQuery = {
         folder,
+        path: ['media-source://'],
       };
 
       const mediaItem = new TestViewMedia({

@@ -1,4 +1,4 @@
-import { FolderType, folderTypeSchema } from '../../config/schema/folders';
+import { FolderConfig, FolderType, folderTypeSchema } from '../../config/schema/folders';
 import { HomeAssistant } from '../../ha/types';
 import { Endpoint } from '../../types';
 import { ViewItem } from '../../view/item';
@@ -12,6 +12,12 @@ export class FoldersExecutor {
 
   constructor(engines?: { ha?: HAFoldersEngine }) {
     this._ha = engines?.ha ?? new HAFoldersEngine();
+  }
+
+  public generateDefaultFolderQuery(folder: FolderConfig): FolderQuery | null {
+    return (
+      this._getFolderEngine(folder.type)?.generateDefaultFolderQuery(folder) ?? null
+    );
   }
 
   public async expandFolder(

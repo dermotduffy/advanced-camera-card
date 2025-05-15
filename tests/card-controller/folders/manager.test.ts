@@ -3,6 +3,8 @@ import { mock } from 'vitest-mock-extended';
 import { FoldersExecutor } from '../../../src/card-controller/folders/executor';
 import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import { FolderQuery } from '../../../src/card-controller/folders/types';
+import { FolderConfig } from '../../../src/config/schema/folders';
+import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { Endpoint } from '../../../src/types';
 import { ViewItemCapabilities } from '../../../src/view/types';
 import {
@@ -11,7 +13,6 @@ import {
   createHASS,
   TestViewMedia,
 } from '../../test-utils';
-import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 
 describe('FoldersManager', () => {
   it('should initialize with no folders', () => {
@@ -122,6 +123,55 @@ describe('FoldersManager', () => {
     });
   });
 
+  describe('generateDefaultFolderQuery', () => {
+    it('should generate default folder query with implicit folder', () => {
+      const folder: FolderConfig = createFolder();
+      const query: FolderQuery = {
+        folder,
+        path: ['media-source://'],
+      };
+
+      const executor = mock<FoldersExecutor>();
+      vi.mocked(executor.generateDefaultFolderQuery).mockReturnValue(query);
+
+      const manager = new FoldersManager(createCardAPI(), executor);
+      manager.addFolders([folder]);
+
+      expect(manager.generateDefaultFolderQuery()).toEqual(query);
+    });
+
+    it('should generate default folder query without any folder', () => {
+      const folder: FolderConfig = createFolder();
+      const query: FolderQuery = {
+        folder,
+        path: ['media-source://'],
+      };
+
+      const executor = mock<FoldersExecutor>();
+      vi.mocked(executor.generateDefaultFolderQuery).mockReturnValue(query);
+
+      const manager = new FoldersManager(createCardAPI(), executor);
+      // Folder is not added to the manager.
+
+      expect(manager.generateDefaultFolderQuery()).toBeNull();
+    });
+
+    it('should generate default folder query with explicit folder', () => {
+      const folder: FolderConfig = createFolder();
+      const query: FolderQuery = {
+        folder,
+        path: ['media-source://'],
+      };
+
+      const executor = mock<FoldersExecutor>();
+      vi.mocked(executor.generateDefaultFolderQuery).mockReturnValue(query);
+
+      const manager = new FoldersManager(createCardAPI(), executor);
+
+      expect(manager.generateDefaultFolderQuery(folder)).toEqual(query);
+    });
+  });
+
   describe('should expand folder', () => {
     it('should expand folder with hass', async () => {
       const hass = createHASS();
@@ -138,6 +188,7 @@ describe('FoldersManager', () => {
       const engineOptions = {};
       const query: FolderQuery = {
         folder,
+        path: ['media-source://'],
       };
 
       expect(await manager.expandFolder(query, engineOptions)).toEqual([media]);
@@ -151,7 +202,9 @@ describe('FoldersManager', () => {
       const manager = new FoldersManager(api, executor);
       const folder = createFolder({ id: 'folder-1' });
 
-      expect(await manager.expandFolder({ folder })).toBeNull();
+      expect(
+        await manager.expandFolder({ folder, path: ['media-source://'] }),
+      ).toBeNull();
 
       expect(executor.expandFolder).not.toBeCalled();
     });

@@ -1,4 +1,10 @@
-import { folderTypeSchema, HAFolderConfig } from '../../../config/schema/folders';
+import { NonEmptyTuple } from 'type-fest';
+import {
+  FolderConfig,
+  folderTypeSchema,
+  HA_MEDIA_SOURCE_ROOT,
+  HAFolderConfig,
+} from '../../../config/schema/folders';
 import { getViewItemsFromBrowseMediaArray } from '../../../ha/browse-media/browse-media-to-view-media';
 import { BrowseMediaCache, BrowseMediaMetadata } from '../../../ha/browse-media/types';
 import { BrowseMediaWalker } from '../../../ha/browse-media/walker';
@@ -48,6 +54,16 @@ export class HAFoldersEngine implements FoldersEngine {
     return;
   }
 
+  public generateDefaultFolderQuery(folder: FolderConfig): FolderQuery | null {
+    if (folder.type !== folderTypeSchema.enum.ha) {
+      return null;
+    }
+    return {
+      folder,
+      path: this.getPath(folder.ha),
+    };
+  }
+
   public async expandFolder(
     hass: HomeAssistant,
     query: FolderQuery,
@@ -56,7 +72,11 @@ export class HAFoldersEngine implements FoldersEngine {
     if (query.folder.type !== folderTypeSchema.enum.ha) {
       return null;
     }
-    const target = query.path ?? this._getRoot(query.folder.ha);
+
+    const target = query.path.at(-1);
+
+    /* istanbul ignore if: this path cannot be reached as the query will always
+    have at least 1 path value -- @preserve */
     if (!target) {
       return null;
     }
@@ -77,10 +97,15 @@ export class HAFoldersEngine implements FoldersEngine {
     });
   }
 
-  private _getRoot(haFolderConfig?: HAFolderConfig): string | null {
-    if (haFolderConfig?.root) {
-      return haFolderConfig.root;
+  private getPath(haFolderConfig?: HAFolderConfig): NonEmptyTuple<string> {
+    if (haFolderConfig?.path) {
+      return haFolderConfig.path;
     }
-    return null;
+    if (haFolderConfig?.path_url) {
+      // This will have been transformed by the schema to a valid media source
+      // root.
+      return haFolderConfig.path_url;
+    }
+    return [HA_MEDIA_SOURCE_ROOT];
   }
 }

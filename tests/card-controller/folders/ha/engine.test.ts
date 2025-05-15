@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { HAFoldersEngine } from '../../../../src/card-controller/folders/ha/engine';
 import { FolderQuery } from '../../../../src/card-controller/folders/types';
+import { FolderConfig } from '../../../../src/config/schema/folders';
 import { BrowseMediaCache } from '../../../../src/ha/browse-media/types';
 import { BrowseMediaWalker } from '../../../../src/ha/browse-media/walker';
 import { getMediaDownloadPath } from '../../../../src/ha/download';
@@ -81,71 +82,108 @@ describe('HAFoldersEngine', () => {
 
       expect(await engine.expandFolder(createHASS(), query)).toBeNull();
     });
+  });
 
-    it('should reject folders without a HA root', async () => {
-      const query: FolderQuery = {
-        folder: { type: 'ha' },
-      };
+  describe('should generate default folder query', () => {
+    it('should generate default folder query', () => {
+      const folder: FolderConfig = { type: 'ha' };
       const engine = new HAFoldersEngine();
 
-      expect(await engine.expandFolder(createHASS(), query)).toBeNull();
+      const query = engine.generateDefaultFolderQuery(folder);
+      expect(query).toEqual({
+        folder,
+        path: ['media-source://'],
+      });
     });
 
-    describe('should expand folder', () => {
-      it('should expand folder with cache by default', async () => {
-        const query: FolderQuery = {
-          folder: { type: 'ha', ha: { root: 'root' } },
-        };
+    it('should reject folders of the wrong type', async () => {
+      const folder = createFolder({ type: 'UNKNOWN' } as unknown as FolderConfig);
+      const engine = new HAFoldersEngine();
 
-        const browseMediaManager = mock<BrowseMediaWalker>();
-        browseMediaManager.walk.mockResolvedValue([
-          createBrowseMedia({ media_content_id: 'one' }),
-          { ...createBrowseMedia({ can_expand: true, media_content_id: 'two' }) },
-        ]);
+      expect(engine.generateDefaultFolderQuery(folder)).toBeNull();
+    });
 
-        const engine = new HAFoldersEngine(browseMediaManager);
-        const results = await engine.expandFolder(createHASS(), query);
-        expect(results?.length).toBe(2);
-        expect(results?.[0]).toBeInstanceOf(ViewMedia);
-        expect(results?.[1]).toBeInstanceOf(ViewFolder);
+    it('should respect configured path', async () => {
+      const folder = createFolder({
+        ha: {
+          path: ['media-source://1'],
+          // path_url should be ignored because path is set.
+          path_url: ['media-source://2'],
+        },
+      });
+      const engine = new HAFoldersEngine();
+      expect(engine.generateDefaultFolderQuery(folder)).toEqual({
+        folder,
+        path: ['media-source://1'],
+      });
+    });
 
-        expect(browseMediaManager.walk).toBeCalledWith(
-          expect.anything(),
-          [
-            {
-              targets: ['root'],
-            },
-          ],
+    it('should respect configured path_url', async () => {
+      const folder = createFolder({ ha: { path_url: ['media-source://'] } });
+      const engine = new HAFoldersEngine();
+      expect(engine.generateDefaultFolderQuery(folder)).toEqual({
+        folder,
+        path: ['media-source://'],
+      });
+    });
+  });
+
+  describe('should expand folder', () => {
+    it('should expand folder with cache by default', async () => {
+      const query: FolderQuery = {
+        folder: { type: 'ha' },
+        path: ['path'],
+      };
+
+      const browseMediaManager = mock<BrowseMediaWalker>();
+      browseMediaManager.walk.mockResolvedValue([
+        createBrowseMedia({ media_content_id: 'one' }),
+        { ...createBrowseMedia({ can_expand: true, media_content_id: 'two' }) },
+      ]);
+
+      const engine = new HAFoldersEngine(browseMediaManager);
+      const results = await engine.expandFolder(createHASS(), query);
+      expect(results?.length).toBe(2);
+      expect(results?.[0]).toBeInstanceOf(ViewMedia);
+      expect(results?.[1]).toBeInstanceOf(ViewFolder);
+
+      expect(browseMediaManager.walk).toBeCalledWith(
+        expect.anything(),
+        [
           {
-            cache: expect.any(BrowseMediaCache),
+            targets: ['path'],
           },
-        );
-      });
+        ],
+        {
+          cache: expect.any(BrowseMediaCache),
+        },
+      );
+    });
 
-      it('should expand folder without cache when requested', async () => {
-        const query: FolderQuery = {
-          folder: { type: 'ha', ha: { root: 'root' } },
-        };
+    it('should expand folder without cache when requested', async () => {
+      const query: FolderQuery = {
+        folder: { type: 'ha' },
+        path: ['path'],
+      };
 
-        const browseMediaManager = mock<BrowseMediaWalker>();
-        browseMediaManager.walk.mockResolvedValue([
-          createBrowseMedia({ media_content_id: 'one' }),
-          { ...createBrowseMedia({ can_expand: true, media_content_id: 'two' }) },
-        ]);
+      const browseMediaManager = mock<BrowseMediaWalker>();
+      browseMediaManager.walk.mockResolvedValue([
+        createBrowseMedia({ media_content_id: 'one' }),
+        { ...createBrowseMedia({ can_expand: true, media_content_id: 'two' }) },
+      ]);
 
-        const engine = new HAFoldersEngine(browseMediaManager);
-        await engine.expandFolder(createHASS(), query, { useCache: false });
+      const engine = new HAFoldersEngine(browseMediaManager);
+      await engine.expandFolder(createHASS(), query, { useCache: false });
 
-        expect(browseMediaManager.walk).toBeCalledWith(
-          expect.anything(),
-          [
-            {
-              targets: ['root'],
-            },
-          ],
-          {},
-        );
-      });
+      expect(browseMediaManager.walk).toBeCalledWith(
+        expect.anything(),
+        [
+          {
+            targets: ['path'],
+          },
+        ],
+        {},
+      );
     });
   });
 });

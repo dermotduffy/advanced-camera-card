@@ -138,8 +138,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
         params: {
           query: query.clone().setQuery({
             folder: rawQuery.folder,
-            path,
-            parentPaths: [...(rawQuery.parentPaths ?? []), path],
+            path: [...(rawQuery.path ?? []), path],
           }),
         },
       });

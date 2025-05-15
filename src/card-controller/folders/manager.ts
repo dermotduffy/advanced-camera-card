@@ -53,6 +53,11 @@ export class FoldersManager {
       : this._folders.values().next().value ?? null;
   }
 
+  public generateDefaultFolderQuery(folder?: FolderConfig): FolderQuery | null {
+    const _folder = folder ?? this.getFolder();
+    return _folder ? this._executor.generateDefaultFolderQuery(_folder) : null;
+  }
+
   public async expandFolder(
     query: FolderQuery,
     engineOptions?: EngineOptions,

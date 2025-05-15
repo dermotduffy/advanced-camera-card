@@ -143,12 +143,9 @@ export class QueryExecutor {
   public async executeDefaultFolderQuery(
     executorOptions?: QueryExecutorOptions,
   ): Promise<QueryExecutorResult | null> {
-    const defaultFolder = this._api.getFoldersManager().getFolder();
-    return defaultFolder
-      ? this._executeFolderQuery(
-          new FolderViewQuery({ folder: defaultFolder }),
-          executorOptions,
-        )
+    const query = this._api.getFoldersManager().generateDefaultFolderQuery();
+    return query
+      ? this._executeFolderQuery(new FolderViewQuery(query), executorOptions)
       : null;
   }
 

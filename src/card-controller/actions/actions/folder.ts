@@ -12,10 +12,15 @@ export class FolderAction extends AdvancedCameraCardAction<FolderActionConfig> {
       return;
     }
 
+    const query = api.getFoldersManager().generateDefaultFolderQuery(folder);
+    if (!query) {
+      return;
+    }
+
     await api.getViewManager().setViewByParametersWithExistingQuery({
       params: {
         view: 'folder',
-        query: new FolderViewQuery({ folder }),
+        query: new FolderViewQuery(query),
       },
     });
   }

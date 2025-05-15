@@ -72,8 +72,7 @@ export class FolderGalleryController {
         params: {
           query: view.query.clone().setQuery({
             folder: rawQuery.folder,
-            path,
-            parentPaths: [...(rawQuery.parentPaths ?? []), path],
+            path: [...rawQuery.path, path],
           }),
         },
       });

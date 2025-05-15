@@ -1,3 +1,4 @@
+import { NonEmptyTuple } from 'type-fest';
 import { FolderConfig } from '../../config/schema/folders';
 import { ResolvedMediaCache } from '../../ha/resolved-media';
 import { HomeAssistant } from '../../ha/types';
@@ -22,11 +23,10 @@ export class FolderInitializationError extends AdvancedCameraCardError {}
 
 export interface FolderQuery {
   folder: FolderConfig;
-  path?: string;
 
-  // The path to navigate back to the "root". Not directly used by any current
-  // engine, but used to navigate from one FolderQuery to the next.
-  parentPaths?: string[];
+  // A trail of paths to navigate back to the "root", with the last path being
+  // the path that this query directly refers to.
+  path: NonEmptyTuple<string>;
 }
 
 // ===============
@@ -38,6 +38,7 @@ export interface DownloadHelpers {
 }
 
 export interface FoldersEngine {
+  generateDefaultFolderQuery(folder: FolderConfig): FolderQuery | null;
   expandFolder(
     hass: HomeAssistant,
     query: FolderQuery,

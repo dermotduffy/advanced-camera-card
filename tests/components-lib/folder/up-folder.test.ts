@@ -51,7 +51,7 @@ describe('upFolderClickHandler', () => {
   it('should ignore folder query wihout parent to go up to', () => {
     const api = createCardAPI();
     const view = createView({
-      query: new FolderViewQuery({ folder: createFolder(), parentPaths: [] }),
+      query: new FolderViewQuery({ folder: createFolder(), path: ['path'] }),
     });
     vi.mocked(api.getViewManager().getView).mockReturnValue(view);
 
@@ -70,7 +70,7 @@ describe('upFolderClickHandler', () => {
     const view = createView({
       query: new FolderViewQuery({
         folder,
-        parentPaths: ['one', 'two', 'three'],
+        path: ['one', 'two', 'three'],
       }),
     });
     vi.mocked(api.getViewManager().getView).mockReturnValue(view);
@@ -91,8 +91,7 @@ describe('upFolderClickHandler', () => {
       .mock.calls[0][0]?.params?.query;
     expect(query?.getQuery()).toEqual({
       folder,
-      path: 'two',
-      parentPaths: ['one', 'two'],
+      path: ['one', 'two'],
     });
   });
 });
@@ -114,7 +113,7 @@ describe('getUpFolderMediaItem', () => {
 
   it('should ignore folder query without parents', () => {
     const view = createView({
-      query: new FolderViewQuery({ folder: createFolder(), parentPaths: [] }),
+      query: new FolderViewQuery({ folder: createFolder(), path: ['one'] }),
     });
     expect(getUpFolderMediaItem(view)).toBeNull();
   });
@@ -123,13 +122,13 @@ describe('getUpFolderMediaItem', () => {
     const view = createView({
       query: new FolderViewQuery({
         folder: createFolder(),
-        parentPaths: ['one', 'two', 'three'],
+        path: ['one', 'two', 'three'],
       }),
     });
 
     const folderMedia = getUpFolderMediaItem(view);
 
     expect(folderMedia).toBeInstanceOf(ViewFolder);
-    expect(folderMedia?.getIcon()).toBe('mdi:arrow-up-right');
+    expect(folderMedia?.getIcon()).toBe('mdi:arrow-up-left');
   });
 });

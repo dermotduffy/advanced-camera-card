@@ -16,22 +16,17 @@ export const upFolderClickHandler = (
     return;
   }
   const rawQuery = query?.getQuery();
-  const parents = rawQuery?.parentPaths ?? [];
-  if (!rawQuery || !parents.length) {
+  if (!rawQuery?.path || rawQuery?.path.length <= 1) {
     return;
   }
 
-  const newParents = parents.slice(0, parents.length - 1);
-  const upPath: string | undefined = newParents[newParents.length - 1];
+  const path = rawQuery.path.slice(0, -1);
 
   viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
     params: {
       query: query.clone().setQuery({
         folder: rawQuery.folder,
-
-        // At the root, upPath will be undefined.
-        path: upPath,
-        parentPaths: newParents,
+        path: [path[0], ...path.slice(1)],
       }),
     },
   });
@@ -44,13 +39,11 @@ export const getUpFolderMediaItem = (view?: View | null): ViewFolder | null => {
   }
 
   const rawQuery = query.getQuery();
-  if (!rawQuery?.folder) {
+  if (!rawQuery?.folder || !rawQuery?.path || rawQuery.path.length <= 1) {
     return null;
   }
 
-  return rawQuery?.parentPaths?.length
-    ? new ViewFolder(rawQuery.folder, {
-        icon: 'mdi:arrow-up-right',
-      })
-    : null;
+  return new ViewFolder(rawQuery.folder, {
+    icon: 'mdi:arrow-up-left',
+  });
 };

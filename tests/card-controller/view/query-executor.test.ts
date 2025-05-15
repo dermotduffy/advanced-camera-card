@@ -1,6 +1,7 @@
 import { add } from 'date-fns';
 import { describe, expect, it, vi } from 'vitest';
 import { QueryType } from '../../../src/camera-manager/types';
+import { FolderQuery } from '../../../src/card-controller/folders/types';
 import { QueryExecutor } from '../../../src/card-controller/view/query-executor';
 import { ClipsOrSnapshotsOrAll } from '../../../src/types';
 import { EventMediaQuery, FolderViewQuery } from '../../../src/view/query';
@@ -395,13 +396,32 @@ describe('executeDefaultFolderQuery', () => {
   it('should execute query against first folder', async () => {
     const api = createCardAPI();
     const items = [new TestViewMedia()];
-    vi.mocked(api.getFoldersManager().getFolder).mockReturnValue(createFolder());
+    const folder = createFolder();
+    const query: FolderQuery = {
+      folder,
+      path: ['path'],
+    };
+    vi.mocked(api.getFoldersManager().generateDefaultFolderQuery).mockReturnValue(query);
     vi.mocked(api.getFoldersManager().expandFolder).mockResolvedValue(items);
 
     const executor = new QueryExecutor(api);
     const result = await executor.executeDefaultFolderQuery();
 
-    expect(result?.query.getQuery()).toEqual({ folder: createFolder() });
+    expect(result?.query.getQuery()).toEqual(query);
     expect(result?.queryResults.getResults()).toEqual(items);
+  });
+
+  it('should return null without folder results', async () => {
+    const api = createCardAPI();
+    const folder = createFolder();
+    const query: FolderQuery = {
+      folder,
+      path: ['path'],
+    };
+    vi.mocked(api.getFoldersManager().generateDefaultFolderQuery).mockReturnValue(query);
+    vi.mocked(api.getFoldersManager().expandFolder).mockResolvedValue(null);
+
+    const executor = new QueryExecutor(api);
+    expect(await executor.executeDefaultFolderQuery()).toBeNull();
   });
 });

@@ -2539,7 +2539,7 @@ __metadata:
     semantic-release-export-data: "npm:^1.1.0"
     side-drawer: "npm:^3.1.0"
     ts-prune: "npm:^0.10.3"
-    type-fest: "npm:^4.20.0"
+    type-fest: "npm:^4.41.0"
     typescript: "npm:^5.8.3"
     uuid: "npm:^8.3.2"
     vis-data: "npm:^7.1.9"
@@ -11280,10 +11280,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^4.20.0":
-  version: 4.20.0
-  resolution: "type-fest@npm:4.20.0"
-  checksum: 10c0/d0b35152f7f0b34b3048fb14d93d8d6dfe6288d443a2ab7b7b8c1dd902278e092aa057ad7cfc30f269f17d42eeb14a19d4d147ecb14dff74a5941c5c82248efa
+"type-fest@npm:^4.41.0":
+  version: 4.41.0
+  resolution: "type-fest@npm:4.41.0"
+  checksum: 10c0/f5ca697797ed5e88d33ac8f1fec21921839871f808dc59345c9cf67345bfb958ce41bd821165dbf3ae591cedec2bf6fe8882098dfdd8dc54320b859711a2c1e4
   languageName: node
   linkType: hard
 

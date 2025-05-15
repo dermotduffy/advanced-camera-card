@@ -161,7 +161,7 @@ describe('FolderGalleryController', () => {
           }),
           query: new FolderViewQuery({
             folder,
-            parentPaths: ['grandparent'],
+            path: ['grandparent'],
           }),
         });
 
@@ -182,49 +182,7 @@ describe('FolderGalleryController', () => {
         expect(newQuery).toBeInstanceOf(FolderViewQuery);
         expect(newQuery?.getQuery()).toEqual({
           folder,
-          parentPaths: ['grandparent', folderItem.getPath()],
-          path: 'parent',
-        });
-      });
-
-      it('should handle folder click without parents', () => {
-        const folder = createFolder();
-        const folderItem = new ViewFolder(folder, {
-          path: 'parent',
-        });
-
-        const controller = new FolderGalleryController(document.createElement('div'));
-        const event = new Event('click');
-
-        const view = createView({
-          queryResults: new QueryResults({
-            results: [new TestViewMedia(), folderItem],
-            selectedIndex: 0,
-          }),
-          query: new FolderViewQuery({
-            folder,
-          }),
-        });
-
-        const viewManager = mock<ViewManagerInterface>();
-        viewManager.getView.mockReturnValue(view);
-
-        controller.itemClickHandler(viewManager, folderItem, event);
-
-        expect(viewManager.setViewByParametersWithExistingQuery).toHaveBeenCalledWith({
-          params: {
-            query: expect.any(FolderViewQuery),
-          },
-        });
-
-        const newQuery =
-          viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params
-            ?.query;
-        expect(newQuery).toBeInstanceOf(FolderViewQuery);
-        expect(newQuery?.getQuery()).toEqual({
-          folder,
-          parentPaths: [folderItem.getPath()],
-          path: 'parent',
+          path: ['grandparent', folderItem.getPath()],
         });
       });
 
@@ -256,6 +214,7 @@ describe('FolderGalleryController', () => {
         const view = createView({
           query: new FolderViewQuery({
             folder,
+            path: ['path'],
           }),
         });
         const viewManager = mock<ViewManagerInterface>();
