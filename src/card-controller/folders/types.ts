@@ -1,5 +1,5 @@
 import { NonEmptyTuple } from 'type-fest';
-import { FolderConfig } from '../../config/schema/folders';
+import { FolderConfig, HAFolderPathComponent } from '../../config/schema/folders';
 import { ResolvedMediaCache } from '../../ha/resolved-media';
 import { HomeAssistant } from '../../ha/types';
 import { Endpoint } from '../../types';
@@ -21,12 +21,17 @@ export class FolderInitializationError extends AdvancedCameraCardError {}
 // Folder Query
 // ============
 
+export type FolderPathComponent = {
+  id?: string;
+  ha?: Omit<HAFolderPathComponent, 'id'>;
+};
+
 export interface FolderQuery {
   folder: FolderConfig;
 
   // A trail of paths to navigate back to the "root", with the last path being
   // the path that this query directly refers to.
-  path: NonEmptyTuple<string>;
+  path: NonEmptyTuple<FolderPathComponent>;
 }
 
 // ===============

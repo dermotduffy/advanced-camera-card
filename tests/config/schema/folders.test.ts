@@ -13,7 +13,7 @@ describe('transformURLToMediaSourceRoot', () => {
     it.each(prefixes)('with prefix %s', (urlPrefix: string) => {
       const url = `${urlPrefix}media-browser/browser`;
       const result = transformPathURLToPathArray(url);
-      expect(result).toEqual(['media-source://']);
+      expect(result).toEqual([{ id: 'media-source://' }]);
     });
   });
 
@@ -21,7 +21,10 @@ describe('transformURLToMediaSourceRoot', () => {
     it.each(prefixes)('with prefix %s', (urlPrefix: string) => {
       const url = `${urlPrefix}media-browser/browser/app%2Cmedia-source%3A%2F%2Fcamera`;
       const result = transformPathURLToPathArray(url);
-      expect(result).toEqual(['media-source://', 'media-source://camera']);
+      expect(result).toEqual([
+        { id: 'media-source://' },
+        { id: 'media-source://camera' },
+      ]);
     });
   });
 
@@ -35,10 +38,12 @@ describe('transformURLToMediaSourceRoot', () => {
         '%2Fsnapshots%2F.this_month%2F1746082800%2F%2F%2F%2F';
       const result = transformPathURLToPathArray(url);
       expect(result).toEqual([
-        'media-source://',
-        'media-source://frigate',
-        'media-source://frigate/frigate/event-search/snapshots//////',
-        'media-source://frigate/frigate/event-search/snapshots/.this_month/1746082800////',
+        { id: 'media-source://' },
+        { id: 'media-source://frigate' },
+        { id: 'media-source://frigate/frigate/event-search/snapshots//////' },
+        {
+          id: 'media-source://frigate/frigate/event-search/snapshots/.this_month/1746082800////',
+        },
       ]);
     });
   });
@@ -47,7 +52,7 @@ describe('transformURLToMediaSourceRoot', () => {
     it.each(prefixes)('with prefix %s', (urlPrefix: string) => {
       const url = `${urlPrefix}something-completely-different`;
       const result = transformPathURLToPathArray(url);
-      expect(result).toEqual(['media-source://']);
+      expect(result).toEqual([{ id: 'media-source://' }]);
     });
   });
 

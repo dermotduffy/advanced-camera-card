@@ -111,7 +111,7 @@ export class BrowseMediaViewFolder extends ViewFolder {
       : null;
 
     super(folder, {
-      path: browseMedia.media_content_id,
+      id: browseMedia.media_content_id,
       icon,
       title: browseMedia.title,
       thumbnail: browseMedia.thumbnail,

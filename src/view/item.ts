@@ -95,7 +95,7 @@ export interface RecordingViewMedia extends ViewMedia {
 
 interface ViewFolderParameters {
   icon?: string | null;
-  path?: string | null;
+  id?: string | null;
   title?: string | null;
   thumbnail?: string | null;
 }
@@ -104,7 +104,7 @@ export class ViewFolder {
   private _folder: FolderConfig;
 
   private _icon: string | null;
-  private _path: string | null;
+  private _id: string | null;
   private _title: string | null;
   private _thumbnail: string | null;
 
@@ -112,7 +112,7 @@ export class ViewFolder {
     this._folder = folder;
 
     this._icon = params?.icon ?? null;
-    this._path = params?.path ?? null;
+    this._id = params?.id ?? null;
     this._title = params?.title ?? null;
     this._thumbnail = params?.thumbnail ?? null;
   }
@@ -121,10 +121,7 @@ export class ViewFolder {
     return this._folder;
   }
   public getID(): string | null {
-    return this.getPath();
-  }
-  public getPath(): string | null {
-    return this._path;
+    return this._id;
   }
   public getTitle(): string | null {
     return this._title;

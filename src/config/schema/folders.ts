@@ -2,6 +2,7 @@ import { NonEmptyTuple } from 'type-fest';
 import { z } from 'zod';
 import { AdvancedCameraCardError } from '../../types';
 import { isTruthy } from '../../utils/basic';
+import { regexSchema } from './common/regex';
 
 export const HA_MEDIA_SOURCE_ROOT = 'media-source://';
 
@@ -13,7 +14,17 @@ const folderConfigDefault = {
   ha: {},
 };
 
-export const transformPathURLToPathArray = (url: string): NonEmptyTuple<string> => {
+const haFolderPathComponentSchema = z.object({
+  id: z.string().optional(),
+
+  title: z.string().optional(),
+  title_re: regexSchema.optional(),
+});
+export type HAFolderPathComponent = z.infer<typeof haFolderPathComponentSchema>;
+
+export const transformPathURLToPathArray = (
+  url: string,
+): NonEmptyTuple<HAFolderPathComponent> => {
   let urlPath = url;
   try {
     const urlObj = new URL(url);
@@ -31,15 +42,14 @@ export const transformPathURLToPathArray = (url: string): NonEmptyTuple<string> 
   //  - Each subsequent component will start with `media-source://<path>`
   //  - All components except the last will additionally include
   //    '/<media-class>'.
-
-  const folderPath: NonEmptyTuple<string> = [
-    HA_MEDIA_SOURCE_ROOT,
-    ...splitPath.slice(0, -1).map((split) => split.replace(/\/[^/]+$/, '')),
-    ...splitPath.slice(-1),
+  const folderPath: NonEmptyTuple<HAFolderPathComponent> = [
+    { id: HA_MEDIA_SOURCE_ROOT },
+    ...splitPath.slice(0, -1).map((split) => ({ id: split.replace(/\/[^/]+$/, '') })),
+    ...splitPath.slice(-1).map((split) => ({ id: split })),
   ];
 
   for (const component of folderPath) {
-    if (!component.startsWith(HA_MEDIA_SOURCE_ROOT)) {
+    if (component.id && !component.id.startsWith(HA_MEDIA_SOURCE_ROOT)) {
       throw new AdvancedCameraCardError(
         `Could not parse valid media source URL: ${url}`,
       );
@@ -49,8 +59,8 @@ export const transformPathURLToPathArray = (url: string): NonEmptyTuple<string> 
 };
 
 const haFolderConfigSchema = z.object({
-  path: z.string().array().nonempty().optional(),
-  path_url: z.string().transform(transformPathURLToPathArray).optional(),
+  url: z.string().transform(transformPathURLToPathArray).optional(),
+  path: haFolderPathComponentSchema.array().nonempty().optional(),
 });
 export type HAFolderConfig = z.infer<typeof haFolderConfigSchema>;
 

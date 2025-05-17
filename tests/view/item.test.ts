@@ -71,13 +71,13 @@ describe('ViewFolder', () => {
     const folder = createFolder();
     const item = new ViewFolder(folder, {
       icon: 'icon',
-      path: 'path',
+      id: 'id',
       title: 'title',
       thumbnail: 'thumbnail',
     });
 
     expect(item.getFolder()).toEqual(folder);
-    expect(item.getID()).toBe('path');
+    expect(item.getID()).toBe('id');
     expect(item.getTitle()).toBe('title');
     expect(item.getThumbnail()).toBe('thumbnail');
     expect(item.getIcon()).toBe('icon');

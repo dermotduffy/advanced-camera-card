@@ -16,10 +16,10 @@ type RichMetadataGenerator<M> = (
   parent?: RichBrowseMedia<M>,
 ) => M | null;
 
-export type BrowseMediaTarget<M> = string | RichBrowseMedia<M>;
+export type BrowseMediaTarget<M = undefined> = string | RichBrowseMedia<M>;
 type RichBrowseMediaPredicate<M> = (media: RichBrowseMedia<M>) => boolean;
 
-export interface BrowseMediaStep<M> {
+export interface BrowseMediaStep<M = undefined> {
   // The targets to start the media walk from.
   targets: BrowseMediaTarget<M>[];
 

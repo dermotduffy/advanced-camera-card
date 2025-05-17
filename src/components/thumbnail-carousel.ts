@@ -128,9 +128,9 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
       QueryClassifier.isFolderQuery(query) &&
       ViewItemClassifier.isFolder(item)
     ) {
-      const path = item.getPath();
+      const id = item.getID();
       const rawQuery = query.getQuery();
-      if (!path || !rawQuery) {
+      if (!id || !rawQuery) {
         return;
       }
 
@@ -138,7 +138,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
         params: {
           query: query.clone().setQuery({
             folder: rawQuery.folder,
-            path: [...(rawQuery.path ?? []), path],
+            path: [...(rawQuery.path ?? []), { id }],
           }),
         },
       });

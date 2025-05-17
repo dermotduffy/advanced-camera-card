@@ -604,7 +604,7 @@ export const createFolder = (config?: Partial<FolderConfig>): FolderConfig => {
   return {
     type: 'ha',
     ha: {
-      path: ['media-source://'],
+      path: [{ id: 'media-source://' }],
     },
     ...config,
   };

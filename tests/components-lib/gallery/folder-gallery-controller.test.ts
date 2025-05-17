@@ -148,7 +148,7 @@ describe('FolderGalleryController', () => {
       it('should handle normal folder click', () => {
         const folder = createFolder();
         const folderItem = new ViewFolder(folder, {
-          path: 'parent',
+          id: 'parent',
         });
 
         const controller = new FolderGalleryController(document.createElement('div'));
@@ -161,7 +161,7 @@ describe('FolderGalleryController', () => {
           }),
           query: new FolderViewQuery({
             folder,
-            path: ['grandparent'],
+            path: [{ id: 'grandparent' }],
           }),
         });
 
@@ -182,7 +182,7 @@ describe('FolderGalleryController', () => {
         expect(newQuery).toBeInstanceOf(FolderViewQuery);
         expect(newQuery?.getQuery()).toEqual({
           folder,
-          path: ['grandparent', folderItem.getPath()],
+          path: [{ id: 'grandparent' }, { id: folderItem.getID() }],
         });
       });
 
@@ -198,7 +198,7 @@ describe('FolderGalleryController', () => {
         controller.itemClickHandler(
           viewManager,
           new ViewFolder(createFolder(), {
-            path: 'parent',
+            id: 'parent',
           }),
           new Event('click'),
         );
@@ -214,7 +214,7 @@ describe('FolderGalleryController', () => {
         const view = createView({
           query: new FolderViewQuery({
             folder,
-            path: ['path'],
+            path: [{ id: 'id' }],
           }),
         });
         const viewManager = mock<ViewManagerInterface>();

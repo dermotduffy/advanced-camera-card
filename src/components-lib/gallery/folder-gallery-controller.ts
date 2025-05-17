@@ -64,15 +64,15 @@ export class FolderGalleryController {
       QueryClassifier.isFolderQuery(view.query)
     ) {
       const rawQuery = view.query.getQuery();
-      const path = item.getPath();
-      if (!rawQuery || !path) {
+      const id = item.getID();
+      if (!rawQuery || !id) {
         return;
       }
       viewManager.setViewByParametersWithExistingQuery({
         params: {
           query: view.query.clone().setQuery({
             folder: rawQuery.folder,
-            path: [...rawQuery.path, path],
+            path: [...rawQuery.path, { id }],
           }),
         },
       });

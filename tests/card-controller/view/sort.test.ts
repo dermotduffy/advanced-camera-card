@@ -24,8 +24,8 @@ describe('sortMedia', () => {
     startTime: new Date('2023-04-29T14:27'),
     cameraID: 'camera-1',
   });
-  const folder_1 = new ViewFolder(createFolder(), { path: 'folder_1' });
-  const folder_2 = new ViewFolder(createFolder(), { path: 'folder_2' });
+  const folder_1 = new ViewFolder(createFolder(), { id: 'folder_1' });
+  const folder_2 = new ViewFolder(createFolder(), { id: 'folder_2' });
 
   it('should sort sorted media', () => {
     const media = [media_1, media_2];
@@ -44,10 +44,10 @@ describe('sortMedia', () => {
         new TestViewMedia({ id: 'snake' }),
         new TestViewMedia({ id: 'zebra' }),
         new TestViewMedia({ id: 'aardvark' }),
-        new ViewFolder(folder, { path: 'folder' }),
+        new ViewFolder(folder, { id: 'folder' }),
       ]),
     ).toEqual([
-      new ViewFolder(folder, { path: 'folder' }),
+      new ViewFolder(folder, { id: 'folder' }),
       new TestViewMedia({ id: 'aardvark' }),
       new TestViewMedia({ id: 'snake' }),
       new TestViewMedia({ id: 'zebra' }),

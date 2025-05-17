@@ -43,7 +43,7 @@ export interface RichBrowseMedia<M> extends BrowseMedia {
   children?: RichBrowseMedia<M>[] | null;
 }
 
-export class BrowseMediaCache<M> extends ExpiringEqualityCache<
+export class BrowseMediaCache<M = undefined> extends ExpiringEqualityCache<
   string,
   RichBrowseMedia<M>
 > {}
