@@ -46,8 +46,6 @@ Releases follow [Semantic Versioning](https://semver.org/) with the following de
 
 ## Translations
 
-[![translation badge](https://badge.inlang.com/?url=github.com/dermotduffy/advanced-camera-card)](https://fink.inlang.com/github.com/dermotduffy/advanced-camera-card?ref=badge)
-
 To add translations, you can manually edit the JSON translation files in
 `src/localize/languages` or use the [inlang](https://inlang.com/) online editor.
 

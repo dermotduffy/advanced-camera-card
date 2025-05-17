@@ -28,42 +28,47 @@ folders:
       # [...]
 ```
 
-| Option     | Default             | Description                                                                                                                                                                                                                                            |
-| ---------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `path`     | [`media-source://`] | An array of media source paths for Home Assistant media folder. These are strings starting with `media-source://` followed by a format dictated by the integration that is providing this media source. Multiple paths represent the folder hierarchy. |
-| `path_url` |                     | A Home Assistant `Media` browser URL from which the `paths` are parsed. If `path` is also set that takes precedence.                                                                                                                                   |
+| Option | Default                     | Description                                                                                                                                                                             |
+| ------ | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url`  |                             | An optional Home Assistant `Media` browser URL to use as the query base. If `path` is also specified, those matchers are applied against folders "below" the folder specified in `url`. |
+| `path` | [`{ id: media-source:// }`] | An optional array of matchers to dynamically compare against the Home Assistant media folder hierarchy. See below.                                                                      |
 
-### Understanding media source paths
+?> `url` is never fetched, nor sent over the network. It is only processed
+locally in your browser. The host part of the URL can optionally be removed.
 
-Home Assistant media source paths with typically long integration-specific
-non-user friendly strings that refer to a media item, or folder of media items.
-Media source "folders" do not have an intrinsic parent as with filesystem
-folders, rather a trail is built as the user navigates "downwards" -- but
-anything could theoretically be the parent of anything.
+### `path`
 
-The `path` parameter is an array of media-source paths representing this
-"trail". The folder will open at the last path in the array, and "upwards"
-navigation will be allowed to the previous paths in the array.
-
-For example:
+An array of matchers to navigate "down" a folder hierarchy. If `url` is also
+specified, matchers are applied starting at that folder, otherwise they are
+applied at the media source root (i.e. `media-source://`).
 
 ```yaml
-path:
-  - media-source://
-  - media-source://frigate
+folders:
+  - type: ha
+    ha:
+      path:
+        # [...]
 ```
 
-... will show the `media-source://frigate` folder upon opening, but also show an
-"up" arrow to go up to `media-source://`.
+| Option     | Default | Description                                            |
+| ---------- | ------- | ------------------------------------------------------ |
+| `id`       |         | An optional media source `id` to match against.        |
+| `title`    |         | An optional title name to match against.               |
+| `title_re` |         | An optional title regular expression to match against. |
 
-As media-source paths are not typically user-exposed, a simple way to set these
-values is simply by navigating in the Home Assistant `Media` browser (in the
-sidebar) to the folder you wish to refer to, then copy and paste the whole
-browser URL into the `path_url` parameter. The trail of paths will automatically
-be extracted out of the URL.
+See [Folders Examples](../examples.md?id=folders).
 
-?> `path_url` is never fetched, nor sent over the network. It is only processed
-locally in your browser. The host part of the URL can optionally be removed.
+?> Specifying multiple `path` matchers (other than `id`) requires a query at
+each level of the folder hierarchy and is slower than directly specifying the
+media source `id` (if known) or the `url` of the folder.
+
+#### Understanding Media Source IDs and "parent folders"
+
+Home Assistant Media Source IDs are typically long integration-specific non-user
+friendly strings that refer to a media item, or folder of media items. Media
+source "folders" do not have an intrinsic parent as with filesystem folders,
+rather a trail is built as the user navigates "downwards" -- but anything could
+theoretically be the parent of anything.
 
 ## Fully expanded reference
 
@@ -72,9 +77,11 @@ locally in your browser. The host part of the URL can optionally be removed.
 ```yaml
 folders:
   - type: ha
-    id: optional-folder-id
-    title: Folder Title
-    icon: mdi:cow
     ha:
-      root: media-source://
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Ffrigate
+      path:
+        - id: 'media-source://'
+        - title: 'Frigate'
+        - title_re: 'Clips.*'
+        - title_re: 'Person.*'
 ```

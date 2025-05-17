@@ -336,6 +336,67 @@ cameras:
       all_cameras: true
 ```
 
+## Folders
+
+These examples create folders that can be viewed in the
+[`folder_gallery`](./configuration/folder-gallery.md).
+
+### Folder URLs
+
+This example uses the `url` parameter to establish the root of the query. With
+that folder, it looks for a sub-folder that matches the regular expression
+`Clips.*`, and within that looks for a folder that matches the regular
+expression `Person.*`. The resulting media will be the contents of that folder
+(if found).
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Ffrigate
+      path:
+        - title_re: 'Clips.*'
+        - title_re: 'Person.*'
+```
+
+### Folder Paths
+
+This example shows the `media-source://frigate` folder, and looks for a
+precisely titled `Clips [my-instance]` folder within that. The resulting media
+will be the contents of that folder (if found).
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      path:
+        - id: 'media-source://frigate'
+        - title: 'Clips [my-instance]'
+```
+
+### Folder using the default root
+
+This example applies a title match against the Home Assistant media root folder
+looking for a folder entitled `Frigate`. The resulting media will be the
+contents of that folder (if found).
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      path:
+        - title: 'Frigate'
+```
+
 ## Human interaction
 
 This example will automatically use a HD live substream when
