@@ -38,6 +38,10 @@ export interface MediaLoadedInfo {
 }
 
 export type MessageType = 'info' | 'error' | 'connection' | 'diagnostics';
+export interface MessageURL {
+  link: string;
+  title: string;
+}
 
 export interface Message {
   message: string;
@@ -45,7 +49,7 @@ export interface Message {
   icon?: string;
   context?: unknown;
   dotdotdot?: boolean;
-  troubleshootingURL?: string;
+  url?: MessageURL;
 }
 
 export type WebkitHTMLVideoElement = HTMLVideoElement & {

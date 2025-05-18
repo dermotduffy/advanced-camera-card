@@ -320,6 +320,20 @@
       },
       "height": ""
     },
+    "folders": {
+      "ha": {
+        "editor_label": "",
+        "path_info": "",
+        "url": ""
+      },
+      "icon": "",
+      "id": "",
+      "title": "",
+      "type": "",
+      "types": {
+        "ha": ""
+      }
+    },
     "live": {
       "auto_mute": "Silencia automàticament les càmeres en directe",
       "auto_pause": "Posa en pausa automàticament les càmeres en directe",
@@ -591,6 +605,7 @@
   },
   "editor": {
     "add_new_camera": "Afegeix una càmera nova",
+    "add_new_folder": "",
     "button": "Botó",
     "camera": "Càmera",
     "cameras": "Càmeres",
@@ -600,6 +615,8 @@
     "dimensions_secondary": "Opcions de dimensions i forma",
     "folder_gallery": "",
     "folder_gallery_secondary": "",
+    "folders": "",
+    "folders_secondary": "",
     "image": "Imatge",
     "image_secondary": "Opcions de visualització d'imatges estàtiques",
     "live": "En directe",
@@ -647,6 +664,7 @@
     "awaiting_media": "",
     "camera_initialization": "",
     "camera_initialization_reolink": "",
+    "configuration": "",
     "could_not_render_elements": "No s'han pogut representar els elements de la imatge",
     "could_not_resolve": "No s'ha pogut resoldre l'URL multimèdia",
     "diagnostics": "Diagnòstic de targetes. Reviseu la informació confidencial abans de compartir-la",

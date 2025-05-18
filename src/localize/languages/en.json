@@ -105,7 +105,7 @@
         "url": "go2rtc URL"
       },
       "icon": "Icon for this camera (Autodetected from entity)",
-      "id": "Unique id for this camera in this card",
+      "id": "Unique ID for this camera in this card",
       "image": {
         "editor_label": "Image Options",
         "refresh_seconds": "Number of seconds after which to refresh live image (0=never)",
@@ -319,6 +319,20 @@
         "unconstrained": "Unconstrained aspect ratio"
       },
       "height": "Card height in CSS units (e.g. '500px')"
+    },
+    "folders": {
+      "ha": {
+        "editor_label": "Home Assistant Media Folder Options",
+        "url": "URL of media folder",
+        "path_info": "Additional path matching functionality is available in the text editor"
+      },
+      "icon": "Icon for this folder",
+      "id": "Unique ID for this folder in this card",
+      "title": "Title for this folder",
+      "type": "Folder type",
+      "types": {
+        "ha": "Home Assistant Media Folder"
+      }
     },
     "live": {
       "auto_mute": "Automatically mute live cameras",
@@ -591,6 +605,7 @@
   },
   "editor": {
     "add_new_camera": "Add new camera",
+    "add_new_folder": "Add new folder",
     "button": "Button",
     "camera": "Camera",
     "cameras": "Cameras",
@@ -600,6 +615,8 @@
     "dimensions_secondary": "Card dimensions & shape options",
     "folder_gallery": "Folder gallery",
     "folder_gallery_secondary": "Folder gallery options",
+    "folders": "Folders",
+    "folders_secondary": "What folders to render on this card",
     "image": "Image",
     "image_secondary": "Static image view options",
     "live": "Live",
@@ -647,6 +664,7 @@
     "awaiting_media": "Waiting for media to load",
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
+    "configuration": "Check configuration",
     "could_not_render_elements": "Could not render picture elements",
     "could_not_resolve": "Could not resolve media URL",
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",

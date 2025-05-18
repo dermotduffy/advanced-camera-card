@@ -380,7 +380,10 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
             type: 'error',
             icon: 'mdi:camera-off',
             message: localize('error.stream_not_loading'),
-            troubleshootingURL: STREAM_TROUBLESHOOTING_URL,
+            url: {
+              link: STREAM_TROUBLESHOOTING_URL,
+              title: localize('error.troubleshooting'),
+            },
           },
           { overlay: true },
         )

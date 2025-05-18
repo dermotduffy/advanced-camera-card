@@ -63,10 +63,10 @@ div.upgrade span {
   // Only allow clicks on the header.
   pointer-events: none;
 }
-.submenu-header .new-camera {
+.submenu-header .new {
   font-style: italic;
 }
-.submenu:not(.selected) > .submenu-header .new-camera {
+.submenu:not(.selected) > .submenu-header .new {
   color: var(--secondary-text-color, 'black');
 }
 
@@ -109,4 +109,8 @@ span.info {
 ha-selector {
   padding: 10px;
   border: 1px solid var(--divider-color);
+}
+
+advanced-camera-card-message::part(icon) {
+  color: var(--primary-color);
 }

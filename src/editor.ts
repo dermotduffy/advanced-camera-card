@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import './components/icon.js';
 import './components/key-assigner.js';
+import { renderMessage } from './components/message.js';
 import {
   copyConfig,
   deleteConfigValue,
@@ -95,6 +96,12 @@ import {
   CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SIZE,
+  CONF_FOLDERS,
+  CONF_FOLDERS_ARRAY_HA_URL,
+  CONF_FOLDERS_ARRAY_ICON,
+  CONF_FOLDERS_ARRAY_ID,
+  CONF_FOLDERS_ARRAY_TITLE,
+  CONF_FOLDERS_ARRAY_TYPE,
   CONF_IMAGE_ENTITY,
   CONF_IMAGE_ENTITY_PARAMETERS,
   CONF_IMAGE_MODE,
@@ -240,6 +247,7 @@ import {
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_SECONDS,
+  FOLDERS_CONFIGURATION_URL,
   MEDIA_CHUNK_SIZE_MAX,
 } from './const.js';
 import { fireHASSEvent } from './ha/fire-hass-event.js';
@@ -269,6 +277,8 @@ const MENU_CAMERAS_REOLINK = 'cameras.reolink';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC_CARD = 'cameras.webrtc_card';
 const MENU_FOLDER_GALLERY_CONTROLS_THUMBNAILS = 'folder_gallery.controls.thumbnails';
+const MENU_FOLDERS = 'folders';
+const MENU_FOLDERS_HA = 'folders.ha';
 const MENU_LIVE_CONTROLS = 'live.controls';
 const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
 const MENU_LIVE_CONTROLS_PTZ = 'live.controls.ptz';
@@ -341,8 +351,13 @@ const options: EditorOptions = {
     name: localize('editor.live'),
     secondary: localize('editor.live_secondary'),
   },
-  folder_gallery: {
+  folders: {
     icon: 'folder-multiple',
+    name: localize('editor.folders'),
+    secondary: localize('editor.folders'),
+  },
+  folder_gallery: {
+    icon: 'grid-large',
     name: localize('editor.folder_gallery'),
     secondary: localize('editor.folder_gallery_secondary'),
   },
@@ -1214,6 +1229,27 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     );
   }
 
+  /**
+   * Get an editor title for the camera.
+   * @param cameraIndex The index of the camera in the cameras array.
+   * @param cameraConfig The raw camera configuration object.
+   * @returns A string title.
+   */
+  protected _getEditorFolderTitle(
+    folderIndex: number,
+    folderConfig: RawAdvancedCameraCardConfig,
+  ): string {
+    // Attempt to render a recognizable name for the camera, starting with the
+    // most likely to be useful and working our ways towards the least useful.
+    // This is only used for the editor since the card itself can use the
+    // cameraManager.
+    return (
+      (typeof folderConfig?.title === 'string' && folderConfig.title) ||
+      (typeof folderConfig?.id === 'string' && folderConfig.id) ||
+      localize('common.folder') + ' #' + folderIndex
+    );
+  }
+
   protected _renderViewDefaultResetMenu(): TemplateResult {
     return this._putInSubmenu(
       MENU_VIEW_DEFAULT_RESET,
@@ -1908,6 +1944,173 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     `;
   }
 
+  protected _modifyConfig(func: (config: RawAdvancedCameraCardConfig) => boolean): void {
+    if (this._config) {
+      const newConfig = copyConfig(this._config);
+      if (func(newConfig)) {
+        this._updateConfig(newConfig);
+      }
+    }
+  }
+
+  protected _renderArrayManagementControls(
+    configPathArray: string,
+    index: number,
+    menu: string,
+    add?: boolean,
+  ): TemplateResult | void {
+    const array = this._config ? getConfigValue(this._config, configPathArray) : null;
+
+    return html`
+      <div class="controls">
+        <ha-icon-button
+          .label=${localize('editor.move_up')}
+          .disabled=${add || !this._config || !Array.isArray(array) || index <= 0}
+          @click=${() =>
+            !add &&
+            this._modifyConfig((config: RawAdvancedCameraCardConfig): boolean => {
+              const array = getConfigValue(config, configPathArray);
+              if (Array.isArray(array) && index > 0) {
+                arrayMove(array, index, index - 1);
+                this._openMenu(menu, index - 1);
+                return true;
+              }
+              return false;
+            })}
+        >
+          <advanced-camera-card-icon
+            .icon=${{ icon: 'mdi:arrow-up' }}
+          ></advanced-camera-card-icon>
+        </ha-icon-button>
+        <ha-icon-button
+          .label=${localize('editor.move_down')}
+          .disabled=${add ||
+          !this._config ||
+          !Array.isArray(this._config.cameras) ||
+          index >= this._config.cameras.length - 1}
+          @click=${() =>
+            !add &&
+            this._modifyConfig((config: RawAdvancedCameraCardConfig): boolean => {
+              const array = getConfigValue(config, configPathArray);
+              if (Array.isArray(array) && index < array.length - 1) {
+                arrayMove(array, index, index + 1);
+                this._openMenu(menu, index + 1);
+                return true;
+              }
+              return false;
+            })}
+        >
+          <advanced-camera-card-icon
+            .icon=${{ icon: 'mdi:arrow-down' }}
+          ></advanced-camera-card-icon>
+        </ha-icon-button>
+        <ha-icon-button
+          .label=${localize('editor.delete')}
+          .disabled=${add}
+          @click=${() => {
+            this._modifyConfig((config: RawAdvancedCameraCardConfig): boolean => {
+              const array = getConfigValue(config, configPathArray);
+              if (Array.isArray(array)) {
+                array.splice(index, 1);
+                this._closeMenu(menu);
+                return true;
+              }
+              return false;
+            });
+          }}
+        >
+          <advanced-camera-card-icon
+            .icon=${{ icon: 'mdi:delete' }}
+          ></advanced-camera-card-icon>
+        </ha-icon-button>
+      </div>
+    `;
+  }
+
+  protected _renderFolder(
+    folders: RawAdvancedCameraCardConfigArray,
+    folderIndex: number,
+    addNewFolder?: boolean,
+  ): TemplateResult | void {
+    const submenuClasses = {
+      submenu: true,
+      selected: this._expandedMenus[MENU_FOLDERS] === folderIndex,
+    };
+
+    const folderTypes: EditorSelectOption[] = [
+      { value: '', label: '' },
+      { value: 'ha', label: localize('config.folders.types.ha') },
+    ];
+
+    return html` <div class="${classMap(submenuClasses)}">
+      <div
+        class="submenu-header"
+        @click=${this._toggleMenu}
+        .domain=${MENU_FOLDERS}
+        .key=${folderIndex}
+      >
+        <advanced-camera-card-icon
+          .icon=${{ icon: addNewFolder ? 'mdi:folder-plus' : 'mdi:folder' }}
+        ></advanced-camera-card-icon>
+        <span>
+          ${addNewFolder
+            ? html` <span class="new"> [${localize('editor.add_new_folder')}...] </span>`
+            : html`<span
+                >${this._getEditorFolderTitle(
+                  folderIndex,
+                  folders[folderIndex] || {},
+                )}</span
+              >`}
+        </span>
+      </div>
+      ${this._expandedMenus[MENU_FOLDERS] === folderIndex
+        ? html` <div class="values">
+            ${this._renderArrayManagementControls(
+              CONF_FOLDERS,
+              folderIndex,
+              MENU_FOLDERS,
+              addNewFolder,
+            )}
+            ${this._renderOptionSelector(
+              getArrayConfigPath(CONF_FOLDERS_ARRAY_TYPE, folderIndex),
+              folderTypes,
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_FOLDERS_ARRAY_TITLE, folderIndex),
+            )}
+            ${this._renderIconSelector(
+              getArrayConfigPath(CONF_FOLDERS_ARRAY_ICON, folderIndex),
+              {
+                label: localize('config.folders.icon'),
+              },
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_FOLDERS_ARRAY_ID, folderIndex),
+            )}
+            ${this._putInSubmenu(
+              MENU_FOLDERS_HA,
+              folderIndex,
+              'config.folders.ha.editor_label',
+              'mdi:home-assistant',
+              html`
+                ${this._renderStringInput(
+                  getArrayConfigPath(CONF_FOLDERS_ARRAY_HA_URL, folderIndex),
+                )}
+                ${renderMessage({
+                  message: localize('config.folders.ha.path_info'),
+                  icon: 'mdi:information-outline',
+                  url: {
+                    link: FOLDERS_CONFIGURATION_URL,
+                    title: localize('error.configuration'),
+                  },
+                })}
+              `,
+            )}
+          </div>`
+        : ''}
+    </div>`;
+  }
+
   /**
    * Render a camera section.
    * @param cameras The full array of cameras.
@@ -1953,18 +2156,6 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
       }
     });
 
-    // Make a new config and update the editor with changes on it,
-    const modifyConfig = (
-      func: (config: RawAdvancedCameraCardConfig) => boolean,
-    ): void => {
-      if (this._config) {
-        const newConfig = copyConfig(this._config);
-        if (func(newConfig)) {
-          this._updateConfig(newConfig);
-        }
-      }
-    };
-
     const submenuClasses = {
       submenu: true,
       selected: this._expandedMenus[MENU_CAMERAS] === cameraIndex,
@@ -1983,7 +2174,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
           ></advanced-camera-card-icon>
           <span>
             ${addNewCamera
-              ? html` <span class="new-camera">
+              ? html` <span class="new">
                   [${localize('editor.add_new_camera')}...]
                 </span>`
               : html`<span
@@ -1996,71 +2187,12 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         </div>
         ${this._expandedMenus[MENU_CAMERAS] === cameraIndex
           ? html` <div class="values">
-              <div class="controls">
-                <ha-icon-button
-                  .label=${localize('editor.move_up')}
-                  .disabled=${addNewCamera ||
-                  !this._config ||
-                  !Array.isArray(this._config.cameras) ||
-                  cameraIndex <= 0}
-                  @click=${() =>
-                    !addNewCamera &&
-                    modifyConfig((config: RawAdvancedCameraCardConfig): boolean => {
-                      if (Array.isArray(config.cameras) && cameraIndex > 0) {
-                        arrayMove(config.cameras, cameraIndex, cameraIndex - 1);
-                        this._openMenu(MENU_CAMERAS, cameraIndex - 1);
-                        return true;
-                      }
-                      return false;
-                    })}
-                >
-                  <advanced-camera-card-icon
-                    .icon=${{ icon: 'mdi:arrow-up' }}
-                  ></advanced-camera-card-icon>
-                </ha-icon-button>
-                <ha-icon-button
-                  .label=${localize('editor.move_down')}
-                  .disabled=${addNewCamera ||
-                  !this._config ||
-                  !Array.isArray(this._config.cameras) ||
-                  cameraIndex >= this._config.cameras.length - 1}
-                  @click=${() =>
-                    !addNewCamera &&
-                    modifyConfig((config: RawAdvancedCameraCardConfig): boolean => {
-                      if (
-                        Array.isArray(config.cameras) &&
-                        cameraIndex < config.cameras.length - 1
-                      ) {
-                        arrayMove(config.cameras, cameraIndex, cameraIndex + 1);
-                        this._openMenu(MENU_CAMERAS, cameraIndex + 1);
-                        return true;
-                      }
-                      return false;
-                    })}
-                >
-                  <advanced-camera-card-icon
-                    .icon=${{ icon: 'mdi:arrow-down' }}
-                  ></advanced-camera-card-icon>
-                </ha-icon-button>
-                <ha-icon-button
-                  .label=${localize('editor.delete')}
-                  .disabled=${addNewCamera}
-                  @click=${() => {
-                    modifyConfig((config: RawAdvancedCameraCardConfig): boolean => {
-                      if (Array.isArray(config.cameras)) {
-                        config.cameras.splice(cameraIndex, 1);
-                        this._closeMenu(MENU_CAMERAS);
-                        return true;
-                      }
-                      return false;
-                    });
-                  }}
-                >
-                  <advanced-camera-card-icon
-                    .icon=${{ icon: 'mdi:delete' }}
-                  ></advanced-camera-card-icon>
-                </ha-icon-button>
-              </div>
+              ${this._renderArrayManagementControls(
+                CONF_CAMERAS,
+                cameraIndex,
+                MENU_CAMERAS,
+                addNewCamera,
+              )}
               ${this._renderEntitySelector(
                 getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_ENTITY, cameraIndex),
                 'camera',
@@ -2552,6 +2684,8 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     const entities = getEntitiesFromHASS(this.hass);
     const cameras = (getConfigValue(this._config, CONF_CAMERAS) ||
       []) as RawAdvancedCameraCardConfigArray;
+    const folders = (getConfigValue(this._config, CONF_FOLDERS) ||
+      []) as RawAdvancedCameraCardConfigArray;
 
     return html`
       ${this._configUpgradeable
@@ -2872,6 +3006,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
                 this._defaults.folder_gallery.controls.thumbnails,
               )}
+            </div>`
+          : ''}
+        ${this._renderOptionSetHeader('folders')}
+        ${this._expandedMenus[MENU_OPTIONS] === 'folders'
+          ? html` <div class="values">
+              ${folders.map((_, index) => this._renderFolder(folders, index))}
+              ${this._renderFolder(folders, folders.length, true)}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('media_gallery')}

@@ -2,7 +2,6 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { MessageController } from '../components-lib/message/controller.js';
-import { localize } from '../localize/localize.js';
 import messageStyle from '../scss/message.scss';
 import { Message } from '../types.js';
 import './icon.js';
@@ -33,14 +32,10 @@ export class AdvancedCameraCardMessage extends LitElement {
       return;
     }
 
+    const url = this._controller.getURL(this.message);
     const messageTemplate = html`
       ${this._controller.getMessageString(this.message)}
-      ${this._controller.shouldShowTroubleshootingURL(this.message)
-        ? html`.
-            <a href="${this._controller.getTroubleshootingURL(this.message)}"
-              >${localize('error.troubleshooting')}</a
-            >`
-        : ''}
+      ${url ? html`. <a href="${url.link}">${url.title}</a>` : ''}
     `;
 
     const icon = this._controller.getIcon(this.message);
@@ -52,6 +47,7 @@ export class AdvancedCameraCardMessage extends LitElement {
       <div class="message padded">
         <div class="icon">
           <advanced-camera-card-icon
+            part="icon"
             .icon="${{ icon: icon }}"
           ></advanced-camera-card-icon>
         </div>

@@ -320,6 +320,20 @@
       },
       "height": ""
     },
+    "folders": {
+      "ha": {
+        "editor_label": "",
+        "path_info": "",
+        "url": ""
+      },
+      "icon": "",
+      "id": "",
+      "title": "",
+      "type": "",
+      "types": {
+        "ha": ""
+      }
+    },
     "live": {
       "auto_mute": "Silenciar câmeras ao vivo automaticamente",
       "auto_pause": "Pausar câmeras ao vivo automaticamente",
@@ -591,6 +605,7 @@
   },
   "editor": {
     "add_new_camera": "Adicionar nova câmera",
+    "add_new_folder": "",
     "button": "Botão",
     "camera": "Câmera",
     "cameras": "Câmeras",
@@ -600,6 +615,8 @@
     "dimensions_secondary": "",
     "folder_gallery": "",
     "folder_gallery_secondary": "",
+    "folders": "",
+    "folders_secondary": "",
     "image": "Imagem",
     "image_secondary": "Opções de visualização de imagem estática",
     "live": "Ao vivo",
@@ -647,6 +664,7 @@
     "awaiting_media": "",
     "camera_initialization": "",
     "camera_initialization_reolink": "",
+    "configuration": "",
     "could_not_render_elements": "Não foi possível renderizar os elementos da imagem",
     "could_not_resolve": "Não foi possível resolver o URL de mídia",
     "diagnostics": "Diagnósticos do cartão. Revise as informações confidenciais antes de compartilhar",

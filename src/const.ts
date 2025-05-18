@@ -3,6 +3,8 @@ const DOCS_URL = 'https://card.camera' as const;
 export const TROUBLESHOOTING_URL = `${DOCS_URL}/#/troubleshooting` as const;
 export const STREAM_TROUBLESHOOTING_URL =
   `${TROUBLESHOOTING_URL}?id=stream-does-not-load` as const;
+const CONFIGURATION_URL = `${DOCS_URL}/#/configuration`;
+export const FOLDERS_CONFIGURATION_URL = `${CONFIGURATION_URL}/folders`
 
 export const CONF_AUTOMATIONS = 'automations' as const;
 
@@ -129,6 +131,13 @@ export const CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_FOLDER_GALLERY}.controls.thumbnails.show_timeline_control` as const;
 export const CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_FOLDER_GALLERY}.controls.thumbnails.size` as const;
+
+export const CONF_FOLDERS = 'folders' as const;
+export const CONF_FOLDERS_ARRAY_HA_URL = `${CONF_FOLDERS}.#.ha.url` as const;
+export const CONF_FOLDERS_ARRAY_ICON = `${CONF_FOLDERS}.#.icon` as const;
+export const CONF_FOLDERS_ARRAY_ID = `${CONF_FOLDERS}.#.id` as const;
+export const CONF_FOLDERS_ARRAY_TITLE = `${CONF_FOLDERS}.#.title` as const;
+export const CONF_FOLDERS_ARRAY_TYPE = `${CONF_FOLDERS}.#.type` as const;
 
 const CONF_VIEW = 'view' as const;
 export const CONF_VIEW_CAMERA_SELECT = `${CONF_VIEW}.camera_select` as const;
