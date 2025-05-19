@@ -14,6 +14,7 @@ export class ThumbnailFeatureController {
   private _subtitles: string[] = [];
   private _icon: string | null = null;
   private _thumbnail: string | null = null;
+  private _thumbnailClass: string | null = null;
 
   public calculate(
     cameraManager?: CameraManager | null,
@@ -34,6 +35,10 @@ export class ThumbnailFeatureController {
     item?: ViewItem,
     hasDetails?: boolean,
   ) {
+    if (hasDetails) {
+      return;
+    }
+
     if (this._thumbnail && ViewItemClassifier.isMedia(item)) {
       this._title = null;
       this._subtitles = [];
@@ -45,12 +50,11 @@ export class ThumbnailFeatureController {
         ? item.getStartTime()
         : null;
 
+    this._title = startTime ? format(startTime, 'HH:mm') : null;
+
+    const day = startTime ? format(startTime, 'MMM do') : null;
     const itemTitle = item?.getTitle() ?? null;
-
-    this._title = !hasDetails && startTime ? format(startTime, 'HH:mm') : null;
-
-    const day = !hasDetails && startTime ? format(startTime, 'MMM do') : null;
-    const src = !hasDetails ? cameraMetadata?.title ?? itemTitle : null;
+    const src = cameraMetadata?.title ?? itemTitle ?? null;
 
     this._subtitles = [...(day ? [day] : []), ...(src ? [src] : [])];
   }
@@ -72,8 +76,10 @@ export class ThumbnailFeatureController {
     if (thumbnail) {
       this._thumbnail = thumbnail;
       this._icon = null;
+      this._thumbnailClass = isBrandUrl(thumbnail) ? 'brand' : null;
     } else {
       this._thumbnail = null;
+      this._thumbnailClass = null;
       this._icon = item?.getIcon() ?? cameraMetadata?.engineIcon ?? null;
     }
   }
@@ -92,5 +98,9 @@ export class ThumbnailFeatureController {
 
   public getThumbnail(): string | null {
     return this._thumbnail;
+  }
+
+  public getThumbnailClass(): string | null {
+    return this._thumbnailClass;
   }
 }

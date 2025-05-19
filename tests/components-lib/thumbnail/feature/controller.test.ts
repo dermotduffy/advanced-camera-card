@@ -147,7 +147,7 @@ describe('ThumbnailFeatureController', () => {
   });
 
   describe('should set thumbnail', () => {
-    it('should set brands thumbnail', () => {
+    it('should set brand thumbnail', () => {
       const controller = new ThumbnailFeatureController();
       const itemWithThumbnail = new TestViewMedia({
         thumbnail: 'https://brands.home-assistant.io//amcrest/icon.png',
@@ -158,6 +158,19 @@ describe('ThumbnailFeatureController', () => {
       expect(controller.getThumbnail()).toBe(
         'https://brands.home-assistant.io/brands/_/amcrest/icon.png',
       );
+      expect(controller.getThumbnailClass()).toBe('brand');
+    });
+
+    it('should set other thumbnail', () => {
+      const controller = new ThumbnailFeatureController();
+      const itemWithThumbnail = new TestViewMedia({
+        thumbnail: 'https://card.camera/thumbnail.jpg',
+      });
+
+      controller.calculate(null, itemWithThumbnail, false);
+
+      expect(controller.getThumbnail()).toBe('https://card.camera/thumbnail.jpg');
+      expect(controller.getThumbnailClass()).toBeNull();
     });
   });
 });

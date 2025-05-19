@@ -26,7 +26,10 @@
 advanced-camera-card-thumbnail-feature-thumbnail {
   height: 50%;
 }
-advanced-camera-card-thumbnail-feature-thumbnail:only-child {
+advanced-camera-card-thumbnail-feature-thumbnail.brand:only-child {
+  height: 60%;
+}
+advanced-camera-card-thumbnail-feature-thumbnail:not(.brand):only-child {
   height: 100%;
 }
 

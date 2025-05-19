@@ -47,9 +47,15 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
       background: title || subtitles.length,
     });
 
+    const thumbnailClass = this._controller.getThumbnailClass();
+    const thumbnailClasses = classMap({
+      ...(thumbnailClass && { [thumbnailClass]: true }),
+    });
+
     return html`
       ${this._controller.getThumbnail()
         ? html` <advanced-camera-card-thumbnail-feature-thumbnail
+            class="${thumbnailClasses}"
             .hass=${this.hass}
             .thumbnail=${this._controller.getThumbnail()}
             aria-label=${this._controller.getTitle() ?? ''}
