@@ -17,11 +17,6 @@ export class AdvancedCameraCardThumbnailDetailsFolder extends LitElement {
     return html`
       <div class="details">
         <div>
-          ${this.folder.getIcon() && this.folder.getThumbnail()
-            ? html` <advanced-camera-card-icon
-                .icon=${{ icon: this.folder.getIcon() }}
-              ></advanced-camera-card-icon>`
-            : ''}
           <span>${this.folder.getTitle()}</span>
         </div>
       </div>
