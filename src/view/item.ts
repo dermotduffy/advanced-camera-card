@@ -62,6 +62,9 @@ export class ViewMedia {
   public getThumbnail(): string | null {
     return null;
   }
+  public getIcon(): string | null {
+    return null;
+  }
   public isFavorite(): boolean | null {
     return null;
   }

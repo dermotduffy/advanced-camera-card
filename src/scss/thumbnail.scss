@@ -64,6 +64,10 @@ advanced-camera-card-icon.download {
   bottom: 3px;
 }
 
+:host([details]) advanced-camera-card-thumbnail-feature {
+  padding: 8%;
+}
+
 advanced-camera-card-thumbnail-details-event,
 advanced-camera-card-thumbnail-details-recording,
 advanced-camera-card-thumbnail-details-folder {

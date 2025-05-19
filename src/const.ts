@@ -4,7 +4,7 @@ export const TROUBLESHOOTING_URL = `${DOCS_URL}/#/troubleshooting` as const;
 export const STREAM_TROUBLESHOOTING_URL =
   `${TROUBLESHOOTING_URL}?id=stream-does-not-load` as const;
 const CONFIGURATION_URL = `${DOCS_URL}/#/configuration`;
-export const FOLDERS_CONFIGURATION_URL = `${CONFIGURATION_URL}/folders`
+export const FOLDERS_CONFIGURATION_URL = `${CONFIGURATION_URL}/folders`;
 
 export const CONF_AUTOMATIONS = 'automations' as const;
 

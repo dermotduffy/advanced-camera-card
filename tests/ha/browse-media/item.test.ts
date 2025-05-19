@@ -252,6 +252,42 @@ describe('BrowseMediaEventViewMedia', () => {
       expect(viewMedia_1.isGroupableWith(viewMedia_2)).toBe(false);
     });
   });
+
+  describe('should set icon', () => {
+    it('should set icon from known  media class', () => {
+      const browseMedia = createBrowseMedia({
+        media_class: 'channel',
+      });
+
+      const media = new BrowseMediaEventViewMedia(ViewMediaType.Snapshot, browseMedia);
+
+      expect(media.getIcon()).toBe('mdi:television-classic');
+    });
+
+    it('should set null icon from unknown media class', () => {
+      const browseMedia = createBrowseMedia({
+        media_class: 'unknown',
+      });
+
+      const viewMedia = new BrowseMediaEventViewMedia(
+        ViewMediaType.Snapshot,
+        browseMedia,
+      );
+      expect(viewMedia.getIcon()).toBeNull();
+    });
+
+    it('should set null icon from null media class', () => {
+      const browseMedia = createBrowseMedia({
+        media_class: undefined,
+      });
+
+      const viewMedia = new BrowseMediaEventViewMedia(
+        ViewMediaType.Snapshot,
+        browseMedia,
+      );
+      expect(viewMedia.getIcon()).toBeNull();
+    });
+  });
 });
 
 describe('BrowseMediaViewFolder', () => {

@@ -1,5 +1,9 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+
   max-width: var(--advanced-camera-card-thumbnail-size);
   max-height: var(--advanced-camera-card-thumbnail-size);
 
@@ -13,12 +17,24 @@
   );
 
   overflow: hidden;
-  padding: 10px;
-
   box-sizing: border-box;
 
-  // Ensure img.background is relative to this.
+  // Background icon relative to the thumbnail.
   position: relative;
+}
+
+advanced-camera-card-thumbnail-feature-thumbnail {
+  height: 50%;
+}
+advanced-camera-card-thumbnail-feature-thumbnail:only-child {
+  height: 100%;
+}
+
+advanced-camera-card-icon:only-child {
+  width: 60%;
+  height: 60%;
+
+  --mdc-icon-size: 100%;
 }
 
 advanced-camera-card-icon.background {
@@ -35,26 +51,17 @@ advanced-camera-card-icon.background {
   pointer-events: none;
 
   opacity: 0.1;
-}
 
-div.content {
-  height: 100%;
-  width: 100%;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-
-  color: var(--primary-text-color);
+  --mdc-icon-size: 100%;
 }
 
 div {
   text-align: center;
+  color: var(--primary-text-color);
 }
 div.title {
   font-size: 1.5rem;
 }
 div.subtitle {
-  font-size: 0.7em;
+  font-size: 0.8em;
 }

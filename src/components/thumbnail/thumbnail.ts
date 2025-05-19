@@ -17,8 +17,7 @@ import { ViewItem } from '../../view/item.js';
 import './details/event.js';
 import './details/folder';
 import './details/recording.js';
-import './feature/folder.js';
-import './feature/text.js';
+import './feature/feature.js';
 import './feature/thumbnail.js';
 
 @customElement('advanced-camera-card-thumbnail')
@@ -71,9 +70,6 @@ export class AdvancedCameraCardThumbnail extends LitElement {
       return;
     }
 
-    const thumbnail = this.item.getThumbnail();
-    const title = this.item.getTitle() ?? '';
-
     const starClasses = {
       star: true,
       starred: ViewItemClassifier.isMedia(this.item) && !!this.item?.isFavorite(),
@@ -108,30 +104,14 @@ export class AdvancedCameraCardThumbnail extends LitElement {
       : null;
 
     return html`
-      ${ViewItemClassifier.isEvent(this.item) && thumbnail
-        ? html`<advanced-camera-card-thumbnail-feature-thumbnail
-            aria-label="${title ?? ''}"
-            title=${title}
-            .hass=${this.hass}
-            .thumbnail=${thumbnail ?? undefined}
-          ></advanced-camera-card-thumbnail-feature-thumbnail>`
-        : ViewItemClassifier.isEvent(this.item) ||
-            ViewItemClassifier.isRecording(this.item)
-          ? html`<advanced-camera-card-thumbnail-feature-text
-              aria-label="${title ?? ''}"
-              title="${title ?? ''}"
-              .cameraMetadata=${cameraMetadata}
-              .showCameraTitle=${!this.details}
-              .date=${this.item.getStartTime() ?? undefined}
-            ></advanced-camera-card-thumbnail-feature-text>`
-          : ViewItemClassifier.isFolder(this.item)
-            ? html`<advanced-camera-card-thumbnail-feature-folder
-                .hass=${this.hass}
-                .folder=${this.item}
-                .showName=${!this.details}
-              >
-              </advanced-camera-card-thumbnail-feature-folder>`
-            : html``}
+      <advanced-camera-card-thumbnail-feature
+        aria-label=${this.item.getTitle() ?? ''}
+        .cameraManager=${this.cameraManager}
+        .hasDetails=${this.details}
+        .hass=${this.hass}
+        .item=${this.item}
+      >
+      </advanced-camera-card-thumbnail-feature>
       ${shouldShowFavoriteControl
         ? html` <advanced-camera-card-icon
             class="${classMap(starClasses)}"

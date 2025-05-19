@@ -313,6 +313,7 @@ export const generateViewMediaArray = (options?: {
 // ViewMedia itself has no native way to set startTime and ID that aren't linked
 // to an engine.
 export class TestViewMedia extends ViewMedia {
+  protected _icon: string | null = null;
   protected _id: string | null;
   protected _startTime: Date | null;
   protected _endTime: Date | null;
@@ -330,8 +331,9 @@ export class TestViewMedia extends ViewMedia {
     endTime?: Date | null;
     inProgress?: boolean;
     contentID?: string;
-    title?: string;
-    thumbnail?: string;
+    title?: string | null;
+    thumbnail?: string | null;
+    icon?: string | null;
   }) {
     super(options?.mediaType ?? ViewMediaType.Clip, {
       ...(options?.cameraID !== null &&
@@ -343,8 +345,12 @@ export class TestViewMedia extends ViewMedia {
     this._endTime = options?.endTime ?? null;
     this._inProgress = options?.inProgress !== undefined ? options.inProgress : false;
     this._contentID = options?.contentID ?? null;
-    this._title = options?.title ?? null;
-    this._thumbnail = options?.thumbnail ?? null;
+    this._title = options?.title !== undefined ? options.title : null;
+    this._thumbnail = options?.thumbnail !== undefined ? options.thumbnail : null;
+    this._icon = options?.icon !== undefined ? options.icon : null;
+  }
+  public getIcon(): string | null {
+    return this._icon;
   }
   public getID(): string | null {
     return this._id;

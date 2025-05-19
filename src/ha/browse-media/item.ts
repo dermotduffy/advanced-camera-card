@@ -12,9 +12,41 @@ import {
 } from '../../view/item';
 import { BrowseMedia, BrowseMediaMetadata, RichBrowseMedia } from './types';
 
+interface MediaClassBrowserSetting {
+  icon: string;
+}
+
+const mediaClassBrowserSettings: Record<string, MediaClassBrowserSetting> = {
+  album: { icon: 'mdi:album' },
+  app: { icon: 'mdi:application' },
+  artist: { icon: 'mdi:account-music' },
+  channel: { icon: 'mdi:television-classic' },
+  composer: { icon: 'mdi:account-music-outline' },
+  contributing_artist: { icon: 'mdi:account-music' },
+  directory: { icon: 'mdi:folder' },
+  episode: { icon: 'mdi:television-classic' },
+  game: { icon: 'mdi:gamepad-variant' },
+  genre: { icon: 'mdi:drama-masks' },
+  image: { icon: 'mdi:image' },
+  movie: { icon: 'mdi:movie' },
+  music: { icon: 'mdi:music' },
+  playlist: { icon: 'mdi:playlist-music' },
+  podcast: { icon: 'mdi:podcast' },
+  season: { icon: 'mdi:television-classic' },
+  track: { icon: 'mdi:file-music' },
+  tv_show: { icon: 'mdi:television-classic' },
+  url: { icon: 'mdi:web' },
+  video: { icon: 'mdi:video' },
+};
+
+const getIcon = (mediaClass: string): string | null => {
+  return mediaClassBrowserSettings[mediaClass]?.icon ?? null;
+};
+
 export class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMedia {
   protected _browseMedia: RichBrowseMedia<BrowseMediaMetadata | undefined>;
   protected _id: string;
+  protected _icon: string | null;
 
   constructor(
     mediaType: ViewMediaType,
@@ -26,6 +58,7 @@ export class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMed
       ...options,
     });
     this._browseMedia = browseMedia;
+    this._icon = getIcon(browseMedia.media_class);
 
     // Generate a custom ID that uses the start date (to allow multiple
     // BrowseMedia objects (e.g. images and movies) to be de-duplicated).
@@ -60,6 +93,9 @@ export class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMed
   public getThumbnail(): string | null {
     return this._browseMedia.thumbnail;
   }
+  public getIcon(): string | null {
+    return this._icon;
+  }
   public getWhat(): string[] | null {
     return this._browseMedia._metadata?.what ?? null;
   }
@@ -77,42 +113,11 @@ export class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMed
   }
 }
 
-interface MediaClassBrowserSetting {
-  icon: string;
-}
-
-const mediaClassBrowserSettings: Record<string, MediaClassBrowserSetting> = {
-  album: { icon: 'mdi:album' },
-  app: { icon: 'mdi:application' },
-  artist: { icon: 'mdi:account-music' },
-  channel: { icon: 'mdi: television-classic' },
-  composer: { icon: 'mdi:account-music-outline' },
-  contributing_artist: { icon: 'mdi:account-music' },
-  directory: { icon: 'mdi:folder' },
-  episode: { icon: 'mdi:television-classic' },
-  game: { icon: 'mdi:gamepad-variant' },
-  genre: { icon: 'mdi:drama-masks' },
-  image: { icon: 'mdi:image' },
-  movie: { icon: 'mdi:movie' },
-  music: { icon: 'mdi:music' },
-  playlist: { icon: 'mdi:playlist-music' },
-  podcast: { icon: 'mdi:podcast' },
-  season: { icon: 'mdi:television-classic' },
-  track: { icon: 'mdi:file-music' },
-  tv_show: { icon: 'mdi:television-classic' },
-  url: { icon: 'mdi:web' },
-  video: { icon: 'mdi:video' },
-};
-
 export class BrowseMediaViewFolder extends ViewFolder {
   constructor(folder: FolderConfig, browseMedia: BrowseMedia) {
-    const icon = browseMedia.children_media_class
-      ? mediaClassBrowserSettings[browseMedia.children_media_class]?.icon ?? null
-      : null;
-
     super(folder, {
       id: browseMedia.media_content_id,
-      icon,
+      icon: getIcon(browseMedia.children_media_class ?? browseMedia.media_class),
       title: browseMedia.title,
       thumbnail: browseMedia.thumbnail,
     });

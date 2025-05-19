@@ -67,7 +67,7 @@ describe('MessageController', () => {
       const message: Message = { message: 'Error message', type: 'error' };
       expect(controller.getURL(message)).toEqual({
         link: TROUBLESHOOTING_URL,
-        title: localize('error.troubleshooting')
+        title: localize('error.troubleshooting'),
       });
     });
 
@@ -96,13 +96,13 @@ describe('MessageController', () => {
       it('when specified', () => {
         const controller = new MessageController();
         const url: MessageURL = {
-          link: "link",
-          title: "title"
-        }
+          link: 'link',
+          title: 'title',
+        };
         const message: Message = {
           message: 'Error message',
           type: 'error',
-          url
+          url,
         };
         expect(controller.getURL(message)).toBe(url);
       });

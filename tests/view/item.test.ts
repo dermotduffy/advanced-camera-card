@@ -41,6 +41,7 @@ describe('ViewMedia', () => {
     expect(media.getWhere()).toBeNull();
     expect(media.setFavorite(true)).toBeUndefined();
     expect(media.isFavorite()).toBeNull();
+    expect(media.getIcon()).toBeNull();
   });
 
   it('should correctly determine if a media item includes a time', () => {
