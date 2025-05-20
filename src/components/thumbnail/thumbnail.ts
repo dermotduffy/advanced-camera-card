@@ -14,9 +14,7 @@ import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { errorToConsole } from '../../utils/basic.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { ViewItem } from '../../view/item.js';
-import './details/event.js';
-import './details/folder';
-import './details/recording.js';
+import "./details";
 import './feature/feature.js';
 import './feature/thumbnail.js';
 
@@ -96,13 +94,6 @@ export class AdvancedCameraCardThumbnail extends LitElement {
       this.item.getID() &&
       mediaCapabilities?.canDownload;
 
-    const cameraID = ViewItemClassifier.isMedia(this.item)
-      ? this.item.getCameraID()
-      : null;
-    const cameraMetadata = cameraID
-      ? this.cameraManager?.getCameraMetadata(cameraID) ?? null
-      : null;
-
     return html`
       <advanced-camera-card-thumbnail-feature
         aria-label=${this.item.getTitle() ?? ''}
@@ -134,23 +125,14 @@ export class AdvancedCameraCardThumbnail extends LitElement {
             }}
           /></advanced-camera-card-icon>`
         : ``}
-      ${this.details && ViewItemClassifier.isEvent(this.item)
-        ? html`<advanced-camera-card-thumbnail-details-event
-            .media=${this.item ?? undefined}
-            .cameraTitle=${cameraMetadata?.title}
+      ${this.details
+        ? html`<advanced-camera-card-thumbnail-details
+            .hass=${this.hass}
+            .item=${this.item ?? undefined}
+            .cameraManager=${this.cameraManager}
             .seek=${this.seek}
-          ></advanced-camera-card-thumbnail-details-event>`
-        : this.details && ViewItemClassifier.isRecording(this.item)
-          ? html`<advanced-camera-card-thumbnail-details-recording
-              .media=${this.item ?? undefined}
-              .cameraTitle=${cameraMetadata?.title}
-              .seek=${this.seek}
-            ></advanced-camera-card-thumbnail-details-recording>`
-          : this.details && ViewItemClassifier.isFolder(this.item)
-            ? html`<advanced-camera-card-thumbnail-details-folder
-                .folder=${this.item}
-              ></advanced-camera-card-thumbnail-details-folder>`
-            : html``}
+          ></advanced-camera-card-thumbnail-details>`
+        : ''}
       ${shouldShowTimelineControl
         ? html`<advanced-camera-card-icon
             class="timeline"

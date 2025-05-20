@@ -184,6 +184,10 @@ describe('getDurationString', () => {
     const end = new Date(2023, 3, 14, 13, 35, 12);
     expect(getDurationString(start, end)).toBe('2s');
   });
+  it('should return 0s for no delta', () => {
+    const start = new Date(2023, 3, 14, 13, 35, 10);
+    expect(getDurationString(start, start)).toBe('0s');
+  });
 });
 
 describe('allPromises', () => {

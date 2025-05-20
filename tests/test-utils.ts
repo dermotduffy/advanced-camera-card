@@ -58,7 +58,7 @@ import { Device } from '../src/ha/registry/device/types';
 import { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
 import { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
 import { CapabilitiesRaw, Interaction, MediaLoadedInfo } from '../src/types';
-import { ViewMedia, ViewMediaType } from '../src/view/item';
+import { EventViewMedia, ViewMedia, ViewMediaType } from '../src/view/item';
 import { QueryResults } from '../src/view/query-results';
 import { ViewItemCapabilities } from '../src/view/types';
 import { View, ViewParameters } from '../src/view/view';
@@ -312,7 +312,7 @@ export const generateViewMediaArray = (options?: {
 
 // ViewMedia itself has no native way to set startTime and ID that aren't linked
 // to an engine.
-export class TestViewMedia extends ViewMedia {
+export class TestViewMedia extends ViewMedia implements EventViewMedia {
   protected _icon: string | null = null;
   protected _id: string | null;
   protected _startTime: Date | null;
@@ -321,6 +321,10 @@ export class TestViewMedia extends ViewMedia {
   protected _contentID: string | null;
   protected _title: string | null;
   protected _thumbnail: string | null;
+  protected _what: string[] | null = null;
+  protected _score: number | null = null;
+  protected _tags: string[] | null = null;
+  protected _where: string[] | null = null;
 
   constructor(options?: {
     id?: string | null;
@@ -334,6 +338,10 @@ export class TestViewMedia extends ViewMedia {
     title?: string | null;
     thumbnail?: string | null;
     icon?: string | null;
+    what?: string[] | null;
+    score?: number | null;
+    tags?: string[] | null;
+    where?: string[] | null;
   }) {
     super(options?.mediaType ?? ViewMediaType.Clip, {
       ...(options?.cameraID !== null &&
@@ -348,6 +356,10 @@ export class TestViewMedia extends ViewMedia {
     this._title = options?.title !== undefined ? options.title : null;
     this._thumbnail = options?.thumbnail !== undefined ? options.thumbnail : null;
     this._icon = options?.icon !== undefined ? options.icon : null;
+    this._what = options?.what !== undefined ? options.what : null;
+    this._score = options?.score !== undefined ? options.score : null;
+    this._tags = options?.tags !== undefined ? options.tags : null;
+    this._where = options?.where !== undefined ? options.where : null;
   }
   public getIcon(): string | null {
     return this._icon;
@@ -372,6 +384,22 @@ export class TestViewMedia extends ViewMedia {
   }
   public getThumbnail(): string | null {
     return this._thumbnail;
+  }
+  public getWhat(): string[] | null {
+    return this._what;
+  }
+  public getScore(): number | null {
+    return this._score;
+  }
+  public getTags(): string[] | null {
+    return this._tags;
+  }
+  public getWhere(): string[] | null {
+    return this._where;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public isGroupableWith(_that: EventViewMedia): boolean {
+    return false;
   }
 }
 
