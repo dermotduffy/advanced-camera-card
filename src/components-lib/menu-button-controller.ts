@@ -647,26 +647,33 @@ export class MenuButtonController {
     }
 
     if (folders.length === 1) {
-      const folderConfig = folders[0][1];
+      const isSelected =
+        QueryClassifier.isFolderQuery(view?.query) &&
+        view.query.getQuery()?.folder.id === folders[0][0];
+      const folder = folders[0][1];
+
       return {
-        icon: folderConfig.icon ?? 'mdi:folder',
+        icon: folder.icon ?? 'mdi:folder',
         ...config.menu.buttons.folders,
         type: 'custom:advanced-camera-card-menu-icon',
-        title: folderConfig.title ?? localize('config.menu.buttons.folders'),
+        title: folder.title ?? localize('config.menu.buttons.folders'),
+        style: isSelected ? this._getEmphasizedStyle() : {},
         tap_action: createFolderAction(),
       };
     }
 
-    const selectedFolder = QueryClassifier.isFolderQuery(view?.query)
-      ? view.query.getQuery()?.folder
-      : null;
     const submenuItems = folders.map(([id, folder]) => {
+      const isSelected =
+        QueryClassifier.isFolderQuery(view?.query) &&
+        view.query.getQuery()?.folder.id === id;
+
       const action = createFolderAction({ folderID: id });
       return {
         enabled: true,
         title: folder.title ?? folder.id,
         icon: folder.icon ?? 'mdi:folder',
-        selected: folder === selectedFolder,
+        selected: isSelected,
+        style: isSelected ? this._getEmphasizedStyle() : {},
         ...(action && { tap_action: action }),
       };
     });

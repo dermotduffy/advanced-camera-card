@@ -14,7 +14,7 @@ import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { errorToConsole } from '../../utils/basic.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { ViewItem } from '../../view/item.js';
-import "./details";
+import './details.js';
 import './feature/feature.js';
 import './feature/thumbnail.js';
 

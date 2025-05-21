@@ -1775,7 +1775,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('should have a folders button for a single folder', () => {
+    it('should have a folders button for a single folder outside the folder view', () => {
       const foldersManager = mock<FoldersManager>();
       foldersManager.getFolders.mockReturnValue(
         new Map([['folder-0', createFolder({ id: 'folder-0' })]]).entries(),
@@ -1789,6 +1789,35 @@ describe('MenuButtonController', () => {
         icon: 'mdi:folder',
         enabled: true,
         priority: 50,
+        style: {},
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Folders',
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'folder' },
+      });
+    });
+
+    it('should have a folders button for a single folder inside the folder view', () => {
+      const folder = createFolder({ id: 'folder-0' });
+      const foldersManager = mock<FoldersManager>();
+      foldersManager.getFolders.mockReturnValue(
+        new Map([['folder-0', folder]]).entries(),
+      );
+
+      const buttons = calculateButtons(controller, {
+        foldersManager,
+        view: createView({
+          view: 'folder',
+          query: new FolderViewQuery({ folder, path: [{ id: 'one' }] }),
+        }),
+      });
+
+      expect(buttons).toContainEqual({
+        icon: 'mdi:folder',
+        enabled: true,
+        priority: 50,
+        style: {
+          color: 'var(--advanced-camera-card-menu-button-active-color)',
+        },
         type: 'custom:advanced-camera-card-menu-icon',
         title: 'Folders',
         tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'folder' },
@@ -1807,6 +1836,7 @@ describe('MenuButtonController', () => {
       const view = createView({
         query: new FolderViewQuery({
           folder: selectedFolder,
+          path: [{ id: 'id' }],
         }),
       });
 
@@ -1826,6 +1856,7 @@ describe('MenuButtonController', () => {
             enabled: true,
             icon: 'mdi:folder',
             selected: false,
+            style: {},
             tap_action: {
               action: 'fire-dom-event',
               advanced_camera_card_action: 'folder',
@@ -1837,6 +1868,9 @@ describe('MenuButtonController', () => {
             enabled: true,
             icon: 'mdi:folder',
             selected: true,
+            style: {
+              color: 'var(--advanced-camera-card-menu-button-active-color)',
+            },
             tap_action: {
               action: 'fire-dom-event',
               advanced_camera_card_action: 'folder',
@@ -1871,6 +1905,7 @@ describe('MenuButtonController', () => {
             enabled: true,
             icon: 'mdi:folder',
             selected: false,
+            style: {},
             tap_action: {
               action: 'fire-dom-event',
               advanced_camera_card_action: 'folder',
@@ -1882,6 +1917,7 @@ describe('MenuButtonController', () => {
             enabled: true,
             icon: 'mdi:folder',
             selected: false,
+            style: {},
             tap_action: {
               action: 'fire-dom-event',
               advanced_camera_card_action: 'folder',
