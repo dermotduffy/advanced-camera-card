@@ -100,10 +100,8 @@ export class AdvancedCameraCardDrawer extends LitElement {
         ${ref(this._refDrawer)}
         location="${this.location}"
         ?open=${this.open}
-        @blur=${() => {
-          if (this.open) {
-            this.open = false;
-          }
+        @mouseleave=${() => {
+          this.open = false;
         }}
       >
         ${this.control
