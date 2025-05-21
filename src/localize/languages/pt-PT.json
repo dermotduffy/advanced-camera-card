@@ -704,18 +704,6 @@
     "webrtc_card_reported_error": "O cartão WebRTC relatou um erro",
     "webrtc_card_waiting": "Aguardar o cartão WebRTC carregar ..."
   },
-  "event": {
-    "camera": "Camera",
-    "duration": "Duração",
-    "in_progress": "Em andamento",
-    "score": "Pontuação",
-    "seek": "Procurar",
-    "start": "Início",
-    "tag": "",
-    "title": "",
-    "what": "O quê",
-    "where": "Onde"
-  },
   "key_assigner": {
     "assign": "",
     "modifiers": {
@@ -759,19 +747,22 @@
   "media_viewer": {
     "unseekable": ""
   },
-  "recording": {
+  "thumbnail": {
     "camera": "Camera",
+    "download": "",
     "duration": "Duração",
     "events": "Eventos",
     "in_progress": "Em andamento",
-    "seek": "Procurar",
-    "start": "Começar"
-  },
-  "thumbnail": {
-    "download": "",
     "no_thumbnail": "Nenhuma miniatura disponível",
     "retain_indefinitely": "Evento será retido por tempo indeterminado",
-    "timeline": "Ver evento na linha do tempo"
+    "score": "Pontuação",
+    "seek": "Procurar",
+    "start": "Início",
+    "tag": "",
+    "timeline": "Ver evento na linha do tempo",
+    "title": "",
+    "what": "O quê",
+    "where": "Onde"
   },
   "timeline": {
     "select_date": "Selecionar a data"

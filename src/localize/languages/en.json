@@ -704,18 +704,6 @@
     "webrtc_card_reported_error": "WebRTC Card reported an error",
     "webrtc_card_waiting": "Waiting for WebRTC Card to load ..."
   },
-  "event": {
-    "camera": "Camera",
-    "duration": "Duration",
-    "in_progress": "In Progress",
-    "score": "Score",
-    "seek": "Seek",
-    "start": "Start",
-    "tag": "Tag",
-    "title": "Title",
-    "what": "What",
-    "where": "Where"
-  },
   "key_assigner": {
     "assign": "Assign",
     "modifiers": {
@@ -759,19 +747,22 @@
   "media_viewer": {
     "unseekable": "Seek time not found in media"
   },
-  "recording": {
+  "thumbnail": {
     "camera": "Camera",
+    "download": "Download media",
     "duration": "Duration",
     "events": "Events",
     "in_progress": "In Progress",
-    "seek": "Seek",
-    "start": "Start"
-  },
-  "thumbnail": {
-    "download": "Download media",
     "no_thumbnail": "No thumbnail available",
     "retain_indefinitely": "Media will be indefinitely retained",
-    "timeline": "See media in timeline"
+    "score": "Score",
+    "seek": "Seek",
+    "start": "Start",
+    "tag": "Tag",
+    "timeline": "See media in timeline",
+    "title": "Title",
+    "what": "What",
+    "where": "Where"
   },
   "timeline": {
     "select_date": "Choose date"

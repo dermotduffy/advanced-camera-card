@@ -704,18 +704,6 @@
     "webrtc_card_reported_error": "La targeta WebRTC ha informat d'un error",
     "webrtc_card_waiting": "S'està esperant que es carregui la targeta WebRTC ..."
   },
-  "event": {
-    "camera": "Càmera",
-    "duration": "Durada",
-    "in_progress": "En procés",
-    "score": "Puntuació",
-    "seek": "Buscar",
-    "start": "Començar",
-    "tag": "Etiqueta",
-    "title": "",
-    "what": "Què",
-    "where": "On"
-  },
   "key_assigner": {
     "assign": "",
     "modifiers": {
@@ -759,19 +747,22 @@
   "media_viewer": {
     "unseekable": "Busqueu temps no trobat als mitjans multimèdia"
   },
-  "recording": {
+  "thumbnail": {
     "camera": "Càmera",
+    "download": "Descarregar mitjans multimèdia",
     "duration": "Durada",
     "events": "Esdeveniments",
     "in_progress": "En procés",
-    "seek": "Buscar",
-    "start": "Començar"
-  },
-  "thumbnail": {
-    "download": "Descarregar mitjans multimèdia",
     "no_thumbnail": "No hi ha cap miniatura disponible",
     "retain_indefinitely": "Els mitjans multimèdia es conservaran indefinidament",
-    "timeline": "Veure els mitjans multimèdia a la línia de temps"
+    "score": "Puntuació",
+    "seek": "Buscar",
+    "start": "Començar",
+    "tag": "Etiqueta",
+    "timeline": "Veure els mitjans multimèdia a la línia de temps",
+    "title": "",
+    "what": "Què",
+    "where": "On"
   },
   "timeline": {
     "select_date": "Escolliu la data"

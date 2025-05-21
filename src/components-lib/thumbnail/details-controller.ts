@@ -67,7 +67,7 @@ export class ThumbnailDetailsController {
     const duration = startTime && endTime ? getDurationString(startTime, endTime) : null;
     const inProgress = ViewItemClassifier.isMedia(item)
       ? item.inProgress()
-        ? localize('event.in_progress')
+        ? localize('thumbnail.in_progress')
         : null
       : null;
     const where = ViewItemClassifier.isMedia(item)
@@ -82,7 +82,7 @@ export class ThumbnailDetailsController {
       ...(startTime
         ? [
             {
-              hint: localize('event.start'),
+              hint: localize('thumbnail.start'),
               icon: { icon: 'mdi:calendar-clock-outline' },
               title: format(startTime, 'yyyy-MM-dd HH:mm:ss'),
             },
@@ -91,7 +91,7 @@ export class ThumbnailDetailsController {
       ...(duration || inProgress
         ? [
             {
-              hint: localize('event.duration'),
+              hint: localize('thumbnail.duration'),
               icon: { icon: 'mdi:clock-outline' },
               title: `${duration ?? ''}${duration && inProgress ? ' ' : ''}${inProgress ?? ''}`,
             },
@@ -100,7 +100,7 @@ export class ThumbnailDetailsController {
       ...(cameraMetadata?.title
         ? [
             {
-              hint: localize('event.camera'),
+              hint: localize('thumbnail.camera'),
               title: cameraMetadata.title,
               icon: { icon: 'mdi:cctv' },
             },
@@ -109,7 +109,7 @@ export class ThumbnailDetailsController {
       ...(where
         ? [
             {
-              hint: localize('event.where'),
+              hint: localize('thumbnail.where'),
               title: where,
               icon: { icon: 'mdi:map-marker-outline' },
             },
@@ -118,7 +118,7 @@ export class ThumbnailDetailsController {
       ...(tags
         ? [
             {
-              hint: localize('event.tag'),
+              hint: localize('thumbnail.tag'),
               title: tags,
               icon: { icon: 'mdi:tag' },
             },
@@ -127,7 +127,7 @@ export class ThumbnailDetailsController {
       ...(seekString
         ? [
             {
-              hint: localize('event.seek'),
+              hint: localize('thumbnail.seek'),
               title: seekString,
               icon: { icon: 'mdi:clock-fast' },
             },
@@ -142,7 +142,7 @@ export class ThumbnailDetailsController {
               title: itemTitle,
               ...(details.length > 0 && {
                 icon: { icon: 'mdi:rename' },
-                hint: localize('event.title'),
+                hint: localize('thumbnail.title'),
               }),
             },
           ]
