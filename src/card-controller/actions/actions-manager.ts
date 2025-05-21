@@ -59,8 +59,6 @@ export class ActionsManager implements ActionsExecutor {
       specificActions = config?.media_viewer.actions;
     } else if (view?.is('image')) {
       specificActions = config?.image?.actions;
-    } else if (view?.is('folder')) {
-      specificActions = config?.folder_gallery?.actions;
     } else {
       return {};
     }

@@ -8,7 +8,6 @@ import { imageConfigDefault } from './common/image';
 import { DebugConfig, debugConfigDefault, debugConfigSchema } from './debug';
 import { dimensionsConfigSchema } from './dimensions';
 import { pictureElementsSchema } from './elements/types';
-import { folderGalleryConfigDefault, folderGalleryConfigSchema } from './folder-gallery';
 import { foldersConfigSchema } from './folders';
 import { imageConfigSchema } from './image';
 import { liveConfigDefault, liveConfigSchema } from './live';
@@ -46,7 +45,6 @@ export const advancedCameraCardConfigSchema = z.object({
   status_bar: statusBarConfigSchema,
   live: liveConfigSchema,
   media_gallery: mediaGalleryConfigSchema,
-  folder_gallery: folderGalleryConfigSchema,
   media_viewer: viewerConfigSchema,
   image: imageConfigSchema,
   elements: pictureElementsSchema,
@@ -90,5 +88,4 @@ export const configDefaults = {
   performance: performanceConfigDefault,
   debug: debugConfigDefault,
   remote_control: remoteControlConfigDefault,
-  folder_gallery: folderGalleryConfigDefault,
 };

@@ -2,7 +2,7 @@
 
 The `folders` stanza is used for configuring folders from which media/subfolders may be viewed.
 
-?> To configure the behavior of the gallery in which folders are displayed, see the [`folder_gallery` configuration](./folder-gallery.md).
+?> To configure the behavior of the gallery in which folders are displayed, see the [`media_gallery` configuration](./media-gallery.md).
 
 ```yaml
 folders:

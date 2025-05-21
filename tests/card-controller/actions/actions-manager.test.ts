@@ -62,14 +62,6 @@ describe('ActionsManager', () => {
           },
         },
       },
-      folder_gallery: {
-        actions: {
-          tap_action: {
-            action: 'navigate',
-            navigation_path: '6',
-          },
-        },
-      },
     };
 
     afterAll(() => {
@@ -88,7 +80,7 @@ describe('ActionsManager', () => {
       expect(manager.getMergedActions()).toEqual({});
     });
 
-    describe('should get merged actions with live view', () => {
+    describe('should get merged actions with view', () => {
       it.each([
         [
           'live' as const,
@@ -109,6 +101,16 @@ describe('ActionsManager', () => {
           },
         ],
         [
+          'folder' as const,
+          {
+            tap_action: {
+              action: 'navigate',
+              // Folder also uses the media gallery.
+              navigation_path: '3',
+            },
+          },
+        ],
+        [
           'clip' as const,
           {
             tap_action: {
@@ -123,15 +125,6 @@ describe('ActionsManager', () => {
             tap_action: {
               action: 'navigate',
               navigation_path: '5',
-            },
-          },
-        ],
-        [
-          'folder' as const,
-          {
-            tap_action: {
-              action: 'navigate',
-              navigation_path: '6',
             },
           },
         ],

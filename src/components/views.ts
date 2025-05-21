@@ -68,7 +68,7 @@ export class AdvancedCameraCardViews extends LitElement {
       if (view?.is('live') || this._shouldLivePreload()) {
         import('./live/index.js');
       }
-      if (view?.isMediaGalleryView()) {
+      if (view?.isMediaGalleryView() && !view.is('folder')) {
         import('./gallery/media-gallery.js');
       } else if (view?.isViewerView()) {
         import('./viewer/index.js');
@@ -157,7 +157,7 @@ export class AdvancedCameraCardViews extends LitElement {
           >
           </advanced-camera-card-image>`
         : ``}
-      ${!this.hide && view?.isMediaGalleryView()
+      ${!this.hide && view?.isMediaGalleryView() && !view.is('folder')
         ? html` <advanced-camera-card-media-gallery
             .hass=${this.hass}
             .viewManagerEpoch=${this.viewManagerEpoch}
@@ -205,7 +205,7 @@ export class AdvancedCameraCardViews extends LitElement {
             .hass=${this.hass}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .viewItemManager=${this.viewItemManager}
-            .galleryConfig=${this.config.folder_gallery}
+            .galleryConfig=${this.config.media_gallery}
           ></advanced-camera-card-folder-gallery>`
         : ``}
       ${

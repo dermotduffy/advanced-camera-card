@@ -8,7 +8,6 @@
   - [`elements`](../../elements/README.md)
     - [Custom Actions](../custom/README.md)
     - [Stock Actions](README.md)
-  - [`folder_gallery`](../../folder-gallery.md)
   - [`folders`](../../folders.md)
   - [`image`](../../image.md)
   - [`live`](../../live.md)

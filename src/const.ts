@@ -120,18 +120,6 @@ export const CONF_CAMERAS_GLOBAL_PTZ = `${CONF_CAMERAS_GLOBAL}.ptz` as const;
 
 export const CONF_ELEMENTS = 'elements' as const;
 
-const CONF_FOLDER_GALLERY = 'folder_gallery' as const;
-export const CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS =
-  `${CONF_FOLDER_GALLERY}.controls.thumbnails.show_details` as const;
-export const CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL =
-  `${CONF_FOLDER_GALLERY}.controls.thumbnails.show_download_control` as const;
-export const CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
-  `${CONF_FOLDER_GALLERY}.controls.thumbnails.show_favorite_control` as const;
-export const CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
-  `${CONF_FOLDER_GALLERY}.controls.thumbnails.show_timeline_control` as const;
-export const CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SIZE =
-  `${CONF_FOLDER_GALLERY}.controls.thumbnails.size` as const;
-
 export const CONF_FOLDERS = 'folders' as const;
 export const CONF_FOLDERS_ARRAY_HA_URL = `${CONF_FOLDERS}.#.ha.url` as const;
 export const CONF_FOLDERS_ARRAY_ICON = `${CONF_FOLDERS}.#.icon` as const;

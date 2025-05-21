@@ -15,7 +15,7 @@ import {
   upFolderClickHandler,
 } from '../../components-lib/folder/up-folder.js';
 import { FolderGalleryController } from '../../components-lib/gallery/folder-gallery-controller.js';
-import { FolderGalleryConfig } from '../../config/schema/folder-gallery.js';
+import { MediaGalleryConfig } from '../../config/schema/media-gallery.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize';
 import folderGalleryStyle from '../../scss/folder-gallery.scss';
@@ -39,7 +39,7 @@ export class AdvancedCameraCardFolderGallery extends LitElement {
   public viewItemManager?: ViewItemManager;
 
   @property({ attribute: false })
-  public galleryConfig?: FolderGalleryConfig;
+  public galleryConfig?: MediaGalleryConfig;
 
   protected _controller = new FolderGalleryController(this);
 

@@ -9,7 +9,6 @@
   - [`conditions`](../../conditions.md)
   - [`dimensions`](../../dimensions.md)
   - [`elements`](../../elements/README.md)
-  - [`folder_gallery`](../../folder-gallery.md)
   - [`folders`](../../folders.md)
   - [`image`](../../image.md)
   - [`live`](../../live.md)

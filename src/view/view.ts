@@ -126,7 +126,7 @@ export class View {
    * Determine if a view is a media gallery.
    */
   public isMediaGalleryView(): boolean {
-    return ['clips', 'snapshots', 'recordings'].includes(this.view);
+    return ['clips', 'folder', 'snapshots', 'recordings'].includes(this.view);
   }
 
   /**

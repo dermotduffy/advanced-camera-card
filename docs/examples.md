@@ -339,7 +339,7 @@ cameras:
 ## Folders
 
 These examples create folders that can be viewed in the
-[`folder_gallery`](./configuration/folder-gallery.md).
+[`media_gallery`](./configuration/media-gallery.md).
 
 ### Folder URLs
 

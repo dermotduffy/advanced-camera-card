@@ -126,17 +126,6 @@ describe('config defaults', () => {
         transition_effect: 'slide',
         zoomable: true,
       },
-      folder_gallery: {
-        controls: {
-          thumbnails: {
-            show_details: false,
-            show_download_control: true,
-            show_favorite_control: true,
-            show_timeline_control: true,
-            size: 100,
-          },
-        },
-      },
       media_gallery: {
         controls: {
           filter: {

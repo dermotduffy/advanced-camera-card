@@ -613,8 +613,6 @@
     "delete": "Delete",
     "dimensions": "Card dimensions",
     "dimensions_secondary": "Card dimensions & shape options",
-    "folder_gallery": "Folder gallery",
-    "folder_gallery_secondary": "Folder gallery options",
     "folders": "Folders",
     "folders_secondary": "What folders to render on this card",
     "image": "Image",

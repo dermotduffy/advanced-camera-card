@@ -155,6 +155,7 @@ describe('View Basics', () => {
 
   it('should detect gallery views', () => {
     expect(createView({ view: 'clips' }).isMediaGalleryView()).toBeTruthy();
+    expect(createView({ view: 'folder' }).isMediaGalleryView()).toBeTruthy();
     expect(createView({ view: 'snapshots' }).isMediaGalleryView()).toBeTruthy();
     expect(createView({ view: 'recordings' }).isMediaGalleryView()).toBeTruthy();
   });

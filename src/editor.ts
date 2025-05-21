@@ -91,11 +91,6 @@ import {
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_DIMENSIONS_HEIGHT,
-  CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-  CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
-  CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
-  CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
-  CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SIZE,
   CONF_FOLDERS,
   CONF_FOLDERS_ARRAY_HA_URL,
   CONF_FOLDERS_ARRAY_ICON,
@@ -276,7 +271,6 @@ const MENU_CAMERAS_PROXY = 'cameras.proxy';
 const MENU_CAMERAS_REOLINK = 'cameras.reolink';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC_CARD = 'cameras.webrtc_card';
-const MENU_FOLDER_GALLERY_CONTROLS_THUMBNAILS = 'folder_gallery.controls.thumbnails';
 const MENU_FOLDERS = 'folders';
 const MENU_FOLDERS_HA = 'folders.ha';
 const MENU_LIVE_CONTROLS = 'live.controls';
@@ -355,11 +349,6 @@ const options: EditorOptions = {
     icon: 'folder-multiple',
     name: localize('editor.folders'),
     secondary: localize('editor.folders'),
-  },
-  folder_gallery: {
-    icon: 'grid-large',
-    name: localize('editor.folder_gallery'),
-    secondary: localize('editor.folder_gallery_secondary'),
   },
   media_gallery: {
     icon: 'grid',
@@ -2993,20 +2982,6 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 )}
               </div>
             `
-          : ''}
-        ${this._renderOptionSetHeader('folder_gallery')}
-        ${this._expandedMenus[MENU_OPTIONS] === 'folder_gallery'
-          ? html` <div class="values">
-              ${this._renderThumbnailsControls(
-                MENU_FOLDER_GALLERY_CONTROLS_THUMBNAILS,
-                CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SIZE,
-                CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-                CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
-                CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
-                CONF_FOLDER_GALLERY_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
-                this._defaults.folder_gallery.controls.thumbnails,
-              )}
-            </div>`
           : ''}
         ${this._renderOptionSetHeader('folders')}
         ${this._expandedMenus[MENU_OPTIONS] === 'folders'
