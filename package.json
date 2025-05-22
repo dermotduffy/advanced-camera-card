@@ -188,7 +188,7 @@
     "coverage": "vitest run --coverage"
   },
   "volta": {
-    "node": "20.14.0",
-    "yarn": "4.3.0"
+    "node": "22.14.0",
+    "yarn": "4.9.1"
   }
 }
