@@ -1834,6 +1834,7 @@ describe('MenuButtonController', () => {
       foldersManager.getFolders.mockReturnValue(folders.entries());
 
       const view = createView({
+        view: 'folder',
         query: new FolderViewQuery({
           folder: selectedFolder,
           path: [{ id: 'id' }],
@@ -1851,6 +1852,9 @@ describe('MenuButtonController', () => {
         priority: 50,
         type: 'custom:advanced-camera-card-menu-submenu',
         title: 'Folders',
+        style: {
+          color: 'var(--advanced-camera-card-menu-button-active-color)',
+        },
         items: [
           {
             enabled: true,
@@ -1900,6 +1904,7 @@ describe('MenuButtonController', () => {
         priority: 50,
         type: 'custom:advanced-camera-card-menu-submenu',
         title: 'Folders',
+        style: {},
         items: [
           {
             enabled: true,

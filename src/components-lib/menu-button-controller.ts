@@ -684,6 +684,7 @@ export class MenuButtonController {
       type: 'custom:advanced-camera-card-menu-submenu',
       title: localize('config.menu.buttons.folders'),
       items: submenuItems,
+      style: view?.is('folder') ? this._getEmphasizedStyle() : {},
     };
   }
 
