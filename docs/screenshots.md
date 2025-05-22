@@ -44,6 +44,10 @@ Bidirectional control of camera selection via an entity.
 
 ![](images/media-filtering.gif 'Media filtering :size=400')
 
+## Folders
+
+![](images/folders.png 'Media Folders :size=400')
+
 ## Grid
 
 ![](images/grid-small.gif 'Interacting with a camera grid :size=400')
