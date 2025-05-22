@@ -112,6 +112,20 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: expand
 ```
 
+## `folder`
+
+Show a given folder in the folder gallery.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: folder
+# [...]
+```
+
+| Parameter | Default                                                            | Description                                                                                                     |
+| --------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `folder`  | The first configured folder (under [`folders`](../../folders.md)). | An optional id of the folder to show, see the `id` parameter under [`folders` configuration](../../folders.md). |
+
 ## `fullscreen`
 
 Toggle fullscreen.

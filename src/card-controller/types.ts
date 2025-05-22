@@ -1,16 +1,16 @@
 import type { CameraManager } from '../camera-manager/manager';
 import type { ConditionStateManager } from '../conditions/state-manager';
 import type { Automation } from '../config/schema/automations';
-import type { EntityRegistryManager } from '../utils/ha/registry/entity/types';
-import type { ResolvedMediaCache } from '../utils/ha/resolved-media';
+import type { EntityRegistryManager } from '../ha/registry/entity/types';
+import type { ResolvedMediaCache } from '../ha/resolved-media';
 import type { ActionsManager } from './actions/actions-manager';
 import type { AutomationsManager } from './automations-manager';
 import type { CameraURLManager } from './camera-url-manager';
 import type { CardElementManager } from './card-element-manager';
 import type { ConfigManager } from './config/config-manager';
 import type { DefaultManager } from './default-manager';
-import type { DownloadManager } from './download-manager';
 import type { ExpandManager } from './expand-manager';
+import type { FoldersManager } from './folders/manager';
 import type { FullscreenManager } from './fullscreen/fullscreen-manager';
 import type { HASSManager } from './hass/hass-manager';
 import type { InitializationManager } from './initialization-manager';
@@ -24,6 +24,7 @@ import type { QueryStringManager } from './query-string-manager';
 import type { StatusBarItemManager } from './status-bar-item-manager';
 import type { StyleManager } from './style-manager';
 import type { TriggersManager } from './triggers-manager';
+import type { ViewItemManager } from './view/item-manager';
 import type { ViewManager } from './view/view-manager';
 
 // *************************************************************************
@@ -40,8 +41,8 @@ export interface CardActionsAPI {
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
-  getDownloadManager(): DownloadManager;
   getExpandManager(): ExpandManager;
+  getFoldersManager(): FoldersManager;
   getFullscreenManager(): FullscreenManager;
   getHASSManager(): HASSManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
@@ -50,6 +51,7 @@ export interface CardActionsAPI {
   getMicrophoneManager(): MicrophoneManager;
   getStatusBarItemManager(): StatusBarItemManager;
   getTriggersManager(): TriggersManager;
+  getViewItemManager(): ViewItemManager;
   getViewManager(): ViewManager;
 }
 export type CardActionsManagerAPI = CardActionsAPI;
@@ -90,6 +92,7 @@ export interface CardConfigAPI {
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
+  getFoldersManager(): FoldersManager;
   getHASSManager(): HASSManager;
   getInitializationManager(): InitializationManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
@@ -104,6 +107,8 @@ export interface CardConfigAPI {
 export interface CardConfigLoaderAPI {
   getAutomationsManager(): AutomationsManager;
   getConfigManager(): ConfigManager;
+  getFoldersManager(): FoldersManager;
+  getMessageManager(): MessageManager;
   getHASSManager(): HASSManager;
 }
 
@@ -146,6 +151,12 @@ export interface CardExpandAPI {
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getFullscreenManager(): FullscreenManager;
+}
+
+export interface CardFoldersAPI {
+  getConfigManager(): ConfigManager;
+  getHASSManager(): HASSManager;
+  getResolvedMediaCache(): ResolvedMediaCache;
 }
 
 export interface CardFullscreenAPI {
@@ -270,7 +281,9 @@ export interface CardViewAPI {
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
+  getFoldersManager(): FoldersManager;
   getHASSManager(): HASSManager;
+  getInitializationManager(): InitializationManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMessageManager(): MessageManager;
   getQueryStringManager(): QueryStringManager;

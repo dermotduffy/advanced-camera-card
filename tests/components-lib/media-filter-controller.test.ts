@@ -12,11 +12,7 @@ import {
   MediaFilterCoreWhen,
   MediaFilterMediaType,
 } from '../../src/components-lib/media-filter-controller';
-import {
-  EventMediaQueries,
-  MediaQueries,
-  RecordingMediaQueries,
-} from '../../src/view/media-queries';
+import { EventMediaQuery, Query, RecordingMediaQuery } from '../../src/view/query';
 import {
   createCameraConfig,
   createCameraManager,
@@ -139,7 +135,7 @@ describe('MediaFilterController', () => {
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager.getCameraMetadata).mockReturnValue({
           title: 'Kitchen Camera',
-          icon: 'mdi:camera',
+          icon: { icon: 'mdi:camera' },
         });
         vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
 
@@ -157,7 +153,7 @@ describe('MediaFilterController', () => {
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager.getCameraMetadata).mockReturnValue({
           title: 'Kitchen Camera',
-          icon: 'mdi:camera',
+          icon: { icon: 'mdi:camera' },
         });
         vi.mocked(cameraManager.getStore).mockReturnValue(
           createCameraStore({
@@ -295,9 +291,7 @@ describe('MediaFilterController', () => {
   describe('should get correct controls to show', () => {
     it('view with events', () => {
       const viewManager = mock<ViewManager>();
-      viewManager.getView.mockReturnValue(
-        createView({ query: new EventMediaQueries() }),
-      );
+      viewManager.getView.mockReturnValue(createView({ query: new EventMediaQuery() }));
       const cameraManager = createCameraManager();
 
       const controller = new MediaFilterController(createLitElement());
@@ -311,7 +305,7 @@ describe('MediaFilterController', () => {
     it('view with recordings', () => {
       const viewManager = mock<ViewManager>();
       viewManager.getView.mockReturnValue(
-        createView({ query: new RecordingMediaQueries() }),
+        createView({ query: new RecordingMediaQuery() }),
       );
       const cameraManager = createCameraManager();
 
@@ -325,9 +319,7 @@ describe('MediaFilterController', () => {
 
     it('can favorite events', () => {
       const viewManager = mock<ViewManager>();
-      viewManager.getView.mockReturnValue(
-        createView({ query: new EventMediaQueries() }),
-      );
+      viewManager.getView.mockReturnValue(createView({ query: new EventMediaQuery() }));
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getAggregateCameraCapabilities).mockReturnValue(
         createCapabilities({ 'favorite-events': true }),
@@ -344,7 +336,7 @@ describe('MediaFilterController', () => {
     it('can favorite recordings', () => {
       const viewManager = mock<ViewManager>();
       viewManager.getView.mockReturnValue(
-        createView({ query: new RecordingMediaQueries() }),
+        createView({ query: new RecordingMediaQuery() }),
       );
 
       const cameraManager = createCameraManager();
@@ -436,7 +428,7 @@ describe('MediaFilterController', () => {
             }),
           });
           expect(
-            viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQueries(),
+            viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQuery(),
           ).toEqual([
             {
               cameraIDs: new Set(['camera.kitchen']),
@@ -501,7 +493,7 @@ describe('MediaFilterController', () => {
       });
 
       expect(
-        viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQueries(),
+        viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQuery(),
       ).toEqual([
         {
           cameraIDs: new Set(['camera.kitchen']),
@@ -543,7 +535,7 @@ describe('MediaFilterController', () => {
       });
 
       expect(
-        viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQueries(),
+        viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQuery(),
       ).toEqual([
         {
           cameraIDs: new Set(['camera.kitchen']),
@@ -607,7 +599,7 @@ describe('MediaFilterController', () => {
           },
         );
         expect(
-          viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQueries(),
+          viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQuery(),
         ).toEqual([
           {
             cameraIDs: new Set(['camera.kitchen']),
@@ -640,7 +632,7 @@ describe('MediaFilterController', () => {
         );
 
         expect(
-          viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQueries(),
+          viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQuery(),
         ).toEqual([
           {
             cameraIDs: new Set(['camera.kitchen']),
@@ -652,14 +644,36 @@ describe('MediaFilterController', () => {
   });
 
   describe('should calculate correct defaults', () => {
-    it('with no queries', () => {
+    it('with no query', () => {
+      const cameraManager = createCameraManager();
+      vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
+
       const viewManager = mock<ViewManager>();
       viewManager.getView.mockReturnValue(createView());
 
       const controller = new MediaFilterController(createLitElement());
       controller.setViewManager(viewManager);
 
-      controller.computeInitialDefaultsFromView(createCameraManager());
+      controller.computeInitialDefaultsFromView(cameraManager);
+
+      expect(controller.getDefaults()).toBeNull();
+    });
+
+    it('with no raw queries', () => {
+      const cameraManager = createCameraManager();
+      vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
+
+      const viewManager = mock<ViewManager>();
+      viewManager.getView.mockReturnValue(
+        createView({
+          query: new EventMediaQuery(),
+        }),
+      );
+
+      const controller = new MediaFilterController(createLitElement());
+      controller.setViewManager(viewManager);
+
+      controller.computeInitialDefaultsFromView(cameraManager);
 
       expect(controller.getDefaults()).toBeNull();
     });
@@ -680,7 +694,7 @@ describe('MediaFilterController', () => {
       it.each([
         [
           'same cameras' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen', 'camera.living_room']),
@@ -696,7 +710,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'different cameras' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -710,7 +724,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'all cameras' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -720,7 +734,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'different favorites ' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -741,7 +755,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'all favorites' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -759,7 +773,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'all not favorites' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -777,7 +791,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'same hasClip' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -795,7 +809,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'different hasClip' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -811,7 +825,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'same hasSnapshot' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -829,7 +843,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'different hasSnapshot' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -845,7 +859,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'same what' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -863,7 +877,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'different what' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -879,7 +893,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'same where' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -897,7 +911,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'different where' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -913,7 +927,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'same tags' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -931,7 +945,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'different tags' as const,
-          new EventMediaQueries([
+          new EventMediaQuery([
             {
               type: QueryType.Event,
               cameraIDs: new Set(['camera.kitchen']),
@@ -947,7 +961,7 @@ describe('MediaFilterController', () => {
         ],
         [
           'recordings' as const,
-          new RecordingMediaQueries([
+          new RecordingMediaQuery([
             {
               type: QueryType.Recording,
               cameraIDs: new Set(['camera.kitchen']),
@@ -961,7 +975,7 @@ describe('MediaFilterController', () => {
         '%s',
         (
           _name: string,
-          mediaQueries: MediaQueries,
+          mediaQueries: Query,
           defaults: MediaFilterCoreDefaults | null,
         ) => {
           const viewManager = mock<ViewManager>();

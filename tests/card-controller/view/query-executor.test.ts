@@ -1,13 +1,15 @@
 import { add } from 'date-fns';
 import { describe, expect, it, vi } from 'vitest';
 import { QueryType } from '../../../src/camera-manager/types';
+import { FolderQuery } from '../../../src/card-controller/folders/types';
 import { QueryExecutor } from '../../../src/card-controller/view/query-executor';
 import { ClipsOrSnapshotsOrAll } from '../../../src/types';
-import { EventMediaQueries } from '../../../src/view/media-queries';
+import { EventMediaQuery, FolderViewQuery } from '../../../src/view/query';
 import {
   TestViewMedia,
   createCameraManager,
   createCardAPI,
+  createFolder,
   createStore,
   generateViewMediaArray,
 } from '../../test-utils';
@@ -59,7 +61,7 @@ describe('executeDefaultEventQuery', () => {
           eventsMediaType: mediaType,
         });
 
-        expect(results?.query.getQueries()).toEqual(rawQueries);
+        expect(results?.query.getQuery()).toEqual(rawQueries);
         expect(results?.queryResults.getResults()).toEqual(media);
         expect(api.getCameraManager().generateDefaultEventQueries).toBeCalledWith(
           new Set(['camera.office']),
@@ -90,7 +92,7 @@ describe('executeDefaultEventQuery', () => {
     const executor = new QueryExecutor(api);
     const results = await executor.executeDefaultEventQuery();
 
-    expect(results?.query.getQueries()).toEqual(rawQueries);
+    expect(results?.query.getQuery()).toEqual(rawQueries);
     expect(results?.queryResults.getResults()).toEqual(media);
     expect(api.getCameraManager().generateDefaultEventQueries).toBeCalledWith(
       new Set(['camera.office', 'camera.kitchen']),
@@ -170,7 +172,7 @@ describe('executeDefaultRecordingQuery', () => {
       cameraID: 'camera.office',
     });
 
-    expect(results?.query.getQueries()).toEqual(rawQueries);
+    expect(results?.query.getQuery()).toEqual(rawQueries);
     expect(results?.queryResults.getResults()).toEqual(media);
     expect(api.getCameraManager().generateDefaultRecordingQueries).toBeCalledWith(
       new Set(['camera.office']),
@@ -197,7 +199,7 @@ describe('executeDefaultRecordingQuery', () => {
     const executor = new QueryExecutor(api);
     const results = await executor.executeDefaultRecordingQuery();
 
-    expect(results?.query.getQueries()).toEqual(rawQueries);
+    expect(results?.query.getQuery()).toEqual(rawQueries);
     expect(results?.queryResults.getResults()).toEqual(media);
     expect(api.getCameraManager().generateDefaultRecordingQueries).toBeCalledWith(
       new Set(['camera.office', 'camera.kitchen']),
@@ -233,10 +235,10 @@ describe('executeDefaultRecordingQuery', () => {
   });
 });
 
-describe('execute', () => {
+describe('executeQuery', () => {
   it('should return null when query is empty', async () => {
     const executor = new QueryExecutor(createCardAPI());
-    expect(await executor.execute(new EventMediaQueries())).toBeNull();
+    expect(await executor.executeQuery(new EventMediaQuery())).toBeNull();
   });
 
   describe('should handle result rejections', () => {
@@ -245,23 +247,7 @@ describe('execute', () => {
       const media = generateViewMediaArray();
       vi.mocked(api.getCameraManager().executeMediaQueries).mockResolvedValue(media);
 
-      const query = new EventMediaQueries([
-        {
-          type: QueryType.Event as const,
-          cameraIDs: new Set(['camera.office']),
-        },
-      ]);
-      const executor = new QueryExecutor(api);
-
-      expect(await executor.execute(query, { rejectResults: (_) => true })).toBeNull();
-    });
-
-    it('not rejected', async () => {
-      const api = createPopulatedAPI();
-      const media = generateViewMediaArray();
-      vi.mocked(api.getCameraManager().executeMediaQueries).mockResolvedValue(media);
-
-      const query = new EventMediaQueries([
+      const query = new EventMediaQuery([
         {
           type: QueryType.Event as const,
           cameraIDs: new Set(['camera.office']),
@@ -270,7 +256,27 @@ describe('execute', () => {
       const executor = new QueryExecutor(api);
 
       expect(
-        await executor.execute(query, { rejectResults: (_) => false }),
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        await executor.executeQuery(query, { rejectResults: (_) => true }),
+      ).toBeNull();
+    });
+
+    it('not rejected', async () => {
+      const api = createPopulatedAPI();
+      const media = generateViewMediaArray();
+      vi.mocked(api.getCameraManager().executeMediaQueries).mockResolvedValue(media);
+
+      const query = new EventMediaQuery([
+        {
+          type: QueryType.Event as const,
+          cameraIDs: new Set(['camera.office']),
+        },
+      ]);
+      const executor = new QueryExecutor(api);
+
+      expect(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        await executor.executeQuery(query, { rejectResults: (_) => false }),
       ).not.toBeNull();
     });
   });
@@ -284,7 +290,7 @@ describe('execute', () => {
       });
       vi.mocked(api.getCameraManager().executeMediaQueries).mockResolvedValue(media);
 
-      const query = new EventMediaQueries([
+      const query = new EventMediaQuery([
         {
           type: QueryType.Event as const,
           cameraIDs: new Set(['camera.office']),
@@ -292,10 +298,12 @@ describe('execute', () => {
       ]);
       const executor = new QueryExecutor(api);
 
-      const results = await executor.execute(query, {
+      const results = await executor.executeMediaQuery(query, {
         selectResult: { id: 'id-camera.office-42' },
       });
-      expect(results?.getSelectedResult()?.getID()).toBe('id-camera.office-42');
+      expect(results?.queryResults.getSelectedResult()?.getID()).toBe(
+        'id-camera.office-42',
+      );
     });
   });
 
@@ -307,7 +315,7 @@ describe('execute', () => {
     });
     vi.mocked(api.getCameraManager().executeMediaQueries).mockResolvedValue(media);
 
-    const query = new EventMediaQueries([
+    const query = new EventMediaQuery([
       {
         type: QueryType.Event as const,
         cameraIDs: new Set(['camera.office']),
@@ -315,10 +323,12 @@ describe('execute', () => {
     ]);
     const executor = new QueryExecutor(api);
 
-    const results = await executor.execute(query, {
+    const results = await executor.executeMediaQuery(query, {
       selectResult: { func: (media) => media.getID() === 'id-camera.office-43' },
     });
-    expect(results?.getSelectedResult()?.getID()).toBe('id-camera.office-43');
+    expect(results?.queryResults.getSelectedResult()?.getID()).toBe(
+      'id-camera.office-43',
+    );
   });
 
   it('by time', async () => {
@@ -344,7 +354,7 @@ describe('execute', () => {
     ];
     vi.mocked(api.getCameraManager().executeMediaQueries).mockResolvedValue(media);
 
-    const query = new EventMediaQueries([
+    const query = new EventMediaQuery([
       {
         type: QueryType.Event as const,
         cameraIDs: new Set(['camera.office']),
@@ -352,9 +362,66 @@ describe('execute', () => {
     ]);
     const executor = new QueryExecutor(api);
 
-    const results = await executor.execute(query, {
+    const results = await executor.executeMediaQuery(query, {
       selectResult: { time: { time: add(now, { seconds: 1 }) } },
     });
-    expect(results?.getSelectedResult()?.getID()).toBe('id-camera.office-1');
+    expect(results?.queryResults.getSelectedResult()?.getID()).toBe(
+      'id-camera.office-1',
+    );
+  });
+
+  describe('should handle folder query', () => {
+    it('should return null without raw query', async () => {
+      const executor = new QueryExecutor(createCardAPI());
+      expect(await executor.executeQuery(new FolderViewQuery())).toBeNull();
+    });
+
+    it('should return null when query expansion fails', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getFoldersManager().getFolder).mockReturnValue(createFolder());
+      vi.mocked(api.getFoldersManager().expandFolder).mockResolvedValue(null);
+
+      const executor = new QueryExecutor(api);
+      expect(await executor.executeDefaultFolderQuery()).toBeNull();
+    });
+  });
+});
+
+describe('executeDefaultFolderQuery', () => {
+  it('should return null without folders', async () => {
+    const executor = new QueryExecutor(createCardAPI());
+    expect(await executor.executeDefaultFolderQuery()).toBeNull();
+  });
+
+  it('should execute query against first folder', async () => {
+    const api = createCardAPI();
+    const items = [new TestViewMedia()];
+    const folder = createFolder();
+    const query: FolderQuery = {
+      folder,
+      path: ['path'],
+    };
+    vi.mocked(api.getFoldersManager().generateDefaultFolderQuery).mockReturnValue(query);
+    vi.mocked(api.getFoldersManager().expandFolder).mockResolvedValue(items);
+
+    const executor = new QueryExecutor(api);
+    const result = await executor.executeDefaultFolderQuery();
+
+    expect(result?.query.getQuery()).toEqual(query);
+    expect(result?.queryResults.getResults()).toEqual(items);
+  });
+
+  it('should return null without folder results', async () => {
+    const api = createCardAPI();
+    const folder = createFolder();
+    const query: FolderQuery = {
+      folder,
+      path: ['path'],
+    };
+    vi.mocked(api.getFoldersManager().generateDefaultFolderQuery).mockReturnValue(query);
+    vi.mocked(api.getFoldersManager().expandFolder).mockResolvedValue(null);
+
+    const executor = new QueryExecutor(api);
+    expect(await executor.executeDefaultFolderQuery()).toBeNull();
   });
 });

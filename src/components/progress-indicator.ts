@@ -42,8 +42,7 @@ export class AdvancedCameraCardProgressIndicator extends LitElement {
   protected render(): TemplateResult {
     return html` <div class="message vertical">
       ${this.animated
-        ? html`<ha-circular-progress indeterminate size="${this.size}">
-          </ha-circular-progress>`
+        ? html`<ha-spinner indeterminate size="${this.size}"> </ha-spinner>`
         : html`<advanced-camera-card-icon
             .icon=${{ icon: 'mdi:timer-sand' }}
           ></advanced-camera-card-icon>`}

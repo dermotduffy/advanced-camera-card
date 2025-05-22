@@ -1,6 +1,7 @@
 import yaml from 'js-yaml';
 import { TROUBLESHOOTING_URL } from '../../const';
-import { Message } from '../../types';
+import { localize } from '../../localize/localize.js';
+import { Message, MessageURL } from '../../types';
 
 export class MessageController {
   public getMessageString(message: Message): string {
@@ -20,12 +21,12 @@ export class MessageController {
         : 'mdi:information-outline';
   }
 
-  public shouldShowTroubleshootingURL(message: Message): boolean {
-    return message.type === 'error';
-  }
-
-  public getTroubleshootingURL(message: Message): string {
-    return message.troubleshootingURL ?? TROUBLESHOOTING_URL;
+  public getURL(message: Message): MessageURL | null {
+    return message.url
+      ? message.url
+      : message.type === 'error'
+        ? { link: TROUBLESHOOTING_URL, title: localize('error.troubleshooting') }
+        : null;
   }
 
   public getContextStrings(message: Message): string[] {

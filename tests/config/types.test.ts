@@ -132,7 +132,6 @@ describe('config defaults', () => {
             mode: 'right',
           },
           thumbnails: {
-            mode: 'right',
             show_details: false,
             show_download_control: true,
             show_favorite_control: true,
@@ -213,6 +212,10 @@ describe('config defaults', () => {
           },
           expand: {
             enabled: false,
+            priority: 50,
+          },
+          folders: {
+            enabled: true,
             priority: 50,
           },
           fullscreen: {

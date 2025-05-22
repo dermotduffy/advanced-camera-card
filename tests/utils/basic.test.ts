@@ -26,7 +26,6 @@ import {
   runWhenIdleIfSupported,
   setify,
   setOrRemoveAttribute,
-  sleep,
 } from '../../src/utils/basic.js';
 import { createSlot, createSlotHost } from '../test-utils.js';
 
@@ -185,6 +184,10 @@ describe('getDurationString', () => {
     const end = new Date(2023, 3, 14, 13, 35, 12);
     expect(getDurationString(start, end)).toBe('2s');
   });
+  it('should return 0s for no delta', () => {
+    const start = new Date(2023, 3, 14, 13, 35, 10);
+    expect(getDurationString(start, start)).toBe('0s');
+  });
 });
 
 describe('allPromises', () => {
@@ -206,19 +209,6 @@ describe('isSuperset', () => {
   });
   it('should return is not a superset', () => {
     expect(isSuperset(new Set([1, 2, 3, 4]), new Set([2, 3, 5]))).toBeFalsy();
-  });
-});
-
-describe('sleep', () => {
-  it('should sleep', async () => {
-    const spy = vi
-      .spyOn(global, 'setTimeout')
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-      .mockImplementation((func: () => unknown, _time?: number): any => {
-        func();
-      });
-    sleep(10);
-    expect(spy).toHaveBeenCalledWith(expect.anything(), 10000);
   });
 });
 

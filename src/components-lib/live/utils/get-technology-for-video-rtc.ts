@@ -5,8 +5,8 @@ export const getTechnologyForVideoRTC = (
   element: VideoRTC,
 ): MediaTechnology[] | undefined => {
   const tech = [
-    ...(!!element.pc ? ['webrtc'] : []),
-    ...(!element.pc && element.mseCodecs ? ['mse', 'hls'] : []),
+    ...(!!element.pc ? ['webrtc' as const] : []),
+    ...(!element.pc && element.mseCodecs ? ['mse' as const, 'hls' as const] : []),
   ];
   return tech.length ? tech : undefined;
 };

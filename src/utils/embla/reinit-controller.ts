@@ -1,5 +1,5 @@
 import { EmblaCarouselType } from 'embla-carousel';
-import debounce from 'lodash-es/debounce';
+import { debounce } from 'lodash-es';
 
 /**
  * This class takes care of "safe re-initializing": Only re-initializing the

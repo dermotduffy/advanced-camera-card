@@ -10,7 +10,7 @@ import {
 import { customElement, property, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import isEqual from 'lodash-es/isEqual';
+import { isEqual } from 'lodash-es';
 import { CameraManager } from '../camera-manager/manager.js';
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
@@ -18,6 +18,7 @@ import { UpdatingImageMediaPlayerController } from '../components-lib/media-play
 import { CameraConfig } from '../config/schema/cameras.js';
 import { ImageMode } from '../config/schema/common/image.js';
 import { ImageViewConfig } from '../config/schema/image.js';
+import { isHassDifferent } from '../ha/is-hass-different.js';
 import { HomeAssistant } from '../ha/types.js';
 import defaultImage from '../images/iris-screensaver.jpg';
 import { localize } from '../localize/localize.js';
@@ -29,7 +30,6 @@ import {
   Message,
 } from '../types.js';
 import { contentsChanged } from '../utils/basic.js';
-import { isHassDifferent } from '../utils/ha/index.js';
 import {
   createMediaLoadedInfo,
   dispatchExistingMediaLoadedInfoAsEvent,

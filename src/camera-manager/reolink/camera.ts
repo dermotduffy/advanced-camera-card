@@ -1,10 +1,10 @@
 import { ActionsExecutor } from '../../card-controller/actions/types';
 import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
+import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import { PTZCapabilities, PTZMovementType } from '../../types';
 import { createSelectOptionAction } from '../../utils/action.js';
-import { Entity, EntityRegistryManager } from '../../utils/ha/registry/entity/types';
 import { BrowseMediaCamera } from '../browse-media/camera';
 import { Camera, CameraInitializationOptions } from '../camera';
 import { Capabilities } from '../capabilities';

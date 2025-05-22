@@ -8,15 +8,15 @@ import { ReolinkCameraManagerEngine } from '../../src/camera-manager/reolink/eng
 import { Engine } from '../../src/camera-manager/types.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { CardWideConfig } from '../../src/config/schema/types.js';
-import { EntityRegistryManager } from '../../src/utils/ha/registry/entity/types.js';
-import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';
+import { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
+import { ResolvedMediaCache } from '../../src/ha/resolved-media.js';
+import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {
   createCameraConfig,
   createHASS,
   createRegistryEntity,
   createStateEntity,
 } from '../test-utils';
-import { EntityRegistryManagerMock } from '../utils/ha/registry/entity/mock.js';
 
 vi.mock('../../src/utils/ha/entity-registry');
 vi.mock('../../src/utils/ha/entity-registry/cache');

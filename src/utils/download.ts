@@ -1,12 +1,3 @@
-import { format } from 'date-fns';
-import { CameraManager } from '../camera-manager/manager.js';
-import { HomeAssistant } from '../ha/types.js';
-import { localize } from '../localize/localize.js';
-import { AdvancedCameraCardError } from '../types.js';
-import { ViewMedia } from '../view/media.js';
-import { errorToConsole } from './basic.js';
-import { homeAssistantSignPath } from './ha/index.js';
-
 export const downloadURL = (url: string, filename = 'download'): void => {
   // The download attribute only works on the same origin.
   // See: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attributes
@@ -25,47 +16,4 @@ export const downloadURL = (url: string, filename = 'download'): void => {
   link.href = url;
   link.click();
   link.remove();
-};
-
-export const downloadMedia = async (
-  hass: HomeAssistant,
-  cameraManager: CameraManager,
-  media: ViewMedia,
-): Promise<void> => {
-  const download = await cameraManager.getMediaDownloadPath(media);
-  if (!download) {
-    throw new AdvancedCameraCardError(localize('error.download_no_media'));
-  }
-
-  let finalURL = download.endpoint;
-  if (download.sign) {
-    let response: string | null | undefined;
-    try {
-      response = await homeAssistantSignPath(hass, download.endpoint);
-    } catch (e) {
-      errorToConsole(e as Error);
-    }
-
-    if (!response) {
-      throw new AdvancedCameraCardError(localize('error.download_sign_failed'));
-    }
-    finalURL = response;
-  }
-
-  downloadURL(finalURL, generateDownloadFilename(media));
-};
-
-const generateDownloadFilename = (media: ViewMedia): string => {
-  const toFilename = (input: string): string => {
-    return input.toLowerCase().replaceAll(/(\.|\s)+/g, '-');
-  };
-
-  const id = media.getID();
-  const startTime = media.getStartTime();
-
-  return (
-    toFilename(media.getCameraID()) +
-    (id ? `_${toFilename(id)}` : '') +
-    (startTime ? `_${format(startTime, `yyyy-MM-dd-HH-mm-ss`)}` : '')
-  );
 };

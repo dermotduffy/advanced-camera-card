@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { homeAssistantSignPath } from '../../src/ha/sign-path.js';
 import { convertEndpointAddressToSignedWebsocket } from '../../src/utils/endpoint';
-import { homeAssistantSignPath } from '../../src/utils/ha';
 import { createHASS } from '../test-utils';
 
-vi.mock('../../src/utils/ha');
+vi.mock('../../src/ha/sign-path.js');
 
 describe('convertEndpointAddressToSignedWebsocket', () => {
   it('without signing', async () => {

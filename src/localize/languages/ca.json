@@ -6,7 +6,9 @@
   "common": {
     "advanced_camera_card": "",
     "advanced_camera_card_description": "",
+    "folder": "",
     "live": "En directe",
+    "no_folder": "",
     "no_media": "No hi ha suport per mostrar",
     "recordings": "Enregistraments",
     "version": "Versió"
@@ -318,6 +320,20 @@
       },
       "height": ""
     },
+    "folders": {
+      "ha": {
+        "editor_label": "",
+        "path_info": "",
+        "url": ""
+      },
+      "icon": "",
+      "id": "",
+      "title": "",
+      "type": "",
+      "types": {
+        "ha": ""
+      }
+    },
     "live": {
       "auto_mute": "Silencia automàticament les càmeres en directe",
       "auto_pause": "Posa en pausa automàticament les càmeres en directe",
@@ -404,6 +420,7 @@
         "download": "Descarregar",
         "enabled": "Botó habilitat",
         "expand": "Expandir",
+        "folders": "",
         "fullscreen": "Pantalla completa",
         "icon": "Icona",
         "image": "Imatge",
@@ -571,6 +588,7 @@
         "clip": "Clip més recent",
         "clips": "Galeria de clips",
         "current": "Vista actual",
+        "folder": "",
         "image": "Imatge estàtica",
         "live": "Visualització en directe",
         "recording": "Enregistrament més recent",
@@ -587,6 +605,7 @@
   },
   "editor": {
     "add_new_camera": "Afegeix una càmera nova",
+    "add_new_folder": "",
     "button": "Botó",
     "camera": "Càmera",
     "cameras": "Càmeres",
@@ -594,6 +613,8 @@
     "delete": "Suprimeix",
     "dimensions": "Dimensions",
     "dimensions_secondary": "Opcions de dimensions i forma",
+    "folders": "",
+    "folders_secondary": "",
     "image": "Imatge",
     "image_secondary": "Opcions de visualització d'imatges estàtiques",
     "live": "En directe",
@@ -636,16 +657,19 @@
     }
   },
   "error": {
+    "awaiting_folder": "",
     "awaiting_live": "S'està esperant que es carregui la transmissió en directe ...",
     "awaiting_media": "",
     "camera_initialization": "",
     "camera_initialization_reolink": "",
+    "configuration": "",
     "could_not_render_elements": "No s'han pogut representar els elements de la imatge",
     "could_not_resolve": "No s'ha pogut resoldre l'URL multimèdia",
     "diagnostics": "Diagnòstic de targetes. Reviseu la informació confidencial abans de compartir-la",
     "download_no_media": "No hi ha contingut multimèdia per descarregar",
     "download_sign_failed": "No s'ha pogut signar l'URL multimèdia per baixar-la",
     "duplicate_camera_id": "Duplica l'identificador de la càmera Frigate per a la següent càmera, utilitza el paràmetre 'id' per identificar les càmeres de manera única",
+    "duplicate_folder_id": "",
     "empty_response": "S'ha rebut una resposta buida de Home Assistant per a la sol·licitud",
     "failed_response": "No s'ha pogut rebre la resposta de Home Assistant per a la sol·licitud",
     "failed_retain": "No s'ha pogut retenir l'esdeveniment",
@@ -677,17 +701,6 @@
     "upgrade_available": "Hi ha disponible una actualització automàtica de la configuració de la targeta; visiteu l'editor de targetes visuals",
     "webrtc_card_reported_error": "La targeta WebRTC ha informat d'un error",
     "webrtc_card_waiting": "S'està esperant que es carregui la targeta WebRTC ..."
-  },
-  "event": {
-    "camera": "Càmera",
-    "duration": "Durada",
-    "in_progress": "En procés",
-    "score": "Puntuació",
-    "seek": "Buscar",
-    "start": "Començar",
-    "tag": "Etiqueta",
-    "what": "Què",
-    "where": "On"
   },
   "key_assigner": {
     "assign": "",
@@ -732,19 +745,22 @@
   "media_viewer": {
     "unseekable": "Busqueu temps no trobat als mitjans multimèdia"
   },
-  "recording": {
+  "thumbnail": {
     "camera": "Càmera",
+    "download": "Descarregar mitjans multimèdia",
     "duration": "Durada",
     "events": "Esdeveniments",
     "in_progress": "En procés",
-    "seek": "Buscar",
-    "start": "Començar"
-  },
-  "thumbnail": {
-    "download": "Descarregar mitjans multimèdia",
     "no_thumbnail": "No hi ha cap miniatura disponible",
     "retain_indefinitely": "Els mitjans multimèdia es conservaran indefinidament",
-    "timeline": "Veure els mitjans multimèdia a la línia de temps"
+    "score": "Puntuació",
+    "seek": "Buscar",
+    "start": "Començar",
+    "tag": "Etiqueta",
+    "timeline": "Veure els mitjans multimèdia a la línia de temps",
+    "title": "",
+    "what": "Què",
+    "where": "On"
   },
   "timeline": {
     "select_date": "Escolliu la data"

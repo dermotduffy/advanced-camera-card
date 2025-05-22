@@ -1,5 +1,5 @@
 import { CameraConfig } from '../../config/schema/cameras';
-import { CameraEndpoint } from '../types';
+import { Endpoint } from '../../types';
 
 export const getDefaultGo2RTCEndpoint = (
   cameraConfig: CameraConfig,
@@ -7,7 +7,7 @@ export const getDefaultGo2RTCEndpoint = (
     url?: string;
     stream?: string;
   },
-): CameraEndpoint | null => {
+): Endpoint | null => {
   const url = options?.url ?? cameraConfig.go2rtc?.url;
   const stream = options?.stream ?? cameraConfig.go2rtc?.stream;
 

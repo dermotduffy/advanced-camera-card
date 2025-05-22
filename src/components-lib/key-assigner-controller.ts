@@ -1,5 +1,5 @@
 import { LitElement, ReactiveController } from 'lit';
-import isEqual from 'lodash-es/isEqual';
+import { isEqual } from 'lodash-es';
 import { KeyboardShortcut } from '../config/schema/view';
 import { setOrRemoveAttribute } from '../utils/basic';
 

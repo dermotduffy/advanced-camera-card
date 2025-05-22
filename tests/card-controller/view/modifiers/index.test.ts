@@ -2,15 +2,15 @@ import { expect, it } from 'vitest';
 import { applyViewModifiers } from '../../../../src/card-controller/view/modifiers';
 import { MergeContextViewModifier } from '../../../../src/card-controller/view/modifiers/merge-context';
 import { SetQueryViewModifier } from '../../../../src/card-controller/view/modifiers/set-query';
-import { EventMediaQueries } from '../../../../src/view/media-queries';
-import { MediaQueriesResults } from '../../../../src/view/media-queries-results';
+import { EventMediaQuery } from '../../../../src/view/query';
+import { QueryResults } from '../../../../src/view/query-results';
 import { createView } from '../../../test-utils';
 
 it('should apply view modifiers', () => {
   const view = createView();
 
-  const query = new EventMediaQueries();
-  const queryResults = new MediaQueriesResults();
+  const query = new EventMediaQuery();
+  const queryResults = new QueryResults();
 
   const context = {
     timeline: { window: { start: new Date(), end: new Date() } },

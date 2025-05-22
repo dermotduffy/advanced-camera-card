@@ -1,5 +1,4 @@
-import orderBy from 'lodash-es/orderBy';
-import throttle from 'lodash-es/throttle';
+import { orderBy, throttle } from 'lodash-es';
 import { CameraEvent } from '../camera-manager/types';
 import { Timer } from '../utils/timer';
 import { CardTriggersAPI } from './types';

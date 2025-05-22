@@ -1,6 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../camera-manager/manager';
+import { ViewItemManager } from '../card-controller/view/item-manager';
 import { ViewManagerEpoch } from '../card-controller/view/types';
 import { TimelineConfig } from '../config/schema/timeline';
 import { CardWideConfig } from '../config/schema/types';
@@ -24,6 +25,9 @@ export class AdvancedCameraCardTimeline extends LitElement {
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
+  public viewItemManager?: ViewItemManager;
+
+  @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
   protected render(): TemplateResult | void {
@@ -38,6 +42,7 @@ export class AdvancedCameraCardTimeline extends LitElement {
         .timelineConfig=${this.timelineConfig}
         .thumbnailConfig=${this.timelineConfig.controls.thumbnails}
         .cameraManager=${this.cameraManager}
+        .viewItemManager=${this.viewItemManager}
         .cameraIDs=${this.cameraManager?.getStore().getCameraIDsWithCapability({
           anyCapabilities: ['clips', 'snapshots', 'recordings'],
         })}

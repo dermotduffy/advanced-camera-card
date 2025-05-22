@@ -6,7 +6,9 @@
   "common": {
     "advanced_camera_card": "",
     "advanced_camera_card_description": "",
+    "folder": "",
     "live": "Ao Vivo",
+    "no_folder": "",
     "no_media": "Nenhuma mídia para exibir",
     "recordings": "Gravações",
     "version": "Versão"
@@ -318,6 +320,20 @@
       },
       "height": ""
     },
+    "folders": {
+      "ha": {
+        "editor_label": "",
+        "path_info": "",
+        "url": ""
+      },
+      "icon": "",
+      "id": "",
+      "title": "",
+      "type": "",
+      "types": {
+        "ha": ""
+      }
+    },
     "live": {
       "auto_mute": "Silenciar câmeras ao vivo automaticamente",
       "auto_pause": "Pausar câmeras ao vivo automaticamente",
@@ -404,6 +420,7 @@
         "download": "Baixe a mídia do evento",
         "enabled": "Botão ativado",
         "expand": "Expandir",
+        "folders": "",
         "fullscreen": "Tela cheia",
         "icon": "Ícone",
         "image": "Imagem",
@@ -571,6 +588,7 @@
         "clip": "Clipe mais recente",
         "clips": "Galeria de clipes",
         "current": "Visualização atual",
+        "folder": "",
         "image": "Imagem estática",
         "live": "Visualização ao vivo",
         "recording": "Gravação mais recente",
@@ -587,6 +605,7 @@
   },
   "editor": {
     "add_new_camera": "Adicionar nova câmera",
+    "add_new_folder": "",
     "button": "Botão",
     "camera": "Câmera",
     "cameras": "Câmeras",
@@ -594,6 +613,8 @@
     "delete": "Excluir",
     "dimensions": "",
     "dimensions_secondary": "",
+    "folders": "",
+    "folders_secondary": "",
     "image": "Imagem",
     "image_secondary": "Opções de visualização de imagem estática",
     "live": "Ao vivo",
@@ -636,16 +657,19 @@
     }
   },
   "error": {
+    "awaiting_folder": "",
     "awaiting_live": "",
     "awaiting_media": "",
     "camera_initialization": "",
     "camera_initialization_reolink": "",
+    "configuration": "",
     "could_not_render_elements": "Não foi possível renderizar os elementos da imagem",
     "could_not_resolve": "Não foi possível resolver o URL de mídia",
     "diagnostics": "Diagnósticos do cartão. Revise as informações confidenciais antes de compartilhar",
     "download_no_media": "Nenhuma mídia para download",
     "download_sign_failed": "Não foi possível assinar o URL de mídia para download",
     "duplicate_camera_id": "Duplique o ID da câmera Frigate para a câmera a seguir, use o parâmetro 'id' para identificar exclusivamente as câmeras",
+    "duplicate_folder_id": "",
     "empty_response": "Sem resposta do Home Assistant para a solicitação",
     "failed_response": "Falha ao receber resposta do Home Assistant para solicitação",
     "failed_retain": "Não foi possível reter o evento",
@@ -677,17 +701,6 @@
     "upgrade_available": "Uma atualização automatizada da configuração do cartão está disponível, visite o editor visual do cartão",
     "webrtc_card_reported_error": "O cartão WebRTC relatou um erro",
     "webrtc_card_waiting": "Aguardando o cartão WebRTC carregar ..."
-  },
-  "event": {
-    "camera": "Câmera",
-    "duration": "Duração",
-    "in_progress": "Em andamento",
-    "score": "Pontuação",
-    "seek": "Procurar",
-    "start": "Início",
-    "tag": "Etiqueta",
-    "what": "O que",
-    "where": "Onde"
   },
   "key_assigner": {
     "assign": "",
@@ -732,19 +745,22 @@
   "media_viewer": {
     "unseekable": ""
   },
-  "recording": {
+  "thumbnail": {
     "camera": "Câmera",
+    "download": "Baixar mídia",
     "duration": "Duração",
     "events": "Eventos",
     "in_progress": "Em andamento",
-    "seek": "Procurar",
-    "start": "Começar"
-  },
-  "thumbnail": {
-    "download": "Baixar mídia",
     "no_thumbnail": "Nenhuma miniatura disponível",
     "retain_indefinitely": "Evento será retido por tempo indeterminado",
-    "timeline": "Ver evento na linha do tempo"
+    "score": "Pontuação",
+    "seek": "Procurar",
+    "start": "Início",
+    "tag": "Etiqueta",
+    "timeline": "Ver evento na linha do tempo",
+    "title": "",
+    "what": "O que",
+    "where": "Onde"
   },
   "timeline": {
     "select_date": "Escolha a data"

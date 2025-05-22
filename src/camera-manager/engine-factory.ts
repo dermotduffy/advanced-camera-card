@@ -1,14 +1,14 @@
 import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
 import { CameraConfig } from '../config/schema/cameras';
+import { BrowseMediaWalker } from '../ha/browse-media/walker';
+import { EntityRegistryManager } from '../ha/registry/entity/types';
+import { ResolvedMediaCache } from '../ha/resolved-media';
 import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
-import { BrowseMediaManager } from '../utils/ha/browse-media/browse-media-manager';
-import { EntityRegistryManager } from '../utils/ha/registry/entity/types';
-import { ResolvedMediaCache } from '../utils/ha/resolved-media';
-import { RecordingSegmentsCache, RequestCache } from './cache';
+import { RecordingSegmentsCache } from './cache';
 import { CameraManagerEngine } from './engine';
 import { CameraInitializationError } from './error';
-import { CameraEventCallback, Engine } from './types';
+import { CameraEventCallback, CameraManagerRequestCache, Engine } from './types';
 import { getCameraEntityFromConfig } from './utils/camera-entity-from-config';
 
 interface CameraManagerEngineFactoryOptions {
@@ -44,7 +44,7 @@ export class CameraManagerEngineFactory {
           this._entityRegistryManager,
           options.stateWatcher,
           new RecordingSegmentsCache(),
-          new RequestCache(),
+          new CameraManagerRequestCache(),
           options.eventCallback,
         );
         break;
@@ -55,9 +55,9 @@ export class CameraManagerEngineFactory {
         cameraManagerEngine = new MotionEyeCameraManagerEngine(
           this._entityRegistryManager,
           options.stateWatcher,
-          new BrowseMediaManager(),
+          new BrowseMediaWalker(),
           options.resolvedMediaCache,
-          new RequestCache(),
+          new CameraManagerRequestCache(),
           options.eventCallback,
         );
         break;
@@ -66,9 +66,9 @@ export class CameraManagerEngineFactory {
         cameraManagerEngine = new ReolinkCameraManagerEngine(
           this._entityRegistryManager,
           options.stateWatcher,
-          new BrowseMediaManager(),
+          new BrowseMediaWalker(),
           options.resolvedMediaCache,
-          new RequestCache(),
+          new CameraManagerRequestCache(),
           options.eventCallback,
         );
     }

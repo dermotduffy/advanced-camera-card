@@ -1,4 +1,4 @@
-import isEqual from 'lodash-es/isEqual';
+import { isEqual } from 'lodash-es';
 import { ConditionsManager } from '../../conditions/conditions-manager.js';
 import { isConfigUpgradeable } from '../../config/management.js';
 import { setProfiles } from '../../config/profiles/set-profiles.js';
@@ -15,6 +15,7 @@ import { CardConfigAPI } from '../types.js';
 import { getOverriddenConfig } from './get-overridden-config.js';
 import { setAutomationsFromConfig } from './load-automations.js';
 import { setRemoteControlEntityFromConfig } from './load-control-entities.js';
+import { setFoldersFromConfig } from './load-folders.js';
 import { setKeyboardShortcutsFromConfig } from './load-keyboard-shortcuts.js';
 
 export class ConfigManager {
@@ -136,6 +137,7 @@ export class ConfigManager {
     const previousConfig = this._overriddenConfig;
     this._overriddenConfig = overriddenConfig;
 
+    setFoldersFromConfig(this._api);
     this._api.getStyleManager().updateFromConfig();
 
     if (

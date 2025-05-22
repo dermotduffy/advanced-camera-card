@@ -6,8 +6,8 @@ import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-fact
 import { CameraManagerStore } from '../../src/camera-manager/store.js';
 import { Engine } from '../../src/camera-manager/types.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
-import { EntityRegistryManager } from '../../src/utils/ha/registry/entity/types.js';
-import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media.js';
+import { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
+import { ResolvedMediaCache } from '../../src/ha/resolved-media.js';
 import { TestViewMedia, createCameraConfig } from '../test-utils.js';
 
 describe('CameraManagerStore', async () => {
@@ -139,14 +139,22 @@ describe('CameraManagerStore', async () => {
     }
   });
 
-  it('getCameraConfigForMedia', async () => {
-    const store = setupStore();
+  describe('getCameraConfigForMedia', () => {
+    it('should return the camera config for media with a camera ID', async () => {
+      const store = setupStore();
 
-    const media_1 = new TestViewMedia({ cameraID: 'camera-visible' });
-    expect(store.getCameraConfigForMedia(media_1)).toBe(configVisible);
+      const media_1 = new TestViewMedia({ cameraID: 'camera-visible' });
+      expect(store.getCameraConfigForMedia(media_1)).toBe(configVisible);
 
-    const media_2 = new TestViewMedia({ cameraID: 'camera-not-exist' });
-    expect(store.getCameraConfigForMedia(media_2)).toBeNull();
+      const media_2 = new TestViewMedia({ cameraID: 'camera-not-exist' });
+      expect(store.getCameraConfigForMedia(media_2)).toBeNull();
+    });
+
+    it('should return null as the camera config for media without a camera ID', async () => {
+      const store = setupStore();
+      const media = new TestViewMedia({ cameraID: null });
+      expect(store.getCameraConfigForMedia(media)).toBeNull();
+    });
   });
 
   it('getEngineOfType', async () => {
@@ -199,10 +207,18 @@ describe('CameraManagerStore', async () => {
     });
   });
 
-  it('getEngineForMedia', async () => {
-    const store = setupStore();
-    const media = new TestViewMedia({ cameraID: 'camera-visible' });
-    expect(store.getEngineForMedia(media)).toBe(engineGeneric);
+  describe('getEngineForMedia', () => {
+    it('should return the engine for media with a camera ID', async () => {
+      const store = setupStore();
+      const media = new TestViewMedia({ cameraID: 'camera-visible' });
+      expect(store.getEngineForMedia(media)).toBe(engineGeneric);
+    });
+
+    it('should return null as the engine for media without a camera ID', async () => {
+      const store = setupStore();
+      const media = new TestViewMedia({ cameraID: null });
+      expect(store.getEngineForMedia(media)).toBeNull();
+    });
   });
 
   describe('getAllDependentCameras', () => {

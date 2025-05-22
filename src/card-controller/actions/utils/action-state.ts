@@ -1,4 +1,4 @@
-import merge from 'lodash-es/merge';
+import { merge } from 'lodash-es';
 import { Action, TargetedActionContext } from '../types';
 import { ActionContext } from 'action';
 

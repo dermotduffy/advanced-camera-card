@@ -88,7 +88,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
             src=${typeof this._connected == 'undefined' || this._connected
               ? computeMJPEGStreamUrl(this.stateObj)
               : this._posterUrl || ''}
-            filetype="mjpeg"
+            technology="mjpeg"
             class="player"
           ></advanced-camera-card-image-player>
         `;

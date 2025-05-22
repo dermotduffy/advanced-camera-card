@@ -1,26 +1,26 @@
 import { add, endOfDay, parse, startOfDay } from 'date-fns';
 import { orderBy } from 'lodash-es';
 import { CameraConfig } from '../../config/schema/cameras';
-import { HomeAssistant } from '../../ha/types';
-import { allPromises, formatDate, isValidDate } from '../../utils/basic';
-import { sortMediaByStartDate } from '../../utils/ha/browse-media/browse-media-manager';
+import { getViewMediaFromBrowseMediaArray } from '../../ha/browse-media/browse-media-to-view-media';
+import { sortMediaByStartDate } from '../../ha/browse-media/sort-browse-media-by-start-date';
 import {
   BROWSE_MEDIA_CACHE_SECONDS,
   BrowseMedia,
+  BrowseMediaCache,
+  BrowseMediaMetadata,
   MEDIA_CLASS_VIDEO,
   RichBrowseMedia,
-} from '../../utils/ha/browse-media/types';
-import { ViewMedia } from '../../view/media';
+} from '../../ha/browse-media/types';
+import { isMediaWithinDates } from '../../ha/browse-media/within-dates';
+import { HomeAssistant } from '../../ha/types';
+import { Endpoint } from '../../types';
+import { allPromises, formatDate, isValidDate } from '../../utils/basic';
+import { ViewMedia } from '../../view/item';
 import { BrowseMediaCameraManagerEngine } from '../browse-media/engine-browse-media';
-import { BrowseMediaMetadata } from '../browse-media/types';
-import { getViewMediaFromBrowseMediaArray } from '../browse-media/utils/browse-media-to-view-media';
-import { isMediaWithinDates } from '../browse-media/utils/within-dates';
-import { MemoryRequestCache } from '../cache';
 import { Camera } from '../camera';
 import { CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT } from '../engine';
 import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraEndpoint,
   CameraEndpoints,
   CameraEndpointsContext,
   CameraManagerCameraMetadata,
@@ -48,7 +48,8 @@ export class ReolinkQueryResultsClassifier {
 }
 
 export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
-  protected _cache = new MemoryRequestCache<string, BrowseMedia>();
+  protected _camerasCache = new BrowseMediaCache<BrowseMediaReolinkCameraMetadata>();
+  protected _cache = new BrowseMediaCache<BrowseMediaMetadata>();
 
   public getEngineType(): Engine {
     return Engine.Reolink;
@@ -172,7 +173,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     // that match the expected camera. Some Reolink cameras will not show up
     // here causing errors.
     // https://github.com/dermotduffy/advanced-camera-card/issues/1723
-    const camerasWithMedia = await this._browseMediaManager.walkBrowseMedias(
+    const camerasWithMedia = await this._browseMediaWalker.walk(
       hass,
       [
         {
@@ -188,7 +189,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
         },
       ],
       {
-        ...(engineOptions?.useCache !== false && { cache: this._cache }),
+        ...(engineOptions?.useCache !== false && { cache: this._camerasCache }),
       },
     );
 
@@ -196,7 +197,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       return null;
     }
 
-    return await this._browseMediaManager.walkBrowseMedias(
+    return await this._browseMediaWalker.walk(
       hass,
       [
         {
@@ -263,7 +264,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       let media: RichBrowseMedia<BrowseMediaMetadata>[] = [];
 
       if (directories?.length) {
-        media = await this._browseMediaManager.walkBrowseMedias(
+        media = await this._browseMediaWalker.walk(
           hass,
           [
             {
@@ -395,7 +396,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     cameraConfig: CameraConfig,
     context?: CameraEndpointsContext,
   ): CameraEndpoints | null {
-    const getUIEndpoint = (): CameraEndpoint | null => {
+    const getUIEndpoint = (): Endpoint | null => {
       return cameraConfig.reolink?.url
         ? {
             endpoint: cameraConfig.reolink.url,

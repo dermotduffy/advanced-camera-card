@@ -2,17 +2,12 @@ import { ReactiveController } from 'lit';
 import { CameraManager } from '../camera-manager/manager';
 import { ConditionStateManager } from '../conditions/state-manager';
 import { AdvancedCameraCardConfig } from '../config/schema/types';
+import { DeviceRegistryManager } from '../ha/registry/device';
+import { DeviceCache } from '../ha/registry/device/types';
+import { EntityRegistryManagerLive } from '../ha/registry/entity';
+import { EntityCache, EntityRegistryManager } from '../ha/registry/entity/types';
+import { ResolvedMediaCache } from '../ha/resolved-media';
 import { LovelaceCardEditor } from '../ha/types';
-import {
-  createDeviceRegistryCache,
-  DeviceRegistryManager,
-} from '../utils/ha/registry/device';
-import {
-  createEntityRegistryCache,
-  EntityRegistryManagerLive,
-} from '../utils/ha/registry/entity';
-import { EntityRegistryManager } from '../utils/ha/registry/entity/types';
-import { ResolvedMediaCache } from '../utils/ha/resolved-media';
 import { ActionsManager } from './actions/actions-manager';
 import { AutomationsManager } from './automations-manager';
 import { CameraURLManager } from './camera-url-manager';
@@ -24,8 +19,8 @@ import {
 } from './card-element-manager';
 import { ConfigManager } from './config/config-manager';
 import { DefaultManager } from './default-manager';
-import { DownloadManager } from './download-manager';
 import { ExpandManager } from './expand-manager';
+import { FoldersManager } from './folders/manager';
 import { FullscreenManager } from './fullscreen/fullscreen-manager';
 import { HASSManager } from './hass/hass-manager';
 import { InitializationManager } from './initialization-manager';
@@ -65,6 +60,7 @@ import {
   CardTriggersAPI,
   CardViewAPI,
 } from './types';
+import { ViewItemManager } from './view/item-manager';
 import { ViewManager } from './view/view-manager';
 
 export class CardController
@@ -98,12 +94,8 @@ export class CardController
 
   // These properties may be used in the construction of 'managers' (and should
   // be created first).
-  protected _deviceRegistryManager = new DeviceRegistryManager(
-    createDeviceRegistryCache(),
-  );
-  protected _entityRegistryManager = new EntityRegistryManagerLive(
-    createEntityRegistryCache(),
-  );
+  protected _deviceRegistryManager = new DeviceRegistryManager(new DeviceCache());
+  protected _entityRegistryManager = new EntityRegistryManagerLive(new EntityCache());
   protected _resolvedMediaCache = new ResolvedMediaCache();
 
   protected _actionsManager = new ActionsManager(this, new TemplateRenderer());
@@ -113,8 +105,8 @@ export class CardController
   protected _cardElementManager: CardElementManager;
   protected _configManager = new ConfigManager(this);
   protected _defaultManager = new DefaultManager(this);
-  protected _downloadManager = new DownloadManager(this);
   protected _expandManager = new ExpandManager(this);
+  protected _foldersManager = new FoldersManager(this);
   protected _fullscreenManager = new FullscreenManager(this);
   protected _hassManager = new HASSManager(this);
   protected _initializationManager = new InitializationManager(this);
@@ -129,6 +121,7 @@ export class CardController
   protected _styleManager = new StyleManager(this);
   protected _triggersManager = new TriggersManager(this);
   protected _viewManager = new ViewManager(this);
+  protected _viewItemManager = new ViewItemManager(this);
 
   constructor(
     host: CardHTMLElement,
@@ -193,16 +186,16 @@ export class CardController
     return this._deviceRegistryManager;
   }
 
-  public getDownloadManager(): DownloadManager {
-    return this._downloadManager;
-  }
-
   public getEntityRegistryManager(): EntityRegistryManager {
     return this._entityRegistryManager;
   }
 
   public getExpandManager(): ExpandManager {
     return this._expandManager;
+  }
+
+  public getFoldersManager(): FoldersManager {
+    return this._foldersManager;
   }
 
   public getFullscreenManager(): FullscreenManager {
@@ -280,6 +273,10 @@ export class CardController
 
   public getViewManager(): ViewManager {
     return this._viewManager;
+  }
+
+  public getViewItemManager(): ViewItemManager {
+    return this._viewItemManager;
   }
 
   // *************************************************************************

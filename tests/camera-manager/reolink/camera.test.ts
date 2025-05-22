@@ -6,14 +6,14 @@ import { CameraProxyConfig } from '../../../src/camera-manager/types';
 import { ActionsExecutor } from '../../../src/card-controller/actions/types';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { ProxyConfig } from '../../../src/config/schema/cameras';
-import { EntityRegistryManagerLive } from '../../../src/utils/ha/registry/entity';
+import { EntityRegistryManagerLive } from '../../../src/ha/registry/entity';
+import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
   createCameraConfig,
   createHASS,
   createRegistryEntity,
   createStateEntity,
 } from '../../test-utils';
-import { EntityRegistryManagerMock } from '../../utils/ha/registry/entity/mock';
 
 describe('ReolinkCamera', () => {
   const cameraEntity = createRegistryEntity({

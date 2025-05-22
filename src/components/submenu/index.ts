@@ -3,13 +3,13 @@ import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../../action-handler-directive.js';
+import { getEntityTitle } from '../../ha/get-entity-title.js';
 import { HomeAssistant } from '../../ha/types.js';
 import submenuStyle from '../../scss/submenu.scss';
 import {
   hasAction,
   stopEventFromActivatingCardWideActions,
 } from '../../utils/action.js';
-import { getEntityTitle } from '../../utils/ha';
 import '../icon.js';
 import { SubmenuInteraction, SubmenuItem } from './types.js';
 

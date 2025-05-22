@@ -74,11 +74,6 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     }
   }
 
-  /**
-   * Create a JSMPEG player.
-   * @param url The URL for the player to connect to.
-   * @returns A JSMPEG player.
-   */
   protected async _createJSMPEGPlayer(url: string): Promise<JSMpeg.VideoElement> {
     this._jsmpegVideoPlayer = await new Promise<JSMpeg.VideoElement>((resolve) => {
       let videoDecoded = false;
@@ -136,16 +131,14 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     }
   }
 
-  /**
-   * Reset / destroy the player.
-   */
   protected _resetPlayer(): void {
     this._message = null;
     this._refreshPlayerTimer.stop();
     if (this._jsmpegVideoPlayer) {
       try {
         this._jsmpegVideoPlayer.destroy();
-      } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (e) {
         // Pass.
       }
       this._jsmpegVideoPlayer = undefined;
@@ -156,9 +149,6 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     }
   }
 
-  /**
-   * Component connected callback.
-   */
   connectedCallback(): void {
     super.connectedCallback();
     if (this.isConnected) {
@@ -166,9 +156,6 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     }
   }
 
-  /**
-   * Component disconnected callback.
-   */
   disconnectedCallback(): void {
     if (!this.isConnected) {
       this._resetPlayer();
@@ -176,9 +163,6 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     super.disconnectedCallback();
   }
 
-  /**
-   * Refresh the JSMPEG player.
-   */
   protected async _refreshPlayer(): Promise<void> {
     if (!this.hass) {
       return;
@@ -221,9 +205,6 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     );
   }
 
-  /**
-   * Master render method.
-   */
   protected render(): TemplateResult | void {
     if (this._message) {
       return renderMessage(this._message);
@@ -253,9 +234,6 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     )}`;
   }
 
-  /**
-   * Get styles.
-   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(liveJSMPEGStyle);
   }

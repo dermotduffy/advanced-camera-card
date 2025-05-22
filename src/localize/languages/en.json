@@ -6,7 +6,9 @@
   "common": {
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "An Advanced Camera Card",
+    "folder": "Folder",
     "live": "Live",
+    "no_folder": "No folder to display",
     "no_media": "No media to display",
     "recordings": "Recordings",
     "version": "Version"
@@ -103,7 +105,7 @@
         "url": "go2rtc URL"
       },
       "icon": "Icon for this camera (Autodetected from entity)",
-      "id": "Unique id for this camera in this card",
+      "id": "Unique ID for this camera in this card",
       "image": {
         "editor_label": "Image Options",
         "refresh_seconds": "Number of seconds after which to refresh live image (0=never)",
@@ -318,6 +320,20 @@
       },
       "height": "Card height in CSS units (e.g. '500px')"
     },
+    "folders": {
+      "ha": {
+        "editor_label": "Home Assistant Media Folder Options",
+        "url": "URL of media folder",
+        "path_info": "Additional path matching functionality is available in the text editor"
+      },
+      "icon": "Icon for this folder",
+      "id": "Unique ID for this folder in this card",
+      "title": "Title for this folder",
+      "type": "Folder type",
+      "types": {
+        "ha": "Home Assistant Media Folder"
+      }
+    },
     "live": {
       "auto_mute": "Automatically mute live cameras",
       "auto_pause": "Automatically pause live cameras",
@@ -404,6 +420,7 @@
         "download": "Download",
         "enabled": "Button enabled",
         "expand": "Expand",
+        "folders": "Folders",
         "fullscreen": "Fullscreen",
         "icon": "Icon",
         "image": "Image",
@@ -571,6 +588,7 @@
         "clip": "Most recent clip",
         "clips": "Clips gallery",
         "current": "Current view",
+        "folder": "Folder view",
         "image": "Static image",
         "live": "Live view",
         "recording": "Most recent recording",
@@ -587,6 +605,7 @@
   },
   "editor": {
     "add_new_camera": "Add new camera",
+    "add_new_folder": "Add new folder",
     "button": "Button",
     "camera": "Camera",
     "cameras": "Cameras",
@@ -594,6 +613,8 @@
     "delete": "Delete",
     "dimensions": "Card dimensions",
     "dimensions_secondary": "Card dimensions & shape options",
+    "folders": "Folders",
+    "folders_secondary": "What folders to render on this card",
     "image": "Image",
     "image_secondary": "Static image view options",
     "live": "Live",
@@ -637,15 +658,18 @@
   },
   "error": {
     "awaiting_live": "Waiting for live stream to load ...",
+    "awaiting_folder": "Waiting for folder to load",
     "awaiting_media": "Waiting for media to load",
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
+    "configuration": "Check configuration",
     "could_not_render_elements": "Could not render picture elements",
     "could_not_resolve": "Could not resolve media URL",
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",
     "download_no_media": "No media to download",
     "download_sign_failed": "Could not sign media URL for download",
     "duplicate_camera_id": "Duplicate camera id for the following camera, use the 'id' parameter to uniquely identify cameras",
+    "duplicate_folder_id": "Duplicate folder id for the following folder, use the 'id' parameter to uniquely identify folders",
     "empty_response": "Received empty response from Home Assistant for request",
     "failed_response": "Failed to receive response from Home Assistant for request",
     "failed_retain": "Could not retain event",
@@ -677,17 +701,6 @@
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",
     "webrtc_card_reported_error": "WebRTC Card reported an error",
     "webrtc_card_waiting": "Waiting for WebRTC Card to load ..."
-  },
-  "event": {
-    "camera": "Camera",
-    "duration": "Duration",
-    "in_progress": "In Progress",
-    "score": "Score",
-    "seek": "Seek",
-    "start": "Start",
-    "tag": "Tag",
-    "what": "What",
-    "where": "Where"
   },
   "key_assigner": {
     "assign": "Assign",
@@ -732,19 +745,22 @@
   "media_viewer": {
     "unseekable": "Seek time not found in media"
   },
-  "recording": {
+  "thumbnail": {
     "camera": "Camera",
+    "download": "Download media",
     "duration": "Duration",
     "events": "Events",
     "in_progress": "In Progress",
-    "seek": "Seek",
-    "start": "Start"
-  },
-  "thumbnail": {
-    "download": "Download media",
     "no_thumbnail": "No thumbnail available",
     "retain_indefinitely": "Media will be indefinitely retained",
-    "timeline": "See media in timeline"
+    "score": "Score",
+    "seek": "Seek",
+    "start": "Start",
+    "tag": "Tag",
+    "timeline": "See media in timeline",
+    "title": "Title",
+    "what": "What",
+    "where": "Where"
   },
   "timeline": {
     "select_date": "Choose date"

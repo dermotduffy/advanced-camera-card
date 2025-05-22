@@ -41,9 +41,6 @@ export class AdvancedCameraCardNextPreviousControl extends LitElement {
   // Label that is used for ARIA support and as tooltip.
   @property() label = '';
 
-  @state()
-  protected _thumbnailError = false;
-
   protected _embedThumbnailTask = createFetchThumbnailTask(
     this,
     () => this.hass,
@@ -55,26 +52,27 @@ export class AdvancedCameraCardNextPreviousControl extends LitElement {
       return html``;
     }
 
-    const renderIcon =
-      !this.thumbnail ||
-      ['chevrons', 'icons'].includes(this._controlConfig.style) ||
-      this._thumbnailError;
+    const shouldRenderIcon =
+      !this.thumbnail || ['chevrons', 'icons'].includes(this._controlConfig.style);
 
-    const classes = {
+    const classesBase = {
       controls: true,
       left: this.side === 'left',
       right: this.side === 'right',
-      thumbnails: !renderIcon,
-      icons: renderIcon,
     };
 
-    if (renderIcon) {
+    const renderIcon = (): TemplateResult => {
       const icon =
-        this.icon && !this._thumbnailError && this._controlConfig.style !== 'chevrons'
+        this.icon && this._controlConfig?.style !== 'chevrons'
           ? this.icon
           : this.side === 'left'
             ? { icon: 'mdi:chevron-left' }
             : { icon: 'mdi:chevron-right' };
+
+      const classes = {
+        ...classesBase,
+        icons: true,
+      };
 
       return html` <ha-icon-button class="${classMap(classes)}" .label=${this.label}>
         <advanced-camera-card-icon
@@ -82,7 +80,16 @@ export class AdvancedCameraCardNextPreviousControl extends LitElement {
           .icon=${icon}
         ></advanced-camera-card-icon>
       </ha-icon-button>`;
+    };
+
+    if (shouldRenderIcon) {
+      return renderIcon();
     }
+
+    const classes = {
+      ...classesBase,
+      thumbnails: true,
+    };
 
     return renderTask(
       this._embedThumbnailTask,
@@ -98,9 +105,7 @@ export class AdvancedCameraCardNextPreviousControl extends LitElement {
       {
         inProgressFunc: () => html`<div class=${classMap(classes)}></div>`,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        errorFunc: (_e: Error) => {
-          this._thumbnailError = true;
-        },
+        errorFunc: (_ev: Error) => renderIcon(),
       },
     );
   }

@@ -11,19 +11,17 @@ import {
   sub,
 } from 'date-fns';
 import { LitElement } from 'lit';
-import isEqual from 'lodash-es/isEqual';
-import orderBy from 'lodash-es/orderBy';
-import uniqWith from 'lodash-es/uniqWith';
+import { isEqual, orderBy, uniqWith } from 'lodash-es';
 import { CameraManager } from '../camera-manager/manager';
 import { DateRange, PartialDateRange } from '../camera-manager/range';
-import { DataQuery, MediaMetadata, QueryType } from '../camera-manager/types';
+import { CameraQuery, MediaMetadata, QueryType } from '../camera-manager/types';
 import { ViewManagerInterface } from '../card-controller/view/types';
 import { SelectOption, SelectValues } from '../components/select';
 import { CardWideConfig } from '../config/schema/types';
 import { localize } from '../localize/localize';
 import { errorToConsole, formatDate, prettifyTitle } from '../utils/basic';
-import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
-import { MediaQueriesClassifier } from '../view/media-queries-classifier';
+import { EventMediaQuery, RecordingMediaQuery } from '../view/query';
+import { QueryClassifier } from '../view/query-classifier';
 
 interface MediaFilterControls {
   events: boolean;
@@ -216,7 +214,7 @@ export class MediaFilterController {
       const what = getArrayValueAsSet(values.what);
       const tags = getArrayValueAsSet(values.tags);
 
-      const queries = new EventMediaQueries([
+      const queries = new EventMediaQuery([
         {
           type: QueryType.Event,
           cameraIDs: cameraIDs,
@@ -246,7 +244,7 @@ export class MediaFilterController {
         },
       });
     } else {
-      const queries = new RecordingMediaQueries([
+      const queries = new RecordingMediaQuery([
         {
           type: QueryType.Recording,
           cameraIDs: cameraIDs,
@@ -283,9 +281,14 @@ export class MediaFilterController {
 
   public computeInitialDefaultsFromView(cameraManager: CameraManager): void {
     const view = this._viewManager?.getView();
-    const queries = view?.query?.getQueries();
+    const query = view?.query;
     const allCameraIDs = this._getAllCameraIDs(cameraManager);
-    if (!view || !queries || !allCameraIDs.size) {
+    if (!view || !QueryClassifier.isMediaQuery(query) || !allCameraIDs.size) {
+      return;
+    }
+
+    const queries = query.getQuery();
+    if (!queries) {
       return;
     }
 
@@ -297,7 +300,7 @@ export class MediaFilterController {
     let tags: string[] | undefined;
 
     const cameraIDSets = uniqWith(
-      queries.map((query: DataQuery) => query.cameraIDs),
+      queries.map((query: CameraQuery) => query.cameraIDs),
       isEqual,
     );
     // Special note: If all visible cameras are selected, this is the same as no
@@ -317,8 +320,8 @@ export class MediaFilterController {
     }
 
     /* istanbul ignore else: the else path cannot be reached -- @preserve */
-    if (MediaQueriesClassifier.areEventQueries(view.query)) {
-      const queries = view.query.getQueries();
+    if (QueryClassifier.isEventQuery(view.query)) {
+      const queries = view.query.getQuery();
 
       /* istanbul ignore if: the if path cannot be reached -- @preserve */
       if (!queries) {
@@ -362,7 +365,7 @@ export class MediaFilterController {
       if (tagsSets.length === 1 && queries[0].tags?.size) {
         tags = [...queries[0].tags];
       }
-    } else if (MediaQueriesClassifier.areRecordingQueries(view.query)) {
+    } else if (QueryClassifier.isRecordingQuery(view.query)) {
       mediaType = MediaFilterMediaType.Recordings;
     }
 
@@ -440,8 +443,8 @@ export class MediaFilterController {
 
   public getControlsToShow(cameraManager: CameraManager): MediaFilterControls {
     const view = this._viewManager?.getView();
-    const events = MediaQueriesClassifier.areEventQueries(view?.query);
-    const recordings = MediaQueriesClassifier.areRecordingQueries(view?.query);
+    const events = QueryClassifier.isEventQuery(view?.query);
+    const recordings = QueryClassifier.isRecordingQuery(view?.query);
     const managerCapabilities = cameraManager.getAggregateCameraCapabilities();
 
     return {

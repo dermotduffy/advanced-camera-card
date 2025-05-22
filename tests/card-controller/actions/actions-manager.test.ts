@@ -80,7 +80,7 @@ describe('ActionsManager', () => {
       expect(manager.getMergedActions()).toEqual({});
     });
 
-    describe('should get merged actions with live view', () => {
+    describe('should get merged actions with view', () => {
       it.each([
         [
           'live' as const,
@@ -96,6 +96,16 @@ describe('ActionsManager', () => {
           {
             tap_action: {
               action: 'navigate',
+              navigation_path: '3',
+            },
+          },
+        ],
+        [
+          'folder' as const,
+          {
+            tap_action: {
+              action: 'navigate',
+              // Folder also uses the media gallery.
               navigation_path: '3',
             },
           },
@@ -313,6 +323,7 @@ describe('ActionsManager', () => {
 
     describe('should forward haptics', () => {
       afterEach(() => {
+        vi.restoreAllMocks();
         vi.unstubAllGlobals();
       });
 
@@ -329,6 +340,8 @@ describe('ActionsManager', () => {
       });
 
       it('should forward warning haptic', async () => {
+        vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+
         const handler = vi.fn();
         window.addEventListener('haptic', handler);
 

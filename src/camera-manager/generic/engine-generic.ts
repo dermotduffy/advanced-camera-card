@@ -1,23 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
-import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
 import { CameraConfig } from '../../config/schema/cameras';
+import { getEntityTitle } from '../../ha/get-entity-title';
 import { HomeAssistant } from '../../ha/types';
-import { getEntityTitle } from '../../utils/ha';
-import { ViewMedia } from '../../view/media';
+import { Endpoint } from '../../types';
+import { ViewMedia } from '../../view/item';
+import { ViewItemCapabilities } from '../../view/types';
 import { Camera } from '../camera';
 import { Capabilities } from '../capabilities';
 import { CameraManagerEngine } from '../engine';
 import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraEndpoint,
   CameraEndpoints,
   CameraEndpointsContext,
   CameraEventCallback,
   CameraManagerCameraMetadata,
-  CameraManagerMediaCapabilities,
-  DataQuery,
+  CameraQuery,
   Engine,
   EngineOptions,
   EventQuery,
@@ -155,7 +154,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     _hass: HomeAssistant,
     _cameraConfig: CameraConfig,
     _media: ViewMedia,
-  ): Promise<CameraEndpoint | null> {
+  ): Promise<Endpoint | null> {
     return null;
   }
 
@@ -168,7 +167,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     return;
   }
 
-  public getQueryResultMaxAge(_query: DataQuery): number | null {
+  public getQueryResultMaxAge(_query: CameraQuery): number | null {
     return null;
   }
 
@@ -211,7 +210,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     };
   }
 
-  public getMediaCapabilities(_media: ViewMedia): CameraManagerMediaCapabilities | null {
+  public getMediaCapabilities(_media: ViewMedia): ViewItemCapabilities | null {
     return null;
   }
 
@@ -219,7 +218,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     cameraConfig: CameraConfig,
     _context?: CameraEndpointsContext,
   ): CameraEndpoints | null {
-    const getWebRTCCard = (): CameraEndpoint | null => {
+    const getWebRTCCard = (): Endpoint | null => {
       // The user may override this in their webrtc_card configuration.
       const endpoint = cameraConfig.camera_entity ? cameraConfig.camera_entity : null;
       return endpoint ? { endpoint: endpoint } : null;

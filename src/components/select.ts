@@ -13,7 +13,7 @@ import { contentsChanged } from '../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import { grSelectElements } from '../scoped-elements/gr-select';
-import isEqual from 'lodash-es/isEqual';
+import { isEqual } from 'lodash-es';
 import '../scoped-elements/gr-select';
 
 export interface SelectOption {

@@ -19,8 +19,14 @@ export interface MediaLoadedCapabilities {
   hasAudio?: boolean;
 }
 
-const MEDIA_TECHNOLOGY = ['hls', 'jpg', 'jsmpeg', 'mjpeg', 'mp4', 'mse', 'webrtc'];
-export type MediaTechnology = (typeof MEDIA_TECHNOLOGY)[number];
+export type MediaTechnology =
+  | 'hls'
+  | 'jpg'
+  | 'jsmpeg'
+  | 'mjpeg'
+  | 'mp4'
+  | 'mse'
+  | 'webrtc';
 
 export interface MediaLoadedInfo {
   width: number;
@@ -32,6 +38,10 @@ export interface MediaLoadedInfo {
 }
 
 export type MessageType = 'info' | 'error' | 'connection' | 'diagnostics';
+export interface MessageURL {
+  link: string;
+  title: string;
+}
 
 export interface Message {
   message: string;
@@ -39,7 +49,7 @@ export interface Message {
   icon?: string;
   context?: unknown;
   dotdotdot?: boolean;
-  troubleshootingURL?: string;
+  url?: MessageURL;
 }
 
 export type WebkitHTMLVideoElement = HTMLVideoElement & {
@@ -154,16 +164,10 @@ export interface Interaction {
   action: string;
 }
 
-// *************************************************************************
-//                     Home Assistant API types.
-// *************************************************************************
-
-// Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_source/models.py
-export const resolvedMediaSchema = z.object({
-  url: z.string(),
-  mime_type: z.string(),
-});
-export type ResolvedMedia = z.infer<typeof resolvedMediaSchema>;
+export interface Endpoint {
+  endpoint: string;
+  sign?: boolean;
+}
 
 export const signedPathSchema = z.object({
   path: z.string(),

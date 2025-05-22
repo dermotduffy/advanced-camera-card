@@ -64,9 +64,6 @@ export class AdvancedCameraCardDrawer extends LitElement {
     this._refDrawer.value?.shadowRoot?.appendChild(style);
   }
 
-  /**
-   * Called when the slotted children in the drawer change.
-   */
   protected _slotChanged(): void {
     const children = this._refSlot.value
       ? getChildrenFromElement(this._refSlot.value)
@@ -80,10 +77,6 @@ export class AdvancedCameraCardDrawer extends LitElement {
     this._hideDrawerIfNecessary();
   }
 
-  /**
-   * Hide the drawer if there is nothing to show.
-   * @returns
-   */
   protected _hideDrawerIfNecessary(): void {
     if (!this._refDrawer.value) {
       return;
@@ -108,9 +101,7 @@ export class AdvancedCameraCardDrawer extends LitElement {
         location="${this.location}"
         ?open=${this.open}
         @mouseleave=${() => {
-          if (this.open) {
-            this.open = false;
-          }
+          this.open = false;
         }}
       >
         ${this.control

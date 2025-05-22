@@ -6,7 +6,9 @@
   "common": {
     "advanced_camera_card": "",
     "advanced_camera_card_description": "",
+    "folder": "",
     "live": "Live",
+    "no_folder": "",
     "no_media": "Nessun contenuto multimediale da visualizzare",
     "recordings": "Registrazioni",
     "version": "Versione"
@@ -318,6 +320,20 @@
       },
       "height": ""
     },
+    "folders": {
+      "ha": {
+        "editor_label": "",
+        "path_info": "",
+        "url": ""
+      },
+      "icon": "",
+      "id": "",
+      "title": "",
+      "type": "",
+      "types": {
+        "ha": ""
+      }
+    },
     "live": {
       "auto_mute": "Muta automaticamente le telecamere in diretta",
       "auto_pause": "Metti in pausa automaticamente le telecamere in diretta",
@@ -404,6 +420,7 @@
         "download": "Download",
         "enabled": "Pulsante abilitato",
         "expand": "Espandere",
+        "folders": "",
         "fullscreen": "A schermo intero",
         "icon": "Icona",
         "image": "Immagine",
@@ -571,6 +588,7 @@
         "clip": "Clip più recente",
         "clips": "Galleria delle clip",
         "current": "Vista corrente",
+        "folder": "",
         "image": "Immagine statica",
         "live": "Dal vivo",
         "recording": "",
@@ -587,6 +605,7 @@
   },
   "editor": {
     "add_new_camera": "Aggiungi nuova telecamera",
+    "add_new_folder": "",
     "button": "Pulsante",
     "camera": "Telecamera",
     "cameras": "Telecamere",
@@ -594,6 +613,8 @@
     "delete": "Elimina",
     "dimensions": "",
     "dimensions_secondary": "",
+    "folders": "",
+    "folders_secondary": "",
     "image": "Immagine",
     "image_secondary": "Opzioni di visualizzazione dell'immagine statica",
     "live": "Live",
@@ -636,16 +657,19 @@
     }
   },
   "error": {
+    "awaiting_folder": "",
     "awaiting_live": "",
     "awaiting_media": "",
     "camera_initialization": "",
     "camera_initialization_reolink": "",
+    "configuration": "",
     "could_not_render_elements": "Impossibile renderizzare gli elementi dell'immagine",
     "could_not_resolve": "Impossibile risolvere l'URL dei media",
     "diagnostics": "Diagnostica delle carte.Si prega di rivedere per informazioni riservate prima di condividere",
     "download_no_media": "Nessun media da scaricare",
     "download_sign_failed": "Impossibile firmare URL multimediale per il download",
     "duplicate_camera_id": "Duplicato ID dellla telecamera Frigate, utilizzare il parametro 'ID' per identificare in modo univoco le telecamere",
+    "duplicate_folder_id": "",
     "empty_response": "Ricevuto risposta vuota da Home Assistant per la richiesta",
     "failed_response": "Impossibile ricevere risposta da Home Assistant per la richiesta",
     "failed_retain": "Impossibile conservare l'evento",
@@ -677,17 +701,6 @@
     "upgrade_available": "È disponibile un aggiornamento di configurazione della scheda automatizzato, visitare l'editor di schede visive",
     "webrtc_card_reported_error": "La scheda WebRTC ha riportato un errore",
     "webrtc_card_waiting": "Aspettando che la scheda WebRTC si carichi ..."
-  },
-  "event": {
-    "camera": "Camera",
-    "duration": "Durata",
-    "in_progress": "In corso",
-    "score": "Punteggio",
-    "seek": "Cercare",
-    "start": "Avvia",
-    "tag": "",
-    "what": "Che cosa",
-    "where": "Dove"
   },
   "key_assigner": {
     "assign": "",
@@ -732,19 +745,22 @@
   "media_viewer": {
     "unseekable": ""
   },
-  "recording": {
+  "thumbnail": {
     "camera": "Camera",
+    "download": "",
     "duration": "Durata",
     "events": "Eventi",
     "in_progress": "In corso",
-    "seek": "Cercare",
-    "start": "Inizio"
-  },
-  "thumbnail": {
-    "download": "",
     "no_thumbnail": "Nessuna miniatura disponibile",
     "retain_indefinitely": "L'evento sarà mantenuto indefinitamente",
-    "timeline": "Vedi evento nella timeline"
+    "score": "Punteggio",
+    "seek": "Cercare",
+    "start": "Inizio",
+    "tag": "",
+    "timeline": "Vedi evento nella timeline",
+    "title": "",
+    "what": "Che cosa",
+    "where": "Dove"
   },
   "timeline": {
     "select_date": "Scegli la data"

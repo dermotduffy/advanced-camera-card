@@ -2,9 +2,10 @@ import { ViewContext } from 'view';
 import { AdvancedCameraCardView } from '../../config/schema/common/const';
 import { log } from '../../utils/debug';
 import { getStreamCameraID } from '../../utils/substream';
-import { MediaQueriesClassifier } from '../../view/media-queries-classifier';
+import { QueryClassifier } from '../../view/query-classifier';
 import { View } from '../../view/view';
 import { getCameraIDsForViewName } from '../../view/view-to-cameras';
+import { InitializationAspect } from '../initialization-manager';
 import { CardViewAPI } from '../types';
 import { ViewFactory } from './factory';
 import { applyViewModifiers } from './modifiers';
@@ -103,6 +104,10 @@ export class ViewManager implements ViewManagerInterface {
     viewFactoryFunc: (options?: ViewFactoryOptions) => View | null,
     options?: ViewFactoryOptions,
   ): void {
+    if (!this._isAllowedToSetView()) {
+      return;
+    }
+
     let view: View | null = null;
     try {
       view = viewFactoryFunc({
@@ -112,7 +117,9 @@ export class ViewManager implements ViewManagerInterface {
     } catch (e) {
       this._api.getMessageManager().setErrorIfHigherPriority(e);
     }
-    view && this._setView(view);
+    if (view) {
+      this._setView(view);
+    }
   }
 
   protected _markViewLoadingQuery(view: View, index: number): View {
@@ -120,6 +127,19 @@ export class ViewManager implements ViewManagerInterface {
   }
   protected _markViewAsNotLoadingQuery(view: View): View {
     return view.removeContextProperty('loading', 'query');
+  }
+
+  protected _isAllowedToSetView(): boolean {
+    // It is possible to have a race condition where the view is being set at
+    // the same time as the cameras being initialized. Test case: Open
+    // folder-based media in the media viewer carousel, then attempt to edit the
+    // card -- this causes the cameras to re-initialize at the same time as
+    // folder media is reporting observed zoom settings in the view context.
+    // Without this check, that will result in a "No cameras support this view"
+    // message.
+    return this._api
+      .getInitializationManager()
+      .isInitialized(InitializationAspect.CAMERAS);
   }
 
   protected async _setViewThenModifyAsync(
@@ -130,6 +150,10 @@ export class ViewManager implements ViewManagerInterface {
     ) => Promise<ViewModifier[] | null>,
     options?: ViewFactoryOptions,
   ): Promise<void> {
+    if (!this._isAllowedToSetView()) {
+      return;
+    }
+
     let initialView: View | null = null;
     try {
       initialView = viewFactoryFunc({
@@ -220,10 +244,10 @@ export class ViewManager implements ViewManagerInterface {
     // See: https://github.com/dermotduffy/advanced-camera-card/issues/885
 
     const switchingFromViewerToGallery =
-      this._view?.isViewerView() && newView?.isGalleryView();
+      this._view?.isViewerView() && newView?.isMediaGalleryView();
     const newMediaType = newView?.getDefaultMediaType();
     const alreadyHasMatchingQuery =
-      MediaQueriesClassifier.getMediaType(this._view?.query) === newMediaType;
+      QueryClassifier.getMediaType(this._view?.query) === newMediaType;
     return !!switchingFromViewerToGallery && alreadyHasMatchingQuery;
   }
 

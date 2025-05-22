@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { InteractionManager } from '../../src/card-controller/interaction-manager';
 import { createCardAPI, createConfig, createLitElement } from '../test-utils';
 
-vi.mock('lodash-es/throttle', () => ({
-  default: vi.fn((fn) => fn),
+vi.mock('lodash-es', () => ({
+  throttle: vi.fn((fn) => fn),
 }));
 
 // @vitest-environment jsdom

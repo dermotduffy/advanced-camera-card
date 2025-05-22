@@ -1,16 +1,17 @@
 # `media_gallery`
 
-The `media_gallery` is used for providing an overview of all `clips`, `snapshots` and `recordings` in a thumbnail gallery.
+The `media_gallery` is used for providing an overview of all `clips`,
+`snapshots`, `recordings` and `folder` contents in a thumbnail gallery.
 
 ```yaml
 media_gallery:
   # [...]
 ```
 
-| Option     | Default | Description                                                                                                               |
-| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `actions`  |         | [Actions](actions/README.md) to use for all views that use the `media_gallery` (e.g. `clips`, `snapshots`, `recordings`). |
-| `controls` |         | Configuration for the Media viewer controls. See below.                                                                   |
+| Option     | Default | Description                                                                                                                         |
+| ---------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `actions`  |         | [Actions](actions/README.md) to use for all views that use the `media_gallery` (e.g. `clips`, `folder`, `snapshots`, `recordings`). |
+| `controls` |         | Configuration for the Media Gallery controls. See below.                                                                            |
 
 ## `controls`
 
@@ -25,9 +26,9 @@ media_gallery:
       # [...]
 ```
 
-| Option | Default | Description                                                                                           |
-| ------ | ------- | ----------------------------------------------------------------------------------------------------- |
-| `mode` | `right` | Whether to show the gallery media filter to the `left`, to the `right` or `none` for no media filter. |
+| Option | Default | Description                                                                                                                                               |
+| ------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mode` | `right` | Whether to show the gallery media filter to the `left`, to the `right` or `none` for no media filter. The `folder` view does not support media filtering. |
 
 ### `thumbnails`
 

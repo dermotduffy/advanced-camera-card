@@ -1,5 +1,4 @@
-import { RichBrowseMedia } from '../../utils/ha/browse-media/types';
-import { BrowseMediaMetadata } from '../browse-media/types';
+import { BrowseMediaMetadata, RichBrowseMedia } from '../../ha/browse-media/types';
 import { Engine, EventQueryResults } from '../types';
 
 // ================================

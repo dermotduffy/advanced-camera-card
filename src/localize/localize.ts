@@ -86,7 +86,8 @@ export function localize(string: string, search = '', replace = ''): string {
     translated = string
       .split('.')
       .reduce((o, i) => o[i], languages[advancedCameraCardLanguage ?? DEFAULT_LANG]);
-  } catch (_) {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_e) {}
 
   if (!translated) {
     translated = string.split('.').reduce((o, i) => o[i], languages[DEFAULT_LANG]);

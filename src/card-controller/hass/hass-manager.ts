@@ -1,6 +1,6 @@
+import { hasHAConnectionStateChanged } from '../../ha/has-hass-connection-changed';
 import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
-import { hasHAConnectionStateChanged } from '../../utils/ha';
 import { CardHASSAPI } from '../types';
 import { StateWatcher, StateWatcherSubscriptionInterface } from './state-watcher';
 

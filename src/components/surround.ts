@@ -8,7 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../camera-manager/manager.js';
-import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context.js';
+import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
 import { MiniTimelineControlConfig } from '../config/schema/common/controls/timeline.js';
@@ -17,8 +17,9 @@ import { HomeAssistant } from '../ha/types.js';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { contentsChanged } from '../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
+import { QueryClassifier } from '../view/query-classifier.js';
 import './surround-basic.js';
-import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
+import './thumbnail-carousel';
 
 @customElement('advanced-camera-card-surround')
 export class AdvancedCameraCardSurround extends LitElement {
@@ -36,6 +37,9 @@ export class AdvancedCameraCardSurround extends LitElement {
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public viewItemManager?: ViewItemManager;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -92,8 +96,10 @@ export class AdvancedCameraCardSurround extends LitElement {
           .getAllDependentCameras(view.camera, capabilitySearch);
       }
     }
-    if (view.isViewerView()) {
-      return view.query?.getQueryCameraIDs() ?? null;
+
+    const queries = view.query;
+    if (view.isViewerView() && QueryClassifier.isMediaQuery(queries)) {
+      return queries.getQueryCameraIDs() ?? null;
     }
     return null;
   }
@@ -118,9 +124,7 @@ export class AdvancedCameraCardSurround extends LitElement {
     };
 
     return html` <advanced-camera-card-surround-basic
-      @advanced-camera-card:thumbnails:open=${(ev: CustomEvent) =>
-        changeDrawer(ev, 'open')}
-      @advanced-camera-card:thumbnails:close=${(ev: CustomEvent) =>
+      @advanced-camera-card:thumbnails-carousel:media-select=${(ev: CustomEvent) =>
         changeDrawer(ev, 'close')}
     >
       ${this.thumbnailConfig && this.thumbnailConfig.mode !== 'none'
@@ -129,27 +133,10 @@ export class AdvancedCameraCardSurround extends LitElement {
             .hass=${this.hass}
             .config=${this.thumbnailConfig}
             .cameraManager=${this.cameraManager}
+            .viewItemManager=${this.viewItemManager}
             .fadeThumbnails=${view.isViewerView()}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .selected=${view.queryResults?.getSelectedIndex() ?? undefined}
-            @advanced-camera-card:thumbnail-carousel:tap=${(
-              ev: CustomEvent<ThumbnailCarouselTap>,
-            ) => {
-              const media = ev.detail.queryResults.getSelectedResult();
-              if (media) {
-                this.viewManagerEpoch?.manager.setViewByParameters({
-                  params: {
-                    view: 'media',
-                    queryResults: ev.detail.queryResults,
-                    ...(media.getCameraID() && { camera: media.getCameraID() }),
-                  },
-                  modifiers: [
-                    new RemoveContextViewModifier(['timeline', 'mediaViewer']),
-                  ],
-                });
-                changeDrawer(ev, 'close');
-              }
-            }}
           >
           </advanced-camera-card-thumbnail-carousel>`
         : ''}
@@ -168,6 +155,7 @@ export class AdvancedCameraCardSurround extends LitElement {
             .timelineConfig=${this.timelineConfig}
             .thumbnailConfig=${this.thumbnailConfig}
             .cameraManager=${this.cameraManager}
+            .viewItemManager=${this.viewItemManager}
             .cardWideConfig=${this.cardWideConfig}
           >
           </advanced-camera-card-timeline-core>`

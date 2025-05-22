@@ -1,5 +1,5 @@
 import { fromUnixTime } from 'date-fns';
-import isEqual from 'lodash-es/isEqual';
+import { isEqual } from 'lodash-es';
 import { CameraConfig } from '../../config/schema/cameras';
 import {
   EventViewMedia,
@@ -7,7 +7,7 @@ import {
   VideoContentType,
   ViewMedia,
   ViewMediaType,
-} from '../../view/media';
+} from '../../view/item';
 import { FrigateEvent, FrigateRecording } from './types';
 import {
   getEventMediaContentID,
@@ -36,7 +36,7 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
     // sublabels (`_splitSubLabels` in engine-frigate.ts).
     subLabels?: string[],
   ) {
-    super(mediaType, cameraID);
+    super(mediaType, { cameraID });
     this._event = event;
     this._contentID = contentID;
     this._thumbnail = thumbnail;
@@ -88,8 +88,6 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
   public getTags(): string[] | null {
     return this._subLabels;
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public isGroupableWith(that: EventViewMedia): boolean {
     return (
       this.getMediaType() === that.getMediaType() &&
@@ -113,7 +111,7 @@ export class FrigateRecordingViewMedia extends ViewMedia implements RecordingVie
     contentID: string,
     title: string,
   ) {
-    super(mediaType, cameraID);
+    super(mediaType, { cameraID });
     this._recording = recording;
     this._id = id;
     this._contentID = contentID;
@@ -150,7 +148,7 @@ export class FrigateRecordingViewMedia extends ViewMedia implements RecordingVie
 
 export class FrigateViewMediaFactory {
   static createEventViewMedia(
-    mediaType: 'clip' | 'snapshot',
+    mediaType: ViewMediaType,
     cameraID: string,
     cameraConfig: CameraConfig,
     event: FrigateEvent,
@@ -191,7 +189,7 @@ export class FrigateViewMediaFactory {
     }
 
     return new FrigateRecordingViewMedia(
-      'recording',
+      ViewMediaType.Recording,
       cameraID,
       recording,
       getRecordingID(cameraConfig, recording),

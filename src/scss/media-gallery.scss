@@ -1,0 +1,32 @@
+@use 'basic-block.scss';
+
+advanced-camera-card-surround-basic {
+  // The gallery will grow indefinitely in the `unconstrained` aspect ratio
+  // modes, the surround height needs to be limited to something reasonable in
+  // order for the media filter to still display somewhere the user can
+  // easily/continually access. See similar: gallery.scss.
+  max-height: 110dvh;
+}
+
+advanced-camera-card-thumbnail {
+  height: 100%;
+  min-height: var(--advanced-camera-card-thumbnail-size);
+
+  background-color: var(--secondary-background-color);
+}
+advanced-camera-card-thumbnail:not([details]) {
+  width: 100%;
+}
+advanced-camera-card-thumbnail.selected {
+  border: 4px solid var(--accent-color);
+
+  // Because this is box-sizing: border-box, the border is effectively
+  // 'padding'. To get the curved borders to line up between the thumbnail and
+  // this outer border, we need to add the size of the border to the thumbnail
+  // image border radius.
+  // Related: https://www.30secondsofcode.org/articles/s/css-nested-border-radius
+  border-radius: calc(
+    var(--advanced-camera-card-css-border-radius, var(--ha-card-border-radius, 4px)) +
+      4px
+  );
+}

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
 import { StatusBarString } from '../../src/config/schema/actions/types';
-import { MediaQueriesResults } from '../../src/view/media-queries-results';
+import { QueryResults } from '../../src/view/query-results';
 import {
   TestViewMedia,
   createCameraManager,
@@ -92,7 +92,7 @@ describe('StatusBarItemManager', () => {
           const cameraManager = createCameraManager();
 
           const media = [new TestViewMedia({ title: 'Media Title' })];
-          const queryResults = new MediaQueriesResults({
+          const queryResults = new QueryResults({
             results: media,
           });
 
@@ -119,7 +119,7 @@ describe('StatusBarItemManager', () => {
           const cameraManager = createCameraManager();
 
           const media = [new TestViewMedia()];
-          const queryResults = new MediaQueriesResults({
+          const queryResults = new QueryResults({
             results: media,
           });
 

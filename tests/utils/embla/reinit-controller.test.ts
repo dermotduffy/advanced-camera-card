@@ -3,8 +3,8 @@ import { EmblaReInitController } from '../../../src/utils/embla/reinit-controlle
 import { requestAnimationFrameMock } from '../../test-utils';
 import { callEmblaHandler, createEmblaApiInstance } from './test-utils';
 
-vi.mock('lodash-es/debounce', () => ({
-  default: vi.fn((fn) => fn),
+vi.mock('lodash-es', () => ({
+  debounce: vi.fn((fn) => fn),
 }));
 
 // @vitest-environment jsdom

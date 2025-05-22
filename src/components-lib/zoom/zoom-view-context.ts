@@ -46,15 +46,17 @@ export const handleZoomSettingsObservedEvent = (
   viewManager?: ViewManagerInterface,
   targetID?: string,
 ): void => {
-  viewManager &&
-    targetID &&
-    viewManager.setViewByParameters({
-      modifiers: [
-        new MergeContextViewModifier(
-          generateViewContextForZoom(targetID, {
-            observed: ev.detail,
-          }),
-        ),
-      ],
-    });
+  if (!viewManager || !targetID) {
+    return;
+  }
+
+  viewManager.setViewByParameters({
+    modifiers: [
+      new MergeContextViewModifier(
+        generateViewContextForZoom(targetID, {
+          observed: ev.detail,
+        }),
+      ),
+    ],
+  });
 };

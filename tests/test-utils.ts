@@ -10,10 +10,7 @@ import { FrigateEvent, FrigateRecording } from '../src/camera-manager/frigate/ty
 import { GenericCameraManagerEngine } from '../src/camera-manager/generic/engine-generic';
 import { CameraManager } from '../src/camera-manager/manager';
 import { CameraManagerStore } from '../src/camera-manager/store';
-import {
-  CameraEventCallback,
-  CameraManagerMediaCapabilities,
-} from '../src/camera-manager/types';
+import { CameraEventCallback } from '../src/camera-manager/types';
 import { ActionsManager } from '../src/card-controller/actions/actions-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
 import { CameraURLManager } from '../src/card-controller/camera-url-manager';
@@ -21,8 +18,8 @@ import { CardElementManager } from '../src/card-controller/card-element-manager'
 import { ConfigManager } from '../src/card-controller/config/config-manager';
 import { CardController } from '../src/card-controller/controller';
 import { DefaultManager } from '../src/card-controller/default-manager';
-import { DownloadManager } from '../src/card-controller/download-manager';
 import { ExpandManager } from '../src/card-controller/expand-manager';
+import { FoldersManager } from '../src/card-controller/folders/manager';
 import { FullscreenManager } from '../src/card-controller/fullscreen/fullscreen-manager';
 import { HASSManager } from '../src/card-controller/hass/hass-manager';
 import { StateWatcherSubscriptionInterface } from '../src/card-controller/hass/state-watcher';
@@ -37,10 +34,12 @@ import { QueryStringManager } from '../src/card-controller/query-string-manager'
 import { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../src/card-controller/style-manager';
 import { TriggersManager } from '../src/card-controller/triggers-manager';
+import { ViewItemManager } from '../src/card-controller/view/item-manager';
 import { ViewManager } from '../src/card-controller/view/view-manager';
 import { SubmenuInteraction, SubmenuItem } from '../src/components/submenu/types';
 import { ConditionStateManager } from '../src/conditions/state-manager';
 import { CameraConfig, cameraConfigSchema } from '../src/config/schema/cameras';
+import { FolderConfig } from '../src/config/schema/folders';
 import {
   PerformanceConfig,
   performanceConfigSchema,
@@ -50,13 +49,18 @@ import {
   advancedCameraCardConfigSchema,
 } from '../src/config/schema/types';
 import { RawAdvancedCameraCardConfig } from '../src/config/types';
-import { CurrentUser, HomeAssistant } from '../src/ha/types';
+import {
+  BrowseMedia,
+  BrowseMediaMetadata,
+  RichBrowseMedia,
+} from '../src/ha/browse-media/types';
+import { Device } from '../src/ha/registry/device/types';
+import { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
+import { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
 import { CapabilitiesRaw, Interaction, MediaLoadedInfo } from '../src/types';
-import { HassStateDifference } from '../src/utils/ha';
-import { Device } from '../src/utils/ha/registry/device/types';
-import { Entity, EntityRegistryManager } from '../src/utils/ha/registry/entity/types';
-import { ViewMedia, ViewMediaType } from '../src/view/media';
-import { MediaQueriesResults } from '../src/view/media-queries-results';
+import { EventViewMedia, ViewMedia, ViewMediaType } from '../src/view/item';
+import { QueryResults } from '../src/view/query-results';
+import { ViewItemCapabilities } from '../src/view/types';
 import { View, ViewParameters } from '../src/view/view';
 
 export const createCameraConfig = (config?: unknown): CameraConfig => {
@@ -186,7 +190,7 @@ export const createView = (options?: Partial<ViewParameters>): View => {
 export const createViewWithMedia = (options?: Partial<ViewParameters>): View => {
   const media = generateViewMediaArray({ count: 5 });
   return createView({
-    queryResults: new MediaQueriesResults({
+    queryResults: new QueryResults({
       results: media,
       selectedIndex: 0,
     }),
@@ -255,8 +259,8 @@ export const createCapabilities = (capabilities?: CapabilitiesRaw): Capabilities
 };
 
 export const createMediaCapabilities = (
-  options?: Partial<CameraManagerMediaCapabilities>,
-): CameraManagerMediaCapabilities => {
+  options?: Partial<ViewItemCapabilities>,
+): ViewItemCapabilities => {
   return {
     canFavorite: false,
     canDownload: false,
@@ -308,7 +312,8 @@ export const generateViewMediaArray = (options?: {
 
 // ViewMedia itself has no native way to set startTime and ID that aren't linked
 // to an engine.
-export class TestViewMedia extends ViewMedia {
+export class TestViewMedia extends ViewMedia implements EventViewMedia {
+  protected _icon: string | null = null;
   protected _id: string | null;
   protected _startTime: Date | null;
   protected _endTime: Date | null;
@@ -316,26 +321,48 @@ export class TestViewMedia extends ViewMedia {
   protected _contentID: string | null;
   protected _title: string | null;
   protected _thumbnail: string | null;
+  protected _what: string[] | null = null;
+  protected _score: number | null = null;
+  protected _tags: string[] | null = null;
+  protected _where: string[] | null = null;
 
   constructor(options?: {
     id?: string | null;
     startTime?: Date | null;
     mediaType?: ViewMediaType;
-    cameraID?: string;
+    cameraID?: string | null;
+    folder?: FolderConfig | null;
     endTime?: Date | null;
     inProgress?: boolean;
     contentID?: string;
-    title?: string;
-    thumbnail?: string;
+    title?: string | null;
+    thumbnail?: string | null;
+    icon?: string | null;
+    what?: string[] | null;
+    score?: number | null;
+    tags?: string[] | null;
+    where?: string[] | null;
   }) {
-    super(options?.mediaType ?? 'clip', options?.cameraID ?? 'camera');
+    super(options?.mediaType ?? ViewMediaType.Clip, {
+      ...(options?.cameraID !== null &&
+        !options?.folder && { cameraID: options?.cameraID ?? 'camera' }),
+      ...(options?.folder && { folder: options.folder }),
+    });
     this._id = options?.id !== undefined ? options.id : 'id';
     this._startTime = options?.startTime ?? null;
     this._endTime = options?.endTime ?? null;
     this._inProgress = options?.inProgress !== undefined ? options.inProgress : false;
     this._contentID = options?.contentID ?? null;
-    this._title = options?.title ?? null;
-    this._thumbnail = options?.thumbnail ?? null;
+    this._title = options?.title !== undefined ? options.title : null;
+    this._thumbnail = options?.thumbnail !== undefined ? options.thumbnail : null;
+    this._icon = options?.icon !== undefined ? options.icon : null;
+    this._what = options?.what !== undefined ? options.what : null;
+    this._score = options?.score !== undefined ? options.score : null;
+    this._tags = options?.tags !== undefined ? options.tags : null;
+    this._where = options?.where !== undefined ? options.where : null;
+  }
+  public getIcon(): string | null {
+    return this._icon;
   }
   public getID(): string | null {
     return this._id;
@@ -357,6 +384,22 @@ export class TestViewMedia extends ViewMedia {
   }
   public getThumbnail(): string | null {
     return this._thumbnail;
+  }
+  public getWhat(): string[] | null {
+    return this._what;
+  }
+  public getScore(): number | null {
+    return this._score;
+  }
+  public getTags(): string[] | null {
+    return this._tags;
+  }
+  public getWhere(): string[] | null {
+    return this._where;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public isGroupableWith(_that: EventViewMedia): boolean {
+    return false;
   }
 }
 
@@ -446,8 +489,9 @@ export const callVisibilityHandler = async (visible: boolean): Promise<void> => 
 export const createSlotHost = (options?: {
   slot?: HTMLSlotElement;
   children?: HTMLElement[];
-}): HTMLElement => {
-  const parent = document.createElement('div');
+  parent?: LitElement;
+}): LitElement => {
+  const parent = options?.parent ?? createLitElement();
   parent.attachShadow({ mode: 'open' });
 
   if (options?.slot) {
@@ -499,9 +543,9 @@ export const createCardAPI = (): CardController => {
   api.getCardElementManager.mockReturnValue(mock<CardElementManager>());
   api.getConditionStateManager.mockReturnValue(mock<ConditionStateManager>());
   api.getConfigManager.mockReturnValue(mock<ConfigManager>());
-  api.getDownloadManager.mockReturnValue(mock<DownloadManager>());
   api.getEntityRegistryManager.mockReturnValue(mock<EntityRegistryManager>());
   api.getExpandManager.mockReturnValue(mock<ExpandManager>());
+  api.getFoldersManager.mockReturnValue(mock<FoldersManager>());
   api.getFullscreenManager.mockReturnValue(mock<FullscreenManager>());
   api.getHASSManager.mockReturnValue(mock<HASSManager>());
   api.getInitializationManager.mockReturnValue(mock<InitializationManager>());
@@ -515,6 +559,7 @@ export const createCardAPI = (): CardController => {
   api.getStatusBarItemManager.mockReturnValue(mock<StatusBarItemManager>());
   api.getStyleManager.mockReturnValue(mock<StyleManager>());
   api.getTriggersManager.mockReturnValue(mock<TriggersManager>());
+  api.getViewItemManager.mockReturnValue(mock<ViewItemManager>());
   api.getViewManager.mockReturnValue(mock<ViewManager>());
 
   return api;
@@ -561,4 +606,67 @@ export const createSubmenuInteractionActionEvent = (
 
 export const setScreenfulEnabled = (enabled: boolean): void => {
   Object.defineProperty(screenfull, 'isEnabled', { value: enabled, writable: true });
+};
+
+export const createTouch = (touch?: Partial<Touch>): Touch => ({
+  clientX: touch?.clientX ?? 0,
+  clientY: touch?.clientY ?? 0,
+  force: touch?.force ?? 0,
+  identifier: touch?.identifier ?? 0,
+  pageX: touch?.pageX ?? 0,
+  pageY: touch?.pageY ?? 0,
+  radiusX: touch?.radiusX ?? 0,
+  radiusY: touch?.radiusY ?? 0,
+  rotationAngle: touch?.rotationAngle ?? 0,
+  screenX: touch?.screenX ?? 0,
+  screenY: touch?.screenY ?? 0,
+  target: touch?.target ?? document.createElement('div'),
+});
+
+export const createTouchEvent = (
+  type: string,
+  options?: { touches?: Touch[]; changedTouches?: Touch[] },
+): TouchEvent => {
+  return new TouchEvent(type, {
+    bubbles: false,
+    touches: options?.touches,
+    changedTouches: options?.changedTouches,
+  });
+};
+
+export const createFolder = (config?: Partial<FolderConfig>): FolderConfig => {
+  return {
+    type: 'ha',
+    ha: {
+      path: [{ id: 'media-source://' }],
+    },
+    ...config,
+  };
+};
+
+export const createBrowseMedia = (media?: Partial<BrowseMedia>): BrowseMedia => {
+  return {
+    title: 'Test Media',
+    media_class: 'video',
+    media_content_type: 'video/mp4',
+    media_content_id: 'content_id',
+    can_play: true,
+    can_expand: false,
+    thumbnail: null,
+    children: null,
+    ...media,
+  };
+};
+
+export const createRichBrowseMedia = (
+  media?: Partial<RichBrowseMedia<BrowseMediaMetadata>>,
+): RichBrowseMedia<BrowseMediaMetadata> => {
+  return {
+    ...createBrowseMedia(media),
+    _metadata: media?._metadata ?? {
+      cameraID: 'camera.test',
+      startDate: new Date('2024-11-19T07:23:00'),
+      endDate: new Date('2025-11-19T07:24:00'),
+    },
+  };
 };

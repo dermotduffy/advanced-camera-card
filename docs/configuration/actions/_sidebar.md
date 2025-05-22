@@ -9,6 +9,7 @@
   - [`conditions`](../conditions.md)
   - [`dimensions`](../dimensions.md)
   - [`elements`](../elements/README.md)
+  - [`folders`](../folders.md)
   - [`image`](../image.md)
   - [`live`](../live.md)
   - [`media_gallery`](../media-gallery.md)

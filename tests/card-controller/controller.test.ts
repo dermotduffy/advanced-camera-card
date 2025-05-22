@@ -10,8 +10,8 @@ import {
 import { ConfigManager } from '../../src/card-controller/config/config-manager';
 import { CardController } from '../../src/card-controller/controller';
 import { DefaultManager } from '../../src/card-controller/default-manager';
-import { DownloadManager } from '../../src/card-controller/download-manager';
 import { ExpandManager } from '../../src/card-controller/expand-manager';
+import { FoldersManager } from '../../src/card-controller/folders/manager';
 import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager';
 import { HASSManager } from '../../src/card-controller/hass/hass-manager';
 import { InitializationManager } from '../../src/card-controller/initialization-manager';
@@ -25,12 +25,13 @@ import { QueryStringManager } from '../../src/card-controller/query-string-manag
 import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../../src/card-controller/style-manager';
 import { TriggersManager } from '../../src/card-controller/triggers-manager';
+import { ViewItemManager } from '../../src/card-controller/view/item-manager';
 import { ViewManager } from '../../src/card-controller/view/view-manager';
 import { ConditionStateManager } from '../../src/conditions/state-manager';
 import { AdvancedCameraCardEditor } from '../../src/editor';
-import { DeviceRegistryManager } from '../../src/utils/ha/registry/device';
-import { EntityRegistryManagerLive } from '../../src/utils/ha/registry/entity';
-import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';
+import { DeviceRegistryManager } from '../../src/ha/registry/device';
+import { EntityRegistryManagerLive } from '../../src/ha/registry/entity';
+import { ResolvedMediaCache } from '../../src/ha/resolved-media';
 
 vi.mock('../../src/camera-manager/manager');
 vi.mock('../../src/card-controller/actions/actions-manager');
@@ -41,6 +42,7 @@ vi.mock('../../src/card-controller/config/config-manager');
 vi.mock('../../src/card-controller/default-manager');
 vi.mock('../../src/card-controller/download-manager');
 vi.mock('../../src/card-controller/expand-manager');
+vi.mock('../../src/card-controller/folders/manager');
 vi.mock('../../src/card-controller/fullscreen/fullscreen-manager');
 vi.mock('../../src/card-controller/hass/hass-manager');
 vi.mock('../../src/card-controller/initialization-manager');
@@ -54,11 +56,12 @@ vi.mock('../../src/card-controller/query-string-manager');
 vi.mock('../../src/card-controller/status-bar-item-manager');
 vi.mock('../../src/card-controller/style-manager');
 vi.mock('../../src/card-controller/triggers-manager');
+vi.mock('../../src/card-controller/view/item-manager');
 vi.mock('../../src/card-controller/view/view-manager');
 vi.mock('../../src/conditions/state-manager');
-vi.mock('../../src/utils/ha/registry/device');
-vi.mock('../../src/utils/ha/registry/entity');
-vi.mock('../../src/utils/ha/resolved-media');
+vi.mock('../../src/ha/registry/device');
+vi.mock('../../src/ha/registry/entity');
+vi.mock('../../src/ha/resolved-media');
 
 const createCardElement = (): CardHTMLElement => {
   const element = document.createElement('div') as unknown as CardHTMLElement;
@@ -152,12 +155,6 @@ describe('CardController', () => {
       );
     });
 
-    it('getDownloadManager', () => {
-      expect(createController().getDownloadManager()).toBe(
-        vi.mocked(DownloadManager).mock.instances[0],
-      );
-    });
-
     it('getEntityRegistryManager', () => {
       expect(createController().getEntityRegistryManager()).toBe(
         vi.mocked(EntityRegistryManagerLive).mock.instances[0],
@@ -167,6 +164,12 @@ describe('CardController', () => {
     it('getExpandManager', () => {
       expect(createController().getExpandManager()).toBe(
         vi.mocked(ExpandManager).mock.instances[0],
+      );
+    });
+
+    it('getFoldersManager', () => {
+      expect(createController().getFoldersManager()).toBe(
+        vi.mocked(FoldersManager).mock.instances[0],
       );
     });
 
@@ -267,6 +270,12 @@ describe('CardController', () => {
     it('getTriggersManager', () => {
       expect(createController().getTriggersManager()).toBe(
         vi.mocked(TriggersManager).mock.instances[0],
+      );
+    });
+
+    it('getViewItemManager', () => {
+      expect(createController().getViewItemManager()).toBe(
+        vi.mocked(ViewItemManager).mock.instances[0],
       );
     });
 

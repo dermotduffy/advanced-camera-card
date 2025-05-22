@@ -57,33 +57,68 @@ describe('generateViewContextForZoom', () => {
 });
 
 // @vitest-environment jsdom
-it('handleZoomSettingsObservedEvent', () => {
-  const viewManager = mock<ViewManager>();
+describe('handleZoomSettingsObservedEvent', () => {
+  it('should reject observed zoom settings without viewManager ', () => {
+    handleZoomSettingsObservedEvent(
+      new CustomEvent('advanced-camera-card:zoom:change', {
+        detail: {
+          pan: { x: 1, y: 2 },
+          zoom: 3,
+          isDefault: true,
+          unzoomed: true,
+        },
+      }),
+    );
 
-  handleZoomSettingsObservedEvent(
-    new CustomEvent('advanced-camera-card:zoom:change', {
-      detail: {
-        pan: { x: 1, y: 2 },
-        zoom: 3,
-        isDefault: true,
-        unzoomed: true,
-      },
-    }),
-    viewManager,
-    'target',
-  );
-  expect(viewManager.setViewByParameters).toBeCalledWith(
-    expect.objectContaining({
-      modifiers: [expect.any(MergeContextViewModifier)],
-    }),
-  );
+    // No observable effect.
+  });
 
-  expect(MergeContextViewModifier).toBeCalledWith({
-    zoom: {
-      target: {
-        observed: { pan: { x: 1, y: 2 }, zoom: 3, isDefault: true, unzoomed: true },
-        requested: null,
+  it('should reject observed zoom settings without target ', () => {
+    const viewManager = mock<ViewManager>();
+
+    handleZoomSettingsObservedEvent(
+      new CustomEvent('advanced-camera-card:zoom:change', {
+        detail: {
+          pan: { x: 1, y: 2 },
+          zoom: 3,
+          isDefault: true,
+          unzoomed: true,
+        },
+      }),
+      viewManager,
+    );
+
+    expect(viewManager.setViewByParameters).not.toBeCalled();
+  });
+
+  it('should handle observed zoom settings ', () => {
+    const viewManager = mock<ViewManager>();
+
+    handleZoomSettingsObservedEvent(
+      new CustomEvent('advanced-camera-card:zoom:change', {
+        detail: {
+          pan: { x: 1, y: 2 },
+          zoom: 3,
+          isDefault: true,
+          unzoomed: true,
+        },
+      }),
+      viewManager,
+      'target',
+    );
+    expect(viewManager.setViewByParameters).toBeCalledWith(
+      expect.objectContaining({
+        modifiers: [expect.any(MergeContextViewModifier)],
+      }),
+    );
+
+    expect(MergeContextViewModifier).toBeCalledWith({
+      zoom: {
+        target: {
+          observed: { pan: { x: 1, y: 2 }, zoom: 3, isDefault: true, unzoomed: true },
+          requested: null,
+        },
       },
-    },
+    });
   });
 });

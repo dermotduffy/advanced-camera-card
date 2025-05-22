@@ -9,8 +9,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
-import isEqual from 'lodash-es/isEqual';
-import throttle from 'lodash-es/throttle';
+import { isEqual, throttle } from 'lodash-es';
 import { ViewContext } from 'view';
 import { DataSet } from 'vis-data/esnext';
 import type {
@@ -31,6 +30,7 @@ import { CameraManager } from '../camera-manager/manager';
 import { rangesOverlap } from '../camera-manager/range';
 import { MediaQuery } from '../camera-manager/types';
 import { convertRangeToCacheFriendlyTimes } from '../camera-manager/utils/range-to-cache-friendly';
+import { ViewItemManager } from '../card-controller/view/item-manager';
 import { MergeContextViewModifier } from '../card-controller/view/modifiers/merge-context';
 import { ViewManagerEpoch } from '../card-controller/view/types';
 import {
@@ -56,25 +56,18 @@ import {
   isTruthy,
   setOrRemoveAttribute,
 } from '../utils/basic';
-import { findBestMediaIndex } from '../utils/find-best-media-index';
+import { findBestMediaTimeIndex } from '../utils/find-best-media-time-index';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
-import { ViewMedia } from '../view/media';
-import { ViewMediaClassifier } from '../view/media-classifier';
-import {
-  EventMediaQueries,
-  MediaQueries,
-  RecordingMediaQueries,
-} from '../view/media-queries';
-import {
-  MediaQueriesClassifier,
-  MediaQueriesType,
-} from '../view/media-queries-classifier';
-import { MediaQueriesResults } from '../view/media-queries-results';
+import { ViewMedia } from '../view/item';
+import { ViewItemClassifier } from '../view/item-classifier';
+import { EventMediaQuery, MediaQueries, RecordingMediaQuery } from '../view/query';
+import { QueryClassifier, QueryType } from '../view/query-classifier';
+import { QueryResults } from '../view/query-results';
 import { mergeViewContext } from '../view/view';
 import './date-picker.js';
 import { AdvancedCameraCardDatePicker, DatePickerEvent } from './date-picker.js';
 import './icon';
-import './thumbnail.js';
+import './thumbnail/thumbnail.js';
 
 interface AdvancedCameraCardGroupData {
   id: string;
@@ -112,6 +105,7 @@ interface ThumbnailDataRequest {
   cameraConfig?: CameraConfig;
   media?: ViewMedia;
   viewManagerEpoch?: ViewManagerEpoch;
+  viewItemManager?: ViewItemManager;
 }
 
 class ThumbnailDataRequestEvent extends CustomEvent<ThumbnailDataRequest> {}
@@ -119,7 +113,7 @@ class ThumbnailDataRequestEvent extends CustomEvent<ThumbnailDataRequest> {}
 const TIMELINE_TARGET_BAR_ID = 'target_bar';
 
 /**
- * A simgple thumbnail wrapper class for use in the timeline where Lit data
+ * A simple thumbnail wrapper class for use in the timeline where Lit data
  * bindings are not available.
  */
 @customElement('advanced-camera-card-timeline-thumbnail')
@@ -166,6 +160,7 @@ export class AdvancedCameraCardTimelineThumbnail extends LitElement {
       !dataRequest.hass ||
       !dataRequest.cameraManager ||
       !dataRequest.cameraConfig ||
+      !dataRequest.viewItemManager ||
       !dataRequest.media ||
       !dataRequest.viewManagerEpoch
     ) {
@@ -175,7 +170,8 @@ export class AdvancedCameraCardTimelineThumbnail extends LitElement {
     return html` <advanced-camera-card-thumbnail
       .hass=${dataRequest.hass}
       .cameraManager=${dataRequest.cameraManager}
-      .media=${dataRequest.media}
+      .viewItemManager=${dataRequest.viewItemManager}
+      .item=${dataRequest.media}
       .viewManagerEpoch=${dataRequest.viewManagerEpoch}
       ?details=${this.details}
     >
@@ -209,6 +205,9 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public viewItemManager?: ViewItemManager;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -275,6 +274,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
     request.detail.hass = this.hass;
     request.detail.cameraConfig = cameraConfig;
     request.detail.cameraManager = this.cameraManager;
+    request.detail.viewItemManager = this.viewItemManager;
     request.detail.media = media;
     request.detail.viewManagerEpoch = this.viewManagerEpoch;
   }
@@ -477,13 +477,13 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
     }
 
     const canSeek = this._shouldSupportSeeking();
-    let newResults: MediaQueriesResults | null = null;
+    let newResults: QueryResults | null = null;
 
     if (panMode === 'seek') {
       newResults = results
         .clone()
         .selectBestResult(
-          (mediaArray) => findBestMediaIndex(mediaArray, targetTime, view?.camera),
+          (mediaArray) => findBestMediaTimeIndex(mediaArray, targetTime, view?.camera),
           {
             allCameras: true,
             main: true,
@@ -492,9 +492,12 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
     } else if (panMode === 'seek-in-camera') {
       newResults = results
         .clone()
-        .selectBestResult((mediaArray) => findBestMediaIndex(mediaArray, targetTime), {
-          cameraID: view.camera,
-        })
+        .selectBestResult(
+          (mediaArray) => findBestMediaTimeIndex(mediaArray, targetTime),
+          {
+            cameraID: view.camera,
+          },
+        )
         .promoteCameraSelectionToMainSelection(view.camera);
     } else if (panMode === 'seek-in-media') {
       newResults = results;
@@ -506,7 +509,10 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
         : 'media'
       : view.view;
 
-    const selectedCamera = newResults?.getSelectedResult()?.getCameraID();
+    const selectedItem = newResults?.getSelectedResult();
+    const selectedCamera = ViewItemClassifier.isMedia(selectedItem)
+      ? selectedItem.getCameraID()
+      : null;
 
     this.viewManagerEpoch?.manager.setViewByParameters({
       params: {
@@ -675,7 +681,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
 
     await this._timelineSource?.refresh(this._getPrefetchWindow(properties));
 
-    const queryType = MediaQueriesClassifier.getQueriesType(view.query);
+    const queryType = QueryClassifier.getQueryType(view.query);
     if (!queryType) {
       return;
     }
@@ -702,7 +708,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
   }
 
   protected _createMediaQueries(
-    type: MediaQueriesType,
+    type: QueryType,
     options?: {
       window?: TimelineWindow;
     },
@@ -717,11 +723,11 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
 
     if (type === 'event') {
       const queries = this._timelineSource.getTimelineEventQueries(cacheFriendlyWindow);
-      return queries ? new EventMediaQueries(queries) : null;
+      return queries ? new EventMediaQuery(queries) : null;
     } else if (type === 'recording') {
       const queries =
         this._timelineSource.getTimelineRecordingQueries(cacheFriendlyWindow);
-      return queries ? new RecordingMediaQueries(queries) : null;
+      return queries ? new RecordingMediaQuery(queries) : null;
     }
     return null;
   }
@@ -877,8 +883,8 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
                 !selectedIDs.includes(second.id) &&
                 !!firstMedia &&
                 !!secondMedia &&
-                ViewMediaClassifier.isEvent(firstMedia) &&
-                ViewMediaClassifier.isEvent(secondMedia) &&
+                ViewItemClassifier.isEvent(firstMedia) &&
+                ViewItemClassifier.isEvent(secondMedia) &&
                 firstMedia.isGroupableWith(secondMedia)
               );
             },
@@ -938,7 +944,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
         ...(view.isGrid() && { allCameras: true }),
       }) ?? []
     )
-      .filter((media) => ViewMediaClassifier.isEvent(media))
+      .filter((media) => ViewItemClassifier.isEvent(media))
       .map((media) => media.getID())
       .filter(isTruthy);
   }
@@ -961,10 +967,11 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
     // perfectly center on the media.
 
     let desiredWindow = timelineWindow;
-    const media = view.queryResults?.getSelectedResult();
+    const item = view.queryResults?.getSelectedResult();
+    const media = item && ViewItemClassifier.isMedia(item) ? item : null;
     const mediaStartTime = media?.getStartTime() ?? null;
     const mediaEndTime = media?.getEndTime() ?? null;
-    const mediaIsEvent = media ? ViewMediaClassifier.isEvent(media) : false;
+    const mediaIsEvent = media ? ViewItemClassifier.isEvent(media) : false;
 
     const mediaWindow: TimelineWindow | null =
       media && mediaStartTime
@@ -1044,7 +1051,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
     // Also don't generate thumbnails in mini-timelines (they will already have
     // been generated).
 
-    const queryType = MediaQueriesClassifier.getQueriesType(view.query);
+    const queryType = QueryClassifier.getQueryType(view.query);
     if (!queryType) {
       return;
     }
@@ -1080,15 +1087,19 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
 
   protected _alreadyHasAcceptableMediaQuery(freshMediaQuery: MediaQueries): boolean {
     const view = this.viewManagerEpoch?.manager.getView();
+    const query = view?.query;
 
-    const currentQueries = view?.query?.getQueries();
+    if (!this.cameraManager || !query || !QueryClassifier.isMediaQuery(query)) {
+      return false;
+    }
+
+    const currentQueries = query?.getQuery();
     const currentResultTimestamp = view?.queryResults?.getResultsTimestamp();
 
     return (
-      !!this.cameraManager &&
       !!currentQueries &&
       !!currentResultTimestamp &&
-      !!view?.query?.isSupersetOf(freshMediaQuery) &&
+      !!query?.isSupersetOf(freshMediaQuery) &&
       this.cameraManager.areMediaQueriesResultsFresh<MediaQuery>(
         currentQueries,
         currentResultTimestamp,

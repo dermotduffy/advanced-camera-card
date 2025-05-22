@@ -6,7 +6,9 @@
   "common": {
     "advanced_camera_card": "",
     "advanced_camera_card_description": "",
+    "folder": "",
     "live": "En direct",
+    "no_folder": "",
     "no_media": "Aucun média à afficher",
     "recordings": "Enregistrements",
     "version": "Version"
@@ -318,6 +320,20 @@
       },
       "height": "Hauteur de la carte en unités CSS (par exemple, '500px')"
     },
+    "folders": {
+      "ha": {
+        "editor_label": "",
+        "path_info": "",
+        "url": ""
+      },
+      "icon": "",
+      "id": "",
+      "title": "",
+      "type": "",
+      "types": {
+        "ha": ""
+      }
+    },
     "live": {
       "auto_mute": "Couper automatiquement le son des caméras en direct",
       "auto_pause": "Mettre automatiquement en pause les caméras en direct",
@@ -404,6 +420,7 @@
         "download": "Télécharger",
         "enabled": "Bouton activé",
         "expand": "Étendre",
+        "folders": "",
         "fullscreen": "Plein écran",
         "icon": "Icône",
         "image": "Image",
@@ -571,6 +588,7 @@
         "clip": "Clip le plus récent",
         "clips": "Galerie de clips",
         "current": "Vue actuelle",
+        "folder": "",
         "image": "Image statique",
         "live": "Vue en direct",
         "recording": "Enregistrement le plus récent",
@@ -587,6 +605,7 @@
   },
   "editor": {
     "add_new_camera": "Ajouter une nouvelle caméra",
+    "add_new_folder": "",
     "button": "Bouton",
     "camera": "Caméra",
     "cameras": "Caméras",
@@ -594,6 +613,8 @@
     "delete": "Supprimer",
     "dimensions": "Dimensions",
     "dimensions_secondary": "Options de dimensions et de forme",
+    "folders": "",
+    "folders_secondary": "",
     "image": "Image",
     "image_secondary": "Options d'affichage d'image statique",
     "live": "En direct",
@@ -636,16 +657,19 @@
     }
   },
   "error": {
+    "awaiting_folder": "",
     "awaiting_live": "En attente du flux en direct...",
     "awaiting_media": "En attente du chargement des médias",
     "camera_initialization": "Échec de l'initialisation de la caméra",
     "camera_initialization_reolink": "Impossible d'initialiser la caméra Reolink",
+    "configuration": "",
     "could_not_render_elements": "Impossible de restituer les éléments de l'image",
     "could_not_resolve": "Impossible de résoudre l'URL du média",
     "diagnostics": "Diagnostic de la carte. Veuillez enlever les informations confidentielles avant de les partager",
     "download_no_media": "Aucun média à télécharger",
     "download_sign_failed": "Impossible de signer l'URL du média à télécharger",
     "duplicate_camera_id": "ID de caméra Frigate en double pour la caméra suivante, utilisez le paramètre « ID » pour identifier de manière unique les caméras",
+    "duplicate_folder_id": "",
     "empty_response": "Réponse vide reçue de Home Assistant pour la demande",
     "failed_response": "Échec de la réponse de Home Assistant à la demande",
     "failed_retain": "Impossible de conserver l'événement",
@@ -677,17 +701,6 @@
     "upgrade_available": "Une mise à niveau automatisée de la configuration de la carte est disponible, veuillez visiter l'éditeur visuel de la carte",
     "webrtc_card_reported_error": "La carte WebRTC a signalé une erreur",
     "webrtc_card_waiting": "En attente du chargement de la carte WebRTC..."
-  },
-  "event": {
-    "camera": "Caméra",
-    "duration": "Durée",
-    "in_progress": "En cours",
-    "score": "Score",
-    "seek": "Chercher",
-    "start": "Commencer",
-    "tag": "Étiqueter",
-    "what": "Quoi",
-    "where": "Où"
   },
   "key_assigner": {
     "assign": "Assigner",
@@ -732,19 +745,22 @@
   "media_viewer": {
     "unseekable": "Temps non trouvé dans les médias"
   },
-  "recording": {
+  "thumbnail": {
     "camera": "Caméra",
+    "download": "Télécharger des médias",
     "duration": "Durée",
     "events": "Événements",
     "in_progress": "En cours",
-    "seek": "Chercher",
-    "start": "Commencer"
-  },
-  "thumbnail": {
-    "download": "Télécharger des médias",
     "no_thumbnail": "Aucune vignette disponible",
     "retain_indefinitely": "Les médias seront conservés indéfiniment",
-    "timeline": "Voir les médias dans la chronologie"
+    "score": "Score",
+    "seek": "Chercher",
+    "start": "Commencer",
+    "tag": "Étiqueter",
+    "timeline": "Voir les médias dans la chronologie",
+    "title": "",
+    "what": "Quoi",
+    "where": "Où"
   },
   "timeline": {
     "select_date": "Choisir une date"

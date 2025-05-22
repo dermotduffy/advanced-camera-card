@@ -1,10 +1,10 @@
 import { HassConfig } from 'home-assistant-js-websocket';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+import { DeviceRegistryManager } from '../../src/ha/registry/device';
+import { homeAssistantWSRequest } from '../../src/ha/ws-request';
 import { getLanguage } from '../../src/localize/localize';
 import { getDiagnostics, getReleaseVersion } from '../../src/utils/diagnostics.js';
-import { DeviceRegistryManager } from '../../src/utils/ha/registry/device';
-import { homeAssistantWSRequest } from '../../src/utils/ha/ws-request';
 import { createHASS, createRegistryDevice } from '../test-utils';
 
 vi.mock('../../package.json', () => ({
@@ -14,10 +14,10 @@ vi.mock('../../package.json', () => ({
     gitDate: 'Wed, 6 Sep 2023 21:27:28 -0700',
   },
 }));
-vi.mock('../../src/utils/ha');
+vi.mock('../../src/ha');
 vi.mock('../../src/localize/localize.js');
-vi.mock('../../src/utils/ha/registry/device/index.js');
-vi.mock('../../src/utils/ha/ws-request.js');
+vi.mock('../../src/ha/registry/device/index.js');
+vi.mock('../../src/ha/ws-request.js');
 
 describe('getReleaseVersion', () => {
   it('should get release version', () => {

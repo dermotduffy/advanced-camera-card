@@ -36,7 +36,8 @@ export class VideoMediaPlayerController implements MediaPlayerController {
         await this.mute();
         try {
           await video.play();
-        } catch (_) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (e) {
           // Pass.
         }
       }

@@ -2,11 +2,17 @@ import Panzoom, { PanzoomEventDetail, PanzoomObject } from '@dermotduffy/panzoom
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock, mockClear } from 'vitest-mock-extended';
 import { ZoomController } from '../../../src/components-lib/zoom/zoom-controller';
-import { ResizeObserverMock, requestAnimationFrameMock } from '../../test-utils';
+import {
+  ResizeObserverMock,
+  createTouch,
+  createTouchEvent,
+  requestAnimationFrameMock,
+} from '../../test-utils';
 
 vi.mock('@dermotduffy/panzoom');
-vi.mock('lodash-es/throttle', () => ({
-  default: vi.fn((fn) => fn),
+vi.mock('lodash-es', () => ({
+  round: vi.fn((fn) => fn),
+  throttle: vi.fn((fn) => fn),
 }));
 
 // https://github.com/jsdom/jsdom/issues/2527
@@ -40,23 +46,6 @@ describe('ZoomController', () => {
     const zoom = new ZoomController(element);
     zoom.activate();
     return zoom;
-  };
-
-  const createTouch = (target: HTMLElement): Touch => {
-    return {
-      clientX: 0,
-      clientY: 0,
-      force: 0,
-      identifier: 0,
-      pageX: 0,
-      pageY: 0,
-      radiusX: 0,
-      radiusY: 0,
-      rotationAngle: 0,
-      screenX: 0,
-      screenY: 0,
-      target: target,
-    };
   };
 
   beforeAll(() => {
@@ -144,24 +133,23 @@ describe('ZoomController', () => {
 
       createAndRegisterZoom(element);
 
-      const ev_1 = new TouchEvent('touchstart', {
-        bubbles: false,
-        touches: [createTouch(element), createTouch(element)],
+      const ev_1 = createTouchEvent('touchstart', {
+        touches: [createTouch({ target: element }), createTouch({ target: element })],
       });
       element.dispatchEvent(ev_1);
       expect(panzoom.handleDown).toBeCalledWith(ev_1);
 
       panzoom.getScale = vi.fn().mockReturnValue(1.2);
 
-      const ev_3 = new TouchEvent('touchstart');
+      const ev_3 = createTouchEvent('touchstart');
       element.dispatchEvent(ev_3);
       expect(panzoom.handleDown).toBeCalledWith(ev_3);
 
-      const ev_4 = new TouchEvent('touchmove');
+      const ev_4 = createTouchEvent('touchmove');
       element.dispatchEvent(ev_4);
       expect(panzoom.handleMove).toBeCalledWith(ev_4);
 
-      const ev_5 = new TouchEvent('touchend');
+      const ev_5 = createTouchEvent('touchend');
       element.dispatchEvent(ev_5);
       expect(panzoom.handleUp).toBeCalledWith(ev_5);
     });

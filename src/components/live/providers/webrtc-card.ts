@@ -120,7 +120,6 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
    * Create the WebRTC element. May throw.
    */
   protected _createWebRTC(): HTMLElement | null {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const webrtcElement = this._webrtcTask.value;
     if (webrtcElement && this.hass && this.cameraConfig) {
       const webrtc = new webrtcElement() as HTMLElement & {

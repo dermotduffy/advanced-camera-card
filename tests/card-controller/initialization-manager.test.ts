@@ -5,13 +5,13 @@ import {
   InitializationManager,
 } from '../../src/card-controller/initialization-manager';
 import { ConditionStateManager } from '../../src/conditions/state-manager';
+import { sideLoadHomeAssistantElements } from '../../src/ha/side-load-ha-elements.js';
 import { loadLanguages } from '../../src/localize/localize';
-import { sideLoadHomeAssistantElements } from '../../src/utils/ha';
 import { Initializer } from '../../src/utils/initializer/initializer';
 import { createCardAPI, createConfig, createHASS } from '../test-utils';
 
 vi.mock('../../src/localize/localize.js');
-vi.mock('../../src/utils/ha/index.js');
+vi.mock('../../src/ha/side-load-ha-elements.js');
 
 // @vitest-environment jsdom
 describe('InitializationManager', () => {
@@ -90,6 +90,12 @@ describe('InitializationManager', () => {
 
       const manager = new InitializationManager(api);
 
+      expect(manager.isInitialized(InitializationAspect.LANGUAGES)).toBeFalsy();
+      expect(manager.isInitialized(InitializationAspect.SIDE_LOAD_ELEMENTS)).toBeFalsy();
+      expect(manager.isInitialized(InitializationAspect.CAMERAS)).toBeFalsy();
+      expect(manager.isInitialized(InitializationAspect.MICROPHONE_CONNECT)).toBeFalsy();
+      expect(manager.isInitialized(InitializationAspect.VIEW)).toBeFalsy();
+
       await manager.initializeMandatory();
 
       expect(loadLanguages).toBeCalled();
@@ -109,6 +115,14 @@ describe('InitializationManager', () => {
           },
         }),
       );
+
+      expect(manager.isInitialized(InitializationAspect.LANGUAGES)).toBeTruthy();
+      expect(
+        manager.isInitialized(InitializationAspect.SIDE_LOAD_ELEMENTS),
+      ).toBeTruthy();
+      expect(manager.isInitialized(InitializationAspect.CAMERAS)).toBeTruthy();
+      expect(manager.isInitialized(InitializationAspect.MICROPHONE_CONNECT)).toBeFalsy();
+      expect(manager.isInitialized(InitializationAspect.VIEW)).toBeTruthy();
     });
 
     it('successfully with microphone if configured', async () => {

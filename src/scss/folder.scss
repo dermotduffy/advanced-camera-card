@@ -1,0 +1,13 @@
+:host {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+advanced-camera-card-surround-basic {
+  // The folder will grow indefinitely in the `unconstrained` aspect ratio
+  // modes, the surround height needs to be limited to something reasonable in
+  // order for the media filter to still display somewhere the user can
+  // easily/continually access. See similar: gallery.scss.
+  max-height: 110dvh;
+}

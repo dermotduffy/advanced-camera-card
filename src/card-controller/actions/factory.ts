@@ -10,6 +10,7 @@ import { DefaultAction } from './actions/default';
 import { DisplayModeSelectAction } from './actions/display-mode-select';
 import { DownloadAction } from './actions/download';
 import { ExpandAction } from './actions/expand';
+import { FolderAction } from './actions/folder';
 import { FullscreenAction } from './actions/fullscreen';
 import { InternalCallbackAction } from './actions/internal-callback';
 import { LogAction } from './actions/log';
@@ -150,6 +151,8 @@ export class ActionFactory {
         return new StatusBarAction(context, action, options?.config);
       case INTERNAL_CALLBACK_ACTION:
         return new InternalCallbackAction(context, action, options?.config);
+      case 'folder':
+        return new FolderAction(context, action, options?.config);
     }
 
     /* istanbul ignore next: this path cannot be reached -- @preserve */

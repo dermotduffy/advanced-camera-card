@@ -1,15 +1,15 @@
 import { CameraConfig } from '../config/schema/cameras';
 import { HomeAssistant } from '../ha/types';
-import { ViewMedia } from '../view/media';
+import { Endpoint } from '../types';
+import { ViewMedia } from '../view/item';
+import { ViewItemCapabilities } from '../view/types';
 import { Camera } from './camera';
 import { CameraManagerReadOnlyConfigStore } from './store';
 import {
-  CameraEndpoint,
   CameraEndpoints,
   CameraEndpointsContext,
   CameraManagerCameraMetadata,
-  CameraManagerMediaCapabilities,
-  DataQuery,
+  CameraQuery,
   Engine,
   EngineOptions,
   EventQuery,
@@ -90,7 +90,7 @@ export interface CameraManagerEngine {
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
     media: ViewMedia,
-  ): Promise<CameraEndpoint | null>;
+  ): Promise<Endpoint | null>;
 
   favoriteMedia(
     hass: HomeAssistant,
@@ -99,7 +99,7 @@ export interface CameraManagerEngine {
     favorite: boolean,
   ): Promise<void>;
 
-  getQueryResultMaxAge(query: DataQuery): number | null;
+  getQueryResultMaxAge(query: CameraQuery): number | null;
 
   getMediaSeekTime(
     hass: HomeAssistant,
@@ -121,7 +121,7 @@ export interface CameraManagerEngine {
     cameraConfig: CameraConfig,
   ): CameraManagerCameraMetadata;
 
-  getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities | null;
+  getMediaCapabilities(media: ViewMedia): ViewItemCapabilities | null;
 
   getCameraEndpoints(
     cameraConfig: CameraConfig,

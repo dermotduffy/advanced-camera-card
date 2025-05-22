@@ -16,6 +16,7 @@ export const VIEWS_USER_SPECIFIED = [
   'live',
   'clip',
   'clips',
+  'folder',
   'snapshot',
   'snapshots',
   'recording',
@@ -24,12 +25,7 @@ export const VIEWS_USER_SPECIFIED = [
   'timeline',
 ] as const;
 export type AdvancedCameraCardUserSpecifiedView = (typeof VIEWS_USER_SPECIFIED)[number];
-
-const VIEWS = [
-  ...VIEWS_USER_SPECIFIED,
-  'diagnostics',
-
-  // Media: A generic piece of media (could be clip, snapshot, recording).
-  'media',
-] as const;
-export type AdvancedCameraCardView = (typeof VIEWS)[number];
+export type AdvancedCameraCardView =
+  | AdvancedCameraCardUserSpecifiedView
+  | 'media'
+  | 'diagnostics';

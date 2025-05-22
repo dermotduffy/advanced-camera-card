@@ -7,7 +7,7 @@ import {
   hasCameraTruePTZ,
   ptzActionToCapabilityKey,
 } from '../../src/utils/ptz';
-import { MediaQueriesResults } from '../../src/view/media-queries-results';
+import { QueryResults } from '../../src/view/query-results';
 import {
   TestViewMedia,
   createCameraManager,
@@ -21,7 +21,7 @@ describe('getPTZTarget', () => {
       const media = [new TestViewMedia({ id: 'media-id' })];
       const view = createView({
         view: 'media',
-        queryResults: new MediaQueriesResults({ results: media, selectedIndex: 0 }),
+        queryResults: new QueryResults({ results: media, selectedIndex: 0 }),
       });
       expect(getPTZTarget(view, { cameraManager: createCameraManager() })).toEqual({
         targetID: 'media-id',
@@ -40,7 +40,7 @@ describe('getPTZTarget', () => {
       const media = [new TestViewMedia({ id: 'media-id' })];
       const view = createView({
         view: 'media',
-        queryResults: new MediaQueriesResults({ results: media, selectedIndex: 0 }),
+        queryResults: new QueryResults({ results: media, selectedIndex: 0 }),
       });
       expect(
         getPTZTarget(view, { type: 'ptz', cameraManager: createCameraManager() }),

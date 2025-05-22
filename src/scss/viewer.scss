@@ -6,6 +6,15 @@
   gap: 5px;
 }
 
+:host([empty]) {
+  // If there is no media, render the message in suitably sized placeholder. The
+  // alternative is falling back to the minimum card size, which is too small
+  // for adequate use of the thumbnails carousel, which might be used to select
+  // media for the viewer. This issue is especially prominent when navigating
+  // folders via the thumbnail carousel.
+  aspect-ratio: 16 / 9;
+}
+
 advanced-camera-card-viewer-carousel {
   flex: 1;
   min-height: 0;

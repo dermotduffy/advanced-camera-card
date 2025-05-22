@@ -2,10 +2,11 @@ import { z } from 'zod';
 
 // The min/max width thumbnail.
 export const THUMBNAIL_WIDTH_MIN = 75;
+export const THUMBNAIL_WIDTH_DEFAULT = 100;
 export const THUMBNAIL_WIDTH_MAX = 300;
 
 const thumbnailControlsBaseDefaults = {
-  size: 100,
+  size: THUMBNAIL_WIDTH_DEFAULT,
   show_details: true,
   show_favorite_control: true,
   show_timeline_control: true,
@@ -13,7 +14,7 @@ const thumbnailControlsBaseDefaults = {
 };
 
 // Configuration for the actual rendered thumbnail.
-const thumbnailsControlBaseSchema = z.object({
+export const thumbnailsControlBaseSchema = z.object({
   size: z
     .number()
     .min(THUMBNAIL_WIDTH_MIN)

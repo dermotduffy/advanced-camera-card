@@ -6,10 +6,10 @@ import { menuBaseSchema } from './base';
 export const menuSubmenuItemSchema = elementsBaseSchema.extend({
   entity: z.string().optional(),
   icon: z.string().optional(),
-  state_color: z.boolean().default(true),
-  selected: z.boolean().default(false),
+  state_color: z.boolean().default(true).optional(),
+  selected: z.boolean().default(false).optional(),
   subtitle: z.string().optional(),
-  enabled: z.boolean().default(true),
+  enabled: z.boolean().default(true).optional(),
 });
 export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;
 

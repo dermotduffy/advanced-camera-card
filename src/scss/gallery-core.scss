@@ -20,7 +20,7 @@
     var(--advanced-camera-card-gallery-columns),
     minmax(0, 1fr)
   );
-  grid-auto-rows: min-content;
+  grid-auto-rows: var(--advanced-camera-card-thumbnail-size);
   gap: var(--advanced-camera-card-gallery-gap);
 }
 
@@ -29,27 +29,9 @@
   display: none;
 }
 
-advanced-camera-card-thumbnail {
-  height: 100%;
-  max-height: var(--advanced-camera-card-thumbnail-size);
-}
-advanced-camera-card-thumbnail:not([details]) {
-  width: 100%;
-}
-advanced-camera-card-thumbnail.selected {
-  border: 4px solid var(--accent-color);
-  // Because this is box-sizing: border-box, the border is effectively
-  // 'padding'. To get the curved borders to line up between the thumbnail and
-  // this outer border, we need to add the size of the border to the thumbnail
-  // image border radius.
-  // Related: https://www.30secondsofcode.org/articles/s/css-nested-border-radius
-  border-radius: calc(
-    var(--advanced-camera-card-css-border-radius, var(--ha-card-border-radius, 4px)) +
-      4px
-  );
-}
-
 advanced-camera-card-progress-indicator.top {
   // The top loading progress indicator should span the whole width.
   grid-column: 1/-1;
+  box-sizing: border-box;
+  padding: 5px 0px 5px 0px;
 }
