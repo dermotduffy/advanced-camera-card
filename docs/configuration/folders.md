@@ -1,5 +1,7 @@
 # `folders`
 
+[](./common/experimental-warning.md ':include')
+
 The `folders` stanza is used for configuring folders from which media/subfolders may be viewed.
 
 ?> To configure the behavior of the gallery in which folders are displayed, see the [`media_gallery` configuration](./media-gallery.md).
@@ -56,11 +58,13 @@ folders:
 | `title`    |         | An optional title name to match against.               |
 | `title_re` |         | An optional title regular expression to match against. |
 
-See [Folders Examples](../examples.md?id=folders).
-
 ?> Specifying multiple `path` matchers (other than `id`) requires a query at
 each level of the folder hierarchy and is slower than directly specifying the
 media source `id` (if known) or the `url` of the folder.
+
+#### Examples
+
+See [Folder Examples](../examples.md?id=folders).
 
 #### Understanding Media Source IDs and "parent folders"
 

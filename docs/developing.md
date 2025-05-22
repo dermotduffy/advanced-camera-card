@@ -31,7 +31,7 @@ Post `v6.0.0`, all releases are automated with ([semantic-release](https://githu
 
 Releases follow [Semantic Versioning](https://semver.org/) with the following definitions:
 
-- **MAJOR** version changes for any backwards incompatible changes. This means any change that would _require_ users to update their card config, regardless of whether that update is automated or manual.
+- **MAJOR** version changes for any backwards incompatible changes (excluding functionality marked as experimental). This means any change that would _require_ users to update their card config, regardless of whether that update is automated or manual.
 - **MINOR** version changes for any functionality added in a backwards compatible manner. This may mean new features or behavioral changes that do not require a card update.
 - **PATCH** version changes for backward compatible bug fixes
 

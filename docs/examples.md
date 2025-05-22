@@ -341,9 +341,38 @@ cameras:
 These examples create folders that can be viewed in the
 [`media_gallery`](./configuration/media-gallery.md).
 
+### Home Assistant default root
+
+This example creates a folder at the Home Assistant media root.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+```
+
+### Folder within the Home Assistant default root
+
+This example applies a title match against the Home Assistant media root folder
+looking for a folder entitled `Frigate`. The resulting media will be the
+contents of that folder (if found).
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      path:
+        - title: 'Frigate'
+```
+
 ### Folder URLs
 
-This example uses the `url` parameter to establish the root of the query. With
+This example uses the `url` parameter to establish the root of the query. Within
 that folder, it looks for a sub-folder that matches the regular expression
 `Clips.*`, and within that looks for a folder that matches the regular
 expression `Person.*`. The resulting media will be the contents of that folder
@@ -364,7 +393,7 @@ folders:
 
 ### Folder Paths
 
-This example shows the `media-source://frigate` folder, and looks for a
+This example starts with the `media-source://frigate` folder, and looks for a
 precisely titled `Clips [my-instance]` folder within that. The resulting media
 will be the contents of that folder (if found).
 
@@ -378,23 +407,6 @@ folders:
       path:
         - id: 'media-source://frigate'
         - title: 'Clips [my-instance]'
-```
-
-### Folder using the default root
-
-This example applies a title match against the Home Assistant media root folder
-looking for a folder entitled `Frigate`. The resulting media will be the
-contents of that folder (if found).
-
-```yaml
-type: custom:advanced-camera-card
-cameras:
-  - camera_entity: camera.office
-folders:
-  - type: ha
-    ha:
-      path:
-        - title: 'Frigate'
 ```
 
 ## Human interaction
