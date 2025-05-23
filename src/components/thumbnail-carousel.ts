@@ -162,6 +162,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
       .hass=${this.hass}
       .item=${item}
       .viewManagerEpoch=${this.viewManagerEpoch}
+      .viewItemManager=${this.viewItemManager}
       .seek=${seekTarget &&
       ViewItemClassifier.isMedia(item) &&
       item.includesTime(seekTarget)
