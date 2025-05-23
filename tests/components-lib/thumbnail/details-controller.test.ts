@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { CameraManager } from '../../../../src/camera-manager/manager';
-import { ThumbnailDetailsController } from '../../../../src/components-lib/thumbnail/details-controller';
-import { ViewFolder, ViewMediaType } from '../../../../src/view/item';
-import { createFolder, TestViewMedia } from '../../../test-utils';
+import { CameraManager } from '../../../src/camera-manager/manager';
+import { ThumbnailDetailsController } from '../../../src/components-lib/thumbnail/details-controller';
+import { ViewFolder, ViewMediaType } from '../../../src/view/item';
+import { createFolder, TestViewMedia } from '../../test-utils';
 
 describe('ThumbnailDetailsController', () => {
   describe('should set heading', () => {
@@ -116,6 +116,22 @@ describe('ThumbnailDetailsController', () => {
             title: 'Test Event',
           },
         ]);
+      });
+
+      it('should not have title with a what and a start time', () => {
+        const item = new TestViewMedia({
+          title: 'Test Event',
+          what: ['person', 'car'],
+          startTime: new Date('2025-05-22T21:12:00Z'),
+        });
+
+        const controller = new ThumbnailDetailsController();
+        controller.calculate(null, item);
+        expect(controller.getDetails()).not.toContainEqual(
+          expect.objectContaining({
+            title: 'Test Event',
+          }),
+        );
       });
     });
 

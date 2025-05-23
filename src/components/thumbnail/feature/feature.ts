@@ -58,8 +58,8 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
             class="${thumbnailClasses}"
             .hass=${this.hass}
             .thumbnail=${this._controller.getThumbnail()}
-            aria-label=${this._controller.getTitle() ?? ''}
-            title=${this._controller.getTitle() ?? ''}
+            aria-label=${this.item?.getTitle() ?? ''}
+            title=${this.item?.getTitle() ?? ''}
           ></advanced-camera-card-thumbnail-feature-thumbnail>`
         : this._controller.getIcon()
           ? html`<advanced-camera-card-icon

@@ -135,8 +135,12 @@ export class ThumbnailDetailsController {
         : []),
     ];
 
+    // To avoid duplication, if the event already has a structured 'what' and a
+    // starttime, the title is omitted from the details.
+    const includeTitle =
+      !ViewItemClassifier.isEvent(item) || !item?.getWhat()?.length || !startTime;
     this._details = [
-      ...(itemTitle
+      ...(includeTitle && itemTitle
         ? [
             {
               title: itemTitle,
