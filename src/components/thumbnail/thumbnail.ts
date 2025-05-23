@@ -96,7 +96,6 @@ export class AdvancedCameraCardThumbnail extends LitElement {
 
     return html`
       <advanced-camera-card-thumbnail-feature
-        aria-label=${this.item.getTitle() ?? ''}
         .cameraManager=${this.cameraManager}
         .hasDetails=${this.details}
         .hass=${this.hass}

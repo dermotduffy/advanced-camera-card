@@ -40,27 +40,29 @@ export class AdvancedCameraCardThumbnailDetails extends LitElement {
     const heading = this._controller.getHeading();
     const details = this._controller.getDetails();
 
-    return html`<div class="details">
+    return html`
       ${heading
-        ? html` <div class="title">
+        ? html` <div class="heading">
             <span title=${heading}>${heading}</span>
           </div>`
         : ``}
       ${details
-        ? details.map(
-            (detail) =>
-              html`<div>
-                ${detail.icon
-                  ? html` <advanced-camera-card-icon
-                      title=${detail.hint ?? ''}
-                      .icon=${detail.icon}
-                    ></advanced-camera-card-icon>`
-                  : ''}
-                <span>${detail.title}</span>
-              </div>`,
-          )
+        ? html` <div class="details">
+            ${details.map(
+              (detail) =>
+                html`<div>
+                  ${detail.icon
+                    ? html` <advanced-camera-card-icon
+                        title=${detail.hint ?? ''}
+                        .icon=${detail.icon}
+                      ></advanced-camera-card-icon>`
+                    : ''}
+                  <span>${detail.title}</span>
+                </div>`,
+            )}
+          </div>`
         : ''}
-    </div> `;
+    `;
   }
 
   static get styles(): CSSResult {
