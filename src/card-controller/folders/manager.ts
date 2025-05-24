@@ -41,6 +41,9 @@ export class FoldersManager {
     }
   }
 
+  public hasFolders(): boolean {
+    return this._folders.size > 0;
+  }
   public getFolderCount(): number {
     return this._folders.size;
   }

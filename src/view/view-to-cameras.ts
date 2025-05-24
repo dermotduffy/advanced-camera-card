@@ -19,6 +19,7 @@ export const getCameraIDsForViewName = (
     case 'diagnostics':
     case 'image':
     case 'folder':
+    case 'media':
       return cameraManager.getStore().getCameraIDs();
 
     case 'live':
@@ -44,12 +45,5 @@ export const getCameraIDsForViewName = (
       return cameraManager
         .getStore()
         .getCameraIDsWithCapability(capabilityMatchAnyMedia);
-
-    case 'media':
-      return cameraID
-        ? cameraManager
-            .getStore()
-            .getAllDependentCameras(cameraID, capabilityMatchAnyMedia)
-        : cameraManager.getStore().getCameraIDsWithCapability(capabilityMatchAnyMedia);
   }
 };

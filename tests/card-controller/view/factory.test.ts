@@ -20,7 +20,7 @@ describe('getViewDefault', () => {
     expect(factory.getViewDefault()).toBeNull();
   });
 
-  it('should return null if no cameras support view', () => {
+  it('should throw if no cameras support view', () => {
     const api = createCardAPI();
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
     vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
@@ -44,7 +44,7 @@ describe('getViewDefault', () => {
     );
 
     const factory = new ViewFactory(api);
-    expect(factory.getViewDefault()).toBeNull();
+    expect(() => factory.getViewDefault()).toThrowError(/No cameras support this view/);
   });
 
   it('should create view', () => {
