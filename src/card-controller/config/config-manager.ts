@@ -1,5 +1,4 @@
 import { isEqual } from 'lodash-es';
-import { ConditionsManager } from '../../conditions/conditions-manager.js';
 import { isConfigUpgradeable } from '../../config/management.js';
 import { setProfiles } from '../../config/profiles/set-profiles.js';
 import {
@@ -12,11 +11,11 @@ import { localize } from '../../localize/localize.js';
 import { getParseErrorPaths } from '../../utils/zod.js';
 import { InitializationAspect } from '../initialization-manager.js';
 import { CardConfigAPI } from '../types.js';
-import { getOverriddenConfig } from './get-overridden-config.js';
 import { setAutomationsFromConfig } from './load-automations.js';
 import { setRemoteControlEntityFromConfig } from './load-control-entities.js';
 import { setFoldersFromConfig } from './load-folders.js';
 import { setKeyboardShortcutsFromConfig } from './load-keyboard-shortcuts.js';
+import { OverridesManager } from './overrides-manager.js';
 
 export class ConfigManager {
   protected _api: CardConfigAPI;
@@ -29,7 +28,9 @@ export class ConfigManager {
   protected _overriddenConfig: AdvancedCameraCardConfig | null = null;
   protected _rawConfig: RawAdvancedCameraCardConfig | null = null;
   protected _cardWideConfig: CardWideConfig | null = null;
-  protected _overridesConditionsManager: ConditionsManager | null = null;
+  protected _overridesManager = new OverridesManager(() =>
+    this._processOverrideConfig(),
+  );
 
   constructor(api: CardConfigAPI) {
     this._api = api;
@@ -89,14 +90,10 @@ export class ConfigManager {
       debug: config.debug,
     };
 
-    this._overridesConditionsManager?.destroy();
-    this._overridesConditionsManager = this._config.overrides?.length
-      ? new ConditionsManager(
-          this._config.overrides.map((override) => override.conditions).flat(),
-          this._api.getConditionStateManager(),
-        )
-      : null;
-    this._overridesConditionsManager?.addListener(() => this._processOverrideConfig());
+    this._overridesManager.set(
+      this._api.getConditionStateManager(),
+      this._config.overrides,
+    );
 
     this._api.getConditionStateManager().setState({
       view: undefined,
@@ -121,11 +118,6 @@ export class ConfigManager {
   }
 
   protected _processOverrideConfig(): void {
-    /* istanbul ignore if: No (current) way to reach this code -- @preserve */
-    if (!this._config) {
-      return;
-    }
-
     const overriddenConfig = this._getOverriddenConfig();
 
     // Save on Lit re-rendering costs by only updating the configuration if it
@@ -163,15 +155,13 @@ export class ConfigManager {
   }
 
   protected _getOverriddenConfig(): AdvancedCameraCardConfig | null {
-    if (!this._overridesConditionsManager || !this._config) {
-      return this._config;
+    /* istanbul ignore if: No (current) way to reach this code -- @preserve */
+    if (!this._config) {
+      return null;
     }
 
     try {
-      return getOverriddenConfig(this._overridesConditionsManager, this._config, {
-        configOverrides: this._config.overrides,
-        schema: advancedCameraCardConfigSchema,
-      });
+      return this._overridesManager.getConfig(this._config);
     } catch (ev) {
       this._api.getMessageManager().setErrorIfHigherPriority(ev);
       return null;
