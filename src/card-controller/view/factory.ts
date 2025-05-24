@@ -34,16 +34,13 @@ export class ViewFactory {
       const cameraIDs = [
         ...getCameraIDsForViewName(this._api.getCameraManager(), viewName),
       ];
-      if (!cameraIDs.length) {
-        return null;
-      }
 
-      if (options?.baseView?.camera && config.view.default_cycle_camera) {
+      if (cameraIDs.length && options?.baseView?.camera && config.view.default_cycle_camera) {
         const currentIndex = cameraIDs.indexOf(options.baseView.camera);
         const targetIndex = currentIndex + 1 >= cameraIDs.length ? 0 : currentIndex + 1;
         cameraID = cameraIDs[targetIndex];
       } else {
-        cameraID = cameraIDs[0];
+        cameraID = cameraIDs[0] ?? null;
       }
     }
 

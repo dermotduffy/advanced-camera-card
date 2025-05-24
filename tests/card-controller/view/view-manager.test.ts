@@ -313,7 +313,7 @@ describe('isViewSupportedByCamera', () => {
     ['recording' as const, false],
     ['recordings' as const, false],
     ['timeline' as const, false],
-    ['media' as const, false],
+    ['media' as const, true],
   ])('%s', (viewName: AdvancedCameraCardView, expected: boolean) => {
     const api = createInitializedCardAPI();
     vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());

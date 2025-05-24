@@ -19,6 +19,7 @@ describe('FoldersManager', () => {
     const api = createCardAPI();
     const manager = new FoldersManager(api);
     expect(manager.getFolderCount()).toBe(0);
+    expect(manager.hasFolders()).toBe(false);
   });
 
   describe('should add folders', () => {
@@ -32,6 +33,7 @@ describe('FoldersManager', () => {
         ...folder,
         title: 'Folder 0',
       });
+      expect(manager.hasFolders()).toBe(true);
     });
 
     it('should add a folder correctly with a title', () => {
@@ -128,7 +130,7 @@ describe('FoldersManager', () => {
       const folder: FolderConfig = createFolder();
       const query: FolderQuery = {
         folder,
-        path: ['media-source://'],
+        path: [{ id: 'media-source://' }],
       };
 
       const executor = mock<FoldersExecutor>();
@@ -144,7 +146,7 @@ describe('FoldersManager', () => {
       const folder: FolderConfig = createFolder();
       const query: FolderQuery = {
         folder,
-        path: ['media-source://'],
+        path: [{ id: 'media-source://' }],
       };
 
       const executor = mock<FoldersExecutor>();
@@ -160,7 +162,7 @@ describe('FoldersManager', () => {
       const folder: FolderConfig = createFolder();
       const query: FolderQuery = {
         folder,
-        path: ['media-source://'],
+        path: [{ id: 'media-source://' }],
       };
 
       const executor = mock<FoldersExecutor>();
@@ -188,7 +190,7 @@ describe('FoldersManager', () => {
       const engineOptions = {};
       const query: FolderQuery = {
         folder,
-        path: ['media-source://'],
+        path: [{ id: 'media-source://' }],
       };
 
       expect(await manager.expandFolder(query, engineOptions)).toEqual([media]);
@@ -203,7 +205,7 @@ describe('FoldersManager', () => {
       const folder = createFolder({ id: 'folder-1' });
 
       expect(
-        await manager.expandFolder({ folder, path: ['media-source://'] }),
+        await manager.expandFolder({ folder, path: [{ id: 'media-source://' }] }),
       ).toBeNull();
 
       expect(executor.expandFolder).not.toBeCalled();

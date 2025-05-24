@@ -11,7 +11,7 @@ import {
 
 describe('getCameraIDsForViewName', () => {
   describe('views that are always supported', () => {
-    it.each([['image' as const], ['diagnostics' as const]])(
+    it.each([['diagnostics' as const], ['image' as const], ['media' as const]])(
       '%s',
       (viewName: AdvancedCameraCardView) => {
         const cameraManager = createCameraManager();
@@ -47,9 +47,6 @@ describe('getCameraIDsForViewName', () => {
       ['snapshots' as const, 'snapshots' as const],
       ['recording' as const, 'recordings' as const],
       ['recordings' as const, 'recordings' as const],
-      ['media' as const, 'clips' as const],
-      ['media' as const, 'snapshots' as const],
-      ['media' as const, 'recordings' as const],
       ['timeline' as const, 'clips' as const],
       ['timeline' as const, 'snapshots' as const],
       ['timeline' as const, 'recordings' as const],
