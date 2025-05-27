@@ -7,7 +7,13 @@ import {
   HAFolderPathComponent,
 } from '../../../config/schema/folders';
 import { getViewItemsFromBrowseMediaArray } from '../../../ha/browse-media/browse-media-to-view-media';
-import { BrowseMedia, BrowseMediaCache } from '../../../ha/browse-media/types';
+import { BrowseMediaViewFolder } from '../../../ha/browse-media/item';
+import {
+  BrowseMedia,
+  BrowseMediaCache,
+  BrowseMediaMetadata,
+  RichBrowseMedia,
+} from '../../../ha/browse-media/types';
 import {
   BrowseMediaStep,
   BrowseMediaTarget,
@@ -26,13 +32,24 @@ import {
   FolderQuery,
   FoldersEngine,
 } from '../types';
+import { MediaMatcher } from './media-matcher';
+import { MetadataGenerator } from './metadata-generator.js';
 
 export class HAFoldersEngine implements FoldersEngine {
   private _browseMediaManager: BrowseMediaWalker;
-  private _cache = new BrowseMediaCache();
+  private _cache = new BrowseMediaCache<BrowseMediaMetadata>();
 
-  public constructor(browseMediaManager?: BrowseMediaWalker) {
-    this._browseMediaManager = browseMediaManager ?? new BrowseMediaWalker();
+  private _metadataGenerator: MetadataGenerator;
+  private _mediaMatcher: MediaMatcher;
+
+  public constructor(options?: {
+    browseMediaManager?: BrowseMediaWalker;
+    metadataGenerator?: MetadataGenerator;
+    mediaMatcher?: MediaMatcher;
+  }) {
+    this._browseMediaManager = options?.browseMediaManager ?? new BrowseMediaWalker();
+    this._metadataGenerator = options?.metadataGenerator ?? new MetadataGenerator();
+    this._mediaMatcher = options?.mediaMatcher ?? new MediaMatcher();
   }
 
   public getItemCapabilities(item: ViewItem): ViewItemCapabilities | null {
@@ -75,6 +92,23 @@ export class HAFoldersEngine implements FoldersEngine {
     };
   }
 
+  private getDefaultFolderPathComponents(
+    haFolderConfig?: HAFolderConfig,
+  ): NonEmptyTuple<FolderPathComponent> {
+    const shouldAddDefaultRoot = !haFolderConfig?.url && !haFolderConfig?.path?.[0]?.id;
+
+    const path: HAFolderPathComponent[] = [
+      ...(shouldAddDefaultRoot ? [{ id: HA_MEDIA_SOURCE_ROOT }] : []),
+      ...(haFolderConfig?.url ?? []),
+      ...(haFolderConfig?.path ?? []),
+    ];
+
+    return path.map((component) => ({ ha: component })) as [
+      FolderPathComponent,
+      ...FolderPathComponent[],
+    ];
+  }
+
   public async expandFolder(
     hass: HomeAssistant,
     query: FolderQuery,
@@ -89,11 +123,16 @@ export class HAFoldersEngine implements FoldersEngine {
     // Search through the path components from the start to find the last
     // component with a precise media source id, which is where the queries
     // start (and may drill down from).
-    let start: string | null = null;
+    let start: string | RichBrowseMedia<BrowseMediaMetadata> | null = null;
     while (pathComponents.length > 0) {
-      const id = pathComponents[0]?.id;
-      if (id) {
-        start = id;
+      const folderBrowseMedia =
+        pathComponents[0]?.folder instanceof BrowseMediaViewFolder
+          ? pathComponents[0].folder.getBrowseMedia()
+          : null;
+
+      const validStart = folderBrowseMedia ?? pathComponents[0]?.ha?.id ?? null;
+      if (validStart) {
+        start = validStart;
         pathComponents.shift();
       } else {
         break;
@@ -106,37 +145,38 @@ export class HAFoldersEngine implements FoldersEngine {
       return null;
     }
 
-    // This matcher matches a browse media against a given path component.
-    const componentMatcher = (
-      media: BrowseMedia,
-      component?: FolderPathComponent,
-    ): boolean => {
-      return (
-        !component ||
-        (media.can_expand &&
-          (component.ha?.title === media.title ||
-            (component.ha?.title_re &&
-              new RegExp(component.ha.title_re).test(media.title)) ||
-            component.id === media.media_content_id))
-      );
-    };
+    await this._metadataGenerator.prepare(
+      pathComponents.flatMap((component) => component.ha?.parsers ?? []),
+    );
 
     // Generate a walk step, optionally matching against the next path component
     // (if any), otherwise just returning all the media at this level.
-    const generateStep = (targets: BrowseMediaTarget[]): BrowseMediaStep[] => {
+    const generateStep = (
+      targets: BrowseMediaTarget<BrowseMediaMetadata>[],
+    ): BrowseMediaStep<BrowseMediaMetadata>[] => {
       const nextComponent = pathComponents.shift();
       return [
         {
           targets,
+          metadataGenerator: (media: BrowseMedia, parent?: BrowseMedia) =>
+            this._metadataGenerator.generate(media, parent, nextComponent?.ha?.parsers),
+
           ...(nextComponent && {
-            matcher: (media: BrowseMedia) => componentMatcher(media, nextComponent),
-            advance: (targets) => generateStep(targets),
+            matcher: (media: BrowseMedia) =>
+              this._mediaMatcher.match(
+                media,
+                nextComponent.ha?.matchers,
+                // Set foldersOnly to true if there are more stages in the path,
+                // as by definition only folders can be matched at this point.
+                pathComponents.length > 0,
+              ),
+            advance: (targets) => (pathComponents.length ? generateStep(targets) : []),
           }),
         },
       ];
     };
 
-    const browseMedia = await this._browseMediaManager.walk(
+    const browseMedia = await this._browseMediaManager.walk<BrowseMediaMetadata>(
       hass,
       generateStep([start]),
       {
@@ -147,34 +187,5 @@ export class HAFoldersEngine implements FoldersEngine {
     return getViewItemsFromBrowseMediaArray(browseMedia, {
       folder: query.folder,
     });
-  }
-
-  private getDefaultFolderPathComponents(
-    haFolderConfig?: HAFolderConfig,
-  ): NonEmptyTuple<FolderPathComponent> {
-    const shouldAddDefaultRoot = !haFolderConfig?.url && !haFolderConfig?.path?.[0]?.id;
-
-    const defaultPath = [
-      ...(shouldAddDefaultRoot ? [{ id: HA_MEDIA_SOURCE_ROOT }] : []),
-      ...(haFolderConfig?.url ?? []),
-      ...(haFolderConfig?.path ?? []),
-    ];
-
-    return defaultPath.map((component) =>
-      this._convertHAPathComponentToFolderPathComponent(component),
-    ) as [FolderPathComponent, ...FolderPathComponent[]];
-  }
-
-  // Convert from the HA folder path component config schema to the general,
-  // which pulls `path` to the top level.
-  private _convertHAPathComponentToFolderPathComponent(
-    component: HAFolderPathComponent,
-  ): FolderPathComponent {
-    return {
-      id: component.id,
-      ha: {
-        ...component,
-      },
-    };
   }
 }

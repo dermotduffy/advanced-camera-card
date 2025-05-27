@@ -1,8 +1,8 @@
 import { NonEmptyTuple } from 'type-fest';
 import { z } from 'zod';
-import { AdvancedCameraCardError } from '../../types';
 import { isTruthy } from '../../utils/basic';
 import { regexSchema } from './common/regex';
+import { AdvancedCameraCardError } from '../../types';
 
 export const HA_MEDIA_SOURCE_ROOT = 'media-source://';
 
@@ -14,11 +14,35 @@ const folderConfigDefault = {
   ha: {},
 };
 
+const parserBaseSchema = z.object({
+  regexp: regexSchema.optional(),
+});
+const startdateParserSchema = parserBaseSchema.extend({
+  type: z.literal('startdate'),
+  format: z.string().optional(),
+});
+// Simple alias date -> startdate.
+const dateParserSchema = startdateParserSchema.extend({
+  type: z.literal('date'),
+});
+const parserSchema = z.discriminatedUnion('type', [
+  dateParserSchema,
+  startdateParserSchema,
+]);
+export type Parser = z.infer<typeof parserSchema>;
+
+const titleMatcherSchema = parserBaseSchema.extend({
+  type: z.literal('title'),
+  regexp: regexSchema.optional(),
+  title: z.string().optional(),
+});
+const matcherSchema = z.discriminatedUnion('type', [titleMatcherSchema]);
+export type Matcher = z.infer<typeof matcherSchema>;
+
 const haFolderPathComponentSchema = z.object({
   id: z.string().optional(),
-
-  title: z.string().optional(),
-  title_re: regexSchema.optional(),
+  parsers: parserSchema.array().optional(),
+  matchers: matcherSchema.array().optional(),
 });
 export type HAFolderPathComponent = z.infer<typeof haFolderPathComponentSchema>;
 
@@ -50,9 +74,7 @@ export const transformPathURLToPathArray = (
 
   for (const component of folderPath) {
     if (component.id && !component.id.startsWith(HA_MEDIA_SOURCE_ROOT)) {
-      throw new AdvancedCameraCardError(
-        `Could not parse valid media source URL: ${url}`,
-      );
+      throw new AdvancedCameraCardError(`Could not parse media source URL: ${url}`);
     }
   }
   return folderPath;

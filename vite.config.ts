@@ -36,6 +36,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'utils/media-layout.ts',
   'utils/media.ts',
   'utils/ptz.ts',
+  'utils/regexp-extract.ts',
   'utils/screenshot.ts',
   'utils/scroll.ts',
   'utils/substream.ts',

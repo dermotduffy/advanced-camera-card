@@ -357,8 +357,8 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       for (const dayDirectory of directories ?? []) {
         /* istanbul ignore next: This situation cannot happen as the directory
         will not match without metadata -- @preserve */
-        if (dayDirectory._metadata) {
-          days.add(formatDate(dayDirectory._metadata?.startDate));
+        if (dayDirectory._metadata?.startDate) {
+          days.add(formatDate(dayDirectory._metadata.startDate));
         }
       }
     };

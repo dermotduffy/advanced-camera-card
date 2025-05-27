@@ -152,7 +152,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     }
     return {
       cameraID: cameraID,
-      startDate: startDate,
+      startDate,
       endDate: parent?._metadata?.endDate ?? endOfDay(startDate),
     };
   }
@@ -389,8 +389,8 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
         engineOptions,
       );
       for (const dayDirectory of directories ?? []) {
-        if (dayDirectory._metadata) {
-          days.add(formatDate(dayDirectory._metadata?.startDate));
+        if (dayDirectory._metadata?.startDate) {
+          days.add(formatDate(dayDirectory._metadata.startDate));
         }
       }
     };

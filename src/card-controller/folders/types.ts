@@ -4,7 +4,7 @@ import { ResolvedMediaCache } from '../../ha/resolved-media';
 import { HomeAssistant } from '../../ha/types';
 import { Endpoint } from '../../types';
 import { AdvancedCameraCardError } from '../../types.js';
-import { ViewItem } from '../../view/item';
+import { ViewFolder, ViewItem } from '../../view/item';
 import { ViewItemCapabilities } from '../../view/types';
 
 // ====
@@ -22,8 +22,8 @@ export class FolderInitializationError extends AdvancedCameraCardError {}
 // ============
 
 export type FolderPathComponent = {
-  id?: string;
-  ha?: Omit<HAFolderPathComponent, 'id'>;
+  folder?: ViewFolder;
+  ha?: HAFolderPathComponent;
 };
 
 export interface FolderQuery {

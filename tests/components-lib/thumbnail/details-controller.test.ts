@@ -118,10 +118,9 @@ describe('ThumbnailDetailsController', () => {
         ]);
       });
 
-      it('should not have title with a what and a start time', () => {
+      it('should not have title with a start time', () => {
         const item = new TestViewMedia({
           title: 'Test Event',
-          what: ['person', 'car'],
           startTime: new Date('2025-05-22T21:12:00Z'),
         });
 

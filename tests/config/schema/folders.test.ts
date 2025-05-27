@@ -60,7 +60,7 @@ describe('transformURLToMediaSourceRoot', () => {
     it.each(prefixes)('with prefix %s', (urlPrefix: string) => {
       const url = `${urlPrefix}media-browser/browser,does-not-start-with-media-source`;
       expect(() => transformPathURLToPathArray(url)).toThrowError(
-        /Could not parse valid media source URL/,
+        /Could not parse media source URL/,
       );
     });
   });

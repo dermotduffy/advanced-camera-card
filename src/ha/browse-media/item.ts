@@ -10,7 +10,7 @@ import {
   ViewMediaSourceOptions,
   ViewMediaType,
 } from '../../view/item';
-import { BrowseMedia, BrowseMediaMetadata, RichBrowseMedia } from './types';
+import { BrowseMediaMetadata, RichBrowseMedia } from './types';
 
 interface MediaClassBrowserSetting {
   icon: string;
@@ -114,12 +114,19 @@ export class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMed
 }
 
 export class BrowseMediaViewFolder extends ViewFolder {
-  constructor(folder: FolderConfig, browseMedia: BrowseMedia) {
+  private _browseMedia: RichBrowseMedia<BrowseMediaMetadata>;
+
+  constructor(folder: FolderConfig, browseMedia: RichBrowseMedia<BrowseMediaMetadata>) {
     super(folder, {
       id: browseMedia.media_content_id,
       icon: getIcon(browseMedia.children_media_class ?? browseMedia.media_class),
       title: browseMedia.title,
       thumbnail: browseMedia.thumbnail,
     });
+    this._browseMedia = browseMedia;
+  }
+
+  public getBrowseMedia(): RichBrowseMedia<BrowseMediaMetadata> {
+    return this._browseMedia;
   }
 }
