@@ -356,8 +356,8 @@ folders:
 ### Folder within the Home Assistant default root
 
 This example applies a title match against the Home Assistant media root folder
-looking for a folder entitled `Frigate`. The resulting media will be the
-contents of that folder (if found).
+looking for a folder entitled `Frigate`, and shows all items within it (since no
+matcher is specified at the lowest level).
 
 ```yaml
 type: custom:advanced-camera-card
@@ -367,7 +367,38 @@ folders:
   - type: ha
     ha:
       path:
-        - title: 'Frigate'
+        - matchers:
+          - type: title
+            title: 'Frigate'
+        - {}
+```
+
+### Folder Parsing
+
+This example parses dates from a folder, and times from the media items themselves.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      url: >-
+        https://ha.ondu.org/media-browser/browser/app%2Cmedia-source%3A%2F%2Freolink/playlist%2Cmedia-source%3A%2F%2Freolink%2FCAM%7C01J8XHYTNH77WE3C654K03KX1F%7C0
+      path:
+        # Matches against the "Low resolution" folder.
+        - matchers:
+            - type: title
+              regexp: (?<value>.*) resolution
+              title: Low
+        # Parses the date out of the next level (auto-detected format).
+        - parsers:
+            - type: startdate
+        # Parses the time out of the items themselves (user-specified format).
+        - parsers:
+            - type: startdate
+              format: "HH:mm:ss"
 ```
 
 ### Folder URLs
@@ -387,8 +418,12 @@ folders:
     ha:
       url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Ffrigate
       path:
-        - title_re: 'Clips.*'
-        - title_re: 'Person.*'
+        - matchers:
+          - type: title
+            regexp: 'Clips.*'
+        - matchers:
+          - type: title
+            regexp: 'Person.*'
 ```
 
 ### Folder Paths
