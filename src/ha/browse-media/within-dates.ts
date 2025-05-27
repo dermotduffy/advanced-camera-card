@@ -16,7 +16,7 @@ export const isMediaWithinDates = (
   end?: Date,
 ): boolean => {
   // If there's no metadata, nothing matches.
-  if (!media._metadata) {
+  if (!media._metadata?.startDate || !media._metadata?.endDate) {
     return false;
   }
 

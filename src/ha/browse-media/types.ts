@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { ExpiringEqualityCache } from '../../cache/expiring-cache';
 
 export interface BrowseMediaMetadata {
-  cameraID: string;
-  startDate: Date;
-  endDate: Date;
+  cameraID?: string;
+  startDate?: Date;
+  endDate?: Date;
   what?: string[];
 }
 // Recursive type, cannot use type interference:

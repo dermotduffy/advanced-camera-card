@@ -9,7 +9,7 @@ import {
 
 export class BrowseMediaViewItemFactory {
   static create(
-    browseMedia: RichBrowseMedia<BrowseMediaMetadata | undefined>,
+    browseMedia: RichBrowseMedia<BrowseMediaMetadata>,
     options?: ViewMediaSourceOptions,
   ): ViewItem | null {
     if (browseMedia.can_expand) {

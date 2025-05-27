@@ -161,7 +161,7 @@ describe('FolderGalleryController', () => {
           }),
           query: new FolderViewQuery({
             folder,
-            path: [{ id: 'grandparent' }],
+            path: [{ ha: { id: 'grandparent' } }],
           }),
         });
 
@@ -182,7 +182,7 @@ describe('FolderGalleryController', () => {
         expect(newQuery).toBeInstanceOf(FolderViewQuery);
         expect(newQuery?.getQuery()).toEqual({
           folder,
-          path: [{ id: 'grandparent' }, { id: folderItem.getID() }],
+          path: [{ ha: { id: 'grandparent' } }, { folder: folderItem }],
         });
       });
 
@@ -214,7 +214,7 @@ describe('FolderGalleryController', () => {
         const view = createView({
           query: new FolderViewQuery({
             folder,
-            path: [{ id: 'id' }],
+            path: [{ ha: { id: 'id' } }],
           }),
         });
         const viewManager = mock<ViewManagerInterface>();

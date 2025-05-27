@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { HAFoldersEngine } from '../../../../src/card-controller/folders/ha/engine';
 import { FolderQuery } from '../../../../src/card-controller/folders/types';
 import { FolderConfig } from '../../../../src/config/schema/folders';
+import { BrowseMediaViewFolder } from '../../../../src/ha/browse-media/item';
+import { browseMediaSchema } from '../../../../src/ha/browse-media/types';
 import { getMediaDownloadPath } from '../../../../src/ha/download';
 import { homeAssistantWSRequest } from '../../../../src/ha/ws-request';
 import { Endpoint } from '../../../../src/types';
@@ -73,17 +75,6 @@ describe('HAFoldersEngine', () => {
     });
   });
 
-  describe('expandFolder', () => {
-    it('should reject folders of the wrong type', async () => {
-      const query = {
-        folder: { type: 'UNKNOWN' },
-      } as unknown as FolderQuery;
-      const engine = new HAFoldersEngine();
-
-      expect(await engine.expandFolder(createHASS(), query)).toBeNull();
-    });
-  });
-
   describe('should generate default folder query', () => {
     it('should generate default folder query', () => {
       const folder: FolderConfig = { type: 'ha' };
@@ -92,7 +83,7 @@ describe('HAFoldersEngine', () => {
       const query = engine.generateDefaultFolderQuery(folder);
       expect(query).toEqual({
         folder,
-        path: [{ id: 'media-source://', ha: { id: 'media-source://' } }],
+        path: [{ ha: { id: 'media-source://' } }],
       });
     });
 
@@ -113,10 +104,7 @@ describe('HAFoldersEngine', () => {
       const engine = new HAFoldersEngine();
       expect(engine.generateDefaultFolderQuery(folder)).toEqual({
         folder,
-        path: [
-          { id: 'media-source://1', ha: { id: 'media-source://1' } },
-          { id: 'media-source://2', ha: { id: 'media-source://2' } },
-        ],
+        path: [{ ha: { id: 'media-source://1' } }, { ha: { id: 'media-source://2' } }],
       });
     });
 
@@ -125,28 +113,39 @@ describe('HAFoldersEngine', () => {
       const engine = new HAFoldersEngine();
       expect(engine.generateDefaultFolderQuery(folder)).toEqual({
         folder,
-        path: [{ id: 'media-source://', ha: { id: 'media-source://' } }],
+        path: [{ ha: { id: 'media-source://' } }],
       });
     });
 
     it('should add default media root as necessary', async () => {
-      const folder = createFolder({ ha: { path: [{ title: 'Frigate' }] } });
+      const folder = createFolder({
+        ha: { path: [{ matchers: [{ type: 'title', title: 'Frigate' }] }] },
+      });
       const engine = new HAFoldersEngine();
       expect(engine.generateDefaultFolderQuery(folder)).toEqual({
         folder,
         path: [
-          { id: 'media-source://', ha: { id: 'media-source://' } },
-          { id: undefined, ha: { title: 'Frigate' } },
+          { ha: { id: 'media-source://' } },
+          { ha: { matchers: [{ type: 'title', title: 'Frigate' }] } },
         ],
       });
     });
   });
 
   describe('should expand folder', () => {
+    it('should reject folders of the wrong type', async () => {
+      const query = {
+        folder: { type: 'UNKNOWN' },
+      } as unknown as FolderQuery;
+      const engine = new HAFoldersEngine();
+
+      expect(await engine.expandFolder(createHASS(), query)).toBeNull();
+    });
+
     it('should expand folder with cache by default', async () => {
       const query: FolderQuery = {
         folder: { type: 'ha' },
-        path: [{ id: 'media-source://id' }],
+        path: [{ ha: { id: 'media-source://id' } }],
       };
 
       vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce(
@@ -183,7 +182,7 @@ describe('HAFoldersEngine', () => {
     it('should expand folder without cache when requested', async () => {
       const query: FolderQuery = {
         folder: { type: 'ha' },
-        path: [{ id: 'media-source://id' }],
+        path: [{ ha: { id: 'media-source://id' } }],
       };
 
       vi.mocked(homeAssistantWSRequest)
@@ -221,150 +220,93 @@ describe('HAFoldersEngine', () => {
       expect(homeAssistantWSRequest).toBeCalledTimes(2);
     });
 
+    it('should use id from browsemedia in folder in query', async () => {
+      const browseMedia = createBrowseMedia({
+        media_content_id: 'media-source://id',
+        can_expand: true,
+      });
+
+      const query: FolderQuery = {
+        folder: { type: 'ha' },
+        path: [
+          {
+            folder: new BrowseMediaViewFolder(createFolder(), browseMedia),
+          },
+        ],
+      };
+
+      vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce(
+        createBrowseMedia({
+          media_content_id: 'media-source://id',
+          can_expand: true,
+          children: [],
+        }),
+      );
+
+      const hass = createHASS();
+      const engine = new HAFoldersEngine();
+      await engine.expandFolder(hass, query);
+
+      expect(homeAssistantWSRequest).toBeCalledWith(hass, browseMediaSchema, {
+        type: 'media_source/browse_media',
+        media_content_id: 'media-source://id',
+      });
+    });
+
     it('should not expand without a folder with an id', async () => {
       const query: FolderQuery = {
         folder: { type: 'ha' },
         // There's no component in the query with an id to start from.
-        path: [{ ha: { title: 'Frigate' } }],
+        path: [{ ha: {} }],
       };
       const engine = new HAFoldersEngine();
       expect(await engine.expandFolder(createHASS(), query)).toBeNull();
     });
 
-    it('should expand folder with title based query', async () => {
-      const query: FolderQuery = {
-        folder: { type: 'ha' },
-        path: [{ id: 'media-source://' }, { ha: { title: 'Frigate' } }],
-      };
+    describe('should apply matchers', async () => {
+      it('should expand folder with title based query', async () => {
+        const query: FolderQuery = {
+          folder: { type: 'ha' },
+          path: [
+            { ha: { id: 'media-source://' } },
+            { ha: { matchers: [{ type: 'title', title: 'Frigate' }] } },
+            {},
+          ],
+        };
 
-      vi.mocked(homeAssistantWSRequest)
-        .mockResolvedValueOnce(
-          createBrowseMedia({
-            media_content_id: 'media-source://',
-            can_expand: true,
-            children: [
-              createBrowseMedia({
-                media_content_id: 'media-source://frigate',
-                title: 'Frigate',
-                can_expand: true,
-              }),
-            ],
-          }),
-        )
-        .mockResolvedValueOnce(
-          createBrowseMedia({
-            media_content_id: 'media-source://frigate',
-            can_expand: true,
-            children: [
-              createBrowseMedia({
-                media_content_id: 'media-source://frigate/result',
-                title: 'Result',
-              }),
-            ],
-          }),
-        );
+        vi.mocked(homeAssistantWSRequest)
+          .mockResolvedValueOnce(
+            createBrowseMedia({
+              media_content_id: 'media-source://',
+              can_expand: true,
+              children: [
+                createBrowseMedia({
+                  media_content_id: 'media-source://frigate',
+                  title: 'Frigate',
+                  can_expand: true,
+                }),
+              ],
+            }),
+          )
+          .mockResolvedValueOnce(
+            createBrowseMedia({
+              media_content_id: 'media-source://frigate',
+              can_expand: true,
+              children: [
+                createBrowseMedia({
+                  media_content_id: 'media-source://frigate/result',
+                  title: 'Result',
+                }),
+              ],
+            }),
+          );
 
-      const engine = new HAFoldersEngine();
-      const results = await engine.expandFolder(createHASS(), query);
-      expect(results?.length).toBe(1);
-      expect(results?.[0]).toBeInstanceOf(ViewMedia);
-      expect(results?.[0].getID()).toBe('media-source://frigate/result');
-    });
-
-    it('should expand folder with title_re based query', async () => {
-      const query: FolderQuery = {
-        folder: { type: 'ha' },
-        path: [{ id: 'media-source://' }, { ha: { title_re: 'Fri.*' } }],
-      };
-
-      vi.mocked(homeAssistantWSRequest)
-        .mockResolvedValueOnce(
-          createBrowseMedia({
-            media_content_id: 'media-source://',
-            can_expand: true,
-            children: [
-              createBrowseMedia({
-                media_content_id: 'media-source://frigate',
-                title: 'Frigate',
-                can_expand: true,
-              }),
-            ],
-          }),
-        )
-        .mockResolvedValueOnce(
-          createBrowseMedia({
-            media_content_id: 'media-source://frigate',
-            can_expand: true,
-            children: [
-              createBrowseMedia({
-                media_content_id: 'media-source://frigate/result',
-                title: 'Result',
-              }),
-            ],
-          }),
-        );
-
-      const engine = new HAFoldersEngine();
-      const results = await engine.expandFolder(createHASS(), query);
-      expect(results?.length).toBe(1);
-      expect(results?.[0]).toBeInstanceOf(ViewMedia);
-      expect(results?.[0].getID()).toBe('media-source://frigate/result');
-    });
-
-    it('should expand folder with ha id based query', async () => {
-      const query: FolderQuery = {
-        folder: { type: 'ha' },
-        path: [
-          { id: 'media-source://' },
-          { ha: { title: 'Frigate' } },
-          { id: 'media-source://frigate/subdir' },
-        ],
-      };
-
-      vi.mocked(homeAssistantWSRequest)
-        .mockResolvedValueOnce(
-          createBrowseMedia({
-            media_content_id: 'media-source://',
-            can_expand: true,
-            children: [
-              createBrowseMedia({
-                media_content_id: 'media-source://frigate',
-                title: 'Frigate',
-                can_expand: true,
-              }),
-            ],
-          }),
-        )
-        .mockResolvedValueOnce(
-          createBrowseMedia({
-            media_content_id: 'media-source://frigate',
-            can_expand: true,
-            children: [
-              createBrowseMedia({
-                media_content_id: 'media-source://frigate/subdir',
-                can_expand: true,
-              }),
-            ],
-          }),
-        )
-        .mockResolvedValueOnce(
-          createBrowseMedia({
-            media_content_id: 'media-source://frigate/subdir',
-            can_expand: true,
-            children: [
-              createBrowseMedia({
-                media_content_id: 'media-source://frigate/subdir/result',
-                title: 'Result',
-              }),
-            ],
-          }),
-        );
-
-      const engine = new HAFoldersEngine();
-      const results = await engine.expandFolder(createHASS(), query);
-      expect(results?.length).toBe(1);
-      expect(results?.[0]).toBeInstanceOf(ViewMedia);
-      expect(results?.[0].getID()).toBe('media-source://frigate/subdir/result');
+        const engine = new HAFoldersEngine();
+        const results = await engine.expandFolder(createHASS(), query);
+        expect(results?.length).toBe(1);
+        expect(results?.[0]).toBeInstanceOf(ViewMedia);
+        expect(results?.[0].getID()).toBe('media-source://frigate/result');
+      });
     });
   });
 });
