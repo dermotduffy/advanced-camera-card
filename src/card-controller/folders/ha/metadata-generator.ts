@@ -13,7 +13,7 @@ import { REGEXP_GROUP_VALUE_KEY } from './types';
 
 export class MetadataGenerator {
   protected _anyDateParser: typeof parser | null = null;
-  
+
   public async prepare(parsers?: Parser[]): Promise<void> {
     if (this._anyDateParser) {
       return;
@@ -21,7 +21,11 @@ export class MetadataGenerator {
 
     // Dynamically import the any-date-parser only if we have a parser that
     // requires it, in order to save on bundle size.
-    if (parsers?.some((parser) => ['date', 'startdate'].includes(parser.type) && !parser.format)) {
+    if (
+      parsers?.some(
+        (parser) => ['date', 'startdate'].includes(parser.type) && !parser.format,
+      )
+    ) {
       this._anyDateParser = (await import('any-date-parser')).default;
     }
   }

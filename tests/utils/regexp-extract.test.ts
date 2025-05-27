@@ -25,7 +25,7 @@ describe('regexpExtract', () => {
     expect(regexpExtract(/(?<foo>\w+)/, 'bar', { groupName: 'baz' })).toBe('bar');
   });
 
-    it('returns full match if groupNumber does not exist', () => {
+  it('returns full match if groupNumber does not exist', () => {
     expect(regexpExtract(/(\d+)/, '123', { groupNumber: 2 })).toBe('123');
   });
 

@@ -368,8 +368,8 @@ folders:
     ha:
       path:
         - matchers:
-          - type: title
-            title: 'Frigate'
+            - type: title
+              title: 'Frigate'
         - {}
 ```
 
@@ -398,7 +398,7 @@ folders:
         # Parses the time out of the items themselves (user-specified format).
         - parsers:
             - type: startdate
-              format: "HH:mm:ss"
+              format: 'HH:mm:ss'
 ```
 
 ### Folder URLs
@@ -419,11 +419,11 @@ folders:
       url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Ffrigate
       path:
         - matchers:
-          - type: title
-            regexp: 'Clips.*'
+            - type: title
+              regexp: 'Clips.*'
         - matchers:
-          - type: title
-            regexp: 'Person.*'
+            - type: title
+              regexp: 'Person.*'
 ```
 
 ### Folder Paths

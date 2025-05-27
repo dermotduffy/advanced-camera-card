@@ -207,7 +207,7 @@ folders:
         - matchers:
             - type: title
               title: High resolution
-      # Added below:
+        # Added below:
         - parsers:
             - type: startdate
 ```
@@ -230,7 +230,7 @@ folders:
               title: High resolution
         - parsers:
             - type: startdate
-      # Added below:
+        # Added below:
         - parsers:
             - type: startdate
 ```

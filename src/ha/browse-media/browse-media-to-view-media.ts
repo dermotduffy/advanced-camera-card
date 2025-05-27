@@ -13,9 +13,7 @@ export const getViewMediaFromBrowseMediaArray = (
   );
 };
 
-export const getViewItemsFromBrowseMediaArray = <
-  M extends BrowseMediaMetadata,
->(
+export const getViewItemsFromBrowseMediaArray = <M extends BrowseMediaMetadata>(
   browseMedia: RichBrowseMedia<M>[],
   options?: ViewMediaSourceOptions,
 ): ViewItem[] => {

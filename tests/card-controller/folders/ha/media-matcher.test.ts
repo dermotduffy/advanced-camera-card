@@ -159,9 +159,7 @@ describe('MediaMatcher', () => {
       const mediaMatcher = new MediaMatcher();
       const media = createMediaItem('Test Media', false);
 
-      const matchers: Matcher[] = [
-        { type: 'unknownMatcherType' as 'title' },
-      ];
+      const matchers: Matcher[] = [{ type: 'unknownMatcherType' as 'title' }];
       expect(mediaMatcher.match(media, matchers)).toBe(true);
     });
   });

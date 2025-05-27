@@ -58,7 +58,9 @@ describe('MetadataGenerator', () => {
       const generator = new MetadataGenerator();
       await generator.prepare([goodParser, badParser]);
 
-      expect(generator.generate(browseMedia, undefined, [goodParser, badParser])).toEqual({
+      expect(
+        generator.generate(browseMedia, undefined, [goodParser, badParser]),
+      ).toEqual({
         startDate: expectedDate,
       });
     });
@@ -90,7 +92,7 @@ describe('MetadataGenerator', () => {
         it('should not parse when regexp fails to match', async () => {
           const parser: Parser = {
             type: 'date',
-            regexp: 'WILL_NOT_MATCH', 
+            regexp: 'WILL_NOT_MATCH',
           };
           const generator = new MetadataGenerator();
           await generator.prepare([parser]);
@@ -180,12 +182,9 @@ describe('MetadataGenerator', () => {
           await generator.prepare([parser]);
 
           expect(
-            generator.generate(childBrowseMedia, parentBrowseMedia, [
-              parser,
-            ])?.startDate,
+            generator.generate(childBrowseMedia, parentBrowseMedia, [parser])?.startDate,
           ).toEqual(new Date('2025-05-26T22:42:00.000Z'));
         });
-
       });
     });
   });
