@@ -110,7 +110,7 @@ describe('FoldersExecutor', () => {
       const folder: FolderConfig = createFolder();
       const query: FolderQuery = {
         folder,
-        path: ['media-source://'],
+        path: [{ ha: { id: 'media-source://' } }],
       };
 
       const haFolderEngine = mock<HAFoldersEngine>();
@@ -145,7 +145,7 @@ describe('FoldersExecutor', () => {
       const folder = createFolder();
       const query: FolderQuery = {
         folder,
-        path: ['media-source://'],
+        path: [{ ha: { id: 'media-source://' } }],
       };
 
       const mediaItem = new TestViewMedia({

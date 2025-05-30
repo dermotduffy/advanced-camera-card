@@ -72,6 +72,34 @@ to perform multiple tests. A given match may match multiple items. If an item
 does not match, it will not be returned to the user nor (in case of subfolders)
 feature in future traversals.
 
+##### Matcher: `or`
+
+Match if any single matcher matches.
+
+```yaml
+type: or
+# [...]
+```
+
+| Parameter | Description                                                  |
+| --------- | ------------------------------------------------------------ |
+| `type`    | Must be `or`.                                                |
+| `matches` | An array of other matchers only one of which needs to match. |
+
+##### Matcher: `template`
+
+Match against a template.
+
+```yaml
+type: template
+# [...]
+```
+
+| Parameter        | Description                                                            |
+| ---------------- | ---------------------------------------------------------------------- |
+| `type`           | Must be `template`.                                                    |
+| `value_template` | A [template](./templates.md?id=media-matching) to match media against. |
+
 ##### Matcher: `title`
 
 Match against the media item title.
@@ -81,11 +109,11 @@ type: title
 # [...]
 ```
 
-| Parameter | Description                                                            |
-| --------- | ---------------------------------------------------------------------- |
-| `type`    | Must be `title`.                                                       |
-| `regexp`  | An optional regular expression to matches against the title.           |
-| `title`   | An optional exact value (case-sensitive) to matches against the title. |
+| Parameter | Description                                                          |
+| --------- | -------------------------------------------------------------------- |
+| `type`    | Must be `title`.                                                     |
+| `regexp`  | An optional regular expression to match against the title.           |
+| `title`   | An optional exact value (case-sensitive) to match against the title. |
 
 #### Parsers
 
@@ -265,4 +293,11 @@ folders:
             - type: startdate
               format: HH:mm:ss
               regexp: 'File (?<value>.*)'
+  - type: ha
+    ha:
+      path:
+        - id: 'media-source://'
+        - matchers:
+            - type: template
+              value_template: "{{ acc.media.title == now().strftime('%Y/%-m/%d') }}"
 ```

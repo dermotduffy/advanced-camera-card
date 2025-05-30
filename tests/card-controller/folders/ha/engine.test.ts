@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-
 import { HAFoldersEngine } from '../../../../src/card-controller/folders/ha/engine';
 import { FolderQuery } from '../../../../src/card-controller/folders/types';
-import { FolderConfig } from '../../../../src/config/schema/folders';
+import { FolderConfig, Matcher } from '../../../../src/config/schema/folders';
 import { BrowseMediaViewFolder } from '../../../../src/ha/browse-media/item';
 import { browseMediaSchema } from '../../../../src/ha/browse-media/types';
 import { getMediaDownloadPath } from '../../../../src/ha/download';
@@ -206,9 +205,14 @@ describe('HAFoldersEngine', () => {
         .mockResolvedValueOnce([]);
 
       const engine = new HAFoldersEngine();
-      const results = await engine.expandFolder(createHASS(), query, {
-        useCache: false,
-      });
+      const results = await engine.expandFolder(
+        createHASS(),
+        query,
+        {},
+        {
+          useCache: false,
+        },
+      );
       expect(results?.length).toBe(2);
       expect(results?.[0]).toBeInstanceOf(ViewMedia);
       expect(results?.[1]).toBeInstanceOf(ViewFolder);
@@ -263,15 +267,34 @@ describe('HAFoldersEngine', () => {
       expect(await engine.expandFolder(createHASS(), query)).toBeNull();
     });
 
+    // See additional matcher testing in media-matcher.test.ts .
     describe('should apply matchers', async () => {
-      it('should expand folder with title based query', async () => {
+      it.each([
+        ['title exact', { type: 'title' as const, title: 'Frigate' }, 1],
+        ['title regexp', { type: 'title' as const, regexp: 'rig' }, 1],
+        [
+          'or positive',
+          {
+            type: 'or' as const,
+            matchers: [
+              { type: 'title' as const, title: 'UNKNOWN' },
+              { type: 'title' as const, title: 'Frigate' },
+            ],
+          },
+          1,
+        ],
+        [
+          'or negative',
+          {
+            type: 'or' as const,
+            matchers: [{ type: 'title' as const, title: 'UNKNOWN' }],
+          },
+          0,
+        ],
+      ])('%s', async (_name: string, matcher: Matcher, expectedMatches: number) => {
         const query: FolderQuery = {
           folder: { type: 'ha' },
-          path: [
-            { ha: { id: 'media-source://' } },
-            { ha: { matchers: [{ type: 'title', title: 'Frigate' }] } },
-            {},
-          ],
+          path: [{ ha: { id: 'media-source://' } }, { ha: { matchers: [matcher] } }, {}],
         };
 
         vi.mocked(homeAssistantWSRequest)
@@ -303,9 +326,7 @@ describe('HAFoldersEngine', () => {
 
         const engine = new HAFoldersEngine();
         const results = await engine.expandFolder(createHASS(), query);
-        expect(results?.length).toBe(1);
-        expect(results?.[0]).toBeInstanceOf(ViewMedia);
-        expect(results?.[0].getID()).toBe('media-source://frigate/result');
+        expect(results?.length).toBe(expectedMatches);
       });
     });
   });

@@ -130,7 +130,7 @@ describe('FoldersManager', () => {
       const folder: FolderConfig = createFolder();
       const query: FolderQuery = {
         folder,
-        path: [{ id: 'media-source://' }],
+        path: [{ ha: { id: 'media-source://' } }],
       };
 
       const executor = mock<FoldersExecutor>();
@@ -146,7 +146,7 @@ describe('FoldersManager', () => {
       const folder: FolderConfig = createFolder();
       const query: FolderQuery = {
         folder,
-        path: [{ id: 'media-source://' }],
+        path: [{ ha: { id: 'media-source://' } }],
       };
 
       const executor = mock<FoldersExecutor>();
@@ -162,7 +162,7 @@ describe('FoldersManager', () => {
       const folder: FolderConfig = createFolder();
       const query: FolderQuery = {
         folder,
-        path: [{ id: 'media-source://' }],
+        path: [{ ha: { id: 'media-source://' } }],
       };
 
       const executor = mock<FoldersExecutor>();
@@ -187,15 +187,23 @@ describe('FoldersManager', () => {
       const manager = new FoldersManager(api, executor);
 
       const folder = createFolder({ id: 'folder-1' });
+      const conditionState = {};
       const engineOptions = {};
       const query: FolderQuery = {
         folder,
-        path: [{ id: 'media-source://' }],
+        path: [{ ha: { id: 'media-source://' } }],
       };
 
-      expect(await manager.expandFolder(query, engineOptions)).toEqual([media]);
+      expect(await manager.expandFolder(query, conditionState, engineOptions)).toEqual([
+        media,
+      ]);
 
-      expect(executor.expandFolder).toBeCalledWith(hass, query, engineOptions);
+      expect(executor.expandFolder).toBeCalledWith(
+        hass,
+        query,
+        conditionState,
+        engineOptions,
+      );
     });
 
     it('should not expand folder with hass', async () => {
@@ -205,7 +213,10 @@ describe('FoldersManager', () => {
       const folder = createFolder({ id: 'folder-1' });
 
       expect(
-        await manager.expandFolder({ folder, path: [{ id: 'media-source://' }] }),
+        await manager.expandFolder({
+          folder,
+          path: [{ ha: { id: 'media-source://' } }],
+        }),
       ).toBeNull();
 
       expect(executor.expandFolder).not.toBeCalled();

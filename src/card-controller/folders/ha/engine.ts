@@ -1,4 +1,5 @@
 import { NonEmptyTuple } from 'type-fest';
+import { ConditionState } from '../../../conditions/types';
 import {
   FolderConfig,
   folderTypeSchema,
@@ -112,6 +113,7 @@ export class HAFoldersEngine implements FoldersEngine {
   public async expandFolder(
     hass: HomeAssistant,
     query: FolderQuery,
+    conditionState?: ConditionState,
     engineOptions?: EngineOptions,
   ): Promise<ViewItem[] | null> {
     if (query.folder.type !== folderTypeSchema.enum.ha) {
@@ -163,13 +165,13 @@ export class HAFoldersEngine implements FoldersEngine {
 
           ...(nextComponent && {
             matcher: (media: BrowseMedia) =>
-              this._mediaMatcher.match(
-                media,
-                nextComponent.ha?.matchers,
+              this._mediaMatcher.match(hass, media, {
+                matchers: nextComponent.ha?.matchers,
                 // Set foldersOnly to true if there are more stages in the path,
                 // as by definition only folders can be matched at this point.
-                pathComponents.length > 0,
-              ),
+                foldersOnly: pathComponents.length > 0,
+                conditionState,
+              }),
             advance: (targets) => (pathComponents.length ? generateStep(targets) : []),
           }),
         },

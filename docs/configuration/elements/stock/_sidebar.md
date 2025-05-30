@@ -21,6 +21,7 @@
   - [`status_bar`](../../status-bar.md)
   - [`timeline`](../../timeline.md)
   - [`view`](../../view.md)
+  - [Templates](../../templates.md)
 - [Examples](../../../examples.md)
 - [Screenshots](../../../screenshots.md)
 - [Troubleshooting](../../../troubleshooting.md)

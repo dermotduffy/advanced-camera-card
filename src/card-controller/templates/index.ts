@@ -2,10 +2,15 @@ import { HASS, renderTemplate } from 'ha-nunjucks/dist';
 import { ConditionState, ConditionsTriggerData } from '../../conditions/types';
 import { HomeAssistant } from '../../ha/types';
 
+interface TemplateMediaData {
+  title: string;
+  is_folder: boolean;
+}
 interface TemplateContextInternal {
   camera?: string;
   view?: string;
   trigger?: ConditionsTriggerData;
+  media?: TemplateMediaData;
 }
 
 interface TemplateContext {
@@ -22,30 +27,35 @@ export class TemplateRenderer {
     options?: {
       conditionState?: ConditionState;
       triggerData?: ConditionsTriggerData;
+      mediaData?: TemplateMediaData;
     },
   ): unknown => {
     return this._renderTemplateRecursively(
       hass,
       data,
-      this._conditionStateToTemplateContext(
-        options?.conditionState,
-        options?.triggerData,
-      ),
+      this._generateTemplateContext(options),
     );
   };
 
-  protected _conditionStateToTemplateContext(
-    conditionState?: ConditionState,
-    triggerData?: ConditionsTriggerData,
-  ): TemplateContext | undefined {
-    if (!conditionState?.camera && !conditionState?.view && !triggerData) {
+  protected _generateTemplateContext(options?: {
+    conditionState?: ConditionState;
+    triggerData?: ConditionsTriggerData;
+    mediaData?: TemplateMediaData;
+  }): TemplateContext | undefined {
+    if (
+      !options?.conditionState?.camera &&
+      !options?.conditionState?.view &&
+      !options?.triggerData &&
+      !options?.mediaData
+    ) {
       return;
     }
 
     const advancedCameraCardContext: TemplateContextInternal = {
-      ...(conditionState?.camera && { camera: conditionState.camera }),
-      ...(conditionState?.view && { view: conditionState.view }),
-      ...(triggerData && { trigger: triggerData }),
+      ...(options?.conditionState?.camera && { camera: options.conditionState.camera }),
+      ...(options?.conditionState?.view && { view: options.conditionState.view }),
+      ...(options?.triggerData && { trigger: options.triggerData }),
+      ...(options?.mediaData && { media: options.mediaData }),
     };
 
     return {

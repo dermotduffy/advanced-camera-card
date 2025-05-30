@@ -159,7 +159,9 @@ export class QueryExecutor {
     }
     const itemArray = await this._api
       .getFoldersManager()
-      .expandFolder(rawQuery, { useCache: executorOptions?.useCache });
+      .expandFolder(rawQuery, this._api.getConditionStateManager().getState(), {
+        useCache: executorOptions?.useCache,
+      });
 
     const queryResults = itemArray
       ? this._generateQueriesResults(itemArray, executorOptions)

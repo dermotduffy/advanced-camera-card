@@ -385,7 +385,7 @@ folders:
   - type: ha
     ha:
       url: >-
-        https://ha.ondu.org/media-browser/browser/app%2Cmedia-source%3A%2F%2Freolink/playlist%2Cmedia-source%3A%2F%2Freolink%2FCAM%7C01J8XHYTNH77WE3C654K03KX1F%7C0
+        https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Freolink/playlist%2Cmedia-source%3A%2F%2Freolink%2FCAM%7C01J8XHYTNH77WE3C654K03KX1F%7C0
       path:
         # Matches against the "Low resolution" folder.
         - matchers:
@@ -424,6 +424,39 @@ folders:
         - matchers:
             - type: title
               regexp: 'Person.*'
+```
+
+### Folder `or` matching
+
+This example dynamically includes media from two subfolders, one for today and
+one for yesterday both in `%Y/%-m/%d`
+[format](https://www.man7.org/linux/man-pages/man3/strftime.3.html).
+[Templating](https://www.home-assistant.io/docs/configuration/templating/#time)
+is used to dynamically refer to "today" and "yesterday".
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Freolink/playlist%2Cmedia-source%3A%2F%2Freolink%2FCAM%7C01J8XAATNH77WE5D654K07KY1F%7C0
+      path:
+        - matchers:
+            - type: title
+              title: 'Low resolution'
+        - parsers:
+            - type: startdate
+          matchers:
+            - type: or
+              matchers:
+                - type: template
+                  value_template: "{{ acc.media.title == now().strftime('%Y/%-m/%d') }}"
+                - type: template
+                  value_template: "{{ acc.media.title == (now() - dt.timedelta(days=1)) | timestamp_custom('%Y/%-m/%d') }}"
+        - parsers:
+            - type: startdate
 ```
 
 ### Folder Paths
@@ -1072,7 +1105,7 @@ tap_action:
     key: '{{ hass.states["light.sunroom_ceiling"].state }}'
 ```
 
-See [Stock Templates](./configuration/actions/templates.md?id=stock-templates).
+See [Stock Templates](./configuration/templates.md?id=stock-templates).
 
 ### Accessing Advanced Camera Card state
 
@@ -1089,7 +1122,7 @@ tap_action:
     view: '{{ advanced_camera_card.view }}'
 ```
 
-See [Custom Templates](./configuration/actions/templates.md?id=custom-templates).
+See [Custom Templates](./configuration/templates.md?id=custom-templates).
 
 ### Accessing Trigger state
 
@@ -1108,7 +1141,7 @@ automations:
           to_camera: '{{ acc.trigger.camera.to }}'
 ```
 
-See [Trigger Templates](./configuration/actions/templates.md?id=triggers).
+See [Trigger Templates](./configuration/templates.md?id=triggers).
 
 ## Trigger actions
 
