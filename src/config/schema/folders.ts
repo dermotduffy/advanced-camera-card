@@ -1,8 +1,8 @@
 import { NonEmptyTuple } from 'type-fest';
 import { z } from 'zod';
+import { AdvancedCameraCardError } from '../../types';
 import { isTruthy } from '../../utils/basic';
 import { regexSchema } from './common/regex';
-import { AdvancedCameraCardError } from '../../types';
 
 export const HA_MEDIA_SOURCE_ROOT = 'media-source://';
 
@@ -31,12 +31,32 @@ const parserSchema = z.discriminatedUnion('type', [
 ]);
 export type Parser = z.infer<typeof parserSchema>;
 
+const templateMatcherSchema = parserBaseSchema.extend({
+  type: z.literal('template'),
+  value_template: z.string(),
+});
+export type TemplateMatcher = z.infer<typeof templateMatcherSchema>;
+
 const titleMatcherSchema = parserBaseSchema.extend({
   type: z.literal('title'),
   regexp: regexSchema.optional(),
   title: z.string().optional(),
 });
-const matcherSchema = z.discriminatedUnion('type', [titleMatcherSchema]);
+export type TitleMatcher = z.infer<typeof titleMatcherSchema>;
+
+type OrMatcher = {
+  type: 'or';
+  matchers: Matcher[];
+};
+const orMatcherSchema: z.ZodSchema<OrMatcher, z.ZodTypeDef> = z.object({
+  type: z.literal('or'),
+  matchers: z.array(z.lazy(() => matcherSchema)),
+});
+export const matcherSchema = z.union([
+  orMatcherSchema,
+  templateMatcherSchema,
+  titleMatcherSchema,
+]);
 export type Matcher = z.infer<typeof matcherSchema>;
 
 const haFolderPathComponentSchema = z.object({

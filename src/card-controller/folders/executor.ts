@@ -1,3 +1,4 @@
+import { ConditionState } from '../../conditions/types';
 import { FolderConfig, FolderType, folderTypeSchema } from '../../config/schema/folders';
 import { HomeAssistant } from '../../ha/types';
 import { Endpoint } from '../../types';
@@ -23,12 +24,14 @@ export class FoldersExecutor {
   public async expandFolder(
     hass: HomeAssistant,
     query: FolderQuery,
+    conditionState?: ConditionState,
     engineOptions?: EngineOptions,
   ): Promise<ViewItem[] | null> {
     const results =
       (await this._getFolderEngine(query.folder.type)?.expandFolder(
         hass,
         query,
+        conditionState,
         engineOptions,
       )) ?? null;
     return results ? sortItems(results) : null;

@@ -1,6 +1,9 @@
-import { describe, expect, it } from 'vitest';
-import { transformPathURLToPathArray } from '../../../src/config/schema/folders';
 import { NonEmptyTuple } from 'type-fest';
+import { describe, expect, it } from 'vitest';
+import {
+  matcherSchema,
+  transformPathURLToPathArray,
+} from '../../../src/config/schema/folders';
 
 describe('transformURLToMediaSourceRoot', () => {
   const prefixes: NonEmptyTuple<string>[] = [
@@ -62,6 +65,30 @@ describe('transformURLToMediaSourceRoot', () => {
       expect(() => transformPathURLToPathArray(url)).toThrowError(
         /Could not parse media source URL/,
       );
+    });
+  });
+});
+
+describe('should lazy evaluate schemas', () => {
+  it('should lazy evaluate or matcher', () => {
+    expect(
+      matcherSchema.parse({
+        type: 'or',
+        matchers: [
+          {
+            type: 'title',
+            title: 'Test Title',
+          },
+        ],
+      }),
+    ).toEqual({
+      type: 'or',
+      matchers: [
+        {
+          type: 'title',
+          title: 'Test Title',
+        },
+      ],
     });
   });
 });

@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash-es';
+import { ConditionState } from '../../conditions/types';
 import { FolderConfig } from '../../config/schema/folders';
 import { localize } from '../../localize/localize';
 import { Endpoint } from '../../types';
@@ -63,10 +64,13 @@ export class FoldersManager {
 
   public async expandFolder(
     query: FolderQuery,
+    conditionState?: ConditionState,
     engineOptions?: EngineOptions,
   ): Promise<ViewItem[] | null> {
     const hass = this._api.getHASSManager().getHASS();
-    return hass ? this._executor.expandFolder(hass, query, engineOptions) : null;
+    return hass
+      ? this._executor.expandFolder(hass, query, conditionState, engineOptions)
+      : null;
   }
 
   public getItemCapabilities(item: ViewItem): ViewItemCapabilities | null {

@@ -1,4 +1,5 @@
 import { NonEmptyTuple } from 'type-fest';
+import { ConditionState } from '../../conditions/types';
 import { FolderConfig, HAFolderPathComponent } from '../../config/schema/folders';
 import { ResolvedMediaCache } from '../../ha/resolved-media';
 import { HomeAssistant } from '../../ha/types';
@@ -47,6 +48,7 @@ export interface FoldersEngine {
   expandFolder(
     hass: HomeAssistant,
     query: FolderQuery,
+    conditionState?: ConditionState,
     engineOptions?: EngineOptions,
   ): Promise<ViewItem[] | null>;
 
