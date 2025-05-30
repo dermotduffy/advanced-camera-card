@@ -86,6 +86,20 @@ type: or
 | `type`    | Must be `or`.                                                |
 | `matches` | An array of other matchers only one of which needs to match. |
 
+##### Matcher: `template`
+
+Match against a template.
+
+```yaml
+type: template
+# [...]
+```
+
+| Parameter        | Description                                                            |
+| ---------------- | ---------------------------------------------------------------------- |
+| `type`           | Must be `template`.                                                    |
+| `value_template` | A [template](./templates.md?id=media-matching) to match media against. |
+
 ##### Matcher: `title`
 
 Match against the media item title.
