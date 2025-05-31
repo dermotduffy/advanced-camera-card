@@ -78,7 +78,7 @@ feature in future traversals.
 
 Match if the media was started more recently than the provided date information.
 
-?> Matching based on date requires the media has been parsed with the [`date` parser](#matcher-date--startdate) somewhere above or equal to the position of the matcher in the `path` hierarchy.
+?> Matching based on date requires the media has been parsed with the [`date` parser](#parser-date-startdate) somewhere above or equal to the position of the matcher in the `path` hierarchy.
 
 ```yaml
 type: date

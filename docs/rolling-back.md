@@ -6,14 +6,12 @@ There may be many versions of this card (see [release philosophy](./developing.m
 
 - Open your Home Assistant instance and navigate to `HACS` in the sidebar
 - Choose "Frontend"
-- Click on "Frigate Card"
+- Click on "Advanced Camera Card"
 - Click on the "Three dots menu"
 - Choose "Redownload"
 - Select the version you wish to change to
 - Click "Download"
 - Reload your browser
-
-[](./common/rename-hacs.md ':include')
 
 ### Rolling Back Manually
 

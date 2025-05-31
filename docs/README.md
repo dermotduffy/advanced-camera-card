@@ -7,10 +7,8 @@
 - Find the card in HACS:
 
 ```
-Home Assistant > HACS > Frontend > "Explore & Add Integrations" > Frigate Card
+Home Assistant > HACS > Frontend > "Explore & Add Integrations" > Advanced Camera Card
 ```
-
-[](./common/rename-hacs.md ':include')
 
 - Click `Download this repository with HACS`.
 
