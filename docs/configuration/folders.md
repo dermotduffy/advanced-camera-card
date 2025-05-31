@@ -72,6 +72,27 @@ to perform multiple tests. A given match may match multiple items. If an item
 does not match, it will not be returned to the user nor (in case of subfolders)
 feature in future traversals.
 
+?> The higher in the path you can match, the more performant the query.
+
+##### Matcher: `date` / `startdate`
+
+Match if the media was started more recently than the provided date information.
+
+?> Matching based on date requires the media has been parsed with the [`date` parser](#matcher-date--startdate) somewhere above or equal to the position of the matcher in the `path` hierarchy.
+
+```yaml
+type: date
+# [...]
+```
+
+| Parameter       | Default | Description                                |
+| --------------- | ------- | ------------------------------------------ |
+| `since.minutes` | 0       | Media no older than this many minutes ago. |
+| `since.hours`   | 0       | Media no older than this many hours ago.   |
+| `since.days`    | 0       | Media no older than this many days ago.    |
+| `since.months`  | 0       | Media no older than this many months ago.  |
+| `since.years`   | 0       | Media no older than this many years ago.   |
+
 ##### Matcher: `or`
 
 Match if any single matcher matches.
@@ -300,4 +321,14 @@ folders:
         - matchers:
             - type: template
               value_template: "{{ acc.media.title == now().strftime('%Y/%-m/%d') }}"
+        - parsers:
+            - type: date
+        - matchers:
+            - type: date
+              since:
+                minutes: 1
+                hours: 2
+                days: 3
+                months: 4
+                years: 5
 ```

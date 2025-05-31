@@ -1,6 +1,13 @@
+import { sub } from 'date-fns';
 import { ConditionState } from '../../../conditions/types';
-import { Matcher, TemplateMatcher, TitleMatcher } from '../../../config/schema/folders';
-import { BrowseMedia } from '../../../ha/browse-media/types';
+import {
+  DateMatcher,
+  Matcher,
+  StartDateMatcher,
+  TemplateMatcher,
+  TitleMatcher,
+} from '../../../config/schema/folders';
+import { BrowseMediaMetadata, RichBrowseMedia } from '../../../ha/browse-media/types';
 import { HomeAssistant } from '../../../ha/types';
 import { regexpExtract } from '../../../utils/regexp-extract';
 import { TemplateRenderer } from '../../templates';
@@ -11,7 +18,7 @@ export class MediaMatcher {
 
   public match(
     hass: HomeAssistant,
-    media: BrowseMedia,
+    media: RichBrowseMedia<BrowseMediaMetadata>,
     options?: {
       foldersOnly?: boolean;
       matchers?: Matcher[];
@@ -24,16 +31,25 @@ export class MediaMatcher {
 
     for (const matcher of options?.matchers ?? []) {
       switch (matcher.type) {
+        case 'date':
+        case 'startdate':
+          if (!this._matchStartDate(matcher, media)) {
+            return false;
+          }
+          break;
+
         case 'template':
           if (!this._matchTemplate(hass, matcher, media, options?.conditionState)) {
             return false;
           }
           break;
+
         case 'title':
           if (!this._matchTitle(matcher, media)) {
             return false;
           }
           break;
+
         case 'or':
           if (
             !matcher.matchers.some((subMatcher) =>
@@ -53,10 +69,28 @@ export class MediaMatcher {
     return true;
   }
 
+  private _matchStartDate(
+    matcher: DateMatcher | StartDateMatcher,
+    media: RichBrowseMedia<BrowseMediaMetadata>,
+  ): boolean {
+    const startDate = media._metadata?.startDate;
+    return (
+      !!startDate &&
+      startDate >=
+        sub(new Date(), {
+          years: matcher.since.years ?? 0,
+          months: matcher.since.months ?? 0,
+          days: matcher.since.days ?? 0,
+          hours: matcher.since.hours ?? 0,
+          minutes: matcher.since.minutes ?? 0,
+        })
+    );
+  }
+
   private _matchTemplate(
     hass: HomeAssistant,
     matcher: TemplateMatcher,
-    media: BrowseMedia,
+    media: RichBrowseMedia<BrowseMediaMetadata>,
     conditionState?: ConditionState,
   ): boolean {
     return (
@@ -70,7 +104,10 @@ export class MediaMatcher {
     );
   }
 
-  private _matchTitle(matcher: TitleMatcher, media: BrowseMedia): boolean {
+  private _matchTitle(
+    matcher: TitleMatcher,
+    media: RichBrowseMedia<BrowseMediaMetadata>,
+  ): boolean {
     const valueToMatch = matcher.regexp
       ? regexpExtract(matcher.regexp, media.title, { groupName: REGEXP_GROUP_VALUE_KEY })
       : media.title;

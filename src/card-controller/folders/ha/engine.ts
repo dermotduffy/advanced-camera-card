@@ -164,7 +164,7 @@ export class HAFoldersEngine implements FoldersEngine {
             this._metadataGenerator.generate(media, parent, nextComponent?.ha?.parsers),
 
           ...(nextComponent && {
-            matcher: (media: BrowseMedia) =>
+            matcher: (media: RichBrowseMedia<BrowseMediaMetadata>) =>
               this._mediaMatcher.match(hass, media, {
                 matchers: nextComponent.ha?.matchers,
                 // Set foldersOnly to true if there are more stages in the path,
