@@ -14,12 +14,10 @@ const folderConfigDefault = {
   ha: {},
 };
 
-const parserBaseSchema = z.object({
-  regexp: regexSchema.optional(),
-});
-const startdateParserSchema = parserBaseSchema.extend({
+const startdateParserSchema = z.object({
   type: z.literal('startdate'),
   format: z.string().optional(),
+  regexp: regexSchema.optional(),
 });
 // Simple alias date -> startdate.
 const dateParserSchema = startdateParserSchema.extend({
@@ -31,13 +29,31 @@ const parserSchema = z.discriminatedUnion('type', [
 ]);
 export type Parser = z.infer<typeof parserSchema>;
 
-const templateMatcherSchema = parserBaseSchema.extend({
+const startDateMatcherSchema = z.object({
+  type: z.literal('startdate'),
+  since: z.object({
+    years: z.number().int().min(0).optional(),
+    months: z.number().int().min(0).optional(),
+    days: z.number().int().min(0).optional(),
+    hours: z.number().int().min(0).optional(),
+    minutes: z.number().int().min(0).optional(),
+  }),
+});
+export type StartDateMatcher = z.infer<typeof startDateMatcherSchema>;
+
+// Simple alias date -> startdate.
+const dateMatcherSchema = startDateMatcherSchema.extend({
+  type: z.literal('date'),
+});
+export type DateMatcher = z.infer<typeof dateMatcherSchema>;
+
+const templateMatcherSchema = z.object({
   type: z.literal('template'),
   value_template: z.string(),
 });
 export type TemplateMatcher = z.infer<typeof templateMatcherSchema>;
 
-const titleMatcherSchema = parserBaseSchema.extend({
+const titleMatcherSchema = z.object({
   type: z.literal('title'),
   regexp: regexSchema.optional(),
   title: z.string().optional(),
@@ -53,7 +69,9 @@ const orMatcherSchema: z.ZodSchema<OrMatcher, z.ZodTypeDef> = z.object({
   matchers: z.array(z.lazy(() => matcherSchema)),
 });
 export const matcherSchema = z.union([
+  dateMatcherSchema,
   orMatcherSchema,
+  startDateMatcherSchema,
   templateMatcherSchema,
   titleMatcherSchema,
 ]);

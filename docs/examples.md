@@ -373,9 +373,10 @@ folders:
         - {}
 ```
 
-### Folder Parsing
+### Folder date parsing and matching
 
-This example parses dates from a folder, and times from the media items themselves.
+This example parses dates from a folder, and matches only those dates in the
+last two days. It then parses times from the media items themselves.
 
 ```yaml
 type: custom:advanced-camera-card
@@ -394,11 +395,66 @@ folders:
               title: Low
         # Parses the date out of the next level (auto-detected format).
         - parsers:
-            - type: startdate
+            - type: date
+          matchers:
+            - type: date
+              since:
+                days: 2
         # Parses the time out of the items themselves (user-specified format).
         - parsers:
-            - type: startdate
+            - type: date
               format: 'HH:mm:ss'
+```
+
+#### Folder date matching by `template`
+
+This example dynamically includes media from two subfolders, one for today and
+one for yesterday both in `%Y/%-m/%d`
+[format](https://www.man7.org/linux/man-pages/man3/strftime.3.html).
+[Templating](https://www.home-assistant.io/docs/configuration/templating/#time)
+is used to dynamically refer to "today" and "yesterday".
+
+?> Using a `date` matcher (as above) should be preferred for matching dates,
+this example is included for illustration.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Freolink/playlist%2Cmedia-source%3A%2F%2Freolink%2FCAM%7C01J8XAATNH77WE5D654K07KY1F%7C0
+      path:
+        - matchers:
+            - type: title
+              title: 'Low resolution'
+        - matchers:
+            - type: or
+              matchers:
+                - type: template
+                  value_template: "{{ acc.media.title == now().strftime('%Y/%-m/%d') }}"
+                - type: template
+                  value_template: "{{ acc.media.title == (now() - dt.timedelta(days=1)) | timestamp_custom('%Y/%-m/%d') }}"
+        - {}
+```
+
+### Folder Paths
+
+This example starts with the `media-source://frigate` folder, and looks for a
+precisely titled `Clips [my-instance]` folder within that. The resulting media
+will be the contents of that folder (if found).
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+folders:
+  - type: ha
+    ha:
+      path:
+        - id: 'media-source://frigate'
+        - title: 'Clips [my-instance]'
 ```
 
 ### Folder URLs
@@ -424,57 +480,6 @@ folders:
         - matchers:
             - type: title
               regexp: 'Person.*'
-```
-
-### Folder `or` matching
-
-This example dynamically includes media from two subfolders, one for today and
-one for yesterday both in `%Y/%-m/%d`
-[format](https://www.man7.org/linux/man-pages/man3/strftime.3.html).
-[Templating](https://www.home-assistant.io/docs/configuration/templating/#time)
-is used to dynamically refer to "today" and "yesterday".
-
-```yaml
-type: custom:advanced-camera-card
-cameras:
-  - camera_entity: camera.office
-folders:
-  - type: ha
-    ha:
-      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Freolink/playlist%2Cmedia-source%3A%2F%2Freolink%2FCAM%7C01J8XAATNH77WE5D654K07KY1F%7C0
-      path:
-        - matchers:
-            - type: title
-              title: 'Low resolution'
-        - parsers:
-            - type: startdate
-          matchers:
-            - type: or
-              matchers:
-                - type: template
-                  value_template: "{{ acc.media.title == now().strftime('%Y/%-m/%d') }}"
-                - type: template
-                  value_template: "{{ acc.media.title == (now() - dt.timedelta(days=1)) | timestamp_custom('%Y/%-m/%d') }}"
-        - parsers:
-            - type: startdate
-```
-
-### Folder Paths
-
-This example starts with the `media-source://frigate` folder, and looks for a
-precisely titled `Clips [my-instance]` folder within that. The resulting media
-will be the contents of that folder (if found).
-
-```yaml
-type: custom:advanced-camera-card
-cameras:
-  - camera_entity: camera.office
-folders:
-  - type: ha
-    ha:
-      path:
-        - id: 'media-source://frigate'
-        - title: 'Clips [my-instance]'
 ```
 
 ## Human interaction
