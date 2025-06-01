@@ -153,56 +153,81 @@ describe('View Basics', () => {
     expect(view.context).toEqual({});
   });
 
-  it('should detect gallery views', () => {
-    expect(createView({ view: 'clips' }).isMediaGalleryView()).toBeTruthy();
-    expect(createView({ view: 'folder' }).isMediaGalleryView()).toBeTruthy();
-    expect(createView({ view: 'snapshots' }).isMediaGalleryView()).toBeTruthy();
-    expect(createView({ view: 'recordings' }).isMediaGalleryView()).toBeTruthy();
+  describe('should detect folder views', () => {
+    it('should detect folder views', () => {
+      expect(createView({ view: 'folder' }).isAnyFolderView()).toBeTruthy();
+      expect(createView({ view: 'folders' }).isAnyFolderView()).toBeTruthy();
+    });
+
+    it('should not detect folder views', () => {
+      expect(createView({ view: 'live' }).isAnyFolderView()).toBeFalsy();
+      expect(createView({ view: 'clip' }).isAnyFolderView()).toBeFalsy();
+      expect(createView({ view: 'clips' }).isAnyFolderView()).toBeFalsy();
+    });
   });
 
-  it('should not detect gallery view', () => {
-    expect(createView({ view: 'live' }).isMediaGalleryView()).toBeFalsy();
-    expect(createView({ view: 'timeline' }).isMediaGalleryView()).toBeFalsy();
+  describe('should detect media views', () => {
+    it('should detect any media views', () => {
+      expect(createView({ view: 'clip' }).isAnyMediaView()).toBeTruthy();
+      expect(createView({ view: 'snapshot' }).isAnyMediaView()).toBeTruthy();
+      expect(createView({ view: 'media' }).isAnyMediaView()).toBeTruthy();
+      expect(createView({ view: 'recording' }).isAnyMediaView()).toBeTruthy();
+      expect(createView({ view: 'live' }).isAnyMediaView()).toBeTruthy();
+      expect(createView({ view: 'image' }).isAnyMediaView()).toBeTruthy();
+      expect(createView({ view: 'folder' }).isAnyMediaView()).toBeTruthy();
+    });
+
+    it('should not detect any media view', () => {
+      expect(createView({ view: 'timeline' }).isAnyMediaView()).toBeFalsy();
+    });
   });
 
-  it('should detect any media views', () => {
-    expect(createView({ view: 'clip' }).isAnyMediaView()).toBeTruthy();
-    expect(createView({ view: 'snapshot' }).isAnyMediaView()).toBeTruthy();
-    expect(createView({ view: 'media' }).isAnyMediaView()).toBeTruthy();
-    expect(createView({ view: 'recording' }).isAnyMediaView()).toBeTruthy();
-    expect(createView({ view: 'live' }).isAnyMediaView()).toBeTruthy();
-    expect(createView({ view: 'image' }).isAnyMediaView()).toBeTruthy();
+  describe('should detect gallery views', () => {
+    it('should detect gallery views', () => {
+      expect(createView({ view: 'clips' }).isMediaGalleryView()).toBeTruthy();
+      expect(createView({ view: 'folders' }).isMediaGalleryView()).toBeTruthy();
+      expect(createView({ view: 'snapshots' }).isMediaGalleryView()).toBeTruthy();
+      expect(createView({ view: 'recordings' }).isMediaGalleryView()).toBeTruthy();
+    });
+
+    it('should not detect gallery view', () => {
+      expect(createView({ view: 'live' }).isMediaGalleryView()).toBeFalsy();
+      expect(createView({ view: 'timeline' }).isMediaGalleryView()).toBeFalsy();
+    });
   });
 
-  it('should not detect any media view', () => {
-    expect(createView({ view: 'timeline' }).isAnyMediaView()).toBeFalsy();
+  describe('should detect viewer views', () => {
+    it('should detect viewer views', () => {
+      expect(createView({ view: 'clip' }).isViewerView()).toBeTruthy();
+      expect(createView({ view: 'snapshot' }).isViewerView()).toBeTruthy();
+      expect(createView({ view: 'media' }).isViewerView()).toBeTruthy();
+      expect(createView({ view: 'recording' }).isViewerView()).toBeTruthy();
+      expect(createView({ view: 'folder' }).isAnyMediaView()).toBeTruthy();
+    });
+
+    it('should not detect viewer views', () => {
+      expect(createView({ view: 'live' }).isViewerView()).toBeFalsy();
+      expect(createView({ view: 'live' }).isViewerView()).toBeFalsy();
+      expect(createView({ view: 'timeline' }).isViewerView()).toBeFalsy();
+    });
   });
 
-  it('should detect viewer views', () => {
-    expect(createView({ view: 'clip' }).isViewerView()).toBeTruthy();
-    expect(createView({ view: 'snapshot' }).isViewerView()).toBeTruthy();
-    expect(createView({ view: 'media' }).isViewerView()).toBeTruthy();
-    expect(createView({ view: 'recording' }).isViewerView()).toBeTruthy();
-  });
+  describe('should get default media type', () => {
+    it('should get default media type', () => {
+      expect(createView({ view: 'clip' }).getDefaultMediaType()).toBe('clips');
+      expect(createView({ view: 'clips' }).getDefaultMediaType()).toBe('clips');
+      expect(createView({ view: 'snapshot' }).getDefaultMediaType()).toBe('snapshots');
+      expect(createView({ view: 'snapshots' }).getDefaultMediaType()).toBe('snapshots');
+      expect(createView({ view: 'recording' }).getDefaultMediaType()).toBe('recordings');
+      expect(createView({ view: 'recordings' }).getDefaultMediaType()).toBe(
+        'recordings',
+      );
+    });
 
-  it('should not detect viewer views', () => {
-    expect(createView({ view: 'live' }).isViewerView()).toBeFalsy();
-    expect(createView({ view: 'live' }).isViewerView()).toBeFalsy();
-    expect(createView({ view: 'timeline' }).isViewerView()).toBeFalsy();
-  });
-
-  it('should get default media type', () => {
-    expect(createView({ view: 'clip' }).getDefaultMediaType()).toBe('clips');
-    expect(createView({ view: 'clips' }).getDefaultMediaType()).toBe('clips');
-    expect(createView({ view: 'snapshot' }).getDefaultMediaType()).toBe('snapshots');
-    expect(createView({ view: 'snapshots' }).getDefaultMediaType()).toBe('snapshots');
-    expect(createView({ view: 'recording' }).getDefaultMediaType()).toBe('recordings');
-    expect(createView({ view: 'recordings' }).getDefaultMediaType()).toBe('recordings');
-  });
-
-  it('should not get default media type', () => {
-    expect(createView({ view: 'live' }).getDefaultMediaType()).toBeNull();
-    expect(createView({ view: 'timeline' }).getDefaultMediaType()).toBeNull();
+    it('should not get default media type', () => {
+      expect(createView({ view: 'live' }).getDefaultMediaType()).toBeNull();
+      expect(createView({ view: 'timeline' }).getDefaultMediaType()).toBeNull();
+    });
   });
 
   it('should determine if display mode is grid', () => {

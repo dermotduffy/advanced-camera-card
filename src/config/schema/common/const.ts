@@ -17,6 +17,7 @@ export const VIEWS_USER_SPECIFIED = [
   'clip',
   'clips',
   'folder',
+  'folders',
   'snapshot',
   'snapshots',
   'recording',

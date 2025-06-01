@@ -5,7 +5,7 @@ import { ActionConfig } from '../../src/config/schema/actions/types.js';
 import {
   createCameraAction,
   createDisplayModeAction,
-  createFolderAction,
+  createFoldersViewAction,
   createGeneralAction,
   createInternalCallbackAction,
   createLogAction,
@@ -64,14 +64,19 @@ describe('createCameraAction', () => {
 });
 
 describe('createFolderAction', () => {
-  it('should create folder action', () => {
-    expect(createFolderAction({ folderID: 'folderID', cardID: 'card_id' })).toEqual({
-      action: 'fire-dom-event',
-      advanced_camera_card_action: 'folder',
-      card_id: 'card_id',
-      folder: 'folderID',
-    });
-  });
+  it.each([['folder' as const], ['folders' as const]])(
+    '%s',
+    (viewName: 'folder' | 'folders') => {
+      expect(
+        createFoldersViewAction(viewName, { folderID: 'folderID', cardID: 'card_id' }),
+      ).toEqual({
+        action: 'fire-dom-event',
+        advanced_camera_card_action: viewName,
+        card_id: 'card_id',
+        folder: 'folderID',
+      });
+    },
+  );
 });
 
 describe('createMediaPlayerAction', () => {

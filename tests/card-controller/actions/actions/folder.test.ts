@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { FolderAction } from '../../../../src/card-controller/actions/actions/folder';
+import { FoldersViewAction } from '../../../../src/card-controller/actions/actions/folders-view';
 import { FolderQuery } from '../../../../src/card-controller/folders/types';
 import { FolderViewQuery } from '../../../../src/view/query';
 import { createCardAPI, createFolder } from '../../../test-utils';
@@ -7,7 +7,7 @@ import { createCardAPI, createFolder } from '../../../test-utils';
 describe('should handle folder action', async () => {
   it('should handle folder action successfully', async () => {
     const api = createCardAPI();
-    const action = new FolderAction(
+    const action = new FoldersViewAction(
       {},
       {
         action: 'fire-dom-event',
@@ -20,7 +20,7 @@ describe('should handle folder action', async () => {
 
     const query: FolderQuery = {
       folder,
-      path: ['path'],
+      path: [{ ha: { id: 'path' } }],
     };
     vi.mocked(api.getFoldersManager().generateDefaultFolderQuery).mockReturnValue(query);
 
@@ -44,7 +44,7 @@ describe('should handle folder action', async () => {
 
   it('should do nothing with non-existent folder', async () => {
     const api = createCardAPI();
-    const action = new FolderAction(
+    const action = new FoldersViewAction(
       {},
       {
         action: 'fire-dom-event',
@@ -64,7 +64,7 @@ describe('should handle folder action', async () => {
 
   it('should do nothing with non-existent default query', async () => {
     const api = createCardAPI();
-    const action = new FolderAction(
+    const action = new FoldersViewAction(
       {},
       {
         action: 'fire-dom-event',

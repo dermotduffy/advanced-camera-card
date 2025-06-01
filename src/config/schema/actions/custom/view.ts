@@ -7,14 +7,14 @@ import { advancedCameraCardCustomActionsBaseSchema } from './base';
 
 type AdvancedCameraCardUserSpecifiedViewWithoutFolder = Exclude<
   AdvancedCameraCardUserSpecifiedView,
-  'folder'
+  'folder' | 'folders'
 >;
 
 export const viewActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
   advanced_camera_card_action: z.enum(
-    // The folder view is handled by the `folder` action since it accepts an
+    // The folder/folders views are handled separately as they accept an
     // optional folder ID.
-    VIEWS_USER_SPECIFIED.filter((view) => view !== 'folder') as [
+    VIEWS_USER_SPECIFIED.filter((view) => view !== 'folder' && view !== 'folders') as [
       AdvancedCameraCardUserSpecifiedViewWithoutFolder,
       ...AdvancedCameraCardUserSpecifiedViewWithoutFolder[],
     ],

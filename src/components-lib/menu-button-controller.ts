@@ -15,7 +15,7 @@ import { MediaLoadedInfo } from '../types';
 import {
   createCameraAction,
   createDisplayModeAction,
-  createFolderAction,
+  createFoldersViewAction,
   createGeneralAction,
   createMediaPlayerAction,
   createPTZControlsAction,
@@ -658,7 +658,8 @@ export class MenuButtonController {
         type: 'custom:advanced-camera-card-menu-icon',
         title: folder.title ?? localize('config.menu.buttons.folders'),
         style: isSelected ? this._getEmphasizedStyle() : {},
-        tap_action: createFolderAction(),
+        tap_action: createFoldersViewAction('folders'),
+        hold_action: createFoldersViewAction('folder'),
       };
     }
 
@@ -667,14 +668,14 @@ export class MenuButtonController {
         QueryClassifier.isFolderQuery(view?.query) &&
         view.query.getQuery()?.folder.id === id;
 
-      const action = createFolderAction({ folderID: id });
       return {
         enabled: true,
         title: folder.title ?? folder.id,
         icon: folder.icon ?? 'mdi:folder',
         selected: isSelected,
         style: isSelected ? this._getEmphasizedStyle() : {},
-        ...(action && { tap_action: action }),
+        tap_action: createFoldersViewAction('folders', { folderID: id }),
+        hold_action: createFoldersViewAction('folder', { folderID: id }),
       };
     });
 
@@ -684,7 +685,7 @@ export class MenuButtonController {
       type: 'custom:advanced-camera-card-menu-submenu',
       title: localize('config.menu.buttons.folders'),
       items: submenuItems,
-      style: view?.is('folder') ? this._getEmphasizedStyle() : {},
+      style: view?.isAnyFolderView() ? this._getEmphasizedStyle() : {},
     };
   }
 

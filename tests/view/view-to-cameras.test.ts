@@ -11,31 +11,34 @@ import {
 
 describe('getCameraIDsForViewName', () => {
   describe('views that are always supported', () => {
-    it.each([['diagnostics' as const], ['image' as const], ['media' as const]])(
-      '%s',
-      (viewName: AdvancedCameraCardView) => {
-        const cameraManager = createCameraManager();
-        vi.mocked(cameraManager.getStore).mockReturnValue(
-          createStore([
-            {
-              cameraID: 'camera-1',
-              config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
-            },
-            { cameraID: 'camera-2' },
-          ]),
-        );
+    it.each([
+      ['diagnostics' as const],
+      ['folder' as const],
+      ['folders' as const],
+      ['image' as const],
+      ['media' as const],
+    ])('%s', (viewName: AdvancedCameraCardView) => {
+      const cameraManager = createCameraManager();
+      vi.mocked(cameraManager.getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
+          },
+          { cameraID: 'camera-2' },
+        ]),
+      );
 
-        expect(getCameraIDsForViewName(cameraManager, viewName)).toEqual(
-          new Set(['camera-1', 'camera-2']),
-        );
-        expect(getCameraIDsForViewName(cameraManager, viewName, 'camera-1')).toEqual(
-          new Set(['camera-1', 'camera-2']),
-        );
-        expect(getCameraIDsForViewName(cameraManager, viewName, 'camera-2')).toEqual(
-          new Set(['camera-1', 'camera-2']),
-        );
-      },
-    );
+      expect(getCameraIDsForViewName(cameraManager, viewName)).toEqual(
+        new Set(['camera-1', 'camera-2']),
+      );
+      expect(getCameraIDsForViewName(cameraManager, viewName, 'camera-1')).toEqual(
+        new Set(['camera-1', 'camera-2']),
+      );
+      expect(getCameraIDsForViewName(cameraManager, viewName, 'camera-2')).toEqual(
+        new Set(['camera-1', 'camera-2']),
+      );
+    });
   });
 
   describe('views that respect dependencies and need a capability', () => {

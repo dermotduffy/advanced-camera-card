@@ -120,6 +120,7 @@ export class ViewQueryExecutor {
         viewModifiers.push(...(await executeMediaQuery(mediaType)));
         break;
       case 'folder':
+      case 'folders':
         viewModifiers.push(...(await executeFolderQuery()));
         break;
     }

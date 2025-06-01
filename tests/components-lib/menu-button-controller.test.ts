@@ -1792,7 +1792,8 @@ describe('MenuButtonController', () => {
         style: {},
         type: 'custom:advanced-camera-card-menu-icon',
         title: 'Folders',
-        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'folder' },
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'folders' },
+        hold_action: { action: 'fire-dom-event', advanced_camera_card_action: 'folder' },
       });
     });
 
@@ -1807,7 +1808,7 @@ describe('MenuButtonController', () => {
         foldersManager,
         view: createView({
           view: 'folder',
-          query: new FolderViewQuery({ folder, path: [{ id: 'one' }] }),
+          query: new FolderViewQuery({ folder, path: [{ ha: { id: 'one' } }] }),
         }),
       });
 
@@ -1820,7 +1821,8 @@ describe('MenuButtonController', () => {
         },
         type: 'custom:advanced-camera-card-menu-icon',
         title: 'Folders',
-        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'folder' },
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'folders' },
+        hold_action: { action: 'fire-dom-event', advanced_camera_card_action: 'folder' },
       });
     });
 
@@ -1837,7 +1839,7 @@ describe('MenuButtonController', () => {
         view: 'folder',
         query: new FolderViewQuery({
           folder: selectedFolder,
-          path: [{ id: 'id' }],
+          path: [{ ha: { id: 'id' } }],
         }),
       });
 
@@ -1858,18 +1860,28 @@ describe('MenuButtonController', () => {
         items: [
           {
             enabled: true,
+            hold_action: {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'folder',
+              folder: 'folder-0',
+            },
             icon: 'mdi:folder',
             selected: false,
             style: {},
             tap_action: {
               action: 'fire-dom-event',
-              advanced_camera_card_action: 'folder',
+              advanced_camera_card_action: 'folders',
               folder: 'folder-0',
             },
             title: 'folder-0',
           },
           {
             enabled: true,
+            hold_action: {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'folder',
+              folder: 'folder-selected',
+            },
             icon: 'mdi:folder',
             selected: true,
             style: {
@@ -1877,7 +1889,7 @@ describe('MenuButtonController', () => {
             },
             tap_action: {
               action: 'fire-dom-event',
-              advanced_camera_card_action: 'folder',
+              advanced_camera_card_action: 'folders',
               folder: 'folder-selected',
             },
             title: 'folder-selected',
@@ -1909,23 +1921,33 @@ describe('MenuButtonController', () => {
           {
             enabled: true,
             icon: 'mdi:folder',
+            hold_action: {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'folder',
+              folder: 'folder-0',
+            },
             selected: false,
             style: {},
             tap_action: {
               action: 'fire-dom-event',
-              advanced_camera_card_action: 'folder',
+              advanced_camera_card_action: 'folders',
               folder: 'folder-0',
             },
             title: 'folder-0',
           },
           {
             enabled: true,
+            hold_action: {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'folder',
+              folder: 'folder-1',
+            },
             icon: 'mdi:folder',
             selected: false,
             style: {},
             tap_action: {
               action: 'fire-dom-event',
-              advanced_camera_card_action: 'folder',
+              advanced_camera_card_action: 'folders',
               folder: 'folder-1',
             },
             title: 'folder-1',

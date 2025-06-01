@@ -114,11 +114,25 @@ advanced_camera_card_action: expand
 
 ## `folder`
 
-Show a given folder in the folder gallery.
+Show media from a given folder in the media viewer.
 
 ```yaml
 action: custom:advanced-camera-card-action
 advanced_camera_card_action: folder
+# [...]
+```
+
+| Parameter | Default                                                            | Description                                                                                                     |
+| --------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `folder`  | The first configured folder (under [`folders`](../../folders.md)). | An optional id of the folder to show, see the `id` parameter under [`folders` configuration](../../folders.md). |
+
+## `folders`
+
+Show a given folder in the folders gallery.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: folders
 # [...]
 ```
 
@@ -821,4 +835,18 @@ elements:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: status_bar
         status_bar_action: reset
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-m-circle-outline
+    title: View Folder Media
+    tap_action:
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: folder
+        folder: my-folder
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-n-circle-outline
+    title: View Folders Gallery
+    tap_action:
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: folders
+        folder: my-folder
 ```

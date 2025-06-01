@@ -414,6 +414,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'clip', label: localize('config.view.views.clip') },
     { value: 'clips', label: localize('config.view.views.clips') },
     { value: 'folder', label: localize('config.view.views.folder') },
+    { value: 'folders', label: localize('config.view.views.folders') },
     { value: 'image', label: localize('config.view.views.image') },
     { value: 'live', label: localize('config.view.views.live') },
     { value: 'recording', label: localize('config.view.views.recording') },
