@@ -105,7 +105,17 @@ describe('ActionsManager', () => {
           {
             tap_action: {
               action: 'navigate',
-              // Folder also uses the media gallery.
+              // Folders also uses the media viewer.
+              navigation_path: '4',
+            },
+          },
+        ],
+        [
+          'folders' as const,
+          {
+            tap_action: {
+              action: 'navigate',
+              // Folders also uses the media gallery.
               navigation_path: '3',
             },
           },

@@ -19,6 +19,7 @@ export const getCameraIDsForViewName = (
     case 'diagnostics':
     case 'image':
     case 'folder':
+    case 'folders':
     case 'media':
       return cameraManager.getStore().getCameraIDs();
 

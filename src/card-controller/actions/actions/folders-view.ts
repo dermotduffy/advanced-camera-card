@@ -1,9 +1,9 @@
-import { FolderActionConfig } from '../../../config/schema/actions/custom/folder';
+import { FoldersViewActionConfig } from '../../../config/schema/actions/custom/folders-view';
 import { FolderViewQuery } from '../../../view/query';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
-export class FolderAction extends AdvancedCameraCardAction<FolderActionConfig> {
+export class FoldersViewAction extends AdvancedCameraCardAction<FoldersViewActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
@@ -19,7 +19,8 @@ export class FolderAction extends AdvancedCameraCardAction<FolderActionConfig> {
 
     await api.getViewManager().setViewByParametersWithExistingQuery({
       params: {
-        view: 'folder',
+        // Supports both 'folder' and 'folders' views.
+        view: this._action.advanced_camera_card_action,
         query: new FolderViewQuery(query),
       },
     });

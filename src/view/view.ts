@@ -126,7 +126,7 @@ export class View {
    * Determine if a view is a media gallery.
    */
   public isMediaGalleryView(): boolean {
-    return ['clips', 'folder', 'snapshots', 'recordings'].includes(this.view);
+    return ['clips', 'folders', 'snapshots', 'recordings'].includes(this.view);
   }
 
   /**
@@ -137,11 +137,15 @@ export class View {
     return this.isViewerView() || this.is('live') || this.is('image');
   }
 
+  public isAnyFolderView(): boolean {
+    return ['folder', 'folders'].includes(this.view);
+  }
+
   /**
    * Determine if a view is for the media viewer.
    */
   public isViewerView(): boolean {
-    return ['media', 'clip', 'snapshot', 'recording'].includes(this.view);
+    return ['folder', 'media', 'clip', 'snapshot', 'recording'].includes(this.view);
   }
 
   public supportsMultipleDisplayModes(): boolean {

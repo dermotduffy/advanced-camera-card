@@ -589,6 +589,7 @@
         "clips": "Galerie de clips",
         "current": "Vue actuelle",
         "folder": "",
+        "folders": "",
         "image": "Image statique",
         "live": "Vue en direct",
         "recording": "Enregistrement le plus récent",

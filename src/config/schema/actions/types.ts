@@ -3,7 +3,7 @@ import { statusBarItemBaseSchema } from '../common/status-bar';
 import { advancedCameraCardCustomActionsBaseSchema } from './custom/base';
 import { cameraSelectActionConfigSchema } from './custom/camera-select';
 import { viewDisplayModeActionConfigSchema } from './custom/display-mode';
-import { folderActionConfigSchema } from './custom/folder';
+import { foldersViewActionConfigSchema } from './custom/folders-view';
 import { generalActionConfigSchema } from './custom/general';
 import { internalCallbackActionConfigSchema } from './custom/internal';
 import { logActionConfigSchema } from './custom/log';
@@ -42,7 +42,7 @@ export const statusBarActionConfigSchema: z.ZodSchema<
 
 const advancedCameraCardCustomActionSchema = z.union([
   cameraSelectActionConfigSchema,
-  folderActionConfigSchema,
+  foldersViewActionConfigSchema,
   generalActionConfigSchema,
   internalCallbackActionConfigSchema,
   logActionConfigSchema,

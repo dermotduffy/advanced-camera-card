@@ -7,7 +7,7 @@ import { DefaultAction } from '../../../src/card-controller/actions/actions/defa
 import { DisplayModeSelectAction } from '../../../src/card-controller/actions/actions/display-mode-select';
 import { DownloadAction } from '../../../src/card-controller/actions/actions/download';
 import { ExpandAction } from '../../../src/card-controller/actions/actions/expand';
-import { FolderAction } from '../../../src/card-controller/actions/actions/folder';
+import { FoldersViewAction } from '../../../src/card-controller/actions/actions/folders-view';
 import { FullscreenAction } from '../../../src/card-controller/actions/actions/fullscreen';
 import { InternalCallbackAction } from '../../../src/card-controller/actions/actions/internal-callback';
 import { LogAction } from '../../../src/card-controller/actions/actions/log';
@@ -185,7 +185,8 @@ describe('ActionFactory', () => {
         },
         InternalCallbackAction,
       ],
-      [{ advanced_camera_card_action: 'folder' as const }, FolderAction],
+      [{ advanced_camera_card_action: 'folder' as const }, FoldersViewAction],
+      [{ advanced_camera_card_action: 'folders' as const }, FoldersViewAction],
     ])(
       'advanced_camera_card_action: $advanced_camera_card_action',
       (action: Partial<ActionConfig>, classObject: object) => {
