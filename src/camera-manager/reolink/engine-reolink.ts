@@ -2,6 +2,7 @@ import { add, endOfDay, parse, startOfDay } from 'date-fns';
 import { orderBy } from 'lodash-es';
 import { CameraConfig } from '../../config/schema/cameras';
 import { getViewMediaFromBrowseMediaArray } from '../../ha/browse-media/browse-media-to-view-media';
+import { sortMostRecentFirst } from '../../ha/browse-media/sort';
 import {
   BROWSE_MEDIA_CACHE_SECONDS,
   BrowseMedia,
@@ -212,6 +213,8 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
           matcher: (media: RichBrowseMedia<BrowseMediaMetadata>) =>
             media.can_expand &&
             isMediaWithinDates(media, matchOptions?.start, matchOptions?.end),
+          sorter: (media: RichBrowseMedia<BrowseMediaMetadata>[]) =>
+            sortMostRecentFirst(media),
         },
       ],
       {
@@ -275,6 +278,8 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
               matcher: (media: RichBrowseMedia<BrowseMediaMetadata>) =>
                 !media.can_expand &&
                 isMediaWithinDates(media, perCameraQuery.start, perCameraQuery.end),
+              sorter: (media: RichBrowseMedia<BrowseMediaMetadata>[]) =>
+                sortMostRecentFirst(media),
             },
           ],
           {
