@@ -36,6 +36,12 @@ describe('prettifyTitle', () => {
   it('should prettify words', () => {
     expect(prettifyTitle('this is_a  string')).toBe('This Is A String');
   });
+  it('should handle leading spaces', () => {
+    expect(prettifyTitle(' this is_a  string')).toBe('This Is A String');
+  });
+  it('should handle empty string', () => {
+    expect(prettifyTitle('')).toBeUndefined();
+  });
 });
 
 describe('arrayMove', () => {

@@ -21,7 +21,7 @@ export function prettifyTitle(input?: string): string | undefined {
   if (!input) {
     return undefined;
   }
-  const words = input.split(/[_\s]+/);
+  const words = input.trim().split(/[_\s]+/);
   return words
     .map((word) => {
       return word[0].toUpperCase() + word.substring(1);
