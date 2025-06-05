@@ -2,19 +2,30 @@
 
 @keyframes warning-pulse {
   0% {
-    border: solid 2px var(--advanced-camera-card-triggered-color-1, rgba(0, 0, 0, 0));
+    border: solid 2px var(--trigger-border-color-base);
   }
   50% {
-    border: solid 2px var(--advanced-camera-card-triggered-color-2, var(--warning-color));
+    border: solid 2px var(--trigger-border-color);
   }
   100% {
-    border: solid 2px var(--advanced-camera-card-triggered-color-1, rgba(0, 0, 0, 0));
+    border: solid 2px var(--trigger-border-color-base);
   }
+}
+
+advanced-camera-card-live-carousel {
+  --trigger-border-color: var(--advanced-camera-card-trigger-border-color);
+  --trigger-border-color-base: var(
+    --advanced-camera-card-trigger-border-color-base,
+    black
+  );
 }
 
 advanced-camera-card-live-carousel[triggered] {
   animation: warning-pulse 5s infinite;
 }
 advanced-camera-card-live-carousel[selected] {
-  --advanced-camera-card-triggered-color-1: var(--primary-color);
+  --trigger-border-color-base: var(
+    --advanced-camera-card-trigger-border-color-base,
+    var(--advanced-camera-card-foreground-primary)
+  );
 }

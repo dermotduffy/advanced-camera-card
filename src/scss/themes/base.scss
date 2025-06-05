@@ -172,4 +172,10 @@
   --advanced-camera-card-message-overlay-color: var(
     --advanced-camera-card-control-foreground
   );
+
+  /*********
+  * Trigger
+  *********/
+  --advanced-camera-card-trigger-border-color: var(--advanced-camera-card-warning-color);
+  --advanced-camera-card-trigger-border-color-base: unset;
 }
