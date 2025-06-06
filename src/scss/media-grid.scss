@@ -35,7 +35,8 @@
 }
 
 ::slotted([selected]) {
-  border: var(--advanced-camera-card-grid-border-size) solid var(--primary-color);
+  border: var(--advanced-camera-card-grid-border-size) solid
+    var(--advanced-camera-card-grid-selected-border-color);
   width: min(
     100%,
     calc(
