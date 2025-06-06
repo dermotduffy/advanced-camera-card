@@ -51,8 +51,11 @@ export class MetadataGenerator {
       }
       if (parser.type === 'startdate' || parser.type === 'date') {
         metadata.startDate =
-          this._parseDate(parser, valueToParse, parent?._metadata?.startDate) ??
-          undefined;
+          this._parseDate(
+            parser,
+            valueToParse,
+            metadata.startDate ?? parent?._metadata?.startDate,
+          ) ?? undefined;
       }
     }
 
@@ -83,7 +86,7 @@ export class MetadataGenerator {
     if (!Object.keys(result).length) {
       return undefined;
     }
-    return this._anyDateParser.fromObject({
+    const candidate = this._anyDateParser.fromObject({
       ...(base && {
         year: base.getFullYear(),
         month: base.getMonth() + 1,
@@ -95,5 +98,6 @@ export class MetadataGenerator {
       }),
       ...result,
     });
+    return isValidDate(candidate) ? candidate : undefined;
   }
 }

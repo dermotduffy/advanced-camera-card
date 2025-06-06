@@ -115,6 +115,19 @@ describe('MetadataGenerator', () => {
           ).toBeUndefined();
         });
 
+        it('should fail to generate start date with invalid date', async () => {
+          const badBrowseMedia = createBrowseMedia({
+            title: '20250507AM',
+          });
+          const generator = new MetadataGenerator();
+          await generator.prepare([formatlessDateParser]);
+
+          expect(
+            generator.generate(badBrowseMedia, undefined, [formatlessDateParser])
+              ?.startDate,
+          ).toBeUndefined();
+        });
+
         it('should incorporate parent metadata without a date format', async () => {
           const parentBrowseMedia = createRichBrowseMedia({
             title: '2025-05-26',
@@ -162,6 +175,29 @@ describe('MetadataGenerator', () => {
           expect(
             generator.generate(browseMedia, undefined, [dateParser])?.startDate,
           ).toBeUndefined();
+        });
+
+        it('should use multiple parsed dates together', async () => {
+          const browseMedia = createBrowseMedia({
+            title: 'Foscam C1-20250507-171758-1746631078004-3.mp4',
+          });
+          const parsers: Parser[] = [
+            {
+              type: 'date',
+              regexp: '\\d{8}',
+            },
+            {
+              type: 'date',
+              regexp: '-(?<value>\\d{6})-',
+              format: 'HHmmss',
+            },
+          ];
+          const generator = new MetadataGenerator();
+          await generator.prepare(parsers);
+
+          expect(generator.generate(browseMedia, undefined, parsers)?.startDate).toEqual(
+            new Date('2025-05-07T17:17:58.000Z'),
+          );
         });
 
         it('should incorporate parent metadata with a date format', async () => {
