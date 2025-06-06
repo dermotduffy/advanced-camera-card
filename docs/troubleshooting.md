@@ -266,6 +266,30 @@ status_bar:
   style: none
 ```
 
+### Too many releases!
+
+A new version of this card is [automatically
+released](./developing.md?id=release-philosophy) on each change ("Pull
+Request"). This means features and fixes are available immediately! However, it
+also means there may be visual notifications in Home Assistant frequently
+recommending update and some users find this annoying.
+
+The topic of intentionally doing fewer releases has been discussed fairly
+extensively
+([#1781](https://github.com/dermotduffy/advanced-camera-card/issues/1781),
+[#2072](https://github.com/dermotduffy/advanced-camera-card/issues/2072)) but it
+always comes down to some users (and this developer!) like it instant / often,
+others like it slower / rarer.
+
+As a workaround for those that this bothers, the visual notification (the 'dot')
+to remind users to upgrade can be disabled by disabling the matching `update`
+entity provided by HACS. The entity is usually called
+`update.advanced_camera_card_update`. To disable it:
+
+- Navigate to: `Settings -> Devices & Services -> HACS -> # Entities -> Advanced Camera Card update`
+- Click the settings "cog"
+- Set "Enabled" to off
+
 ### Unknown Frigate instance `frigate`
 
 e.g. `API error whilst subscribing to events for unknown Frigate instance frigate`

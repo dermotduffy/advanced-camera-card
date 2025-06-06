@@ -34,7 +34,7 @@ issue, providing the requested information.
 - The fixes aren't fast enough!
 - The features aren't good enough!
 - The quality control / testing is not sufficient!
-- There are too many / too few releases!
+- There are too many ([#1781](https://github.com/dermotduffy/advanced-camera-card/issues/1781), [#2072](https://github.com/dermotduffy/advanced-camera-card/issues/2072)) / too few releases!
 - It breaks too frequently!
 - This just isn't good enough!
 - My tone is disrespectful!
