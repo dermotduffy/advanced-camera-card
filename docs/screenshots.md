@@ -46,7 +46,7 @@ Bidirectional control of camera selection via an entity.
 
 ## Folders
 
-![](images/folders.png 'Media Folders :size=400')
+![](images/folders/ha-root.png 'Media Folders :size=400')
 
 ## Grid
 

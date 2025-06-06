@@ -341,6 +341,10 @@ cameras:
 These examples create folders that can be viewed in the
 [`media_gallery`](./configuration/media-gallery.md).
 
+?> Having difficulty configuring your folders? Consult the [Worked
+Examples](./configuration/folders.md?id=worked-examples) in the [`folders`
+documentation](./configuration/folders.md?id=worked-examples).
+
 ### Home Assistant default root
 
 This example creates a folder at the Home Assistant media root.
