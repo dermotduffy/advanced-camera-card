@@ -182,5 +182,7 @@
   /*****
   * Grid
   ******/
-  --advanced-camera-card-grid-selected-border-color: var(--advanced-camera-card-foreground-primary);
+  --advanced-camera-card-grid-selected-border-color: var(
+    --advanced-camera-card-foreground-primary
+  );
 }
