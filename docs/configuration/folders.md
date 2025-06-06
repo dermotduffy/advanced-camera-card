@@ -319,7 +319,26 @@ The result:
 
 ![](../images/folders/b1.png 'Folder Hierarchy 1 :size=400')
 
-The last step is to match all filenames, parsing first date and then time out of them.
+The last step is to match all filenames, parsing the date and time out of them.
+
+```yaml
+folders:
+  - type: ha
+    id: my-folder
+    ha:
+      url: >-
+        https://ha.ondu.org/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source
+      path:
+        - {}
+        # At the final level, match everything, parse the date and time.
+        - parsers:
+            # Use a regexp to extract date and time and parse them using a particular format.
+            - type: date
+              regexp: \d{8}-\d{6}
+              format: yyyyMMdd-HHmmss
+```
+
+Alternative, the date and time could be parsed separately, which will produce the same result:
 
 ```yaml
 folders:
