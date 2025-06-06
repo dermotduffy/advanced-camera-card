@@ -205,7 +205,9 @@ source "folders" do not have an intrinsic parent as with filesystem folders,
 rather a trail is built as the user navigates "downwards" -- but anything could
 theoretically be the parent of anything.
 
-## Worked Example
+## Worked Examples
+
+### Worked Example 1
 
 Imagine a media folder hierarchy that starts with a choice of resolution (Low or
 High). Lets start by specifying a basic folder referring to the URL of the Home
@@ -222,7 +224,7 @@ folders:
 
 The result:
 
-![](../images/folder-hierarchy-1.png 'Folder Hierarchy 1 :size=400')
+![](../images/folders/a1.png 'Folder Hierarchy 1 :size=400')
 
 Now lets include selecting the High resolution folder:
 
@@ -241,7 +243,7 @@ folders:
 
 The result:
 
-![](../images/folder-hierarchy-2.png 'Folder Hierarchy 2 :size=400')
+![](../images/folders/a2.png 'Folder Hierarchy 2 :size=400')
 
 The next step is to navigate down to the date folder, parsing the date as we go
 (auto-detecting the format):
@@ -263,7 +265,7 @@ folders:
 
 The result:
 
-![](../images/folder-hierarchy-3.png 'Folder Hierarchy 3 :size=400')
+![](../images/folders/a3.png 'Folder Hierarchy 3 :size=400')
 
 The final step is to navigate down to the media item themselves, automatically parsing the time out of them:
 
@@ -286,7 +288,83 @@ folders:
 
 The final result:
 
-![](../images/folder-hierarchy-4.png 'Folder Hierarchy 2 :size=400')
+![](../images/folders/a4.png 'Folder Hierarchy 2 :size=400')
+
+### Worked Example 2
+
+Imagine a media folder hierarchy that contains directories named after rooms
+(e.g. `Office`) and where the filenames in those directories contain both the
+date and the time in a complex format (e.g. `Foscam
+C1-20250507-171758-1746631078004-3.mp4`, where the date is the first numeric 8
+digits after a `-` and the time is following 6 numeric digits after an
+additional `-`).
+
+The first step is to match all sub-directories. No parsing needs to be done at
+this level, since all the details that need to be parsed are contained within
+the filename in the next level.
+
+```yaml
+folders:
+  - type: ha
+    id: my-folder
+    ha:
+      url: >-
+        https://ha.ondu.org/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source
+      path:
+        # Match everything, parse nothing.
+        - {}
+```
+
+The result:
+
+![](../images/folders/b1.png 'Folder Hierarchy 1 :size=400')
+
+The last step is to match all filenames, parsing the date and time out of them.
+
+```yaml
+folders:
+  - type: ha
+    id: my-folder
+    ha:
+      url: >-
+        https://ha.ondu.org/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source
+      path:
+        - {}
+        # At the final level, match everything, parse the date and time.
+        - parsers:
+            # Use a regexp to extract date and time and parse them using a particular format.
+            - type: date
+              regexp: \d{8}-\d{6}
+              format: yyyyMMdd-HHmmss
+```
+
+Alternative, the date and time could be parsed separately, which will produce the same result:
+
+```yaml
+folders:
+  - type: ha
+    id: my-folder
+    ha:
+      url: >-
+        https://ha.ondu.org/media-browser/browser/app%2Cmedia-source%3A%2F%2Fmedia_source
+      path:
+        - {}
+        # At the final level, match everything, parse the date and time.
+        - parsers:
+            # Parse the date from the first 8 numeric characters. The format need
+            # not be specified as the 8 digits will be correctly parsed automatically.
+            - type: date
+              regexp: \d{8}
+            - type: date
+              # Parse the time from the first hypen-surrounded 6 numeric characters.
+              # The format *does* need to be specified as 6 numeric digits is ambiguous.
+              regexp: -(?<value>\d{6})-
+              format: HHmmss
+```
+
+The final result:
+
+![](../images/folders/b2.png 'Folder Hierarchy 2 :size=400')
 
 ### Other Examples
 
