@@ -1,8 +1,13 @@
 :host {
-  // Center unseekable icon.
+  display: block;
+
+  // Keep carousel controls + unseekable icon relative to the media carousel
+  // itself.
   position: relative;
 
   --video-max-height: none;
+
+  transition: max-height 0.2s ease-in;
 }
 
 // If the carousel has an unselected attribute set on it, do not let the

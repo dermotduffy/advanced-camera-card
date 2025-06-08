@@ -14,6 +14,7 @@ import { CameraManagerCameraMetadata } from '../../camera-manager/types.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
+import { MediaHeightController } from '../../components-lib/media-height-controller.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
 import { CameraConfig } from '../../config/schema/cameras.js';
@@ -25,7 +26,6 @@ import liveCarouselStyle from '../../scss/live-carousel.scss';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
-import AutoSize from '../../utils/embla/plugins/auto-size/auto-size.js';
 import { getStreamCameraID } from '../../utils/substream.js';
 import { getTextDirection } from '../../utils/text-direction.js';
 import { View } from '../../view/view.js';
@@ -77,6 +77,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   protected _refCarousel: Ref<HTMLElement> = createRef();
 
   protected _mediaActionsController = new MediaActionsController();
+  protected _mediaHeightController = new MediaHeightController(this, '.embla__slide');
 
   @state()
   protected _mediaHasLoaded = false;
@@ -84,12 +85,15 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   public connectedCallback(): void {
     super.connectedCallback();
 
+    this._mediaHeightController.setRoot(this.renderRoot);
+
     // Request update in order to reinitialize the media action controller.
     this.requestUpdate();
   }
 
   public disconnectedCallback(): void {
     this._mediaActionsController.destroy();
+    this._mediaHeightController.destroy();
     super.disconnectedCallback();
   }
 
@@ -138,7 +142,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   }
 
   protected _getPlugins(): EmblaCarouselPlugins {
-    return [AutoMediaLoadedInfo(), AutoSize()];
+    return [AutoMediaLoadedInfo()];
   }
 
   /**
@@ -389,6 +393,8 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       // Carousel is not filtered, so the targeted camera is always selected.
       this._mediaActionsController.setTarget(selectedCameraIndex, true);
     }
+
+    this._mediaHeightController.setSelected(selectedCameraIndex);
   }
 
   public updated(changedProperties: PropertyValues): void {

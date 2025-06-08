@@ -2508,7 +2508,7 @@ __metadata:
     date-fns: "npm:^3.6.0"
     date-fns-tz: "npm:^3.1.3"
     docsify-cli: "npm:^4.4.4"
-    embla-carousel: "npm:^8.3.0"
+    embla-carousel: "npm:^8.6.0"
     embla-carousel-wheel-gestures: "npm:^8.0.1"
     eslint: "npm:^9.24.0"
     eslint-config-airbnb-base: "npm:^15.0.0"
@@ -4451,10 +4451,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"embla-carousel@npm:^8.3.0":
-  version: 8.3.0
-  resolution: "embla-carousel@npm:8.3.0"
-  checksum: 10c0/0240156d6a736603d82ddfe93b03ce296e385e9c18ed2cca9465634c8adb7560bfc2fbef6368a4da2a54926c4ba6de1012ebb33d2fc92c052030ea2288e4cc92
+"embla-carousel@npm:^8.6.0":
+  version: 8.6.0
+  resolution: "embla-carousel@npm:8.6.0"
+  checksum: 10c0/f4c598e7be28b70340d31ffd2bebb2472db370b0c81d9b089bf9555cf618695f35dc4a0694565c994c9ab972731123063f945aa09ff485df0df761d79c6a08ef
   languageName: node
   linkType: hard
 
