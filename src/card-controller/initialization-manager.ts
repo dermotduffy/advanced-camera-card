@@ -10,6 +10,10 @@ export enum InitializationAspect {
   CAMERAS = 'cameras',
   MICROPHONE_CONNECT = 'microphone-connect',
   VIEW = 'view',
+
+  // The initial triggering must happen after both the config is set (and
+  // cameras initialized), and hass is set.
+  INITIAL_TRIGGER = 'initial-trigger',
 }
 
 // =========================================================================
@@ -60,6 +64,7 @@ export class InitializationManager {
         ? [InitializationAspect.MICROPHONE_CONNECT]
         : []),
       InitializationAspect.VIEW,
+      InitializationAspect.INITIAL_TRIGGER,
     ]);
   }
 
@@ -126,6 +131,21 @@ export class InitializationManager {
       !(await this._initializer.initializeIfNecessary(
         InitializationAspect.VIEW,
         this._api.getViewManager().initialize,
+      ))
+    ) {
+      return;
+    }
+
+    if (
+      !(await this._initializer.initializeIfNecessary(
+        InitializationAspect.INITIAL_TRIGGER,
+        async (): Promise<boolean> => {
+          await this._api.getTriggersManager().handleInitialCameraTriggers();
+
+          // Force a card update to continue the initialization.
+          this._api.getCardElementManager().update();
+          return true;
+        },
       ))
     ) {
       return;

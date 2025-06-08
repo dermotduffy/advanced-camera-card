@@ -115,9 +115,8 @@ to wait prior to the acting (see `untrigger_seconds`). By default, triggering is
 only allowed when there is no ongoing human interaction with the card. This
 behavior can be controlled by the `interaction_mode` parameter.
 
-Triggers based on Home Assistant entities require state _changes_ -- when the
-card is first started, it takes an active change in state to trigger (i.e. an
-already occupied room will not trigger, but a newly occupied room will).
+If the card starts when a trigger entity is already in a triggered state, the
+action will be taken on card startup.
 
 | Option                   | Default | Description                                                                                                                        |
 | ------------------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |

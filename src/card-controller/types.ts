@@ -199,6 +199,7 @@ export interface CardInitializerAPI {
   getMessageManager(): MessageManager;
   getQueryStringManager(): QueryStringManager;
   getResolvedMediaCache(): ResolvedMediaCache;
+  getTriggersManager(): TriggersManager;
   getViewManager(): ViewManager;
 }
 
@@ -272,6 +273,7 @@ export interface CardTriggersAPI {
   getConditionStateManager(): ConditionStateManager;
   getCardElementManager(): CardElementManager;
   getConfigManager(): ConfigManager;
+  getHASSManager(): HASSManager;
   getInteractionManager(): InteractionManager;
   getViewManager(): ViewManager;
 }
