@@ -1,5 +1,6 @@
 import { orderBy, throttle } from 'lodash-es';
 import { CameraEvent } from '../camera-manager/types';
+import { isTriggeredState } from '../ha/is-triggered-state';
 import { Timer } from '../utils/timer';
 import { CardTriggersAPI } from './types';
 
@@ -33,6 +34,31 @@ export class TriggersManager {
     );
     return sorted.length ? sorted[0][0] : null;
   }
+
+  public handleInitialCameraTriggers = async (): Promise<boolean> => {
+    const hass = this._api.getHASSManager().getHASS();
+    let triggered = false;
+
+    for (const [cameraID, camera] of this._api
+      .getCameraManager()
+      .getStore()
+      .getCameras()) {
+      if (
+        camera
+          .getConfig()
+          .triggers.entities.some((entityID) =>
+            isTriggeredState(hass?.states[entityID]?.state),
+          )
+      ) {
+        triggered = true;
+        await this.handleCameraEvent({
+          cameraID,
+          type: 'new',
+        });
+      }
+    }
+    return triggered;
+  };
 
   public async handleCameraEvent(ev: CameraEvent): Promise<void> {
     const triggersConfig = this._api.getConfigManager().getConfig()?.view.triggers;

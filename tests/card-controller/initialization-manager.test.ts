@@ -123,6 +123,7 @@ describe('InitializationManager', () => {
       expect(manager.isInitialized(InitializationAspect.CAMERAS)).toBeTruthy();
       expect(manager.isInitialized(InitializationAspect.MICROPHONE_CONNECT)).toBeFalsy();
       expect(manager.isInitialized(InitializationAspect.VIEW)).toBeTruthy();
+      expect(manager.isInitialized(InitializationAspect.INITIAL_TRIGGER)).toBeTruthy();
     });
 
     it('successfully with microphone if configured', async () => {
@@ -174,6 +175,8 @@ describe('InitializationManager', () => {
       initializer.initializeMultipleIfNecessary.mockResolvedValue(false);
 
       await manager.initializeMandatory();
+
+      expect(manager.wasEverInitialized()).toBeFalsy();
     });
 
     it('with cameras in progress', async () => {
@@ -188,6 +191,27 @@ describe('InitializationManager', () => {
         .mockResolvedValueOnce(false);
 
       await manager.initializeMandatory();
+
+      expect(manager.wasEverInitialized()).toBeFalsy();
+    });
+
+    it('with triggers in progress', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+      initializer.initializeMultipleIfNecessary
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
+      initializer.initializeIfNecessary
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+
+      await manager.initializeMandatory();
+
+      expect(manager.wasEverInitialized()).toBeFalsy();
     });
   });
 

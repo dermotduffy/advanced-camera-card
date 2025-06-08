@@ -9,6 +9,8 @@ import {
   createCameraManager,
   createCardAPI,
   createConfig,
+  createHASS,
+  createStateEntity,
   createStore,
   createView,
   flushPromises,
@@ -620,6 +622,94 @@ describe('TriggersManager', () => {
         cameraID: 'camera_secondary',
         type: 'new',
       });
+      expect(manager.isTriggered()).toBeTruthy();
+    });
+  });
+
+  describe('should handle initial camera triggers', () => {
+    it('should not trigger if no cameras have trigger entities', async () => {
+      const api = createTriggerAPI();
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera_1',
+            config: createCameraConfig({
+              triggers: {
+                entities: [],
+              },
+            }),
+          },
+        ]),
+      );
+
+      const manager = new TriggersManager(api);
+      const result = await manager.handleInitialCameraTriggers();
+
+      expect(result).toBeFalsy();
+      expect(manager.isTriggered()).toBeFalsy();
+    });
+
+    it('should not trigger if no cameras have trigger state', async () => {
+      const api = createTriggerAPI();
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera_1',
+            config: createCameraConfig({
+              triggers: {
+                entities: ['binary_sensor.motion', 'binary_sensor.occupancy'],
+              },
+            }),
+          },
+        ]),
+      );
+
+      const hass = createHASS({
+        'binary_sensor.motion': createStateEntity({
+          state: 'off',
+        }),
+        'binary_sensor.occupancy': createStateEntity({
+          state: 'off',
+        }),
+      });
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+      const manager = new TriggersManager(api);
+      const result = await manager.handleInitialCameraTriggers();
+
+      expect(result).toBeFalsy();
+      expect(manager.isTriggered()).toBeFalsy();
+    });
+
+    it('should trigger if cameras are triggered', async () => {
+      const api = createTriggerAPI();
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera_1',
+            config: createCameraConfig({
+              triggers: {
+                entities: ['binary_sensor.motion', 'binary_sensor.occupancy'],
+              },
+            }),
+          },
+        ]),
+      );
+
+      const hass = createHASS({
+        'binary_sensor.motion': createStateEntity({
+          state: 'off',
+        }),
+        'binary_sensor.occupancy': createStateEntity({
+          state: 'on',
+        }),
+      });
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+      const manager = new TriggersManager(api);
+      const result = await manager.handleInitialCameraTriggers();
+
+      expect(result).toBeTruthy();
       expect(manager.isTriggered()).toBeTruthy();
     });
   });
