@@ -1,2 +1,2 @@
-export const STATES_OFF = ['closed', 'locked', 'off'];
-export const STATES_ON = ['open', 'unlocked', 'on'];
+export const STATES_OFF = ['off', 'closed', 'locked'];
+export const STATES_ON = ['on', 'open', 'unlocked'];
