@@ -13,6 +13,7 @@ import { CameraManager } from '../../camera-manager/manager.js';
 import { RemoveContextPropertyViewModifier } from '../../card-controller/view/modifiers/remove-context-property.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
+import { MediaHeightController } from '../../components-lib/media-height-controller.js';
 import { TransitionEffect } from '../../config/schema/common/transition-effect.js';
 import { CardWideConfig, configDefaults } from '../../config/schema/types.js';
 import { ViewerConfig } from '../../config/schema/viewer.js';
@@ -26,7 +27,6 @@ import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { contentsChanged, setOrRemoveAttribute } from '../../utils/basic.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
-import AutoSize from '../../utils/embla/plugins/auto-size/auto-size.js';
 import { getTextDirection } from '../../utils/text-direction.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { ViewMedia } from '../../view/item.js';
@@ -85,11 +85,14 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
 
   protected _media: ViewMedia[] | null = null;
   protected _mediaActionsController = new MediaActionsController();
+  protected _mediaHeightController = new MediaHeightController(this, '.embla__slide');
   protected _loadedMediaPlayerController: MediaPlayerController | null = null;
   protected _refCarousel: Ref<HTMLElement> = createRef();
 
   public connectedCallback(): void {
     super.connectedCallback();
+
+    this._mediaHeightController.setRoot(this.renderRoot);
 
     // Request update in order to reinitialize the media action controller.
     this.requestUpdate();
@@ -97,6 +100,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
 
   public disconnectedCallback(): void {
     this._mediaActionsController.destroy();
+    this._mediaHeightController.destroy();
     super.disconnectedCallback();
   }
 
@@ -116,7 +120,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
    * @returns A list of EmblaOptionsTypes.
    */
   protected _getPlugins(): EmblaCarouselPlugins {
-    return [AutoMediaLoadedInfo(), AutoSize()];
+    return [AutoMediaLoadedInfo()];
   }
 
   /**
@@ -408,6 +412,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
           ? this.viewManagerEpoch?.manager.getView()?.camera === this.viewFilterCameraID
           : true,
       );
+      this._mediaHeightController.setSelected(this._selected);
     }
   }
 

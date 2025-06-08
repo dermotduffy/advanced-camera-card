@@ -1,6 +1,11 @@
 :host {
   display: block;
   --video-max-height: none;
+
+  transition: max-height 0.1s ease-in-out;
+
+  // Keep carousel controls relative to the media carousel itself.
+  position: relative;
 }
 
 // When the carousel is not part of a grid ensure its height matches its

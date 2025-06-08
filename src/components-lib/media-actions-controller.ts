@@ -233,6 +233,7 @@ export class MediaActionsController {
       child.addEventListener('advanced-camera-card:media:loaded', eventListener);
     }
   }
+
   protected async _intersectionHandler(
     entries: IntersectionObserverEntry[],
   ): Promise<void> {
