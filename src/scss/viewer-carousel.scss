@@ -1,13 +1,17 @@
 :host {
   display: block;
-
-  // Keep carousel controls + unseekable icon relative to the media carousel
-  // itself.
-  position: relative;
-
   --video-max-height: none;
 
-  transition: max-height 0.2s ease-in;
+  transition: max-height 0.1s ease-in-out;
+
+  // Keep carousel controls relative to the media carousel itself.
+  position: relative;
+}
+
+// When the carousel is not part of a grid ensure its height matches its
+// container.
+:host(:not([grid-id])) {
+  height: 100%;
 }
 
 // If the carousel has an unselected attribute set on it, do not let the
@@ -38,5 +42,7 @@
 
 .embla__slide {
   height: 100%;
+  width: 100%;
+
   flex: 0 0 100%;
 }
