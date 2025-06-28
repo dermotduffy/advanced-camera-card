@@ -14,6 +14,7 @@ import { CameraEndpoints } from '../../camera-manager/types.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
+import { MediaProviderDimensionsController } from '../../components-lib/media-provider-dimensions-controller.js';
 import { PartialZoomSettings } from '../../components-lib/zoom/types.js';
 import { CameraConfig, LiveProvider } from '../../config/schema/cameras.js';
 import { LiveConfig } from '../../config/schema/live.js';
@@ -22,10 +23,13 @@ import { STREAM_TROUBLESHOOTING_URL } from '../../const.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import liveProviderStyle from '../../scss/live-provider.scss';
-import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../../types.js';
-import { aspectRatioToString } from '../../utils/basic.js';
+import {
+  MediaLoadedInfo,
+  MediaPlayer,
+  MediaPlayerController,
+  MediaPlayerElement,
+} from '../../types.js';
 import { dispatchMediaUnloadedEvent } from '../../utils/media-info.js';
-import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
 import '../icon.js';
 import { renderMessage } from '../message.js';
 import '../next-prev-control.js';
@@ -69,7 +73,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   protected _showStreamTroubleshooting = false;
 
   protected _refProvider: Ref<MediaPlayerElement> = createRef();
+  protected _refContainer: Ref<HTMLElement> = createRef();
   protected _lazyLoadController: LazyLoadController = new LazyLoadController(this);
+  protected _dimensionsController = new MediaProviderDimensionsController(this);
 
   // A note on dynamic imports:
   //
@@ -184,13 +190,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
         this._importPromises.push(import('./providers/go2rtc/index.js'));
       }
 
-      updateElementStyleFromMediaLayoutConfig(
-        this,
-        this.cameraConfig?.dimensions?.layout,
-      );
-      this.style.aspectRatio = aspectRatioToString({
-        ratio: this.cameraConfig?.dimensions?.aspect_ratio,
-      });
+      this._dimensionsController.setCameraConfig(this.cameraConfig?.dimensions);
     }
   }
 
@@ -203,26 +203,30 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     return result;
   }
 
-  protected _useZoomIfRequired(template: TemplateResult): TemplateResult {
-    return this.liveConfig?.zoomable
-      ? html` <advanced-camera-card-zoomer
-          .defaultSettings=${guard([this.cameraConfig?.dimensions?.layout], () =>
-            this.cameraConfig?.dimensions?.layout
-              ? {
-                  pan: this.cameraConfig.dimensions.layout.pan,
-                  zoom: this.cameraConfig.dimensions.layout.zoom,
-                }
-              : undefined,
-          )}
-          .settings=${this.zoomSettings}
-          @advanced-camera-card:zoom:zoomed=${async () =>
-            (await this.getMediaPlayerController())?.setControls(false)}
-          @advanced-camera-card:zoom:unzoomed=${async () =>
-            (await this.getMediaPlayerController())?.setControls()}
-        >
-          ${template}
-        </advanced-camera-card-zoomer>`
-      : template;
+  protected _renderContainer(template: TemplateResult): TemplateResult {
+    // Place the zoomer in a separate div, as the zoom library misinterprets the
+    // explicit width/height setting from the provider resizer as zooming.
+    return html`<div class="container" ${ref(this._refContainer)}>
+      ${this.liveConfig?.zoomable
+        ? html` <advanced-camera-card-zoomer
+            .defaultSettings=${guard([this.cameraConfig?.dimensions?.layout], () =>
+              this.cameraConfig?.dimensions?.layout
+                ? {
+                    pan: this.cameraConfig.dimensions.layout.pan,
+                    zoom: this.cameraConfig.dimensions.layout.zoom,
+                  }
+                : undefined,
+            )}
+            .settings=${this.zoomSettings}
+            @advanced-camera-card:zoom:zoomed=${async () =>
+              (await this.getMediaPlayerController())?.setControls(false)}
+            @advanced-camera-card:zoom:unzoomed=${async () =>
+              (await this.getMediaPlayerController())?.setControls()}
+          >
+            ${template}
+          </advanced-camera-card-zoomer>`
+        : template}
+    </div>`;
   }
 
   protected render(): TemplateResult | void {
@@ -240,11 +244,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     this.ariaLabel = this.label;
 
     const provider = this._getResolvedProvider();
-    const showImageDuringLoading = this._shouldShowImageDuringLoading();
-    const showLoadingIcon = !this._isVideoMediaLoaded;
-    const providerClasses = {
-      hidden: showImageDuringLoading,
-    };
 
     if (
       provider === 'ha' ||
@@ -287,14 +286,27 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       }
     }
 
-    return html`${this._useZoomIfRequired(html`
+    const showImageDuringLoading = this._shouldShowImageDuringLoading();
+    const showLoadingIcon = !this._isVideoMediaLoaded;
+
+    const classes = {
+      hidden: showImageDuringLoading,
+    };
+
+    return html`${this._renderContainer(html`
       ${showImageDuringLoading || provider === 'image'
         ? html` <advanced-camera-card-live-image
             ${ref(this._refProvider)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
+            class=${classMap({
+              ...classes,
+              // The image provider is providing the temporary loading image,
+              // so it should not be hidden.
+              hidden: false,
+            })}
             @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
-            @advanced-camera-card:media:loaded=${(ev: Event) => {
+            @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
               if (provider === 'image') {
                 // Only count the media has loaded if the required provider is
                 // the image (not just the temporary image shown during
@@ -310,7 +322,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       ${provider === 'ha'
         ? html` <advanced-camera-card-live-ha
             ${ref(this._refProvider)}
-            class=${classMap(providerClasses)}
+            class=${classMap(classes)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
             ?controls=${this.liveConfig.controls.builtin}
@@ -321,7 +333,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
         : provider === 'go2rtc'
           ? html`<advanced-camera-card-live-go2rtc
               ${ref(this._refProvider)}
-              class=${classMap(providerClasses)}
+              class=${classMap(classes)}
               .hass=${this.hass}
               .cameraConfig=${this.cameraConfig}
               .cameraEndpoints=${this.cameraEndpoints}
@@ -337,7 +349,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
           : provider === 'webrtc-card'
             ? html`<advanced-camera-card-live-webrtc-card
                 ${ref(this._refProvider)}
-                class=${classMap(providerClasses)}
+                class=${classMap(classes)}
                 .hass=${this.hass}
                 .cameraConfig=${this.cameraConfig}
                 .cameraEndpoints=${this.cameraEndpoints}
@@ -352,7 +364,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
             : provider === 'jsmpeg'
               ? html` <advanced-camera-card-live-jsmpeg
                   ${ref(this._refProvider)}
-                  class=${classMap(providerClasses)}
+                  class=${classMap(classes)}
                   .hass=${this.hass}
                   .cameraConfig=${this.cameraConfig}
                   .cameraEndpoints=${this.cameraEndpoints}
@@ -388,6 +400,10 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
           { overlay: true },
         )
       : ''}`;
+  }
+
+  public updated(): void {
+    this._dimensionsController.setContainer(this._refContainer.value);
   }
 
   static get styles(): CSSResultGroup {
