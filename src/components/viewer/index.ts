@@ -53,6 +53,9 @@ export class AdvancedCameraCardViewer extends LitElement {
   @property({ attribute: 'empty', reflect: true, type: Boolean })
   public isEmpty = false;
 
+  @property({ attribute: false })
+  public heightConstrained = false;
+
   protected willUpdate(changedProperties: PropertyValues): void {
     if (changedProperties.has('viewManagerEpoch')) {
       const view = this.viewManagerEpoch?.manager.getView();
@@ -96,6 +99,7 @@ export class AdvancedCameraCardViewer extends LitElement {
       .resolvedMediaCache=${this.resolvedMediaCache}
       .cameraManager=${this.cameraManager}
       .cardWideConfig=${this.cardWideConfig}
+      .heightConstrained=${this.heightConstrained}
     >
     </advanced-camera-card-viewer-grid>`;
   }

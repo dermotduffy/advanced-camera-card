@@ -71,6 +71,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   @property({ attribute: false })
   public viewFilterCameraID?: string;
 
+  @property({ attribute: false })
+  public heightConstrained = false;
+
   // Index between camera name and slide number.
   protected _cameraToSlide: Record<string, number> = {};
   protected _refPTZControl: Ref<AdvancedCameraCardPTZ> = createRef();
@@ -233,6 +236,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
           .liveConfig=${this.liveConfig}
           .hass=${this.hass}
           .cardWideConfig=${this.cardWideConfig}
+          .heightConstrained=${this.heightConstrained}
           .zoomSettings=${view?.context?.zoom?.[cameraID]?.requested}
           @advanced-camera-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
             handleZoomSettingsObservedEvent(

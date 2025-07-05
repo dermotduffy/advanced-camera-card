@@ -32,9 +32,6 @@ import {
 import { dispatchMediaUnloadedEvent } from '../../utils/media-info.js';
 import '../icon.js';
 import { renderMessage } from '../message.js';
-import '../next-prev-control.js';
-import '../ptz.js';
-import '../surround.js';
 
 @customElement('advanced-camera-card-live-provider')
 export class AdvancedCameraCardLiveProvider extends LitElement implements MediaPlayer {
@@ -59,6 +56,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
+
+  @property({ attribute: false })
+  public heightConstrained = false;
 
   @property({ attribute: false })
   public zoomSettings?: PartialZoomSettings | null;
@@ -191,6 +191,10 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       }
 
       this._dimensionsController.setCameraConfig(this.cameraConfig?.dimensions);
+    }
+
+    if (changedProps.has('heightConstrained')) {
+      this._dimensionsController.setHeightConstrained(this.heightConstrained);
     }
   }
 

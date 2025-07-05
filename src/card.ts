@@ -129,6 +129,15 @@ class AdvancedCameraCard extends LitElement {
     }
   }
 
+  set isPanel(isPanel: boolean) {
+    this._controller.getConditionStateManager().setState({
+      panel: isPanel,
+    });
+  }
+  get isPanel(): boolean {
+    return !!this._controller.getConditionStateManager().getState().panel;
+  }
+
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     return await CardController.getConfigElement();
   }
@@ -380,6 +389,7 @@ class AdvancedCameraCard extends LitElement {
             .configManager=${this._controller.getConfigManager()}
             .hide=${!!this._controller.getMessageManager().hasMessage()}
             .microphoneState=${this._controller.getMicrophoneManager().getState()}
+            .conditionStateManager=${this._controller.getConditionStateManager()}
             .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
               ? this._controller.getTriggersManager().getTriggeredCameraIDs()
               : undefined}

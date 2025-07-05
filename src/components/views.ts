@@ -6,12 +6,17 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { MicrophoneState } from '../card-controller/types.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
+import {
+  ConditionState,
+  ConditionStateChange,
+  ConditionStateManagerReadonlyInterface,
+} from '../conditions/types.js';
 import { AdvancedCameraCardConfig, CardWideConfig } from '../config/schema/types.js';
 import { RawAdvancedCameraCardConfig } from '../config/types.js';
 import { DeviceRegistryManager } from '../ha/registry/device/index.js';
@@ -62,6 +67,46 @@ export class AdvancedCameraCardViews extends LitElement {
   @property({ attribute: false })
   public deviceRegistryManager?: DeviceRegistryManager;
 
+  @property({ attribute: false })
+  public conditionStateManager?: ConditionStateManagerReadonlyInterface;
+
+  @state()
+  private _heightConstrained = false;
+
+  public connectedCallback(): void {
+    super.connectedCallback();
+    this._addConditionStateListener();
+  }
+
+  public disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._removeConditionStateListener();
+  }
+
+  private _addConditionStateListener(): void {
+    if (this.isConnected) {
+      this.conditionStateManager?.addListener(this._conditionStateChangeHandler);
+    }
+  }
+
+  private _removeConditionStateListener(
+    conditionStateManager?: ConditionStateManagerReadonlyInterface,
+  ): void {
+    (conditionStateManager ?? this.conditionStateManager)?.removeListener(
+      this._conditionStateChangeHandler,
+    );
+  }
+
+  private _conditionStateChangeHandler = (stateChange: ConditionStateChange): void => {
+    this._setHeightConstrained(stateChange.new);
+  };
+
+  private _setHeightConstrained(state?: ConditionState): void {
+    this._heightConstrained =
+      state?.displayMode !== 'grid' &&
+      (state?.fullscreen === true || state?.panel === true || state?.expand === true);
+  }
+
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('viewManagerEpoch') || changedProps.has('config')) {
       const view = this.viewManagerEpoch?.manager.getView();
@@ -87,6 +132,12 @@ export class AdvancedCameraCardViews extends LitElement {
       } else {
         this.removeAttribute('hidden');
       }
+    }
+
+    if (changedProps.has('conditionStateManager')) {
+      this._removeConditionStateListener(changedProps.get('conditionStateManager'));
+      this._addConditionStateListener();
+      this._setHeightConstrained(this.conditionStateManager?.getState());
     }
   }
 
@@ -154,6 +205,7 @@ export class AdvancedCameraCardViews extends LitElement {
             .hass=${this.hass}
             .cameraConfig=${cameraConfig}
             .cameraManager=${this.cameraManager}
+            .heightConstrained=${this._heightConstrained}
           >
           </advanced-camera-card-image>`
         : ``}
@@ -177,6 +229,7 @@ export class AdvancedCameraCardViews extends LitElement {
               .resolvedMediaCache=${this.resolvedMediaCache}
               .cameraManager=${this.cameraManager}
               .cardWideConfig=${this.cardWideConfig}
+              .heightConstrained=${this._heightConstrained}
             >
             </advanced-camera-card-viewer>
           `
@@ -219,6 +272,7 @@ export class AdvancedCameraCardViews extends LitElement {
                 .liveConfig=${this.config.live}
                 .cameraManager=${this.cameraManager}
                 .cardWideConfig=${this.cardWideConfig}
+                .heightConstrained=${this._heightConstrained}
                 .microphoneState=${this.microphoneState}
                 .triggeredCameraIDs=${this.triggeredCameraIDs}
                 class="${classMap(liveClasses)}"

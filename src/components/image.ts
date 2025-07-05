@@ -41,6 +41,9 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
   @property({ attribute: false })
   public imageConfig?: ImageViewConfig;
 
+  @property({ attribute: false })
+  public heightConstrained = false;
+
   protected _dimensionsController = new MediaProviderDimensionsController(this);
   protected _refImage: Ref<MediaPlayerElement> = createRef();
   protected _refContainer: Ref<HTMLElement> = createRef();
@@ -60,6 +63,10 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
           ? this.cameraConfig?.dimensions
           : undefined,
       );
+    }
+
+    if (changedProps.has('heightConstrained')) {
+      this._dimensionsController.setHeightConstrained(this.heightConstrained);
     }
   }
 

@@ -80,6 +80,9 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
   @property({ attribute: false })
   public showControls = true;
 
+  @property({ attribute: false })
+  public heightConstrained = false;
+
   @state()
   protected _selected: number | null = null;
 
@@ -467,6 +470,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
         .resolvedMediaCache=${this.resolvedMediaCache}
         .cameraManager=${this.cameraManager}
         .cardWideConfig=${this.cardWideConfig}
+        .heightConstrained=${this.heightConstrained}
       ></advanced-camera-card-viewer-provider>
     </div>`;
   }

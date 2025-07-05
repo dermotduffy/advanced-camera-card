@@ -33,6 +33,9 @@ export class AdvancedCameraCardLive extends LitElement {
   @property({ attribute: false })
   public triggeredCameraIDs?: Set<string>;
 
+  @property({ attribute: false })
+  public heightConstrained = false;
+
   protected _controller = new LiveController(this);
 
   protected render(): TemplateResult | void {
@@ -40,12 +43,6 @@ export class AdvancedCameraCardLive extends LitElement {
       return;
     }
 
-    // Implementation notes:
-    // - See use of liveConfig and not config below -- the underlying carousel
-    //   will independently override the liveConfig to reflect the camera in the
-    //   carousel (not necessarily the selected camera).
-    // - Various events are captured to prevent them propagating upwards if the
-    //   card is in the background.
     return html`
       <advanced-camera-card-live-grid
         .hass=${this.hass}
@@ -56,6 +53,7 @@ export class AdvancedCameraCardLive extends LitElement {
         .cameraManager=${this.cameraManager}
         .microphoneState=${this.microphoneState}
         .triggeredCameraIDs=${this.triggeredCameraIDs}
+        .heightConstrained=${this.heightConstrained}
       >
       </advanced-camera-card-live-grid>
     `;

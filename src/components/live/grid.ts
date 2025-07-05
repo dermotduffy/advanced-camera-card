@@ -41,6 +41,9 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
   @property({ attribute: false })
   public triggeredCameraIDs?: Set<string>;
 
+  @property({ attribute: false })
+  public heightConstrained = false;
+
   protected _renderCarousel(cameraID?: string): TemplateResult {
     const view = this.viewManagerEpoch?.manager.getView();
     const triggeredCameraID = cameraID ?? view?.camera;
@@ -54,6 +57,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
         .liveConfig=${this.liveConfig}
         .cardWideConfig=${this.cardWideConfig}
         .cameraManager=${this.cameraManager}
+        .heightConstrained=${this.heightConstrained}
         .microphoneState=${this.microphoneState}
         ?triggered=${triggeredCameraID &&
         !!this.triggeredCameraIDs?.has(triggeredCameraID)}

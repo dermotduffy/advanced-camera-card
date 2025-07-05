@@ -13,8 +13,8 @@ import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { ViewerConfig } from '../../config/schema/viewer.js';
-import { HomeAssistant } from '../../ha/types.js';
 import { ResolvedMediaCache } from '../../ha/resolved-media.js';
+import { HomeAssistant } from '../../ha/types.js';
 import '../../patches/ha-hls-player.js';
 import basicBlockStyle from '../../scss/basic-block.scss';
 import './carousel';
@@ -39,6 +39,9 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 
+  @property({ attribute: false })
+  public heightConstrained = false;
+
   protected _renderCarousel(filterCamera?: string): TemplateResult {
     const selectedCameraID = this.viewManagerEpoch?.manager.getView()?.camera;
     return html`
@@ -51,6 +54,7 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
         .resolvedMediaCache=${this.resolvedMediaCache}
         .cameraManager=${this.cameraManager}
         .cardWideConfig=${this.cardWideConfig}
+        .heightConstrained=${this.heightConstrained}
         .showControls=${!filterCamera || selectedCameraID === filterCamera}
       >
       </advanced-camera-card-viewer-carousel>

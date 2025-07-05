@@ -1,6 +1,8 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
 import { CameraDimensionsConfig } from '../config/schema/cameras';
+import { MediaLoadedInfo } from '../types';
 import { aspectRatioToString, setOrRemoveAttribute } from '../utils/basic';
+import { AdvancedCameraCardMediaLoadedEventTarget } from '../utils/media-info';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout';
 
 const SIZE_ATTRIBUTE = 'size';
@@ -9,9 +11,12 @@ type SizeMode = 'sized' | 'unsized' | 'unsized-portrait' | 'unsized-landscape';
 const SIZE_TOLERANCE_PIXELS = 3;
 export class MediaProviderDimensionsController implements ReactiveController {
   private _resizeObserver = new ResizeObserver(this._resizeHandler.bind(this));
-  private _host: HTMLElement & ReactiveControllerHost;
+  private _host: HTMLElement &
+    ReactiveControllerHost &
+    AdvancedCameraCardMediaLoadedEventTarget;
   private _container: HTMLElement | null = null;
   private _cameraConfig: CameraDimensionsConfig | null = null;
+  private _heightConstrained = false;
 
   constructor(host: HTMLElement & ReactiveControllerHost) {
     this._host = host;
@@ -83,12 +88,18 @@ export class MediaProviderDimensionsController implements ReactiveController {
     this._setAttributesFromConfig();
   }
 
-  private _mediaLoadHandler = (): void => {
+  public setHeightConstrained(heightConstrained: boolean): void {
+    this._heightConstrained = heightConstrained;
+    if (this._host.isConnected) {
+      this._resizeHandler();
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private _mediaLoadHandler = (_ev: CustomEvent<MediaLoadedInfo>): void => {
     // Allow the browser to render the media fully before attempting to resize.
     // Without this, viewer provider will not be sized correctly.
-    window.requestAnimationFrame((): void => {
-      this._resizeHandler();
-    });
+    window.requestAnimationFrame(() => this._resizeHandler());
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -125,12 +136,12 @@ export class MediaProviderDimensionsController implements ReactiveController {
 
     let width: number;
     let height: number;
-    if (hostSize.width / hostSize.height > mediaAspectRatio) {
+    if (this._heightConstrained && hostSize.width / hostSize.height > mediaAspectRatio) {
       // Container is wider than media aspect ratio: limit by height
       height = hostSize.height;
       width = height * mediaAspectRatio;
     } else {
-      // Container is narrower or equal: limit by width
+      // Container is narrower or equal, or height can be infinite: limit by width
       width = hostSize.width;
       height = width / mediaAspectRatio;
     }
