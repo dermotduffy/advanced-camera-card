@@ -58,6 +58,8 @@ cameras:
     capabilities:
       disable_except:
         - substream
+        # Also allow PTZ controls on the substream.
+        - ptz
 automations:
   - conditions:
       - condition: fullscreen
@@ -504,6 +506,8 @@ cameras:
     capabilities:
       disable_except:
         - substream
+        # Also allow PTZ controls on the substream.
+        - ptz
 automations:
   - actions:
       - action: custom:advanced-camera-card-action
@@ -1087,10 +1091,12 @@ cameras:
     title: Office HD
     live_provider: go2rtc
     id: office_hd
-    # This camera serves only as a substream.
     capabilities:
       disable_except:
+        # This camera serves only as a substream.
         - substream
+        # Also allow PTZ controls on the substream.
+        - ptz
 menu:
   buttons:
     substreams:
