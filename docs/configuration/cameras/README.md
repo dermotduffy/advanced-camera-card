@@ -67,6 +67,10 @@ cameras:
 | `substream`             | The camera can be used as a substream on another camera.                                          |
 | `trigger`               | The camera can be triggered.                                                                      |
 
+?> If using a camera only as a `substream`, don't forget to keep both the
+`substream` and `ptz` capabilities enabled if you wish to use PTZ controls for
+the substream.
+
 ## `cast`
 
 The `cast` block configures how a camera is cast / sent to media players.
