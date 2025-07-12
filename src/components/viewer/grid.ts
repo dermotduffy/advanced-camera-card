@@ -39,9 +39,6 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 
-  @property({ attribute: false })
-  public heightConstrained = false;
-
   protected _renderCarousel(filterCamera?: string): TemplateResult {
     const selectedCameraID = this.viewManagerEpoch?.manager.getView()?.camera;
     return html`
@@ -54,7 +51,6 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
         .resolvedMediaCache=${this.resolvedMediaCache}
         .cameraManager=${this.cameraManager}
         .cardWideConfig=${this.cardWideConfig}
-        .heightConstrained=${this.heightConstrained}
         .showControls=${!filterCamera || selectedCameraID === filterCamera}
       >
       </advanced-camera-card-viewer-carousel>

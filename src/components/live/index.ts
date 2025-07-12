@@ -33,9 +33,6 @@ export class AdvancedCameraCardLive extends LitElement {
   @property({ attribute: false })
   public triggeredCameraIDs?: Set<string>;
 
-  @property({ attribute: false })
-  public heightConstrained = false;
-
   protected _controller = new LiveController(this);
 
   protected render(): TemplateResult | void {
@@ -53,7 +50,6 @@ export class AdvancedCameraCardLive extends LitElement {
         .cameraManager=${this.cameraManager}
         .microphoneState=${this.microphoneState}
         .triggeredCameraIDs=${this.triggeredCameraIDs}
-        .heightConstrained=${this.heightConstrained}
       >
       </advanced-camera-card-live-grid>
     `;

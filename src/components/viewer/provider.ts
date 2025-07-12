@@ -62,9 +62,6 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
-  @property({ attribute: false })
-  public heightConstrained = false;
-
   protected _refProvider: Ref<MediaPlayerElement> = createRef();
   protected _refContainer: Ref<HTMLElement> = createRef();
   protected _lazyLoadController: LazyLoadController = new LazyLoadController(this);
@@ -209,10 +206,6 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       this._dimensionsController.setCameraConfig(
         this._getRelevantCameraConfig()?.dimensions,
       );
-    }
-
-    if (changedProps.has('heightConstrained')) {
-      this._dimensionsController.setHeightConstrained(this.heightConstrained);
     }
   }
 

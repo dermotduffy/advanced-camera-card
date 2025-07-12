@@ -20,6 +20,10 @@ import {
   ResizeObserverMock,
 } from '../test-utils';
 
+vi.mock('lodash-es', () => ({
+  throttle: vi.fn((fn) => fn),
+}));
+
 // @vitest-environment jsdom
 describe('MediaProviderDimensionsController', () => {
   beforeAll(() => {
@@ -70,47 +74,18 @@ describe('MediaProviderDimensionsController', () => {
 
       const controller = new MediaProviderDimensionsController(host);
 
-      const observer = getResizeObserver();
+      const observer = getResizeObserver(0);
 
       const container = createLitElement();
       controller.setContainer(container);
 
-      expect(observer?.observe).toBeCalledWith(container);
-      expect(observer?.observe).toBeCalledTimes(1);
+      expect(observer?.observe).not.toBeCalled();
 
       controller.hostDisconnected();
       expect(observer?.disconnect).toBeCalled();
 
-      vi.clearAllMocks();
-
       controller.hostConnected();
       expect(observer?.observe).toBeCalledWith(host);
-      expect(observer?.observe).toBeCalledWith(container);
-      expect(observer?.observe).toBeCalledTimes(2);
-    });
-
-    it('should connect and disconnect with a container when host is not connected', () => {
-      const host = createLitElement();
-      Object.defineProperty(host, 'isConnected', {
-        value: false,
-      });
-
-      const controller = new MediaProviderDimensionsController(host);
-
-      const observer = getResizeObserver();
-
-      const container = document.createElement('div');
-      controller.setContainer(container);
-
-      expect(observer?.observe).toBeCalledTimes(0);
-
-      controller.hostConnected();
-      expect(observer?.observe).toBeCalledWith(host);
-      expect(observer?.observe).toBeCalledWith(container);
-      expect(observer?.observe).toBeCalledTimes(2);
-
-      controller.hostDisconnected();
-      expect(observer?.disconnect).toBeCalled();
     });
   });
 
@@ -187,74 +162,29 @@ describe('MediaProviderDimensionsController', () => {
     });
   });
 
-  describe('should set height constrained', () => {
-    it('should resize on height constain change', () => {
-      const host = createLitElement();
-      host.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 200,
-        width: 200,
-      });
-
-      const container = document.createElement('div');
-      container.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 90,
-        width: 160,
-      });
-
-      const controller = new MediaProviderDimensionsController(host);
-      Object.defineProperty(host, 'isConnected', {
-        value: true,
-      });
-      controller.setContainer(container);
-
-      controller.setHeightConstrained(false);
-
-      expect(container.style.width).toBe('200px');
-      expect(container.style.height).toBe('112.5px');
-      expect(host.getAttribute('size')).toBe('sized');
-    });
-  });
-
-  it('should observe new container and unobserve old one', () => {
-    const container1 = document.createElement('div');
-    const container2 = document.createElement('div');
-
+  it('should ignore multiple calls to set same container', () => {
     const host = createLitElement();
-    Object.defineProperty(host, 'isConnected', {
-      value: true,
-    });
-
-    const controller = new MediaProviderDimensionsController(host);
-
-    const observer = getResizeObserver();
-
-    controller.setContainer(container1);
-    expect(observer?.observe).toBeCalledWith(container1);
-
-    controller.setContainer(container2);
-    expect(observer?.unobserve).toBeCalledWith(container1);
-    expect(observer?.observe).toBeCalledWith(container2);
-
-    controller.setContainer(undefined);
-    expect(observer?.unobserve).toBeCalledWith(container2);
-  });
-
-  it('should not re-observe the same container', () => {
-    const host = createLitElement();
-    Object.defineProperty(host, 'isConnected', {
-      value: true,
-    });
-
-    const controller = new MediaProviderDimensionsController(host);
-    const observer = getResizeObserver();
-
     const container = document.createElement('div');
+    const controller = new MediaProviderDimensionsController(host);
 
     controller.setContainer(container);
-    expect(observer?.observe).toBeCalledTimes(1);
+
+    expect(host.getAttribute('size')).toBe('unsized');
+    host.setAttribute('size', 'sized');
 
     controller.setContainer(container);
-    expect(observer?.observe).toBeCalledTimes(1);
+    expect(host.getAttribute('size')).toBe('sized');
+  });
+
+  it('should reset container', () => {
+    const host = createLitElement();
+    const container = document.createElement('div');
+    const controller = new MediaProviderDimensionsController(host);
+
+    controller.setContainer(container);
+    controller.setContainer();
+
+    expect(host.getAttribute('size')).toBe('unsized');
   });
 
   describe('should set size attribute correctly', () => {
@@ -322,41 +252,55 @@ describe('MediaProviderDimensionsController', () => {
       expect(host.getAttribute('size')).toBe('unsized');
     });
 
-    describe('should set host to unsized if elements have no dimensions', () => {
-      it.each([
-        ['host unsized', 100, 200, 0, 0],
-        ['container unsized', 0, 0, 100, 200],
-      ])(
-        '%s',
-        async (
-          _name: string,
-          hostWidth: number,
-          hostHeight: number,
-          containerWidth: number,
-          containerHeight: number,
-        ) => {
-          const host = createLitElement();
-          host.setAttribute('size', 'sized');
+    it('should set host to unsized if container has no dimensions', () => {
+      const host = createLitElement();
+      host.setAttribute('size', 'sized');
 
-          host.getBoundingClientRect = vi.fn().mockReturnValue({
-            height: hostHeight,
-            width: hostWidth,
-          });
+      host.getBoundingClientRect = vi.fn().mockReturnValue({
+        height: 100,
+        width: 200,
+      });
 
-          const container = document.createElement('div');
-          container.getBoundingClientRect = vi.fn().mockReturnValue({
-            height: containerHeight,
-            width: containerWidth,
-          });
+      const container = document.createElement('div');
+      container.getBoundingClientRect = vi.fn().mockReturnValue({
+        height: 0,
+        width: 0,
+      });
 
-          const controller = new MediaProviderDimensionsController(host);
-          controller.setContainer(container);
+      const controller = new MediaProviderDimensionsController(host);
+      controller.setContainer(container);
 
-          callResizeHandler();
+      callResizeHandler();
 
-          expect(host.getAttribute('size')).toBe('unsized');
-        },
-      );
+      expect(host.getAttribute('size')).toBe('unsized');
+    });
+
+    it('should ignore resize calls where actual equals intended size', () => {
+      const host = createLitElement();
+      host.setAttribute('size', 'sized');
+
+      host.getBoundingClientRect = vi.fn().mockReturnValue({
+        height: 100,
+        width: 200,
+      });
+
+      const container = document.createElement('div');
+      container.getBoundingClientRect = vi.fn().mockReturnValue({
+        height: 100,
+        width: 200,
+      });
+
+      const controller = new MediaProviderDimensionsController(host);
+      controller.setContainer(container);
+
+      callResizeHandler();
+
+      host.setAttribute('size', '__RANDOM__');
+
+      // 2nd call should be ignored.
+      callResizeHandler();
+
+      expect(host.getAttribute('size')).toBe('__RANDOM__');
     });
 
     describe('should resize container to fit width-limited container', () => {
@@ -378,8 +322,8 @@ describe('MediaProviderDimensionsController', () => {
 
         callResizeHandler();
 
-        expect(container.style.width).toBe('200px');
-        expect(container.style.height).toBe('112.5px');
+        expect(container.style.width).toBe('100%');
+        expect(container.style.height).toBe('auto');
         expect(host.getAttribute('size')).toBe('sized');
       });
 
@@ -392,41 +336,16 @@ describe('MediaProviderDimensionsController', () => {
 
         const container = document.createElement('div');
         container.getBoundingClientRect = vi.fn().mockReturnValue({
-          height: 90,
+          height: 200,
           width: 160,
         });
 
         const controller = new MediaProviderDimensionsController(host);
         controller.setContainer(container);
-        controller.setHeightConstrained(true);
 
         callResizeHandler();
 
-        expect(container.style.width).toBe(`${100 * (160 / 90)}px`);
-        expect(container.style.height).toBe('100px');
-        expect(host.getAttribute('size')).toBe('sized');
-      });
-
-      it('should resize container to fit height-limited container', () => {
-        const host = createLitElement();
-        host.getBoundingClientRect = vi.fn().mockReturnValue({
-          height: 100,
-          width: 400,
-        });
-
-        const container = document.createElement('div');
-        container.getBoundingClientRect = vi.fn().mockReturnValue({
-          height: 90,
-          width: 160,
-        });
-
-        const controller = new MediaProviderDimensionsController(host);
-        controller.setContainer(container);
-        controller.setHeightConstrained(true);
-
-        callResizeHandler();
-
-        expect(container.style.width).toBe(`${100 * (160 / 90)}px`);
+        expect(container.style.width).toBe(`${100 * (160 / 200)}px`);
         expect(container.style.height).toBe('100px');
         expect(host.getAttribute('size')).toBe('sized');
       });
@@ -459,42 +378,14 @@ describe('MediaProviderDimensionsController', () => {
 
       const controller = new MediaProviderDimensionsController(host);
       controller.setContainer(container);
-      controller.setHeightConstrained(true);
 
       controller.hostConnected();
 
       dispatchExistingMediaLoadedInfoAsEvent(host, createMediaLoadedInfo());
 
-      expect(container.style.width).toBe(`${100 * (160 / 90)}px`);
-      expect(container.style.height).toBe('100px');
+      expect(container.style.width).toBe(`100%`);
+      expect(container.style.height).toBe('auto');
       expect(host.getAttribute('size')).toBe('sized');
     });
-  });
-
-  it('should not resize when within tolerance', () => {
-    const host = createLitElement();
-
-    host.getBoundingClientRect = vi.fn().mockReturnValue({
-      height: 100,
-      width: 400,
-    });
-
-    const container = document.createElement('div');
-    container.getBoundingClientRect = vi.fn().mockReturnValue({
-      height: 99.9,
-      width: 399.9,
-    });
-
-    const controller = new MediaProviderDimensionsController(host);
-    controller.setContainer(container);
-
-    callResizeHandler();
-
-    dispatchExistingMediaLoadedInfoAsEvent(host, createMediaLoadedInfo());
-
-    // Should stick with the original size.
-    expect(container.style.width).toBe(`399.9px`);
-    expect(container.style.height).toBe('99.9px');
-    expect(host.getAttribute('size')).toBe('sized');
   });
 });

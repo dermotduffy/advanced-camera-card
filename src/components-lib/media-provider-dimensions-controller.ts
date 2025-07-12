@@ -1,4 +1,5 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
+import { throttle } from 'lodash-es';
 import { CameraDimensionsConfig } from '../config/schema/cameras';
 import { MediaLoadedInfo } from '../types';
 import { aspectRatioToString, setOrRemoveAttribute } from '../utils/basic';
@@ -8,15 +9,17 @@ import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout';
 const SIZE_ATTRIBUTE = 'size';
 type SizeMode = 'sized' | 'unsized' | 'unsized-portrait' | 'unsized-landscape';
 
-const SIZE_TOLERANCE_PIXELS = 3;
 export class MediaProviderDimensionsController implements ReactiveController {
-  private _resizeObserver = new ResizeObserver(this._resizeHandler.bind(this));
   private _host: HTMLElement &
     ReactiveControllerHost &
     AdvancedCameraCardMediaLoadedEventTarget;
   private _container: HTMLElement | null = null;
   private _cameraConfig: CameraDimensionsConfig | null = null;
-  private _heightConstrained = false;
+  private _throttledResizeHandler = throttle(this._resizeHandler.bind(this), 100, {
+    trailing: true,
+  });
+  private _resizeObserver = new ResizeObserver(this._throttledResizeHandler);
+  private _intendedHostSize: DOMRect | null = null;
 
   constructor(host: HTMLElement & ReactiveControllerHost) {
     this._host = host;
@@ -30,9 +33,6 @@ export class MediaProviderDimensionsController implements ReactiveController {
     );
 
     this._resizeObserver.observe(this._host);
-    if (this._container) {
-      this._resizeObserver.observe(this._container);
-    }
   }
 
   public hostDisconnected(): void {
@@ -47,16 +47,8 @@ export class MediaProviderDimensionsController implements ReactiveController {
     if (container === this._container) {
       return;
     }
-    if (this._container) {
-      this._resizeObserver.unobserve(this._container);
-    }
     this._container = container ?? null;
-    if (container) {
-      if (this._host.isConnected) {
-        this._resizeObserver.observe(container);
-      }
-      this._setAttributesFromConfig();
-    }
+    this._setAttributesFromConfig();
   }
 
   private _setAttributesFromConfig(): void {
@@ -88,76 +80,77 @@ export class MediaProviderDimensionsController implements ReactiveController {
     this._setAttributesFromConfig();
   }
 
-  public setHeightConstrained(heightConstrained: boolean): void {
-    this._heightConstrained = heightConstrained;
-    if (this._host.isConnected) {
-      this._resizeHandler();
-    }
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private _mediaLoadHandler = (_ev: CustomEvent<MediaLoadedInfo>): void => {
     // Allow the browser to render the media fully before attempting to resize.
     // Without this, viewer provider will not be sized correctly.
-    window.requestAnimationFrame(() => this._resizeHandler());
+    window.requestAnimationFrame(() => this._throttledResizeHandler());
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private _resizeHandler(_entries?: ResizeObserverEntry[]): void {
-    const setUnsized = (): void => {
+    const rememberHostSize = (): void => {
+      this._intendedHostSize = this._host.getBoundingClientRect();
+    };
+
+    const setUnsizedAttribute = (): void => {
       setOrRemoveAttribute<SizeMode>(this._host, true, SIZE_ATTRIBUTE, 'unsized');
     };
 
-    if (!this._container) {
-      setUnsized();
+    const setContainerIntrinsicSize = (container: HTMLElement): void => {
+      container.style.width = '100%';
+      container.style.height = 'auto';
+      rememberHostSize();
+    };
+
+    const setContainerSize = (
+      container: HTMLElement,
+      width: number,
+      height: number,
+    ): void => {
+      container.style.width = `${width}px`;
+      container.style.height = `${height}px`;
+      rememberHostSize();
+    };
+
+    const hostSize = this._host.getBoundingClientRect();
+    if (
+      hostSize.width === this._intendedHostSize?.width &&
+      hostSize.height === this._intendedHostSize?.height
+    ) {
       return;
     }
 
-    const hostSize = this._host.getBoundingClientRect();
+    if (!this._container) {
+      setUnsizedAttribute();
+      return;
+    }
 
-    const priorContainerSize = this._container.getBoundingClientRect();
+    // In the ideal case, the width can be maximum and the height can be
+    // whatever is necessary to support the aspect ratio.
+    setContainerIntrinsicSize(this._container);
 
-    // Remove prior forced width/height to get the intrinsic size.
-    this._container.style.width = 'auto';
-    this._container.style.height = 'auto';
     const containerSize = this._container.getBoundingClientRect();
 
-    if (
-      !hostSize.width ||
-      !hostSize.height ||
-      !containerSize.width ||
-      !containerSize.height
-    ) {
-      setUnsized();
+    if (!containerSize.width || !containerSize.height) {
+      setUnsizedAttribute();
       return;
     }
 
     const mediaAspectRatio = containerSize.width / containerSize.height;
+    const newHostSize = this._host.getBoundingClientRect();
 
-    let width: number;
-    let height: number;
-    if (this._heightConstrained && hostSize.width / hostSize.height > mediaAspectRatio) {
-      // Container is wider than media aspect ratio: limit by height
-      height = hostSize.height;
-      width = height * mediaAspectRatio;
-    } else {
-      // Container is narrower or equal, or height can be infinite: limit by width
-      width = hostSize.width;
-      height = width / mediaAspectRatio;
+    // If the container is larger than the host, the host was not able to expand
+    // enough to cover the size (e.g. fullscreen, panel or height constrained in
+    // configuration). In this case, just limit the container to the host height
+    // at the same aspect ratio.
+    if (containerSize.height > newHostSize.height) {
+      setContainerSize(
+        this._container,
+        newHostSize.height * mediaAspectRatio,
+        newHostSize.height,
+      );
     }
-
-    // This is paranoia and has not yet been proven to be necessary, however if
-    // the difference is less than a tolerance stick with the original size to
-    // avoid infinite loops.
-    if (Math.abs(priorContainerSize.width - width) < SIZE_TOLERANCE_PIXELS) {
-      width = priorContainerSize.width;
-    }
-    if (Math.abs(priorContainerSize.height - height) < SIZE_TOLERANCE_PIXELS) {
-      height = priorContainerSize.height;
-    }
-
-    this._container.style.width = `${width}px`;
-    this._container.style.height = `${height}px`;
 
     setOrRemoveAttribute<SizeMode>(this._host, true, SIZE_ATTRIBUTE, 'sized');
   }

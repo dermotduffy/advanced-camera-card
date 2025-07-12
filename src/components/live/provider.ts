@@ -58,9 +58,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   public microphoneState?: MicrophoneState;
 
   @property({ attribute: false })
-  public heightConstrained = false;
-
-  @property({ attribute: false })
   public zoomSettings?: PartialZoomSettings | null;
 
   @state()
@@ -192,10 +189,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
       this._dimensionsController.setCameraConfig(this.cameraConfig?.dimensions);
     }
-
-    if (changedProps.has('heightConstrained')) {
-      this._dimensionsController.setHeightConstrained(this.heightConstrained);
-    }
   }
 
   override async getUpdateComplete(): Promise<boolean> {
@@ -317,6 +310,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                 // loading).
                 this._videoMediaShowHandler();
               } else {
+                // TODO doesn't this stop the dimension controller from receiving it?
+                console.info('--- STOP PROPAGATION ---');
                 ev.stopPropagation();
               }
             }}
