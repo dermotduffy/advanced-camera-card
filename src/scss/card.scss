@@ -9,7 +9,7 @@
 
   // Different browsers use different colors as their fullscreen background,
   // this ensures the same experience across all browsers.
-  background-color: var(--card-background-color);
+  background-color: var(--advanced-camera-card-background);
 
   border-radius: var(--ha-card-border-radius, 4px);
   overflow: auto;
@@ -99,6 +99,9 @@ ha-card {
   height: 100%;
   position: static;
   color: var(--secondary-text-color, white);
+
+  // The background color at the outer level has priority.
+  background-color: transparent;
 }
 
 /************

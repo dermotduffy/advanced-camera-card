@@ -2,10 +2,10 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import { MediaHeightController } from '../../src/components-lib/media-height-controller';
 import {
   callMutationHandler,
+  callResizeHandler,
   MutationObserverMock,
   ResizeObserverMock,
 } from '../test-utils';
-import { callResizeHandler } from '../utils/embla/test-utils';
 
 vi.mock('lodash-es', async () => ({
   ...(await vi.importActual('lodash-es')),

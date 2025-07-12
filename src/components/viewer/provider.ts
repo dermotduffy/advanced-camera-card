@@ -12,8 +12,10 @@ import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
+import { MediaProviderDimensionsController } from '../../components-lib/media-provider-dimensions-controller.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
+import { CameraConfig } from '../../config/schema/cameras.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { ViewerConfig } from '../../config/schema/viewer.js';
 import { canonicalizeHAURL } from '../../ha/canonical-url.js';
@@ -29,8 +31,7 @@ import {
 import '../../patches/ha-hls-player.js';
 import viewerProviderStyle from '../../scss/viewer-provider.scss';
 import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../../types.js';
-import { aspectRatioToString, errorToConsole } from '../../utils/basic.js';
-import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
+import { errorToConsole } from '../../utils/basic.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { VideoContentType, ViewMedia } from '../../view/item.js';
 import { QueryClassifier } from '../../view/query-classifier.js';
@@ -62,7 +63,9 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   public cardWideConfig?: CardWideConfig;
 
   protected _refProvider: Ref<MediaPlayerElement> = createRef();
+  protected _refContainer: Ref<HTMLElement> = createRef();
   protected _lazyLoadController: LazyLoadController = new LazyLoadController(this);
+  protected _dimensionsController = new MediaProviderDimensionsController(this);
 
   @state()
   protected _url: string | null = null;
@@ -200,19 +203,20 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     }
 
     if (changedProps.has('media') || changedProps.has('cameraManager')) {
-      const cameraID = this.media?.getCameraID();
-      const cameraConfig = cameraID
-        ? this.cameraManager?.getStore().getCameraConfig(cameraID)
-        : null;
-      updateElementStyleFromMediaLayoutConfig(this, cameraConfig?.dimensions?.layout);
-
-      this.style.aspectRatio = aspectRatioToString({
-        ratio: cameraConfig?.dimensions?.aspect_ratio,
-      });
+      this._dimensionsController.setCameraConfig(
+        this._getRelevantCameraConfig()?.dimensions,
+      );
     }
   }
 
-  protected _useZoomIfRequired(template: TemplateResult): TemplateResult {
+  private _getRelevantCameraConfig(): CameraConfig | null {
+    const cameraID = this.media?.getCameraID();
+    return cameraID
+      ? this.cameraManager?.getStore().getCameraConfig(cameraID) ?? null
+      : null;
+  }
+
+  protected _renderContainer(template: TemplateResult): TemplateResult {
     if (!this.media) {
       return template;
     }
@@ -223,27 +227,37 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       : null;
     const view = this.viewManagerEpoch?.manager.getView();
 
-    return this.viewerConfig?.zoomable
-      ? html` <advanced-camera-card-zoomer
-          .defaultSettings=${guard([cameraConfig?.dimensions?.layout], () =>
-            cameraConfig?.dimensions?.layout
-              ? {
-                  pan: cameraConfig.dimensions.layout.pan,
-                  zoom: cameraConfig.dimensions.layout.zoom,
-                }
-              : undefined,
-          )}
-          .settings=${mediaID ? view?.context?.zoom?.[mediaID]?.requested : undefined}
-          @advanced-camera-card:zoom:zoomed=${async () =>
-            (await this.getMediaPlayerController())?.setControls(false)}
-          @advanced-camera-card:zoom:unzoomed=${async () =>
-            (await this.getMediaPlayerController())?.setControls()}
-          @advanced-camera-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
-            handleZoomSettingsObservedEvent(ev, this.viewManagerEpoch?.manager, mediaID)}
-        >
-          ${template}
-        </advanced-camera-card-zoomer>`
-      : template;
+    // Place the zoomer in a separate div, as the zoom library misinterprets the
+    // explicit width/height setting from the provider resizer as zooming.
+    return html`<div class="container" ${ref(this._refContainer)}>
+      ${this.viewerConfig?.zoomable
+        ? html`<advanced-camera-card-zoomer
+            .defaultSettings=${guard([cameraConfig?.dimensions?.layout], () =>
+              cameraConfig?.dimensions?.layout
+                ? {
+                    pan: cameraConfig.dimensions.layout.pan,
+                    zoom: cameraConfig.dimensions.layout.zoom,
+                  }
+                : undefined,
+            )}
+            .settings=${mediaID ? view?.context?.zoom?.[mediaID]?.requested : undefined}
+            @advanced-camera-card:zoom:zoomed=${async () =>
+              (await this.getMediaPlayerController())?.setControls(false)}
+            @advanced-camera-card:zoom:unzoomed=${async () =>
+              (await this.getMediaPlayerController())?.setControls()}
+            @advanced-camera-card:zoom:change=${(
+              ev: CustomEvent<ZoomSettingsObserved>,
+            ) =>
+              handleZoomSettingsObservedEvent(
+                ev,
+                this.viewManagerEpoch?.manager,
+                mediaID,
+              )}
+          >
+            ${template}
+          </advanced-camera-card-zoomer>`
+        : template}
+    </div>`;
   }
 
   protected render(): TemplateResult | void {
@@ -264,7 +278,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
 
     // Note: crossorigin="anonymous" is required on <video> below in order to
     // allow screenshot of motionEye videos which currently go cross-origin.
-    return this._useZoomIfRequired(html`
+    return this._renderContainer(html`
       ${ViewItemClassifier.isVideo(this.media)
         ? this.media.getVideoContentType() === VideoContentType.HLS
           ? html`<advanced-camera-card-ha-hls-player
@@ -303,6 +317,10 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
             }}
           ></advanced-camera-card-image-player>`}
     `);
+  }
+
+  public updated(): void {
+    this._dimensionsController.setContainer(this._refContainer.value);
   }
 
   static get styles(): CSSResultGroup {

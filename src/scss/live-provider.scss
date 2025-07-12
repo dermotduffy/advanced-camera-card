@@ -1,9 +1,4 @@
-@use 'basic-block.scss';
-@use 'media-background.scss';
-
-:host {
-  position: relative;
-}
+@use 'provider.scss';
 
 .hidden {
   display: none;

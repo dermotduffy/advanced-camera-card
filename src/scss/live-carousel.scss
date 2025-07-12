@@ -24,10 +24,7 @@
 }
 
 .embla__slide {
-  // Center the content horizontally (for cases where the configured aspect
-  // ratio is a mismatch with the card).
   display: flex;
-  justify-content: center;
 
   height: 100%;
   width: 100%;

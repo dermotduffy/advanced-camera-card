@@ -15,6 +15,7 @@ export interface ConditionState {
   keys?: KeysState;
   mediaLoadedInfo?: MediaLoadedInfo | null;
   microphone?: MicrophoneState;
+  panel?: boolean;
   hass?: HomeAssistant;
   triggered?: Set<string>;
   userAgent?: string;
