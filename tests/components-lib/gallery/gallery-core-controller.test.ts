@@ -9,6 +9,7 @@ import { scrollIntoView } from '../../../src/utils/scroll';
 import { sleep } from '../../../src/utils/sleep';
 import {
   callIntersectionHandler,
+  callResizeHandler,
   createLitElement,
   createSlot,
   createSlotHost,
@@ -18,7 +19,6 @@ import {
   IntersectionObserverMock,
   ResizeObserverMock,
 } from '../../test-utils';
-import { callResizeHandler } from '../../utils/embla/test-utils';
 
 vi.mock('lodash-es', async () => {
   return {

@@ -486,6 +486,43 @@ export const callVisibilityHandler = async (visible: boolean): Promise<void> => 
   }
 };
 
+export const getResizeObserver = (n = 0): ResizeObserver | null => {
+  const mockResult = vi.mocked(ResizeObserver).mock.results[n];
+  if (mockResult.type !== 'return') {
+    return null;
+  }
+  return mockResult.value;
+};
+
+export const callResizeHandler = (
+  entries: {
+    target: HTMLElement;
+    width: number;
+    height: number;
+  }[] = [],
+  n = 0,
+): void => {
+  const observer = getResizeObserver(n);
+  if (!observer) {
+    return;
+  }
+  vi.mocked(ResizeObserver).mock.calls[n][0](
+    // Note this is a very incomplete / invalid ResizeObserverEntry that
+    // just provides the bare basics current implementation uses.
+    entries.map(
+      (entry) =>
+        ({
+          target: entry.target,
+          contentRect: {
+            height: entry.height,
+            width: entry.width,
+          },
+        }) as unknown as ResizeObserverEntry,
+    ),
+    observer,
+  );
+};
+
 export const createSlotHost = (options?: {
   slot?: HTMLSlotElement;
   children?: HTMLElement[];

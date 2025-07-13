@@ -146,6 +146,12 @@ const proxyConfigSchema = z.object({
 });
 export type ProxyConfig = z.infer<typeof proxyConfigSchema>;
 
+const cameraDimensionsSchema = z.object({
+  aspect_ratio: aspectRatioSchema.optional(),
+  layout: mediaLayoutConfigSchema.optional(),
+});
+export type CameraDimensionsConfig = z.infer<typeof cameraDimensionsSchema>;
+
 export const cameraConfigSchema = z
   .object({
     camera_entity: z.string().optional(),
@@ -246,12 +252,7 @@ export const cameraConfigSchema = z
 
     ptz: ptzCameraConfigSchema.default(cameraConfigDefault.ptz),
 
-    dimensions: z
-      .object({
-        aspect_ratio: aspectRatioSchema.optional(),
-        layout: mediaLayoutConfigSchema.optional(),
-      })
-      .optional(),
+    dimensions: cameraDimensionsSchema.optional(),
 
     proxy: proxyConfigSchema.default(cameraConfigDefault.proxy),
 

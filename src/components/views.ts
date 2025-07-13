@@ -12,6 +12,7 @@ import { CameraManager } from '../camera-manager/manager.js';
 import { MicrophoneState } from '../card-controller/types.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
+import { ConditionStateManagerReadonlyInterface } from '../conditions/types.js';
 import { AdvancedCameraCardConfig, CardWideConfig } from '../config/schema/types.js';
 import { RawAdvancedCameraCardConfig } from '../config/types.js';
 import { DeviceRegistryManager } from '../ha/registry/device/index.js';
@@ -61,6 +62,9 @@ export class AdvancedCameraCardViews extends LitElement {
 
   @property({ attribute: false })
   public deviceRegistryManager?: DeviceRegistryManager;
+
+  @property({ attribute: false })
+  public conditionStateManager?: ConditionStateManagerReadonlyInterface;
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('viewManagerEpoch') || changedProps.has('config')) {

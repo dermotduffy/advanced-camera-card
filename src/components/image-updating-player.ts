@@ -64,7 +64,7 @@ export const resolveImageMode = (options?: {
 };
 
 /**
- * A media player to wrap a image that updates continuously.
+ * A media player to wrap an image that updates continuously.
  */
 @customElement('advanced-camera-card-image-updating-player')
 export class AdvancedCameraCardImageUpdatingPlayer

@@ -196,11 +196,11 @@ export const isValidDate = (date: Date): boolean => {
  * @param name The attribute name.
  * @param value An optional value to set the attribute to.
  */
-export const setOrRemoveAttribute = (
+export const setOrRemoveAttribute = <T extends string>(
   element: HTMLElement,
   set: boolean,
   name: string,
-  value?: string,
+  value?: T,
 ): void => {
   if (set) {
     element.setAttribute(name, value ?? '');

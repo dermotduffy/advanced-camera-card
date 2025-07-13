@@ -40,12 +40,6 @@ export class AdvancedCameraCardLive extends LitElement {
       return;
     }
 
-    // Implementation notes:
-    // - See use of liveConfig and not config below -- the underlying carousel
-    //   will independently override the liveConfig to reflect the camera in the
-    //   carousel (not necessarily the selected camera).
-    // - Various events are captured to prevent them propagating upwards if the
-    //   card is in the background.
     return html`
       <advanced-camera-card-live-grid
         .hass=${this.hass}
