@@ -10,15 +10,16 @@ const SIZE_ATTRIBUTE = 'size';
 type SizeMode = 'sized' | 'unsized' | 'unsized-portrait' | 'unsized-landscape';
 
 export class MediaProviderDimensionsController implements ReactiveController {
+  public resize = throttle(this._resizeHandler.bind(this), 100, {
+    trailing: true,
+  });
+
   private _host: HTMLElement &
     ReactiveControllerHost &
     AdvancedCameraCardMediaLoadedEventTarget;
   private _container: HTMLElement | null = null;
   private _cameraConfig: CameraDimensionsConfig | null = null;
-  private _throttledResizeHandler = throttle(this._resizeHandler.bind(this), 100, {
-    trailing: true,
-  });
-  private _resizeObserver = new ResizeObserver(this._throttledResizeHandler);
+  private _resizeObserver = new ResizeObserver(this.resize);
   private _intendedHostSize: DOMRect | null = null;
 
   constructor(host: HTMLElement & ReactiveControllerHost) {
@@ -84,7 +85,7 @@ export class MediaProviderDimensionsController implements ReactiveController {
   private _mediaLoadHandler = (_ev: CustomEvent<MediaLoadedInfo>): void => {
     // Allow the browser to render the media fully before attempting to resize.
     // Without this, viewer provider will not be sized correctly.
-    window.requestAnimationFrame(() => this._throttledResizeHandler());
+    window.requestAnimationFrame(() => this.resize());
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

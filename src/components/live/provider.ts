@@ -310,8 +310,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                 // loading).
                 this._videoMediaShowHandler();
               } else {
-                // TODO doesn't this stop the dimension controller from receiving it?
-                console.info('--- STOP PROPAGATION ---');
+                // Manually call resize(), since the dimensions controller won't
+                // receive the after that stopPropagation().
+                this._dimensionsController.resize();
                 ev.stopPropagation();
               }
             }}
