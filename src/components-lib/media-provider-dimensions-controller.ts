@@ -7,7 +7,7 @@ import { AdvancedCameraCardMediaLoadedEventTarget } from '../utils/media-info';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout';
 
 const SIZE_ATTRIBUTE = 'size';
-type SizeMode = 'sized' | 'unsized' | 'unsized-portrait' | 'unsized-landscape';
+type SizeMode = 'custom' | 'max' | 'max-height' | 'max-width';
 
 export class MediaProviderDimensionsController implements ReactiveController {
   public resize = throttle(this._resizeHandler.bind(this), 100, {
@@ -70,9 +70,9 @@ export class MediaProviderDimensionsController implements ReactiveController {
       SIZE_ATTRIBUTE,
       this._cameraConfig?.aspect_ratio
         ? this._cameraConfig?.aspect_ratio[0] >= this._cameraConfig?.aspect_ratio[1]
-          ? 'unsized-landscape'
-          : 'unsized-portrait'
-        : 'unsized',
+          ? 'max-width'
+          : 'max-height'
+        : 'max',
     );
   }
 
@@ -90,12 +90,17 @@ export class MediaProviderDimensionsController implements ReactiveController {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private _resizeHandler(_entries?: ResizeObserverEntry[]): void {
+    // Custom sizing only applies if the aspect ratio is set.
+    if (!this._cameraConfig?.aspect_ratio?.length) {
+      return;
+    }
+
     const rememberHostSize = (): void => {
       this._intendedHostSize = this._host.getBoundingClientRect();
     };
 
-    const setUnsizedAttribute = (): void => {
-      setOrRemoveAttribute<SizeMode>(this._host, true, SIZE_ATTRIBUTE, 'unsized');
+    const setMaxAttribute = (): void => {
+      setOrRemoveAttribute<SizeMode>(this._host, true, SIZE_ATTRIBUTE, 'max');
     };
 
     const setContainerIntrinsicSize = (container: HTMLElement): void => {
@@ -123,7 +128,7 @@ export class MediaProviderDimensionsController implements ReactiveController {
     }
 
     if (!this._container) {
-      setUnsizedAttribute();
+      setMaxAttribute();
       return;
     }
 
@@ -134,7 +139,7 @@ export class MediaProviderDimensionsController implements ReactiveController {
     const containerSize = this._container.getBoundingClientRect();
 
     if (!containerSize.width || !containerSize.height) {
-      setUnsizedAttribute();
+      setMaxAttribute();
       return;
     }
 
@@ -153,6 +158,6 @@ export class MediaProviderDimensionsController implements ReactiveController {
       );
     }
 
-    setOrRemoveAttribute<SizeMode>(this._host, true, SIZE_ATTRIBUTE, 'sized');
+    setOrRemoveAttribute<SizeMode>(this._host, true, SIZE_ATTRIBUTE, 'custom');
   }
 }

@@ -36,6 +36,13 @@ describe('MediaProviderDimensionsController', () => {
     vi.clearAllMocks();
   });
 
+  const configWithAspectRatioLandscape: CameraDimensionsConfig = {
+    aspect_ratio: [16, 9],
+  };
+  const configWithAspectRatioPortrait: CameraDimensionsConfig = {
+    aspect_ratio: [9, 16],
+  };
+
   it('should construct', () => {
     const host = createLitElement();
     const eventListener = vi.fn();
@@ -95,8 +102,7 @@ describe('MediaProviderDimensionsController', () => {
       const container = document.createElement('div');
       const controller = new MediaProviderDimensionsController(host);
 
-      const config = { aspect_ratio: [16, 9] };
-      controller.setCameraConfig(config);
+      controller.setCameraConfig(configWithAspectRatioLandscape);
       controller.setContainer(container);
 
       expect(container.style.aspectRatio).toBe('16 / 9');
@@ -104,9 +110,9 @@ describe('MediaProviderDimensionsController', () => {
 
     describe('should set host attribute', () => {
       it.each([
-        ['unsized', {}],
-        ['unsized-landscape', { aspect_ratio: [16, 9] }],
-        ['unsized-portrait', { aspect_ratio: [9, 16] }],
+        ['max', {}],
+        ['max-width', { aspect_ratio: [16, 9] }],
+        ['max-height', { aspect_ratio: [9, 16] }],
       ])('%s', async (value: string, config: CameraDimensionsConfig) => {
         const host = createLitElement();
         const container = document.createElement('div');
@@ -166,64 +172,64 @@ describe('MediaProviderDimensionsController', () => {
     const host = createLitElement();
     const container = document.createElement('div');
     const controller = new MediaProviderDimensionsController(host);
+    controller.setCameraConfig(configWithAspectRatioLandscape);
 
     controller.setContainer(container);
 
-    expect(host.getAttribute('size')).toBe('unsized');
-    host.setAttribute('size', 'sized');
+    expect(host.getAttribute('size')).toBe('max-width');
+    host.setAttribute('size', 'custom');
 
     controller.setContainer(container);
-    expect(host.getAttribute('size')).toBe('sized');
+    expect(host.getAttribute('size')).toBe('custom');
   });
 
   it('should reset container', () => {
     const host = createLitElement();
     const container = document.createElement('div');
     const controller = new MediaProviderDimensionsController(host);
+    controller.setCameraConfig(configWithAspectRatioLandscape);
 
     controller.setContainer(container);
     controller.setContainer();
 
-    expect(host.getAttribute('size')).toBe('unsized');
+    expect(host.getAttribute('size')).toBe('max-width');
   });
 
   describe('should set size attribute correctly', () => {
-    it('should set unsized-landscape', () => {
+    it('should set max-width', () => {
       const host = createLitElement();
       const container = document.createElement('div');
       const controller = new MediaProviderDimensionsController(host);
-      const config = { aspect_ratio: [16, 9] };
 
-      controller.setCameraConfig(config);
+      controller.setCameraConfig(configWithAspectRatioLandscape);
       controller.setContainer(container);
 
       expect(container.style.aspectRatio).toBe('16 / 9');
-      expect(host.getAttribute('size')).toBe('unsized-landscape');
+      expect(host.getAttribute('size')).toBe('max-width');
     });
 
-    it('should set unsized-portrait', () => {
+    it('should set max-height', () => {
       const host = createLitElement();
       const container = document.createElement('div');
       const controller = new MediaProviderDimensionsController(host);
-      const config = { aspect_ratio: [9, 16] };
 
-      controller.setCameraConfig(config);
+      controller.setCameraConfig(configWithAspectRatioPortrait);
       controller.setContainer(container);
 
       expect(container.style.aspectRatio).toBe('9 / 16');
-      expect(host.getAttribute('size')).toBe('unsized-portrait');
+      expect(host.getAttribute('size')).toBe('max-height');
     });
 
-    it('should set unsized', () => {
+    it('should set max', () => {
       const host = createLitElement();
       const container = document.createElement('div');
       const controller = new MediaProviderDimensionsController(host);
 
       controller.setContainer(container);
-      expect(host.getAttribute('size')).toBe('unsized');
+      expect(host.getAttribute('size')).toBe('max');
     });
 
-    it('should set unsized without a config', () => {
+    it('should set max without a config', () => {
       const host = createLitElement();
       const container = document.createElement('div');
       const controller = new MediaProviderDimensionsController(host);
@@ -231,14 +237,14 @@ describe('MediaProviderDimensionsController', () => {
       controller.setCameraConfig();
       controller.setContainer(container);
 
-      expect(host.getAttribute('size')).toBe('unsized');
+      expect(host.getAttribute('size')).toBe('max');
     });
   });
 
   describe('should respond to size changes', () => {
-    it('should set host to unsized if no container', () => {
+    it('should ignore without an aspect ratio', () => {
       const host = createLitElement();
-      host.setAttribute('size', 'sized');
+      host.setAttribute('size', '__RANDOM__');
 
       host.getBoundingClientRect = vi.fn().mockReturnValue({
         height: 600,
@@ -249,12 +255,29 @@ describe('MediaProviderDimensionsController', () => {
 
       callResizeHandler();
 
-      expect(host.getAttribute('size')).toBe('unsized');
+      expect(host.getAttribute('size')).toBe('__RANDOM__');
     });
 
-    it('should set host to unsized if container has no dimensions', () => {
+    it('should set host to max if no container', () => {
       const host = createLitElement();
-      host.setAttribute('size', 'sized');
+      host.setAttribute('size', 'custom');
+
+      host.getBoundingClientRect = vi.fn().mockReturnValue({
+        height: 600,
+        width: 300,
+      });
+
+      const controller = new MediaProviderDimensionsController(host);
+      controller.setCameraConfig(configWithAspectRatioLandscape);
+
+      callResizeHandler();
+
+      expect(host.getAttribute('size')).toBe('max');
+    });
+
+    it('should set host to max if container has no dimensions', () => {
+      const host = createLitElement();
+      host.setAttribute('size', 'custom');
 
       host.getBoundingClientRect = vi.fn().mockReturnValue({
         height: 100,
@@ -268,16 +291,17 @@ describe('MediaProviderDimensionsController', () => {
       });
 
       const controller = new MediaProviderDimensionsController(host);
+      controller.setCameraConfig(configWithAspectRatioLandscape);
       controller.setContainer(container);
 
       callResizeHandler();
 
-      expect(host.getAttribute('size')).toBe('unsized');
+      expect(host.getAttribute('size')).toBe('max');
     });
 
     it('should ignore resize calls where actual equals intended size', () => {
       const host = createLitElement();
-      host.setAttribute('size', 'sized');
+      host.setAttribute('size', 'custom');
 
       host.getBoundingClientRect = vi.fn().mockReturnValue({
         height: 100,
@@ -291,6 +315,7 @@ describe('MediaProviderDimensionsController', () => {
       });
 
       const controller = new MediaProviderDimensionsController(host);
+      controller.setCameraConfig(configWithAspectRatioLandscape);
       controller.setContainer(container);
 
       callResizeHandler();
@@ -318,13 +343,14 @@ describe('MediaProviderDimensionsController', () => {
         });
 
         const controller = new MediaProviderDimensionsController(host);
+        controller.setCameraConfig(configWithAspectRatioLandscape);
         controller.setContainer(container);
 
         callResizeHandler();
 
         expect(container.style.width).toBe('100%');
         expect(container.style.height).toBe('auto');
-        expect(host.getAttribute('size')).toBe('sized');
+        expect(host.getAttribute('size')).toBe('custom');
       });
 
       it('should resize container to fit height-limited container', () => {
@@ -341,13 +367,14 @@ describe('MediaProviderDimensionsController', () => {
         });
 
         const controller = new MediaProviderDimensionsController(host);
+        controller.setCameraConfig(configWithAspectRatioLandscape);
         controller.setContainer(container);
 
         callResizeHandler();
 
         expect(container.style.width).toBe(`${100 * (160 / 200)}px`);
         expect(container.style.height).toBe('100px');
-        expect(host.getAttribute('size')).toBe('sized');
+        expect(host.getAttribute('size')).toBe('custom');
       });
     });
   });
@@ -377,6 +404,7 @@ describe('MediaProviderDimensionsController', () => {
       });
 
       const controller = new MediaProviderDimensionsController(host);
+      controller.setCameraConfig(configWithAspectRatioLandscape);
       controller.setContainer(container);
 
       controller.hostConnected();
@@ -385,7 +413,7 @@ describe('MediaProviderDimensionsController', () => {
 
       expect(container.style.width).toBe(`100%`);
       expect(container.style.height).toBe('auto');
-      expect(host.getAttribute('size')).toBe('sized');
+      expect(host.getAttribute('size')).toBe('custom');
     });
   });
 });
