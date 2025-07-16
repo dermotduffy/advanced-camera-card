@@ -20,13 +20,13 @@
   max-width: 100%;
 }
 
-:host([size='unsized']) > .container {
+:host([size='max']) > .container {
   width: 100%;
   height: 100%;
 }
-:host([size='unsized-portrait']) > .container {
+:host([size='max-height']) > .container {
   height: 100%;
 }
-:host([size='unsized-landscape']) > .container {
+:host([size='max-width']) > .container {
   width: 100%;
 }
