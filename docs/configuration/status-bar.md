@@ -53,6 +53,7 @@ This card supports several menu styles.
 | `none`       | No status bar is shown.                                                                                               |
 | `outside`    | Render the status bar outside the card (i.e. above it if `position` is `top`, or below it if `position` is `bottom`). |
 | `overlay`    | Overlay the status bar over the card contents.                                                                        |
+| `popup`      | Equivalent to `overlay` except the status bar disappears after `popup_seconds`.                                       |
 
 ## Fully expanded reference
 

@@ -210,6 +210,27 @@ export const setOrRemoveAttribute = <T extends string>(
 };
 
 /**
+ * Set or remove a style property on a HTMLElement.
+ * @param element The element.
+ * @param set If `true` sets the property, otherwise removes it.
+ * @param name The property name.
+ * @param value An optional value to set the property to. Never used if set is
+ * `false`.
+ */
+export const setOrRemoveStyleProperty = <T extends string>(
+  element: HTMLElement,
+  set: boolean,
+  name: string,
+  value?: T,
+): void => {
+  if (set) {
+    element.style.setProperty(name, value ?? '');
+  } else {
+    element.style.removeProperty(name);
+  }
+};
+
+/**
  * Allow typescript to narrow types based on truthy filter.
  */
 export const isTruthy = <T>(x: T | false | undefined | null | '' | 0): x is T => !!x;
@@ -243,7 +264,7 @@ export const recursivelyMergeObjectsConcatenatingArraysUniquely = <T>(
 };
 
 export const aspectRatioToString = (options?: {
-  ratio?: number[];
+  ratio?: number[] | null;
   defaultStatic?: boolean;
 }): string => {
   if (options?.ratio && options.ratio.length === 2) {

@@ -12,7 +12,6 @@ import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
-import { MediaProviderDimensionsController } from '../../components-lib/media-provider-dimensions-controller.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
 import { CameraConfig } from '../../config/schema/cameras.js';
@@ -38,6 +37,7 @@ import { QueryClassifier } from '../../view/query-classifier.js';
 import '../image-player.js';
 import { renderProgressIndicator } from '../progress-indicator.js';
 import '../video-player.js';
+import './../media-dimensions-container';
 
 @customElement('advanced-camera-card-viewer-provider')
 export class AdvancedCameraCardViewerProvider extends LitElement implements MediaPlayer {
@@ -65,7 +65,6 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   protected _refProvider: Ref<MediaPlayerElement> = createRef();
   protected _refContainer: Ref<HTMLElement> = createRef();
   protected _lazyLoadController: LazyLoadController = new LazyLoadController(this);
-  protected _dimensionsController = new MediaProviderDimensionsController(this);
 
   @state()
   protected _url: string | null = null;
@@ -201,12 +200,6 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     if (changedProps.has('viewerConfig') && this.viewerConfig?.zoomable) {
       import('../zoomer.js');
     }
-
-    if (changedProps.has('media') || changedProps.has('cameraManager')) {
-      this._dimensionsController.setCameraConfig(
-        this._getRelevantCameraConfig()?.dimensions,
-      );
-    }
   }
 
   private _getRelevantCameraConfig(): CameraConfig | null {
@@ -227,9 +220,13 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       : null;
     const view = this.viewManagerEpoch?.manager.getView();
 
-    // Place the zoomer in a separate div, as the zoom library misinterprets the
-    // explicit width/height setting from the provider resizer as zooming.
-    return html`<div class="container" ${ref(this._refContainer)}>
+    const intermediateTemplate = html` <advanced-camera-card-media-dimensions-container
+      .dimensionsConfig=${this._getRelevantCameraConfig()?.dimensions}
+    >
+      ${template}
+    </advanced-camera-card-media-dimensions-container>`;
+
+    return html`
       ${this.viewerConfig?.zoomable
         ? html`<advanced-camera-card-zoomer
             .defaultSettings=${guard([cameraConfig?.dimensions?.layout], () =>
@@ -254,10 +251,10 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
                 mediaID,
               )}
           >
-            ${template}
+            ${intermediateTemplate}
           </advanced-camera-card-zoomer>`
-        : template}
-    </div>`;
+        : intermediateTemplate}
+    `;
   }
 
   protected render(): TemplateResult | void {
@@ -317,10 +314,6 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
             }}
           ></advanced-camera-card-image-player>`}
     `);
-  }
-
-  public updated(): void {
-    this._dimensionsController.setContainer(this._refContainer.value);
   }
 
   static get styles(): CSSResultGroup {

@@ -27,6 +27,8 @@ export const CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH =
   `${CONF_CAMERAS}.#.cast.dashboard.view_path` as const;
 export const CONF_CAMERAS_ARRAY_DIMENSIONS_ASPECT_RATIO =
   `${CONF_CAMERAS}.#.dimensions.aspect_ratio` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_ROTATION =
+  `${CONF_CAMERAS}.#.dimensions.rotation` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID =
   `${CONF_CAMERAS}.#.frigate.client_id` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_LABELS =

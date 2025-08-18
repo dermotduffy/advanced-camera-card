@@ -1,32 +1,8 @@
 @use 'media-background.scss';
+@use 'basic-block.scss';
 
-:host {
-  display: flex;
-  position: relative;
-
-  width: 100%;
-  height: 100%;
-
-  justify-content: center;
-  align-items: center;
-}
-
-.container {
+.zoom-wrapper {
   display: block;
-
-  // The container will be sized by the provider resize controller.
-  width: fit-content;
-  height: auto;
-  max-width: 100%;
-}
-
-:host([size='max']) > .container {
   width: 100%;
   height: 100%;
-}
-:host([size='max-height']) > .container {
-  height: 100%;
-}
-:host([size='max-width']) > .container {
-  width: 100%;
 }

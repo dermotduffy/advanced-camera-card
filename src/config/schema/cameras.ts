@@ -146,9 +146,17 @@ const proxyConfigSchema = z.object({
 });
 export type ProxyConfig = z.infer<typeof proxyConfigSchema>;
 
+const rotationSchema = z
+  .literal(0)
+  .or(z.literal(90))
+  .or(z.literal(180))
+  .or(z.literal(270));
+export type Rotation = z.infer<typeof rotationSchema>;
+
 const cameraDimensionsSchema = z.object({
   aspect_ratio: aspectRatioSchema.optional(),
   layout: mediaLayoutConfigSchema.optional(),
+  rotation: rotationSchema.optional(),
 });
 export type CameraDimensionsConfig = z.infer<typeof cameraDimensionsSchema>;
 

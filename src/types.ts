@@ -35,6 +35,10 @@ export interface MediaLoadedInfo {
 
   mediaPlayerController?: MediaPlayerController;
   capabilities?: MediaLoadedCapabilities;
+
+  // Whether or not this media is a placeholder (temporary image) whilst another
+  // media item is being loaded.
+  placeholder?: boolean;
 }
 
 export type MessageType = 'info' | 'error' | 'connection' | 'diagnostics';
