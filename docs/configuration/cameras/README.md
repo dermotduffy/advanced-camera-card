@@ -135,6 +135,11 @@ cameras:
 | -------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `aspect_ratio` |         | An optional aspect ratio for media from this camera which will be used in `live` or media viewer related views (e.g. `clip`, `snapshot` and `recording`). Format is the same as the parameter of the same name under the [dimensions block](../dimensions.md) (which controls dimensions for the whole card), e.g. `16 / 9`. |
 | `layout`       |         | How the media should be laid out _within_ the camera dimensions. See below.                                                                                                                                                                                                                                                  |
+| `rotation`     | `0`     | Rotates the camera clockwise by `0`, `90`, `180` or `270` degrees.                                                                                                                                                                                                                                                           |
+
+?> Use of `rotation` causes the browser to rotate the video player, unavoidably _including_ rotating the builtin video controls on the player, which may be distracting or confusing (e.g. upside down controls). Builtin controls can be disabled using the [`live.controls.builtin` parameter](../live.md?id=controls). Rotation is not available in iOS fullscreen, due to the limited fullscreen support offered by that OS.
+
+!> Rotating the camera incurs a rendering performance penalty. Always rotate "upstream" if possible (e.g. in your camera settings).
 
 ### Layout Configuration
 
@@ -181,6 +186,15 @@ See [media layout examples](../../examples.md?id=media-layout).
 #### `pan` and `zoom`: Predefined panning and zooming
 
 ![](../../images/media_layout/pan-zoom.png 'Panning and zooming :size=400')
+
+### Order of Operations
+
+Camera `dimensions` settings are applied in this order:
+
+- `aspect_ratio` defines the aspect ratio of the video player ...
+- ... then `fit`, `position` and `view_box` defines how the media is laid out within that ratio ...
+- ... then `rotation` defines whether the video is rotated ...
+- ... then `zoom` and `pan` define the zoom and pan settings respectively.
 
 ## `ptz`
 
@@ -437,6 +451,9 @@ cameras:
         - trigger
       disable:
         # Capabilities to selectively disable.
+  - camera_entity: camera.rotated
+    dimensions:
+      rotation: 90
 cameras_global:
   triggers:
     motion: false

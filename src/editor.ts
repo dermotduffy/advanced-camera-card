@@ -54,6 +54,7 @@ import {
   CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_RIGHT,
   CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_TOP,
   CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_ZOOM_FACTOR,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_ROTATION,
   CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
   CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID,
   CONF_CAMERAS_ARRAY_FRIGATE_LABELS,
@@ -960,6 +961,14 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'dark', label: localize('config.view.theme.themes.dark') },
     { value: 'light', label: localize('config.view.theme.themes.light') },
     { value: 'traditional', label: localize('config.view.theme.themes.traditional') },
+  ];
+
+  protected _rotations: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 0, label: localize('config.cameras.dimensions.rotations.0') },
+    { value: 90, label: localize('config.cameras.dimensions.rotations.90') },
+    { value: 180, label: localize('config.cameras.dimensions.rotations.180') },
+    { value: 270, label: localize('config.cameras.dimensions.rotations.270') },
   ];
 
   public setConfig(config: RawAdvancedCameraCardConfig): void {
@@ -2465,6 +2474,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                       CONF_CAMERAS_ARRAY_DIMENSIONS_ASPECT_RATIO,
                       cameraIndex,
                     ),
+                  )}
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_ROTATION,
+                      cameraIndex,
+                    ),
+                    this._rotations,
                   )}
                   ${this._renderMediaLayout(
                     MENU_CAMERAS_DIMENSIONS_LAYOUT,

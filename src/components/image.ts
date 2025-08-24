@@ -1,17 +1,9 @@
-import {
-  CSSResultGroup,
-  html,
-  LitElement,
-  PropertyValues,
-  TemplateResult,
-  unsafeCSS,
-} from 'lit';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../camera-manager/manager';
 import { ViewManagerEpoch } from '../card-controller/view/types';
-import { MediaProviderDimensionsController } from '../components-lib/media-provider-dimensions-controller';
 import { ZoomSettingsObserved } from '../components-lib/zoom/types';
 import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context';
 import { CameraConfig } from '../config/schema/cameras';
@@ -22,6 +14,7 @@ import imageStyle from '../scss/image.scss';
 import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../types.js';
 import './image-updating-player';
 import { resolveImageMode } from './image-updating-player';
+import './media-dimensions-container';
 import './zoomer.js';
 
 @customElement('advanced-camera-card-image')
@@ -41,26 +34,11 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
   @property({ attribute: false })
   public imageConfig?: ImageViewConfig;
 
-  protected _dimensionsController = new MediaProviderDimensionsController(this);
   protected _refImage: Ref<MediaPlayerElement> = createRef();
-  protected _refContainer: Ref<HTMLElement> = createRef();
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     await this.updateComplete;
     return (await this._refImage.value?.getMediaPlayerController()) ?? null;
-  }
-
-  protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('cameraConfig') || changedProps.has('imageConfig')) {
-      this._dimensionsController.setCameraConfig(
-        resolveImageMode({
-          imageConfig: this.imageConfig,
-          cameraConfig: this.cameraConfig,
-        }) === 'camera'
-          ? this.cameraConfig?.dimensions
-          : undefined,
-      );
-    }
   }
 
   protected _renderContainer(template: TemplateResult): TemplateResult {
@@ -71,33 +49,35 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
       cameraConfig: this.cameraConfig,
     });
 
-    return html`<div class="container" ${ref(this._refContainer)}>
-      ${this.imageConfig?.zoomable
-        ? html`<advanced-camera-card-zoomer
-            .defaultSettings=${guard(
-              [this.imageConfig, this.cameraConfig?.dimensions?.layout],
-              () =>
-                mode === 'camera' && this.cameraConfig?.dimensions?.layout
-                  ? {
-                      pan: this.cameraConfig.dimensions.layout.pan,
-                      zoom: this.cameraConfig.dimensions.layout.zoom,
-                    }
-                  : undefined,
+    const intermediateTemplate = html` <advanced-camera-card-media-dimensions-container
+      .dimensionsConfig=${mode === 'camera' ? this.cameraConfig?.dimensions : undefined}
+    >
+      ${template}
+    </advanced-camera-card-media-dimensions-container>`;
+
+    return html` ${this.imageConfig?.zoomable
+      ? html`<advanced-camera-card-zoomer
+          .defaultSettings=${guard(
+            [this.imageConfig, this.cameraConfig?.dimensions?.layout],
+            () =>
+              mode === 'camera' && this.cameraConfig?.dimensions?.layout
+                ? {
+                    pan: this.cameraConfig.dimensions.layout.pan,
+                    zoom: this.cameraConfig.dimensions.layout.zoom,
+                  }
+                : undefined,
+          )}
+          .settings=${view?.context?.zoom?.[zoomTarget]?.requested}
+          @advanced-camera-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
+            handleZoomSettingsObservedEvent(
+              ev,
+              this.viewManagerEpoch?.manager,
+              zoomTarget,
             )}
-            .settings=${view?.context?.zoom?.[zoomTarget]?.requested}
-            @advanced-camera-card:zoom:change=${(
-              ev: CustomEvent<ZoomSettingsObserved>,
-            ) =>
-              handleZoomSettingsObservedEvent(
-                ev,
-                this.viewManagerEpoch?.manager,
-                zoomTarget,
-              )}
-          >
-            ${template}
-          </advanced-camera-card-zoomer>`
-        : template}
-    </div>`;
+        >
+          ${intermediateTemplate}
+        </advanced-camera-card-zoomer>`
+      : intermediateTemplate}`;
   }
 
   protected render(): TemplateResult | void {
@@ -115,10 +95,6 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
       >
       </advanced-camera-card-image-updating-player>
     `);
-  }
-
-  public updated(): void {
-    this._dimensionsController.setContainer(this._refContainer.value);
   }
 
   static get styles(): CSSResultGroup {

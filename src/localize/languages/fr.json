@@ -79,6 +79,13 @@
             "top": "Pourcentage d'écart en haut"
           },
           "zoom": "Facteur de zoom"
+        },
+        "rotation": "",
+        "rotations": {
+          "0": "",
+          "90": "",
+          "180": "",
+          "270": ""
         }
       },
       "engines": {

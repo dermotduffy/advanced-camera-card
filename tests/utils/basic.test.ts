@@ -26,6 +26,7 @@ import {
   runWhenIdleIfSupported,
   setify,
   setOrRemoveAttribute,
+  setOrRemoveStyleProperty,
 } from '../../src/utils/basic.js';
 import { createSlot, createSlotHost } from '../test-utils.js';
 
@@ -245,6 +246,27 @@ describe('setOrRemoveAttribute', () => {
     element.setAttribute('key', 'value');
     setOrRemoveAttribute(element, false, 'key');
     expect(element.getAttribute('key')).toBeFalsy();
+  });
+});
+
+describe('setOrRemoveStyleProperty', () => {
+  it('should set style property without value', () => {
+    const element = document.createElement('div');
+    setOrRemoveStyleProperty(element, true, 'width');
+    expect(element.style.getPropertyValue('width')).toBe('');
+  });
+
+  it('should set style property with value', () => {
+    const element = document.createElement('div');
+    setOrRemoveStyleProperty(element, true, 'width', '100px');
+    expect(element.style.getPropertyValue('width')).toBe('100px');
+  });
+
+  it('should remove style property', () => {
+    const element = document.createElement('div');
+    element.style.setProperty('width', '100px');
+    setOrRemoveStyleProperty(element, false, 'width');
+    expect(element.style.getPropertyValue('width')).toBeFalsy();
   });
 });
 
