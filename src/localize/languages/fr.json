@@ -83,9 +83,9 @@
         "rotation": "",
         "rotations": {
           "0": "",
-          "90": "",
           "180": "",
-          "270": ""
+          "270": "",
+          "90": ""
         }
       },
       "engines": {
@@ -145,11 +145,12 @@
       "proxy": {
         "dynamic": "Proxy dynamique",
         "editor_label": "Proxy de la caméra",
-        "media": {
-          "auto": "Proxy média automatique",
-          "editor_label": "Proxy média",
-          "false": "Proxy média désactivé",
-          "true": "Proxy média activé"
+        "live": "",
+        "media": "",
+        "modes": {
+          "auto": "Proxy automatique",
+          "false": "Proxy désactivé",
+          "true": "Proxy activé"
         },
         "ssl_ciphers": {
           "auto": "Chiffrement SSL automatique",
@@ -679,6 +680,7 @@
     "duplicate_camera_id": "ID de caméra Frigate en double pour la caméra suivante, utilisez le paramètre « ID » pour identifier de manière unique les caméras",
     "duplicate_folder_id": "",
     "empty_response": "Réponse vide reçue de Home Assistant pour la demande",
+    "failed_proxy": "",
     "failed_response": "Échec de la réponse de Home Assistant à la demande",
     "failed_retain": "Impossible de conserver l'événement",
     "failed_sign": "Impossible de signer l'URL de Home Assistant",

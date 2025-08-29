@@ -17,7 +17,6 @@ import { MediaActionsController } from '../../components-lib/media-actions-contr
 import { MediaHeightController } from '../../components-lib/media-height-controller.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
-import { CameraConfig } from '../../config/schema/cameras.js';
 import { TransitionEffect } from '../../config/schema/common/transition-effect.js';
 import { LiveConfig } from '../../config/schema/live.js';
 import { CardWideConfig, configDefaults } from '../../config/schema/types.js';
@@ -170,18 +169,8 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     const slides: TemplateResult[] = [];
     const cameraToSlide: Record<string, number> = {};
 
-    for (const [cameraID, cameraConfig] of this.cameraManager
-      .getStore()
-      .getCameraConfigEntries(cameraIDs)) {
-      const liveCameraID = this._getSubstreamCameraID(cameraID, view);
-      const liveCameraConfig =
-        cameraID === liveCameraID
-          ? cameraConfig
-          : this.cameraManager?.getStore().getCameraConfig(liveCameraID);
-
-      const slide = liveCameraConfig
-        ? this._renderLive(liveCameraID, liveCameraConfig)
-        : null;
+    for (const cameraID of cameraIDs ?? []) {
+      const slide = this._renderLive(this._getSubstreamCameraID(cameraID, view));
       if (slide) {
         cameraToSlide[cameraID] = slides.length;
         slides.push(slide);
@@ -207,11 +196,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     }
   }
 
-  protected _renderLive(
-    cameraID: string,
-    cameraConfig: CameraConfig,
-  ): TemplateResult | void {
-    if (!this.liveConfig || !this.hass || !this.cameraManager) {
+  protected _renderLive(cameraID: string): TemplateResult | void {
+    const camera = this.cameraManager?.getStore().getCamera(cameraID);
+    if (!this.liveConfig || !this.hass || !this.cameraManager || !camera) {
       return;
     }
 
@@ -224,7 +211,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
           .microphoneState=${view?.camera === cameraID
             ? this.microphoneState
             : undefined}
-          .cameraConfig=${cameraConfig}
+          .camera=${camera}
           .cameraEndpoints=${guard(
             [this.cameraManager, cameraID],
             () => this.cameraManager?.getCameraEndpoints(cameraID) ?? undefined,

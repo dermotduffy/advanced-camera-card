@@ -8,15 +8,21 @@ import {
 import { createHASS } from '../test-utils.js';
 
 describe('getWebProxiedURL', () => {
-  it('should return proxied URL with v != 0', () => {
-    expect(getWebProxiedURL('http://example.com', 2)).toBe(
+  it('should return proxied URL with default version', () => {
+    expect(getWebProxiedURL('http://example.com')).toBe(
+      '/api/hass_web_proxy/v0/?url=http%3A%2F%2Fexample.com',
+    );
+  });
+
+  it('should return proxied URL with non-default version', () => {
+    expect(getWebProxiedURL('http://example.com', { version: 2 })).toBe(
       '/api/hass_web_proxy/v2/?url=http%3A%2F%2Fexample.com',
     );
   });
 
-  it('should return proxied URL with default v', () => {
-    expect(getWebProxiedURL('http://example.com')).toBe(
-      '/api/hass_web_proxy/v0/?url=http%3A%2F%2Fexample.com',
+  it('should return proxied URL with websocket', () => {
+    expect(getWebProxiedURL('http://example.com', { websocket: true })).toBe(
+      '/api/hass_web_proxy/v0/ws?url=http%3A%2F%2Fexample.com',
     );
   });
 });
@@ -26,6 +32,7 @@ describe('shouldUseWebProxy', () => {
     config: Partial<CameraProxyConfig> = {},
   ): CameraProxyConfig => ({
     media: true,
+    live: true,
     ssl_verification: true,
     ssl_ciphers: 'default',
     dynamic: true,
@@ -81,6 +88,30 @@ describe('addDynamicProxyURL', () => {
         ttl: 60,
         allow_unauthenticated: false,
       },
+    );
+  });
+
+  it('should add dynamic proxy URL using config defaults', async () => {
+    const hass = createHASS();
+    const proxyConfig: CameraProxyConfig = {
+      media: true,
+      live: true,
+      ssl_verification: false,
+      ssl_ciphers: 'insecure',
+      dynamic: true,
+    };
+
+    await addDynamicProxyURL(hass, 'http://example.com', {
+      proxyConfig: proxyConfig,
+    });
+
+    expect(hass.callService).toHaveBeenCalledWith(
+      'hass_web_proxy',
+      'create_proxied_url',
+      expect.objectContaining({
+        ssl_verification: false,
+        ssl_ciphers: 'insecure',
+      }),
     );
   });
 });

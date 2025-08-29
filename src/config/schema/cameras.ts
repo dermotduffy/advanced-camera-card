@@ -121,10 +121,11 @@ export const cameraConfigDefault = {
     entities: [],
   },
   proxy: {
-    media: 'auto' as const,
     dynamic: true,
-    ssl_verification: 'auto' as const,
+    live: 'auto' as const,
+    media: 'auto' as const,
     ssl_ciphers: 'auto' as const,
+    ssl_verification: 'auto' as const,
   },
   always_error_if_entity_unavailable: false,
 };
@@ -133,6 +134,7 @@ const SSL_CIPHERS = ['default', 'insecure', 'intermediate', 'modern'] as const;
 export type SSLCiphers = (typeof SSL_CIPHERS)[number];
 
 const proxyConfigSchema = z.object({
+  live: z.boolean().or(z.literal('auto')).default(cameraConfigDefault.proxy.live),
   media: z.boolean().or(z.literal('auto')).default(cameraConfigDefault.proxy.media),
   dynamic: z.boolean().default(cameraConfigDefault.proxy.dynamic),
   ssl_verification: z
@@ -144,7 +146,6 @@ const proxyConfigSchema = z.object({
     .or(z.literal('auto'))
     .default(cameraConfigDefault.proxy.ssl_ciphers),
 });
-export type ProxyConfig = z.infer<typeof proxyConfigSchema>;
 
 const rotationSchema = z
   .literal(0)

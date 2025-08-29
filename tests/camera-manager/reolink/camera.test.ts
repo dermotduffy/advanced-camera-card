@@ -5,7 +5,6 @@ import { ReolinkCamera } from '../../../src/camera-manager/reolink/camera';
 import { CameraProxyConfig } from '../../../src/camera-manager/types';
 import { ActionsExecutor } from '../../../src/card-controller/actions/types';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
-import { ProxyConfig } from '../../../src/config/schema/cameras';
 import { EntityRegistryManagerLive } from '../../../src/ha/registry/entity';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
@@ -341,6 +340,7 @@ describe('ReolinkCamera', () => {
         {},
         {
           dynamic: true,
+          live: false,
           media: true,
           ssl_verification: false,
           ssl_ciphers: 'intermediate' as const,
@@ -348,9 +348,10 @@ describe('ReolinkCamera', () => {
       ],
       [
         'when media set to on',
-        { media: true },
+        { proxy: { media: true } },
         {
           dynamic: true,
+          live: false,
           media: true,
           ssl_verification: false,
           ssl_ciphers: 'intermediate' as const,
@@ -358,9 +359,10 @@ describe('ReolinkCamera', () => {
       ],
       [
         'when media set to off',
-        { media: false },
+        { proxy: { media: false } },
         {
           dynamic: true,
+          live: false,
           media: false,
           ssl_verification: false,
           ssl_ciphers: 'intermediate' as const,
@@ -368,9 +370,10 @@ describe('ReolinkCamera', () => {
       ],
       [
         'when media set to auto',
-        { media: 'auto' as const },
+        { proxy: { media: 'auto' as const } },
         {
           dynamic: true,
+          live: false,
           media: true,
           ssl_verification: false,
           ssl_ciphers: 'intermediate' as const,
@@ -378,9 +381,10 @@ describe('ReolinkCamera', () => {
       ],
       [
         'when ssl_verification is set to auto',
-        { ssl_verification: 'auto' as const },
+        { proxy: { ssl_verification: 'auto' as const } },
         {
           dynamic: true,
+          live: false,
           media: true,
           ssl_verification: false,
           ssl_ciphers: 'intermediate' as const,
@@ -388,9 +392,10 @@ describe('ReolinkCamera', () => {
       ],
       [
         'when ssl_verification is set to true',
-        { ssl_verification: true },
+        { proxy: { ssl_verification: true } },
         {
           dynamic: true,
+          live: false,
           media: true,
           ssl_verification: true,
           ssl_ciphers: 'intermediate' as const,
@@ -398,9 +403,10 @@ describe('ReolinkCamera', () => {
       ],
       [
         'when ssl_verification is set to false',
-        { ssl_verification: false },
+        { proxy: { ssl_verification: false } },
         {
           dynamic: true,
+          live: false,
           media: true,
           ssl_verification: false,
           ssl_ciphers: 'intermediate' as const,
@@ -408,9 +414,10 @@ describe('ReolinkCamera', () => {
       ],
       [
         'when ssl_ciphers is set to auto',
-        { ssl_ciphers: 'auto' as const },
+        { proxy: { ssl_ciphers: 'auto' as const } },
         {
           dynamic: true,
+          live: false,
           media: true,
           ssl_verification: false,
           ssl_ciphers: 'intermediate' as const,
@@ -418,9 +425,10 @@ describe('ReolinkCamera', () => {
       ],
       [
         'when ssl_ciphers is set to modern',
-        { ssl_ciphers: 'modern' as const },
+        { proxy: { ssl_ciphers: 'modern' as const } },
         {
           dynamic: true,
+          live: false,
           media: true,
           ssl_verification: false,
           ssl_ciphers: 'modern' as const,
@@ -428,9 +436,47 @@ describe('ReolinkCamera', () => {
       ],
       [
         'when dynamic is set to false',
-        { dynamic: false },
+        { proxy: { dynamic: false } },
         {
           dynamic: false,
+          live: false,
+          media: true,
+          ssl_verification: false,
+          ssl_ciphers: 'intermediate' as const,
+        },
+      ],
+      [
+        'when go2rtc has no url',
+        { live_provider: 'go2rtc' },
+        {
+          dynamic: true,
+          live: false,
+          media: true,
+          ssl_verification: false,
+          ssl_ciphers: 'intermediate' as const,
+        },
+      ],
+      [
+        'when go2rtc has a url',
+        { live_provider: 'go2rtc', go2rtc: { url: 'http://localhost:1984' } },
+        {
+          dynamic: true,
+          live: true,
+          media: true,
+          ssl_verification: false,
+          ssl_ciphers: 'intermediate' as const,
+        },
+      ],
+      [
+        'when go2rtc has a url but live is set to false',
+        {
+          live_provider: 'go2rtc',
+          go2rtc: { url: 'http://localhost:1984' },
+          proxy: { live: false },
+        },
+        {
+          dynamic: true,
+          live: false,
           media: true,
           ssl_verification: false,
           ssl_ciphers: 'intermediate' as const,
@@ -438,15 +484,9 @@ describe('ReolinkCamera', () => {
       ],
     ])(
       '%s',
-      (
-        _name: string,
-        proxyConfig: Partial<ProxyConfig>,
-        expectedResult: CameraProxyConfig,
-      ) => {
+      (_name: string, cameraConfig: unknown, expectedResult: CameraProxyConfig) => {
         const camera = new ReolinkCamera(
-          createCameraConfig({
-            proxy: proxyConfig,
-          }),
+          createCameraConfig(cameraConfig),
           mock<CameraManagerEngine>(),
         );
         expect(camera.getProxyConfig()).toEqual(expectedResult);

@@ -217,6 +217,22 @@ providers](./configuration/cameras/live-provider.md) such as `image` or `jsmpeg`
 The card will only show the fullscreen menu button when fullscreen can usefully
 be activated, which means for certain views on the iPhone it will be absent.
 
+### Custom `go2rtc` server only works on Home Network
+
+This card runs in your browser, and (if configured) attempts to opens a direct
+connection to a `go2rtc` server. If you are manually specifying a custom server
+using the [`url`](./configuration/cameras/live-provider.md?id=go2rtc) option,
+your browser may only be able to access that server when you're on the same
+network, and/or when both Home Assistant and the `go2rtc` server are both
+accessed over `http` or both over `https`.
+
+To automatically proxy the connection via the Home Assistant process instead
+(ensuring that if you can access the card, you'll always have access to the
+`go2rtc` server), optionally install
+[hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration)
+and your connection will be automatically proxied. See
+[proxying](./configuration/cameras/README.md?id=proxy).
+
 ### iOS App not updating after card version change
 
 Try resetting the app frontend cache:

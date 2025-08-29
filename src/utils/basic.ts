@@ -323,3 +323,7 @@ export const generateFloatApproximatelyEqualsCustomizer = (
       : undefined;
   };
 };
+
+export const convertHTTPAdressToWebsocket = (url: string): string => {
+  return url.replace(/^http/i, 'ws');
+};
