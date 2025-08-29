@@ -123,6 +123,7 @@ export interface CameraEndpoints {
 
 export interface CameraProxyConfig {
   dynamic: boolean;
+  live: boolean;
   media: boolean;
   ssl_verification: boolean;
   ssl_ciphers: SSLCiphers;

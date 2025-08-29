@@ -92,6 +92,7 @@ export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_ZOOM_FACTOR =
   `${CONF_CAMERAS}.#.dimensions.layout.zoom` as const;
 export const CONF_CAMERAS_ARRAY_PROXY_DYNAMIC =
   `${CONF_CAMERAS}.#.proxy.dynamic` as const;
+export const CONF_CAMERAS_ARRAY_PROXY_LIVE = `${CONF_CAMERAS}.#.proxy.live` as const;
 export const CONF_CAMERAS_ARRAY_PROXY_MEDIA = `${CONF_CAMERAS}.#.proxy.media` as const;
 export const CONF_CAMERAS_ARRAY_PROXY_SSL_CIPHERS =
   `${CONF_CAMERAS}.#.proxy.ssl_ciphers` as const;

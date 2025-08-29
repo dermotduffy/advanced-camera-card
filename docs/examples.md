@@ -488,6 +488,27 @@ folders:
               regexp: 'Person.*'
 ```
 
+## `go2rtc`
+
+This example will use a custom `go2rtc` server, automatically proxying the video
+stream via the Home Assistant process if
+[hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration)
+is detected. See [proxying](./configuration/cameras/README.md?id=proxy).
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+    live_provider: go2rtc
+    go2rtc:
+      # This would normally risk mixed content issues with browsers (accessing
+      # `http` content over a `https` connection to Home Assistant is often
+      # forbidden by browsers). In this scenario, since hass-web-proxy-integration
+      # has been installed separately by the user, the video will be automatically
+      # proxied.
+      url: http://my-custom-go2rtc
+```
+
 ## Human interaction
 
 This example will automatically use a HD live substream when

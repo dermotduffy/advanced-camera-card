@@ -14,11 +14,12 @@ import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispa
 import { JSMPEGMediaPlayerController } from '../../../components-lib/media-player/jsmpeg.js';
 import { CameraConfig } from '../../../config/schema/cameras.js';
 import { CardWideConfig } from '../../../config/schema/types.js';
+import { homeAssistantSignPath } from '../../../ha/sign-path.js';
 import { HomeAssistant } from '../../../ha/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveJSMPEGStyle from '../../../scss/live-jsmpeg.scss';
 import { MediaPlayer, MediaPlayerController, Message } from '../../../types.js';
-import { convertEndpointAddressToSignedWebsocket } from '../../../utils/endpoint.js';
+import { convertHTTPAdressToWebsocket, errorToConsole } from '../../../utils/basic.js';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
@@ -183,11 +184,18 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
       return;
     }
 
-    const address = await convertEndpointAddressToSignedWebsocket(
-      this.hass,
-      endpoint,
-      JSMPEG_URL_SIGN_EXPIRY_SECONDS,
-    );
+    let response: string | null | undefined;
+    try {
+      response = await homeAssistantSignPath(
+        this.hass,
+        endpoint.endpoint,
+        JSMPEG_URL_SIGN_EXPIRY_SECONDS,
+      );
+    } catch (e) {
+      errorToConsole(e as Error);
+    }
+    const address = response ? convertHTTPAdressToWebsocket(response) : null;
+
     if (!address) {
       this._message = {
         type: 'error',

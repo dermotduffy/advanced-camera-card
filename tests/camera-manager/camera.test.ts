@@ -4,7 +4,6 @@ import { Camera } from '../../src/camera-manager/camera.js';
 import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic.js';
 import { CameraProxyConfig } from '../../src/camera-manager/types.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
-import { ProxyConfig } from '../../src/config/schema/cameras.js';
 import {
   callStateWatcherCallback,
   createCameraConfig,
@@ -179,6 +178,7 @@ describe('Camera', () => {
         {},
         {
           dynamic: true,
+          live: false,
           media: false,
           ssl_verification: true,
           ssl_ciphers: 'default' as const,
@@ -186,9 +186,10 @@ describe('Camera', () => {
       ],
       [
         'when media set to true',
-        { media: true },
+        { proxy: { media: true } },
         {
           dynamic: true,
+          live: false,
           media: true,
           ssl_verification: true,
           ssl_ciphers: 'default' as const,
@@ -196,9 +197,10 @@ describe('Camera', () => {
       ],
       [
         'when media set to false',
-        { media: false as const },
+        { proxy: { media: false as const } },
         {
           dynamic: true,
+          live: false,
           media: false,
           ssl_verification: true,
           ssl_ciphers: 'default' as const,
@@ -206,9 +208,10 @@ describe('Camera', () => {
       ],
       [
         'when media set to auto',
-        { media: 'auto' as const },
+        { proxy: { media: 'auto' as const } },
         {
           dynamic: true,
+          live: false,
           media: false,
           ssl_verification: true,
           ssl_ciphers: 'default' as const,
@@ -216,9 +219,10 @@ describe('Camera', () => {
       ],
       [
         'when ssl_verification is set to auto',
-        { ssl_verification: 'auto' as const },
+        { proxy: { ssl_verification: 'auto' as const } },
         {
           dynamic: true,
+          live: false,
           media: false,
           ssl_verification: true,
           ssl_ciphers: 'default' as const,
@@ -226,9 +230,10 @@ describe('Camera', () => {
       ],
       [
         'when ssl_verification is set to true',
-        { ssl_verification: true },
+        { proxy: { ssl_verification: true } },
         {
           dynamic: true,
+          live: false,
           media: false,
           ssl_verification: true,
           ssl_ciphers: 'default' as const,
@@ -236,9 +241,10 @@ describe('Camera', () => {
       ],
       [
         'when ssl_verification is set to false',
-        { ssl_verification: false },
+        { proxy: { ssl_verification: false } },
         {
           dynamic: true,
+          live: false,
           media: false,
           ssl_verification: false,
           ssl_ciphers: 'default' as const,
@@ -246,9 +252,10 @@ describe('Camera', () => {
       ],
       [
         'when ssl_ciphers is set to auto',
-        { ssl_ciphers: 'auto' as const },
+        { proxy: { ssl_ciphers: 'auto' as const } },
         {
           dynamic: true,
+          live: false,
           media: false,
           ssl_verification: true,
           ssl_ciphers: 'default' as const,
@@ -256,9 +263,10 @@ describe('Camera', () => {
       ],
       [
         'when ssl_ciphers is set to modern',
-        { ssl_ciphers: 'modern' as const },
+        { proxy: { ssl_ciphers: 'modern' as const } },
         {
           dynamic: true,
+          live: false,
           media: false,
           ssl_verification: true,
           ssl_ciphers: 'modern' as const,
@@ -266,9 +274,47 @@ describe('Camera', () => {
       ],
       [
         'when dynamic is set to false',
-        { dynamic: false },
+        { proxy: { dynamic: false } },
         {
           dynamic: false,
+          live: false,
+          media: false,
+          ssl_verification: true,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+      [
+        'when go2rtc has no url',
+        { live_provider: 'go2rtc' },
+        {
+          dynamic: true,
+          live: false,
+          media: false,
+          ssl_verification: true,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+      [
+        'when go2rtc has a url',
+        { live_provider: 'go2rtc', go2rtc: { url: 'http://localhost:1984' } },
+        {
+          dynamic: true,
+          live: true,
+          media: false,
+          ssl_verification: true,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+      [
+        'when go2rtc has a url but live is set to false',
+        {
+          live_provider: 'go2rtc',
+          go2rtc: { url: 'http://localhost:1984' },
+          proxy: { live: false },
+        },
+        {
+          dynamic: true,
+          live: false,
           media: false,
           ssl_verification: true,
           ssl_ciphers: 'default' as const,
@@ -276,15 +322,9 @@ describe('Camera', () => {
       ],
     ])(
       '%s',
-      (
-        _name: string,
-        proxyConfig: Partial<ProxyConfig>,
-        expectedResult: CameraProxyConfig,
-      ) => {
+      (_name: string, cameraConfig: unknown, expectedResult: CameraProxyConfig) => {
         const camera = new Camera(
-          createCameraConfig({
-            proxy: proxyConfig,
-          }),
+          createCameraConfig(cameraConfig),
           new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
         );
         expect(camera.getProxyConfig()).toEqual(expectedResult);

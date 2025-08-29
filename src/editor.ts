@@ -77,6 +77,7 @@ import {
   CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_FILE_PATTERN,
   CONF_CAMERAS_ARRAY_MOTIONEYE_URL,
   CONF_CAMERAS_ARRAY_PROXY_DYNAMIC,
+  CONF_CAMERAS_ARRAY_PROXY_LIVE,
   CONF_CAMERAS_ARRAY_PROXY_MEDIA,
   CONF_CAMERAS_ARRAY_PROXY_SSL_CIPHERS,
   CONF_CAMERAS_ARRAY_PROXY_SSL_VERIFICATION,
@@ -871,19 +872,19 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _proxyMedia: EditorSelectOption[] = [
+  protected _proxyModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'auto',
-      label: localize('config.cameras.proxy.media.auto'),
+      label: localize('config.cameras.proxy.modes.auto'),
     },
     {
       value: true,
-      label: localize('config.cameras.proxy.media.true'),
+      label: localize('config.cameras.proxy.modes.true'),
     },
     {
       value: false,
-      label: localize('config.cameras.proxy.media.false'),
+      label: localize('config.cameras.proxy.modes.false'),
     },
   ];
 
@@ -2563,10 +2564,17 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 'mdi:arrow-decision',
                 html`
                   ${this._renderOptionSelector(
-                    getArrayConfigPath(CONF_CAMERAS_ARRAY_PROXY_MEDIA, cameraIndex),
-                    this._proxyMedia,
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_PROXY_LIVE, cameraIndex),
+                    this._proxyModes,
                     {
-                      label: localize('config.cameras.proxy.media.editor_label'),
+                      label: localize('config.cameras.proxy.live'),
+                    },
+                  )}
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_PROXY_MEDIA, cameraIndex),
+                    this._proxyModes,
+                    {
+                      label: localize('config.cameras.proxy.media'),
                     },
                   )}
                   ${this._renderSwitch(

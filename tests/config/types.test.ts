@@ -40,6 +40,7 @@ describe('config defaults', () => {
         },
         proxy: {
           dynamic: true,
+          live: 'auto',
           media: 'auto',
           ssl_verification: 'auto',
           ssl_ciphers: 'auto',

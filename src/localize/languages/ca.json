@@ -83,9 +83,9 @@
         "rotation": "",
         "rotations": {
           "0": "",
-          "90": "",
           "180": "",
-          "270": ""
+          "270": "",
+          "90": ""
         }
       },
       "engines": {
@@ -145,9 +145,10 @@
       "proxy": {
         "dynamic": "",
         "editor_label": "",
-        "media": {
+        "live": "",
+        "media": "",
+        "modes": {
           "auto": "",
-          "editor_label": "",
           "false": "",
           "true": ""
         },
@@ -679,6 +680,7 @@
     "duplicate_camera_id": "Duplica l'identificador de la càmera Frigate per a la següent càmera, utilitza el paràmetre 'id' per identificar les càmeres de manera única",
     "duplicate_folder_id": "",
     "empty_response": "S'ha rebut una resposta buida de Home Assistant per a la sol·licitud",
+    "failed_proxy": "",
     "failed_response": "No s'ha pogut rebre la resposta de Home Assistant per a la sol·licitud",
     "failed_retain": "No s'ha pogut retenir l'esdeveniment",
     "failed_sign": "No s'ha pogut signar l'URL de Home Assistant",

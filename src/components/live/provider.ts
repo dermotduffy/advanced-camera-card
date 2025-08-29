@@ -10,12 +10,13 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { Camera } from '../../camera-manager/camera.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
 import { PartialZoomSettings } from '../../components-lib/zoom/types.js';
-import { CameraConfig, LiveProvider } from '../../config/schema/cameras.js';
+import { LiveProvider } from '../../config/schema/cameras.js';
 import { LiveConfig } from '../../config/schema/live.js';
 import { CardWideConfig, configDefaults } from '../../config/schema/types.js';
 import { STREAM_TROUBLESHOOTING_URL } from '../../const.js';
@@ -39,7 +40,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public cameraConfig?: CameraConfig;
+  public camera?: Camera;
 
   @property({ attribute: false })
   public cameraEndpoints?: CameraEndpoints;
@@ -105,20 +106,18 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
    * @returns A live provider (that is not 'auto').
    */
   protected _getResolvedProvider(): Omit<LiveProvider, 'auto'> {
-    if (this.cameraConfig?.live_provider === 'auto') {
-      if (
-        this.cameraConfig?.webrtc_card?.entity ||
-        this.cameraConfig?.webrtc_card?.url
-      ) {
+    const config = this.camera?.getConfig();
+    if (config?.live_provider === 'auto') {
+      if (config?.webrtc_card?.entity || config?.webrtc_card?.url) {
         return 'webrtc-card';
-      } else if (this.cameraConfig?.camera_entity) {
+      } else if (config?.camera_entity) {
         return 'ha';
-      } else if (this.cameraConfig?.frigate.camera_name) {
+      } else if (config?.frigate.camera_name) {
         return 'jsmpeg';
       }
       return configDefaults.cameras.live_provider;
     }
-    return this.cameraConfig?.live_provider || 'image';
+    return config?.live_provider || 'image';
   }
 
   /**
@@ -129,7 +128,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   protected _shouldShowImageDuringLoading(): boolean {
     return (
       !this._isVideoMediaLoaded &&
-      !!this.cameraConfig?.camera_entity &&
+      !!this.camera?.getConfig()?.camera_entity &&
       !!this.hass &&
       !!this.liveConfig?.show_image_during_load &&
       !this._showStreamTroubleshooting &&
@@ -172,7 +171,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       }
     }
 
-    if (changedProps.has('cameraConfig')) {
+    if (changedProps.has('camera')) {
       const provider = this._getResolvedProvider();
       if (provider === 'jsmpeg') {
         this._importPromises.push(import('./providers/jsmpeg.js'));
@@ -198,8 +197,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   }
 
   protected _renderContainer(template: TemplateResult): TemplateResult {
+    const config = this.camera?.getConfig();
     const intermediateTemplate = html` <advanced-camera-card-media-dimensions-container
-      .dimensionsConfig=${this.cameraConfig?.dimensions}
+      .dimensionsConfig=${config?.dimensions}
       @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
         if (ev.detail.placeholder) {
           ev.stopPropagation();
@@ -213,11 +213,11 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
     return html` ${this.liveConfig?.zoomable
       ? html` <advanced-camera-card-zoomer
-          .defaultSettings=${guard([this.cameraConfig?.dimensions?.layout], () =>
-            this.cameraConfig?.dimensions?.layout
+          .defaultSettings=${guard([config?.dimensions?.layout], () =>
+            config?.dimensions?.layout
               ? {
-                  pan: this.cameraConfig.dimensions.layout.pan,
-                  zoom: this.cameraConfig.dimensions.layout.zoom,
+                  pan: config.dimensions.layout.pan,
+                  zoom: config.dimensions.layout.zoom,
                 }
               : undefined,
           )}
@@ -233,11 +233,13 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   }
 
   protected render(): TemplateResult | void {
+    const cameraConfig = this.camera?.getConfig();
     if (
       !this._lazyLoadController?.isLoaded() ||
       !this.hass ||
       !this.liveConfig ||
-      !this.cameraConfig
+      !this.camera ||
+      !cameraConfig
     ) {
       return;
     }
@@ -251,27 +253,26 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     if (
       provider === 'ha' ||
       provider === 'image' ||
-      (this.cameraConfig?.camera_entity &&
-        this.cameraConfig.always_error_if_entity_unavailable)
+      (cameraConfig?.camera_entity && cameraConfig.always_error_if_entity_unavailable)
     ) {
-      if (!this.cameraConfig?.camera_entity) {
+      if (!cameraConfig?.camera_entity) {
         dispatchLiveErrorEvent(this);
         return renderMessage({
           message: localize('error.no_live_camera'),
           type: 'error',
           icon: 'mdi:camera',
-          context: this.cameraConfig,
+          context: cameraConfig,
         });
       }
 
-      const stateObj = this.hass.states[this.cameraConfig.camera_entity];
+      const stateObj = this.hass.states[cameraConfig.camera_entity];
       if (!stateObj) {
         dispatchLiveErrorEvent(this);
         return renderMessage({
           message: localize('error.live_camera_not_found'),
           type: 'error',
           icon: 'mdi:camera',
-          context: this.cameraConfig,
+          context: cameraConfig,
         });
       }
 
@@ -301,7 +302,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
         ? html` <advanced-camera-card-live-image
             ${ref(this._refProvider)}
             .hass=${this.hass}
-            .cameraConfig=${this.cameraConfig}
+            .cameraConfig=${cameraConfig}
             class=${classMap({
               ...classes,
               // The image provider is providing the temporary loading image,
@@ -320,7 +321,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
             ${ref(this._refProvider)}
             class=${classMap(classes)}
             .hass=${this.hass}
-            .cameraConfig=${this.cameraConfig}
+            .cameraConfig=${cameraConfig}
             ?controls=${this.liveConfig.controls.builtin}
             @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
           >
@@ -330,7 +331,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               ${ref(this._refProvider)}
               class=${classMap(classes)}
               .hass=${this.hass}
-              .cameraConfig=${this.cameraConfig}
+              .camera=${this.camera}
               .cameraEndpoints=${this.cameraEndpoints}
               .microphoneState=${this.microphoneState}
               .microphoneConfig=${this.liveConfig.microphone}
@@ -343,7 +344,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                 ${ref(this._refProvider)}
                 class=${classMap(classes)}
                 .hass=${this.hass}
-                .cameraConfig=${this.cameraConfig}
+                .cameraConfig=${cameraConfig}
                 .cameraEndpoints=${this.cameraEndpoints}
                 .cardWideConfig=${this.cardWideConfig}
                 ?controls=${this.liveConfig.controls.builtin}
@@ -355,7 +356,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                   ${ref(this._refProvider)}
                   class=${classMap(classes)}
                   .hass=${this.hass}
-                  .cameraConfig=${this.cameraConfig}
+                  .cameraConfig=${cameraConfig}
                   .cameraEndpoints=${this.cameraEndpoints}
                   .cardWideConfig=${this.cardWideConfig}
                   @advanced-camera-card:live:error=${() => this._providerErrorHandler()}

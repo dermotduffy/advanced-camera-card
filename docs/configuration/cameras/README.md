@@ -265,10 +265,10 @@ cameras:
 
 Configures whether and how the content is proxied via
 [hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration)
-(this must be installed separately). This allows fetching media **through** the
-Home Assistant process itself, allowing the card to access resources it
-otherwise would not be able to directly access. There are [security and
-performance
+(this must be installed separately). This allows fetching media or live streams
+**through** the Home Assistant process itself, allowing the card to access
+resources it otherwise would not be able to directly access. There are [security
+and performance
 implications](https://github.com/dermotduffy/hass-web-proxy-integration?tab=readme-ov-file#considerations)
 to consider before installing
 [hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration)
@@ -283,7 +283,9 @@ cameras:
 
 ![Camera Proxying](../../images/proxy.png 'Camera Proxying :size=400')
 
-Not all [engines](./engine.md) benefit from proxying:
+For live streams, only the `go2rtc` [live provider](./live-provider.md) currently supports live stream proxying.
+
+For media, not all [engines](./engine.md) benefit from proxying:
 
 | Engine                 | Purpose of proxying                                                                                                                                                                                                                                                                            |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -300,6 +302,7 @@ Proxying parameters:
 
 | Option             | Default | Description                                                                                                                                                                                                                                                                                                                      |
 | ------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `live`             | `auto`  | Whether or not to proxy live streams. `true` to proxy, `false` to not proxy, or `auto` to allow the camera engine to decide whether to proxy or not. Not all [live providers](./live-provider.md) support proxying live streams.                                                                                                 |
 | `media`            | `auto`  | Whether or not to proxy media items. `true` to proxy, `false` to not proxy, or `auto` to allow the camera engine to decide whether to proxy or not.                                                                                                                                                                              |
 | `dynamic`          | `true`  | Whether to dynamically (at the time) request proxying of the required media item, or rely on statically user-configured pre-existing proxying. See the [hass-web-proxy-integration documentation](https://github.com/dermotduffy/hass-web-proxy-integration).                                                                    |
 | `ssl_verification` | `auto`  | Whether to verify the validity of SSL certificates. If `true` always verifies, if `false` never verifies and if `auto` the [engine](./engine.md) decides the best setting for that camera ecosystem.                                                                                                                             |
@@ -431,6 +434,7 @@ cameras:
           preset: window
   - camera_entity: camera.needs_proxy
     proxy:
+      live: auto
       media: auto
       dynamic: true
       ssl_verification: auto

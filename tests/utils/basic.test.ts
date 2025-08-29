@@ -7,6 +7,7 @@ import {
   arrayMove,
   aspectRatioToStyle,
   contentsChanged,
+  convertHTTPAdressToWebsocket,
   dayToDate,
   desparsifyArrays,
   errorToConsole,
@@ -512,5 +513,25 @@ describe('generateFloatApproximatelyEqualsCustomizer', () => {
         generateFloatApproximatelyEqualsCustomizer(5)(1.00001, 1.00002),
       ).toBeFalsy();
     });
+  });
+});
+
+describe('convertHTTPAdressToWebsocket', () => {
+  it('should convert http to ws', () => {
+    expect(convertHTTPAdressToWebsocket('http://example.com')).toBe('ws://example.com');
+  });
+  it('should convert https to ws', () => {
+    expect(convertHTTPAdressToWebsocket('https://example.com')).toBe(
+      'wss://example.com',
+    );
+  });
+  it('should not change ws url', () => {
+    expect(convertHTTPAdressToWebsocket('ws://example.com')).toBe('ws://example.com');
+  });
+  it('should not change wss url', () => {
+    expect(convertHTTPAdressToWebsocket('wss://example.com')).toBe('wss://example.com');
+  });
+  it('should handle mixed case', () => {
+    expect(convertHTTPAdressToWebsocket('HtTp://example.com')).toBe('ws://example.com');
   });
 });

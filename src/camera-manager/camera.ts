@@ -77,8 +77,15 @@ export class Camera {
 
   public getProxyConfig(): CameraProxyConfig {
     return {
-      dynamic: this._config.proxy.dynamic,
+      live:
+        this._config.proxy.live === 'auto'
+          ? // Live is proxied if the live provider is go2rtc and if a go2rtc
+            // URL is manually set.
+            this._config.live_provider === 'go2rtc' && !!this._config.go2rtc?.url
+          : this._config.proxy.live,
       media: this._config.proxy.media === 'auto' ? false : this._config.proxy.media,
+
+      dynamic: this._config.proxy.dynamic,
       ssl_verification: this._config.proxy.ssl_verification !== false,
       ssl_ciphers:
         this._config.proxy.ssl_ciphers === 'auto'

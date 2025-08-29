@@ -158,13 +158,17 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
         // Don't use URL() parsing, since that will strip the port number if
         // it's the default, just need to strip any hash part of the URL.
         const urlWithoutQSorHash = unsignedURL.split(/#/)[0];
-        await addDynamicProxyURL(this.hass, urlWithoutQSorHash, {
-          sslVerification: proxyConfig.ssl_verification,
-          sslCiphers: proxyConfig.ssl_ciphers,
 
-          // The link may need to be opened multiple times.
-          openLimit: 0,
-        });
+        try {
+          await addDynamicProxyURL(this.hass, urlWithoutQSorHash, {
+            proxyConfig,
+
+            // The link may need to be opened multiple times.
+            openLimit: 0,
+          });
+        } catch (e) {
+          errorToConsole(e as Error);
+        }
       }
 
       try {
