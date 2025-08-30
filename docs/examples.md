@@ -139,10 +139,10 @@ cameras:
   - live_provider: go2rtc
     go2rtc:
       stream: office
-      url: https://my.go2rtc.url:1984/
+      url: https://my.go2rtc.url:1984
 ```
 
-!> Browsers will reject [mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content): if you access Home Assistant over `https`, you must also put `go2rtc` behind `https` and use that in the `url` parameter.
+!> Browsers will reject [mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content): if you access Home Assistant over `https`, you must also put `go2rtc` behind `https` and use that in the `url` parameter. Check [go2rtc proxying](#go2rtc) as an alternative.
 
 ## `card-mod`
 
@@ -498,16 +498,18 @@ is detected. See [proxying](./configuration/cameras/README.md?id=proxy).
 ```yaml
 type: custom:advanced-camera-card
 cameras:
-  - camera_entity: camera.office
-    live_provider: go2rtc
+  - live_provider: go2rtc
     go2rtc:
+      stream: office
       # This would normally risk mixed content issues with browsers (accessing
       # `http` content over a `https` connection to Home Assistant is often
       # forbidden by browsers). In this scenario, since hass-web-proxy-integration
       # has been installed separately by the user, the video will be automatically
       # proxied.
-      url: http://my-custom-go2rtc
+      url: http://my-go2rtc:1984
 ```
+
+!> You may need to set `api.origin: '*'` in your go2rtc configuration.
 
 ## Human interaction
 
