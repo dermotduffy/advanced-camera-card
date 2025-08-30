@@ -17,8 +17,6 @@ menu:
 
 ## `buttons`
 
-All configuration is under:
-
 ```yaml
 menu:
   buttons:
@@ -59,6 +57,19 @@ menu:
 | `icon`      |                                                                                                                                                                                                                                                                                     | An icon to overriding the default for that button, e.g. `mdi:camera-front`. See also [custom icons](../usage/custom-icons.md).                                                                                                                                                                                               |
 | `permanent` | `false`                                                                                                                                                                                                                                                                             | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                                                                             |
 | `priority`  | `50`                                                                                                                                                                                                                                                                                | The menu item priority. Higher priority items are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`). Priority applies separately to `matching` and `opposing` groups (see `alignment` above). Minimum `0`, maximum `100`. |
+
+### Additional options: `microphone`
+
+```yaml
+menu:
+  buttons:
+    microphone:
+      # [...]
+```
+
+| Option | Default     | Description                                                                                                                                                                 |
+| ------ | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type` | `momentary` | When `momentary` the button must be continually held down to talk, when `toggle` pressing the button will enable the microphone and it must be pressed again to disable it. |
 
 ## `style`
 
