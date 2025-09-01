@@ -46,10 +46,10 @@
   cursor: grabbing;
 }
 
-:host([direction='vertical']) ::slotted(.embla__slide) {
+:host([direction='vertical']) ::slotted(.embla__slide:not(:last-of-type)) {
   margin-bottom: 5px;
 }
 
-:host([direction='horizontal']) ::slotted(.embla__slide) {
+:host([direction='horizontal']) ::slotted(.embla__slide:not(:last-of-type)) {
   margin-right: 5px;
 }
