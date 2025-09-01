@@ -19,10 +19,12 @@
   --advanced-camera-card-divider-color: var(--divider-color);
 
   --advanced-camera-card-control-background: var(--app-header-background-color);
+  --advanced-camera-card-control-background-opacity: 60%;
+
   --advanced-camera-card-control-background-transparent: color-mix(
     in oklab,
     var(--advanced-camera-card-control-background),
-    transparent 60%
+    transparent var(--advanced-camera-card-control-background-opacity)
   );
   --advanced-camera-card-control-foreground: var(--app-header-text-color);
 
@@ -62,7 +64,7 @@
   --advanced-camera-card-menu-button-background: color-mix(
     in oklab,
     var(--advanced-camera-card-menu-button-inactive-color),
-    transparent 60%
+    transparent var(--advanced-camera-card-control-background-opacity)
   );
 
   // The menu background color.
@@ -184,5 +186,32 @@
   ******/
   --advanced-camera-card-grid-selected-border-color: var(
     --advanced-camera-card-foreground-primary
+  );
+
+  /****
+  * PTZ
+  *****/
+  --advanced-camera-card-ptz-color: var(--advanced-camera-card-control-foreground);
+  --advanced-camera-card-ptz-background: var(--advanced-camera-card-control-background);
+
+  --advanced-camera-card-ptz-color-active: color-mix(
+    in oklab,
+    var(--advanced-camera-card-ptz-color),
+    transparent 20%
+  );
+  --advanced-camera-card-ptz-background-active: color-mix(
+    in oklab,
+    var(--advanced-camera-card-ptz-background),
+    transparent 20%
+  );
+  --advanced-camera-card-ptz-color-inactive: color-mix(
+    in oklab,
+    var(--advanced-camera-card-ptz-color),
+    transparent var(--advanced-camera-card-control-background-opacity)
+  );
+  --advanced-camera-card-ptz-background-inactive: color-mix(
+    in oklab,
+    var(--advanced-camera-card-ptz-background),
+    transparent var(--advanced-camera-card-control-background-opacity)
   );
 }
