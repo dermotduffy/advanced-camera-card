@@ -11,10 +11,6 @@ export const getCameraIDsForViewName = (
   viewName: AdvancedCameraCardView,
   cameraID?: string,
 ): Set<string> => {
-  const capabilityMatchAnyMedia: CapabilitySearchOptions = {
-    anyCapabilities: ['clips', 'snapshots', 'recordings'],
-  };
-
   switch (viewName) {
     case 'diagnostics':
     case 'image':
@@ -30,6 +26,9 @@ export const getCameraIDsForViewName = (
     case 'snapshots':
     case 'recording':
     case 'recordings':
+      const options: CapabilitySearchOptions = {
+        inclusive: viewName !== 'live',
+      };
       const capability =
         viewName === 'clip'
           ? 'clips'
@@ -39,12 +38,12 @@ export const getCameraIDsForViewName = (
               ? 'recordings'
               : viewName;
       return cameraID
-        ? cameraManager.getStore().getAllDependentCameras(cameraID, capability)
-        : cameraManager.getStore().getCameraIDsWithCapability(capability);
+        ? cameraManager.getStore().getAllDependentCameras(cameraID, capability, options)
+        : cameraManager.getStore().getCameraIDsWithCapability(capability, options);
 
     case 'timeline':
-      return cameraManager
-        .getStore()
-        .getCameraIDsWithCapability(capabilityMatchAnyMedia);
+      return cameraManager.getStore().getCameraIDsWithCapability({
+        anyCapabilities: ['clips', 'snapshots', 'recordings'],
+      });
   }
 };

@@ -99,7 +99,10 @@ interface CapabilitySearchAllAny {
   allCapabilities?: CapabilityKey[];
   anyCapabilities?: CapabilityKey[];
 }
-export type CapabilitySearchOptions = CapabilityKey | CapabilitySearchAllAny;
+export type CapabilitySearchKeys = CapabilityKey | CapabilitySearchAllAny;
+export interface CapabilitySearchOptions {
+  inclusive?: boolean;
+}
 
 export interface CameraManagerCameraMetadata {
   title: string;

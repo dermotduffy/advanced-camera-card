@@ -4,7 +4,7 @@ import {
   capabilityKeys,
   PTZCapabilities,
 } from '../types';
-import { CapabilitySearchOptions } from './types';
+import { CapabilitySearchKeys } from './types';
 
 export class Capabilities {
   private _capabilities: CapabilitiesRaw;
@@ -32,7 +32,7 @@ export class Capabilities {
     delete this._capabilities[capability];
   }
 
-  public matches(capability: CapabilitySearchOptions): boolean {
+  public matches(capability: CapabilitySearchKeys): boolean {
     let result = true;
     if (typeof capability === 'string') {
       result &&= this.has(capability);

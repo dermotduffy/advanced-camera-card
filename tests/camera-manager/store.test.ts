@@ -297,6 +297,37 @@ describe('CameraManagerStore', async () => {
       );
       expect(store.getAllDependentCameras('one', 'clips')).toEqual(new Set(['two']));
     });
+
+    it('should return cameras with specific capabilities inclusive of parent', () => {
+      const store = new CameraManagerStore();
+      store.addCamera(
+        new Camera(
+          createCameraConfig({
+            id: 'one',
+            dependencies: {
+              all_cameras: true,
+            },
+          }),
+          engineGeneric,
+        ),
+      );
+      store.addCamera(
+        new Camera(
+          createCameraConfig({
+            id: 'two',
+          }),
+          engineGeneric,
+          {
+            capabilities: new Capabilities({
+              clips: true,
+            }),
+          },
+        ),
+      );
+      expect(store.getAllDependentCameras('one', 'clips', { inclusive: true })).toEqual(
+        new Set(['one', 'two']),
+      );
+    });
   });
 
   it('getCameraIDsWithCapability', () => {

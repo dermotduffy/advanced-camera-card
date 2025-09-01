@@ -4,7 +4,7 @@ import { allPromises } from '../utils/basic';
 import { ViewMedia } from '../view/item';
 import { Camera } from './camera';
 import { CameraManagerEngine } from './engine';
-import { CapabilitySearchOptions, Engine } from './types';
+import { CapabilitySearchKeys, CapabilitySearchOptions, Engine } from './types';
 
 type CameraManagerEngineCameraIDMap = Map<CameraManagerEngine, Set<string>>;
 
@@ -27,11 +27,13 @@ export interface CameraManagerReadOnlyConfigStore {
   getDefaultCameraID(): string | null;
 
   getCameraIDsWithCapability(
-    capability: CapabilityKey | CapabilitySearchOptions,
+    capability: CapabilitySearchKeys,
+    options?: CapabilitySearchOptions,
   ): Set<string>;
   getAllDependentCameras(
     cameraID: string,
-    capability?: CapabilityKey | CapabilitySearchOptions,
+    capability?: CapabilitySearchKeys,
+    options?: CapabilitySearchOptions,
   ): Set<string>;
 }
 
@@ -121,14 +123,23 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
   }
 
   public getCameraIDsWithCapability(
-    capability: CapabilityKey | CapabilitySearchOptions,
+    capability: CapabilityKey | CapabilitySearchKeys,
+    options?: CapabilitySearchOptions,
   ): Set<string> {
     const output: Set<string> = new Set();
+
     for (const camera of this._cameras.values()) {
-      if (camera.getCapabilities()?.matches(capability)) {
-        output.add(camera.getID());
-      }
+      // Must use getAllDependentCameras() to recursively get all relevant
+      // cameras respecting the capabilitiy.
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/2122
+
+      this.getAllDependentCameras(camera.getID(), capability, options).forEach(
+        (cameraID) => {
+          output.add(cameraID);
+        },
+      );
     }
+
     return output;
   }
 
@@ -177,33 +188,51 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
    */
   public getAllDependentCameras(
     cameraID: string,
-    capability?: CapabilitySearchOptions,
+    capabilitySearchKeys?: CapabilitySearchKeys,
+    options?: CapabilitySearchOptions,
   ): Set<string> {
     const visitedCameraIDs = new Set<string>();
-    const matchingCameraIDs: Set<string> = new Set();
-    const getDependentCameras = (cameraID: string): void => {
+
+    const getDependentCameras = (cameraID: string): Set<string> => {
       visitedCameraIDs.add(cameraID);
+
+      const matchingCameraIDs: Set<string> = new Set();
 
       const camera = this.getCamera(cameraID);
       const cameraConfig = camera?.getConfig();
 
-      if (camera && cameraConfig) {
-        if (!capability || camera.getCapabilities()?.matches(capability)) {
-          matchingCameraIDs.add(cameraID);
-        }
-        const dependentCameras: Set<string> = new Set();
-        cameraConfig.dependencies.cameras.forEach((item) => dependentCameras.add(item));
-        if (cameraConfig.dependencies.all_cameras) {
-          this.getCameraIDs().forEach((cameraID) => dependentCameras.add(cameraID));
-        }
-        for (const dependentCameraID of dependentCameras) {
-          if (!visitedCameraIDs.has(dependentCameraID)) {
-            getDependentCameras(dependentCameraID);
-          }
+      if (!camera || !cameraConfig) {
+        return matchingCameraIDs;
+      }
+
+      // Gather all dependent cameras...
+      const dependentCameras: Set<string> = new Set();
+      cameraConfig.dependencies.cameras.forEach((item) => dependentCameras.add(item));
+      if (cameraConfig.dependencies.all_cameras) {
+        this.getCameraIDs().forEach((cameraID) => dependentCameras.add(cameraID));
+      }
+
+      const matchingChildCameraIDs: Set<string> = new Set();
+
+      // ...now recurse through them.
+      for (const dependentCameraID of dependentCameras) {
+        if (!visitedCameraIDs.has(dependentCameraID)) {
+          getDependentCameras(dependentCameraID).forEach((dependentCameraID) =>
+            matchingChildCameraIDs.add(dependentCameraID),
+          );
         }
       }
+
+      return new Set([
+        ...(!capabilitySearchKeys ||
+        camera.getCapabilities()?.matches(capabilitySearchKeys) ||
+        (options?.inclusive && matchingChildCameraIDs.size)
+          ? [cameraID]
+          : []),
+        ...matchingChildCameraIDs,
+      ]);
     };
-    getDependentCameras(cameraID);
-    return matchingCameraIDs;
+
+    return getDependentCameras(cameraID);
   }
 }
