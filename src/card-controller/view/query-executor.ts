@@ -1,4 +1,4 @@
-import { CapabilitySearchOptions, MediaQuery } from '../../camera-manager/types';
+import { CapabilitySearchKeys, MediaQuery } from '../../camera-manager/types';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const';
 import { ClipsOrSnapshotsOrAll } from '../../types';
 import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
@@ -27,7 +27,7 @@ export class QueryExecutor {
     eventsMediaType?: ClipsOrSnapshotsOrAll;
     executorOptions?: QueryExecutorOptions;
   }): Promise<QueryExecutorResult | null> {
-    const capabilitySearch: CapabilitySearchOptions =
+    const capabilitySearch: CapabilitySearchKeys =
       !options?.eventsMediaType || options?.eventsMediaType === 'all'
         ? {
             anyCapabilities: ['clips', 'snapshots'],
