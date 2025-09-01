@@ -23,8 +23,6 @@
 
 ::slotted(*) {
   box-sizing: border-box;
-  border-radius: var(--ha-card-border-radius, 4px);
-  overflow: hidden;
   width: var(--advanced-camera-card-grid-column-size);
 
   // Unselected items included a transparent border to act as the effective

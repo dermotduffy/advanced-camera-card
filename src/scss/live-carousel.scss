@@ -6,6 +6,10 @@
 
   // Keep carousel controls relative to the media carousel itself.
   position: relative;
+
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2107
+  border-radius: var(--ha-card-border-radius, 4px);
+  overflow: hidden;
 }
 
 // When the carousel is not part of a grid ensure its height matches its
