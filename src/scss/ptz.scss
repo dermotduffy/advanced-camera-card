@@ -28,11 +28,6 @@
 .ptz {
   display: flex;
   gap: 10px;
-
-  color: var(--light-primary-color);
-  opacity: 0.4;
-
-  transition: opacity 0.3s ease-in-out;
 }
 
 :host([data-orientation='vertical']) .ptz {
@@ -40,10 +35,6 @@
 }
 :host([data-orientation='horizontal']) .ptz {
   flex-direction: row;
-}
-
-.ptz:hover {
-  opacity: 1;
 }
 
 :host([data-orientation='vertical']) .ptz div {
@@ -57,7 +48,18 @@
 .ptz-zoom,
 .ptz-presets {
   position: relative;
-  background-color: rgba(0, 0, 0, 0.3);
+
+  transition:
+    color 0.3s ease-in-out,
+    background-color 0.3s ease-in-out;
+
+  color: var(--advanced-camera-card-ptz-color-inactive);
+  background-color: var(--advanced-camera-card-ptz-background-inactive);
+
+  &:hover {
+    color: var(--advanced-camera-card-ptz-color-active);
+    background-color: var(--advanced-camera-card-ptz-background-active);
+  }
 }
 
 .ptz-move {
