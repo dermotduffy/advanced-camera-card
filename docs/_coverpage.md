@@ -1,4 +1,4 @@
-![logo](images/icons/iris.svg ':size=48px')
+<img src="images/icons/iris.svg" alt="Logo" class="spin" style="width: 48px; height: 48px;">
 
 # Advanced Camera Card
 

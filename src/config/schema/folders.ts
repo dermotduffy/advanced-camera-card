@@ -131,6 +131,8 @@ const folderConfigSchema = z.object({
   title: z.string().optional(),
   icon: z.string().optional(),
 });
-export type FolderConfig = z.infer<typeof folderConfigSchema>;
+export type FolderConfigWithoutID = z.infer<typeof folderConfigSchema>;
+
+export type FolderConfig = FolderConfigWithoutID & { id: string };
 
 export const foldersConfigSchema = folderConfigSchema.array();

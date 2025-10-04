@@ -86,8 +86,7 @@ export class ViewQueryExecutor {
     };
 
     const executeFolderQuery = async (): Promise<ViewModifier[]> => {
-      const results =
-        await this._executor.executeDefaultFolderQuery(queryExecutorOptions);
+      const results = await this._executor.executeFolderQuery(queryExecutorOptions);
       return results ? [new SetQueryViewModifier(results)] : [];
     };
 

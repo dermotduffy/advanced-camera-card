@@ -109,7 +109,7 @@ describe('ViewQueryExecutor', () => {
           },
         });
         expect(executor.executeDefaultRecordingQuery).not.toHaveBeenCalled();
-        expect(executor.executeDefaultFolderQuery).not.toHaveBeenCalled();
+        expect(executor.executeFolderQuery).not.toHaveBeenCalled();
       });
 
       it('should set query and queryResults for recordings', async () => {
@@ -152,7 +152,7 @@ describe('ViewQueryExecutor', () => {
           },
         });
         expect(executor.executeDefaultEventQuery).not.toBeCalled();
-        expect(executor.executeDefaultFolderQuery).not.toHaveBeenCalled();
+        expect(executor.executeFolderQuery).not.toHaveBeenCalled();
       });
 
       describe('should set timeline window', async () => {
@@ -230,7 +230,7 @@ describe('ViewQueryExecutor', () => {
         expect(view?.queryResults).toBeNull();
         expect(executor.executeDefaultEventQuery).not.toHaveBeenCalled();
         expect(executor.executeDefaultRecordingQuery).not.toHaveBeenCalled();
-        expect(executor.executeDefaultFolderQuery).not.toHaveBeenCalled();
+        expect(executor.executeFolderQuery).not.toHaveBeenCalled();
       });
     });
 
@@ -264,7 +264,7 @@ describe('ViewQueryExecutor', () => {
           },
         });
         expect(executor.executeDefaultRecordingQuery).not.toHaveBeenCalled();
-        expect(executor.executeDefaultFolderQuery).not.toHaveBeenCalled();
+        expect(executor.executeFolderQuery).not.toHaveBeenCalled();
       });
     });
 
@@ -311,7 +311,7 @@ describe('ViewQueryExecutor', () => {
             },
           });
           expect(executor.executeDefaultRecordingQuery).not.toHaveBeenCalled();
-          expect(executor.executeDefaultFolderQuery).not.toHaveBeenCalled();
+          expect(executor.executeFolderQuery).not.toHaveBeenCalled();
         },
       );
     });
@@ -350,7 +350,7 @@ describe('ViewQueryExecutor', () => {
               useCache: false,
             },
           });
-          expect(executor.executeDefaultFolderQuery).not.toHaveBeenCalled();
+          expect(executor.executeFolderQuery).not.toHaveBeenCalled();
         },
       );
     });
@@ -361,7 +361,7 @@ describe('ViewQueryExecutor', () => {
         const query = new FolderViewQuery();
         const queryResults = new QueryResults();
 
-        executor.executeDefaultFolderQuery.mockResolvedValue({
+        executor.executeFolderQuery.mockResolvedValue({
           query: query,
           queryResults: queryResults,
         });
@@ -376,14 +376,14 @@ describe('ViewQueryExecutor', () => {
         expect(view?.queryResults).toBe(queryResults);
         expect(executor.executeDefaultEventQuery).not.toBeCalled();
         expect(executor.executeDefaultRecordingQuery).not.toBeCalled();
-        expect(executor.executeDefaultFolderQuery).toBeCalledWith({
+        expect(executor.executeFolderQuery).toBeCalledWith({
           useCache: false,
         });
       });
 
       it('should execute default folder query with folder view and handle null results', async () => {
         const executor = mock<QueryExecutor>();
-        executor.executeDefaultFolderQuery.mockResolvedValue(null);
+        executor.executeFolderQuery.mockResolvedValue(null);
 
         const viewQueryExecutor = new ViewQueryExecutor(createPopulatedAPI(), executor);
         const view = createView({ view: 'folder', camera: 'camera.office' });

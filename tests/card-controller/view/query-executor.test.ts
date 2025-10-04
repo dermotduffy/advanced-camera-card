@@ -382,15 +382,15 @@ describe('executeQuery', () => {
       vi.mocked(api.getFoldersManager().expandFolder).mockResolvedValue(null);
 
       const executor = new QueryExecutor(api);
-      expect(await executor.executeDefaultFolderQuery()).toBeNull();
+      expect(await executor.executeFolderQuery()).toBeNull();
     });
   });
 });
 
-describe('executeDefaultFolderQuery', () => {
+describe('executeFolderQuery', () => {
   it('should return null without folders', async () => {
     const executor = new QueryExecutor(createCardAPI());
-    expect(await executor.executeDefaultFolderQuery()).toBeNull();
+    expect(await executor.executeFolderQuery()).toBeNull();
   });
 
   it('should execute query against first folder', async () => {
@@ -399,13 +399,14 @@ describe('executeDefaultFolderQuery', () => {
     const folder = createFolder();
     const query: FolderQuery = {
       folder,
-      path: ['path'],
+      path: [{ ha: { id: 'path' } }],
     };
+    vi.mocked(api.getFoldersManager().getFolder).mockReturnValue(folder);
     vi.mocked(api.getFoldersManager().generateDefaultFolderQuery).mockReturnValue(query);
     vi.mocked(api.getFoldersManager().expandFolder).mockResolvedValue(items);
 
     const executor = new QueryExecutor(api);
-    const result = await executor.executeDefaultFolderQuery();
+    const result = await executor.executeFolderQuery();
 
     expect(result?.query.getQuery()).toEqual(query);
     expect(result?.queryResults.getResults()).toEqual(items);
@@ -416,12 +417,13 @@ describe('executeDefaultFolderQuery', () => {
     const folder = createFolder();
     const query: FolderQuery = {
       folder,
-      path: ['path'],
+      path: [{ ha: { id: 'path' } }],
     };
+    vi.mocked(api.getFoldersManager().getFolder).mockReturnValue(folder);
     vi.mocked(api.getFoldersManager().generateDefaultFolderQuery).mockReturnValue(query);
     vi.mocked(api.getFoldersManager().expandFolder).mockResolvedValue(null);
 
     const executor = new QueryExecutor(api);
-    expect(await executor.executeDefaultFolderQuery()).toBeNull();
+    expect(await executor.executeFolderQuery()).toBeNull();
   });
 });

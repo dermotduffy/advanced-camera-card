@@ -7,9 +7,11 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { isEqual } from 'lodash-es';
 import { CameraManager } from '../camera-manager/manager.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
+import { TimelineKey } from '../components-lib/timeline/types.js';
 import { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
 import { MiniTimelineControlConfig } from '../config/schema/common/controls/timeline.js';
 import { CardWideConfig } from '../config/schema/types.js';
@@ -44,7 +46,7 @@ export class AdvancedCameraCardSurround extends LitElement {
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
-  protected _cameraIDsForTimeline?: Set<string>;
+  protected _keysForTimeline?: TimelineKey[] = [];
 
   /**
    * Determine if a drawer is being used.
@@ -72,11 +74,26 @@ export class AdvancedCameraCardSurround extends LitElement {
       ) ||
         this.viewManagerEpoch?.oldView?.displayMode !== view?.displayMode)
     ) {
-      this._cameraIDsForTimeline = this._getCameraIDsForTimeline() ?? undefined;
+      const newKeys = this._getKeysForTimeline();
+      // Update only if changed, to avoid unnecessary timeline destructions.
+      if (!isEqual(newKeys, this._keysForTimeline)) {
+        this._keysForTimeline = newKeys ?? undefined;
+      }
     }
   }
 
-  protected _getCameraIDsForTimeline(): Set<string> | null {
+  protected _getKeysForTimeline(): TimelineKey[] | null {
+    const cameraIDsToKeys = (cameraIDs: Set<string> | null): TimelineKey[] => {
+      const keys: TimelineKey[] = [];
+      for (const cameraID of cameraIDs ?? []) {
+        keys.push({
+          type: 'camera',
+          cameraID: cameraID,
+        });
+      }
+      return keys;
+    };
+
     const view = this.viewManagerEpoch?.manager.getView();
     if (!view || !this.cameraManager) {
       return null;
@@ -87,20 +104,35 @@ export class AdvancedCameraCardSurround extends LitElement {
         anyCapabilities: ['clips' as const, 'snapshots' as const, 'recordings' as const],
       };
       if (view.supportsMultipleDisplayModes() && view.isGrid()) {
-        return this.cameraManager
-          .getStore()
-          .getCameraIDsWithCapability(capabilitySearch);
+        return cameraIDsToKeys(
+          this.cameraManager.getStore().getCameraIDsWithCapability(capabilitySearch),
+        );
       } else {
-        return this.cameraManager
-          .getStore()
-          .getAllDependentCameras(view.camera, capabilitySearch);
+        return cameraIDsToKeys(
+          this.cameraManager
+            .getStore()
+            .getAllDependentCameras(view.camera, capabilitySearch),
+        );
       }
     }
 
     const queries = view.query;
-    if (view.isViewerView() && QueryClassifier.isMediaQuery(queries)) {
-      return queries.getQueryCameraIDs() ?? null;
+    if (view.isViewerView()) {
+      if (QueryClassifier.isMediaQuery(queries)) {
+        return cameraIDsToKeys(queries.getQueryCameraIDs());
+      } else if (QueryClassifier.isFolderQuery(queries)) {
+        const folderConfig = queries.getQuery()?.folder;
+        return folderConfig
+          ? [
+              {
+                type: 'folder' as const,
+                folder: folderConfig,
+              },
+            ]
+          : [];
+      }
     }
+
     return null;
   }
 
@@ -150,7 +182,7 @@ export class AdvancedCameraCardSurround extends LitElement {
             this.thumbnailConfig?.mode === 'none'
               ? 'play'
               : 'select'}
-            .cameraIDs=${this._cameraIDsForTimeline}
+            .keys=${this._keysForTimeline}
             .mini=${true}
             .timelineConfig=${this.timelineConfig}
             .thumbnailConfig=${this.thumbnailConfig}

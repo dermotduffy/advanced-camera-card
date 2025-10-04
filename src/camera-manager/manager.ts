@@ -82,24 +82,24 @@ export class CameraQueryClassifier {
 
 export class QueryResultClassifier {
   public static isEventQueryResult(
-    queryResults: QueryResults,
+    queryResults?: QueryResults | null,
   ): queryResults is EventQueryResults {
-    return queryResults.type === QueryResultsType.Event;
+    return queryResults?.type === QueryResultsType.Event;
   }
   public static isRecordingQueryResult(
-    queryResults: QueryResults,
+    queryResults?: QueryResults | null,
   ): queryResults is RecordingQueryResults {
-    return queryResults.type === QueryResultsType.Recording;
+    return queryResults?.type === QueryResultsType.Recording;
   }
   public static isRecordingSegmentsQueryResult(
-    queryResults: QueryResults,
+    queryResults?: QueryResults | null,
   ): queryResults is RecordingSegmentsQueryResults {
-    return queryResults.type === QueryResultsType.RecordingSegments;
+    return queryResults?.type === QueryResultsType.RecordingSegments;
   }
   public static isMediaMetadataQueryResult(
-    queryResults: QueryResults,
+    queryResults?: QueryResults | null,
   ): queryResults is MediaMetadataQueryResults {
-    return queryResults.type === QueryResultsType.MediaMetadata;
+    return queryResults?.type === QueryResultsType.MediaMetadata;
   }
 }
 

@@ -140,13 +140,20 @@ export class QueryExecutor {
     return queryResults;
   }
 
-  public async executeDefaultFolderQuery(
+  public async executeFolderQuery(
     executorOptions?: QueryExecutorOptions,
   ): Promise<QueryExecutorResult | null> {
-    const query = this._api.getFoldersManager().generateDefaultFolderQuery();
-    return query
-      ? this._executeFolderQuery(new FolderViewQuery(query), executorOptions)
-      : null;
+    const folder = this._api.getFoldersManager().getFolder(executorOptions?.folder);
+    if (!folder) {
+      return null;
+    }
+
+    const query = this._api.getFoldersManager().generateDefaultFolderQuery(folder);
+    if (!query) {
+      return null;
+    }
+
+    return this._executeFolderQuery(new FolderViewQuery(query), executorOptions);
   }
 
   private async _executeFolderQuery(

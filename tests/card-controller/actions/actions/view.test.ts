@@ -36,3 +36,31 @@ describe('should handle view action', () => {
     );
   });
 });
+
+describe('should handle folder view action', () => {
+  it.each([['folder' as const], ['folders' as const]])('%s', async (viewName) => {
+    const api = createCardAPI();
+
+    const action = new ViewAction(
+      {},
+      {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: viewName,
+        folder: 'folder',
+      },
+    );
+
+    await action.execute(api);
+
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith(
+      expect.objectContaining({
+        params: {
+          view: viewName,
+        },
+        queryExecutorOptions: {
+          folder: 'folder',
+        },
+      }),
+    );
+  });
+});

@@ -22,6 +22,7 @@ export interface QueryExecutorOptions {
     id?: string;
     func?: (media: ViewItem) => boolean;
   };
+  folder?: string;
   rejectResults?: (results: QueryResults) => boolean;
   useCache?: boolean;
 }

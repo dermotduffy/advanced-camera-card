@@ -22,7 +22,7 @@ describe('should handle status bar action', () => {
   it('add', async () => {
     const api = createCardAPI();
     const item = {
-      type: 'custom:advanced-camera-card-status-bar-string',
+      type: 'custom:advanced-camera-card-status-bar-string' as const,
       string: 'Item',
     };
 
@@ -44,7 +44,7 @@ describe('should handle status bar action', () => {
   it('remove', async () => {
     const api = createCardAPI();
     const item = {
-      type: 'custom:advanced-camera-card-status-bar-string',
+      type: 'custom:advanced-camera-card-status-bar-string' as const,
       string: 'Item',
     };
 

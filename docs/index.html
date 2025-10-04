@@ -38,6 +38,19 @@
       #__sidebar img {
         max-width: 48px;
       }
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(-360deg);
+        }
+      }
+      .app-name img,
+      .spin {
+        animation: spin 15s infinite linear;
+        transform-origin: center;
+      }
     </style>
   </head>
   <body>
