@@ -12,7 +12,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'camera-manager/reolink/*.ts',
   'camera-manager/utils/*.ts',
   'card-controller/**/*.ts',
-  'components-lib/**/!(timeline-source.ts)',
+  'components-lib/timeline/!(controller)*.ts',
   'conditions/**/*.ts',
   'config/**/*.ts',
   'const.ts',

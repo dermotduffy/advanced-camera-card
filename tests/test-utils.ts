@@ -674,6 +674,7 @@ export const createTouchEvent = (
 export const createFolder = (config?: Partial<FolderConfig>): FolderConfig => {
   return {
     type: 'ha',
+    id: crypto.randomUUID(),
     ha: {
       path: [{ id: 'media-source://' }],
     },

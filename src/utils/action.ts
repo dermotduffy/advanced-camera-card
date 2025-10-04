@@ -2,7 +2,6 @@ import { CardActionsAPI } from '../card-controller/types.js';
 import { ZoomSettingsBase } from '../components-lib/zoom/types.js';
 import { CameraSelectActionConfig } from '../config/schema/actions/custom/camera-select.js';
 import { DisplayModeActionConfig } from '../config/schema/actions/custom/display-mode.js';
-import { FoldersViewActionConfig } from '../config/schema/actions/custom/folders-view.js';
 import {
   AdvancedCameraCardGeneralAction,
   GeneralActionConfig,
@@ -47,15 +46,17 @@ export function createGeneralAction(
 }
 
 export function createViewAction(
-  action: Exclude<AdvancedCameraCardUserSpecifiedView, 'folder' | 'folders'>,
+  action: AdvancedCameraCardUserSpecifiedView,
   options?: {
     cardID?: string;
+    folderID?: string;
   },
 ): ViewActionConfig {
   return {
     action: 'fire-dom-event',
     advanced_camera_card_action: action,
     ...(options?.cardID && { card_id: options.cardID }),
+    ...(options?.folderID && { folder: options.folderID }),
   };
 }
 
@@ -70,21 +71,6 @@ export function createCameraAction(
     action: 'fire-dom-event',
     advanced_camera_card_action: action,
     camera: camera,
-    ...(options?.cardID && { card_id: options.cardID }),
-  };
-}
-
-export function createFoldersViewAction(
-  view: 'folder' | 'folders',
-  options?: {
-    cardID?: string;
-    folderID?: string;
-  },
-): FoldersViewActionConfig {
-  return {
-    action: 'fire-dom-event',
-    advanced_camera_card_action: view,
-    ...(options?.folderID && { folder: options.folderID }),
     ...(options?.cardID && { card_id: options.cardID }),
   };
 }

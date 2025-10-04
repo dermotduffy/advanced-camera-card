@@ -3,7 +3,7 @@ import { mock } from 'vitest-mock-extended';
 import { FoldersExecutor } from '../../../src/card-controller/folders/executor';
 import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import { FolderQuery } from '../../../src/card-controller/folders/types';
-import { FolderConfig } from '../../../src/config/schema/folders';
+import { FolderConfig, FolderConfigWithoutID } from '../../../src/config/schema/folders';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { Endpoint } from '../../../src/types';
 import { ViewItemCapabilities } from '../../../src/view/types';
@@ -47,7 +47,13 @@ describe('FoldersManager', () => {
 
     it('should add a folder without an id', () => {
       const manager = new FoldersManager(createCardAPI());
-      const folder = createFolder({ title: 'Title' });
+      const folder: FolderConfigWithoutID = {
+        type: 'ha' as const,
+        title: 'Title',
+        ha: {
+          path: [{ id: 'media-source://' }],
+        },
+      };
 
       manager.addFolders([folder]);
       expect(manager.getFolderCount()).toBe(1);

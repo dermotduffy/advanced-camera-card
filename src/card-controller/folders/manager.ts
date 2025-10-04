@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash-es';
 import { ConditionState } from '../../conditions/types';
-import { FolderConfig } from '../../config/schema/folders';
+import { FolderConfig, FolderConfigWithoutID } from '../../config/schema/folders';
 import { localize } from '../../localize/localize';
 import { Endpoint } from '../../types';
 import { ViewItem } from '../../view/item';
@@ -23,7 +23,7 @@ export class FoldersManager {
     this._folders.clear();
   }
 
-  public addFolders(folders: FolderConfig[]): void {
+  public addFolders(folders: FolderConfigWithoutID[]): void {
     for (const folder of folders) {
       const folderNumber = this._folders.size;
       const id = folder.id ?? `folder/${folderNumber.toString()}`;

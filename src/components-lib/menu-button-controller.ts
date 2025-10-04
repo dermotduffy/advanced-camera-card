@@ -15,7 +15,6 @@ import { MediaLoadedInfo } from '../types';
 import {
   createCameraAction,
   createDisplayModeAction,
-  createFoldersViewAction,
   createGeneralAction,
   createMediaPlayerAction,
   createPTZControlsAction,
@@ -658,8 +657,8 @@ export class MenuButtonController {
         type: 'custom:advanced-camera-card-menu-icon',
         title: folder.title ?? localize('config.menu.buttons.folders'),
         style: isSelected ? this._getEmphasizedStyle() : {},
-        tap_action: createFoldersViewAction('folders'),
-        hold_action: createFoldersViewAction('folder'),
+        tap_action: createViewAction('folders'),
+        hold_action: createViewAction('folder'),
       };
     }
 
@@ -674,8 +673,8 @@ export class MenuButtonController {
         icon: folder.icon ?? 'mdi:folder',
         selected: isSelected,
         style: isSelected ? this._getEmphasizedStyle() : {},
-        tap_action: createFoldersViewAction('folders', { folderID: id }),
-        hold_action: createFoldersViewAction('folder', { folderID: id }),
+        tap_action: createViewAction('folders', { folderID: id }),
+        hold_action: createViewAction('folder', { folderID: id }),
       };
     });
 
