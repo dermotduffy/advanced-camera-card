@@ -119,7 +119,12 @@ export const transformPathURLToPathArray = (
 };
 
 const haFolderConfigSchema = z.object({
-  url: z.string().transform(transformPathURLToPathArray).optional(),
+  url: z
+    .string()
+    .transform(transformPathURLToPathArray)
+    // See: https://github.com/dermotduffy/advanced-camera-card/issues/2196
+    .or(haFolderPathComponentSchema.array().min(1))
+    .optional(),
   path: haFolderPathComponentSchema.array().nonempty().optional(),
 });
 export type HAFolderConfig = z.infer<typeof haFolderConfigSchema>;

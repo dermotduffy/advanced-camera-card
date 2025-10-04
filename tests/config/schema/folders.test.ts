@@ -1,11 +1,13 @@
 import { NonEmptyTuple } from 'type-fest';
 import { describe, expect, it } from 'vitest';
 import {
+  FolderConfigWithoutID,
+  foldersConfigSchema,
   matcherSchema,
   transformPathURLToPathArray,
 } from '../../../src/config/schema/folders';
 
-describe('transformURLToMediaSourceRoot', () => {
+describe('transformPathURLToPathArray', () => {
   const prefixes: NonEmptyTuple<string>[] = [
     ['http://card.camera/' as const],
     ['/' as const],
@@ -90,5 +92,37 @@ describe('should lazy evaluate schemas', () => {
         },
       ],
     });
+  });
+});
+
+// See: https://github.com/dermotduffy/advanced-camera-card/issues/2196
+describe('should be able to re-parse a folder', () => {
+  it('should be able to re-parse a folder', () => {
+    const inputFolder = {
+      type: 'ha',
+      ha: {
+        url: 'media-browser/browser/app%2Cmedia-source%3A%2F%2Fcamera' as const,
+      },
+    };
+
+    const expectedFolder: FolderConfigWithoutID = {
+      type: 'ha',
+      ha: {
+        url: [
+          {
+            id: 'media-source://',
+          },
+          {
+            id: 'media-source://camera',
+          },
+        ],
+      },
+    };
+
+    const parsedFolders = foldersConfigSchema.parse([inputFolder]);
+    expect(parsedFolders).toEqual([expectedFolder]);
+
+    const parsedFolder_2 = foldersConfigSchema.parse(parsedFolders);
+    expect(parsedFolder_2).toEqual([expectedFolder]);
   });
 });
