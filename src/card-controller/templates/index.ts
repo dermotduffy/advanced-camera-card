@@ -20,15 +20,17 @@ interface TemplateContext {
   acc: TemplateContextInternal;
 }
 
+interface TemplateRenderOptions {
+  conditionState?: ConditionState;
+  triggerData?: ConditionsTriggerData;
+  mediaData?: TemplateMediaData;
+}
+
 export class TemplateRenderer {
   public renderRecursively = (
     hass: HomeAssistant,
     data: unknown,
-    options?: {
-      conditionState?: ConditionState;
-      triggerData?: ConditionsTriggerData;
-      mediaData?: TemplateMediaData;
-    },
+    options?: TemplateRenderOptions,
   ): unknown => {
     return this._renderTemplateRecursively(
       hass,
@@ -37,11 +39,9 @@ export class TemplateRenderer {
     );
   };
 
-  protected _generateTemplateContext(options?: {
-    conditionState?: ConditionState;
-    triggerData?: ConditionsTriggerData;
-    mediaData?: TemplateMediaData;
-  }): TemplateContext | undefined {
+  protected _generateTemplateContext(
+    options?: TemplateRenderOptions,
+  ): TemplateContext | undefined {
     if (
       !options?.conditionState?.camera &&
       !options?.conditionState?.view &&

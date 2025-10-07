@@ -7,9 +7,12 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { isEqual } from 'lodash-es';
+import { TemplateRenderer } from '../card-controller/templates/index.js';
 import { dispatchAdvancedCameraCardErrorEvent } from '../components-lib/message/dispatch.js';
 import { ConditionsManager } from '../conditions/conditions-manager.js';
 import { getConditionStateManagerViaEvent } from '../conditions/state-manager-via-event.js';
+import { ConditionStateManager } from '../conditions/state-manager.js';
 import {
   StatusBarIcon,
   StatusBarImage,
@@ -75,12 +78,19 @@ interface HuiConditionalElement extends HTMLElement {
 @customElement('advanced-camera-card-elements-core')
 export class AdvancedCameraCardElementsCore extends LitElement {
   @property({ attribute: false })
-  public elements?: PictureElements;
-
-  protected _root: HuiConditionalElement | null = null;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public hass?: HomeAssistant;
+  public elements?: PictureElements;
+
+  @property({ attribute: false })
+  public conditionStateManager?: ConditionStateManager;
+
+  @state()
+  private _root: HuiConditionalElement | null = null;
+
+  private _renderedElements?: PictureElements;
+  private _templateRenderer = new TemplateRenderer();
 
   /**
    * Create a transparent render root.
@@ -104,7 +114,7 @@ export class AdvancedCameraCardElementsCore extends LitElement {
     const config = {
       type: 'conditional',
       conditions: [],
-      elements: this.elements,
+      elements: this._renderedElements,
     };
     try {
       element.setConfig(config);
@@ -115,26 +125,58 @@ export class AdvancedCameraCardElementsCore extends LitElement {
     return element;
   }
 
-  /**
-   * Create the root as necessary prior to rendering.
-   */
-  protected willUpdate(changedProps: PropertyValues): void {
+  private _setNewRoot = (): void => {
+    if (!this.hass) {
+      return;
+    }
+
+    const elements = this._templateRenderer.renderRecursively(this.hass, this.elements, {
+      conditionState: this.conditionStateManager?.getState(),
+    }) as PictureElements | undefined;
+
+    // Condition state changes won't change the actual rendered config unless
+    // `elements` has a template, which is more likely does not. Avoid updating
+    // the root if nothing changes.
+    if (this._root && isEqual(this._renderedElements, elements)) {
+      return;
+    }
+
     try {
-      // The root is only created once per elements configuration change, to
-      // avoid the elements being continually re-created & destroyed (for some
-      // elements, e.g. image, recreation causes a flicker).
-      if (this.elements && (!this._root || changedProps.has('elements'))) {
-        this._root = this._createRoot();
-      }
+      this._renderedElements = elements;
+      this._root = this._createRoot();
     } catch (e) {
       return dispatchAdvancedCameraCardErrorEvent(this, e as AdvancedCameraCardError);
     }
+  };
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.conditionStateManager?.addListener(this._setNewRoot);
   }
 
-  /**
-   * Render the elements.
-   * @returns A rendered template or void.
-   */
+  disconnectedCallback(): void {
+    this.conditionStateManager?.removeListener(this._setNewRoot);
+    super.disconnectedCallback();
+  }
+
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('conditionStateManager') && this.conditionStateManager) {
+      changedProps.get('conditionStateManager')?.removeEventListener(this._setNewRoot);
+      this.conditionStateManager.addListener(this._setNewRoot);
+    }
+
+    // The root is only created once per elements configuration change, to
+    // avoid the elements being continually re-created & destroyed (for some
+    // elements, e.g. image, recreation causes a flicker).
+    if (
+      !this._root ||
+      changedProps.has('elements') ||
+      changedProps.has('conditionStateManager')
+    ) {
+      this._setNewRoot();
+    }
+  }
+
   protected render(): TemplateResult | void {
     return html`${this._root || ''}`;
   }
@@ -148,16 +190,16 @@ export class AdvancedCameraCardElementsCore extends LitElement {
   }
 }
 
-/**
- * The master <advanced-camera-card-elements> class, handles event listeners and styles.
- */
 @customElement('advanced-camera-card-elements')
 export class AdvancedCameraCardElements extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public elements: PictureElements;
+  public elements?: PictureElements;
+
+  @property({ attribute: false })
+  public conditionStateManager?: ConditionStateManager;
 
   protected _addHandler(
     target: EventTarget,
@@ -238,6 +280,7 @@ export class AdvancedCameraCardElements extends LitElement {
 
   protected render(): TemplateResult {
     return html`<advanced-camera-card-elements-core
+      .conditionStateManager=${this.conditionStateManager}
       .hass=${this.hass}
       .elements=${this.elements}
     >
@@ -285,9 +328,6 @@ export class AdvancedCameraCardElementsConditional extends LitElement {
     return this;
   }
 
-  /**
-   * Connected callback.
-   */
   connectedCallback(): void {
     super.connectedCallback();
 
@@ -317,9 +357,6 @@ export class AdvancedCameraCardElementsConditional extends LitElement {
     this._conditionManager.addListener(() => this.requestUpdate());
   }
 
-  /**
-   * Render the card.
-   */
   protected render(): TemplateResult | void {
     if (this._conditionManager?.getEvaluation()?.result) {
       return html` <advanced-camera-card-elements-core

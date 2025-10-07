@@ -17,7 +17,7 @@ export class ConditionStateManager implements ConditionStateManagerReadonlyInter
     this._listeners.push(listener);
   }
 
-  public removeListener(listener: ConditionStateListener): void {
+  public removeListener(listener?: ConditionStateListener): void {
     this._listeners = this._listeners.filter((l) => l !== listener);
   }
 
