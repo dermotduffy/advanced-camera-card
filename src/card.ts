@@ -409,6 +409,7 @@ class AdvancedCameraCard extends LitElement {
               ${ref(this._refElements)}
               .hass=${this._hass}
               .elements=${this._config?.elements}
+              .conditionStateManager=${this._controller.getConditionStateManager()}
               @advanced-camera-card:menu:add=${(ev: CustomEvent<MenuItem>) => {
                 this._menuButtonController.addDynamicMenuButton(ev.detail);
                 this.requestUpdate();

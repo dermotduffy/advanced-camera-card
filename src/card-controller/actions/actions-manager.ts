@@ -91,7 +91,7 @@ export class ActionsManager implements ActionsExecutor {
   /**
    * This method is called when an ll-custom event is fired. This is used by
    * cards to fire custom actions. This card itself should not call this, but
-   * embedded elements may.
+   * embedded picture elements may.
    */
   public handleCustomActionEvent = async (
     ev: Event | CustomEvent<ActionConfig>,
@@ -111,7 +111,11 @@ export class ActionsManager implements ActionsExecutor {
       return;
     }
 
-    await this.executeActions({ actions: action });
+    await this.executeActions(
+      { actions: action },
+      // Elements rendered by this card will already have rendered templates.
+      true,
+    );
   };
 
   /**
@@ -129,10 +133,13 @@ export class ActionsManager implements ActionsExecutor {
     await allPromises(this._actionsInFlight, (actionSet) => actionSet.stop());
   }
 
-  public async executeActions(request: ActionsExecutionRequest): Promise<void> {
+  public async executeActions(
+    request: ActionsExecutionRequest,
+    renderTemplates = true,
+  ): Promise<void> {
     const hass = this._api.getHASSManager().getHASS();
     const renderedAction: ActionConfig | ActionConfig[] =
-      hass && this._templateRenderer
+      renderTemplates && hass && this._templateRenderer
         ? (this._templateRenderer.renderRecursively(hass, request.actions, {
             conditionState: this._api.getConditionStateManager().getState(),
             triggerData: request?.triggerData,
