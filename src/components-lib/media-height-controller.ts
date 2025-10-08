@@ -15,7 +15,7 @@ export class MediaHeightController {
     () => this._setHeight(),
     // Balancing act: Debounce to avoid excessive calls to setHeight, when new
     // media is loading the player may be a much smaller height momentarily.
-    300,
+    1000,
     {
       trailing: true,
       leading: false,
