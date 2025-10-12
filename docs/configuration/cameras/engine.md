@@ -102,13 +102,15 @@ cameras:
 | `media_resolution` | `low`                                       | Whether to retrieve `high` or `low` resolution media items.                                                                                                                                                                                                                                                                                                         |
 | `url`              |                                             | The URL of the Reolink camera/NVR UI. If set, this value will be (exclusively) used for a `Camera UI` menu button.                                                                                                                                                                                                                                                  |
 
-?> If media for the "wrong" Reolink camera is showing up and you have an NVR connected camera, your `channel` value is likely incorrect. Try increasing it until you find the correct camera.
+> [!TIP]
+> If media for the "wrong" Reolink camera is showing up and you have an NVR connected camera, your `channel` value is likely incorrect. Try increasing it until you find the correct camera.
 
 ### PTZ Support
 
 Zero-configuration PTZ support is available for Reolink if your camera supports it.
 
-!> For Home Assistant control of Reolink camera PTZ functions, the relevent `button` entities must be enabled. To verify, navigate to `Settings -> Devices & services -> Reolink -> [Choose Device]`, and ensure the `PTZ` entities are enabled. Disabled entities are shown under the `+X disabled entities` label. :eight_spoked_asterisk:
+> [!IMPORTANT]
+> For Home Assistant control of Reolink camera PTZ functions, the relevent `button` entities must be enabled. To verify, navigate to `Settings -> Devices & services -> Reolink -> [Choose Device]`, and ensure the `PTZ` entities are enabled. Disabled entities are shown under the `+X disabled entities` label.
 
 ## Fully expanded reference
 

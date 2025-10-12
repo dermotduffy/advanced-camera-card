@@ -199,7 +199,9 @@ elements:
 
 ## Fully expanded reference
 
-?> [Actions](../../actions/README.md) are omitted for simplicity.
+<!-- prettier-ignore -->
+> [!NOTE]
+> [Actions](../../actions/README.md) are omitted for simplicity.
 
 [](../../common/expanded-warning.md ':include')
 

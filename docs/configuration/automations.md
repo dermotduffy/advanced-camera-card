@@ -2,7 +2,8 @@
 
 Automatically take [actions](actions/README.md) based on [conditions](conditions.md) being met.
 
-?> To change configuration conditionally use [overrides](overrides.md).
+> [!TIP]
+> To change configuration conditionally use [overrides](overrides.md).
 
 ```yaml
 automations:

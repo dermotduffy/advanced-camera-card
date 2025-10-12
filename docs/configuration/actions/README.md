@@ -55,15 +55,17 @@ If an action is configured for both the whole card (`view.actions`) and a more
 specific view (e.g. `live.actions`) then the actions are merged, with the more
 specific overriding the less specific.
 
-!> The card itself relies on user interactions to function (e.g. `tap` on
-the menu should activate that button). Card or View actions are prevented from
-being activated through standard interaction with menu buttons, next/previous
-controls, thumbnails, etc, but in some cases this prevention is not possible
-(e.g. embedded WebRTC card controls) -- in these cases duplicate actions may
-occur with certain configurations (e.g. `tap`).
+> [!NOTE]
+> The card itself relies on user interactions to function (e.g. `tap` on
+> the menu should activate that button). Card or View actions are prevented from
+> being activated through standard interaction with menu buttons, next/previous
+> controls, thumbnails, etc, but in some cases this prevention is not possible
+> (e.g. embedded WebRTC card controls) -- in these cases duplicate actions may
+> occur with certain configurations (e.g. `tap`).
 
-!> Card-wide actions are not supported on the `timeline` view, `diagnostics`
-view nor when a info/error message is being displayed.
+> [!NOTE]
+> Card-wide actions are not supported on the `timeline` view, `diagnostics`
+> view nor when a info/error message is being displayed.
 
 ## Actions <!-- {docsify-ignore} -->
 

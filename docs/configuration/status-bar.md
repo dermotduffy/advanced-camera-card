@@ -57,7 +57,8 @@ This card supports several menu styles.
 
 ## Fully expanded reference
 
-?> To add custom status bar contents, see [status bar custom elements](elements/custom/README.md?id=status-bar-icon).
+> [!TIP]
+> To add custom status bar contents, see [status bar custom elements](elements/custom/README.md?id=status-bar-icon).
 
 [](common/expanded-warning.md ':include')
 

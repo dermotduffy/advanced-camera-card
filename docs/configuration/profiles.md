@@ -8,11 +8,13 @@ profiles:
   - [profile_2]
 ```
 
-?> Since the profiles change the _default_ value of options, setting a profile
-on a pre-existing card could have limited effect if there are options already set by
-the user.
+> [!NOTE]
+> Since the profiles change the _default_ value of options, setting a profile
+> on a pre-existing card could have limited effect if there are options already set by
+> the user.
 
-?> Profiles are applied top to bottom. If multiple profiles change a configuration default, then the last one "wins"
+> [!NOTE]
+> Profiles are applied top to bottom. If multiple profiles change a configuration default, then the last one "wins"
 
 | Profile name      | Purpose                                        |
 | ----------------- | ---------------------------------------------- |

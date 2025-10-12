@@ -12,9 +12,10 @@ elements:
   - [element_2]
 ```
 
-?> The Advanced Camera Card allows either a single [action](../actions/README.md) (as in stock Home
-Assistant) or list of [actions](../actions/README.md) to be defined for each class of user interaction
-(e.g. `tap`, `double_tap`, `hold`, etc). See [an example of multiple actions](../../examples.md?id=multiple-actions).
+> [!NOTE]
+> The Advanced Camera Card allows either a single [action](../actions/README.md) (as in stock Home
+> Assistant) or list of [actions](../actions/README.md) to be defined for each class of user interaction
+> (e.g. `tap`, `double_tap`, `hold`, etc). See [an example of multiple actions](../../examples.md?id=multiple-actions).
 
 ## Elements <!-- {docsify-ignore} -->
 

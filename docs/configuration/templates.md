@@ -62,12 +62,14 @@ Trigger template values must be proceeded by `advanced_camera_card.trigger` (or
 | `state.to`     | For [state conditions](./conditions.md?id=state), the current state of the entity.               |
 | `state.from`   | For [state conditions](./conditions.md?id=state), the previous state of the entity.              |
 
-!> If an action is triggered with multiple [state
-conditions](./conditions.md?id=state), only data from the last listed state
-condition is available.
+> [!NOTE]
+> If an action is triggered with multiple [state
+> conditions](./conditions.md?id=state), only data from the last listed state
+> condition is available.
 
-!> If you use an [`or`](./conditions.md?id=or) condition, only the trigger data
-for the first matching trigger will be included.
+> [!NOTE]
+> If you use an [`or`](./conditions.md?id=or) condition, only the trigger data
+> for the first matching trigger will be included.
 
 Please [request](https://github.com/dermotduffy/advanced-camera-card/issues) if
 you need data from additional conditions.

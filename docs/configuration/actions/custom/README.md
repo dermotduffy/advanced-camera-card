@@ -336,7 +336,8 @@ advanced_camera_card_action: ptz
 | `ptz_phase`                   |                           | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
 | `ptz_preset`                  |                           | Optional preset to execute when the `ptz_action` is `preset`.                                 |
 
-?> If no `ptz_action` is specified, the camera returns to its "home" position. For a real PTZ camera, the "home" position is the first available preset. If there are no presets, there is no home position.
+> [!NOTE]
+> If no `ptz_action` is specified, the camera returns to its "home" position. For a real PTZ camera, the "home" position is the first available preset. If there are no presets, there is no home position.
 
 ## `ptz_controls`
 
@@ -373,7 +374,8 @@ advanced_camera_card_action: ptz_digital
 | `ptz_phase`                   | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
 | `absolute`                    | Optional parameter to specify exact absolute pan and zoom settings. See below.                |
 
-?> If no `ptz_action` is specified and no `absolute` value is specified, the camera returns to its "home" position. See [Camera layout configuration](../../cameras/README.md?id=layout-configuration) to configure the default "home" position for digital PTZ.
+> [!NOTE]
+> If no `ptz_action` is specified and no `absolute` value is specified, the camera returns to its "home" position. See [Camera layout configuration](../../cameras/README.md?id=layout-configuration) to configure the default "home" position for digital PTZ.
 
 See [example of automatically zoom/panning based on state](../../../examples.md?id=automatically-zoom-based-on-state).
 
@@ -394,7 +396,8 @@ PTZ action will execute (equivalent to using the [`ptz`](README.md?id=ptz)
 action), otherwise a digital PTZ action will be run (equivalent to using the
 [`ptz_digital`](README.md?id=ptz_digital) action).
 
-?> If the camera supports _any_ real PTZ action, _all_ actions will attempt to make real PTZ calls.
+> [!NOTE]
+> If the camera supports _any_ real PTZ action, _all_ actions will attempt to make real PTZ calls.
 
 ```yaml
 action: custom:advanced-camera-card-action
@@ -410,7 +413,8 @@ advanced_camera_card_action: ptz_multi
 | `ptz_phase`                   | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
 | `ptz_preset`                  | Optional preset to execute when the `ptz_action` is `preset`.                                 |
 
-?> If no `ptz_action` is specified, the camera returns to its "home" position.
+> [!NOTE]
+> If no `ptz_action` is specified, the camera returns to its "home" position.
 
 ## `recording`
 
@@ -465,7 +469,8 @@ The `duration` block configures how long the `sleep` should last.
 | `s`       | Seconds to sleep for.      |
 | `ms`      | Milliseconds to sleep for. |
 
-?> Multiple values can be combined, e.g. `{ m: 2, s: 30}` will sleep for `2.5` minutes.
+> [!TIP]
+> Multiple values can be combined, e.g. `{ m: 2, s: 30}` will sleep for `2.5` minutes.
 
 ## `snapshot`
 

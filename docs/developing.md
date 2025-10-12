@@ -1,6 +1,7 @@
 # Developing
 
-?> Want to contribute? Development help [**welcome**](https://github.com/dermotduffy/advanced-camera-card/issues/1248)!
+> [!NOTE]
+> Want to contribute? Development help [**welcome**](https://github.com/dermotduffy/advanced-camera-card/issues/1248)!
 
 ## Building
 
@@ -77,7 +78,8 @@ Some environment variables are supported in a `.env` file:
 - `FRIGATE_VERSION`: The version of Frigate to use. Defaults to the latest stable version.
 - `HA_VERSION`: The version of Home Assistant to use. Defaults to the latest stable version.
 
-?> When not specifying any version, it's recommended that you `docker-compose pull` the stack from time to time to ensure you have the latest versions of the images.
+> [!TIP]
+> When not specifying any version, it's recommended that you `docker-compose pull` the stack from time to time to ensure you have the latest versions of the images.
 
 The Home Assistant container will get preconfigured during first initialization,
 therefore, if you changed the Home Assistant configuration, you will need to
