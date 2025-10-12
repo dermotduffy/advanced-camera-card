@@ -16,13 +16,12 @@
     <!-- Themes (light + dark) -->
     <link
       rel="stylesheet"
-      media="(prefers-color-scheme: dark)"
-      href="./css/theme-simple-dark.css"
+      href="./css/core.min.css"
     />
     <link
       rel="stylesheet"
-      media="(prefers-color-scheme: light)"
-      href="./css/theme-simple.css"
+      href="./css/addons/core-dark.min.css"
+      media="(prefers-color-scheme: dark)"
     />
     <style>
       :root {
@@ -46,14 +45,24 @@
           transform: rotate(-360deg);
         }
       }
+      .app-name-link {
+        display: flex;
+        justify-content: center;
+      }
       .app-name img,
       .spin {
         animation: spin 15s infinite linear;
         transform-origin: center;
       }
+      @media not (prefers-color-scheme: dark) {
+        .app-name img,
+        .spin {
+          filter: invert(1);
+        }
+      } 
     </style>
   </head>
-  <body>
+  <body class="sidebar-chevron-left sidebar-group-box sidebar-toggle-chevron">
     <div id="app"></div>
     <script>
       window.$docsify = {
@@ -89,6 +98,11 @@
 
         // Google tag (Google Analytics 4).
         gtag: 'G-ZFD19QWCJP',
+
+        search: {
+          // Place search box after spinning logo.
+          insertAfter: '.app-name',
+        }
       };
     </script>
 
@@ -98,22 +112,16 @@
     <script src="./js/docsify.min.js"></script>
     <script src="./js/gtag.min.js"></script>
 
-    <!-- Themeable -->
-    <script src="./js/docsify-themeable.min.js"></script>
-
     <!-- Prism Syntax Highlighting for YAML -->
     <script src="./js/prism-yaml.min.js"></script>
 
     <!-- Search plugin -->
-    <script src="./js/search.js"></script>
+    <script src="./js/search.min.js"></script>
 
     <!-- Zoom in on images on click -->
     <script src="./js/zoom-image.min.js"></script>
 
     <!-- Copy samples can copy to clipboard -->
     <script src="./js/docsify-copy-code.min.js"></script>
-
-    <!-- Allow sidebar selections to collapse -->
-    <script src="./js/docsify-sidebar-collapse.min.js"></script>
   </body>
 </html>
