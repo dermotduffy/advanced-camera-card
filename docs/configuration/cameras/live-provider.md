@@ -32,7 +32,8 @@ cameras:
 | `stream` | Determined by camera engine (e.g. `frigate` camera name).                                                                                            | A valid `go2rtc` stream name.                                                                                                                                                    |
 | `url`    | Determined by camera engine (e.g. the `frigate` engine will automatically generate a URL for the go2rtc backend that runs in the Frigate container). | The root `go2rtc` URL the card should stream the video from. This is only needed for non-Frigate usecases, or advanced Frigate usecases. Example: `http://my-custom-go2rtc:1984` |
 
-?> If `url` is manually set and `proxy.live` is set to `auto` on the camera (the default), the video stream will automatically be proxied via the Home Assistant process if the [hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration) is detected. See [proxying](./README.md?id=proxy).
+> [!NOTE]
+> If `url` is manually set and `proxy.live` is set to `auto` on the camera (the default), the video stream will automatically be proxied via the Home Assistant process if the [hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration) is detected. See [proxying](./README.md?id=proxy).
 
 ## `image`
 
@@ -76,7 +77,8 @@ WebRTC Card support blends the use of the ultra-realtime [WebRTC card live
 view](https://github.com/AlexxIT/WebRTC) with convenient access to Frigate
 events/snapshots/UI. AlexxIT's WebRTC Integration/Card must be installed and configured separately (see [details](https://github.com/AlexxIT/WebRTC)) before it can be used with this card.
 
-?> The `webrtc_card` default configuration disables the WebRTC card's `intersection` parameter (which auto-stops the media when a certain fraction of the video is no longer visible), since it interferes with the card pan & zoom. Instead, see the [`auto_pause`](../live.md) parameter.
+> [!NOTE]
+> The `webrtc_card` default configuration disables the WebRTC card's `intersection` parameter (which auto-stops the media when a certain fraction of the video is no longer visible), since it interferes with the card pan & zoom. Instead, see the [`auto_pause`](../live.md) parameter.
 
 ```yaml
 cameras:

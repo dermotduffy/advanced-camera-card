@@ -33,7 +33,8 @@ dimensions:
 - `4 / 3` or `4:3`: Default fullscreen ratio.
 - `[W]/[H]` or `[W]:[H]`: Any arbitrary aspect-ratio.
 
-?> When in a [Panel View](https://www.home-assistant.io/dashboards/panel/) the aspect-ratio of the card are pegged to the exact size of the panel. As such, static aspect-ratio parameters will have no effect.
+> [!NOTE]
+> When in a [Panel View](https://www.home-assistant.io/dashboards/panel/) the aspect-ratio of the card are pegged to the exact size of the panel. As such, static aspect-ratio parameters will have no effect.
 
 ## Fully expanded reference
 

@@ -10,7 +10,8 @@ overrides:
     # [...]
 ```
 
-!> Whilst all configuration parameters are theoretically overridable, in some instances a configuration variable may only be consulted on startup or changing its value may negatively impact behavior -- override results may vary!
+> [!WARNING]
+> Whilst all configuration parameters are theoretically overridable, in some instances a configuration variable may only be consulted on startup or changing its value may negatively impact behavior -- override results may vary!
 
 The top-level `overrides` configuration block expects a list, with each list
 item containing `conditions` and at least one of `merge`, `delete` or `set` specified.

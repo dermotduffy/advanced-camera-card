@@ -118,7 +118,8 @@ conditions:
 | ----------- | ---------------------- |
 | `condition` | Must be `initialized`. |
 
-?> This is exclusively useful for running [automations](./automations.md) on card start.
+> [!NOTE]
+> This is exclusively useful for running [automations](./automations.md) on card start.
 
 ## `interaction`
 
@@ -265,10 +266,11 @@ conditions:
 | `state`     | A single entity state, or list of entity states, against which the entity state is compared.           |
 | `state_not` | A single entity state, or list of entity states, against which the entity state is inversely compared. |
 
-!> If multiple state conditions are used together with neither `state` nor
-`state_not` specified, this effectively means the state for multiple entities
-needs to _change_ simultaneously. This is unlikely to happen in reality, and
-almost certainly not useful / reliable as a condition.
+> [!NOTE]
+> If multiple state conditions are used together with neither `state` nor
+> `state_not` specified, this effectively means the state for multiple entities
+> needs to _change_ simultaneously. This is unlikely to happen in reality, and
+> almost certainly not useful / reliable as a condition.
 
 See [Home Assistant conditions documentation](https://www.home-assistant.io/dashboards/conditional/#state).
 
@@ -289,10 +291,11 @@ conditions:
 
 See [Home Assistant conditions documentation](https://www.home-assistant.io/docs/scripts/conditions/#template-condition).
 
-?> The Advanced Camera Card uses
-[ha-nunjucks](https://github.com/Nerwyn/ha-nunjucks) to process templates.
-Consult its documentation for the wide variety of different template values
-supported.
+> [!TIP]
+> The Advanced Camera Card uses
+> [ha-nunjucks](https://github.com/Nerwyn/ha-nunjucks) to process templates.
+> Consult its documentation for the wide variety of different template values
+> supported.
 
 ## `triggered`
 
@@ -356,10 +359,11 @@ conditions:
 | `condition` | Must be `view`.                                                                                                                                                          |
 | `views`     | An optional list of [views](view.md?id=supported-views) in which this condition is satified (e.g. `clips`). If not specified, any view change will satisy the condition. |
 
-?> Internally, views associated with the media viewer (e.g. `clip`, `snapshot`,
-`recording`) are translated to a special view called `media` after the relevant
-media is fetched. When including views as part of a [condition](conditions.md),
-you may need to refer to this special `media` view.
+> [!IMPORTANT]
+> Internally, views associated with the media viewer (e.g. `clip`, `snapshot`,
+> `recording`) are translated to a special view called `media` after the relevant
+> media is fetched. When including views as part of a [condition](conditions.md),
+> you may need to refer to this special `media` view.
 
 ## Fully expanded reference
 

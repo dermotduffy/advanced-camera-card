@@ -1,6 +1,6 @@
 # Examples
 
-## Actions on `tap`
+## Actions on tap
 
 You can add actions to the card to be trigger on `tap`, `double_tap`, `hold`, `start_tap` or `end_tap`.
 
@@ -117,7 +117,7 @@ automations:
 
 ## Cameras
 
-### `frigate` camera without a `camera_entity`
+### Frigate camera without a `camera_entity`
 
 In this example, there is no Home Assistant entity linked to the camera, just a `frigate` camera name:
 
@@ -129,7 +129,7 @@ cameras:
     live_provider: go2rtc
 ```
 
-### `go2rtc` stream without a `camera_entity`
+### A go2rtc stream without a `camera_entity`
 
 In this example, there is no Home Assistant entity linked to the camera, just a `go2rtc` stream.
 
@@ -142,18 +142,17 @@ cameras:
       url: https://my.go2rtc.url:1984
 ```
 
-!> Browsers will reject [mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content): if you access Home Assistant over `https`, you must also put `go2rtc` behind `https` and use that in the `url` parameter. Check [go2rtc proxying](#go2rtc) as an alternative.
+> [!WARNING]
+> Browsers will reject [mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content): if you access Home Assistant over `https`, you must also put `go2rtc` behind `https` and use that in the `url` parameter. Check [go2rtc proxying](#go2rtc) as an alternative.
 
-## `card-mod`
+## Card Mod
 
 This card allows the use of
 [card-mod](https://github.com/thomasloven/lovelace-card-mod) to style arbitrary
 card contents.
 
-!> `card-mod` relies on the underlying internal DOM structure to style elements
--- as such, while its use is possible, it's not officially supported and zero
-attempt is made to preserve backwards compatability of the internal DOM between
-any versions. It may look good, but you're on your own!
+> [!WARNING]
+> Card mod relies on the underlying internal DOM structure to style elements -- as such, while its use is possible, it's not officially supported and zero attempt is made to preserve backwards compatability of the internal DOM between any versions. It may look good, but you're on your own!
 
 This example changes the color and removes the padding around a [Picture
 Elements state
@@ -173,7 +172,7 @@ card_mod:
         }
 ```
 
-## Cast a `dashboard`
+## Cast a dashboard
 
 This example will configure an Advanced Camera Card that can cast a dashboard view to a media player, which has a second Advanced Camera Card in panel mode with a low-latency live provider.
 
@@ -193,7 +192,8 @@ cameras:
 
 ### Dashboard configuration
 
-?> This dashboard is configured at the path `/cast/` (path referred to in `dashboard_path` above).
+> [!NOTE]
+> This dashboard is configured at the path `/cast/` (path referred to in `dashboard_path` above).
 
 ```yaml
 title: Advanced Camera Card Casting
@@ -343,9 +343,10 @@ cameras:
 These examples create folders that can be viewed in the
 [`media_gallery`](./configuration/media-gallery.md).
 
-?> Having difficulty configuring your folders? Consult the [Worked
-Examples](./configuration/folders.md?id=worked-examples) in the [`folders`
-documentation](./configuration/folders.md?id=worked-examples).
+> [!TIP]
+> Having difficulty configuring your folders? Consult the [Worked
+> Examples](./configuration/folders.md?id=worked-examples) in the [`folders`
+> documentation](./configuration/folders.md?id=worked-examples).
 
 ### Home Assistant default root
 
@@ -420,8 +421,9 @@ one for yesterday both in `%Y/%-m/%d`
 [Templating](https://www.home-assistant.io/docs/configuration/templating/#time)
 is used to dynamically refer to "today" and "yesterday".
 
-?> Using a `date` matcher (as above) should be preferred for matching dates,
-this example is included for illustration.
+> [!TIP]
+> Using a `date` matcher (as above) should be preferred for matching dates, this
+> example is included for illustration.
 
 ```yaml
 type: custom:advanced-camera-card
@@ -509,7 +511,8 @@ cameras:
       url: http://my-go2rtc:1984
 ```
 
-!> You may need to set `api.origin: '*'` in your go2rtc configuration.
+> [!WARNING]
+> You may need to set `api.origin: '*'` in your go2rtc configuration.
 
 ## Human interaction
 
@@ -1307,7 +1310,8 @@ menu:
 
 The card can respond to actions in the query string. See [URL Actions](usage/url-actions.md).
 
-?> These examples assume the dashboard URL is `https://ha.mydomain.org/lovelace-test/0` .
+> [!NOTE]
+> These examples assume the dashboard URL is `https://ha.mydomain.org/lovelace-test/0` .
 
 ### Choosing `clips` view on a named card
 

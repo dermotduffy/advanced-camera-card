@@ -4,7 +4,8 @@
 
 The `folders` stanza is used for configuring folders from which media/subfolders may be viewed.
 
-?> To configure the behavior of the gallery in which folders are displayed, see the [`media_gallery` configuration](./media-gallery.md).
+> [!TIP]
+> To configure the behavior of the gallery in which folders are displayed, see the [`media_gallery` configuration](./media-gallery.md).
 
 ```yaml
 folders:
@@ -35,8 +36,8 @@ folders:
 | `url`  |                             | An optional Home Assistant `Media` browser URL to use as the query base. If `path` is also specified, those matchers/parsers are applied against folders "below" the folder specified in `url`. |
 | `path` | [`{ id: media-source:// }`] | An optional array of parsers and matchers to dynamically compare and extract metadata from the Home Assistant media folder hierarchy. See below.                                                |
 
-?> `url` is never fetched, nor sent over the network. It is only processed
-locally in your browser. The host part of the URL can optionally be removed.
+> [!NOTE]
+> The `url` is never fetched, nor sent over the network. It is only processed locally in your browser. The host part of the URL can optionally be removed.
 
 ### `path`
 
@@ -62,8 +63,9 @@ folders:
         # [...]
 ```
 
-?> To match everything at a given level whilst parsing nothing would simply be
-represented by an empty object `{}`
+> [!TIP]
+> To match everything at a given level whilst parsing nothing would simply be
+> represented by an empty object `{}`
 
 #### Matchers
 
@@ -72,13 +74,15 @@ to perform multiple tests. A given match may match multiple items. If an item
 does not match, it will not be returned to the user nor (in case of subfolders)
 feature in future traversals.
 
-?> The higher in the path you can match, the more performant the query.
+> [!TIP]
+> The higher in the path you can match, the more performant the query.
 
 ##### Matcher: `date` / `startdate`
 
 Match if the media was started more recently than the provided date information.
 
-?> Matching based on date requires the media has been parsed with the [`date` parser](#parser-date-startdate) somewhere above or equal to the position of the matcher in the `path` hierarchy.
+> [!IMPORTANT]
+> Matching based on date requires the media has been parsed with the [`date` parser](#parser-date-startdate) somewhere above or equal to the position of the matcher in the `path` hierarchy.
 
 ```yaml
 type: date

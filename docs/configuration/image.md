@@ -16,7 +16,8 @@ image:
 | `refresh_seconds`   | 1       | The image will be refreshed at least every `refresh_seconds` (it may refresh more frequently, e.g. whenever Home Assistant updates its camera security token). `0` implies no refreshing.                                                                                                                                                                                                                                                                                                                                                                                     |
 | `url`               |         | A static image URL to be used when the `mode` is set to `url` or when a temporary image is required (e.g. may appear momentarily prior to load of a camera snapshot in the `camera` mode). Note that a `_t=[timestsamp]` query parameter will be automatically added to all URLs such that the image will not be cached by the browser.                                                                                                                                                                                                                                       |
 
-?> When `mode` is set to `camera` this is effectively providing the same image as the `image` [live provider](cameras/live-provider.md) would show in the live camera carousel.
+> [!NOTE]
+> When `mode` is set to `camera` this is effectively providing the same image as the `image` [live provider](cameras/live-provider.md) would show in the live camera carousel.
 
 ## Fully expanded reference
 

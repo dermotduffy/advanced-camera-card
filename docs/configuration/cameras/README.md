@@ -67,9 +67,10 @@ cameras:
 | `substream`             | The camera can be used as a substream on another camera.                                          |
 | `trigger`               | The camera can be triggered.                                                                      |
 
-?> If using a camera only as a `substream`, don't forget to keep both the
-`substream` and `ptz` capabilities enabled if you wish to use PTZ controls for
-the substream.
+> [!NOTE]
+> If using a camera only as a `substream`, don't forget to keep both the
+> `substream` and `ptz` capabilities enabled if you wish to use PTZ controls for
+> the substream.
 
 ## `cast`
 
@@ -137,9 +138,12 @@ cameras:
 | `layout`       |         | How the media should be laid out _within_ the camera dimensions. See below.                                                                                                                                                                                                                                                  |
 | `rotation`     | `0`     | Rotates the camera clockwise by `0`, `90`, `180` or `270` degrees.                                                                                                                                                                                                                                                           |
 
-?> Use of `rotation` causes the browser to rotate the video player, unavoidably _including_ rotating the builtin video controls on the player, which may be distracting or confusing (e.g. upside down controls). Builtin controls can be disabled using the [`live.controls.builtin` parameter](../live.md?id=controls). Rotation is not available in iOS fullscreen, due to the limited fullscreen support offered by that OS.
+> [!NOTE]
+> Use of `rotation` causes the browser to rotate the video player, unavoidably _including_ rotating the builtin video controls on the pl
+> ayer, which may be distracting or confusing (e.g. upside down controls). Builtin controls can be disabled using the [`live.controls.builtin` parameter](../live.md?id=controls). Rotation is not available in iOS fullscreen, due to the limited fullscreen support offered by that OS.
 
-!> Rotating the camera incurs a rendering performance penalty. Always rotate "upstream" if possible (e.g. in your camera settings).
+> [!WARNING]
+> Rotating the camera incurs a rendering performance penalty. Always rotate "upstream" if possible (e.g. in your camera settings).
 
 ### Layout Configuration
 
@@ -161,7 +165,8 @@ cameras:
 | `view_box` |           | A dictionary that may contain a `top`, `bottom`, `left` and `right` percentage (`0` - `100`) to precisely crop what part of the media to show by specifying a % inset value from each side. Browsers apply this cropping after `position` and `fit` have been applied. Unlike `zoom`, the user cannot dynamically zoom back out -- however the builtin media controls will work as normal. See visualizations below. Limited [browser support](https://caniuse.com/mdn-css_properties_object-view-box): ![](../../images/browsers/chrome_16x16.png 'Google Chrome :no-zoom') ![](../../images/browsers/chromium_16x16.png 'Chromium :no-zoom') ![](../../images/browsers/edge_16x16.png 'Microsoft Edge :no-zoom')                                                                                                             |
 | `zoom`     | `1.0`     | A value between `1.0` and `10.0` inclusive that defines how much additional "digital zoom" to apply to this camera by default. Unlike with `view_box` the user can easily "zoom back out". Often used in conjuction with `pan`. When zoomed in the [builtin browser media controls](../live.md?id=controls) will automatically be disabled (as otherwise they would be enlarged also).                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
-?> Layout operations are effectively applied in this order: `fit`, `position`, `view_box`, `zoom` then `pan`.
+> [!NOTE]
+> Layout operations are effectively applied in this order: `fit`, `position`, `view_box`, `zoom` then `pan`.
 
 See [media layout examples](../../examples.md?id=media-layout).
 
@@ -230,8 +235,9 @@ auto-detected actions. For example if `actions_left` is set for a Frigate
 camera, it will be used for all `left` PTZ actions even though Frigate cameras
 natively support continuous actions (`actions_left_start`, `actions_left_stop`).
 
-?> Frigate auto-detected PTZ actions will always be `continuous` as this is what
-the integration currently offers.
+> [!NOTE]
+> Frigate auto-detected PTZ actions will always be `continuous` as this is what
+> the integration currently offers.
 
 ### Parameters
 
@@ -262,7 +268,8 @@ cameras:
 
 `[action]` is any [perform-action](../actions/stock/README.md?id=perform-action) action.
 
-?> The 'Home' PTZ button (:house:) activates the first preset.
+> [!NOTE]
+> The 'Home' PTZ button (:house:) activates the first preset.
 
 ## `proxy`
 

@@ -20,7 +20,8 @@ elements:
     # [...]
 ```
 
-?> See [Advanced Camera Card custom elements](../custom//README.md) for the custom elements offered by _this_ card.
+> [!TIP]
+> See [Advanced Camera Card custom elements](../custom//README.md) for the custom elements offered by _this_ card.
 
 ## `icon`
 

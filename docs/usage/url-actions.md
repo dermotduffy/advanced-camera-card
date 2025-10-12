@@ -29,7 +29,8 @@ To send an action to a specific named Advanced Camera Card:
 [PATH_TO_YOUR_HA_DASHBOARD]?advanced-camera-card-action.[CARD_ID].[ACTION]=[VALUE]
 ```
 
-?> For backwards compatibility, the card will also respond to `frigate-card-action` as a query-parameter with the same syntax.
+> [!NOTE]
+> For backwards compatibility, the card will also respond to `frigate-card-action` as a query-parameter with the same syntax.
 
 | Parameter | Description                                                                                       |
 | --------- | ------------------------------------------------------------------------------------------------- |
@@ -37,12 +38,14 @@ To send an action to a specific named Advanced Camera Card:
 | `CARD_ID` | When specified only cards that have a [`card_id`](../configuration/README.md) parameter will act. |
 | `VALUE`   | An optional value to use with the `camera_select` and `live_substream_select` actions.            |
 
-?> Both `.` and `:` may be used as the delimiter. If you use `:` some
-browsers may require it be escaped to `%3A`.
+> [!TIP]
+> Both `.` and `:` may be used as the delimiter. If you use `:` some
+> browsers may require it be escaped to `%3A`.
 
-!> If a dashboard has multiple Advanced Camera Cards on it, even if they are on
-different 'tabs' within that dashboard, they will all respond to the actions
-unless the action is targeted with a `CARD_ID` as shown above.
+> [!NOTE]
+> If a dashboard has multiple Advanced Camera Cards on it, even if they are on
+> different 'tabs' within that dashboard, they will all respond to the actions
+> unless the action is targeted with a `CARD_ID` as shown above.
 
 ## Supported Actions
 
