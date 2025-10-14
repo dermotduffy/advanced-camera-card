@@ -540,7 +540,6 @@ export class TimelineController {
       const selectedItem = newResults?.getSelectedResult();
       const context: ViewContext = mergeViewContext(this._getTimelineContext(), {
         ...(ViewItemClassifier.isEvent(selectedItem) &&
-
           // Only attempt to seek if the event has a real end time, otherwise
           // the viewer cannot actually seek there and shows the unseekable
           // message.
