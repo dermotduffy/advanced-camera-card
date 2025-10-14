@@ -864,7 +864,7 @@ elements:
         advanced_camera_card_action: folders
         folder: my-folder
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-o-circle-outline
+    icon: mdi:reload
     title: Reload
     tap_action:
       - action: custom:advanced-camera-card-action
