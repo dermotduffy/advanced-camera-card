@@ -8,6 +8,7 @@ import { TimelineConfig } from '../config/schema/timeline';
 import { CardWideConfig } from '../config/schema/types';
 import { HomeAssistant } from '../ha/types';
 import basicBlockStyle from '../scss/basic-block.scss';
+import { QueryClassifier } from '../view/query-classifier';
 import './surround.js';
 import './timeline-core.js';
 
@@ -32,6 +33,27 @@ export class AdvancedCameraCardTimeline extends LitElement {
   public cardWideConfig?: CardWideConfig;
 
   protected _getKeys(): TimelineKey[] {
+    const query = this.viewManagerEpoch?.manager.getView()?.query;
+
+    // If there's a query, try to extract camera IDs or folder info from it.
+    if (QueryClassifier.isMediaQuery(query)) {
+      const cameraIDs = query.getQueryCameraIDs();
+      if (cameraIDs && cameraIDs.size) {
+        return [...cameraIDs].map((cameraID) => ({ type: 'camera', cameraID }));
+      }
+    } else if (QueryClassifier.isFolderQuery(query)) {
+      const folderConfig = query.getQuery()?.folder;
+      if (folderConfig) {
+        return [
+          {
+            type: 'folder' as const,
+            folder: folderConfig,
+          },
+        ];
+      }
+    }
+
+    // Otherwise fall back to all cameras that support media queries.
     const keys: TimelineKey[] = [];
     for (const camera of this.cameraManager?.getStore().getCameraIDsWithCapability({
       anyCapabilities: ['clips', 'snapshots', 'recordings'],

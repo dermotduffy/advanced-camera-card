@@ -29,7 +29,11 @@ import { getStreamCameraID, hasSubstream } from '../utils/substream';
 import { ViewItemClassifier } from '../view/item-classifier';
 import { QueryClassifier } from '../view/query-classifier';
 import { View } from '../view/view';
-import { getCameraIDsForViewName } from '../view/view-to-cameras';
+import {
+  getCameraIDsForViewName,
+  isViewSupportedByCamera,
+  isViewSupportedByQueryOnly,
+} from '../view/view-support';
 
 export interface MenuButtonControllerOptions {
   currentMediaLoadedInfo?: MediaLoadedInfo | null;
@@ -73,12 +77,12 @@ export class MenuButtonController {
       this._getIrisButton(config),
       this._getCamerasButton(config, cameraManager, options?.view),
       this._getSubstreamsButton(config, cameraManager, options?.view),
-      this._getLiveButton(config, options?.view, options?.viewManager),
-      this._getClipsButton(config, options?.view, options?.viewManager),
-      this._getSnapshotsButton(config, options?.view, options?.viewManager),
-      this._getRecordingsButton(config, options?.view, options?.viewManager),
-      this._getImageButton(config, options?.view, options?.viewManager),
-      this._getTimelineButton(config, options?.view, options?.viewManager),
+      this._getLiveButton(config, cameraManager, options?.view),
+      this._getClipsButton(config, cameraManager, options?.view),
+      this._getSnapshotsButton(config, cameraManager, options?.view),
+      this._getRecordingsButton(config, cameraManager, options?.view),
+      this._getImageButton(config, cameraManager, options?.view),
+      this._getTimelineButton(config, cameraManager, options?.view),
       this._getDownloadButton(config, cameraManager, options?.view),
       this._getCameraUIButton(config, options?.showCameraUIButton),
       this._getMicrophoneButton(
@@ -227,10 +231,10 @@ export class MenuButtonController {
 
   protected _getLiveButton(
     config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
     view?: View | null,
-    viewManager?: ViewManager | null,
   ): MenuItem | null {
-    return view && viewManager?.isViewSupportedByCamera(view.camera, 'live')
+    return view && isViewSupportedByCamera('live', cameraManager, view.camera)
       ? {
           icon: 'mdi:cctv',
           ...config.menu.buttons.live,
@@ -244,10 +248,10 @@ export class MenuButtonController {
 
   protected _getClipsButton(
     config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
     view?: View | null,
-    viewManager?: ViewManager | null,
   ): MenuItem | null {
-    return view && viewManager?.isViewSupportedByCamera(view.camera, 'clips')
+    return view && isViewSupportedByCamera('clips', cameraManager, view.camera)
       ? {
           icon: 'mdi:filmstrip',
           ...config.menu.buttons.clips,
@@ -262,10 +266,10 @@ export class MenuButtonController {
 
   protected _getSnapshotsButton(
     config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
     view?: View | null,
-    viewManager?: ViewManager | null,
   ): MenuItem | null {
-    return view && viewManager?.isViewSupportedByCamera(view.camera, 'snapshots')
+    return view && isViewSupportedByCamera('snapshots', cameraManager, view.camera)
       ? {
           icon: 'mdi:camera',
           ...config.menu.buttons.snapshots,
@@ -280,10 +284,10 @@ export class MenuButtonController {
 
   protected _getRecordingsButton(
     config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
     view?: View | null,
-    viewManager?: ViewManager | null,
   ): MenuItem | null {
-    return view && viewManager?.isViewSupportedByCamera(view.camera, 'recordings')
+    return view && isViewSupportedByCamera('recordings', cameraManager, view.camera)
       ? {
           icon: 'mdi:album',
           ...config.menu.buttons.recordings,
@@ -298,10 +302,10 @@ export class MenuButtonController {
 
   protected _getImageButton(
     config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
     view?: View | null,
-    viewManager?: ViewManager | null,
   ): MenuItem | null {
-    return view && viewManager?.isViewSupportedByCamera(view.camera, 'image')
+    return view && isViewSupportedByCamera('image', cameraManager, view.camera)
       ? {
           icon: 'mdi:image',
           ...config.menu.buttons.image,
@@ -315,10 +319,14 @@ export class MenuButtonController {
 
   protected _getTimelineButton(
     config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
     view?: View | null,
-    viewManager?: ViewManager | null,
   ): MenuItem | null {
-    return view && viewManager?.isViewSupportedByCamera(view.camera, 'timeline')
+    const shouldShowTimelineButton =
+      view &&
+      (isViewSupportedByCamera('timeline', cameraManager, view.camera) ||
+        isViewSupportedByQueryOnly('timeline', view.query, view.queryResults));
+    return shouldShowTimelineButton
       ? {
           icon: 'mdi:chart-gantt',
           ...config.menu.buttons.timeline,
@@ -545,7 +553,7 @@ export class MenuButtonController {
     view?: View | null,
   ): MenuItem | null {
     const viewCameraIDs = view
-      ? getCameraIDsForViewName(cameraManager, view.view)
+      ? getCameraIDsForViewName(view.view, cameraManager)
       : null;
     if (
       view?.supportsMultipleDisplayModes() &&

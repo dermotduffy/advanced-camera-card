@@ -1,10 +1,8 @@
 import { ViewContext } from 'view';
-import { AdvancedCameraCardView } from '../../config/schema/common/const';
 import { log } from '../../utils/debug';
 import { getStreamCameraID } from '../../utils/substream';
 import { QueryClassifier } from '../../view/query-classifier';
 import { View } from '../../view/view';
-import { getCameraIDsForViewName } from '../../view/view-to-cameras';
 import { InitializationAspect } from '../initialization-manager';
 import { CardViewAPI } from '../types';
 import { ViewFactory } from './factory';
@@ -255,13 +253,6 @@ export class ViewManager implements ViewManagerInterface {
     if (this._view) {
       return this._setView(this._view?.clone().mergeInContext(context));
     }
-  }
-
-  public isViewSupportedByCamera(
-    cameraID: string,
-    view: AdvancedCameraCardView,
-  ): boolean {
-    return !!getCameraIDsForViewName(this._api.getCameraManager(), view, cameraID).size;
   }
 
   /**

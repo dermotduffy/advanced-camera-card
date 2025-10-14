@@ -699,6 +699,7 @@
     "no_camera_entity": "Impossibile trovare l'entità fotocamera",
     "no_camera_entity_for_triggers": "È necessaria un'entità telecamera per rilevare automaticamente i trigger",
     "no_camera_id": "Impossibile determinare l'ID della telecamera , potrebbe essere necessario impostare manualmente il parametro 'ID'",
+    "no_camera_or_media_for_timeline": "",
     "no_dashboard_or_view": "",
     "no_live_camera": "Il parametro fotocamera_enty deve essere impostato e valido per questo provider live",
     "no_supported_camera": "",
