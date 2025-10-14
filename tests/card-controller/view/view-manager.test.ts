@@ -11,18 +11,11 @@ import {
 } from '../../../src/card-controller/view/types';
 import { ViewManager } from '../../../src/card-controller/view/view-manager';
 import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
-import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import { ViewMedia, ViewMediaType } from '../../../src/view/item';
 import { EventMediaQuery } from '../../../src/view/query';
 import { QueryResults } from '../../../src/view/query-results';
 import { View } from '../../../src/view/view';
-import {
-  createCameraManager,
-  createCapabilities,
-  createCardAPI,
-  createStore,
-  createView,
-} from '../../test-utils';
+import { createCardAPI, createView } from '../../test-utils';
 
 const createInitializedCardAPI = (initialized?: boolean): CardController => {
   const api = createCardAPI();
@@ -298,44 +291,6 @@ describe('should handle exceptions', () => {
 
     // But an error will also be generated.
     expect(api.getMessageManager().setErrorIfHigherPriority).toBeCalledWith(error);
-  });
-});
-
-describe('isViewSupportedByCamera', () => {
-  it.each([
-    ['live' as const, false],
-    ['image' as const, true],
-    ['diagnostics' as const, true],
-    ['clip' as const, false],
-    ['clips' as const, false],
-    ['snapshot' as const, false],
-    ['snapshots' as const, false],
-    ['recording' as const, false],
-    ['recordings' as const, false],
-    ['timeline' as const, false],
-    ['media' as const, true],
-  ])('%s', (viewName: AdvancedCameraCardView, expected: boolean) => {
-    const api = createInitializedCardAPI();
-    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera.kitchen',
-          capabilities: createCapabilities({
-            live: false,
-            'favorite-events': false,
-            'favorite-recordings': false,
-            seek: false,
-            clips: false,
-            recordings: false,
-            snapshots: false,
-          }),
-        },
-      ]),
-    );
-    const manager = new ViewManager(api);
-
-    expect(manager.isViewSupportedByCamera('camera', viewName)).toBe(expected);
   });
 });
 

@@ -1,5 +1,4 @@
 import { ViewContext } from 'view';
-import { AdvancedCameraCardView } from '../../config/schema/common/const.js';
 import { AdvancedCameraCardError } from '../../types.js';
 import { ViewItem } from '../../view/item.js';
 import { QueryResults } from '../../view/query-results.js';
@@ -73,7 +72,6 @@ export interface ViewManagerInterface {
 
   setViewWithMergedContext(context: ViewContext | null): void;
 
-  isViewSupportedByCamera(cameraID: string, view: AdvancedCameraCardView): boolean;
   hasMajorMediaChange(oldView?: View | null, newView?: View | null): boolean;
 }
 

@@ -29,6 +29,7 @@ import { contentsChanged } from '../utils/basic';
 import './date-picker.js';
 import { AdvancedCameraCardDatePicker, DatePickerEvent } from './date-picker.js';
 import './icon';
+import { renderMessage } from './message';
 import './thumbnail/thumbnail.js';
 
 /**
@@ -139,7 +140,18 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
   protected _controller: TimelineController = new TimelineController(this);
 
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.timelineConfig || !this.keys?.length) {
+    if (!this.hass || !this.timelineConfig) {
+      return;
+    }
+
+    if (!this.keys.length) {
+      if (!this.mini) {
+        return renderMessage({
+          message: localize('error.no_camera_or_media_for_timeline'),
+          icon: 'mdi:chart-gantt',
+          type: 'info',
+        });
+      }
       return;
     }
 

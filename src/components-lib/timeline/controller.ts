@@ -537,8 +537,14 @@ export class TimelineController {
         .resetSelectedResult()
         .selectResultIfFound((media) => media.getID() === properties.item, criteria);
 
+      const selectedItem = newResults?.getSelectedResult();
       const context: ViewContext = mergeViewContext(this._getTimelineContext(), {
-        mediaViewer: { seek: properties.time },
+        ...(ViewItemClassifier.isEvent(selectedItem) &&
+
+          // Only attempt to seek if the event has a real end time, otherwise
+          // the viewer cannot actually seek there and shows the unseekable
+          // message.
+          selectedItem.getEndTime() && { mediaViewer: { seek: properties.time } }),
       });
 
       if (!newResults || !newResults.hasSelectedResult()) {

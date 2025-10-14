@@ -23,6 +23,10 @@ import { createGeneralAction, createViewAction } from '../../src/utils/action.js
 import { ViewMedia, ViewMediaType } from '../../src/view/item.js';
 import { QueryResults } from '../../src/view/query-results.js';
 import { FolderViewQuery } from '../../src/view/query.js';
+import {
+  getCameraIDsForViewName,
+  isViewSupportedByCamera,
+} from '../../src/view/view-support.js';
 import { View } from '../../src/view/view.js';
 import {
   createCameraConfig,
@@ -39,6 +43,7 @@ import {
   TestViewMedia,
 } from '../test-utils.js';
 
+vi.mock('../../src/view/view-support.js');
 vi.mock('../../src/utils/media-player-controller.js');
 vi.mock('../../src/card-controller/microphone-manager.js');
 
@@ -498,7 +503,7 @@ describe('MenuButtonController', () => {
   describe('should have live menu button', () => {
     it('when in live view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'live' }),
         viewManager: viewManager,
@@ -517,7 +522,7 @@ describe('MenuButtonController', () => {
 
     it('when not in live view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'clips' }),
         viewManager: viewManager,
@@ -536,7 +541,7 @@ describe('MenuButtonController', () => {
 
     it('when not supported', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(false);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -552,7 +557,7 @@ describe('MenuButtonController', () => {
   describe('should have clips menu button', () => {
     it('when in clips view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'clips' }),
         viewManager: viewManager,
@@ -572,7 +577,7 @@ describe('MenuButtonController', () => {
 
     it('when not in clips view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -591,7 +596,7 @@ describe('MenuButtonController', () => {
 
     it('when not supported', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(false);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -605,7 +610,7 @@ describe('MenuButtonController', () => {
   describe('should have snapshots menu button', () => {
     it('when in snapshots view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'snapshots' }),
         viewManager: viewManager,
@@ -631,7 +636,7 @@ describe('MenuButtonController', () => {
 
     it('when not in snapshots view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -656,7 +661,7 @@ describe('MenuButtonController', () => {
 
     it('when not supported', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(false);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -672,7 +677,7 @@ describe('MenuButtonController', () => {
   describe('should have recordings menu button', () => {
     it('when in recordings view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'recordings' }),
         viewManager: viewManager,
@@ -698,7 +703,7 @@ describe('MenuButtonController', () => {
 
     it('when not in recordings view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -723,7 +728,7 @@ describe('MenuButtonController', () => {
 
     it('when not supported', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(false);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -739,7 +744,7 @@ describe('MenuButtonController', () => {
   describe('should have image menu button', () => {
     it('when in image view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
 
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'image' }),
@@ -759,7 +764,7 @@ describe('MenuButtonController', () => {
 
     it('when not in image view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
 
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'live' }),
@@ -779,7 +784,7 @@ describe('MenuButtonController', () => {
 
     it('when not supported', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(false);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -795,7 +800,7 @@ describe('MenuButtonController', () => {
   describe('should have timeline button', () => {
     it('when in timeline view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'timeline' }),
         viewManager: viewManager,
@@ -817,7 +822,7 @@ describe('MenuButtonController', () => {
 
     it('when not in timeline view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'live' }),
         viewManager: viewManager,
@@ -839,7 +844,7 @@ describe('MenuButtonController', () => {
 
     it('when not supported', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(false);
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'live' }),
         viewManager: viewManager,
@@ -1474,6 +1479,10 @@ describe('MenuButtonController', () => {
             { cameraID: 'camera-1', capabilities: createCapabilities({ live: true }) },
             { cameraID: 'camera-2', capabilities: createCapabilities({ live: true }) },
           ]),
+        );
+
+        vi.mocked(getCameraIDsForViewName).mockReturnValue(
+          new Set(['camera-1', 'camera-2']),
         );
 
         expect(

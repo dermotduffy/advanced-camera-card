@@ -699,6 +699,7 @@
     "no_camera_entity": "Impossible de trouver l'entité de caméra",
     "no_camera_entity_for_triggers": "Une entité caméra est requise pour détecter automatiquement les déclencheurs",
     "no_camera_id": "Impossible de déterminer l'identifiant de la caméra suivante. Il faudra peut-être définir le paramètre « ID » manuellement",
+    "no_camera_or_media_for_timeline": "",
     "no_dashboard_or_view": "Les paramètres 'dashboard_path' et 'view_path' sont requis pour la méthode de conversion 'dashboard'",
     "no_live_camera": "Le paramètre camera_entity doit être défini et valide pour ce fournisseur en direct",
     "no_supported_camera": "La caméra sélectionnée ne prend pas en charge cette vue",

@@ -253,7 +253,7 @@ describe('getViewByParameters', () => {
             view: 'snapshots',
           },
         }),
-      ).toThrowError(/The selected camera does not support this view/);
+      ).toThrowError(/The selected camera or media does not support this view/);
     });
 
     it('should choose live view with failsafe', () => {

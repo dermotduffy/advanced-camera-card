@@ -699,6 +699,7 @@
     "no_camera_entity": "No s'ha pogut trobar l'entitat de la càmera",
     "no_camera_entity_for_triggers": "Es requereix una entitat de càmera per detectar automàticament els activadors",
     "no_camera_id": "No s'ha pogut determinar l'identificador de la càmera per a la següent càmera, és possible que hagis d'establir el paràmetre 'id' manualment",
+    "no_camera_or_media_for_timeline": "",
     "no_dashboard_or_view": "Tant els paràmetres 'dashboard_path' com 'view_path' són necessaris per al mètode d'emissió 'dashboard'",
     "no_live_camera": "El paràmetre 'camera_entity' s'ha de configurar i validar per a aquest proveïdor en directe",
     "no_supported_camera": "",

@@ -3,7 +3,11 @@ import { ViewDisplayMode } from '../../config/schema/common/display';
 import { AdvancedCameraCardConfig } from '../../config/schema/types';
 import { localize } from '../../localize/localize';
 import { View, ViewParameters } from '../../view/view';
-import { getCameraIDsForViewName } from '../../view/view-to-cameras';
+import {
+  getCameraIDsForViewName,
+  isViewSupportedByCamera,
+  isViewSupportedByQueryOnly,
+} from '../../view/view-support';
 import { CardViewAPI } from '../types';
 import { applyViewModifiers } from './modifiers';
 import { ViewFactoryOptions, ViewIncompatible, ViewNoCameraError } from './types';
@@ -32,7 +36,7 @@ export class ViewFactory {
       cameraID = options.params.camera;
     } else {
       const cameraIDs = [
-        ...getCameraIDsForViewName(this._api.getCameraManager(), viewName),
+        ...getCameraIDsForViewName(viewName, this._api.getCameraManager()),
       ];
 
       if (
@@ -73,8 +77,8 @@ export class ViewFactory {
 
     if (!cameraID || !allCameraIDs.has(cameraID)) {
       const viewCameraIDs = getCameraIDsForViewName(
-        this._api.getCameraManager(),
         viewName,
+        this._api.getCameraManager(),
       );
 
       // Reset to the default camera.
@@ -98,8 +102,18 @@ export class ViewFactory {
       });
     }
 
-    if (!this.isViewSupportedByCamera(cameraID, viewName)) {
-      if (options?.failSafe && this.isViewSupportedByCamera(cameraID, VIEW_DEFAULT)) {
+    if (
+      !isViewSupportedByCamera(viewName, this._api.getCameraManager(), cameraID) &&
+      !isViewSupportedByQueryOnly(
+        viewName,
+        options?.params?.query ?? options?.baseView?.query,
+        options?.params?.queryResults ?? options?.baseView?.queryResults,
+      )
+    ) {
+      if (
+        options?.failSafe &&
+        isViewSupportedByCamera(VIEW_DEFAULT, this._api.getCameraManager(), cameraID)
+      ) {
         viewName = VIEW_DEFAULT;
       } else {
         const capabilities = this._api
@@ -140,13 +154,6 @@ export class ViewFactory {
     applyViewModifiers(view, options?.modifiers);
 
     return view;
-  }
-
-  public isViewSupportedByCamera(
-    cameraID: string,
-    view: AdvancedCameraCardView,
-  ): boolean {
-    return !!getCameraIDsForViewName(this._api.getCameraManager(), view, cameraID).size;
   }
 
   protected _getDefaultDisplayModeForView(

@@ -699,6 +699,7 @@
     "no_camera_entity": "Não existe uma entidade câmera",
     "no_camera_entity_for_triggers": "Não existe camera para a acção",
     "no_camera_id": "Não foi possível determinar o ID da câmera para a câmera a seguir, pode ser necessário definir o parâmetro 'id' manualmente",
+    "no_camera_or_media_for_timeline": "",
     "no_dashboard_or_view": "",
     "no_live_camera": "O parâmetro camera_entity deve ser definido e válido para este serviço ativo",
     "no_supported_camera": "",

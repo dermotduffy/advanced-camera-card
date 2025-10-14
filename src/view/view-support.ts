@@ -1,14 +1,16 @@
 import { CameraManager } from '../camera-manager/manager';
 import { CapabilitySearchOptions } from '../camera-manager/types';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
+import { Query } from './query';
+import { QueryResults } from './query-results';
 
 /**
  * Get cameraIDs that are relevant for a given view name based on camera
  * capability (if camera specified).
  */
 export const getCameraIDsForViewName = (
-  cameraManager: CameraManager,
   viewName: AdvancedCameraCardView,
+  cameraManager: CameraManager,
   cameraID?: string,
 ): Set<string> => {
   switch (viewName) {
@@ -46,4 +48,28 @@ export const getCameraIDsForViewName = (
         anyCapabilities: ['clips', 'snapshots', 'recordings'],
       });
   }
+};
+
+export const isViewSupportedByCamera = (
+  view: AdvancedCameraCardView,
+  cameraManager: CameraManager,
+  cameraID: string,
+): boolean => {
+  return !!getCameraIDsForViewName(view, cameraManager, cameraID).size;
+};
+
+/**
+ * Whether a view is supported by a given query ONLY (i.e. regardless of what
+ * the camera supports).
+ */
+export const isViewSupportedByQueryOnly = (
+  view: AdvancedCameraCardView,
+  query?: Query | null,
+  queryResults?: QueryResults | null,
+): boolean => {
+  switch (view) {
+    case 'timeline':
+      return !!query?.getQuery() && !!queryResults?.hasResults();
+  }
+  return false;
 };
