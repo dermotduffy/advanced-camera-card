@@ -17,6 +17,7 @@ const GENERAL_ACTIONS = [
   'mute',
   'pause',
   'play',
+  'reload',
   'screenshot',
   'unmute',
 ] as const;

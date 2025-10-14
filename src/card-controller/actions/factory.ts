@@ -30,6 +30,7 @@ import { PTZAction } from './actions/ptz';
 import { PTZControlsAction } from './actions/ptz-controls';
 import { PTZDigitalAction } from './actions/ptz-digital';
 import { PTZMultiAction } from './actions/ptz-multi';
+import { ReloadAction } from './actions/reload';
 import { ScreenshotAction } from './actions/screenshot';
 import { SleepAction } from './actions/sleep';
 import { StatusBarAction } from './actions/status-bar';
@@ -150,6 +151,8 @@ export class ActionFactory {
         return new LogAction(context, action, options?.config);
       case 'status_bar':
         return new StatusBarAction(context, action, options?.config);
+      case 'reload':
+        return new ReloadAction(context, action, options?.config);
       case INTERNAL_CALLBACK_ACTION:
         return new InternalCallbackAction(context, action, options?.config);
     }
