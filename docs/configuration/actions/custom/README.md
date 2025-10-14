@@ -434,6 +434,15 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: recordings
 ```
 
+## `reload`
+
+Reload the entire dashboard.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: reload
+```
+
 ## `screenshot`
 
 Take a screenshot of the selected media (e.g. a still from a video).
@@ -854,4 +863,10 @@ elements:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: folders
         folder: my-folder
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-o-circle-outline
+    title: Reload
+    tap_action:
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: reload
 ```
