@@ -48,10 +48,27 @@ export class ReolinkCamera extends BrowseMediaCamera {
   protected _ptzEntities: PTZEntities | null = null;
 
   public async initialize(options: ReolinkCameraInitializationOptions): Promise<Camera> {
-    await super.initialize(options);
+    // Need to initialize entity first (from BrowseMediaCamera), then Reolink-specific
+    // setup, then finally subscribe to triggers (from Camera). This ordering ensures
+    // capabilities are available when Camera.initialize() tries to subscribe.
+    const config = this.getConfig();
+
+    // First: Get the entity (from BrowseMediaCamera logic)
+    const entity = config.camera_entity
+      ? await options.entityRegistryManager.getEntity(options.hass, config.camera_entity)
+      : null;
+
+    if (!entity || !config.camera_entity) {
+      throw new CameraInitializationError(localize('error.no_camera_entity'), config);
+    }
+    this._entity = entity;
+
+    // Second: Initialize Reolink-specific stuff
     this._initializeChannel();
     await this._initializeCapabilities(options.hass, options.entityRegistryManager);
-    return this;
+
+    // Finally: Call Camera.initialize() which will subscribe to triggers with capabilities set
+    return await Camera.prototype.initialize.call(this, options);
   }
 
   protected _initializeChannel(): void {
