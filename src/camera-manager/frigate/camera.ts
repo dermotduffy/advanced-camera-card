@@ -49,7 +49,7 @@ export class FrigateCamera extends Camera {
 
   public async initialize(options: FrigateCameraInitializationOptions): Promise<Camera> {
     await this._initializeConfig(options.hass, options.entityRegistryManager);
-    await this._initializeCapabilities(options.hass);
+    await this._initializeCapabilities(options.hass, options.stateWatcher);
 
     if (this._capabilities?.has('trigger')) {
       await this._subscribeToEvents(options.hass, options.frigateEventWatcher);
@@ -170,7 +170,10 @@ export class FrigateCamera extends Camera {
     }
   }
 
-  protected async _initializeCapabilities(hass: HomeAssistant): Promise<void> {
+  protected async _initializeCapabilities(
+    hass: HomeAssistant,
+    stateWatcher: StateWatcherSubscriptionInterface,
+  ): Promise<void> {
     const config = this.getConfig();
 
     const configPTZCapabilities = getPTZCapabilitiesFromCameraConfig(this.getConfig());
@@ -205,6 +208,7 @@ export class FrigateCamera extends Camera {
         disableExcept: config.capabilities?.disable_except,
       },
     );
+    this._subscribeBasedOnCapabilities(stateWatcher);
   }
 
   protected _getFrigateCameraNameFromEntity(entity: Entity): string | null {

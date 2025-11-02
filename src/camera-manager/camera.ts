@@ -38,12 +38,7 @@ export class Camera {
   }
 
   async initialize(options: CameraInitializationOptions): Promise<Camera> {
-    if (this._capabilities?.has('trigger')) {
-      options.stateWatcher.subscribe(
-        this._stateChangeHandler,
-        this._config.triggers.entities,
-      );
-    }
+    this._subscribeBasedOnCapabilities(options.stateWatcher);
     this._onDestroy(() => options.stateWatcher.unsubscribe(this._stateChangeHandler));
     return this;
   }
@@ -119,5 +114,14 @@ export class Camera {
 
   protected _onDestroy(callback: DestroyCallback): void {
     this._destroyCallbacks.push(callback);
+  }
+
+  protected _subscribeBasedOnCapabilities(
+    stateWatcher: StateWatcherSubscriptionInterface,
+  ): void {
+    if (this._capabilities?.has('trigger')) {
+      stateWatcher.unsubscribe(this._stateChangeHandler);
+      stateWatcher.subscribe(this._stateChangeHandler, this._config.triggers.entities);
+    }
   }
 }
