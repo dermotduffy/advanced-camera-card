@@ -1,4 +1,5 @@
 import { ActionsExecutor } from '../../card-controller/actions/types';
+import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
 import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
@@ -50,7 +51,11 @@ export class ReolinkCamera extends BrowseMediaCamera {
   public async initialize(options: ReolinkCameraInitializationOptions): Promise<Camera> {
     await super.initialize(options);
     this._initializeChannel();
-    await this._initializeCapabilities(options.hass, options.entityRegistryManager);
+    await this._initializeCapabilities(
+      options.hass,
+      options.entityRegistryManager,
+      options.stateWatcher,
+    );
     return this;
   }
 
@@ -102,12 +107,13 @@ export class ReolinkCamera extends BrowseMediaCamera {
   protected async _initializeCapabilities(
     hass: HomeAssistant,
     entityRegistry: EntityRegistryManager,
+    stateWatcher: StateWatcherSubscriptionInterface,
   ): Promise<void> {
     const config = this.getConfig();
     const configPTZCapabilities = getPTZCapabilitiesFromCameraConfig(this.getConfig());
-    const ptzEntities = await this._getPTZEntities(hass, entityRegistry);
-    const reolinkPTZCapabilities = ptzEntities
-      ? this._entitiesToCapabilities(hass, ptzEntities)
+    this._ptzEntities = await this._getPTZEntities(hass, entityRegistry);
+    const reolinkPTZCapabilities = this._ptzEntities
+      ? this._entitiesToCapabilities(hass, this._ptzEntities)
       : null;
 
     const combinedPTZCapabilities: PTZCapabilities | null =
@@ -138,7 +144,7 @@ export class ReolinkCamera extends BrowseMediaCamera {
         disableExcept: config.capabilities?.disable_except,
       },
     );
-    this._ptzEntities = ptzEntities;
+    this._subscribeBasedOnCapabilities(stateWatcher);
   }
 
   protected _entitiesToCapabilities(
