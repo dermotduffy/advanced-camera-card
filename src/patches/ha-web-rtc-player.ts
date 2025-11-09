@@ -11,7 +11,6 @@
 
 import { css, CSSResultGroup, html, TemplateResult, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { query } from 'lit/decorators/query.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
 import { VideoMediaPlayerController } from '../components-lib/media-player/video.js';
@@ -39,14 +38,9 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
   @customElement('advanced-camera-card-ha-web-rtc-player')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   class AdvancedCameraCardHaWebRtcPlayer extends HaWebRtcPlayer implements MediaPlayer {
-    // Due to an obscure behavior when this card is casted, this element needs
-    // to use query rather than the ref directive to find the player.
-    @query('#remote-stream')
-    protected _video: HTMLVideoElement;
-
     protected _mediaPlayerController = new VideoMediaPlayerController(
       this,
-      () => this._video,
+      () => this._videoEl,
       () => this.controls,
     );
 
@@ -71,6 +65,27 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
         this._cleanUp();
       }
     }
+
+    private _addTrack = async (event: RTCTrackEvent) => {
+      if (!this._remoteStream) {
+        return;
+      }
+
+      // Advanced Camera Card note: The HA frontend doesn't add audio tracks if
+      // the player is muted. It does not currently respond to unmuting to
+      // re-add the audio track, or perhaps assumes that situation would not
+      // arise. As such, this code is kept commented out. See:
+      // https://github.com/dermotduffy/advanced-camera-card/issues/2235
+      // if (event.track.kind === 'audio' && this.muted) {
+      //   return;
+      // }
+
+      this._remoteStream.addTrack(event.track);
+      if (!this.hasUpdated) {
+        await this.updateComplete;
+      }
+      this._videoEl.srcObject = this._remoteStream;
+    };
 
     // =====================================================================================
     // Minor modifications from:
@@ -98,7 +113,7 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
           @loadedmetadata=${() => {
             if (this.controls) {
               hideMediaControlsTemporarily(
-                this._video,
+                this._videoEl,
                 MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
               );
             }
@@ -117,7 +132,7 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
         mediaPlayerController: this._mediaPlayerController,
         capabilities: {
           supportsPause: true,
-          hasAudio: mayHaveAudio(this._video),
+          hasAudio: mayHaveAudio(this._videoEl),
         },
         technology: ['webrtc'],
       });

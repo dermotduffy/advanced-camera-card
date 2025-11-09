@@ -141,6 +141,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
         this._capabilities?.frontend_stream_types,
         this._hlsStreams,
         this._webRtcStreams,
+        this.muted,
       );
 
       const visibleStream = streams.find((stream) => stream.visible) ?? null;
