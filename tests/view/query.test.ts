@@ -6,6 +6,7 @@ import {
   QueryType,
   RecordingQuery,
 } from '../../src/camera-manager/types';
+import { FolderQuery } from '../../src/card-controller/folders/types';
 import { setify } from '../../src/utils/basic';
 import {
   EventMediaQuery,
@@ -68,6 +69,28 @@ describe('EventMediaQuery', () => {
   it('should convert when queries are null', () => {
     const query = new EventMediaQuery();
     expect(query.convertToClipsQueries().getQuery()).toBeNull();
+  });
+
+  describe('should determine equality', () => {
+    it('should return true when query is equal', () => {
+      const rawQueries_1 = createRawEventQueries('office', { hasSnapshot: true });
+      const query_1 = new EventMediaQuery(rawQueries_1);
+
+      const rawQueries_2 = createRawEventQueries('office', { hasSnapshot: true });
+      const query_2 = new EventMediaQuery(rawQueries_2);
+
+      expect(query_1.isEqual(query_2)).toBeTruthy();
+    });
+
+    it('should return false when query is not equal', () => {
+      const rawQueries_1 = createRawEventQueries('office', { hasSnapshot: true });
+      const query_1 = new EventMediaQuery(rawQueries_1);
+
+      const rawQueries_2 = createRawEventQueries('office', { hasSnapshot: false });
+      const query_2 = new EventMediaQuery(rawQueries_2);
+
+      expect(query_1.isEqual(query_2)).toBeFalsy();
+    });
   });
 
   it('should clone', () => {
@@ -288,9 +311,9 @@ describe('RecordingMediaQuery', () => {
 
 describe('FolderViewQuery', () => {
   it('should construct', () => {
-    const rawQuery = {
+    const rawQuery: FolderQuery = {
       folder: createFolder(),
-      path: 'path',
+      path: [{}],
     };
 
     const query = new FolderViewQuery(rawQuery);

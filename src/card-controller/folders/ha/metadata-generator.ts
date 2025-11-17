@@ -6,7 +6,7 @@ import {
   RichBrowseMedia,
 } from '../../../ha/browse-media/types';
 
-import parser from 'any-date-parser';
+import type parser from 'any-date-parser';
 import { isValidDate } from '../../../utils/basic';
 import { regexpExtract } from '../../../utils/regexp-extract';
 import { REGEXP_GROUP_VALUE_KEY } from './types';

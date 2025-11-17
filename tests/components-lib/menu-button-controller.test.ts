@@ -53,6 +53,7 @@ const calculateButtons = (
     hass?: HomeAssistant;
     config?: AdvancedCameraCardConfig;
     cameraManager?: CameraManager;
+    foldersManager?: FoldersManager;
     view?: View | null;
     viewManager?: ViewManager;
   },
@@ -66,6 +67,7 @@ const calculateButtons = (
     options?.hass ?? createHASS(),
     options?.config ?? createConfig(),
     cameraManager,
+    options?.foldersManager ?? mock<FoldersManager>(),
     {
       ...options,
       view:

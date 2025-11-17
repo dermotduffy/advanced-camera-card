@@ -1,6 +1,6 @@
 import { add, differenceInSeconds, sub } from 'date-fns';
 import { LitElement } from 'lit';
-import { isEqual, throttle } from 'lodash';
+import { isEqual, throttle } from 'lodash-es';
 import { ViewContext } from 'view';
 import {
   IdType,
@@ -16,9 +16,11 @@ import { CameraManager } from '../../camera-manager/manager';
 import { rangesOverlap } from '../../camera-manager/range';
 import { MediaQuery } from '../../camera-manager/types';
 import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/range-to-cache-friendly';
+import { FoldersManager } from '../../card-controller/folders/manager';
 import { ViewItemManager } from '../../card-controller/view/item-manager';
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context';
 import { ViewManagerEpoch } from '../../card-controller/view/types';
+import { ConditionStateManagerReadonlyInterface } from '../../conditions/types';
 import { CameraConfig } from '../../config/schema/cameras';
 import { AdvancedCameraCardView } from '../../config/schema/common/const';
 import { ThumbnailsControlBaseConfig } from '../../config/schema/common/controls/thumbnails';
@@ -39,7 +41,12 @@ import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import { ViewMedia } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
-import { EventMediaQuery, MediaQueries, RecordingMediaQuery } from '../../view/query';
+import {
+  EventMediaQuery,
+  FolderViewQuery,
+  Query,
+  RecordingMediaQuery,
+} from '../../view/query';
 import { QueryClassifier, QueryType } from '../../view/query-classifier';
 import { QueryResults } from '../../view/query-results';
 import { mergeViewContext } from '../../view/view';
@@ -47,7 +54,7 @@ import { AdvancedCameraCardTimelineItem, TimelineDataSource } from './source';
 import {
   ExtendedTimeline,
   TimelineItemClickAction,
-  TimelineKey,
+  TimelineKeys,
   TimelineRangeChange,
 } from './types';
 
@@ -68,11 +75,13 @@ class ThumbnailDataRequestEvent extends CustomEvent<ThumbnailDataRequest> {}
 interface TimelineControllerOptions {
   hass?: HomeAssistant;
   cameraManager?: CameraManager;
+  conditionStateManager?: ConditionStateManagerReadonlyInterface;
+  foldersManager?: FoldersManager;
   viewItemManager?: ViewItemManager;
   timelineConfig?: TimelineCoreConfig;
   mini?: boolean;
   thumbnailConfig?: ThumbnailsControlBaseConfig;
-  keys?: TimelineKey[];
+  keys?: TimelineKeys;
 }
 
 const TIMELINE_TARGET_BAR_ID = 'target_bar';
@@ -96,8 +105,6 @@ export class TimelineController {
   private _itemClickAction: TimelineItemClickAction = 'play';
 
   private _thumbnailConfig: ThumbnailsControlBaseConfig | null = null;
-
-  private _keys: TimelineKey[] = [];
 
   private readonly _isHoverableDevice = isHoverableDevice();
 
@@ -130,23 +137,25 @@ export class TimelineController {
   }
 
   public setOptions(options: TimelineControllerOptions): void {
-    if (
-      this._cameraManager !== (options?.cameraManager ?? null) ||
-      this._timelineConfig !== (options?.timelineConfig ?? null) ||
-      !isEqual(this._keys, options?.keys ?? null)
-    ) {
-      this.destroyTimeline();
+    this.destroyTimeline();
 
-      if (options.keys && options.cameraManager && options.timelineConfig) {
-        this._source = new TimelineDataSource(
-          options.cameraManager,
-          options.keys,
-          options.timelineConfig.events_media_type,
-          options.timelineConfig.show_recordings,
-        );
-      } else {
-        this._source = null;
-      }
+    if (
+      options.keys &&
+      options.cameraManager &&
+      options.foldersManager &&
+      options.conditionStateManager &&
+      options.timelineConfig
+    ) {
+      this._source = new TimelineDataSource(
+        options.cameraManager,
+        options.foldersManager,
+        options.conditionStateManager,
+        options.keys,
+        options.timelineConfig.events_media_type,
+        options.timelineConfig.show_recordings,
+      );
+    } else {
+      this._source = null;
     }
 
     if (this._thumbnailConfig !== (options.thumbnailConfig ?? null)) {
@@ -181,9 +190,8 @@ export class TimelineController {
     this._viewItemManager = options?.viewItemManager ?? null;
     this._timelineConfig = options?.timelineConfig ?? null;
     this._mini = options?.mini ?? false;
-    this._keys = options?.keys ?? [];
 
-    setOrRemoveAttribute(this._host, !this._mini || this._keys.length > 1, 'groups');
+    setOrRemoveAttribute(this._host, this._shouldShowGroups(), 'groups');
   }
 
   public async setView(viewManagerEpoch: ViewManagerEpoch | null): Promise<void> {
@@ -295,7 +303,7 @@ export class TimelineController {
   }
 
   private _shouldShowGroups(): boolean {
-    return !this._mini || this._keys.length > 1;
+    return !this._mini || (this._source?.groups.length ?? 0) > 1;
   }
 
   private _setTargetBarAppropriately(targetTime: Date): void {
@@ -492,13 +500,16 @@ export class TimelineController {
     }
 
     const view = this._viewManagerEpoch?.manager.getView();
+    const id = String(properties.item);
+    const item = this._source?.dataset.get(id) ?? null;
 
     if (
       this._ignoreClick ||
       !view ||
       !this._viewManagerEpoch ||
       !this._source ||
-      !properties.what
+      !properties.what ||
+      !item
     ) {
       return;
     }
@@ -510,7 +521,7 @@ export class TimelineController {
       properties.time &&
       ['background', 'axis'].includes(properties.what)
     ) {
-      const query = this._createMediaQueries('recording');
+      const query = this._createQuery('recording');
       if (query) {
         await this._viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
           baseView: view,
@@ -526,7 +537,6 @@ export class TimelineController {
       }
     } else if (properties.item && properties.what === 'item') {
       const cameraID = String(properties.group);
-      const id = String(properties.item);
 
       const criteria = {
         main: true,
@@ -535,8 +545,7 @@ export class TimelineController {
       const newResults = view.queryResults
         ?.clone()
         .resetSelectedResult()
-        .selectResultIfFound((media) => media.getID() === properties.item, criteria);
-
+        .selectResultIfFound((media) => media.getID() === id, criteria);
       const selectedItem = newResults?.getSelectedResult();
       const context: ViewContext = mergeViewContext(this._getTimelineContext(), {
         ...(ViewItemClassifier.isEvent(selectedItem) &&
@@ -554,18 +563,52 @@ export class TimelineController {
         //   gallery (i.e. any case where the thumbnails may not be match the
         //   events on the timeline, e.g. in the snapshots viewer but
         //   mini-timeline showing all media).
-        const query = this._createMediaQueries('event');
-        if (query) {
-          await this._viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
-            params: { view: 'media', query: query },
-            queryExecutorOptions: {
-              selectResult: {
-                id: id,
+        // - If a folder media was loaded into the timeline from a prior folder
+        //   query other than the one stored in the view (e.g. user navigated to
+        //   a different folder in the thumbnails carousel).
+        if (item.query) {
+          // Item has a reference query (e.g. folders), use that.
+          const media = this._source.dataset
+            .get({
+              filter: (timelineItem) => item.query === timelineItem.query,
+            })
+            .map((timelineItem) => timelineItem.media)
+            .filter(isTruthy);
+          const selectedIndex = media.findIndex((m) => m.getID() === id);
+
+          if (selectedIndex >= 0) {
+            const queryResults = new QueryResults({ results: media, selectedIndex });
+            this._viewManagerEpoch?.manager.setViewByParameters({
+              params: {
+                view: 'media',
+                query: item.query,
+                queryResults,
               },
-              rejectResults: (results) => !results.hasResults(),
-            },
-            modifiers: [new MergeContextViewModifier(context)],
-          });
+              modifiers: [new MergeContextViewModifier(context)],
+            });
+          }
+        } else {
+          const currentQueryType =
+            QueryClassifier.getQueryType(view.query) ??
+            this._source.getKeyType() === 'camera'
+              ? 'event'
+              : this._source.getKeyType() === 'folder'
+                ? 'folder'
+                : null;
+
+          const query = currentQueryType ? this._createQuery(currentQueryType) : null;
+          if (query) {
+            await this._viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
+              params: { view: 'media', query: query },
+              queryExecutorOptions: {
+                selectResult: {
+                  id,
+                },
+                rejectResults: (results) => !results.hasResults(),
+              },
+              modifiers: [new MergeContextViewModifier(context)],
+            });
+          }
         }
       } else {
         this._viewManagerEpoch.manager.setViewByParameters({
@@ -600,12 +643,12 @@ export class TimelineController {
     };
   }
 
-  private _createMediaQueries(
+  private _createQuery(
     type: QueryType,
     options?: {
       window?: TimelineWindow;
     },
-  ): MediaQueries | null {
+  ): Query | null {
     if (!this._timeline || !this._source) {
       return null;
     }
@@ -620,6 +663,9 @@ export class TimelineController {
     } else if (type === 'recording') {
       const queries = this._source.getTimelineRecordingQueries(cacheFriendlyWindow);
       return queries ? new RecordingMediaQuery(queries) : null;
+    } else if (type === 'folder') {
+      const queries = this._source.getTimelineFolderQuery();
+      return queries ? new FolderViewQuery(queries) : null;
     }
     return null;
   }
@@ -644,20 +690,22 @@ export class TimelineController {
       return;
     }
 
-    await this._source?.refresh(this._getPrefetchWindow(properties));
+    await this._source?.refresh(this._getPrefetchWindow(properties), {
+      view,
+    });
 
     const queryType = QueryClassifier.getQueryType(view.query);
     if (!queryType) {
       return;
     }
-    const mediaQuery = this._createMediaQueries(queryType);
-    if (!mediaQuery || this._alreadyHasAcceptableMediaQuery(mediaQuery)) {
+    const query = this._createQuery(queryType);
+    if (!query || this._alreadyHasAcceptableMediaQuery(query)) {
       return;
     }
 
     await this._viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
       params: {
-        query: mediaQuery,
+        query,
       },
       queryExecutorOptions: {
         selectResult: {
@@ -672,25 +720,27 @@ export class TimelineController {
     });
   };
 
-  private _alreadyHasAcceptableMediaQuery(freshMediaQuery: MediaQueries): boolean {
+  private _alreadyHasAcceptableMediaQuery(freshQuery: Query): boolean {
     const view = this._viewManagerEpoch?.manager.getView();
     const query = view?.query;
 
-    if (!this._cameraManager || !query || !QueryClassifier.isMediaQuery(query)) {
+    if (!this._cameraManager || !query) {
       return false;
     }
 
-    const currentQueries = query?.getQuery();
     const currentResultTimestamp = view?.queryResults?.getResultsTimestamp();
 
     return (
-      !!currentQueries &&
+      !!query?.getQuery() &&
       !!currentResultTimestamp &&
-      !!query?.isSupersetOf(freshMediaQuery) &&
-      this._cameraManager.areMediaQueriesResultsFresh<MediaQuery>(
-        currentQueries,
-        currentResultTimestamp,
-      )
+      ((QueryClassifier.isFolderQuery(query) && query.isEqual(freshQuery)) ||
+        (QueryClassifier.isMediaQuery(query) &&
+          QueryClassifier.isMediaQuery(freshQuery) &&
+          query.isSupersetOf(freshQuery) &&
+          this._cameraManager.areMediaQueriesResultsFresh<MediaQuery>(
+            currentResultTimestamp,
+            query.getQuery(),
+          )))
     );
   }
 
@@ -743,9 +793,10 @@ export class TimelineController {
       // (via fetchIfNecessary) may update the timeline contents which causes
       // the visjs timeline to stop dragging/panning operations which is very
       // disruptive to the user.
-      await this._source?.refresh(prefetchedWindow, view);
-
-      this._source.addEventMediaToDataset(view.queryResults?.getResults());
+      await this._source?.refresh(prefetchedWindow, {
+        view,
+      });
+      this._source.addEventMediaToDataset(view.queryResults?.getResults(), view.query);
     }
 
     const currentSelection = this._timeline.getSelection();
@@ -794,13 +845,12 @@ export class TimelineController {
     //
     // Also don't generate thumbnails in mini-timelines (they will already have
     // been generated).
-
     const queryType = QueryClassifier.getQueryType(view.query);
     if (!queryType) {
       return;
     }
 
-    const freshMediaQuery = this._createMediaQueries(queryType, {
+    const freshMediaQuery = this._createQuery(queryType, {
       window: desiredWindow,
     });
 

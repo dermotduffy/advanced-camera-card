@@ -1,6 +1,7 @@
 import { add, sub } from 'date-fns';
 import { DataSet } from 'vis-data';
 import { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
+import { EqualityCache } from '../../cache/equality-cache';
 import { CameraManager } from '../../camera-manager/manager';
 import {
   compressRanges,
@@ -14,14 +15,17 @@ import {
 } from '../../camera-manager/types';
 import { capEndDate } from '../../camera-manager/utils/cap-end-date';
 import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/range-to-cache-friendly';
+import { FoldersManager } from '../../card-controller/folders/manager';
+import { FolderQuery } from '../../card-controller/folders/types';
+import { ConditionStateManagerReadonlyInterface } from '../../conditions/types';
 import { FolderConfig } from '../../config/schema/folders';
 import { ClipsOrSnapshotsOrAll } from '../../types';
 import { errorToConsole, ModifyInterface } from '../../utils/basic.js';
 import { ViewItem, ViewMedia } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
-import { QueryClassifier } from '../../view/query-classifier';
+import { FolderViewQuery, Query } from '../../view/query';
 import { View } from '../../view/view';
-import { TimelineKey } from './types';
+import { TimelineKeys } from './types';
 
 // Allow timeline freshness to be at least this number of seconds out of date
 // (caching times in the data-engine may increase the effective delay).
@@ -33,6 +37,8 @@ const TIMELINE_FRESHNESS_TOLERANCE_SECONDS = 30;
 // instead of clean recording blocks.
 const TIMELINE_RECORDING_SEGMENT_CONSECUTIVE_TOLERANCE_SECONDS = 60;
 
+type TimelineViewQuery = Query;
+
 export interface AdvancedCameraCardTimelineItem extends TimelineItem {
   // Use numbers to avoid significant volumes of Date object construction (for
   // high-quantity recording segments).
@@ -43,6 +49,9 @@ export interface AdvancedCameraCardTimelineItem extends TimelineItem {
   content: string;
 
   media?: ViewMedia;
+
+  // View query object from which this timeline item is associated with.
+  query?: TimelineViewQuery;
 }
 
 interface AdvancedCameraCardGroup {
@@ -50,8 +59,14 @@ interface AdvancedCameraCardGroup {
   content: string;
 }
 
+interface RefreshOptions {
+  view?: View;
+}
+
 export class TimelineDataSource {
   private _cameraManager: CameraManager;
+  private _foldersManager: FoldersManager;
+  private _conditionStateManager: ConditionStateManagerReadonlyInterface;
   private _dataset: DataSet<AdvancedCameraCardTimelineItem> = new DataSet();
   private _groups: DataSet<AdvancedCameraCardGroup>;
 
@@ -64,23 +79,26 @@ export class TimelineDataSource {
   // Cache event ranges since re-adding the same events is a timeline
   // performance killer (even if the request results are cached).
   private _eventRanges = new ExpiringMemoryRangeSet();
-
-  private _cameraIDs: Set<string>;
+  private _folderCache = new EqualityCache<FolderQuery, Date>();
 
   private _eventsMediaType: ClipsOrSnapshotsOrAll;
   private _showRecordings: boolean;
 
+  private _keys: TimelineKeys;
+
   constructor(
     cameraManager: CameraManager,
-    keys: TimelineKey[],
+    foldersManager: FoldersManager,
+    conditionStateManager: ConditionStateManagerReadonlyInterface,
+    keys: TimelineKeys,
     eventsMediaType: ClipsOrSnapshotsOrAll,
     showRecordings: boolean,
   ) {
     this._cameraManager = cameraManager;
+    this._foldersManager = foldersManager;
+    this._conditionStateManager = conditionStateManager;
+    this._keys = keys;
 
-    this._cameraIDs = new Set(
-      keys.filter((key) => key.type === 'camera').map((key) => key.cameraID),
-    );
     this._groups = this._generateGroups(keys);
 
     this._eventsMediaType = eventsMediaType;
@@ -91,6 +109,14 @@ export class TimelineDataSource {
     return this._dataset;
   }
 
+  get groups(): DataSet<AdvancedCameraCardGroup> {
+    return this._groups;
+  }
+
+  public getKeyType(): 'camera' | 'folder' {
+    return this._keys.type;
+  }
+
   private _getGroupIDForCamera(cameraID: string): string {
     return `camera/${cameraID}`;
   }
@@ -99,31 +125,28 @@ export class TimelineDataSource {
     return folderConfig.id;
   }
 
-  private _generateGroups(keys: TimelineKey[]): DataSet<AdvancedCameraCardGroup> {
+  private _generateGroups(keys: TimelineKeys): DataSet<AdvancedCameraCardGroup> {
     const groups: AdvancedCameraCardGroup[] = [];
-    for (const key of keys) {
-      /* istanbul ignore else: the else path cannot be reached as key can only
-         be {camera, folder} -- @preserve */
-      if (key.type === 'camera') {
-        const cameraMetadata = this._cameraManager.getCameraMetadata(key.cameraID);
+
+    /* istanbul ignore else: the else path cannot be reached -- @preserve */
+    if (keys.type === 'camera') {
+      keys.cameraIDs?.forEach((cameraID) => {
+        const cameraMetadata = this._cameraManager.getCameraMetadata(cameraID);
 
         groups.push({
-          id: this._getGroupIDForCamera(key.cameraID),
-          content: cameraMetadata?.title ?? key.cameraID,
+          id: this._getGroupIDForCamera(cameraID),
+          content: cameraMetadata?.title ?? cameraID,
         });
-      } else if (key.type === 'folder') {
-        const folderID = this._getGroupIDForFolder(key.folder);
-        groups.push({
-          id: folderID,
-          content: key.folder.title ?? folderID,
-        });
-      }
+      });
+    } else if (keys.type === 'folder') {
+      const folderID = this._getGroupIDForFolder(keys.folder);
+      groups.push({
+        id: folderID,
+        content: keys.folder?.title ?? folderID,
+      });
     }
-    return new DataSet(groups);
-  }
 
-  get groups(): DataSet<AdvancedCameraCardGroup> {
-    return this._groups;
+    return new DataSet(groups);
   }
 
   public rewriteEvent(id: IdType): void {
@@ -141,7 +164,10 @@ export class TimelineDataSource {
     }
   }
 
-  public addEventMediaToDataset(mediaArray?: ViewItem[] | null): void {
+  public addEventMediaToDataset(
+    mediaArray?: ViewItem[] | null,
+    query?: TimelineViewQuery | null,
+  ): void {
     const data: AdvancedCameraCardTimelineItem[] = [];
 
     for (const media of mediaArray ?? []) {
@@ -167,6 +193,7 @@ export class TimelineDataSource {
           start: startTime.getTime(),
           type: 'range',
           end: media.getUsableEndTime()?.getTime(),
+          ...(query && { query }),
         });
       }
     }
@@ -174,12 +201,20 @@ export class TimelineDataSource {
     this._dataset.update(data);
   }
 
-  private _shouldUseEventsFromView(view?: View): boolean {
-    return QueryClassifier.isEventQuery(view?.query);
+  private async _refreshEvents(
+    window: TimelineWindow,
+    options?: RefreshOptions,
+  ): Promise<void> {
+    await this._refreshEventsFromCamera(window, options);
+    await this._refreshEventsFromFolder();
   }
 
-  private async _refreshEvents(window: TimelineWindow, view?: View): Promise<void> {
-    if (this._shouldUseEventsFromView(view)) {
+  private async _refreshEventsFromCamera(
+    window: TimelineWindow,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _options?: RefreshOptions,
+  ): Promise<void> {
+    if (this._keys.type !== 'camera') {
       return;
     }
 
@@ -209,10 +244,40 @@ export class TimelineDataSource {
     });
   }
 
-  public async refresh(window: TimelineWindow, view?: View): Promise<void> {
+  private async _refreshEventsFromFolder(): Promise<void> {
+    if (this._keys.type !== 'folder') {
+      return;
+    }
+
+    const folderQuery = this.getTimelineFolderQuery();
+    if (!folderQuery) {
+      return;
+    }
+
+    const lastDate = this._folderCache.get(folderQuery);
+    const now = new Date();
+
+    if (
+      lastDate &&
+      lastDate >= sub(now, { seconds: TIMELINE_FRESHNESS_TOLERANCE_SECONDS })
+    ) {
+      return;
+    }
+
+    this.addEventMediaToDataset(
+      await this._foldersManager.expandFolder(
+        folderQuery,
+        this._conditionStateManager.getState(),
+      ),
+      new FolderViewQuery(folderQuery),
+    );
+    this._folderCache.set(folderQuery, now);
+  }
+
+  public async refresh(window: TimelineWindow, options?: RefreshOptions): Promise<void> {
     try {
       await Promise.all([
-        this._refreshEvents(window, view),
+        this._refreshEvents(window, options),
         ...(this._showRecordings ? [this._refreshRecordings(window)] : []),
       ]);
     } catch (e) {
@@ -226,10 +291,10 @@ export class TimelineDataSource {
   }
 
   public getTimelineEventQueries(window: TimelineWindow): EventQuery[] | null {
-    if (!this._cameraIDs.size) {
+    if (this._keys.type !== 'camera' || !this._keys.cameraIDs.size) {
       return null;
     }
-    return this._cameraManager.generateDefaultEventQueries(this._cameraIDs, {
+    return this._cameraManager.generateDefaultEventQueries(this._keys.cameraIDs, {
       start: window.start,
       end: window.end,
       ...(this._eventsMediaType === 'clips' && { hasClip: true }),
@@ -238,17 +303,25 @@ export class TimelineDataSource {
   }
 
   public getTimelineRecordingQueries(window: TimelineWindow): RecordingQuery[] | null {
-    if (!this._cameraIDs.size) {
+    if (this._keys.type !== 'camera' || !this._keys.cameraIDs.size) {
       return null;
     }
-    return this._cameraManager.generateDefaultRecordingQueries(this._cameraIDs, {
+    return this._cameraManager.generateDefaultRecordingQueries(this._keys.cameraIDs, {
       start: window.start,
       end: window.end,
     });
   }
 
+  public getTimelineFolderQuery(): FolderQuery | null {
+    if (this._keys.type !== 'folder') {
+      return null;
+    }
+    return this._foldersManager.generateDefaultFolderQuery(this._keys.folder);
+  }
+
   private async _refreshRecordings(window: TimelineWindow): Promise<void> {
-    if (!this._cameraIDs.size) {
+    const cameraIDs = this._keys.type === 'camera' ? this._keys.cameraIDs : null;
+    if (!cameraIDs?.size) {
       return;
     }
 
@@ -311,7 +384,7 @@ export class TimelineDataSource {
 
     const cacheFriendlyWindow = convertRangeToCacheFriendlyTimes(window);
     const recordingQueries = this._cameraManager.generateDefaultRecordingSegmentsQueries(
-      this._cameraIDs,
+      cameraIDs,
       {
         start: cacheFriendlyWindow.start,
         end: cacheFriendlyWindow.end,

@@ -561,11 +561,14 @@ export class CameraManager {
   }
 
   public areMediaQueriesResultsFresh<T extends MediaQuery>(
-    queries: T[],
     resultsTimestamp: Date,
+    queries: T[] | null,
   ): boolean {
-    const now = new Date();
+    if (!queries) {
+      return false;
+    }
 
+    const now = new Date();
     for (const query of queries) {
       const engines = this._store.getEnginesForCameraIDs(query.cameraIDs);
       for (const [engine, cameraIDs] of engines ?? []) {

@@ -10,6 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import type { IdType } from 'vis-timeline/esnext';
 import { CameraManager } from '../camera-manager/manager';
+import { FoldersManager } from '../card-controller/folders/manager';
 import { ViewItemManager } from '../card-controller/view/item-manager';
 import { ViewManagerEpoch } from '../card-controller/view/types';
 import { TimelineController } from '../components-lib/timeline/controller';
@@ -17,8 +18,9 @@ import {
   ThumbnailDataRequest,
   ThumbnailDataRequestEvent,
   TimelineItemClickAction,
-  TimelineKey,
+  TimelineKeys,
 } from '../components-lib/timeline/types';
+import { ConditionStateManagerReadonlyInterface } from '../conditions/types';
 import { ThumbnailsControlBaseConfig } from '../config/schema/common/controls/thumbnails';
 import { TimelineCoreConfig } from '../config/schema/common/controls/timeline';
 import { CardWideConfig } from '../config/schema/types';
@@ -121,10 +123,16 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
   // Which cameraIDs to include in the timeline. If not specified, all cameraIDs
   // are shown.
   @property({ attribute: false, hasChanged: contentsChanged })
-  public keys: TimelineKey[] = [];
+  public keys?: TimelineKeys;
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public foldersManager?: FoldersManager;
+
+  @property({ attribute: false })
+  public conditionStateManager?: ConditionStateManagerReadonlyInterface;
 
   @property({ attribute: false })
   public viewItemManager?: ViewItemManager;
@@ -144,7 +152,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
       return;
     }
 
-    if (!this.keys.length) {
+    if (!this.keys) {
       if (!this.mini) {
         return renderMessage({
           message: localize('error.no_camera_or_media_for_timeline'),
@@ -228,20 +236,22 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
       [
         'cameraManager',
         'viewItemManager',
-        'viewManagerEpoch',
         'timelineConfig',
         'mini',
         'thumbnailConfig',
         'keys',
+        'conditionStateManager',
       ].some((prop) => changedProps.has(prop))
     ) {
       this._controller.setOptions({
         cameraManager: this.cameraManager,
+        foldersManager: this.foldersManager,
         viewItemManager: this.viewItemManager,
+        conditionStateManager: this.conditionStateManager,
         timelineConfig: this.timelineConfig,
         mini: this.mini,
         thumbnailConfig: this.thumbnailConfig,
-        keys: this.keys ?? [],
+        keys: this.keys,
       });
     }
   }

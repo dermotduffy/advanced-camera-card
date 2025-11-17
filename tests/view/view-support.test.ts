@@ -1,52 +1,48 @@
 import { describe, expect, it, vi } from 'vitest';
-import { QueryType } from '../../src/camera-manager/types';
+import { mock } from 'vitest-mock-extended';
+import { FoldersManager } from '../../src/card-controller/folders/manager';
 import { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import { CapabilityKey } from '../../src/types';
-import { EventMediaQuery } from '../../src/view/query';
-import { QueryResults } from '../../src/view/query-results';
 import {
   getCameraIDsForViewName,
   isViewSupportedByCamera,
-  isViewSupportedByQueryOnly,
 } from '../../src/view/view-support';
 import {
   createCameraConfig,
   createCameraManager,
   createCapabilities,
+  createFolder,
   createStore,
-  generateViewMediaArray,
 } from '../test-utils';
 
 describe('getCameraIDsForViewName', () => {
   describe('views that are always supported', () => {
-    it.each([
-      ['diagnostics' as const],
-      ['folder' as const],
-      ['folders' as const],
-      ['image' as const],
-      ['media' as const],
-    ])('%s', (viewName: AdvancedCameraCardView) => {
-      const cameraManager = createCameraManager();
-      vi.mocked(cameraManager.getStore).mockReturnValue(
-        createStore([
-          {
-            cameraID: 'camera-1',
-            config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
-          },
-          { cameraID: 'camera-2' },
-        ]),
-      );
+    it.each([['diagnostics' as const], ['image' as const], ['media' as const]])(
+      '%s',
+      (viewName: AdvancedCameraCardView) => {
+        const cameraManager = createCameraManager();
+        vi.mocked(cameraManager.getStore).mockReturnValue(
+          createStore([
+            {
+              cameraID: 'camera-1',
+              config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
+            },
+            { cameraID: 'camera-2' },
+          ]),
+        );
+        const foldersManager = mock<FoldersManager>();
 
-      expect(getCameraIDsForViewName(viewName, cameraManager)).toEqual(
-        new Set(['camera-1', 'camera-2']),
-      );
-      expect(getCameraIDsForViewName(viewName, cameraManager, 'camera-1')).toEqual(
-        new Set(['camera-1', 'camera-2']),
-      );
-      expect(getCameraIDsForViewName(viewName, cameraManager, 'camera-2')).toEqual(
-        new Set(['camera-1', 'camera-2']),
-      );
-    });
+        expect(getCameraIDsForViewName(viewName, cameraManager, foldersManager)).toEqual(
+          new Set(['camera-1', 'camera-2']),
+        );
+        expect(
+          getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-1'),
+        ).toEqual(new Set(['camera-1', 'camera-2']));
+        expect(
+          getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-2'),
+        ).toEqual(new Set(['camera-1', 'camera-2']));
+      },
+    );
   });
 
   describe('views that respect dependencies and need a capability', () => {
@@ -69,8 +65,9 @@ describe('getCameraIDsForViewName', () => {
           },
         ]),
       );
+      const foldersManager = mock<FoldersManager>();
 
-      expect(getCameraIDsForViewName(viewName, cameraManager)).toEqual(
+      expect(getCameraIDsForViewName(viewName, cameraManager, foldersManager)).toEqual(
         new Set(['camera-2']),
       );
     });
@@ -96,15 +93,82 @@ describe('getCameraIDsForViewName', () => {
           },
         ]),
       );
+      const foldersManager = mock<FoldersManager>();
 
-      expect(getCameraIDsForViewName(viewName, cameraManager)).toEqual(
+      expect(getCameraIDsForViewName(viewName, cameraManager, foldersManager)).toEqual(
         new Set(['camera-1', 'camera-2']),
       );
-      expect(getCameraIDsForViewName(viewName, cameraManager, 'camera-1')).toEqual(
-        new Set(['camera-1', 'camera-2']),
+      expect(
+        getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-1'),
+      ).toEqual(new Set(['camera-1', 'camera-2']));
+      expect(
+        getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-2'),
+      ).toEqual(new Set(['camera-2']));
+    });
+  });
+
+  describe('views that respect a folder', () => {
+    describe('should return cameras when a folder is present', () => {
+      it.each([['folder' as const], ['folders' as const], ['timeline' as const]])(
+        '%s',
+        (viewName: AdvancedCameraCardView) => {
+          const cameraManager = createCameraManager();
+          vi.mocked(cameraManager.getStore).mockReturnValue(
+            createStore([
+              {
+                cameraID: 'camera-1',
+                config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
+              },
+              {
+                cameraID: 'camera-2',
+              },
+            ]),
+          );
+          const foldersManager = mock<FoldersManager>();
+          vi.mocked(foldersManager.getFolder).mockReturnValue(createFolder());
+
+          expect(
+            getCameraIDsForViewName(viewName, cameraManager, foldersManager),
+          ).toEqual(new Set(['camera-1', 'camera-2']));
+          expect(
+            getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-1'),
+          ).toEqual(new Set(['camera-1', 'camera-2']));
+          expect(
+            getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-2'),
+          ).toEqual(new Set(['camera-1', 'camera-2']));
+        },
       );
-      expect(getCameraIDsForViewName(viewName, cameraManager, 'camera-2')).toEqual(
-        new Set(['camera-2']),
+    });
+
+    describe('should not return cameras when a folder is absent', () => {
+      it.each([['folder' as const], ['folders' as const], ['timeline' as const]])(
+        '%s',
+        (viewName: AdvancedCameraCardView) => {
+          const cameraManager = createCameraManager();
+          vi.mocked(cameraManager.getStore).mockReturnValue(
+            createStore([
+              {
+                cameraID: 'camera-1',
+                config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
+              },
+              {
+                cameraID: 'camera-2',
+              },
+            ]),
+          );
+          const foldersManager = mock<FoldersManager>();
+          vi.mocked(foldersManager.getFolder).mockReturnValue(null);
+
+          expect(
+            getCameraIDsForViewName(viewName, cameraManager, foldersManager),
+          ).toEqual(new Set());
+          expect(
+            getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-1'),
+          ).toEqual(new Set());
+          expect(
+            getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-2'),
+          ).toEqual(new Set());
+        },
       );
     });
   });
@@ -121,8 +185,11 @@ describe('isViewSupportedByCamera', () => {
         },
       ]),
     );
+    const foldersManager = mock<FoldersManager>();
 
-    expect(isViewSupportedByCamera('live', cameraManager, 'camera-1')).toBe(true);
+    expect(
+      isViewSupportedByCamera('live', cameraManager, foldersManager, 'camera-1'),
+    ).toBe(true);
   });
 
   it('should return false for unsupported view', () => {
@@ -135,43 +202,10 @@ describe('isViewSupportedByCamera', () => {
         },
       ]),
     );
+    const foldersManager = mock<FoldersManager>();
 
-    expect(isViewSupportedByCamera('live', cameraManager, 'camera-1')).toBe(false);
-  });
-});
-
-describe('isViewSupportedByQueryOnly', () => {
-  it.each([
-    ['live' as const],
-    ['image' as const],
-    ['diagnostics' as const],
-    ['clip' as const],
-    ['clips' as const],
-    ['snapshot' as const],
-    ['snapshots' as const],
-    ['recording' as const],
-    ['recordings' as const],
-    ['media' as const],
-  ])('%s', (viewName: AdvancedCameraCardView) => {
-    expect(isViewSupportedByQueryOnly(viewName)).toBe(false);
-  });
-
-  it('should return false for timeline without query', () => {
-    expect(isViewSupportedByQueryOnly('timeline')).toBe(false);
-  });
-
-  it('should return true for timeline with query and query results', () => {
-    const query = new EventMediaQuery([
-      {
-        type: QueryType.Event,
-        cameraIDs: new Set(['camera-1']),
-      },
-    ]);
-    const queryResults = new QueryResults({
-      results: generateViewMediaArray({ count: 5 }),
-      selectedIndex: 0,
-    });
-
-    expect(isViewSupportedByQueryOnly('timeline', query, queryResults)).toBe(true);
+    expect(
+      isViewSupportedByCamera('live', cameraManager, foldersManager, 'camera-1'),
+    ).toBe(false);
   });
 });

@@ -1,9 +1,11 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../camera-manager/manager';
+import { FoldersManager } from '../card-controller/folders/manager';
 import { ViewItemManager } from '../card-controller/view/item-manager';
 import { ViewManagerEpoch } from '../card-controller/view/types';
-import { TimelineKey } from '../components-lib/timeline/types';
+import { TimelineKeys } from '../components-lib/timeline/types';
+import { ConditionStateManagerReadonlyInterface } from '../conditions/types';
 import { TimelineConfig } from '../config/schema/timeline';
 import { CardWideConfig } from '../config/schema/types';
 import { HomeAssistant } from '../ha/types';
@@ -27,40 +29,56 @@ export class AdvancedCameraCardTimeline extends LitElement {
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
+  public foldersManager?: FoldersManager;
+
+  @property({ attribute: false })
+  public conditionStateManager?: ConditionStateManagerReadonlyInterface;
+
+  @property({ attribute: false })
   public viewItemManager?: ViewItemManager;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
-  protected _getKeys(): TimelineKey[] {
+  protected _getKeys(): TimelineKeys | undefined {
     const query = this.viewManagerEpoch?.manager.getView()?.query;
 
     // If there's a query, try to extract camera IDs or folder info from it.
     if (QueryClassifier.isMediaQuery(query)) {
       const cameraIDs = query.getQueryCameraIDs();
       if (cameraIDs && cameraIDs.size) {
-        return [...cameraIDs].map((cameraID) => ({ type: 'camera', cameraID }));
+        return {
+          type: 'camera',
+          cameraIDs,
+        };
       }
     } else if (QueryClassifier.isFolderQuery(query)) {
       const folderConfig = query.getQuery()?.folder;
       if (folderConfig) {
-        return [
-          {
-            type: 'folder' as const,
-            folder: folderConfig,
-          },
-        ];
+        return {
+          type: 'folder',
+          folder: folderConfig,
+        };
       }
     }
 
     // Otherwise fall back to all cameras that support media queries.
-    const keys: TimelineKey[] = [];
-    for (const camera of this.cameraManager?.getStore().getCameraIDsWithCapability({
+    const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability({
       anyCapabilities: ['clips', 'snapshots', 'recordings'],
-    }) ?? []) {
-      keys.push({ type: 'camera', cameraID: camera });
-    }
-    return keys;
+    });
+    const folder = this.foldersManager?.getFolder() ?? null;
+
+    return cameraIDs?.size
+      ? {
+          type: 'camera',
+          cameraIDs,
+        }
+      : folder
+        ? {
+            type: 'folder',
+            folder,
+          }
+        : undefined;
   }
 
   protected render(): TemplateResult | void {
@@ -75,6 +93,8 @@ export class AdvancedCameraCardTimeline extends LitElement {
         .timelineConfig=${this.timelineConfig}
         .thumbnailConfig=${this.timelineConfig.controls.thumbnails}
         .cameraManager=${this.cameraManager}
+        .foldersManager=${this.foldersManager}
+        .conditionStateManager=${this.conditionStateManager}
         .viewItemManager=${this.viewItemManager}
         .keys=${this._getKeys()}
         .cardWideConfig=${this.cardWideConfig}

@@ -6,7 +6,6 @@ import { View, ViewParameters } from '../../view/view';
 import {
   getCameraIDsForViewName,
   isViewSupportedByCamera,
-  isViewSupportedByQueryOnly,
 } from '../../view/view-support';
 import { CardViewAPI } from '../types';
 import { applyViewModifiers } from './modifiers';
@@ -36,7 +35,11 @@ export class ViewFactory {
       cameraID = options.params.camera;
     } else {
       const cameraIDs = [
-        ...getCameraIDsForViewName(viewName, this._api.getCameraManager()),
+        ...getCameraIDsForViewName(
+          viewName,
+          this._api.getCameraManager(),
+          this._api.getFoldersManager(),
+        ),
       ];
 
       if (
@@ -79,10 +82,11 @@ export class ViewFactory {
       const viewCameraIDs = getCameraIDsForViewName(
         viewName,
         this._api.getCameraManager(),
+        this._api.getFoldersManager(),
       );
 
       // Reset to the default camera.
-      cameraID = viewCameraIDs.keys().next().value ?? null;
+      cameraID = viewCameraIDs?.keys().next().value ?? null;
     }
 
     if (!cameraID) {
@@ -103,16 +107,21 @@ export class ViewFactory {
     }
 
     if (
-      !isViewSupportedByCamera(viewName, this._api.getCameraManager(), cameraID) &&
-      !isViewSupportedByQueryOnly(
+      !isViewSupportedByCamera(
         viewName,
-        options?.params?.query ?? options?.baseView?.query,
-        options?.params?.queryResults ?? options?.baseView?.queryResults,
+        this._api.getCameraManager(),
+        this._api.getFoldersManager(),
+        cameraID,
       )
     ) {
       if (
         options?.failSafe &&
-        isViewSupportedByCamera(VIEW_DEFAULT, this._api.getCameraManager(), cameraID)
+        isViewSupportedByCamera(
+          VIEW_DEFAULT,
+          this._api.getCameraManager(),
+          this._api.getFoldersManager(),
+          cameraID,
+        )
       ) {
         viewName = VIEW_DEFAULT;
       } else {
