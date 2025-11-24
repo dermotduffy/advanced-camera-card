@@ -22,10 +22,13 @@ export class FolderInitializationError extends AdvancedCameraCardError {}
 // Folder Query
 // ============
 
-export type FolderPathComponent = {
-  folder?: ViewFolder;
+interface FolderPathComponentMetadata {
   ha?: HAFolderPathComponent;
-};
+}
+
+export interface FolderPathComponent extends FolderPathComponentMetadata {
+  folder?: ViewFolder;
+}
 
 export interface FolderQuery {
   folder: FolderConfig;

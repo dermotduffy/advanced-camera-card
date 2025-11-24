@@ -9,11 +9,14 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { isEqual } from 'lodash-es';
 import { CameraManager } from '../camera-manager/manager.js';
+import { FoldersManager } from '../card-controller/folders/manager.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
-import { TimelineKey } from '../components-lib/timeline/types.js';
+import { TimelineKeys } from '../components-lib/timeline/types.js';
+import { ConditionStateManagerReadonlyInterface } from '../conditions/types.js';
 import { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
 import { MiniTimelineControlConfig } from '../config/schema/common/controls/timeline.js';
+import { FolderConfig } from '../config/schema/folders.js';
 import { CardWideConfig } from '../config/schema/types.js';
 import { HomeAssistant } from '../ha/types.js';
 import basicBlockStyle from '../scss/basic-block.scss';
@@ -41,12 +44,18 @@ export class AdvancedCameraCardSurround extends LitElement {
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
+  public foldersManager?: FoldersManager;
+
+  @property({ attribute: false })
+  public conditionStateManager?: ConditionStateManagerReadonlyInterface;
+
+  @property({ attribute: false })
   public viewItemManager?: ViewItemManager;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
-  protected _keysForTimeline?: TimelineKey[] = [];
+  protected _timelineKeys?: TimelineKeys | null = null;
 
   /**
    * Determine if a drawer is being used.
@@ -74,24 +83,29 @@ export class AdvancedCameraCardSurround extends LitElement {
       ) ||
         this.viewManagerEpoch?.oldView?.displayMode !== view?.displayMode)
     ) {
-      const newKeys = this._getKeysForTimeline();
+      const newKeys = this._getTimelineKeys();
       // Update only if changed, to avoid unnecessary timeline destructions.
-      if (!isEqual(newKeys, this._keysForTimeline)) {
-        this._keysForTimeline = newKeys ?? undefined;
+      if (!isEqual(newKeys, this._timelineKeys)) {
+        this._timelineKeys = newKeys ?? undefined;
       }
     }
   }
 
-  protected _getKeysForTimeline(): TimelineKey[] | null {
-    const cameraIDsToKeys = (cameraIDs: Set<string> | null): TimelineKey[] => {
-      const keys: TimelineKey[] = [];
-      for (const cameraID of cameraIDs ?? []) {
-        keys.push({
-          type: 'camera',
-          cameraID: cameraID,
-        });
-      }
-      return keys;
+  protected _getTimelineKeys(): TimelineKeys | null {
+    const cameraIDsToKeys = (cameraIDs: Set<string> | null): TimelineKeys | null => {
+      return cameraIDs?.size
+        ? {
+            type: 'camera',
+            cameraIDs,
+          }
+        : null;
+    };
+
+    const folderToKeys = (folderConfig: FolderConfig): TimelineKeys => {
+      return {
+        type: 'folder',
+        folder: folderConfig,
+      };
     };
 
     const view = this.viewManagerEpoch?.manager.getView();
@@ -122,14 +136,7 @@ export class AdvancedCameraCardSurround extends LitElement {
         return cameraIDsToKeys(queries.getQueryCameraIDs());
       } else if (QueryClassifier.isFolderQuery(queries)) {
         const folderConfig = queries.getQuery()?.folder;
-        return folderConfig
-          ? [
-              {
-                type: 'folder' as const,
-                folder: folderConfig,
-              },
-            ]
-          : [];
+        return folderConfig ? folderToKeys(folderConfig) : null;
       }
     }
 
@@ -182,11 +189,13 @@ export class AdvancedCameraCardSurround extends LitElement {
             this.thumbnailConfig?.mode === 'none'
               ? 'play'
               : 'select'}
-            .keys=${this._keysForTimeline}
+            .keys=${this._timelineKeys}
             .mini=${true}
             .timelineConfig=${this.timelineConfig}
             .thumbnailConfig=${this.thumbnailConfig}
             .cameraManager=${this.cameraManager}
+            .foldersManager=${this.foldersManager}
+            .conditionStateManager=${this.conditionStateManager}
             .viewItemManager=${this.viewItemManager}
             .cardWideConfig=${this.cardWideConfig}
           >

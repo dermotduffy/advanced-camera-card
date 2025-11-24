@@ -1,8 +1,7 @@
 import { CameraManager } from '../camera-manager/manager';
 import { CapabilitySearchOptions } from '../camera-manager/types';
+import { FoldersManager } from '../card-controller/folders/manager';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
-import { Query } from './query';
-import { QueryResults } from './query-results';
 
 /**
  * Get cameraIDs that are relevant for a given view name based on camera
@@ -11,15 +10,20 @@ import { QueryResults } from './query-results';
 export const getCameraIDsForViewName = (
   viewName: AdvancedCameraCardView,
   cameraManager: CameraManager,
+  foldersManager: FoldersManager,
   cameraID?: string,
 ): Set<string> => {
+  const folder = foldersManager.getFolder();
+
   switch (viewName) {
     case 'diagnostics':
     case 'image':
-    case 'folder':
-    case 'folders':
     case 'media':
       return cameraManager.getStore().getCameraIDs();
+
+    case 'folder':
+    case 'folders':
+      return folder ? cameraManager.getStore().getCameraIDs() : new Set();
 
     case 'live':
     case 'clip':
@@ -44,32 +48,19 @@ export const getCameraIDsForViewName = (
         : cameraManager.getStore().getCameraIDsWithCapability(capability, options);
 
     case 'timeline':
-      return cameraManager.getStore().getCameraIDsWithCapability({
-        anyCapabilities: ['clips', 'snapshots', 'recordings'],
-      });
+      return folder
+        ? cameraManager.getStore().getCameraIDs()
+        : cameraManager.getStore().getCameraIDsWithCapability({
+            anyCapabilities: ['clips', 'snapshots', 'recordings'],
+          });
   }
 };
 
 export const isViewSupportedByCamera = (
   view: AdvancedCameraCardView,
   cameraManager: CameraManager,
+  foldersManager: FoldersManager,
   cameraID: string,
 ): boolean => {
-  return !!getCameraIDsForViewName(view, cameraManager, cameraID).size;
-};
-
-/**
- * Whether a view is supported by a given query ONLY (i.e. regardless of what
- * the camera supports).
- */
-export const isViewSupportedByQueryOnly = (
-  view: AdvancedCameraCardView,
-  query?: Query | null,
-  queryResults?: QueryResults | null,
-): boolean => {
-  switch (view) {
-    case 'timeline':
-      return !!query?.getQuery() && !!queryResults?.hasResults();
-  }
-  return false;
+  return !!getCameraIDsForViewName(view, cameraManager, foldersManager, cameraID)?.size;
 };

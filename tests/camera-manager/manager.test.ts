@@ -1188,11 +1188,16 @@ describe('CameraManager', async () => {
         expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
 
         engine.getQueryResultMaxAge.mockReturnValue(60);
-        expect(manager.areMediaQueriesResultsFresh(queries, resultsTimestamp)).toBe(
+        expect(manager.areMediaQueriesResultsFresh(resultsTimestamp, queries)).toBe(
           expectedFresh,
         );
       },
     );
+
+    it('should always return false for null queries', () => {
+      const manager = createCameraManager(createCardAPI(), mock<CameraManagerEngine>());
+      expect(manager.areMediaQueriesResultsFresh(new Date(), null)).toBe(false);
+    });
   });
 
   describe('should get media seek time', () => {

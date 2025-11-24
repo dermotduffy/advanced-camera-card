@@ -27,6 +27,10 @@ class ViewQuery<T> {
   public clone(): this {
     return cloneDeep(this);
   }
+
+  public isEqual(that: Query): boolean {
+    return isEqual(this._query, that.getQuery());
+  }
 }
 
 class MediaQueryBase<T extends MediaQuery> extends ViewQuery<T[]> {

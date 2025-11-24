@@ -21,15 +21,15 @@ export interface ThumbnailDataRequest {
 
 export class ThumbnailDataRequestEvent extends CustomEvent<ThumbnailDataRequest> {}
 
-interface CameraTimelineKey {
-  type: 'camera';
-  cameraID: string;
-}
-interface FolderTimelineKey {
-  type: 'folder';
-  folder: FolderConfig;
-}
-export type TimelineKey = CameraTimelineKey | FolderTimelineKey;
+export type TimelineKeys =
+  | {
+      type: 'camera';
+      cameraIDs: Set<string>;
+    }
+  | {
+      type: 'folder';
+      folder: FolderConfig;
+    };
 
 export interface ExtendedTimeline extends Timeline {
   // setCustomTimeMarker currently missing from Timeline types.

@@ -9,6 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
+import { FoldersManager } from '../card-controller/folders/manager.js';
 import { MicrophoneState } from '../card-controller/types.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
@@ -35,6 +36,9 @@ export class AdvancedCameraCardViews extends LitElement {
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public foldersManager?: FoldersManager;
 
   @property({ attribute: false })
   public viewItemManager?: ViewItemManager;
@@ -148,6 +152,8 @@ export class AdvancedCameraCardViews extends LitElement {
       .thumbnailConfig=${!this.hide ? thumbnailConfig : undefined}
       .timelineConfig=${!this.hide ? miniTimelineConfig : undefined}
       .cameraManager=${this.cameraManager}
+      .foldersManager=${this.foldersManager}
+      .conditionStateManager=${this.conditionStateManager}
       .viewItemManager=${this.viewItemManager}
       .cardWideConfig=${this.cardWideConfig}
     >
@@ -191,6 +197,8 @@ export class AdvancedCameraCardViews extends LitElement {
             .viewManagerEpoch=${this.viewManagerEpoch}
             .timelineConfig=${this.config.timeline}
             .cameraManager=${this.cameraManager}
+            .conditionStateManager=${this.conditionStateManager}
+            .foldersManager=${this.foldersManager}
             .viewItemManager=${this.viewItemManager}
             .cardWideConfig=${this.cardWideConfig}
           >
