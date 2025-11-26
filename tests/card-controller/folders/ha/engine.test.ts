@@ -76,7 +76,7 @@ describe('HAFoldersEngine', () => {
 
   describe('should generate default folder query', () => {
     it('should generate default folder query', () => {
-      const folder: FolderConfig = { type: 'ha' };
+      const folder: FolderConfig = { type: 'ha', id: 'test' };
       const engine = new HAFoldersEngine();
 
       const query = engine.generateDefaultFolderQuery(folder);
@@ -143,7 +143,7 @@ describe('HAFoldersEngine', () => {
 
     it('should expand folder with cache by default', async () => {
       const query: FolderQuery = {
-        folder: { type: 'ha' },
+        folder: { type: 'ha', id: 'test' },
         path: [{ ha: { id: 'media-source://id' } }],
       };
 
@@ -180,7 +180,7 @@ describe('HAFoldersEngine', () => {
 
     it('should expand folder without cache when requested', async () => {
       const query: FolderQuery = {
-        folder: { type: 'ha' },
+        folder: { type: 'ha', id: 'test' },
         path: [{ ha: { id: 'media-source://id' } }],
       };
 
@@ -231,7 +231,7 @@ describe('HAFoldersEngine', () => {
       });
 
       const query: FolderQuery = {
-        folder: { type: 'ha' },
+        folder: { type: 'ha', id: 'test' },
         path: [
           {
             folder: new BrowseMediaViewFolder(createFolder(), browseMedia),
@@ -259,7 +259,7 @@ describe('HAFoldersEngine', () => {
 
     it('should not expand without a folder with an id', async () => {
       const query: FolderQuery = {
-        folder: { type: 'ha' },
+        folder: { type: 'ha', id: 'test' },
         // There's no component in the query with an id to start from.
         path: [{ ha: {} }],
       };
@@ -293,7 +293,7 @@ describe('HAFoldersEngine', () => {
         ],
       ])('%s', async (_name: string, matcher: Matcher, expectedMatches: number) => {
         const query: FolderQuery = {
-          folder: { type: 'ha' },
+          folder: { type: 'ha', id: 'test' },
           path: [{ ha: { id: 'media-source://' } }, { ha: { matchers: [matcher] } }, {}],
         };
 
@@ -327,6 +327,82 @@ describe('HAFoldersEngine', () => {
         const engine = new HAFoldersEngine();
         const results = await engine.expandFolder(createHASS(), query);
         expect(results?.length).toBe(expectedMatches);
+      });
+    });
+  });
+
+  describe('generateChildFolderQuery', () => {
+    it('should return null if folder type is not ha', () => {
+      const engine = new HAFoldersEngine();
+      const query: FolderQuery = {
+        folder: { type: 'other' } as unknown as FolderConfig,
+        path: [{ ha: { id: 'root' } }],
+      };
+      const folder = new ViewFolder(createFolder());
+
+      expect(engine.generateChildFolderQuery(query, folder)).toBeNull();
+    });
+
+    it('should return null if folder has no id', () => {
+      const engine = new HAFoldersEngine();
+      const query: FolderQuery = {
+        folder: { type: 'ha', id: 'test' },
+        path: [{ ha: { id: 'root' } }],
+      };
+      const folder = new ViewFolder(createFolder(), { id: '' });
+
+      expect(engine.generateChildFolderQuery(query, folder)).toBeNull();
+    });
+
+    it('should extend query with configured component', () => {
+      const engine = new HAFoldersEngine();
+      const folderConfig: FolderConfig = {
+        type: 'ha',
+        id: 'test',
+        ha: {
+          path: [{ id: 'child', matchers: [{ type: 'title', title: 'foo' }] }],
+        },
+      };
+      const query: FolderQuery = {
+        folder: folderConfig,
+        path: [{ ha: { id: 'media-source://' } }],
+      };
+      const folder = new ViewFolder(createFolder(), { id: 'child' });
+
+      const result = engine.generateChildFolderQuery(query, folder);
+
+      expect(result).toEqual({
+        folder: folderConfig,
+        path: [
+          { ha: { id: 'media-source://' } },
+          {
+            folder,
+            ha: { id: 'child', matchers: [{ type: 'title', title: 'foo' }] },
+          },
+        ],
+      });
+    });
+
+    it('should extend query with default component when no configuration exists', () => {
+      const engine = new HAFoldersEngine();
+      const folderConfig: FolderConfig = { type: 'ha', id: 'test' };
+      const query: FolderQuery = {
+        folder: folderConfig,
+        path: [{ ha: { id: 'media-source://' } }],
+      };
+      const folder = new ViewFolder(createFolder(), { id: 'child' });
+
+      const result = engine.generateChildFolderQuery(query, folder);
+
+      expect(result).toEqual({
+        folder: folderConfig,
+        path: [
+          { ha: { id: 'media-source://' } },
+          {
+            folder,
+            ha: { id: 'child' },
+          },
+        ],
       });
     });
   });

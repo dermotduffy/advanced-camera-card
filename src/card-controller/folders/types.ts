@@ -48,6 +48,8 @@ export interface DownloadHelpers {
 
 export interface FoldersEngine {
   generateDefaultFolderQuery(folder: FolderConfig): FolderQuery | null;
+  generateChildFolderQuery(query: FolderQuery, folder: ViewFolder): FolderQuery | null;
+
   expandFolder(
     hass: HomeAssistant,
     query: FolderQuery,

@@ -2,7 +2,7 @@ import { ConditionState } from '../../conditions/types';
 import { FolderConfig, FolderType, folderTypeSchema } from '../../config/schema/folders';
 import { HomeAssistant } from '../../ha/types';
 import { Endpoint } from '../../types';
-import { ViewItem } from '../../view/item';
+import { ViewFolder, ViewItem } from '../../view/item';
 import { ViewItemCapabilities } from '../../view/types';
 import { sortItems } from '../view/sort';
 import { HAFoldersEngine } from './ha/engine';
@@ -18,6 +18,18 @@ export class FoldersExecutor {
   public generateDefaultFolderQuery(folder: FolderConfig): FolderQuery | null {
     return (
       this._getFolderEngine(folder.type)?.generateDefaultFolderQuery(folder) ?? null
+    );
+  }
+
+  public generateChildFolderQuery(
+    query: FolderQuery,
+    folder: ViewFolder,
+  ): FolderQuery | null {
+    return (
+      this._getFolderEngine(query.folder.type)?.generateChildFolderQuery(
+        query,
+        folder,
+      ) ?? null
     );
   }
 

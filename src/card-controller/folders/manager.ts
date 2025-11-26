@@ -3,7 +3,7 @@ import { ConditionState } from '../../conditions/types';
 import { FolderConfig, FolderConfigWithoutID } from '../../config/schema/folders';
 import { localize } from '../../localize/localize';
 import { Endpoint } from '../../types';
-import { ViewItem } from '../../view/item';
+import { ViewFolder, ViewItem } from '../../view/item';
 import { ViewItemCapabilities } from '../../view/types';
 import { CardFoldersAPI } from '../types';
 import { FoldersExecutor } from './executor';
@@ -60,6 +60,13 @@ export class FoldersManager {
   public generateDefaultFolderQuery(folder?: FolderConfig): FolderQuery | null {
     const _folder = folder ?? this.getFolder();
     return _folder ? this._executor.generateDefaultFolderQuery(_folder) : null;
+  }
+
+  public generateChildFolderQuery(
+    query: FolderQuery,
+    folder: ViewFolder,
+  ): FolderQuery | null {
+    return this._executor.generateChildFolderQuery(query, folder);
   }
 
   public async expandFolder(

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { ViewManagerInterface } from '../../../src/card-controller/view/types';
+import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import {
   FOLDER_GALLERY_THUMBNAIL_DETAILS_WIDTH_MIN,
   FolderGalleryController,
@@ -168,7 +169,16 @@ describe('FolderGalleryController', () => {
         const viewManager = mock<ViewManagerInterface>();
         viewManager.getView.mockReturnValue(view);
 
-        controller.itemClickHandler(viewManager, folderItem, event);
+        const foldersManager = mock<FoldersManager>();
+        foldersManager.generateChildFolderQuery.mockReturnValue({
+          folder,
+          path: [
+            { ha: { id: 'grandparent' } },
+            { folder: folderItem, ha: { id: 'parent' } },
+          ],
+        });
+
+        controller.itemClickHandler(viewManager, folderItem, event, foldersManager);
 
         expect(viewManager.setViewByParametersWithExistingQuery).toHaveBeenCalledWith({
           params: {
@@ -182,8 +192,39 @@ describe('FolderGalleryController', () => {
         expect(newQuery).toBeInstanceOf(FolderViewQuery);
         expect(newQuery?.getQuery()).toEqual({
           folder,
-          path: [{ ha: { id: 'grandparent' } }, { folder: folderItem }],
+          path: [
+            { ha: { id: 'grandparent' } },
+            { folder: folderItem, ha: { id: 'parent' } },
+          ],
         });
+      });
+
+      it('should ignore folder click without folders manager', () => {
+        const folder = createFolder();
+        const folderItem = new ViewFolder(folder, {
+          id: 'parent',
+        });
+
+        const controller = new FolderGalleryController(document.createElement('div'));
+        const event = new Event('click');
+
+        const view = createView({
+          queryResults: new QueryResults({
+            results: [new TestViewMedia(), folderItem],
+            selectedIndex: 0,
+          }),
+          query: new FolderViewQuery({
+            folder,
+            path: [{ ha: { id: 'grandparent' } }],
+          }),
+        });
+
+        const viewManager = mock<ViewManagerInterface>();
+        viewManager.getView.mockReturnValue(view);
+
+        controller.itemClickHandler(viewManager, folderItem, event);
+
+        expect(viewManager.setViewByParametersWithExistingQuery).not.toHaveBeenCalled();
       });
 
       it('should handle folder click without query', () => {

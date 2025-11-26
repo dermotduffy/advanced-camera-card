@@ -130,6 +130,38 @@ describe('FoldersExecutor', () => {
     });
   });
 
+  describe('generateChildFolderQuery', () => {
+    it('should generate child folder query', () => {
+      const folder: FolderConfig = createFolder();
+      const query: FolderQuery = {
+        folder,
+        path: [{ ha: { id: 'media-source://' } }],
+      };
+      const viewFolder = new ViewFolder(folder);
+
+      const haFolderEngine = mock<HAFoldersEngine>();
+      haFolderEngine.generateChildFolderQuery.mockReturnValue(query);
+      const executor = new FoldersExecutor({ ha: haFolderEngine });
+
+      expect(executor.generateChildFolderQuery(query, viewFolder)).toEqual(query);
+      expect(haFolderEngine.generateChildFolderQuery).toBeCalledWith(query, viewFolder);
+    });
+
+    it('should return null for non-existent folder engine', () => {
+      const folder: FolderConfig = {
+        type: 'UNKNOWN',
+      } as unknown as FolderConfig;
+      const query: FolderQuery = {
+        folder,
+        path: [{ ha: { id: 'media-source://' } }],
+      };
+      const viewFolder = new ViewFolder(folder);
+      const executor = new FoldersExecutor();
+
+      expect(executor.generateChildFolderQuery(query, viewFolder)).toBeNull();
+    });
+  });
+
   describe('expandFolder', () => {
     it('should reject folders of the wrong type', async () => {
       const query = {
