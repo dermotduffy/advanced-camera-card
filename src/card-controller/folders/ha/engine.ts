@@ -4,8 +4,8 @@ import {
   FolderConfig,
   folderTypeSchema,
   HA_MEDIA_SOURCE_ROOT,
-  HAFolderConfig,
   HAFolderPathComponent,
+  HAFolderConfig,
 } from '../../../config/schema/folders';
 import { getViewItemsFromBrowseMediaArray } from '../../../ha/browse-media/browse-media-to-view-media';
 import { BrowseMediaViewFolder } from '../../../ha/browse-media/item';
@@ -23,15 +23,15 @@ import {
 import { getMediaDownloadPath } from '../../../ha/download';
 import { HomeAssistant } from '../../../ha/types';
 import { Endpoint } from '../../../types';
-import { ViewItem } from '../../../view/item';
+import { ViewFolder, ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import { ViewItemCapabilities } from '../../../view/types';
 import {
   DownloadHelpers,
   EngineOptions,
-  FolderPathComponent,
   FolderQuery,
   FoldersEngine,
+  FolderPathComponent,
 } from '../types';
 import { MediaMatcher } from './media-matcher';
 import { MetadataGenerator } from './metadata-generator.js';
@@ -96,7 +96,8 @@ export class HAFoldersEngine implements FoldersEngine {
   private getDefaultFolderPathComponents(
     haFolderConfig?: HAFolderConfig,
   ): NonEmptyTuple<FolderPathComponent> {
-    const shouldAddDefaultRoot = !haFolderConfig?.url && !haFolderConfig?.path?.[0]?.id;
+    const shouldAddDefaultRoot =
+      !haFolderConfig?.url && haFolderConfig?.path?.[0]?.id !== HA_MEDIA_SOURCE_ROOT;
 
     const path: HAFolderPathComponent[] = [
       ...(shouldAddDefaultRoot ? [{ id: HA_MEDIA_SOURCE_ROOT }] : []),
@@ -189,5 +190,28 @@ export class HAFoldersEngine implements FoldersEngine {
     return getViewItemsFromBrowseMediaArray(browseMedia, {
       folder: query.folder,
     });
+  }
+
+  public generateChildFolderQuery(
+    query: FolderQuery,
+    folder: ViewFolder,
+  ): FolderQuery | null {
+    const id = folder.getID();
+    if (query.folder.type !== folderTypeSchema.enum.ha || !id) {
+      return null;
+    }
+
+    // Get the full configured path to find parsers/matchers for this depth.
+    const fullPath = this.getDefaultFolderPathComponents(query.folder.ha);
+    const nextConfiguredComponent = fullPath[query.path.length];
+
+    // Use the configured component's parsers/matchers if available, otherwise
+    // just use the ID from the folder.
+    const ha = nextConfiguredComponent?.ha ?? { id };
+
+    return {
+      ...query,
+      path: [...query.path, { folder, ha }],
+    };
   }
 }

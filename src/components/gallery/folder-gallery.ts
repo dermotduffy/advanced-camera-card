@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { FoldersManager } from '../../card-controller/folders/manager.js';
 import { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import {
@@ -40,6 +41,9 @@ export class AdvancedCameraCardFolderGallery extends LitElement {
 
   @property({ attribute: false })
   public galleryConfig?: MediaGalleryConfig;
+
+  @property({ attribute: false })
+  public foldersManager?: FoldersManager;
 
   protected _controller = new FolderGalleryController(this);
 
@@ -88,7 +92,7 @@ export class AdvancedCameraCardFolderGallery extends LitElement {
           this._renderThumbnail(item, item === selected, (item: ViewItem, ev: Event) => {
             const manager = this.viewManagerEpoch?.manager;
             if (manager) {
-              this._controller.itemClickHandler(manager, item, ev);
+              this._controller.itemClickHandler(manager, item, ev, this.foldersManager);
             }
           }),
         )}

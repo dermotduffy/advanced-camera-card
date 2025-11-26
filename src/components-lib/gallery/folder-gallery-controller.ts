@@ -1,3 +1,4 @@
+import { FoldersManager } from '../../card-controller/folders/manager';
 import { ViewManagerInterface } from '../../card-controller/view/types';
 import { THUMBNAIL_WIDTH_DEFAULT } from '../../config/schema/common/controls/thumbnails';
 import { MediaGalleryThumbnailsConfig } from '../../config/schema/media-gallery';
@@ -43,6 +44,7 @@ export class FolderGalleryController {
     viewManager: ViewManagerInterface,
     item: ViewItem,
     ev: Event,
+    foldersManager?: FoldersManager,
   ): void {
     stopEventFromActivatingCardWideActions(ev);
 
@@ -64,16 +66,18 @@ export class FolderGalleryController {
       QueryClassifier.isFolderQuery(view.query)
     ) {
       const rawQuery = view.query.getQuery();
-      const id = item.getID();
-      if (!rawQuery || !id) {
+      if (!rawQuery || !foldersManager) {
         return;
       }
+
+      const newQuery = foldersManager.generateChildFolderQuery(rawQuery, item);
+      if (!newQuery) {
+        return;
+      }
+
       viewManager.setViewByParametersWithExistingQuery({
         params: {
-          query: view.query.clone().setQuery({
-            folder: rawQuery.folder,
-            path: [...rawQuery.path, { folder: item }],
-          }),
+          query: view.query.clone().setQuery(newQuery),
         },
       });
     }

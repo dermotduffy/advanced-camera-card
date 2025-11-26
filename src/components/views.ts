@@ -218,6 +218,7 @@ export class AdvancedCameraCardViews extends LitElement {
             .viewManagerEpoch=${this.viewManagerEpoch}
             .viewItemManager=${this.viewItemManager}
             .galleryConfig=${this.config.media_gallery}
+            .foldersManager=${this.foldersManager}
           ></advanced-camera-card-folder-gallery>`
         : ``}
       ${

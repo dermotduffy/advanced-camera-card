@@ -6,6 +6,7 @@ import { FolderQuery } from '../../../src/card-controller/folders/types';
 import { FolderConfig, FolderConfigWithoutID } from '../../../src/config/schema/folders';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { Endpoint } from '../../../src/types';
+import { ViewFolder } from '../../../src/view/item';
 import { ViewItemCapabilities } from '../../../src/view/types';
 import {
   createCardAPI,
@@ -177,6 +178,25 @@ describe('FoldersManager', () => {
       const manager = new FoldersManager(createCardAPI(), executor);
 
       expect(manager.generateDefaultFolderQuery(folder)).toEqual(query);
+    });
+  });
+
+  describe('generateChildFolderQuery', () => {
+    it('should generate child folder query', () => {
+      const folder: FolderConfig = createFolder();
+      const query: FolderQuery = {
+        folder,
+        path: [{ ha: { id: 'media-source://' } }],
+      };
+      const viewFolder = new ViewFolder(folder);
+
+      const executor = mock<FoldersExecutor>();
+      vi.mocked(executor.generateChildFolderQuery).mockReturnValue(query);
+
+      const manager = new FoldersManager(createCardAPI(), executor);
+
+      expect(manager.generateChildFolderQuery(query, viewFolder)).toEqual(query);
+      expect(executor.generateChildFolderQuery).toBeCalledWith(query, viewFolder);
     });
   });
 
