@@ -1,0 +1,48 @@
+:host {
+  position: absolute;
+
+  left: var(--start-x);
+
+  color: white;
+
+  user-select: none;
+  pointer-events: none;
+
+  will-change: transform;
+  animation: fall var(--fall-duration) linear infinite;
+  animation-delay: var(--fall-delay);
+}
+
+@keyframes fall {
+  0% {
+    // Start above the card.
+    top: -2em;
+
+    transform: translateX(0);
+
+    opacity: var(--max-opacity, 1);
+  }
+  25% {
+    top: 25%;
+    transform: translateX(calc(var(--end-x) - var(--start-x) + 8px));
+  }
+  50% {
+    top: 50%;
+    transform: translateX(calc(var(--end-x) - var(--start-x) - 10px));
+  }
+  75% {
+    top: 75%;
+    transform: translateX(calc(var(--end-x) - var(--start-x) + 20px));
+  }
+  90% {
+    opacity: var(--max-opacity, 1);
+  }
+  100% {
+    // 100% ensures snowflakes fall through the entire card height
+    top: 100%;
+
+    transform: translateX(calc(var(--end-x) - var(--start-x)));
+
+    opacity: 0;
+  }
+}

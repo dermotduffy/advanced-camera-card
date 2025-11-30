@@ -10,6 +10,7 @@ import { DefaultAction } from './actions/default';
 import { DisplayModeSelectAction } from './actions/display-mode-select';
 import { DownloadAction } from './actions/download';
 import { ExpandAction } from './actions/expand';
+import { EffectAction } from './actions/effect';
 import { FullscreenAction } from './actions/fullscreen';
 import { InternalCallbackAction } from './actions/internal-callback';
 import { LogAction } from './actions/log';
@@ -103,6 +104,8 @@ export class ActionFactory {
         return new DownloadAction(context, action, options?.config);
       case 'camera_ui':
         return new CameraUIAction(context, action, options?.config);
+      case 'effect':
+        return new EffectAction(context, action, options?.config);
       case 'expand':
         return new ExpandAction(context, action, options?.config);
       case 'fullscreen':

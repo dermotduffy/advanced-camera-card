@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from './ha/types';
+import type { EffectOptions } from './components-lib/effects/types';
+import type { LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from './ha/types';
 
 export type ClipsOrSnapshots = 'clips' | 'snapshots';
 export type ClipsOrSnapshotsOrAll = 'clips' | 'snapshots' | 'all';
@@ -177,3 +178,11 @@ export const signedPathSchema = z.object({
   path: z.string(),
 });
 export type SignedPath = z.infer<typeof signedPathSchema>;
+
+export type EffectName = 'fireworks' | 'ghost' | 'hearts' | 'shamrocks' | 'snow';
+
+export interface EffectsControllerAPI {
+  startEffect(name: EffectName, options?: EffectOptions): Promise<void>;
+  stopEffect(effect: EffectName): void;
+  toggleEffect(effect: EffectName, options?: EffectOptions): Promise<void>;
+}

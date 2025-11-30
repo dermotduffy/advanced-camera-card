@@ -1,0 +1,40 @@
+:host {
+  position: absolute;
+  left: 0;
+  top: 0;
+
+  user-select: none;
+  pointer-events: none;
+
+  will-change: transform, opacity;
+  animation: explode var(--duration) ease-out forwards;
+  animation-delay: var(--delay);
+
+  opacity: 0;
+}
+
+.spark {
+  font-size: var(--size, 4px);
+  color: var(--color, #ffcc00);
+  text-shadow:
+    0 0 4px #fff,
+    0 0 8px var(--color),
+    0 0 16px var(--color),
+    0 0 32px var(--color),
+    0 0 48px var(--color);
+  filter: brightness(1.3);
+}
+
+@keyframes explode {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--end-x), var(--end-y)) scale(0.3);
+    opacity: 0;
+  }
+}

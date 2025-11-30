@@ -1,0 +1,18 @@
+:host {
+  position: absolute;
+  left: var(--pos-x, 50%);
+  top: var(--pos-y, 50%);
+
+  user-select: none;
+  pointer-events: none;
+
+  opacity: 0;
+  animation: burst-appear 0.01s linear forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes burst-appear {
+  to {
+    opacity: 1;
+  }
+}
