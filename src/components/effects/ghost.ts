@@ -19,4 +19,3 @@ declare global {
     'advanced-camera-card-effect-ghost': AdvancedCameraCardEffectGhost;
   }
 }
-

@@ -65,4 +65,3 @@ declare global {
     'advanced-camera-card-shamrock': AdvancedCameraCardShamrock;
   }
 }
-

@@ -50,4 +50,3 @@ describe('EffectAction', () => {
     await expect(action.stop()).resolves.toBeUndefined();
   });
 });
-
