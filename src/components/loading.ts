@@ -57,8 +57,7 @@ export class AdvancedCameraCardLoading extends LitElement {
   }
 
   protected updated(changedProps: PropertyValues): void {
-    const oldLoaded = changedProps.get('loaded');
-    if (!this.effectsControllerAPI || oldLoaded === this.loaded) {
+    if (!changedProps.has('loaded') || !this.effectsControllerAPI) {
       return;
     }
 
