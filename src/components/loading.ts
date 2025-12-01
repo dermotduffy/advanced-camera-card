@@ -48,19 +48,16 @@ export class AdvancedCameraCardLoading extends LitElement {
   @property({ type: Boolean, reflect: true })
   public loaded = false;
 
+  private _effectName: EffectName | null = null;
   private _effectStartTime: Date | null = null;
-  private _stopTimer = new Timer();
+  private _effectStopTimer = new Timer();
 
   public disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._stopTimer.stop();
+    this._stopEffect();
   }
 
-  protected updated(changedProps: PropertyValues): void {
-    if (!changedProps.has('loaded') || !this.effectsControllerAPI) {
-      return;
-    }
-
+  protected updated(): void {
     const effect = getDateEffect();
     if (!effect) {
       return;
@@ -69,32 +66,38 @@ export class AdvancedCameraCardLoading extends LitElement {
     if (!this.loaded) {
       this._startEffect(effect);
     } else {
-      this._scheduleStopEffect(effect);
+      this._scheduleStopEffect();
     }
   }
 
   private _startEffect(effect: EffectName): void {
+    this._effectName = effect;
     this._effectStartTime = new Date();
     this.effectsControllerAPI?.startEffect(effect, { fadeIn: false });
   }
 
-  private _scheduleStopEffect(effect: EffectName): void {
+  private _scheduleStopEffect(): void {
     if (!this._effectStartTime) {
       return;
     }
-
-    const stopEffect = (): void => {
-      this.effectsControllerAPI?.stopEffect(effect);
-    };
 
     const elapsed = (Date.now() - this._effectStartTime.getTime()) / 1000;
     const remaining = MIN_EFFECT_DURATION_SECONDS - elapsed;
 
     if (remaining <= 0) {
-      stopEffect();
+      this._stopEffect();
     } else {
-      this._stopTimer.start(remaining, stopEffect);
+      this._effectStopTimer.start(remaining, () => this._stopEffect());
     }
+  }
+
+  private _stopEffect(): void {
+    if (this._effectName) {
+      this.effectsControllerAPI?.stopEffect(this._effectName);
+    }
+    this._effectName = null;
+    this._effectStartTime = null;
+    this._effectStopTimer.stop();
   }
 
   protected render(): TemplateResult {

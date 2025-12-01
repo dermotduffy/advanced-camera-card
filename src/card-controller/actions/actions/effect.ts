@@ -4,6 +4,8 @@ import { AdvancedCameraCardAction } from './base';
 
 export class EffectAction extends AdvancedCameraCardAction<EffectActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
+    await super.execute(api);
+
     switch (this._action.effect_action) {
       case 'start':
         api.getEffectsControllerAPI()?.startEffect(this._action.effect);
