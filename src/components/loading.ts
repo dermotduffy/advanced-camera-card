@@ -1,7 +1,6 @@
 import {
   CSSResultGroup,
   LitElement,
-  PropertyValues,
   TemplateResult,
   html,
   unsafeCSS,
