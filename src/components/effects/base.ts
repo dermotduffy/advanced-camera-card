@@ -7,13 +7,17 @@ export abstract class BaseEffectComponent extends LitElement {
   @property({ type: Boolean })
   public fadeIn = true;
 
+  protected firstUpdated(): void {
+    if (this.fadeIn) {
+      this._startFadeIn();
+    }
+  }
+
   protected updated(changedProps: PropertyValues): void {
     if (changedProps.has('fadeIn')) {
-      const previous = changedProps.get('fadeIn') as boolean | undefined;
-
       if (!this.fadeIn) {
         this._setOpacity(1);
-      } else if (previous === false) {
+      } else {
         this._startFadeIn();
       }
     }
