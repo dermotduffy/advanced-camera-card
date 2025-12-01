@@ -1,10 +1,4 @@
-import {
-  CSSResultGroup,
-  LitElement,
-  TemplateResult,
-  html,
-  unsafeCSS,
-} from 'lit';
+import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import loadingStyle from '../scss/loading.scss';
 import { EffectName, EffectsControllerAPI } from '../types';
