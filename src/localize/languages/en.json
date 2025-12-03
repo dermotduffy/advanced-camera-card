@@ -476,6 +476,7 @@
     "performance": {
       "features": {
         "animated_progress_indicator": "Animated Progress Indicator",
+        "card_loading_effects": "Card Loading Effects",
         "card_loading_indicator": "Card Loading Indicator",
         "editor_label": "Feature Options",
         "max_simultaneous_engine_requests": "Max simultaneous camera engine requests",

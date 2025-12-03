@@ -8,6 +8,7 @@ import { EntityRegistryManagerLive } from '../ha/registry/entity';
 import { EntityCache, EntityRegistryManager } from '../ha/registry/entity/types';
 import { ResolvedMediaCache } from '../ha/resolved-media';
 import { LovelaceCardEditor } from '../ha/types';
+import { EffectsControllerAPI } from '../types';
 import { ActionsManager } from './actions/actions-manager';
 import { AutomationsManager } from './automations-manager';
 import { CameraURLManager } from './camera-url-manager';
@@ -63,6 +64,8 @@ import {
 import { ViewItemManager } from './view/item-manager';
 import { ViewManager } from './view/view-manager';
 
+type EffectsControllerAPICallback = () => EffectsControllerAPI | null;
+
 export class CardController
   implements
     CardActionsManagerAPI,
@@ -90,6 +93,8 @@ export class CardController
     CardViewAPI,
     ReactiveController
 {
+  protected _effectsControllerAPICallback: EffectsControllerAPICallback;
+
   protected _conditionStateManager = new ConditionStateManager();
 
   // These properties may be used in the construction of 'managers' (and should
@@ -127,6 +132,7 @@ export class CardController
     host: CardHTMLElement,
     scrollCallback: ScrollCallback,
     menuToggleCallback: MenuToggleCallback,
+    effectsControllerAPICallback: EffectsControllerAPICallback,
   ) {
     host.addController(this);
 
@@ -136,6 +142,7 @@ export class CardController
       scrollCallback,
       menuToggleCallback,
     );
+    this._effectsControllerAPICallback = effectsControllerAPICallback;
   }
 
   // *************************************************************************
@@ -184,6 +191,10 @@ export class CardController
 
   public getDeviceRegistryManager(): DeviceRegistryManager {
     return this._deviceRegistryManager;
+  }
+
+  public getEffectsControllerAPI(): EffectsControllerAPI | null {
+    return this._effectsControllerAPICallback();
   }
 
   public getEntityRegistryManager(): EntityRegistryManager {

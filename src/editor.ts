@@ -191,6 +191,7 @@ import {
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
+  CONF_PERFORMANCE_FEATURES_CARD_LOADING_EFFECTS,
   CONF_PERFORMANCE_FEATURES_CARD_LOADING_INDICATOR,
   CONF_PERFORMANCE_FEATURES_MAX_SIMULTANEOUS_ENGINE_REQUESTS,
   CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE,
@@ -3213,6 +3214,10 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                   ${this._renderSwitch(
                     CONF_PERFORMANCE_FEATURES_CARD_LOADING_INDICATOR,
                     this._defaults.performance.features.card_loading_indicator,
+                  )}
+                  ${this._renderSwitch(
+                    CONF_PERFORMANCE_FEATURES_CARD_LOADING_EFFECTS,
+                    this._defaults.performance.features.card_loading_effects,
                   )}
                   ${this._renderSwitch(
                     CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,

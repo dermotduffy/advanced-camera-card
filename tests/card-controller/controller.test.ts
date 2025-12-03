@@ -32,6 +32,8 @@ import { AdvancedCameraCardEditor } from '../../src/editor';
 import { DeviceRegistryManager } from '../../src/ha/registry/device';
 import { EntityRegistryManagerLive } from '../../src/ha/registry/entity';
 import { ResolvedMediaCache } from '../../src/ha/resolved-media';
+import { EffectsControllerAPI } from '../../src/types';
+import { mock } from 'vitest-mock-extended';
 
 vi.mock('../../src/camera-manager/manager');
 vi.mock('../../src/card-controller/actions/actions-manager');
@@ -70,7 +72,7 @@ const createCardElement = (): CardHTMLElement => {
 };
 
 const createController = (): CardController => {
-  return new CardController(createCardElement(), vi.fn(), vi.fn());
+  return new CardController(createCardElement(), vi.fn(), vi.fn(), vi.fn());
 };
 
 // @vitest-environment jsdom
@@ -83,15 +85,23 @@ describe('CardController', () => {
     const element = createCardElement();
     const scrollCallback = vi.fn();
     const menuToggleCallback = vi.fn();
+    const effectsControllerAPI = mock<EffectsControllerAPI>();
+    const effectsControllerAPICallback = vi.fn().mockReturnValue(effectsControllerAPI);
 
-    const manager = new CardController(element, scrollCallback, menuToggleCallback);
+    const controller = new CardController(
+      element,
+      scrollCallback,
+      menuToggleCallback,
+      effectsControllerAPICallback,
+    );
 
     expect(CardElementManager).toBeCalledWith(
-      manager,
+      controller,
       element,
       scrollCallback,
       menuToggleCallback,
     );
+    expect(controller.getEffectsControllerAPI()).toBe(effectsControllerAPI);
   });
 
   describe('accessors', () => {

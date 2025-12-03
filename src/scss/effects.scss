@@ -1,0 +1,12 @@
+@import './z-index.scss';
+
+:host {
+  display: block;
+  position: absolute;
+
+  inset: 0;
+  overflow: hidden;
+
+  pointer-events: none;
+  z-index: #{$z-index-effect};
+}

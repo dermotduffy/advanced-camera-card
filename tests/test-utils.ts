@@ -57,7 +57,12 @@ import {
 import { Device } from '../src/ha/registry/device/types';
 import { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
 import { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
-import { CapabilitiesRaw, Interaction, MediaLoadedInfo } from '../src/types';
+import {
+  CapabilitiesRaw,
+  EffectsControllerAPI,
+  Interaction,
+  MediaLoadedInfo,
+} from '../src/types';
 import { EventViewMedia, ViewMedia, ViewMediaType } from '../src/view/item';
 import { QueryResults } from '../src/view/query-results';
 import { ViewItemCapabilities } from '../src/view/types';
@@ -580,6 +585,7 @@ export const createCardAPI = (): CardController => {
   api.getCardElementManager.mockReturnValue(mock<CardElementManager>());
   api.getConditionStateManager.mockReturnValue(mock<ConditionStateManager>());
   api.getConfigManager.mockReturnValue(mock<ConfigManager>());
+  api.getEffectsControllerAPI.mockReturnValue(mock<EffectsControllerAPI>());
   api.getEntityRegistryManager.mockReturnValue(mock<EntityRegistryManager>());
   api.getExpandManager.mockReturnValue(mock<ExpandManager>());
   api.getFoldersManager.mockReturnValue(mock<FoldersManager>());

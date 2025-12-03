@@ -389,6 +389,7 @@ export const CONF_OVERRIDES = 'overrides' as const;
 
 const CONF_PERFORMANCE = 'performance' as const;
 export const CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR = `${CONF_PERFORMANCE}.features.animated_progress_indicator`;
+export const CONF_PERFORMANCE_FEATURES_CARD_LOADING_EFFECTS = `${CONF_PERFORMANCE}.features.card_loading_effects`;
 export const CONF_PERFORMANCE_FEATURES_CARD_LOADING_INDICATOR = `${CONF_PERFORMANCE}.features.card_loading_indicator`;
 export const CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE = `${CONF_PERFORMANCE}.features.media_chunk_size`;
 export const CONF_PERFORMANCE_FEATURES_MAX_SIMULTANEOUS_ENGINE_REQUESTS = `${CONF_PERFORMANCE}.features.max_simultaneous_engine_requests`;

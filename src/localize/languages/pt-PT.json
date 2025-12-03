@@ -476,6 +476,7 @@
     "performance": {
       "features": {
         "animated_progress_indicator": "Animação na barra de progresso",
+        "card_loading_effects": "",
         "card_loading_indicator": "",
         "editor_label": "Editor de etiquetas",
         "max_simultaneous_engine_requests": "",

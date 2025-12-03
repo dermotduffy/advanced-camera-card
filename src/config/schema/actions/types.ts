@@ -3,6 +3,7 @@ import { statusBarItemBaseSchema } from '../common/status-bar';
 import { advancedCameraCardCustomActionsBaseSchema } from './custom/base';
 import { cameraSelectActionConfigSchema } from './custom/camera-select';
 import { viewDisplayModeActionConfigSchema } from './custom/display-mode';
+import { effectActionConfigSchema } from './custom/effect';
 import { generalActionConfigSchema } from './custom/general';
 import { internalCallbackActionConfigSchema } from './custom/internal';
 import { logActionConfigSchema } from './custom/log';
@@ -41,6 +42,7 @@ export const statusBarActionConfigSchema: z.ZodSchema<
 
 const advancedCameraCardCustomActionSchema = z.union([
   cameraSelectActionConfigSchema,
+  effectActionConfigSchema,
   generalActionConfigSchema,
   internalCallbackActionConfigSchema,
   logActionConfigSchema,

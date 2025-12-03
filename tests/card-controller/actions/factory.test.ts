@@ -41,6 +41,7 @@ import { ViewAction } from '../../../src/card-controller/actions/actions/view';
 import { ActionFactory } from '../../../src/card-controller/actions/factory';
 import { INTERNAL_CALLBACK_ACTION } from '../../../src/config/schema/actions/custom/internal';
 import { ActionConfig } from '../../../src/config/schema/actions/types';
+import { EffectAction } from '../../../src/card-controller/actions/actions/effect';
 
 // @vitest-environment jsdom
 describe('ActionFactory', () => {
@@ -188,6 +189,7 @@ describe('ActionFactory', () => {
         InternalCallbackAction,
       ],
       [{ advanced_camera_card_action: 'reload' as const }, ReloadAction],
+      [{ advanced_camera_card_action: 'effect' as const }, EffectAction],
     ])(
       'advanced_camera_card_action: $advanced_camera_card_action',
       (action: Partial<ActionConfig>, classObject: object) => {

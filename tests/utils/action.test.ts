@@ -5,6 +5,7 @@ import { ActionConfig } from '../../src/config/schema/actions/types.js';
 import {
   createCameraAction,
   createDisplayModeAction,
+  createEffectAction,
   createGeneralAction,
   createInternalCallbackAction,
   createLogAction,
@@ -296,6 +297,22 @@ describe('createSelectOptionAction', () => {
       data: {
         option: 'option',
       },
+    });
+  });
+});
+
+describe('createEffectAction', () => {
+  it('should create effect action', () => {
+    expect(
+      createEffectAction('snow', 'start', {
+        cardID: 'card_id',
+      }),
+    ).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'effect',
+      effect: 'snow',
+      effect_action: 'start',
+      card_id: 'card_id',
     });
   });
 });

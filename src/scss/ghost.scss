@@ -1,0 +1,35 @@
+:host {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 1.5s ease-in;
+}
+
+.ghost {
+  font-size: 10em;
+  color: #ffffff;
+
+  user-select: none;
+  pointer-events: none;
+
+  opacity: 0.5;
+  filter: drop-shadow(0 0 20px #ffffff) drop-shadow(0 0 40px #e0e0e0)
+    drop-shadow(0 0 60px #c0c0c0);
+  animation: ghost-float 3s ease-in-out infinite;
+}
+
+@keyframes ghost-float {
+  0%,
+  100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 0 20px #ffffff) drop-shadow(0 0 40px #e0e0e0)
+      drop-shadow(0 0 60px #c0c0c0);
+  }
+  50% {
+    transform: translateY(-10px);
+    filter: drop-shadow(0 0 30px #ffffff) drop-shadow(0 0 60px #e0e0e0)
+      drop-shadow(0 0 90px #c0c0c0);
+  }
+}

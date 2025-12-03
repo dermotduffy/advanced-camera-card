@@ -1,0 +1,42 @@
+:host {
+  position: absolute;
+
+  left: var(--start-x);
+  top: var(--start-y);
+
+  font-size: var(--size, 1em);
+
+  // Center the shamrock on its position.
+  transform-origin: center center;
+  translate: -50% -50%;
+
+  user-select: none;
+  pointer-events: none;
+
+  will-change: transform, opacity;
+  animation: shamrock-pulse var(--pulse-duration) ease-in-out infinite;
+  animation-delay: var(--pulse-delay);
+}
+
+@keyframes shamrock-pulse {
+  0% {
+    scale: 0;
+    rotate: -20deg;
+    opacity: 0;
+  }
+  20% {
+    opacity: var(--max-opacity, 1);
+  }
+  50% {
+    scale: 1;
+    rotate: 10deg;
+  }
+  80% {
+    opacity: var(--max-opacity, 1);
+  }
+  100% {
+    scale: 0;
+    rotate: 25deg;
+    opacity: 0;
+  }
+}
