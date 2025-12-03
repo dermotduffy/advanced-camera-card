@@ -157,6 +157,20 @@ describe('EffectsController', () => {
 
       expect(container.children.length).toBe(1);
     });
+
+    it('should cancel effect when stopped during loading', async () => {
+      // Start the effect but don't await it - simulates the loading phase.
+      const startPromise = controller.startEffect('snow');
+
+      // Stop the effect immediately while it's still loading.
+      await controller.stopEffect('snow');
+
+      // Wait for start to complete.
+      await startPromise;
+
+      // The effect should not appear since it was stopped during loading.
+      expect(container.children.length).toBe(0);
+    });
   });
 
   describe('toggleEffect', () => {
@@ -180,6 +194,20 @@ describe('EffectsController', () => {
 
       const effectElement = container.children[0] as EffectComponent;
       expect(effectElement.fadeIn).toBe(false);
+    });
+
+    it('should cancel effect when toggled during loading', async () => {
+      // Start the effect but don't await it - simulates the loading phase.
+      const startPromise = controller.startEffect('snow');
+
+      // Toggle the effect immediately while it's still loading.
+      await controller.toggleEffect('snow');
+
+      // Wait for start to complete.
+      await startPromise;
+
+      // The effect should not appear since it was toggled (stopped) during loading.
+      expect(container.children.length).toBe(0);
     });
   });
 });

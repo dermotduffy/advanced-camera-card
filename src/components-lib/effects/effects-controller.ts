@@ -44,7 +44,9 @@ export class EffectsController implements EffectsControllerAPI {
     this._activeInstances.set(name, null);
 
     const effectModule = await this._importEffectModule(name);
-    if (!effectModule) {
+
+    // Check if the effect was cancelled during loading.
+    if (!effectModule || !this._activeInstances.has(name)) {
       this._activeInstances.delete(name);
       return;
     }
@@ -56,14 +58,19 @@ export class EffectsController implements EffectsControllerAPI {
   }
 
   public async stopEffect(effect: EffectName): Promise<void> {
-    const instance = this._activeInstances.get(effect);
-    if (!instance) {
+    if (!this._activeInstances.has(effect)) {
       return;
     }
 
+    const instance = this._activeInstances.get(effect);
     this._activeInstances.delete(effect);
-    await instance.startFadeOut();
-    instance.remove();
+
+    // If instance is null, it's still loading - just clearing the reservation
+    // will prevent it from appearing (startEffect checks this after import).
+    if (instance) {
+      await instance.startFadeOut();
+      instance.remove();
+    }
   }
 
   public async toggleEffect(name: EffectName, options?: EffectOptions): Promise<void> {
