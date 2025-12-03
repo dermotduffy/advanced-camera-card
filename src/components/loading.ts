@@ -48,6 +48,7 @@ export class AdvancedCameraCardLoading extends LitElement {
   protected updated(): void {
     const effect = getDateEffect();
     if (!effect) {
+      this._stopEffect();
       return;
     }
 

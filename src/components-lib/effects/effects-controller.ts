@@ -28,7 +28,7 @@ type EffectsContainer = HTMLElement | DocumentFragment;
 
 export class EffectsController implements EffectsControllerAPI {
   private _importedModules: Map<EffectName, EffectModule> = new Map();
-  private _activeInstances: Map<EffectName, EffectComponent> = new Map();
+  private _activeInstances: Map<EffectName, EffectComponent | null> = new Map();
   private _container: EffectsContainer | null = null;
 
   public setContainer(container: EffectsContainer | null): void {
@@ -40,8 +40,12 @@ export class EffectsController implements EffectsControllerAPI {
       return;
     }
 
+    // Reserve the slot immediately with null to prevent concurrent starts.
+    this._activeInstances.set(name, null);
+
     const effectModule = await this._importEffectModule(name);
     if (!effectModule) {
+      this._activeInstances.delete(name);
       return;
     }
 

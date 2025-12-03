@@ -14,7 +14,8 @@ export abstract class BaseEffectComponent extends LitElement {
   }
 
   protected updated(changedProps: PropertyValues): void {
-    if (changedProps.has('fadeIn')) {
+    // Skip if this is the initial property setting (handled by firstUpdated).
+    if (changedProps.get('fadeIn') !== undefined) {
       if (!this.fadeIn) {
         this._setOpacity(1);
       } else {
