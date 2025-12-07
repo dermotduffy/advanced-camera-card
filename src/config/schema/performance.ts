@@ -4,6 +4,7 @@ import { MEDIA_CHUNK_SIZE_DEFAULT, MEDIA_CHUNK_SIZE_MAX } from '../../const';
 export const performanceConfigDefault = {
   features: {
     animated_progress_indicator: true,
+    card_loading_effects: true,
     card_loading_indicator: true,
     media_chunk_size: MEDIA_CHUNK_SIZE_DEFAULT,
   },
@@ -20,6 +21,9 @@ export const performanceConfigSchema = z
         animated_progress_indicator: z
           .boolean()
           .default(performanceConfigDefault.features.animated_progress_indicator),
+        card_loading_effects: z
+          .boolean()
+          .default(performanceConfigDefault.features.card_loading_effects),
         card_loading_indicator: z
           .boolean()
           .default(performanceConfigDefault.features.card_loading_indicator),

@@ -287,6 +287,7 @@ describe('config defaults', () => {
       performance: {
         features: {
           animated_progress_indicator: true,
+          card_loading_effects: true,
           card_loading_indicator: true,
           media_chunk_size: 50,
         },

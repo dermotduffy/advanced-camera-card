@@ -3,6 +3,10 @@ import { ZoomSettingsBase } from '../components-lib/zoom/types.js';
 import { CameraSelectActionConfig } from '../config/schema/actions/custom/camera-select.js';
 import { DisplayModeActionConfig } from '../config/schema/actions/custom/display-mode.js';
 import {
+  EffectAction,
+  EffectActionConfig,
+} from '../config/schema/actions/custom/effect.js';
+import {
   AdvancedCameraCardGeneralAction,
   GeneralActionConfig,
 } from '../config/schema/actions/custom/general.js';
@@ -30,6 +34,7 @@ import {
 } from '../config/schema/actions/types.js';
 import { AdvancedCameraCardUserSpecifiedView } from '../config/schema/common/const.js';
 import { ServiceCallRequest } from '../ha/types.js';
+import { EffectName } from '../types.js';
 import { arrayify } from './basic.js';
 
 export function createGeneralAction(
@@ -237,6 +242,22 @@ export function createSelectOptionAction(
       option: option,
     },
   });
+}
+
+export function createEffectAction(
+  effectName: EffectName,
+  effectAction: EffectAction,
+  options?: {
+    cardID?: string;
+  },
+): EffectActionConfig {
+  return {
+    action: 'fire-dom-event',
+    advanced_camera_card_action: 'effect',
+    effect: effectName,
+    effect_action: effectAction,
+    ...(options?.cardID && { card_id: options.cardID }),
+  };
 }
 
 /**

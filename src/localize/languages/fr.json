@@ -476,6 +476,7 @@
     "performance": {
       "features": {
         "animated_progress_indicator": "Indicateur de progression animé",
+        "card_loading_effects": "Effets au chargement",
         "card_loading_indicator": "Indicateur de chargement de la carte",
         "editor_label": "Options de fonctionnalités",
         "max_simultaneous_engine_requests": "Nombre maximal de requêtes simultanées au moteur de caméra",

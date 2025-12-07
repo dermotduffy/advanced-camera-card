@@ -43,6 +43,7 @@ it('should contain expected defaults', () => {
     'menu.style': 'outside',
     'performance.features.animated_progress_indicator': false,
     'performance.features.card_loading_indicator': false,
+    'performance.features.card_loading_effects': false,
     'performance.features.max_simultaneous_engine_requests': 1,
     'performance.features.media_chunk_size': 10,
     'performance.style.border_radius': false,

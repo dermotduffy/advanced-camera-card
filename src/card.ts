@@ -8,6 +8,8 @@ import 'web-dialog';
 import { actionHandler } from './action-handler-directive.js';
 import { CardController } from './card-controller/controller';
 import { MenuButtonController } from './components-lib/menu-button-controller';
+import './components/effects/effects';
+import { AdvancedCameraCardEffects } from './components/effects/effects';
 import './components/elements.js';
 import { AdvancedCameraCardElements } from './components/elements.js';
 import './components/loading.js';
@@ -93,14 +95,16 @@ class AdvancedCameraCard extends LitElement {
     // diagnostics starting at the top).
     () => this._refMain.value?.scroll({ top: 0 }),
     () => this._refMenu.value?.toggleMenu(),
+    () => this._refEffects.value ?? null,
   );
 
   protected _menuButtonController = new MenuButtonController();
 
+  protected _refEffects: Ref<AdvancedCameraCardEffects> = createRef();
+  protected _refElements: Ref<AdvancedCameraCardElements> = createRef();
+  protected _refMain: Ref<HTMLElement> = createRef();
   protected _refMenu: Ref<AdvancedCameraCardMenu> = createRef();
   protected _refOverlay: Ref<AdvancedCameraCardOverlay> = createRef();
-  protected _refMain: Ref<HTMLElement> = createRef();
-  protected _refElements: Ref<AdvancedCameraCardElements> = createRef();
   protected _refViews: Ref<AdvancedCameraCardViews> = createRef();
 
   // Convenience methods for very frequently accessed attributes.
@@ -344,104 +348,113 @@ class AdvancedCameraCard extends LitElement {
     // Caution: Keep the main div and the menu next to one another in order to
     // ensure the hover menu styling continues to work.
     return this._renderInDialogIfNecessary(
-      html` <ha-card
-        id="ha-card"
-        .actionHandler=${actionHandler({
-          hasHold: hasAction(actions.hold_action),
-          hasDoubleClick: hasAction(actions.double_tap_action),
-        })}
-        style="${styleMap(this._controller.getStyleManager().getAspectRatioStyle())}"
-        @advanced-camera-card:message=${(ev: CustomEvent<Message>) =>
-          this._controller.getMessageManager().setMessageIfHigherPriority(ev.detail)}
-        @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) =>
-          this._controller.getMediaLoadedInfoManager().set(ev.detail)}
-        @advanced-camera-card:media:unloaded=${() =>
-          this._controller.getMediaLoadedInfoManager().clear()}
-        @advanced-camera-card:media:volumechange=${
-          () => this.requestUpdate() /* Refresh mute menu button */
-        }
-        @advanced-camera-card:media:play=${
-          () => this.requestUpdate() /* Refresh play/pause menu button */
-        }
-        @advanced-camera-card:media:pause=${
-          () => this.requestUpdate() /* Refresh play/pause menu button */
-        }
-        @advanced-camera-card:focus=${() => this.focus()}
-      >
-        ${showLoading
-          ? html`<advanced-camera-card-loading
-              ?loaded=${this._controller.getInitializationManager().wasEverInitialized()}
-            ></advanced-camera-card-loading>`
-          : ''}
-        ${this._renderMenuStatusContainer('top')}
-        ${this._renderMenuStatusContainer('overlay')}
-        <div ${ref(this._refMain)} class="${classMap(mainClasses)}">
-          <advanced-camera-card-views
-            ${ref(this._refViews)}
-            .hass=${this._hass}
-            .viewManagerEpoch=${this._controller.getViewManager().getEpoch()}
-            .cameraManager=${cameraManager}
-            .foldersManager=${this._controller.getFoldersManager()}
-            .viewItemManager=${this._controller.getViewItemManager()}
-            .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
-            .config=${this._controller.getConfigManager().getConfig()}
-            .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
-            .rawConfig=${this._controller.getConfigManager().getRawConfig()}
-            .configManager=${this._controller.getConfigManager()}
-            .hide=${!!this._controller.getMessageManager().hasMessage()}
-            .microphoneState=${this._controller.getMicrophoneManager().getState()}
-            .conditionStateManager=${this._controller.getConditionStateManager()}
-            .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
-              ? this._controller.getTriggersManager().getTriggeredCameraIDs()
-              : undefined}
-            .deviceRegistryManager=${this._controller.getDeviceRegistryManager()}
-          ></advanced-camera-card-views>
-          ${this._controller.getMessageManager().hasMessage()
-            ? // Keep message rendering to last to show messages that may have been
-              // generated during the render.
-              renderMessage(this._controller.getMessageManager().getMessage())
+      html` <advanced-camera-card-effects
+          ${ref(this._refEffects)}
+        ></advanced-camera-card-effects>
+        <ha-card
+          id="ha-card"
+          .actionHandler=${actionHandler({
+            hasHold: hasAction(actions.hold_action),
+            hasDoubleClick: hasAction(actions.double_tap_action),
+          })}
+          style="${styleMap(this._controller.getStyleManager().getAspectRatioStyle())}"
+          @advanced-camera-card:message=${(ev: CustomEvent<Message>) =>
+            this._controller.getMessageManager().setMessageIfHigherPriority(ev.detail)}
+          @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) =>
+            this._controller.getMediaLoadedInfoManager().set(ev.detail)}
+          @advanced-camera-card:media:unloaded=${() =>
+            this._controller.getMediaLoadedInfoManager().clear()}
+          @advanced-camera-card:media:volumechange=${
+            () => this.requestUpdate() /* Refresh mute menu button */
+          }
+          @advanced-camera-card:media:play=${
+            () => this.requestUpdate() /* Refresh play/pause menu button */
+          }
+          @advanced-camera-card:media:pause=${
+            () => this.requestUpdate() /* Refresh play/pause menu button */
+          }
+          @advanced-camera-card:focus=${() => this.focus()}
+        >
+          ${showLoading
+            ? html`<advanced-camera-card-loading
+                .loaded=${this._controller
+                  .getInitializationManager()
+                  .wasEverInitialized()}
+                .effectsControllerAPI=${this._config?.performance?.features
+                  .card_loading_effects !== false
+                  ? this._controller.getEffectsControllerAPI()
+                  : undefined}
+              ></advanced-camera-card-loading>`
             : ''}
-        </div>
-        ${this._renderMenuStatusContainer('bottom')}
-        ${this._config?.elements
-          ? // Elements need to render after the main views so it can render 'on
-            // top'.
-            html` <advanced-camera-card-elements
-              ${ref(this._refElements)}
+          ${this._renderMenuStatusContainer('top')}
+          ${this._renderMenuStatusContainer('overlay')}
+          <div ${ref(this._refMain)} class="${classMap(mainClasses)}">
+            <advanced-camera-card-views
+              ${ref(this._refViews)}
               .hass=${this._hass}
-              .elements=${this._config?.elements}
+              .viewManagerEpoch=${this._controller.getViewManager().getEpoch()}
+              .cameraManager=${cameraManager}
+              .foldersManager=${this._controller.getFoldersManager()}
+              .viewItemManager=${this._controller.getViewItemManager()}
+              .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
+              .config=${this._controller.getConfigManager().getConfig()}
+              .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
+              .rawConfig=${this._controller.getConfigManager().getRawConfig()}
+              .configManager=${this._controller.getConfigManager()}
+              .hide=${!!this._controller.getMessageManager().hasMessage()}
+              .microphoneState=${this._controller.getMicrophoneManager().getState()}
               .conditionStateManager=${this._controller.getConditionStateManager()}
-              @advanced-camera-card:menu:add=${(ev: CustomEvent<MenuItem>) => {
-                this._menuButtonController.addDynamicMenuButton(ev.detail);
-                this.requestUpdate();
-              }}
-              @advanced-camera-card:menu:remove=${(ev: CustomEvent<MenuItem>) => {
-                this._menuButtonController.removeDynamicMenuButton(ev.detail);
-                this.requestUpdate();
-              }}
-              @advanced-camera-card:status-bar:add=${(
-                ev: CustomEvent<StatusBarItem>,
-              ) => {
-                this._controller
-                  .getStatusBarItemManager()
-                  .addDynamicStatusBarItem(ev.detail);
-              }}
-              @advanced-camera-card:status-bar:remove=${(
-                ev: CustomEvent<StatusBarItem>,
-              ) => {
-                this._controller
-                  .getStatusBarItemManager()
-                  .removeDynamicStatusBarItem(ev.detail);
-              }}
-              @advanced-camera-card:condition-state-manager:get=${(
-                ev: ConditionStateManagerGetEvent,
-              ) => {
-                ev.conditionStateManager = this._controller.getConditionStateManager();
-              }}
-            >
-            </advanced-camera-card-elements>`
-          : ``}
-      </ha-card>`,
+              .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
+                ? this._controller.getTriggersManager().getTriggeredCameraIDs()
+                : undefined}
+              .deviceRegistryManager=${this._controller.getDeviceRegistryManager()}
+            ></advanced-camera-card-views>
+            ${this._controller.getMessageManager().hasMessage()
+              ? // Keep message rendering to last to show messages that may have been
+                // generated during the render.
+                renderMessage(this._controller.getMessageManager().getMessage())
+              : ''}
+          </div>
+          ${this._renderMenuStatusContainer('bottom')}
+          ${this._config?.elements
+            ? // Elements need to render after the main views so it can render 'on
+              // top'.
+              html` <advanced-camera-card-elements
+                ${ref(this._refElements)}
+                .hass=${this._hass}
+                .elements=${this._config?.elements}
+                .conditionStateManager=${this._controller.getConditionStateManager()}
+                @advanced-camera-card:menu:add=${(ev: CustomEvent<MenuItem>) => {
+                  this._menuButtonController.addDynamicMenuButton(ev.detail);
+                  this.requestUpdate();
+                }}
+                @advanced-camera-card:menu:remove=${(ev: CustomEvent<MenuItem>) => {
+                  this._menuButtonController.removeDynamicMenuButton(ev.detail);
+                  this.requestUpdate();
+                }}
+                @advanced-camera-card:status-bar:add=${(
+                  ev: CustomEvent<StatusBarItem>,
+                ) => {
+                  this._controller
+                    .getStatusBarItemManager()
+                    .addDynamicStatusBarItem(ev.detail);
+                }}
+                @advanced-camera-card:status-bar:remove=${(
+                  ev: CustomEvent<StatusBarItem>,
+                ) => {
+                  this._controller
+                    .getStatusBarItemManager()
+                    .removeDynamicStatusBarItem(ev.detail);
+                }}
+                @advanced-camera-card:condition-state-manager:get=${(
+                  ev: ConditionStateManagerGetEvent,
+                ) => {
+                  ev.conditionStateManager = this._controller.getConditionStateManager();
+                }}
+              >
+              </advanced-camera-card-elements>`
+            : ``}
+        </ha-card>`,
     );
   }
 

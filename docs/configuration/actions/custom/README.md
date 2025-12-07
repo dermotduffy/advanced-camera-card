@@ -94,6 +94,23 @@ advanced_camera_card_action: display_mode_select
 | `advanced_camera_card_action` | Must be `display_mode_select`.                                                                 |
 | `display_mode`                | `single` to show a single camera at a time in a carousel, or `grid` to show a grid of cameras. |
 
+## `effect`
+
+Trigger a visual effect.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: effect
+# [...]
+```
+
+| Parameter                     | Description                                                                           |
+| ----------------------------- | ------------------------------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                                         |
+| `advanced_camera_card_action` | Must be `effect`.                                                                     |
+| `effect`                      | The name of the effect, one of [`fireworks`, `ghost`, `hearts`, `shamrocks`, `snow`]. |
+| `effect_action`               | One of `start`, `stop` or `toggle`.                                                   |
+
 ## `download`
 
 Download the displayed media.
@@ -869,4 +886,12 @@ elements:
     tap_action:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: reload
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:snow
+    title: Snow Effect
+    tap_action:
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: effect
+        effect: snow
+        effect_action: toggle
 ```

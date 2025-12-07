@@ -11,6 +11,7 @@ import {
   dayToDate,
   desparsifyArrays,
   errorToConsole,
+  forceReflow,
   formatDate,
   formatDateAndTime,
   generateFloatApproximatelyEqualsCustomizer,
@@ -533,5 +534,18 @@ describe('convertHTTPAdressToWebsocket', () => {
   });
   it('should handle mixed case', () => {
     expect(convertHTTPAdressToWebsocket('HtTp://example.com')).toBe('ws://example.com');
+  });
+});
+
+describe('forceReflow', () => {
+  it('should access offsetHeight to trigger reflow', () => {
+    const element = document.createElement('div');
+    const offsetHeightSpy = vi
+      .spyOn(element, 'offsetHeight', 'get')
+      .mockReturnValue(100);
+
+    forceReflow(element);
+
+    expect(offsetHeightSpy).toHaveBeenCalled();
   });
 });

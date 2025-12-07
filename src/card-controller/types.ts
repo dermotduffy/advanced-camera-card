@@ -3,6 +3,7 @@ import type { ConditionStateManager } from '../conditions/state-manager';
 import type { Automation } from '../config/schema/automations';
 import type { EntityRegistryManager } from '../ha/registry/entity/types';
 import type { ResolvedMediaCache } from '../ha/resolved-media';
+import type { EffectsControllerAPI } from '../types';
 import type { ActionsManager } from './actions/actions-manager';
 import type { AutomationsManager } from './automations-manager';
 import type { CameraURLManager } from './camera-url-manager';
@@ -41,6 +42,7 @@ export interface CardActionsAPI {
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
+  getEffectsControllerAPI(): EffectsControllerAPI | null;
   getExpandManager(): ExpandManager;
   getFoldersManager(): FoldersManager;
   getFullscreenManager(): FullscreenManager;

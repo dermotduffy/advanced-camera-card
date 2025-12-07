@@ -327,3 +327,8 @@ export const generateFloatApproximatelyEqualsCustomizer = (
 export const convertHTTPAdressToWebsocket = (url: string): string => {
   return url.replace(/^http/i, 'ws');
 };
+
+export const forceReflow = (element: HTMLElement): void => {
+  // Force reflow by measuring the height.
+  void element.offsetHeight;
+};

@@ -476,6 +476,7 @@
     "performance": {
       "features": {
         "animated_progress_indicator": "Indicatore di avanzamento animato",
+        "card_loading_effects": "",
         "card_loading_indicator": "",
         "editor_label": "Opzioni funzionalità",
         "max_simultaneous_engine_requests": "",
