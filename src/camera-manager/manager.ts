@@ -3,8 +3,13 @@ import { cloneDeep, sum } from 'lodash-es';
 import PQueue from 'p-queue';
 import { CardCameraAPI } from '../card-controller/types.js';
 import { sortItems } from '../card-controller/view/sort.js';
-import { PTZAction, PTZActionPhase } from '../config/schema/actions/custom/ptz.js';
-import { CameraConfig, CamerasConfig } from '../config/schema/cameras.js';
+import {
+  PTZ_PAN_TILT_ACTIONS,
+  PTZAction,
+  PTZActionPhase,
+  PTZPanTiltAction,
+} from '../config/schema/actions/custom/ptz.js';
+import { CameraConfig, CamerasConfig, Rotation } from '../config/schema/cameras.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 import { localize } from '../localize/localize.js';
 import { Endpoint } from '../types.js';
@@ -788,6 +793,29 @@ export class CameraManager {
     });
   }
 
+  /**
+   * Rotate a PTZ action based on camera rotation setting.
+   * When camera view is rotated, PTZ controls should logically rotate too.
+   * For example: with 90° rotation, pressing "left" should send "down" to camera.
+   */
+  private _rotatePTZAction(action: PTZAction, rotation?: Rotation): PTZAction {
+    if (!rotation) {
+      return action;
+    }
+
+    // Pan/tilt directions in clockwise order for rotation calculation
+    const index = PTZ_PAN_TILT_ACTIONS.indexOf(action as PTZPanTiltAction);
+
+    if (index === -1) {
+      // Not a directional action (e.g., zoom_in, zoom_out, preset)
+      return action;
+    }
+
+    // Each 90° rotation shifts the direction index counter-clockwise.
+    const shift = (4 - rotation / 90) % 4;
+    return PTZ_PAN_TILT_ACTIONS[(index + shift) % 4];
+  }
+
   public async executePTZAction(
     cameraID: string,
     action: PTZAction,
@@ -800,8 +828,12 @@ export class CameraManager {
     if (!camera) {
       return;
     }
+    const rotatedAction = this._rotatePTZAction(
+      action,
+      camera.getConfig().dimensions?.rotation,
+    );
     await this._requestLimit.add(() =>
-      camera.executePTZAction(this._api.getActionsManager(), action, options),
+      camera.executePTZAction(this._api.getActionsManager(), rotatedAction, options),
     );
   }
 }
