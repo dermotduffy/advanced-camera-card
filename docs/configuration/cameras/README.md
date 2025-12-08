@@ -139,8 +139,10 @@ cameras:
 | `rotation`     | `0`     | Rotates the camera clockwise by `0`, `90`, `180` or `270` degrees.                                                                                                                                                                                                                                                           |
 
 > [!NOTE]
-> Use of `rotation` causes the browser to rotate the video player, unavoidably _including_ rotating the builtin video controls on the pl
-> ayer, which may be distracting or confusing (e.g. upside down controls). Builtin controls can be disabled using the [`live.controls.builtin` parameter](../live.md?id=controls). Rotation is not available in iOS fullscreen, due to the limited fullscreen support offered by that OS.
+> Use of `rotation` causes the browser to rotate the video player, unavoidably _including_ rotating the builtin video controls on the player, which may be distracting or confusing (e.g. upside down controls). Builtin controls can be disabled using the [`live.controls.builtin` parameter](../live.md?id=controls). Rotation is not available in iOS fullscreen, due to the limited fullscreen support offered by that OS.
+
+> [!TIP]
+> When rotation is configured, directional PTZ actions (`left`, `right`, `up`, `down`) are automatically rotated to match the camera's orientation.
 
 > [!WARNING]
 > Rotating the camera incurs a rendering performance penalty. Always rotate "upstream" if possible (e.g. in your camera settings).

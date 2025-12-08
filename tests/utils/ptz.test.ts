@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Capabilities } from '../../src/camera-manager/capabilities';
 import { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../../src/const';
+import { PTZMovementType } from '../../src/types';
 import {
   getPTZTarget,
   hasCameraTruePTZ,
@@ -64,7 +65,7 @@ describe('getPTZTarget', () => {
       const store = createStore([
         {
           cameraID: 'camera-1',
-          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+          capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
         },
       ]);
 
@@ -105,7 +106,7 @@ describe('getPTZTarget', () => {
       const store = createStore([
         {
           cameraID: 'camera-1',
-          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+          capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
         },
       ]);
 
@@ -139,7 +140,7 @@ describe('hasCameraTruePTZ', () => {
     const store = createStore([
       {
         cameraID: 'camera-1',
-        capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+        capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
       },
     ]);
 

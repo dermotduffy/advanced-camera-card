@@ -356,6 +356,9 @@ advanced_camera_card_action: ptz
 > [!NOTE]
 > If no `ptz_action` is specified, the camera returns to its "home" position. For a real PTZ camera, the "home" position is the first available preset. If there are no presets, there is no home position.
 
+> [!TIP]
+> When a camera has a [`rotation`](../../cameras/README.md?id=dimensions) configured, directional PTZ actions (`left`, `right`, `up`, `down`) are automatically rotated to match the camera's orientation. Use the `ptz_action` value that matches how the camera is being displayed, and it will be automatically translated based on the rotation to the true value.
+
 ## `ptz_controls`
 
 Show or hide the PTZ controls.

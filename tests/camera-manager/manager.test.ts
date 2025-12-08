@@ -1141,6 +1141,129 @@ describe('CameraManager', async () => {
 
       expect(api.getActionsManager().executeActions).toBeCalledWith({ actions: action });
     });
+
+    describe('with rotation', () => {
+      it.each([
+        // No rotation
+        [undefined, 'left', 'left', undefined],
+        [undefined, 'right', 'right', undefined],
+        [undefined, 'up', 'up', undefined],
+        [undefined, 'down', 'down', undefined],
+        [0, 'left', 'left', undefined],
+        [0, 'right', 'right', undefined],
+        [0, 'up', 'up', undefined],
+        [0, 'down', 'down', undefined],
+
+        // 90° rotation (clockwise view rotation means controls rotate counter-clockwise)
+        [90, 'left', 'down', undefined],
+        [90, 'right', 'up', undefined],
+        [90, 'up', 'left', undefined],
+        [90, 'down', 'right', undefined],
+
+        // 180° rotation
+        [180, 'left', 'right', undefined],
+        [180, 'right', 'left', undefined],
+        [180, 'up', 'down', undefined],
+        [180, 'down', 'up', undefined],
+
+        // 270° rotation
+        [270, 'left', 'up', undefined],
+        [270, 'right', 'down', undefined],
+        [270, 'up', 'right', undefined],
+        [270, 'down', 'left', undefined],
+
+        // Non-directional actions should pass through unchanged
+        [90, 'zoom_in', 'zoom_in', undefined],
+        [90, 'zoom_out', 'zoom_out', undefined],
+        [90, 'preset', 'preset', 'test-preset'],
+        [180, 'zoom_in', 'zoom_in', undefined],
+        [180, 'zoom_out', 'zoom_out', undefined],
+        [180, 'preset', 'preset', 'test-preset'],
+        [270, 'zoom_in', 'zoom_in', undefined],
+        [270, 'zoom_out', 'zoom_out', undefined],
+        [270, 'preset', 'preset', 'test-preset'],
+      ] as const)(
+        'rotates %s° %s to %s',
+        async (rotation, inputAction, expectedAction, preset) => {
+          const api = createCardAPI();
+          const engine = mock<CameraManagerEngine>();
+          const hass = createHASS();
+          vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+          const leftAction = {
+            action: 'perform-action' as const,
+            perform_action: 'left-action',
+          };
+          const rightAction = {
+            action: 'perform-action' as const,
+            perform_action: 'right-action',
+          };
+          const upAction = {
+            action: 'perform-action' as const,
+            perform_action: 'up-action',
+          };
+          const downAction = {
+            action: 'perform-action' as const,
+            perform_action: 'down-action',
+          };
+          const zoomInAction = {
+            action: 'perform-action' as const,
+            perform_action: 'zoom-in-action',
+          };
+          const zoomOutAction = {
+            action: 'perform-action' as const,
+            perform_action: 'zoom-out-action',
+          };
+          const presetAction = {
+            action: 'perform-action' as const,
+            perform_action: 'preset-action',
+          };
+
+          const manager = createCameraManager(api, engine, [
+            {
+              config: createCameraConfig({
+                baseCameraConfig,
+                id: 'rotated-camera',
+                dimensions: rotation !== undefined ? { rotation } : undefined,
+                ptz: {
+                  actions_left: leftAction,
+                  actions_right: rightAction,
+                  actions_up: upAction,
+                  actions_down: downAction,
+                  actions_zoom_in: zoomInAction,
+                  actions_zoom_out: zoomOutAction,
+                  presets: {
+                    'test-preset': presetAction,
+                  },
+                },
+              }),
+            },
+          ]);
+          expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+          manager.executePTZAction(
+            'rotated-camera',
+            inputAction,
+            preset ? { preset } : undefined,
+          );
+
+          // Map expected action to the corresponding action object
+          const expectedActionMap = {
+            left: leftAction,
+            right: rightAction,
+            up: upAction,
+            down: downAction,
+            zoom_in: zoomInAction,
+            zoom_out: zoomOutAction,
+            preset: presetAction,
+          };
+
+          expect(api.getActionsManager().executeActions).toBeCalledWith({
+            actions: expectedActionMap[expectedAction],
+          });
+        },
+      );
+    });
   });
 
   describe('should determine if queries are fresh', () => {
