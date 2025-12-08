@@ -71,6 +71,15 @@ export class CameraManagerEngineFactory {
           new CameraManagerRequestCache(),
           options.eventCallback,
         );
+        break;
+      case Engine.TPLink:
+        const { TPLinkCameraManagerEngine } = await import('./tplink/engine-tplink');
+        cameraManagerEngine = new TPLinkCameraManagerEngine(
+          this._entityRegistryManager,
+          options.stateWatcher,
+          options.eventCallback,
+        );
+        break;
     }
     return cameraManagerEngine;
   }
@@ -88,6 +97,8 @@ export class CameraManagerEngineFactory {
       engine = Engine.Generic;
     } else if (cameraConfig.engine === 'reolink') {
       engine = Engine.Reolink;
+    } else if (cameraConfig.engine === 'tplink') {
+      engine = Engine.TPLink;
     } else {
       const cameraEntity = getCameraEntityFromConfig(cameraConfig);
 
@@ -115,6 +126,9 @@ export class CameraManagerEngineFactory {
             break;
           case 'reolink':
             engine = Engine.Reolink;
+            break;
+          case 'tplink':
+            engine = Engine.TPLink;
             break;
           default:
             engine = Engine.Generic;

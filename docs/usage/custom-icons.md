@@ -11,3 +11,4 @@ builtin custom items not found in the traditional [Material Design Icons
 | `iris`      | ![Iris Icon](../images/icons/iris.svg ':size=24 :class=svg-icon')           |
 | `motioneye` | ![motionEye Icon](../images/icons/motioneye.svg ':size=24 :class=svg-icon') |
 | `reolink`   | ![Reolink Icon](../images/icons/reolink.svg ':size=24 :class=svg-icon')     |
+| `tplink`    | ![TPLink Icon](../images/icons/tplink.svg ':size=24 :class=svg-icon')       |

@@ -5,6 +5,7 @@ import { FrigateCameraManagerEngine } from '../../src/camera-manager/frigate/eng
 import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic';
 import { MotionEyeCameraManagerEngine } from '../../src/camera-manager/motioneye/engine-motioneye';
 import { ReolinkCameraManagerEngine } from '../../src/camera-manager/reolink/engine-reolink.js';
+import { TPLinkCameraManagerEngine } from '../../src/camera-manager/tplink/engine-tplink.js';
 import { Engine } from '../../src/camera-manager/types.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { CardWideConfig } from '../../src/config/schema/types.js';
@@ -103,6 +104,28 @@ describe('getEngineForCamera()', () => {
           entityRegistryManager: entityRegistryManager,
         }).getEngineForCamera(createHASS(), config),
       ).toBe(Engine.Reolink);
+    });
+  });
+
+  describe('should get a tplink camera', () => {
+    it('from manually set engine', async () => {
+      const config = createCameraConfig({ engine: 'tplink' });
+      expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
+        Engine.TPLink,
+      );
+    });
+
+    it('from auto detection', async () => {
+      const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
+      const entityRegistryManager = new EntityRegistryManagerMock([
+        createRegistryEntity({ entity_id: 'camera.foo', platform: 'tplink' }),
+      ]);
+
+      expect(
+        await createFactory({
+          entityRegistryManager: entityRegistryManager,
+        }).getEngineForCamera(createHASS(), config),
+      ).toBe(Engine.TPLink);
     });
   });
 
@@ -234,5 +257,13 @@ describe('createEngine()', () => {
         resolvedMediaCache: mock<ResolvedMediaCache>(),
       }),
     ).toBeInstanceOf(ReolinkCameraManagerEngine);
+  });
+  it('should create tplink engine', async () => {
+    expect(
+      await createFactory().createEngine(Engine.TPLink, {
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        resolvedMediaCache: mock<ResolvedMediaCache>(),
+      }),
+    ).toBeInstanceOf(TPLinkCameraManagerEngine);
   });
 });

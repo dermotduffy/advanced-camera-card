@@ -27,6 +27,7 @@ export enum Engine {
   Generic = 'generic',
   MotionEye = 'motioneye',
   Reolink = 'reolink',
+  TPLink = 'tplink',
 }
 
 export interface CameraQuery {
