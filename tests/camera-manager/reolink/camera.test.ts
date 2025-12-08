@@ -5,8 +5,8 @@ import { ReolinkCamera } from '../../../src/camera-manager/reolink/camera';
 import { CameraProxyConfig } from '../../../src/camera-manager/types';
 import { ActionsExecutor } from '../../../src/card-controller/actions/types';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
-import { EntityRegistryManagerLive } from '../../../src/ha/registry/entity';
 import { DeviceRegistryManager } from '../../../src/ha/registry/device';
+import { EntityRegistryManagerLive } from '../../../src/ha/registry/entity';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
   createCameraConfig,
@@ -122,6 +122,7 @@ describe('ReolinkCamera', () => {
             await camera.initialize({
               hass: createHASS(),
               entityRegistryManager,
+              deviceRegistryManager: mock<DeviceRegistryManager>(),
               stateWatcher: mock<StateWatcher>(),
             }),
         ).rejects.toThrowError('Could not initialize Reolink camera');
@@ -149,29 +150,6 @@ describe('ReolinkCamera', () => {
               stateWatcher: mock<StateWatcher>(),
             }),
         ).rejects.toThrowError('Could not initialize Reolink camera');
-      });
-
-      it('successfully with an NVR-connected camera without user-specified channel', async () => {
-        const config = createCameraConfig({
-          camera_entity: 'camera.office_reolink',
-        });
-        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
-        const entityRegistryManager = new EntityRegistryManagerMock([
-          createRegistryEntity({
-            entity_id: 'camera.office_reolink',
-            unique_id: '9527000HXU4V1VHZ_9527000I7E5F1GYU_main',
-            platform: 'reolink',
-          }),
-        ]);
-
-        await camera.initialize({
-          hass: createHASS(),
-          entityRegistryManager,
-          deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
-        });
-
-        expect(camera.getChannel()).toBe(0);
       });
 
       it('successfully with a directly connected camera', async () => {
@@ -221,6 +199,75 @@ describe('ReolinkCamera', () => {
         });
 
         expect(camera.getChannel()).toBe(3);
+      });
+
+      it('successfully with hyphenated host id', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+        const entityRegistryManager = new EntityRegistryManagerMock([
+          createRegistryEntity({
+            entity_id: 'camera.office_reolink',
+            unique_id: 'host-id_7_main',
+            platform: 'reolink',
+          }),
+        ]);
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager,
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+
+        expect(camera.getChannel()).toBe(7);
+      });
+
+      it('successfully with a default fallback channel', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+        const entityRegistryManager = new EntityRegistryManagerMock([
+          createRegistryEntity({
+            entity_id: 'camera.office_reolink',
+            unique_id: 'hostid_channel-uid_main',
+            platform: 'reolink',
+          }),
+        ]);
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager,
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+
+        expect(camera.getChannel()).toBe(0);
+      });
+
+      it('successfully with colon in host id', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+        const entityRegistryManager = new EntityRegistryManagerMock([
+          createRegistryEntity({
+            entity_id: 'camera.office_reolink',
+            unique_id: 'host:id_7_main',
+            platform: 'reolink',
+          }),
+        ]);
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager,
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+
+        expect(camera.getChannel()).toBe(7);
       });
 
       describe('should detect channel from configuration URL', () => {
