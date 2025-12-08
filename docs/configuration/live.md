@@ -41,6 +41,7 @@ live:
 | `next_previous` |         | Configures how the "Next & Previous" controls are shown on the `live` view. See below. |
 | `thumbnails`    |         | Configures how thumbnails are shown on the `live` view. See below.                     |
 | `timeline`      |         | Configures how the mini-timeline is shown on the `live` view. See below.               |
+| `wheel`         | `true`  | Whether to allow mouse wheel to scroll through the carousel.                           |
 
 ### `next_previous`
 
@@ -206,6 +207,7 @@ live:
     next_previous:
       style: chevrons
       size: 48
+    wheel: true
     ptz:
       mode: auto
       position: bottom-right

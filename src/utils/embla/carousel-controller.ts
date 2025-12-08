@@ -26,6 +26,7 @@ export class CarouselController {
   protected _dragFree: boolean;
   protected _draggable: boolean;
   protected _textDirection: TextDirection;
+  protected _wheelScrolling: boolean;
 
   protected _plugins: EmblaCarouselPlugins;
   protected _carousel: EmblaCarouselType;
@@ -48,6 +49,7 @@ export class CarouselController {
       dragFree?: boolean;
       plugins?: EmblaCarouselPlugins;
       textDirection?: TextDirection;
+      wheelScrolling?: boolean;
     },
   ) {
     this._root = root;
@@ -60,6 +62,7 @@ export class CarouselController {
     this._draggable = options?.dragEnabled ?? true;
     this._plugins = options?.plugins ?? [];
     this._textDirection = options?.textDirection ?? 'ltr';
+    this._wheelScrolling = options?.wheelScrolling ?? true;
 
     this._carousel = this._createCarousel(getChildrenFromElement(this._parent));
 
@@ -144,7 +147,7 @@ export class CarouselController {
       },
       [
         ...this._plugins,
-        ...(slides.length > 1
+        ...(slides.length > 1 && this._wheelScrolling
           ? [
               WheelGesturesPlugin({
                 // Whether the carousel is vertical or horizontal, interpret y-axis wheel

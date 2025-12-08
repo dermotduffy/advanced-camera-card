@@ -69,6 +69,7 @@ export const liveConfigDefault = {
     ptz: ptzControlsDefaults,
     thumbnails: liveThumbnailControlsDefaults,
     timeline: miniTimelineConfigDefault,
+    wheel: true,
   },
   microphone: {
     ...microphoneConfigDefault,
@@ -121,6 +122,7 @@ export const liveConfigSchema = z
           liveConfigDefault.controls.thumbnails,
         ),
         timeline: miniTimelineConfigSchema.default(liveConfigDefault.controls.timeline),
+        wheel: z.boolean().default(liveConfigDefault.controls.wheel),
       })
       .default(liveConfigDefault.controls),
     display: viewDisplaySchema,

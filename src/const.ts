@@ -248,6 +248,8 @@ export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE =
   `${CONF_MEDIA_VIEWER}.controls.timeline.style` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS =
   `${CONF_MEDIA_VIEWER}.controls.timeline.window_seconds` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_WHEEL =
+  `${CONF_MEDIA_VIEWER}.controls.wheel` as const;
 export const CONF_MEDIA_VIEWER_ZOOMABLE = `${CONF_MEDIA_VIEWER}.zoomable` as const;
 
 const CONF_LIVE = 'live' as const;
@@ -271,6 +273,7 @@ export const CONF_LIVE_CONTROLS_PTZ_ORIENTATION =
   `${CONF_LIVE}.controls.ptz.orientation` as const;
 export const CONF_LIVE_CONTROLS_PTZ_POSITION =
   `${CONF_LIVE}.controls.ptz.position` as const;
+export const CONF_LIVE_CONTROLS_WHEEL = `${CONF_LIVE}.controls.wheel` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA_TYPE =
   `${CONF_LIVE}.controls.thumbnails.media_type` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE =

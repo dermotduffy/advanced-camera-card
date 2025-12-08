@@ -339,6 +339,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
           this._getPlugins.bind(this),
         )}
         .selected=${this._getSelectedCameraIndex()}
+        .wheelScrolling=${this.liveConfig?.controls.wheel}
         transitionEffect=${this._getTransitionEffect()}
         @advanced-camera-card:carousel:select=${this._setViewHandler.bind(this)}
         @advanced-camera-card:media:loaded=${() => {

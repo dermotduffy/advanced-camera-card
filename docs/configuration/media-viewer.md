@@ -37,6 +37,7 @@ media_viewer:
 | `next_previous` |         | Configures how the "Next & Previous" controls are shown on the media viewer. See below. |
 | `thumbnails`    |         | Configures how thumbnails are shown on the media viewer. See below.                     |
 | `timeline`      |         | Configures how the mini-timeline is shown on the media viewer. See below.               |
+| `wheel`         | `true`  | Whether to allow mouse wheel to scroll through the carousel.                            |
 
 ### `next_previous`
 
@@ -183,6 +184,7 @@ media_viewer:
     next_previous:
       size: 48
       style: thumbnails
+    wheel: true
     ptz:
       mode: off
       position: bottom-right

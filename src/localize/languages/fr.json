@@ -263,7 +263,8 @@
             "seek-in-camera": "Pan ne cherche que parmi la caméra sélectionnée",
             "seek-in-media": "Pan ne cherche que parmi les médias sélectionnés"
           }
-        }
+        },
+        "wheel": ""
       },
       "display": {
         "editor_label": "Affichage",

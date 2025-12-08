@@ -263,7 +263,8 @@
             "seek-in-camera": "Pan seeks within selected camera only",
             "seek-in-media": "Pan seeks within selected media item only"
           }
-        }
+        },
+        "wheel": "Scroll wheel scrolls media carousel"
       },
       "display": {
         "editor_label": "Display",
