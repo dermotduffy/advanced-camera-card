@@ -1,6 +1,7 @@
 import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
 import { CameraConfig } from '../config/schema/cameras';
 import { BrowseMediaWalker } from '../ha/browse-media/walker';
+import { DeviceRegistryManager } from '../ha/registry/device';
 import { EntityRegistryManager } from '../ha/registry/entity/types';
 import { ResolvedMediaCache } from '../ha/resolved-media';
 import { HomeAssistant } from '../ha/types';
@@ -18,11 +19,15 @@ interface CameraManagerEngineFactoryOptions {
 }
 
 export class CameraManagerEngineFactory {
-  // Entity registry manager is required for the actual function of the factory.
   protected _entityRegistryManager: EntityRegistryManager;
+  protected _deviceRegistryManager: DeviceRegistryManager;
 
-  constructor(entityRegistryManager: EntityRegistryManager) {
+  constructor(
+    entityRegistryManager: EntityRegistryManager,
+    deviceRegistryManager: DeviceRegistryManager,
+  ) {
     this._entityRegistryManager = entityRegistryManager;
+    this._deviceRegistryManager = deviceRegistryManager;
   }
 
   public async createEngine(
@@ -65,6 +70,7 @@ export class CameraManagerEngineFactory {
         const { ReolinkCameraManagerEngine } = await import('./reolink/engine-reolink');
         cameraManagerEngine = new ReolinkCameraManagerEngine(
           this._entityRegistryManager,
+          this._deviceRegistryManager,
           options.stateWatcher,
           new BrowseMediaWalker(),
           options.resolvedMediaCache,

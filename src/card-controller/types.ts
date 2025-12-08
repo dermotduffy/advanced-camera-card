@@ -1,6 +1,7 @@
 import type { CameraManager } from '../camera-manager/manager';
 import type { ConditionStateManager } from '../conditions/state-manager';
 import type { Automation } from '../config/schema/automations';
+import type { DeviceRegistryManager } from '../ha/registry/device';
 import type { EntityRegistryManager } from '../ha/registry/entity/types';
 import type { ResolvedMediaCache } from '../ha/resolved-media';
 import type { EffectsControllerAPI } from '../types';
@@ -70,6 +71,7 @@ export interface CardAutomationsAPI {
 export interface CardCameraAPI {
   getActionsManager(): ActionsManager;
   getConfigManager(): ConfigManager;
+  getDeviceRegistryManager(): DeviceRegistryManager;
   getEntityRegistryManager(): EntityRegistryManager;
   getHASSManager(): HASSManager;
   getMessageManager(): MessageManager;

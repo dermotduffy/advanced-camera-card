@@ -1,6 +1,7 @@
 import { ActionsExecutor } from '../../card-controller/actions/types';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
+import { DeviceRegistryManager } from '../../ha/registry/device/index';
 import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
@@ -18,6 +19,7 @@ const REOLINK_DEFAULT_CHANNEL = 0;
 
 interface ReolinkCameraInitializationOptions extends CameraInitializationOptions {
   entityRegistryManager: EntityRegistryManager;
+  deviceRegistryManager: DeviceRegistryManager;
   hass: HomeAssistant;
 }
 
@@ -50,7 +52,7 @@ export class ReolinkCamera extends EntityCamera {
 
   public async initialize(options: ReolinkCameraInitializationOptions): Promise<Camera> {
     await super.initialize(options);
-    this._initializeChannel();
+    await this._initializeChannel(options.hass, options.deviceRegistryManager);
     await this._initializeCapabilities(
       options.hass,
       options.entityRegistryManager,
@@ -59,7 +61,32 @@ export class ReolinkCamera extends EntityCamera {
     return this;
   }
 
-  protected _initializeChannel(): void {
+  protected async _getChannelFromConfigurationURL(
+    hass: HomeAssistant,
+    deviceRegistryManager: DeviceRegistryManager,
+  ): Promise<number | null> {
+    const deviceID = this._entity?.device_id;
+    if (!deviceID) {
+      return null;
+    }
+    const device = await deviceRegistryManager.getDevice(hass, deviceID);
+    if (!device?.configuration_url) {
+      return null;
+    }
+    try {
+      const url = new URL(device.configuration_url);
+      const channel = Number(url.searchParams.get('ch'));
+      return isNaN(channel) ? null : channel;
+    } catch {
+      // Ignore invalid URLs.
+      return null;
+    }
+  }
+
+  protected async _initializeChannel(
+    hass: HomeAssistant,
+    deviceRegistryManager: DeviceRegistryManager,
+  ): Promise<void> {
     const uniqueID = this._entity?.unique_id;
 
     // Reolink camera unique IDs are dual-mode, they may be in either of these
@@ -95,8 +122,14 @@ export class ReolinkCamera extends EntityCamera {
     const channelCandidate = Number(channelOrUID);
     const isValidChannel = !isNaN(channelCandidate) && channelCandidate <= 999;
     const channel =
-      this._config.reolink.channel ??
-      (isValidChannel ? channelCandidate : REOLINK_DEFAULT_CHANNEL);
+      // Channel from the unique ID itself (for directly connected cameras).
+      (isValidChannel ? channelCandidate : null) ??
+      // Channel from the configuration URL (for NVRs where the entity unique
+      // id is based on the UID).
+      (await this._getChannelFromConfigurationURL(hass, deviceRegistryManager)) ??
+      // Fallback.
+      REOLINK_DEFAULT_CHANNEL;
+
     const reolinkCameraUID = !isValidChannel ? channelOrUID : null;
 
     this._reolinkChannel = channel;
