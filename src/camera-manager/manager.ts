@@ -129,7 +129,10 @@ export class CameraManager {
     this._api = api;
     this._engineFactory =
       options?.factory ??
-      new CameraManagerEngineFactory(this._api.getEntityRegistryManager());
+      new CameraManagerEngineFactory(
+        this._api.getEntityRegistryManager(),
+        this._api.getDeviceRegistryManager(),
+      );
     this._store = options?.store ?? new CameraManagerStore();
   }
 

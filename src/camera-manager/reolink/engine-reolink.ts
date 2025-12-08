@@ -1,5 +1,6 @@
 import { add, endOfDay, parse, startOfDay } from 'date-fns';
 import { orderBy } from 'lodash-es';
+import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { CameraConfig } from '../../config/schema/cameras';
 import { getViewMediaFromBrowseMediaArray } from '../../ha/browse-media/browse-media-to-view-media';
 import { sortMostRecentFirst } from '../../ha/browse-media/sort';
@@ -11,7 +12,11 @@ import {
   MEDIA_CLASS_VIDEO,
   RichBrowseMedia,
 } from '../../ha/browse-media/types';
+import { BrowseMediaWalker } from '../../ha/browse-media/walker';
 import { isMediaWithinDates } from '../../ha/browse-media/within-dates';
+import { DeviceRegistryManager } from '../../ha/registry/device';
+import { EntityRegistryManager } from '../../ha/registry/entity/types';
+import { ResolvedMediaCache } from '../../ha/resolved-media';
 import { HomeAssistant } from '../../ha/types';
 import { Endpoint } from '../../types';
 import { allPromises, formatDate, isValidDate } from '../../utils/basic';
@@ -23,7 +28,9 @@ import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
   CameraEndpoints,
   CameraEndpointsContext,
+  CameraEventCallback,
   CameraManagerCameraMetadata,
+  CameraManagerRequestCache,
   Engine,
   EngineOptions,
   EventQuery,
@@ -50,6 +57,27 @@ export class ReolinkQueryResultsClassifier {
 export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
   protected _camerasCache = new BrowseMediaCache<BrowseMediaReolinkCameraMetadata>();
   protected _cache = new BrowseMediaCache<BrowseMediaMetadata>();
+  protected _deviceRegistryManager: DeviceRegistryManager;
+
+  public constructor(
+    entityRegistryManager: EntityRegistryManager,
+    deviceRegistryManager: DeviceRegistryManager,
+    stateWatcher: StateWatcherSubscriptionInterface,
+    browseMediaManager: BrowseMediaWalker,
+    resolvedMediaCache: ResolvedMediaCache,
+    requestCache: CameraManagerRequestCache,
+    eventCallback?: CameraEventCallback,
+  ) {
+    super(
+      entityRegistryManager,
+      stateWatcher,
+      browseMediaManager,
+      resolvedMediaCache,
+      requestCache,
+      eventCallback,
+    );
+    this._deviceRegistryManager = deviceRegistryManager;
+  }
 
   public getEngineType(): Engine {
     return Engine.Reolink;
@@ -147,6 +175,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     });
     return await camera.initialize({
       entityRegistryManager: this._entityRegistryManager,
+      deviceRegistryManager: this._deviceRegistryManager,
       hass,
       stateWatcher: this._stateWatcher,
     });

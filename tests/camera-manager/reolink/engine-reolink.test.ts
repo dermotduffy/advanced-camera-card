@@ -26,6 +26,7 @@ import {
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { BrowseMedia, browseMediaSchema } from '../../../src/ha/browse-media/types';
 import { BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
+import { DeviceRegistryManager } from '../../../src/ha/registry/device';
 import { EntityRegistryManager } from '../../../src/ha/registry/entity/types';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { homeAssistantWSRequest } from '../../../src/ha/ws-request';
@@ -183,6 +184,7 @@ const createEngine = (options?: {
 }): ReolinkCameraManagerEngine => {
   return new ReolinkCameraManagerEngine(
     options?.entityRegistryManager ?? new EntityRegistryManagerMock(),
+    mock<DeviceRegistryManager>(),
     mock<StateWatcher>(),
     options?.browseMediaManager ?? new BrowseMediaWalker(),
     new ResolvedMediaCache(),
