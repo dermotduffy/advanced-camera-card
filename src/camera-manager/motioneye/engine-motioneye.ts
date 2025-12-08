@@ -17,7 +17,7 @@ import { HomeAssistant } from '../../ha/types';
 import { Endpoint } from '../../types';
 import { allPromises, formatDate, isValidDate } from '../../utils/basic';
 import { ViewMedia } from '../../view/item';
-import { BrowseMediaCamera } from '../browse-media/camera';
+import { EntityCamera } from '../entity-camera';
 import { BrowseMediaCameraManagerEngine } from '../browse-media/engine-browse-media';
 import { Camera } from '../camera';
 import { Capabilities } from '../capabilities';
@@ -173,7 +173,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     const camera = store.getCamera(cameraID);
     const cameraConfig = camera?.getConfig();
 
-    if (!(camera instanceof BrowseMediaCamera) || !cameraConfig) {
+    if (!(camera instanceof EntityCamera) || !cameraConfig) {
       return null;
     }
 

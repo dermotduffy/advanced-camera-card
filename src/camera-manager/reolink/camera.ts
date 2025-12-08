@@ -6,9 +6,9 @@ import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import { PTZCapabilities, PTZMovementType } from '../../types';
 import { createSelectOptionAction } from '../../utils/action.js';
-import { BrowseMediaCamera } from '../browse-media/camera';
 import { Camera, CameraInitializationOptions } from '../camera';
 import { Capabilities } from '../capabilities';
+import { EntityCamera } from '../entity-camera';
 import { CameraInitializationError } from '../error';
 import { CameraProxyConfig } from '../types';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
@@ -35,7 +35,7 @@ interface PTZEntities {
 }
 type PTZEntity = keyof PTZEntities;
 
-export class ReolinkCamera extends BrowseMediaCamera {
+export class ReolinkCamera extends EntityCamera {
   // The HostID identifying the camera or NVR.
   protected _reolinkHostID: string | null = null;
 

@@ -88,7 +88,14 @@ const castSchema = z.object({
 //                     Camera Configuration
 // *************************************************************************
 
-const ENGINES = ['auto', 'frigate', 'generic', 'motioneye', 'reolink'] as const;
+const ENGINES = [
+  'auto',
+  'frigate',
+  'generic',
+  'motioneye',
+  'reolink',
+  'tplink',
+] as const;
 
 export const cameraConfigDefault = {
   dependencies: {

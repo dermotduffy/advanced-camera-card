@@ -1,7 +1,7 @@
-import { BrowseMediaCamera } from '../browse-media/camera';
+import { EntityCamera } from '../entity-camera';
 import { CameraProxyConfig } from '../types';
 
-export class MotionEyeCamera extends BrowseMediaCamera {
+export class MotionEyeCamera extends EntityCamera {
   public getProxyConfig(): CameraProxyConfig {
     return {
       ...super.getProxyConfig(),
