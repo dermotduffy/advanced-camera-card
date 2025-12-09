@@ -252,7 +252,7 @@ export class AdvancedCameraCardElements extends LitElement {
     }
     this._addHandler(
       path[0],
-      'advanced-camera-card:status-bar:add',
+      'advanced-camera-card:status-bar:remove',
       this._statusBarRemoveHandler,
     );
   };
