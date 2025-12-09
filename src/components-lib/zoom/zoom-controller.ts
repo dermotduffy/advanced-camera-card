@@ -303,14 +303,21 @@ export class ZoomController {
     // "contain" the pan within the parent, this creates somewhat of an async
     // situation where we need to ensure the zoom completes first. Using
     // `requestAnimationFrame` appears to reliably allow the zoom to finish
-    // rendering first, before the pain is applied.
+    // rendering first, before the pan is applied.
     //
     // See: https://github.com/timmywil/panzoom?tab=readme-ov-file#a-note-on-the-async-nature-of-panzoom
     window.requestAnimationFrame(() => {
+      // On slow Android WebView devices, the zoom transform may not have fully
+      // painted by the time this callback runs. Panzoom's contain logic would
+      // then clip the pan to incorrect bounds. Temporarily disable containment
+      // for this programmatic pan, then restore it.
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/2223
+      this._panzoom?.setOptions({ contain: undefined });
       this._panzoom?.pan(x, y, {
         animate: true,
         duration: 100,
       });
+      this._panzoom?.setOptions({ contain: 'outside' });
     });
   }
 
