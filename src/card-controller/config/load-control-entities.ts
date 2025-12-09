@@ -1,10 +1,6 @@
 import { isEqual } from 'lodash-es';
 import { RemoteControlEntityPriority } from '../../config/schema/remote-control';
-import {
-  createCameraAction,
-  createInternalCallbackAction,
-  createSelectOptionAction,
-} from '../../utils/action';
+import { createCameraAction, createInternalCallbackAction } from '../../utils/action';
 import { CardActionsAPI, CardConfigLoaderAPI, TaggedAutomation } from '../types';
 
 export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
@@ -48,11 +44,15 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
         },
       ],
       actions: [
-        // When the camera changes, update the entity to match.
-        createSelectOptionAction(
-          'input_select',
-          cameraControlEntity,
-          '{{ advanced_camera_card.trigger.camera.to }}',
+        // When the camera changes, update the entity to match (only if different
+        // to avoid race conditions when multiple cards share the same entity).
+        // See: https://github.com/dermotduffy/advanced-camera-card/issues/2244
+        createInternalCallbackAction((api: CardActionsAPI) =>
+          selectOptionOnEntityIfDifferent(
+            cameraControlEntity,
+            api.getViewManager().getView()?.camera,
+            api,
+          ),
         ),
       ],
       tag: automationTag,
@@ -76,10 +76,12 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
               `{{ hass.states["${cameraControlEntity}"].state }}`,
             )
           : // Set the selected option in the entity to the current camera ID.
-            createSelectOptionAction(
-              'input_select',
-              cameraControlEntity,
-              '{{ advanced_camera_card.camera }}',
+            createInternalCallbackAction((api: CardActionsAPI) =>
+              selectOptionOnEntityIfDifferent(
+                cameraControlEntity,
+                api.getViewManager().getView()?.camera,
+                api,
+              ),
             ),
       ],
       tag: automationTag,
@@ -103,6 +105,33 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
   ];
 
   api.getAutomationsManager().addAutomations(automations);
+};
+
+const selectOptionOnEntityIfDifferent = async (
+  entity: string,
+  option: string | undefined,
+  api: CardActionsAPI,
+): Promise<void> => {
+  const hass = api.getHASSManager().getHASS();
+  const currentState = hass?.states[entity]?.state;
+
+  // Only update if the option is defined and different from current state.
+  // This prevents race conditions when multiple cards share the same entity.
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2244
+  if (!option || option === currentState) {
+    return;
+  }
+
+  await hass?.callService(
+    'input_select',
+    'select_option',
+    {
+      option: option,
+    },
+    {
+      entity_id: entity,
+    },
+  );
 };
 
 const setCameraOptionsOnEntity = async (entity: string, api: CardActionsAPI) => {
