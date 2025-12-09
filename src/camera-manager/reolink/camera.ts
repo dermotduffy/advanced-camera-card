@@ -104,9 +104,7 @@ export class ReolinkCamera extends EntityCamera {
     // and must only be taken from the user config instead.
 
     const match = uniqueID
-      ? String(uniqueID).match(
-          /^(?<hostid>[A-Za-z0-9]+)_(?<channel_or_uid>[A-Za-z0-9]+)_/,
-        )
+      ? String(uniqueID).match(/^(?<hostid>[^_]+)_(?<channel_or_uid>[^_]+)_/)
       : null;
 
     const hostid = match?.groups?.hostid ?? null;
