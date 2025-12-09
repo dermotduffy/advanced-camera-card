@@ -133,6 +133,7 @@ import {
   CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
   CONF_LIVE_CONTROLS_TIMELINE_STYLE,
   CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
+  CONF_LIVE_CONTROLS_WHEEL,
   CONF_LIVE_DISPLAY_GRID_COLUMNS,
   CONF_LIVE_DISPLAY_GRID_MAX_COLUMNS,
   CONF_LIVE_DISPLAY_GRID_SELECTED_POSITION,
@@ -175,6 +176,7 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
+  CONF_MEDIA_VIEWER_CONTROLS_WHEEL,
   CONF_MEDIA_VIEWER_DISPLAY_GRID_COLUMNS,
   CONF_MEDIA_VIEWER_DISPLAY_GRID_MAX_COLUMNS,
   CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_POSITION,
@@ -2911,6 +2913,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                         label: localize('config.common.controls.builtin'),
                       },
                     )}
+                    ${this._renderSwitch(
+                      CONF_LIVE_CONTROLS_WHEEL,
+                      this._defaults.live.controls.wheel,
+                      {
+                        label: localize('config.common.controls.wheel'),
+                      },
+                    )}
                     ${this._renderNextPreviousControls(
                       MENU_LIVE_CONTROLS_NEXT_PREVIOUS,
                       CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
@@ -3104,6 +3113,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                     this._defaults.media_viewer.controls.builtin,
                     {
                       label: localize('config.common.controls.builtin'),
+                    },
+                  )}
+                  ${this._renderSwitch(
+                    CONF_MEDIA_VIEWER_CONTROLS_WHEEL,
+                    this._defaults.media_viewer.controls.wheel,
+                    {
+                      label: localize('config.common.controls.wheel'),
                     },
                   )}
                   ${this._renderNextPreviousControls(

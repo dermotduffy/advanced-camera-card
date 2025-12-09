@@ -263,7 +263,8 @@
             "seek-in-camera": "Cerca d'escombratge només a la càmera seleccionada",
             "seek-in-media": "Cerca d'escombratge només dins de l'element multimèdia seleccionat"
           }
-        }
+        },
+        "wheel": ""
       },
       "display": {
         "editor_label": "Visualització",

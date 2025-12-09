@@ -239,6 +239,24 @@ describe('CarouselController', () => {
     );
   });
 
+  it('should not include wheel plugin when wheelScrolling is false', () => {
+    const children = createTestSlideNodes();
+    const root = createRoot();
+    const parent = createParent({ children: children });
+    new CarouselController(root, parent, { wheelScrolling: false });
+
+    // Verify WheelGesturesPlugin is NOT present
+    expect(EmblaCarousel).toBeCalledWith(
+      root,
+      expect.anything(),
+      expect.not.arrayContaining([
+        expect.objectContaining({
+          name: 'wheelGestures',
+        }),
+      ]),
+    );
+  });
+
   it('should recreate carousel when children are added', () => {
     const children = createTestSlideNodes();
     const root = createRoot();

@@ -43,6 +43,9 @@ export class AdvancedCameraCardCarousel extends LitElement {
   public plugins?: EmblaCarouselPlugins;
 
   @property({ attribute: false })
+  public wheelScrolling?: boolean;
+
+  @property({ attribute: false })
   public selected = 0;
 
   protected _refParent: Ref<HTMLSlotElement> = createRef();
@@ -121,6 +124,7 @@ export class AdvancedCameraCardCarousel extends LitElement {
           loop: this.loop,
           plugins: this.plugins,
           textDirection: getTextDirection(this),
+          wheelScrolling: this.wheelScrolling,
         },
       );
     } else if (changedProps.has('selected')) {

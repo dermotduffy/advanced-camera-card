@@ -263,7 +263,8 @@
             "seek-in-camera": "",
             "seek-in-media": ""
           }
-        }
+        },
+        "wheel": ""
       },
       "display": {
         "editor_label": "",

@@ -40,6 +40,7 @@ export const viewerConfigDefault = {
       ...ptzControlsDefaults,
       mode: 'off' as const,
     },
+    wheel: true,
   },
 };
 
@@ -101,6 +102,7 @@ export const viewerConfigSchema = z
         timeline: miniTimelineConfigSchema.default(
           viewerConfigDefault.controls.timeline,
         ),
+        wheel: z.boolean().default(viewerConfigDefault.controls.wheel),
       })
       .default(viewerConfigDefault.controls),
   })

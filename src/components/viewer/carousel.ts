@@ -339,6 +339,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
         .dragEnabled=${this.viewerConfig?.draggable ?? true}
         .plugins=${guard([this.viewerConfig, this._media], this._getPlugins.bind(this))}
         .selected=${this._selected}
+        .wheelScrolling=${this.viewerConfig?.controls.wheel}
         transitionEffect=${this._getTransitionEffect()}
         @advanced-camera-card:carousel:select=${(ev: CustomEvent<CarouselSelected>) => {
           this._setViewSelectedIndex(ev.detail.index);
