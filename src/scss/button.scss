@@ -2,7 +2,7 @@ ha-icon-button {
   color: var(--advanced-camera-card-button-color);
   background-color: var(--advanced-camera-card-button-background);
 
-  border-radius: 50%;
+  border-radius: var(--advanced-camera-card-button-border-radius);
   padding: 0px;
   margin: 3px;
   --ha-icon-display: block;
