@@ -126,7 +126,7 @@
         "auto": "Automatic",
         "go2rtc": "go2rtc",
         "ha": "Home Assistant video stream (i.e. HLS, LL-HLS, WebRTC via HA)",
-        "image": "Home Assistant images",
+        "image": "Image",
         "jsmpeg": "JSMpeg",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
