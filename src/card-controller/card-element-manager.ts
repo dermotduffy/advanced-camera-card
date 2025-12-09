@@ -97,6 +97,14 @@ export class CardElementManager {
       this._api.getInteractionManager().reportInteraction,
     );
     this._element.addEventListener(
+      'touchstart',
+      this._api.getInteractionManager().reportInteraction,
+    );
+    this._element.addEventListener(
+      'touchmove',
+      this._api.getInteractionManager().reportInteraction,
+    );
+    this._element.addEventListener(
       'll-custom',
       this._api.getActionsManager().handleCustomActionEvent,
     );
@@ -164,6 +172,14 @@ export class CardElementManager {
     );
     this._element.removeEventListener(
       'wheel',
+      this._api.getInteractionManager().reportInteraction,
+    );
+    this._element.removeEventListener(
+      'touchstart',
+      this._api.getInteractionManager().reportInteraction,
+    );
+    this._element.removeEventListener(
+      'touchmove',
       this._api.getInteractionManager().reportInteraction,
     );
     this._element.removeEventListener(
