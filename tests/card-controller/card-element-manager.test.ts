@@ -119,6 +119,14 @@ describe('CardElementManager', () => {
       'action',
       api.getInteractionManager().reportInteraction,
     );
+    expect(addEventListener).toBeCalledWith(
+      'touchstart',
+      api.getInteractionManager().reportInteraction,
+    );
+    expect(addEventListener).toBeCalledWith(
+      'touchmove',
+      api.getInteractionManager().reportInteraction,
+    );
     expect(windowAddEventListener).toBeCalledWith('location-changed', expect.anything());
     expect(windowAddEventListener).toBeCalledWith('popstate', expect.anything());
 
@@ -169,6 +177,14 @@ describe('CardElementManager', () => {
     );
     expect(removeEventListener).toBeCalledWith(
       'action',
+      api.getInteractionManager().reportInteraction,
+    );
+    expect(removeEventListener).toBeCalledWith(
+      'touchstart',
+      api.getInteractionManager().reportInteraction,
+    );
+    expect(removeEventListener).toBeCalledWith(
+      'touchmove',
       api.getInteractionManager().reportInteraction,
     );
     expect(windowRemoveEventListener).toBeCalledWith(
