@@ -1,14 +1,23 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+import { CardController } from '../../src/card-controller/controller';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
 import { SubstreamSelectViewModifier } from '../../src/card-controller/view/modifiers/substream-select';
-import { createCardAPI } from '../test-utils';
+import { createCardAPI, createConfig } from '../test-utils';
 
 const setQueryString = (qs: string): void => {
   const location: Location = mock<Location>();
   location.search = qs;
 
   vi.spyOn(window, 'location', 'get').mockReturnValue(location);
+};
+
+const setCardID = (api: CardController, cardID: string): void => {
+  vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+    createConfig({
+      card_id: cardID,
+    }),
+  );
 };
 
 // @vitest-environment jsdom
@@ -45,6 +54,7 @@ describe('QueryStringManager', () => {
     ])('%s', async (viewName: string) => {
       setQueryString(`?advanced-camera-card-action.id.${viewName}=`);
       const api = createCardAPI();
+      setCardID(api, 'id');
 
       // View actions do not need the card to have been updated.
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(false);
@@ -71,6 +81,7 @@ describe('QueryStringManager', () => {
     ])('%s', async (action: string) => {
       setQueryString(`?advanced-camera-card-action.id.${action}=`);
       const api = createCardAPI();
+      setCardID(api, 'id');
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
       const manager = new QueryStringManager(api);
 
@@ -92,6 +103,7 @@ describe('QueryStringManager', () => {
   it('should execute view default action', async () => {
     setQueryString('?advanced-camera-card-action.id.default=');
     const api = createCardAPI();
+    setCardID(api, 'id');
     // View actions do not need the card to have been updated.
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(false);
 
@@ -109,6 +121,7 @@ describe('QueryStringManager', () => {
   it('should execute camera_select action', async () => {
     setQueryString('?advanced-camera-card-action.id.camera_select=camera.office');
     const api = createCardAPI();
+    setCardID(api, 'id');
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
     const manager = new QueryStringManager(api);
 
@@ -130,6 +143,7 @@ describe('QueryStringManager', () => {
       '?advanced-camera-card-action.id.live_substream_select=camera.office_hd',
     );
     const api = createCardAPI();
+    setCardID(api, 'id');
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
     const manager = new QueryStringManager(api);
 
@@ -152,6 +166,7 @@ describe('QueryStringManager', () => {
       async (action: string) => {
         setQueryString(`?advanced-camera-card-action.id.${action}=`);
         const api = createCardAPI();
+        setCardID(api, 'id');
         vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
         const manager = new QueryStringManager(api);
 
@@ -170,6 +185,7 @@ describe('QueryStringManager', () => {
 
     setQueryString('?advanced-camera-card-action.id.not_an_action=value');
     const api = createCardAPI();
+    setCardID(api, 'id');
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
     const manager = new QueryStringManager(api);
 
@@ -197,6 +213,7 @@ describe('QueryStringManager', () => {
     ])('%s', async (viewName: string) => {
       setQueryString(`?advanced-camera-card-action.id.${viewName}=`);
       const api = createCardAPI();
+      setCardID(api, 'id');
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
       const manager = new QueryStringManager(api);
 
@@ -221,6 +238,7 @@ describe('QueryStringManager', () => {
           '&advanced-camera-card-action.id.camera_select=camera.kitchen',
       );
       const api = createCardAPI();
+      setCardID(api, 'id');
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
       const manager = new QueryStringManager(api);
 
@@ -241,6 +259,7 @@ describe('QueryStringManager', () => {
           '&advanced-camera-card-action.id.camera_select=camera.office',
       );
       const api = createCardAPI();
+      setCardID(api, 'id');
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
       const manager = new QueryStringManager(api);
 
@@ -259,6 +278,7 @@ describe('QueryStringManager', () => {
       '?advanced-camera-card-action.id.live_substream_select=camera.office_hd',
     );
     const api = createCardAPI();
+    setCardID(api, 'id');
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
     const manager = new QueryStringManager(api);
 
@@ -282,6 +302,7 @@ describe('QueryStringManager', () => {
   it('should execute actions with old frigate-card-action key', async () => {
     setQueryString(`?frigate-card-action.id.clips=`);
     const api = createCardAPI();
+    setCardID(api, 'id');
 
     // View actions do not need the card to have been updated.
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(false);
@@ -295,6 +316,82 @@ describe('QueryStringManager', () => {
       params: {
         view: 'clips',
       },
+    });
+  });
+
+  describe('should filter by card_id', () => {
+    it('should execute view action when card_id matches', async () => {
+      setQueryString('?advanced-camera-card-action.my_card.clips=');
+      const api = createCardAPI();
+      setCardID(api, 'my_card');
+      vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(false);
+      const manager = new QueryStringManager(api);
+
+      expect(manager.hasViewRelatedActionsToRun()).toBeTruthy();
+      await manager.executeIfNecessary();
+
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+        params: {
+          view: 'clips',
+        },
+      });
+    });
+
+    it('should NOT execute view action when card_id does not match', async () => {
+      setQueryString('?advanced-camera-card-action.other_card.clips=');
+      const api = createCardAPI();
+      setCardID(api, 'my_card');
+      vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(false);
+      const manager = new QueryStringManager(api);
+
+      expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
+      await manager.executeIfNecessary();
+
+      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+      expect(api.getActionsManager().executeActions).not.toBeCalled();
+    });
+
+    it('should execute action without card_id on any card', async () => {
+      setQueryString('?advanced-camera-card-action.clips=');
+      const api = createCardAPI();
+      setCardID(api, 'my_card');
+      vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(false);
+      const manager = new QueryStringManager(api);
+
+      expect(manager.hasViewRelatedActionsToRun()).toBeTruthy();
+      await manager.executeIfNecessary();
+
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+        params: {
+          view: 'clips',
+        },
+      });
+    });
+
+    it('should NOT execute non-view action when card_id does not match', async () => {
+      setQueryString('?advanced-camera-card-action.other_card.menu_toggle=');
+      const api = createCardAPI();
+      setCardID(api, 'my_card');
+      vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
+      const manager = new QueryStringManager(api);
+
+      expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
+      await manager.executeIfNecessary();
+
+      expect(api.getActionsManager().executeActions).not.toBeCalled();
+    });
+
+    it('should execute action when card has no card_id and URL has card_id', async () => {
+      setQueryString('?advanced-camera-card-action.some_card.clips=');
+      const api = createCardAPI();
+      vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(false);
+      const manager = new QueryStringManager(api);
+
+      // Should NOT execute since URL targets 'some_card' but this card has no card_id
+      expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
+      await manager.executeIfNecessary();
+
+      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
     });
   });
 });
