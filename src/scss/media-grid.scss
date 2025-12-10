@@ -23,7 +23,14 @@
 
 ::slotted(*) {
   box-sizing: border-box;
-  width: var(--advanced-camera-card-grid-column-size);
+
+  // Support multi-column cells via --advanced-camera-card-grid-width-factor CSS variable.
+  // Default to 1 column if not specified.
+  --advanced-camera-card-grid-width-factor: 1;
+  width: calc(
+    var(--advanced-camera-card-grid-width-factor) *
+      var(--advanced-camera-card-grid-column-size)
+  );
 
   // Unselected items included a transparent border to act as the effective
   // gutter between elements, and to ensure when the item is selected it does
@@ -35,10 +42,13 @@
 ::slotted([selected]) {
   border: var(--advanced-camera-card-grid-border-size) solid
     var(--advanced-camera-card-grid-selected-border-color);
+
+  // Selected width = columns × selection factor, capped at 100%.
   width: min(
     100%,
     calc(
-      var(--advanced-camera-card-grid-selected-width-factor) *
+      var(--advanced-camera-card-grid-width-factor) *
+        var(--advanced-camera-card-grid-selected-width-factor) *
         var(--advanced-camera-card-grid-column-size)
     )
   );

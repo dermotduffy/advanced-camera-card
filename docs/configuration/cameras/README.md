@@ -135,6 +135,7 @@ cameras:
 | Option         | Default | Description                                                                                                                                                                                                                                                                                                                  |
 | -------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `aspect_ratio` |         | An optional aspect ratio for media from this camera which will be used in `live` or media viewer related views (e.g. `clip`, `snapshot` and `recording`). Format is the same as the parameter of the same name under the [dimensions block](../dimensions.md) (which controls dimensions for the whole card), e.g. `16 / 9`. |
+| `grid`         |         | Grid layout configuration for this camera when displayed in grid mode. See below.                                                                                                                                                                                                                                            |
 | `layout`       |         | How the media should be laid out _within_ the camera dimensions. See below.                                                                                                                                                                                                                                                  |
 | `rotation`     | `0`     | Rotates the camera clockwise by `0`, `90`, `180` or `270` degrees.                                                                                                                                                                                                                                                           |
 
@@ -146,6 +147,22 @@ cameras:
 
 > [!WARNING]
 > Rotating the camera incurs a rendering performance penalty. Always rotate "upstream" if possible (e.g. in your camera settings).
+
+### Grid Configuration
+
+The `grid` block configures how this camera appears in grid display mode.
+
+```yaml
+cameras:
+  - camera_entity: camera.office
+    dimensions:
+      grid:
+        width_factor: 2
+```
+
+| Option         | Default | Description                                                                                                                                               |
+| -------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `width_factor` | `1`     | Width multiplier for this camera in grid mode (minimum: `0.1`). When selected, width becomes `width_factor * grid_selected_width_factor`, capped at 100%. |
 
 ### Layout Configuration
 
