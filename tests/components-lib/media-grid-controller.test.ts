@@ -589,4 +589,62 @@ describe('MediaGridController', () => {
       ]);
     });
   });
+
+  describe('should set width factor styles correctly', () => {
+    it('should apply width factor CSS variable when attribute is present', () => {
+      const children = createChildren(['0', '1', '2']);
+      children[0].setAttribute('grid-width-factor', '2');
+      children[1].setAttribute('grid-width-factor', '3');
+      const parent = createParent({ children: children });
+      createController(parent);
+
+      expect(
+        children[0].style.getPropertyValue('--advanced-camera-card-grid-width-factor'),
+      ).toBe('2');
+      expect(
+        children[1].style.getPropertyValue('--advanced-camera-card-grid-width-factor'),
+      ).toBe('3');
+      expect(
+        children[2].style.getPropertyValue('--advanced-camera-card-grid-width-factor'),
+      ).toBe('');
+    });
+
+    it('should update width factor styles when attribute changes', () => {
+      const children = createChildren(['0', '1', '2']);
+      const parent = createParent({ children: children });
+      createController(parent);
+
+      // Initially no width factor.
+      expect(
+        children[0].style.getPropertyValue('--advanced-camera-card-grid-width-factor'),
+      ).toBe('');
+
+      // Set the attribute.
+      children[0].setAttribute('grid-width-factor', '4');
+      triggerMutationObserver('cell');
+
+      expect(
+        children[0].style.getPropertyValue('--advanced-camera-card-grid-width-factor'),
+      ).toBe('4');
+    });
+
+    it('should remove width factor style when attribute is removed', () => {
+      const children = createChildren(['0', '1', '2']);
+      children[0].setAttribute('grid-width-factor', '2');
+      const parent = createParent({ children: children });
+      createController(parent);
+
+      expect(
+        children[0].style.getPropertyValue('--advanced-camera-card-grid-width-factor'),
+      ).toBe('2');
+
+      // Remove the attribute.
+      children[0].removeAttribute('grid-width-factor');
+      triggerMutationObserver('cell');
+
+      expect(
+        children[0].style.getPropertyValue('--advanced-camera-card-grid-width-factor'),
+      ).toBe('');
+    });
+  });
 });

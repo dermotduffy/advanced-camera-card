@@ -161,10 +161,15 @@ const rotationSchema = z
   .or(z.literal(270));
 export type Rotation = z.infer<typeof rotationSchema>;
 
+const cameraDimensionsGridSchema = z.object({
+  width_factor: z.number().min(0.1).optional(),
+});
+
 const cameraDimensionsSchema = z.object({
   aspect_ratio: aspectRatioSchema.optional(),
   layout: mediaLayoutConfigSchema.optional(),
   rotation: rotationSchema.optional(),
+  grid: cameraDimensionsGridSchema.optional(),
 });
 export type CameraDimensionsConfig = z.infer<typeof cameraDimensionsSchema>;
 

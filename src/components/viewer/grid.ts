@@ -41,9 +41,17 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
 
   protected _renderCarousel(filterCamera?: string): TemplateResult {
     const selectedCameraID = this.viewManagerEpoch?.manager.getView()?.camera;
+
+    // Get the camera's grid width factor from its dimensions config.
+    const gridWidthFactor = filterCamera
+      ? this.cameraManager?.getStore().getCameraConfig(filterCamera)?.dimensions?.grid
+          ?.width_factor
+      : undefined;
+
     return html`
       <advanced-camera-card-viewer-carousel
         grid-id=${ifDefined(filterCamera)}
+        grid-width-factor=${ifDefined(gridWidthFactor)}
         .hass=${this.hass}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .viewFilterCameraID=${filterCamera}

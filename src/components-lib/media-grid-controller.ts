@@ -2,7 +2,11 @@ import { isEqual, throttle } from 'lodash-es';
 import Masonry from 'masonry-layout';
 import { ViewDisplayConfig } from '../config/schema/common/display';
 import { MediaLoadedInfo } from '../types';
-import { getChildrenFromElement, setOrRemoveAttribute } from '../utils/basic';
+import {
+  getChildrenFromElement,
+  setOrRemoveAttribute,
+  setOrRemoveStyleProperty,
+} from '../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
 import {
   AdvancedCameraCardMediaLoadedEventTarget,
@@ -30,6 +34,7 @@ export interface MediaGridSelected {
 export interface MediaGridConstructorOptions {
   selected?: GridID;
   idAttribute?: string;
+  widthFactorAttribute?: string;
   displayConfig?: ViewDisplayConfig;
 }
 
@@ -51,6 +56,7 @@ export class MediaGridController {
   protected _displayConfig: ViewDisplayConfig | null = null;
   protected _hostWidth: number;
   protected _idAttribute: string;
+  protected _widthFactorAttribute: string;
 
   protected _throttledLayout = throttle(
     () => this._masonry?.layout?.(),
@@ -79,6 +85,7 @@ export class MediaGridController {
     this._host = host;
     this._selected = options?.selected ?? null;
     this._idAttribute = options?.idAttribute ?? 'grid-id';
+    this._widthFactorAttribute = options?.widthFactorAttribute ?? 'grid-width-factor';
     this._hostWidth = this._host.getBoundingClientRect().width;
     this._hostResizeObserver.observe(host);
     this._displayConfig = options?.displayConfig ?? null;
@@ -233,7 +240,7 @@ export class MediaGridController {
     this._cellResizeObserver.disconnect();
     for (const child of gridContents.values()) {
       this._cellMutationObserver.observe(child, {
-        attributeFilter: [this._idAttribute],
+        attributeFilter: [this._idAttribute, this._widthFactorAttribute],
         attributes: true,
       });
       this._cellResizeObserver.observe(child);
@@ -241,6 +248,7 @@ export class MediaGridController {
 
     this._sortItemsInGrid();
     this._updateSelectedStylesOnElements();
+    this._updateWidthFactorStyles();
     this._setColumnSizeStyles();
   }
 
@@ -340,6 +348,18 @@ export class MediaGridController {
       // a carousel with neither selected nor unselected will behave normally.
       // This matches a css selector in viewer-carousel.scss .
       setOrRemoveAttribute(element, id !== this._selected, 'unselected');
+    }
+  }
+
+  protected _updateWidthFactorStyles(): void {
+    for (const element of this._gridContents.values()) {
+      const widthFactor = element.getAttribute(this._widthFactorAttribute);
+      setOrRemoveStyleProperty(
+        element,
+        !!widthFactor,
+        '--advanced-camera-card-grid-width-factor',
+        widthFactor ?? undefined,
+      );
     }
   }
 
