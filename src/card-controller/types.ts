@@ -254,6 +254,7 @@ export interface CardMicrophoneAPI {
 export interface CardQueryStringAPI {
   getActionsManager(): ActionsManager;
   getCardElementManager(): CardElementManager;
+  getConfigManager(): ConfigManager;
   getViewManager(): ViewManager;
 }
 

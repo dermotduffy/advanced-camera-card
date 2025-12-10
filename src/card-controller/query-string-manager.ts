@@ -96,6 +96,7 @@ export class QueryStringManager {
   protected _getActions(): AdvancedCameraCardCustomActionConfig[] {
     const params = new URLSearchParams(window.location.search);
     const actions: AdvancedCameraCardCustomActionConfig[] = [];
+    const configuredCardID = this._api.getConfigManager().getConfig()?.card_id;
     const actionRE = new RegExp(
       /^(advanced-camera-card|frigate-card)-action([.:](?<cardID>\w+))?[.:](?<action>\w+)/,
     );
@@ -107,14 +108,17 @@ export class QueryStringManager {
       const cardID: string | undefined = match.groups['cardID'];
       const actionName = match.groups['action'];
 
+      // Skip actions targeted at other cards.
+      if (cardID && cardID !== configuredCardID) {
+        continue;
+      }
+
       let action: AdvancedCameraCardCustomActionConfig | null = null;
       switch (actionName) {
         case 'camera_select':
         case 'live_substream_select':
           if (value) {
-            action = createCameraAction(actionName, value, {
-              cardID: cardID,
-            });
+            action = createCameraAction(actionName, value, { cardID });
           }
           break;
         case 'camera_ui':
@@ -122,9 +126,7 @@ export class QueryStringManager {
         case 'download':
         case 'expand':
         case 'menu_toggle':
-          action = createGeneralAction(actionName, {
-            cardID: cardID,
-          });
+          action = createGeneralAction(actionName, { cardID });
           break;
         case 'clip':
         case 'clips':
@@ -136,9 +138,7 @@ export class QueryStringManager {
         case 'snapshot':
         case 'snapshots':
         case 'timeline':
-          action = createViewAction(actionName, {
-            cardID: cardID,
-          });
+          action = createViewAction(actionName, { cardID });
           break;
         default:
           console.warn(
