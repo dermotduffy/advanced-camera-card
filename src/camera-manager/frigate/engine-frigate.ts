@@ -934,7 +934,7 @@ export class FrigateCameraManagerEngine
       }
 
       const cameraURL =
-        `${cameraConfig.frigate.url}/cameras/` + cameraConfig.frigate.camera_name;
+        `${cameraConfig.frigate.url}/#` + cameraConfig.frigate.camera_name;
 
       if (context?.view === 'live') {
         return { endpoint: cameraURL };
