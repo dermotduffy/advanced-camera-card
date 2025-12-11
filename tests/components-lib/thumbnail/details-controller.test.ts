@@ -1,7 +1,9 @@
+import { format } from 'date-fns';
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManager } from '../../../src/camera-manager/manager';
 import { ThumbnailDetailsController } from '../../../src/components-lib/thumbnail/details-controller';
+import { formatDateAndTime } from '../../../src/utils/basic';
 import { ViewFolder, ViewMediaType } from '../../../src/view/item';
 import { createFolder, TestViewMedia } from '../../test-utils';
 
@@ -135,14 +137,17 @@ describe('ThumbnailDetailsController', () => {
     });
 
     it('should have start time in details', () => {
+      const startTime = new Date('2025-05-18T17:03:00Z');
       const item = new TestViewMedia({
-        startTime: new Date('2025-05-18T17:03:00Z'),
+        startTime,
       });
 
       const controller = new ThumbnailDetailsController();
       controller.calculate(null, item);
+
+      // Use formatDateAndTime to generate expected value (formats in local time with seconds)
       expect(controller.getDetails()).toContainEqual({
-        title: '2025-05-18 17:03:00',
+        title: formatDateAndTime(startTime, true),
         hint: 'Start',
         icon: { icon: 'mdi:calendar-clock-outline' },
       });
@@ -249,11 +254,14 @@ describe('ThumbnailDetailsController', () => {
 
     it('should have seek in details', () => {
       const item = new TestViewMedia();
+      const seekTime = new Date('2025-05-20T07:14:57Z');
 
       const controller = new ThumbnailDetailsController();
-      controller.calculate(null, item, new Date('2025-05-20T07:14:57Z'));
+      controller.calculate(null, item, seekTime);
+
+      // Use format() to generate expected value (formats in local time)
       expect(controller.getDetails()).toContainEqual({
-        title: '07:14:57',
+        title: format(seekTime, 'HH:mm:ss'),
         hint: 'Seek',
         icon: { icon: 'mdi:clock-fast' },
       });

@@ -381,8 +381,9 @@ describe('ReolinkCameraManagerEngine', () => {
                 {
                   _metadata: {
                     cameraID: 'office',
-                    startDate: new Date('2024-11-04T21:37:00.000Z'),
-                    endDate: new Date('2024-11-04T21:37:00.000Z'),
+                    // Date parsed from directory '2024/11/4' + time '21:37:00' in local time
+                    startDate: new Date(2024, 10, 4, 21, 37, 0),
+                    endDate: new Date(2024, 10, 4, 21, 37, 0),
                   },
                   can_expand: false,
                   can_play: true,
@@ -397,8 +398,9 @@ describe('ReolinkCameraManagerEngine', () => {
                 {
                   _metadata: {
                     cameraID: 'office',
-                    endDate: new Date('2024-11-04T21:35:46.000Z'),
-                    startDate: new Date('2024-11-04T21:35:05.000Z'),
+                    // Date parsed from directory '2024/11/4' + time '21:35:05' with duration in local time
+                    endDate: new Date(2024, 10, 4, 21, 35, 46),
+                    startDate: new Date(2024, 10, 4, 21, 35, 5),
                     what: ['person', 'vehicle', 'zebra'],
                   },
                   can_expand: false,
@@ -414,8 +416,9 @@ describe('ReolinkCameraManagerEngine', () => {
                 {
                   _metadata: {
                     cameraID: 'office',
-                    endDate: new Date('2024-11-04T21:29:46'),
-                    startDate: new Date('2024-11-04T21:29:05'),
+                    // Date parsed from directory '2024/11/4' + time '21:29:05' with duration in local time
+                    endDate: new Date(2024, 10, 4, 21, 29, 46),
+                    startDate: new Date(2024, 10, 4, 21, 29, 5),
                   },
                   can_expand: false,
                   can_play: true,
@@ -430,8 +433,9 @@ describe('ReolinkCameraManagerEngine', () => {
                 {
                   _metadata: {
                     cameraID: 'office',
-                    endDate: new Date('2024-11-04T21:24:27'),
-                    startDate: new Date('2024-11-04T21:23:53'),
+                    // Date parsed from directory '2024/11/4' + time '21:23:53' with duration in local time
+                    endDate: new Date(2024, 10, 4, 21, 24, 27),
+                    startDate: new Date(2024, 10, 4, 21, 23, 53),
                   },
                   can_expand: false,
                   can_play: true,

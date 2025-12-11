@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ViewItemManager } from '../../../src/card-controller/view/item-manager';
 import { homeAssistantSignPath } from '../../../src/ha/sign-path.js';
@@ -189,7 +190,8 @@ describe('ViewItemManager', () => {
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
         const manager = new ViewItemManager(api);
-        const item = new TestViewMedia({ startTime: new Date('2025-05-03T17:41:00Z') });
+        const startTime = new Date('2025-05-03T17:41:00Z');
+        const item = new TestViewMedia({ startTime });
 
         vi.mocked(api.getCameraManager().getMediaDownloadPath).mockResolvedValue({
           sign: false,
@@ -197,7 +199,10 @@ describe('ViewItemManager', () => {
         });
 
         expect(await manager.download(item)).toBe(true);
-        expect(downloadURL).toBeCalledWith('foo', 'camera_id_2025-05-03-17-41-00.mp4');
+
+        // Use format() to generate expected filename timestamp (formats in local time)
+        const expectedFilename = `camera_id_${format(startTime, 'yyyy-MM-dd-HH-mm-ss')}.mp4`;
+        expect(downloadURL).toBeCalledWith('foo', expectedFilename);
       });
 
       it('should generate filename for snapshot', async () => {

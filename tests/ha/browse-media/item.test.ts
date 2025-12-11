@@ -1,8 +1,10 @@
+import { format } from 'date-fns';
 import { describe, expect, it } from 'vitest';
 import {
   BrowseMediaEventViewMedia,
   BrowseMediaViewFolder,
 } from '../../../src/ha/browse-media/item';
+import { formatDateAndTime } from '../../../src/utils/basic';
 import { VideoContentType, ViewMediaType } from '../../../src/view/item';
 import {
   createBrowseMedia,
@@ -45,17 +47,21 @@ describe('BrowseMediaEventViewMedia', () => {
 
   describe('should set ID', () => {
     it('should set id from metadata', () => {
+      const startDate = new Date('2025-05-05T07:46:00Z');
       const browseMedia = createRichBrowseMedia({
         media_content_id: 'media_content_id',
         _metadata: {
-          startDate: new Date('2025-05-05T07:46:00Z'),
+          startDate,
           endDate: new Date('2025-05-05T07:48:00Z'),
           cameraID: 'camera.office',
         },
       });
 
       const viewMedia = new BrowseMediaEventViewMedia(ViewMediaType.Clip, browseMedia);
-      expect(viewMedia.getID()).toBe('camera.office/2025-05-05 07:46:00');
+
+      // The ID is formatted using local time, so we use format() to generate expected value
+      const expectedId = `camera.office/${format(startDate, 'yyyy-MM-dd HH:mm:ss')}`;
+      expect(viewMedia.getID()).toBe(expectedId);
     });
 
     it('should set id from media_content_id from the options', () => {
@@ -125,16 +131,19 @@ describe('BrowseMediaEventViewMedia', () => {
 
   describe('should get title', () => {
     it('should get title from metadata start time', () => {
+      const startDate = new Date('2025-05-05T07:46:00Z');
       const browseMedia = createRichBrowseMedia({
         _metadata: {
-          startDate: new Date('2025-05-05T07:46:00Z'),
+          startDate: startDate,
           endDate: new Date('2025-05-05T07:48:00Z'),
           cameraID: 'camera.office',
         },
       });
 
       const viewMedia = new BrowseMediaEventViewMedia(ViewMediaType.Clip, browseMedia);
-      expect(viewMedia.getTitle()).toEqual('2025-05-05 07:46');
+
+      // The title is formatted using local time via formatDateAndTime
+      expect(viewMedia.getTitle()).toEqual(formatDateAndTime(startDate));
     });
 
     it('should get title without metadata', () => {
