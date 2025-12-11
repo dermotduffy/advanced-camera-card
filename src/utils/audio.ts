@@ -16,5 +16,9 @@ export const mayHaveAudio = (video: HTMLVideoElement & AudioProperties): boolean
   if (video.audioTracks !== undefined) {
     return Boolean(video.audioTracks?.length);
   }
+  // Check MediaStream audio tracks (reliable for WebRTC at load time)
+  if (typeof MediaStream !== 'undefined' && video.srcObject instanceof MediaStream) {
+    return video.srcObject.getAudioTracks().length > 0;
+  }
   return true;
 };
