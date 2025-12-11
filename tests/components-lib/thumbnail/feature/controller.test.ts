@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManager } from '../../../../src/camera-manager/manager';
@@ -18,7 +19,9 @@ describe('ThumbnailFeatureController', () => {
 
       controller.calculate(null, itemWithTime, false);
 
-      expect(controller.getTitle()).toBe('17:03');
+      // Use format() to generate expected time in local timezone
+      const expectedTime = format(itemWithTime.getStartTime()!, 'HH:mm');
+      expect(controller.getTitle()).toBe(expectedTime);
     });
 
     it('should not set title when details are shown ', () => {
@@ -50,7 +53,9 @@ describe('ThumbnailFeatureController', () => {
 
       controller.calculate(null, itemWithTime, false);
 
-      expect(controller.getSubtitles()).toContain('May 18th');
+      // Use format() to generate expected date string (formats in local time)
+      const expectedDate = format(itemWithTime.getStartTime()!, 'MMM do');
+      expect(controller.getSubtitles()).toContain(expectedDate);
     });
 
     it('should set subtitle with source from item title ', () => {

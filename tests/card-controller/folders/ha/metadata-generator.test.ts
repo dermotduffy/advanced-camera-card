@@ -7,7 +7,9 @@ describe('MetadataGenerator', () => {
   const browseMedia = createBrowseMedia({
     title: 'Test Media 2025-05-26 18:18',
   });
-  const expectedDate = new Date('2025-05-26T18:18:00.000Z');
+  // Create expected date using local time, since the date parser interprets
+  // the date string in local time (not UTC)
+  const expectedDate = new Date(2025, 4, 26, 18, 18);
   const formatlessDateParser: Parser = {
     type: 'startdate',
   };
@@ -129,10 +131,11 @@ describe('MetadataGenerator', () => {
         });
 
         it('should incorporate parent metadata without a date format', async () => {
+          // Parent has a start date at local midnight on 2025-05-26
           const parentBrowseMedia = createRichBrowseMedia({
             title: '2025-05-26',
             _metadata: {
-              startDate: new Date('2025-05-26T00:00:00.000Z'),
+              startDate: new Date(2025, 4, 26, 0, 0),
             },
           });
           const childBrowseMedia = createBrowseMedia({
@@ -145,7 +148,7 @@ describe('MetadataGenerator', () => {
             generator.generate(childBrowseMedia, parentBrowseMedia, [
               formatlessDateParser,
             ])?.startDate,
-          ).toEqual(new Date('2025-05-26T22:42:00.000Z'));
+          ).toEqual(new Date(2025, 4, 26, 22, 42));
         });
       });
 
@@ -195,16 +198,19 @@ describe('MetadataGenerator', () => {
           const generator = new MetadataGenerator();
           await generator.prepare(parsers);
 
+          // The parsed date combines 20250507 (May 7, 2025) and 171758 (17:17:58)
+          // interpreted in local time
           expect(generator.generate(browseMedia, undefined, parsers)?.startDate).toEqual(
-            new Date('2025-05-07T17:17:58.000Z'),
+            new Date(2025, 4, 7, 17, 17, 58),
           );
         });
 
         it('should incorporate parent metadata with a date format', async () => {
+          // Parent has a start date at local midnight on 2025-05-26
           const parentBrowseMedia = createRichBrowseMedia({
             title: '2025-05-26',
             _metadata: {
-              startDate: new Date('2025-05-26T00:00:00.000Z'),
+              startDate: new Date(2025, 4, 26, 0, 0),
             },
           });
           const childBrowseMedia = createBrowseMedia({
@@ -219,7 +225,7 @@ describe('MetadataGenerator', () => {
 
           expect(
             generator.generate(childBrowseMedia, parentBrowseMedia, [parser])?.startDate,
-          ).toEqual(new Date('2025-05-26T22:42:00.000Z'));
+          ).toEqual(new Date(2025, 4, 26, 22, 42));
         });
       });
     });
