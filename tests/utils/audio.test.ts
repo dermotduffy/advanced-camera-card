@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { AudioProperties, mayHaveAudio } from '../../src/utils/audio';
 
 // @vitest-environment jsdom
@@ -27,6 +27,36 @@ describe('mayHaveAudio', () => {
     const element = {} as HTMLVideoElement & AudioProperties;
     element.audioTracks = [];
     expect(mayHaveAudio(element)).toBeFalsy();
+  });
+
+  it('should detect audio when srcObject MediaStream has audio tracks', () => {
+    // Mock MediaStream for jsdom environment
+    const MockMediaStream = class MediaStream {};
+    vi.stubGlobal('MediaStream', MockMediaStream);
+
+    const element = {} as HTMLVideoElement & AudioProperties;
+    const mockStream = new MockMediaStream();
+    (mockStream as unknown as { getAudioTracks: () => unknown[] }).getAudioTracks =
+      () => [{}];
+    element.srcObject = mockStream as unknown as MediaStream;
+    expect(mayHaveAudio(element)).toBeTruthy();
+
+    vi.unstubAllGlobals();
+  });
+
+  it('should not detect audio when srcObject MediaStream has no audio tracks', () => {
+    // Mock MediaStream for jsdom environment
+    const MockMediaStream = class MediaStream {};
+    vi.stubGlobal('MediaStream', MockMediaStream);
+
+    const element = {} as HTMLVideoElement & AudioProperties;
+    const mockStream = new MockMediaStream();
+    (mockStream as unknown as { getAudioTracks: () => unknown[] }).getAudioTracks =
+      () => [];
+    element.srcObject = mockStream as unknown as MediaStream;
+    expect(mayHaveAudio(element)).toBeFalsy();
+
+    vi.unstubAllGlobals();
   });
 
   it('should detect audio when no evidence to the contrary', () => {
