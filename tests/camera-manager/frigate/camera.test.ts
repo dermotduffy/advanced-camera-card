@@ -292,14 +292,80 @@ describe('FrigateCamera', () => {
         });
         expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
-          left: [],
-          right: [],
-          up: [],
-          down: [],
-          zoomIn: [],
-          zoomOut: [],
+          // pt-r and zoom-r don't match 'pt' and 'zoom', so only presets
           presets: ['preset01'],
         });
+        expect(camera.getCapabilities()?.hasPTZCapability()).toBeTruthy();
+      });
+
+      it('when getPTZInfo returns only zoom capabilities', async () => {
+        vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              camera_name: 'front_door',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        vi.mocked(getPTZInfo).mockResolvedValue({
+          features: ['zoom'],
+          name: 'front_door',
+          presets: [],
+        });
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: mock<EntityRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        });
+
+        expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
+
+        // Should only have zoom capabilities, not empty pan/tilt arrays
+        expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
+          zoomIn: ['continuous'],
+          zoomOut: ['continuous'],
+        });
+
+        expect(camera.getCapabilities()?.hasPTZCapability()).toBeTruthy();
+      });
+
+      it('when getPTZInfo returns only pan/tilt capabilities', async () => {
+        vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              camera_name: 'front_door',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        vi.mocked(getPTZInfo).mockResolvedValue({
+          features: ['pt'],
+          name: 'front_door',
+          presets: [],
+        });
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: mock<EntityRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        });
+        expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
+
+        // Should only have pan/tilt capabilities, not empty zoom arrays
+        expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
+          left: ['continuous'],
+          right: ['continuous'],
+          up: ['continuous'],
+          down: ['continuous'],
+        });
+
         expect(camera.getCapabilities()?.hasPTZCapability()).toBeTruthy();
       });
     });

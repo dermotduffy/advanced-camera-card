@@ -327,14 +327,14 @@ export class FrigateCamera extends Camera {
 
     if (panTilt.length || zoom.length || presets?.length) {
       return {
-        ...(panTilt && {
+        ...(panTilt.length && {
           left: panTilt,
           right: panTilt,
           up: panTilt,
           down: panTilt,
         }),
-        ...(zoom && { zoomIn: zoom, zoomOut: zoom }),
-        ...(presets && { presets: presets }),
+        ...(zoom.length && { zoomIn: zoom, zoomOut: zoom }),
+        ...(presets?.length && { presets: presets }),
       };
     }
     return null;
