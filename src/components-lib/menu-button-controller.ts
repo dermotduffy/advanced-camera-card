@@ -83,8 +83,9 @@ export class MenuButtonController {
       this._getCameraUIButton(config, options?.showCameraUIButton),
       this._getMicrophoneButton(
         config,
+        cameraManager,
+        options?.view,
         options?.microphoneManager,
-        options?.currentMediaLoadedInfo,
       ),
       this._getExpandButton(config, options?.inExpandedMode),
       this._getFullscreenButton(config, options?.fullscreenManager),
@@ -381,10 +382,17 @@ export class MenuButtonController {
 
   protected _getMicrophoneButton(
     config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
+    view?: View | null,
     microphoneManager?: MicrophoneManager | null,
-    currentMediaLoadedInfo?: MediaLoadedInfo | null,
   ): MenuItem | null {
-    if (microphoneManager && currentMediaLoadedInfo?.capabilities?.supports2WayAudio) {
+    if (!view) {
+      return null;
+    }
+
+    const capabilities = cameraManager.getCameraCapabilities(getStreamCameraID(view));
+
+    if (microphoneManager && capabilities?.has('2-way-audio')) {
       const unavailable =
         microphoneManager.isForbidden() || !microphoneManager.isSupported();
       const muted = microphoneManager.isMuted();

@@ -1,4 +1,4 @@
-import { add, endOfHour, format, fromUnixTime, startOfHour } from 'date-fns';
+import { add, endOfHour, fromUnixTime, startOfHour } from 'date-fns';
 import { isEqual, orderBy, throttle, uniqWith } from 'lodash-es';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { CameraConfig } from '../../config/schema/cameras';
@@ -25,8 +25,6 @@ import { GenericCameraManagerEngine } from '../generic/engine-generic';
 import { DateRange } from '../range';
 import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraEndpoints,
-  CameraEndpointsContext,
   CameraEventCallback,
   CameraManagerCameraMetadata,
   CameraManagerRequestCache,
@@ -53,7 +51,6 @@ import {
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
 } from '../types';
-import { getDefaultGo2RTCEndpoint } from '../utils/go2rtc-endpoint';
 import { FrigateCamera, isBirdseye } from './camera';
 import { FrigateEventWatcher } from './event-watcher';
 import { FrigateViewMediaFactory } from './media';
@@ -918,89 +915,6 @@ export class FrigateCameraManagerEngine
         cameraConfig.id ??
         '',
       engineIcon: 'frigate',
-    };
-  }
-
-  public getCameraEndpoints(
-    cameraConfig: CameraConfig,
-    context?: CameraEndpointsContext,
-  ): CameraEndpoints | null {
-    const getUIEndpoint = (): Endpoint | null => {
-      if (!cameraConfig.frigate.url) {
-        return null;
-      }
-      if (!cameraConfig.frigate.camera_name) {
-        return { endpoint: cameraConfig.frigate.url };
-      }
-
-      const cameraURL =
-        `${cameraConfig.frigate.url}/#` + cameraConfig.frigate.camera_name;
-
-      if (context?.view === 'live') {
-        return { endpoint: cameraURL };
-      }
-
-      const eventsURL =
-        `${cameraConfig.frigate.url}/events?camera=` + cameraConfig.frigate.camera_name;
-      const recordingsURL =
-        `${cameraConfig.frigate.url}/recording/` + cameraConfig.frigate.camera_name;
-
-      // If media is available, use it since it may result in a more precisely
-      // correct URL.
-      switch (context?.media?.getMediaType()) {
-        case 'clip':
-        case 'snapshot':
-          return { endpoint: eventsURL };
-        case 'recording':
-          const startTime = context.media.getStartTime();
-          if (startTime) {
-            return { endpoint: recordingsURL + format(startTime, 'yyyy-MM-dd/HH') };
-          }
-      }
-
-      // Otherwise, fall back to just using the view if we have that.
-      switch (context?.view) {
-        case 'clip':
-        case 'clips':
-        case 'snapshots':
-        case 'snapshot':
-          return { endpoint: eventsURL };
-        case 'recording':
-        case 'recordings':
-          return { endpoint: recordingsURL };
-      }
-
-      return {
-        endpoint: cameraURL,
-      };
-    };
-
-    const getJSMPEG = (): Endpoint | null => {
-      return {
-        endpoint:
-          `/api/frigate/${cameraConfig.frigate.client_id}` +
-          `/jsmpeg/${cameraConfig.frigate.camera_name}`,
-        sign: true,
-      };
-    };
-
-    const ui = getUIEndpoint();
-    const go2rtc = getDefaultGo2RTCEndpoint(cameraConfig, {
-      url:
-        cameraConfig.go2rtc?.url ??
-        // go2rtc is exposed by the Frigate integration under the (slightly
-        // misleading) 'mse' path, even though that path can serve all go2rtc
-        // modes.
-        `/api/frigate/${cameraConfig.frigate.client_id}/mse`,
-      stream: cameraConfig.go2rtc?.stream ?? cameraConfig.frigate.camera_name,
-    });
-    const jsmpeg = getJSMPEG();
-
-    return {
-      ...super.getCameraEndpoints(cameraConfig, context),
-      ...(ui && { ui: ui }),
-      ...(go2rtc && { go2rtc: go2rtc }),
-      ...(jsmpeg && { jsmpeg: jsmpeg }),
     };
   }
 }

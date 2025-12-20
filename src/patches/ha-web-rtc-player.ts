@@ -17,7 +17,11 @@ import { VideoMediaPlayerController } from '../components-lib/media-player/video
 import { renderMessage } from '../components/message.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 import { MediaPlayer, MediaPlayerController } from '../types.js';
-import { mayHaveAudio } from '../utils/audio.js';
+import {
+  addAudioTracksMuteStateListener,
+  AudioTracksMuteStateCleanup,
+  hasAudio,
+} from '../utils/audio.js';
 import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
@@ -43,6 +47,8 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
       () => this._videoEl,
       () => this.controls,
     );
+
+    protected _audioTracksMuteStateCleanup: AudioTracksMuteStateCleanup = null;
 
     public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
       return this._mediaPlayerController;
@@ -132,10 +138,32 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
         mediaPlayerController: this._mediaPlayerController,
         capabilities: {
           supportsPause: true,
-          hasAudio: mayHaveAudio(this._videoEl),
+          hasAudio: hasAudio(this._videoEl, this._peerConnection),
         },
         technology: ['webrtc'],
       });
+
+      // Listen for audio track mute/unmute changes and re-dispatch
+      this._audioTracksMuteStateCleanup?.();
+      this._audioTracksMuteStateCleanup = addAudioTracksMuteStateListener(
+        this._peerConnection,
+        () => {
+          dispatchMediaLoadedEvent(this, this._videoEl, {
+            mediaPlayerController: this._mediaPlayerController,
+            capabilities: {
+              supportsPause: true,
+              hasAudio: hasAudio(this._videoEl, this._peerConnection),
+            },
+            technology: ['webrtc'],
+          });
+        },
+      );
+    }
+
+    private _cleanUp(): void {
+      super._cleanUp();
+      this._audioTracksMuteStateCleanup?.();
+      this._audioTracksMuteStateCleanup = null;
     }
 
     static get styles(): CSSResultGroup {

@@ -3,17 +3,41 @@ import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state
 import { PTZAction, PTZActionPhase } from '../config/schema/actions/custom/ptz';
 import { CameraConfig } from '../config/schema/cameras';
 import { isTriggeredState } from '../ha/is-triggered-state';
-import { HassStateDifference } from '../ha/types';
+import { HassStateDifference, HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
+import { CapabilitiesRaw, CapabilityKey, Endpoint } from '../types';
+import { liveProviderSupports2WayAudio } from '../utils/live-provider';
 import { Capabilities } from './capabilities';
 import { CameraManagerEngine } from './engine';
 import { CameraNoIDError } from './error';
-import { CameraEventCallback, CameraProxyConfig } from './types';
+import {
+  CameraEndpoints,
+  CameraEndpointsContext,
+  CameraEventCallback,
+  CameraProxyConfig,
+} from './types';
+import {
+  getGo2RTCMetadataEndpoint,
+  getGo2RTCStreamEndpoint,
+} from './utils/go2rtc/endpoint';
 import { getConfiguredPTZAction } from './utils/ptz';
 
-export interface CameraInitializationOptions {
-  stateWatcher: StateWatcherSubscriptionInterface;
+interface CapabilityOptions {
+  // Pre-built Capabilities object.
+  capabilities?: Capabilities;
+
+  // Raw capabilities for construction.
+  raw?: CapabilitiesRaw;
+  disable?: CapabilityKey[];
+  disableExcept?: CapabilityKey[];
 }
+
+export interface CameraInitializationOptions {
+  hass: HomeAssistant;
+  stateWatcher: StateWatcherSubscriptionInterface;
+  capabilityOptions?: CapabilityOptions;
+}
+
 type DestroyCallback = () => void | Promise<void>;
 
 export class Camera {
@@ -27,20 +51,71 @@ export class Camera {
     config: CameraConfig,
     engine: CameraManagerEngine,
     options?: {
-      capabilities?: Capabilities;
       eventCallback?: CameraEventCallback;
+      capabilities?: Capabilities;
     },
   ) {
     this._config = config;
     this._engine = engine;
-    this._capabilities = options?.capabilities;
     this._eventCallback = options?.eventCallback;
+    this._capabilities = options?.capabilities;
   }
 
   async initialize(options: CameraInitializationOptions): Promise<Camera> {
+    await this._initialize(options);
+    this._capabilities =
+      options.capabilityOptions?.capabilities ??
+      this._capabilities ??
+      (await this._buildCapabilities(options));
     this._subscribeBasedOnCapabilities(options.stateWatcher);
     this._onDestroy(() => options.stateWatcher.unsubscribe(this._stateChangeHandler));
     return this;
+  }
+
+  /**
+   * Subclass initialization hook. Override for async initialization work.
+   */
+  protected async _initialize(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _options: CameraInitializationOptions,
+  ): Promise<void> {}
+
+  protected async _buildCapabilities(
+    options: CameraInitializationOptions,
+  ): Promise<Capabilities> {
+    const rawCapabilities = await this._getRawCapabilities(options);
+    const config = this.getConfig();
+    const has2WayAudio = await liveProviderSupports2WayAudio(
+      options.hass,
+      config,
+      this._getGo2RTCMetadataEndpoint(),
+      this.getProxyConfig(),
+    );
+
+    return new Capabilities(
+      { ...rawCapabilities, '2-way-audio': has2WayAudio },
+      {
+        disable: config.capabilities?.disable,
+        disableExcept: config.capabilities?.disable_except,
+      },
+    );
+  }
+
+  /**
+   * Get raw capabilities for this camera. Subclasses should override
+   * and call super._getRawCapabilities() to extend defaults.
+   */
+  protected async _getRawCapabilities(
+    options: CameraInitializationOptions,
+  ): Promise<CapabilitiesRaw> {
+    return {
+      live: true,
+      menu: true,
+      substream: true,
+      trigger: true,
+      'remote-control-entity': true,
+      ...options.capabilityOptions?.raw,
+    };
   }
 
   public async destroy(): Promise<void> {
@@ -68,6 +143,45 @@ export class Camera {
 
   public getCapabilities(): Capabilities | null {
     return this._capabilities ?? null;
+  }
+
+  /**
+   * Get camera endpoints. Subclasses should override to add engine-specific endpoints.
+   * @param _context Optional context for dynamic endpoints (e.g., UI URLs based on current view).
+   */
+  public getEndpoints(context?: CameraEndpointsContext): CameraEndpoints | null {
+    const ui = this._getUIEndpoint(context);
+    const go2rtc = this._getGo2RTCStreamEndpoint();
+    const webrtcCard = this._getWebRTCCardEndpoint();
+
+    return ui || go2rtc || webrtcCard
+      ? {
+          ...(ui && { ui }),
+          ...(go2rtc && { go2rtc }),
+          ...(webrtcCard && { webrtcCard }),
+        }
+      : null;
+  }
+
+  /**
+   * Get the go2rtc metadata endpoint for capability detection.
+   * Subclasses should override if they have custom go2rtc URL or stream resolution.
+   */
+  protected _getGo2RTCMetadataEndpoint(): Endpoint | null {
+    return getGo2RTCMetadataEndpoint(this._config);
+  }
+
+  protected _getGo2RTCStreamEndpoint(): Endpoint | null {
+    return getGo2RTCStreamEndpoint(this._config);
+  }
+
+  protected _getWebRTCCardEndpoint(): Endpoint | null {
+    return this._config.camera_entity ? { endpoint: this._config.camera_entity } : null;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected _getUIEndpoint(_context?: CameraEndpointsContext): Endpoint | null {
+    return null;
   }
 
   public getProxyConfig(): CameraProxyConfig {

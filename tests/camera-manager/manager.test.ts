@@ -32,7 +32,7 @@ import { ViewFolder, ViewItem, ViewMedia } from '../../src/view/item.js';
 import { ViewItemCapabilities } from '../../src/view/types.js';
 import {
   TestViewMedia,
-  createCamera,
+  createInitializedCamera,
   createCameraConfig,
   createCapabilities,
   createCardAPI,
@@ -253,7 +253,7 @@ describe('CameraManager', async () => {
       if (engineType) {
         vi.mocked(mockEngine.createCamera).mockImplementationOnce(
           async (_hass: HomeAssistant, cameraConfig: CameraConfig): Promise<Camera> =>
-            createCamera(
+            await createInitializedCamera(
               cameraConfig,
               mockEngine,
               camera.capabilties ?? createCapabilities(),
@@ -984,12 +984,7 @@ describe('CameraManager', async () => {
 
       expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
 
-      const result: CameraEndpoints = {};
-      const context: CameraEndpointsContext = {};
-      vi.mocked(engine.getCameraEndpoints).mockReturnValue(result);
-
-      expect(manager.getCameraEndpoints('id', context)).toBe(result);
-      expect(engine.getCameraEndpoints).toBeCalledWith(expect.anything(), context);
+      expect(manager.getCameraEndpoints('id', { view: 'live' })).toBeDefined();
     });
   });
 

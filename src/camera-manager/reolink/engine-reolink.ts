@@ -18,7 +18,6 @@ import { DeviceRegistryManager } from '../../ha/registry/device';
 import { EntityRegistryManager } from '../../ha/registry/entity/types';
 import { ResolvedMediaCache } from '../../ha/resolved-media';
 import { HomeAssistant } from '../../ha/types';
-import { Endpoint } from '../../types';
 import { allPromises, formatDate, isValidDate } from '../../utils/basic';
 import { ViewMedia } from '../../view/item';
 import { BrowseMediaCameraManagerEngine } from '../browse-media/engine-browse-media';
@@ -26,8 +25,6 @@ import { Camera } from '../camera';
 import { CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT } from '../engine';
 import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraEndpoints,
-  CameraEndpointsContext,
   CameraEventCallback,
   CameraManagerCameraMetadata,
   CameraManagerRequestCache,
@@ -418,24 +415,6 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     return {
       ...super.getCameraMetadata(hass, cameraConfig),
       engineIcon: 'reolink',
-    };
-  }
-
-  public getCameraEndpoints(
-    cameraConfig: CameraConfig,
-    context?: CameraEndpointsContext,
-  ): CameraEndpoints | null {
-    const getUIEndpoint = (): Endpoint | null => {
-      return cameraConfig.reolink?.url
-        ? {
-            endpoint: cameraConfig.reolink.url,
-          }
-        : null;
-    };
-    const ui = getUIEndpoint();
-    return {
-      ...super.getCameraEndpoints(cameraConfig, context),
-      ...(ui && { ui: ui }),
     };
   }
 }

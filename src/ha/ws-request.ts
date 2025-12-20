@@ -11,7 +11,6 @@ import { HomeAssistant } from './types';
  * @param request The request to make.
  * @returns The parsed valid response or null on malformed.
  */
-
 export async function homeAssistantWSRequest<T>(
   hass: HomeAssistant,
   schema: ZodSchema<T>,

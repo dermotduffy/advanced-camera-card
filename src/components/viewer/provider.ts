@@ -22,11 +22,7 @@ import { isHARelativeURL } from '../../ha/is-ha-relative-url.js';
 import { ResolvedMediaCache, resolveMedia } from '../../ha/resolved-media.js';
 import { homeAssistantSignPath } from '../../ha/sign-path.js';
 import { HomeAssistant, ResolvedMedia } from '../../ha/types.js';
-import {
-  addDynamicProxyURL,
-  getWebProxiedURL,
-  shouldUseWebProxy,
-} from '../../ha/web-proxy.js';
+import { createProxiedEndpointIfNecessary } from '../../ha/web-proxy.js';
 import '../../patches/ha-hls-player.js';
 import viewerProviderStyle from '../../scss/viewer-provider.scss';
 import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../../types.js';
@@ -153,34 +149,32 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     const camera = cameraID ? this.cameraManager?.getStore().getCamera(cameraID) : null;
     const proxyConfig = camera?.getProxyConfig();
 
-    if (proxyConfig && shouldUseWebProxy(this.hass, proxyConfig, 'media')) {
-      if (proxyConfig.dynamic) {
-        // Don't use URL() parsing, since that will strip the port number if
-        // it's the default, just need to strip any hash part of the URL.
-        const urlWithoutQSorHash = unsignedURL.split(/#/)[0];
-
-        try {
-          await addDynamicProxyURL(this.hass, urlWithoutQSorHash, {
-            proxyConfig,
-
-            // The link may need to be opened multiple times.
-            openLimit: 0,
-          });
-        } catch (e) {
-          errorToConsole(e as Error);
-        }
-      }
-
-      try {
-        this._url = await homeAssistantSignPath(
-          this.hass,
-          getWebProxiedURL(unsignedURL),
-        );
-      } catch (e) {
-        errorToConsole(e as Error);
-      }
-    } else {
+    if (!proxyConfig) {
       this._url = unsignedURL;
+      return;
+    }
+
+    try {
+      // Create endpoint from unsigned URL - it doesn't need signing initially
+      const unsignedEndpoint = { endpoint: unsignedURL, sign: false };
+      const proxiedEndpoint = await createProxiedEndpointIfNecessary(
+        this.hass,
+        unsignedEndpoint,
+        proxyConfig,
+        {
+          context: 'media',
+          // The link may need to be opened multiple times.
+          openLimit: 0,
+        },
+      );
+
+      if (proxiedEndpoint.sign) {
+        this._url = await homeAssistantSignPath(this.hass, proxiedEndpoint.endpoint);
+      } else {
+        this._url = proxiedEndpoint.endpoint;
+      }
+    } catch (e) {
+      errorToConsole(e as Error);
     }
   }
 

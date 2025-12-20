@@ -1,11 +1,8 @@
 import { ActionsExecutor } from '../../card-controller/actions/types';
-import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
 import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
-import { PTZCapabilities, PTZMovementType } from '../../types';
-import { Camera } from '../camera';
-import { Capabilities } from '../capabilities';
+import { CapabilitiesRaw, PTZCapabilities, PTZMovementType } from '../../types';
 import { EntityCamera, EntityCameraInitializationOptions } from '../entity-camera';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
@@ -22,57 +19,30 @@ type PTZEntity = keyof PTZEntities;
 export class TPLinkCamera extends EntityCamera {
   protected _ptzEntities: PTZEntities | null = null;
 
-  public async initialize(options: TPLinkCameraInitializationOptions): Promise<Camera> {
-    await super.initialize(options);
-    await this._initializeCapabilities(
+  protected async _initialize(
+    options: TPLinkCameraInitializationOptions,
+  ): Promise<void> {
+    this._ptzEntities = await this._getPTZEntities(
       options.hass,
       options.entityRegistryManager,
-      options.stateWatcher,
     );
-    return this;
   }
 
-  protected async _initializeCapabilities(
-    hass: HomeAssistant,
-    entityRegistry: EntityRegistryManager,
-    stateWatcher: StateWatcherSubscriptionInterface,
-  ): Promise<void> {
-    const config = this.getConfig();
-    const configPTZCapabilities = getPTZCapabilitiesFromCameraConfig(config);
-    this._ptzEntities = await this._getPTZEntities(hass, entityRegistry);
-    const tplinkPTZCapabilities = this._ptzEntities
+  protected async _getRawCapabilities(
+    options: TPLinkCameraInitializationOptions,
+  ): Promise<CapabilitiesRaw> {
+    const configPTZ = getPTZCapabilitiesFromCameraConfig(this.getConfig());
+    const tplinkPTZ = this._ptzEntities
       ? this._entitiesToCapabilities(this._ptzEntities)
       : null;
 
-    const combinedPTZCapabilities: PTZCapabilities | null =
-      configPTZCapabilities || tplinkPTZCapabilities
-        ? {
-            ...tplinkPTZCapabilities,
-            ...configPTZCapabilities,
-          }
-        : null;
+    const combinedPTZ: PTZCapabilities | null =
+      configPTZ || tplinkPTZ ? { ...tplinkPTZ, ...configPTZ } : null;
 
-    this._capabilities = new Capabilities(
-      {
-        'favorite-events': false,
-        'favorite-recordings': false,
-        'remote-control-entity': true,
-        clips: false,
-        live: true,
-        menu: true,
-        recordings: false,
-        seek: false,
-        snapshots: false,
-        substream: true,
-        trigger: true,
-        ...(combinedPTZCapabilities && { ptz: combinedPTZCapabilities }),
-      },
-      {
-        disable: config.capabilities?.disable,
-        disableExcept: config.capabilities?.disable_except,
-      },
-    );
-    this._subscribeBasedOnCapabilities(stateWatcher);
+    return {
+      ...(await super._getRawCapabilities(options)),
+      ...(combinedPTZ && { ptz: combinedPTZ }),
+    };
   }
 
   protected async _getPTZEntities(

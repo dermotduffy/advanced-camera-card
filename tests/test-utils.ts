@@ -88,12 +88,18 @@ export const createConfig = (
   return advancedCameraCardConfigSchema.parse(createRawConfig(config));
 };
 
-export const createCamera = (
+export const createInitializedCamera = async (
   config: CameraConfig,
   engine: CameraManagerEngine,
   capabilities?: Capabilities,
-): Camera => {
-  return new Camera(config, engine, { capabilities: capabilities });
+): Promise<Camera> => {
+  const camera = new Camera(config, engine);
+  await camera.initialize({
+    hass: createHASS(),
+    stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+    ...(capabilities ? { capabilityOptions: { capabilities } } : {}),
+  });
+  return camera;
 };
 
 export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssistant => {
@@ -215,6 +221,10 @@ export const createStore = (
   const store = new CameraManagerStore();
   for (const cameraProps of cameras ?? []) {
     const eventCallback = cameraProps.eventCallback ?? vi.fn();
+    const capabilities =
+      cameraProps.capabilities === undefined
+        ? createCapabilities()
+        : cameraProps.capabilities ?? undefined;
     const camera = new Camera(
       cameraProps.config ?? createCameraConfig(),
       cameraProps.engine ??
@@ -222,13 +232,7 @@ export const createStore = (
           mock<StateWatcherSubscriptionInterface>(),
           eventCallback,
         ),
-      {
-        capabilities:
-          cameraProps.capabilities === undefined
-            ? createCapabilities()
-            : cameraProps.capabilities ?? undefined,
-        eventCallback: eventCallback,
-      },
+      { eventCallback, capabilities },
     );
     camera.setID(cameraProps.cameraID);
     store.addCamera(camera);

@@ -752,12 +752,7 @@ export class CameraManager {
     cameraID: string,
     context?: CameraEndpointsContext,
   ): CameraEndpoints | null {
-    const cameraConfig = this._store.getCameraConfig(cameraID);
-    const engine = this._store.getEngineForCameraID(cameraID);
-    if (!cameraConfig || !engine) {
-      return null;
-    }
-    return engine.getCameraEndpoints(cameraConfig, context);
+    return this._store.getCamera(cameraID)?.getEndpoints(context) ?? null;
   }
 
   public getCameraMetadata(cameraID: string): CameraManagerCameraMetadata | null {

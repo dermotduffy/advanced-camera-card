@@ -16,9 +16,8 @@ import { MicrophoneState } from '../../card-controller/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
 import { PartialZoomSettings } from '../../components-lib/zoom/types.js';
-import { LiveProvider } from '../../config/schema/cameras.js';
 import { LiveConfig } from '../../config/schema/live.js';
-import { CardWideConfig, configDefaults } from '../../config/schema/types.js';
+import { CardWideConfig } from '../../config/schema/types.js';
 import { STREAM_TROUBLESHOOTING_URL } from '../../const.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
@@ -29,6 +28,7 @@ import {
   MediaPlayerController,
   MediaPlayerElement,
 } from '../../types.js';
+import { getResolvedLiveProvider } from '../../utils/live-provider.js';
 import { dispatchMediaUnloadedEvent } from '../../utils/media-info.js';
 import '../icon.js';
 import { renderMessage } from '../message.js';
@@ -102,25 +102,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   }
 
   /**
-   * Get the fully resolved live provider.
-   * @returns A live provider (that is not 'auto').
-   */
-  protected _getResolvedProvider(): Omit<LiveProvider, 'auto'> {
-    const config = this.camera?.getConfig();
-    if (config?.live_provider === 'auto') {
-      if (config?.webrtc_card?.entity || config?.webrtc_card?.url) {
-        return 'webrtc-card';
-      } else if (config?.camera_entity) {
-        return 'ha';
-      } else if (config?.frigate.camera_name) {
-        return 'jsmpeg';
-      }
-      return configDefaults.cameras.live_provider;
-    }
-    return config?.live_provider || 'image';
-  }
-
-  /**
    * Determine if a camera image should be shown in lieu of the real stream
    * whilst loading.
    * @returns`true` if an image should be shown.
@@ -172,7 +153,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     }
 
     if (changedProps.has('camera')) {
-      const provider = this._getResolvedProvider();
+      const provider = getResolvedLiveProvider(this.camera?.getConfig());
       if (provider === 'jsmpeg') {
         this._importPromises.push(import('./providers/jsmpeg.js'));
       } else if (provider === 'ha') {
@@ -248,7 +229,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     this.title = this.label;
     this.ariaLabel = this.label;
 
-    const provider = this._getResolvedProvider();
+    const provider = getResolvedLiveProvider(this.camera?.getConfig());
 
     if (
       provider === 'ha' ||

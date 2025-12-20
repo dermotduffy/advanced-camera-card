@@ -32,7 +32,7 @@ import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { homeAssistantWSRequest } from '../../../src/ha/ws-request';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
-  createCamera,
+  createInitializedCamera,
   createCameraConfig,
   createHASS,
   createRegistryEntity,
@@ -254,15 +254,11 @@ describe('ReolinkCameraManagerEngine', () => {
     expect(camera.getConfig()).toBe(config);
     expect(camera.getEngine()).toBe(engine);
     expect(camera.getCapabilities()?.getRawCapabilities()).toEqual({
-      'favorite-events': false,
-      'favorite-recordings': false,
+      '2-way-audio': false,
       clips: true,
       'remote-control-entity': true,
       live: true,
       menu: true,
-      recordings: false,
-      seek: false,
-      snapshots: false,
       substream: true,
       trigger: true,
     });
@@ -287,32 +283,39 @@ describe('ReolinkCameraManagerEngine', () => {
   });
 
   describe('should get camera endpoints', () => {
-    it('should return ui endpoint', () => {
-      const cameraConfig = createCameraConfig({
-        reolink: {
-          url: 'http://path-to-reolink',
-        },
-      });
+    it('should return ui endpoint', async () => {
+      const engine = createPopulatedEngine();
+      const camera = await engine.createCamera(
+        createHASS(),
+        createCameraConfig({
+          camera_entity: 'camera.office',
+          reolink: {
+            url: 'http://path-to-reolink',
+          },
+        }),
+      );
 
-      const engine = createEngine();
-      expect(engine.getCameraEndpoints(cameraConfig)).toEqual(
+      expect(camera.getEndpoints()).toEqual(
         expect.objectContaining({
           ui: { endpoint: 'http://path-to-reolink' },
         }),
       );
     });
 
-    it('should return go2rtc endpoint', () => {
-      const cameraConfig = createCameraConfig({
-        go2rtc: {
-          url: 'http://path-to-go2rtc',
-          stream: 'stream',
-        },
-      });
+    it('should return go2rtc endpoint', async () => {
+      const engine = createPopulatedEngine();
+      const camera = await engine.createCamera(
+        createHASS(),
+        createCameraConfig({
+          camera_entity: 'camera.office',
+          go2rtc: {
+            url: 'http://path-to-go2rtc',
+            stream: 'stream',
+          },
+        }),
+      );
 
-      const engine = createEngine();
-
-      expect(engine.getCameraEndpoints(cameraConfig)).toEqual(
+      expect(camera.getEndpoints()).toEqual(
         expect.objectContaining({
           go2rtc: { endpoint: 'http://path-to-go2rtc/api/ws?src=stream', sign: false },
         }),
@@ -629,7 +632,9 @@ describe('ReolinkCameraManagerEngine', () => {
         const engine = createPopulatedEngine();
 
         const store = new CameraManagerStore();
-        store.addCamera(createCamera(createCameraConfig({ id: 'office' }), engine));
+        store.addCamera(
+          await createInitializedCamera(createCameraConfig({ id: 'office' }), engine),
+        );
 
         const hass = createHASS();
         const events = await engine.getEvents(hass, store, {
@@ -1136,7 +1141,9 @@ describe('ReolinkCameraManagerEngine', () => {
         const engine = createPopulatedEngine();
 
         const store = new CameraManagerStore();
-        store.addCamera(createCamera(createCameraConfig({ id: 'office' }), engine));
+        store.addCamera(
+          await createInitializedCamera(createCameraConfig({ id: 'office' }), engine),
+        );
 
         const metadata = await engine.getMediaMetadata(createHASS(), store, {
           type: QueryType.MediaMetadata,

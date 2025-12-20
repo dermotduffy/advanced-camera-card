@@ -1,6 +1,6 @@
 import { SignedPath, signedPathSchema } from '../types';
-import { HomeAssistant } from './types';
 import { homeAssistantWSRequest } from './ws-request';
+import { HomeAssistant } from './types';
 
 /**
  * Request that HA sign a path. May throw.
@@ -10,7 +10,6 @@ import { homeAssistantWSRequest } from './ws-request';
  * HA will sign for 30 seconds).
  * @returns The signed URL, or null if the response was malformed.
  */
-
 export async function homeAssistantSignPath(
   hass: HomeAssistant,
   path: string,

@@ -3,13 +3,21 @@ import { mock } from 'vitest-mock-extended';
 import { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { FrigateCamera } from '../../../src/camera-manager/frigate/camera';
 import { FrigateEventWatcher } from '../../../src/camera-manager/frigate/event-watcher';
+import {
+  FrigateEventViewMedia,
+  FrigateRecordingViewMedia,
+} from '../../../src/camera-manager/frigate/media';
 import { getPTZInfo } from '../../../src/camera-manager/frigate/requests';
-import { FrigateEventChange } from '../../../src/camera-manager/frigate/types';
+import {
+  eventSchema,
+  FrigateEventChange,
+} from '../../../src/camera-manager/frigate/types';
 import { ActionsExecutor } from '../../../src/card-controller/actions/types';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { PTZAction } from '../../../src/config/schema/actions/custom/ptz';
 import { CameraTriggerEventType } from '../../../src/config/schema/cameras';
 import { Entity, EntityRegistryManager } from '../../../src/ha/registry/entity/types';
+import { ViewMediaType } from '../../../src/view/item';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import { createCameraConfig, createHASS, createRegistryEntity } from '../../test-utils';
 
@@ -293,6 +301,294 @@ describe('FrigateCamera', () => {
           presets: ['preset01'],
         });
         expect(camera.getCapabilities()?.hasPTZCapability()).toBeTruthy();
+      });
+    });
+  });
+
+  describe('getEndpoints', () => {
+    describe('getUIEndpoint', () => {
+      it('should return null when no frigate URL is set', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              url: '',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        expect(camera.getEndpoints()).toBeNull();
+      });
+
+      it('should return frigate URL when no camera name is set', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              url: 'http://frigate',
+              camera_name: '',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        expect(camera.getEndpoints({ view: 'live' })?.ui).toEqual({
+          endpoint: 'http://frigate',
+        });
+      });
+
+      it('should return camera URL for live view', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              url: 'http://frigate',
+              camera_name: 'front_door',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        expect(camera.getEndpoints({ view: 'live' })?.ui).toEqual({
+          endpoint: 'http://frigate/#front_door',
+        });
+      });
+
+      it('should return events URL for clip media', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              url: 'http://frigate',
+              camera_name: 'front_door',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        const event = eventSchema.parse({
+          camera: 'front_door',
+          id: 'event-id',
+          label: 'person',
+          start_time: 100,
+          end_time: 200,
+          has_clip: true,
+          has_snapshot: true,
+          retain_indefinitely: false,
+          false_positive: false,
+          sub_label: '',
+          top_score: 0.8,
+          zones: [],
+        });
+        const media = new FrigateEventViewMedia(
+          ViewMediaType.Clip,
+          'front_door',
+          event,
+          'content-id',
+          'thumbnail',
+        );
+
+        expect(camera.getEndpoints({ view: 'media', media })?.ui).toEqual({
+          endpoint: 'http://frigate/events?camera=front_door',
+        });
+      });
+
+      it('should return events URL for snapshot media', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              url: 'http://frigate',
+              camera_name: 'front_door',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        const event = eventSchema.parse({
+          camera: 'front_door',
+          id: 'event-id',
+          label: 'person',
+          start_time: 100,
+          end_time: 200,
+          has_clip: true,
+          has_snapshot: true,
+          retain_indefinitely: false,
+          false_positive: false,
+          sub_label: '',
+          top_score: 0.8,
+          zones: [],
+        });
+        const media = new FrigateEventViewMedia(
+          ViewMediaType.Snapshot,
+          'front_door',
+          event,
+          'content-id',
+          'thumbnail',
+        );
+
+        expect(camera.getEndpoints({ view: 'media', media })?.ui).toEqual({
+          endpoint: 'http://frigate/events?camera=front_door',
+        });
+      });
+
+      it('should return recordings URL with time for recording media with startTime', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              url: 'http://frigate',
+              camera_name: 'front_door',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        const media = new FrigateRecordingViewMedia(
+          ViewMediaType.Recording,
+          'front_door',
+          {
+            cameraID: 'front_door',
+            startTime: new Date('2023-01-01T10:00:00Z'),
+            endTime: new Date('2023-01-01T11:00:00Z'),
+            events: 0,
+          },
+          'recording-id',
+          'content-id',
+          'title',
+        );
+
+        expect(camera.getEndpoints({ view: 'media', media })?.ui).toEqual({
+          endpoint: 'http://frigate/recording/front_door/2023-01-01/10',
+        });
+      });
+
+      it('should return recordings URL without time for recording media without startTime', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              url: 'http://frigate',
+              camera_name: 'front_door',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        // Create a media object where getStartTime returns null
+        const media = new FrigateRecordingViewMedia(
+          ViewMediaType.Recording,
+          'front_door',
+          {
+            cameraID: 'front_door',
+            // Forced null for test
+            startTime: null as unknown as Date,
+            endTime: new Date('2023-01-01T11:00:00Z'),
+            events: 0,
+          },
+          'recording-id',
+          'content-id',
+          'title',
+        );
+
+        expect(camera.getEndpoints({ view: 'media', media })?.ui).toEqual({
+          endpoint: 'http://frigate/recording/front_door',
+        });
+      });
+
+      it('should return events URL for clip/clips/snapshots/snapshot views', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              url: 'http://frigate',
+              camera_name: 'front_door',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        expect(camera.getEndpoints({ view: 'clip' })?.ui?.endpoint).toBe(
+          'http://frigate/events?camera=front_door',
+        );
+        expect(camera.getEndpoints({ view: 'clips' })?.ui?.endpoint).toBe(
+          'http://frigate/events?camera=front_door',
+        );
+        expect(camera.getEndpoints({ view: 'snapshots' })?.ui?.endpoint).toBe(
+          'http://frigate/events?camera=front_door',
+        );
+        expect(camera.getEndpoints({ view: 'snapshot' })?.ui?.endpoint).toBe(
+          'http://frigate/events?camera=front_door',
+        );
+      });
+
+      it('should return recordings URL for recording/recordings views', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              url: 'http://frigate',
+              camera_name: 'front_door',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        expect(camera.getEndpoints({ view: 'recording' })?.ui?.endpoint).toBe(
+          'http://frigate/recording/front_door',
+        );
+        expect(camera.getEndpoints({ view: 'recordings' })?.ui?.endpoint).toBe(
+          'http://frigate/recording/front_door',
+        );
+      });
+
+      it('should return camera URL as default fallback', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              url: 'http://frigate',
+              camera_name: 'front_door',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        expect(camera.getEndpoints({ view: 'timeline' })?.ui).toEqual({
+          endpoint: 'http://frigate/#front_door',
+        });
+      });
+    });
+
+    describe('getGo2RTCStreamEndpoint', () => {
+      it('should return default frigate go2rtc paths', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              client_id: 'frigate',
+              camera_name: 'front_door',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        const endpoints = camera.getEndpoints();
+        expect(endpoints?.go2rtc).toEqual({
+          endpoint: '/api/frigate/frigate/mse/api/ws?src=front_door',
+          sign: true,
+        });
+      });
+    });
+
+    describe('getJSMPEGEndpoint', () => {
+      it('should return default frigate jsmpeg path', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              client_id: 'frigate',
+              camera_name: 'front_door',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        const endpoints = camera.getEndpoints();
+        expect(endpoints?.jsmpeg).toEqual({
+          endpoint: '/api/frigate/frigate/jsmpeg/front_door',
+          sign: true,
+        });
+      });
+
+      it('should return null if no camera name is set', () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            frigate: {
+              camera_name: '',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        const endpoints = camera.getEndpoints();
+        expect(endpoints?.jsmpeg).toBeUndefined();
       });
     });
   });
@@ -653,6 +949,53 @@ describe('FrigateCamera', () => {
 
           expect(eventCallback).toHaveBeenCalledTimes(call ? 1 : 0);
         });
+      });
+
+      it('should ignore events when camera ID is not set', async () => {
+        const eventCallback = vi.fn();
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            // Note: No 'id' is set here
+            frigate: {
+              camera_name: 'camera.front_door',
+            },
+          }),
+          mock<CameraManagerEngine>(),
+          {
+            eventCallback: eventCallback,
+          },
+        );
+
+        const hass = createHASS();
+        const eventWatcher = mock<FrigateEventWatcher>();
+        await camera.initialize({
+          hass: hass,
+          entityRegistryManager: mock<EntityRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: eventWatcher,
+        });
+
+        callEventWatcherCallback(eventWatcher, {
+          type: 'new',
+          before: {
+            camera: 'camera.front_door',
+            snapshot: null,
+            has_clip: false,
+            has_snapshot: false,
+            label: 'person',
+            current_zones: [],
+          },
+          after: {
+            camera: 'camera.front_door',
+            snapshot: null,
+            has_clip: false,
+            has_snapshot: true,
+            label: 'person',
+            current_zones: [],
+          },
+        });
+
+        expect(eventCallback).not.toHaveBeenCalled();
       });
     });
   });

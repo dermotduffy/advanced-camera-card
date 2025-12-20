@@ -1,4 +1,5 @@
 import { CameraProxyConfig } from '../camera-manager/types';
+import { Endpoint } from '../types';
 import { HomeAssistant } from './types';
 
 export const HASS_WEB_PROXY_DOMAIN = 'hass_web_proxy';
@@ -59,3 +60,45 @@ export async function addDynamicProxyURL(
     }),
   });
 }
+
+interface CreateProxiedEndpointOptions {
+  context?: 'live' | 'media';
+  ttl?: number;
+  websocket?: boolean;
+  openLimit?: number;
+}
+
+/**
+ * Create a proxied endpoint if the proxy configuration requires it.
+ * Handles dynamic proxy registration and returns a proxied Endpoint.
+ * @param hass Home Assistant instance.
+ * @param endpoint The endpoint to potentially proxy.
+ * @param proxyConfig The camera proxy configuration. If undefined, returns original endpoint.
+ * @param options Additional options for proxy registration.
+ * @returns Proxied Endpoint if proxying needed, original endpoint otherwise.
+ */
+export const createProxiedEndpointIfNecessary = async (
+  hass: HomeAssistant,
+  endpoint: Endpoint,
+  proxyConfig?: CameraProxyConfig,
+  options?: CreateProxiedEndpointOptions,
+): Promise<Endpoint> => {
+  const context = options?.context ?? 'media';
+  if (!proxyConfig || !shouldUseWebProxy(hass, proxyConfig, context)) {
+    return endpoint;
+  }
+  if (proxyConfig.dynamic) {
+    // Strip hash fragment for registration - it's client-side only and
+    // not relevant for proxy pattern matching.
+    const registrationUrl = endpoint.endpoint.split(/#/)[0];
+    await addDynamicProxyURL(hass, registrationUrl, {
+      proxyConfig,
+      ttl: options?.ttl,
+      openLimit: options?.openLimit ?? 0,
+    });
+  }
+  return {
+    endpoint: getWebProxiedURL(endpoint.endpoint, { websocket: options?.websocket }),
+    sign: true,
+  };
+};
