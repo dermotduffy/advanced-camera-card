@@ -1,14 +1,6 @@
 {
-  "actions": {
-    "abort": "",
-    "confirmation": ""
-  },
   "common": {
-    "advanced_camera_card": "",
-    "advanced_camera_card_description": "",
-    "folder": "",
     "live": "En direct",
-    "no_folder": "",
     "no_media": "Aucun média à afficher",
     "recordings": "Enregistrements",
     "version": "Version"
@@ -79,13 +71,6 @@
             "top": "Pourcentage d'écart en haut"
           },
           "zoom": "Facteur de zoom"
-        },
-        "rotation": "",
-        "rotations": {
-          "0": "",
-          "180": "",
-          "270": "",
-          "90": ""
         }
       },
       "engines": {
@@ -108,8 +93,7 @@
           "mse": "Extensions de sources multimédias (MSE)",
           "webrtc": "Web Real-Time Communication (WebRTC)"
         },
-        "stream": "Nom du flux go2rtc",
-        "url": ""
+        "stream": "Nom du flux go2rtc"
       },
       "icon": "Icône pour cette caméra (auto-détectée par l'entité)",
       "id": "ID unique pour cette caméra dans cette carte",
@@ -145,8 +129,6 @@
       "proxy": {
         "dynamic": "Proxy dynamique",
         "editor_label": "Proxy de la caméra",
-        "live": "",
-        "media": "",
         "modes": {
           "auto": "Proxy automatique",
           "false": "Proxy désactivé",
@@ -246,10 +228,6 @@
         },
         "timeline": {
           "editor_label": "Mini-chronologie",
-          "format": {
-            "24h": "",
-            "editor_label": ""
-          },
           "mode": "Mode",
           "modes": {
             "above": "Au-dessus",
@@ -263,8 +241,7 @@
             "seek-in-camera": "Pan ne cherche que parmi la caméra sélectionnée",
             "seek-in-media": "Pan ne cherche que parmi les médias sélectionnés"
           }
-        },
-        "wheel": ""
+        }
       },
       "display": {
         "editor_label": "Affichage",
@@ -286,7 +263,6 @@
         "modes": {
           "camera": "Instantané de la caméra Home Assistant de l'entité caméra",
           "entity": "Entité avec l'attribut entity_picture",
-          "screensaver": "",
           "url": "Image arbitraire spécifiée par URL"
         },
         "refresh_seconds": "Nombre de secondes après lesquelles actualiser (0=jamais)",
@@ -328,20 +304,6 @@
         "unconstrained": "Rapport hauteur/largeur sans contrainte"
       },
       "height": "Hauteur de la carte en unités CSS (par exemple, '500px')"
-    },
-    "folders": {
-      "ha": {
-        "editor_label": "",
-        "path_info": "",
-        "url": ""
-      },
-      "icon": "",
-      "id": "",
-      "title": "",
-      "type": "",
-      "types": {
-        "ha": ""
-      }
     },
     "live": {
       "auto_mute": "Couper automatiquement le son des caméras en direct",
@@ -429,11 +391,9 @@
         "download": "Télécharger",
         "enabled": "Bouton activé",
         "expand": "Étendre",
-        "folders": "",
         "fullscreen": "Plein écran",
         "icon": "Icône",
         "image": "Image",
-        "iris": "",
         "live": "En direct",
         "media_player": "Envoyer au lecteur multimédia",
         "microphone": "Microphone",
@@ -495,12 +455,6 @@
       "editor_label": "Configuration des profils",
       "low-performance": "Basse performance",
       "scrubbing": "Balayage vidéo"
-    },
-    "remote_control": {
-      "entities": {
-        "camera": "",
-        "editor_label": ""
-      }
     },
     "status_bar": {
       "height": "Hauteur de la barre d'état en pixels",
@@ -598,8 +552,6 @@
         "clip": "Clip le plus récent",
         "clips": "Galerie de clips",
         "current": "Vue actuelle",
-        "folder": "",
-        "folders": "",
         "image": "Image statique",
         "live": "Vue en direct",
         "recording": "Enregistrement le plus récent",
@@ -616,7 +568,6 @@
   },
   "editor": {
     "add_new_camera": "Ajouter une nouvelle caméra",
-    "add_new_folder": "",
     "button": "Bouton",
     "camera": "Caméra",
     "cameras": "Caméras",
@@ -624,8 +575,6 @@
     "delete": "Supprimer",
     "dimensions": "Dimensions",
     "dimensions_secondary": "Options de dimensions et de forme",
-    "folders": "",
-    "folders_secondary": "",
     "image": "Image",
     "image_secondary": "Options d'affichage d'image statique",
     "live": "En direct",
@@ -644,8 +593,6 @@
     "performance_secondary": "Options de performances de la carte",
     "profiles": "Profils de configuration",
     "profiles_secondary": "Choisir des ensembles de paramètres par défaut pré-configurés",
-    "remote_control": "",
-    "remote_control_secondary": "",
     "status_bar": "Barre d'état",
     "status_bar_secondary": "Options d'apparence et de comportement de la barre d'état",
     "timeline": "Chronologie",
@@ -660,7 +607,6 @@
       "down": "Bas",
       "home": "Origine",
       "left": "Gauche",
-      "presets": "",
       "right": "Droite",
       "up": "Haut",
       "zoom_in": "Zoomer",
@@ -668,21 +614,17 @@
     }
   },
   "error": {
-    "awaiting_folder": "",
     "awaiting_live": "En attente du flux en direct...",
     "awaiting_media": "En attente du chargement des médias",
     "camera_initialization": "Échec de l'initialisation de la caméra",
     "camera_initialization_reolink": "Impossible d'initialiser la caméra Reolink",
-    "configuration": "",
     "could_not_render_elements": "Impossible de restituer les éléments de l'image",
     "could_not_resolve": "Impossible de résoudre l'URL du média",
     "diagnostics": "Diagnostic de la carte. Veuillez enlever les informations confidentielles avant de les partager",
     "download_no_media": "Aucun média à télécharger",
     "download_sign_failed": "Impossible de signer l'URL du média à télécharger",
     "duplicate_camera_id": "ID de caméra Frigate en double pour la caméra suivante, utilisez le paramètre « ID » pour identifier de manière unique les caméras",
-    "duplicate_folder_id": "",
     "empty_response": "Réponse vide reçue de Home Assistant pour la demande",
-    "failed_proxy": "",
     "failed_response": "Échec de la réponse de Home Assistant à la demande",
     "failed_retain": "Impossible de conserver l'événement",
     "failed_sign": "Impossible de signer l'URL de Home Assistant",
@@ -701,7 +643,6 @@
     "no_camera_entity": "Impossible de trouver l'entité de caméra",
     "no_camera_entity_for_triggers": "Une entité caméra est requise pour détecter automatiquement les déclencheurs",
     "no_camera_id": "Impossible de déterminer l'identifiant de la caméra suivante. Il faudra peut-être définir le paramètre « ID » manuellement",
-    "no_camera_or_media_for_timeline": "",
     "no_dashboard_or_view": "Les paramètres 'dashboard_path' et 'view_path' sont requis pour la méthode de conversion 'dashboard'",
     "no_live_camera": "Le paramètre camera_entity doit être défini et valide pour ce fournisseur en direct",
     "no_supported_camera": "La caméra sélectionnée ne prend pas en charge cette vue",
@@ -717,12 +658,6 @@
   },
   "key_assigner": {
     "assign": "Assigner",
-    "modifiers": {
-      "alt": "",
-      "ctrl": "",
-      "meta": "",
-      "shift": ""
-    },
     "unassign": "Désassigner"
   },
   "media_filter": {
@@ -771,7 +706,6 @@
     "start": "Commencer",
     "tag": "Étiqueter",
     "timeline": "Voir les médias dans la chronologie",
-    "title": "",
     "what": "Quoi",
     "where": "Où"
   },

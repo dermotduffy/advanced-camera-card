@@ -1,39 +1,13 @@
 {
-  "actions": {
-    "abort": "",
-    "confirmation": ""
-  },
   "common": {
-    "advanced_camera_card": "",
-    "advanced_camera_card_description": "",
-    "folder": "",
     "live": "En directe",
-    "no_folder": "",
     "no_media": "No hi ha suport per mostrar",
     "recordings": "Enregistraments",
     "version": "Versió"
   },
   "config": {
     "cameras": {
-      "always_error_if_entity_unavailable": "",
       "camera_entity": "Entitat de càmera",
-      "capabilities": {
-        "capabilities": {
-          "clips": "",
-          "favorite-events": "",
-          "favorite-recordings": "",
-          "live": "",
-          "menu": "",
-          "ptz": "",
-          "recordings": "",
-          "seek": "",
-          "snapshots": "",
-          "substream": ""
-        },
-        "disable": "",
-        "disable_except": "",
-        "editor_label": ""
-      },
       "cast": {
         "dashboard": {
           "dashboard_path": "Ruta del tauler de control",
@@ -62,30 +36,10 @@
             "cover": "El suport s'expandeix proporcionalment per cobrir la targeta",
             "fill": "El suport s'estira per omplir la targeta"
           },
-          "pan": {
-            "x": "",
-            "y": ""
-          },
           "position": {
-            "editor_label": "",
             "x": "Percentatge d'emplaçament horitzontal",
             "y": "Percentatge d'emplaçament vertical"
-          },
-          "view_box": {
-            "bottom": "",
-            "editor_label": "",
-            "left": "",
-            "right": "",
-            "top": ""
-          },
-          "zoom": ""
-        },
-        "rotation": "",
-        "rotations": {
-          "0": "",
-          "180": "",
-          "270": "",
-          "90": ""
+          }
         }
       },
       "engines": {
@@ -102,14 +56,9 @@
       "go2rtc": {
         "editor_label": "Opcions de go2rtc",
         "modes": {
-          "editor_label": "Modes de go2rtc",
-          "mjpeg": "",
-          "mp4": "",
-          "mse": "",
-          "webrtc": ""
+          "editor_label": "Modes de go2rtc"
         },
-        "stream": "nom del flux de go2rtc",
-        "url": ""
+        "stream": "nom del flux de go2rtc"
       },
       "icon": "Icona d'aquesta càmera (detecció automàtica des de l'entitat)",
       "id": "Identificador únic per a aquesta càmera en aquesta targeta",
@@ -124,10 +73,8 @@
       },
       "live_providers": {
         "auto": "Automàtic",
-        "go2rtc": "",
         "ha": "Transmissió de vídeo de Home Assistant (és a dir, HLS, LL-HLS, WebRTC mitjançant HA)",
         "image": "Imatges de Home Assistant",
-        "jsmpeg": "",
         "webrtc-card": "Targeta WebRTC (és a dir, la targeta WebRTC d'AlexxIT)"
       },
       "motioneye": {
@@ -141,40 +88,6 @@
           "file_pattern": "Patró de fitxer de pel·lícules"
         },
         "url": "URL de la interfície d'usuari de MotionEye"
-      },
-      "proxy": {
-        "dynamic": "",
-        "editor_label": "",
-        "live": "",
-        "media": "",
-        "modes": {
-          "auto": "",
-          "false": "",
-          "true": ""
-        },
-        "ssl_ciphers": {
-          "auto": "",
-          "default": "",
-          "editor_label": "",
-          "insecure": "",
-          "intermediate": "",
-          "modern": ""
-        },
-        "ssl_verification": {
-          "auto": "",
-          "editor_label": "",
-          "false": "",
-          "true": ""
-        }
-      },
-      "reolink": {
-        "editor_label": "",
-        "media_resolution": {
-          "editor_label": "",
-          "high": "",
-          "low": ""
-        },
-        "url": ""
       },
       "title": "Títol d'aquesta càmera (detecció automàtica de l'entitat)",
       "triggers": {
@@ -246,10 +159,6 @@
         },
         "timeline": {
           "editor_label": "Mini cronologia",
-          "format": {
-            "24h": "",
-            "editor_label": ""
-          },
           "mode": "Mode",
           "modes": {
             "above": "A dalt",
@@ -263,30 +172,19 @@
             "seek-in-camera": "Cerca d'escombratge només a la càmera seleccionada",
             "seek-in-media": "Cerca d'escombratge només dins de l'element multimèdia seleccionat"
           }
-        },
-        "wheel": ""
+        }
       },
       "display": {
         "editor_label": "Visualització",
         "grid_columns": "Nombre exacte de columnes de la graella",
         "grid_max_columns": "Nombre màxim de columnes de la graella",
-        "grid_selected_position": "",
-        "grid_selected_positions": {
-          "default": "",
-          "first": "",
-          "last": ""
-        },
         "grid_selected_width_factor": "Augmenta l'amplada del suport multimèdia seleccionat en aquest factor",
         "mode": "Mode"
       },
       "image": {
-        "entity": "",
-        "entity_parameters": "",
         "mode": "Mode de visualització d'imatges",
         "modes": {
           "camera": "Instantània de l'entitat de la càmera de Home Assistant",
-          "entity": "",
-          "screensaver": "",
           "url": "Imatge arbitrària especificada per URL"
         },
         "refresh_seconds": "Nombre de segons després dels quals cal actualitzar (0=mai)",
@@ -326,21 +224,6 @@
         "dynamic": "La relació d'aspecte s'ajusta al suport multimèdia",
         "static": "Relació d'aspecte estàtica",
         "unconstrained": "Relació d'aspecte sense restriccions"
-      },
-      "height": ""
-    },
-    "folders": {
-      "ha": {
-        "editor_label": "",
-        "path_info": "",
-        "url": ""
-      },
-      "icon": "",
-      "id": "",
-      "title": "",
-      "type": "",
-      "types": {
-        "ha": ""
       }
     },
     "live": {
@@ -429,20 +312,15 @@
         "download": "Descarregar",
         "enabled": "Botó habilitat",
         "expand": "Expandir",
-        "folders": "",
         "fullscreen": "Pantalla completa",
         "icon": "Icona",
         "image": "Imatge",
-        "iris": "",
         "live": "En directe",
         "media_player": "Envia al reproductor multimèdia",
         "microphone": "Micròfon",
         "mute": "Silenciar / Activar el so",
-        "permanent": "",
         "play": "Reproduir / Pausa",
         "priority": "Prioritat",
-        "ptz_controls": "",
-        "ptz_home": "",
         "recordings": "Enregistraments",
         "screenshot": "Captura de pantalla",
         "snapshots": "Imatges instantànies",
@@ -477,10 +355,7 @@
     "performance": {
       "features": {
         "animated_progress_indicator": "Indicador animat del progrés",
-        "card_loading_effects": "",
-        "card_loading_indicator": "",
         "editor_label": "Opcions de característiques",
-        "max_simultaneous_engine_requests": "",
         "media_chunk_size": "Mida del fragment multimèdia"
       },
       "style": {
@@ -490,83 +365,15 @@
       },
       "warning": "Aquesta targeta està en mode de perfil baix, de manera que els valors predeterminats han canviat per optimitzar el rendiment"
     },
-    "profiles": {
-      "casting": "",
-      "editor_label": "",
-      "low-performance": "",
-      "scrubbing": ""
-    },
-    "remote_control": {
-      "entities": {
-        "camera": "",
-        "editor_label": ""
-      }
-    },
-    "status_bar": {
-      "height": "",
-      "items": {
-        "enabled": "",
-        "engine": "",
-        "live_provider": "",
-        "priority": "",
-        "resolution": "",
-        "technology": "",
-        "title": ""
-      },
-      "popup_seconds": "",
-      "position": "",
-      "positions": {
-        "bottom": "",
-        "top": ""
-      },
-      "style": "",
-      "styles": {
-        "hover": "",
-        "hover-card": "",
-        "none": "",
-        "outside": "",
-        "overlay": "",
-        "popup": ""
-      }
-    },
     "view": {
       "camera_select": "Visualitza les càmeres seleccionades recentment",
       "default": "Vista per defecte",
       "default_cycle_camera": "Passeu per les càmeres quan s'actualitzi la vista predeterminada",
       "default_reset": {
         "after_interaction": "Restableix la vista predeterminada després de la interacció de l'usuari",
-        "editor_label": "",
-        "entities": "",
-        "every_seconds": "Actualitza la vista predeterminada cada X segons (0=mai)",
-        "interaction_mode": "",
-        "interaction_modes": {
-          "active": "",
-          "all": "",
-          "inactive": ""
-        }
+        "every_seconds": "Actualitza la vista predeterminada cada X segons (0=mai)"
       },
-      "dim": "",
       "interaction_seconds": "Segons després de l'acció de l'usuari per continuar interactuant (0=mai)",
-      "keyboard_shortcuts": {
-        "editor_label": "",
-        "enabled": "",
-        "ptz_down": "",
-        "ptz_home": "",
-        "ptz_left": "",
-        "ptz_right": "",
-        "ptz_up": "",
-        "ptz_zoom_in": "",
-        "ptz_zoom_out": ""
-      },
-      "theme": {
-        "themes": {
-          "dark": "",
-          "editor_label": "",
-          "ha": "",
-          "light": "",
-          "traditional": ""
-        }
-      },
       "triggers": {
         "actions": {
           "editor_label": "Activar accions",
@@ -598,8 +405,6 @@
         "clip": "Clip més recent",
         "clips": "Galeria de clips",
         "current": "Vista actual",
-        "folder": "",
-        "folders": "",
         "image": "Imatge estàtica",
         "live": "Visualització en directe",
         "recording": "Enregistrament més recent",
@@ -616,7 +421,6 @@
   },
   "editor": {
     "add_new_camera": "Afegeix una càmera nova",
-    "add_new_folder": "",
     "button": "Botó",
     "camera": "Càmera",
     "cameras": "Càmeres",
@@ -624,8 +428,6 @@
     "delete": "Suprimeix",
     "dimensions": "Dimensions",
     "dimensions_secondary": "Opcions de dimensions i forma",
-    "folders": "",
-    "folders_secondary": "",
     "image": "Imatge",
     "image_secondary": "Opcions de visualització d'imatges estàtiques",
     "live": "En directe",
@@ -642,12 +444,6 @@
     "overrides_secondary": "S'han detectat substitucions de configuració dinàmica",
     "performance": "Rendiment",
     "performance_secondary": "Opcions de rendiment de la targeta",
-    "profiles": "",
-    "profiles_secondary": "",
-    "remote_control": "",
-    "remote_control_secondary": "",
-    "status_bar": "",
-    "status_bar_secondary": "",
     "timeline": "Cronologia",
     "timeline_secondary": "Opcions de la cronologia d'esdeveniments",
     "upgrade": "Upgrade",
@@ -660,7 +456,6 @@
       "down": "Avall",
       "home": "Casa",
       "left": "Esquerra",
-      "presets": "",
       "right": "Dreta",
       "up": "Amunt",
       "zoom_in": "Ampliar",
@@ -668,29 +463,20 @@
     }
   },
   "error": {
-    "awaiting_folder": "",
     "awaiting_live": "S'està esperant que es carregui la transmissió en directe ...",
-    "awaiting_media": "",
-    "camera_initialization": "",
-    "camera_initialization_reolink": "",
-    "configuration": "",
     "could_not_render_elements": "No s'han pogut representar els elements de la imatge",
     "could_not_resolve": "No s'ha pogut resoldre l'URL multimèdia",
     "diagnostics": "Diagnòstic de targetes. Reviseu la informació confidencial abans de compartir-la",
     "download_no_media": "No hi ha contingut multimèdia per descarregar",
     "download_sign_failed": "No s'ha pogut signar l'URL multimèdia per baixar-la",
     "duplicate_camera_id": "Duplica l'identificador de la càmera Frigate per a la següent càmera, utilitza el paràmetre 'id' per identificar les càmeres de manera única",
-    "duplicate_folder_id": "",
     "empty_response": "S'ha rebut una resposta buida de Home Assistant per a la sol·licitud",
-    "failed_proxy": "",
     "failed_response": "No s'ha pogut rebre la resposta de Home Assistant per a la sol·licitud",
     "failed_retain": "No s'ha pogut retenir l'esdeveniment",
     "failed_sign": "No s'ha pogut signar l'URL de Home Assistant",
-    "fetching_diagnostics": "",
     "image_load_error": "No s'ha pogut carregar la imatge",
     "invalid_configuration": "Configuració no vàlida",
     "invalid_configuration_no_hint": "No hi ha cap indicació d'ubicació disponible (tipus dolent o faltant?)",
-    "invalid_configuration_override": "",
     "invalid_elements_config": "La configuració dels elements de la imatge no és vàlida",
     "invalid_response": "S'ha rebut una resposta no vàlida de Home Assistant per a la sol·licitud",
     "jsmpeg_no_player": "No s'ha pogut iniciar el reproductor JSMPEG",
@@ -701,29 +487,15 @@
     "no_camera_entity": "No s'ha pogut trobar l'entitat de la càmera",
     "no_camera_entity_for_triggers": "Es requereix una entitat de càmera per detectar automàticament els activadors",
     "no_camera_id": "No s'ha pogut determinar l'identificador de la càmera per a la següent càmera, és possible que hagis d'establir el paràmetre 'id' manualment",
-    "no_camera_or_media_for_timeline": "",
     "no_dashboard_or_view": "Tant els paràmetres 'dashboard_path' com 'view_path' són necessaris per al mètode d'emissió 'dashboard'",
     "no_live_camera": "El paràmetre 'camera_entity' s'ha de configurar i validar per a aquest proveïdor en directe",
-    "no_supported_camera": "",
-    "no_supported_cameras": "",
     "reconnecting": "Reconnectant",
-    "stream_not_loading": "",
     "too_many_automations": "Hi ha massa trucades d'automatització imbricades, comproveu la vostra configuració per veure si hi ha bucles",
     "troubleshooting": "Comproveu la resolució de problemes",
     "unknown": "Error desconegut",
     "upgrade_available": "Hi ha disponible una actualització automàtica de la configuració de la targeta; visiteu l'editor de targetes visuals",
     "webrtc_card_reported_error": "La targeta WebRTC ha informat d'un error",
     "webrtc_card_waiting": "S'està esperant que es carregui la targeta WebRTC ..."
-  },
-  "key_assigner": {
-    "assign": "",
-    "modifiers": {
-      "alt": "",
-      "ctrl": "",
-      "meta": "",
-      "shift": ""
-    },
-    "unassign": ""
   },
   "media_filter": {
     "all": "Tots",
@@ -771,7 +543,6 @@
     "start": "Començar",
     "tag": "Etiqueta",
     "timeline": "Veure els mitjans multimèdia a la línia de temps",
-    "title": "",
     "what": "Què",
     "where": "On"
   },
