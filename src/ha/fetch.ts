@@ -51,7 +51,7 @@ export const homeAssistantSignAndFetch = async <T>(
       }),
     });
   } catch (error) {
-    throw new AdvancedCameraCardError(localize('error.failed_fetch'), {
+    throw new AdvancedCameraCardError(`${localize('error.failed_fetch')}: ${url}`, {
       endpoint,
       error,
     });
