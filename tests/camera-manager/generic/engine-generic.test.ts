@@ -295,21 +295,26 @@ describe('GenericCameraManagerEngine', () => {
   });
 
   describe('should get camera endpoints', () => {
-    it('default', () => {
-      expect(createEngine().getCameraEndpoints(createGenericCameraConfig())).toBeNull();
+    it('default', async () => {
+      const camera = await createEngine().createCamera(
+        createHASS(),
+        createGenericCameraConfig(),
+      );
+      expect(camera.getEndpoints()).toBeNull();
     });
 
-    it('for go2rtc', () => {
-      expect(
-        createEngine().getCameraEndpoints(
-          createGenericCameraConfig({
-            go2rtc: {
-              stream: 'stream',
-              url: '/local/path',
-            },
-          }),
-        ),
-      ).toEqual({
+    it('for go2rtc', async () => {
+      const camera = await createEngine().createCamera(
+        createHASS(),
+        createGenericCameraConfig({
+          go2rtc: {
+            stream: 'stream',
+            url: '/local/path',
+          },
+        }),
+      );
+
+      expect(camera.getEndpoints()).toEqual({
         go2rtc: {
           endpoint: '/local/path/api/ws?src=stream',
           sign: true,
@@ -317,14 +322,15 @@ describe('GenericCameraManagerEngine', () => {
       });
     });
 
-    it('for webrtc-card', () => {
-      expect(
-        createEngine().getCameraEndpoints(
-          createGenericCameraConfig({
-            camera_entity: 'camera.office',
-          }),
-        ),
-      ).toEqual({
+    it('for webrtc-card', async () => {
+      const camera = await createEngine().createCamera(
+        createHASS(),
+        createGenericCameraConfig({
+          camera_entity: 'camera.office',
+        }),
+      );
+
+      expect(camera.getEndpoints()).toEqual({
         webrtcCard: {
           endpoint: 'camera.office',
         },

@@ -15,11 +15,7 @@ import { VideoMediaPlayerController } from '../../../../components-lib/media-pla
 import { MicrophoneConfig } from '../../../../config/schema/live.js';
 import { homeAssistantSignPath } from '../../../../ha/sign-path.js';
 import { HomeAssistant } from '../../../../ha/types.js';
-import {
-  addDynamicProxyURL,
-  getWebProxiedURL,
-  shouldUseWebProxy,
-} from '../../../../ha/web-proxy.js';
+import { createProxiedEndpointIfNecessary } from '../../../../ha/web-proxy.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
 import { MediaPlayer, MediaPlayerController, Message } from '../../../../types.js';
@@ -100,12 +96,13 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
 
   protected async _getPlayerSource(): Promise<string | null> {
     const cameraConfig = this.camera?.getConfig();
+    const proxyConfig = this.camera?.getProxyConfig();
     if (!this.hass || !cameraConfig) {
       return null;
     }
 
-    const endpoint = this.cameraEndpoints?.go2rtc;
-    if (!endpoint) {
+    const streamEndpoint = this.cameraEndpoints?.go2rtc;
+    if (!streamEndpoint) {
       this._handleError({
         message: localize('error.live_camera_no_endpoint'),
         context: cameraConfig,
@@ -113,56 +110,49 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
       return null;
     }
 
-    const proxyConfig = this.camera?.getProxyConfig();
-    let src: string | null = endpoint.endpoint;
-    let sign: boolean = endpoint.sign ?? false;
+    let result: string | null = null;
 
-    if (proxyConfig && shouldUseWebProxy(this.hass, proxyConfig, 'live')) {
-      if (proxyConfig.dynamic) {
-        try {
-          await addDynamicProxyURL(this.hass, endpoint.endpoint, {
-            proxyConfig,
-            ttl: GO2RTC_URL_SIGN_EXPIRY_SECONDS,
+    try {
+      const endpoint = await createProxiedEndpointIfNecessary(
+        this.hass,
+        streamEndpoint,
+        proxyConfig,
+        {
+          context: 'live',
+          ttl: GO2RTC_URL_SIGN_EXPIRY_SECONDS,
+          websocket: true,
 
-            // The link may need to be opened multiple times.
-            openLimit: 0,
-          });
-        } catch (e) {
-          this._handleError(
-            {
-              message: localize('error.failed_proxy'),
-              context: cameraConfig,
-            },
-            e as Error,
-          );
-          return null;
-        }
-      }
+          // The link may need to be opened multiple times.
+          openLimit: 0,
+        },
+      );
 
-      src = getWebProxiedURL(endpoint.endpoint, { websocket: true });
-      sign = true;
-    }
-
-    if (src && sign) {
-      try {
-        src = await homeAssistantSignPath(
+      if (endpoint.sign) {
+        result = await homeAssistantSignPath(
           this.hass,
-          src,
+          endpoint.endpoint,
           GO2RTC_URL_SIGN_EXPIRY_SECONDS,
         );
-      } catch (e) {
-        this._handleError(
-          {
+        if (!result) {
+          this._handleError({
             message: localize('error.failed_sign'),
             context: cameraConfig,
-          },
-          e as Error,
-        );
-        return null;
+          });
+        }
+      } else {
+        result = endpoint.endpoint;
       }
+    } catch (e) {
+      this._handleError(
+        {
+          message: localize('error.failed_proxy'),
+          context: cameraConfig,
+        },
+        e as Error,
+      );
     }
 
-    return src;
+    return result;
   }
 
   protected async _createPlayer(): Promise<void> {

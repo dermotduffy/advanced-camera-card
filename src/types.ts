@@ -15,9 +15,14 @@ export class AdvancedCameraCardError extends Error {
 }
 
 export interface MediaLoadedCapabilities {
-  supports2WayAudio?: boolean;
   supportsPause?: boolean;
+
   hasAudio?: boolean;
+
+  // Note: This is whether the current stream already _has_ 2-way audio, not
+  // whether the underlying camera _could_ establish 2 way audio. For the
+  // latter, consult the camera's capabilities ('2-way-audio').
+  has2WayAudio?: boolean;
 }
 
 export type MediaTechnology =
@@ -132,6 +137,8 @@ export interface CapabilitiesRaw {
   menu?: boolean;
 
   trigger?: boolean;
+
+  '2-way-audio'?: boolean;
 }
 
 export type CapabilityKey = keyof CapabilitiesRaw;
@@ -147,6 +154,7 @@ export const capabilityKeys: readonly [CapabilityKey, ...CapabilityKey[]] = [
   'seek',
   'snapshots',
   'substream',
+  '2-way-audio',
   'trigger',
 ] as const;
 

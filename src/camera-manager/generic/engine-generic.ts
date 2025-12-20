@@ -8,12 +8,9 @@ import { Endpoint } from '../../types';
 import { ViewMedia } from '../../view/item';
 import { ViewItemCapabilities } from '../../view/types';
 import { Camera } from '../camera';
-import { Capabilities } from '../capabilities';
 import { CameraManagerEngine } from '../engine';
 import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraEndpoints,
-  CameraEndpointsContext,
   CameraEventCallback,
   CameraManagerCameraMetadata,
   CameraQuery,
@@ -33,7 +30,6 @@ import {
   RecordingSegmentsQueryResultsMap,
 } from '../types';
 import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
-import { getDefaultGo2RTCEndpoint } from '../utils/go2rtc-endpoint';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
 export class GenericCameraManagerEngine implements CameraManagerEngine {
@@ -53,32 +49,22 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
   }
 
   public async createCamera(
-    _hass: HomeAssistant,
+    hass: HomeAssistant,
     cameraConfig: CameraConfig,
   ): Promise<Camera> {
     return await new Camera(cameraConfig, this, {
-      capabilities: new Capabilities(
-        {
-          'favorite-events': false,
-          'favorite-recordings': false,
-          'remote-control-entity': true,
-          clips: false,
-          live: true,
-          menu: true,
-          recordings: false,
-          seek: false,
-          snapshots: false,
-          substream: true,
-          trigger: true,
+      eventCallback: this._eventCallback,
+    }).initialize({
+      hass,
+      stateWatcher: this._stateWatcher,
+      capabilityOptions: {
+        raw: {
           ptz: getPTZCapabilitiesFromCameraConfig(cameraConfig) ?? undefined,
         },
-        {
-          disable: cameraConfig.capabilities?.disable,
-          disableExcept: cameraConfig.capabilities?.disable_except,
-        },
-      ),
-      eventCallback: this._eventCallback,
-    }).initialize({ stateWatcher: this._stateWatcher });
+        disable: cameraConfig.capabilities?.disable,
+        disableExcept: cameraConfig.capabilities?.disable_except,
+      },
+    });
   }
 
   public generateDefaultEventQuery(
@@ -212,26 +198,5 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
 
   public getMediaCapabilities(_media: ViewMedia): ViewItemCapabilities | null {
     return null;
-  }
-
-  public getCameraEndpoints(
-    cameraConfig: CameraConfig,
-    _context?: CameraEndpointsContext,
-  ): CameraEndpoints | null {
-    const getWebRTCCard = (): Endpoint | null => {
-      // The user may override this in their webrtc_card configuration.
-      const endpoint = cameraConfig.camera_entity ? cameraConfig.camera_entity : null;
-      return endpoint ? { endpoint: endpoint } : null;
-    };
-
-    const go2rtc = getDefaultGo2RTCEndpoint(cameraConfig);
-    const webrtcCard = getWebRTCCard();
-
-    return go2rtc || webrtcCard
-      ? {
-          ...(go2rtc && { go2rtc: go2rtc }),
-          ...(webrtcCard && { webrtcCard: webrtcCard }),
-        }
-      : null;
   }
 }

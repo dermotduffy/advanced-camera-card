@@ -45,15 +45,10 @@ describe('TPLinkCameraManagerEngine', () => {
     expect(camera.getConfig()).toBe(config);
     expect(camera.getEngine()).toBe(engine);
     expect(camera.getCapabilities()?.getRawCapabilities()).toEqual({
-      'favorite-events': false,
-      'favorite-recordings': false,
-      clips: false,
+      '2-way-audio': false,
       'remote-control-entity': true,
       live: true,
       menu: true,
-      recordings: false,
-      seek: false,
-      snapshots: false,
       substream: true,
       trigger: true,
     });

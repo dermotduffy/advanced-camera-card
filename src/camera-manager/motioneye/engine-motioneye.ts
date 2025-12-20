@@ -14,18 +14,14 @@ import {
 import { BrowseMediaStep, BrowseMediaTarget } from '../../ha/browse-media/walker';
 import { isMediaWithinDates } from '../../ha/browse-media/within-dates';
 import { HomeAssistant } from '../../ha/types';
-import { Endpoint } from '../../types';
 import { allPromises, formatDate, isValidDate } from '../../utils/basic';
 import { ViewMedia } from '../../view/item';
-import { EntityCamera } from '../entity-camera';
 import { BrowseMediaCameraManagerEngine } from '../browse-media/engine-browse-media';
 import { Camera } from '../camera';
-import { Capabilities } from '../capabilities';
 import { CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT } from '../engine';
+import { EntityCamera } from '../entity-camera';
 import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraEndpoints,
-  CameraEndpointsContext,
   CameraManagerCameraMetadata,
   Engine,
   EngineOptions,
@@ -39,7 +35,6 @@ import {
   QueryResultsType,
   QueryReturnType,
 } from '../types';
-import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 import { MotionEyeCamera } from './camera';
 import { MotionEyeEventQueryResults } from './types';
 
@@ -76,26 +71,6 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     cameraConfig: CameraConfig,
   ): Promise<Camera> {
     const camera = new MotionEyeCamera(cameraConfig, this, {
-      capabilities: new Capabilities(
-        {
-          'favorite-events': false,
-          'favorite-recordings': false,
-          'remote-control-entity': true,
-          clips: true,
-          live: true,
-          menu: true,
-          recordings: false,
-          seek: false,
-          snapshots: true,
-          substream: true,
-          trigger: true,
-          ptz: getPTZCapabilitiesFromCameraConfig(cameraConfig) ?? undefined,
-        },
-        {
-          disable: cameraConfig.capabilities?.disable,
-          disableExcept: cameraConfig.capabilities?.disable_except,
-        },
-      ),
       eventCallback: this._eventCallback,
     });
     return await camera.initialize({
@@ -421,24 +396,6 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     return {
       ...super.getCameraMetadata(hass, cameraConfig),
       engineIcon: 'motioneye',
-    };
-  }
-
-  public getCameraEndpoints(
-    cameraConfig: CameraConfig,
-    context?: CameraEndpointsContext,
-  ): CameraEndpoints | null {
-    const getUIEndpoint = (): Endpoint | null => {
-      return cameraConfig.motioneye?.url
-        ? {
-            endpoint: cameraConfig.motioneye.url,
-          }
-        : null;
-    };
-    const ui = getUIEndpoint();
-    return {
-      ...super.getCameraEndpoints(cameraConfig, context),
-      ...(ui && { ui: ui }),
     };
   }
 }

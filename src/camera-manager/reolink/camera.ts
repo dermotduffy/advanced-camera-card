@@ -1,17 +1,20 @@
 import { ActionsExecutor } from '../../card-controller/actions/types';
-import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
 import { DeviceRegistryManager } from '../../ha/registry/device/index';
 import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
-import { PTZCapabilities, PTZMovementType } from '../../types';
+import {
+  CapabilitiesRaw,
+  Endpoint,
+  PTZCapabilities,
+  PTZMovementType,
+} from '../../types';
 import { createSelectOptionAction } from '../../utils/action.js';
 import { Camera, CameraInitializationOptions } from '../camera';
-import { Capabilities } from '../capabilities';
 import { EntityCamera } from '../entity-camera';
 import { CameraInitializationError } from '../error';
-import { CameraProxyConfig } from '../types';
+import { CameraEndpointsContext, CameraProxyConfig } from '../types';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
 // Reolink channels are zero indexed.
@@ -20,7 +23,6 @@ const REOLINK_DEFAULT_CHANNEL = 0;
 interface ReolinkCameraInitializationOptions extends CameraInitializationOptions {
   entityRegistryManager: EntityRegistryManager;
   deviceRegistryManager: DeviceRegistryManager;
-  hass: HomeAssistant;
 }
 
 class ReolinkInitializationError extends CameraInitializationError {}
@@ -50,15 +52,14 @@ export class ReolinkCamera extends EntityCamera {
   // Entities used for PTZ control.
   protected _ptzEntities: PTZEntities | null = null;
 
+  /**
+   * Reolink cameras require additional options not present in the base class
+   * initialization options, so this ~empty method is used to expand the type
+   * expectations. Without this, callers cannot specify objects (e.g. the device
+   * registry) without TypeScript errors.
+   */
   public async initialize(options: ReolinkCameraInitializationOptions): Promise<Camera> {
-    await super.initialize(options);
-    await this._initializeChannel(options.hass, options.deviceRegistryManager);
-    await this._initializeCapabilities(
-      options.hass,
-      options.entityRegistryManager,
-      options.stateWatcher,
-    );
-    return this;
+    return super.initialize(options);
   }
 
   protected async _getChannelFromConfigurationURL(
@@ -135,47 +136,37 @@ export class ReolinkCamera extends EntityCamera {
     this._reolinkCameraUID = reolinkCameraUID;
   }
 
-  protected async _initializeCapabilities(
-    hass: HomeAssistant,
-    entityRegistry: EntityRegistryManager,
-    stateWatcher: StateWatcherSubscriptionInterface,
+  protected async _initialize(
+    options: ReolinkCameraInitializationOptions,
   ): Promise<void> {
-    const config = this.getConfig();
-    const configPTZCapabilities = getPTZCapabilitiesFromCameraConfig(this.getConfig());
-    this._ptzEntities = await this._getPTZEntities(hass, entityRegistry);
-    const reolinkPTZCapabilities = this._ptzEntities
-      ? this._entitiesToCapabilities(hass, this._ptzEntities)
+    await this._initializeChannel(options.hass, options.deviceRegistryManager);
+    this._ptzEntities = await this._getPTZEntities(
+      options.hass,
+      options.entityRegistryManager,
+    );
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected override _getUIEndpoint(_context?: CameraEndpointsContext): Endpoint | null {
+    return this._config.reolink?.url ? { endpoint: this._config.reolink.url } : null;
+  }
+
+  protected async _getRawCapabilities(
+    options: ReolinkCameraInitializationOptions,
+  ): Promise<CapabilitiesRaw> {
+    const configPTZ = getPTZCapabilitiesFromCameraConfig(this.getConfig());
+    const reolinkPTZ = this._ptzEntities
+      ? this._entitiesToCapabilities(options.hass, this._ptzEntities)
       : null;
 
-    const combinedPTZCapabilities: PTZCapabilities | null =
-      configPTZCapabilities || reolinkPTZCapabilities
-        ? {
-            ...reolinkPTZCapabilities,
-            ...configPTZCapabilities,
-          }
-        : null;
+    const combinedPTZ: PTZCapabilities | null =
+      configPTZ || reolinkPTZ ? { ...reolinkPTZ, ...configPTZ } : null;
 
-    this._capabilities = new Capabilities(
-      {
-        'favorite-events': false,
-        'favorite-recordings': false,
-        'remote-control-entity': true,
-        clips: true,
-        live: true,
-        menu: true,
-        recordings: false,
-        seek: false,
-        snapshots: false,
-        substream: true,
-        trigger: true,
-        ...(combinedPTZCapabilities && { ptz: combinedPTZCapabilities }),
-      },
-      {
-        disable: config.capabilities?.disable,
-        disableExcept: config.capabilities?.disable_except,
-      },
-    );
-    this._subscribeBasedOnCapabilities(stateWatcher);
+    return {
+      ...(await super._getRawCapabilities(options)),
+      clips: true,
+      ...(combinedPTZ && { ptz: combinedPTZ }),
+    };
   }
 
   protected _entitiesToCapabilities(

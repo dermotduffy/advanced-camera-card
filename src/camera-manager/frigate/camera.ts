@@ -1,19 +1,26 @@
+import { format } from 'date-fns';
 import { uniq } from 'lodash-es';
 import { ActionsExecutor } from '../../card-controller/actions/types';
-import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
 import { CameraConfig } from '../../config/schema/cameras';
 import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
-import { PTZCapabilities, PTZMovementType } from '../../types';
+import {
+  CapabilitiesRaw,
+  Endpoint,
+  PTZCapabilities,
+  PTZMovementType,
+} from '../../types';
 import { errorToConsole } from '../../utils/basic';
 import { Camera, CameraInitializationOptions } from '../camera';
-import { Capabilities } from '../capabilities';
-import { CameraManagerEngine } from '../engine';
 import { CameraInitializationError } from '../error';
-import { CameraEventCallback } from '../types';
+import { CameraEndpoints, CameraEndpointsContext } from '../types';
 import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
+import {
+  getGo2RTCMetadataEndpoint,
+  getGo2RTCStreamEndpoint,
+} from '../utils/go2rtc/endpoint';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 import {
   FrigateEventWatcherRequest,
@@ -27,8 +34,6 @@ const CAMERA_BIRDSEYE = 'birdseye' as const;
 interface FrigateCameraInitializationOptions extends CameraInitializationOptions {
   entityRegistryManager: EntityRegistryManager;
   frigateEventWatcher: FrigateEventWatcherSubscriptionInterface;
-  hass: HomeAssistant;
-  stateWatcher: StateWatcherSubscriptionInterface;
 }
 
 export const isBirdseye = (cameraConfig: CameraConfig): boolean => {
@@ -36,26 +41,15 @@ export const isBirdseye = (cameraConfig: CameraConfig): boolean => {
 };
 
 export class FrigateCamera extends Camera {
-  constructor(
-    config: CameraConfig,
-    engine: CameraManagerEngine,
-    options?: {
-      capabilities?: Capabilities;
-      eventCallback?: CameraEventCallback;
-    },
-  ) {
-    super(config, engine, options);
-  }
-
   public async initialize(options: FrigateCameraInitializationOptions): Promise<Camera> {
     await this._initializeConfig(options.hass, options.entityRegistryManager);
-    await this._initializeCapabilities(options.hass, options.stateWatcher);
+    await super.initialize(options);
 
     if (this._capabilities?.has('trigger')) {
       await this._subscribeToEvents(options.hass, options.frigateEventWatcher);
     }
 
-    return await super.initialize(options);
+    return this;
   }
 
   public async executePTZAction(
@@ -170,45 +164,27 @@ export class FrigateCamera extends Camera {
     }
   }
 
-  protected async _initializeCapabilities(
-    hass: HomeAssistant,
-    stateWatcher: StateWatcherSubscriptionInterface,
-  ): Promise<void> {
+  protected async _getRawCapabilities(
+    options: FrigateCameraInitializationOptions,
+  ): Promise<CapabilitiesRaw> {
+    const base = await super._getRawCapabilities(options);
     const config = this.getConfig();
 
-    const configPTZCapabilities = getPTZCapabilitiesFromCameraConfig(this.getConfig());
-    const frigatePTZCapabilities = await this._getPTZCapabilities(hass, config);
-
-    const combinedPTZCapabilities: PTZCapabilities | null =
-      configPTZCapabilities || frigatePTZCapabilities
-        ? {
-            ...frigatePTZCapabilities,
-            ...configPTZCapabilities,
-          }
-        : null;
+    const frigatePTZ = await this._getPTZCapabilities(options.hass, config);
+    const configPTZ = getPTZCapabilitiesFromCameraConfig(config);
+    const combinedPTZ: PTZCapabilities | null =
+      configPTZ || frigatePTZ ? { ...frigatePTZ, ...configPTZ } : null;
 
     const birdseye = isBirdseye(config);
-    this._capabilities = new Capabilities(
-      {
-        'favorite-events': !birdseye,
-        'favorite-recordings': false,
-        'remote-control-entity': true,
-        seek: !birdseye,
-        clips: !birdseye,
-        snapshots: !birdseye,
-        recordings: !birdseye,
-        live: true,
-        menu: true,
-        substream: true,
-        trigger: true,
-        ...(combinedPTZCapabilities && { ptz: combinedPTZCapabilities }),
-      },
-      {
-        disable: config.capabilities?.disable,
-        disableExcept: config.capabilities?.disable_except,
-      },
-    );
-    this._subscribeBasedOnCapabilities(stateWatcher);
+    return {
+      ...base,
+      'favorite-events': !birdseye,
+      seek: !birdseye,
+      clips: !birdseye,
+      snapshots: !birdseye,
+      recordings: !birdseye,
+      ...(combinedPTZ && { ptz: combinedPTZ }),
+    };
   }
 
   protected _getFrigateCameraNameFromEntity(entity: Entity): string | null {
@@ -223,6 +199,100 @@ export class FrigateCamera extends Camera {
       }
     }
     return null;
+  }
+
+  public override getEndpoints(
+    context?: CameraEndpointsContext,
+  ): CameraEndpoints | null {
+    const base = super.getEndpoints(context);
+    const jsmpeg = this._getJSMPEGEndpoint();
+
+    if (!base && !jsmpeg) {
+      return null;
+    }
+
+    return {
+      ...base,
+      ...(jsmpeg && { jsmpeg }),
+    };
+  }
+
+  protected override _getGo2RTCMetadataEndpoint(): Endpoint | null {
+    const stream = this._config.go2rtc?.stream ?? this._config.frigate.camera_name;
+    const url =
+      this._config.go2rtc?.url ??
+      `/api/frigate/${this._config.frigate.client_id}/go2rtc`;
+    return getGo2RTCMetadataEndpoint(this._config, { url, stream });
+  }
+
+  protected override _getGo2RTCStreamEndpoint(): Endpoint | null {
+    const stream = this._config.go2rtc?.stream ?? this._config.frigate.camera_name;
+    const url =
+      this._config.go2rtc?.url ??
+      // go2rtc is exposed by the Frigate integration under the 'mse' path.
+      `/api/frigate/${this._config.frigate.client_id}/mse`;
+
+    return getGo2RTCStreamEndpoint(this._config, {
+      url,
+      stream,
+    });
+  }
+
+  protected _getJSMPEGEndpoint(): Endpoint | null {
+    if (!this._config.frigate.camera_name) {
+      return null;
+    }
+    return {
+      endpoint:
+        `/api/frigate/${this._config.frigate.client_id}` +
+        `/jsmpeg/${this._config.frigate.camera_name}`,
+      sign: true,
+    };
+  }
+
+  protected override _getUIEndpoint(context?: CameraEndpointsContext): Endpoint | null {
+    if (!this._config.frigate.url) {
+      return null;
+    }
+    if (!this._config.frigate.camera_name) {
+      return { endpoint: this._config.frigate.url };
+    }
+
+    const cameraURL = `${this._config.frigate.url}/#${this._config.frigate.camera_name}`;
+
+    if (context?.view === 'live') {
+      return { endpoint: cameraURL };
+    }
+
+    const eventsURL = `${this._config.frigate.url}/events?camera=${this._config.frigate.camera_name}`;
+    const recordingsURL = `${this._config.frigate.url}/recording/${this._config.frigate.camera_name}`;
+
+    // If media is available, use it for a more precise URL.
+    switch (context?.media?.getMediaType()) {
+      case 'clip':
+      case 'snapshot':
+        return { endpoint: eventsURL };
+      case 'recording':
+        const startTime = context.media.getStartTime();
+        return {
+          endpoint:
+            recordingsURL + (startTime ? '/' + format(startTime, 'yyyy-MM-dd/HH') : ''),
+        };
+    }
+
+    // Fall back to using the view.
+    switch (context?.view) {
+      case 'clip':
+      case 'clips':
+      case 'snapshots':
+      case 'snapshot':
+        return { endpoint: eventsURL };
+      case 'recording':
+      case 'recordings':
+        return { endpoint: recordingsURL };
+    }
+
+    return { endpoint: cameraURL };
   }
 
   protected async _getPTZCapabilities(
@@ -372,6 +442,14 @@ export class FrigateCamera extends Camera {
     const clipChange = !ev.before.has_clip && ev.after.has_clip;
 
     const config = this.getConfig();
+    const cameraID = this._config.id;
+
+    if (!cameraID) {
+      // This can happen if an event arrives during the time a camera is
+      // initializing.
+      return;
+    }
+
     if (
       (config.frigate.zones?.length &&
         !config.frigate.zones.some((zone) => ev.after.current_zones.includes(zone))) ||
@@ -392,8 +470,9 @@ export class FrigateCamera extends Camera {
     }
 
     this._eventCallback?.({
+      cameraID,
+
       fidelity: 'high',
-      cameraID: this.getID(),
       type: ev.type,
       // In cases where there are both clip and snapshot media, ensure to only
       // trigger on the media type that is allowed by the configuration.

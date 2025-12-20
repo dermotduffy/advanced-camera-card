@@ -1,5 +1,4 @@
 import { Entity, EntityRegistryManager } from '../ha/registry/entity/types';
-import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import { Camera, CameraInitializationOptions } from './camera';
 import { CameraInitializationError } from './error';
@@ -7,7 +6,6 @@ import { getCameraEntityFromConfig } from './utils/camera-entity-from-config';
 
 export interface EntityCameraInitializationOptions extends CameraInitializationOptions {
   entityRegistryManager: EntityRegistryManager;
-  hass: HomeAssistant;
 }
 
 export class EntityCamera extends Camera {

@@ -6,8 +6,6 @@ import { ViewItemCapabilities } from '../view/types';
 import { Camera } from './camera';
 import { CameraManagerReadOnlyConfigStore } from './store';
 import {
-  CameraEndpoints,
-  CameraEndpointsContext,
   CameraManagerCameraMetadata,
   CameraQuery,
   Engine,
@@ -122,9 +120,4 @@ export interface CameraManagerEngine {
   ): CameraManagerCameraMetadata;
 
   getMediaCapabilities(media: ViewMedia): ViewItemCapabilities | null;
-
-  getCameraEndpoints(
-    cameraConfig: CameraConfig,
-    context?: CameraEndpointsContext,
-  ): CameraEndpoints | null;
 }

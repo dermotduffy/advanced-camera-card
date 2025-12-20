@@ -961,19 +961,23 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have microphone button', () => {
-    it('with suitable loaded media', () => {
+    it('when camera has 2-way-audio capability', () => {
       const microphoneManager = mock<MicrophoneManager>();
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
 
-      const buttons = calculateButtons(controller, {
-        microphoneManager: microphoneManager,
-        currentMediaLoadedInfo: createMediaLoadedInfo({
-          capabilities: {
-            supports2WayAudio: true,
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
           },
-        }),
+        ]),
+      );
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        microphoneManager: microphoneManager,
       });
 
       expect(buttons).toContainEqual({
@@ -997,19 +1001,18 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('without suitable loaded media', () => {
+    it('when camera does not have 2-way-audio capability', () => {
       const microphoneManager = mock<MicrophoneManager>();
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
 
+      const cameraManager = createCameraManager(
+        createStore([{ cameraID: 'camera-1', capabilities: createCapabilities() }]),
+      );
       const buttons = calculateButtons(controller, {
+        cameraManager,
         microphoneManager: microphoneManager,
-        currentMediaLoadedInfo: createMediaLoadedInfo({
-          capabilities: {
-            supports2WayAudio: false,
-          },
-        }),
       });
 
       expect(buttons).not.toEqual(
@@ -1021,13 +1024,17 @@ describe('MenuButtonController', () => {
       const microphoneManager = mock<MicrophoneManager>();
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(true);
 
-      const buttons = calculateButtons(controller, {
-        microphoneManager: microphoneManager,
-        currentMediaLoadedInfo: createMediaLoadedInfo({
-          capabilities: {
-            supports2WayAudio: true,
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
           },
-        }),
+        ]),
+      );
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        microphoneManager: microphoneManager,
       });
 
       expect(buttons).toContainEqual({
@@ -1046,13 +1053,17 @@ describe('MenuButtonController', () => {
       vi.mocked(microphoneManager.isMuted).mockReturnValue(true);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
 
-      const buttons = calculateButtons(controller, {
-        microphoneManager: microphoneManager,
-        currentMediaLoadedInfo: createMediaLoadedInfo({
-          capabilities: {
-            supports2WayAudio: true,
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
           },
-        }),
+        ]),
+      );
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        microphoneManager: microphoneManager,
       });
 
       expect(buttons).toContainEqual({
@@ -1079,13 +1090,17 @@ describe('MenuButtonController', () => {
       vi.mocked(microphoneManager.isMuted).mockReturnValue(true);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(false);
 
-      const buttons = calculateButtons(controller, {
-        microphoneManager: microphoneManager,
-        currentMediaLoadedInfo: createMediaLoadedInfo({
-          capabilities: {
-            supports2WayAudio: true,
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
           },
-        }),
+        ]),
+      );
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        microphoneManager: microphoneManager,
       });
 
       expect(buttons).toContainEqual({
@@ -1104,13 +1119,17 @@ describe('MenuButtonController', () => {
       vi.mocked(microphoneManager.isMuted).mockReturnValue(true);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
 
-      const buttons = calculateButtons(controller, {
-        microphoneManager: microphoneManager,
-        currentMediaLoadedInfo: createMediaLoadedInfo({
-          capabilities: {
-            supports2WayAudio: true,
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
           },
-        }),
+        ]),
+      );
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        microphoneManager: microphoneManager,
         config: createConfig({
           menu: { buttons: { microphone: { type: 'toggle' } } },
         }),
@@ -1136,13 +1155,17 @@ describe('MenuButtonController', () => {
       vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
 
-      const buttons = calculateButtons(controller, {
-        microphoneManager: microphoneManager,
-        currentMediaLoadedInfo: createMediaLoadedInfo({
-          capabilities: {
-            supports2WayAudio: true,
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
           },
-        }),
+        ]),
+      );
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        microphoneManager: microphoneManager,
         config: createConfig({
           menu: { buttons: { microphone: { type: 'toggle' } } },
         }),

@@ -682,6 +682,7 @@
     "duplicate_camera_id": "Duplicate camera id for the following camera, use the 'id' parameter to uniquely identify cameras",
     "duplicate_folder_id": "Duplicate folder id for the following folder, use the 'id' parameter to uniquely identify folders",
     "empty_response": "Received empty response from Home Assistant for request",
+    "failed_fetch": "Could not fetch URL",
     "failed_proxy": "Could not proxy via Home Assistant",
     "failed_response": "Failed to receive response from Home Assistant for request",
     "failed_retain": "Could not retain event",

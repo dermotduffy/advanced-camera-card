@@ -1,7 +1,7 @@
 import { LRUCache } from '../cache/lru';
 import { errorToConsole } from '../utils/basic';
-import { HomeAssistant, ResolvedMedia, resolvedMediaSchema } from './types';
 import { homeAssistantWSRequest } from './ws-request';
+import { HomeAssistant, ResolvedMedia, resolvedMediaSchema } from './types';
 
 // It's important the cache size be at least as large as the largest likely
 // media query or media items will from a given query will be evicted for other

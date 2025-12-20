@@ -1,4 +1,8 @@
-import { mayHaveAudio } from '../../../../utils/audio';
+import {
+  addAudioTracksMuteStateListener,
+  has2WayAudio,
+  hasAudio,
+} from '../../../../utils/audio';
 import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
@@ -172,6 +176,29 @@ export class VideoRTC extends HTMLElement {
      * @type {boolean}}
      */
     this.controls = true;
+
+    /**
+     * [internal] Cleanup function for audio track mute state listener.
+     * @type {Function | null}
+     */
+    this._audioTracksMuteStateCleanup = null;
+  }
+
+  /**
+   * Dispatch a media loaded event with current capabilities.
+   */
+  _dispatchMediaLoadedEvent() {
+    dispatchMediaLoadedEvent(this, this.video, {
+      ...(this.mediaPlayerController && {
+        mediaPlayerController: this.mediaPlayerController,
+      }),
+      capabilities: {
+        has2WayAudio: has2WayAudio(this.pc),
+        hasAudio: hasAudio(this.video, this.pc, this.mseCodecs),
+        supportsPause: true,
+      },
+      technology: getTechnologyForVideoRTC(this),
+    });
   }
 
   /**
@@ -352,21 +379,13 @@ export class VideoRTC extends HTMLElement {
       if (this.controls) {
         hideMediaControlsTemporarily(this.video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
       }
-      dispatchMediaLoadedEvent(this, this.video, {
-        ...(this.mediaPlayerController && {
-          mediaPlayerController: this.mediaPlayerController,
-        }),
-        capabilities: {
-          // 2-way audio is only supported on WebRTC connections. The state of
-          // `this.microphoneStream` is not taken into account here since
-          // that can be created after the fact -- this is purely saying that
-          // were a microphone stream available it could be used usefully.
-          supports2WayAudio: !!this.pc,
-          supportsPause: true,
-          hasAudio: mayHaveAudio(this.video),
-        },
-        technology: getTechnologyForVideoRTC(this),
-      });
+      this._dispatchMediaLoadedEvent();
+
+      // Listen for audio track mute/unmute changes and re-dispatch
+      this._audioTracksMuteStateCleanup?.();
+      this._audioTracksMuteStateCleanup = addAudioTracksMuteStateListener(this.pc, () =>
+        this._dispatchMediaLoadedEvent(),
+      );
     };
     this.video.onvolumechange = () => dispatchMediaVolumeChangeEvent(this);
     this.video.onplay = () => dispatchMediaPlayEvent(this);
@@ -415,6 +434,9 @@ export class VideoRTC extends HTMLElement {
 
     this.video.src = '';
     this.video.srcObject = null;
+
+    this._audioTracksMuteStateCleanup?.();
+    this._audioTracksMuteStateCleanup = null;
   }
 
   /**

@@ -66,6 +66,7 @@ cameras:
 | `snapshots`             | Snapshots can be fetched from the camera.                                                         |
 | `substream`             | The camera can be used as a substream on another camera.                                          |
 | `trigger`               | The camera can be triggered.                                                                      |
+| `2-way-audio`           | The camera can be used for 2-way audio.                                                           |
 
 > [!NOTE]
 > If using a camera only as a `substream`, don't forget to keep both the
@@ -482,6 +483,7 @@ cameras:
         - snapshots
         - substream
         - trigger
+        - 2-way-audio
       disable:
         # Capabilities to selectively disable.
   - camera_entity: camera.rotated
