@@ -132,6 +132,13 @@ export class ConfigManager {
     setFoldersFromConfig(this._api);
     this._api.getStyleManager().updateFromConfig();
 
+    // Ensure features that register automations or other side-effects from
+    // configuration are updated when overrides change (e.g. remote_control).
+    // Re-run loaders that may add/remove automations based on the current
+    // effective configuration.
+    setRemoteControlEntityFromConfig(this._api);
+    setAutomationsFromConfig(this._api);
+
     if (
       previousConfig &&
       (!isEqual(previousConfig?.cameras, this._overriddenConfig?.cameras) ||
