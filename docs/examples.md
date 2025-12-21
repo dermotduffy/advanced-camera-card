@@ -1184,6 +1184,26 @@ automations:
 
 See [Trigger Templates](./configuration/templates.md?id=triggers).
 
+## Theme
+
+### Custom border radius
+
+This example shows how to customize the border radius for both the card and buttons to create a cohesive squared-off look:
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+view:
+  theme:
+    overrides:
+      # Set a custom border radius for the card
+      '--advanced-camera-card-border-radius': '12px'
+
+      # Match the button border radius to complement the card
+      '--advanced-camera-card-button-border-radius': '12px'
+```
+
 ## Trigger actions
 
 You can control the card itself with the `custom:advanced-camera-card-action` action.

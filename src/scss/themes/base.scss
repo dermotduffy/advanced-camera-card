@@ -18,6 +18,16 @@
   --advanced-camera-card-text-color: var(--primary-text-color);
   --advanced-camera-card-divider-color: var(--divider-color);
 
+  // Border radius variable cascade:
+  // 1. --advanced-camera-card-border-radius-override (set by JS for performance config)
+  // 2. --advanced-camera-card-border-radius (user theme override)
+  // 3. --ha-card-border-radius (Home Assistant theme)
+  // 4. 4px (default)
+  --advanced-camera-card-border-radius-final: var(
+    --advanced-camera-card-border-radius-override,
+    var(--advanced-camera-card-border-radius, var(--ha-card-border-radius, 4px))
+  );
+
   --advanced-camera-card-control-background: var(--app-header-background-color);
   --advanced-camera-card-control-background-opacity: 60%;
 

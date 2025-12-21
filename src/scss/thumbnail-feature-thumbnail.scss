@@ -24,10 +24,7 @@ img {
   vertical-align: top;
   margin: 0;
 
-  border-radius: var(
-    --advanced-camera-card-css-border-radius,
-    var(--ha-card-border-radius, 4px)
-  );
+  border-radius: var(--advanced-camera-card-border-radius-final);
 
   // Not 'contain' as some thumbnails may vary in aspect-ratio slightly and
   // should be clipped to fill the thumbnail div whilst maintaining

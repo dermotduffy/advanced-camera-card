@@ -1,7 +1,11 @@
 import { StyleInfo } from 'lit/directives/style-map';
 import { AdvancedCameraCardConfig, configDefaults } from '../config/schema/types';
 import { ThemeConfig, ThemeName } from '../config/schema/view';
-import { aspectRatioToStyle, setOrRemoveAttribute } from '../utils/basic';
+import {
+  aspectRatioToStyle,
+  setOrRemoveAttribute,
+  setOrRemoveStyleProperty,
+} from '../utils/basic';
 import { View } from '../view/view';
 import { CardStyleAPI } from './types';
 
@@ -94,20 +98,27 @@ export class StyleManager {
 
   protected _setPerformance(): void {
     const STYLE_DISABLE_MAP = {
-      box_shadow: 'none',
-      border_radius: '0px',
+      box_shadow: {
+        cssKey: '--advanced-camera-card-box-shadow-override',
+        value: 'none',
+      },
+      border_radius: {
+        cssKey: '--advanced-camera-card-border-radius-override',
+        value: '0px',
+      },
     };
     const element = this._api.getCardElementManager().getElement();
     const performance = this._api.getConfigManager().getCardWideConfig()?.performance;
 
     const styles = performance?.style ?? {};
     for (const configKey of Object.keys(styles)) {
-      const CSSKey = `--advanced-camera-card-css-${configKey.replaceAll('_', '-')}`;
-      if (styles[configKey] === false) {
-        element.style.setProperty(CSSKey, STYLE_DISABLE_MAP[configKey]);
-      } else {
-        element.style.removeProperty(CSSKey);
-      }
+      const mapping = STYLE_DISABLE_MAP[configKey];
+      setOrRemoveStyleProperty(
+        element,
+        !styles[configKey],
+        mapping.cssKey,
+        mapping.value,
+      );
     }
   }
 

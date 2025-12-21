@@ -31,7 +31,7 @@
   border-radius: 50%;
   height: var(--advanced-camera-card-next-prev-size);
   top: calc(50% - (var(--advanced-camera-card-next-prev-size) / 2));
-  box-shadow: var(--advanced-camera-card-css-box-shadow, 0px 0px 20px 5px black);
+  box-shadow: var(--advanced-camera-card-box-shadow-override, 0px 0px 20px 5px black);
   transition: all 0.2s ease-out;
   opacity: 0.8;
   aspect-ratio: 1 / 1;
