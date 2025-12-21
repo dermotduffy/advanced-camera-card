@@ -25,8 +25,5 @@ advanced-camera-card-thumbnail.selected {
   // this outer border, we need to add the size of the border to the thumbnail
   // image border radius.
   // Related: https://www.30secondsofcode.org/articles/s/css-nested-border-radius
-  border-radius: calc(
-    var(--advanced-camera-card-css-border-radius, var(--ha-card-border-radius, 4px)) +
-      4px
-  );
+  border-radius: calc(var(--advanced-camera-card-border-radius-final) + 4px);
 }

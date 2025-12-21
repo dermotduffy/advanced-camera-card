@@ -16,10 +16,7 @@
 
 :host([details]) {
   border: 1px solid var(--advanced-camera-card-thumbnail-border-color);
-  border-radius: var(
-    --advanced-camera-card-css-border-radius,
-    var(--ha-card-border-radius, 4px)
-  );
+  border-radius: var(--advanced-camera-card-border-radius-final);
   padding: 2px;
 
   // When details are enabled, use a background color so that the details have

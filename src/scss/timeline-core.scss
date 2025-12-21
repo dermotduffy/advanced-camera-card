@@ -69,7 +69,7 @@ div.timeline {
   border-color: var(--advanced-camera-card-active-color);
   background-color: var(--advanced-camera-card-active-color);
   box-shadow: var(
-    --advanced-camera-card-css-box-shadow,
+    --advanced-camera-card-box-shadow-override,
     0px 0px 5px 1px var(--advanced-camera-card-active-color)
   );
 }
@@ -109,12 +109,12 @@ div.timeline {
   color: var(--advanced-camera-card-timeline-text-color);
   background-color: var(--advanced-camera-card-timeline-background);
   box-shadow: var(
-    --advanced-camera-card-css-box-shadow,
+    --advanced-camera-card-box-shadow-override,
     0px 0px 5px 1px var(--advanced-camera-card-timeline-item-color)
   );
 }
 .vis-item.vis-range {
-  border-radius: var(--advanced-camera-card-css-border-radius, unset);
+  border-radius: var(--advanced-camera-card-border-radius-final);
 }
 
 .vis-time-axis .vis-grid.vis-minor {

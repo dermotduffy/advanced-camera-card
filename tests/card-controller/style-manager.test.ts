@@ -191,10 +191,10 @@ describe('StyleManager', () => {
       manager.updateFromConfig();
 
       expect(
-        element.style.getPropertyValue('--advanced-camera-card-css-box-shadow'),
+        element.style.getPropertyValue('--advanced-camera-card-box-shadow-override'),
       ).toBeFalsy();
       expect(
-        element.style.getPropertyValue('--advanced-camera-card-css-border-radius'),
+        element.style.getPropertyValue('--advanced-camera-card-border-radius-override'),
       ).toBeFalsy();
     });
 
@@ -217,11 +217,55 @@ describe('StyleManager', () => {
       manager.updateFromConfig();
 
       expect(
-        element.style.getPropertyValue('--advanced-camera-card-css-box-shadow'),
+        element.style.getPropertyValue('--advanced-camera-card-box-shadow-override'),
       ).toEqual('none');
       expect(
-        element.style.getPropertyValue('--advanced-camera-card-css-border-radius'),
+        element.style.getPropertyValue('--advanced-camera-card-border-radius-override'),
       ).toBeFalsy();
+    });
+
+    it('box_shadow disabled sets override', () => {
+      const api = createCardAPI();
+      const element = document.createElement('div');
+      vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+      vi.mocked(api.getConfigManager().getCardWideConfig).mockReturnValue(
+        createConfig({
+          performance: {
+            style: {
+              box_shadow: false,
+            },
+          },
+        }),
+      );
+      const manager = new StyleManager(api);
+
+      manager.updateFromConfig();
+
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-box-shadow-override'),
+      ).toEqual('none');
+    });
+
+    it('border_radius disabled sets override', () => {
+      const api = createCardAPI();
+      const element = document.createElement('div');
+      vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+      vi.mocked(api.getConfigManager().getCardWideConfig).mockReturnValue(
+        createConfig({
+          performance: {
+            style: {
+              border_radius: false,
+            },
+          },
+        }),
+      );
+      const manager = new StyleManager(api);
+
+      manager.updateFromConfig();
+
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-border-radius-override'),
+      ).toEqual('0px');
     });
   });
 
