@@ -108,10 +108,6 @@ export class ConfigManager {
     this._api.getMessageManager().reset();
     this._api.getStatusBarItemManager().removeAllDynamicStatusBarItems();
 
-    setKeyboardShortcutsFromConfig(this._api);
-    setRemoteControlEntityFromConfig(this._api);
-    setAutomationsFromConfig(this._api);
-
     this._processOverrideConfig();
 
     this._api.getCardElementManager().update();
@@ -136,6 +132,7 @@ export class ConfigManager {
     // configuration are updated when overrides change (e.g. remote_control).
     // Re-run loaders that may add/remove automations based on the current
     // effective configuration.
+    setKeyboardShortcutsFromConfig(this._api);
     setRemoteControlEntityFromConfig(this._api);
     setAutomationsFromConfig(this._api);
 
