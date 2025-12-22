@@ -4,7 +4,34 @@ import { ConfigManager } from '../../../src/card-controller/config/config-manage
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
 import { ConditionStateManager } from '../../../src/conditions/state-manager';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
-import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
+import {
+  createCardAPI,
+  createConfig,
+  flushPromises,
+  createConfigManagerTestSetup,
+} from '../../test-utils';
+import { createGeneralAction } from '../../../src/utils/action';
+
+// ============================================================================
+// Test Constants - Centralized test data to avoid magic numbers/strings
+// ============================================================================
+
+/** Test camera entities - Primary is used for standard tests */
+const TEST_CAMERAS = {
+  OFFICE: { camera_entity: 'camera.office' },
+  KITCHEN: { camera_entity: 'camera.kitchen' },
+} as const;
+
+/** Override conditions commonly used in tests */
+const TEST_CONDITIONS = {
+  FULLSCREEN_ON: { condition: 'fullscreen' as const, fullscreen: true },
+  FULLSCREEN_OFF: { condition: 'fullscreen' as const, fullscreen: false },
+} as const;
+
+/** Profile settings for testing */
+const TEST_PROFILES = {
+  LOW_PERFORMANCE: 'low-performance' as const,
+} as const;
 
 describe('ConfigManager', () => {
   beforeEach(() => {
@@ -67,7 +94,7 @@ describe('ConfigManager', () => {
     const manager = new ConfigManager(api);
     const config = {
       type: 'custom:advanced-camera-card',
-      cameras: [{ camera_entity: 'camera.office' }],
+      cameras: [TEST_CAMERAS.OFFICE],
     };
 
     manager.setConfig(config);
@@ -99,8 +126,8 @@ describe('ConfigManager', () => {
     const manager = new ConfigManager(createCardAPI());
     const config = {
       type: 'custom:advanced-camera-card',
-      cameras: [{ camera_entity: 'camera.office' }],
-      profiles: ['low-performance'],
+      cameras: [TEST_CAMERAS.OFFICE],
+      profiles: [TEST_PROFILES.LOW_PERFORMANCE],
     };
 
     manager.setConfig(config);
@@ -114,7 +141,7 @@ describe('ConfigManager', () => {
     const manager = new ConfigManager(api);
     const config = {
       type: 'custom:advanced-camera-card',
-      cameras: [{ camera_entity: 'camera.office' }],
+      cameras: [TEST_CAMERAS.OFFICE],
     };
 
     manager.setConfig(config);
@@ -131,7 +158,7 @@ describe('ConfigManager', () => {
     const manager = new ConfigManager(api);
     const config = {
       type: 'custom:advanced-camera-card',
-      cameras: [{ camera_entity: 'camera.office' }],
+      cameras: [TEST_CAMERAS.OFFICE],
       debug: {
         logging: true,
       },
@@ -170,13 +197,13 @@ describe('ConfigManager', () => {
       vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
       const manager = new ConfigManager(api);
-      const cameras = [{ camera_entity: 'camera.office' }];
+      const cameras = [TEST_CAMERAS.OFFICE];
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: cameras,
         overrides: [
           {
-            conditions: [{ condition: 'fullscreen', fullscreen: true }],
+            conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
             set: {
               // Override with the same.
               cameras: cameras,
@@ -206,7 +233,7 @@ describe('ConfigManager', () => {
         },
         overrides: [
           {
-            conditions: [{ condition: 'fullscreen', fullscreen: true }],
+            conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
             set: { 'menu.style': 'none' },
           },
         ],
@@ -228,10 +255,10 @@ describe('ConfigManager', () => {
       const manager = new ConfigManager(api);
       const config = {
         type: 'custom:advanced-camera-card',
-        cameras: [{ camera_entity: 'camera.office' }],
+        cameras: [TEST_CAMERAS.OFFICE],
         overrides: [
           {
-            conditions: [{ condition: 'fullscreen', fullscreen: true }],
+            conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
             delete: ['cameras'],
           },
         ],
@@ -256,12 +283,12 @@ describe('ConfigManager', () => {
         const manager = new ConfigManager(api);
         const config = {
           type: 'custom:advanced-camera-card',
-          cameras: [{ camera_entity: 'camera.office' }],
+          cameras: [TEST_CAMERAS.OFFICE],
           overrides: [
             {
-              conditions: [{ condition: 'fullscreen', fullscreen: true }],
+              conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
               set: {
-                cameras: [{ camera_entity: 'camera.kitchen' }],
+                cameras: [TEST_CAMERAS.KITCHEN],
               },
             },
           ],
@@ -288,10 +315,10 @@ describe('ConfigManager', () => {
         const manager = new ConfigManager(api);
         const config = {
           type: 'custom:advanced-camera-card',
-          cameras: [{ camera_entity: 'camera.office' }],
+          cameras: [TEST_CAMERAS.OFFICE],
           overrides: [
             {
-              conditions: [{ condition: 'fullscreen', fullscreen: true }],
+              conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
               set: {
                 cameras_global: { live_provider: 'jsmpeg' },
               },
@@ -320,10 +347,10 @@ describe('ConfigManager', () => {
         const manager = new ConfigManager(api);
         const config = {
           type: 'custom:advanced-camera-card',
-          cameras: [{ camera_entity: 'camera.office' }],
+          cameras: [TEST_CAMERAS.OFFICE],
           overrides: [
             {
-              conditions: [{ condition: 'fullscreen', fullscreen: true }],
+              conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
               set: {
                 'live.microphone.always_connected': true,
               },
@@ -356,12 +383,12 @@ describe('ConfigManager', () => {
         const manager = new ConfigManager(api);
         const config = {
           type: 'custom:advanced-camera-card',
-          cameras: [{ camera_entity: 'camera.office' }],
+          cameras: [TEST_CAMERAS.OFFICE],
           overrides: [
             {
-              conditions: [{ condition: 'fullscreen', fullscreen: true }],
+              conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
               set: {
-                cameras: [{ camera_entity: 'camera.kitchen' }],
+                cameras: [TEST_CAMERAS.KITCHEN],
               },
             },
           ],
@@ -390,6 +417,268 @@ describe('ConfigManager', () => {
         // Should set the config condition state.
         expect(listener).toBeCalledWith(
           expect.objectContaining({ change: { config: expect.anything() } }),
+        );
+      });
+    });
+
+    describe('loaders should re-run when overrides change', () => {
+      it('should re-run keyboard-shortcuts loader when overrides change', async () => {
+        const { manager, stateManager, addAutomationsSpy } =
+          createConfigManagerTestSetup();
+
+        const config = createConfig({
+          view: {
+            keyboard_shortcuts: {
+              enabled: true,
+              ptz_home: { key: 'h' },
+            },
+          },
+          overrides: [
+            {
+              delete: ['view.keyboard_shortcuts'],
+              conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
+            },
+          ],
+        });
+
+        manager.setConfig(config as any);
+        await flushPromises();
+
+        // Verify keyboard shortcuts automations were added initially with ptz_home
+        expect(addAutomationsSpy).toHaveBeenCalledWith(
+          expect.arrayContaining([
+            expect.objectContaining({
+              conditions: expect.arrayContaining([
+                expect.objectContaining({ condition: 'key', key: 'h' }),
+              ]),
+              actions: expect.arrayContaining([
+                expect.objectContaining({
+                  advanced_camera_card_action: 'ptz_multi',
+                }),
+              ]),
+            }),
+          ]),
+        );
+
+        addAutomationsSpy.mockClear();
+
+        // Trigger the override - keyboard_shortcuts should be deleted
+        stateManager.setState({ fullscreen: true });
+        await flushPromises();
+
+        // Verify newly added automations don't contain keyboard shortcuts (key: 'h')
+        // This confirms the override removed them (directly verified through add calls)
+        const addCalls = addAutomationsSpy.mock.calls;
+        const hasKeyboardShortcut = addCalls.some((call) =>
+          call[0].some((automation: any) =>
+            automation.conditions?.some(
+              (cond: any) => cond.condition === 'key' && cond.key === 'h',
+            ),
+          ),
+        );
+        expect(hasKeyboardShortcut).toBe(false);
+      });
+
+      it('should re-run folders loader when overrides change', async () => {
+        const { manager, stateManager, api } = createConfigManagerTestSetup();
+
+        const folders = [{ id: 'f' }];
+        const config = createConfig({
+          folders,
+          overrides: [
+            {
+              delete: ['folders'],
+              conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
+            },
+          ],
+        });
+
+        manager.setConfig(config as any);
+        await flushPromises();
+
+        // Verify initial payload (folders may be populated with defaults, so
+        // assert the passed folders contain our folder id).
+        expect(api.getFoldersManager().addFolders).toHaveBeenCalled();
+        expect(api.getFoldersManager().addFolders).toHaveBeenCalledWith(
+          expect.arrayContaining([expect.objectContaining({ id: 'f' })]),
+        );
+
+        // Reset calls so we only see calls resulting from the override
+        vi.mocked(api.getFoldersManager().deleteFolders).mockClear();
+        vi.mocked(api.getFoldersManager().addFolders).mockClear();
+
+        // Trigger override which deletes folders
+        stateManager.setState({ fullscreen: true });
+        await flushPromises();
+
+        // Verify delete was called when override triggered
+        expect(api.getFoldersManager().deleteFolders).toBeCalled();
+
+        // Verify folder 'f' is no longer present after override
+        // Since the override removes folders, the folders passed should no
+        // longer include our folder `f`.
+        const calls = vi.mocked(api.getFoldersManager().addFolders).mock.calls;
+        expect(calls.length).toBeGreaterThanOrEqual(1);
+        const lastArg = calls[calls.length - 1][0] as unknown[];
+        expect(lastArg).not.toEqual(
+          expect.arrayContaining([expect.objectContaining({ id: 'f' })]),
+        );
+
+        // Verify folder is restored when override exits
+        vi.mocked(api.getFoldersManager().addFolders).mockClear();
+
+        stateManager.setState({ fullscreen: false });
+        await flushPromises();
+
+        // Verify the folder 'f' is restored
+        const restoreCalls = vi.mocked(api.getFoldersManager().addFolders).mock.calls;
+        expect(restoreCalls.length).toBeGreaterThanOrEqual(1);
+        const restoredArg = restoreCalls[restoreCalls.length - 1][0] as unknown[];
+        expect(restoredArg).toEqual(
+          expect.arrayContaining([expect.objectContaining({ id: 'f' })]),
+        );
+      });
+
+      it('should re-run automations loader when overrides change and properly manage automations', async () => {
+        const { manager, stateManager, api, addAutomationsSpy, deleteAutomationsSpy } =
+          createConfigManagerTestSetup();
+
+        // Mock executeActions to track automation execution
+        const executeActionsMock = vi.fn();
+        vi.mocked(api.getActionsManager().executeActions).mockImplementation(
+          executeActionsMock,
+        );
+
+        const automation = {
+          conditions: [TEST_CONDITIONS.FULLSCREEN_OFF],
+          actions: [createGeneralAction('screenshot')],
+        };
+        const config = createConfig({
+          automations: [automation],
+          overrides: [
+            {
+              delete: ['automations'],
+              conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
+            },
+          ],
+        });
+
+        manager.setConfig(config as any);
+        await flushPromises();
+
+        // Verify automations were added initially
+        expect(addAutomationsSpy).toHaveBeenCalled();
+
+        // Trigger a state change to evaluate conditions (fullscreen: false matches our condition)
+        stateManager.setState({ fullscreen: false });
+        await flushPromises();
+
+        // The automation should execute since the condition matches and override is not active
+        expect(executeActionsMock).toHaveBeenCalled();
+
+        // Clear to observe only calls caused by the override
+        executeActionsMock.mockClear();
+        deleteAutomationsSpy.mockClear();
+        addAutomationsSpy.mockClear();
+
+        // Trigger the override which deletes automations
+        stateManager.setState({ fullscreen: true });
+        await flushPromises();
+
+        // Verify delete was called when override triggered
+        expect(deleteAutomationsSpy).toHaveBeenCalled();
+
+        // After override, the automation should have been deleted from the manager,
+        // so no further executions should occur
+        expect(executeActionsMock).not.toHaveBeenCalled();
+
+        // Clear and verify that exiting fullscreen doesn't restore the automation
+        executeActionsMock.mockClear();
+
+        stateManager.setState({ fullscreen: false });
+        await flushPromises();
+
+        // The automation should still not execute because it was deleted by the override
+        expect(executeActionsMock).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('remote-control loader with overrides', () => {
+      it('should re-run remote-control loader when overrides change', async () => {
+        const { manager, stateManager, addAutomationsSpy, deleteAutomationsSpy } =
+          createConfigManagerTestSetup();
+
+        const config = createConfig({
+          remote_control: {
+            entities: { camera: 'input_select.camera' },
+          },
+          overrides: [
+            {
+              delete: ['remote_control'],
+              conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
+            },
+          ],
+        });
+
+        // Initial set should register remote control automations
+        manager.setConfig(config as any);
+        await flushPromises();
+
+        // Verify remote-control automations were added initially with config condition
+        expect(addAutomationsSpy).toHaveBeenCalledWith(
+          expect.arrayContaining([
+            expect.objectContaining({
+              conditions: expect.arrayContaining([
+                expect.objectContaining({
+                  condition: 'config',
+                  paths: expect.arrayContaining(['remote_control.entities.camera']),
+                }),
+              ]),
+            }),
+          ]),
+        );
+
+        addAutomationsSpy.mockClear();
+        deleteAutomationsSpy.mockClear();
+
+        // Trigger the override condition - remote_control should be deleted
+        stateManager.setState({ fullscreen: true });
+        await flushPromises();
+
+        // Verify delete was called
+        expect(deleteAutomationsSpy).toHaveBeenCalled();
+
+        // Verify new automations don't contain remote-control config conditions
+        const addCalls = addAutomationsSpy.mock.calls;
+        const hasRemoteControl = addCalls.some((call) =>
+          call[0].some((automation: any) =>
+            automation.conditions?.some(
+              (cond: any) =>
+                cond.condition === 'config' &&
+                cond.paths?.includes('remote_control.entities.camera'),
+            ),
+          ),
+        );
+        expect(hasRemoteControl).toBe(false);
+
+        addAutomationsSpy.mockClear();
+
+        // Exit override - remote-control automations should be restored
+        stateManager.setState({ fullscreen: false });
+        await flushPromises();
+
+        // Verify remote-control automations were restored
+        expect(addAutomationsSpy).toHaveBeenCalledWith(
+          expect.arrayContaining([
+            expect.objectContaining({
+              conditions: expect.arrayContaining([
+                expect.objectContaining({
+                  condition: 'config',
+                  paths: expect.arrayContaining(['remote_control.entities.camera']),
+                }),
+              ]),
+            }),
+          ]),
         );
       });
     });

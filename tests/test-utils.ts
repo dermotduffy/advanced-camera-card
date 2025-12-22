@@ -718,3 +718,38 @@ export const createRichBrowseMedia = (
     },
   };
 };
+
+/**
+ * Create a ConfigManager test setup with real AutomationsManager and ConditionStateManager.
+ * Includes spies for automation manager methods to track calls in tests.
+ */
+export function createConfigManagerTestSetup(options?: {
+  hasHASS?: boolean;
+  isInitializedMandatory?: boolean;
+}) {
+  const api = createCardAPI();
+  const stateManager = new ConditionStateManager();
+  vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
+  const automationsManager = new AutomationsManager(api);
+  vi.mocked(api.getAutomationsManager).mockReturnValue(automationsManager);
+  vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(options?.hasHASS ?? true);
+  vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+    options?.isInitializedMandatory ?? true,
+  );
+
+  const manager = new ConfigManager(api);
+  vi.mocked(api.getConfigManager).mockReturnValue(manager);
+
+  const addAutomationsSpy = vi.spyOn(automationsManager, 'addAutomations');
+  const deleteAutomationsSpy = vi.spyOn(automationsManager, 'deleteAutomations');
+
+  return {
+    api,
+    manager,
+    stateManager,
+    automationsManager,
+    addAutomationsSpy,
+    deleteAutomationsSpy,
+  };
+}
