@@ -114,6 +114,28 @@ describe('GenericCameraManagerEngine', () => {
     ).toBeNull();
   });
 
+  it('should generate default review query', () => {
+    const engine = createEngine();
+    expect(
+      engine.generateDefaultReviewQuery(
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
+        new Set(['camera-1']),
+        {},
+      ),
+    ).toBeNull();
+  });
+
+  it('should get reviews', async () => {
+    const engine = createEngine();
+    expect(
+      await engine.getReviews(
+        createHASS(),
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
+        { type: QueryType.Review, cameraIDs: new Set(['camera-1']) },
+      ),
+    ).toBeNull();
+  });
+
   it('should generate media from events', async () => {
     const engine = createEngine();
     expect(
@@ -152,6 +174,24 @@ describe('GenericCameraManagerEngine', () => {
     ).toBeNull();
   });
 
+  it('should generate media from reviews', async () => {
+    const engine = createEngine();
+    expect(
+      engine.generateMediaFromReviews(
+        createHASS(),
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
+        {
+          type: QueryType.Review,
+          cameraIDs: new Set(['camera-1']),
+        },
+        {
+          type: QueryResultsType.Review,
+          engine: Engine.Generic,
+        },
+      ),
+    ).toBeNull();
+  });
+
   it('should get media download path', async () => {
     expect(
       await createEngine().getMediaDownloadPath(
@@ -165,6 +205,17 @@ describe('GenericCameraManagerEngine', () => {
   it('should favorite media', async () => {
     expect(
       await createEngine().favoriteMedia(
+        createHASS(),
+        createGenericCameraConfig(),
+        new TestViewMedia(),
+        true,
+      ),
+    ).toBeUndefined();
+  });
+
+  it('should review media', async () => {
+    expect(
+      await createEngine().reviewMedia(
         createHASS(),
         createGenericCameraConfig(),
         new TestViewMedia(),

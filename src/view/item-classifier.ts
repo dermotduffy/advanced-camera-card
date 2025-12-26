@@ -1,6 +1,7 @@
 import {
   EventViewMedia,
   RecordingViewMedia,
+  ReviewViewMedia,
   ViewFolder,
   ViewItem,
   ViewMedia,
@@ -19,6 +20,9 @@ export class ViewItemClassifier {
   public static isRecording(item?: ViewItem | null): item is RecordingViewMedia {
     return this.isMedia(item) && item.getMediaType() === 'recording';
   }
+  public static isReview(item?: ViewItem | null): item is ReviewViewMedia {
+    return this.isMedia(item) && item.getMediaType() === 'review';
+  }
   public static isClip(item?: ViewItem | null): boolean {
     return this.isMedia(item) && item.getMediaType() === 'clip';
   }
@@ -26,6 +30,12 @@ export class ViewItemClassifier {
     return this.isMedia(item) && item.getMediaType() === 'snapshot';
   }
   public static isVideo(item?: ViewItem | null): boolean {
-    return this.isMedia(item) && (this.isClip(item) || this.isRecording(item));
+    return (
+      this.isMedia(item) &&
+      (this.isClip(item) ||
+        this.isRecording(item) ||
+        // Reviews always have a video.
+        this.isReview(item))
+    );
   }
 }

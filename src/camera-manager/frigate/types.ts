@@ -5,6 +5,7 @@ import {
   EventQueryResults,
   RecordingQueryResults,
   RecordingSegmentsQueryResults,
+  ReviewQueryResults,
 } from '../types';
 
 const dayStringToDate = (arg: unknown): Date | unknown => {
@@ -56,6 +57,12 @@ export const retainResultSchema = z.object({
   message: z.string(),
 });
 export type RetainResult = z.infer<typeof retainResultSchema>;
+
+export const reviewResultSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+});
+export type ReviewResult = z.infer<typeof reviewResultSchema>;
 
 export interface FrigateRecording {
   cameraID: string;
@@ -123,4 +130,38 @@ export interface FrigateRecordingSegmentsQueryResults
   extends RecordingSegmentsQueryResults {
   engine: Engine.Frigate;
   instanceID: string;
+}
+
+// =============
+// Review Types
+// =============
+
+// Frigate review severity values
+export type FrigateReviewSeverity = 'alert' | 'detection' | 'significant_motion';
+
+// Review data schema (only fields we need for display)
+const frigateReviewDataSchema = z.object({
+  objects: z.string().array().optional(),
+  zones: z.string().array().optional(),
+});
+
+// Review item schema
+const frigateReviewSchema = z.object({
+  id: z.string(),
+  camera: z.string(),
+  severity: z.enum(['alert', 'detection', 'significant_motion']),
+  start_time: z.number(),
+  end_time: z.number().nullable(),
+  thumb_path: z.string().nullable(),
+  has_been_reviewed: z.boolean(),
+  data: frigateReviewDataSchema,
+});
+export const frigateReviewsSchema = frigateReviewSchema.array();
+
+export type FrigateReview = z.infer<typeof frigateReviewSchema>;
+
+export interface FrigateReviewQueryResults extends ReviewQueryResults {
+  engine: Engine.Frigate;
+  instanceID: string;
+  reviews: FrigateReview[];
 }

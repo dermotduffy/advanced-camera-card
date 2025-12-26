@@ -235,6 +235,111 @@ describe('executeDefaultRecordingQuery', () => {
   });
 });
 
+describe('executeDefaultReviewQuery', () => {
+  it('should return null without cameras', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(createStore());
+
+    const executor = new QueryExecutor(api);
+    expect(
+      await executor.executeDefaultReviewQuery({
+        cameraID: 'camera.office',
+      }),
+    ).toBeNull();
+  });
+
+  it('should return null without queries', async () => {
+    const api = createPopulatedAPI();
+    vi.mocked(api.getCameraManager().generateDefaultReviewQueries).mockReturnValue(null);
+
+    const executor = new QueryExecutor(api);
+    expect(
+      await executor.executeDefaultReviewQuery({
+        cameraID: 'camera.office',
+      }),
+    ).toBeNull();
+  });
+
+  it('should return query results for specified camera', async () => {
+    const api = createPopulatedAPI();
+    const media = generateViewMediaArray();
+    const rawQueries = [
+      { type: QueryType.Review as const, cameraIDs: new Set(['camera.office']) },
+    ];
+    vi.mocked(api.getCameraManager().generateDefaultReviewQueries).mockReturnValue(
+      rawQueries,
+    );
+    vi.mocked(api.getCameraManager().executeMediaQueries).mockResolvedValue(media);
+
+    const executor = new QueryExecutor(api);
+    const results = await executor.executeDefaultReviewQuery({
+      cameraID: 'camera.office',
+    });
+
+    expect(results?.query.getQuery()).toEqual(rawQueries);
+    expect(results?.queryResults.getResults()).toEqual(media);
+    expect(api.getCameraManager().generateDefaultReviewQueries).toBeCalledWith(
+      new Set(['camera.office']),
+      {
+        limit: 50,
+      },
+    );
+  });
+
+  it('should return query results for all cameras', async () => {
+    const api = createPopulatedAPI();
+    const media = generateViewMediaArray();
+    const rawQueries = [
+      {
+        type: QueryType.Review as const,
+        cameraIDs: new Set(['camera.office', 'camera.kitchen']),
+      },
+    ];
+    vi.mocked(api.getCameraManager().generateDefaultReviewQueries).mockReturnValue(
+      rawQueries,
+    );
+    vi.mocked(api.getCameraManager().executeMediaQueries).mockResolvedValue(media);
+
+    const executor = new QueryExecutor(api);
+    const results = await executor.executeDefaultReviewQuery();
+
+    expect(results?.query.getQuery()).toEqual(rawQueries);
+    expect(results?.queryResults.getResults()).toEqual(media);
+    expect(api.getCameraManager().generateDefaultReviewQueries).toBeCalledWith(
+      new Set(['camera.office', 'camera.kitchen']),
+      {
+        limit: 50,
+      },
+    );
+  });
+
+  it('should return null when query returns null', async () => {
+    const api = createPopulatedAPI();
+    const rawQueries = [
+      {
+        type: QueryType.Review as const,
+        cameraIDs: new Set(['camera.office']),
+      },
+    ];
+    vi.mocked(api.getCameraManager().generateDefaultReviewQueries).mockReturnValue(
+      rawQueries,
+    );
+    vi.mocked(api.getCameraManager().executeMediaQueries).mockResolvedValue(null);
+
+    const executor = new QueryExecutor(api);
+    expect(
+      await executor.executeDefaultReviewQuery({ cameraID: 'camera.office' }),
+    ).toBeNull();
+    expect(api.getCameraManager().generateDefaultReviewQueries).toBeCalledWith(
+      new Set(['camera.office']),
+      {
+        limit: 50,
+      },
+    );
+  });
+});
+
 describe('executeQuery', () => {
   it('should return null when query is empty', async () => {
     const executor = new QueryExecutor(createCardAPI());

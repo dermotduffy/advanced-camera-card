@@ -123,10 +123,12 @@ import {
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
+  CONF_LIVE_CONTROLS_TIMELINE_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_TIMELINE_FORMAT_24H,
   CONF_LIVE_CONTROLS_TIMELINE_MODE,
   CONF_LIVE_CONTROLS_TIMELINE_PAN_MODE,
@@ -153,6 +155,7 @@ import {
   CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
   CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL,
   CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SIZE,
   CONF_MEDIA_VIEWER_AUTO_MUTE,
@@ -166,10 +169,12 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA_TYPE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_FORMAT_24H,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_PAN_MODE,
@@ -208,13 +213,17 @@ import {
   CONF_STATUS_BAR_POSITION,
   CONF_STATUS_BAR_STYLE,
   CONF_TIMELINE_CLUSTERING_THRESHOLD,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_MEDIA_TYPE,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
   CONF_TIMELINE_EVENTS_MEDIA_TYPE,
+  CONF_TIMELINE_MEDIA_TYPE,
   CONF_TIMELINE_FORMAT_24H,
   CONF_TIMELINE_SHOW_RECORDINGS,
   CONF_TIMELINE_STYLE,
@@ -424,6 +433,8 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'live', label: localize('config.view.views.live') },
     { value: 'recording', label: localize('config.view.views.recording') },
     { value: 'recordings', label: localize('config.view.views.recordings') },
+    { value: 'review', label: localize('config.view.views.review') },
+    { value: 'reviews', label: localize('config.view.views.reviews') },
     { value: 'snapshot', label: localize('config.view.views.snapshot') },
     { value: 'snapshots', label: localize('config.view.views.snapshots') },
     { value: 'timeline', label: localize('config.view.views.timeline') },
@@ -536,6 +547,10 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
   protected _thumbnailMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
+      value: 'auto',
+      label: localize('config.common.controls.thumbnails.media_types.auto'),
+    },
+    {
       value: 'events',
       label: localize('config.common.controls.thumbnails.media_types.events'),
     },
@@ -543,10 +558,34 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
       value: 'recordings',
       label: localize('config.common.controls.thumbnails.media_types.recordings'),
     },
+    {
+      value: 'reviews',
+      label: localize('config.common.controls.thumbnails.media_types.reviews'),
+    },
+  ];
+
+  protected _timelineThumbnailMediaTypes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'auto',
+      label: localize('config.common.controls.thumbnails.media_types.auto'),
+    },
+    {
+      value: 'events',
+      label: localize('config.common.controls.thumbnails.media_types.events'),
+    },
+    {
+      value: 'reviews',
+      label: localize('config.common.controls.thumbnails.media_types.reviews'),
+    },
   ];
 
   protected _thumbnailEventsMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
+    {
+      value: 'all',
+      label: localize('config.common.controls.thumbnails.events_media_types.all'),
+    },
     {
       value: 'clips',
       label: localize('config.common.controls.thumbnails.events_media_types.clips'),
@@ -1617,6 +1656,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     configPathStyle: string,
     configPathWindowSeconds: string,
     configPathClusteringThreshold: string,
+    configPathTimelineMediaType: string,
     configPathTimelineEventsMediaType: string,
     configPathShowRecordings: string,
     configPathFormat24h: string,
@@ -1633,6 +1673,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
             label: localize(`config.common.controls.timeline.pan_mode`),
           })
         : ``}
+      ${this._renderOptionSelector(
+        configPathTimelineMediaType,
+        this._timelineThumbnailMediaTypes,
+        {
+          label: localize(`config.common.controls.thumbnails.media_type`),
+        },
+      )}
       ${this._renderNumberInput(configPathWindowSeconds, {
         label: localize(`config.common.${CONF_TIMELINE_WINDOW_SECONDS}`),
       })}
@@ -1678,6 +1725,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     configPathStyle: string,
     configPathWindowSeconds: string,
     configPathClusteringThreshold: string,
+    configPathTimelineMediaType: string,
     configPathTimelineEventsMediaType: string,
     configPathShowRecordings: string,
     configPathFormat24h: string,
@@ -1698,6 +1746,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         configPathStyle,
         configPathWindowSeconds,
         configPathClusteringThreshold,
+        configPathTimelineMediaType,
         configPathTimelineEventsMediaType,
         configPathShowRecordings,
         configPathFormat24h,
@@ -1814,15 +1863,19 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     configPathShowFavoriteControl: string,
     configPathShowTimelineControl: string,
     configPathShowDownloadControl: string,
+    configPathShowReviewControl: string,
     defaults: {
       show_details: boolean;
       show_favorite_control: boolean;
       show_timeline_control: boolean;
       show_download_control: boolean;
+      show_review_control: boolean;
     },
     options?: {
       configPathMediaType?: string;
+      mediaTypeOptions?: EditorSelectOption[];
       configPathEventsMediaType?: string;
+      eventsMediaTypeOptions?: EditorSelectOption[];
       configPathMode?: string;
     },
   ): TemplateResult | void {
@@ -1844,7 +1897,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${options?.configPathMediaType
           ? html`${this._renderOptionSelector(
               options.configPathMediaType,
-              this._thumbnailMediaTypes,
+              options.mediaTypeOptions ?? this._thumbnailMediaTypes,
               {
                 label: localize('config.common.controls.thumbnails.media_type'),
               },
@@ -1853,7 +1906,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${options?.configPathEventsMediaType
           ? html`${this._renderOptionSelector(
               options.configPathEventsMediaType,
-              this._thumbnailEventsMediaTypes,
+              options.eventsMediaTypeOptions ?? this._thumbnailEventsMediaTypes,
               {
                 label: localize('config.common.controls.thumbnails.events_media_type'),
               },
@@ -1888,6 +1941,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
             label: localize('config.common.controls.thumbnails.show_download_control'),
           },
         )}
+        ${this._renderSwitch(configPathShowReviewControl, defaults.show_review_control, {
+          label: localize('config.common.controls.thumbnails.show_review_control'),
+        })}
       `,
     );
   }
@@ -2784,6 +2840,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${this._renderMenuButton('cameras') /* */}
                 ${this._renderMenuButton('substreams') /* */}
                 ${this._renderMenuButton('live') /* */}
+                ${this._renderMenuButton('reviews') /* */}
                 ${this._renderMenuButton('clips') /* */}
                 ${this._renderMenuButton('snapshots')}
                 ${this._renderMenuButton('recordings')}
@@ -2935,11 +2992,14 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
+                      CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL,
                       this._defaults.live.controls.thumbnails,
                       {
                         configPathMediaType: CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA_TYPE,
+                        mediaTypeOptions: this._thumbnailMediaTypes,
                         configPathEventsMediaType:
                           CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
+                        eventsMediaTypeOptions: this._thumbnailEventsMediaTypes,
                         configPathMode: CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
                       },
                     )}
@@ -2949,6 +3009,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                       CONF_LIVE_CONTROLS_TIMELINE_STYLE,
                       CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
                       CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
+                      CONF_LIVE_CONTROLS_TIMELINE_MEDIA_TYPE,
                       CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
                       CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
                       CONF_LIVE_CONTROLS_TIMELINE_FORMAT_24H,
@@ -3035,6 +3096,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
                 CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
                 CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
+                CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL,
                 this._defaults.media_gallery.controls.thumbnails,
               )}
               ${this._renderFilterControls(
@@ -3137,6 +3199,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                     CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
                     CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
                     CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
+                    CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL,
                     this._defaults.media_viewer.controls.thumbnails,
                     {
                       configPathMode: CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
@@ -3148,6 +3211,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
+                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA_TYPE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_FORMAT_24H,
@@ -3179,6 +3243,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 CONF_TIMELINE_STYLE,
                 CONF_TIMELINE_WINDOW_SECONDS,
                 CONF_TIMELINE_CLUSTERING_THRESHOLD,
+                CONF_TIMELINE_MEDIA_TYPE,
                 CONF_TIMELINE_EVENTS_MEDIA_TYPE,
                 CONF_TIMELINE_SHOW_RECORDINGS,
                 CONF_TIMELINE_FORMAT_24H,
@@ -3192,8 +3257,14 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
+                CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL,
                 this._defaults.timeline.controls.thumbnails,
                 {
+                  configPathMediaType: CONF_TIMELINE_CONTROLS_THUMBNAILS_MEDIA_TYPE,
+                  mediaTypeOptions: this._timelineThumbnailMediaTypes,
+                  configPathEventsMediaType:
+                    CONF_TIMELINE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
+                  eventsMediaTypeOptions: this._thumbnailEventsMediaTypes,
                   configPathMode: CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
                 },
               )}

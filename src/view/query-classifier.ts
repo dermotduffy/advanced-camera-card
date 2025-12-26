@@ -1,7 +1,13 @@
-import { EventMediaQuery, FolderViewQuery, Query, RecordingMediaQuery } from './query';
+import {
+  EventMediaQuery,
+  FolderViewQuery,
+  Query,
+  RecordingMediaQuery,
+  ReviewMediaQuery,
+} from './query';
 
-export type QueryType = 'event' | 'recording' | 'folder';
-type MediaType = 'clips' | 'snapshots' | 'recordings';
+export type QueryType = 'event' | 'recording' | 'review' | 'folder';
+type MediaType = 'clips' | 'snapshots' | 'recordings' | 'reviews';
 
 export class QueryClassifier {
   public static isEventQuery(query?: Query | null): query is EventMediaQuery {
@@ -12,10 +18,18 @@ export class QueryClassifier {
     return query instanceof RecordingMediaQuery;
   }
 
+  public static isReviewQuery(query?: Query | null): query is ReviewMediaQuery {
+    return query instanceof ReviewMediaQuery;
+  }
+
   public static isMediaQuery(
     query?: Query | null,
-  ): query is EventMediaQuery | RecordingMediaQuery {
-    return this.isEventQuery(query) || this.isRecordingQuery(query);
+  ): query is EventMediaQuery | RecordingMediaQuery | ReviewMediaQuery {
+    return (
+      this.isEventQuery(query) ||
+      this.isRecordingQuery(query) ||
+      this.isReviewQuery(query)
+    );
   }
 
   public static isFolderQuery(query?: Query | null): query is FolderViewQuery {
@@ -40,9 +54,11 @@ export class QueryClassifier {
       ? 'event'
       : this.isRecordingQuery(query)
         ? 'recording'
-        : this.isFolderQuery(query)
-          ? 'folder'
-          : null;
+        : this.isReviewQuery(query)
+          ? 'review'
+          : this.isFolderQuery(query)
+            ? 'folder'
+            : null;
   }
 
   public static getMediaType(query?: Query | null): MediaType | null {
@@ -52,6 +68,8 @@ export class QueryClassifier {
         ? 'snapshots'
         : this.isRecordingQuery(query)
           ? 'recordings'
-          : null;
+          : this.isReviewQuery(query)
+            ? 'reviews'
+            : null;
   }
 }

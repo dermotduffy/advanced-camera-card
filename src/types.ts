@@ -124,6 +124,7 @@ export interface CapabilitiesRaw {
   clips?: boolean;
   recordings?: boolean;
   snapshots?: boolean;
+  reviews?: boolean;
 
   'favorite-events'?: boolean;
   'favorite-recordings'?: boolean;
@@ -151,6 +152,7 @@ export const capabilityKeys: readonly [CapabilityKey, ...CapabilityKey[]] = [
   'menu',
   'ptz',
   'recordings',
+  'reviews',
   'seek',
   'snapshots',
   'substream',
@@ -194,3 +196,6 @@ export interface EffectsControllerAPI {
   stopEffect(effect: EffectName): void;
   toggleEffect(effect: EffectName, options?: EffectOptions): Promise<void>;
 }
+
+// Generic severity level (maps to Frigate alert/detection/significant_motion).
+export type Severity = 'high' | 'medium' | 'low';

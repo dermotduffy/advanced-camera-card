@@ -13,31 +13,31 @@ export const createPopulatedAPI = (
   config?: RawAdvancedCameraCardConfig,
 ): CardController => {
   const api = createCardAPI();
-  vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
-  vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-    createStore([
-      {
-        cameraID: 'camera.office',
-        capabilities: createCapabilities({
-          live: true,
-          snapshots: true,
-          clips: true,
-          recordings: true,
-          substream: true,
-        }),
-      },
-      {
-        cameraID: 'camera.kitchen',
-        capabilities: createCapabilities({
-          live: true,
-          snapshots: true,
-          clips: true,
-          recordings: true,
-          substream: true,
-        }),
-      },
-    ]),
-  );
+  const store = createStore([
+    {
+      cameraID: 'camera.office',
+      capabilities: createCapabilities({
+        live: true,
+        snapshots: true,
+        clips: true,
+        recordings: true,
+        reviews: true,
+        substream: true,
+      }),
+    },
+    {
+      cameraID: 'camera.kitchen',
+      capabilities: createCapabilities({
+        live: true,
+        snapshots: true,
+        clips: true,
+        recordings: true,
+        reviews: true,
+        substream: true,
+      }),
+    },
+  ]);
+  vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
   vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig(config));
   return api;
 };

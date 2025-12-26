@@ -9,8 +9,8 @@ import { CustomAction } from './actions/custom';
 import { DefaultAction } from './actions/default';
 import { DisplayModeSelectAction } from './actions/display-mode-select';
 import { DownloadAction } from './actions/download';
-import { ExpandAction } from './actions/expand';
 import { EffectAction } from './actions/effect';
+import { ExpandAction } from './actions/expand';
 import { FullscreenAction } from './actions/fullscreen';
 import { InternalCallbackAction } from './actions/internal-callback';
 import { LogAction } from './actions/log';
@@ -32,6 +32,7 @@ import { PTZControlsAction } from './actions/ptz-controls';
 import { PTZDigitalAction } from './actions/ptz-digital';
 import { PTZMultiAction } from './actions/ptz-multi';
 import { ReloadAction } from './actions/reload';
+import { SetReviewAction } from './actions/set-review';
 import { ScreenshotAction } from './actions/screenshot';
 import { SleepAction } from './actions/sleep';
 import { StatusBarAction } from './actions/status-bar';
@@ -93,6 +94,8 @@ export class ActionFactory {
       case 'live':
       case 'recording':
       case 'recordings':
+      case 'review':
+      case 'reviews':
       case 'snapshot':
       case 'snapshots':
       case 'timeline':
@@ -156,6 +159,8 @@ export class ActionFactory {
         return new StatusBarAction(context, action, options?.config);
       case 'reload':
         return new ReloadAction(context, action, options?.config);
+      case 'set_review':
+        return new SetReviewAction(context, action, options?.config);
       case INTERNAL_CALLBACK_ACTION:
         return new InternalCallbackAction(context, action, options?.config);
     }

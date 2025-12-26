@@ -74,6 +74,8 @@ export class AdvancedCameraCardFolderGallery extends LitElement {
         .show_timeline_control}
       ?show_download_control=${!!this.galleryConfig?.controls.thumbnails
         .show_download_control}
+      ?show_review_control=${!!this.galleryConfig?.controls.thumbnails
+        .show_review_control}
       @click=${(ev: Event) => clickCallback(item, ev)}
     >
     </advanced-camera-card-thumbnail>`;

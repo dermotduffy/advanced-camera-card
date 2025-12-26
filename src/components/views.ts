@@ -187,6 +187,7 @@ export class AdvancedCameraCardViews extends LitElement {
               .resolvedMediaCache=${this.resolvedMediaCache}
               .cameraManager=${this.cameraManager}
               .cardWideConfig=${this.cardWideConfig}
+              .viewItemManager=${this.viewItemManager}
             >
             </advanced-camera-card-viewer>
           `

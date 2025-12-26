@@ -32,6 +32,8 @@ export const getCameraIDsForViewName = (
     case 'snapshots':
     case 'recording':
     case 'recordings':
+    case 'review':
+    case 'reviews':
       const options: CapabilitySearchOptions = {
         inclusive: viewName !== 'live',
       };
@@ -42,7 +44,9 @@ export const getCameraIDsForViewName = (
             ? 'snapshots'
             : viewName === 'recording'
               ? 'recordings'
-              : viewName;
+              : viewName === 'review'
+                ? 'reviews'
+                : viewName;
       return cameraID
         ? cameraManager.getStore().getAllDependentCameras(cameraID, capability, options)
         : cameraManager.getStore().getCameraIDsWithCapability(capability, options);

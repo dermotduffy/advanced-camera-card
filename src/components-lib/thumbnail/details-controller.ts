@@ -2,20 +2,22 @@ import { format } from 'date-fns';
 import { CameraManager } from '../../camera-manager/manager';
 import { CameraManagerCameraMetadata } from '../../camera-manager/types';
 import { localize } from '../../localize/localize';
-import { Icon } from '../../types';
+import { Icon, Severity } from '../../types';
 import { getDurationString, prettifyTitle } from '../../utils/basic';
 import { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 
-interface Detail {
+export interface Detail {
+  title: string;
+
   icon?: Icon;
   hint?: string;
-  title: string;
+  severity?: Severity;
 }
 
 export class ThumbnailDetailsController {
   private _details: Detail[] = [];
-  private _heading: string | null = null;
+  private _heading: Detail | null = null;
 
   public calculate(
     cameraManager?: CameraManager | null,
@@ -43,12 +45,36 @@ export class ThumbnailDetailsController {
       const rawScore = item.getScore();
       const score = rawScore ? (rawScore * 100).toFixed(2) + '%' : null;
 
-      this._heading = whatWithTags ? `${whatWithTags}${score ? ` ${score}` : ''}` : null;
+      this._heading = whatWithTags
+        ? { title: `${whatWithTags}${score ? ` ${score}` : ''}` }
+        : null;
+      return;
+    }
+
+    if (ViewItemClassifier.isReview(item)) {
+      const what = prettifyTitle(item.getWhat()?.join(', ')) ?? null;
+      const title = item.getTitle();
+      const heading = what || title;
+      const severity = item.getSeverity();
+
+      this._heading = heading
+        ? {
+            title: heading,
+            severity: severity ?? undefined,
+            hint:
+              localize('common.severity') +
+              ': ' +
+              localize('common.severities.' + severity),
+            icon: { icon: 'mdi:circle-medium' },
+          }
+        : null;
       return;
     }
 
     if (cameraMetadata?.title) {
-      this._heading = cameraMetadata.title;
+      this._heading = {
+        title: cameraMetadata.title,
+      };
       return;
     }
 
@@ -137,7 +163,9 @@ export class ThumbnailDetailsController {
 
     // To avoid duplication, if the event has a starttime, the title is omitted
     // from the details.
-    const includeTitle = !ViewItemClassifier.isEvent(item) || !startTime;
+    const includeTitle =
+      (!ViewItemClassifier.isEvent(item) && !ViewItemClassifier.isReview(item)) ||
+      !startTime;
     this._details = [
       ...(includeTitle && itemTitle
         ? [
@@ -154,7 +182,7 @@ export class ThumbnailDetailsController {
     ];
   }
 
-  public getHeading(): string | null {
+  public getHeading(): Detail | null {
     return this._heading;
   }
 

@@ -49,6 +49,7 @@ import {
   PartialQueryConcreteType,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
+  PartialReviewQuery,
   QueryResults,
   QueryResultsType,
   QueryReturnType,
@@ -60,6 +61,8 @@ import {
   RecordingSegmentsQueryResults,
   RecordingSegmentsQueryResultsMap,
   ResultsMap,
+  ReviewQuery,
+  ReviewQueryResults,
 } from './types.js';
 
 export class CameraQueryClassifier {
@@ -83,6 +86,11 @@ export class CameraQueryClassifier {
   ): query is MediaMetadataQuery {
     return query.type === QueryType.MediaMetadata;
   }
+  public static isReviewQuery(
+    query: CameraQuery | PartialCameraQuery,
+  ): query is ReviewQuery {
+    return query.type === QueryType.Review;
+  }
 }
 
 export class QueryResultClassifier {
@@ -105,6 +113,11 @@ export class QueryResultClassifier {
     queryResults?: QueryResults | null,
   ): queryResults is MediaMetadataQueryResults {
     return queryResults?.type === QueryResultsType.MediaMetadata;
+  }
+  public static isReviewQueryResult(
+    queryResults?: QueryResults | null,
+  ): queryResults is ReviewQueryResults {
+    return queryResults?.type === QueryResultsType.Review;
   }
 }
 
@@ -328,6 +341,16 @@ export class CameraManager {
     });
   }
 
+  public generateDefaultReviewQueries(
+    cameraIDs: string | Set<string>,
+    partialQuery?: PartialReviewQuery,
+  ): ReviewQuery[] | null {
+    return this._generateDefaultQueries(cameraIDs, {
+      type: QueryType.Review,
+      ...partialQuery,
+    });
+  }
+
   protected _generateDefaultQueries<PQT extends PartialCameraQuery>(
     cameraIDs: string | Set<string>,
     partialQuery: PQT,
@@ -352,6 +375,12 @@ export class CameraManager {
         );
       } else if (CameraQueryClassifier.isRecordingSegmentsQuery(partialQuery)) {
         queries = engine.generateDefaultRecordingSegmentsQuery(
+          this._store,
+          cameraIDs,
+          partialQuery,
+        );
+      } else if (CameraQueryClassifier.isReviewQuery(partialQuery)) {
+        queries = engine.generateDefaultReviewQuery(
           this._store,
           cameraIDs,
           partialQuery,
@@ -568,6 +597,33 @@ export class CameraManager {
     );
   }
 
+  public async reviewMedia(media: ViewMedia, reviewed: boolean): Promise<void> {
+    const cameraConfig = this._store.getCameraConfigForMedia(media);
+    const engine = this._store.getEngineForMedia(media);
+    const hass = this._api.getHASSManager().getHASS();
+
+    if (!cameraConfig || !engine || !hass) {
+      return;
+    }
+
+    const queryStartTime = new Date();
+
+    await this._requestLimit.add(() =>
+      engine.reviewMedia(hass, cameraConfig, media, reviewed),
+    );
+
+    log(
+      this._api.getConfigManager().getCardWideConfig(),
+      'Advanced Camera Card CameraManager review media request (',
+      `Duration: ${(new Date().getTime() - queryStartTime.getTime()) / 1000}s,`,
+      'Media:',
+      media.getID(),
+      ', Reviewed:',
+      reviewed,
+      ')',
+    );
+  }
+
   public areMediaQueriesResultsFresh<T extends MediaQuery>(
     resultsTimestamp: Date,
     queries: T[] | null,
@@ -667,6 +723,13 @@ export class CameraManager {
           query,
           engineOptions,
         )) as Map<QT, QueryReturnType<QT>> | null;
+      } else if (CameraQueryClassifier.isReviewQuery(query)) {
+        engineResult = (await engine.getReviews(
+          hass,
+          this._store,
+          query,
+          engineOptions,
+        )) as Map<QT, QueryReturnType<QT>> | null;
       }
 
       engineResult?.forEach((value, key) => results.set(key, value));
@@ -739,6 +802,11 @@ export class CameraManager {
           QueryResultClassifier.isRecordingQueryResult(result)
         ) {
           media = engine.generateMediaFromRecordings(hass, this._store, query, result);
+        } else if (
+          CameraQueryClassifier.isReviewQuery(query) &&
+          QueryResultClassifier.isReviewQueryResult(result)
+        ) {
+          media = engine.generateMediaFromReviews(hass, this._store, query, result);
         }
         if (media) {
           mediaArray.push(...media);

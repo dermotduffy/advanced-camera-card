@@ -17,6 +17,7 @@ import { CardWideConfig } from '../../config/schema/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize';
 import mediaGalleryStyle from '../../scss/media-gallery.scss';
+import { ViewItem } from '../../view/item.js';
 import '../media-filter';
 import '../message.js';
 import { renderMessage } from '../message.js';
@@ -90,6 +91,8 @@ export class AdvancedCameraCardMediaGallery extends LitElement {
               .show_timeline_control}
             ?show_download_control=${!!this.galleryConfig?.controls.thumbnails
               .show_download_control}
+            ?show_review_control=${!!this.galleryConfig?.controls.thumbnails
+              .show_review_control}
             @click=${(ev: Event) => {
               const manager = this.viewManagerEpoch?.manager;
               if (manager) {
@@ -190,5 +193,8 @@ export class AdvancedCameraCardMediaGallery extends LitElement {
 declare global {
   interface HTMLElementTagNameMap {
     'advanced-camera-card-media-gallery': AdvancedCameraCardMediaGallery;
+  }
+  interface HTMLElementEventMap {
+    'advanced-camera-card:media:reviewed': CustomEvent<ViewItem>;
   }
 }

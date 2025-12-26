@@ -5,7 +5,7 @@ import { CameraConfig } from '../../config/schema/cameras';
 import { getEntityTitle } from '../../ha/get-entity-title';
 import { EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
-import { Endpoint } from '../../types';
+import { Endpoint, Severity } from '../../types';
 import {
   allPromises,
   formatDate,
@@ -40,6 +40,7 @@ import {
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
+  PartialReviewQuery,
   QueryResults,
   QueryResultsType,
   QueryReturnType,
@@ -50,6 +51,8 @@ import {
   RecordingSegment,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
+  ReviewQuery,
+  ReviewQueryResultsMap,
 } from '../types';
 import { FrigateCamera, isBirdseye } from './camera';
 import { FrigateEventWatcher } from './event-watcher';
@@ -58,22 +61,35 @@ import { FrigateViewMediaClassifier } from './media-classifier';
 import {
   NativeFrigateEventQuery,
   NativeFrigateRecordingSegmentsQuery,
+  NativeFrigateReviewQuery,
   getEventSummary,
   getEvents,
   getRecordingSegments,
   getRecordingsSummary,
+  getReviews,
   retainEvent,
+  setReviewsReviewed,
 } from './requests';
 import {
   FrigateEventQueryResults,
   FrigateRecording,
   FrigateRecordingQueryResults,
   FrigateRecordingSegmentsQueryResults,
+  FrigateReviewQueryResults,
+  FrigateReviewSeverity,
 } from './types';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const MEDIA_METADATA_REQUEST_CACHE_AGE_SECONDS = 60;
+const REVIEW_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
+
+// Maps generic severity levels to Frigate-specific severity values.
+const SEVERITY_MAP: Record<Severity, FrigateReviewSeverity> = {
+  high: 'alert',
+  medium: 'detection',
+  low: 'significant_motion',
+};
 
 class FrigateQueryResultsClassifier {
   public static isFrigateEventQueryResults(
@@ -97,6 +113,12 @@ class FrigateQueryResultsClassifier {
       results.engine === Engine.Frigate &&
       results.type === QueryResultsType.RecordingSegments
     );
+  }
+
+  public static isFrigateReviewQueryResults(
+    results: QueryResults,
+  ): results is FrigateReviewQueryResults {
+    return results.engine === Engine.Frigate && results.type === QueryResultsType.Review;
   }
 }
 
@@ -182,51 +204,10 @@ export class FrigateCameraManagerEngine
     cameraIDs: Set<string>,
     query?: PartialEventQuery,
   ): EventQuery[] | null {
-    const relevantCameraConfigs = [...store.getCameraConfigs(cameraIDs)];
-
-    // If all cameras specify exactly the same zones or labels (incl. none), we
-    // can use a single batch query which will be better performance wise,
-    // otherwise we must fan out to multiple queries in order to precisely match
-    // the user's intent.
-    const uniqueZoneArrays = uniqWith(
-      relevantCameraConfigs.map((config) => config?.frigate.zones),
-      isEqual,
-    );
-    const uniqueLabelArrays = uniqWith(
-      relevantCameraConfigs.map((config) => config?.frigate.labels),
-      isEqual,
-    );
-
-    if (uniqueZoneArrays.length === 1 && uniqueLabelArrays.length === 1) {
-      return [
-        {
-          type: QueryType.Event,
-          cameraIDs: cameraIDs,
-          ...(uniqueLabelArrays[0] && { what: new Set(uniqueLabelArrays[0]) }),
-          ...(uniqueZoneArrays[0] && { where: new Set(uniqueZoneArrays[0]) }),
-          ...query,
-        },
-      ];
-    }
-
-    const output: EventQuery[] = [];
-    for (const cameraID of cameraIDs) {
-      const cameraConfig = store.getCameraConfig(cameraID);
-      if (cameraConfig) {
-        output.push({
-          type: QueryType.Event,
-          cameraIDs: new Set([cameraID]),
-          ...(cameraConfig.frigate.labels && {
-            what: new Set(cameraConfig.frigate.labels),
-          }),
-          ...(cameraConfig.frigate.zones && {
-            where: new Set(cameraConfig.frigate.zones),
-          }),
-          ...query,
-        });
-      }
-    }
-    return output.length ? output : null;
+    return this._generateBatchableQuery(store, cameraIDs, {
+      type: QueryType.Event,
+      ...query,
+    });
   }
 
   public generateDefaultRecordingQuery(
@@ -262,6 +243,84 @@ export class FrigateCameraManagerEngine
     ];
   }
 
+  public generateDefaultReviewQuery(
+    store: CameraManagerReadOnlyConfigStore,
+    cameraIDs: Set<string>,
+    query?: PartialReviewQuery,
+  ): ReviewQuery[] | null {
+    return this._generateBatchableQuery(store, cameraIDs, {
+      type: QueryType.Review,
+      ...query,
+    });
+  }
+
+  /**
+   * Helper to generate batchable queries for events and reviews.
+   * If all cameras have identical zones/labels config, creates a single batch query.
+   * Otherwise fans out to per-camera queries.
+   */
+  protected _generateBatchableQuery(
+    store: CameraManagerReadOnlyConfigStore,
+    cameraIDs: Set<string>,
+    query: PartialEventQuery & { type: QueryType.Event },
+  ): EventQuery[] | null;
+  protected _generateBatchableQuery(
+    store: CameraManagerReadOnlyConfigStore,
+    cameraIDs: Set<string>,
+    query: PartialReviewQuery & { type: QueryType.Review },
+  ): ReviewQuery[] | null;
+  protected _generateBatchableQuery(
+    store: CameraManagerReadOnlyConfigStore,
+    cameraIDs: Set<string>,
+    query: (PartialEventQuery | PartialReviewQuery) & {
+      type: QueryType.Event | QueryType.Review;
+    },
+  ): (EventQuery | ReviewQuery)[] | null {
+    const relevantCameraConfigs = [...store.getCameraConfigs(cameraIDs)];
+
+    // If all cameras specify exactly the same zones or labels (incl. none), we
+    // can use a single batch query which will be better performance wise,
+    // otherwise we must fan out to multiple queries in order to precisely match
+    // the user's intent.
+    const uniqueZoneArrays = uniqWith(
+      relevantCameraConfigs.map((config) => config?.frigate.zones),
+      isEqual,
+    );
+    const uniqueLabelArrays = uniqWith(
+      relevantCameraConfigs.map((config) => config?.frigate.labels),
+      isEqual,
+    );
+
+    if (uniqueZoneArrays.length === 1 && uniqueLabelArrays.length === 1) {
+      return [
+        {
+          ...query,
+          cameraIDs: cameraIDs,
+          ...(uniqueLabelArrays[0] && { what: new Set(uniqueLabelArrays[0]) }),
+          ...(uniqueZoneArrays[0] && { where: new Set(uniqueZoneArrays[0]) }),
+        },
+      ];
+    }
+
+    const output: (EventQuery | ReviewQuery)[] = [];
+    for (const cameraID of cameraIDs) {
+      const cameraConfig = store.getCameraConfig(cameraID);
+      if (cameraConfig) {
+        output.push({
+          ...query,
+          cameraIDs: new Set([cameraID]),
+          ...(cameraConfig.frigate.labels && {
+            what: new Set(cameraConfig.frigate.labels),
+          }),
+          ...(cameraConfig.frigate.zones && {
+            where: new Set(cameraConfig.frigate.zones),
+          }),
+        });
+      }
+    }
+    return output.length ? output : null;
+  }
+
   public async favoriteMedia(
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
@@ -274,6 +333,24 @@ export class FrigateCameraManagerEngine
 
     await retainEvent(hass, cameraConfig.frigate.client_id, media.getID(), favorite);
     media.setFavorite(favorite);
+  }
+
+  public async reviewMedia(
+    hass: HomeAssistant,
+    cameraConfig: CameraConfig,
+    media: ViewMedia,
+    reviewed: boolean,
+  ): Promise<void> {
+    if (!FrigateViewMediaClassifier.isFrigateReview(media)) {
+      return;
+    }
+
+    await setReviewsReviewed(
+      hass,
+      cameraConfig.frigate.client_id,
+      [media.getID()],
+      reviewed,
+    );
   }
 
   protected _buildInstanceToCameraIDMapFromQuery(
@@ -364,6 +441,66 @@ export class FrigateCameraManagerEngine
     // Frigate allows multiple cameras to be searched for events in a single
     // query. Break them down into groups of cameras per Frigate instance, then
     // query once per instance for all cameras in that instance.
+    const instances = this._buildInstanceToCameraIDMapFromQuery(store, query.cameraIDs);
+
+    await Promise.all(
+      Array.from(instances.keys()).map((instanceID) =>
+        processInstanceQuery(instanceID, instances.get(instanceID)),
+      ),
+    );
+    return output.size ? output : null;
+  }
+
+  public async getReviews(
+    hass: HomeAssistant,
+    store: CameraManagerReadOnlyConfigStore,
+    query: ReviewQuery,
+    engineOptions?: EngineOptions,
+  ): Promise<ReviewQueryResultsMap | null> {
+    const output: ReviewQueryResultsMap = new Map();
+
+    const processInstanceQuery = async (
+      instanceID: string,
+      cameraIDs?: Set<string>,
+    ): Promise<void> => {
+      if (!cameraIDs || !cameraIDs.size) {
+        return;
+      }
+      const instanceQuery = { ...query, cameraIDs: cameraIDs };
+      const cachedResult =
+        engineOptions?.useCache ?? true ? this._requestCache.get(instanceQuery) : null;
+      if (cachedResult) {
+        output.set(query, cachedResult as FrigateReviewQueryResults);
+        return;
+      }
+
+      const nativeQuery: NativeFrigateReviewQuery = {
+        instance_id: instanceID,
+        cameras: Array.from(this._getFrigateCameraNamesForCameraIDs(store, cameraIDs)),
+        ...(query.what && { labels: Array.from(query.what) }),
+        ...(query.where && { zones: Array.from(query.where) }),
+        ...(query.end && { before: Math.floor(query.end.getTime() / 1000) }),
+        ...(query.start && { after: Math.floor(query.start.getTime() / 1000) }),
+        ...(query.limit && { limit: query.limit }),
+        ...(query.severity && { severity: SEVERITY_MAP[query.severity] }),
+        ...(query.reviewed !== undefined && { reviewed: query.reviewed }),
+      };
+
+      const result: FrigateReviewQueryResults = {
+        type: QueryResultsType.Review,
+        engine: Engine.Frigate,
+        instanceID: instanceID,
+        reviews: await getReviews(hass, nativeQuery),
+        expiry: add(new Date(), { seconds: REVIEW_REQUEST_CACHE_MAX_AGE_SECONDS }),
+        cached: false,
+      };
+
+      if (engineOptions?.useCache ?? true) {
+        this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+      }
+      output.set(instanceQuery, result);
+    };
+
     const instances = this._buildInstanceToCameraIDMapFromQuery(store, query.cameraIDs);
 
     await Promise.all(
@@ -641,11 +778,50 @@ export class FrigateCameraManagerEngine
     return output;
   }
 
+  public generateMediaFromReviews(
+    _hass: HomeAssistant,
+    store: CameraManagerReadOnlyConfigStore,
+    query: ReviewQuery,
+    results: QueryReturnType<ReviewQuery>,
+  ): ViewMedia[] | null {
+    if (!FrigateQueryResultsClassifier.isFrigateReviewQueryResults(results)) {
+      return null;
+    }
+
+    const output: ViewMedia[] = [];
+    for (const review of results.reviews) {
+      const cameraID = this._getCameraIDMatch(
+        store,
+        query,
+        results.instanceID,
+        review.camera,
+      );
+      if (!cameraID) {
+        continue;
+      }
+      const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
+      if (!cameraConfig) {
+        continue;
+      }
+      const media = FrigateViewMediaFactory.createReviewViewMedia(
+        cameraID,
+        review,
+        cameraConfig,
+      );
+      if (media) {
+        output.push(media);
+      }
+    }
+    return output;
+  }
+
   public getQueryResultMaxAge(query: CameraQuery): number | null {
     if (query.type === QueryType.Event) {
       return EVENT_REQUEST_CACHE_MAX_AGE_SECONDS;
     } else if (query.type === QueryType.Recording) {
       return RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS;
+    } else if (query.type === QueryType.Review) {
+      return REVIEW_REQUEST_CACHE_MAX_AGE_SECONDS;
     }
     return null;
   }
@@ -657,11 +833,22 @@ export class FrigateCameraManagerEngine
     target: Date,
     engineOptions?: EngineOptions,
   ): Promise<number | null> {
-    const start = media.getStartTime();
-    const end = media.getEndTime();
+    const mediaStart = media.getStartTime();
+    const mediaEnd = media.getEndTime();
     const cameraID = media.getCameraID();
+    const mediaType = media.getMediaType();
 
-    if (!start || !end || target < start || target > end || !cameraID) {
+    if (!mediaStart || !cameraID) {
+      return null;
+    }
+
+    // For recordings/reviews, use hour boundaries since Frigate recordings are
+    // hour-long. For clips/snapshots, use the actual media time range.
+    const isRecordingBased = mediaType === 'recording' || mediaType === 'review';
+    const start = isRecordingBased ? startOfHour(mediaStart) : mediaStart;
+    const end = isRecordingBased ? endOfHour(mediaStart) : mediaEnd;
+
+    if (!end || target < start || target > end) {
       return null;
     }
 

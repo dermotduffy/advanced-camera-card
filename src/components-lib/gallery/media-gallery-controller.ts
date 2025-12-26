@@ -1,5 +1,6 @@
 import { CameraManager, ExtendedMediaQueryResult } from '../../camera-manager/manager';
 import { EventQuery, MediaQuery, RecordingQuery } from '../../camera-manager/types';
+import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context';
 import {
   ViewManagerEpoch,
   ViewManagerInterface,
@@ -9,6 +10,7 @@ import { MediaGalleryThumbnailsConfig } from '../../config/schema/media-gallery'
 import { stopEventFromActivatingCardWideActions } from '../../utils/action';
 import { errorToConsole } from '../../utils/basic';
 import { ViewItem } from '../../view/item';
+import { ViewItemClassifier } from '../../view/item-classifier';
 import { EventMediaQuery, RecordingMediaQuery } from '../../view/query';
 import { QueryClassifier } from '../../view/query-classifier';
 import { QueryResults } from '../../view/query-results';
@@ -142,15 +144,30 @@ export class MediaGalleryController {
       return;
     }
 
+    // Get the actual index (reversing back from the gallery order)
+    const actualIndex = this._media.length - reversedIndex - 1;
+    const selectedMedia = this._media[reversedIndex];
+
+    const seek = ViewItemClassifier.isMedia(selectedMedia)
+      ? selectedMedia.getStartTime()
+      : null;
+
     viewManager.setViewByParameters({
       params: {
         view: 'media',
         queryResults: view.queryResults?.clone().selectIndex(
           // Media in the gallery is reversed vs the queryResults (see
           // note above).
-          this._media.length - reversedIndex - 1,
+          actualIndex,
         ),
       },
+      ...(seek && {
+        modifiers: [
+          new MergeContextViewModifier({
+            mediaViewer: { seek },
+          }),
+        ],
+      }),
     });
   }
 }

@@ -93,16 +93,16 @@ live:
       # [...]
 ```
 
-| Option                  | Default  | Description                                                                                                                                                                   |
-| ----------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `events_media_type`     | `all`    | Whether to show `clips`, `snapshots` or `all` in the thumbnail carousel in the `live` view. This setting is only relevant when the `media_type` parameter is set to `events`. |
-| `media_type`            | `events` | Whether to load `events` or `recordings` media.                                                                                                                               |
-| `mode`                  | `none`   | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).               |
-| `show_details`          | `false`  | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.                                                                      |
-| `show_download_control` | `true`   | Whether to show the download control on each thumbnail.                                                                                                                       |
-| `show_favorite_control` | `true`   | Whether to show the favorite ('star') control on each thumbnail.                                                                                                              |
-| `show_timeline_control` | `true`   | Whether to show the timeline ('target') control on each thumbnail.                                                                                                            |
-| `size`                  | `100`    | The size of the thumbnails in the thumbnail carousel in pixels. Must be &gt;= `75` and &lt;= `300`.                                                                           |
+| Option                  | Default | Description                                                                                                                                                                                         |
+| ----------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `events_media_type`     | `all`   | Whether to show `clips`, `snapshots` or `all` in the thumbnail carousel in the `live` view. This setting is only relevant when the `media_type` parameter is set to `events`.                       |
+| `media_type`            | `auto`  | Whether to load `events`, `recordings` or `reviews` media. If `auto` (the default) the card will automatically choose the best available media type for the camera (Reviews > Events > Recordings). |
+| `mode`                  | `none`  | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).                                     |
+| `show_details`          | `false` | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.                                                                                            |
+| `show_download_control` | `true`  | Whether to show the download control on each thumbnail.                                                                                                                                             |
+| `show_favorite_control` | `true`  | Whether to show the favorite ('star') control on each thumbnail.                                                                                                                                    |
+| `show_timeline_control` | `true`  | Whether to show the timeline ('target') control on each thumbnail.                                                                                                                                  |
+| `size`                  | `100`   | The size of the thumbnails in the thumbnail carousel in pixels. Must be &gt;= `75` and &lt;= `300`.                                                                                                 |
 
 ### `timeline`
 
@@ -219,7 +219,7 @@ live:
         # Optionally override the default style.
         right: 5%
     thumbnails:
-      media_type: events
+      media_type: auto
       events_media_type: all
       size: 100
       show_details: false

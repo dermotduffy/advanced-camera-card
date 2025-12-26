@@ -183,6 +183,7 @@ export class FrigateCamera extends Camera {
       clips: !birdseye,
       snapshots: !birdseye,
       recordings: !birdseye,
+      reviews: !birdseye,
       ...(combinedPTZ && { ptz: combinedPTZ }),
     };
   }

@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+import { Capabilities } from '../../../src/camera-manager/capabilities';
 import { applyViewModifiers } from '../../../src/card-controller/view/modifiers';
 import { QueryExecutor } from '../../../src/card-controller/view/query-executor';
 import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
@@ -79,6 +80,35 @@ describe('ViewQueryExecutor', () => {
         vi.useRealTimers();
       });
 
+      it('should set query and queryResults for reviews', async () => {
+        const query = new EventMediaQuery();
+        const queryResults = new QueryResults();
+
+        const executor = mock<QueryExecutor>();
+        executor.executeDefaultReviewQuery.mockResolvedValue({
+          query,
+          queryResults,
+        });
+
+        const api = createPopulatedAPI();
+        vi.mocked(api.getCameraManager().getCameraCapabilities).mockReturnValue(
+          new Capabilities({ reviews: true }),
+        );
+
+        const viewQueryExecutor = new ViewQueryExecutor(api, executor);
+        const view = createView({ view: 'live', camera: 'camera.office' });
+        const queryExecutorOptions = {};
+
+        const modifiers = await viewQueryExecutor.getNewQueryModifiers(
+          view,
+          queryExecutorOptions,
+        );
+        applyViewModifiers(view, modifiers);
+
+        expect(view.query).toBe(query);
+        expect(view.queryResults).toBe(queryResults);
+      });
+
       it('should set query and queryResults for events', async () => {
         const query = new EventMediaQuery();
         const queryResults = new QueryResults();
@@ -89,7 +119,13 @@ describe('ViewQueryExecutor', () => {
           queryResults: queryResults,
         });
 
-        const viewQueryExecutor = new ViewQueryExecutor(createPopulatedAPI(), executor);
+        // Must not return 'reviews' capability.
+        const api = createPopulatedAPI();
+        vi.mocked(api.getCameraManager()?.getCameraCapabilities).mockReturnValue(
+          new Capabilities({ clips: true, snapshots: true }),
+        );
+
+        const viewQueryExecutor = new ViewQueryExecutor(api, executor);
         const view = createView({ view: 'live', camera: 'camera.office' });
         const queryExecutorOptions = {};
 
@@ -110,6 +146,40 @@ describe('ViewQueryExecutor', () => {
         });
         expect(executor.executeDefaultRecordingQuery).not.toHaveBeenCalled();
         expect(executor.executeFolderQuery).not.toHaveBeenCalled();
+      });
+
+      it('should use events_media_type when camera does not have reviews capability', async () => {
+        const query = new EventMediaQuery();
+        const queryResults = new QueryResults();
+
+        const executor = mock<QueryExecutor>();
+        executor.executeDefaultEventQuery.mockResolvedValue({
+          query: query,
+          queryResults: queryResults,
+        });
+
+        const api = createPopulatedAPI();
+        // Mock camera capabilities to NOT have reviews - this forces resolvedMediaType === 'events'.
+        vi.mocked(api.getCameraManager()?.getCameraCapabilities).mockReturnValue(
+          new Capabilities({ clips: true, snapshots: true }),
+        );
+
+        const viewQueryExecutor = new ViewQueryExecutor(api, executor);
+        const view = createView({ view: 'live', camera: 'camera.office' });
+
+        const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
+        applyViewModifiers(view, modifiers);
+
+        expect(view?.query).toBe(query);
+        expect(view?.queryResults).toBe(queryResults);
+        // When resolvedMediaType === 'events', it uses config.live.controls.thumbnails.events_media_type.
+        expect(executor.executeDefaultEventQuery).toBeCalledWith({
+          cameraID: 'camera.office',
+          eventsMediaType: 'all',
+          executorOptions: {
+            useCache: false,
+          },
+        });
       });
 
       it('should set query and queryResults for recordings', async () => {
@@ -447,6 +517,30 @@ describe('ViewQueryExecutor', () => {
 
         expect(view?.context?.mediaViewer?.seek).toBeUndefined();
       });
+    });
+
+    it('should set query for reviews view', async () => {
+      const query = new EventMediaQuery();
+      const queryResults = new QueryResults();
+
+      const executor = mock<QueryExecutor>();
+      executor.executeDefaultReviewQuery.mockResolvedValue({
+        query: query,
+        queryResults: queryResults,
+      });
+
+      const viewQueryExecutor = new ViewQueryExecutor(createPopulatedAPI(), executor);
+      const view = createView({ view: 'reviews', camera: 'camera.office' });
+      const queryExecutorOptions = {};
+
+      const modifiers = await viewQueryExecutor.getNewQueryModifiers(
+        view,
+        queryExecutorOptions,
+      );
+      applyViewModifiers(view, modifiers);
+
+      expect(view.query).toBe(query);
+      expect(view.queryResults).toBe(queryResults);
     });
   });
 });

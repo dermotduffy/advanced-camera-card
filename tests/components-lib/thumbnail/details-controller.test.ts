@@ -18,7 +18,7 @@ describe('ThumbnailDetailsController', () => {
 
       const controller = new ThumbnailDetailsController();
       controller.calculate(null, item);
-      expect(controller.getHeading()).toBe('Person, Car: Tag1, Tag2 50.00%');
+      expect(controller.getHeading()?.title).toBe('Person, Car: Tag1, Tag2 50.00%');
     });
 
     it('should set heading on event with tags', () => {
@@ -28,7 +28,7 @@ describe('ThumbnailDetailsController', () => {
 
       const controller = new ThumbnailDetailsController();
       controller.calculate(null, item);
-      expect(controller.getHeading()).toBe('Tag1, Tag2');
+      expect(controller.getHeading()?.title).toBe('Tag1, Tag2');
     });
 
     it('should set heading on event with what', () => {
@@ -38,7 +38,7 @@ describe('ThumbnailDetailsController', () => {
 
       const controller = new ThumbnailDetailsController();
       controller.calculate(null, item);
-      expect(controller.getHeading()).toBe('Person, Car');
+      expect(controller.getHeading()?.title).toBe('Person, Car');
     });
 
     it('should set null heading on event with no other information', () => {
@@ -67,7 +67,7 @@ describe('ThumbnailDetailsController', () => {
 
       const controller = new ThumbnailDetailsController();
       controller.calculate(cameraManager, item);
-      expect(controller.getHeading()).toBe('Camera Title');
+      expect(controller.getHeading()?.title).toBe('Camera Title');
     });
 
     it('should set heading on recording without camera metadata', () => {

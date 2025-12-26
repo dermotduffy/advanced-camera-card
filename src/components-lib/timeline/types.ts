@@ -6,6 +6,7 @@ import { CameraConfig } from '../../config/schema/cameras';
 import { FolderConfig } from '../../config/schema/folders';
 import { HomeAssistant } from '../../ha/types';
 import { ViewMedia } from '../../view/item';
+import { QueryType } from '../../view/query-classifier';
 
 // An event used to fetch data required for thumbnail rendering. See special
 // note in AdvancedCameraCardTimelineThumbnail on why this is necessary.
@@ -25,6 +26,7 @@ export type TimelineKeys =
   | {
       type: 'camera';
       cameraIDs: Set<string>;
+      queryType: Exclude<QueryType, 'folder'>;
     }
   | {
       type: 'folder';

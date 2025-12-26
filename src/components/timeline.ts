@@ -43,16 +43,7 @@ export class AdvancedCameraCardTimeline extends LitElement {
   protected _getKeys(): TimelineKeys | undefined {
     const query = this.viewManagerEpoch?.manager.getView()?.query;
 
-    // If there's a query, try to extract camera IDs or folder info from it.
-    if (QueryClassifier.isMediaQuery(query)) {
-      const cameraIDs = query.getQueryCameraIDs();
-      if (cameraIDs && cameraIDs.size) {
-        return {
-          type: 'camera',
-          cameraIDs,
-        };
-      }
-    } else if (QueryClassifier.isFolderQuery(query)) {
+    if (QueryClassifier.isFolderQuery(query)) {
       const folderConfig = query.getQuery()?.folder;
       if (folderConfig) {
         return {
@@ -62,16 +53,44 @@ export class AdvancedCameraCardTimeline extends LitElement {
       }
     }
 
-    // Otherwise fall back to all cameras that support media queries.
-    const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability({
+    // If there's a query, try to extract camera IDs or folder info from it.
+    const queryType = QueryClassifier.getQueryType(query);
+    if (
+      queryType &&
+      queryType !== 'folder' &&
+      query &&
+      !QueryClassifier.isFolderQuery(query)
+    ) {
+      const cameraIDs = query.getQueryCameraIDs();
+      if (cameraIDs && cameraIDs.size) {
+        return {
+          type: 'camera',
+          cameraIDs,
+          queryType,
+        };
+      }
+    }
+
+    const reviewCameras = this.cameraManager
+      ?.getStore()
+      .getCameraIDsWithCapability('reviews');
+    const mediaCameras = this.cameraManager?.getStore().getCameraIDsWithCapability({
       anyCapabilities: ['clips', 'snapshots', 'recordings'],
     });
+
+    // Otherwise fall back to all cameras that support media queries.
+    const requestedMediaType = this.timelineConfig?.controls.thumbnails.media_type;
+    const useReviews =
+      (requestedMediaType === 'auto' || requestedMediaType === 'reviews') &&
+      !!reviewCameras?.size;
+    const cameraIDs = useReviews ? reviewCameras : mediaCameras;
     const folder = this.foldersManager?.getFolder() ?? null;
 
     return cameraIDs?.size
       ? {
           type: 'camera',
           cameraIDs,
+          queryType: useReviews ? 'review' : 'event',
         }
       : folder
         ? {

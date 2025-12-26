@@ -12,6 +12,7 @@ import {
   RecordingSegment,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResults,
+  ReviewQuery,
 } from '../../../src/camera-manager/types';
 import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import {
@@ -107,6 +108,12 @@ describe('TimelineDataSource', () => {
   const cameraTimelineKeys: TimelineKeys = {
     type: 'camera',
     cameraIDs: new Set(['camera-1', 'camera-2']),
+    queryType: 'event',
+  };
+  const reviewTimelineKeys: TimelineKeys = {
+    type: 'camera',
+    cameraIDs: new Set(['camera-1']),
+    queryType: 'review',
   };
   const folderTimelineKeys: TimelineKeys = {
     type: 'folder',
@@ -264,7 +271,7 @@ describe('TimelineDataSource', () => {
         'all',
         true,
       );
-      source.addEventMediaToDataset([media]);
+      source.addMediaToDataset([media]);
 
       expect(source.dataset.length).toBe(1);
       expect(source.dataset.get(id)).toEqual({
@@ -275,6 +282,78 @@ describe('TimelineDataSource', () => {
         group: 'camera/camera-1',
         content: '',
         type: 'range',
+      });
+    });
+
+    it('should add review media with severity to dataset', () => {
+      const startTime = new Date('2025-09-21T15:32:21Z');
+      const endTime = new Date('2025-09-21T15:35:28Z');
+      const id = 'REVIEW_ID';
+      const media = new TestViewMedia({
+        cameraID: 'camera-1',
+        id,
+        startTime,
+        endTime,
+        mediaType: ViewMediaType.Review,
+        severity: 'high',
+      });
+
+      const source = new TimelineDataSource(
+        createTestCameraManager(),
+        mock<FoldersManager>(),
+        mock<ConditionStateManagerReadonlyInterface>(),
+        reviewTimelineKeys,
+        'all',
+        false,
+      );
+      source.addMediaToDataset([media]);
+
+      expect(source.dataset.length).toBe(1);
+      expect(source.dataset.get(id)).toEqual({
+        id,
+        start: startTime.getTime(),
+        end: endTime.getTime(),
+        media,
+        group: 'camera/camera-1',
+        content: '',
+        type: 'range',
+        severity: 'high',
+      });
+    });
+
+    it('should add review media with null severity to dataset', () => {
+      const startTime = new Date('2025-09-21T15:32:21Z');
+      const endTime = new Date('2025-09-21T15:35:28Z');
+      const id = 'REVIEW_ID';
+      const media = new TestViewMedia({
+        cameraID: 'camera-1',
+        id,
+        startTime,
+        endTime,
+        mediaType: ViewMediaType.Review,
+        severity: null,
+      });
+
+      const source = new TimelineDataSource(
+        createTestCameraManager(),
+        mock<FoldersManager>(),
+        mock<ConditionStateManagerReadonlyInterface>(),
+        reviewTimelineKeys,
+        'all',
+        false,
+      );
+      source.addMediaToDataset([media]);
+
+      expect(source.dataset.length).toBe(1);
+      expect(source.dataset.get(id)).toEqual({
+        id,
+        start: startTime.getTime(),
+        end: endTime.getTime(),
+        media,
+        group: 'camera/camera-1',
+        content: '',
+        type: 'range',
+        severity: undefined,
       });
     });
 
@@ -300,7 +379,7 @@ describe('TimelineDataSource', () => {
         'all',
         true,
       );
-      source.addEventMediaToDataset([media]);
+      source.addMediaToDataset([media]);
 
       expect(source.dataset.length).toBe(1);
       expect(source.dataset.get(id)).toEqual({
@@ -324,7 +403,7 @@ describe('TimelineDataSource', () => {
         true,
       );
 
-      source.addEventMediaToDataset([
+      source.addMediaToDataset([
         new TestViewMedia({
           mediaType: ViewMediaType.Recording,
         }),
@@ -343,7 +422,7 @@ describe('TimelineDataSource', () => {
         true,
       );
 
-      source.addEventMediaToDataset(null);
+      source.addMediaToDataset(null);
 
       expect(source.dataset.length).toBe(0);
     });
@@ -358,7 +437,7 @@ describe('TimelineDataSource', () => {
         true,
       );
 
-      source.addEventMediaToDataset([
+      source.addMediaToDataset([
         new TestViewMedia({
           cameraID: null,
           folder: null,
@@ -573,6 +652,86 @@ describe('TimelineDataSource', () => {
       });
     });
 
+    describe('should refresh reviews', () => {
+      beforeEach(() => {
+        vi.restoreAllMocks();
+      });
+
+      it('should refresh reviews successfully', async () => {
+        const cameraManager = createTestCameraManager();
+        const reviewQuery: ReviewQuery = {
+          type: QueryType.Review,
+          cameraIDs: new Set([CAMERA_ID]),
+          start,
+          end,
+        };
+        vi.mocked(cameraManager.generateDefaultReviewQueries).mockReturnValue([
+          reviewQuery,
+        ]);
+
+        const source = new TimelineDataSource(
+          cameraManager,
+          mock<FoldersManager>(),
+          mock<ConditionStateManagerReadonlyInterface>(),
+          reviewTimelineKeys,
+          'all',
+          false,
+        );
+
+        await source.refresh(window);
+
+        expect(cameraManager.generateDefaultReviewQueries).toHaveBeenCalled();
+        expect(cameraManager.executeMediaQueries).toHaveBeenCalled();
+        expect(source.dataset.length).toBe(1);
+      });
+
+      it('should not refresh reviews when window is cached', async () => {
+        const cameraManager = createTestCameraManager();
+        const reviewQuery: ReviewQuery = {
+          type: QueryType.Review,
+          cameraIDs: new Set([CAMERA_ID]),
+          start,
+          end,
+        };
+        vi.mocked(cameraManager.generateDefaultReviewQueries).mockReturnValue([
+          reviewQuery,
+        ]);
+
+        const source = new TimelineDataSource(
+          cameraManager,
+          mock<FoldersManager>(),
+          mock<ConditionStateManagerReadonlyInterface>(),
+          reviewTimelineKeys,
+          'all',
+          false,
+        );
+
+        await source.refresh(window);
+        await source.refresh(window);
+
+        expect(cameraManager.executeMediaQueries).toHaveBeenCalledTimes(1);
+      });
+
+      it('should not refresh reviews without review queries', async () => {
+        const cameraManager = createTestCameraManager();
+        vi.mocked(cameraManager.generateDefaultReviewQueries).mockReturnValue(null);
+
+        const source = new TimelineDataSource(
+          cameraManager,
+          mock<FoldersManager>(),
+          mock<ConditionStateManagerReadonlyInterface>(),
+          reviewTimelineKeys,
+          'all',
+          false,
+        );
+
+        await source.refresh(window);
+
+        expect(cameraManager.executeMediaQueries).not.toHaveBeenCalled();
+        expect(source.dataset.length).toBe(0);
+      });
+    });
+
     describe('should refresh recordings', () => {
       const getRecordings = (
         dataset: DataSet<AdvancedCameraCardTimelineItem>,
@@ -687,6 +846,7 @@ describe('TimelineDataSource', () => {
         const emptycameraTimelineKeys: TimelineKeys = {
           type: 'camera',
           cameraIDs: new Set(),
+          queryType: 'event',
         };
         const source = new TimelineDataSource(
           createTestCameraManager(),
@@ -996,6 +1156,50 @@ describe('TimelineDataSource', () => {
           start,
           end,
           hasSnapshot: true,
+        },
+      );
+    });
+  });
+
+  describe('should get timeline review queries', () => {
+    const window: TimelineWindow = { start, end };
+
+    it('should not get review queries without cameras', () => {
+      const source = new TimelineDataSource(
+        createCameraManager(),
+        mock<FoldersManager>(),
+        mock<ConditionStateManagerReadonlyInterface>(),
+        folderTimelineKeys,
+        'all',
+        true,
+      );
+
+      expect(source.getTimelineReviewQueries(window)).toBeNull();
+    });
+
+    it('should get review queries', () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: CAMERA_ID,
+          },
+        ]),
+      );
+      const source = new TimelineDataSource(
+        cameraManager,
+        mock<FoldersManager>(),
+        mock<ConditionStateManagerReadonlyInterface>(),
+        reviewTimelineKeys,
+        'all',
+        false,
+      );
+      source.getTimelineReviewQueries(window);
+
+      expect(cameraManager.generateDefaultReviewQueries).toBeCalledWith(
+        new Set(['camera-1']),
+        {
+          start,
+          end,
         },
       );
     });

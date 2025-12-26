@@ -284,4 +284,34 @@ describe('ViewItemManager', () => {
       expect(api.getFoldersManager().favorite).toBeCalledWith(item, true);
     });
   });
+
+  describe('reviewMedia', () => {
+    it('should review camera media', async () => {
+      const api = createCardAPI();
+
+      const manager = new ViewItemManager(api);
+      const item = new TestViewMedia({
+        cameraID: 'camera.office',
+        mediaType: 'review' as ViewMediaType,
+      });
+
+      await manager.reviewMedia(item, true);
+
+      expect(api.getCameraManager().reviewMedia).toBeCalledWith(item, true);
+    });
+
+    it('should not review non-review media', async () => {
+      const api = createCardAPI();
+
+      const manager = new ViewItemManager(api);
+      const item = new TestViewMedia({
+        cameraID: 'camera.office',
+        mediaType: ViewMediaType.Clip,
+      });
+
+      await manager.reviewMedia(item, true);
+
+      expect(api.getCameraManager().reviewMedia).not.toBeCalled();
+    });
+  });
 });

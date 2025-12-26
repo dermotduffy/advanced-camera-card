@@ -22,9 +22,11 @@ import { HomeAssistant } from '../ha/types.js';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { contentsChanged } from '../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
-import { QueryClassifier } from '../view/query-classifier.js';
+import { QueryClassifier, QueryType } from '../view/query-classifier.js';
 import './surround-basic.js';
 import './thumbnail-carousel';
+import { LiveThumbnailsControlConfig } from '../config/schema/live.js';
+import { TimelineThumbnailsControlConfig } from '../config/schema/timeline.js';
 
 @customElement('advanced-camera-card-surround')
 export class AdvancedCameraCardSurround extends LitElement {
@@ -35,7 +37,9 @@ export class AdvancedCameraCardSurround extends LitElement {
   public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  public thumbnailConfig?: ThumbnailsControlConfig;
+  public thumbnailConfig?: ThumbnailsControlConfig &
+    Partial<LiveThumbnailsControlConfig> &
+    Partial<TimelineThumbnailsControlConfig>;
 
   @property({ attribute: false, hasChanged: contentsChanged })
   public timelineConfig?: MiniTimelineControlConfig;
@@ -92,11 +96,15 @@ export class AdvancedCameraCardSurround extends LitElement {
   }
 
   protected _getTimelineKeys(): TimelineKeys | null {
-    const cameraIDsToKeys = (cameraIDs: Set<string> | null): TimelineKeys | null => {
+    const cameraIDsToKeys = (
+      cameraIDs: Set<string> | null,
+      queryType: Exclude<QueryType, 'folder'>,
+    ): TimelineKeys | null => {
       return cameraIDs?.size
         ? {
             type: 'camera',
             cameraIDs,
+            queryType,
           }
         : null;
     };
@@ -114,18 +122,39 @@ export class AdvancedCameraCardSurround extends LitElement {
     }
 
     if (view.is('live')) {
-      const capabilitySearch = {
+      // Otherwise fall back to all cameras that support media/review queries.
+      const mediaCapabilitySearch = {
         anyCapabilities: ['clips' as const, 'snapshots' as const, 'recordings' as const],
       };
+
+      const requestedMediaType = this.thumbnailConfig?.media_type;
       if (view.supportsMultipleDisplayModes() && view.isGrid()) {
+        const reviewCameras = this.cameraManager
+          ?.getStore()
+          .getCameraIDsWithCapability('reviews');
+        const mediaCameras = this.cameraManager
+          ?.getStore()
+          .getCameraIDsWithCapability(mediaCapabilitySearch);
+        const useReviews =
+          (requestedMediaType === 'auto' || requestedMediaType === 'reviews') &&
+          !!reviewCameras?.size;
         return cameraIDsToKeys(
-          this.cameraManager.getStore().getCameraIDsWithCapability(capabilitySearch),
+          useReviews ? reviewCameras : mediaCameras,
+          useReviews ? 'review' : 'event',
         );
       } else {
+        const reviewCameras = this.cameraManager
+          .getStore()
+          .getAllDependentCameras(view.camera, 'reviews');
+        const mediaCameras = this.cameraManager
+          .getStore()
+          .getAllDependentCameras(view.camera, mediaCapabilitySearch);
+        const useReviews =
+          (requestedMediaType === 'auto' || requestedMediaType === 'reviews') &&
+          !!reviewCameras?.size;
         return cameraIDsToKeys(
-          this.cameraManager
-            .getStore()
-            .getAllDependentCameras(view.camera, capabilitySearch),
+          useReviews ? reviewCameras : mediaCameras,
+          useReviews ? 'review' : 'event',
         );
       }
     }
@@ -133,7 +162,10 @@ export class AdvancedCameraCardSurround extends LitElement {
     const queries = view.query;
     if (view.isViewerView()) {
       if (QueryClassifier.isMediaQuery(queries)) {
-        return cameraIDsToKeys(queries.getQueryCameraIDs());
+        return cameraIDsToKeys(
+          queries.getQueryCameraIDs(),
+          QueryClassifier.isReviewQuery(queries) ? 'review' : 'event',
+        );
       } else if (QueryClassifier.isFolderQuery(queries)) {
         const folderConfig = queries.getQuery()?.folder;
         return folderConfig ? folderToKeys(folderConfig) : null;

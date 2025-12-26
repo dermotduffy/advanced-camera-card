@@ -1,7 +1,8 @@
 # `media_gallery`
 
 The `media_gallery` is used for providing an overview of all `clips`,
-`snapshots`, `recordings` and `folder` contents in a thumbnail gallery.
+`snapshots`, `recordings`, `reviews` and `folder` contents in a thumbnail
+gallery.
 
 ```yaml
 media_gallery:

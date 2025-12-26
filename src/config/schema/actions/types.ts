@@ -12,6 +12,7 @@ import { ptzActionConfigSchema } from './custom/ptz';
 import { ptzControlsActionConfigSchema } from './custom/ptz-controls';
 import { ptzDigitalActionConfigSchema } from './custom/ptz-digital';
 import { ptzMultiActionSchema } from './custom/ptz-multi';
+import { setReviewActionConfigSchema } from './custom/set-review';
 import { sleepActionConfigSchema } from './custom/sleep';
 import { substreamSelectActionConfigSchema } from './custom/substream-select';
 import { viewActionConfigSchema } from './custom/view';
@@ -51,6 +52,7 @@ const advancedCameraCardCustomActionSchema = z.union([
   ptzControlsActionConfigSchema,
   ptzDigitalActionConfigSchema,
   ptzMultiActionSchema,
+  setReviewActionConfigSchema,
   sleepActionConfigSchema,
   statusBarActionConfigSchema,
   substreamSelectActionConfigSchema,

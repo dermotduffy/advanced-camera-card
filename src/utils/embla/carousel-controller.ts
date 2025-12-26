@@ -95,6 +95,9 @@ export class CarouselController {
   }
 
   public selectSlide(index: number): void {
+    if (index < 0 || index >= this._carousel.slideNodes().length) {
+      return;
+    }
     this._carousel.scrollTo(index, this._transitionEffect === 'none');
 
     // This event exists to allow the caller to know the difference between
@@ -102,6 +105,10 @@ export class CarouselController {
     // (e.g. carousel drags). See the note in auto-media-loaded-info.ts on how
     // this is used.
     const newSlide = this.getSlide(index);
+
+    /* istanbul ignore if: defensive guard for getSlide returning null which can
+    only happen with an index out of bounds, which is guarded against above --
+    @preserve */
     if (newSlide) {
       fireAdvancedCameraCardEvent<CarouselSelected>(
         this._parent,
@@ -115,11 +122,10 @@ export class CarouselController {
   }
 
   protected _refreshCarouselContents = (): void => {
-    const newSlides = getChildrenFromElement(this._parent);
-    const slidesChanged = !isEqual(this._carousel.slideNodes(), newSlides);
+    const slides = getChildrenFromElement(this._parent);
+    const slidesChanged = !isEqual(this._carousel.slideNodes(), slides);
     if (slidesChanged) {
-      this._carousel.destroy();
-      this._carousel = this._createCarousel(newSlides);
+      this._carousel.reInit({ slides });
     }
   };
 

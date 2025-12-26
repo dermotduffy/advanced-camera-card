@@ -126,7 +126,9 @@ export class View {
    * Determine if a view is a media gallery.
    */
   public isMediaGalleryView(): boolean {
-    return ['clips', 'folders', 'snapshots', 'recordings'].includes(this.view);
+    return ['clips', 'folders', 'snapshots', 'recordings', 'reviews'].includes(
+      this.view,
+    );
   }
 
   /**
@@ -145,7 +147,9 @@ export class View {
    * Determine if a view is for the media viewer.
    */
   public isViewerView(): boolean {
-    return ['folder', 'media', 'clip', 'snapshot', 'recording'].includes(this.view);
+    return ['folder', 'media', 'clip', 'snapshot', 'recording', 'review'].includes(
+      this.view,
+    );
   }
 
   public supportsMultipleDisplayModes(): boolean {
@@ -157,7 +161,7 @@ export class View {
    * @returns Whether the default media is `clips`, `snapshots`, `recordings` or unknown
    * (`null`).
    */
-  public getDefaultMediaType(): 'clips' | 'snapshots' | 'recordings' | null {
+  public getDefaultMediaType(): 'clips' | 'snapshots' | 'recordings' | 'reviews' | null {
     if (['clip', 'clips'].includes(this.view)) {
       return 'clips';
     }
@@ -166,6 +170,9 @@ export class View {
     }
     if (['recording', 'recordings'].includes(this.view)) {
       return 'recordings';
+    }
+    if (['review', 'reviews'].includes(this.view)) {
+      return 'reviews';
     }
     return null;
   }

@@ -56,6 +56,9 @@ export class AdvancedCameraCardThumbnail extends LitElement {
   @property({ attribute: true, type: Boolean })
   public show_download_control = false;
 
+  @property({ attribute: true, type: Boolean })
+  public show_review_control = false;
+
   @property({ attribute: false })
   public seek?: Date;
 
@@ -94,6 +97,11 @@ export class AdvancedCameraCardThumbnail extends LitElement {
       this.item.getID() &&
       mediaCapabilities?.canDownload;
 
+    const isReviewed = ViewItemClassifier.isReview(this.item)
+      ? this.item.isReviewed()
+      : null;
+    const shouldShowReviewControl = this.show_review_control && isReviewed !== null;
+
     return html`
       <advanced-camera-card-thumbnail-feature
         .cameraManager=${this.cameraManager}
@@ -102,6 +110,42 @@ export class AdvancedCameraCardThumbnail extends LitElement {
         .item=${this.item}
       >
       </advanced-camera-card-thumbnail-feature>
+      ${shouldShowReviewControl
+        ? html`<advanced-camera-card-icon
+            class="review"
+            title=${isReviewed
+              ? localize('common.set_reviews.unreviewed')
+              : localize('common.set_reviews.reviewed')}
+            .icon=${{
+              icon: isReviewed ? 'mdi:check-circle' : 'mdi:check-circle-outline',
+            }}
+            @click=${async (ev: Event) => {
+              stopEventFromActivatingCardWideActions(ev);
+              if (this.hass && this.item && ViewItemClassifier.isReview(this.item)) {
+                const newReviewedState = !isReviewed;
+                try {
+                  await this.viewItemManager?.reviewMedia(this.item, newReviewedState);
+                } catch (e) {
+                  errorToConsole(e as Error);
+                  return;
+                }
+
+                // Update local state so the icon reflects the change
+                this.item.setReviewed(newReviewedState);
+
+                // Remove this item from the view's queryResults
+                const view = this.viewManagerEpoch?.manager.getView();
+                if (view?.queryResults) {
+                  this.viewManagerEpoch?.manager.setViewByParameters({
+                    params: {
+                      queryResults: view.queryResults.clone().removeItem(this.item),
+                    },
+                  });
+                }
+              }
+            }}
+          ></advanced-camera-card-icon>`
+        : ''}
       ${shouldShowFavoriteControl
         ? html` <advanced-camera-card-icon
             class="${classMap(starClasses)}"

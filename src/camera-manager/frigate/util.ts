@@ -1,8 +1,13 @@
 import { toZonedTime } from 'date-fns-tz';
 import { CameraConfig } from '../../config/schema/cameras';
-import { ClipsOrSnapshots } from '../../types';
+import { ClipsOrSnapshots, Severity } from '../../types';
 import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
-import { FrigateEvent, FrigateRecording } from './types';
+import {
+  FrigateEvent,
+  FrigateRecording,
+  FrigateReview,
+  FrigateReviewSeverity,
+} from './types';
 
 /**
  * Given an event generate a title.
@@ -57,30 +62,30 @@ export const getEventMediaContentID = (
 };
 
 /**
- * Generate a recording identifier.
- * @param clientId The Frigate client id.
- * @param cameraName The Frigate camera name.
- * @param recording The Frigate recording.
- * @returns A recording identifier.
+ * Build a recording media content ID from a start time.
+ */
+const buildRecordingMediaContentID = (
+  clientId: string,
+  cameraName: string,
+  startTime: Date,
+): string =>
+  [
+    'media-source://frigate',
+    clientId,
+    'recordings',
+    cameraName,
+    `${startTime.getFullYear()}-${String(startTime.getMonth() + 1).padStart(2, '0')}-${String(startTime.getDate()).padStart(2, '0')}`,
+    String(startTime.getHours()).padStart(2, '0'),
+  ].join('/');
+
+/**
+ * Generate a recording media content ID.
  */
 export const getRecordingMediaContentID = (
   clientId: string,
   cameraName: string,
   recording: FrigateRecording,
-): string => {
-  return [
-    'media-source://frigate',
-    clientId,
-    'recordings',
-    cameraName,
-    `${recording.startTime.getFullYear()}-${String(
-      recording.startTime.getMonth() + 1,
-    ).padStart(2, '0')}-${String(
-      String(recording.startTime.getDate()).padStart(2, '0'),
-    )}`,
-    String(recording.startTime.getHours()).padStart(2, '0'),
-  ].join('/');
-};
+): string => buildRecordingMediaContentID(clientId, cameraName, recording.startTime);
 
 /**
  * Get a recording ID for internal de-duping.
@@ -95,4 +100,61 @@ export const getRecordingID = (
   return `${cameraConfig.frigate?.client_id ?? ''}/${
     cameraConfig.frigate.camera_name ?? ''
   }/${recording.startTime.getTime()}/${recording.endTime.getTime()}`;
+};
+
+/**
+ * Given a review generate a title.
+ * @param review The Frigate review item.
+ */
+export const getReviewTitle = (review: FrigateReview): string => {
+  const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const durationSeconds = Math.round(
+    review.end_time
+      ? review.end_time - review.start_time
+      : Date.now() / 1000 - review.start_time,
+  );
+  const objects = review.data.objects?.length
+    ? `, ${review.data.objects.map((o) => prettifyTitle(o)).join(', ')}`
+    : '';
+
+  return `${formatDateAndTime(
+    toZonedTime(review.start_time * 1000, localTimezone),
+  )} [${durationSeconds}s${objects}]`;
+};
+
+/**
+ * Generate a review media content ID.
+ */
+export const getReviewMediaContentID = (
+  clientId: string,
+  cameraName: string,
+  review: FrigateReview,
+): string =>
+  buildRecordingMediaContentID(clientId, cameraName, new Date(review.start_time * 1000));
+
+/**
+ * Get a thumbnail URL for a review.
+ */
+export const getReviewThumbnailURL = (
+  clientId: string,
+  review: FrigateReview,
+): string | null => {
+  if (!review.thumb_path) {
+    return null;
+  }
+  const path = review.thumb_path.replace('/media/frigate/', '');
+  return `/api/frigate/${clientId}/${path}`;
+};
+
+/**
+ * Get generic review severity.
+ */
+export const getReviewSeverity = (severity: FrigateReviewSeverity): Severity => {
+  if (severity === 'alert') {
+    return 'high';
+  }
+  if (severity === 'detection') {
+    return 'medium';
+  }
+  return 'low';
 };
