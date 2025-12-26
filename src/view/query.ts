@@ -1,9 +1,14 @@
 import { cloneDeep, isEqual, uniqWith } from 'lodash-es';
-import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types.js';
+import {
+  EventQuery,
+  MediaQuery,
+  RecordingQuery,
+  ReviewQuery,
+} from '../camera-manager/types.js';
 import { FolderQuery } from '../card-controller/folders/types.js';
 import { setify } from '../utils/basic.js';
 
-export type MediaQueries = EventMediaQuery | RecordingMediaQuery;
+export type MediaQueries = EventMediaQuery | RecordingMediaQuery | ReviewMediaQuery;
 export type Query = MediaQueries | FolderViewQuery;
 
 class ViewQuery<T> {
@@ -116,5 +121,7 @@ export class EventMediaQuery extends MediaQueryBase<EventQuery> {
 }
 
 export class RecordingMediaQuery extends MediaQueryBase<RecordingQuery> {}
+
+export class ReviewMediaQuery extends MediaQueryBase<ReviewQuery> {}
 
 export class FolderViewQuery extends ViewQuery<FolderQuery> {}

@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../../camera-manager/manager.js';
+import { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { ViewerConfig } from '../../config/schema/viewer.js';
@@ -49,6 +50,9 @@ export class AdvancedCameraCardViewer extends LitElement {
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
+
+  @property({ attribute: false })
+  public viewItemManager?: ViewItemManager;
 
   @property({ attribute: 'empty', reflect: true, type: Boolean })
   public isEmpty = false;
@@ -96,6 +100,7 @@ export class AdvancedCameraCardViewer extends LitElement {
       .resolvedMediaCache=${this.resolvedMediaCache}
       .cameraManager=${this.cameraManager}
       .cardWideConfig=${this.cardWideConfig}
+      .viewItemManager=${this.viewItemManager}
     >
     </advanced-camera-card-viewer-grid>`;
   }

@@ -11,6 +11,16 @@
     "no_folder": "No folder to display",
     "no_media": "No media to display",
     "recordings": "Recordings",
+    "set_reviews": {
+      "reviewed": "Mark as reviewed",
+      "unreviewed": "Mark as unreviewed"
+    },
+    "severity": "Severity",
+    "severities": {
+      "high": "High",
+      "low": "Low",
+      "medium": "Medium"
+    },
     "version": "Version"
   },
   "config": {
@@ -222,13 +232,16 @@
           "editor_label": "Thumbnails",
           "events_media_type": "Whether to show event thumbnails of clips or snapshots",
           "events_media_types": {
+            "all": "All event thumbnails",
             "clips": "Clip thumbnails",
             "snapshots": "Snapshot thumbnails"
           },
-          "media_type": "Whether to show thumnails of events or recordings",
+          "media_type": "What to show thumbnails of",
           "media_types": {
+            "auto": "Automatic",
             "events": "Events",
-            "recordings": "Recordings"
+            "recordings": "Recordings",
+            "reviews": "Reviews"
           },
           "mode": "Thumbnails mode",
           "modes": {
@@ -242,6 +255,7 @@
           "show_download_control": "Show download control on thumbnails",
           "show_favorite_control": "Show favorite control on thumbnails",
           "show_timeline_control": "Show timeline control on thumbnails",
+          "show_review_control": "Show review control on thumbnails",
           "size": "Thumbnails size in pixels"
         },
         "timeline": {
@@ -444,6 +458,8 @@
         "ptz_controls": "Show PTZ controls",
         "ptz_home": "PTZ Home",
         "recordings": "Recordings",
+        "reviews": "Reviews",
+        "set_review": "Set review status",
         "screenshot": "Screenshot",
         "snapshots": "Snapshots",
         "substreams": "Substream(s)",
@@ -604,6 +620,8 @@
         "live": "Live view",
         "recording": "Most recent recording",
         "recordings": "Recordings gallery",
+        "review": "Most recent media to review",
+        "reviews": "Reviews gallery",
         "snapshot": "Most recent snapshot",
         "snapshots": "Snapshots gallery",
         "timeline": "Timeline view"

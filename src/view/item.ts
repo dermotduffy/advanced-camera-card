@@ -1,9 +1,11 @@
 import { FolderConfig } from '../config/schema/folders';
+import { Severity } from '../types';
 
 export enum ViewMediaType {
   Clip = 'clip',
   Snapshot = 'snapshot',
   Recording = 'recording',
+  Review = 'review',
 }
 
 export enum VideoContentType {
@@ -68,6 +70,9 @@ export class ViewMedia {
   public isFavorite(): boolean | null {
     return null;
   }
+  public isReviewed(): boolean | null {
+    return null;
+  }
   public includesTime(seek: Date): boolean {
     const startTime = this.getStartTime();
     const endTime = this.getUsableEndTime();
@@ -94,6 +99,13 @@ export interface EventViewMedia extends ViewMedia {
 
 export interface RecordingViewMedia extends ViewMedia {
   getEventCount(): number | null;
+}
+
+export interface ReviewViewMedia extends ViewMedia {
+  getSeverity(): Severity | null;
+  getWhat(): string[] | null;
+  isReviewed(): boolean | null;
+  setReviewed(reviewed: boolean): void;
 }
 
 interface ViewFolderParameters {

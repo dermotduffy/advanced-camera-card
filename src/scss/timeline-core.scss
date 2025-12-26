@@ -65,6 +65,18 @@ div.timeline {
     border-color ease-in-out 1s,
     box-shadow ease-in-out 1s;
 }
+.vis-item[data-severity='high'] {
+  border-color: var(--advanced-camera-card-timeline-item-severity-high-color);
+  background-color: var(--advanced-camera-card-timeline-item-severity-high-color);
+}
+.vis-item[data-severity='medium'] {
+  border-color: var(--advanced-camera-card-timeline-item-severity-medium-color);
+  background-color: var(--advanced-camera-card-timeline-item-severity-medium-color);
+}
+.vis-item[data-severity='low'] {
+  border-color: var(--advanced-camera-card-timeline-item-severity-low-color);
+  background-color: var(--advanced-camera-card-timeline-item-severity-low-color);
+}
 .vis-item.vis-selected {
   border-color: var(--advanced-camera-card-active-color);
   background-color: var(--advanced-camera-card-active-color);

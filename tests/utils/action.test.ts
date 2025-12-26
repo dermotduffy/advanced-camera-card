@@ -16,6 +16,7 @@ import {
   createPTZDigitalAction,
   createPTZMultiAction,
   createSelectOptionAction,
+  createSetReviewAction,
   createViewAction,
   getActionConfigGivenAction,
   hasAction,
@@ -313,6 +314,32 @@ describe('createEffectAction', () => {
       effect: 'snow',
       effect_action: 'start',
       card_id: 'card_id',
+    });
+  });
+});
+
+describe('createSetReviewAction', () => {
+  it('should create set review action', () => {
+    expect(createSetReviewAction(true)).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'set_review',
+      reviewed: true,
+    });
+  });
+
+  it('should create set review action with false', () => {
+    expect(createSetReviewAction(false)).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'set_review',
+      reviewed: false,
+    });
+  });
+
+  it('should create set review action with undefined', () => {
+    expect(createSetReviewAction()).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'set_review',
+      reviewed: undefined,
     });
   });
 });

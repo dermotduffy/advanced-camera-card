@@ -1,7 +1,7 @@
 import { ExpiringEqualityCache } from '../cache/expiring-cache';
 import { SSLCiphers } from '../config/schema/cameras';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
-import { CapabilityKey, Endpoint, Icon } from '../types';
+import { CapabilityKey, Endpoint, Icon, Severity } from '../types';
 import { ViewMedia } from '../view/item';
 
 // ====
@@ -13,6 +13,7 @@ export enum QueryType {
   Recording = 'recording-query',
   RecordingSegments = 'recording-segments-query',
   MediaMetadata = 'media-metadata',
+  Review = 'review-query',
 }
 
 export enum QueryResultsType {
@@ -20,6 +21,7 @@ export enum QueryResultsType {
   Recording = 'recording-results',
   RecordingSegments = 'recording-segments-results',
   MediaMetadata = 'media-metadata-results',
+  Review = 'review-results',
 }
 
 export enum Engine {
@@ -74,14 +76,18 @@ export type QueryReturnType<QT> = QT extends EventQuery
       ? RecordingSegmentsQueryResults
       : QT extends MediaMetadataQuery
         ? MediaMetadataQueryResults
-        : never;
+        : QT extends ReviewQuery
+          ? ReviewQueryResults
+          : never;
 export type PartialQueryConcreteType<PQT> = PQT extends PartialEventQuery
   ? EventQuery
   : PQT extends PartialRecordingQuery
     ? RecordingQuery
     : PQT extends PartialRecordingSegmentsQuery
       ? RecordingSegmentsQuery
-      : never;
+      : PQT extends PartialReviewQuery
+        ? ReviewQuery
+        : never;
 
 export type ResultsMap<QT> = Map<QT, QueryReturnType<QT>>;
 export type EventQueryResultsMap = ResultsMap<EventQuery>;
@@ -225,3 +231,29 @@ export interface MediaMetadataQueryResults extends QueryResults {
   type: QueryResultsType.MediaMetadata;
   metadata: MediaMetadata;
 }
+
+// ============
+// Review Query
+// ============
+
+export interface ReviewQuery extends MediaQuery {
+  type: QueryType.Review;
+
+  // Frigate equivalent: label (objects detected)
+  what?: Set<string>;
+
+  // Frigate equivalent: zone
+  where?: Set<string>;
+
+  severity?: Severity;
+
+  // Whether to include reviewed items (default: false = unreviewed only)
+  reviewed?: boolean;
+}
+export type PartialReviewQuery = Partial<ReviewQuery>;
+
+export interface ReviewQueryResults extends QueryResults {
+  type: QueryResultsType.Review;
+}
+
+export type ReviewQueryResultsMap = ResultsMap<ReviewQuery>;

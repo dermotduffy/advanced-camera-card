@@ -92,12 +92,13 @@ describe('config defaults', () => {
             position: 'bottom-right',
           },
           thumbnails: {
-            media_type: 'events',
+            media_type: 'auto',
             events_media_type: 'all',
             mode: 'right',
             show_details: true,
             show_download_control: true,
             show_favorite_control: true,
+            show_review_control: true,
             show_timeline_control: true,
             size: 100,
           },
@@ -137,6 +138,7 @@ describe('config defaults', () => {
             show_details: false,
             show_download_control: true,
             show_favorite_control: true,
+            show_review_control: true,
             show_timeline_control: true,
             size: 100,
           },
@@ -166,6 +168,7 @@ describe('config defaults', () => {
             show_details: true,
             show_download_control: true,
             show_favorite_control: true,
+            show_review_control: true,
             show_timeline_control: true,
             size: 100,
           },
@@ -202,7 +205,7 @@ describe('config defaults', () => {
             priority: 50,
           },
           clips: {
-            enabled: true,
+            enabled: false,
             priority: 50,
           },
           display_mode: {
@@ -266,12 +269,20 @@ describe('config defaults', () => {
             enabled: false,
             priority: 50,
           },
+          reviews: {
+            enabled: true,
+            priority: 50,
+          },
+          set_review: {
+            enabled: true,
+            priority: 50,
+          },
           screenshot: {
             enabled: false,
             priority: 50,
           },
           snapshots: {
-            enabled: true,
+            enabled: false,
             priority: 50,
           },
           substreams: {
@@ -331,10 +342,13 @@ describe('config defaults', () => {
         clustering_threshold: 3,
         controls: {
           thumbnails: {
+            events_media_type: 'all',
+            media_type: 'auto',
             mode: 'right',
             show_details: true,
             show_download_control: true,
             show_favorite_control: true,
+            show_review_control: true,
             show_timeline_control: true,
             size: 100,
           },

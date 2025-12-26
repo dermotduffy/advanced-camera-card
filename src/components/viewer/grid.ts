@@ -9,6 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { CameraManager } from '../../camera-manager/manager.js';
+import { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
 import { CardWideConfig } from '../../config/schema/types.js';
@@ -39,6 +40,9 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 
+  @property({ attribute: false })
+  public viewItemManager?: ViewItemManager;
+
   protected _renderCarousel(filterCamera?: string): TemplateResult {
     const selectedCameraID = this.viewManagerEpoch?.manager.getView()?.camera;
 
@@ -60,6 +64,7 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
         .cameraManager=${this.cameraManager}
         .cardWideConfig=${this.cardWideConfig}
         .showControls=${!filterCamera || selectedCameraID === filterCamera}
+        .viewItemManager=${this.viewItemManager}
       >
       </advanced-camera-card-viewer-carousel>
     `;

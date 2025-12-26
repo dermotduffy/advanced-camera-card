@@ -46,6 +46,7 @@ import {
   FolderViewQuery,
   Query,
   RecordingMediaQuery,
+  ReviewMediaQuery,
 } from '../../view/query';
 import { QueryClassifier, QueryType } from '../../view/query-classifier';
 import { QueryResults } from '../../view/query-results';
@@ -268,13 +269,13 @@ export class TimelineController {
       this._timeline = new Timeline(
         this._timelineElement,
         this._source.dataset,
+        this._source.groups,
         options,
       );
     } else {
       this._timeline = new Timeline(
         this._timelineElement,
         this._source.dataset,
-        this._source.groups,
         options,
       );
     }
@@ -303,7 +304,8 @@ export class TimelineController {
   }
 
   private _shouldShowGroups(): boolean {
-    return !this._mini || (this._source?.groups.length ?? 0) > 1;
+    return true;
+    // TODO return !this._mini || (this._source?.groups.length ?? 0) > 1;
   }
 
   private _setTargetBarAppropriately(targetTime: Date): void {
@@ -663,6 +665,9 @@ export class TimelineController {
     } else if (type === 'recording') {
       const queries = this._source.getTimelineRecordingQueries(cacheFriendlyWindow);
       return queries ? new RecordingMediaQuery(queries) : null;
+    } else if (type === 'review') {
+      const queries = this._source.getTimelineReviewQueries(cacheFriendlyWindow);
+      return queries ? new ReviewMediaQuery(queries) : null;
     } else if (type === 'folder') {
       const queries = this._source.getTimelineFolderQuery();
       return queries ? new FolderViewQuery(queries) : null;
@@ -796,7 +801,7 @@ export class TimelineController {
       await this._source?.refresh(prefetchedWindow, {
         view,
       });
-      this._source.addEventMediaToDataset(view.queryResults?.getResults(), view.query);
+      this._source.addMediaToDataset(view.queryResults?.getResults(), view.query);
     }
 
     const currentSelection = this._timeline.getSelection();
@@ -845,7 +850,9 @@ export class TimelineController {
     //
     // Also don't generate thumbnails in mini-timelines (they will already have
     // been generated).
-    const queryType = QueryClassifier.getQueryType(view.query);
+    const queryType =
+      QueryClassifier.getQueryType(view.query) ??
+      this._source?.getEventOrReviewQueryType();
     if (!queryType) {
       return;
     }

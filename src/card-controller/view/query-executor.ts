@@ -9,6 +9,7 @@ import {
   MediaQueries,
   Query,
   RecordingMediaQuery,
+  ReviewMediaQuery,
 } from '../../view/query';
 import { QueryClassifier } from '../../view/query-classifier';
 import { QueryResults } from '../../view/query-results';
@@ -75,6 +76,28 @@ export class QueryExecutor {
       return null;
     }
     const queries = new RecordingMediaQuery(rawQueries);
+    return await this.executeMediaQuery(queries, options?.executorOptions);
+  }
+
+  public async executeDefaultReviewQuery(options?: {
+    cameraID?: string;
+    executorOptions?: QueryExecutorOptions;
+  }): Promise<QueryExecutorResult | null> {
+    const cameraManager = this._api.getCameraManager();
+    const cameraIDs = options?.cameraID
+      ? cameraManager.getStore().getAllDependentCameras(options.cameraID, 'reviews')
+      : cameraManager.getStore().getCameraIDsWithCapability('reviews');
+    if (!cameraIDs.size) {
+      return null;
+    }
+
+    const rawQueries = cameraManager.generateDefaultReviewQueries(cameraIDs, {
+      limit: this._getChunkLimit(),
+    });
+    if (!rawQueries) {
+      return null;
+    }
+    const queries = new ReviewMediaQuery(rawQueries);
     return await this.executeMediaQuery(queries, options?.executorOptions);
   }
 

@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { eventsMediaTypeSchema } from '../events-media';
-import { thumbnailControlsDefaults } from './thumbnails';
 
-const timelineCoreConfigDefault = {
+export const timelineCoreConfigDefault = {
   clustering_threshold: 3,
+  media_type: 'auto' as const,
   events_media_type: 'all' as const,
   window_seconds: 60 * 60,
   show_recordings: true,
@@ -58,10 +58,3 @@ export const miniTimelineConfigSchema = timelineCoreConfigSchema.extend({
   style: timelineCoreConfigSchema.shape.style.default(miniTimelineConfigDefault.style),
 });
 export type MiniTimelineControlConfig = z.infer<typeof miniTimelineConfigSchema>;
-
-export const timelineConfigDefault = {
-  ...timelineCoreConfigDefault,
-  controls: {
-    thumbnails: thumbnailControlsDefaults,
-  },
-};

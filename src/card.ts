@@ -360,8 +360,9 @@ class AdvancedCameraCard extends LitElement {
           style="${styleMap(this._controller.getStyleManager().getAspectRatioStyle())}"
           @advanced-camera-card:message=${(ev: CustomEvent<Message>) =>
             this._controller.getMessageManager().setMessageIfHigherPriority(ev.detail)}
-          @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) =>
-            this._controller.getMediaLoadedInfoManager().set(ev.detail)}
+          @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
+            this._controller.getMediaLoadedInfoManager().set(ev.detail);
+          }}
           @advanced-camera-card:media:unloaded=${() =>
             this._controller.getMediaLoadedInfoManager().clear()}
           @advanced-camera-card:media:volumechange=${

@@ -86,6 +86,36 @@ class ResultSlice {
       this.selectIndex(resultIndex);
     }
   }
+
+  /**
+   * Remove an item from this slice, preserving selection where possible.
+   * If the selected item is removed, selects the previous item.
+   * @param item The item to remove.
+   * @returns true if the item was found and removed, false otherwise.
+   */
+  public removeItem(item: ViewItem): boolean {
+    const index = this._results.indexOf(item);
+    if (index === -1) {
+      return false;
+    }
+
+    // Copy-on-write: Create a new array reference only when modifying
+    this._results = [...this._results];
+    this._results.splice(index, 1);
+
+    // Adjust selection: if removed was selected, clamp to valid range; if after, decrement
+    if (this._selectedIndex !== null && this._selectedIndex >= index) {
+      if (this._selectedIndex === index) {
+        // Removed the selected item: clamp to new valid range or null if empty
+        this._selectedIndex =
+          this._results.length > 0 ? Math.min(index, this._results.length - 1) : null;
+      } else {
+        // Removed an item before the selected one: decrement
+        this._selectedIndex = this._selectedIndex - 1;
+      }
+    }
+    return true;
+  }
 }
 
 interface ResultSliceSelectionCriteria {
@@ -140,6 +170,25 @@ export class QueryResults {
       copy._cameras.set(cameraID, slice.clone());
     }
     return copy;
+  }
+
+  /**
+   * Remove a specific item from the results.
+   * Note: This mutates the current instance. Use clone() first if needed.
+   * @param item The item to remove from results.
+   * @returns This QueryResults instance for chaining.
+   */
+  public removeItem(item: ViewItem): QueryResults {
+    if (!this._main.removeItem(item)) {
+      return this;
+    }
+
+    // Also remove from the relevant camera slice
+    const cameraID = ViewItemClassifier.isMedia(item) ? item.getCameraID() : null;
+    if (cameraID) {
+      this._cameras.get(cameraID)?.removeItem(item);
+    }
+    return this;
   }
 
   public isSupersetOf(that: QueryResults): boolean {

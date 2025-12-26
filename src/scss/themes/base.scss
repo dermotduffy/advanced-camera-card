@@ -38,6 +38,16 @@
   );
   --advanced-camera-card-control-foreground: var(--app-header-text-color);
 
+  --advanced-camera-card-foreground-severity-high-color: var(
+    --ha-color-fill-danger-loud-resting
+  );
+  --advanced-camera-card-foreground-severity-medium-color: var(
+    --ha-color-fill-warning-loud-resting
+  );
+  --advanced-camera-card-foreground-severity-low-color: var(
+    --ha-color-fill-neutral-loud-resting
+  );
+
   /*********
    * Buttons
    *********/
@@ -126,6 +136,16 @@
   --advanced-camera-card-thumbnail-icon-color: var(
     --advanced-camera-card-foreground-primary
   );
+  --advanced-camera-card-thumbnail-icon-severity-high-color: var(
+    --advanced-camera-card-foreground-severity-high-color
+  );
+  --advanced-camera-card-thumbnail-icon-severity-medium-color: var(
+    --advanced-camera-card-foreground-severity-medium-color
+  );
+  --advanced-camera-card-thumbnail-icon-severity-low-color: var(
+    --advanced-camera-card-foreground-severity-low-color
+  );
+
   --advanced-camera-card-thumbnail-border-color: var(
     --advanced-camera-card-foreground-primary
   );
@@ -162,6 +182,16 @@
   );
   --advanced-camera-card-timeline-target-bar-color: var(
     --advanced-camera-card-active-color
+  );
+
+  --advanced-camera-card-timeline-item-severity-high-color: var(
+    --advanced-camera-card-foreground-severity-high-color
+  );
+  --advanced-camera-card-timeline-item-severity-medium-color: var(
+    --advanced-camera-card-foreground-severity-medium-color
+  );
+  --advanced-camera-card-timeline-item-severity-low-color: var(
+    --advanced-camera-card-foreground-severity-low-color
   );
 
   /*******************

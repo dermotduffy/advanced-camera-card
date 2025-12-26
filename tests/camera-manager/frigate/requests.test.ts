@@ -5,17 +5,22 @@ import {
   getPTZInfo,
   getRecordingSegments,
   getRecordingsSummary,
+  getReviews,
   retainEvent,
+  setReviewsReviewed,
 } from '../../../src/camera-manager/frigate/requests';
 import {
   EventSummary,
   eventSummarySchema,
   FrigateEvent,
   frigateEventsSchema,
+  FrigateReview,
+  frigateReviewsSchema,
   ptzInfoSchema,
   recordingSegmentsSchema,
   recordingSummarySchema,
   retainResultSchema,
+  reviewResultSchema,
 } from '../../../src/camera-manager/frigate/types';
 import { RecordingSegment } from '../../../src/camera-manager/types';
 import { homeAssistantWSRequest } from '../../../src/ha/ws-request';
@@ -197,7 +202,7 @@ describe('frigate requests', () => {
     );
   });
 
-  it('should get PTZ info', async () => {
+  it('should get PTZInfo', async () => {
     const ptzInfo = [
       {
         name: 'camera.office',
@@ -218,5 +223,100 @@ describe('frigate requests', () => {
       }),
       true,
     );
+  });
+
+  it('should get reviews', async () => {
+    const reviews: FrigateReview[] = [
+      {
+        id: 'review_id',
+        camera: 'camera',
+        start_time: 0,
+        end_time: 1,
+        severity: 'alert',
+        thumb_path: 'thumb.jpg',
+        data: {
+          objects: [],
+          zones: [],
+        },
+        has_been_reviewed: false,
+      },
+    ];
+    const hass = createHASS();
+    vi.mocked(homeAssistantWSRequest).mockResolvedValue(reviews);
+    expect(
+      await getReviews(hass, {
+        instance_id: 'clientID',
+        cameras: ['camera'],
+        labels: ['person'],
+        zones: ['zone'],
+        severity: 'alert',
+        after: 0,
+        before: 1,
+        limit: 10,
+        reviewed: false,
+      }),
+    ).toBe(reviews);
+    expect(homeAssistantWSRequest).toBeCalledWith(
+      hass,
+      frigateReviewsSchema,
+      expect.objectContaining({
+        type: 'frigate/reviews/get',
+        instance_id: 'clientID',
+        cameras: ['camera'],
+        labels: ['person'],
+        zones: ['zone'],
+        severity: 'alert',
+        after: 0,
+        before: 1,
+        limit: 10,
+        reviewed: false,
+      }),
+      true,
+    );
+  });
+
+  describe('should set reviews reviewed', async () => {
+    it('successfully', async () => {
+      vi.mocked(homeAssistantWSRequest).mockResolvedValue({
+        success: true,
+        message: 'success',
+      });
+
+      const hass = createHASS();
+      setReviewsReviewed(hass, 'clientID', ['review_id'], true);
+
+      expect(homeAssistantWSRequest).toBeCalledWith(
+        hass,
+        reviewResultSchema,
+        expect.objectContaining({
+          type: 'frigate/reviews/viewed',
+          instance_id: 'clientID',
+          ids: ['review_id'],
+          viewed: true,
+        }),
+      );
+    });
+
+    it('unsuccessfully', async () => {
+      vi.mocked(homeAssistantWSRequest).mockResolvedValue({
+        success: false,
+        message: 'failed',
+      });
+
+      const hass = createHASS();
+      await expect(
+        setReviewsReviewed(hass, 'clientID', ['review_id'], true),
+      ).rejects.toThrowError(/Failed to receive response from Home Assistant/);
+      expect(homeAssistantWSRequest).toBeCalledWith(
+        hass,
+        reviewResultSchema,
+        expect.objectContaining({
+          type: 'frigate/reviews/viewed',
+          instance_id: 'clientID',
+          ids: ['review_id'],
+          viewed: true,
+        }),
+      );
+    });
   });
 });

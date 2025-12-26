@@ -11,6 +11,7 @@ const thumbnailControlsBaseDefaults = {
   show_favorite_control: true,
   show_timeline_control: true,
   show_download_control: true,
+  show_review_control: true,
 };
 
 // Configuration for the actual rendered thumbnail.
@@ -30,6 +31,9 @@ export const thumbnailsControlBaseSchema = z.object({
   show_download_control: z
     .boolean()
     .default(thumbnailControlsBaseDefaults.show_download_control),
+  show_review_control: z
+    .boolean()
+    .default(thumbnailControlsBaseDefaults.show_review_control),
 });
 export type ThumbnailsControlBaseConfig = z.infer<typeof thumbnailsControlBaseSchema>;
 

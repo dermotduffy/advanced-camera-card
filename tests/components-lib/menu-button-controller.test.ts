@@ -559,7 +559,9 @@ describe('MenuButtonController', () => {
   describe('should have clips menu button', () => {
     it('when in clips view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockImplementation(
+        (view) => view !== 'reviews',
+      );
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'clips' }),
         viewManager: viewManager,
@@ -579,7 +581,9 @@ describe('MenuButtonController', () => {
 
     it('when not in clips view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockImplementation(
+        (view) => view !== 'reviews',
+      );
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -607,12 +611,38 @@ describe('MenuButtonController', () => {
         expect.arrayContaining([expect.objectContaining({ title: 'Clips gallery' })]),
       );
     });
+
+    it('should be hidden when reviews are supported', () => {
+      vi.mocked(isViewSupportedByCamera).mockImplementation(
+        (view) => view === 'clips' || view === 'reviews',
+      );
+      const buttons = calculateButtons(controller);
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ title: 'Clips gallery' })]),
+      );
+    });
+
+    it('should be shown when reviews are supported but button is explicitly enabled', () => {
+      vi.mocked(isViewSupportedByCamera).mockImplementation(
+        (view) => view === 'clips' || view === 'reviews',
+      );
+      const buttons = calculateButtons(controller, {
+        config: createConfig({ menu: { buttons: { clips: { enabled: true } } } }),
+      });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({ title: 'Clips gallery', enabled: true }),
+      );
+    });
   });
 
   describe('should have snapshots menu button', () => {
     it('when in snapshots view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockImplementation(
+        (view) => view !== 'reviews',
+      );
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'snapshots' }),
         viewManager: viewManager,
@@ -638,7 +668,9 @@ describe('MenuButtonController', () => {
 
     it('when not in snapshots view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupportedByCamera).mockImplementation(
+        (view) => view !== 'reviews',
+      );
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -672,6 +704,97 @@ describe('MenuButtonController', () => {
         expect.arrayContaining([
           expect.objectContaining({ title: 'Snapshots gallery' }),
         ]),
+      );
+    });
+
+    it('should be hidden when reviews are supported', () => {
+      vi.mocked(isViewSupportedByCamera).mockImplementation(
+        (view) => view === 'snapshots' || view === 'reviews',
+      );
+      const buttons = calculateButtons(controller);
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ title: 'Snapshots gallery' }),
+        ]),
+      );
+    });
+
+    it('should be shown when reviews are supported but button is explicitly enabled', () => {
+      vi.mocked(isViewSupportedByCamera).mockImplementation(
+        (view) => view === 'snapshots' || view === 'reviews',
+      );
+      const buttons = calculateButtons(controller, {
+        config: createConfig({ menu: { buttons: { snapshots: { enabled: true } } } }),
+      });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({ title: 'Snapshots gallery', enabled: true }),
+      );
+    });
+  });
+
+  describe('should have reviews menu button', () => {
+    it('when in reviews view', () => {
+      const viewManager = mock<ViewManager>();
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      const buttons = calculateButtons(controller, {
+        view: createView({ view: 'reviews' }),
+        viewManager: viewManager,
+      });
+
+      expect(buttons).toContainEqual({
+        icon: 'mdi:play-box-multiple',
+        enabled: true,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Reviews gallery',
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'reviews',
+        },
+        hold_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'review',
+        },
+      });
+    });
+
+    it('when not in reviews view', () => {
+      const viewManager = mock<ViewManager>();
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      const buttons = calculateButtons(controller, {
+        viewManager: viewManager,
+      });
+
+      expect(buttons).toContainEqual({
+        icon: 'mdi:play-box-multiple',
+        enabled: true,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Reviews gallery',
+        style: {},
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'reviews',
+        },
+        hold_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'review',
+        },
+      });
+    });
+
+    it('when not supported', () => {
+      const viewManager = mock<ViewManager>();
+      vi.mocked(isViewSupportedByCamera).mockReturnValue(false);
+      const buttons = calculateButtons(controller, {
+        viewManager: viewManager,
+      });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ title: 'Reviews gallery' })]),
       );
     });
   });

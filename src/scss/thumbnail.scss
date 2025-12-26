@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: row;
   box-sizing: border-box;
+  gap: 2px;
 
   // Ensure control icons are relative to the thumbnail.
   position: relative;
@@ -58,6 +59,11 @@ advanced-camera-card-icon.timeline {
 
 advanced-camera-card-icon.download {
   right: 3px;
+  bottom: 3px;
+}
+
+advanced-camera-card-icon.review {
+  left: 3px;
   bottom: 3px;
 }
 

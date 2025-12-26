@@ -4,6 +4,7 @@ import {
   EventMediaQuery,
   FolderViewQuery,
   RecordingMediaQuery,
+  ReviewMediaQuery,
 } from '../../src/view/query';
 import { QueryClassifier } from '../../src/view/query-classifier';
 import { createFolder } from '../test-utils';
@@ -19,10 +20,16 @@ describe('QueryClassifier', () => {
     expect(QueryClassifier.isRecordingQuery(new EventMediaQuery())).toBeFalsy();
   });
 
+  it('isReviewQuery', () => {
+    expect(QueryClassifier.isReviewQuery(new ReviewMediaQuery())).toBeTruthy();
+    expect(QueryClassifier.isReviewQuery(new EventMediaQuery())).toBeFalsy();
+  });
+
   it('getQueryType', () => {
     expect(QueryClassifier.getQueryType(new EventMediaQuery())).toBe('event');
     expect(QueryClassifier.getQueryType(new FolderViewQuery())).toBe('folder');
     expect(QueryClassifier.getQueryType(new RecordingMediaQuery())).toBe('recording');
+    expect(QueryClassifier.getQueryType(new ReviewMediaQuery())).toBe('review');
     expect(QueryClassifier.getQueryType()).toBeNull();
   });
 
@@ -94,7 +101,9 @@ describe('QueryClassifier', () => {
       ),
     ).toBeFalsy();
     expect(
-      QueryClassifier.isFolderQuery(new FolderViewQuery({ folder: createFolder() })),
+      QueryClassifier.isFolderQuery(
+        new FolderViewQuery({ folder: createFolder(), path: [{}] }),
+      ),
     ).toBeTruthy();
   });
 
@@ -134,5 +143,13 @@ describe('QueryClassifier', () => {
         ]),
       ),
     ).toBeNull();
+
+    expect(
+      QueryClassifier.getMediaType(
+        new ReviewMediaQuery([
+          { type: QueryType.Review, cameraIDs: new Set(['camera']) },
+        ]),
+      ),
+    ).toBe('reviews');
   });
 });

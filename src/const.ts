@@ -190,6 +190,8 @@ export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_MEDIA_GALLERY}.controls.thumbnails.show_favorite_control` as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_MEDIA_GALLERY}.controls.thumbnails.show_timeline_control` as const;
+export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL =
+  `${CONF_MEDIA_GALLERY}.controls.thumbnails.show_review_control` as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_MEDIA_GALLERY}.controls.thumbnails.size` as const;
 
@@ -230,12 +232,16 @@ export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_favorite_control` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_timeline_control` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL =
+  `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_review_control` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.size` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_MEDIA_VIEWER}.controls.timeline.clustering_threshold` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE =
   `${CONF_MEDIA_VIEWER}.controls.timeline.events_media_type` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA_TYPE =
+  `${CONF_MEDIA_VIEWER}.controls.timeline.media_type` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_FORMAT_24H =
   `${CONF_MEDIA_VIEWER}.controls.timeline.format.24h` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE =
@@ -290,10 +296,14 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_LIVE}.controls.thumbnails.show_favorite_control` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_LIVE}.controls.thumbnails.show_timeline_control` as const;
+export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL =
+  `${CONF_LIVE}.controls.thumbnails.show_review_control` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_LIVE}.controls.timeline.clustering_threshold` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE =
   `${CONF_LIVE}.controls.timeline.events_media_type` as const;
+export const CONF_LIVE_CONTROLS_TIMELINE_MEDIA_TYPE =
+  `${CONF_LIVE}.controls.timeline.media_type` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_FORMAT_24H =
   `${CONF_LIVE}.controls.timeline.format.24h` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_MODE =
@@ -343,6 +353,7 @@ export const CONF_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_TIMELINE}.clustering_threshold` as const;
 export const CONF_TIMELINE_EVENTS_MEDIA_TYPE =
   `${CONF_TIMELINE}.events_media_type` as const;
+export const CONF_TIMELINE_MEDIA_TYPE = `${CONF_TIMELINE}.media_type` as const;
 export const CONF_TIMELINE_FORMAT_24H = `${CONF_TIMELINE}.format.24h` as const;
 export const CONF_TIMELINE_SHOW_RECORDINGS = `${CONF_TIMELINE}.show_recordings` as const;
 export const CONF_TIMELINE_STYLE = `${CONF_TIMELINE}.style` as const;
@@ -358,6 +369,12 @@ export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_TIMELINE}.controls.thumbnails.show_favorite_control` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_TIMELINE}.controls.thumbnails.show_timeline_control` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL =
+  `${CONF_TIMELINE}.controls.thumbnails.show_review_control` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_MEDIA_TYPE =
+  `${CONF_TIMELINE}.controls.thumbnails.media_type` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE =
+  `${CONF_TIMELINE}.controls.thumbnails.events_media_type` as const;
 
 const CONF_MENU = 'menu' as const;
 export const CONF_MENU_ALIGNMENT = `${CONF_MENU}.alignment` as const;
@@ -372,6 +389,7 @@ export const CONF_MENU_BUTTONS_PLAY = `${CONF_MENU_BUTTONS}.play` as const;
 export const CONF_MENU_BUTTONS_MUTE = `${CONF_MENU_BUTTONS}.mute` as const;
 export const CONF_MENU_BUTTONS_MEDIA_PLAYER =
   `${CONF_MENU_BUTTONS}.media_player` as const;
+export const CONF_MENU_BUTTONS_REVIEWS = `${CONF_MENU_BUTTONS}.reviews` as const;
 export const CONF_MENU_BUTTONS_TIMELINE = `${CONF_MENU_BUTTONS}.timeline` as const;
 
 export const CONF_STATUS_BAR = 'status_bar' as const;

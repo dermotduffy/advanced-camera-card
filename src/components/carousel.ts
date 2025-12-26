@@ -128,7 +128,12 @@ export class AdvancedCameraCardCarousel extends LitElement {
         },
       );
     } else if (changedProps.has('selected')) {
-      this._carousel?.selectSlide(this.selected);
+      // This used to attempt to scroll the carousel to the selected item (i.e.
+      // force focus onto a thumbnail). This is jarring for the user if they've
+      // individually scrolled the carousel and then it changes (e.g. viewing
+      // reviews in a thumbnail carousel and then marking something as reviewed,
+      // will remove that item, and the carousel needs to not "hop back" to
+      // whatever thumbnail was previously selected).
     }
   }
 

@@ -22,6 +22,8 @@ export const VIEWS_USER_SPECIFIED = [
   'snapshots',
   'recording',
   'recordings',
+  'review',
+  'reviews',
   'image',
   'timeline',
 ] as const;

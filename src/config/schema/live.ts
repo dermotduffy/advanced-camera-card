@@ -41,9 +41,9 @@ const microphoneConfigSchema = z
   .default(microphoneConfigDefault);
 export type MicrophoneConfig = z.infer<typeof microphoneConfigSchema>;
 
-const liveThumbnailControlsDefaults = {
+const liveThumbnailsControlDefault = {
   ...thumbnailControlsDefaults,
-  media_type: 'events' as const,
+  media_type: 'auto' as const,
   events_media_type: 'all' as const,
 };
 
@@ -67,7 +67,7 @@ export const liveConfigDefault = {
       style: 'chevrons' as const,
     },
     ptz: ptzControlsDefaults,
-    thumbnails: liveThumbnailControlsDefaults,
+    thumbnails: liveThumbnailsControlDefault,
     timeline: miniTimelineConfigDefault,
     wheel: true,
   },
@@ -76,14 +76,16 @@ export const liveConfigDefault = {
   },
 };
 
-const livethumbnailsControlSchema = thumbnailsControlSchema.extend({
-  media_type: z
-    .enum(['events', 'recordings'])
-    .default(liveConfigDefault.controls.thumbnails.media_type),
+const liveMediaTypeSchema = z.enum(['auto', 'events', 'recordings', 'reviews']);
+export type LiveMediaType = z.infer<typeof liveMediaTypeSchema>;
+
+export const liveThumbnailsControlSchema = thumbnailsControlSchema.extend({
+  media_type: liveMediaTypeSchema.default(liveThumbnailsControlDefault.media_type),
   events_media_type: eventsMediaTypeSchema.default(
-    liveConfigDefault.controls.thumbnails.events_media_type,
+    liveThumbnailsControlDefault.events_media_type,
   ),
 });
+export type LiveThumbnailsControlConfig = z.infer<typeof liveThumbnailsControlSchema>;
 
 export const liveConfigSchema = z
   .object({
@@ -118,7 +120,7 @@ export const liveConfigSchema = z
           })
           .default(liveConfigDefault.controls.next_previous),
         ptz: ptzControlsConfigSchema.default(liveConfigDefault.controls.ptz),
-        thumbnails: livethumbnailsControlSchema.default(
+        thumbnails: liveThumbnailsControlSchema.default(
           liveConfigDefault.controls.thumbnails,
         ),
         timeline: miniTimelineConfigSchema.default(liveConfigDefault.controls.timeline),

@@ -295,4 +295,87 @@ describe('dispatchViewContextChangeEvent', () => {
     expect(results.getSelectedResult()).toBe(folder);
     expect(results.getSelectedResult('camera.office')).not.toBe(folder);
   });
+
+  describe('removeItem', () => {
+    it('should remove item from results', () => {
+      const testResults = generateViewMediaArray();
+      const results = new QueryResults({ results: testResults });
+
+      const itemToRemove = testResults[50];
+      expect(results.getResults()?.includes(itemToRemove)).toBeTruthy();
+      expect(results.getResultsCount()).toBe(200);
+
+      results.removeItem(itemToRemove);
+
+      expect(results.getResults()?.includes(itemToRemove)).toBeFalsy();
+      expect(results.getResultsCount()).toBe(199);
+    });
+
+    it('should not remove item that is not in results', () => {
+      const testResults = generateViewMediaArray();
+      const results = new QueryResults({ results: testResults });
+
+      const outsideItem = generateViewMediaArray({ cameraIDs: ['other'] })[0];
+      const countBefore = results.getResultsCount();
+
+      results.removeItem(outsideItem);
+
+      expect(results.getResultsCount()).toBe(countBefore);
+    });
+
+    it('should adjust selection when removing selected item', () => {
+      const testResults = generateViewMediaArray();
+      const results = new QueryResults({ results: testResults, selectedIndex: 50 });
+
+      const itemToRemove = testResults[50];
+      results.removeItem(itemToRemove);
+
+      // After removing selected item at index 50, Math.min(50, 199-1) = 50
+      // which is still valid in the new 199-element array
+      expect(results.getSelectedIndex()).toBe(50);
+    });
+
+    it('should adjust selection when removing item before selected', () => {
+      const testResults = generateViewMediaArray();
+      const results = new QueryResults({ results: testResults, selectedIndex: 50 });
+
+      const itemToRemove = testResults[10];
+      results.removeItem(itemToRemove);
+
+      // Selection should decrement
+      expect(results.getSelectedIndex()).toBe(49);
+    });
+
+    it('should not change selection when removing item after selected', () => {
+      const testResults = generateViewMediaArray();
+      const results = new QueryResults({ results: testResults, selectedIndex: 50 });
+
+      const itemToRemove = testResults[100];
+      results.removeItem(itemToRemove);
+
+      // Selection should stay the same
+      expect(results.getSelectedIndex()).toBe(50);
+    });
+
+    it('should set selection to null when removing last remaining selected item', () => {
+      const testResults = generateViewMediaArray({ cameraIDs: ['camera'], count: 1 });
+      const results = new QueryResults({ results: testResults, selectedIndex: 0 });
+
+      results.removeItem(testResults[0]);
+
+      // Selection should be null when no items remain
+      expect(results.getSelectedIndex()).toBeNull();
+    });
+
+    it('should handle removing folder item (non-media)', () => {
+      const folder = new ViewFolder(createFolder());
+      const testResults = generateViewMediaArray();
+      const results = new QueryResults({ results: [folder, ...testResults] });
+
+      const countBefore = results.getResultsCount();
+      results.removeItem(folder);
+
+      expect(results.getResultsCount()).toBe(countBefore - 1);
+    });
+  });
 });

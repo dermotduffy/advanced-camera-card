@@ -8,6 +8,8 @@ import {
   eventSummarySchema,
   FrigateEvent,
   frigateEventsSchema,
+  FrigateReview,
+  frigateReviewsSchema,
   PTZInfo,
   ptzInfoSchema,
   recordingSegmentsSchema,
@@ -15,6 +17,8 @@ import {
   recordingSummarySchema,
   RetainResult,
   retainResultSchema,
+  ReviewResult,
+  reviewResultSchema,
 } from './types';
 
 /**
@@ -175,4 +179,66 @@ export const getPTZInfo = async (
     },
     true,
   );
+};
+
+export interface NativeFrigateReviewQuery {
+  instance_id: string;
+  cameras?: string[];
+  labels?: string[];
+  zones?: string[];
+  severity?: string;
+  after?: number;
+  before?: number;
+  limit?: number;
+  reviewed?: boolean;
+}
+
+/**
+ * Get review items over websocket. May throw.
+ * @param hass The Home Assistant object.
+ * @param params The review search parameters.
+ * @returns An array of 'FrigateReview's.
+ */
+export const getReviews = async (
+  hass: HomeAssistant,
+  params: NativeFrigateReviewQuery,
+): Promise<FrigateReview[]> => {
+  return await homeAssistantWSRequest(
+    hass,
+    frigateReviewsSchema,
+    {
+      type: 'frigate/reviews/get',
+      ...params,
+    },
+    true,
+  );
+};
+
+export const setReviewsReviewed = async (
+  hass: HomeAssistant,
+  instance_id: string,
+  ids: string[],
+  reviewed?: boolean,
+): Promise<void> => {
+  const request = {
+    type: 'frigate/reviews/viewed',
+    instance_id,
+    ids,
+
+    // Frigate uses 'viewed' to mean the review has been reviewed.
+    ...(reviewed !== undefined && { viewed: reviewed }),
+  };
+
+  const response = await homeAssistantWSRequest<ReviewResult>(
+    hass,
+    reviewResultSchema,
+    request,
+  );
+
+  if (!response.success) {
+    throw new AdvancedCameraCardError(localize('error.failed_response'), {
+      request: request,
+      response: response,
+    });
+  }
 };

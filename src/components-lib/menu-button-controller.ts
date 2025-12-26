@@ -5,7 +5,11 @@ import { FullscreenManager } from '../card-controller/fullscreen/fullscreen-mana
 import { MediaPlayerManager } from '../card-controller/media-player-manager';
 import { MicrophoneManager } from '../card-controller/microphone-manager';
 import { ViewManager } from '../card-controller/view/view-manager';
-import { VIEWS_USER_SPECIFIED } from '../config/schema/common/const';
+import {
+  AdvancedCameraCardView,
+  VIEWS_USER_SPECIFIED,
+} from '../config/schema/common/const';
+import { MenuItemBase } from '../config/schema/elements/custom/menu/base';
 import { MenuItem } from '../config/schema/elements/custom/menu/types';
 import { AdvancedCameraCardConfig } from '../config/schema/types';
 import { getEntityTitle } from '../ha/get-entity-title';
@@ -19,6 +23,7 @@ import {
   createMediaPlayerAction,
   createPTZControlsAction,
   createPTZMultiAction,
+  createSetReviewAction,
   createViewAction,
   isAdvancedCameraCardCustomAction,
 } from '../utils/action';
@@ -77,9 +82,11 @@ export class MenuButtonController {
       this._getClipsButton(config, cameraManager, foldersManager, options?.view),
       this._getSnapshotsButton(config, cameraManager, foldersManager, options?.view),
       this._getRecordingsButton(config, cameraManager, foldersManager, options?.view),
+      this._getReviewsButton(config, cameraManager, foldersManager, options?.view),
       this._getImageButton(config, cameraManager, foldersManager, options?.view),
       this._getTimelineButton(config, cameraManager, foldersManager, options?.view),
       this._getDownloadButton(config, cameraManager, options?.view),
+      this._getSetReviewButton(config, options?.view),
       this._getCameraUIButton(config, options?.showCameraUIButton),
       this._getMicrophoneButton(
         config,
@@ -245,17 +252,45 @@ export class MenuButtonController {
       : null;
   }
 
+  /**
+   * Determine if a media button (clips/snapshots) should be shown. These are
+   * hidden by default if reviews are supported.
+   */
+  protected _shouldShowEventMediaButton(
+    viewName: 'clips' | 'snapshots',
+    buttonConfig: MenuItemBase,
+    cameraManager: CameraManager,
+    foldersManager: FoldersManager,
+    view?: View | null,
+  ): boolean {
+    const supportsEventView =
+      view &&
+      isViewSupportedByCamera(viewName, cameraManager, foldersManager, view.camera);
+    const supportsReviewsView =
+      view &&
+      isViewSupportedByCamera('reviews', cameraManager, foldersManager, view.camera);
+
+    // Show if: explicitly enabled OR (supports view AND reviews not supported)
+    return !!supportsEventView && (buttonConfig.enabled || !supportsReviewsView);
+  }
+
   protected _getClipsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
     view?: View | null,
   ): MenuItem | null {
-    return view &&
-      isViewSupportedByCamera('clips', cameraManager, foldersManager, view.camera)
+    return this._shouldShowEventMediaButton(
+      'clips',
+      config.menu.buttons.clips,
+      cameraManager,
+      foldersManager,
+      view,
+    )
       ? {
           icon: 'mdi:filmstrip',
           ...config.menu.buttons.clips,
+          enabled: true,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.clips'),
           style: view?.is('clips') ? this._getEmphasizedStyle() : {},
@@ -271,11 +306,17 @@ export class MenuButtonController {
     foldersManager: FoldersManager,
     view?: View | null,
   ): MenuItem | null {
-    return view &&
-      isViewSupportedByCamera('snapshots', cameraManager, foldersManager, view.camera)
+    return this._shouldShowEventMediaButton(
+      'snapshots',
+      config.menu.buttons.snapshots,
+      cameraManager,
+      foldersManager,
+      view,
+    )
       ? {
           icon: 'mdi:camera',
           ...config.menu.buttons.snapshots,
+          enabled: true,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.snapshots'),
           style: view?.is('snapshots') ? this._getEmphasizedStyle() : {},
@@ -301,6 +342,26 @@ export class MenuButtonController {
           style: view.is('recordings') ? this._getEmphasizedStyle() : {},
           tap_action: createViewAction('recordings'),
           hold_action: createViewAction('recording'),
+        }
+      : null;
+  }
+
+  protected _getReviewsButton(
+    config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
+    foldersManager: FoldersManager,
+    view?: View | null,
+  ): MenuItem | null {
+    return view &&
+      isViewSupportedByCamera('reviews', cameraManager, foldersManager, view.camera)
+      ? {
+          icon: 'mdi:play-box-multiple',
+          ...config.menu.buttons.reviews,
+          type: 'custom:advanced-camera-card-menu-icon',
+          title: localize('config.view.views.reviews'),
+          style: view.is('reviews') ? this._getEmphasizedStyle() : {},
+          tap_action: createViewAction('reviews'),
+          hold_action: createViewAction('review'),
         }
       : null;
   }
@@ -363,6 +424,31 @@ export class MenuButtonController {
       };
     }
     return null;
+  }
+
+  protected _getSetReviewButton(
+    config: AdvancedCameraCardConfig,
+    view?: View | null,
+  ): MenuItem | null {
+    const selectedItem = view?.queryResults?.getSelectedResult();
+    if (!view?.isViewerView() || !ViewItemClassifier.isReview(selectedItem)) {
+      return null;
+    }
+    const isReviewed = selectedItem.isReviewed();
+    if (isReviewed === null) {
+      return null;
+    }
+
+    return {
+      icon: isReviewed ? 'mdi:check-circle' : 'mdi:check-circle-outline',
+      ...config.menu.buttons.set_review,
+      type: 'custom:advanced-camera-card-menu-icon',
+      title: isReviewed
+        ? localize('common.set_reviews.unreviewed')
+        : localize('common.set_reviews.reviewed'),
+      tap_action: createSetReviewAction(),
+      style: isReviewed ? this._getEmphasizedStyle() : {},
+    };
   }
 
   protected _getCameraUIButton(
@@ -736,6 +822,7 @@ export class MenuButtonController {
     button: MenuItem,
     options?: MenuButtonControllerOptions,
   ): StyleInfo {
+    // Review
     for (const actionSet of [
       button.tap_action,
       button.double_tap_action,
@@ -752,7 +839,9 @@ export class MenuButtonController {
           VIEWS_USER_SPECIFIED.some(
             (viewName) =>
               viewName === action.advanced_camera_card_action &&
-              options?.view?.is(action.advanced_camera_card_action),
+              options?.view?.is(
+                action.advanced_camera_card_action as AdvancedCameraCardView,
+              ),
           ) ||
           (action.advanced_camera_card_action === 'default' &&
             options?.view?.is(config.view.default)) ||

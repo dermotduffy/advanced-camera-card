@@ -23,11 +23,14 @@ import {
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
+  PartialReviewQuery,
   QueryReturnType,
   RecordingQuery,
   RecordingQueryResultsMap,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
+  ReviewQuery,
+  ReviewQueryResultsMap,
 } from '../types';
 import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
@@ -118,6 +121,23 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     return null;
   }
 
+  public generateDefaultReviewQuery(
+    _store: CameraManagerReadOnlyConfigStore,
+    _cameraIDs: Set<string>,
+    _query?: PartialReviewQuery,
+  ): ReviewQuery[] | null {
+    return null;
+  }
+
+  public async getReviews(
+    _hass: HomeAssistant,
+    _store: CameraManagerReadOnlyConfigStore,
+    _query: ReviewQuery,
+    _engineOptions?: EngineOptions,
+  ): Promise<ReviewQueryResultsMap | null> {
+    return null;
+  }
+
   public generateMediaFromEvents(
     _hass: HomeAssistant,
     _store: CameraManagerReadOnlyConfigStore,
@@ -136,6 +156,15 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     return null;
   }
 
+  public generateMediaFromReviews(
+    _hass: HomeAssistant,
+    _store: CameraManagerReadOnlyConfigStore,
+    _query: ReviewQuery,
+    _results: QueryReturnType<ReviewQuery>,
+  ): ViewMedia[] | null {
+    return null;
+  }
+
   public async getMediaDownloadPath(
     _hass: HomeAssistant,
     _cameraConfig: CameraConfig,
@@ -149,6 +178,15 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     _cameraConfig: CameraConfig,
     _media: ViewMedia,
     _favorite: boolean,
+  ): Promise<void> {
+    return;
+  }
+
+  public async reviewMedia(
+    _hass: HomeAssistant,
+    _cameraConfig: CameraConfig,
+    _media: ViewMedia,
+    _reviewed: boolean,
   ): Promise<void> {
     return;
   }

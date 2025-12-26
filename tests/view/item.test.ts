@@ -41,6 +41,7 @@ describe('ViewMedia', () => {
     expect(media.getWhere()).toBeNull();
     expect(media.setFavorite(true)).toBeUndefined();
     expect(media.isFavorite()).toBeNull();
+    expect(media.isReviewed()).toBeNull();
     expect(media.getIcon()).toBeNull();
   });
 

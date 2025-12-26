@@ -1,5 +1,6 @@
 import { sub } from 'date-fns';
 import { ClipsOrSnapshotsOrAll } from '../../types';
+import { resolveLiveMediaType } from '../../utils/media-type';
 import { View } from '../../view/view';
 import { CardViewAPI } from '../types';
 import { MergeContextViewModifier } from './modifiers/merge-context';
@@ -60,7 +61,7 @@ export class ViewQueryExecutor {
     const viewModifiers: ViewModifier[] = [];
 
     const executeMediaQuery = async (
-      mediaType: ClipsOrSnapshotsOrAll | 'recordings' | null,
+      mediaType: ClipsOrSnapshotsOrAll | 'recordings' | 'reviews' | null,
     ): Promise<ViewModifier[]> => {
       /* istanbul ignore if: this path cannot be reached -- @preserve */
       if (!mediaType) {
@@ -73,14 +74,19 @@ export class ViewQueryExecutor {
               ...(!view.isGrid() && { cameraID: view.camera }),
               executorOptions: queryExecutorOptions,
             })
-          : mediaType === 'clips' || mediaType === 'snapshots' || mediaType === 'all'
-            ? await this._executor.executeDefaultEventQuery({
+          : mediaType === 'reviews'
+            ? await this._executor.executeDefaultReviewQuery({
                 ...(!view.isGrid() && { cameraID: view.camera }),
-                eventsMediaType: mediaType,
                 executorOptions: queryExecutorOptions,
               })
-            : /* istanbul ignore next -- @preserve */
-              null;
+            : mediaType === 'clips' || mediaType === 'snapshots' || mediaType === 'all'
+              ? await this._executor.executeDefaultEventQuery({
+                  ...(!view.isGrid() && { cameraID: view.camera }),
+                  eventsMediaType: mediaType,
+                  executorOptions: queryExecutorOptions,
+                })
+              : /* istanbul ignore next -- @preserve */
+                null;
 
       return results ? [new SetQueryViewModifier(results)] : [];
     };
@@ -93,11 +99,16 @@ export class ViewQueryExecutor {
     switch (view.view) {
       case 'live':
         if (config.live.controls.thumbnails.mode !== 'none') {
+          const resolvedMediaType = resolveLiveMediaType(
+            config.live.controls.thumbnails.media_type,
+            this._api.getCameraManager()?.getCameraCapabilities(view.camera),
+          );
+
           viewModifiers.push(
             ...(await executeMediaQuery(
-              config.live.controls.thumbnails.media_type === 'recordings'
-                ? 'recordings'
-                : config.live.controls.thumbnails.events_media_type,
+              resolvedMediaType === 'events'
+                ? config.live.controls.thumbnails.events_media_type
+                : resolvedMediaType,
             )),
           );
         }
@@ -116,6 +127,8 @@ export class ViewQueryExecutor {
       case 'snapshots':
       case 'recording':
       case 'recordings':
+      case 'review':
+      case 'reviews':
         viewModifiers.push(...(await executeMediaQuery(mediaType)));
         break;
       case 'folder':
