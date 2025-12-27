@@ -3,14 +3,45 @@ import { ZodError } from 'zod';
 import { ConfigManager } from '../../../src/card-controller/config/config-manager';
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
 import { ConditionStateManager } from '../../../src/conditions/state-manager';
+import { AutomationsManager } from '../../../src/card-controller/automations-manager';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
-import {
-  createCardAPI,
-  createConfig,
-  flushPromises,
-  createConfigManagerTestSetup,
-} from '../../test-utils';
+import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
 import { createGeneralAction } from '../../../src/utils/action';
+
+/**
+ * Create a ConfigManager test setup with real AutomationsManager and ConditionStateManager.
+ * Includes spies for automation manager methods to track calls in tests.
+ */
+function createConfigManagerTestSetup(options?: {
+  hasHASS?: boolean;
+  isInitializedMandatory?: boolean;
+}) {
+  const api = createCardAPI();
+  const stateManager = new ConditionStateManager();
+  vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
+  const automationsManager = new AutomationsManager(api);
+  vi.mocked(api.getAutomationsManager).mockReturnValue(automationsManager);
+  vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(options?.hasHASS ?? true);
+  vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+    options?.isInitializedMandatory ?? true,
+  );
+
+  const manager = new ConfigManager(api);
+  vi.mocked(api.getConfigManager).mockReturnValue(manager);
+
+  const addAutomationsSpy = vi.spyOn(automationsManager, 'addAutomations');
+  const deleteAutomationsSpy = vi.spyOn(automationsManager, 'deleteAutomations');
+
+  return {
+    api,
+    manager,
+    stateManager,
+    automationsManager,
+    addAutomationsSpy,
+    deleteAutomationsSpy,
+  };
+}
 
 // ============================================================================
 // Test Constants - Centralized test data to avoid magic numbers/strings
