@@ -53,10 +53,14 @@ describe('config defaults', () => {
           media_resolution: 'low',
         },
         triggers: {
-          events: ['events', 'clips', 'snapshots'],
+          events: [],
           entities: [],
           motion: false,
           occupancy: false,
+          reviews: {
+            severities: ['high'],
+            description: true,
+          },
         },
       },
       debug: {

@@ -183,16 +183,20 @@ describe('TriggersManager', () => {
 
     describe('media', () => {
       it.each([
-        [false, false, null],
-        [false, true, 'clip' as const],
-        [true, false, 'snapshot' as const],
-        [true, true, 'clip' as const],
+        // [review, snapshot, clip, expectedView]
+        [false, false, false, null],
+        [false, false, true, 'clip' as const],
+        [false, true, false, 'snapshot' as const],
+        [false, true, true, 'clip' as const],
+        [true, false, false, 'review' as const],
+        [true, true, true, 'review' as const],
       ])(
-        'with snapshot %s and clip %s',
+        'with review %s, snapshot %s and clip %s',
         async (
+          hasReview: boolean,
           hasSnapshot: boolean,
           hasClip: boolean,
-          viewName: 'clip' | 'snapshot' | null,
+          viewName: 'review' | 'clip' | 'snapshot' | null,
         ) => {
           const api = createTriggerAPI({
             config: {
@@ -209,6 +213,7 @@ describe('TriggersManager', () => {
             cameraID: 'camera_1',
             type: 'new',
             fidelity: 'high',
+            review: hasReview,
             snapshot: hasSnapshot,
             clip: hasClip,
           });

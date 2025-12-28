@@ -109,6 +109,10 @@ export const CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES =
   `${CONF_CAMERAS}.#.triggers.entities` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS =
   `${CONF_CAMERAS}.#.triggers.events` as const;
+export const CONF_CAMERAS_ARRAY_TRIGGERS_REVIEWS_SEVERITIES =
+  `${CONF_CAMERAS}.#.triggers.reviews.severities` as const;
+export const CONF_CAMERAS_ARRAY_TRIGGERS_REVIEWS_DESCRIPTION =
+  `${CONF_CAMERAS}.#.triggers.reviews.description` as const;
 
 const CONF_CAMERAS_GLOBAL = 'cameras_global' as const;
 export const CONF_CAMERAS_GLOBAL_LIVE_PROVIDER =
@@ -389,7 +393,6 @@ export const CONF_MENU_BUTTONS_PLAY = `${CONF_MENU_BUTTONS}.play` as const;
 export const CONF_MENU_BUTTONS_MUTE = `${CONF_MENU_BUTTONS}.mute` as const;
 export const CONF_MENU_BUTTONS_MEDIA_PLAYER =
   `${CONF_MENU_BUTTONS}.media_player` as const;
-export const CONF_MENU_BUTTONS_REVIEWS = `${CONF_MENU_BUTTONS}.reviews` as const;
 export const CONF_MENU_BUTTONS_TIMELINE = `${CONF_MENU_BUTTONS}.timeline` as const;
 
 export const CONF_STATUS_BAR = 'status_bar' as const;

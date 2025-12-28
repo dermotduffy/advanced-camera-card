@@ -5,7 +5,7 @@ import { CameraConfig } from '../../config/schema/cameras';
 import { getEntityTitle } from '../../ha/get-entity-title';
 import { EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
-import { Endpoint, Severity } from '../../types';
+import { Endpoint } from '../../types';
 import {
   allPromises,
   formatDate,
@@ -55,7 +55,7 @@ import {
   ReviewQueryResultsMap,
 } from '../types';
 import { FrigateCamera, isBirdseye } from './camera';
-import { FrigateEventWatcher } from './event-watcher';
+import { FrigateEventWatcher, FrigateReviewWatcher } from './watcher';
 import { FrigateViewMediaFactory } from './media';
 import { FrigateViewMediaClassifier } from './media-classifier';
 import {
@@ -71,25 +71,18 @@ import {
   setReviewsReviewed,
 } from './requests';
 import {
+  FRIGATE_SEVERITY_MAP,
   FrigateEventQueryResults,
   FrigateRecording,
   FrigateRecordingQueryResults,
   FrigateRecordingSegmentsQueryResults,
   FrigateReviewQueryResults,
-  FrigateReviewSeverity,
 } from './types';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const MEDIA_METADATA_REQUEST_CACHE_AGE_SECONDS = 60;
 const REVIEW_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
-
-// Maps generic severity levels to Frigate-specific severity values.
-const SEVERITY_MAP: Record<Severity, FrigateReviewSeverity> = {
-  high: 'alert',
-  medium: 'detection',
-  low: 'significant_motion',
-};
 
 class FrigateQueryResultsClassifier {
   public static isFrigateEventQueryResults(
@@ -128,6 +121,7 @@ export class FrigateCameraManagerEngine
 {
   protected _entityRegistryManager: EntityRegistryManager;
   protected _frigateEventWatcher: FrigateEventWatcher;
+  protected _frigateReviewWatcher: FrigateReviewWatcher;
   protected _recordingSegmentsCache: RecordingSegmentsCache;
   protected _requestCache: CameraManagerRequestCache;
 
@@ -148,6 +142,7 @@ export class FrigateCameraManagerEngine
     super(stateWatcher, eventCallback);
     this._entityRegistryManager = entityRegistryManager;
     this._frigateEventWatcher = new FrigateEventWatcher();
+    this._frigateReviewWatcher = new FrigateReviewWatcher();
     this._recordingSegmentsCache = recordingSegmentsCache;
     this._requestCache = requestCache;
   }
@@ -168,6 +163,7 @@ export class FrigateCameraManagerEngine
       entityRegistryManager: this._entityRegistryManager,
       stateWatcher: this._stateWatcher,
       frigateEventWatcher: this._frigateEventWatcher,
+      frigateReviewWatcher: this._frigateReviewWatcher,
     });
   }
 
@@ -482,7 +478,7 @@ export class FrigateCameraManagerEngine
         ...(query.end && { before: Math.floor(query.end.getTime() / 1000) }),
         ...(query.start && { after: Math.floor(query.start.getTime() / 1000) }),
         ...(query.limit && { limit: query.limit }),
-        ...(query.severity && { severity: SEVERITY_MAP[query.severity] }),
+        ...(query.severity && { severity: FRIGATE_SEVERITY_MAP[query.severity] }),
         ...(query.reviewed !== undefined && { reviewed: query.reviewed }),
       };
 

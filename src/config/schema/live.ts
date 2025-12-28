@@ -79,7 +79,7 @@ export const liveConfigDefault = {
 const liveMediaTypeSchema = z.enum(['auto', 'events', 'recordings', 'reviews']);
 export type LiveMediaType = z.infer<typeof liveMediaTypeSchema>;
 
-export const liveThumbnailsControlSchema = thumbnailsControlSchema.extend({
+const liveThumbnailsControlSchema = thumbnailsControlSchema.extend({
   media_type: liveMediaTypeSchema.default(liveThumbnailsControlDefault.media_type),
   events_media_type: eventsMediaTypeSchema.default(
     liveThumbnailsControlDefault.events_media_type,

@@ -18,9 +18,8 @@ const timelineThumbnailsControlDefault = {
 // Differs from live equivalent (schema/live.ts) in that recordings are not
 // supported as the main media.
 const timelineMediaTypeSchema = z.enum(['auto', 'events', 'reviews']);
-export type TimelineMediaType = z.infer<typeof timelineMediaTypeSchema>;
 
-export const timelineThumbnailsControlSchema = thumbnailsControlSchema.extend({
+const timelineThumbnailsControlSchema = thumbnailsControlSchema.extend({
   media_type: timelineMediaTypeSchema.default(
     timelineThumbnailsControlDefault.media_type,
   ),

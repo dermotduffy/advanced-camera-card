@@ -88,6 +88,8 @@ import {
   CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS,
   CONF_CAMERAS_ARRAY_TRIGGERS_MOTION,
   CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
+  CONF_CAMERAS_ARRAY_TRIGGERS_REVIEWS_DESCRIPTION,
+  CONF_CAMERAS_ARRAY_TRIGGERS_REVIEWS_SEVERITIES,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
   CONF_DIMENSIONS_ASPECT_RATIO,
@@ -128,8 +130,8 @@ import {
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
-  CONF_LIVE_CONTROLS_TIMELINE_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_TIMELINE_FORMAT_24H,
+  CONF_LIVE_CONTROLS_TIMELINE_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_TIMELINE_MODE,
   CONF_LIVE_CONTROLS_TIMELINE_PAN_MODE,
   CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
@@ -174,8 +176,8 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
-  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA_TYPE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_FORMAT_24H,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA_TYPE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_PAN_MODE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
@@ -223,8 +225,8 @@ import {
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
   CONF_TIMELINE_EVENTS_MEDIA_TYPE,
-  CONF_TIMELINE_MEDIA_TYPE,
   CONF_TIMELINE_FORMAT_24H,
+  CONF_TIMELINE_MEDIA_TYPE,
   CONF_TIMELINE_SHOW_RECORDINGS,
   CONF_TIMELINE_STYLE,
   CONF_TIMELINE_WINDOW_SECONDS,
@@ -284,6 +286,7 @@ const MENU_CAMERAS_MOTIONEYE = 'cameras.motioneye';
 const MENU_CAMERAS_PROXY = 'cameras.proxy';
 const MENU_CAMERAS_REOLINK = 'cameras.reolink';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
+const MENU_CAMERAS_TRIGGERS_REVIEWS = 'cameras.triggers.reviews';
 const MENU_CAMERAS_WEBRTC_CARD = 'cameras.webrtc_card';
 const MENU_FOLDERS = 'folders';
 const MENU_FOLDERS_HA = 'folders.ha';
@@ -831,6 +834,22 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     {
       value: 'snapshots',
       label: localize('config.cameras.triggers.events.snapshots'),
+    },
+  ];
+
+  protected _severities: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'high',
+      label: localize('common.severities.high'),
+    },
+    {
+      value: 'medium',
+      label: localize('common.severities.medium'),
+    },
+    {
+      value: 'low',
+      label: localize('common.severities.low'),
     },
   ];
 
@@ -2496,6 +2515,32 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                       multiple: true,
                       label: localize('config.cameras.triggers.events.editor_label'),
                     },
+                  )}
+                  ${this._putInSubmenu(
+                    MENU_CAMERAS_TRIGGERS_REVIEWS,
+                    cameraIndex,
+                    'config.cameras.triggers.reviews.editor_label',
+                    'mdi:check-circle',
+                    html`
+                      ${this._renderOptionSelector(
+                        getArrayConfigPath(
+                          CONF_CAMERAS_ARRAY_TRIGGERS_REVIEWS_SEVERITIES,
+                          cameraIndex,
+                        ),
+                        this._severities,
+                        {
+                          multiple: true,
+                          label: localize('common.severity'),
+                        },
+                      )}
+                      ${this._renderSwitch(
+                        getArrayConfigPath(
+                          CONF_CAMERAS_ARRAY_TRIGGERS_REVIEWS_DESCRIPTION,
+                          cameraIndex,
+                        ),
+                        this._defaults.cameras.triggers.reviews.description,
+                      )}
+                    `,
                   )}
                 `,
               )}

@@ -136,13 +136,27 @@ export interface FrigateRecordingSegmentsQueryResults
 // Review Types
 // =============
 
-// Frigate review severity values
-export type FrigateReviewSeverity = 'alert' | 'detection' | 'significant_motion';
+// Maps card severity to Frigate severity
+export const FRIGATE_SEVERITY_MAP = {
+  high: 'alert',
+  medium: 'detection',
+  low: 'significant_motion',
+} as const;
+
+export type FrigateReviewSeverity =
+  (typeof FRIGATE_SEVERITY_MAP)[keyof typeof FRIGATE_SEVERITY_MAP];
 
 // Review data schema (only fields we need for display)
 const frigateReviewDataSchema = z.object({
   objects: z.string().array().optional(),
   zones: z.string().array().optional(),
+  metadata: z
+    .object({
+      title: z.string().optional(),
+      scene: z.string().optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 // Review item schema
@@ -153,12 +167,20 @@ const frigateReviewSchema = z.object({
   start_time: z.number(),
   end_time: z.number().nullable(),
   thumb_path: z.string().nullable(),
-  has_been_reviewed: z.boolean(),
+  has_been_reviewed: z.boolean().optional(),
   data: frigateReviewDataSchema,
 });
 export const frigateReviewsSchema = frigateReviewSchema.array();
 
 export type FrigateReview = z.infer<typeof frigateReviewSchema>;
+
+// Review change schema for live WebSocket updates
+export const frigateReviewChangeSchema = z.object({
+  before: frigateReviewSchema,
+  after: frigateReviewSchema,
+  type: z.enum(['new', 'update', 'end']),
+});
+export type FrigateReviewChange = z.infer<typeof frigateReviewChangeSchema>;
 
 export interface FrigateReviewQueryResults extends ReviewQueryResults {
   engine: Engine.Frigate;
