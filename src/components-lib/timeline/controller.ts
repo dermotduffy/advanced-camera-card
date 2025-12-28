@@ -304,8 +304,7 @@ export class TimelineController {
   }
 
   private _shouldShowGroups(): boolean {
-    return true;
-    // TODO return !this._mini || (this._source?.groups.length ?? 0) > 1;
+    return !this._mini || (this._source?.groups.length ?? 0) > 1;
   }
 
   private _setTargetBarAppropriately(targetTime: Date): void {

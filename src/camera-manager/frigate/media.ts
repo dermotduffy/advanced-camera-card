@@ -200,7 +200,7 @@ export class FrigateReviewViewMedia extends ViewMedia implements ReviewViewMedia
     return getReviewSeverity(this._review.severity);
   }
   public isReviewed(): boolean {
-    return this._review.has_been_reviewed;
+    return !!this._review.has_been_reviewed;
   }
   public setReviewed(reviewed: boolean): void {
     this._review.has_been_reviewed = reviewed;

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { capabilityKeys } from '../../types';
+import { capabilityKeys, SEVERITIES } from '../../types';
 import { mediaLayoutConfigSchema } from './camera/media-layout';
 import { ptzCameraConfigDefaults, ptzCameraConfigSchema } from './camera/ptz';
 import { aspectRatioSchema } from './common/aspect-ratio';
@@ -124,8 +124,12 @@ export const cameraConfigDefault = {
   triggers: {
     motion: false,
     occupancy: false,
-    events: [...CAMERA_TRIGGER_EVENT_TYPES],
+    events: [],
     entities: [],
+    reviews: {
+      severities: ['high' as const],
+      description: true,
+    },
   },
   proxy: {
     dynamic: true,
@@ -209,6 +213,17 @@ export const cameraConfigSchema = z
           .enum(CAMERA_TRIGGER_EVENT_TYPES)
           .array()
           .default(cameraConfigDefault.triggers.events),
+        reviews: z
+          .object({
+            severities: z
+              .enum(SEVERITIES)
+              .array()
+              .default([...cameraConfigDefault.triggers.reviews.severities]),
+            description: z
+              .boolean()
+              .default(cameraConfigDefault.triggers.reviews.description),
+          })
+          .default(cameraConfigDefault.triggers.reviews),
       })
       .default(cameraConfigDefault.triggers),
 

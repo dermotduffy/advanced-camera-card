@@ -197,7 +197,11 @@
           "snapshots": "Events with new snapshots"
         },
         "motion": "Trigger by auto-detecting the motion sensor",
-        "occupancy": "Trigger by auto-detecting the occupancy sensor"
+        "occupancy": "Trigger by auto-detecting the occupancy sensor",
+        "reviews": {
+          "description": "Trigger on description updates",
+          "editor_label": "Review Triggers"
+        }
       },
       "webrtc_card": {
         "editor_label": "WebRTC Card Options",

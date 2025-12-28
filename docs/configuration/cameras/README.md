@@ -358,6 +358,26 @@ cameras:
 | `events`    | `[events, clips, snapshots]` | Whether to trigger the camera when `events` occur (whether or not media is available) or whenever updated `clips` or `snapshots` are detected. Detection support varies by camera [engine](engine.md).                                                                                                                                                                                                                                                                                                                                                                                    |
 | `motion`    | `false`                      | Whether to not to trigger the camera by automatically detecting and using the motion `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the motion `binary_sensor` entity has been enabled in Home Assistant.                                                                                                                                                                                                                                                                                                                              |
 | `occupancy` | `false`                      | Whether to not to trigger the camera by automatically detecting and using the occupancy `binary_sensor` for this camera and its configured zones and labels. This autodetection only works for Frigate cameras, and only when the occupancy `binary_sensor` entity has been enabled in Home Assistant. If this camera has configured zones, only occupancy sensors for those zones are used -- if the overall _camera_ occupancy sensor is also required, it can be manually added to `entities`. If this camera has configured labels, only occupancy sensors for those labels are used. |
+| `reviews`   |                              | Configuration for triggering on Frigate review items. See below. Frigate-specific.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+
+### `reviews`
+
+The `reviews` block configures triggering based on review items (e.g., alerts and detections from Frigate).
+
+```yaml
+cameras:
+  - camera_entity: camera.office
+    triggers:
+      reviews:
+        severities:
+          - high
+        description: true
+```
+
+| Option        | Default  | Description                                                                                                                                                                                                                       |
+| ------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `severities`  | `[high]` | An array of severity levels to trigger on. Possible values: `high` (equivalent to Frigate alerts), `medium` (equivalent to Frigate detections), `low`. At least one severity must be configured for review triggers to be active. |
+| `description` | `false`  | Whether to trigger on review description updates (e.g. Frigate GenAI descriptions). Severity must also match.                                                                                                                     |
 
 ## Fully expanded reference
 
@@ -378,6 +398,14 @@ cameras:
       occupancy: true
       entities:
         - binary_sensor.front_door_sensor
+      events:
+        - events
+        - clips
+        - snapshots
+      reviews:
+        severities:
+          - high
+        description: true
     cast:
       method: standard
     dimensions:

@@ -197,5 +197,5 @@ export interface EffectsControllerAPI {
   toggleEffect(effect: EffectName, options?: EffectOptions): Promise<void>;
 }
 
-// Generic severity level (maps to Frigate alert/detection/significant_motion).
-export type Severity = 'high' | 'medium' | 'low';
+export const SEVERITIES = ['high', 'medium', 'low'] as const;
+export type Severity = (typeof SEVERITIES)[number];

@@ -153,9 +153,10 @@ export interface CameraEvent {
   // possibly newly available.
   fidelity?: 'high' | 'low';
 
-  // Whether a new clip/snapshot/recording may be available.
+  // Whether new media may be available.
   clip?: boolean;
   snapshot?: boolean;
+  review?: boolean;
 }
 export type CameraEventCallback = (ev: CameraEvent) => void;
 
