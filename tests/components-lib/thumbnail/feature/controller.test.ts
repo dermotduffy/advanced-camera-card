@@ -115,7 +115,7 @@ describe('ThumbnailFeatureController', () => {
 
     it('should not set subtitle on folder media', () => {
       const controller = new ThumbnailFeatureController();
-      const itemWithThumbnail = new ViewFolder(createFolder(), {
+      const itemWithThumbnail = new ViewFolder(createFolder(), [], {
         title: 'Test Folder',
       });
 

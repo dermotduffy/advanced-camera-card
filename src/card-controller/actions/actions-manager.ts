@@ -53,7 +53,7 @@ export class ActionsManager implements ActionsExecutor {
     let specificActions: Actions | undefined = undefined;
     if (view?.is('live')) {
       specificActions = config?.live.actions;
-    } else if (view?.isMediaGalleryView()) {
+    } else if (view?.isGalleryView()) {
       specificActions = config?.media_gallery?.actions;
     } else if (view?.isViewerView()) {
       specificActions = config?.media_viewer.actions;

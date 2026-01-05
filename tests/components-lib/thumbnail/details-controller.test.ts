@@ -81,7 +81,7 @@ describe('ThumbnailDetailsController', () => {
     });
 
     it('should set no heading on folder', () => {
-      const item = new ViewFolder(createFolder());
+      const item = new ViewFolder(createFolder(), []);
 
       const controller = new ThumbnailDetailsController();
       controller.calculate(null, item);

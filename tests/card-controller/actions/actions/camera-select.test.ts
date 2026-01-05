@@ -6,7 +6,6 @@ describe('should handle camera_select action', () => {
   it('with valid camera and view', async () => {
     const api = createCardAPI();
     vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
-    vi.mocked(api.getViewManager().isViewSupportedByCamera).mockReturnValue(true);
 
     const action = new CameraSelectAction(
       {},
@@ -37,7 +36,6 @@ describe('should handle camera_select action', () => {
         camera: 'camera.office',
       }),
     );
-    vi.mocked(api.getViewManager().isViewSupportedByCamera).mockReturnValue(true);
 
     const action = new CameraSelectAction(
       {},
@@ -61,7 +59,6 @@ describe('should handle camera_select action', () => {
         view: 'timeline',
       }),
     );
-    vi.mocked(api.getViewManager().isViewSupportedByCamera).mockReturnValue(true);
 
     const action = new CameraSelectAction(
       {},
@@ -100,7 +97,6 @@ describe('should handle camera_select action', () => {
         view: 'live',
       }),
     );
-    vi.mocked(api.getViewManager().isViewSupportedByCamera).mockReturnValue(true);
 
     const action = new CameraSelectAction(
       {},
@@ -127,7 +123,6 @@ describe('should handle camera_select action', () => {
   it('with triggered camera', async () => {
     const api = createCardAPI();
     vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
-    vi.mocked(api.getViewManager().isViewSupportedByCamera).mockReturnValue(true);
     vi.mocked(api.getTriggersManager().getMostRecentlyTriggeredCameraID).mockReturnValue(
       'camera.office',
     );
@@ -157,7 +152,6 @@ describe('should handle camera_select action', () => {
   it('without camera or triggered camera', async () => {
     const api = createCardAPI();
     vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
-    vi.mocked(api.getViewManager().isViewSupportedByCamera).mockReturnValue(true);
     vi.mocked(api.getTriggersManager().getMostRecentlyTriggeredCameraID).mockReturnValue(
       'camera.office',
     );

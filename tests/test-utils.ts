@@ -14,7 +14,14 @@ import {
 import { GenericCameraManagerEngine } from '../src/camera-manager/generic/engine-generic';
 import { CameraManager } from '../src/camera-manager/manager';
 import { CameraManagerStore } from '../src/camera-manager/store';
-import { CameraEventCallback } from '../src/camera-manager/types';
+import {
+  CameraEventCallback,
+  EventQuery,
+  MediaQuery,
+  QueryType,
+  RecordingQuery,
+  ReviewQuery,
+} from '../src/camera-manager/types';
 import { ActionsManager } from '../src/card-controller/actions/actions-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
 import { CameraURLManager } from '../src/card-controller/camera-url-manager';
@@ -24,6 +31,7 @@ import { CardController } from '../src/card-controller/controller';
 import { DefaultManager } from '../src/card-controller/default-manager';
 import { ExpandManager } from '../src/card-controller/expand-manager';
 import { FoldersManager } from '../src/card-controller/folders/manager';
+import { FolderQuery } from '../src/card-controller/folders/types';
 import { FullscreenManager } from '../src/card-controller/fullscreen/fullscreen-manager';
 import { HASSManager } from '../src/card-controller/hass/hass-manager';
 import { StateWatcherSubscriptionInterface } from '../src/card-controller/hass/state-watcher';
@@ -61,6 +69,7 @@ import {
 import { Device } from '../src/ha/registry/device/types';
 import { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
 import { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
+import { QuerySource } from '../src/query-source';
 import {
   CapabilitiesRaw,
   EffectsControllerAPI,
@@ -763,3 +772,63 @@ export const createRichBrowseMedia = (
     },
   };
 };
+
+export const createEventQuery = (
+  cameraID: string,
+  options?: Partial<EventQuery>,
+): EventQuery => ({
+  source: QuerySource.Camera,
+  type: QueryType.Event,
+  cameraIDs: new Set([cameraID]),
+  ...options,
+});
+
+export const createReviewQuery = (
+  cameraID: string,
+  options?: Partial<ReviewQuery>,
+): ReviewQuery => ({
+  source: QuerySource.Camera,
+  type: QueryType.Review,
+  cameraIDs: new Set([cameraID]),
+  ...options,
+});
+
+export const createRecordingQuery = (
+  cameraID: string,
+  options?: Partial<RecordingQuery>,
+): RecordingQuery => ({
+  source: QuerySource.Camera,
+  type: QueryType.Recording,
+  cameraIDs: new Set([cameraID]),
+  ...options,
+});
+
+export const createFolderQuery = (folderId: string): FolderQuery => ({
+  source: QuerySource.Folder,
+  folder: { id: folderId, type: 'ha', title: folderId },
+  path: [{ ha: { id: 'Root' } }],
+});
+
+export const isMediaQuery = (node: { source: QuerySource }): node is MediaQuery =>
+  node.source === QuerySource.Camera;
+
+export const isEventQuery = (node: {
+  source: QuerySource;
+  type?: QueryType;
+}): node is EventQuery =>
+  node.source === QuerySource.Camera && node.type === QueryType.Event;
+
+export const isRecordingQuery = (node: {
+  source: QuerySource;
+  type?: QueryType;
+}): node is RecordingQuery =>
+  node.source === QuerySource.Camera && node.type === QueryType.Recording;
+
+export const isReviewQuery = (node: {
+  source: QuerySource;
+  type?: QueryType;
+}): node is ReviewQuery =>
+  node.source === QuerySource.Camera && node.type === QueryType.Review;
+
+export const isFolderQuery = (node: { source: QuerySource }): node is FolderQuery =>
+  node.source === QuerySource.Folder;

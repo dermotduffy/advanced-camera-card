@@ -226,7 +226,7 @@ describe('ViewItemManager', () => {
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
         const manager = new ViewItemManager(api);
-        const item = new ViewFolder(createFolder());
+        const item = new ViewFolder(createFolder(), []);
 
         vi.mocked(api.getFoldersManager().getDownloadPath).mockResolvedValue({
           sign: false,
@@ -242,7 +242,7 @@ describe('ViewItemManager', () => {
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
         const manager = new ViewItemManager(api);
-        const item = new ViewFolder(createFolder(), { title: 'title' });
+        const item = new ViewFolder(createFolder(), [], { title: 'title' });
 
         vi.mocked(api.getFoldersManager().getDownloadPath).mockResolvedValue({
           sign: false,

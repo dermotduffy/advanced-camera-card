@@ -5,6 +5,7 @@ import { CameraConfig } from '../../config/schema/cameras';
 import { getEntityTitle } from '../../ha/get-entity-title';
 import { EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
+import { QuerySource } from '../../query-source.js';
 import { Endpoint } from '../../types';
 import {
   allPromises,
@@ -29,6 +30,7 @@ import {
   CameraManagerCameraMetadata,
   CameraManagerRequestCache,
   CameraQuery,
+  DefaultQueryParameters,
   Engine,
   EngineOptions,
   EventQuery,
@@ -55,7 +57,6 @@ import {
   ReviewQueryResultsMap,
 } from '../types';
 import { FrigateCamera, isBirdseye } from './camera';
-import { FrigateEventWatcher, FrigateReviewWatcher } from './watcher';
 import { FrigateViewMediaFactory } from './media';
 import { FrigateViewMediaClassifier } from './media-classifier';
 import {
@@ -78,6 +79,7 @@ import {
   FrigateRecordingSegmentsQueryResults,
   FrigateReviewQueryResults,
 } from './types';
+import { FrigateEventWatcher, FrigateReviewWatcher } from './watcher';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
@@ -167,6 +169,21 @@ export class FrigateCameraManagerEngine
     });
   }
 
+  public override getDefaultQueryParameters(
+    camera: Camera,
+    queryType: QueryType,
+  ): DefaultQueryParameters {
+    if (queryType !== QueryType.Event && queryType !== QueryType.Review) {
+      return {};
+    }
+
+    const cameraConfig = camera.getConfig();
+    return {
+      ...(cameraConfig.frigate.labels && { what: new Set(cameraConfig.frigate.labels) }),
+      ...(cameraConfig.frigate.zones && { where: new Set(cameraConfig.frigate.zones) }),
+    };
+  }
+
   public async getMediaDownloadPath(
     _hass: HomeAssistant,
     cameraConfig: CameraConfig,
@@ -213,6 +230,7 @@ export class FrigateCameraManagerEngine
   ): RecordingQuery[] {
     return [
       {
+        source: QuerySource.Camera,
         type: QueryType.Recording,
         cameraIDs: cameraIDs,
         ...query,
@@ -290,6 +308,7 @@ export class FrigateCameraManagerEngine
     if (uniqueZoneArrays.length === 1 && uniqueLabelArrays.length === 1) {
       return [
         {
+          source: QuerySource.Camera,
           ...query,
           cameraIDs: cameraIDs,
           ...(uniqueLabelArrays[0] && { what: new Set(uniqueLabelArrays[0]) }),
@@ -303,6 +322,7 @@ export class FrigateCameraManagerEngine
       const cameraConfig = store.getCameraConfig(cameraID);
       if (cameraConfig) {
         output.push({
+          source: QuerySource.Camera,
           ...query,
           cameraIDs: new Set([cameraID]),
           ...(cameraConfig.frigate.labels && {
@@ -945,6 +965,7 @@ export class FrigateCameraManagerEngine
         hass,
         store,
         {
+          source: QuerySource.Camera,
           type: QueryType.Recording,
           cameraIDs: cameraIDs,
         },
@@ -1005,6 +1026,7 @@ export class FrigateCameraManagerEngine
   ): Promise<void> {
     const cameraIDs = this._recordingSegmentsCache.getCameraIDs();
     const recordingQuery: RecordingQuery = {
+      source: QuerySource.Camera,
       cameraIDs: new Set(cameraIDs),
       type: QueryType.Recording,
     };

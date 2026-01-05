@@ -57,9 +57,9 @@ export class FoldersManager {
       : this._folders.values().next().value ?? null;
   }
 
-  public generateDefaultFolderQuery(folder?: FolderConfig): FolderQuery | null {
+  public getDefaultQueryParameters(folder?: FolderConfig): FolderQuery | null {
     const _folder = folder ?? this.getFolder();
-    return _folder ? this._executor.generateDefaultFolderQuery(_folder) : null;
+    return _folder ? this._executor.getDefaultQueryParameters(_folder) : null;
   }
 
   public generateChildFolderQuery(
@@ -78,6 +78,10 @@ export class FoldersManager {
     return hass
       ? this._executor.expandFolder(hass, query, conditionState, engineOptions)
       : null;
+  }
+
+  public areResultsFresh(resultsTimestamp: Date, query: FolderQuery): boolean {
+    return this._executor.areResultsFresh(resultsTimestamp, query);
   }
 
   public getItemCapabilities(item: ViewItem): ViewItemCapabilities | null {

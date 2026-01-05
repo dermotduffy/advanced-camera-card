@@ -5,6 +5,12 @@ import type { LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from './ha/
 export type ClipsOrSnapshots = 'clips' | 'snapshots';
 export type ClipsOrSnapshotsOrAll = 'clips' | 'snapshots' | 'all';
 
+/**
+ * UI-facing media types for galleries and views.
+ */
+export const VIEW_MEDIA_TYPES = ['clips', 'snapshots', 'recordings', 'reviews'] as const;
+export type ViewMediaType = (typeof VIEW_MEDIA_TYPES)[number];
+
 export class AdvancedCameraCardError extends Error {
   context?: unknown;
 

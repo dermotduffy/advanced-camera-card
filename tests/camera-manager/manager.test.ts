@@ -11,8 +11,6 @@ import {
   QueryResultClassifier,
 } from '../../src/camera-manager/manager.js';
 import {
-  CameraEndpoints,
-  CameraEndpointsContext,
   CameraEvent,
   CameraManagerCameraMetadata,
   Engine,
@@ -27,18 +25,19 @@ import { CardController } from '../../src/card-controller/controller.js';
 import { sortItems } from '../../src/card-controller/view/sort.js';
 import { CameraConfig } from '../../src/config/schema/cameras.js';
 import { HomeAssistant } from '../../src/ha/types.js';
+import { QuerySource } from '../../src/query-source.js';
 import { Endpoint, PTZMovementType } from '../../src/types.js';
 import { ViewFolder, ViewItem, ViewMedia } from '../../src/view/item.js';
 import { ViewItemCapabilities } from '../../src/view/types.js';
 import {
   TestViewMedia,
-  createInitializedCamera,
   createCameraConfig,
   createCapabilities,
   createCardAPI,
   createConfig,
   createFolder,
   createHASS,
+  createInitializedCamera,
   generateViewMediaArray,
 } from '../test-utils.js';
 
@@ -241,6 +240,7 @@ describe('CameraManager', () => {
   };
 
   const baseEventQuery: EventQuery = {
+    source: QuerySource.Camera,
     type: QueryType.Event as const,
     cameraIDs: new Set(['id']),
   };
@@ -251,6 +251,7 @@ describe('CameraManager', () => {
   };
 
   const baseRecordingQuery = {
+    source: QuerySource.Camera as const,
     type: QueryType.Recording as const,
     cameraIDs: new Set(['id']),
   };
@@ -520,6 +521,33 @@ describe('CameraManager', () => {
 
         engine.generateDefaultEventQuery.mockReturnValue(null);
         expect(manager.generateDefaultEventQueries('id')).toBeNull();
+      });
+    });
+
+    describe('getDefaultQueryParameters', () => {
+      it('should return empty object for non-existent camera', async () => {
+        const api = createCardAPI();
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+        const manager = createCameraManager(api, mock<CameraManagerEngine>());
+
+        expect(
+          manager.getDefaultQueryParameters('not_a_camera', QueryType.Event),
+        ).toEqual({});
+      });
+
+      it('should return parameters from engine for existing camera', async () => {
+        const api = createCardAPI();
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+        const engine = mock<CameraManagerEngine>();
+        const manager = createCameraManager(api, engine);
+        expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+        engine.getDefaultQueryParameters.mockReturnValue({ what: new Set(['person']) });
+        expect(manager.getDefaultQueryParameters('id', QueryType.Event)).toEqual({
+          what: new Set(['person']),
+        });
       });
     });
 
@@ -809,7 +837,7 @@ describe('CameraManager', () => {
       new TestViewMedia({
         startTime: add(dateBase, { days: 2 }),
       }),
-      new ViewFolder(createFolder()),
+      new ViewFolder(createFolder(), []),
     ];
 
     it('without hass', async () => {
