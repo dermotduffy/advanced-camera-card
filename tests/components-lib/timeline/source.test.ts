@@ -1,7 +1,17 @@
 import { add } from 'date-fns';
+import { NonEmptyTuple } from 'type-fest';
 import { DataSet } from 'vis-data';
 import { TimelineWindow } from 'vis-timeline';
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  assert,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManager } from '../../../src/camera-manager/manager';
 import {
@@ -16,18 +26,21 @@ import {
 } from '../../../src/camera-manager/types';
 import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import {
+  FolderPathComponent,
+  FolderQuery,
+} from '../../../src/card-controller/folders/types';
+import {
   AdvancedCameraCardTimelineItem,
   TimelineDataSource,
 } from '../../../src/components-lib/timeline/source';
-import { TimelineKeys } from '../../../src/components-lib/timeline/types';
 import { ConditionStateManagerReadonlyInterface } from '../../../src/conditions/types';
+import { QuerySource } from '../../../src/query-source';
 import { ViewMediaType } from '../../../src/view/item';
-import { FolderViewQuery } from '../../../src/view/query';
+import { QueryNode, UnifiedQuery } from '../../../src/view/unified-query';
 import {
   createCameraManager,
   createFolder,
   createStore,
-  createView,
   TestViewMedia,
 } from '../../test-utils';
 
@@ -46,7 +59,7 @@ const testCameraMedia = new TestViewMedia({
   endTime: end,
 });
 
-const folder = createFolder({ id: 'folder/folder-1', title: 'Folder Title' });
+const folder = createFolder({ id: 'folder-1', title: 'Folder Title' });
 const testFolderMedia = new TestViewMedia({
   folder,
   id: TEST_MEDIA_ID,
@@ -68,6 +81,7 @@ const createTestCameraManager = (): CameraManager => {
     icon: { icon: 'mdi:camera' },
   });
   const eventQuery: EventQuery = {
+    source: QuerySource.Camera,
     type: QueryType.Event,
     cameraIDs: new Set([CAMERA_ID]),
     start: start,
@@ -105,61 +119,71 @@ const createTestCameraManager = (): CameraManager => {
 };
 
 describe('TimelineDataSource', () => {
-  const cameraTimelineKeys: TimelineKeys = {
-    type: 'camera',
-    cameraIDs: new Set(['camera-1', 'camera-2']),
-    queryType: 'event',
-  };
-  const reviewTimelineKeys: TimelineKeys = {
-    type: 'camera',
+  // Create camera-based query with events for two cameras
+  const cameraEventsQuery = new UnifiedQuery();
+  const eventQuery1: EventQuery = {
+    source: QuerySource.Camera,
+    type: QueryType.Event,
     cameraIDs: new Set(['camera-1']),
-    queryType: 'review',
+    hasClip: true,
   };
-  const folderTimelineKeys: TimelineKeys = {
-    type: 'folder',
-    folder,
+  cameraEventsQuery.addNode(eventQuery1);
+
+  const eventQuery2: EventQuery = {
+    source: QuerySource.Camera,
+    type: QueryType.Event,
+    cameraIDs: new Set(['camera-2']),
+    hasSnapshot: true,
+  };
+  cameraEventsQuery.addNode(eventQuery2);
+
+  // Create camera-based query with reviews for one camera
+  const reviewQuery = new UnifiedQuery();
+  const reviewQueryNode: ReviewQuery = {
+    source: QuerySource.Camera,
+    type: QueryType.Review,
+    cameraIDs: new Set(['camera-1']),
+  };
+  reviewQuery.addNode(reviewQueryNode);
+
+  // Create folder-based query
+  const folderQuery = new UnifiedQuery();
+  const folderPath: NonEmptyTuple<FolderPathComponent> = [{}];
+  const folderQueryNode: FolderQuery = {
+    source: QuerySource.Folder,
+    folder: folder,
+    path: folderPath,
+  };
+  folderQuery.addNode(folderQueryNode);
+
+  // Helper to create a TimelineDataSource with a shape query
+  const createSource = (
+    cameraManager: CameraManager,
+    foldersManager: FoldersManager,
+    conditionStateManager: ConditionStateManagerReadonlyInterface,
+    shape: UnifiedQuery,
+    showRecordings = true,
+  ): TimelineDataSource => {
+    return new TimelineDataSource(
+      cameraManager,
+      foldersManager,
+      conditionStateManager,
+      shape,
+      showRecordings,
+    );
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('should get key type', () => {
-    it('should get camera key type', () => {
-      const source = new TimelineDataSource(
-        createTestCameraManager(),
-        mock<FoldersManager>(),
-        mock<ConditionStateManagerReadonlyInterface>(),
-        cameraTimelineKeys,
-        'all',
-        true,
-      );
-
-      expect(source.getKeyType()).toBe('camera');
-    });
-
-    it('should get folder key type', () => {
-      const source = new TimelineDataSource(
-        createTestCameraManager(),
-        mock<FoldersManager>(),
-        mock<ConditionStateManagerReadonlyInterface>(),
-        folderTimelineKeys,
-        'all',
-        true,
-      );
-
-      expect(source.getKeyType()).toBe('folder');
-    });
-  });
-
   describe('should get groups', () => {
     it('should get camera based groups', () => {
-      const source = new TimelineDataSource(
+      const source = createSource(
         createTestCameraManager(),
         mock<FoldersManager>(),
         mock<ConditionStateManagerReadonlyInterface>(),
-        cameraTimelineKeys,
-        'all',
+        cameraEventsQuery,
         true,
       );
 
@@ -175,12 +199,11 @@ describe('TimelineDataSource', () => {
     });
 
     it('should get folder based groups', () => {
-      const source = new TimelineDataSource(
+      const source = createSource(
         createTestCameraManager(),
         mock<FoldersManager>(),
         mock<ConditionStateManagerReadonlyInterface>(),
-        folderTimelineKeys,
-        'all',
+        folderQuery,
         true,
       );
 
@@ -195,12 +218,11 @@ describe('TimelineDataSource', () => {
       const cameraManager = createTestCameraManager();
       vi.mocked(cameraManager.getCameraMetadata).mockReturnValue(null);
 
-      const source = new TimelineDataSource(
+      const source = createSource(
         cameraManager,
         mock<FoldersManager>(),
         mock<ConditionStateManagerReadonlyInterface>(),
-        cameraTimelineKeys,
-        'all',
+        cameraEventsQuery,
         true,
       );
 
@@ -211,35 +233,20 @@ describe('TimelineDataSource', () => {
     });
 
     it('should use folder id if folder has no title', () => {
-      const folder = createFolder({ id: 'folder/folder-1' });
-      const timelineKeys: TimelineKeys = { type: 'folder', folder };
-
-      const source = new TimelineDataSource(
-        createTestCameraManager(),
-        mock<FoldersManager>(),
-        mock<ConditionStateManagerReadonlyInterface>(),
-        timelineKeys,
-        'all',
-        true,
-      );
-
-      expect(source.groups.length).toBe(1);
-      expect(source.groups.get('folder/folder-1')).toEqual({
-        content: 'folder/folder-1',
-        id: 'folder/folder-1',
+      const folder = createFolder({ id: 'folder-1' });
+      const testQuery = new UnifiedQuery();
+      const folderPath: NonEmptyTuple<FolderPathComponent> = [{}];
+      testQuery.addNode({
+        source: QuerySource.Folder,
+        folder: folder,
+        path: folderPath,
       });
-    });
 
-    it('should have no groups if a folder key has no folder', () => {
-      const folder = createFolder({ id: 'folder/folder-1' });
-      const timelineKeys: TimelineKeys = { type: 'folder', folder };
-
-      const source = new TimelineDataSource(
+      const source = createSource(
         createTestCameraManager(),
         mock<FoldersManager>(),
         mock<ConditionStateManagerReadonlyInterface>(),
-        timelineKeys,
-        'all',
+        testQuery,
         true,
       );
 
@@ -263,15 +270,14 @@ describe('TimelineDataSource', () => {
         endTime,
       });
 
-      const source = new TimelineDataSource(
+      const source = createSource(
         createTestCameraManager(),
         mock<FoldersManager>(),
         mock<ConditionStateManagerReadonlyInterface>(),
-        cameraTimelineKeys,
-        'all',
+        cameraEventsQuery,
         true,
       );
-      source.addMediaToDataset([media]);
+      source.addMediaToDataset(cameraEventsQuery, [media]);
 
       expect(source.dataset.length).toBe(1);
       expect(source.dataset.get(id)).toEqual({
@@ -282,6 +288,7 @@ describe('TimelineDataSource', () => {
         group: 'camera/camera-1',
         content: '',
         type: 'range',
+        query: cameraEventsQuery,
       });
     });
 
@@ -298,15 +305,14 @@ describe('TimelineDataSource', () => {
         severity: 'high',
       });
 
-      const source = new TimelineDataSource(
+      const source = createSource(
         createTestCameraManager(),
         mock<FoldersManager>(),
         mock<ConditionStateManagerReadonlyInterface>(),
-        reviewTimelineKeys,
-        'all',
+        reviewQuery,
         false,
       );
-      source.addMediaToDataset([media]);
+      source.addMediaToDataset(reviewQuery, [media]);
 
       expect(source.dataset.length).toBe(1);
       expect(source.dataset.get(id)).toEqual({
@@ -317,6 +323,7 @@ describe('TimelineDataSource', () => {
         group: 'camera/camera-1',
         content: '',
         type: 'range',
+        query: reviewQuery,
         severity: 'high',
       });
     });
@@ -334,15 +341,14 @@ describe('TimelineDataSource', () => {
         severity: null,
       });
 
-      const source = new TimelineDataSource(
+      const source = createSource(
         createTestCameraManager(),
         mock<FoldersManager>(),
         mock<ConditionStateManagerReadonlyInterface>(),
-        reviewTimelineKeys,
-        'all',
+        reviewQuery,
         false,
       );
-      source.addMediaToDataset([media]);
+      source.addMediaToDataset(reviewQuery, [media]);
 
       expect(source.dataset.length).toBe(1);
       expect(source.dataset.get(id)).toEqual({
@@ -353,6 +359,7 @@ describe('TimelineDataSource', () => {
         group: 'camera/camera-1',
         content: '',
         type: 'range',
+        query: reviewQuery,
         severity: undefined,
       });
     });
@@ -361,7 +368,7 @@ describe('TimelineDataSource', () => {
       const startTime = new Date('2025-09-21T15:32:21Z');
       const endTime = new Date('2025-09-21T15:35:28Z');
       const id = 'EVENT_ID';
-      const folderID = 'folder/FOLDER_ID';
+      const folderID = 'FOLDER_ID';
       const folder = createFolder({ id: folderID });
       const media = new TestViewMedia({
         cameraID: null,
@@ -371,15 +378,14 @@ describe('TimelineDataSource', () => {
         folder,
       });
 
-      const source = new TimelineDataSource(
+      const source = createSource(
         createTestCameraManager(),
         mock<FoldersManager>(),
         mock<ConditionStateManagerReadonlyInterface>(),
-        folderTimelineKeys,
-        'all',
+        folderQuery,
         true,
       );
-      source.addMediaToDataset([media]);
+      source.addMediaToDataset(folderQuery, [media]);
 
       expect(source.dataset.length).toBe(1);
       expect(source.dataset.get(id)).toEqual({
@@ -387,23 +393,23 @@ describe('TimelineDataSource', () => {
         start: startTime.getTime(),
         end: endTime.getTime(),
         media,
-        group: folderID,
+        group: `folder/${folderID}`,
         content: '',
         type: 'range',
+        query: folderQuery,
       });
     });
 
     it('should ignore non-events media', () => {
-      const source = new TimelineDataSource(
+      const source = createSource(
         createTestCameraManager(),
         mock<FoldersManager>(),
         mock<ConditionStateManagerReadonlyInterface>(),
-        cameraTimelineKeys,
-        'all',
+        cameraEventsQuery,
         true,
       );
 
-      source.addMediaToDataset([
+      source.addMediaToDataset(cameraEventsQuery, [
         new TestViewMedia({
           mediaType: ViewMediaType.Recording,
         }),
@@ -413,31 +419,29 @@ describe('TimelineDataSource', () => {
     });
 
     it('should ignore null results', () => {
-      const source = new TimelineDataSource(
+      const source = createSource(
         createTestCameraManager(),
         mock<FoldersManager>(),
         mock<ConditionStateManagerReadonlyInterface>(),
-        cameraTimelineKeys,
-        'all',
+        cameraEventsQuery,
         true,
       );
 
-      source.addMediaToDataset(null);
+      source.addMediaToDataset(cameraEventsQuery, null);
 
       expect(source.dataset.length).toBe(0);
     });
 
     it('should ignore media without camera or folder ownership', () => {
-      const source = new TimelineDataSource(
+      const source = createSource(
         createTestCameraManager(),
         mock<FoldersManager>(),
         mock<ConditionStateManagerReadonlyInterface>(),
-        cameraTimelineKeys,
-        'all',
+        cameraEventsQuery,
         true,
       );
 
-      source.addMediaToDataset([
+      source.addMediaToDataset(cameraEventsQuery, [
         new TestViewMedia({
           cameraID: null,
           folder: null,
@@ -462,17 +466,15 @@ describe('TimelineDataSource', () => {
 
       describe('should refresh events from camera', () => {
         it('should refresh events successfully', async () => {
-          const source = new TimelineDataSource(
+          const source = createSource(
             createTestCameraManager(),
             mock<FoldersManager>(),
             mock<ConditionStateManagerReadonlyInterface>(),
-            cameraTimelineKeys,
-            'all',
+            cameraEventsQuery,
             false,
           );
-          const view = createView();
 
-          await source.refresh(window, { view });
+          await source.refresh(window);
 
           expect(source.dataset.length).toBe(1);
 
@@ -483,6 +485,7 @@ describe('TimelineDataSource', () => {
             end: new Date('2025-09-21T19:31:15Z').getTime(),
             media: testCameraMedia,
             type: 'range',
+            query: expect.any(UnifiedQuery),
             group: 'camera/camera-1',
           });
         });
@@ -495,12 +498,11 @@ describe('TimelineDataSource', () => {
             new Error('Error fetching events'),
           );
 
-          const source = new TimelineDataSource(
+          const source = createSource(
             cameraManager,
             mock<FoldersManager>(),
             mock<ConditionStateManagerReadonlyInterface>(),
-            cameraTimelineKeys,
-            'all',
+            cameraEventsQuery,
             false,
           );
 
@@ -515,62 +517,42 @@ describe('TimelineDataSource', () => {
 
         it('should not refresh events when window is cached', async () => {
           const cameraManager = createTestCameraManager();
-          const source = new TimelineDataSource(
+          const source = createSource(
             cameraManager,
             mock<FoldersManager>(),
             mock<ConditionStateManagerReadonlyInterface>(),
-            cameraTimelineKeys,
-            'all',
-            false,
-          );
-          const view = createView();
-
-          await source.refresh(window, { view });
-          expect(source.dataset.length).toBe(1);
-
-          await source.refresh(window, { view });
-          expect(source.dataset.length).toBe(1);
-          expect(cameraManager.executeMediaQueries).toHaveBeenCalledTimes(1);
-        });
-
-        it('should not refresh events when unable to create event queries', async () => {
-          const cameraManager = createTestCameraManager();
-          vi.mocked(cameraManager.generateDefaultEventQueries).mockReturnValue(null);
-
-          const source = new TimelineDataSource(
-            cameraManager,
-            mock<FoldersManager>(),
-            mock<ConditionStateManagerReadonlyInterface>(),
-            cameraTimelineKeys,
-            'all',
+            cameraEventsQuery,
             false,
           );
 
           await source.refresh(window);
-          expect(source.dataset.length).toBe(0);
+          expect(source.dataset.length).toBe(1);
+
+          await source.refresh(window);
+          expect(source.dataset.length).toBe(1);
+          expect(cameraManager.executeMediaQueries).toHaveBeenCalledTimes(1);
         });
       });
 
       describe('should refresh events from folder', () => {
         it('should refresh events successfully', async () => {
           const foldersManager = mock<FoldersManager>();
-          vi.mocked(foldersManager.generateDefaultFolderQuery).mockReturnValue({
+          vi.mocked(foldersManager.getDefaultQueryParameters).mockReturnValue({
+            source: QuerySource.Folder,
             folder,
             path: [{}],
           });
           vi.mocked(foldersManager.expandFolder).mockResolvedValue([testFolderMedia]);
 
-          const source = new TimelineDataSource(
+          const source = createSource(
             mock<CameraManager>(),
             foldersManager,
             mock<ConditionStateManagerReadonlyInterface>(),
-            folderTimelineKeys,
-            'all',
+            folderQuery,
             false,
           );
-          const view = createView();
 
-          await source.refresh(window, { view });
+          await source.refresh(window);
 
           expect(source.dataset.length).toBe(1);
 
@@ -582,7 +564,7 @@ describe('TimelineDataSource', () => {
             media: testFolderMedia,
             type: 'range',
             group: 'folder/folder-1',
-            query: expect.any(FolderViewQuery),
+            query: expect.any(UnifiedQuery),
           });
         });
 
@@ -597,25 +579,24 @@ describe('TimelineDataSource', () => {
 
           it('should refresh events only when not cached', async () => {
             const foldersManager = mock<FoldersManager>();
-            vi.mocked(foldersManager.generateDefaultFolderQuery).mockReturnValue({
+            vi.mocked(foldersManager.getDefaultQueryParameters).mockReturnValue({
+              source: QuerySource.Folder,
               folder,
               path: [{}],
             });
             vi.mocked(foldersManager.expandFolder).mockResolvedValue([testFolderMedia]);
 
-            const source = new TimelineDataSource(
+            const source = createSource(
               mock<CameraManager>(),
               foldersManager,
               mock<ConditionStateManagerReadonlyInterface>(),
-              folderTimelineKeys,
-              'all',
+              folderQuery,
               false,
             );
-            const view = createView();
 
-            await source.refresh(window, { view });
-            await source.refresh(window, { view });
-            await source.refresh(window, { view });
+            await source.refresh(window);
+            await source.refresh(window);
+            await source.refresh(window);
 
             expect(foldersManager.expandFolder).toHaveBeenCalledTimes(1);
           });
@@ -624,27 +605,26 @@ describe('TimelineDataSource', () => {
             const start = new Date();
             vi.setSystemTime(start);
             const foldersManager = mock<FoldersManager>();
-            vi.mocked(foldersManager.generateDefaultFolderQuery).mockReturnValue({
+            vi.mocked(foldersManager.getDefaultQueryParameters).mockReturnValue({
+              source: QuerySource.Folder,
               folder,
               path: [{}],
             });
             vi.mocked(foldersManager.expandFolder).mockResolvedValue([testFolderMedia]);
 
-            const source = new TimelineDataSource(
+            const source = createSource(
               mock<CameraManager>(),
               foldersManager,
               mock<ConditionStateManagerReadonlyInterface>(),
-              folderTimelineKeys,
-              'all',
+              folderQuery,
               false,
             );
-            const view = createView();
 
-            await source.refresh(window, { view });
+            await source.refresh(window);
 
             vi.setSystemTime(add(start, { hours: 1 }));
 
-            await source.refresh(window, { view });
+            await source.refresh(window);
 
             expect(foldersManager.expandFolder).toHaveBeenCalledTimes(2);
           });
@@ -659,50 +639,49 @@ describe('TimelineDataSource', () => {
 
       it('should refresh reviews successfully', async () => {
         const cameraManager = createTestCameraManager();
-        const reviewQuery: ReviewQuery = {
+        const cameraReviewQuery: ReviewQuery = {
+          source: QuerySource.Camera,
           type: QueryType.Review,
           cameraIDs: new Set([CAMERA_ID]),
           start,
           end,
         };
         vi.mocked(cameraManager.generateDefaultReviewQueries).mockReturnValue([
-          reviewQuery,
+          cameraReviewQuery,
         ]);
 
-        const source = new TimelineDataSource(
+        const source = createSource(
           cameraManager,
           mock<FoldersManager>(),
           mock<ConditionStateManagerReadonlyInterface>(),
-          reviewTimelineKeys,
-          'all',
+          reviewQuery,
           false,
         );
 
         await source.refresh(window);
 
-        expect(cameraManager.generateDefaultReviewQueries).toHaveBeenCalled();
         expect(cameraManager.executeMediaQueries).toHaveBeenCalled();
         expect(source.dataset.length).toBe(1);
       });
 
       it('should not refresh reviews when window is cached', async () => {
         const cameraManager = createTestCameraManager();
-        const reviewQuery: ReviewQuery = {
+        const cameraReviewQuery: ReviewQuery = {
+          source: QuerySource.Camera,
           type: QueryType.Review,
           cameraIDs: new Set([CAMERA_ID]),
           start,
           end,
         };
         vi.mocked(cameraManager.generateDefaultReviewQueries).mockReturnValue([
-          reviewQuery,
+          cameraReviewQuery,
         ]);
 
-        const source = new TimelineDataSource(
+        const source = createSource(
           cameraManager,
           mock<FoldersManager>(),
           mock<ConditionStateManagerReadonlyInterface>(),
-          reviewTimelineKeys,
-          'all',
+          reviewQuery,
           false,
         );
 
@@ -716,12 +695,11 @@ describe('TimelineDataSource', () => {
         const cameraManager = createTestCameraManager();
         vi.mocked(cameraManager.generateDefaultReviewQueries).mockReturnValue(null);
 
-        const source = new TimelineDataSource(
+        const source = createSource(
           cameraManager,
           mock<FoldersManager>(),
           mock<ConditionStateManagerReadonlyInterface>(),
-          reviewTimelineKeys,
-          'all',
+          new UnifiedQuery(),
           false,
         );
 
@@ -740,12 +718,11 @@ describe('TimelineDataSource', () => {
       };
 
       it('should refresh recordings successfully', async () => {
-        const source = new TimelineDataSource(
+        const source = createSource(
           createTestCameraManager(),
           mock<FoldersManager>(),
           mock<ConditionStateManagerReadonlyInterface>(),
-          cameraTimelineKeys,
-          'all',
+          cameraEventsQuery,
           true,
         );
 
@@ -772,12 +749,11 @@ describe('TimelineDataSource', () => {
           new Error('Error fetching recordings'),
         );
 
-        const source = new TimelineDataSource(
+        const source = createSource(
           cameraManager,
           mock<FoldersManager>(),
           mock<ConditionStateManagerReadonlyInterface>(),
-          cameraTimelineKeys,
-          'all',
+          cameraEventsQuery,
           true,
         );
 
@@ -792,12 +768,11 @@ describe('TimelineDataSource', () => {
 
       it('should not refresh recordings when window is cached', async () => {
         const cameraManager = createTestCameraManager();
-        const source = new TimelineDataSource(
+        const source = createSource(
           cameraManager,
           mock<FoldersManager>(),
           mock<ConditionStateManagerReadonlyInterface>(),
-          cameraTimelineKeys,
-          'all',
+          cameraEventsQuery,
           true,
         );
 
@@ -811,12 +786,11 @@ describe('TimelineDataSource', () => {
       });
 
       it('should not refresh recordings when recordings disabled', async () => {
-        const source = new TimelineDataSource(
+        const source = createSource(
           createTestCameraManager(),
           mock<FoldersManager>(),
           mock<ConditionStateManagerReadonlyInterface>(),
-          cameraTimelineKeys,
-          'all',
+          cameraEventsQuery,
 
           // Disable recordings.
           false,
@@ -828,12 +802,11 @@ describe('TimelineDataSource', () => {
       });
 
       it('should not refresh recordings with folders', async () => {
-        const source = new TimelineDataSource(
+        const source = createSource(
           createTestCameraManager(),
           mock<FoldersManager>(),
           mock<ConditionStateManagerReadonlyInterface>(),
-          folderTimelineKeys,
-          'all',
+          folderQuery,
           true,
         );
 
@@ -843,17 +816,13 @@ describe('TimelineDataSource', () => {
       });
 
       it('should not refresh recordings without cameras', async () => {
-        const emptycameraTimelineKeys: TimelineKeys = {
-          type: 'camera',
-          cameraIDs: new Set(),
-          queryType: 'event',
-        };
-        const source = new TimelineDataSource(
+        // Create an empty query with no slices
+        const emptyQuery = new UnifiedQuery();
+        const source = createSource(
           createTestCameraManager(),
           mock<FoldersManager>(),
           mock<ConditionStateManagerReadonlyInterface>(),
-          emptycameraTimelineKeys,
-          'all',
+          emptyQuery,
           true,
         );
 
@@ -868,12 +837,11 @@ describe('TimelineDataSource', () => {
           null,
         );
 
-        const source = new TimelineDataSource(
+        const source = createSource(
           cameraManager,
           mock<FoldersManager>(),
           mock<ConditionStateManagerReadonlyInterface>(),
-          cameraTimelineKeys,
-          'all',
+          cameraEventsQuery,
           true,
         );
 
@@ -917,12 +885,11 @@ describe('TimelineDataSource', () => {
           ]),
         );
 
-        const source = new TimelineDataSource(
+        const source = createSource(
           cameraManager,
           mock<FoldersManager>(),
           mock<ConditionStateManagerReadonlyInterface>(),
-          cameraTimelineKeys,
-          'all',
+          cameraEventsQuery,
           true,
         );
 
@@ -972,12 +939,11 @@ describe('TimelineDataSource', () => {
           new Map([[recordingSegmentQuery, recordingSegmentsQueryResults]]),
         );
 
-        const source = new TimelineDataSource(
+        const source = createSource(
           cameraManager,
           mock<FoldersManager>(),
           mock<ConditionStateManagerReadonlyInterface>(),
-          cameraTimelineKeys,
-          'all',
+          cameraEventsQuery,
           true,
         );
         source.dataset.add({
@@ -1054,12 +1020,11 @@ describe('TimelineDataSource', () => {
           ]),
         );
 
-        const source = new TimelineDataSource(
+        const source = createSource(
           cameraManager,
           mock<FoldersManager>(),
           mock<ConditionStateManagerReadonlyInterface>(),
-          cameraTimelineKeys,
-          'all',
+          cameraEventsQuery,
           true,
         );
 
@@ -1088,214 +1053,13 @@ describe('TimelineDataSource', () => {
     });
   });
 
-  describe('should get timeline event queries', () => {
-    const window: TimelineWindow = { start, end };
-
-    it('should not event queries without cameras', () => {
-      const source = new TimelineDataSource(
-        createCameraManager(),
-        mock<FoldersManager>(),
-        mock<ConditionStateManagerReadonlyInterface>(),
-        folderTimelineKeys,
-        'all',
-        true,
-      );
-
-      expect(source.getTimelineEventQueries(window)).toBeNull();
-    });
-
-    it('should get event queries for clips', () => {
-      const cameraManager = createCameraManager(
-        createStore([
-          {
-            cameraID: CAMERA_ID,
-          },
-        ]),
-      );
-      const source = new TimelineDataSource(
-        cameraManager,
-        mock<FoldersManager>(),
-        mock<ConditionStateManagerReadonlyInterface>(),
-        cameraTimelineKeys,
-        'clips',
-        false,
-      );
-      source.getTimelineEventQueries(window);
-
-      expect(cameraManager.generateDefaultEventQueries).toBeCalledWith(
-        new Set(['camera-1', 'camera-2']),
-        {
-          start,
-          end,
-          hasClip: true,
-        },
-      );
-    });
-
-    it('should get event queries for snapshots', () => {
-      const cameraManager = createCameraManager(
-        createStore([
-          {
-            cameraID: CAMERA_ID,
-          },
-        ]),
-      );
-      const source = new TimelineDataSource(
-        cameraManager,
-        mock<FoldersManager>(),
-        mock<ConditionStateManagerReadonlyInterface>(),
-        cameraTimelineKeys,
-        'snapshots',
-        false,
-      );
-      source.getTimelineEventQueries(window);
-
-      expect(cameraManager.generateDefaultEventQueries).toBeCalledWith(
-        new Set(['camera-1', 'camera-2']),
-        {
-          start,
-          end,
-          hasSnapshot: true,
-        },
-      );
-    });
-  });
-
-  describe('should get timeline review queries', () => {
-    const window: TimelineWindow = { start, end };
-
-    it('should not get review queries without cameras', () => {
-      const source = new TimelineDataSource(
-        createCameraManager(),
-        mock<FoldersManager>(),
-        mock<ConditionStateManagerReadonlyInterface>(),
-        folderTimelineKeys,
-        'all',
-        true,
-      );
-
-      expect(source.getTimelineReviewQueries(window)).toBeNull();
-    });
-
-    it('should get review queries', () => {
-      const cameraManager = createCameraManager(
-        createStore([
-          {
-            cameraID: CAMERA_ID,
-          },
-        ]),
-      );
-      const source = new TimelineDataSource(
-        cameraManager,
-        mock<FoldersManager>(),
-        mock<ConditionStateManagerReadonlyInterface>(),
-        reviewTimelineKeys,
-        'all',
-        false,
-      );
-      source.getTimelineReviewQueries(window);
-
-      expect(cameraManager.generateDefaultReviewQueries).toBeCalledWith(
-        new Set(['camera-1']),
-        {
-          start,
-          end,
-        },
-      );
-    });
-  });
-
-  describe('should get timeline folder queries', () => {
-    it('should not get folder queries without a folder', () => {
-      const source = new TimelineDataSource(
-        createCameraManager(),
-        mock<FoldersManager>(),
-        mock<ConditionStateManagerReadonlyInterface>(),
-        cameraTimelineKeys,
-        'all',
-        true,
-      );
-
-      expect(source.getTimelineFolderQuery()).toBeNull();
-    });
-
-    it('should get folder queries', () => {
-      const foldersManager = mock<FoldersManager>();
-      vi.mocked(foldersManager.generateDefaultFolderQuery).mockReturnValue({
-        folder,
-        path: [{}],
-      });
-
-      const source = new TimelineDataSource(
-        mock<CameraManager>(),
-        foldersManager,
-        mock<ConditionStateManagerReadonlyInterface>(),
-        folderTimelineKeys,
-        'clips',
-        false,
-      );
-
-      source.getTimelineFolderQuery();
-
-      expect(foldersManager.generateDefaultFolderQuery).toBeCalledWith(folder);
-    });
-  });
-
-  describe('should get timeline recording queries', () => {
-    const window: TimelineWindow = { start, end };
-
-    it('should not recording queries without cameras', () => {
-      const source = new TimelineDataSource(
-        createCameraManager(),
-        mock<FoldersManager>(),
-        mock<ConditionStateManagerReadonlyInterface>(),
-        folderTimelineKeys,
-        'all',
-        true,
-      );
-
-      expect(source.getTimelineRecordingQueries(window)).toBeNull();
-    });
-
-    it('should get recording queries', () => {
-      const cameraManager = createCameraManager(
-        createStore([
-          {
-            cameraID: 'camera-1',
-          },
-          {
-            cameraID: 'camera-2',
-          },
-        ]),
-      );
-      const source = new TimelineDataSource(
-        cameraManager,
-        mock<FoldersManager>(),
-        mock<ConditionStateManagerReadonlyInterface>(),
-        cameraTimelineKeys,
-        'all',
-        true,
-      );
-      source.getTimelineRecordingQueries(window);
-
-      expect(cameraManager.generateDefaultRecordingQueries).toBeCalledWith(
-        new Set(['camera-1', 'camera-2']),
-        {
-          start,
-          end,
-        },
-      );
-    });
-  });
-
   describe('should rewrite event', () => {
     it('should not rewrite when item is not found', () => {
-      const source = new TimelineDataSource(
+      const source = createSource(
         createTestCameraManager(),
         mock<FoldersManager>(),
         mock<ConditionStateManagerReadonlyInterface>(),
-        cameraTimelineKeys,
-        'all',
+        cameraEventsQuery,
         true,
       );
       source.rewriteEvent('UNKNOWN_ID');
@@ -1304,12 +1068,11 @@ describe('TimelineDataSource', () => {
     });
 
     it('should not rewrite when item is not found', () => {
-      const source = new TimelineDataSource(
+      const source = createSource(
         createTestCameraManager(),
         mock<FoldersManager>(),
         mock<ConditionStateManagerReadonlyInterface>(),
-        cameraTimelineKeys,
-        'all',
+        cameraEventsQuery,
         true,
       );
       const item = {
@@ -1320,12 +1083,181 @@ describe('TimelineDataSource', () => {
         group: 'camera/camera-1' as const,
         content: '',
         type: 'range' as const,
+        query: cameraEventsQuery,
       };
       source.dataset.add(item);
 
       source.rewriteEvent('id');
 
       expect(source.dataset.get('id')).toBe(item);
+    });
+  });
+
+  describe('shape getter', () => {
+    it('should return the shape query', () => {
+      const source = createSource(
+        createTestCameraManager(),
+        mock<FoldersManager>(),
+        mock<ConditionStateManagerReadonlyInterface>(),
+        cameraEventsQuery,
+        true,
+      );
+
+      const shape = source.shape;
+
+      expect(shape).toBe(cameraEventsQuery);
+    });
+  });
+
+  describe('areResultsFresh', () => {
+    it('should delegate to runner', () => {
+      const cameraManager = createTestCameraManager();
+      vi.mocked(cameraManager.areMediaQueriesResultsFresh).mockReturnValue(true);
+
+      const source = createSource(
+        cameraManager,
+        mock<FoldersManager>(),
+        mock<ConditionStateManagerReadonlyInterface>(),
+        cameraEventsQuery,
+        true,
+      );
+
+      const result = source.areResultsFresh(new Date(), cameraEventsQuery);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false when stale', () => {
+      const cameraManager = createTestCameraManager();
+      vi.mocked(cameraManager.areMediaQueriesResultsFresh).mockReturnValue(false);
+
+      const source = createSource(
+        cameraManager,
+        mock<FoldersManager>(),
+        mock<ConditionStateManagerReadonlyInterface>(),
+        cameraEventsQuery,
+        true,
+      );
+
+      const result = source.areResultsFresh(new Date(), cameraEventsQuery);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('buildRecordingsWindowedQuery', () => {
+    it('should build recordings query with window', () => {
+      const source = createSource(
+        createTestCameraManager(),
+        mock<FoldersManager>(),
+        mock<ConditionStateManagerReadonlyInterface>(),
+        cameraEventsQuery,
+        true,
+      );
+
+      const window = { start, end };
+      const query = source.buildRecordingsWindowedQuery(window);
+
+      expect(query).not.toBeNull();
+      const mediaQueries = query?.getMediaQueries({ type: QueryType.Recording });
+      expect(mediaQueries?.length).toBeGreaterThan(0);
+      expect(mediaQueries?.[0].start).toBe(start);
+      expect(mediaQueries?.[0].end).toBe(end);
+    });
+
+    it('should return null when no cameras', () => {
+      const emptyQuery = new UnifiedQuery();
+      const source = createSource(
+        createTestCameraManager(),
+        mock<FoldersManager>(),
+        mock<ConditionStateManagerReadonlyInterface>(),
+        emptyQuery,
+        true,
+      );
+
+      const query = source.buildRecordingsWindowedQuery({ start, end });
+
+      expect(query).toBeNull();
+    });
+  });
+
+  describe('hasClip/hasSnapshot in refresh', () => {
+    beforeAll(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2024-01-15T12:00:00Z'));
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
+    const isEventQuery = (query: QueryNode): query is EventQuery =>
+      query.source === QuerySource.Camera && query.type === QueryType.Event;
+
+    it('should set hasClip for clips media type', async () => {
+      const cameraManager = createTestCameraManager();
+      vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue([]);
+
+      const clipsQuery = new UnifiedQuery();
+      const queryNode: EventQuery = {
+        source: QuerySource.Camera,
+        type: QueryType.Event,
+        cameraIDs: new Set(['camera-1']),
+        hasClip: true,
+      };
+      clipsQuery.addNode(queryNode);
+
+      const source = createSource(
+        cameraManager,
+        mock<FoldersManager>(),
+        mock<ConditionStateManagerReadonlyInterface>(),
+        clipsQuery,
+        true,
+      );
+
+      const window = { start, end };
+      await source.refresh(window);
+
+      expect(cameraManager.executeMediaQueries).toHaveBeenCalled();
+      const call = vi.mocked(cameraManager.executeMediaQueries).mock.calls[0];
+      const eventQuery = call[0][0];
+      assert(isEventQuery(eventQuery));
+
+      expect(eventQuery.hasClip).toBe(true);
+      expect(eventQuery.hasSnapshot).toBeUndefined();
+    });
+
+    it('should set hasSnapshot for snapshots media type', async () => {
+      const cameraManager = createTestCameraManager();
+      vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue([]);
+
+      const snapshotsQuery = new UnifiedQuery();
+      const queryNode: EventQuery = {
+        source: QuerySource.Camera,
+        type: QueryType.Event,
+        cameraIDs: new Set(['camera-1']),
+        hasSnapshot: true,
+      };
+      snapshotsQuery.addNode(queryNode);
+
+      const source = createSource(
+        cameraManager,
+        mock<FoldersManager>(),
+        mock<ConditionStateManagerReadonlyInterface>(),
+        snapshotsQuery,
+        true,
+      );
+
+      const window = { start, end };
+      await source.refresh(window);
+
+      expect(cameraManager.executeMediaQueries).toHaveBeenCalled();
+      const call = vi.mocked(cameraManager.executeMediaQueries).mock.calls[0];
+      const eventQuery = call[0][0];
+      assert(isEventQuery(eventQuery));
+
+      expect(eventQuery.hasSnapshot).toBe(true);
+      expect(eventQuery.hasClip).toBeUndefined();
     });
   });
 });

@@ -35,6 +35,7 @@ import {
   CameraEndpointsContext,
   CameraManagerCameraMetadata,
   CameraQuery,
+  DefaultQueryParameters,
   Engine,
   EngineOptions,
   EventQuery,
@@ -319,6 +320,17 @@ export class CameraManager {
       type: QueryType.Event,
       ...partialQuery,
     });
+  }
+
+  public getDefaultQueryParameters(
+    cameraID: string,
+    queryType: QueryType,
+  ): DefaultQueryParameters {
+    const camera = this._store.getCamera(cameraID);
+    if (!camera) {
+      return {};
+    }
+    return camera.getEngine().getDefaultQueryParameters(camera, queryType);
   }
 
   public generateDefaultRecordingQueries(

@@ -71,7 +71,7 @@ describe('ViewMedia', () => {
 describe('ViewFolder', () => {
   it('should construct', () => {
     const folder = createFolder();
-    const item = new ViewFolder(folder, {
+    const item = new ViewFolder(folder, [], {
       icon: 'icon',
       id: 'id',
       title: 'title',

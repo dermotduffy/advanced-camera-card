@@ -1,6 +1,7 @@
 import { ExpiringEqualityCache } from '../cache/expiring-cache';
 import { SSLCiphers } from '../config/schema/cameras';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
+import { BaseQuery, QuerySource } from '../query-source';
 import { CapabilityKey, Endpoint, Icon, Severity } from '../types';
 import { ViewMedia } from '../view/item';
 
@@ -48,9 +49,11 @@ interface LimitedDataQuery {
 }
 
 export interface MediaQuery
-  extends CameraQuery,
+  extends BaseQuery,
+    CameraQuery,
     Partial<TimeBasedDataQuery>,
     Partial<LimitedDataQuery> {
+  source: QuerySource.Camera;
   favorite?: boolean;
 }
 
@@ -165,11 +168,26 @@ export class CameraManagerRequestCache extends ExpiringEqualityCache<
   QueryResults
 > {}
 
+// ====================
+// Default Query Params
+// ====================
+
+/**
+ * Default query parameters that engines can provide based on camera configuration.
+ */
+export interface DefaultQueryParameters {
+  // Object labels (what was detected)
+  what?: Set<string>;
+
+  // Zones (where detection occurred)
+  where?: Set<string>;
+}
+
 // ===========
 // Event Query
 // ===========
 
-export interface EventQuery extends MediaQuery {
+export interface EventQuery extends MediaQuery, DefaultQueryParameters {
   type: QueryType.Event;
 
   // Frigate equivalent: has_snapshot
@@ -178,14 +196,8 @@ export interface EventQuery extends MediaQuery {
   // Frigate equivalent: has_clip
   hasClip?: boolean;
 
-  // Frigate equivalent: label
-  what?: Set<string>;
-
   // Frigate equivalent: sub_label
   tags?: Set<string>;
-
-  // Frigate equivalent: zone
-  where?: Set<string>;
 }
 export type PartialEventQuery = Partial<EventQuery>;
 
@@ -237,14 +249,8 @@ export interface MediaMetadataQueryResults extends QueryResults {
 // Review Query
 // ============
 
-export interface ReviewQuery extends MediaQuery {
+export interface ReviewQuery extends MediaQuery, DefaultQueryParameters {
   type: QueryType.Review;
-
-  // Frigate equivalent: label (objects detected)
-  what?: Set<string>;
-
-  // Frigate equivalent: zone
-  where?: Set<string>;
 
   severity?: Severity;
 

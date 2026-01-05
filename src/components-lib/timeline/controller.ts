@@ -14,7 +14,6 @@ import {
 } from 'vis-timeline';
 import { CameraManager } from '../../camera-manager/manager';
 import { rangesOverlap } from '../../camera-manager/range';
-import { MediaQuery } from '../../camera-manager/types';
 import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/range-to-cache-friendly';
 import { FoldersManager } from '../../card-controller/folders/manager';
 import { ViewItemManager } from '../../card-controller/view/item-manager';
@@ -41,23 +40,12 @@ import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import { ViewMedia } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
-import {
-  EventMediaQuery,
-  FolderViewQuery,
-  Query,
-  RecordingMediaQuery,
-  ReviewMediaQuery,
-} from '../../view/query';
-import { QueryClassifier, QueryType } from '../../view/query-classifier';
 import { QueryResults } from '../../view/query-results';
+import { UnifiedQuery } from '../../view/unified-query';
+import { UnifiedQueryTransformer } from '../../view/unified-query-builder';
 import { mergeViewContext } from '../../view/view';
 import { AdvancedCameraCardTimelineItem, TimelineDataSource } from './source';
-import {
-  ExtendedTimeline,
-  TimelineItemClickAction,
-  TimelineKeys,
-  TimelineRangeChange,
-} from './types';
+import { ExtendedTimeline, TimelineItemClickAction, TimelineRangeChange } from './types';
 
 // An event used to fetch data required for thumbnail rendering. See special
 // note below on why this is necessary.
@@ -82,7 +70,7 @@ interface TimelineControllerOptions {
   timelineConfig?: TimelineCoreConfig;
   mini?: boolean;
   thumbnailConfig?: ThumbnailsControlBaseConfig;
-  keys?: TimelineKeys;
+  query?: UnifiedQuery;
 }
 
 const TIMELINE_TARGET_BAR_ID = 'target_bar';
@@ -137,26 +125,55 @@ export class TimelineController {
     this._pointerHeld = null;
   }
 
-  public setOptions(options: TimelineControllerOptions): void {
-    this.destroyTimeline();
+  /**
+   * Extract the "shape" of a query - a clone without time ranges.
+   * Shape determines timeline structure (groups).
+   */
+  private _getQueryShape(query: UnifiedQuery): UnifiedQuery {
+    return UnifiedQueryTransformer.stripTimeRange(query);
+  }
 
-    if (
-      options.keys &&
-      options.cameraManager &&
-      options.foldersManager &&
-      options.conditionStateManager &&
-      options.timelineConfig
-    ) {
-      this._source = new TimelineDataSource(
-        options.cameraManager,
-        options.foldersManager,
-        options.conditionStateManager,
-        options.keys,
-        options.timelineConfig.events_media_type,
-        options.timelineConfig.show_recordings,
-      );
-    } else {
-      this._source = null;
+  private _hasSameShape(a?: UnifiedQuery | null, b?: UnifiedQuery | null): boolean {
+    if (!a && !b) {
+      return true;
+    }
+    if (!a || !b) {
+      return false;
+    }
+    return a.isEqual(b);
+  }
+
+  public setOptions(options: TimelineControllerOptions): void {
+    // Extract the shape (query without time ranges) for comparison.
+    const newShape = options.query ? this._getQueryShape(options.query) : null;
+
+    // Rebuild source if config, dependencies, or shape changed.
+    const needsRebuild =
+      !this._source ||
+      this._cameraManager !== (options.cameraManager ?? null) ||
+      !isEqual(this._timelineConfig, options.timelineConfig ?? null) ||
+      !this._hasSameShape(this._source?.shape, newShape);
+
+    if (needsRebuild) {
+      this.destroyTimeline();
+
+      if (
+        newShape &&
+        options.cameraManager &&
+        options.foldersManager &&
+        options.conditionStateManager &&
+        options.timelineConfig
+      ) {
+        this._source = new TimelineDataSource(
+          options.cameraManager,
+          options.foldersManager,
+          options.conditionStateManager,
+          newShape,
+          options.timelineConfig.show_recordings,
+        );
+      } else {
+        this._source = null;
+      }
     }
 
     if (this._thumbnailConfig !== (options.thumbnailConfig ?? null)) {
@@ -520,9 +537,15 @@ export class TimelineController {
     if (
       this._timelineConfig?.show_recordings &&
       properties.time &&
-      ['background', 'axis'].includes(properties.what)
+      ['background', 'axis'].includes(properties.what) &&
+      this._source &&
+      this._timeline
     ) {
-      const query = this._createQuery('recording');
+      const query = this._source.buildRecordingsWindowedQuery(
+        convertRangeToCacheFriendlyTimes(
+          this._getPrefetchWindow(this._timeline.getWindow()),
+        ),
+      );
       if (query) {
         await this._viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
           baseView: view,
@@ -567,49 +590,16 @@ export class TimelineController {
         // - If a folder media was loaded into the timeline from a prior folder
         //   query other than the one stored in the view (e.g. user navigated to
         //   a different folder in the thumbnails carousel).
-        if (item.query) {
-          // Item has a reference query (e.g. folders), use that.
-          const media = this._source.dataset
-            .get({
-              filter: (timelineItem) => item.query === timelineItem.query,
-            })
-            .map((timelineItem) => timelineItem.media)
-            .filter(isTruthy);
-          const selectedIndex = media.findIndex((m) => m.getID() === id);
-
-          if (selectedIndex >= 0) {
-            const queryResults = new QueryResults({ results: media, selectedIndex });
-            this._viewManagerEpoch?.manager.setViewByParameters({
-              params: {
-                view: 'media',
-                query: item.query,
-                queryResults,
-              },
-              modifiers: [new MergeContextViewModifier(context)],
-            });
-          }
-        } else {
-          const currentQueryType =
-            QueryClassifier.getQueryType(view.query) ??
-            this._source.getKeyType() === 'camera'
-              ? 'event'
-              : this._source.getKeyType() === 'folder'
-                ? 'folder'
-                : null;
-
-          const query = currentQueryType ? this._createQuery(currentQueryType) : null;
-          if (query) {
-            await this._viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
-              params: { view: 'media', query: query },
-              queryExecutorOptions: {
-                selectResult: {
-                  id,
-                },
-                rejectResults: (results) => !results.hasResults(),
-              },
-              modifiers: [new MergeContextViewModifier(context)],
-            });
-          }
+        const queryResults = this._buildQueryResultsFromExistingItem(item);
+        if (item && item.query && queryResults) {
+          this._viewManagerEpoch?.manager.setViewByParameters({
+            params: {
+              view: 'media',
+              query: item.query,
+              queryResults,
+            },
+            modifiers: [new MergeContextViewModifier(context)],
+          });
         }
       } else {
         this._viewManagerEpoch.manager.setViewByParameters({
@@ -631,6 +621,25 @@ export class TimelineController {
     this._ignoreClick = false;
   }
 
+  private _buildQueryResultsFromExistingItem(
+    item: AdvancedCameraCardTimelineItem,
+  ): QueryResults | null {
+    const query = item.query;
+    if (!query || !this._source) {
+      return null;
+    }
+    const media = this._source.dataset
+      .get({
+        filter: (timelineItem) => !!timelineItem.query && query === timelineItem.query,
+      })
+      .map((timelineItem) => timelineItem.media)
+      .filter(isTruthy);
+    const selectedIndex = media.findIndex((m) => m.getID() === item.id);
+    return selectedIndex >= 0
+      ? new QueryResults({ results: media, selectedIndex })
+      : null;
+  }
+
   /**
    * Get a broader prefetch window from a start and end basis.
    * @param window The window to broaden.
@@ -644,34 +653,19 @@ export class TimelineController {
     };
   }
 
-  private _createQuery(
-    type: QueryType,
-    options?: {
-      window?: TimelineWindow;
-    },
-  ): Query | null {
-    if (!this._timeline || !this._source) {
-      return null;
-    }
-
-    const cacheFriendlyWindow = convertRangeToCacheFriendlyTimes(
-      this._getPrefetchWindow(options?.window ?? this._timeline.getWindow()),
-    );
-
-    if (type === 'event') {
-      const queries = this._source.getTimelineEventQueries(cacheFriendlyWindow);
-      return queries ? new EventMediaQuery(queries) : null;
-    } else if (type === 'recording') {
-      const queries = this._source.getTimelineRecordingQueries(cacheFriendlyWindow);
-      return queries ? new RecordingMediaQuery(queries) : null;
-    } else if (type === 'review') {
-      const queries = this._source.getTimelineReviewQueries(cacheFriendlyWindow);
-      return queries ? new ReviewMediaQuery(queries) : null;
-    } else if (type === 'folder') {
-      const queries = this._source.getTimelineFolderQuery();
-      return queries ? new FolderViewQuery(queries) : null;
-    }
-    return null;
+  /**
+   * Apply a cache-friendly prefetch window to all media queries.
+   */
+  private _applyWindowToQuery(
+    query: UnifiedQuery,
+    window: TimelineWindow,
+  ): UnifiedQuery {
+    const prefetchWindow = this._getPrefetchWindow(window);
+    const cacheFriendlyWindow = convertRangeToCacheFriendlyTimes(prefetchWindow);
+    return UnifiedQueryTransformer.rebuildQuery(query, {
+      start: cacheFriendlyWindow.start,
+      end: cacheFriendlyWindow.end,
+    });
   }
 
   private _timelineRangeChangedHandler = async (properties: {
@@ -694,16 +688,14 @@ export class TimelineController {
       return;
     }
 
-    await this._source?.refresh(this._getPrefetchWindow(properties), {
-      view,
-    });
+    await this._source?.refresh(this._getPrefetchWindow(properties));
 
-    const queryType = QueryClassifier.getQueryType(view.query);
-    if (!queryType) {
+    if (!view.query) {
       return;
     }
-    const query = this._createQuery(queryType);
-    if (!query || this._alreadyHasAcceptableMediaQuery(query)) {
+    const query = this._applyWindowToQuery(view.query, properties);
+
+    if (this._alreadyHasAcceptableMediaQuery(query)) {
       return;
     }
 
@@ -724,27 +716,22 @@ export class TimelineController {
     });
   };
 
-  private _alreadyHasAcceptableMediaQuery(freshQuery: Query): boolean {
+  private _alreadyHasAcceptableMediaQuery(freshQuery: UnifiedQuery): boolean {
     const view = this._viewManagerEpoch?.manager.getView();
     const query = view?.query;
 
-    if (!this._cameraManager || !query) {
+    if (!this._source || !query) {
       return false;
     }
 
     const currentResultTimestamp = view?.queryResults?.getResultsTimestamp();
+    if (!currentResultTimestamp) {
+      return false;
+    }
 
     return (
-      !!query?.getQuery() &&
-      !!currentResultTimestamp &&
-      ((QueryClassifier.isFolderQuery(query) && query.isEqual(freshQuery)) ||
-        (QueryClassifier.isMediaQuery(query) &&
-          QueryClassifier.isMediaQuery(freshQuery) &&
-          query.isSupersetOf(freshQuery) &&
-          this._cameraManager.areMediaQueriesResultsFresh<MediaQuery>(
-            currentResultTimestamp,
-            query.getQuery(),
-          )))
+      query.isSupersetOf(freshQuery) &&
+      this._source.areResultsFresh(currentResultTimestamp, query)
     );
   }
 
@@ -791,16 +778,14 @@ export class TimelineController {
     }
     const prefetchedWindow = this._getPrefetchWindow(desiredWindow);
 
-    if (!this._pointerHeld) {
+    if (!this._pointerHeld && view.query) {
       // Don't fetch any data or touch the timeline in any way if the user is
       // currently interacting with it. Without this the subsequent data fetches
       // (via fetchIfNecessary) may update the timeline contents which causes
       // the visjs timeline to stop dragging/panning operations which is very
       // disruptive to the user.
-      await this._source?.refresh(prefetchedWindow, {
-        view,
-      });
-      this._source.addMediaToDataset(view.queryResults?.getResults(), view.query);
+      await this._source?.refresh(prefetchedWindow);
+      this._source.addMediaToDataset(view.query, view.queryResults?.getResults());
     }
 
     const currentSelection = this._timeline.getSelection();
@@ -849,16 +834,11 @@ export class TimelineController {
     //
     // Also don't generate thumbnails in mini-timelines (they will already have
     // been generated).
-    const queryType =
-      QueryClassifier.getQueryType(view.query) ??
-      this._source?.getEventOrReviewQueryType();
-    if (!queryType) {
+    if (!view.query) {
       return;
     }
 
-    const freshMediaQuery = this._createQuery(queryType, {
-      window: desiredWindow,
-    });
+    const freshMediaQuery = this._applyWindowToQuery(view.query, desiredWindow);
 
     if (
       !this._mini &&

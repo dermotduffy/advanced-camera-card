@@ -8,6 +8,7 @@ import { CameraManagerReadOnlyConfigStore } from './store';
 import {
   CameraManagerCameraMetadata,
   CameraQuery,
+  DefaultQueryParameters,
   Engine,
   EngineOptions,
   EventQuery,
@@ -19,6 +20,7 @@ import {
   PartialRecordingSegmentsQuery,
   PartialReviewQuery,
   QueryReturnType,
+  QueryType,
   RecordingQuery,
   RecordingQueryResultsMap,
   RecordingSegmentsQuery,
@@ -33,6 +35,15 @@ export interface CameraManagerEngine {
   getEngineType(): Engine;
 
   createCamera(hass: HomeAssistant, cameraConfig: CameraConfig): Promise<Camera>;
+
+  /**
+   * Get default query parameters for a camera based on its configuration.
+   * Engines read their own config and return generic filter params.
+   */
+  getDefaultQueryParameters(
+    camera: Camera,
+    queryType: QueryType,
+  ): DefaultQueryParameters;
 
   generateDefaultEventQuery(
     store: CameraManagerReadOnlyConfigStore,

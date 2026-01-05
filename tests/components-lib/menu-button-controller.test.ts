@@ -5,6 +5,7 @@ import { Capabilities } from '../../src/camera-manager/capabilities.js';
 import { CameraManager } from '../../src/camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../../src/camera-manager/types.js';
 import { FoldersManager } from '../../src/card-controller/folders/manager.js';
+import { FolderQuery } from '../../src/card-controller/folders/types';
 import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager.js';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager.js';
@@ -18,11 +19,12 @@ import { ViewDisplayMode } from '../../src/config/schema/common/display.js';
 import { MenuItem } from '../../src/config/schema/elements/custom/menu/types.js';
 import { AdvancedCameraCardConfig } from '../../src/config/schema/types.js';
 import { HomeAssistant } from '../../src/ha/types.js';
+import { QuerySource } from '../../src/query-source';
 import { MediaPlayerController, PTZMovementType } from '../../src/types.js';
 import { createGeneralAction, createViewAction } from '../../src/utils/action.js';
 import { ViewMedia, ViewMediaType } from '../../src/view/item.js';
 import { QueryResults } from '../../src/view/query-results.js';
-import { FolderViewQuery } from '../../src/view/query.js';
+import { UnifiedQuery } from '../../src/view/unified-query.js';
 import {
   getCameraIDsForViewName,
   isViewSupportedByCamera,
@@ -1961,11 +1963,16 @@ describe('MenuButtonController', () => {
         new Map([['folder-0', folder]]).entries(),
       );
 
+      const folderNode: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: folder,
+        path: [{ ha: { id: 'one' } }],
+      };
       const buttons = calculateButtons(controller, {
         foldersManager,
         view: createView({
           view: 'folder',
-          query: new FolderViewQuery({ folder, path: [{ ha: { id: 'one' } }] }),
+          query: new UnifiedQuery().addNode(folderNode),
         }),
       });
 
@@ -1992,12 +1999,14 @@ describe('MenuButtonController', () => {
       ]);
       foldersManager.getFolders.mockReturnValue(folders.entries());
 
+      const selectedFolderNode: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: selectedFolder,
+        path: [{ ha: { id: 'id' } }],
+      };
       const view = createView({
         view: 'folder',
-        query: new FolderViewQuery({
-          folder: selectedFolder,
-          path: [{ ha: { id: 'id' } }],
-        }),
+        query: new UnifiedQuery().addNode(selectedFolderNode),
       });
 
       const buttons = calculateButtons(controller, {

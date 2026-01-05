@@ -1,4 +1,5 @@
 import { FolderConfig } from '../config/schema/folders';
+import { FolderPathComponent } from '../card-controller/folders/types';
 import { Severity } from '../types';
 
 export enum ViewMediaType {
@@ -16,6 +17,7 @@ export enum VideoContentType {
 export interface ViewMediaSourceOptions {
   cameraID?: string;
   folder?: FolderConfig;
+  path?: readonly FolderPathComponent[];
 }
 
 export class ViewMedia {
@@ -117,14 +119,20 @@ interface ViewFolderParameters {
 
 export class ViewFolder {
   private _folder: FolderConfig;
+  private _path: readonly FolderPathComponent[];
 
   private _icon: string | null;
   private _id: string | null;
   private _title: string | null;
   private _thumbnail: string | null;
 
-  constructor(folder: FolderConfig, params?: ViewFolderParameters) {
+  constructor(
+    folder: FolderConfig,
+    path: readonly FolderPathComponent[],
+    params?: ViewFolderParameters,
+  ) {
     this._folder = folder;
+    this._path = path;
 
     this._icon = params?.icon ?? null;
     this._id = params?.id ?? null;
@@ -134,6 +142,9 @@ export class ViewFolder {
 
   public getFolder(): FolderConfig {
     return this._folder;
+  }
+  public getPath(): readonly FolderPathComponent[] {
+    return this._path;
   }
   public getID(): string | null {
     return this._id;

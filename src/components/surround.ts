@@ -7,26 +7,22 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { isEqual } from 'lodash-es';
 import { CameraManager } from '../camera-manager/manager.js';
 import { FoldersManager } from '../card-controller/folders/manager.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
-import { TimelineKeys } from '../components-lib/timeline/types.js';
 import { ConditionStateManagerReadonlyInterface } from '../conditions/types.js';
 import { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
 import { MiniTimelineControlConfig } from '../config/schema/common/controls/timeline.js';
-import { FolderConfig } from '../config/schema/folders.js';
+import { LiveThumbnailsControlConfig } from '../config/schema/live.js';
+import { TimelineThumbnailsControlConfig } from '../config/schema/timeline.js';
 import { CardWideConfig } from '../config/schema/types.js';
 import { HomeAssistant } from '../ha/types.js';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { contentsChanged } from '../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
-import { QueryClassifier, QueryType } from '../view/query-classifier.js';
 import './surround-basic.js';
 import './thumbnail-carousel';
-import { LiveThumbnailsControlConfig } from '../config/schema/live.js';
-import { TimelineThumbnailsControlConfig } from '../config/schema/timeline.js';
 
 @customElement('advanced-camera-card-surround')
 export class AdvancedCameraCardSurround extends LitElement {
@@ -59,11 +55,8 @@ export class AdvancedCameraCardSurround extends LitElement {
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
-  protected _timelineKeys?: TimelineKeys | null = null;
-
   /**
    * Determine if a drawer is being used.
-   * @returns `true` if a drawer is used, `false` otherwise.
    */
   protected _hasDrawer(): boolean {
     return (
@@ -71,108 +64,11 @@ export class AdvancedCameraCardSurround extends LitElement {
     );
   }
 
-  protected willUpdate(changedProperties: PropertyValues): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected willUpdate(_changedProperties: PropertyValues): void {
     if (this.timelineConfig?.mode && this.timelineConfig.mode !== 'none') {
       import('./timeline-core.js');
     }
-
-    // Only reset the timeline cameraIDs when the media or display mode
-    // materially changes (and not on every view change, since the view will
-    // change frequently when the user is scrubbing video).
-    const view = this.viewManagerEpoch?.manager.getView();
-    if (
-      changedProperties.has('viewManagerEpoch') &&
-      (this.viewManagerEpoch?.manager.hasMajorMediaChange(
-        this.viewManagerEpoch?.oldView,
-      ) ||
-        this.viewManagerEpoch?.oldView?.displayMode !== view?.displayMode)
-    ) {
-      const newKeys = this._getTimelineKeys();
-      // Update only if changed, to avoid unnecessary timeline destructions.
-      if (!isEqual(newKeys, this._timelineKeys)) {
-        this._timelineKeys = newKeys ?? undefined;
-      }
-    }
-  }
-
-  protected _getTimelineKeys(): TimelineKeys | null {
-    const cameraIDsToKeys = (
-      cameraIDs: Set<string> | null,
-      queryType: Exclude<QueryType, 'folder'>,
-    ): TimelineKeys | null => {
-      return cameraIDs?.size
-        ? {
-            type: 'camera',
-            cameraIDs,
-            queryType,
-          }
-        : null;
-    };
-
-    const folderToKeys = (folderConfig: FolderConfig): TimelineKeys => {
-      return {
-        type: 'folder',
-        folder: folderConfig,
-      };
-    };
-
-    const view = this.viewManagerEpoch?.manager.getView();
-    if (!view || !this.cameraManager) {
-      return null;
-    }
-
-    if (view.is('live')) {
-      // Otherwise fall back to all cameras that support media/review queries.
-      const mediaCapabilitySearch = {
-        anyCapabilities: ['clips' as const, 'snapshots' as const, 'recordings' as const],
-      };
-
-      const requestedMediaType = this.thumbnailConfig?.media_type;
-      if (view.supportsMultipleDisplayModes() && view.isGrid()) {
-        const reviewCameras = this.cameraManager
-          ?.getStore()
-          .getCameraIDsWithCapability('reviews');
-        const mediaCameras = this.cameraManager
-          ?.getStore()
-          .getCameraIDsWithCapability(mediaCapabilitySearch);
-        const useReviews =
-          (requestedMediaType === 'auto' || requestedMediaType === 'reviews') &&
-          !!reviewCameras?.size;
-        return cameraIDsToKeys(
-          useReviews ? reviewCameras : mediaCameras,
-          useReviews ? 'review' : 'event',
-        );
-      } else {
-        const reviewCameras = this.cameraManager
-          .getStore()
-          .getAllDependentCameras(view.camera, 'reviews');
-        const mediaCameras = this.cameraManager
-          .getStore()
-          .getAllDependentCameras(view.camera, mediaCapabilitySearch);
-        const useReviews =
-          (requestedMediaType === 'auto' || requestedMediaType === 'reviews') &&
-          !!reviewCameras?.size;
-        return cameraIDsToKeys(
-          useReviews ? reviewCameras : mediaCameras,
-          useReviews ? 'review' : 'event',
-        );
-      }
-    }
-
-    const queries = view.query;
-    if (view.isViewerView()) {
-      if (QueryClassifier.isMediaQuery(queries)) {
-        return cameraIDsToKeys(
-          queries.getQueryCameraIDs(),
-          QueryClassifier.isReviewQuery(queries) ? 'review' : 'event',
-        );
-      } else if (QueryClassifier.isFolderQuery(queries)) {
-        const folderConfig = queries.getQuery()?.folder;
-        return folderConfig ? folderToKeys(folderConfig) : null;
-      }
-    }
-
-    return null;
   }
 
   protected render(): TemplateResult | void {
@@ -208,6 +104,7 @@ export class AdvancedCameraCardSurround extends LitElement {
             .fadeThumbnails=${view.isViewerView()}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .selected=${view.queryResults?.getSelectedIndex() ?? undefined}
+            .cardWideConfig=${this.cardWideConfig}
           >
           </advanced-camera-card-thumbnail-carousel>`
         : ''}
@@ -221,7 +118,6 @@ export class AdvancedCameraCardSurround extends LitElement {
             this.thumbnailConfig?.mode === 'none'
               ? 'play'
               : 'select'}
-            .keys=${this._timelineKeys}
             .mini=${true}
             .timelineConfig=${this.timelineConfig}
             .thumbnailConfig=${this.thumbnailConfig}

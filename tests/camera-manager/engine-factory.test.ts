@@ -10,6 +10,7 @@ import { Engine } from '../../src/camera-manager/types.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { CardWideConfig } from '../../src/config/schema/types.js';
 import { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
+import { DeviceRegistryManager } from '../../src/ha/registry/device';
 import { ResolvedMediaCache } from '../../src/ha/resolved-media.js';
 import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {
@@ -28,6 +29,7 @@ const createFactory = (options?: {
 }): CameraManagerEngineFactory => {
   return new CameraManagerEngineFactory(
     options?.entityRegistryManager ?? new EntityRegistryManagerMock(),
+    mock<DeviceRegistryManager>(),
   );
 };
 

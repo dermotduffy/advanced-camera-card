@@ -281,7 +281,7 @@ describe('dispatchViewContextChangeEvent', () => {
   });
 
   it('should keep selected folder in main slice but not camera slices', () => {
-    const folder = new ViewFolder(createFolder());
+    const folder = new ViewFolder(createFolder(), []);
     const results = new QueryResults({
       results: [
         folder,
@@ -368,7 +368,7 @@ describe('dispatchViewContextChangeEvent', () => {
     });
 
     it('should handle removing folder item (non-media)', () => {
-      const folder = new ViewFolder(createFolder());
+      const folder = new ViewFolder(createFolder(), []);
       const testResults = generateViewMediaArray();
       const results = new QueryResults({ results: [folder, ...testResults] });
 

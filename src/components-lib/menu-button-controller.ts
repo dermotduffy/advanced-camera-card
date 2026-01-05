@@ -32,7 +32,6 @@ import { isBeingCasted } from '../utils/casting';
 import { getPTZTarget } from '../utils/ptz';
 import { getStreamCameraID, hasSubstream } from '../utils/substream';
 import { ViewItemClassifier } from '../view/item-classifier';
-import { QueryClassifier } from '../view/query-classifier';
 import { View } from '../view/view';
 import { getCameraIDsForViewName, isViewSupportedByCamera } from '../view/view-support';
 
@@ -753,9 +752,8 @@ export class MenuButtonController {
     }
 
     if (folders.length === 1) {
-      const isSelected =
-        QueryClassifier.isFolderQuery(view?.query) &&
-        view.query.getQuery()?.folder.id === folders[0][0];
+      const folderID = folders[0][0];
+      const isSelected = !!view?.query?.getFolderQueries(folderID).length;
       const folder = folders[0][1];
 
       return {
@@ -770,9 +768,7 @@ export class MenuButtonController {
     }
 
     const submenuItems = folders.map(([id, folder]) => {
-      const isSelected =
-        QueryClassifier.isFolderQuery(view?.query) &&
-        view.query.getQuery()?.folder.id === id;
+      const isSelected = !!view?.query?.getFolderQueries(id).length;
 
       return {
         enabled: true,

@@ -14,25 +14,25 @@ import { LitElement } from 'lit';
 import { isEqual, orderBy, uniqWith } from 'lodash-es';
 import { CameraManager } from '../camera-manager/manager';
 import { DateRange, PartialDateRange } from '../camera-manager/range';
-import { CameraQuery, MediaMetadata, QueryType } from '../camera-manager/types';
+import {
+  EventQuery,
+  MediaMetadata,
+  QueryType,
+  ReviewQuery,
+} from '../camera-manager/types';
 import { ViewManagerInterface } from '../card-controller/view/types';
 import { SelectOption, SelectValues } from '../components/select';
 import { CardWideConfig } from '../config/schema/types';
 import { localize } from '../localize/localize';
+import { ViewMediaType } from '../types';
 import { errorToConsole, formatDate, prettifyTitle } from '../utils/basic';
-import { EventMediaQuery, RecordingMediaQuery } from '../view/query';
-import { QueryClassifier } from '../view/query-classifier';
-
-interface MediaFilterControls {
-  events: boolean;
-  recordings: boolean;
-  favorites: boolean;
-}
+import { UnifiedQueryBuilder } from '../view/unified-query-builder';
 
 export interface MediaFilterCoreDefaults {
   cameraIDs?: string[];
   favorite?: MediaFilterCoreFavoriteSelection;
-  mediaType?: MediaFilterMediaType;
+  reviewed?: MediaFilterCoreReviewedSelection;
+  mediaTypes?: MediaFilterMediaType[];
   what?: string[];
   when?: string;
   where?: string[];
@@ -42,6 +42,11 @@ export interface MediaFilterCoreDefaults {
 export enum MediaFilterCoreFavoriteSelection {
   Favorite = 'favorite',
   NotFavorite = 'not-favorite',
+}
+
+export enum MediaFilterCoreReviewedSelection {
+  Reviewed = 'reviewed',
+  NotReviewed = 'not-reviewed',
 }
 
 export enum MediaFilterCoreWhen {
@@ -56,6 +61,7 @@ export enum MediaFilterMediaType {
   Clips = 'clips',
   Snapshots = 'snapshots',
   Recordings = 'recordings',
+  Reviews = 'reviews',
 }
 
 export class MediaFilterController {
@@ -72,6 +78,7 @@ export class MediaFilterController {
   protected _whereOptions: SelectOption[] = [];
   protected _tagsOptions: SelectOption[] = [];
   protected _favoriteOptions: SelectOption[];
+  protected _reviewedOptions: SelectOption[];
 
   protected _defaults: MediaFilterCoreDefaults | null = null;
   protected _viewManager: ViewManagerInterface | null = null;
@@ -101,6 +108,20 @@ export class MediaFilterController {
       {
         value: MediaFilterMediaType.Recordings,
         label: localize('media_filter.media_types.recordings'),
+      },
+      {
+        value: MediaFilterMediaType.Reviews,
+        label: localize('media_filter.media_types.reviews'),
+      },
+    ];
+    this._reviewedOptions = [
+      {
+        value: MediaFilterCoreReviewedSelection.Reviewed,
+        label: localize('media_filter.reviewed'),
+      },
+      {
+        value: MediaFilterCoreReviewedSelection.NotReviewed,
+        label: localize('media_filter.not_reviewed'),
       },
     ];
     this._staticWhenOptions = [
@@ -149,6 +170,9 @@ export class MediaFilterController {
   public getFavoriteOptions(): SelectOption[] {
     return this._favoriteOptions;
   }
+  public getReviewedOptions(): SelectOption[] {
+    return this._reviewedOptions;
+  }
   public getDefaults(): MediaFilterCoreDefaults | null {
     return this._defaults;
   }
@@ -160,227 +184,200 @@ export class MediaFilterController {
     cameraManager: CameraManager,
     cardWideConfig: CardWideConfig,
     values: {
-      camera?: string | string[];
-      mediaType?: MediaFilterMediaType;
+      camera?: SelectValues;
+      mediaTypes?: SelectValues;
       when: {
-        selected?: string | string[];
+        selected?: SelectValues;
         from?: Date | null;
         to?: Date | null;
       };
-      favorite?: MediaFilterCoreFavoriteSelection;
-      where?: string | string[];
-      what?: string | string[];
-      tags?: string | string[];
+      favorite?: SelectValues;
+      reviewed?: SelectValues;
+      where?: SelectValues;
+      what?: SelectValues;
+      tags?: SelectValues;
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _ev?: unknown,
   ): Promise<void> {
-    const getArrayValueAsSet = (val?: SelectValues): Set<string> | null => {
+    const getArrayValueAsSet = <T extends string>(val?: SelectValues): Set<T> | null => {
       // The reported value may be '' if the field is clearable (i.e. the user
       // can click 'x').
       if (val && Array.isArray(val) && val.length && !val.includes('')) {
-        return new Set([...val]);
+        return new Set([...val]) as Set<T>;
       }
       return null;
     };
-
-    const cameraIDs =
-      getArrayValueAsSet(values.camera) ?? this._getAllCameraIDs(cameraManager);
-    if (!cameraIDs.size || !values.mediaType) {
-      return;
-    }
 
     const when = this._getWhen(values.when);
     const favorite = values.favorite
       ? values.favorite === MediaFilterCoreFavoriteSelection.Favorite
       : null;
-
-    // A note on views:
-    // - In the below, if the user selects a camera to view media for, the main
-    //   view camera is also set to that value (e.g. a user browsing the
-    //   gallery, chooses a different camera in the media filter, then
-    //   subsequently chooses the live button -- they would expect the live view
-    //   for that filtered camera not the prior camera).
-    // - Similarly, if the user chooses clips or snapshots, set the actual view
-    //   to 'clips' or 'snapshots' in order to ensure the right icon is shown as
-    //   selected in the menu.
+    const reviewed = values.reviewed
+      ? values.reviewed === MediaFilterCoreReviewedSelection.Reviewed
+      : null;
+    const where = getArrayValueAsSet(values.where);
+    const what = getArrayValueAsSet(values.what);
+    const tags = getArrayValueAsSet(values.tags);
     const limit = cardWideConfig.performance?.features.media_chunk_size;
 
-    if (
-      values.mediaType === MediaFilterMediaType.Clips ||
-      values.mediaType === MediaFilterMediaType.Snapshots
-    ) {
-      const where = getArrayValueAsSet(values.where);
-      const what = getArrayValueAsSet(values.what);
-      const tags = getArrayValueAsSet(values.tags);
+    const builder = new UnifiedQueryBuilder(cameraManager);
+    const query = builder.buildFilterQuery(
+      getArrayValueAsSet(values.camera),
+      getArrayValueAsSet<ViewMediaType>(values.mediaTypes),
+      {
+        ...(when?.start && { start: when.start }),
+        ...(when?.end && { end: when.end }),
+        ...(limit && { limit }),
+        ...(favorite !== null && { favorite }),
+        ...(reviewed !== null && { reviewed }),
+        ...(tags && { tags }),
+        ...(what && { what }),
+        ...(where && { where }),
+      },
+    );
 
-      const queries = new EventMediaQuery([
-        {
-          type: QueryType.Event,
-          cameraIDs: cameraIDs,
-          ...(tags && { tags: tags }),
-          ...(what && { what: what }),
-          ...(where && { where: where }),
-          ...(favorite !== null && { favorite: favorite }),
-          ...(when && {
-            ...(when.start && { start: when.start }),
-            ...(when.end && { end: when.end }),
-          }),
-          ...(limit && { limit: limit }),
-          ...(values.mediaType === MediaFilterMediaType.Clips && { hasClip: true }),
-          ...(values.mediaType === MediaFilterMediaType.Snapshots && {
-            hasSnapshot: true,
-          }),
-        },
-      ]);
-
-      this._viewManager?.setViewByParametersWithExistingQuery({
-        params: {
-          query: queries,
-
-          // See 'A note on views' above for these two arguments
-          ...(cameraIDs.size === 1 && { camera: [...cameraIDs][0] }),
-          view: values.mediaType === MediaFilterMediaType.Clips ? 'clips' : 'snapshots',
-        },
-      });
-    } else {
-      const queries = new RecordingMediaQuery([
-        {
-          type: QueryType.Recording,
-          cameraIDs: cameraIDs,
-          ...(limit && { limit: limit }),
-          ...(when && {
-            ...(when.start && { start: when.start }),
-            ...(when.end && { end: when.end }),
-          }),
-          ...(favorite !== null && { favorite: favorite }),
-        },
-      ]);
-
-      this._viewManager?.setViewByParametersWithExistingQuery({
-        params: {
-          query: queries,
-
-          // See 'A note on views' above for these two arguments
-          ...(cameraIDs.size === 1 && { camera: [...cameraIDs][0] }),
-          view: 'recordings',
-        },
-      });
+    if (!query) {
+      return;
     }
+
+    // Get media types and camera IDs from the query (builder may have defaulted these)
+    const queryMediaTypes = query.getAllMediaTypes();
+    const queryCameraIDs = query.getAllCameraIDs();
+
+    // Determine the appropriate view:
+    // - If a single media type, use its specific view (clips, snapshots, recordings, reviews)
+    // - If multiple types, use the generic 'media' view
+    const view = queryMediaTypes.size === 1 ? [...queryMediaTypes][0] : 'media';
+    const cameraID = queryCameraIDs.size === 1 ? [...queryCameraIDs][0] : undefined;
+
+    this._viewManager?.setViewByParametersWithExistingQuery({
+      params: {
+        query,
+        // If single camera, set it as the active camera for menu navigation
+        ...(cameraID && { camera: cameraID }),
+        view,
+      },
+    });
 
     // Need to ensure we update the element as the date-picker selections may
     // have changed, and we need to un/set the selected class.
     this._host.requestUpdate();
   }
 
-  protected _getAllCameraIDs(cameraManager: CameraManager): Set<string> {
-    return cameraManager.getStore().getCameraIDsWithCapability({
-      anyCapabilities: ['clips', 'snapshots', 'recordings'],
-    });
-  }
-
   public computeInitialDefaultsFromView(cameraManager: CameraManager): void {
     const view = this._viewManager?.getView();
     const query = view?.query;
-    const allCameraIDs = this._getAllCameraIDs(cameraManager);
-    if (!view || !QueryClassifier.isMediaQuery(query) || !allCameraIDs.size) {
+    const builder = new UnifiedQueryBuilder(cameraManager);
+    const allCameraIDs = builder.getAllMediaCapableCameraIDs();
+    if (!view || !query?.hasNodes() || !allCameraIDs.size) {
       return;
     }
 
-    const queries = query.getQuery();
-    if (!queries) {
-      return;
-    }
-
-    let mediaType: MediaFilterMediaType | undefined;
+    const mediaQueries = query.getMediaQueries();
+    const mediaTypes: MediaFilterMediaType[] = [];
     let cameraIDs: string[] | undefined;
     let what: string[] | undefined;
     let where: string[] | undefined;
     let favorite: MediaFilterCoreFavoriteSelection | undefined;
+    let reviewed: MediaFilterCoreReviewedSelection | undefined;
     let tags: string[] | undefined;
 
-    const cameraIDSets = uniqWith(
-      queries.map((query: CameraQuery) => query.cameraIDs),
-      isEqual,
-    );
-    // Special note: If all visible cameras are selected, this is the same as no
-    // selector at all.
-    if (cameraIDSets.length === 1 && !isEqual(queries[0].cameraIDs, allCameraIDs)) {
-      cameraIDs = [...queries[0].cameraIDs];
+    const cameraIDsFromQuery = query.getAllCameraIDs();
+
+    // Note: With folder filtering, selecting all cameras is NOT the same as
+    // selecting none. "All cameras" means just camera media, while "none"
+    // would include folder media too.
+    if (cameraIDsFromQuery.size > 0) {
+      cameraIDs = [...cameraIDsFromQuery];
     }
 
-    const favoriteValues = uniqWith(
-      queries.map((query) => query.favorite),
-      isEqual,
+    // Extract favorite from all media queries (only if explicitly set to true/false)
+    const favoriteValues = new Set(
+      mediaQueries.map((mediaQuery) => mediaQuery.favorite),
     );
-    if (favoriteValues.length === 1 && queries[0].favorite !== undefined) {
-      favorite = queries[0].favorite
-        ? MediaFilterCoreFavoriteSelection.Favorite
-        : MediaFilterCoreFavoriteSelection.NotFavorite;
+    if (favoriteValues.size === 1) {
+      const fav = [...favoriteValues][0];
+      if (fav !== undefined) {
+        favorite = fav
+          ? MediaFilterCoreFavoriteSelection.Favorite
+          : MediaFilterCoreFavoriteSelection.NotFavorite;
+      }
     }
 
-    /* istanbul ignore else: the else path cannot be reached -- @preserve */
-    if (QueryClassifier.isEventQuery(view.query)) {
-      const queries = view.query.getQuery();
+    // Detect media types from queries
+    const eventQueries = query.getMediaQueries<EventQuery>({ type: QueryType.Event });
+    if (eventQueries.length > 0) {
+      const hasClips = eventQueries.some((q) => q.hasClip);
+      const hasSnapshots = eventQueries.some((q) => q.hasSnapshot);
+      const hasNeither = !hasClips && !hasSnapshots;
 
-      /* istanbul ignore if: the if path cannot be reached -- @preserve */
-      if (!queries) {
-        return;
+      if (hasClips || hasNeither) {
+        mediaTypes.push(MediaFilterMediaType.Clips);
       }
-
-      const hasClips = uniqWith(
-        queries.map((query) => query.hasClip),
-        isEqual,
-      );
-      const hasSnapshots = uniqWith(
-        queries.map((query) => query.hasSnapshot),
-        isEqual,
-      );
-      if (hasClips.length === 1 && hasSnapshots.length === 1) {
-        mediaType = !!hasClips[0]
-          ? MediaFilterMediaType.Clips
-          : !!hasSnapshots[0]
-            ? MediaFilterMediaType.Snapshots
-            : undefined;
+      if (hasSnapshots || hasNeither) {
+        mediaTypes.push(MediaFilterMediaType.Snapshots);
       }
+    }
+    if (query.hasMediaQueriesOfType(QueryType.Recording)) {
+      mediaTypes.push(MediaFilterMediaType.Recordings);
+    }
+    if (query.hasMediaQueriesOfType(QueryType.Review)) {
+      mediaTypes.push(MediaFilterMediaType.Reviews);
+    }
 
+    if (eventQueries.length > 0) {
       const whatSets = uniqWith(
-        queries.map((query) => query.what),
+        eventQueries.map((q) => q.what),
         isEqual,
       );
-      if (whatSets.length === 1 && queries[0].what?.size) {
-        what = [...queries[0].what];
+      if (whatSets.length === 1 && eventQueries[0].what?.size) {
+        what = [...eventQueries[0].what];
       }
       const whereSets = uniqWith(
-        queries.map((query) => query.where),
+        eventQueries.map((q) => q.where),
         isEqual,
       );
-      if (whereSets.length === 1 && queries[0].where?.size) {
-        where = [...queries[0].where];
+      if (whereSets.length === 1 && eventQueries[0].where?.size) {
+        where = [...eventQueries[0].where];
       }
       const tagsSets = uniqWith(
-        queries.map((query) => query.tags),
+        eventQueries.map((q) => q.tags),
         isEqual,
       );
-      if (tagsSets.length === 1 && queries[0].tags?.size) {
-        tags = [...queries[0].tags];
+      if (tagsSets.length === 1 && eventQueries[0].tags?.size) {
+        tags = [...eventQueries[0].tags];
       }
-    } else if (QueryClassifier.isRecordingQuery(view.query)) {
-      mediaType = MediaFilterMediaType.Recordings;
+    }
+
+    // Extract reviewed from review queries (only if explicitly set to true/false)
+    const reviewQueries = query.getMediaQueries<ReviewQuery>({ type: QueryType.Review });
+    if (reviewQueries.length > 0) {
+      const reviewedValues = new Set(reviewQueries.map((q) => q.reviewed));
+      if (reviewedValues.size === 1) {
+        const rev = [...reviewedValues][0];
+        if (rev !== undefined) {
+          reviewed = rev
+            ? MediaFilterCoreReviewedSelection.Reviewed
+            : MediaFilterCoreReviewedSelection.NotReviewed;
+        }
+      }
     }
 
     this._defaults = {
-      ...(mediaType && { mediaType: mediaType }),
-      ...(cameraIDs && { cameraIDs: cameraIDs }),
-      ...(what && { what: what }),
-      ...(where && { where: where }),
-      ...(favorite !== undefined && { favorite: favorite }),
-      ...(tags && { tags: tags }),
+      ...(mediaTypes.length && { mediaTypes }),
+      ...(cameraIDs && { cameraIDs }),
+      ...(what && { what }),
+      ...(where && { where }),
+      ...(favorite !== undefined && { favorite }),
+      ...(reviewed !== undefined && { reviewed }),
+      ...(tags && { tags }),
     };
   }
 
   public computeCameraOptions(cameraManager: CameraManager): void {
-    this._cameraOptions = [...this._getAllCameraIDs(cameraManager)].map((cameraID) => ({
+    const builder = new UnifiedQueryBuilder(cameraManager);
+    this._cameraOptions = [...builder.getAllMediaCapableCameraIDs()].map((cameraID) => ({
       value: cameraID,
       label: cameraManager.getCameraMetadata(cameraID)?.title ?? cameraID,
     }));
@@ -439,23 +436,6 @@ export class MediaFilterController {
     }
 
     this._host.requestUpdate();
-  }
-
-  public getControlsToShow(cameraManager: CameraManager): MediaFilterControls {
-    const view = this._viewManager?.getView();
-    const events = QueryClassifier.isEventQuery(view?.query);
-    const recordings = QueryClassifier.isRecordingQuery(view?.query);
-    const managerCapabilities = cameraManager.getAggregateCameraCapabilities();
-
-    return {
-      events: events,
-      recordings: recordings,
-      favorites: events
-        ? managerCapabilities?.has('favorite-events')
-        : recordings
-          ? managerCapabilities?.has('favorite-recordings')
-          : false,
-    };
   }
 
   protected _computeWhenOptions(): void {

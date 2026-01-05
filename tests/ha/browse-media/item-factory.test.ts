@@ -21,6 +21,7 @@ describe('BrowseMediaViewItemFactory', () => {
     const browseMedia = createBrowseMedia({ can_expand: true });
     const result = BrowseMediaViewItemFactory.create(browseMedia, {
       folder: createFolder(),
+      path: [],
     });
     expect(result).toBeInstanceOf(BrowseMediaViewFolder);
   });

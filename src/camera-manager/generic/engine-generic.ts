@@ -14,6 +14,7 @@ import {
   CameraEventCallback,
   CameraManagerCameraMetadata,
   CameraQuery,
+  DefaultQueryParameters,
   Engine,
   EngineOptions,
   EventQuery,
@@ -25,6 +26,7 @@ import {
   PartialRecordingSegmentsQuery,
   PartialReviewQuery,
   QueryReturnType,
+  QueryType,
   RecordingQuery,
   RecordingQueryResultsMap,
   RecordingSegmentsQuery,
@@ -68,6 +70,13 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
         disableExcept: cameraConfig.capabilities?.disable_except,
       },
     });
+  }
+
+  public getDefaultQueryParameters(
+    _camera: Camera,
+    _queryType: QueryType,
+  ): DefaultQueryParameters {
+    return {};
   }
 
   public generateDefaultEventQuery(

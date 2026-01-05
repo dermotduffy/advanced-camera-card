@@ -6,6 +6,7 @@ import { getMediaDownloadPath } from '../../ha/download';
 import { EntityRegistryManager } from '../../ha/registry/entity/types';
 import { ResolvedMediaCache } from '../../ha/resolved-media';
 import { HomeAssistant } from '../../ha/types';
+import { QuerySource } from '../../query-source.js';
 import { Endpoint } from '../../types';
 import { ViewMedia } from '../../view/item';
 import { ViewItemCapabilities } from '../../view/types';
@@ -55,6 +56,7 @@ export class BrowseMediaCameraManagerEngine
   ): EventQuery[] | null {
     return [
       {
+        source: QuerySource.Camera,
         type: QueryType.Event,
         cameraIDs: cameraIDs,
         ...query,
