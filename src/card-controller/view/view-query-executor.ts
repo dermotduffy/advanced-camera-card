@@ -19,20 +19,9 @@ import { QueryExecutorOptions, ViewModifier } from './types';
  */
 export class ViewQueryExecutor {
   private _api: CardViewAPI;
-  private _builder: UnifiedQueryBuilder;
-  private _runner: UnifiedQueryRunner;
 
   constructor(api: CardViewAPI) {
     this._api = api;
-    this._builder = new UnifiedQueryBuilder(
-      api.getCameraManager(),
-      api.getFoldersManager(),
-    );
-    this._runner = new UnifiedQueryRunner(
-      api.getCameraManager(),
-      api.getFoldersManager(),
-      api.getConditionStateManager(),
-    );
   }
 
   public async getExistingQueryModifiers(
@@ -43,7 +32,13 @@ export class ViewQueryExecutor {
       return null;
     }
 
-    const items = await this._runner.execute(view.query, {
+    const runner = new UnifiedQueryRunner(
+      this._api.getCameraManager(),
+      this._api.getFoldersManager(),
+      this._api.getConditionStateManager(),
+    );
+
+    const items = await runner.execute(view.query, {
       useCache: queryExecutorOptions?.useCache,
     });
 
@@ -81,13 +76,22 @@ export class ViewQueryExecutor {
     }
 
     const viewModifiers: ViewModifier[] = [];
+    const builder = new UnifiedQueryBuilder(
+      this._api.getCameraManager(),
+      this._api.getFoldersManager(),
+    );
+    const runner = new UnifiedQueryRunner(
+      this._api.getCameraManager(),
+      this._api.getFoldersManager(),
+      this._api.getConditionStateManager(),
+    );
 
     const executeQuery = async (query: UnifiedQuery | null): Promise<ViewModifier[]> => {
       if (!query) {
         return [];
       }
 
-      const items = await this._runner.execute(query, {
+      const items = await runner.execute(query, {
         useCache: queryExecutorOptions?.useCache,
       });
 
@@ -105,7 +109,7 @@ export class ViewQueryExecutor {
       case 'live':
       case 'timeline':
         if (view.is('timeline') || config.live.controls.thumbnails.mode !== 'none') {
-          const defaultQuery = this._builder.buildDefaultCameraQuery(cameraForQuery);
+          const defaultQuery = builder.buildDefaultCameraQuery(cameraForQuery);
           if (defaultQuery) {
             viewModifiers.push(...(await executeQuery(defaultQuery)));
           }
@@ -119,7 +123,7 @@ export class ViewQueryExecutor {
       case 'clips':
         viewModifiers.push(
           ...(await executeQuery(
-            this._builder.buildCameraMediaQuery(MediaTypeSpec.clips(), {
+            builder.buildCameraMediaQuery(MediaTypeSpec.clips(), {
               cameraID: cameraForQuery,
               limit: this._getLimit(),
             }),
@@ -132,7 +136,7 @@ export class ViewQueryExecutor {
       case 'snapshots':
         viewModifiers.push(
           ...(await executeQuery(
-            this._builder.buildCameraMediaQuery(MediaTypeSpec.snapshots(), {
+            builder.buildCameraMediaQuery(MediaTypeSpec.snapshots(), {
               cameraID: cameraForQuery,
               limit: this._getLimit(),
             }),
@@ -144,7 +148,7 @@ export class ViewQueryExecutor {
       case 'recordings':
         viewModifiers.push(
           ...(await executeQuery(
-            this._builder.buildCameraMediaQuery(MediaTypeSpec.recordings(), {
+            builder.buildCameraMediaQuery(MediaTypeSpec.recordings(), {
               cameraID: cameraForQuery,
               limit: this._getLimit(),
             }),
@@ -156,7 +160,7 @@ export class ViewQueryExecutor {
       case 'reviews':
         viewModifiers.push(
           ...(await executeQuery(
-            this._builder.buildCameraMediaQuery(MediaTypeSpec.reviews(), {
+            builder.buildCameraMediaQuery(MediaTypeSpec.reviews(), {
               cameraID: cameraForQuery,
               limit: this._getLimit(),
             }),
@@ -168,7 +172,7 @@ export class ViewQueryExecutor {
       case 'folders':
         viewModifiers.push(
           ...(await executeQuery(
-            this._builder.buildDefaultFolderQuery(queryExecutorOptions?.folder, {
+            builder.buildDefaultFolderQuery(queryExecutorOptions?.folder, {
               limit: this._getLimit(),
             }),
           )),
