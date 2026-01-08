@@ -3,6 +3,7 @@ import { capabilityKeys, SEVERITIES } from '../../types';
 import { mediaLayoutConfigSchema } from './camera/media-layout';
 import { ptzCameraConfigDefaults, ptzCameraConfigSchema } from './camera/ptz';
 import { aspectRatioSchema } from './common/aspect-ratio';
+import { eventsMediaTypeSchema } from './common/events-media';
 import { imageBaseConfigSchema, imageConfigDefault } from './common/image';
 
 const CAMERA_TRIGGER_EVENT_TYPES = [
@@ -177,6 +178,26 @@ const cameraDimensionsSchema = z.object({
 });
 export type CameraDimensionsConfig = z.infer<typeof cameraDimensionsSchema>;
 
+// Camera media configuration for default media type in live/timeline views.
+const CAMERA_MEDIA_TYPES = [
+  'auto',
+  'reviews',
+  'events',
+  'recordings',
+  'folder',
+] as const;
+export type CameraMediaType = (typeof CAMERA_MEDIA_TYPES)[number];
+
+const cameraMediaConfigDefault = {
+  type: 'auto' as CameraMediaType,
+};
+
+const cameraMediaConfigSchema = z.object({
+  type: z.enum(CAMERA_MEDIA_TYPES).default(cameraMediaConfigDefault.type),
+  events_type: eventsMediaTypeSchema.optional(),
+  folders: z.array(z.string()).optional(),
+});
+
 export const cameraConfigSchema = z
   .object({
     camera_entity: z.string().optional(),
@@ -288,6 +309,8 @@ export const cameraConfigSchema = z
     ptz: ptzCameraConfigSchema.default(cameraConfigDefault.ptz),
 
     dimensions: cameraDimensionsSchema.optional(),
+
+    media: cameraMediaConfigSchema.optional(),
 
     proxy: proxyConfigSchema.default(cameraConfigDefault.proxy),
 

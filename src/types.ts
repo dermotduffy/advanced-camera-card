@@ -2,12 +2,7 @@ import { z } from 'zod';
 import type { EffectOptions } from './components-lib/effects/types';
 import type { LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from './ha/types';
 
-export type ClipsOrSnapshots = 'clips' | 'snapshots';
-export type ClipsOrSnapshotsOrAll = 'clips' | 'snapshots' | 'all';
-
-/**
- * UI-facing media types for galleries and views.
- */
+// UI-facing media types for galleries and views.
 export const VIEW_MEDIA_TYPES = ['clips', 'snapshots', 'recordings', 'reviews'] as const;
 export type ViewMediaType = (typeof VIEW_MEDIA_TYPES)[number];
 

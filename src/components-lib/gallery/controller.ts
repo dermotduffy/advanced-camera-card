@@ -11,7 +11,7 @@ import { UnifiedQueryRunner } from '../../view/unified-query-runner';
 import { View } from '../../view/view';
 import { GalleryColumnCountRoundMethod } from './gallery-core-controller';
 
-export interface GalleryViewContext {
+interface GalleryViewContext {
   // The gallery view type the user navigated from (when in viewer). Used to
   // determine if query/results should be preserved when returning.
   originView?: AdvancedCameraCardView;
@@ -24,10 +24,10 @@ declare module 'view' {
 }
 
 // The minimum width of a thumbnail with details enabled.
-export const GALLERY_THUMBNAIL_DETAILS_WIDTH_MIN = 300;
+const GALLERY_THUMBNAIL_DETAILS_WIDTH_MIN = 300;
 
 // The minimum width of a folder thumbnail with details enabled.
-export const FOLDER_THUMBNAIL_DETAILS_WIDTH_MIN = 200;
+const FOLDER_THUMBNAIL_DETAILS_WIDTH_MIN = 200;
 
 export class GalleryController {
   private _host: HTMLElement;

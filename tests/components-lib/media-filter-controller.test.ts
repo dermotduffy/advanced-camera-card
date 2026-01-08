@@ -9,6 +9,7 @@ import {
   RecordingQuery,
   ReviewQuery,
 } from '../../src/camera-manager/types';
+import { FoldersManager } from '../../src/card-controller/folders/manager';
 import { ViewManager } from '../../src/card-controller/view/view-manager';
 import {
   MediaFilterController,
@@ -385,7 +386,7 @@ describe('MediaFilterController', () => {
         vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
 
         const controller = new MediaFilterController(createLitElement());
-        controller.computeCameraOptions(cameraManager);
+        controller.computeCameraOptions(cameraManager, mock<FoldersManager>());
         expect(controller.getCameraOptions()).toEqual([
           { label: 'Kitchen Camera', value: 'camera.kitchen' },
         ]);
@@ -408,7 +409,7 @@ describe('MediaFilterController', () => {
         );
 
         const controller = new MediaFilterController(createLitElement());
-        controller.computeCameraOptions(cameraManager);
+        controller.computeCameraOptions(cameraManager, mock<FoldersManager>());
         expect(controller.getCameraOptions()).toEqual([]);
       });
 
@@ -418,7 +419,7 @@ describe('MediaFilterController', () => {
         vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
 
         const controller = new MediaFilterController(createLitElement());
-        controller.computeCameraOptions(cameraManager);
+        controller.computeCameraOptions(cameraManager, mock<FoldersManager>());
         expect(controller.getCameraOptions()).toEqual([
           { label: 'camera.kitchen', value: 'camera.kitchen' },
         ]);
@@ -516,7 +517,12 @@ describe('MediaFilterController', () => {
       const controller = new MediaFilterController(createLitElement());
       controller.setViewManager(viewManager);
 
-      await controller.valueChangeHandler(createCameraManager(), {}, { when: {} });
+      await controller.valueChangeHandler(
+        createCameraManager(),
+        mock<FoldersManager>(),
+        {},
+        { when: {} },
+      );
 
       expect(viewManager.setViewByParametersWithExistingQuery).not.toBeCalled();
     });
@@ -540,6 +546,7 @@ describe('MediaFilterController', () => {
 
         await controller.valueChangeHandler(
           cameraManager,
+          mock<FoldersManager>(),
           {
             performance: createPerformanceConfig({
               features: { media_chunk_size: 11 },
@@ -597,6 +604,7 @@ describe('MediaFilterController', () => {
 
       await controller.valueChangeHandler(
         cameraManager,
+        mock<FoldersManager>(),
         {
           performance: createPerformanceConfig({
             features: { media_chunk_size: 11 },
@@ -641,6 +649,7 @@ describe('MediaFilterController', () => {
 
       await controller.valueChangeHandler(
         cameraManager,
+        mock<FoldersManager>(),
         {},
         {
           mediaTypes: [MediaFilterMediaType.Reviews],
@@ -672,6 +681,7 @@ describe('MediaFilterController', () => {
 
       await controller.valueChangeHandler(
         cameraManager,
+        mock<FoldersManager>(),
         {},
         {
           mediaTypes: [MediaFilterMediaType.Clips, MediaFilterMediaType.Recordings],
@@ -698,6 +708,7 @@ describe('MediaFilterController', () => {
 
       await controller.valueChangeHandler(
         cameraManager,
+        mock<FoldersManager>(),
         {},
         {
           mediaTypes: [MediaFilterMediaType.Clips],
@@ -732,6 +743,7 @@ describe('MediaFilterController', () => {
 
       await controller.valueChangeHandler(
         cameraManager,
+        mock<FoldersManager>(),
         {},
         {
           mediaTypes: [MediaFilterMediaType.Recordings],
@@ -765,6 +777,7 @@ describe('MediaFilterController', () => {
 
       await controller.valueChangeHandler(
         cameraManager,
+        mock<FoldersManager>(),
         {},
         {
           mediaTypes: [],
@@ -831,6 +844,7 @@ describe('MediaFilterController', () => {
 
         await controller.valueChangeHandler(
           cameraManager,
+          mock<FoldersManager>(),
           {},
           {
             mediaTypes: [MediaFilterMediaType.Recordings],
@@ -857,6 +871,7 @@ describe('MediaFilterController', () => {
 
         await controller.valueChangeHandler(
           cameraManager,
+          mock<FoldersManager>(),
           {},
           {
             mediaTypes: [MediaFilterMediaType.Recordings],
@@ -884,7 +899,7 @@ describe('MediaFilterController', () => {
       const controller = new MediaFilterController(createLitElement());
       controller.setViewManager(viewManager);
 
-      controller.computeInitialDefaultsFromView(cameraManager);
+      controller.computeInitialDefaultsFromView(cameraManager, mock<FoldersManager>());
 
       expect(controller.getDefaults()).toBeNull();
     });
@@ -897,7 +912,7 @@ describe('MediaFilterController', () => {
       const controller = new MediaFilterController(createLitElement());
       controller.setViewManager(viewManager);
 
-      controller.computeInitialDefaultsFromView(cameraManager);
+      controller.computeInitialDefaultsFromView(cameraManager, mock<FoldersManager>());
 
       expect(controller.getDefaults()).toBeNull();
     });
@@ -909,7 +924,10 @@ describe('MediaFilterController', () => {
       const controller = new MediaFilterController(createLitElement());
       controller.setViewManager(viewManager);
 
-      controller.computeInitialDefaultsFromView(createCameraManager());
+      controller.computeInitialDefaultsFromView(
+        createCameraManager(),
+        mock<FoldersManager>(),
+      );
 
       expect(controller.getDefaults()).toBeNull();
     });
@@ -930,7 +948,10 @@ describe('MediaFilterController', () => {
           const controller = new MediaFilterController(createLitElement());
           controller.setViewManager(viewManager);
 
-          controller.computeInitialDefaultsFromView(cameraManager);
+          controller.computeInitialDefaultsFromView(
+            cameraManager,
+            mock<FoldersManager>(),
+          );
 
           expect(controller.getDefaults()).toEqual(expected);
         },

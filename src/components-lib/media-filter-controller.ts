@@ -20,6 +20,7 @@ import {
   QueryType,
   ReviewQuery,
 } from '../camera-manager/types';
+import { FoldersManager } from '../card-controller/folders/manager';
 import { ViewManagerInterface } from '../card-controller/view/types';
 import { SelectOption, SelectValues } from '../components/select';
 import { CardWideConfig } from '../config/schema/types';
@@ -182,6 +183,7 @@ export class MediaFilterController {
 
   public async valueChangeHandler(
     cameraManager: CameraManager,
+    foldersManager: FoldersManager,
     cardWideConfig: CardWideConfig,
     values: {
       camera?: SelectValues;
@@ -221,7 +223,7 @@ export class MediaFilterController {
     const tags = getArrayValueAsSet(values.tags);
     const limit = cardWideConfig.performance?.features.media_chunk_size;
 
-    const builder = new UnifiedQueryBuilder(cameraManager);
+    const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
     const query = builder.buildFilterQuery(
       getArrayValueAsSet(values.camera),
       getArrayValueAsSet<ViewMediaType>(values.mediaTypes),
@@ -265,10 +267,13 @@ export class MediaFilterController {
     this._host.requestUpdate();
   }
 
-  public computeInitialDefaultsFromView(cameraManager: CameraManager): void {
+  public computeInitialDefaultsFromView(
+    cameraManager: CameraManager,
+    foldersManager: FoldersManager,
+  ): void {
     const view = this._viewManager?.getView();
     const query = view?.query;
-    const builder = new UnifiedQueryBuilder(cameraManager);
+    const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
     const allCameraIDs = builder.getAllMediaCapableCameraIDs();
     if (!view || !query?.hasNodes() || !allCameraIDs.size) {
       return;
@@ -375,8 +380,11 @@ export class MediaFilterController {
     };
   }
 
-  public computeCameraOptions(cameraManager: CameraManager): void {
-    const builder = new UnifiedQueryBuilder(cameraManager);
+  public computeCameraOptions(
+    cameraManager: CameraManager,
+    foldersManager: FoldersManager,
+  ): void {
+    const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
     this._cameraOptions = [...builder.getAllMediaCapableCameraIDs()].map((cameraID) => ({
       value: cameraID,
       label: cameraManager.getCameraMetadata(cameraID)?.title ?? cameraID,

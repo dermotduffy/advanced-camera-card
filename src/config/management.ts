@@ -944,4 +944,23 @@ const UPGRADES = [
     frigateCardToAdvancedCameraCardStyleTransform,
   ),
   upgradeMoveToWithOverrides('menu.buttons.frigate', 'menu.buttons.iris'),
+
+  // v8.0.0+
+  upgradeMoveToWithOverrides(
+    'live.controls.thumbnails.media_type',
+    'cameras_global.media.type',
+  ),
+  upgradeMoveToWithOverrides(
+    'live.controls.thumbnails.events_media_type',
+    'cameras_global.media.events_type',
+    {
+      transform: (val) => {
+        // 'all' is the default, delete it
+        if (val === 'all') {
+          return null;
+        }
+        return val;
+      },
+    },
+  ),
 ];

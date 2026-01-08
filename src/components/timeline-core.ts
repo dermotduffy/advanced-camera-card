@@ -236,6 +236,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
         'mini',
         'thumbnailConfig',
         'conditionStateManager',
+        'foldersManager',
       ].some((prop) => changedProps.has(prop))
     ) {
       this._controller.setOptions({

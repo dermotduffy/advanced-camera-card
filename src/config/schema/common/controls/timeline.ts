@@ -1,10 +1,7 @@
 import { z } from 'zod';
-import { eventsMediaTypeSchema } from '../events-media';
 
 export const timelineCoreConfigDefault = {
   clustering_threshold: 3,
-  media_type: 'auto' as const,
-  events_media_type: 'all' as const,
   window_seconds: 60 * 60,
   show_recordings: true,
   style: 'stack' as const,
@@ -26,9 +23,6 @@ export const timelineCoreConfigSchema = z.object({
     .number()
     .optional()
     .default(timelineCoreConfigDefault.clustering_threshold),
-  events_media_type: eventsMediaTypeSchema
-    .optional()
-    .default(timelineCoreConfigDefault.events_media_type),
   window_seconds: z
     .number()
     .min(1 * 60)

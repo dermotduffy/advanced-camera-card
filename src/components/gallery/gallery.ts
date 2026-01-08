@@ -78,8 +78,12 @@ export class AdvancedCameraCardGallery extends LitElement {
   protected _builder: UnifiedQueryBuilder | null = null;
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('cameraManager') && this.cameraManager) {
-      this._builder = new UnifiedQueryBuilder(this.cameraManager);
+    if (
+      (changedProps.has('cameraManager') || changedProps.has('foldersManager')) &&
+      this.cameraManager &&
+      this.foldersManager
+    ) {
+      this._builder = new UnifiedQueryBuilder(this.cameraManager, this.foldersManager);
     }
 
     if (changedProps.has('viewManagerEpoch')) {
@@ -201,6 +205,7 @@ export class AdvancedCameraCardGallery extends LitElement {
           ? html` <advanced-camera-card-media-filter
               .hass=${this.hass}
               .cameraManager=${this.cameraManager}
+              .foldersManager=${this.foldersManager}
               .viewManagerEpoch=${this.viewManagerEpoch}
               .cardWideConfig=${this.cardWideConfig}
               slot=${this.galleryConfig.controls.filter.mode}

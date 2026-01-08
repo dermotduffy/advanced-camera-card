@@ -122,7 +122,7 @@ export class QueryResultClassifier {
   }
 }
 
-export interface ExtendedMediaQueryResult<T extends MediaQuery> {
+interface ExtendedMediaQueryResult<T extends MediaQuery> {
   queries: T[];
   results: ViewItem[];
 }

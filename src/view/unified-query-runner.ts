@@ -4,7 +4,7 @@ import { ConditionStateManagerReadonlyInterface } from '../conditions/types';
 import { ViewItem } from '../view/item';
 import { UnifiedQuery } from '../view/unified-query';
 
-export interface QueryRunnerOptions {
+interface QueryRunnerOptions {
   useCache?: boolean;
 }
 

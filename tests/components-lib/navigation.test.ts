@@ -3,6 +3,7 @@ import { assert, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManager } from '../../src/camera-manager/manager';
 import { EventQuery, QueryType } from '../../src/camera-manager/types';
+import { FoldersManager } from '../../src/card-controller/folders/manager';
 import { FolderPathComponent } from '../../src/card-controller/folders/types';
 import { ViewManagerEpoch, ViewModifier } from '../../src/card-controller/view/types';
 import {
@@ -67,7 +68,10 @@ describe('navigateUp', () => {
       manager: api.getViewManager(),
     };
 
-    const builder = new UnifiedQueryBuilder(mock<CameraManager>());
+    const builder = new UnifiedQueryBuilder(
+      mock<CameraManager>(),
+      mock<FoldersManager>(),
+    );
     const options: FolderNavigationParamaters = {
       builder,
       viewManagerEpoch: epoch,
@@ -90,7 +94,10 @@ describe('navigateUp', () => {
       manager: api.getViewManager(),
     };
 
-    const builder = new UnifiedQueryBuilder(mock<CameraManager>());
+    const builder = new UnifiedQueryBuilder(
+      mock<CameraManager>(),
+      mock<FoldersManager>(),
+    );
     const options: FolderNavigationParamaters = {
       builder,
       viewManagerEpoch: epoch,
@@ -117,7 +124,10 @@ describe('navigateUp', () => {
       manager: api.getViewManager(),
     };
 
-    const builder = new UnifiedQueryBuilder(mock<CameraManager>());
+    const builder = new UnifiedQueryBuilder(
+      mock<CameraManager>(),
+      mock<FoldersManager>(),
+    );
     const options: FolderNavigationParamaters = {
       builder,
       viewManagerEpoch: epoch,
@@ -154,7 +164,10 @@ describe('navigateUp', () => {
       manager: api.getViewManager(),
     };
 
-    const builder = new UnifiedQueryBuilder(mock<CameraManager>());
+    const builder = new UnifiedQueryBuilder(
+      mock<CameraManager>(),
+      mock<FoldersManager>(),
+    );
     const options: FolderNavigationParamaters = {
       builder,
       viewManagerEpoch: epoch,
@@ -191,7 +204,10 @@ describe('navigateToFolder', () => {
       manager: api.getViewManager(),
     };
 
-    const builder = new UnifiedQueryBuilder(mock<CameraManager>());
+    const builder = new UnifiedQueryBuilder(
+      mock<CameraManager>(),
+      mock<FoldersManager>(),
+    );
     const options: FolderNavigationParamaters = {
       builder,
       viewManagerEpoch: epoch,
@@ -225,7 +241,10 @@ describe('navigateToFolder', () => {
       manager: api.getViewManager(),
     };
 
-    const builder = new UnifiedQueryBuilder(mock<CameraManager>());
+    const builder = new UnifiedQueryBuilder(
+      mock<CameraManager>(),
+      mock<FoldersManager>(),
+    );
     const options: FolderNavigationParamaters = {
       builder,
       viewManagerEpoch: epoch,

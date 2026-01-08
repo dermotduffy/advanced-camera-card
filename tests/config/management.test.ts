@@ -1512,10 +1512,17 @@ describe('should handle version specific upgrades', () => {
           expect(config).toEqual({
             type: 'custom:advanced-camera-card',
             cameras: [{}],
+            ...(mediaEventType !== 'all' && {
+              cameras_global: {
+                media: {
+                  events_type: mediaEventType,
+                },
+              },
+            }),
             live: {
               controls: {
                 thumbnails: {
-                  events_media_type: mediaEventType,
+                  // v8.0.0+ migration moves events_media_type to cameras_global .
                 },
               },
             },
@@ -3585,6 +3592,103 @@ describe('should handle version specific upgrades', () => {
         ],
       });
       postUpgradeChecks(config);
+    });
+  });
+
+  describe('v8.0.0+', () => {
+    describe('live.controls.thumbnails.media_type -> cameras_global.media.type', () => {
+      it.each([['events' as const], ['recordings' as const]])(
+        '%s',
+        (mediaType: string) => {
+          const config = {
+            type: 'custom:advanced-camera-card',
+            cameras: [{}],
+            live: {
+              controls: {
+                thumbnails: {
+                  media_type: mediaType,
+                },
+              },
+            },
+          };
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:advanced-camera-card',
+            cameras: [{}],
+            live: {
+              controls: {
+                thumbnails: {},
+              },
+            },
+            cameras_global: {
+              media: {
+                type: mediaType,
+              },
+            },
+          });
+          postUpgradeChecks(config);
+        },
+      );
+    });
+
+    describe('live.controls.thumbnails.events_media_type -> cameras_global.media.events_type', () => {
+      it.each([['clips' as const], ['snapshots' as const]])(
+        '%s',
+        (eventsType: string) => {
+          const config = {
+            type: 'custom:advanced-camera-card',
+            cameras: [{}],
+            live: {
+              controls: {
+                thumbnails: {
+                  events_media_type: eventsType,
+                },
+              },
+            },
+          };
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:advanced-camera-card',
+            cameras: [{}],
+            live: {
+              controls: {
+                thumbnails: {},
+              },
+            },
+            cameras_global: {
+              media: {
+                events_type: eventsType,
+              },
+            },
+          });
+          postUpgradeChecks(config);
+        },
+      );
+
+      it('all', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: {
+            controls: {
+              thumbnails: {
+                events_media_type: 'all',
+              },
+            },
+          },
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: {
+            controls: {
+              thumbnails: {},
+            },
+          },
+        });
+        postUpgradeChecks(config);
+      });
     });
   });
 });

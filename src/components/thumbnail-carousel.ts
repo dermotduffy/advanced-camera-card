@@ -9,6 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
+import { FoldersManager } from '../card-controller/folders/manager.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
@@ -49,6 +50,9 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
+  public foldersManager?: FoldersManager;
+
+  @property({ attribute: false })
   public viewItemManager?: ViewItemManager;
 
   @property({ attribute: false })
@@ -81,8 +85,12 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('cameraManager') && this.cameraManager) {
-      this._builder = new UnifiedQueryBuilder(this.cameraManager);
+    if (
+      (changedProps.has('cameraManager') || changedProps.has('foldersManager')) &&
+      this.cameraManager &&
+      this.foldersManager
+    ) {
+      this._builder = new UnifiedQueryBuilder(this.cameraManager, this.foldersManager);
     }
 
     if (changedProps.has('config')) {

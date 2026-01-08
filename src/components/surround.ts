@@ -14,8 +14,6 @@ import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import { ConditionStateManagerReadonlyInterface } from '../conditions/types.js';
 import { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
 import { MiniTimelineControlConfig } from '../config/schema/common/controls/timeline.js';
-import { LiveThumbnailsControlConfig } from '../config/schema/live.js';
-import { TimelineThumbnailsControlConfig } from '../config/schema/timeline.js';
 import { CardWideConfig } from '../config/schema/types.js';
 import { HomeAssistant } from '../ha/types.js';
 import basicBlockStyle from '../scss/basic-block.scss';
@@ -33,9 +31,7 @@ export class AdvancedCameraCardSurround extends LitElement {
   public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  public thumbnailConfig?: ThumbnailsControlConfig &
-    Partial<LiveThumbnailsControlConfig> &
-    Partial<TimelineThumbnailsControlConfig>;
+  public thumbnailConfig?: ThumbnailsControlConfig;
 
   @property({ attribute: false, hasChanged: contentsChanged })
   public timelineConfig?: MiniTimelineControlConfig;
@@ -103,6 +99,7 @@ export class AdvancedCameraCardSurround extends LitElement {
             .viewItemManager=${this.viewItemManager}
             .fadeThumbnails=${view.isViewerView()}
             .viewManagerEpoch=${this.viewManagerEpoch}
+            .foldersManager=${this.foldersManager}
             .selected=${view.queryResults?.getSelectedIndex() ?? undefined}
             .cardWideConfig=${this.cardWideConfig}
           >

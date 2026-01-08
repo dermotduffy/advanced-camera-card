@@ -2,7 +2,7 @@ import { ViewContext } from 'view';
 import { AdvancedCameraCardError } from '../../types.js';
 import { ViewItem } from '../../view/item.js';
 import { QueryResults } from '../../view/query-results.js';
-import { UnifiedQuery } from '../../view/unified-query.js';
+
 import { View, ViewParameters } from '../../view/view.js';
 
 export interface ViewModifier {
@@ -24,11 +24,6 @@ export interface QueryExecutorOptions {
   folder?: string;
   rejectResults?: (results: QueryResults) => boolean;
   useCache?: boolean;
-}
-
-export interface QueryExecutorResult {
-  query: UnifiedQuery;
-  queryResults: QueryResults;
 }
 
 export interface ViewFactoryOptions {

@@ -30,7 +30,7 @@ import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../../ty
 import { errorToConsole } from '../../utils/basic.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { VideoContentType, ViewMedia } from '../../view/item.js';
-import { UnifiedQueryTransformer } from '../../view/unified-query-builder.js';
+import { UnifiedQueryTransformer } from '../../view/unified-query-transformer.js';
 import '../image-player.js';
 import { renderProgressIndicator } from '../progress-indicator.js';
 import '../video-player.js';
