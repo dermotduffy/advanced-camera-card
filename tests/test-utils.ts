@@ -17,7 +17,6 @@ import { CameraManagerStore } from '../src/camera-manager/store';
 import {
   CameraEventCallback,
   EventQuery,
-  MediaQuery,
   QueryType,
   RecordingQuery,
   ReviewQuery,
@@ -808,9 +807,6 @@ export const createFolderQuery = (folderId: string): FolderQuery => ({
   folder: { id: folderId, type: 'ha', title: folderId },
   path: [{ ha: { id: 'Root' } }],
 });
-
-export const isMediaQuery = (node: { source: QuerySource }): node is MediaQuery =>
-  node.source === QuerySource.Camera;
 
 export const isEventQuery = (node: {
   source: QuerySource;

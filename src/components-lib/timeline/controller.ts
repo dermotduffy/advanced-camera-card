@@ -42,7 +42,7 @@ import { ViewMedia } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import { QueryResults } from '../../view/query-results';
 import { UnifiedQuery } from '../../view/unified-query';
-import { UnifiedQueryTransformer } from '../../view/unified-query-builder';
+import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';
 import { mergeViewContext } from '../../view/view';
 import { AdvancedCameraCardTimelineItem, TimelineDataSource } from './source';
 import { ExtendedTimeline, TimelineItemClickAction, TimelineRangeChange } from './types';
@@ -83,10 +83,14 @@ export class TimelineController {
   private _timeline: ExtendedTimeline | null = null;
 
   private _hass: HomeAssistant | null = null;
+
   private _cameraManager: CameraManager | null = null;
+  private _foldersManager: FoldersManager | null = null;
+
   private _viewItemManager: ViewItemManager | null = null;
   private _viewManagerEpoch: ViewManagerEpoch | null = null;
   private _timelineConfig: TimelineCoreConfig | null = null;
+
   private _mini = false;
 
   private _panMode: TimelinePanMode | null = null;
@@ -151,6 +155,7 @@ export class TimelineController {
     const needsRebuild =
       !this._source ||
       this._cameraManager !== (options.cameraManager ?? null) ||
+      this._foldersManager !== (options.foldersManager ?? null) ||
       !isEqual(this._timelineConfig, options.timelineConfig ?? null) ||
       !this._hasSameShape(this._source?.shape, newShape);
 
@@ -205,6 +210,7 @@ export class TimelineController {
 
     this._thumbnailConfig = options?.thumbnailConfig ?? null;
     this._cameraManager = options?.cameraManager ?? null;
+    this._foldersManager = options?.foldersManager ?? null;
     this._viewItemManager = options?.viewItemManager ?? null;
     this._timelineConfig = options?.timelineConfig ?? null;
     this._mini = options?.mini ?? false;

@@ -11,7 +11,6 @@ import {
   miniTimelineConfigSchema,
 } from './common/controls/timeline';
 import { viewDisplaySchema } from './common/display';
-import { eventsMediaTypeSchema } from './common/events-media';
 import {
   MEDIA_ACTION_NEGATIVE_CONDITIONS,
   MEDIA_ACTION_POSITIVE_CONDITIONS,
@@ -41,12 +40,6 @@ const microphoneConfigSchema = z
   .default(microphoneConfigDefault);
 export type MicrophoneConfig = z.infer<typeof microphoneConfigSchema>;
 
-const liveThumbnailsControlDefault = {
-  ...thumbnailControlsDefaults,
-  media_type: 'auto' as const,
-  events_media_type: 'all' as const,
-};
-
 export const liveConfigDefault = {
   auto_play: [...MEDIA_ACTION_POSITIVE_CONDITIONS],
   auto_pause: [],
@@ -67,7 +60,7 @@ export const liveConfigDefault = {
       style: 'chevrons' as const,
     },
     ptz: ptzControlsDefaults,
-    thumbnails: liveThumbnailsControlDefault,
+    thumbnails: thumbnailControlsDefaults,
     timeline: miniTimelineConfigDefault,
     wheel: true,
   },
@@ -75,17 +68,6 @@ export const liveConfigDefault = {
     ...microphoneConfigDefault,
   },
 };
-
-const liveMediaTypeSchema = z.enum(['auto', 'events', 'recordings', 'reviews']);
-export type LiveMediaType = z.infer<typeof liveMediaTypeSchema>;
-
-const liveThumbnailsControlSchema = thumbnailsControlSchema.extend({
-  media_type: liveMediaTypeSchema.default(liveThumbnailsControlDefault.media_type),
-  events_media_type: eventsMediaTypeSchema.default(
-    liveThumbnailsControlDefault.events_media_type,
-  ),
-});
-export type LiveThumbnailsControlConfig = z.infer<typeof liveThumbnailsControlSchema>;
 
 export const liveConfigSchema = z
   .object({
@@ -120,7 +102,7 @@ export const liveConfigSchema = z
           })
           .default(liveConfigDefault.controls.next_previous),
         ptz: ptzControlsConfigSchema.default(liveConfigDefault.controls.ptz),
-        thumbnails: liveThumbnailsControlSchema.default(
+        thumbnails: thumbnailsControlSchema.default(
           liveConfigDefault.controls.thumbnails,
         ),
         timeline: miniTimelineConfigSchema.default(liveConfigDefault.controls.timeline),

@@ -96,8 +96,6 @@ describe('config defaults', () => {
             position: 'bottom-right',
           },
           thumbnails: {
-            media_type: 'auto',
-            events_media_type: 'all',
             mode: 'right',
             show_details: true,
             show_download_control: true,
@@ -108,7 +106,6 @@ describe('config defaults', () => {
           },
           timeline: {
             clustering_threshold: 3,
-            events_media_type: 'all',
             format: {
               '24h': true,
             },
@@ -178,7 +175,6 @@ describe('config defaults', () => {
           },
           timeline: {
             clustering_threshold: 3,
-            events_media_type: 'all',
             format: {
               '24h': true,
             },
@@ -346,8 +342,6 @@ describe('config defaults', () => {
         clustering_threshold: 3,
         controls: {
           thumbnails: {
-            events_media_type: 'all',
-            media_type: 'auto',
             mode: 'right',
             show_details: true,
             show_download_control: true,
@@ -357,7 +351,6 @@ describe('config defaults', () => {
             size: 100,
           },
         },
-        events_media_type: 'all',
         format: {
           '24h': true,
         },

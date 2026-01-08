@@ -2,18 +2,14 @@ import { afterAll, assert, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Capabilities } from '../../../src/camera-manager/capabilities';
 import { EventQuery, QueryType } from '../../../src/camera-manager/types';
 import { applyViewModifiers } from '../../../src/card-controller/view/modifiers';
-import {
-  MediaQueryMode,
-  ViewQueryExecutor,
-} from '../../../src/card-controller/view/view-query-executor';
+import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
 import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
-import { LiveMediaType } from '../../../src/config/schema/live';
 import { PerformanceConfig } from '../../../src/config/schema/performance';
-import { AdvancedCameraCardConfig } from '../../../src/config/schema/types';
 import { QuerySource } from '../../../src/query-source';
 import { UnifiedQuery } from '../../../src/view/unified-query';
 import { View } from '../../../src/view/view';
 import {
+  createCameraConfig,
   createCameraManager,
   createCapabilities,
   createCardAPI,
@@ -250,26 +246,29 @@ describe('ViewQueryExecutor', () => {
         it.each([
           ['snapshots' as const, QueryType.Event],
           ['clips' as const, QueryType.Event],
-          ['recordings' as const, QueryType.Recording],
           ['reviews' as const, QueryType.Review],
         ])(
-          'should resolve config to media type %s',
-          async (mode: MediaQueryMode, queryType: QueryType) => {
-            const api = createPopulatedAPI({
-              live: {
-                controls: {
-                  thumbnails: {
-                    media_type:
-                      mode === 'recordings' || mode === 'reviews' ? mode : 'events',
-                    ...(mode === 'clips' || mode === 'snapshots'
-                      ? { events_media_type: mode }
-                      : {}),
-                  },
-                },
-              },
-            });
+          'should resolve camera media config to type %s',
+          async (mode: 'snapshots' | 'clips' | 'reviews', queryType: QueryType) => {
+            const api = createPopulatedAPI();
             const cameraManager = api.getCameraManager();
             if (cameraManager) {
+              // Set up camera config with media type using createCameraConfig for defaults
+              const store = createStore([
+                {
+                  cameraID: 'camera.office',
+                  capabilities: createCapabilities({ [mode]: true }),
+                  config: createCameraConfig({
+                    media: {
+                      type: mode === 'reviews' ? 'reviews' : 'events',
+                      ...(mode === 'clips' || mode === 'snapshots'
+                        ? { events_type: mode }
+                        : {}),
+                    },
+                  }),
+                },
+              ]);
+              vi.mocked(cameraManager.getStore).mockReturnValue(store);
               vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
                 new Capabilities({ [mode]: true }),
               );
@@ -296,21 +295,24 @@ describe('ViewQueryExecutor', () => {
           },
         );
 
-        it('should handle unhandled resolved configuration mode', async () => {
+        it('should handle folder type by returning null (folders handled separately)', async () => {
           const api = createPopulatedAPI();
-          vi.mocked(api.getConfigManager().getConfig).mockReturnValue({
-            live: {
-              controls: {
-                thumbnails: {
-                  mode: 'above',
-                  media_type: 'unhandled' as unknown as LiveMediaType,
-                },
-                timeline: {
-                  window_seconds: 3600,
-                },
+          const cameraManager = api.getCameraManager();
+          if (cameraManager) {
+            const store = createStore([
+              {
+                cameraID: 'camera.office',
+                capabilities: createCapabilities({}),
+                config: createCameraConfig({
+                  media: {
+                    type: 'folder',
+                    folders: ['folder-1'],
+                  },
+                }),
               },
-            },
-          } as unknown as AdvancedCameraCardConfig);
+            ]);
+            vi.mocked(cameraManager.getStore).mockReturnValue(store);
+          }
 
           const viewQueryExecutor = new ViewQueryExecutor(api);
           const view = createView({ view: 'live', camera: 'camera.office' });
@@ -318,6 +320,7 @@ describe('ViewQueryExecutor', () => {
           const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
           applyViewModifiers(view, modifiers);
 
+          // Folder type returns null and is handled separately
           expect(view.query).toBeNull();
         });
       });
@@ -382,6 +385,7 @@ describe('ViewQueryExecutor', () => {
           const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
           applyViewModifiers(view, modifiers);
 
+          // Recordings-only cameras auto-resolve to recordings
           expect(view.query).toBeDefined();
           const queries = view.query?.getMediaQueries({ type: QueryType.Recording });
           expect(queries?.length).toBeGreaterThan(0);

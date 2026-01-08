@@ -1,6 +1,6 @@
 import { toZonedTime } from 'date-fns-tz';
 import { CameraConfig } from '../../config/schema/cameras';
-import { ClipsOrSnapshots, Severity } from '../../types';
+import { Severity } from '../../types';
 import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
 import {
   FrigateEvent,
@@ -56,7 +56,7 @@ export const getEventMediaContentID = (
   clientId: string,
   cameraName: string,
   event: FrigateEvent,
-  mediaType: ClipsOrSnapshots,
+  mediaType: 'clips' | 'snapshots',
 ): string => {
   return `media-source://frigate/${clientId}/event/${mediaType}/${cameraName}/${event.id}`;
 };

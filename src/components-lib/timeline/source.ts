@@ -17,11 +17,9 @@ import { errorToConsole } from '../../utils/basic.js';
 import { ViewItem, ViewMedia } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import { UnifiedQuery } from '../../view/unified-query';
-import {
-  UnifiedQueryBuilder,
-  UnifiedQueryTransformer,
-} from '../../view/unified-query-builder';
+import { UnifiedQueryBuilder } from '../../view/unified-query-builder';
 import { UnifiedQueryRunner } from '../../view/unified-query-runner';
+import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';
 
 // Allow timeline freshness to be at least this number of seconds out of date
 // (caching times in the data-engine may increase the effective delay).
@@ -96,7 +94,7 @@ export class TimelineDataSource {
     showRecordings: boolean,
   ) {
     this._cameraManager = cameraManager;
-    this._builder = new UnifiedQueryBuilder(cameraManager);
+    this._builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
     this._runner = new UnifiedQueryRunner(
       cameraManager,
       foldersManager,

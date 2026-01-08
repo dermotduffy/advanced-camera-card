@@ -46,9 +46,13 @@ export const navigateUp = (options?: FolderNavigationParamaters | null): void =>
     parentPath[0],
     ...parentPath.slice(1),
   ];
-  const query = options?.builder.buildFolderQuery(folderQuery.folder, nonEmptyPath, {
-    limit: options?.limit,
-  });
+  const query = options?.builder.buildFolderQueryWithPath(
+    folderQuery.folder,
+    nonEmptyPath,
+    {
+      limit: options?.limit,
+    },
+  );
 
   options?.viewManagerEpoch.manager.setViewByParametersWithExistingQuery({
     params: { query },
@@ -64,9 +68,13 @@ export const navigateToFolder = (
     newPath[0],
     ...newPath.slice(1),
   ];
-  const query = options?.builder.buildFolderQuery(item.getFolder(), nonEmptyPath, {
-    limit: options?.limit,
-  });
+  const query = options?.builder.buildFolderQueryWithPath(
+    item.getFolder(),
+    nonEmptyPath,
+    {
+      limit: options?.limit,
+    },
+  );
 
   options?.viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
     params: { query },
