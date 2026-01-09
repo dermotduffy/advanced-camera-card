@@ -548,6 +548,26 @@ describe('ViewQueryExecutor', () => {
       });
     });
 
+    describe('with a timeline view', () => {
+      it('should query all cameras for timeline view', async () => {
+        const api = createPopulatedAPI();
+        const viewQueryExecutor = new ViewQueryExecutor(api);
+        const view = createView({
+          view: 'timeline',
+          camera: 'camera.office',
+        });
+
+        const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
+        applyViewModifiers(view, modifiers);
+
+        expect(view.query).toBeInstanceOf(UnifiedQuery);
+
+        // Timeline view should query all cameras, not just the current camera.
+        const allCameraIDs = view.query?.getAllCameraIDs();
+        expect(allCameraIDs?.size).toBeGreaterThan(1);
+      });
+    });
+
     describe('with a media view', () => {
       it('should set query and queryResults for events', async () => {
         const api = createPopulatedAPI();
