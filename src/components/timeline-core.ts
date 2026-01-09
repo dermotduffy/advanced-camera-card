@@ -146,8 +146,22 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
       return;
     }
 
-    const query = this.viewManagerEpoch?.manager.getView()?.query;
-    if (!query || !query.hasNodes()) {
+    const view = this.viewManagerEpoch?.manager.getView();
+    const isLoading = !!view?.context?.loading?.query;
+
+    if (isLoading) {
+      if (!this.mini) {
+        return renderMessage({
+          message: localize('error.awaiting_media'),
+          icon: 'mdi:chart-gantt',
+          type: 'info',
+          dotdotdot: true,
+        });
+      }
+      return;
+    }
+
+    if (!view?.query || !view.query.hasNodes()) {
       if (!this.mini) {
         return renderMessage({
           message: localize('error.no_camera_or_media_for_timeline'),
