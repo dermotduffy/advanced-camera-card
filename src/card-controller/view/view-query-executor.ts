@@ -107,13 +107,16 @@ export class ViewQueryExecutor {
 
     switch (view.view) {
       case 'live':
-      case 'timeline':
-        if (view.is('timeline') || config.live.controls.thumbnails.mode !== 'none') {
+        if (config.live.controls.thumbnails.mode !== 'none') {
           const defaultQuery = builder.buildDefaultCameraQuery(cameraForQuery);
           if (defaultQuery) {
             viewModifiers.push(...(await executeQuery(defaultQuery)));
           }
         }
+        break;
+      case 'timeline':
+        // Timeline view always queries all cameras with media capabilities.
+        viewModifiers.push(...(await executeQuery(builder.buildDefaultCameraQuery())));
         break;
       case 'media':
       // If the user is looking at media in the `media` view and then
