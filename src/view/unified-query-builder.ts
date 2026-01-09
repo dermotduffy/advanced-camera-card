@@ -41,10 +41,11 @@ export interface MediaTypeSpec {
 
 export const MediaTypeSpec = {
   clips: (): MediaTypeSpec => ({ mediaType: 'events', eventsSubtype: 'clips' }),
-  snapshots: (): MediaTypeSpec => ({ mediaType: 'events', eventsSubtype: 'snapshots' }),
   events: (): MediaTypeSpec => ({ mediaType: 'events' }),
+  folder: (): MediaTypeSpec => ({ mediaType: 'folder' }),
   recordings: (): MediaTypeSpec => ({ mediaType: 'recordings' }),
   reviews: (): MediaTypeSpec => ({ mediaType: 'reviews' }),
+  snapshots: (): MediaTypeSpec => ({ mediaType: 'events', eventsSubtype: 'snapshots' }),
 } as const;
 
 /**
@@ -316,6 +317,25 @@ export class UnifiedQueryBuilder {
     return query.hasNodes() ? query : null;
   }
 
+  private _buildFolderQueryNodesForCameras(
+    cameraIDs: Set<string>,
+    options?: QueryLimitOptions,
+  ): QueryNode[] {
+    const nodes: QueryNode[] = [];
+    for (const cameraID of cameraIDs) {
+      const mediaConfig = this._cameraManager
+        .getStore()
+        .getCameraConfig(cameraID)?.media;
+      for (const folderID of mediaConfig?.folders ?? [undefined]) {
+        const node = this._buildFolderQueryNode(folderID, options);
+        if (node) {
+          nodes.push(node);
+        }
+      }
+    }
+    return nodes;
+  }
+
   private _buildFolderQueryNode(
     folderID?: string,
     options?: QueryLimitOptions,
@@ -429,7 +449,6 @@ export class UnifiedQueryBuilder {
     const hasSnapshots = capabilities.has('snapshots');
     const hasRecordings = capabilities.has('recordings');
 
-    // Auto mode: priority cascade
     if (!type || type === 'auto') {
       if (hasReviews) {
         return MediaTypeSpec.reviews();
@@ -446,12 +465,13 @@ export class UnifiedQueryBuilder {
       return null;
     }
 
-    // Explicit type mode
     switch (type) {
       case 'recordings':
         return hasRecordings ? MediaTypeSpec.recordings() : null;
       case 'reviews':
         return hasReviews ? MediaTypeSpec.reviews() : null;
+      case 'folder':
+        return MediaTypeSpec.folder();
       case 'events':
         if (eventsType === 'all' && hasClips && hasSnapshots) {
           return MediaTypeSpec.events();
@@ -462,8 +482,6 @@ export class UnifiedQueryBuilder {
         if ((eventsType === 'all' || eventsType === 'snapshots') && hasSnapshots) {
           return MediaTypeSpec.snapshots();
         }
-        return null;
-      default:
         return null;
     }
   }
@@ -487,9 +505,10 @@ export class UnifiedQueryBuilder {
         return this._buildRecordingsQueryNode(cameraIDs, options);
       case 'reviews':
         return this._buildReviewsQueryNode(cameraIDs, options);
+      case 'folder': {
+        return this._buildFolderQueryNodesForCameras(cameraIDs, options);
+      }
     }
-    // istanbul ignore next -- @preserve
-    return null;
   }
 
   // =========================================================================

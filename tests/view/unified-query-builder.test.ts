@@ -804,7 +804,7 @@ describe('UnifiedQueryBuilder', () => {
       expect(query).toBeNull();
     });
 
-    it('should return null for folder media type (folders handled separately)', () => {
+    it('should build folder query for folder media type', () => {
       const { cameraManager, foldersManager, store } = createMocks();
       store.getCameraIDs.mockReturnValue(new Set(['camera.office']));
       store.getCameraConfig.mockReturnValue(
@@ -813,11 +813,50 @@ describe('UnifiedQueryBuilder', () => {
 
       cameraManager.getCameraCapabilities.mockReturnValue(createCapabilities());
 
+      const folder = createFolder({ id: 'folder1', title: 'Test Folder' });
+      const path: [FolderPathComponent] = [{ ha: { id: 'Root' } }];
+
+      foldersManager.getFolder.mockReturnValue(folder);
+      foldersManager.getDefaultQueryParameters.mockReturnValue(
+        createFolderQueryParams(folder, path),
+      );
+
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
       const query = builder.buildDefaultCameraQuery();
 
-      // Camera with only folder config and no media capabilities returns null
-      expect(query).toBeNull();
+      assert(query);
+      expect(query.getNodes()[0]).toMatchObject({
+        source: QuerySource.Folder,
+        folder: expect.objectContaining({ id: 'folder1' }),
+      });
+    });
+
+    it('should build default folder query for folder media type without specific folders', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['camera.office']));
+      store.getCameraConfig.mockReturnValue(
+        createCameraConfig({ media: { type: 'folder' } }),
+      );
+
+      cameraManager.getCameraCapabilities.mockReturnValue(createCapabilities());
+
+      const folder = createFolder({ id: 'default-folder', title: 'Default' });
+      const path: [FolderPathComponent] = [{ ha: { id: 'Root' } }];
+
+      // Mock getting the default folder (id undefined)
+      foldersManager.getFolder.calledWith(undefined).mockReturnValue(folder);
+      foldersManager.getDefaultQueryParameters.mockReturnValue(
+        createFolderQueryParams(folder, path),
+      );
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultCameraQuery();
+
+      assert(query);
+      expect(query.getNodes()[0]).toMatchObject({
+        source: QuerySource.Folder,
+        folder: expect.objectContaining({ id: 'default-folder' }),
+      });
     });
 
     it('should return null when events type specified but no clips/snapshots capability', () => {
