@@ -325,6 +325,10 @@ describe('config defaults', () => {
             enabled: true,
             priority: 50,
           },
+          severity: {
+            enabled: true,
+            priority: 50,
+          },
           technology: {
             enabled: true,
             priority: 50,
