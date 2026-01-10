@@ -43,6 +43,19 @@ describe('ViewMedia', () => {
     expect(media.isFavorite()).toBeNull();
     expect(media.isReviewed()).toBeNull();
     expect(media.getIcon()).toBeNull();
+    expect(media.getSeverity()).toBeNull();
+  });
+
+  it('should clone', () => {
+    const media = new ViewMedia(ViewMediaType.Clip, {
+      cameraID: 'camera',
+    });
+
+    const clone = media.clone();
+
+    expect(clone).not.toBe(media);
+    expect(clone).toBeInstanceOf(ViewMedia);
+    expect(clone.getCameraID()).toBe('camera');
   });
 
   it('should correctly determine if a media item includes a time', () => {
@@ -84,5 +97,17 @@ describe('ViewFolder', () => {
     expect(item.getThumbnail()).toBe('thumbnail');
     expect(item.getIcon()).toBe('icon');
     expect(item.isFavorite()).toBeNull();
+    expect(item.getSeverity()).toBeNull();
+  });
+
+  it('should clone', () => {
+    const folder = createFolder();
+    const item = new ViewFolder(folder, []);
+
+    const clone = item.clone();
+
+    expect(clone).not.toBe(item);
+    expect(clone).toBeInstanceOf(ViewFolder);
+    expect(clone.getFolder()).toEqual(folder);
   });
 });

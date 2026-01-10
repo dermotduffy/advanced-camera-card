@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ViewFolder, ViewItem } from '../../src/view/item';
 import { QueryResults } from '../../src/view/query-results';
-import { createFolder, generateViewMediaArray } from '../test-utils';
+import { createFolder, generateViewMediaArray, TestViewMedia } from '../test-utils';
 
 describe('dispatchViewContextChangeEvent', () => {
   beforeEach(() => {
@@ -376,6 +376,67 @@ describe('dispatchViewContextChangeEvent', () => {
       results.removeItem(folder);
 
       expect(results.getResultsCount()).toBe(countBefore - 1);
+    });
+  });
+
+  describe('replaceItem', () => {
+    it('should replace item in slice', () => {
+      const testResults = generateViewMediaArray();
+      const results = new QueryResults({ results: testResults });
+      const slice = results.getSlice('office');
+
+      assert(slice);
+
+      const oldItem = slice.getResults()[42];
+      const newItem = oldItem.clone();
+
+      expect(slice?.replaceItem(oldItem, newItem)).toBeTruthy();
+      expect(slice?.getResults()[42]).toBe(newItem);
+    });
+
+    it('should fail to replace item not in camera slice', () => {
+      const results = new QueryResults({ results: generateViewMediaArray() });
+      const slice = results.getSlice('office');
+
+      assert(slice);
+
+      const foreignItem = new TestViewMedia({
+        cameraID: 'other',
+      });
+      const newItem = foreignItem.clone();
+
+      expect(slice.replaceItem(foreignItem, newItem)).toBeFalsy();
+    });
+
+    it('should replace item in main slice', () => {
+      const testResults = generateViewMediaArray();
+      const results = new QueryResults({ results: testResults });
+
+      const oldItem = testResults[42];
+      const newItem = oldItem.clone();
+
+      expect(results.replaceItem(oldItem, newItem)).toBe(results);
+      expect(results.getResults()?.[42]).toBe(newItem);
+      expect(results.getSlice('kitchen')?.getResults().includes(newItem)).toBeTruthy();
+      expect(results.getSlice('kitchen')?.getResults().includes(oldItem)).toBeFalsy();
+    });
+
+    it('should fail to replace item not in main slice', () => {
+      const results = new QueryResults({ results: generateViewMediaArray() });
+
+      const outsideItem = generateViewMediaArray({ cameraIDs: ['other'] })[0];
+      const newItem = outsideItem.clone();
+
+      expect(results.replaceItem(outsideItem, newItem)).toBe(results);
+    });
+
+    it('should replace folder in main slice', () => {
+      const folder = new ViewFolder(createFolder(), []);
+      const results = new QueryResults({ results: [folder] });
+
+      const newFolder = folder.clone();
+      expect(results.replaceItem(folder, newFolder)).toBe(results);
+      expect(results.getResults()?.[0]).toBe(newFolder);
     });
   });
 });

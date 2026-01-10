@@ -116,6 +116,27 @@ class ResultSlice {
     }
     return true;
   }
+
+  /**
+   * Replace an item in this slice with a new item (e.g., a clone with updated state).
+   * Selection is preserved if the replaced item was selected.
+   * @param oldItem The item to replace.
+   * @param newItem The new item to insert in its place.
+   * @returns true if the item was found and replaced, false otherwise.
+   */
+  public replaceItem(oldItem: ViewItem, newItem: ViewItem): boolean {
+    const index = this._results.indexOf(oldItem);
+    if (index === -1) {
+      return false;
+    }
+
+    // When an item is replaced, we create a new array so that users can simply
+    // compare the results objects to determine equality (e.g. trigger Lit
+    // rendering for thumbnails that are marked as reviewed).
+    this._results = [...this._results];
+    this._results[index] = newItem;
+    return true;
+  }
 }
 
 interface ResultSliceSelectionCriteria {
@@ -187,6 +208,25 @@ export class QueryResults {
     const cameraID = ViewItemClassifier.isMedia(item) ? item.getCameraID() : null;
     if (cameraID) {
       this._cameras.get(cameraID)?.removeItem(item);
+    }
+    return this;
+  }
+
+  /**
+   * Replace an item with a new item (e.g., a clone with updated state).
+   * Note: This mutates the current instance. Use clone() first if needed.
+   * @param oldItem The item to replace.
+   * @param newItem The new item to insert in its place.
+   * @returns This QueryResults instance for chaining.
+   */
+  public replaceItem(oldItem: ViewItem, newItem: ViewItem): QueryResults {
+    if (!this._main.replaceItem(oldItem, newItem)) {
+      return this;
+    }
+
+    const cameraID = ViewItemClassifier.isMedia(oldItem) ? oldItem.getCameraID() : null;
+    if (cameraID) {
+      this._cameras.get(cameraID)?.replaceItem(oldItem, newItem);
     }
     return this;
   }

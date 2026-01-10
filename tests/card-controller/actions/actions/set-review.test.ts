@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { assert, describe, expect, it, vi } from 'vitest';
 import { SetReviewAction } from '../../../../src/card-controller/actions/actions/set-review';
-import { ViewMediaType } from '../../../../src/view/item';
+import { ViewMedia, ViewMediaType } from '../../../../src/view/item';
 import { QueryResults } from '../../../../src/view/query-results';
 import { createCardAPI, createView, TestViewMedia } from '../../../test-utils';
 
@@ -28,8 +28,19 @@ describe('SetReviewAction', () => {
     await action.execute(api);
 
     expect(api.getViewItemManager().reviewMedia).toBeCalledWith(item, true);
-    expect(item.isReviewed()).toBe(true);
-    expect(api.getCardElementManager().update).toBeCalled();
+
+    // Original item is NOT mutated; a clone is created and replaced.
+    expect(item.isReviewed()).toBe(false);
+
+    const setViewParams = vi.mocked(api.getViewManager().setViewByParameters).mock
+      .calls[0][0];
+    const newResults = setViewParams?.params?.queryResults;
+    expect(newResults).toBeInstanceOf(QueryResults);
+
+    const newItem = newResults?.getSelectedResult();
+    expect(newItem).not.toBe(item);
+    assert(newItem instanceof ViewMedia);
+    expect(newItem?.isReviewed()).toBe(true);
   });
 
   it('should toggle review status when reviewed is not specified', async () => {
@@ -53,9 +64,21 @@ describe('SetReviewAction', () => {
     );
     await action.execute(api);
 
-    // Toggle: isReviewed was true, so reviewed should be set to false
+    // Toggle: isReviewed was true, so reviewed should be set to false.
     expect(api.getViewItemManager().reviewMedia).toBeCalledWith(item, false);
-    expect(item.isReviewed()).toBe(false);
+
+    // Original item is NOT mutated; a clone is created and replaced.
+    expect(item.isReviewed()).toBe(true);
+
+    const setViewParams = vi.mocked(api.getViewManager().setViewByParameters).mock
+      .calls[0][0];
+    const newResults = setViewParams?.params?.queryResults;
+    expect(newResults).toBeInstanceOf(QueryResults);
+
+    const newItem = newResults?.getSelectedResult();
+    expect(newItem).not.toBe(item);
+    assert(newItem instanceof ViewMedia);
+    expect(newItem?.isReviewed()).toBe(false);
   });
 
   it('should not act on non-review media', async () => {

@@ -1,5 +1,6 @@
-import { FolderConfig } from '../config/schema/folders';
+import { clone } from 'lodash-es';
 import { FolderPathComponent } from '../card-controller/folders/types';
+import { FolderConfig } from '../config/schema/folders';
 import { Severity } from '../types';
 
 export enum ViewMediaType {
@@ -93,6 +94,19 @@ export class ViewMedia {
   public getWhere(): string[] | null {
     return null;
   }
+
+  /**
+   * Creates a shallow clone of this ViewMedia instance.
+   *
+   * This is needed because Lit components use reference equality (===) to
+   * detect property changes. When we mutate an item's state (e.g.,
+   * setReviewed), the reference doesn't change, so Lit doesn't re-render. By
+   * cloning the item before mutation and replacing it in the QueryResults, we
+   * ensure Lit sees a new reference and updates the UI.
+   */
+  public clone(): this {
+    return clone(this);
+  }
 }
 
 export interface EventViewMedia extends ViewMedia {
@@ -165,6 +179,11 @@ export class ViewFolder {
   }
   public isFavorite(): boolean | null {
     return null;
+  }
+
+  /** See ViewMedia.clone() for explanation. */
+  public clone(): this {
+    return clone(this);
   }
 }
 

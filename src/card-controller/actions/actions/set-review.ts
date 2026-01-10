@@ -7,20 +7,28 @@ export class SetReviewAction extends AdvancedCameraCardAction<SetReviewActionCon
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    const item = api.getViewManager().getView()?.queryResults?.getSelectedResult();
-    if (!ViewItemClassifier.isReview(item)) {
+    const view = api.getViewManager().getView();
+    const queryResults = view?.queryResults;
+    const item = queryResults?.getSelectedResult();
+
+    if (!ViewItemClassifier.isReview(item) || !queryResults) {
       return;
     }
 
     const targetReviewedState = this._action.reviewed ?? !item.isReviewed();
 
-    // Update backend via ViewItemManager.
     await api.getViewItemManager().reviewMedia(item, targetReviewedState);
 
-    // Update ViewItem's local state.
-    item.setReviewed(targetReviewedState);
+    // Clone the item to ensure Lit detects the change.
+    // Test-case: Setting a media item reviewed via the menu, should update the
+    // reviewed state in a thumbnail.
+    const clonedItem = item.clone();
+    clonedItem.setReviewed(targetReviewedState);
 
-    // Trigger card re-render so the menu button icon updates.
-    api.getCardElementManager().update();
+    api.getViewManager().setViewByParameters({
+      params: {
+        queryResults: queryResults.clone().replaceItem(item, clonedItem),
+      },
+    });
   }
 }
