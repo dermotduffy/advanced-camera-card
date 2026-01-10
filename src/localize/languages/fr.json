@@ -178,6 +178,15 @@
       }
     },
     "common": {
+      "media_types": {
+        "events": "Événements",
+        "recordings": "Enregistrements"
+      },
+      "events_media_types": {
+        "all": "Tous types de médias",
+        "clips": "Extraits",
+        "snapshots": "Instantanés"
+      },
       "controls": {
         "builtin": "Commandes vidéo intégrées",
         "filter": {
@@ -203,15 +212,7 @@
         "thumbnails": {
           "editor_label": "Vignettes",
           "events_media_type": "S'il faut afficher des vignettes de clips ou des instantanés",
-          "events_media_types": {
-            "clips": "Vignettes de clips",
-            "snapshots": "Vignettes d'instantanés"
-          },
           "media_type": "Afficher ou non les vignettes des événements ou des enregistrements",
-          "media_types": {
-            "events": "Événements",
-            "recordings": "Enregistrements"
-          },
           "mode": "Mode vignettes",
           "modes": {
             "above": "Vignettes en haut",
@@ -281,11 +282,6 @@
       "timeline": {
         "clustering_threshold": "Nombre d'événements pour lesquels ils sont regroupés (0 = pas de clustering)",
         "events_media_type": "Médias affichés par la chronologie",
-        "events_media_types": {
-          "all": "Tous types de médias",
-          "clips": "Extraits",
-          "snapshots": "Instantanés"
-        },
         "show_recordings": "Afficher les enregistrements",
         "style": "Style de chronologie",
         "styles": {

@@ -6,6 +6,7 @@ import { Endpoint } from '../../types';
 import { ViewFolder, ViewItem } from '../../view/item';
 import { ViewItemCapabilities } from '../../view/types';
 import { CardFoldersAPI } from '../types';
+import { getFolderID } from '../../utils/folder';
 import { FoldersExecutor } from './executor';
 import { EngineOptions, FolderInitializationError, FolderQuery } from './types';
 
@@ -26,7 +27,7 @@ export class FoldersManager {
   public addFolders(folders: FolderConfigWithoutID[]): void {
     for (const folder of folders) {
       const folderNumber = this._folders.size;
-      const id = folder.id ?? `folder/${folderNumber.toString()}`;
+      const id = getFolderID(folder, folderNumber);
       if (this._folders.has(id)) {
         throw new FolderInitializationError(
           localize('error.duplicate_folder_id'),

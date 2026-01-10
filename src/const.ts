@@ -113,6 +113,11 @@ export const CONF_CAMERAS_ARRAY_TRIGGERS_REVIEWS_SEVERITIES =
   `${CONF_CAMERAS}.#.triggers.reviews.severities` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_REVIEWS_DESCRIPTION =
   `${CONF_CAMERAS}.#.triggers.reviews.description` as const;
+export const CONF_CAMERAS_ARRAY_MEDIA_TYPE = `${CONF_CAMERAS}.#.media.type` as const;
+export const CONF_CAMERAS_ARRAY_MEDIA_EVENTS_TYPE =
+  `${CONF_CAMERAS}.#.media.events_type` as const;
+export const CONF_CAMERAS_ARRAY_MEDIA_FOLDERS =
+  `${CONF_CAMERAS}.#.media.folders` as const;
 
 const CONF_CAMERAS_GLOBAL = 'cameras_global' as const;
 export const CONF_CAMERAS_GLOBAL_LIVE_PROVIDER =
@@ -242,10 +247,7 @@ export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.size` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_MEDIA_VIEWER}.controls.timeline.clustering_threshold` as const;
-export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE =
-  `${CONF_MEDIA_VIEWER}.controls.timeline.events_media_type` as const;
-export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA_TYPE =
-  `${CONF_MEDIA_VIEWER}.controls.timeline.media_type` as const;
+
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_FORMAT_24H =
   `${CONF_MEDIA_VIEWER}.controls.timeline.format.24h` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE =
@@ -284,10 +286,7 @@ export const CONF_LIVE_CONTROLS_PTZ_ORIENTATION =
 export const CONF_LIVE_CONTROLS_PTZ_POSITION =
   `${CONF_LIVE}.controls.ptz.position` as const;
 export const CONF_LIVE_CONTROLS_WHEEL = `${CONF_LIVE}.controls.wheel` as const;
-export const CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA_TYPE =
-  `${CONF_LIVE}.controls.thumbnails.media_type` as const;
-export const CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE =
-  `${CONF_LIVE}.controls.thumbnails.events_media_type` as const;
+
 export const CONF_LIVE_CONTROLS_THUMBNAILS_MODE =
   `${CONF_LIVE}.controls.thumbnails.mode` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SIZE =
@@ -304,10 +303,6 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL =
   `${CONF_LIVE}.controls.thumbnails.show_review_control` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_LIVE}.controls.timeline.clustering_threshold` as const;
-export const CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE =
-  `${CONF_LIVE}.controls.timeline.events_media_type` as const;
-export const CONF_LIVE_CONTROLS_TIMELINE_MEDIA_TYPE =
-  `${CONF_LIVE}.controls.timeline.media_type` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_FORMAT_24H =
   `${CONF_LIVE}.controls.timeline.format.24h` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_MODE =
@@ -355,9 +350,6 @@ const CONF_TIMELINE = 'timeline' as const;
 export const CONF_TIMELINE_WINDOW_SECONDS = `${CONF_TIMELINE}.window_seconds` as const;
 export const CONF_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_TIMELINE}.clustering_threshold` as const;
-export const CONF_TIMELINE_EVENTS_MEDIA_TYPE =
-  `${CONF_TIMELINE}.events_media_type` as const;
-export const CONF_TIMELINE_MEDIA_TYPE = `${CONF_TIMELINE}.media_type` as const;
 export const CONF_TIMELINE_FORMAT_24H = `${CONF_TIMELINE}.format.24h` as const;
 export const CONF_TIMELINE_SHOW_RECORDINGS = `${CONF_TIMELINE}.show_recordings` as const;
 export const CONF_TIMELINE_STYLE = `${CONF_TIMELINE}.style` as const;
@@ -375,10 +367,6 @@ export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_TIMELINE}.controls.thumbnails.show_timeline_control` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL =
   `${CONF_TIMELINE}.controls.thumbnails.show_review_control` as const;
-export const CONF_TIMELINE_CONTROLS_THUMBNAILS_MEDIA_TYPE =
-  `${CONF_TIMELINE}.controls.thumbnails.media_type` as const;
-export const CONF_TIMELINE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE =
-  `${CONF_TIMELINE}.controls.thumbnails.events_media_type` as const;
 
 const CONF_MENU = 'menu' as const;
 export const CONF_MENU_ALIGNMENT = `${CONF_MENU}.alignment` as const;

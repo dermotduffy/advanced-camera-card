@@ -207,9 +207,27 @@
         "editor_label": "WebRTC Card Options",
         "entity": "WebRTC Card Camera Entity",
         "url": "WebRTC Card Camera URL"
+      },
+      "media": {
+        "editor_label": "Default Media",
+        "type": "Default media type",
+        "events_type": "Events media subtype",
+        "folders": "Folder IDs"
       }
     },
     "common": {
+      "media_types": {
+        "auto": "Automatic",
+        "events": "Events",
+        "recordings": "Recordings",
+        "reviews": "Reviews",
+        "folder": "Folder"
+      },
+      "events_media_types": {
+        "all": "All",
+        "clips": "Clips",
+        "snapshots": "Snapshots"
+      },
       "controls": {
         "builtin": "Built-in video controls",
         "filter": {
@@ -235,18 +253,7 @@
         "thumbnails": {
           "editor_label": "Thumbnails",
           "events_media_type": "Whether to show event thumbnails of clips or snapshots",
-          "events_media_types": {
-            "all": "All event thumbnails",
-            "clips": "Clip thumbnails",
-            "snapshots": "Snapshot thumbnails"
-          },
           "media_type": "What to show thumbnails of",
-          "media_types": {
-            "auto": "Automatic",
-            "events": "Events",
-            "recordings": "Recordings",
-            "reviews": "Reviews"
-          },
           "mode": "Thumbnails mode",
           "modes": {
             "above": "Thumbnails above",
@@ -323,11 +330,6 @@
       "timeline": {
         "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
         "events_media_type": "The events media the timeline displays",
-        "events_media_types": {
-          "all": "All event media types",
-          "clips": "Clips",
-          "snapshots": "Snapshots"
-        },
         "show_recordings": "Show recordings",
         "style": "Timeline style",
         "styles": {

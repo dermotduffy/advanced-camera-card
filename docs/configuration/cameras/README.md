@@ -29,6 +29,7 @@ cameras_global:
 | `icon`                               | Autodetected from `camera_entity` if that is specified.                                           | The icon to use for this camera in the camera menu and in the next & previous controls when using the `icon` style.                                                                                                                                              |
 | `id`                                 | `camera_entity`, `webrtc_card.entity` or `frigate.camera_name` if set (in that preference order). | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. This `id` may be used in [conditions](../conditions.md), dependencies or custom [actions](../actions/README.md) to refer to a given camera unambiguously. |
 | `live_provider`                      | `auto`                                                                                            | The choice of live stream provider. See [Live Provider](live-provider.md).                                                                                                                                                                                       |
+| `media`                              |                                                                                                   | Controls the default media configuration (e.g. thumbnails) for this camera. See below.                                                                                                                                                                           |
 | `proxy`                              |                                                                                                   | Controls whether/how content is proxied via [hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration) (must be installed separately). See below.                                                                                   |
 | `title`                              | Autodetected from `camera_entity` if that is specified.                                           | A friendly name for this camera to use in the card.                                                                                                                                                                                                              |
 | `triggers`                           |                                                                                                   | Define what should cause this camera to update/trigger. See below.                                                                                                                                                                                               |
@@ -165,6 +166,36 @@ cameras:
 | -------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `width_factor` | `1`     | Width multiplier for this camera in grid mode (minimum: `0.1`). When selected, width becomes `width_factor * grid_selected_width_factor`, capped at 100%. |
 
+## `media`
+
+The `media` block configures the default media options for this camera which
+defines which media is shown as thumbnails and on the timeline.
+
+```yaml
+cameras:
+  - camera_entity: camera.office
+    media:
+      # [...]
+```
+
+| Option        | Default | Description                                                                                                                                                                                                        |
+| ------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `type`        | `auto`  | The default media type to show for this camera. One of `auto`, `events`, `recordings`, `reviews` or `folder`. See below for description of each.                                                                   |
+| `events_type` | `all`   | If `type` is `events`, what subtype of events to show. One of `clips`, `snapshots` or `all` (default).                                                                                                             |
+| `folders`     |         | An optional list of folder IDs to use when `type` is `folder`. If not specified, and `type` is `folder`, will default to showing the default (first) configured folder. See [Folder Configuration](../folders.md). |
+
+### Media Types
+
+Not all camera engines support all media types. See [Camera Engines](../camera_engine.md) for details.
+
+| Type         | Description                                                                                                                                   |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `events`     | Typically represents an interesting event recorded from the camera, in either a video clip or image snapshot (see `events_type` parameter).   |
+| `recordings` | Typically represents continuous video recordings from the camera.                                                                             |
+| `reviews`    | Typically represents an alert / detection of some kind that the user can review.                                                              |
+| `folder`     | Arbitrary media from a [folder](../folders.md), e.g. a Home Assistant media folder.                                                           |
+| `auto`       | Automatically prioritize available media based on camera capabilities. Order of precedence: `reviews` > `clips` > `snapshots` > `recordings`. |
+
 ### Layout Configuration
 
 The `layout` block configures the fit and position of the media _within_ the camera dimensions (in order to control the dimensions for the whole card see [the card dimensions configuration](../dimensions.md) ).
@@ -182,7 +213,7 @@ cameras:
 | `fit`      | `contain` | If `contain`, the media is contained within the camera container/card and letterboxed if necessary. If `cover`, the media is expanded proportionally (i.e. maintaining the media aspect ratio) until the camera/card dimensions are fully covered. If `fill`, the media is stretched to fill the camera/card dimensions (i.e. ignoring the media aspect ratio). See [CSS object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit) for technical details and a visualization. Note that if `aspect_ratio` is also set, this is controlling the behavior "within" that aspect-ratio, otherwise it's within the container for the camera (which is effectively the whole card for single card configurations).                                                                                                    |
 | `pan`      |           | A dictionary that may contain an `x` and `y` percentage (`0` - `100`) to control the position of the media when "digitally zoomed in" (see `zoom` parameter). This can be effectively used to "pan"/cut the media shown. A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See visualizations below.                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `position` |           | A dictionary that may contain an `x` and `y` percentage (`0` - `100`) to control the position of the media when the fit is `cover` (for other values of `fit` this option has no effect). This can be effectively used to "pan"/cut the media shown. At any given time, only one of `x` and `y` will have an effect, depending on whether media width is larger than the camera/card dimensions (in which case `x` controls the position) or the media height is larger than the camera/card dimensions (in which case `y` controls the position). A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See [CSS object-position](https://developer.mozilla.org/en-US/docs/Web/CSS/object-position) for technicals. See visualizations below. |
-| `view_box` |           | A dictionary that may contain a `top`, `bottom`, `left` and `right` percentage (`0` - `100`) to precisely crop what part of the media to show by specifying a % inset value from each side. Browsers apply this cropping after `position` and `fit` have been applied. Unlike `zoom`, the user cannot dynamically zoom back out -- however the builtin media controls will work as normal. See visualizations below. Limited [browser support](https://caniuse.com/mdn-css_properties_object-view-box): ![](../../images/browsers/chrome_16x16.png 'Google Chrome :no-zoom') ![](../../images/browsers/chromium_16x16.png 'Chromium :no-zoom') ![](../../images/browsers/edge_16x16.png 'Microsoft Edge :no-zoom')                                                                                                             |
+| `view_box` |           | A dictionary that may contain a `top`, `bottom`, `left` and `right` percentage (`0` - `100`) to precisely crop what part of the media to show by specifying a % inset value from each side. Browsers apply this cropping after `position` and `fit` have been applied. Unlike `zoom`, the user cannot dynamically zoom back out -- however the builtin media controls will work as normal. See visualizations below. Limited [browser support](https://caniuse.com/mdn-css_properties_object-view-box): ![Chrome](../../images/browsers/chrome_16x16.png 'Google Chrome :no-zoom') ![Chromium](../../images/browsers/chromium_16x16.png 'Chromium :no-zoom') ![Edge](../../images/browsers/edge_16x16.png 'Microsoft Edge :no-zoom')                                                                                           |
 | `zoom`     | `1.0`     | A value between `1.0` and `10.0` inclusive that defines how much additional "digital zoom" to apply to this camera by default. Unlike with `view_box` the user can easily "zoom back out". Often used in conjuction with `pan`. When zoomed in the [builtin browser media controls](../live.md?id=controls) will automatically be disabled (as otherwise they would be enlarged also).                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 > [!NOTE]
@@ -377,7 +408,7 @@ cameras:
 | Option        | Default  | Description                                                                                                                                                                                                                       |
 | ------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `severities`  | `[high]` | An array of severity levels to trigger on. Possible values: `high` (equivalent to Frigate alerts), `medium` (equivalent to Frigate detections), `low`. At least one severity must be configured for review triggers to be active. |
-| `description` | `false`  | Whether to trigger on review description updates (e.g. Frigate GenAI descriptions). Severity must also match.                                                                                                                     |
+| `description` | `true`   | Whether to trigger on review description updates (e.g. Frigate GenAI descriptions). Severity must also match.                                                                                                                     |
 
 ## Fully expanded reference
 
