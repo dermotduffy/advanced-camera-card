@@ -243,14 +243,8 @@ export class MediaFilterController {
       return;
     }
 
-    // Get media types and camera IDs from the query (builder may have defaulted these)
-    const queryMediaTypes = query.getAllMediaTypes();
+    // Get camera IDs from the query (builder may have defaulted these)
     const queryCameraIDs = query.getAllCameraIDs();
-
-    // Determine the appropriate view:
-    // - If a single media type, use its specific view (clips, snapshots, recordings, reviews)
-    // - If multiple types, use the generic 'media' view
-    const view = queryMediaTypes.size === 1 ? [...queryMediaTypes][0] : 'media';
     const cameraID = queryCameraIDs.size === 1 ? [...queryCameraIDs][0] : undefined;
 
     this._viewManager?.setViewByParametersWithExistingQuery({
@@ -258,7 +252,6 @@ export class MediaFilterController {
         query,
         // If single camera, set it as the active camera for menu navigation
         ...(cameraID && { camera: cameraID }),
-        view,
       },
     });
 

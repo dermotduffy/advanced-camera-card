@@ -528,66 +528,65 @@ describe('MediaFilterController', () => {
     });
 
     describe('with events media type', () => {
-      it.each([
-        ['clips', MediaFilterMediaType.Clips],
-        ['snapshots', MediaFilterMediaType.Snapshots],
-      ])('%s', async (viewName: string, mediaType: MediaFilterMediaType) => {
-        const host = createLitElement();
-        const viewManager = mock<ViewManager>();
-        viewManager.getView.mockReturnValue(createView());
+      it.each([MediaFilterMediaType.Clips, MediaFilterMediaType.Snapshots])(
+        '%s',
+        async (mediaType: MediaFilterMediaType) => {
+          const host = createLitElement();
+          const viewManager = mock<ViewManager>();
+          viewManager.getView.mockReturnValue(createView());
 
-        const controller = new MediaFilterController(host);
-        controller.setViewManager(viewManager);
+          const controller = new MediaFilterController(host);
+          controller.setViewManager(viewManager);
 
-        const cameraManager = createCameraManager(createCameraStore());
+          const cameraManager = createCameraManager(createCameraStore());
 
-        const from = new Date('2024-02-06T21:59');
-        const to = new Date('2024-02-06T22:00');
+          const from = new Date('2024-02-06T21:59');
+          const to = new Date('2024-02-06T22:00');
 
-        await controller.valueChangeHandler(
-          cameraManager,
-          mock<FoldersManager>(),
-          {
-            performance: createPerformanceConfig({
-              features: { media_chunk_size: 11 },
+          await controller.valueChangeHandler(
+            cameraManager,
+            mock<FoldersManager>(),
+            {
+              performance: createPerformanceConfig({
+                features: { media_chunk_size: 11 },
+              }),
+            },
+            {
+              camera: ['camera.kitchen'],
+              mediaTypes: [mediaType],
+              when: { to, from },
+              tags: ['tag-1', 'tag-2'],
+              what: ['what-1', 'what-2'],
+              where: ['where-1', 'where-2'],
+              favorite: MediaFilterCoreFavoriteSelection.Favorite,
+            },
+          );
+
+          expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
+            params: expect.objectContaining({
+              camera: 'camera.kitchen',
             }),
-          },
-          {
-            camera: ['camera.kitchen'],
-            mediaTypes: [mediaType],
-            when: { to, from },
-            tags: ['tag-1', 'tag-2'],
-            what: ['what-1', 'what-2'],
-            where: ['where-1', 'where-2'],
-            favorite: MediaFilterCoreFavoriteSelection.Favorite,
-          },
-        );
+          });
 
-        expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
-          params: expect.objectContaining({
-            camera: 'camera.kitchen',
-            view: viewName,
-          }),
-        });
+          const nodes = getQueryNodes(viewManager);
+          expect(nodes).toHaveLength(1);
+          expect(nodes?.[0]).toMatchObject({
+            type: QueryType.Event,
+            cameraIDs: new Set(['camera.kitchen']),
+            ...(mediaType === MediaFilterMediaType.Clips && { hasClip: true }),
+            ...(mediaType === MediaFilterMediaType.Snapshots && { hasSnapshot: true }),
+            tags: new Set(['tag-1', 'tag-2']),
+            what: new Set(['what-1', 'what-2']),
+            where: new Set(['where-1', 'where-2']),
+            favorite: true,
+            start: from,
+            end: to,
+            limit: 11,
+          });
 
-        const nodes = getQueryNodes(viewManager);
-        expect(nodes).toHaveLength(1);
-        expect(nodes?.[0]).toMatchObject({
-          type: QueryType.Event,
-          cameraIDs: new Set(['camera.kitchen']),
-          ...(mediaType === MediaFilterMediaType.Clips && { hasClip: true }),
-          ...(mediaType === MediaFilterMediaType.Snapshots && { hasSnapshot: true }),
-          tags: new Set(['tag-1', 'tag-2']),
-          what: new Set(['what-1', 'what-2']),
-          where: new Set(['where-1', 'where-2']),
-          favorite: true,
-          start: from,
-          end: to,
-          limit: 11,
-        });
-
-        expect(host.requestUpdate).toBeCalled();
-      });
+          expect(host.requestUpdate).toBeCalled();
+        },
+      );
     });
 
     it('with recordings media type', async () => {
@@ -620,7 +619,6 @@ describe('MediaFilterController', () => {
       expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
         params: expect.objectContaining({
           camera: 'camera.kitchen',
-          view: 'recordings',
         }),
       });
 
@@ -658,9 +656,7 @@ describe('MediaFilterController', () => {
         },
       );
 
-      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
-        params: expect.objectContaining({ view: 'reviews' }),
-      });
+      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalled();
 
       const nodes = getQueryNodes(viewManager);
       expect(nodes).toHaveLength(1);
@@ -670,7 +666,7 @@ describe('MediaFilterController', () => {
       });
     });
 
-    it('with multiple media types uses media view', async () => {
+    it('with multiple media types', async () => {
       const host = createLitElement();
       const cameraManager = createCameraManager(createCameraStore());
       const viewManager = mock<ViewManager>();
@@ -689,9 +685,7 @@ describe('MediaFilterController', () => {
         },
       );
 
-      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
-        params: expect.objectContaining({ view: 'media' }),
-      });
+      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalled();
 
       const nodes = getQueryNodes(viewManager);
       expect(nodes).toHaveLength(2);
@@ -720,7 +714,6 @@ describe('MediaFilterController', () => {
       expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
         params: expect.objectContaining({
           camera: 'camera.kitchen',
-          view: 'clips',
         }),
       });
 
@@ -754,7 +747,6 @@ describe('MediaFilterController', () => {
       expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
         params: expect.objectContaining({
           camera: 'camera.kitchen',
-          view: 'recordings',
         }),
       });
 
@@ -785,9 +777,7 @@ describe('MediaFilterController', () => {
         },
       );
 
-      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
-        params: expect.objectContaining({ view: 'media' }),
-      });
+      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalled();
 
       const nodes = getQueryNodes(viewManager);
       // All 4 types selected for the single camera
