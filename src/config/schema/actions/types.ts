@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { statusBarItemBaseSchema } from '../common/status-bar';
+import { severitySchema } from '../common/severity';
 import { advancedCameraCardCustomActionsBaseSchema } from './custom/base';
 import { cameraSelectActionConfigSchema } from './custom/camera-select';
 import { viewDisplayModeActionConfigSchema } from './custom/display-mode';
@@ -108,6 +109,7 @@ const statusBarItemElementsBaseSchema = statusBarItemBaseSchema.extend({
   sufficient: z.boolean().default(false).optional(),
   exclusive: z.boolean().default(false).optional(),
   expand: z.boolean().default(false).optional(),
+  severity: severitySchema.optional(),
   actions: actionsBaseSchema.optional(),
 });
 

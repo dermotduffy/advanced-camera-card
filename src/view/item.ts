@@ -87,6 +87,9 @@ export class ViewMedia {
   public setFavorite(_favorite: boolean): void {
     return;
   }
+  public getSeverity(): Severity | null {
+    return null;
+  }
   public getWhere(): string[] | null {
     return null;
   }
@@ -104,7 +107,6 @@ export interface RecordingViewMedia extends ViewMedia {
 }
 
 export interface ReviewViewMedia extends ViewMedia {
-  getSeverity(): Severity | null;
   getWhat(): string[] | null;
   isReviewed(): boolean | null;
   setReviewed(reviewed: boolean): void;
@@ -157,6 +159,9 @@ export class ViewFolder {
   }
   public getIcon(): string | null {
     return this._icon;
+  }
+  public getSeverity(): Severity | null {
+    return null;
   }
   public isFavorite(): boolean | null {
     return null;

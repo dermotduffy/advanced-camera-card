@@ -1,9 +1,10 @@
 import { z } from 'zod';
-import { capabilityKeys, SEVERITIES } from '../../types';
+import { capabilityKeys } from '../../types';
 import { mediaLayoutConfigSchema } from './camera/media-layout';
 import { ptzCameraConfigDefaults, ptzCameraConfigSchema } from './camera/ptz';
 import { aspectRatioSchema } from './common/aspect-ratio';
 import { eventsMediaTypeSchema } from './common/events-media';
+import { severitySchema } from './common/severity';
 import { imageBaseConfigSchema, imageConfigDefault } from './common/image';
 
 const CAMERA_TRIGGER_EVENT_TYPES = [
@@ -236,8 +237,7 @@ export const cameraConfigSchema = z
           .default(cameraConfigDefault.triggers.events),
         reviews: z
           .object({
-            severities: z
-              .enum(SEVERITIES)
+            severities: severitySchema
               .array()
               .default([...cameraConfigDefault.triggers.reviews.severities]),
             description: z
