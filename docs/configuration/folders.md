@@ -12,13 +12,13 @@ folders:
   # [...]
 ```
 
-| Option  | Default | Description                                                                                                                                    |
-| ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`    |         | An optional folder `id` which can be used by the [`folder` action](./actions/custom/README.md?id=folder) to show a particular folder contents. |
-| `ha`    |         | Options for `ha` folder types. See below.                                                                                                      |
-| `icon`  |         | An optional folder icon.                                                                                                                       |
-| `title` |         | An optional folder title.                                                                                                                      |
-| `type`  | `ha`    | The type of folder, `ha` for Home Assistant media folders (currently the only supported type of folder).                                       |
+| Option  | Default | Description                                                                                                                                                                                                |
+| ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`    |         | An optional folder `id` which can be used by [camera `media` configuration](./cameras/README.md#media) or [`folder` actions](./actions/custom/README.md?id=folder) to show a particular folder's contents. |
+| `ha`    |         | Options for `ha` folder types. See below.                                                                                                                                                                  |
+| `icon`  |         | An optional folder icon.                                                                                                                                                                                   |
+| `title` |         | An optional folder title.                                                                                                                                                                                  |
+| `type`  | `ha`    | The type of folder, `ha` for Home Assistant media folders (currently the only supported type of folder).                                                                                                   |
 
 ## `ha`
 

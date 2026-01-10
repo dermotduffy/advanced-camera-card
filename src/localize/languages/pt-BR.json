@@ -94,6 +94,11 @@
       }
     },
     "common": {
+      "events_media_types": {
+        "all": "Todos os tipos de mídia",
+        "clips": "Clipes",
+        "snapshots": "Instantâneos"
+      },
       "controls": {
         "filter": {
           "editor_label": "Filtro de Mídia",
@@ -118,10 +123,6 @@
         "thumbnails": {
           "editor_label": "Miniaturas",
           "events_media_type": "Se deve mostrar miniaturas de clipes ou snapshots",
-          "events_media_types": {
-            "clips": "Miniaturas de clipes",
-            "snapshots": "Miniaturas de Snapshots"
-          },
           "mode": "Modo de miniaturas",
           "modes": {
             "above": "Miniaturas acima da mídia",
@@ -166,11 +167,6 @@
       "timeline": {
         "clustering_threshold": "A contagem de eventos nos quais eles são agrupados (0 = sem agrupamento)",
         "events_media_type": "A mídia que a linha do tempo exibe",
-        "events_media_types": {
-          "all": "Todos os tipos de mídia",
-          "clips": "Clipes",
-          "snapshots": "Instantâneos"
-        },
         "show_recordings": "Mostrar gravações",
         "window_seconds": "A duração padrão da visualização da linha do tempo em segundos"
       }

@@ -385,14 +385,14 @@ advanced_camera_card_action: ptz_digital
 # [...]
 ```
 
-| Parameter                     | Default                                                                                       | Description                                                                                                                                                |
-| ----------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `action`                      |                                                                                               | Must be `custom:advanced-camera-card-action`.                                                                                                              |
-| `advanced_camera_card_action` |                                                                                               | Must be `ptz_digital`.                                                                                                                                     |
-| `target_id`                   | The currently selected camera or media                                                        | The target (camera or media) to execute a digital PTZ action on. Can be a camera ID, or another media ID (e.g. for Frigate, can specify a media/event ID). |
-| `ptz_action`                  | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`.        |
-| `ptz_phase`                   | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
-| `absolute`                    | Optional parameter to specify exact absolute pan and zoom settings. See below.                |
+| Parameter                     | Default                                | Description                                                                                                                                                |
+| ----------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `action`                      |                                        | Must be `custom:advanced-camera-card-action`.                                                                                                              |
+| `advanced_camera_card_action` |                                        | Must be `ptz_digital`.                                                                                                                                     |
+| `target_id`                   | The currently selected camera or media | The target (camera or media) to execute a digital PTZ action on. Can be a camera ID, or another media ID (e.g. for Frigate, can specify a media/event ID). |
+| `ptz_action`                  |                                        | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`.                                                                     |
+| `ptz_phase`                   |                                        | Optional parameter that is one of `start` or `stop` to start or stop the movement separately.                                                              |
+| `absolute`                    |                                        | Optional parameter to specify exact absolute pan and zoom settings. See below.                                                                             |
 
 > [!NOTE]
 > If no `ptz_action` is specified and no `absolute` value is specified, the camera returns to its "home" position. See [Camera layout configuration](../../cameras/README.md?id=layout-configuration) to configure the default "home" position for digital PTZ.
@@ -471,6 +471,22 @@ Take a screenshot of the selected media (e.g. a still from a video).
 action: custom:advanced-camera-card-action
 advanced_camera_card_action: screenshot
 ```
+
+## `set_review`
+
+Mark a review as reviewed or unreviewed.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: set_review
+# [...]
+```
+
+| Parameter                     | Default | Description                                                                                                               |
+| ----------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `action`                      |         | Must be `custom:advanced-camera-card-action`.                                                                             |
+| `advanced_camera_card_action` |         | Must be `set_review`.                                                                                                     |
+| `reviewed`                    |         | If `true` marks as reviewed, if `false` marks as unreviewed. If not specified (the default), toggles the reviewed status. |
 
 ## `sleep`
 
@@ -794,18 +810,25 @@ elements:
       advanced_camera_card_action: snapshots
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-h-circle-outline
+    title: Set reviewed
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: set_review
+      reviewed: true
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-i-circle-outline
     title: Show timeline
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: timeline
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-i-circle-outline
+    icon: mdi:alpha-j-circle-outline
     title: Unmute
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: unmute
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-j-circle-outline
+    icon: mdi:alpha-k-circle-outline
     title: Add status bar contents
     tap_action:
       - action: custom:advanced-camera-card-action
@@ -834,7 +857,7 @@ elements:
             priority: 50
             sufficient: false
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-k-circle-outline
+    icon: mdi:alpha-l-circle-outline
     title: Remove status bar contents
     tap_action:
       - action: custom:advanced-camera-card-action
@@ -863,21 +886,21 @@ elements:
             priority: 50
             sufficient: false
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-l-circle-outline
+    icon: mdi:alpha-m-circle-outline
     title: Reset status bar contents
     tap_action:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: status_bar
         status_bar_action: reset
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-m-circle-outline
+    icon: mdi:alpha-n-circle-outline
     title: View Folder Media
     tap_action:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: folder
         folder: my-folder
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-n-circle-outline
+    icon: mdi:alpha-o-circle-outline
     title: View Folders Gallery
     tap_action:
       - action: custom:advanced-camera-card-action
