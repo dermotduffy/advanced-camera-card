@@ -186,7 +186,7 @@ cameras:
 
 ### Media Types
 
-Not all camera engines support all media types. See [Camera Engines](../camera_engine.md) for details.
+Not all camera engines support all media types. See [Camera Engines](engine.md) for details.
 
 | Type         | Description                                                                                                                                   |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
