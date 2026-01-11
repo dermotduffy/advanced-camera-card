@@ -20,6 +20,9 @@
   border-radius: var(--advanced-camera-card-border-radius-final);
   padding: 2px;
 
+  // Additional padding on the right to match the gap specified above.
+  padding-right: 4px;
+
   // When details are enabled, use a background color so that the details have
   // contrast with the background.
   background-color: var(--advanced-camera-card-thumbnail-background);
