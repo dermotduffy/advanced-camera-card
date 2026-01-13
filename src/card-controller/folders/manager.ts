@@ -2,11 +2,12 @@ import { cloneDeep } from 'lodash-es';
 import { ConditionState } from '../../conditions/types';
 import { FolderConfig, FolderConfigWithoutID } from '../../config/schema/folders';
 import { localize } from '../../localize/localize';
+import { hasUnsupportedFilters } from '../../query-source.js';
 import { Endpoint } from '../../types';
+import { getFolderID } from '../../utils/folder';
 import { ViewFolder, ViewItem } from '../../view/item';
 import { ViewItemCapabilities } from '../../view/types';
 import { CardFoldersAPI } from '../types';
-import { getFolderID } from '../../utils/folder';
 import { FoldersExecutor } from './executor';
 import { EngineOptions, FolderInitializationError, FolderQuery } from './types';
 
@@ -75,6 +76,10 @@ export class FoldersManager {
     conditionState?: ConditionState,
     engineOptions?: EngineOptions,
   ): Promise<ViewItem[] | null> {
+    if (hasUnsupportedFilters(query)) {
+      return null;
+    }
+
     const hass = this._api.getHASSManager().getHASS();
     return hass
       ? this._executor.expandFolder(hass, query, conditionState, engineOptions)

@@ -1,7 +1,7 @@
 import { ExpiringEqualityCache } from '../cache/expiring-cache';
 import { SSLCiphers } from '../config/schema/cameras';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
-import { BaseQuery, QuerySource } from '../query-source';
+import { BaseQuery, QueryFilters, QuerySource } from '../query-source';
 import { CapabilityKey, Endpoint, Icon, Severity } from '../types';
 import { ViewMedia } from '../view/item';
 
@@ -51,10 +51,10 @@ interface LimitedDataQuery {
 export interface MediaQuery
   extends BaseQuery,
     CameraQuery,
+    QueryFilters,
     Partial<TimeBasedDataQuery>,
     Partial<LimitedDataQuery> {
   source: QuerySource.Camera;
-  favorite?: boolean;
 }
 
 export interface QueryResults {
@@ -187,7 +187,7 @@ export interface DefaultQueryParameters {
 // Event Query
 // ===========
 
-export interface EventQuery extends MediaQuery, DefaultQueryParameters {
+export interface EventQuery extends MediaQuery {
   type: QueryType.Event;
 
   // Frigate equivalent: has_snapshot
@@ -195,9 +195,6 @@ export interface EventQuery extends MediaQuery, DefaultQueryParameters {
 
   // Frigate equivalent: has_clip
   hasClip?: boolean;
-
-  // Frigate equivalent: sub_label
-  tags?: Set<string>;
 }
 export type PartialEventQuery = Partial<EventQuery>;
 
@@ -249,13 +246,10 @@ export interface MediaMetadataQueryResults extends QueryResults {
 // Review Query
 // ============
 
-export interface ReviewQuery extends MediaQuery, DefaultQueryParameters {
+export interface ReviewQuery extends MediaQuery {
   type: QueryType.Review;
 
   severity?: Severity;
-
-  // Whether to include reviewed items (default: false = unreviewed only)
-  reviewed?: boolean;
 }
 export type PartialReviewQuery = Partial<ReviewQuery>;
 

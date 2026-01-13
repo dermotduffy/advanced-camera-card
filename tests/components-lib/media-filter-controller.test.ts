@@ -756,7 +756,6 @@ describe('MediaFilterController', () => {
         type: QueryType.Recording,
         cameraIDs: new Set(['camera.kitchen']),
       });
-      expect(nodes?.[0].favorite).toBeUndefined();
     });
 
     it('with no media types selects all types', async () => {

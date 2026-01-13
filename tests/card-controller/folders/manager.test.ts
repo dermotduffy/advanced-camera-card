@@ -235,6 +235,26 @@ describe('FoldersManager', () => {
 
       expect(executor.expandFolder).not.toBeCalled();
     });
+
+    it('should return null for query with unsupported filters', async () => {
+      const hass = createHASS();
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+      const executor = mock<FoldersExecutor>();
+      const manager = new FoldersManager(api, executor);
+
+      const folder = createFolder({ id: 'folder-1' });
+      const query: FolderQuery = {
+        source: QuerySource.Folder,
+        folder,
+        path: [{ ha: { id: 'media-source://' } }],
+        favorite: true,
+      };
+
+      expect(await manager.expandFolder(query)).toBeNull();
+      expect(executor.expandFolder).not.toBeCalled();
+    });
   });
 
   describe('should get item capabilities', () => {

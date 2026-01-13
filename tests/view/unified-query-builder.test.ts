@@ -353,6 +353,7 @@ describe('UnifiedQueryBuilder', () => {
         tags,
         what,
         where,
+        reviewed: false,
       });
     });
 
@@ -383,6 +384,66 @@ describe('UnifiedQueryBuilder', () => {
       const query = builder.buildFilterQuery(new Set(), null);
 
       expect(query).toBeNull();
+    });
+
+    describe('filter application', () => {
+      it('should apply filters to query nodes', () => {
+        const { cameraManager, foldersManager } = createMocks();
+        const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+
+        const query = builder.buildFilterQuery(
+          new Set(['camera.office']),
+          new Set(['clips']),
+          {
+            favorite: true,
+            tags: new Set(['tag']),
+          },
+        );
+
+        assert(query);
+        const nodes = query.getNodes();
+        expect(nodes).toHaveLength(1);
+        expect(nodes[0].favorite).toBe(true);
+        expect(nodes[0].tags).toEqual(new Set(['tag']));
+      });
+
+      it('should apply reviewed filter to reviews', () => {
+        const { cameraManager, foldersManager } = createMocks();
+        const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+
+        const query = builder.buildFilterQuery(
+          new Set(['camera.office']),
+          new Set(['reviews']),
+          {
+            reviewed: true,
+          },
+        );
+
+        assert(query);
+        const nodes = query.getNodes();
+        expect(nodes).toHaveLength(1);
+        expect(nodes[0].reviewed).toBe(true);
+      });
+
+      it('should apply what/where filters', () => {
+        const { cameraManager, foldersManager } = createMocks();
+        const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+
+        const query = builder.buildFilterQuery(
+          new Set(['camera.office']),
+          new Set(['clips']),
+          {
+            what: new Set(['person']),
+            where: new Set(['zone']),
+          },
+        );
+
+        assert(query);
+        const nodes = query.getNodes();
+        expect(nodes).toHaveLength(1);
+        expect(nodes[0].what).toEqual(new Set(['person']));
+        expect(nodes[0].where).toEqual(new Set(['zone']));
+      });
     });
   });
 

@@ -12,7 +12,7 @@ import {
 } from 'date-fns';
 import { LitElement } from 'lit';
 import { isEqual, orderBy, uniqWith } from 'lodash-es';
-import { CameraManager } from '../camera-manager/manager';
+import { CameraManager, CameraQueryClassifier } from '../camera-manager/manager';
 import { DateRange, PartialDateRange } from '../camera-manager/range';
 import {
   EventQuery,
@@ -292,7 +292,9 @@ export class MediaFilterController {
 
     // Extract favorite from all media queries (only if explicitly set to true/false)
     const favoriteValues = new Set(
-      mediaQueries.map((mediaQuery) => mediaQuery.favorite),
+      mediaQueries.map((mediaQuery) =>
+        CameraQueryClassifier.isEventQuery(mediaQuery) ? mediaQuery.favorite : undefined,
+      ),
     );
     if (favoriteValues.size === 1) {
       const fav = [...favoriteValues][0];

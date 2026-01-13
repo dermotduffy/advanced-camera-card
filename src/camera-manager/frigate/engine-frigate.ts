@@ -5,7 +5,7 @@ import { CameraConfig } from '../../config/schema/cameras';
 import { getEntityTitle } from '../../ha/get-entity-title';
 import { EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
-import { QuerySource } from '../../query-source.js';
+import { QuerySource, hasUnsupportedFilters } from '../../query-source.js';
 import { Endpoint } from '../../types';
 import {
   allPromises,
@@ -407,6 +407,17 @@ export class FrigateCameraManagerEngine
     query: EventQuery,
     engineOptions?: EngineOptions,
   ): Promise<EventQueryResultsMap | null> {
+    if (
+      hasUnsupportedFilters(query, {
+        favorite: true,
+        tags: true,
+        what: true,
+        where: true,
+      })
+    ) {
+      return null;
+    }
+
     const output: EventQueryResultsMap = new Map();
 
     const processInstanceQuery = async (
@@ -473,6 +484,10 @@ export class FrigateCameraManagerEngine
     query: ReviewQuery,
     engineOptions?: EngineOptions,
   ): Promise<ReviewQueryResultsMap | null> {
+    if (hasUnsupportedFilters(query, { what: true, where: true, reviewed: true })) {
+      return null;
+    }
+
     const output: ReviewQueryResultsMap = new Map();
 
     const processInstanceQuery = async (
@@ -533,6 +548,10 @@ export class FrigateCameraManagerEngine
     query: RecordingQuery,
     engineOptions?: EngineOptions,
   ): Promise<RecordingQueryResultsMap | null> {
+    if (hasUnsupportedFilters(query)) {
+      return null;
+    }
+
     const output: RecordingQueryResultsMap = new Map();
 
     const processQuery = async (

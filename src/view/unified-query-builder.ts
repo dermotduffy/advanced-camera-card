@@ -256,6 +256,7 @@ export class UnifiedQueryBuilder {
       ...(options?.tags && { tags: options.tags }),
       ...(options?.what && { what: options.what }),
       ...(options?.where && { where: options.where }),
+      ...(options?.reviewed !== undefined && { reviewed: options.reviewed }),
     };
 
     switch (mediaType) {

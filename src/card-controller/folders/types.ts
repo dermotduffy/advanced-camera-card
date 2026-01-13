@@ -3,7 +3,7 @@ import { ConditionState } from '../../conditions/types';
 import { FolderConfig, HAFolderPathComponent } from '../../config/schema/folders';
 import { ResolvedMediaCache } from '../../ha/resolved-media';
 import { HomeAssistant } from '../../ha/types';
-import { BaseQuery, QuerySource } from '../../query-source';
+import { BaseQuery, QueryFilters, QuerySource } from '../../query-source';
 import { Endpoint } from '../../types';
 import { AdvancedCameraCardError } from '../../types.js';
 import { ViewFolder, ViewItem } from '../../view/item';
@@ -31,7 +31,7 @@ export interface FolderPathComponent extends FolderPathComponentMetadata {
   folder?: ViewFolder;
 }
 
-export interface FolderQuery extends BaseQuery {
+export interface FolderQuery extends BaseQuery, QueryFilters {
   source: QuerySource.Folder;
   folder: FolderConfig;
 
