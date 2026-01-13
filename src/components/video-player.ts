@@ -64,7 +64,7 @@ export class AdvancedCameraCardVideoPlayer extends LitElement implements MediaPl
             },
             technology: ['mp4'],
           });
-        }}}"
+        }}"
         @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
         @play=${() => dispatchMediaPlayEvent(this)}
         @pause=${() => dispatchMediaPauseEvent(this)}
