@@ -543,9 +543,12 @@ export class FrigateCamera extends Camera {
 
     // Check if this is a description update (GenAI added/changed title or scene)
     const isDescriptionUpdate =
-      review.type === 'update' &&
-      (review.after.data.metadata?.title !== review.before.data.metadata?.title ||
-        review.after.data.metadata?.scene !== review.before.data.metadata?.scene);
+      review.type === 'genai' ||
+      (review.type === 'update' &&
+        (review.after.data.metadata?.title !== review.before.data.metadata?.title ||
+          review.after.data.metadata?.scene !== review.before.data.metadata?.scene ||
+          review.after.data.metadata?.shortSummary !==
+            review.before.data.metadata?.shortSummary));
 
     const shouldTriggerOnSeverity =
       cardSeverity && reviewConfig.severities.includes(cardSeverity);

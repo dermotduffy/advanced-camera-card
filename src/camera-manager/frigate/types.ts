@@ -25,6 +25,12 @@ export const eventSchema = z.object({
   top_score: z.number().nullable(),
   zones: z.string().array(),
   retain_indefinitely: z.boolean().optional(),
+  data: z
+    .object({
+      // GenAI-generated text description of the object/event
+      description: z.string().optional(),
+    })
+    .optional(),
 });
 export const frigateEventsSchema = eventSchema.array();
 
@@ -154,6 +160,7 @@ const frigateReviewDataSchema = z.object({
     .object({
       title: z.string().optional(),
       scene: z.string().optional(),
+      shortSummary: z.string().optional(),
     })
     .nullable()
     .optional(),
@@ -178,7 +185,7 @@ export type FrigateReview = z.infer<typeof frigateReviewSchema>;
 export const frigateReviewChangeSchema = z.object({
   before: frigateReviewSchema,
   after: frigateReviewSchema,
-  type: z.enum(['new', 'update', 'end']),
+  type: z.enum(['new', 'update', 'end', 'genai']),
 });
 export type FrigateReviewChange = z.infer<typeof frigateReviewChangeSchema>;
 

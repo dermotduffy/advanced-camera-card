@@ -288,6 +288,26 @@ describe('FrigateReviewWatcher', () => {
       expect(callback).toBeCalledWith(reviewChange);
     });
 
+    it('with a genai review change', async () => {
+      const stateWatcher = new FrigateReviewWatcher();
+      const hass = createHASS();
+
+      const callback = vi.fn();
+      const request = {
+        instanceID: 'frigate',
+        callback: callback,
+      };
+
+      await stateWatcher.subscribe(hass, request);
+
+      const reviewChange = createReviewChange();
+      reviewChange.type = 'genai';
+
+      callHASubscribeMessageCallback(hass, JSON.stringify(reviewChange));
+
+      expect(callback).toBeCalledWith(reviewChange);
+    });
+
     it('with invalid JSON', async () => {
       const spy = vi.spyOn(global.console, 'warn').mockImplementation(() => true);
 

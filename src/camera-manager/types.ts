@@ -149,7 +149,11 @@ export interface EngineOptions {
 export interface CameraEvent {
   cameraID: string;
 
-  type: 'new' | 'update' | 'end';
+  type:
+    | 'new' // A new event has started.
+    | 'update' // An update for an event is available (except GenAI).
+    | 'end' // An event has ended.
+    | 'genai'; // An AI based update is available.
 
   // When fidelity is `high`, the engine is assumed to provide exact details of
   // what new media is available. Otherwise all media types are assumed to be
