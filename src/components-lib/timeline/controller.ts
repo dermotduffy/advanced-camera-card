@@ -524,16 +524,15 @@ export class TimelineController {
     }
 
     const view = this._viewManagerEpoch?.manager.getView();
-    const id = String(properties.item);
-    const item = this._source?.dataset.get(id) ?? null;
+    const id = properties.item ? String(properties.item) : null;
+    const item = id ? this._source?.dataset.get(id) ?? null : null;
 
     if (
       this._ignoreClick ||
       !view ||
       !this._viewManagerEpoch ||
       !this._source ||
-      !properties.what ||
-      !item
+      !properties.what
     ) {
       return;
     }
@@ -563,9 +562,14 @@ export class TimelineController {
               },
             },
           },
+          modifiers: [
+            new MergeContextViewModifier({
+              mediaViewer: { seek: properties.time },
+            }),
+          ],
         });
       }
-    } else if (properties.item && properties.what === 'item') {
+    } else if (item && properties.what === 'item') {
       const cameraID = String(properties.group);
 
       const criteria = {
