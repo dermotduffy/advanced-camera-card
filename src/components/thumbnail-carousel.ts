@@ -174,6 +174,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
       ?show_timeline_control=${this.config?.show_timeline_control}
       ?show_download_control=${this.config?.show_download_control}
       ?show_review_control=${this.config?.show_review_control}
+      ?show_info_control=${this.config?.show_info_control}
       @click=${(ev: Event) => clickCallback(item, ev)}
     >
     </advanced-camera-card-thumbnail>`;

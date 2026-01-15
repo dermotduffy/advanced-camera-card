@@ -107,15 +107,20 @@ export const getRecordingID = (
  * @param review The Frigate review item.
  */
 export const getReviewTitle = (review: FrigateReview): string => {
+  const objects = review.data.objects?.length
+    ? review.data.objects.map((o) => prettifyTitle(o)).join(', ')
+    : '';
+
+  if (objects) {
+    return objects;
+  }
+
   const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const durationSeconds = Math.round(
     review.end_time
       ? review.end_time - review.start_time
       : Date.now() / 1000 - review.start_time,
   );
-  const objects = review.data.objects?.length
-    ? `, ${review.data.objects.map((o) => prettifyTitle(o)).join(', ')}`
-    : '';
 
   return `${formatDateAndTime(
     toZonedTime(review.start_time * 1000, localTimezone),

@@ -192,7 +192,7 @@ describe('getReviewTitle', () => {
           },
         }),
       ),
-    ).toBe('2023-05-06 10:43 [72s, Person, Dog]');
+    ).toBe('Person, Dog');
   });
 
   it('should get in-progress review title', () => {

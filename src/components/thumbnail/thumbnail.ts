@@ -59,6 +59,9 @@ export class AdvancedCameraCardThumbnail extends LitElement {
   @property({ attribute: true, type: Boolean })
   public show_review_control = false;
 
+  @property({ attribute: true, type: Boolean })
+  public show_info_control = false;
+
   @property({ attribute: false })
   public seek?: Date;
 
@@ -79,6 +82,7 @@ export class AdvancedCameraCardThumbnail extends LitElement {
     const shouldShowTimelineControl =
       this.show_timeline_control &&
       ((ViewItemClassifier.isEvent(this.item) && this.item.getStartTime()) ||
+        (ViewItemClassifier.isReview(this.item) && this.item.getStartTime()) ||
         (ViewItemClassifier.isRecording(this.item) &&
           this.item.getStartTime() &&
           this.item.getEndTime()));
@@ -101,6 +105,8 @@ export class AdvancedCameraCardThumbnail extends LitElement {
       ? this.item.isReviewed()
       : null;
     const shouldShowReviewControl = this.show_review_control && isReviewed !== null;
+
+    const shouldShowInfoControl = this.show_info_control && this.item.getDescription();
 
     return html`
       <advanced-camera-card-thumbnail-feature
@@ -145,9 +151,8 @@ export class AdvancedCameraCardThumbnail extends LitElement {
               }
             }}
           ></advanced-camera-card-icon>`
-        : ''}
-      ${shouldShowFavoriteControl
-        ? html` <advanced-camera-card-icon
+        : shouldShowFavoriteControl
+          ? html` <advanced-camera-card-icon
             class="${classMap(starClasses)}"
             title=${localize('thumbnail.retain_indefinitely')}
             .icon=${{ icon: this.item.isFavorite() ? 'mdi:star' : 'mdi:star-outline' }}
@@ -167,7 +172,7 @@ export class AdvancedCameraCardThumbnail extends LitElement {
               }
             }}
           /></advanced-camera-card-icon>`
-        : ``}
+          : ``}
       ${this.details
         ? html`<advanced-camera-card-thumbnail-details
             .hass=${this.hass}
@@ -175,6 +180,13 @@ export class AdvancedCameraCardThumbnail extends LitElement {
             .cameraManager=${this.cameraManager}
             .seek=${this.seek}
           ></advanced-camera-card-thumbnail-details>`
+        : ''}
+      ${shouldShowInfoControl
+        ? html`<advanced-camera-card-icon
+            class="info"
+            .icon=${{ icon: 'mdi:information-outline' }}
+            title=${this.item.getDescription()}
+          ></advanced-camera-card-icon>`
         : ''}
       ${shouldShowTimelineControl
         ? html`<advanced-camera-card-icon

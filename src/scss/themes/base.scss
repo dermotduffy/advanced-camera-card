@@ -155,6 +155,9 @@
     gold,
     transparent 25%
   );
+  --advanced-camera-card-thumbnail-icon-review-color: var(
+    --advanced-camera-card-thumbnail-icon-color
+  );
   --advanced-camera-card-thumbnail-text-color: var(--advanced-camera-card-text-color);
 
   /**********

@@ -35,6 +35,7 @@ describe('ViewMedia', () => {
     expect(media.inProgress()).toBeNull();
     expect(media.getContentID()).toBeNull();
     expect(media.getTitle()).toBeNull();
+    expect(media.getDescription()).toBeNull();
     expect(media.getThumbnail()).toBeNull();
     expect(media.getTitle()).toBeNull();
     expect(media.includesTime(new Date())).toBeFalsy();
@@ -94,6 +95,7 @@ describe('ViewFolder', () => {
     expect(item.getFolder()).toEqual(folder);
     expect(item.getID()).toBe('id');
     expect(item.getTitle()).toBe('title');
+    expect(item.getDescription()).toBeNull();
     expect(item.getThumbnail()).toBe('thumbnail');
     expect(item.getIcon()).toBe('icon');
     expect(item.isFavorite()).toBeNull();

@@ -15,12 +15,12 @@
       "reviewed": "Mark as reviewed",
       "unreviewed": "Mark as unreviewed"
     },
-    "severity": "Severity",
     "severities": {
       "high": "High",
       "low": "Low",
       "medium": "Medium"
     },
+    "severity": "Severity",
     "version": "Version"
   },
   "config": {
@@ -93,9 +93,9 @@
         "rotation": "Rotation",
         "rotations": {
           "0": "No rotation",
-          "90": "90 degrees clockwise",
           "180": "180 degrees clockwise",
-          "270": "270 degrees clockwise"
+          "270": "270 degrees clockwise",
+          "90": "90 degrees clockwise"
         }
       },
       "engines": {
@@ -139,6 +139,12 @@
         "image": "Image",
         "jsmpeg": "JSMpeg",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
+      },
+      "media": {
+        "editor_label": "Default Media",
+        "events_type": "Events media subtype",
+        "folders": "Folder IDs",
+        "type": "Default media type"
       },
       "motioneye": {
         "editor_label": "MotionEye options",
@@ -207,27 +213,9 @@
         "editor_label": "WebRTC Card Options",
         "entity": "WebRTC Card Camera Entity",
         "url": "WebRTC Card Camera URL"
-      },
-      "media": {
-        "editor_label": "Default Media",
-        "type": "Default media type",
-        "events_type": "Events media subtype",
-        "folders": "Folder IDs"
       }
     },
     "common": {
-      "media_types": {
-        "auto": "Automatic",
-        "events": "Events",
-        "recordings": "Recordings",
-        "reviews": "Reviews",
-        "folder": "Folder"
-      },
-      "events_media_types": {
-        "all": "All",
-        "clips": "Clips",
-        "snapshots": "Snapshots"
-      },
       "controls": {
         "builtin": "Built-in video controls",
         "filter": {
@@ -265,8 +253,9 @@
           "show_details": "Show details with thumbnails",
           "show_download_control": "Show download control on thumbnails",
           "show_favorite_control": "Show favorite control on thumbnails",
-          "show_timeline_control": "Show timeline control on thumbnails",
+          "show_info_control": "Show info control on thumbnails",
           "show_review_control": "Show review control on thumbnails",
+          "show_timeline_control": "Show timeline control on thumbnails",
           "size": "Thumbnails size in pixels"
         },
         "timeline": {
@@ -304,6 +293,11 @@
         "grid_selected_width_factor": "Increase selected media width by this factor",
         "mode": "Mode"
       },
+      "events_media_types": {
+        "all": "All",
+        "clips": "Clips",
+        "snapshots": "Snapshots"
+      },
       "image": {
         "entity": "Entity for use with entity mode",
         "entity_parameters": "Query parameters added to the entity-based picture URLs (e.g. width=1920&height=1080)",
@@ -326,6 +320,13 @@
         "selected": "On selection",
         "unselected": "On unselection",
         "visible": "On browser/tab visibility"
+      },
+      "media_types": {
+        "auto": "Automatic",
+        "events": "Events",
+        "folder": "Folder",
+        "recordings": "Recordings",
+        "reviews": "Reviews"
       },
       "timeline": {
         "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
@@ -465,8 +466,8 @@
         "ptz_home": "PTZ Home",
         "recordings": "Recordings",
         "reviews": "Reviews",
-        "set_review": "Set review status",
         "screenshot": "Screenshot",
+        "set_review": "Set review status",
         "snapshots": "Snapshots",
         "substreams": "Substream(s)",
         "timeline": "Timeline",
@@ -793,6 +794,7 @@
     "duration": "Duration",
     "events": "Events",
     "in_progress": "In Progress",
+    "info": "Info",
     "no_thumbnail": "No thumbnail available",
     "retain_indefinitely": "Media will be indefinitely retained",
     "score": "Score",

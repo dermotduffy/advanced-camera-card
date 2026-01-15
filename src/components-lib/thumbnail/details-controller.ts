@@ -52,14 +52,12 @@ export class ThumbnailDetailsController {
     }
 
     if (ViewItemClassifier.isReview(item)) {
-      const what = prettifyTitle(item.getWhat()?.join(', ')) ?? null;
       const title = item.getTitle();
-      const heading = what || title;
       const severity = item.getSeverity();
 
-      this._heading = heading
+      this._heading = title
         ? {
-            title: heading,
+            title: title,
             severity: severity ?? undefined,
             hint:
               localize('common.severity') +

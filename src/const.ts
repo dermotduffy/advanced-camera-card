@@ -201,6 +201,8 @@ export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_MEDIA_GALLERY}.controls.thumbnails.show_timeline_control` as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL =
   `${CONF_MEDIA_GALLERY}.controls.thumbnails.show_review_control` as const;
+export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_INFO_CONTROL =
+  `${CONF_MEDIA_GALLERY}.controls.thumbnails.show_info_control` as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_MEDIA_GALLERY}.controls.thumbnails.size` as const;
 
@@ -243,6 +245,8 @@ export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_timeline_control` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_review_control` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_INFO_CONTROL =
+  `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_info_control` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.size` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD =
@@ -301,6 +305,8 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_LIVE}.controls.thumbnails.show_timeline_control` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL =
   `${CONF_LIVE}.controls.thumbnails.show_review_control` as const;
+export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_INFO_CONTROL =
+  `${CONF_LIVE}.controls.thumbnails.show_info_control` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_LIVE}.controls.timeline.clustering_threshold` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_FORMAT_24H =
@@ -367,6 +373,8 @@ export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_TIMELINE}.controls.thumbnails.show_timeline_control` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_REVIEW_CONTROL =
   `${CONF_TIMELINE}.controls.thumbnails.show_review_control` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_INFO_CONTROL =
+  `${CONF_TIMELINE}.controls.thumbnails.show_info_control` as const;
 
 const CONF_MENU = 'menu' as const;
 export const CONF_MENU_ALIGNMENT = `${CONF_MENU}.alignment` as const;

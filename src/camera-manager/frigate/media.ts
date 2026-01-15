@@ -72,6 +72,9 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
   public getTitle(): string | null {
     return getEventTitle(this._event);
   }
+  public getDescription(): string | null {
+    return this._event.data?.description ?? null;
+  }
   public getThumbnail(): string | null {
     return this._thumbnail;
   }
@@ -163,13 +166,12 @@ export class FrigateReviewViewMedia extends ViewMedia implements ReviewViewMedia
     review: FrigateReview,
     contentID: string,
     thumbnail: string | null,
-    title: string,
   ) {
     super(ViewMediaType.Review, { cameraID });
     this._review = review;
     this._contentID = contentID;
     this._thumbnail = thumbnail;
-    this._title = title;
+    this._title = this._review.data.metadata?.title ?? getReviewTitle(review);
   }
 
   public getID(): string {
@@ -191,7 +193,10 @@ export class FrigateReviewViewMedia extends ViewMedia implements ReviewViewMedia
     return this._contentID;
   }
   public getTitle(): string | null {
-    return this._title;
+    return this._review.data.metadata?.title ?? this._title;
+  }
+  public getDescription(): string | null {
+    return this._review.data.metadata?.scene ?? null;
   }
   public getThumbnail(): string | null {
     return this._thumbnail;
@@ -288,7 +293,6 @@ export class FrigateViewMediaFactory {
         review,
       ),
       getReviewThumbnailURL(cameraConfig.frigate.client_id, review),
-      getReviewTitle(review),
     );
   }
 }

@@ -159,6 +159,8 @@ export class AdvancedCameraCardGallery extends LitElement {
               .show_download_control}
             ?show_review_control=${!!this.galleryConfig?.controls.thumbnails
               .show_review_control}
+            ?show_info_control=${!!this.galleryConfig?.controls.thumbnails
+              .show_info_control}
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
               if (ViewItemClassifier.isMedia(item) && this.viewManagerEpoch) {

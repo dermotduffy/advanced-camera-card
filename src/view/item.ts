@@ -64,6 +64,9 @@ export class ViewMedia {
   public getTitle(): string | null {
     return null;
   }
+  public getDescription(): string | null {
+    return null;
+  }
   public getThumbnail(): string | null {
     return null;
   }
@@ -167,6 +170,9 @@ export class ViewFolder {
   }
   public getTitle(): string | null {
     return this._title;
+  }
+  public getDescription(): string | null {
+    return null;
   }
   public getThumbnail(): string | null {
     return this._thumbnail;

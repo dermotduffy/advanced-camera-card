@@ -41,32 +41,37 @@ advanced-camera-card-icon {
 
   transition:
     opacity 0.2s ease-in-out,
-    color 0.2s ease-in-out;
+    color 0.4s ease-in-out;
 }
 advanced-camera-card-icon:hover {
   opacity: 1;
+  color: var(--advanced-camera-card-active-color);
 }
 
-advanced-camera-card-icon.star {
+advanced-camera-card-icon.star,
+advanced-camera-card-icon.review {
   top: 3px;
   left: 3px;
 }
+
 advanced-camera-card-icon.star.starred {
   color: var(--advanced-camera-card-thumbnail-icon-favorite-color);
 }
 
 advanced-camera-card-icon.timeline {
-  top: 3px;
+  left: 3px;
+  bottom: 3px;
+}
+
+advanced-camera-card-icon.info {
   right: 3px;
+  top: 3px;
+
+  cursor: default;
 }
 
 advanced-camera-card-icon.download {
   right: 3px;
-  bottom: 3px;
-}
-
-advanced-camera-card-icon.review {
-  left: 3px;
   bottom: 3px;
 }
 
