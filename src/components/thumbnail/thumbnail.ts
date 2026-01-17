@@ -154,25 +154,25 @@ export class AdvancedCameraCardThumbnail extends LitElement {
           ></advanced-camera-card-icon>`
         : shouldShowFavoriteControl
           ? html` <advanced-camera-card-icon
-            class="${classMap(starClasses)}"
-            title=${localize('thumbnail.retain_indefinitely')}
-            .icon=${{ icon: this.item.isFavorite() ? 'mdi:star' : 'mdi:star-outline' }}
-            @click=${async (ev: Event) => {
-              stopEventFromActivatingCardWideActions(ev);
-              if (this.hass && this.item) {
-                try {
-                  await this.viewItemManager?.favorite(
-                    this.item,
-                    !this.item.isFavorite(),
-                  );
-                } catch (e) {
-                  errorToConsole(e as Error);
-                  return;
+              class="${classMap(starClasses)}"
+              title=${localize('thumbnail.retain_indefinitely')}
+              .icon=${{ icon: this.item.isFavorite() ? 'mdi:star' : 'mdi:star-outline' }}
+              @click=${async (ev: Event) => {
+                stopEventFromActivatingCardWideActions(ev);
+                if (this.hass && this.item) {
+                  try {
+                    await this.viewItemManager?.favorite(
+                      this.item,
+                      !this.item.isFavorite(),
+                    );
+                  } catch (e) {
+                    errorToConsole(e as Error);
+                    return;
+                  }
+                  this.requestUpdate();
                 }
-                this.requestUpdate();
-              }
-            }}
-          /></advanced-camera-card-icon>`
+              }}
+            ></advanced-camera-card-icon>`
           : ``}
       ${this.details
         ? html`<advanced-camera-card-thumbnail-details
