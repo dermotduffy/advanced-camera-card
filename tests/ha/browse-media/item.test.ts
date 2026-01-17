@@ -304,7 +304,7 @@ describe('BrowseMediaViewFolder', () => {
     const folder = createFolder();
     const browseMedia = createBrowseMedia();
 
-    const viewMedia = new BrowseMediaViewFolder(folder, browseMedia);
+    const viewMedia = new BrowseMediaViewFolder(folder, [], browseMedia);
     expect(viewMedia.getFolder()).toEqual(folder);
   });
 
@@ -314,7 +314,7 @@ describe('BrowseMediaViewFolder', () => {
         children_media_class: 'album',
       });
 
-      const viewMedia = new BrowseMediaViewFolder(createFolder(), browseMedia);
+      const viewMedia = new BrowseMediaViewFolder(createFolder(), [], browseMedia);
       expect(viewMedia.getIcon()).toBe('mdi:album');
     });
 
@@ -323,7 +323,7 @@ describe('BrowseMediaViewFolder', () => {
         children_media_class: 'unknown',
       });
 
-      const viewMedia = new BrowseMediaViewFolder(createFolder(), browseMedia);
+      const viewMedia = new BrowseMediaViewFolder(createFolder(), [], browseMedia);
       expect(viewMedia.getIcon()).toBeNull();
     });
   });

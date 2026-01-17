@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { AdvancedCameraCardMediaPlayer, MediaLoadedCapabilities } from '../../src/types';
+import { MediaLoadedCapabilities, MediaPlayer } from '../../src/types';
 import {
   createMediaLoadedInfo,
   dispatchExistingMediaLoadedInfoAsEvent,
@@ -14,7 +14,7 @@ import {
 import { createMediaLoadedInfo as createTestMediaLoadedInfo } from '../test-utils.js';
 
 const options = {
-  player: mock<AdvancedCameraCardMediaPlayer>(),
+  player: mock<MediaPlayer>(),
   capabilities: mock<MediaLoadedCapabilities>(),
 };
 
@@ -86,7 +86,7 @@ describe('createMediaLoadedInfo', () => {
 // @vitest-environment jsdom
 describe('dispatchMediaLoadedEvent', () => {
   const options = {
-    player: mock<AdvancedCameraCardMediaPlayer>(),
+    player: mock<MediaPlayer>(),
     capabilities: mock<MediaLoadedCapabilities>(),
   };
 

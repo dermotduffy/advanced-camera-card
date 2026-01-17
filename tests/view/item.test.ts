@@ -35,13 +35,28 @@ describe('ViewMedia', () => {
     expect(media.inProgress()).toBeNull();
     expect(media.getContentID()).toBeNull();
     expect(media.getTitle()).toBeNull();
+    expect(media.getDescription()).toBeNull();
     expect(media.getThumbnail()).toBeNull();
     expect(media.getTitle()).toBeNull();
     expect(media.includesTime(new Date())).toBeFalsy();
     expect(media.getWhere()).toBeNull();
     expect(media.setFavorite(true)).toBeUndefined();
     expect(media.isFavorite()).toBeNull();
+    expect(media.isReviewed()).toBeNull();
     expect(media.getIcon()).toBeNull();
+    expect(media.getSeverity()).toBeNull();
+  });
+
+  it('should clone', () => {
+    const media = new ViewMedia(ViewMediaType.Clip, {
+      cameraID: 'camera',
+    });
+
+    const clone = media.clone();
+
+    expect(clone).not.toBe(media);
+    expect(clone).toBeInstanceOf(ViewMedia);
+    expect(clone.getCameraID()).toBe('camera');
   });
 
   it('should correctly determine if a media item includes a time', () => {
@@ -70,7 +85,7 @@ describe('ViewMedia', () => {
 describe('ViewFolder', () => {
   it('should construct', () => {
     const folder = createFolder();
-    const item = new ViewFolder(folder, {
+    const item = new ViewFolder(folder, [], {
       icon: 'icon',
       id: 'id',
       title: 'title',
@@ -80,8 +95,21 @@ describe('ViewFolder', () => {
     expect(item.getFolder()).toEqual(folder);
     expect(item.getID()).toBe('id');
     expect(item.getTitle()).toBe('title');
+    expect(item.getDescription()).toBeNull();
     expect(item.getThumbnail()).toBe('thumbnail');
     expect(item.getIcon()).toBe('icon');
     expect(item.isFavorite()).toBeNull();
+    expect(item.getSeverity()).toBeNull();
+  });
+
+  it('should clone', () => {
+    const folder = createFolder();
+    const item = new ViewFolder(folder, []);
+
+    const clone = item.clone();
+
+    expect(clone).not.toBe(item);
+    expect(clone).toBeInstanceOf(ViewFolder);
+    expect(clone.getFolder()).toEqual(folder);
   });
 });

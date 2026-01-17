@@ -147,6 +147,8 @@ This card supports several different views.
 | `live`       | Shows the live camera view with the configured [live provider](./cameras/live-provider.md).                                                        |
 | `recording`  | Shows a viewer for the most recent recording for this camera. Can also be accessed by holding down the `recordings` menu icon.                     |
 | `recordings` | Shows a gallery of recent (last day) recordings for this camera and its dependents.                                                                |
+| `review`     | Shows a viewer for the most recent unreviewed review item (e.g. alerts/detections in Frigate).                                                     |
+| `reviews`    | Shows a viewer for the most recent unreviewed review item (e.g. alerts/detections in Frigate).                                                     |
 | `snapshot`   | Shows a viewer for the most recent snapshot for this camera. Can also be accessed by holding down the `snapshots` menu icon.                       |
 | `snapshots`  | Shows a gallery of snapshots for this camera.                                                                                                      |
 | `timeline`   | Shows an event timeline.                                                                                                                           |

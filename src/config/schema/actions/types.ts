@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { statusBarItemBaseSchema } from '../common/status-bar';
+import { severitySchema } from '../common/severity';
 import { advancedCameraCardCustomActionsBaseSchema } from './custom/base';
 import { cameraSelectActionConfigSchema } from './custom/camera-select';
 import { viewDisplayModeActionConfigSchema } from './custom/display-mode';
@@ -12,6 +13,7 @@ import { ptzActionConfigSchema } from './custom/ptz';
 import { ptzControlsActionConfigSchema } from './custom/ptz-controls';
 import { ptzDigitalActionConfigSchema } from './custom/ptz-digital';
 import { ptzMultiActionSchema } from './custom/ptz-multi';
+import { setReviewActionConfigSchema } from './custom/set-review';
 import { sleepActionConfigSchema } from './custom/sleep';
 import { substreamSelectActionConfigSchema } from './custom/substream-select';
 import { viewActionConfigSchema } from './custom/view';
@@ -51,6 +53,7 @@ const advancedCameraCardCustomActionSchema = z.union([
   ptzControlsActionConfigSchema,
   ptzDigitalActionConfigSchema,
   ptzMultiActionSchema,
+  setReviewActionConfigSchema,
   sleepActionConfigSchema,
   statusBarActionConfigSchema,
   substreamSelectActionConfigSchema,
@@ -106,6 +109,7 @@ const statusBarItemElementsBaseSchema = statusBarItemBaseSchema.extend({
   sufficient: z.boolean().default(false).optional(),
   exclusive: z.boolean().default(false).optional(),
   expand: z.boolean().default(false).optional(),
+  severity: severitySchema.optional(),
   actions: actionsBaseSchema.optional(),
 });
 

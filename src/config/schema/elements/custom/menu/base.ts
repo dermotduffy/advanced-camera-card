@@ -13,3 +13,4 @@ export const menuBaseSchema = z.object({
   icon: z.string().optional(),
   permanent: z.boolean().default(false).optional(),
 });
+export type MenuItemBase = z.infer<typeof menuBaseSchema>;

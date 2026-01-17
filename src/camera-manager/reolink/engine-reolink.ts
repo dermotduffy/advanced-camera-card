@@ -18,6 +18,7 @@ import { DeviceRegistryManager } from '../../ha/registry/device';
 import { EntityRegistryManager } from '../../ha/registry/entity/types';
 import { ResolvedMediaCache } from '../../ha/resolved-media';
 import { HomeAssistant } from '../../ha/types';
+import { hasUnsupportedFilters } from '../../query-source.js';
 import { allPromises, formatDate, isValidDate } from '../../utils/basic';
 import { ViewMedia } from '../../view/item';
 import { BrowseMediaCameraManagerEngine } from '../browse-media/engine-browse-media';
@@ -255,14 +256,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     query: EventQuery,
     engineOptions?: EngineOptions,
   ): Promise<EventQueryResultsMap | null> {
-    // Reolink does not support these query types and they will never match.
-    if (
-      query.favorite ||
-      query.tags?.size ||
-      query.what?.size ||
-      query.where?.size ||
-      query.hasSnapshot
-    ) {
+    if (hasUnsupportedFilters(query) || query.hasSnapshot) {
       return null;
     }
 

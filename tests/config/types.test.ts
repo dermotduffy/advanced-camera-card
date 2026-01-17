@@ -53,10 +53,14 @@ describe('config defaults', () => {
           media_resolution: 'low',
         },
         triggers: {
-          events: ['events', 'clips', 'snapshots'],
+          events: [],
           entities: [],
           motion: false,
           occupancy: false,
+          reviews: {
+            severities: ['high'],
+            description: true,
+          },
         },
       },
       debug: {
@@ -92,18 +96,17 @@ describe('config defaults', () => {
             position: 'bottom-right',
           },
           thumbnails: {
-            media_type: 'events',
-            events_media_type: 'all',
             mode: 'right',
             show_details: true,
             show_download_control: true,
             show_favorite_control: true,
+            show_info_control: true,
+            show_review_control: true,
             show_timeline_control: true,
             size: 100,
           },
           timeline: {
             clustering_threshold: 3,
-            events_media_type: 'all',
             format: {
               '24h': true,
             },
@@ -137,6 +140,8 @@ describe('config defaults', () => {
             show_details: false,
             show_download_control: true,
             show_favorite_control: true,
+            show_info_control: true,
+            show_review_control: true,
             show_timeline_control: true,
             size: 100,
           },
@@ -166,12 +171,13 @@ describe('config defaults', () => {
             show_details: true,
             show_download_control: true,
             show_favorite_control: true,
+            show_info_control: true,
+            show_review_control: true,
             show_timeline_control: true,
             size: 100,
           },
           timeline: {
             clustering_threshold: 3,
-            events_media_type: 'all',
             format: {
               '24h': true,
             },
@@ -202,7 +208,7 @@ describe('config defaults', () => {
             priority: 50,
           },
           clips: {
-            enabled: true,
+            enabled: false,
             priority: 50,
           },
           display_mode: {
@@ -266,12 +272,20 @@ describe('config defaults', () => {
             enabled: false,
             priority: 50,
           },
+          reviews: {
+            enabled: true,
+            priority: 50,
+          },
+          set_review: {
+            enabled: true,
+            priority: 50,
+          },
           screenshot: {
             enabled: false,
             priority: 50,
           },
           snapshots: {
-            enabled: true,
+            enabled: false,
             priority: 50,
           },
           substreams: {
@@ -314,6 +328,10 @@ describe('config defaults', () => {
             enabled: true,
             priority: 50,
           },
+          severity: {
+            enabled: true,
+            priority: 50,
+          },
           technology: {
             enabled: true,
             priority: 50,
@@ -335,11 +353,12 @@ describe('config defaults', () => {
             show_details: true,
             show_download_control: true,
             show_favorite_control: true,
+            show_info_control: true,
+            show_review_control: true,
             show_timeline_control: true,
             size: 100,
           },
         },
-        events_media_type: 'all',
         format: {
           '24h': true,
         },

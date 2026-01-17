@@ -17,6 +17,7 @@ import './components/menu.js';
 import { AdvancedCameraCardMenu } from './components/menu.js';
 import './components/message.js';
 import { renderMessage } from './components/message.js';
+import './components/overlay-message.js';
 import './components/overlay.js';
 import { AdvancedCameraCardOverlay } from './components/overlay.js';
 import './components/status-bar';
@@ -32,7 +33,7 @@ import { REPO_URL } from './const.js';
 import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
-import { MediaLoadedInfo, Message } from './types.js';
+import { MediaLoadedInfo, Message, OverlayMessage } from './types.js';
 import { hasAction } from './utils/action.js';
 import { getReleaseVersion } from './utils/diagnostics';
 
@@ -235,9 +236,9 @@ class AdvancedCameraCard extends LitElement {
 
     return html`
       ${position === 'overlay'
-        ? html`<advanced-camera-card-overlay
-            >${getContents('overlay')}</advanced-camera-card-overlay
-          >`
+        ? html`<advanced-camera-card-overlay>
+            ${getContents('overlay')}
+          </advanced-camera-card-overlay>`
         : html`<div class="outerlay" data-position="${position}">
             ${getContents('outerlay')}
           </div>`}
@@ -360,8 +361,9 @@ class AdvancedCameraCard extends LitElement {
           style="${styleMap(this._controller.getStyleManager().getAspectRatioStyle())}"
           @advanced-camera-card:message=${(ev: CustomEvent<Message>) =>
             this._controller.getMessageManager().setMessageIfHigherPriority(ev.detail)}
-          @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) =>
-            this._controller.getMediaLoadedInfoManager().set(ev.detail)}
+          @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
+            this._controller.getMediaLoadedInfoManager().set(ev.detail);
+          }}
           @advanced-camera-card:media:unloaded=${() =>
             this._controller.getMediaLoadedInfoManager().clear()}
           @advanced-camera-card:media:volumechange=${
@@ -374,6 +376,11 @@ class AdvancedCameraCard extends LitElement {
             () => this.requestUpdate() /* Refresh play/pause menu button */
           }
           @advanced-camera-card:focus=${() => this.focus()}
+          @advanced-camera-card:overlay-message:show=${(
+            ev: CustomEvent<OverlayMessage>,
+          ) => this._controller.getOverlayMessageManager().setMessage(ev.detail)}
+          @advanced-camera-card:overlay-message:dismiss=${() =>
+            this._controller.getOverlayMessageManager().reset()}
         >
           ${showLoading
             ? html`<advanced-camera-card-loading
@@ -454,6 +461,11 @@ class AdvancedCameraCard extends LitElement {
               >
               </advanced-camera-card-elements>`
             : ``}
+          ${this._controller.getOverlayMessageManager().getMessage()
+            ? html`<advanced-camera-card-overlay-message
+                .message=${this._controller.getOverlayMessageManager().getMessage()}
+              ></advanced-camera-card-overlay-message>`
+            : ''}
         </ha-card>`,
     );
   }

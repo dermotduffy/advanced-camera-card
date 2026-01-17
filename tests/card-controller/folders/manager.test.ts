@@ -4,6 +4,7 @@ import { FoldersExecutor } from '../../../src/card-controller/folders/executor';
 import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import { FolderQuery } from '../../../src/card-controller/folders/types';
 import { FolderConfig, FolderConfigWithoutID } from '../../../src/config/schema/folders';
+import { QuerySource } from '../../../src/query-source';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { Endpoint } from '../../../src/types';
 import { ViewFolder } from '../../../src/view/item';
@@ -99,6 +100,39 @@ describe('FoldersManager', () => {
     expect(manager.getFolderCount()).toBe(0);
   });
 
+  describe('getDefaultQueryParameters', () => {
+    it('should return null with no folder provided and no internal folders', () => {
+      const manager = new FoldersManager(createCardAPI());
+      expect(manager.getDefaultQueryParameters()).toBeNull();
+    });
+
+    it('should use provided folder', () => {
+      const folder = createFolder();
+      const executor = mock<FoldersExecutor>();
+      const manager = new FoldersManager(createCardAPI(), executor);
+      const query: FolderQuery = { source: QuerySource.Folder, folder, path: [{}] };
+
+      executor.getDefaultQueryParameters.mockReturnValue(query);
+
+      expect(manager.getDefaultQueryParameters(folder)).toEqual(query);
+      expect(executor.getDefaultQueryParameters).toBeCalledWith(folder);
+    });
+
+    it('should fallback to default folder if none provided', () => {
+      const folder = createFolder();
+      const executor = mock<FoldersExecutor>();
+      const manager = new FoldersManager(createCardAPI(), executor);
+
+      const query: FolderQuery = { source: QuerySource.Folder, folder, path: [{}] };
+
+      manager.addFolders([folder]);
+      executor.getDefaultQueryParameters.mockReturnValue(query);
+
+      expect(manager.getDefaultQueryParameters()).toEqual(query);
+      expect(executor.getDefaultQueryParameters).toBeCalledWith(manager.getFolder());
+    });
+  });
+
   describe('should get folders', () => {
     it('should get default folder', () => {
       const manager = new FoldersManager(createCardAPI());
@@ -132,63 +166,15 @@ describe('FoldersManager', () => {
     });
   });
 
-  describe('generateDefaultFolderQuery', () => {
-    it('should generate default folder query with implicit folder', () => {
-      const folder: FolderConfig = createFolder();
-      const query: FolderQuery = {
-        folder,
-        path: [{ ha: { id: 'media-source://' } }],
-      };
-
-      const executor = mock<FoldersExecutor>();
-      vi.mocked(executor.generateDefaultFolderQuery).mockReturnValue(query);
-
-      const manager = new FoldersManager(createCardAPI(), executor);
-      manager.addFolders([folder]);
-
-      expect(manager.generateDefaultFolderQuery()).toEqual(query);
-    });
-
-    it('should generate default folder query without any folder', () => {
-      const folder: FolderConfig = createFolder();
-      const query: FolderQuery = {
-        folder,
-        path: [{ ha: { id: 'media-source://' } }],
-      };
-
-      const executor = mock<FoldersExecutor>();
-      vi.mocked(executor.generateDefaultFolderQuery).mockReturnValue(query);
-
-      const manager = new FoldersManager(createCardAPI(), executor);
-      // Folder is not added to the manager.
-
-      expect(manager.generateDefaultFolderQuery()).toBeNull();
-    });
-
-    it('should generate default folder query with explicit folder', () => {
-      const folder: FolderConfig = createFolder();
-      const query: FolderQuery = {
-        folder,
-        path: [{ ha: { id: 'media-source://' } }],
-      };
-
-      const executor = mock<FoldersExecutor>();
-      vi.mocked(executor.generateDefaultFolderQuery).mockReturnValue(query);
-
-      const manager = new FoldersManager(createCardAPI(), executor);
-
-      expect(manager.generateDefaultFolderQuery(folder)).toEqual(query);
-    });
-  });
-
   describe('generateChildFolderQuery', () => {
     it('should generate child folder query', () => {
       const folder: FolderConfig = createFolder();
       const query: FolderQuery = {
+        source: QuerySource.Folder,
         folder,
         path: [{ ha: { id: 'media-source://' } }],
       };
-      const viewFolder = new ViewFolder(folder);
+      const viewFolder = new ViewFolder(folder, []);
 
       const executor = mock<FoldersExecutor>();
       vi.mocked(executor.generateChildFolderQuery).mockReturnValue(query);
@@ -216,6 +202,7 @@ describe('FoldersManager', () => {
       const conditionState = {};
       const engineOptions = {};
       const query: FolderQuery = {
+        source: QuerySource.Folder,
         folder,
         path: [{ ha: { id: 'media-source://' } }],
       };
@@ -240,11 +227,32 @@ describe('FoldersManager', () => {
 
       expect(
         await manager.expandFolder({
+          source: QuerySource.Folder,
           folder,
           path: [{ ha: { id: 'media-source://' } }],
         }),
       ).toBeNull();
 
+      expect(executor.expandFolder).not.toBeCalled();
+    });
+
+    it('should return null for query with unsupported filters', async () => {
+      const hass = createHASS();
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+      const executor = mock<FoldersExecutor>();
+      const manager = new FoldersManager(api, executor);
+
+      const folder = createFolder({ id: 'folder-1' });
+      const query: FolderQuery = {
+        source: QuerySource.Folder,
+        folder,
+        path: [{ ha: { id: 'media-source://' } }],
+        favorite: true,
+      };
+
+      expect(await manager.expandFolder(query)).toBeNull();
       expect(executor.expandFolder).not.toBeCalled();
     });
   });
@@ -300,6 +308,25 @@ describe('FoldersManager', () => {
       const manager = new FoldersManager(api, executor);
       await manager.favorite(item, true);
       expect(executor.favorite).toBeCalledWith(hass, item, true);
+    });
+  });
+
+  describe('areResultsFresh', () => {
+    it('should delegate freshness check to executor', () => {
+      const api = createCardAPI();
+      const executor = mock<FoldersExecutor>();
+      const manager = new FoldersManager(api, executor);
+      const query: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: createFolder(),
+        path: [{}],
+      };
+      const timestamp = new Date();
+
+      executor.areResultsFresh.mockReturnValue(true);
+
+      expect(manager.areResultsFresh(timestamp, query)).toBe(true);
+      expect(executor.areResultsFresh).toHaveBeenCalledWith(timestamp, query);
     });
   });
 });

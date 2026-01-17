@@ -2,6 +2,9 @@
   "ignorePatterns": [
     {
       "pattern": "vscode://"
+    },
+    {
+      "pattern": "https://www.npmjs.com/"
     }
   ]
 }

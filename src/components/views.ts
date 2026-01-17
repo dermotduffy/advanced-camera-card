@@ -76,16 +76,14 @@ export class AdvancedCameraCardViews extends LitElement {
       if (view?.is('live') || this._shouldLivePreload()) {
         import('./live/index.js');
       }
-      if (view?.isMediaGalleryView() && !view.is('folders')) {
-        import('./gallery/media-gallery.js');
+      if (view?.isGalleryView()) {
+        import('./gallery/gallery.js');
       } else if (view?.isViewerView()) {
         import('./viewer/index.js');
       } else if (view?.is('image')) {
         import('./image.js');
       } else if (view?.is('timeline')) {
         import('./timeline.js');
-      } else if (view?.is('folders')) {
-        import('./gallery/folder-gallery.js');
       }
     }
 
@@ -167,16 +165,18 @@ export class AdvancedCameraCardViews extends LitElement {
           >
           </advanced-camera-card-image>`
         : ``}
-      ${!this.hide && view?.isMediaGalleryView() && !view.is('folders')
-        ? html` <advanced-camera-card-media-gallery
+      ${!this.hide && view?.isGalleryView()
+        ? html` <advanced-camera-card-gallery
             .hass=${this.hass}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .galleryConfig=${this.config.media_gallery}
             .cameraManager=${this.cameraManager}
+            .foldersManager=${this.foldersManager}
             .viewItemManager=${this.viewItemManager}
             .cardWideConfig=${this.cardWideConfig}
+            .conditionStateManager=${this.conditionStateManager}
           >
-          </advanced-camera-card-media-gallery>`
+          </advanced-camera-card-gallery>`
         : ``}
       ${!this.hide && view?.isViewerView()
         ? html`
@@ -187,6 +187,7 @@ export class AdvancedCameraCardViews extends LitElement {
               .resolvedMediaCache=${this.resolvedMediaCache}
               .cameraManager=${this.cameraManager}
               .cardWideConfig=${this.cardWideConfig}
+              .viewItemManager=${this.viewItemManager}
             >
             </advanced-camera-card-viewer>
           `
@@ -211,15 +212,6 @@ export class AdvancedCameraCardViews extends LitElement {
             .deviceRegistryManager=${this.deviceRegistryManager}
           >
           </advanced-camera-card-diagnostics>`
-        : ``}
-      ${!this.hide && view?.is('folders')
-        ? html` <advanced-camera-card-folder-gallery
-            .hass=${this.hass}
-            .viewManagerEpoch=${this.viewManagerEpoch}
-            .viewItemManager=${this.viewItemManager}
-            .galleryConfig=${this.config.media_gallery}
-            .foldersManager=${this.foldersManager}
-          ></advanced-camera-card-folder-gallery>`
         : ``}
       ${
         // Note: Subtle difference in condition below vs the other views in

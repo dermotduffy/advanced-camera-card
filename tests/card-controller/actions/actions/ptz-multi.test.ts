@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Capabilities } from '../../../../src/camera-manager/capabilities';
 import { PTZMultiAction } from '../../../../src/card-controller/actions/actions/ptz-multi';
+import { PTZMovementType } from '../../../../src/types';
 import {
   createCameraManager,
   createCardAPI,
@@ -23,7 +24,7 @@ describe('should handle ptz multi action', () => {
       const store = createStore([
         {
           cameraID: 'camera.office',
-          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+          capabilities: new Capabilities({ ptz: { left: [PTZMovementType.Relative] } }),
         },
       ]);
       vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));

@@ -4,7 +4,7 @@ import {
   PartialZoomSettings,
   ZoomSettingsObserved,
 } from '../../../../src/components-lib/zoom/types';
-import { PTZAction } from '../../../../src/config/ptz';
+import { PTZAction } from '../../../../src/config/schema/actions/custom/ptz';
 import { createCardAPI, createView } from '../../../test-utils';
 
 describe('should handle ptz digital action', () => {

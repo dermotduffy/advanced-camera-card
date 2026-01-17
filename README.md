@@ -17,7 +17,7 @@ Formerly known as: `Frigate Card`
 A comprehensive camera card for Home Assistant.
 
 - Live viewing of multiple cameras.
-- Clips and snapshot browsing via mini-gallery.
+- Clips, snapshot and review browsing via mini-gallery.
 - Automatic updating to continually show latest clip / snapshot.
 - Support for filtering events by zone and label.
 - Arbitrary entity access via menu (e.g. motion sensor access).

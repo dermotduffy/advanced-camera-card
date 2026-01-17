@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: row;
   box-sizing: border-box;
+  gap: 2px;
 
   // Ensure control icons are relative to the thumbnail.
   position: relative;
@@ -19,6 +20,9 @@
   border-radius: var(--advanced-camera-card-border-radius-final);
   padding: 2px;
 
+  // Additional padding on the right to match the gap specified above.
+  padding-right: 4px;
+
   // When details are enabled, use a background color so that the details have
   // contrast with the background.
   background-color: var(--advanced-camera-card-thumbnail-background);
@@ -26,39 +30,6 @@
 
 :host(:hover) {
   transform: scale(1.04);
-}
-
-advanced-camera-card-icon {
-  position: absolute;
-  border-radius: 50%;
-  color: var(--advanced-camera-card-thumbnail-icon-color);
-
-  cursor: pointer;
-
-  transition:
-    opacity 0.2s ease-in-out,
-    color 0.2s ease-in-out;
-}
-advanced-camera-card-icon:hover {
-  opacity: 1;
-}
-
-advanced-camera-card-icon.star {
-  top: 3px;
-  left: 3px;
-}
-advanced-camera-card-icon.star.starred {
-  color: var(--advanced-camera-card-thumbnail-icon-favorite-color);
-}
-
-advanced-camera-card-icon.timeline {
-  top: 3px;
-  right: 3px;
-}
-
-advanced-camera-card-icon.download {
-  right: 3px;
-  bottom: 3px;
 }
 
 advanced-camera-card-thumbnail-details {

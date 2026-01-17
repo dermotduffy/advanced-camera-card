@@ -109,6 +109,15 @@
       }
     },
     "common": {
+      "media_types": {
+        "events": "Esdeveniments",
+        "recordings": "Enregistraments"
+      },
+      "events_media_types": {
+        "all": "Tots els tipus de mitjans",
+        "clips": "Clips",
+        "snapshots": "Imatges instantànies"
+      },
       "controls": {
         "builtin": "Controls de vídeo integrats",
         "filter": {
@@ -134,15 +143,7 @@
         "thumbnails": {
           "editor_label": "Miniatures",
           "events_media_type": "Si voleu mostrar miniatures d'esdeveniments de clips o instantànies",
-          "events_media_types": {
-            "clips": "Miniatures de clips",
-            "snapshots": "Miniatures d'instantànies"
-          },
           "media_type": "Si voleu mostrar miniatures d'esdeveniments o enregistraments",
-          "media_types": {
-            "events": "Esdeveniments",
-            "recordings": "Enregistraments"
-          },
           "mode": "Mode de miniatures",
           "modes": {
             "above": "Miniatures a dalt",
@@ -203,11 +204,6 @@
       "timeline": {
         "clustering_threshold": "El recompte d'esdeveniments en què s'agrupen (0=sense agrupació)",
         "events_media_type": "Els esdeveniments multimèdia que mostra la línia de temps",
-        "events_media_types": {
-          "all": "Tots els tipus de mitjans",
-          "clips": "Clips",
-          "snapshots": "Imatges instantànies"
-        },
         "show_recordings": "Mostra les gravacions",
         "style": "Estil de cronologia",
         "styles": {

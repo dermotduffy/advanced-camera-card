@@ -11,7 +11,6 @@ import {
   miniTimelineConfigSchema,
 } from './common/controls/timeline';
 import { viewDisplaySchema } from './common/display';
-import { eventsMediaTypeSchema } from './common/events-media';
 import {
   MEDIA_ACTION_NEGATIVE_CONDITIONS,
   MEDIA_ACTION_POSITIVE_CONDITIONS,
@@ -41,12 +40,6 @@ const microphoneConfigSchema = z
   .default(microphoneConfigDefault);
 export type MicrophoneConfig = z.infer<typeof microphoneConfigSchema>;
 
-const liveThumbnailControlsDefaults = {
-  ...thumbnailControlsDefaults,
-  media_type: 'events' as const,
-  events_media_type: 'all' as const,
-};
-
 export const liveConfigDefault = {
   auto_play: [...MEDIA_ACTION_POSITIVE_CONDITIONS],
   auto_pause: [],
@@ -67,7 +60,7 @@ export const liveConfigDefault = {
       style: 'chevrons' as const,
     },
     ptz: ptzControlsDefaults,
-    thumbnails: liveThumbnailControlsDefaults,
+    thumbnails: thumbnailControlsDefaults,
     timeline: miniTimelineConfigDefault,
     wheel: true,
   },
@@ -75,15 +68,6 @@ export const liveConfigDefault = {
     ...microphoneConfigDefault,
   },
 };
-
-const livethumbnailsControlSchema = thumbnailsControlSchema.extend({
-  media_type: z
-    .enum(['events', 'recordings'])
-    .default(liveConfigDefault.controls.thumbnails.media_type),
-  events_media_type: eventsMediaTypeSchema.default(
-    liveConfigDefault.controls.thumbnails.events_media_type,
-  ),
-});
 
 export const liveConfigSchema = z
   .object({
@@ -118,7 +102,7 @@ export const liveConfigSchema = z
           })
           .default(liveConfigDefault.controls.next_previous),
         ptz: ptzControlsConfigSchema.default(liveConfigDefault.controls.ptz),
-        thumbnails: livethumbnailsControlSchema.default(
+        thumbnails: thumbnailsControlSchema.default(
           liveConfigDefault.controls.thumbnails,
         ),
         timeline: miniTimelineConfigSchema.default(liveConfigDefault.controls.timeline),

@@ -240,5 +240,28 @@ describe('StatusBarItemManager', () => {
         icon: 'ENGINE_ICON',
       });
     });
+
+    it('should have severity', () => {
+      const manager = new StatusBarItemManager(createCardAPI());
+      const selectedResult = new TestViewMedia({
+        cameraID: 'camera-1',
+      });
+      vi.spyOn(selectedResult, 'getSeverity').mockReturnValue('high');
+
+      const queryResults = new QueryResults({
+        results: [selectedResult],
+        selectedIndex: 0,
+      });
+
+      expect(
+        manager.calculateItems({
+          view: createView({ queryResults: queryResults }),
+        }),
+      ).toContainEqual({
+        type: 'custom:advanced-camera-card-status-bar-icon' as const,
+        icon: 'mdi:circle-medium',
+        severity: 'high',
+      });
+    });
   });
 });

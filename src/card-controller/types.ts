@@ -149,6 +149,7 @@ export interface CardElementAPI {
   getMediaPlayerManager(): MediaPlayerManager;
   getMicrophoneManager(): MicrophoneManager;
   getQueryStringManager(): QueryStringManager;
+  getViewManager(): ViewManager;
 }
 
 export interface CardExpandAPI {
@@ -243,6 +244,10 @@ export interface CardMessageAPI {
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
+}
+
+export interface CardOverlayMessageAPI {
+  getCardElementManager(): CardElementManager;
 }
 
 export interface CardMicrophoneAPI {

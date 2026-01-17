@@ -6,11 +6,11 @@ import { createFolder, TestViewMedia } from '../test-utils';
 describe('ViewItemClassifier', () => {
   it('isMedia', () => {
     expect(ViewItemClassifier.isMedia(new TestViewMedia())).toBe(true);
-    expect(ViewItemClassifier.isMedia(new ViewFolder(createFolder()))).toBe(false);
+    expect(ViewItemClassifier.isMedia(new ViewFolder(createFolder(), []))).toBe(false);
   });
 
   it('isFolder', () => {
-    expect(ViewItemClassifier.isFolder(new ViewFolder(createFolder()))).toBe(true);
+    expect(ViewItemClassifier.isFolder(new ViewFolder(createFolder(), []))).toBe(true);
     expect(ViewItemClassifier.isFolder(new TestViewMedia())).toBe(false);
   });
 

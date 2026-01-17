@@ -11,6 +11,7 @@ import {
   Endpoint,
   PTZCapabilities,
   PTZMovementType,
+  SEVERITIES,
 } from '../../types';
 import { errorToConsole } from '../../utils/basic';
 import { Camera, CameraInitializationOptions } from '../camera';
@@ -22,18 +23,21 @@ import {
   getGo2RTCStreamEndpoint,
 } from '../utils/go2rtc/endpoint';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
-import {
-  FrigateEventWatcherRequest,
-  FrigateEventWatcherSubscriptionInterface,
-} from './event-watcher';
 import { getPTZInfo } from './requests';
-import { FrigateEventChange, PTZInfo } from './types';
+import {
+  FRIGATE_SEVERITY_MAP,
+  FrigateEventChange,
+  FrigateReviewChange,
+  PTZInfo,
+} from './types';
+import { FrigateWatcherRequest, FrigateWatcherSubscriptionInterface } from './watcher';
 
 const CAMERA_BIRDSEYE = 'birdseye' as const;
 
 interface FrigateCameraInitializationOptions extends CameraInitializationOptions {
   entityRegistryManager: EntityRegistryManager;
-  frigateEventWatcher: FrigateEventWatcherSubscriptionInterface;
+  frigateEventWatcher: FrigateWatcherSubscriptionInterface<FrigateEventChange>;
+  frigateReviewWatcher: FrigateWatcherSubscriptionInterface<FrigateReviewChange>;
 }
 
 export const isBirdseye = (cameraConfig: CameraConfig): boolean => {
@@ -47,6 +51,7 @@ export class FrigateCamera extends Camera {
 
     if (this._capabilities?.has('trigger')) {
       await this._subscribeToEvents(options.hass, options.frigateEventWatcher);
+      await this._subscribeToReviews(options.hass, options.frigateReviewWatcher);
     }
 
     return this;
@@ -183,6 +188,7 @@ export class FrigateCamera extends Camera {
       clips: !birdseye,
       snapshots: !birdseye,
       recordings: !birdseye,
+      reviews: !birdseye,
       ...(combinedPTZ && { ptz: combinedPTZ }),
     };
   }
@@ -415,7 +421,7 @@ export class FrigateCamera extends Camera {
 
   protected async _subscribeToEvents(
     hass: HomeAssistant,
-    frigateEventWatcher: FrigateEventWatcherSubscriptionInterface,
+    frigateEventWatcher: FrigateWatcherSubscriptionInterface<FrigateEventChange>,
   ): Promise<void> {
     const config = this.getConfig();
     if (!config.triggers.events.length || !config.frigate.camera_name) {
@@ -424,7 +430,7 @@ export class FrigateCamera extends Camera {
 
     /* istanbul ignore next -- exercising the matcher is not possible when the
     test uses an event watcher -- @preserve */
-    const request: FrigateEventWatcherRequest = {
+    const request: FrigateWatcherRequest<FrigateEventChange> = {
       instanceID: config.frigate.client_id,
       callback: (event: FrigateEventChange) => this._frigateEventHandler(event),
       matcher: (event: FrigateEventChange): boolean =>
@@ -478,6 +484,94 @@ export class FrigateCamera extends Camera {
       // trigger on the media type that is allowed by the configuration.
       clip: clipChange && eventsToTriggerOn.includes('clips'),
       snapshot: snapshotChange && eventsToTriggerOn.includes('snapshots'),
+    });
+  };
+
+  protected async _subscribeToReviews(
+    hass: HomeAssistant,
+    frigateReviewWatcher: FrigateWatcherSubscriptionInterface<FrigateReviewChange>,
+  ): Promise<void> {
+    const config = this.getConfig();
+    const reviewConfig = config.triggers.reviews;
+
+    // Must have at least one severity configured and a camera name to subscribe
+    if (!reviewConfig.severities.length || !config.frigate.camera_name) {
+      return;
+    }
+
+    /* istanbul ignore next -- exercising the matcher is not possible when the
+    test uses a review watcher -- @preserve */
+    const request: FrigateWatcherRequest<FrigateReviewChange> = {
+      instanceID: config.frigate.client_id,
+      callback: (review: FrigateReviewChange) => this._frigateReviewHandler(review),
+      matcher: (review: FrigateReviewChange): boolean =>
+        review.after.camera === config.frigate.camera_name,
+    };
+
+    await frigateReviewWatcher.subscribe(hass, request);
+    this._onDestroy(() => frigateReviewWatcher.unsubscribe(request));
+  }
+
+  protected _frigateReviewHandler = (review: FrigateReviewChange): void => {
+    const config = this.getConfig();
+    const cameraID = this._config.id;
+
+    if (!cameraID) {
+      return;
+    }
+
+    if (
+      config.frigate.zones?.length &&
+      !config.frigate.zones.some((zone) => review.after.data.zones?.includes(zone))
+    ) {
+      return;
+    }
+
+    if (
+      config.frigate.labels?.length &&
+      !config.frigate.labels.some((label) => review.after.data.objects?.includes(label))
+    ) {
+      return;
+    }
+
+    const reviewConfig = config.triggers.reviews;
+
+    // Map Frigate severity to card severity.
+    const cardSeverity = SEVERITIES.find(
+      (key) => FRIGATE_SEVERITY_MAP[key] === review.after.severity,
+    );
+
+    // Check if this is a description update (GenAI added/changed title or scene)
+    const isDescriptionUpdate =
+      review.type === 'genai' ||
+      (review.type === 'update' &&
+        (review.after.data.metadata?.title !== review.before.data.metadata?.title ||
+          review.after.data.metadata?.scene !== review.before.data.metadata?.scene ||
+          review.after.data.metadata?.shortSummary !==
+            review.before.data.metadata?.shortSummary));
+
+    const shouldTriggerOnSeverity =
+      cardSeverity && reviewConfig.severities.includes(cardSeverity);
+
+    // Severity must match first - it's the gate condition.
+    if (!shouldTriggerOnSeverity) {
+      return;
+    }
+
+    // For 'update' events, only trigger if description changed (when
+    // description updates are on). For 'new' and 'end' events, always trigger
+    // if severity matched
+    const shouldTriggerOnDescription = reviewConfig.description && isDescriptionUpdate;
+
+    if (review.type === 'update' && !shouldTriggerOnDescription) {
+      return;
+    }
+
+    this._eventCallback?.({
+      cameraID,
+      fidelity: 'high',
+      type: review.type,
+      review: true,
     });
   };
 }

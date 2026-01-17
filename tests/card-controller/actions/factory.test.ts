@@ -28,6 +28,7 @@ import { PTZControlsAction } from '../../../src/card-controller/actions/actions/
 import { PTZDigitalAction } from '../../../src/card-controller/actions/actions/ptz-digital';
 import { PTZMultiAction } from '../../../src/card-controller/actions/actions/ptz-multi';
 import { ReloadAction } from '../../../src/card-controller/actions/actions/reload';
+import { SetReviewAction } from '../../../src/card-controller/actions/actions/set-review';
 import { ScreenshotAction } from '../../../src/card-controller/actions/actions/screenshot';
 import { SleepAction } from '../../../src/card-controller/actions/actions/sleep';
 import { StatusBarAction } from '../../../src/card-controller/actions/actions/status-bar';
@@ -189,6 +190,7 @@ describe('ActionFactory', () => {
         InternalCallbackAction,
       ],
       [{ advanced_camera_card_action: 'reload' as const }, ReloadAction],
+      [{ advanced_camera_card_action: 'set_review' as const }, SetReviewAction],
       [{ advanced_camera_card_action: 'effect' as const }, EffectAction],
     ])(
       'advanced_camera_card_action: $advanced_camera_card_action',

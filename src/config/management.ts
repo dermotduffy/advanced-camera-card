@@ -6,13 +6,9 @@ import {
   CONF_CAMERAS_GLOBAL_PTZ,
   CONF_DIMENSIONS_HEIGHT,
   CONF_ELEMENTS,
-  CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
-  CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
-  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_OVERRIDES,
   CONF_PROFILES,
   CONF_STATUS_BAR,
-  CONF_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_VIEW_DEFAULT_CYCLE_CAMERA,
   CONF_VIEW_DEFAULT_RESET_ENTITIES,
   CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
@@ -825,18 +821,19 @@ const UPGRADES = [
   upgradeWithOverrides('media_viewer.auto_unmute', (data) =>
     data === 'all' ? ['selected', 'visible'] : data === 'never' ? null : arrayify(data),
   ),
+
   upgradeMoveToWithOverrides(
     'live.controls.thumbnails.media',
-    CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
+    'live.controls.thumbnails.events_media_type',
   ),
-  upgradeMoveToWithOverrides('timeline.media', CONF_TIMELINE_EVENTS_MEDIA_TYPE),
+  upgradeMoveToWithOverrides('timeline.media', 'timeline.events_media_type'),
   upgradeMoveToWithOverrides(
     'live.controls.timeline.media',
-    CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
+    'live.controls.timeline.events_media_type',
   ),
   upgradeMoveToWithOverrides(
     'media_viewer.controls.timeline.media',
-    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
+    'media_viewer.controls.timeline.events_media_type',
   ),
   upgradeMoveToWithOverrides('view.scan', CONF_VIEW_TRIGGERS),
   upgradeMoveToWithOverrides(
@@ -944,4 +941,23 @@ const UPGRADES = [
     frigateCardToAdvancedCameraCardStyleTransform,
   ),
   upgradeMoveToWithOverrides('menu.buttons.frigate', 'menu.buttons.iris'),
+
+  // v8.0.0+
+  upgradeMoveToWithOverrides(
+    'live.controls.thumbnails.media_type',
+    'cameras_global.media.type',
+  ),
+  upgradeMoveToWithOverrides(
+    'live.controls.thumbnails.events_media_type',
+    'cameras_global.media.events_type',
+    {
+      transform: (val) => {
+        // 'all' is the default, delete it
+        if (val === 'all') {
+          return null;
+        }
+        return val;
+      },
+    },
+  ),
 ];

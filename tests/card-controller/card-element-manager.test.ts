@@ -2,12 +2,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CardElementManager } from '../../src/card-controller/card-element-manager';
 import { StateWatcher } from '../../src/card-controller/hass/state-watcher';
+import { QueryResults } from '../../src/view/query-results';
 import {
   callStateWatcherCallback,
   createCardAPI,
   createConfig,
   createLitElement,
   createStateEntity,
+  createView,
+  TestViewMedia,
 } from '../test-utils';
 
 // @vitest-environment jsdom
@@ -259,6 +262,76 @@ describe('CardElementManager', () => {
       callStateWatcherCallback(stateWatcher, diff);
 
       expect(element.requestUpdate).toBeCalled();
+    });
+
+    it('selected media review status changes', () => {
+      const api = createCardAPI();
+      const selectedMedia = new TestViewMedia({ id: 'media-1' });
+      const queryResults = new QueryResults({
+        results: [selectedMedia],
+        selectedIndex: 0,
+      });
+      const view = createView({ queryResults });
+
+      vi.mocked(api.getViewManager().getView).mockReturnValue(view);
+
+      const element = createLitElement();
+      const manager = new CardElementManager(
+        api,
+        element,
+        () => undefined,
+        () => undefined,
+      );
+
+      manager.elementConnected();
+
+      // Clear any previous calls from elementConnected.
+      vi.mocked(element.requestUpdate).mockClear();
+
+      // Dispatch the media reviewed event with the selected media item.
+      element.dispatchEvent(
+        new CustomEvent('advanced-camera-card:media:reviewed', {
+          detail: selectedMedia,
+        }),
+      );
+
+      expect(element.requestUpdate).toBeCalled();
+    });
+
+    it('non-selected media review status changes does not update', () => {
+      const api = createCardAPI();
+      const selectedMedia = new TestViewMedia({ id: 'media-1' });
+      const otherMedia = new TestViewMedia({ id: 'media-2' });
+      const queryResults = new QueryResults({
+        results: [selectedMedia, otherMedia],
+        selectedIndex: 0,
+      });
+      const view = createView({ queryResults });
+
+      vi.mocked(api.getViewManager().getView).mockReturnValue(view);
+
+      const element = createLitElement();
+      const manager = new CardElementManager(
+        api,
+        element,
+        () => undefined,
+        () => undefined,
+      );
+
+      manager.elementConnected();
+
+      // Clear any previous calls from elementConnected.
+      vi.mocked(element.requestUpdate).mockClear();
+
+      // Dispatch the media reviewed event with a DIFFERENT media item.
+      element.dispatchEvent(
+        new CustomEvent('advanced-camera-card:media:reviewed', {
+          detail: otherMedia,
+        }),
+      );
+
+      // Should NOT update because the reviewed item is not the selected item.
+      expect(element.requestUpdate).not.toBeCalled();
     });
   });
 });

@@ -1,7 +1,6 @@
 import { ViewContext } from 'view';
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { QueryType } from '../../../src/camera-manager/types';
 import { CardController } from '../../../src/card-controller/controller';
 import { ViewFactory } from '../../../src/card-controller/view/factory';
 import { SetQueryViewModifier } from '../../../src/card-controller/view/modifiers/set-query';
@@ -11,11 +10,12 @@ import {
 } from '../../../src/card-controller/view/types';
 import { ViewManager } from '../../../src/card-controller/view/view-manager';
 import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
+import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import { ViewMedia, ViewMediaType } from '../../../src/view/item';
-import { EventMediaQuery } from '../../../src/view/query';
 import { QueryResults } from '../../../src/view/query-results';
+import { UnifiedQuery } from '../../../src/view/unified-query';
 import { View } from '../../../src/view/view';
-import { createCardAPI, createView } from '../../test-utils';
+import { createCardAPI, createEventQuery, createView } from '../../test-utils';
 
 const createInitializedCardAPI = (initialized?: boolean): CardController => {
   const api = createCardAPI();
@@ -464,55 +464,12 @@ describe('should initialize', () => {
   });
 });
 
-it('should adopt query and results when changing to gallery from viewer', async () => {
-  const baseView = createView({
-    view: 'media',
-    camera: 'camera.office',
-    query: new EventMediaQuery([
-      {
-        type: QueryType.Event,
-        cameraIDs: new Set(['camera.office']),
-        hasClip: true,
-      },
-    ]),
-    queryResults: new QueryResults(),
-  });
-
-  const viewFactory = mock<ViewFactory>();
-  viewFactory.getViewDefault
-    .mockReturnValueOnce(baseView)
-    .mockReturnValueOnce(createView({ view: 'clips' }));
-
-  const viewQueryExecutor = mock<ViewQueryExecutor>();
-  viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([]);
-
-  const manager = new ViewManager(createInitializedCardAPI(), {
-    viewFactory: viewFactory,
-    viewQueryExecutor: viewQueryExecutor,
-  });
-
-  manager.setViewDefault();
-  expect(manager.getView()?.is('media')).toBeTruthy();
-
-  await manager.setViewDefaultWithNewQuery({
-    params: {
-      view: 'clips',
-    },
-  });
-
-  expect(manager.getView()?.is('clips')).toBeTruthy();
-  expect(manager.getView()?.query).toBe(baseView.query);
-  expect(manager.getView()?.queryResults).toBe(baseView.queryResults);
-  expect(viewQueryExecutor.getNewQueryModifiers).not.toHaveBeenCalled();
-  expect(viewQueryExecutor.getExistingQueryModifiers).not.toHaveBeenCalled();
-});
-
 describe('should apply async view modifications', () => {
   it('should apply modifications successfully', async () => {
     const viewFactory = mock<ViewFactory>();
     viewFactory.getViewDefault.mockReturnValue(createView({ view: 'live' }));
 
-    const query = new EventMediaQuery();
+    const query = new UnifiedQuery();
     const queryResults = new QueryResults();
 
     const viewQueryExecutor = mock<ViewQueryExecutor>();
@@ -539,7 +496,7 @@ describe('should apply async view modifications', () => {
     const viewFactory = mock<ViewFactory>();
     viewFactory.getViewDefault.mockReturnValueOnce(createView({ view: 'live' }));
 
-    const query = new EventMediaQuery();
+    const query = new UnifiedQuery();
     const queryResults = new QueryResults();
 
     const viewQueryExecutor = mock<ViewQueryExecutor>();
@@ -691,47 +648,68 @@ describe('should apply async view modifications', () => {
       expect(manager.getView()?.context?.loading?.query).toBe(100);
     });
   });
-});
 
-it('should adopt query and results when changing to gallery from viewer', async () => {
-  const baseView = createView({
-    view: 'media',
-    camera: 'camera.office',
-    query: new EventMediaQuery([
-      {
-        type: QueryType.Event,
-        cameraIDs: new Set(['camera.office']),
-        hasClip: true,
-      },
-    ]),
-    queryResults: new QueryResults(),
+  describe('should adopt query results when useful', () => {
+    const testAdoption = async (
+      originView: AdvancedCameraCardView | undefined,
+      targetViewName: AdvancedCameraCardView,
+      startViewName: AdvancedCameraCardView = 'media',
+    ): Promise<boolean> => {
+      const startView = createView({
+        view: startViewName,
+        camera: 'camera',
+        query: new UnifiedQuery([createEventQuery('c1')]),
+        queryResults: new QueryResults(),
+        context: originView ? { gallery: { originView } } : undefined,
+      });
+      const targetView = createView({
+        view: targetViewName,
+        camera: 'camera',
+      });
+
+      const viewFactory = mock<ViewFactory>();
+      viewFactory.getViewDefault
+        .mockReturnValueOnce(startView)
+        .mockReturnValueOnce(targetView);
+
+      const viewQueryExecutor = mock<ViewQueryExecutor>();
+      viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([]);
+
+      const manager = new ViewManager(createInitializedCardAPI(), {
+        viewFactory: viewFactory,
+        viewQueryExecutor: viewQueryExecutor,
+      });
+
+      manager.setViewDefault();
+      await manager.setViewDefaultWithNewQuery();
+
+      return vi.mocked(viewQueryExecutor.getNewQueryModifiers).mock.calls.length === 0;
+    };
+
+    it('should return false when no originView context', async () => {
+      expect(await testAdoption(undefined, 'clips')).toBe(false);
+    });
+
+    it('should return true when originView matches target', async () => {
+      expect(await testAdoption('clips', 'clips')).toBe(true);
+      expect(await testAdoption('snapshots', 'snapshots')).toBe(true);
+      expect(await testAdoption('recordings', 'recordings')).toBe(true);
+      expect(await testAdoption('reviews', 'reviews')).toBe(true);
+    });
+
+    it('should return false when originView does not match target', async () => {
+      expect(await testAdoption('clips', 'snapshots')).toBe(false);
+      expect(await testAdoption('clips', 'recordings')).toBe(false);
+      expect(await testAdoption('snapshots', 'clips')).toBe(false);
+      expect(await testAdoption('recordings', 'reviews')).toBe(false);
+    });
+
+    it('should return false when start view is not viewer', async () => {
+      expect(await testAdoption('clips', 'clips', 'live')).toBe(false);
+    });
+
+    it('should return false when target view is not gallery', async () => {
+      expect(await testAdoption('clips', 'live')).toBe(false);
+    });
   });
-
-  const viewFactory = mock<ViewFactory>();
-  viewFactory.getViewDefault
-    .mockReturnValueOnce(baseView)
-    .mockReturnValueOnce(createView({ view: 'clips' }));
-
-  const viewQueryExecutor = mock<ViewQueryExecutor>();
-  viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([]);
-
-  const manager = new ViewManager(createInitializedCardAPI(), {
-    viewFactory: viewFactory,
-    viewQueryExecutor: viewQueryExecutor,
-  });
-
-  manager.setViewDefault();
-  expect(manager.getView()?.is('media')).toBeTruthy();
-
-  await manager.setViewDefaultWithNewQuery({
-    params: {
-      view: 'clips',
-    },
-  });
-
-  expect(manager.getView()?.is('clips')).toBeTruthy();
-  expect(manager.getView()?.query).toBe(baseView.query);
-  expect(manager.getView()?.queryResults).toBe(baseView.queryResults);
-  expect(viewQueryExecutor.getNewQueryModifiers).not.toHaveBeenCalled();
-  expect(viewQueryExecutor.getExistingQueryModifiers).not.toHaveBeenCalled();
 });

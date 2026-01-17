@@ -3,7 +3,6 @@ import { deepRemoveDefaults } from '../../utils/zod';
 import { automationsSchema } from './automations';
 import { cameraConfigDefault, cameraConfigSchema, camerasConfigSchema } from './cameras';
 import { cardIDRegex } from './common/const';
-import { timelineConfigDefault } from './common/controls/timeline';
 import { imageConfigDefault } from './common/image';
 import { DebugConfig, debugConfigDefault, debugConfigSchema } from './debug';
 import { dimensionsConfigSchema } from './dimensions';
@@ -22,7 +21,7 @@ import {
 import { profilesSchema } from './profiles';
 import { remoteControlConfigDefault, remoteControlConfigSchema } from './remote-control';
 import { statusBarConfigDefault, statusBarConfigSchema } from './status-bar';
-import { timelineConfigSchema } from './timeline';
+import { timelineConfigDefault, timelineConfigSchema } from './timeline';
 import { viewConfigDefault, viewConfigSchema } from './view';
 import { viewerConfigDefault, viewerConfigSchema } from './viewer';
 

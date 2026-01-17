@@ -18,7 +18,6 @@ import {
   ThumbnailDataRequest,
   ThumbnailDataRequestEvent,
   TimelineItemClickAction,
-  TimelineKeys,
 } from '../components-lib/timeline/types';
 import { ConditionStateManagerReadonlyInterface } from '../conditions/types';
 import { ThumbnailsControlBaseConfig } from '../config/schema/common/controls/thumbnails';
@@ -120,11 +119,6 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
   @property({ attribute: true, type: Boolean, reflect: true })
   public mini = false;
 
-  // Which cameraIDs to include in the timeline. If not specified, all cameraIDs
-  // are shown.
-  @property({ attribute: false, hasChanged: contentsChanged })
-  public keys?: TimelineKeys;
-
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 
@@ -152,7 +146,22 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
       return;
     }
 
-    if (!this.keys) {
+    const view = this.viewManagerEpoch?.manager.getView();
+    const isLoading = !!view?.context?.loading?.query;
+
+    if (isLoading) {
+      if (!this.mini) {
+        return renderMessage({
+          message: localize('error.awaiting_media'),
+          icon: 'mdi:chart-gantt',
+          type: 'info',
+          dotdotdot: true,
+        });
+      }
+      return;
+    }
+
+    if (!view?.query || !view.query.hasNodes()) {
       if (!this.mini) {
         return renderMessage({
           message: localize('error.no_camera_or_media_for_timeline'),
@@ -234,13 +243,14 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
 
     if (
       [
+        'viewManagerEpoch',
         'cameraManager',
         'viewItemManager',
         'timelineConfig',
         'mini',
         'thumbnailConfig',
-        'keys',
         'conditionStateManager',
+        'foldersManager',
       ].some((prop) => changedProps.has(prop))
     ) {
       this._controller.setOptions({
@@ -251,7 +261,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
         timelineConfig: this.timelineConfig,
         mini: this.mini,
         thumbnailConfig: this.thumbnailConfig,
-        keys: this.keys,
+        query: this.viewManagerEpoch?.manager.getView()?.query ?? undefined,
       });
     }
   }

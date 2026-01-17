@@ -14,6 +14,7 @@ import {
 import { BrowseMediaStep, BrowseMediaTarget } from '../../ha/browse-media/walker';
 import { isMediaWithinDates } from '../../ha/browse-media/within-dates';
 import { HomeAssistant } from '../../ha/types';
+import { hasUnsupportedFilters } from '../../query-source.js';
 import { allPromises, formatDate, isValidDate } from '../../utils/basic';
 import { ViewMedia } from '../../view/item';
 import { BrowseMediaCameraManagerEngine } from '../browse-media/engine-browse-media';
@@ -224,8 +225,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     query: EventQuery,
     engineOptions?: EngineOptions,
   ): Promise<EventQueryResultsMap | null> {
-    // MotionEye does not support these query types and they will never match.
-    if (query.favorite || query.tags?.size || query.what?.size || query.where?.size) {
+    if (hasUnsupportedFilters(query)) {
       return null;
     }
 

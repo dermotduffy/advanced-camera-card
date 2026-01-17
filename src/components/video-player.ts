@@ -53,7 +53,7 @@ export class AdvancedCameraCardVideoPlayer extends LitElement implements MediaPl
             );
           }
         }}
-        @loadeddata=${(ev: Event) => {
+        @loadeddata="${(ev: Event) => {
           dispatchMediaLoadedEvent(this, ev, {
             ...(this._mediaPlayerController && {
               mediaPlayerController: this._mediaPlayerController,
@@ -64,7 +64,7 @@ export class AdvancedCameraCardVideoPlayer extends LitElement implements MediaPl
             },
             technology: ['mp4'],
           });
-        }}
+        }}"
         @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
         @play=${() => dispatchMediaPlayEvent(this)}
         @pause=${() => dispatchMediaPauseEvent(this)}

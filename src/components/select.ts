@@ -70,10 +70,11 @@ export class AdvancedCameraCardSelect extends ScopedRegistryHost(LitElement) {
       const initialValueSet = this.value === null;
       this.value = value;
 
-      // The underlying gr-select element will call on the first first value set
+      // The underlying gr-select element will call on the first value set
       // (even when the user has not interacted with the control). Do not
-      // dispatch events for this.
-      if (!initialValueSet) {
+      // dispatch events for this UNLESS the value is actually non-empty
+      // (indicating a user selection).
+      if (!initialValueSet || (Array.isArray(value) ? value.length : !!value)) {
         fireAdvancedCameraCardEvent(this, 'select:change', value);
       }
     }

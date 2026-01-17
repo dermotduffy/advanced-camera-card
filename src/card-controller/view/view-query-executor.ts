@@ -1,11 +1,15 @@
 import { sub } from 'date-fns';
-import { ClipsOrSnapshotsOrAll } from '../../types';
+import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const';
+import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
+import { QueryResults } from '../../view/query-results';
+import { UnifiedQuery } from '../../view/unified-query';
+import { MediaTypeSpec, UnifiedQueryBuilder } from '../../view/unified-query-builder';
+import { UnifiedQueryRunner } from '../../view/unified-query-runner';
 import { View } from '../../view/view';
 import { CardViewAPI } from '../types';
 import { MergeContextViewModifier } from './modifiers/merge-context';
 import { RemoveContextPropertyViewModifier } from './modifiers/remove-context-property';
 import { SetQueryViewModifier } from './modifiers/set-query';
-import { QueryExecutor } from './query-executor';
 import { QueryExecutorOptions, ViewModifier } from './types';
 
 /**
@@ -14,27 +18,42 @@ import { QueryExecutorOptions, ViewModifier } from './types';
  * and if a query is made as part of this view the result can be applied later.
  */
 export class ViewQueryExecutor {
-  protected _api: CardViewAPI;
-  protected _executor: QueryExecutor;
+  private _api: CardViewAPI;
 
-  constructor(api: CardViewAPI, executor?: QueryExecutor) {
+  constructor(api: CardViewAPI) {
     this._api = api;
-    this._executor = executor ?? new QueryExecutor(api);
   }
 
   public async getExistingQueryModifiers(
     view: View,
     queryExecutorOptions?: QueryExecutorOptions,
   ): Promise<ViewModifier[] | null> {
-    return view.query
+    if (!view.query) {
+      return null;
+    }
+
+    const runner = new UnifiedQueryRunner(
+      this._api.getCameraManager(),
+      this._api.getFoldersManager(),
+      this._api.getConditionStateManager(),
+    );
+
+    const items = await runner.execute(view.query, {
+      useCache: queryExecutorOptions?.useCache,
+    });
+
+    const queryResults = this._applyResultSelection(
+      new QueryResults({ results: items }),
+      queryExecutorOptions,
+    );
+
+    return queryResults
       ? [
           new SetQueryViewModifier({
-            queryResults: (
-              await this._executor.executeQuery(view.query, queryExecutorOptions)
-            )?.queryResults,
+            queryResults,
           }),
         ]
-      : [];
+      : null;
   }
 
   public async getNewQueryModifiers(
@@ -47,7 +66,7 @@ export class ViewQueryExecutor {
     });
   }
 
-  protected async _executeNewQuery(
+  private async _executeNewQuery(
     view: View,
     queryExecutorOptions?: QueryExecutorOptions,
   ): Promise<ViewModifier[] | null> {
@@ -56,71 +75,111 @@ export class ViewQueryExecutor {
       return null;
     }
 
-    const mediaType = view?.getDefaultMediaType();
     const viewModifiers: ViewModifier[] = [];
+    const builder = new UnifiedQueryBuilder(
+      this._api.getCameraManager(),
+      this._api.getFoldersManager(),
+    );
+    const runner = new UnifiedQueryRunner(
+      this._api.getCameraManager(),
+      this._api.getFoldersManager(),
+      this._api.getConditionStateManager(),
+    );
 
-    const executeMediaQuery = async (
-      mediaType: ClipsOrSnapshotsOrAll | 'recordings' | null,
-    ): Promise<ViewModifier[]> => {
-      /* istanbul ignore if: this path cannot be reached -- @preserve */
-      if (!mediaType) {
+    const executeQuery = async (query: UnifiedQuery | null): Promise<ViewModifier[]> => {
+      if (!query) {
         return [];
       }
 
-      const results =
-        mediaType === 'recordings'
-          ? await this._executor.executeDefaultRecordingQuery({
-              ...(!view.isGrid() && { cameraID: view.camera }),
-              executorOptions: queryExecutorOptions,
-            })
-          : mediaType === 'clips' || mediaType === 'snapshots' || mediaType === 'all'
-            ? await this._executor.executeDefaultEventQuery({
-                ...(!view.isGrid() && { cameraID: view.camera }),
-                eventsMediaType: mediaType,
-                executorOptions: queryExecutorOptions,
-              })
-            : /* istanbul ignore next -- @preserve */
-              null;
+      const items = await runner.execute(query, {
+        useCache: queryExecutorOptions?.useCache,
+      });
 
-      return results ? [new SetQueryViewModifier(results)] : [];
+      return [
+        new SetQueryViewModifier({
+          query,
+          queryResults: new QueryResults({ results: items }),
+        }),
+      ];
     };
 
-    const executeFolderQuery = async (): Promise<ViewModifier[]> => {
-      const results = await this._executor.executeFolderQuery(queryExecutorOptions);
-      return results ? [new SetQueryViewModifier(results)] : [];
-    };
+    const cameraForQuery = view.isGrid() ? undefined : view.camera;
 
     switch (view.view) {
       case 'live':
         if (config.live.controls.thumbnails.mode !== 'none') {
-          viewModifiers.push(
-            ...(await executeMediaQuery(
-              config.live.controls.thumbnails.media_type === 'recordings'
-                ? 'recordings'
-                : config.live.controls.thumbnails.events_media_type,
-            )),
-          );
+          const defaultQuery = builder.buildDefaultCameraQuery(cameraForQuery);
+          if (defaultQuery) {
+            viewModifiers.push(...(await executeQuery(defaultQuery)));
+          }
         }
         break;
-
-      case 'media':
-        // If the user is looking at media in the `media` view and then
-        // changes camera (via the menu) it should default to showing clips
-        // for the new camera.
-        viewModifiers.push(...(await executeMediaQuery('clips')));
+      case 'timeline':
+        // Timeline view always queries all cameras with media capabilities.
+        viewModifiers.push(...(await executeQuery(builder.buildDefaultCameraQuery())));
         break;
-
+      case 'media':
+      // If the user is looking at media in the `media` view and then
+      // changes camera (via the menu) it should default to showing clips
+      // for the new camera.
       case 'clip':
       case 'clips':
+        viewModifiers.push(
+          ...(await executeQuery(
+            builder.buildCameraMediaQuery(MediaTypeSpec.clips(), {
+              cameraID: cameraForQuery,
+              limit: this._getLimit(),
+            }),
+          )),
+        );
+
+        break;
+
       case 'snapshot':
       case 'snapshots':
+        viewModifiers.push(
+          ...(await executeQuery(
+            builder.buildCameraMediaQuery(MediaTypeSpec.snapshots(), {
+              cameraID: cameraForQuery,
+              limit: this._getLimit(),
+            }),
+          )),
+        );
+        break;
+
       case 'recording':
       case 'recordings':
-        viewModifiers.push(...(await executeMediaQuery(mediaType)));
+        viewModifiers.push(
+          ...(await executeQuery(
+            builder.buildCameraMediaQuery(MediaTypeSpec.recordings(), {
+              cameraID: cameraForQuery,
+              limit: this._getLimit(),
+            }),
+          )),
+        );
         break;
+
+      case 'review':
+      case 'reviews':
+        viewModifiers.push(
+          ...(await executeQuery(
+            builder.buildCameraMediaQuery(MediaTypeSpec.reviews(), {
+              cameraID: cameraForQuery,
+              limit: this._getLimit(),
+            }),
+          )),
+        );
+        break;
+
       case 'folder':
       case 'folders':
-        viewModifiers.push(...(await executeFolderQuery()));
+        viewModifiers.push(
+          ...(await executeQuery(
+            builder.buildDefaultFolderQuery(queryExecutorOptions?.folder, {
+              limit: this._getLimit(),
+            }),
+          )),
+        );
         break;
     }
 
@@ -131,7 +190,7 @@ export class ViewQueryExecutor {
     return viewModifiers;
   }
 
-  protected _getTimelineWindowViewModifier(view: View): ViewModifier[] {
+  private _getTimelineWindowViewModifier(view: View): ViewModifier[] {
     if (view.is('live')) {
       // For live views, always force the timeline to now, regardless of
       // presence or not of events.
@@ -166,7 +225,7 @@ export class ViewQueryExecutor {
     }
   }
 
-  protected _getSeekTimeModifier(time?: Date): ViewModifier[] {
+  private _getSeekTimeModifier(time?: Date): ViewModifier[] {
     if (time) {
       return [
         new MergeContextViewModifier({
@@ -178,5 +237,40 @@ export class ViewQueryExecutor {
     } else {
       return [new RemoveContextPropertyViewModifier('mediaViewer', 'seek')];
     }
+  }
+
+  private _applyResultSelection(
+    queryResults: QueryResults,
+    options?: QueryExecutorOptions,
+  ): QueryResults | null {
+    if (options?.rejectResults?.(queryResults)) {
+      return null;
+    }
+
+    const timeSelection = options?.selectResult?.time;
+    if (options?.selectResult?.id) {
+      queryResults.selectBestResult((media) =>
+        media.findIndex((m) => m.getID() === options.selectResult?.id),
+      );
+    } else if (options?.selectResult?.func) {
+      queryResults.selectResultIfFound(options.selectResult.func);
+    } else if (timeSelection) {
+      queryResults.selectBestResult((itemArray) =>
+        findBestMediaTimeIndex(
+          itemArray,
+          timeSelection.time,
+          timeSelection.favorCameraID,
+        ),
+      );
+    }
+
+    return queryResults;
+  }
+
+  private _getLimit(): number {
+    return (
+      this._api.getConfigManager().getConfig()?.performance?.features
+        ?.media_chunk_size ?? MEDIA_CHUNK_SIZE_DEFAULT
+    );
   }
 }

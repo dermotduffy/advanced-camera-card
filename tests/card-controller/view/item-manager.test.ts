@@ -226,7 +226,7 @@ describe('ViewItemManager', () => {
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
         const manager = new ViewItemManager(api);
-        const item = new ViewFolder(createFolder());
+        const item = new ViewFolder(createFolder(), []);
 
         vi.mocked(api.getFoldersManager().getDownloadPath).mockResolvedValue({
           sign: false,
@@ -242,7 +242,7 @@ describe('ViewItemManager', () => {
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
         const manager = new ViewItemManager(api);
-        const item = new ViewFolder(createFolder(), { title: 'title' });
+        const item = new ViewFolder(createFolder(), [], { title: 'title' });
 
         vi.mocked(api.getFoldersManager().getDownloadPath).mockResolvedValue({
           sign: false,
@@ -282,6 +282,36 @@ describe('ViewItemManager', () => {
       await manager.favorite(item, true);
 
       expect(api.getFoldersManager().favorite).toBeCalledWith(item, true);
+    });
+  });
+
+  describe('reviewMedia', () => {
+    it('should review camera media', async () => {
+      const api = createCardAPI();
+
+      const manager = new ViewItemManager(api);
+      const item = new TestViewMedia({
+        cameraID: 'camera.office',
+        mediaType: 'review' as ViewMediaType,
+      });
+
+      await manager.reviewMedia(item, true);
+
+      expect(api.getCameraManager().reviewMedia).toBeCalledWith(item, true);
+    });
+
+    it('should not review non-review media', async () => {
+      const api = createCardAPI();
+
+      const manager = new ViewItemManager(api);
+      const item = new TestViewMedia({
+        cameraID: 'camera.office',
+        mediaType: ViewMediaType.Clip,
+      });
+
+      await manager.reviewMedia(item, true);
+
+      expect(api.getCameraManager().reviewMedia).not.toBeCalled();
     });
   });
 });

@@ -23,6 +23,7 @@ export const statusBarConfigDefault = {
   items: {
     engine: statusBarItemDefault,
     resolution: statusBarItemDefault,
+    severity: statusBarItemDefault,
     technology: statusBarItemDefault,
     title: statusBarItemDefault,
   },
@@ -50,6 +51,7 @@ export const statusBarConfigSchema = z
         resolution: statusBarItemBaseSchema.default(
           statusBarConfigDefault.items.resolution,
         ),
+        severity: statusBarItemBaseSchema.default(statusBarConfigDefault.items.severity),
         title: statusBarItemBaseSchema.default(statusBarConfigDefault.items.title),
       })
       .default(statusBarConfigDefault.items),

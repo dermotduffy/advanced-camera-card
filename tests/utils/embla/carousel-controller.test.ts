@@ -143,7 +143,8 @@ describe('CarouselController', () => {
 
     carousel.selectSlide(11);
 
-    expect(getEmblaApi()?.scrollTo).toBeCalledWith(11, false);
+    // Should not call scrollTo or fire event because index is out of bounds
+    expect(getEmblaApi()?.scrollTo).not.toBeCalled();
     expect(forceSelectListener).not.toBeCalled();
   });
 
@@ -257,7 +258,7 @@ describe('CarouselController', () => {
     );
   });
 
-  it('should recreate carousel when children are added', () => {
+  it('should reinit carousel when children are added', () => {
     const children = createTestSlideNodes();
     const root = createRoot();
     const parent = createParent({ children: children });
@@ -269,13 +270,17 @@ describe('CarouselController', () => {
     expect(originalEmblaApi).toBeTruthy();
 
     originalEmblaApi?.slideNodes.mockReturnValue(children);
-    parent.appendChild(document.createElement('div'));
+    const newChild = document.createElement('div');
+    parent.appendChild(newChild);
     callMutationHandler();
 
-    expect(originalEmblaApi?.destroy).toBeCalled();
-    expect(getEmblaApi()).not.toBe(originalEmblaApi);
+    // Should call reInit instead of destroy/recreate
+    expect(originalEmblaApi?.reInit).toBeCalledWith({
+      slides: [...children, newChild],
+    });
 
-    expect(EmblaCarousel).toBeCalledTimes(2);
+    // Should still be same carousel instance (no new creation)
+    expect(EmblaCarousel).toBeCalledTimes(1);
   });
 
   it('should not recreate carousel when children have not changed', () => {
@@ -298,7 +303,7 @@ describe('CarouselController', () => {
     expect(EmblaCarousel).toBeCalledTimes(1);
   });
 
-  it('should recreate carousel when children are added to slot', () => {
+  it('should reinit carousel when children are added to slot', () => {
     const children = createTestSlideNodes();
     const slot = createSlot();
     const host = createSlotHost({ slot: slot, children: children });
@@ -312,12 +317,16 @@ describe('CarouselController', () => {
 
     originalEmblaApi?.slideNodes.mockReturnValue(children);
 
-    host.appendChild(document.createElement('div'));
+    const newChild = document.createElement('div');
+    host.appendChild(newChild);
     slot.dispatchEvent(new Event('slotchange'));
 
-    expect(originalEmblaApi?.destroy).toBeCalled();
-    expect(getEmblaApi()).not.toBe(originalEmblaApi);
+    // Should call reInit instead of destroy/recreate
+    expect(originalEmblaApi?.reInit).toBeCalledWith({
+      slides: [...children, newChild],
+    });
 
-    expect(EmblaCarousel).toBeCalledTimes(2);
+    // Should still be same carousel instance (no new creation)
+    expect(EmblaCarousel).toBeCalledTimes(1);
   });
 });

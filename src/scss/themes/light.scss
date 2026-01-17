@@ -15,4 +15,20 @@
   // See: https://github.com/home-assistant/frontend/blob/dev/src/common/dom/apply_themes_on_element.ts
 
   --app-header-background-color: #03a9f4;
+
+  /******************
+   * Overlay Message
+   ******************/
+  --advanced-camera-card-overlay-message-background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(235, 235, 235, 0.75) 100%
+  );
+  --advanced-camera-card-overlay-message-text-color: var(--primary-text-color);
+  --advanced-camera-card-overlay-message-border: 1px solid rgba(0, 0, 0, 0.3);
+  --advanced-camera-card-overlay-message-border-top: 1px solid rgba(0, 0, 0, 0.2);
+  --advanced-camera-card-overlay-message-box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3),
+    0 2px 8px 0 rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+  --advanced-camera-card-overlay-message-scrollbar-color: rgba(0, 0, 0, 0.5);
+  --advanced-camera-card-overlay-message-close-color: #000000;
 }

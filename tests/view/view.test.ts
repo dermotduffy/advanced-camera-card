@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { EventMediaQuery } from '../../src/view/query';
+import { UnifiedQuery } from '../../src/view/unified-query';
 import { QueryResults } from '../../src/view/query-results';
 import { createView } from '../test-utils';
 
 describe('View Basics', () => {
   it('should construct from parameters', () => {
-    const query = new EventMediaQuery();
+    const query = new UnifiedQuery();
     const queryResults = new QueryResults();
     const context = {};
 
@@ -29,7 +29,7 @@ describe('View Basics', () => {
       const view = createView({
         view: 'live',
         camera: 'camera',
-        query: new EventMediaQuery(),
+        query: new UnifiedQuery(),
         queryResults: new QueryResults(),
         context: {},
       });
@@ -52,7 +52,7 @@ describe('View Basics', () => {
     const view = createView({
       view: 'live',
       camera: 'camera-1',
-      query: new EventMediaQuery(),
+      query: new UnifiedQuery(),
       queryResults: new QueryResults(),
       context: {},
       displayMode: 'single',
@@ -61,7 +61,7 @@ describe('View Basics', () => {
     const evolved = view.evolve({
       view: 'clips',
       camera: 'camera-2',
-      query: new EventMediaQuery(),
+      query: new UnifiedQuery(),
       queryResults: new QueryResults(),
       context: {},
       displayMode: 'grid',
@@ -78,7 +78,7 @@ describe('View Basics', () => {
     const view = createView({
       view: 'live',
       camera: 'camera-1',
-      query: new EventMediaQuery(),
+      query: new UnifiedQuery(),
       queryResults: new QueryResults(),
       context: {},
     });
@@ -184,15 +184,16 @@ describe('View Basics', () => {
 
   describe('should detect gallery views', () => {
     it('should detect gallery views', () => {
-      expect(createView({ view: 'clips' }).isMediaGalleryView()).toBeTruthy();
-      expect(createView({ view: 'folders' }).isMediaGalleryView()).toBeTruthy();
-      expect(createView({ view: 'snapshots' }).isMediaGalleryView()).toBeTruthy();
-      expect(createView({ view: 'recordings' }).isMediaGalleryView()).toBeTruthy();
+      expect(createView({ view: 'clips' }).isGalleryView()).toBeTruthy();
+      expect(createView({ view: 'folders' }).isGalleryView()).toBeTruthy();
+      expect(createView({ view: 'snapshots' }).isGalleryView()).toBeTruthy();
+      expect(createView({ view: 'recordings' }).isGalleryView()).toBeTruthy();
+      expect(createView({ view: 'reviews' }).isGalleryView()).toBeTruthy();
     });
 
     it('should not detect gallery view', () => {
-      expect(createView({ view: 'live' }).isMediaGalleryView()).toBeFalsy();
-      expect(createView({ view: 'timeline' }).isMediaGalleryView()).toBeFalsy();
+      expect(createView({ view: 'live' }).isGalleryView()).toBeFalsy();
+      expect(createView({ view: 'timeline' }).isGalleryView()).toBeFalsy();
     });
   });
 
@@ -202,6 +203,7 @@ describe('View Basics', () => {
       expect(createView({ view: 'snapshot' }).isViewerView()).toBeTruthy();
       expect(createView({ view: 'media' }).isViewerView()).toBeTruthy();
       expect(createView({ view: 'recording' }).isViewerView()).toBeTruthy();
+      expect(createView({ view: 'review' }).isViewerView()).toBeTruthy();
       expect(createView({ view: 'folder' }).isAnyMediaView()).toBeTruthy();
     });
 
@@ -222,6 +224,8 @@ describe('View Basics', () => {
       expect(createView({ view: 'recordings' }).getDefaultMediaType()).toBe(
         'recordings',
       );
+      expect(createView({ view: 'review' }).getDefaultMediaType()).toBe('reviews');
+      expect(createView({ view: 'reviews' }).getDefaultMediaType()).toBe('reviews');
     });
 
     it('should not get default media type', () => {

@@ -1,7 +1,6 @@
 import { ViewContext } from 'view';
 import { log } from '../../utils/debug';
 import { getStreamCameraID } from '../../utils/substream';
-import { QueryClassifier } from '../../view/query-classifier';
 import { View } from '../../view/view';
 import { InitializationAspect } from '../initialization-manager';
 import { CardViewAPI } from '../types';
@@ -234,19 +233,19 @@ export class ViewManager implements ViewManagerInterface {
     // If the user is currently using the viewer, and then switches to the
     // gallery we make an attempt to keep the query/queryResults the same so
     // the gallery can be used to click back and forth to the viewer, and the
-    // selected media can be centered in the gallery. See the matching code in
-    // `updated()` in `gallery.ts`. We specifically must ensure that the new
-    // target media of the gallery (e.g. clips, snapshots or recordings) is
-    // equal to the queries that are currently used in the viewer.
+    // selected media can be centered in the gallery.
     //
     // See: https://github.com/dermotduffy/advanced-camera-card/issues/885
 
-    const switchingFromViewerToGallery =
-      this._view?.isViewerView() && newView?.isMediaGalleryView();
-    const newMediaType = newView?.getDefaultMediaType();
-    const alreadyHasMatchingQuery =
-      QueryClassifier.getMediaType(this._view?.query) === newMediaType;
-    return !!switchingFromViewerToGallery && alreadyHasMatchingQuery;
+    if (!this._view?.isViewerView() || !newView?.isGalleryView()) {
+      return false;
+    }
+
+    // Check if the viewer came from this gallery type. If they did, we preserve
+    // the query/results to ensure consistency in navigation between media &
+    // gallery.
+    const originView = this._view?.context?.gallery?.originView;
+    return originView === newView.view;
   }
 
   public setViewWithMergedContext(context: ViewContext | null): void {
