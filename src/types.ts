@@ -63,6 +63,11 @@ export interface Message {
   url?: MessageURL;
 }
 
+export interface OverlayMessage {
+  message: string;
+  icon?: string;
+}
+
 export type WebkitHTMLVideoElement = HTMLVideoElement & {
   webkitDisplayingFullscreen: boolean;
   webkitSupportsFullscreen: boolean;

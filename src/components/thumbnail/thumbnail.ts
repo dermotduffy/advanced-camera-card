@@ -12,6 +12,7 @@ import { localize } from '../../localize/localize.js';
 import thumbnailStyle from '../../scss/thumbnail.scss';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { errorToConsole } from '../../utils/basic.js';
+import { dispatchShowOverlayMessageEvent } from '../../utils/overlay-message.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { ViewItem } from '../../view/item.js';
 import './details.js';
@@ -156,20 +157,15 @@ export class AdvancedCameraCardThumbnail extends LitElement {
             class="${classMap(starClasses)}"
             title=${localize('thumbnail.retain_indefinitely')}
             .icon=${{ icon: this.item.isFavorite() ? 'mdi:star' : 'mdi:star-outline' }}
-            @click=${async (ev: Event) => {
+            @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              if (this.hass && this.item) {
-                try {
-                  await this.viewItemManager?.favorite(
-                    this.item,
-                    !this.item.isFavorite(),
-                  );
-                } catch (e) {
-                  errorToConsole(e as Error);
-                  return;
-                }
-                this.requestUpdate();
-              }
+              // restored for testing overlay (user request)
+              const description =
+                'The sequence captures a residence during the evening hours. A person is observed in the background, lying on a sofa in the living room area which is illuminated by a bright light source, likely a television or fireplace. From the beginning to the end of the 24-second sequence, the individual remains mostly stationary on the couch, exhibiting typical behavior for a resident relaxing at home. The foreground, which includes a kitchen counter and dining area, remains dark and unoccupied throughout the entire duration of the recording.';
+              dispatchShowOverlayMessageEvent(this, {
+                message: description,
+                icon: 'mdi:star',
+              });
             }}
           /></advanced-camera-card-icon>`
           : ``}
@@ -186,6 +182,16 @@ export class AdvancedCameraCardThumbnail extends LitElement {
             class="info"
             .icon=${{ icon: 'mdi:information-outline' }}
             title=${this.item.getDescription()}
+            @click=${(ev: Event) => {
+              stopEventFromActivatingCardWideActions(ev);
+              const description = this.item?.getDescription();
+              if (description) {
+                dispatchShowOverlayMessageEvent(this, {
+                  message: description,
+                  icon: 'mdi:information-outline',
+                });
+              }
+            }}
           ></advanced-camera-card-icon>`
         : ''}
       ${shouldShowTimelineControl

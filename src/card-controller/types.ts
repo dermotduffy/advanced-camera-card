@@ -246,6 +246,10 @@ export interface CardMessageAPI {
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
 }
 
+export interface CardOverlayMessageAPI {
+  getCardElementManager(): CardElementManager;
+}
+
 export interface CardMicrophoneAPI {
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
