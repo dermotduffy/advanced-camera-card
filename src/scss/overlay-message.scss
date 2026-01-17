@@ -30,22 +30,19 @@
   padding-right: 48px;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(
-    --advanced-camera-card-overlay-message-scrollbar-color
-  ) transparent;
+  scrollbar-color: var(--advanced-camera-card-overlay-message-scrollbar-color)
+    transparent;
 
   // Glassmorphism background
   background: var(--advanced-camera-card-overlay-message-background);
   backdrop-filter: var(--advanced-camera-card-overlay-message-backdrop-filter);
-  -webkit-backdrop-filter: var(
-    --advanced-camera-card-overlay-message-backdrop-filter
-  );
-  
+  -webkit-backdrop-filter: var(--advanced-camera-card-overlay-message-backdrop-filter);
+
   // Borders & Edge highlights
   border: var(--advanced-camera-card-overlay-message-border);
   border-top: var(--advanced-camera-card-overlay-message-border-top);
   border-radius: 28px;
-  
+
   // Shadows
   box-shadow: var(
     --advanced-camera-card-box-shadow-override,
@@ -137,7 +134,7 @@
   justify-content: center;
   border-radius: 50%;
   border-radius: 50%;
-  
+
   background: color-mix(
     in srgb,
     var(--advanced-camera-card-overlay-message-close-color),
@@ -148,7 +145,7 @@
     var(--advanced-camera-card-overlay-message-close-color),
     transparent 40%
   );
-  
+
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -159,9 +156,7 @@
     var(--advanced-camera-card-overlay-message-close-color),
     transparent 90%
   );
-  color: var(
-    --advanced-camera-card-overlay-message-close-color
-  );
+  color: var(--advanced-camera-card-overlay-message-close-color);
 }
 
 .close advanced-camera-card-icon {

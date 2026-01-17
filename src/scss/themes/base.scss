@@ -271,8 +271,7 @@
   );
   --advanced-camera-card-overlay-message-backdrop-filter: blur(20px) saturate(180%);
   --advanced-camera-card-overlay-message-border: 1px solid rgba(255, 255, 255, 0.1);
-  --advanced-camera-card-overlay-message-border-top: 1px solid
-    rgba(255, 255, 255, 0.15);
+  --advanced-camera-card-overlay-message-border-top: 1px solid rgba(255, 255, 255, 0.15);
   --advanced-camera-card-overlay-message-box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5),
     0 2px 8px 0 rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 
@@ -280,11 +279,6 @@
   --advanced-camera-card-overlay-message-icon-color: var(
     --advanced-camera-card-foreground-primary
   );
-  --advanced-camera-card-overlay-message-scrollbar-color: rgba(
-    255,
-    255,
-    255,
-    0.2
-  );
+  --advanced-camera-card-overlay-message-scrollbar-color: rgba(255, 255, 255, 0.2);
   --advanced-camera-card-overlay-message-close-color: #ffffff;
 }
