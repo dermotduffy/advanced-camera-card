@@ -85,6 +85,7 @@ export class MenuButtonController {
       this._getImageButton(config, cameraManager, foldersManager, options?.view),
       this._getTimelineButton(config, cameraManager, foldersManager, options?.view),
       this._getDownloadButton(config, cameraManager, options?.view),
+      this._getInfoButton(config, cameraManager, options?.view),
       this._getSetReviewButton(config, options?.view),
       this._getCameraUIButton(config, options?.showCameraUIButton),
       this._getMicrophoneButton(
@@ -423,6 +424,24 @@ export class MenuButtonController {
       };
     }
     return null;
+  }
+
+  protected _getInfoButton(
+    config: AdvancedCameraCardConfig,
+    _cameraManager: CameraManager,
+    view?: View | null,
+  ): MenuItem | null {
+    const selectedItem = view?.queryResults?.getSelectedResult();
+    if (!ViewItemClassifier.isMedia(selectedItem)) {
+      return null;
+    }
+    return {
+      icon: 'mdi:information-outline',
+      ...config.menu.buttons.info,
+      type: 'custom:advanced-camera-card-menu-icon',
+      title: localize('config.menu.buttons.info'),
+      tap_action: createGeneralAction('info'),
+    };
   }
 
   protected _getSetReviewButton(

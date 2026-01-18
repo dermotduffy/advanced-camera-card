@@ -2,12 +2,12 @@ import { format } from 'date-fns';
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManager } from '../../../src/camera-manager/manager';
-import { ThumbnailDetailsController } from '../../../src/components-lib/thumbnail/details-controller';
+import { MediaDetailsController } from '../../../src/components-lib/media/details-controller';
 import { formatDateAndTime } from '../../../src/utils/basic';
 import { ViewFolder, ViewMediaType } from '../../../src/view/item';
 import { createFolder, TestViewMedia } from '../../test-utils';
 
-describe('ThumbnailDetailsController', () => {
+describe('MediaDetailsController', () => {
   describe('should set heading', () => {
     it('should set heading on event with what, tags and score', () => {
       const item = new TestViewMedia({
@@ -16,7 +16,7 @@ describe('ThumbnailDetailsController', () => {
         score: 0.5,
       });
 
-      const controller = new ThumbnailDetailsController();
+      const controller = new MediaDetailsController();
       controller.calculate(null, item);
       expect(controller.getHeading()?.title).toBe('Person, Car: Tag1, Tag2 50.00%');
     });
@@ -26,7 +26,7 @@ describe('ThumbnailDetailsController', () => {
         tags: ['tag1', 'tag2'],
       });
 
-      const controller = new ThumbnailDetailsController();
+      const controller = new MediaDetailsController();
       controller.calculate(null, item);
       expect(controller.getHeading()?.title).toBe('Tag1, Tag2');
     });
@@ -36,7 +36,7 @@ describe('ThumbnailDetailsController', () => {
         what: ['person', 'car'],
       });
 
-      const controller = new ThumbnailDetailsController();
+      const controller = new MediaDetailsController();
       controller.calculate(null, item);
       expect(controller.getHeading()?.title).toBe('Person, Car');
     });
@@ -49,7 +49,7 @@ describe('ThumbnailDetailsController', () => {
         score: null,
       });
 
-      const controller = new ThumbnailDetailsController();
+      const controller = new MediaDetailsController();
       controller.calculate(null, item);
       expect(controller.getHeading()).toBeNull();
     });
@@ -65,7 +65,7 @@ describe('ThumbnailDetailsController', () => {
         mediaType: ViewMediaType.Recording,
       });
 
-      const controller = new ThumbnailDetailsController();
+      const controller = new MediaDetailsController();
       controller.calculate(cameraManager, item);
       expect(controller.getHeading()?.title).toBe('Camera Title');
     });
@@ -75,7 +75,7 @@ describe('ThumbnailDetailsController', () => {
         mediaType: ViewMediaType.Recording,
       });
 
-      const controller = new ThumbnailDetailsController();
+      const controller = new MediaDetailsController();
       controller.calculate(null, item);
       expect(controller.getHeading()).toBeNull();
     });
@@ -83,7 +83,7 @@ describe('ThumbnailDetailsController', () => {
     it('should set no heading on folder', () => {
       const item = new ViewFolder(createFolder(), []);
 
-      const controller = new ThumbnailDetailsController();
+      const controller = new MediaDetailsController();
       controller.calculate(null, item);
       expect(controller.getHeading()).toBeNull();
     });
@@ -97,7 +97,7 @@ describe('ThumbnailDetailsController', () => {
           where: ['where1', 'where2'],
         });
 
-        const controller = new ThumbnailDetailsController();
+        const controller = new MediaDetailsController();
         controller.calculate(null, item);
         expect(controller.getDetails()).toContainEqual({
           title: 'Test Event',
@@ -111,7 +111,7 @@ describe('ThumbnailDetailsController', () => {
           title: 'Test Event',
         });
 
-        const controller = new ThumbnailDetailsController();
+        const controller = new MediaDetailsController();
         controller.calculate(null, item);
         expect(controller.getDetails()).toEqual([
           {
@@ -126,7 +126,7 @@ describe('ThumbnailDetailsController', () => {
           startTime: new Date('2025-05-22T21:12:00Z'),
         });
 
-        const controller = new ThumbnailDetailsController();
+        const controller = new MediaDetailsController();
         controller.calculate(null, item);
         expect(controller.getDetails()).not.toContainEqual(
           expect.objectContaining({
@@ -142,7 +142,7 @@ describe('ThumbnailDetailsController', () => {
         startTime,
       });
 
-      const controller = new ThumbnailDetailsController();
+      const controller = new MediaDetailsController();
       controller.calculate(null, item);
 
       // Use formatDateAndTime to generate expected value (formats in local time with seconds)
@@ -160,7 +160,7 @@ describe('ThumbnailDetailsController', () => {
           endTime: new Date('2025-05-18T17:04:00Z'),
         });
 
-        const controller = new ThumbnailDetailsController();
+        const controller = new MediaDetailsController();
         controller.calculate(null, item);
         expect(controller.getDetails()).toContainEqual({
           title: '1m 0s',
@@ -176,7 +176,7 @@ describe('ThumbnailDetailsController', () => {
           inProgress: true,
         });
 
-        const controller = new ThumbnailDetailsController();
+        const controller = new MediaDetailsController();
         controller.calculate(null, item);
         expect(controller.getDetails()).toContainEqual({
           title: 'In Progress',
@@ -192,7 +192,7 @@ describe('ThumbnailDetailsController', () => {
           inProgress: true,
         });
 
-        const controller = new ThumbnailDetailsController();
+        const controller = new MediaDetailsController();
         controller.calculate(null, item);
         expect(controller.getDetails()).toContainEqual({
           title: '1m 0s In Progress',
@@ -213,7 +213,7 @@ describe('ThumbnailDetailsController', () => {
         cameraID: 'camera_1',
       });
 
-      const controller = new ThumbnailDetailsController();
+      const controller = new MediaDetailsController();
       controller.calculate(cameraManager, item);
       expect(controller.getDetails()).toContainEqual({
         title: 'Camera Title',
@@ -228,7 +228,7 @@ describe('ThumbnailDetailsController', () => {
         where: ['where1', 'where2'],
       });
 
-      const controller = new ThumbnailDetailsController();
+      const controller = new MediaDetailsController();
       controller.calculate(null, item);
       expect(controller.getDetails()).toContainEqual({
         title: 'Where1, Where2',
@@ -243,7 +243,7 @@ describe('ThumbnailDetailsController', () => {
         tags: ['tag1', 'tag2'],
       });
 
-      const controller = new ThumbnailDetailsController();
+      const controller = new MediaDetailsController();
       controller.calculate(null, item);
       expect(controller.getDetails()).toContainEqual({
         title: 'Tag1, Tag2',
@@ -256,7 +256,7 @@ describe('ThumbnailDetailsController', () => {
       const item = new TestViewMedia();
       const seekTime = new Date('2025-05-20T07:14:57Z');
 
-      const controller = new ThumbnailDetailsController();
+      const controller = new MediaDetailsController();
       controller.calculate(null, item, seekTime);
 
       // Use format() to generate expected value (formats in local time)
@@ -265,6 +265,95 @@ describe('ThumbnailDetailsController', () => {
         hint: 'Seek',
         icon: { icon: 'mdi:clock-fast' },
       });
+    });
+    it('should set heading on review', () => {
+      const item = new TestViewMedia({
+        mediaType: ViewMediaType.Review,
+        title: 'Review Title',
+        severity: 'high',
+      });
+
+      const controller = new MediaDetailsController();
+      controller.calculate(null, item);
+      const heading = controller.getHeading();
+      expect(heading?.title).toBe('Review Title');
+      expect(heading?.emphasis).toBe('high');
+      expect(heading?.icon).toEqual({ icon: 'mdi:circle-medium' });
+      expect(heading?.hint).toBe('Severity: High');
+    });
+
+    it('should set heading on review without severity', () => {
+      const item = new TestViewMedia({
+        mediaType: ViewMediaType.Review,
+        title: 'Review Title',
+        severity: null,
+      });
+
+      const controller = new MediaDetailsController();
+      controller.calculate(null, item);
+      const heading = controller.getHeading();
+      expect(heading?.title).toBe('Review Title');
+      expect(heading?.emphasis).toBeUndefined();
+    });
+
+    it('should set null heading on review with no title', () => {
+      const item = new TestViewMedia({
+        mediaType: ViewMediaType.Review,
+        title: null,
+      });
+
+      const controller = new MediaDetailsController();
+      controller.calculate(null, item);
+      expect(controller.getHeading()).toBeNull();
+    });
+
+    it('should calculate with null item', () => {
+      const controller = new MediaDetailsController();
+      controller.calculate(null, undefined);
+      expect(controller.getHeading()).toBeNull();
+      expect(controller.getDetails()).toEqual([]);
+    });
+  });
+
+  describe('should get message', () => {
+    it('should get message', () => {
+      const item = new TestViewMedia({
+        title: 'Test Title',
+        what: ['person'],
+        description: 'Test Description',
+      });
+
+      const controller = new MediaDetailsController();
+      controller.calculate(null, item);
+
+      const message = controller.getMessage();
+      expect(message.heading?.title).toBe('Person');
+      expect(message.details).toContainEqual({
+        title: 'Test Title',
+      });
+      expect(message.text).toBe('Test Description');
+    });
+
+    it('should get message without media', () => {
+      const item = new ViewFolder(createFolder(), []);
+
+      const controller = new MediaDetailsController();
+      controller.calculate(null, item);
+
+      const message = controller.getMessage();
+      expect(message.text).toBeUndefined();
+    });
+
+    it('should get message with null description', () => {
+      const item = new TestViewMedia({
+        description: null,
+      });
+
+      const controller = new MediaDetailsController();
+      controller.calculate(null, item);
+
+      const message = controller.getMessage();
+      expect(message.text).toBeUndefined();
     });
   });
 });

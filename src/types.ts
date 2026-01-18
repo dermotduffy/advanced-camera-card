@@ -63,9 +63,17 @@ export interface Message {
   url?: MessageURL;
 }
 
+export interface MetadataField {
+  title: string;
+  icon?: Icon;
+  hint?: string;
+  emphasis?: Severity;
+}
+
 export interface OverlayMessage {
-  message: string;
-  icon?: string;
+  heading?: MetadataField;
+  details?: MetadataField[];
+  text?: string;
 }
 
 export type WebkitHTMLVideoElement = HTMLVideoElement & {

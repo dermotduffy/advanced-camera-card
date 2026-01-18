@@ -22,6 +22,7 @@ import type { MediaLoadedInfoManager } from './media-info-manager';
 import type { MediaPlayerManager } from './media-player-manager';
 import type { MessageManager } from './message-manager';
 import type { MicrophoneManager } from './microphone-manager';
+import type { OverlayMessageManager } from './overlay-message-manager';
 import type { QueryStringManager } from './query-string-manager';
 import type { StatusBarItemManager } from './status-bar-item-manager';
 import type { StyleManager } from './style-manager';
@@ -52,6 +53,7 @@ export interface CardActionsAPI {
   getMediaPlayerManager(): MediaPlayerManager;
   getMessageManager(): MessageManager;
   getMicrophoneManager(): MicrophoneManager;
+  getOverlayMessageManager(): OverlayMessageManager;
   getStatusBarItemManager(): StatusBarItemManager;
   getTriggersManager(): TriggersManager;
   getViewItemManager(): ViewItemManager;

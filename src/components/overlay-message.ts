@@ -2,7 +2,7 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import overlayMessageStyle from '../scss/overlay-message.scss';
-import { OverlayMessage } from '../types.js';
+import { MetadataField, OverlayMessage } from '../types.js';
 import { dispatchDismissOverlayMessageEvent } from '../utils/overlay-message.js';
 import './icon.js';
 
@@ -30,6 +30,10 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
       return;
     }
 
+    const heading = this.message.heading;
+    const details = this.message.details ?? [];
+    const text = this.message.text;
+
     return html`
       <div class="backdrop" @click=${this._dismiss}></div>
       <div
@@ -37,19 +41,30 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
         ${ref(this._refMessage)}
         @animationend=${this._handleAnimationEnd}
       >
-        ${this.message.icon
-          ? html`<div class="icon">
-              <advanced-camera-card-icon
-                .icon=${{ icon: this.message.icon }}
-              ></advanced-camera-card-icon>
-            </div>`
-          : ''}
-        <div class="text">${this.message.message}</div>
+        <div class="details">
+          ${heading ? this._renderDetail(heading, true) : ''}
+          ${details.map((detail) => this._renderDetail(detail))}
+          ${text ? html`<div class="description">${text}</div>` : ''}
+        </div>
         <div class="close" @click=${this._dismiss}>
           <advanced-camera-card-icon
             .icon=${{ icon: 'mdi:close' }}
           ></advanced-camera-card-icon>
         </div>
+      </div>
+    `;
+  }
+
+  protected _renderDetail(detail: MetadataField, isHeading = false): TemplateResult {
+    return html`
+      <div class="detail ${isHeading ? 'heading' : ''}">
+        ${detail.icon
+          ? html`<advanced-camera-card-icon
+              title=${detail.hint ?? ''}
+              .icon=${detail.icon}
+            ></advanced-camera-card-icon>`
+          : ''}
+        <span title=${detail.title}>${detail.title}</span>
       </div>
     `;
   }

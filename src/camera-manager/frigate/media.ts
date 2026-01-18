@@ -196,7 +196,11 @@ export class FrigateReviewViewMedia extends ViewMedia implements ReviewViewMedia
     return this._review.data.metadata?.title ?? this._title;
   }
   public getDescription(): string | null {
-    return this._review.data.metadata?.scene ?? null;
+    return (
+      this._review.data.metadata?.scene ??
+      this._review.data.metadata?.shortSummary ??
+      null
+    );
   }
   public getThumbnail(): string | null {
     return this._thumbnail;

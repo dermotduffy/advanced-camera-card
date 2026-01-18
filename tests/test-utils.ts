@@ -41,6 +41,7 @@ import { MediaLoadedInfoManager } from '../src/card-controller/media-info-manage
 import { MediaPlayerManager } from '../src/card-controller/media-player-manager';
 import { MessageManager } from '../src/card-controller/message-manager';
 import { MicrophoneManager } from '../src/card-controller/microphone-manager';
+import { OverlayMessageManager } from '../src/card-controller/overlay-message-manager';
 import { QueryStringManager } from '../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../src/card-controller/style-manager';
@@ -374,6 +375,7 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewVi
   protected _where: string[] | null = null;
   protected _severity: Severity | null = null;
   protected _reviewed: boolean | null = null;
+  protected _description: string | null = null;
 
   constructor(options?: {
     id?: string | null;
@@ -385,6 +387,7 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewVi
     inProgress?: boolean;
     contentID?: string;
     title?: string | null;
+    description?: string | null;
     thumbnail?: string | null;
     icon?: string | null;
     what?: string[] | null;
@@ -405,6 +408,7 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewVi
     this._inProgress = options?.inProgress !== undefined ? options.inProgress : false;
     this._contentID = options?.contentID ?? null;
     this._title = options?.title !== undefined ? options.title : null;
+    this._description = options?.description !== undefined ? options.description : null;
     this._thumbnail = options?.thumbnail !== undefined ? options.thumbnail : null;
     this._icon = options?.icon !== undefined ? options.icon : null;
     this._what = options?.what !== undefined ? options.what : null;
@@ -434,6 +438,9 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewVi
   }
   public getTitle(): string | null {
     return this._title;
+  }
+  public getDescription(): string | null {
+    return this._description;
   }
   public getThumbnail(): string | null {
     return this._thumbnail;
@@ -655,6 +662,7 @@ export const createCardAPI = (): CardController => {
   api.getMediaPlayerManager.mockReturnValue(mock<MediaPlayerManager>());
   api.getMessageManager.mockReturnValue(mock<MessageManager>());
   api.getMicrophoneManager.mockReturnValue(mock<MicrophoneManager>());
+  api.getOverlayMessageManager.mockReturnValue(mock<OverlayMessageManager>());
   api.getQueryStringManager.mockReturnValue(mock<QueryStringManager>());
   api.getStatusBarItemManager.mockReturnValue(mock<StatusBarItemManager>());
   api.getStyleManager.mockReturnValue(mock<StyleManager>());

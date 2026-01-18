@@ -530,8 +530,8 @@ describe('FrigateCamera', () => {
           'front_door',
           {
             cameraID: 'front_door',
-            startTime: new Date('2023-01-01T10:00:00Z'),
-            endTime: new Date('2023-01-01T11:00:00Z'),
+            startTime: new Date('2023-01-01T10:00:00'),
+            endTime: new Date('2023-01-01T11:00:00'),
             events: 0,
           },
           'recording-id',
@@ -562,7 +562,7 @@ describe('FrigateCamera', () => {
             cameraID: 'front_door',
             // Forced null for test
             startTime: null as unknown as Date,
-            endTime: new Date('2023-01-01T11:00:00Z'),
+            endTime: new Date('2023-01-01T11:00:00'),
             events: 0,
           },
           'recording-id',

@@ -2,28 +2,22 @@ import { format } from 'date-fns';
 import { CameraManager } from '../../camera-manager/manager';
 import { CameraManagerCameraMetadata } from '../../camera-manager/types';
 import { localize } from '../../localize/localize';
-import { Icon, Severity } from '../../types';
+import { MetadataField, OverlayMessage } from '../../types';
 import { getDurationString, prettifyTitle } from '../../utils/basic';
 import { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 
-export interface Detail {
-  title: string;
-
-  icon?: Icon;
-  hint?: string;
-  severity?: Severity;
-}
-
-export class ThumbnailDetailsController {
-  private _details: Detail[] = [];
-  private _heading: Detail | null = null;
+export class MediaDetailsController {
+  private _details: MetadataField[] = [];
+  private _heading: MetadataField | null = null;
+  private _item: ViewItem | null = null;
 
   public calculate(
     cameraManager?: CameraManager | null,
     item?: ViewItem,
     seek?: Date,
   ): void {
+    this._item = item ?? null;
     const cameraID = ViewItemClassifier.isMedia(item) ? item.getCameraID() : null;
     const cameraMetadata = cameraID
       ? cameraManager?.getCameraMetadata(cameraID) ?? null
@@ -58,7 +52,7 @@ export class ThumbnailDetailsController {
       this._heading = title
         ? {
             title: title,
-            severity: severity ?? undefined,
+            emphasis: severity ?? undefined,
             hint:
               localize('common.severity') +
               ': ' +
@@ -180,11 +174,21 @@ export class ThumbnailDetailsController {
     ];
   }
 
-  public getHeading(): Detail | null {
+  public getHeading(): MetadataField | null {
     return this._heading;
   }
 
-  public getDetails(): Detail[] {
+  public getDetails(): MetadataField[] {
     return this._details;
+  }
+
+  public getMessage(): OverlayMessage {
+    return {
+      heading: this._heading ?? undefined,
+      details: this._details,
+      text: ViewItemClassifier.isMedia(this._item)
+        ? this._item.getDescription() ?? undefined
+        : undefined,
+    };
   }
 }

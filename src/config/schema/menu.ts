@@ -38,6 +38,7 @@ export const menuConfigDefault = {
     iris: visibleButtonDefault,
     fullscreen: visibleButtonDefault,
     image: hiddenButtonDefault,
+    info: visibleButtonDefault,
     live: visibleButtonDefault,
     media_player: visibleButtonDefault,
     microphone: {
@@ -89,6 +90,7 @@ export const menuConfigSchema = z
         iris: visibleButtonSchema.default(menuConfigDefault.buttons.iris),
         fullscreen: visibleButtonSchema.default(menuConfigDefault.buttons.fullscreen),
         image: hiddenButtonSchema.default(menuConfigDefault.buttons.image),
+        info: visibleButtonSchema.default(menuConfigDefault.buttons.info),
         live: visibleButtonSchema.default(menuConfigDefault.buttons.live),
         media_player: visibleButtonSchema.default(
           menuConfigDefault.buttons.media_player,

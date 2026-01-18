@@ -12,6 +12,7 @@ import { CameraManager } from '../../../camera-manager/manager';
 import { ViewItemManager } from '../../../card-controller/view/item-manager';
 import { RemoveContextViewModifier } from '../../../card-controller/view/modifiers/remove-context';
 import { ViewManagerEpoch } from '../../../card-controller/view/types';
+import { MediaDetailsController } from '../../../components-lib/media/details-controller';
 import { dispatchAdvancedCameraCardErrorEvent } from '../../../components-lib/message/dispatch';
 import { ThumbnailFeatureController } from '../../../components-lib/thumbnail/feature/controller';
 import { HomeAssistant } from '../../../ha/types';
@@ -107,7 +108,11 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
       : null;
     const shouldShowReviewControl = this.show_review_control && isReviewed !== null;
 
-    const shouldShowInfoControl = this.show_info_control && this.item.getDescription();
+    const shouldShowInfoControl =
+      this.show_info_control &&
+      ViewItemClassifier.isMedia(this.item) &&
+      (this.viewManagerEpoch?.manager.getView()?.isViewerView() ||
+        this.viewManagerEpoch?.manager.getView()?.is('timeline'));
 
     const title = this._controller.getTitle();
     const subtitles = this._controller.getSubtitles();
@@ -203,16 +208,15 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
         ? html`<advanced-camera-card-icon
             class="info"
             .icon=${{ icon: 'mdi:information-outline' }}
-            title=${this.item.getDescription()}
+            title=${this.item?.getDescription() ?? ''}
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              const description = this.item?.getDescription();
-              if (description) {
-                dispatchShowOverlayMessageEvent(this, {
-                  message: description,
-                  icon: 'mdi:information-outline',
-                });
+              if (!ViewItemClassifier.isMedia(this.item)) {
+                return;
               }
+              const controller = new MediaDetailsController();
+              controller.calculate(this.cameraManager, this.item);
+              dispatchShowOverlayMessageEvent(this, controller.getMessage());
             }}
           ></advanced-camera-card-icon>`
         : ''}

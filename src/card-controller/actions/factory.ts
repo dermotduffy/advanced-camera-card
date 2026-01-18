@@ -12,6 +12,7 @@ import { DownloadAction } from './actions/download';
 import { EffectAction } from './actions/effect';
 import { ExpandAction } from './actions/expand';
 import { FullscreenAction } from './actions/fullscreen';
+import { InfoAction } from './actions/info';
 import { InternalCallbackAction } from './actions/internal-callback';
 import { LogAction } from './actions/log';
 import { MediaPlayerAction } from './actions/media-player';
@@ -32,8 +33,8 @@ import { PTZControlsAction } from './actions/ptz-controls';
 import { PTZDigitalAction } from './actions/ptz-digital';
 import { PTZMultiAction } from './actions/ptz-multi';
 import { ReloadAction } from './actions/reload';
-import { SetReviewAction } from './actions/set-review';
 import { ScreenshotAction } from './actions/screenshot';
+import { SetReviewAction } from './actions/set-review';
 import { SleepAction } from './actions/sleep';
 import { StatusBarAction } from './actions/status-bar';
 import { SubstreamOffAction } from './actions/substream-off';
@@ -113,6 +114,8 @@ export class ActionFactory {
         return new ExpandAction(context, action, options?.config);
       case 'fullscreen':
         return new FullscreenAction(context, action, options?.config);
+      case 'info':
+        return new InfoAction(context, action, options?.config);
       case 'menu_toggle':
         return new MenuToggleAction(context, action, options?.config);
       case 'camera_select':

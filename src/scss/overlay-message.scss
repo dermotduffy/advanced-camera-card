@@ -162,3 +162,62 @@
 .close advanced-camera-card-icon {
   --mdc-icon-size: 18px;
 }
+
+.details {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--advanced-camera-card-overlay-message-text-color);
+  font-size: 14px;
+  line-height: 1.4;
+
+  advanced-camera-card-icon {
+    flex-shrink: 0;
+    --mdc-icon-size: 18px;
+    opacity: 0.7;
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  &.heading {
+    width: 100%;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 4px;
+
+    advanced-camera-card-icon {
+      opacity: 1;
+    }
+  }
+}
+
+.description {
+  width: 100%;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid
+    color-mix(
+      in srgb,
+      var(--advanced-camera-card-overlay-message-text-color),
+      transparent 80%
+    );
+  color: var(--advanced-camera-card-overlay-message-text-color);
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

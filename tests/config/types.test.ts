@@ -235,6 +235,10 @@ describe('config defaults', () => {
             enabled: false,
             priority: 50,
           },
+          info: {
+            enabled: true,
+            priority: 50,
+          },
           iris: {
             enabled: true,
             priority: 50,

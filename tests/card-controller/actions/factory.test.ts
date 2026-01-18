@@ -39,6 +39,7 @@ import { ToggleAction } from '../../../src/card-controller/actions/actions/toggl
 import { UnmuteAction } from '../../../src/card-controller/actions/actions/unmute';
 import { URLAction } from '../../../src/card-controller/actions/actions/url';
 import { ViewAction } from '../../../src/card-controller/actions/actions/view';
+import { InfoAction } from '../../../src/card-controller/actions/actions/info';
 import { ActionFactory } from '../../../src/card-controller/actions/factory';
 import { INTERNAL_CALLBACK_ACTION } from '../../../src/config/schema/actions/custom/internal';
 import { ActionConfig } from '../../../src/config/schema/actions/types';
@@ -102,6 +103,7 @@ describe('ActionFactory', () => {
       [{ advanced_camera_card_action: 'folder' as const }, ViewAction],
       [{ advanced_camera_card_action: 'folders' as const }, ViewAction],
       [{ advanced_camera_card_action: 'fullscreen' as const }, FullscreenAction],
+      [{ advanced_camera_card_action: 'info' as const }, InfoAction],
       [{ advanced_camera_card_action: 'image' as const }, ViewAction],
       [
         { advanced_camera_card_action: 'live_substream_off' as const },

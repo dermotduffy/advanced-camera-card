@@ -175,6 +175,15 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: image
 ```
 
+## `info`
+
+Show media metadata (e.g. event time, camera, descriptions).
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: info
+```
+
 ## `live`
 
 Change to the `live` view.
@@ -643,6 +652,12 @@ elements:
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: live
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-i-circle-outline
+    title: Info
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: info
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-n-circle
     title: Turn off substream
