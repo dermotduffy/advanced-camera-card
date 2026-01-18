@@ -6,8 +6,10 @@ import { CustomAction } from '../../../src/card-controller/actions/actions/custo
 import { DefaultAction } from '../../../src/card-controller/actions/actions/default';
 import { DisplayModeSelectAction } from '../../../src/card-controller/actions/actions/display-mode-select';
 import { DownloadAction } from '../../../src/card-controller/actions/actions/download';
+import { EffectAction } from '../../../src/card-controller/actions/actions/effect';
 import { ExpandAction } from '../../../src/card-controller/actions/actions/expand';
 import { FullscreenAction } from '../../../src/card-controller/actions/actions/fullscreen';
+import { InfoAction } from '../../../src/card-controller/actions/actions/info';
 import { InternalCallbackAction } from '../../../src/card-controller/actions/actions/internal-callback';
 import { LogAction } from '../../../src/card-controller/actions/actions/log';
 import { MediaPlayerAction } from '../../../src/card-controller/actions/actions/media-player';
@@ -28,8 +30,8 @@ import { PTZControlsAction } from '../../../src/card-controller/actions/actions/
 import { PTZDigitalAction } from '../../../src/card-controller/actions/actions/ptz-digital';
 import { PTZMultiAction } from '../../../src/card-controller/actions/actions/ptz-multi';
 import { ReloadAction } from '../../../src/card-controller/actions/actions/reload';
-import { SetReviewAction } from '../../../src/card-controller/actions/actions/set-review';
 import { ScreenshotAction } from '../../../src/card-controller/actions/actions/screenshot';
+import { SetReviewAction } from '../../../src/card-controller/actions/actions/set-review';
 import { SleepAction } from '../../../src/card-controller/actions/actions/sleep';
 import { StatusBarAction } from '../../../src/card-controller/actions/actions/status-bar';
 import { SubstreamOffAction } from '../../../src/card-controller/actions/actions/substream-off';
@@ -39,11 +41,9 @@ import { ToggleAction } from '../../../src/card-controller/actions/actions/toggl
 import { UnmuteAction } from '../../../src/card-controller/actions/actions/unmute';
 import { URLAction } from '../../../src/card-controller/actions/actions/url';
 import { ViewAction } from '../../../src/card-controller/actions/actions/view';
-import { InfoAction } from '../../../src/card-controller/actions/actions/info';
 import { ActionFactory } from '../../../src/card-controller/actions/factory';
 import { INTERNAL_CALLBACK_ACTION } from '../../../src/config/schema/actions/custom/internal';
 import { ActionConfig } from '../../../src/config/schema/actions/types';
-import { EffectAction } from '../../../src/card-controller/actions/actions/effect';
 
 // @vitest-environment jsdom
 describe('ActionFactory', () => {

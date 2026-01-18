@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { View } from '../../../../src/view/view';
-import { QueryResults } from '../../../../src/view/query-results';
 import { InfoAction } from '../../../../src/card-controller/actions/actions/info';
+import { QueryResults } from '../../../../src/view/query-results';
+import { View } from '../../../../src/view/view';
 import { createCardAPI, TestViewMedia } from '../../../test-utils';
 
 describe('InfoAction', () => {

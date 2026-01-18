@@ -109,10 +109,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
     const shouldShowReviewControl = this.show_review_control && isReviewed !== null;
 
     const shouldShowInfoControl =
-      this.show_info_control &&
-      ViewItemClassifier.isMedia(this.item) &&
-      (this.viewManagerEpoch?.manager.getView()?.isViewerView() ||
-        this.viewManagerEpoch?.manager.getView()?.is('timeline'));
+      this.show_info_control && ViewItemClassifier.isMedia(this.item);
 
     const title = this._controller.getTitle();
     const subtitles = this._controller.getSubtitles();

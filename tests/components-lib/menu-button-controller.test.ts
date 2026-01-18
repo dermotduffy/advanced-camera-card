@@ -2255,4 +2255,86 @@ describe('MenuButtonController', () => {
       });
     });
   });
+
+  describe('should have set review button', () => {
+    it('when unreviewed', () => {
+      const selectedItem = new TestViewMedia({
+        mediaType: ViewMediaType.Review,
+        reviewed: false,
+      });
+
+      const queryResults = mock<QueryResults>();
+      queryResults.getSelectedResult.mockReturnValue(selectedItem);
+
+      const view = createView({
+        view: 'media',
+        queryResults: queryResults,
+      });
+
+      const buttons = calculateButtons(controller, { view: view });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          icon: 'mdi:check-circle-outline',
+          title: 'Mark as reviewed',
+        }),
+      );
+    });
+
+    it('when already reviewed', () => {
+      const selectedItem = new TestViewMedia({
+        mediaType: ViewMediaType.Review,
+        reviewed: true,
+      });
+
+      const queryResults = mock<QueryResults>();
+      queryResults.getSelectedResult.mockReturnValue(selectedItem);
+
+      const view = createView({
+        view: 'media',
+        queryResults: queryResults,
+      });
+
+      const buttons = calculateButtons(controller, { view: view });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          icon: 'mdi:check-circle',
+          title: 'Mark as unreviewed',
+        }),
+      );
+    });
+
+    it('when isReviewed returns null', () => {
+      const selectedItem = new TestViewMedia({
+        mediaType: ViewMediaType.Review,
+        reviewed: null,
+      });
+
+      const queryResults = mock<QueryResults>();
+      queryResults.getSelectedResult.mockReturnValue(selectedItem);
+
+      const view = createView({
+        view: 'media',
+        queryResults: queryResults,
+      });
+
+      const buttons = calculateButtons(controller, { view: view });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            icon: 'mdi:check-circle',
+          }),
+        ]),
+      );
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            icon: 'mdi:check-circle-outline',
+          }),
+        ]),
+      );
+    });
+  });
 });

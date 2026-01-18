@@ -1,5 +1,14 @@
 import { endOfDay, startOfDay, sub } from 'date-fns';
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  assert,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 import { mock, MockProxy } from 'vitest-mock-extended';
 import { Capabilities } from '../../src/camera-manager/capabilities';
 import {
@@ -787,6 +796,64 @@ describe('MediaFilterController', () => {
         QueryType.Recording,
         QueryType.Review,
       ]);
+    });
+
+    it('with multiple camera selections', async () => {
+      const cameraManager = createCameraManager(createCameraStore());
+      const viewManager = mock<ViewManager>();
+      viewManager.getView.mockReturnValue(createView());
+
+      const controller = new MediaFilterController(createLitElement());
+      controller.setViewManager(viewManager);
+
+      await controller.valueChangeHandler(
+        cameraManager,
+        mock<FoldersManager>(),
+        {},
+        {
+          camera: ['camera.kitchen', 'camera.living_room'],
+          mediaTypes: [MediaFilterMediaType.Clips],
+          when: {},
+        },
+      );
+
+      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
+        params: {
+          query: expect.any(UnifiedQuery),
+        },
+      });
+      const mockCall = vi.mocked(viewManager.setViewByParametersWithExistingQuery).mock
+        .calls[0];
+      assert(mockCall && mockCall[0]);
+
+      const callParams = mockCall[0].params;
+      assert(callParams);
+      expect(callParams.camera).toBeUndefined();
+    });
+
+    it('computeInitialDefaultsFromView with no cameras in query', () => {
+      const cameraManager = createCameraManager(createCameraStore());
+      const foldersManager = mock<FoldersManager>();
+      const viewManager = mock<ViewManager>();
+
+      const query = new UnifiedQuery();
+      const node: EventQuery = {
+        source: QuerySource.Camera,
+        type: QueryType.Event,
+        cameraIDs: new Set(), // Empty camera IDs
+        hasClip: true,
+      };
+      query.addNode(node);
+
+      const view = createView({ query });
+      viewManager.getView.mockReturnValue(view);
+
+      const controller = new MediaFilterController(createLitElement());
+      controller.setViewManager(viewManager);
+
+      controller.computeInitialDefaultsFromView(cameraManager, foldersManager);
+
+      expect(controller.getDefaults()?.cameraIDs).toBeUndefined();
     });
 
     describe('with fixed when selection', () => {

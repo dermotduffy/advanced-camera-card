@@ -22,6 +22,12 @@ describe('IconController', () => {
       );
     });
 
+    it('should return tplink SVG for tplink icon', () => {
+      expect(new IconController().getCustomIcon({ icon: 'tplink' })).toMatch(
+        /tplink.svg$/,
+      );
+    });
+
     it('should return iris SVG for iris icon', () => {
       expect(new IconController().getCustomIcon({ icon: 'iris' })).toMatch(/iris.svg$/);
     });

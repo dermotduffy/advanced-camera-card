@@ -1,6 +1,7 @@
 import { NonEmptyTuple } from 'type-fest';
 import { FolderPathComponent, FolderQuery } from '../card-controller/folders/types';
 import { ViewManagerEpoch, ViewModifier } from '../card-controller/view/types';
+import { localize } from '../localize/localize';
 import { ViewFolder, ViewMedia } from '../view/item';
 import { UnifiedQuery } from '../view/unified-query';
 import { UnifiedQueryBuilder } from '../view/unified-query-builder';
@@ -116,6 +117,7 @@ export const getUpFolderItem = (query?: UnifiedQuery | null): ViewFolder | null 
   return folderQuery
     ? new ViewFolder(folderQuery.folder, folderQuery.path, {
         icon: 'mdi:arrow-up-left',
+        title: localize('common.up'),
       })
     : null;
 };
