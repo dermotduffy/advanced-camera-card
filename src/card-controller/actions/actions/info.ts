@@ -16,6 +16,13 @@ export class InfoAction extends AdvancedCameraCardAction<GeneralActionConfig> {
     const controller = new MediaDetailsController();
     controller.calculate(api.getCameraManager(), item);
 
-    api.getOverlayMessageManager().setMessage(controller.getMessage());
+    api.getOverlayMessageManager().setMessage(
+      controller.getMessage({
+        hass: api.getHASSManager().getHASS() ?? undefined,
+        viewItemManager: api.getViewItemManager(),
+        viewManagerEpoch: api.getViewManager().getEpoch(),
+        capabilities: api.getViewItemManager().getCapabilities(item),
+      }),
+    );
   }
 }

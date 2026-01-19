@@ -70,8 +70,13 @@ export interface MetadataField {
   emphasis?: Severity;
 }
 
+export interface OverlayMessageControl extends MetadataField {
+  callback: () => OverlayMessage | null | Promise<OverlayMessage | null>;
+}
+
 export interface OverlayMessage {
   heading?: MetadataField;
+  controls?: OverlayMessageControl[];
   details?: MetadataField[];
   text?: string;
 }

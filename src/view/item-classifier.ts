@@ -38,4 +38,7 @@ export class ViewItemClassifier {
         this.isReview(item))
     );
   }
+  public static supportsTimeline(item?: ViewItem | null): item is ViewMedia {
+    return this.isMedia(item) && !!item.getStartTime();
+  }
 }

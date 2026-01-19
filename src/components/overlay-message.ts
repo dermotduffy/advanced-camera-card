@@ -2,7 +2,7 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import overlayMessageStyle from '../scss/overlay-message.scss';
-import { MetadataField, OverlayMessage } from '../types.js';
+import { MetadataField, OverlayMessage, OverlayMessageControl } from '../types.js';
 import { dispatchDismissOverlayMessageEvent } from '../utils/overlay-message.js';
 import './icon.js';
 
@@ -33,6 +33,7 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
     const heading = this.message.heading;
     const details = this.message.details ?? [];
     const text = this.message.text;
+    const controls = this.message.controls ?? [];
 
     return html`
       <div class="backdrop" @click=${this._dismiss}></div>
@@ -46,6 +47,11 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
           ${details.map((detail) => this._renderDetail(detail))}
           ${text ? html`<div class="description">${text}</div>` : ''}
         </div>
+        ${controls.length
+          ? html`<div class="controls">
+              ${controls.map((control) => this._renderControl(control))}
+            </div>`
+          : ''}
         <div class="close" @click=${this._dismiss}>
           <advanced-camera-card-icon
             .icon=${{ icon: 'mdi:close' }}
@@ -53,6 +59,34 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  protected _renderControl(control: OverlayMessageControl): TemplateResult {
+    const emphasisClass = control.emphasis ? `emphasis-${control.emphasis}` : '';
+    return html`
+      <div
+        class="control ${emphasisClass}"
+        title=${control.title}
+        @click=${async () => this._handleControlClick(control)}
+      >
+        ${control.icon
+          ? html`<advanced-camera-card-icon
+              .icon=${control.icon}
+            ></advanced-camera-card-icon>`
+          : ''}
+      </div>
+    `;
+  }
+
+  protected async _handleControlClick(control: OverlayMessageControl): Promise<void> {
+    const result = await control.callback();
+    if (result === null) {
+      // null = close the message
+      this._dismiss();
+    } else {
+      // Updated message = keep open and refresh
+      this.message = result;
+    }
   }
 
   protected _renderDetail(detail: MetadataField, isHeading = false): TemplateResult {

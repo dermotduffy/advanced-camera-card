@@ -73,4 +73,40 @@ describe('ViewItemClassifier', () => {
       ).toBe(expectedResult);
     });
   });
+
+  describe('supportsTimeline', () => {
+    it('should return false when item is not a media item with a start time', () => {
+      expect(ViewItemClassifier.supportsTimeline(null)).toBe(false);
+      expect(ViewItemClassifier.supportsTimeline(undefined)).toBe(false);
+      expect(
+        ViewItemClassifier.supportsTimeline(new ViewFolder(createFolder(), [])),
+      ).toBe(false);
+      expect(
+        ViewItemClassifier.supportsTimeline(
+          new TestViewMedia({ mediaType: ViewMediaType.Clip, startTime: null }),
+        ),
+      ).toBe(false);
+    });
+
+    it('should return true when item is a media item with a start time', () => {
+      expect(
+        ViewItemClassifier.supportsTimeline(
+          new TestViewMedia({ mediaType: ViewMediaType.Clip, startTime: new Date() }),
+        ),
+      ).toBe(true);
+      expect(
+        ViewItemClassifier.supportsTimeline(
+          new TestViewMedia({ mediaType: ViewMediaType.Review, startTime: new Date() }),
+        ),
+      ).toBe(true);
+      expect(
+        ViewItemClassifier.supportsTimeline(
+          new TestViewMedia({
+            mediaType: ViewMediaType.Recording,
+            startTime: new Date(),
+          }),
+        ),
+      ).toBe(true);
+    });
+  });
 });

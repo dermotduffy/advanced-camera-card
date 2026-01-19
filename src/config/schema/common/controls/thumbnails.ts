@@ -9,8 +9,8 @@ const thumbnailControlsBaseDefaults = {
   size: THUMBNAIL_WIDTH_DEFAULT,
   show_details: true,
   show_favorite_control: true,
-  show_timeline_control: true,
-  show_download_control: true,
+  show_timeline_control: false,
+  show_download_control: false,
   show_review_control: true,
   show_info_control: true,
 };

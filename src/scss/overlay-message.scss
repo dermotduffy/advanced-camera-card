@@ -41,7 +41,7 @@
   // Borders & Edge highlights
   border: var(--advanced-camera-card-overlay-message-border);
   border-top: var(--advanced-camera-card-overlay-message-border-top);
-  border-radius: 28px;
+  border-radius: var(--advanced-camera-card-border-radius-final);
 
   // Shadows
   box-shadow: var(
@@ -123,6 +123,64 @@
   word-break: break-word;
 }
 
+.controls {
+  position: absolute;
+  top: 8px;
+  right: 48px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--advanced-camera-card-button-border-radius);
+
+  background: color-mix(
+    in srgb,
+    var(--advanced-camera-card-overlay-message-close-color),
+    transparent 92%
+  );
+}
+
+.control {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--advanced-camera-card-button-border-radius);
+
+  color: color-mix(
+    in srgb,
+    var(--advanced-camera-card-overlay-message-close-color),
+    transparent 40%
+  );
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  advanced-camera-card-icon {
+    --mdc-icon-size: 16px;
+  }
+
+  &:hover {
+    filter: brightness(1.2);
+  }
+
+  // Base control hover color transition (from dimmed to full).
+  &:not([class^='emphasis-']):hover {
+    color: var(--advanced-camera-card-overlay-message-close-color);
+  }
+
+  &.emphasis-low {
+    color: var(--advanced-camera-card-foreground-severity-low-color);
+  }
+  &.emphasis-medium {
+    color: var(--advanced-camera-card-foreground-severity-medium-color);
+  }
+  &.emphasis-high {
+    color: var(--advanced-camera-card-foreground-severity-high-color);
+  }
+}
+
 .close {
   position: absolute;
   top: 8px;
@@ -132,8 +190,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  border-radius: 50%;
+  border-radius: var(--advanced-camera-card-button-border-radius);
 
   background: color-mix(
     in srgb,

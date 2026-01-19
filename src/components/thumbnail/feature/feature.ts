@@ -10,16 +10,22 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../../../camera-manager/manager';
 import { ViewItemManager } from '../../../card-controller/view/item-manager';
-import { RemoveContextViewModifier } from '../../../card-controller/view/modifiers/remove-context';
 import { ViewManagerEpoch } from '../../../card-controller/view/types';
-import { MediaDetailsController } from '../../../components-lib/media/details-controller';
-import { dispatchAdvancedCameraCardErrorEvent } from '../../../components-lib/message/dispatch';
+import {
+  MediaDetailsController,
+  OverlayControlsContext,
+} from '../../../components-lib/media/details-controller';
 import { ThumbnailFeatureController } from '../../../components-lib/thumbnail/feature/controller';
 import { HomeAssistant } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import thumbnailFeatureStyle from '../../../scss/thumbnail-feature.scss';
 import { stopEventFromActivatingCardWideActions } from '../../../utils/action';
-import { errorToConsole } from '../../../utils/basic';
+import {
+  downloadMedia,
+  navigateToTimeline,
+  toggleFavorite,
+  toggleReviewed,
+} from '../../../utils/media-actions';
 import { dispatchShowOverlayMessageEvent } from '../../../utils/overlay-message';
 import { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
@@ -71,6 +77,15 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
     }
   }
 
+  private _getControlContext(): OverlayControlsContext {
+    return {
+      hass: this.hass,
+      viewItemManager: this.viewItemManager,
+      viewManagerEpoch: this.viewManagerEpoch,
+      capabilities: this.item ? this.viewItemManager?.getCapabilities(this.item) : null,
+    };
+  }
+
   protected render(): TemplateResult | void {
     if (!this.item) {
       return;
@@ -82,12 +97,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
     };
 
     const shouldShowTimelineControl =
-      this.show_timeline_control &&
-      ((ViewItemClassifier.isEvent(this.item) && this.item.getStartTime()) ||
-        (ViewItemClassifier.isReview(this.item) && this.item.getStartTime()) ||
-        (ViewItemClassifier.isRecording(this.item) &&
-          this.item.getStartTime() &&
-          this.item.getEndTime()));
+      this.show_timeline_control && ViewItemClassifier.supportsTimeline(this.item);
 
     const mediaCapabilities = this.viewItemManager?.getCapabilities(this.item) ?? null;
 
@@ -153,27 +163,8 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
             }}
             @click=${async (ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              if (this.hass && this.item && ViewItemClassifier.isReview(this.item)) {
-                const newReviewedState = !isReviewed;
-                try {
-                  await this.viewItemManager?.reviewMedia(this.item, newReviewedState);
-                } catch (e) {
-                  errorToConsole(e as Error);
-                  return;
-                }
-
-                // Update local state so the icon reflects the change
-                this.item.setReviewed(newReviewedState);
-
-                // Remove this item from the view's queryResults
-                const view = this.viewManagerEpoch?.manager.getView();
-                if (view?.queryResults) {
-                  this.viewManagerEpoch?.manager.setViewByParameters({
-                    params: {
-                      queryResults: view.queryResults.clone().removeItem(this.item),
-                    },
-                  });
-                }
+              if (this.item) {
+                await toggleReviewed(this.item, this._getControlContext());
               }
             }}
           ></advanced-camera-card-icon>`
@@ -186,16 +177,10 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
               }}
               @click=${async (ev: Event) => {
                 stopEventFromActivatingCardWideActions(ev);
-                if (this.hass && this.item) {
-                  try {
-                    await this.viewItemManager?.favorite(
-                      this.item,
-                      !this.item.isFavorite(),
-                    );
-                  } catch (e) {
-                    errorToConsole(e as Error);
-                    return;
-                  }
+                if (
+                  this.item &&
+                  (await toggleFavorite(this.item, this._getControlContext()))
+                ) {
                   this.requestUpdate();
                 }
               }}
@@ -208,12 +193,12 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
             title=${this.item?.getDescription() ?? ''}
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              if (!ViewItemClassifier.isMedia(this.item)) {
-                return;
-              }
-              const controller = new MediaDetailsController();
-              controller.calculate(this.cameraManager, this.item);
-              dispatchShowOverlayMessageEvent(this, controller.getMessage());
+              const detailsController = new MediaDetailsController();
+              detailsController.calculate(this.cameraManager, this.item);
+              dispatchShowOverlayMessageEvent(
+                this,
+                detailsController.getMessage(this._getControlContext()),
+              );
             }}
           ></advanced-camera-card-icon>`
         : ''}
@@ -224,19 +209,9 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
             title=${localize('thumbnail.timeline')}
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              if (!this.viewManagerEpoch || !this.item) {
-                return;
+              if (this.item) {
+                navigateToTimeline(this.item, this._getControlContext());
               }
-              this.viewManagerEpoch.manager.setViewByParameters({
-                params: {
-                  view: 'timeline',
-                  queryResults: this.viewManagerEpoch?.manager
-                    .getView()
-                    ?.queryResults?.clone()
-                    .selectResultIfFound((media) => media === this.item),
-                },
-                modifiers: [new RemoveContextViewModifier(['timeline'])],
-              });
             }}
           ></advanced-camera-card-icon>`
         : ''}
@@ -247,12 +222,8 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
             title=${localize('thumbnail.download')}
             @click=${async (ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              if (this.hass && this.item) {
-                try {
-                  this.viewItemManager?.download(this.item);
-                } catch (error: unknown) {
-                  dispatchAdvancedCameraCardErrorEvent(this, error);
-                }
+              if (this.item) {
+                await downloadMedia(this.item, this._getControlContext());
               }
             }}
           ></advanced-camera-card-icon>`

@@ -61,7 +61,9 @@
   );
 
   // The border radius of buttons.
-  --advanced-camera-card-button-border-radius: 50%;
+  // We use a large viewport-relative value to ensure that rectangular
+  // elements render as pills/capsules rather than ovals.
+  --advanced-camera-card-button-border-radius: 100vmax;
 
   /******
    * Menu
