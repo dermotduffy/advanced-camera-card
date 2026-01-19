@@ -47,10 +47,12 @@ export class StatusBarItemManager {
       ? options?.cameraManager?.getCameraMetadata(options?.view?.camera)
       : null;
     const engineIcon = cameraMetadata?.engineIcon ?? null;
+    const selectedResult = options?.view?.queryResults?.getSelectedResult();
+    const severity = selectedResult?.getSeverity() ?? null;
     const title = options?.view?.is('live')
       ? cameraMetadata?.title ?? null
       : options?.view?.isViewerView()
-        ? options?.view.queryResults?.getSelectedResult()?.getTitle() ?? null
+        ? selectedResult?.getTitle() ?? null
         : null;
     const resolution = options?.mediaLoadedInfo
       ? this._calculateResolution(options?.mediaLoadedInfo)
@@ -60,6 +62,17 @@ export class StatusBarItemManager {
       : null;
 
     return [
+      ...(severity
+        ? [
+            {
+              type: 'custom:advanced-camera-card-status-bar-icon' as const,
+              icon: 'mdi:circle-medium',
+              severity,
+              ...options?.statusConfig?.items.severity,
+            },
+          ]
+        : []),
+
       ...(title
         ? [
             {

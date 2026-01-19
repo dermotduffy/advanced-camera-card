@@ -13,8 +13,8 @@ export class BrowseMediaViewItemFactory {
     options?: ViewMediaSourceOptions,
   ): ViewItem | null {
     if (browseMedia.can_expand) {
-      return options?.folder
-        ? new BrowseMediaViewFolder(options.folder, browseMedia)
+      return options?.folder && options?.path
+        ? new BrowseMediaViewFolder(options.folder, options.path, browseMedia)
         : null;
     }
 

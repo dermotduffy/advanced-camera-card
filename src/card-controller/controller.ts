@@ -28,9 +28,11 @@ import { InitializationManager } from './initialization-manager';
 import { InteractionManager } from './interaction-manager';
 import { KeyboardStateManager } from './keyboard-state-manager';
 import { MediaLoadedInfoManager } from './media-info-manager';
+
 import { MediaPlayerManager } from './media-player-manager';
 import { MessageManager } from './message-manager';
 import { MicrophoneManager } from './microphone-manager';
+import { OverlayMessageManager } from './overlay-message-manager';
 import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
@@ -56,6 +58,7 @@ import {
   CardMediaPlayerAPI,
   CardMessageAPI,
   CardMicrophoneAPI,
+  CardOverlayMessageAPI,
   CardQueryStringAPI,
   CardStyleAPI,
   CardTriggersAPI,
@@ -87,6 +90,7 @@ export class CardController
     CardMediaPlayerAPI,
     CardMessageAPI,
     CardMicrophoneAPI,
+    CardOverlayMessageAPI,
     CardQueryStringAPI,
     CardStyleAPI,
     CardTriggersAPI,
@@ -118,9 +122,11 @@ export class CardController
   protected _interactionManager = new InteractionManager(this);
   protected _keyboardStateManager = new KeyboardStateManager(this);
   protected _mediaLoadedInfoManager = new MediaLoadedInfoManager(this);
+
   protected _mediaPlayerManager = new MediaPlayerManager(this);
   protected _messageManager = new MessageManager(this);
   protected _microphoneManager = new MicrophoneManager(this);
+  protected _overlayMessageManager = new OverlayMessageManager(this);
   protected _queryStringManager = new QueryStringManager(this);
   protected _statusBarItemManager = new StatusBarItemManager(this);
   protected _styleManager = new StyleManager(this);
@@ -246,6 +252,10 @@ export class CardController
   }
   public createMicrophoneManager(): void {
     this._microphoneManager = new MicrophoneManager(this);
+  }
+
+  public getOverlayMessageManager(): OverlayMessageManager {
+    return this._overlayMessageManager;
   }
 
   public getQueryStringManager(): QueryStringManager {

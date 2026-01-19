@@ -4,13 +4,11 @@ import { CameraManager } from '../camera-manager/manager';
 import { FoldersManager } from '../card-controller/folders/manager';
 import { ViewItemManager } from '../card-controller/view/item-manager';
 import { ViewManagerEpoch } from '../card-controller/view/types';
-import { TimelineKeys } from '../components-lib/timeline/types';
 import { ConditionStateManagerReadonlyInterface } from '../conditions/types';
 import { TimelineConfig } from '../config/schema/timeline';
 import { CardWideConfig } from '../config/schema/types';
 import { HomeAssistant } from '../ha/types';
 import basicBlockStyle from '../scss/basic-block.scss';
-import { QueryClassifier } from '../view/query-classifier';
 import './surround.js';
 import './timeline-core.js';
 
@@ -40,47 +38,6 @@ export class AdvancedCameraCardTimeline extends LitElement {
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
-  protected _getKeys(): TimelineKeys | undefined {
-    const query = this.viewManagerEpoch?.manager.getView()?.query;
-
-    // If there's a query, try to extract camera IDs or folder info from it.
-    if (QueryClassifier.isMediaQuery(query)) {
-      const cameraIDs = query.getQueryCameraIDs();
-      if (cameraIDs && cameraIDs.size) {
-        return {
-          type: 'camera',
-          cameraIDs,
-        };
-      }
-    } else if (QueryClassifier.isFolderQuery(query)) {
-      const folderConfig = query.getQuery()?.folder;
-      if (folderConfig) {
-        return {
-          type: 'folder',
-          folder: folderConfig,
-        };
-      }
-    }
-
-    // Otherwise fall back to all cameras that support media queries.
-    const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability({
-      anyCapabilities: ['clips', 'snapshots', 'recordings'],
-    });
-    const folder = this.foldersManager?.getFolder() ?? null;
-
-    return cameraIDs?.size
-      ? {
-          type: 'camera',
-          cameraIDs,
-        }
-      : folder
-        ? {
-            type: 'folder',
-            folder,
-          }
-        : undefined;
-  }
-
   protected render(): TemplateResult | void {
     if (!this.timelineConfig) {
       return html``;
@@ -96,7 +53,6 @@ export class AdvancedCameraCardTimeline extends LitElement {
         .foldersManager=${this.foldersManager}
         .conditionStateManager=${this.conditionStateManager}
         .viewItemManager=${this.viewItemManager}
-        .keys=${this._getKeys()}
         .cardWideConfig=${this.cardWideConfig}
         .itemClickAction=${this.timelineConfig.controls.thumbnails.mode === 'none'
           ? 'play'

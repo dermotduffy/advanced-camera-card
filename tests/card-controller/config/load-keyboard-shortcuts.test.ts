@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createCardAPI, createConfig } from '../../test-utils';
 import { setKeyboardShortcutsFromConfig } from '../../../src/card-controller/config/load-keyboard-shortcuts';
-import { PTZKeyboardShortcutName } from '../../../src/config/keyboard-shortcuts';
-import { PTZAction } from '../../../src/config/ptz';
+import { PTZAction } from '../../../src/config/schema/actions/custom/ptz';
+import { PTZKeyboardShortcutName } from '../../../src/config/schema/view';
+import { createCardAPI, createConfig } from '../../test-utils';
 
 describe('setKeyboardShortcutsFromConfig', () => {
   it('without shortcuts', () => {

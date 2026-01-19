@@ -104,14 +104,16 @@ export class TriggersManager {
       .actions.trigger;
     const defaultView = this._api.getConfigManager().getConfig()?.view.default;
 
-    // If this is a high-fidelity event where we are certain about new media,
-    // don't take action unless it's to change to live (Frigate engine may pump
-    // out events where there's no new media to show). Other trigger actions
-    // (e.g. media, update) do not make sense without having some new media.
+    // Early exit guard: If this is a high-fidelity event where we are certain
+    // about new media, don't take action unless it's to change to live (Frigate
+    // engine may pump out events where there's no new media to show). Other
+    // trigger actions (e.g. media, update) do not make sense without having
+    // some new media.
     if (
       ev.fidelity === 'high' &&
       !ev.snapshot &&
       !ev.clip &&
+      !ev.review &&
       !(
         triggerAction === 'live' ||
         (triggerAction === 'default' && defaultView === 'live')
@@ -139,12 +141,26 @@ export class TriggersManager {
           },
         });
       } else if (ev.fidelity === 'high' && triggerAction === 'media') {
-        await this._api.getViewManager().setViewByParametersWithNewQuery({
-          params: {
-            view: ev.clip ? 'clip' : 'snapshot',
-            camera: ev.cameraID,
-          },
-        });
+        // Choose the most appropriate media view based on what's available.
+        // Priority: review > clip > snapshot
+        const view = ev.review
+          ? 'review'
+          : ev.clip
+            ? 'clip'
+            : ev.snapshot
+              ? 'snapshot'
+              : /* istanbul ignore next: unreachable due to early exit guard above -- @preserve */
+                null;
+
+        /* istanbul ignore next: unreachable due to early exit guard above -- @preserve */
+        if (view) {
+          await this._api.getViewManager().setViewByParametersWithNewQuery({
+            params: {
+              view,
+              camera: ev.cameraID,
+            },
+          });
+        }
       }
     }
 

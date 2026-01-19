@@ -1,10 +1,9 @@
 :host {
-  display: block;
+  display: flex;
   overflow: hidden;
 
   aspect-ratio: 1 / 1;
 
-  display: flex;
   justify-content: center;
   align-items: center;
 }

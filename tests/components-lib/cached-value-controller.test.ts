@@ -1,7 +1,7 @@
 import { ReactiveControllerHost } from 'lit';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { CachedValueController } from '../src/components-lib/cached-value-controller';
+import { CachedValueController } from '../../src/components-lib/cached-value-controller';
 
 // @vitest-environment jsdom
 describe('CachedValueController', () => {

@@ -2,8 +2,9 @@ import { z } from 'zod';
 import type { EffectOptions } from './components-lib/effects/types';
 import type { LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from './ha/types';
 
-export type ClipsOrSnapshots = 'clips' | 'snapshots';
-export type ClipsOrSnapshotsOrAll = 'clips' | 'snapshots' | 'all';
+// UI-facing media types for galleries and views.
+export const VIEW_MEDIA_TYPES = ['clips', 'snapshots', 'recordings', 'reviews'] as const;
+export type ViewMediaType = (typeof VIEW_MEDIA_TYPES)[number];
 
 export class AdvancedCameraCardError extends Error {
   context?: unknown;
@@ -60,6 +61,24 @@ export interface Message {
   context?: unknown;
   dotdotdot?: boolean;
   url?: MessageURL;
+}
+
+export interface MetadataField {
+  title: string;
+  icon?: Icon;
+  hint?: string;
+  emphasis?: Severity;
+}
+
+export interface OverlayMessageControl extends MetadataField {
+  callback: () => OverlayMessage | null | Promise<OverlayMessage | null>;
+}
+
+export interface OverlayMessage {
+  heading?: MetadataField;
+  controls?: OverlayMessageControl[];
+  details?: MetadataField[];
+  text?: string;
 }
 
 export type WebkitHTMLVideoElement = HTMLVideoElement & {
@@ -124,6 +143,7 @@ export interface CapabilitiesRaw {
   clips?: boolean;
   recordings?: boolean;
   snapshots?: boolean;
+  reviews?: boolean;
 
   'favorite-events'?: boolean;
   'favorite-recordings'?: boolean;
@@ -151,6 +171,7 @@ export const capabilityKeys: readonly [CapabilityKey, ...CapabilityKey[]] = [
   'menu',
   'ptz',
   'recordings',
+  'reviews',
   'seek',
   'snapshots',
   'substream',
@@ -194,3 +215,6 @@ export interface EffectsControllerAPI {
   stopEffect(effect: EffectName): void;
   toggleEffect(effect: EffectName, options?: EffectOptions): Promise<void>;
 }
+
+export const SEVERITIES = ['high', 'medium', 'low'] as const;
+export type Severity = (typeof SEVERITIES)[number];

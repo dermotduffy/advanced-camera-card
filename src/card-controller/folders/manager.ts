@@ -2,7 +2,9 @@ import { cloneDeep } from 'lodash-es';
 import { ConditionState } from '../../conditions/types';
 import { FolderConfig, FolderConfigWithoutID } from '../../config/schema/folders';
 import { localize } from '../../localize/localize';
+import { hasUnsupportedFilters } from '../../query-source.js';
 import { Endpoint } from '../../types';
+import { getFolderID } from '../../utils/folder';
 import { ViewFolder, ViewItem } from '../../view/item';
 import { ViewItemCapabilities } from '../../view/types';
 import { CardFoldersAPI } from '../types';
@@ -26,7 +28,7 @@ export class FoldersManager {
   public addFolders(folders: FolderConfigWithoutID[]): void {
     for (const folder of folders) {
       const folderNumber = this._folders.size;
-      const id = folder.id ?? `folder/${folderNumber.toString()}`;
+      const id = getFolderID(folder, folderNumber);
       if (this._folders.has(id)) {
         throw new FolderInitializationError(
           localize('error.duplicate_folder_id'),
@@ -57,9 +59,9 @@ export class FoldersManager {
       : this._folders.values().next().value ?? null;
   }
 
-  public generateDefaultFolderQuery(folder?: FolderConfig): FolderQuery | null {
+  public getDefaultQueryParameters(folder?: FolderConfig): FolderQuery | null {
     const _folder = folder ?? this.getFolder();
-    return _folder ? this._executor.generateDefaultFolderQuery(_folder) : null;
+    return _folder ? this._executor.getDefaultQueryParameters(_folder) : null;
   }
 
   public generateChildFolderQuery(
@@ -74,10 +76,18 @@ export class FoldersManager {
     conditionState?: ConditionState,
     engineOptions?: EngineOptions,
   ): Promise<ViewItem[] | null> {
+    if (hasUnsupportedFilters(query)) {
+      return null;
+    }
+
     const hass = this._api.getHASSManager().getHASS();
     return hass
       ? this._executor.expandFolder(hass, query, conditionState, engineOptions)
       : null;
+  }
+
+  public areResultsFresh(resultsTimestamp: Date, query: FolderQuery): boolean {
+    return this._executor.areResultsFresh(resultsTimestamp, query);
   }
 
   public getItemCapabilities(item: ViewItem): ViewItemCapabilities | null {

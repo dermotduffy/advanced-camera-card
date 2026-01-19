@@ -116,14 +116,14 @@
       }
     },
     "common": {
+      "media_types": {
+        "events": "Ereignisse",
+        "recordings": "Aufzeichnungen"
+      },
       "controls": {
         "builtin": "Eingebettete Video Bedienelemente",
         "thumbnails": {
-          "media_type": "Ob Vorschau von Ereignissen oder Aufzeichnungen angezeigt werden",
-          "media_types": {
-            "events": "Ereignisse",
-            "recordings": "Aufzeichnungen"
-          }
+          "media_type": "Ob Vorschau von Ereignissen oder Aufzeichnungen angezeigt werden"
         },
         "timeline": {
           "format": {

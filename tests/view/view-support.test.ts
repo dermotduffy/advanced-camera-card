@@ -79,6 +79,8 @@ describe('getCameraIDsForViewName', () => {
       ['snapshots' as const, 'snapshots' as const],
       ['recording' as const, 'recordings' as const],
       ['recordings' as const, 'recordings' as const],
+      ['review' as const, 'reviews' as const],
+      ['reviews' as const, 'reviews' as const],
     ])('%s', (viewName: AdvancedCameraCardView, capabilityKey: CapabilityKey) => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(

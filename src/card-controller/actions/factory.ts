@@ -9,9 +9,10 @@ import { CustomAction } from './actions/custom';
 import { DefaultAction } from './actions/default';
 import { DisplayModeSelectAction } from './actions/display-mode-select';
 import { DownloadAction } from './actions/download';
-import { ExpandAction } from './actions/expand';
 import { EffectAction } from './actions/effect';
+import { ExpandAction } from './actions/expand';
 import { FullscreenAction } from './actions/fullscreen';
+import { InfoAction } from './actions/info';
 import { InternalCallbackAction } from './actions/internal-callback';
 import { LogAction } from './actions/log';
 import { MediaPlayerAction } from './actions/media-player';
@@ -33,6 +34,7 @@ import { PTZDigitalAction } from './actions/ptz-digital';
 import { PTZMultiAction } from './actions/ptz-multi';
 import { ReloadAction } from './actions/reload';
 import { ScreenshotAction } from './actions/screenshot';
+import { SetReviewAction } from './actions/set-review';
 import { SleepAction } from './actions/sleep';
 import { StatusBarAction } from './actions/status-bar';
 import { SubstreamOffAction } from './actions/substream-off';
@@ -93,6 +95,8 @@ export class ActionFactory {
       case 'live':
       case 'recording':
       case 'recordings':
+      case 'review':
+      case 'reviews':
       case 'snapshot':
       case 'snapshots':
       case 'timeline':
@@ -110,6 +114,8 @@ export class ActionFactory {
         return new ExpandAction(context, action, options?.config);
       case 'fullscreen':
         return new FullscreenAction(context, action, options?.config);
+      case 'info':
+        return new InfoAction(context, action, options?.config);
       case 'menu_toggle':
         return new MenuToggleAction(context, action, options?.config);
       case 'camera_select':
@@ -156,6 +162,8 @@ export class ActionFactory {
         return new StatusBarAction(context, action, options?.config);
       case 'reload':
         return new ReloadAction(context, action, options?.config);
+      case 'set_review':
+        return new SetReviewAction(context, action, options?.config);
       case INTERNAL_CALLBACK_ACTION:
         return new InternalCallbackAction(context, action, options?.config);
     }

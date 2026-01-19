@@ -76,7 +76,7 @@ export class ThumbnailFeatureController {
     if (thumbnail) {
       this._thumbnail = thumbnail;
       this._icon = null;
-      this._thumbnailClass = isBrandUrl(thumbnail) ? 'brand' : null;
+      this._thumbnailClass = isBrandUrl(thumbnail) ? 'placeholder' : null;
     } else {
       this._thumbnail = null;
       this._thumbnailClass = null;

@@ -100,6 +100,7 @@ export class AdvancedCameraCardStatusBar extends LitElement {
             return html`<div
               .actionHandler=${handler}
               class="${classes}"
+              data-severity=${item.severity ?? ''}
               @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
             >
               ${item.string}
@@ -109,6 +110,7 @@ export class AdvancedCameraCardStatusBar extends LitElement {
               .actionHandler=${handler}
               .icon=${{ icon: item.icon }}
               class="${classes}"
+              data-severity=${item.severity ?? ''}
               @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
             ></advanced-camera-card-icon>`;
           } else if (item.type === 'custom:advanced-camera-card-status-bar-image') {
@@ -116,6 +118,7 @@ export class AdvancedCameraCardStatusBar extends LitElement {
               .actionHandler=${handler}
               class="${classes}"
               src="${item.image}"
+              data-severity=${item.severity ?? ''}
               @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
             />`;
           }

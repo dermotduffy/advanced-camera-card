@@ -8,8 +8,6 @@ import { StyleInfo } from 'lit/directives/style-map';
 import { isEqualWith, mergeWith, round, uniq } from 'lodash-es';
 import { AdvancedCameraCardError } from '../types';
 
-export type ModifyInterface<T, R> = Omit<T, keyof R> & R;
-
 /**
  * Prettify a title by converting '_' to spaces and capitalizing words.
  * @param input The input string.

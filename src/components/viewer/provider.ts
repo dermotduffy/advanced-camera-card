@@ -10,6 +10,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
+import { QueryType } from '../../camera-manager/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
@@ -29,7 +30,7 @@ import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../../ty
 import { errorToConsole } from '../../utils/basic.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { VideoContentType, ViewMedia } from '../../view/item.js';
-import { QueryClassifier } from '../../view/query-classifier.js';
+import { UnifiedQueryTransformer } from '../../view/unified-query-transformer.js';
 import '../image-player.js';
 import { renderProgressIndicator } from '../progress-indicator.js';
 import '../video-player.js';
@@ -85,19 +86,13 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       // If this specific media item has no clip, then do nothing (even if all
       // the other media items do).
       !ViewItemClassifier.isEvent(this.media) ||
-      !QueryClassifier.isEventQuery(view.query)
+      !view.query?.hasMediaQueriesOfType(QueryType.Event)
     ) {
       return;
     }
 
     // Convert the query to a clips equivalent.
-    const clipQuery = view.query.clone();
-    clipQuery.convertToClipsQueries();
-
-    const queries = clipQuery.getQuery();
-    if (!queries) {
-      return;
-    }
+    const clipQuery = UnifiedQueryTransformer.convertToClips(view.query);
 
     await this.viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
       params: {

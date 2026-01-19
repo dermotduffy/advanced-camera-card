@@ -3,6 +3,8 @@ import { ActionEventTarget } from '../action-handler-directive';
 import { isCardInPanel } from '../ha/panel';
 import { setOrRemoveAttribute } from '../utils/basic';
 import { isBeingCasted } from '../utils/casting';
+import { CardMediaReviewEventTarget } from '../utils/review';
+import { ViewItem } from '../view/item';
 import { ActionExecutionRequestEventTarget } from './actions/utils/execution-request';
 import { InitializationAspect } from './initialization-manager';
 import { CardElementAPI } from './types';
@@ -13,7 +15,8 @@ export type MenuToggleCallback = () => void;
 export type CardHTMLElement = LitElement &
   ReactiveControllerHost &
   ActionEventTarget &
-  ActionExecutionRequestEventTarget;
+  ActionExecutionRequestEventTarget &
+  CardMediaReviewEventTarget;
 
 export class CardElementManager {
   protected _api: CardElementAPI;
@@ -120,6 +123,10 @@ export class CardElementManager {
       'advanced-camera-card:action:execution-request',
       this._api.getActionsManager().handleActionExecutionRequestEvent,
     );
+    this._element.addEventListener(
+      'advanced-camera-card:media:reviewed',
+      this._handleMediaReviewed,
+    );
 
     // Listen for HA `navigate` actions.
     // See: https://github.com/home-assistant/frontend/blob/273992c8e9c3062c6e49481b6d7d688a07067232/src/common/navigate.ts#L43
@@ -198,6 +205,10 @@ export class CardElementManager {
       'advanced-camera-card:action:execution-request',
       this._api.getActionsManager().handleActionExecutionRequestEvent,
     );
+    this._element.removeEventListener(
+      'advanced-camera-card:media:reviewed',
+      this._handleMediaReviewed,
+    );
 
     window.removeEventListener(
       'location-changed',
@@ -208,4 +219,15 @@ export class CardElementManager {
       this._api.getQueryStringManager().requestExecution,
     );
   }
+
+  protected _handleMediaReviewed = (ev: CustomEvent<ViewItem>): void => {
+    // If the selected media item has a change of review status, update the card
+    // (e.g. for the menu).
+    if (
+      this._api.getViewManager().getView()?.queryResults?.getSelectedResult() ===
+      ev.detail
+    ) {
+      this.update();
+    }
+  };
 }

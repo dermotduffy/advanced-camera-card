@@ -93,9 +93,11 @@ media_viewer:
 | ----------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mode`                  | `none`  | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`). |
 | `show_details`          | `false` | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.                                                        |
-| `show_download_control` | `true`  | Whether to show the download control on each thumbnail.                                                                                                         |
+| `show_download_control` | `false` | Whether to show the download control on each thumbnail.                                                                                                         |
 | `show_favorite_control` | `true`  | Whether to show the favorite ('star') control on each thumbnail.                                                                                                |
-| `show_timeline_control` | `true`  | Whether to show the timeline ('target') control on each thumbnail.                                                                                              |
+| `show_info_control`     | `true`  | Whether to show the info ('i') control on each thumbnail.                                                                                                       |
+| `show_review_control`   | `true`  | Whether to show the review ('check') control on each thumbnail.                                                                                                 |
+| `show_timeline_control` | `false` | Whether to show the timeline ('target') control on each thumbnail.                                                                                              |
 | `size`                  | `100`   | The size of the thumbnails in the thumbnail carousel pixels. Must be &gt;= `75` and &lt;= `300`.                                                                |
 
 ### `timeline`
@@ -112,7 +114,6 @@ media_viewer:
 | Option                 | Default  | Description                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | ---------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `clustering_threshold` | `3`      | The minimum number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. Depending on the timescale/zoom of the timeline, the underlying timeline library may still allow overlaps for low values of this parameter -- for a fully "flat" timeline use the `ribbon` style. `0` disables clustering entirely. Only used in the `stack` style of timeline. |
-| `events_media_type`    | `all`    | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot.                                                                                                                                                                                                                                                     |
 | `format`               |          | Configuration for the timeline time & date format. See below.                                                                                                                                                                                                                                                                                                                                                                   |
 | `mode`                 | `none`   | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).                                                                                                                                                                                                                                                                 |
 | `pan_mode`             | `pan`    | See [timeline pan mode](timeline-pan-mode.md).                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -199,15 +200,16 @@ media_viewer:
       size: 100
       mode: none
       show_details: false
-      show_download_control: true
+      show_download_control: false
       show_favorite_control: true
-      show_timeline_control: true
+      show_info_control: true
+      show_review_control: true
+      show_timeline_control: false
     timeline:
       style: ribbon
       mode: none
       pan_mode: pan
       clustering_threshold: 3
-      events_media_type: all
       show_recordings: true
       window_seconds: 3600
       format:

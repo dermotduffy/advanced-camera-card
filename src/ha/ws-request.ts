@@ -37,11 +37,11 @@ export async function homeAssistantWSRequest<T>(
     // Some endpoints in Home Assistant pass JSON directly though, these end up
     // wrapped in a string and must be unwrapped first.
     return schema.parse(passthrough ? JSON.parse(response as string) : response);
-  } catch (e) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_e) {
     throw new AdvancedCameraCardError(localize('error.invalid_response'), {
       request: request,
       response: response,
-      error: e,
     });
   }
 }

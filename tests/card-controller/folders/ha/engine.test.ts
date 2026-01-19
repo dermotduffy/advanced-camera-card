@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { HAFoldersEngine } from '../../../../src/card-controller/folders/ha/engine';
 import { FolderQuery } from '../../../../src/card-controller/folders/types';
 import { FolderConfig, Matcher } from '../../../../src/config/schema/folders';
@@ -6,6 +6,7 @@ import { BrowseMediaViewFolder } from '../../../../src/ha/browse-media/item';
 import { browseMediaSchema } from '../../../../src/ha/browse-media/types';
 import { getMediaDownloadPath } from '../../../../src/ha/download';
 import { homeAssistantWSRequest } from '../../../../src/ha/ws-request';
+import { QuerySource } from '../../../../src/query-source';
 import { Endpoint } from '../../../../src/types';
 import { ViewFolder, ViewMedia } from '../../../../src/view/item';
 import {
@@ -25,7 +26,7 @@ describe('HAFoldersEngine', () => {
 
   describe('getItemCapabilities', () => {
     it('should not be able to download a folder', () => {
-      const item = new ViewFolder(createFolder());
+      const item = new ViewFolder(createFolder(), []);
       const engine = new HAFoldersEngine();
 
       expect(engine.getItemCapabilities(item)).toEqual({
@@ -47,7 +48,7 @@ describe('HAFoldersEngine', () => {
 
   describe('getDownloadPath', () => {
     it('should return null if item is not a media item', async () => {
-      const item = new ViewFolder(createFolder());
+      const item = new ViewFolder(createFolder(), []);
       const engine = new HAFoldersEngine();
       expect(await engine.getDownloadPath(createHASS(), item)).toBeNull();
     });
@@ -74,59 +75,24 @@ describe('HAFoldersEngine', () => {
     });
   });
 
-  describe('should generate default folder query', () => {
-    it('should generate default folder query', () => {
-      const folder: FolderConfig = { type: 'ha', id: 'test' };
+  describe('getDefaultQueryParameters', () => {
+    it('should return null for non-ha folder config', () => {
+      const folder: FolderConfig = {
+        type: 'UNKNOWN',
+      } as unknown as FolderConfig;
       const engine = new HAFoldersEngine();
 
-      const query = engine.generateDefaultFolderQuery(folder);
-      expect(query).toEqual({
-        folder,
+      expect(engine.getDefaultQueryParameters(folder)).toBeNull();
+    });
+
+    it('should return default query parameters for ha folder config', () => {
+      const folder = createFolder();
+      const engine = new HAFoldersEngine();
+
+      expect(engine.getDefaultQueryParameters(folder)).toEqual({
+        source: QuerySource.Folder,
+        folder: folder,
         path: [{ ha: { id: 'media-source://' } }],
-      });
-    });
-
-    it('should reject folders of the wrong type', async () => {
-      const folder = createFolder({ type: 'UNKNOWN' } as unknown as FolderConfig);
-      const engine = new HAFoldersEngine();
-
-      expect(engine.generateDefaultFolderQuery(folder)).toBeNull();
-    });
-
-    it('should respect path_url as a priority', async () => {
-      const folder = createFolder({
-        ha: {
-          url: [{ id: 'media-source://1' }],
-          path: [{ id: 'media-source://2' }],
-        },
-      });
-      const engine = new HAFoldersEngine();
-      expect(engine.generateDefaultFolderQuery(folder)).toEqual({
-        folder,
-        path: [{ ha: { id: 'media-source://1' } }, { ha: { id: 'media-source://2' } }],
-      });
-    });
-
-    it('should respect configured url', async () => {
-      const folder = createFolder({ ha: { url: [{ id: 'media-source://' }] } });
-      const engine = new HAFoldersEngine();
-      expect(engine.generateDefaultFolderQuery(folder)).toEqual({
-        folder,
-        path: [{ ha: { id: 'media-source://' } }],
-      });
-    });
-
-    it('should add default media root as necessary', async () => {
-      const folder = createFolder({
-        ha: { path: [{ matchers: [{ type: 'title', title: 'Frigate' }] }] },
-      });
-      const engine = new HAFoldersEngine();
-      expect(engine.generateDefaultFolderQuery(folder)).toEqual({
-        folder,
-        path: [
-          { ha: { id: 'media-source://' } },
-          { ha: { matchers: [{ type: 'title', title: 'Frigate' }] } },
-        ],
       });
     });
   });
@@ -134,6 +100,7 @@ describe('HAFoldersEngine', () => {
   describe('should expand folder', () => {
     it('should reject folders of the wrong type', async () => {
       const query = {
+        source: QuerySource.Folder,
         folder: { type: 'UNKNOWN' },
       } as unknown as FolderQuery;
       const engine = new HAFoldersEngine();
@@ -143,6 +110,7 @@ describe('HAFoldersEngine', () => {
 
     it('should expand folder with cache by default', async () => {
       const query: FolderQuery = {
+        source: QuerySource.Folder,
         folder: { type: 'ha', id: 'test' },
         path: [{ ha: { id: 'media-source://id' } }],
       };
@@ -180,6 +148,7 @@ describe('HAFoldersEngine', () => {
 
     it('should expand folder without cache when requested', async () => {
       const query: FolderQuery = {
+        source: QuerySource.Folder,
         folder: { type: 'ha', id: 'test' },
         path: [{ ha: { id: 'media-source://id' } }],
       };
@@ -231,10 +200,11 @@ describe('HAFoldersEngine', () => {
       });
 
       const query: FolderQuery = {
+        source: QuerySource.Folder,
         folder: { type: 'ha', id: 'test' },
         path: [
           {
-            folder: new BrowseMediaViewFolder(createFolder(), browseMedia),
+            folder: new BrowseMediaViewFolder(createFolder(), [], browseMedia),
           },
         ],
       };
@@ -259,12 +229,45 @@ describe('HAFoldersEngine', () => {
 
     it('should not expand without a folder with an id', async () => {
       const query: FolderQuery = {
+        source: QuerySource.Folder,
         folder: { type: 'ha', id: 'test' },
         // There's no component in the query with an id to start from.
         path: [{ ha: {} }],
       };
       const engine = new HAFoldersEngine();
       expect(await engine.expandFolder(createHASS(), query)).toBeNull();
+    });
+
+    it('should early exit when limit is reached', async () => {
+      const query: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: { type: 'ha', id: 'test' },
+        path: [{ ha: { id: 'media-source://id' } }],
+        limit: 1,
+      };
+
+      vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce(
+        createBrowseMedia({
+          media_content_id: 'media-source://id',
+          can_expand: true,
+          children: [
+            createBrowseMedia({
+              media_content_id: 'media-source://media-item-1',
+              title: 'Media Item 1',
+            }),
+            createBrowseMedia({
+              media_content_id: 'media-source://media-item-2',
+              title: 'Media Item 2',
+            }),
+          ],
+        }),
+      );
+
+      const engine = new HAFoldersEngine();
+      const results = await engine.expandFolder(createHASS(), query);
+
+      // Even though there are 2 children, the limit of 1 should trigger earlyExit.
+      expect(results?.length).toBe(1);
     });
 
     // See additional matcher testing in media-matcher.test.ts .
@@ -293,6 +296,7 @@ describe('HAFoldersEngine', () => {
         ],
       ])('%s', async (_name: string, matcher: Matcher, expectedMatches: number) => {
         const query: FolderQuery = {
+          source: QuerySource.Folder,
           folder: { type: 'ha', id: 'test' },
           path: [{ ha: { id: 'media-source://' } }, { ha: { matchers: [matcher] } }, {}],
         };
@@ -335,10 +339,11 @@ describe('HAFoldersEngine', () => {
     it('should return null if folder type is not ha', () => {
       const engine = new HAFoldersEngine();
       const query: FolderQuery = {
+        source: QuerySource.Folder,
         folder: { type: 'other' } as unknown as FolderConfig,
         path: [{ ha: { id: 'root' } }],
       };
-      const folder = new ViewFolder(createFolder());
+      const folder = new ViewFolder(createFolder(), []);
 
       expect(engine.generateChildFolderQuery(query, folder)).toBeNull();
     });
@@ -346,10 +351,11 @@ describe('HAFoldersEngine', () => {
     it('should return null if folder has no id', () => {
       const engine = new HAFoldersEngine();
       const query: FolderQuery = {
+        source: QuerySource.Folder,
         folder: { type: 'ha', id: 'test' },
         path: [{ ha: { id: 'root' } }],
       };
-      const folder = new ViewFolder(createFolder(), { id: '' });
+      const folder = new ViewFolder(createFolder(), [], { id: '' });
 
       expect(engine.generateChildFolderQuery(query, folder)).toBeNull();
     });
@@ -364,14 +370,16 @@ describe('HAFoldersEngine', () => {
         },
       };
       const query: FolderQuery = {
+        source: QuerySource.Folder,
         folder: folderConfig,
         path: [{ ha: { id: 'media-source://' } }],
       };
-      const folder = new ViewFolder(createFolder(), { id: 'child' });
+      const folder = new ViewFolder(createFolder(), [], { id: 'child' });
 
       const result = engine.generateChildFolderQuery(query, folder);
 
       expect(result).toEqual({
+        source: QuerySource.Folder,
         folder: folderConfig,
         path: [
           { ha: { id: 'media-source://' } },
@@ -387,14 +395,16 @@ describe('HAFoldersEngine', () => {
       const engine = new HAFoldersEngine();
       const folderConfig: FolderConfig = { type: 'ha', id: 'test' };
       const query: FolderQuery = {
+        source: QuerySource.Folder,
         folder: folderConfig,
         path: [{ ha: { id: 'media-source://' } }],
       };
-      const folder = new ViewFolder(createFolder(), { id: 'child' });
+      const folder = new ViewFolder(createFolder(), [], { id: 'child' });
 
       const result = engine.generateChildFolderQuery(query, folder);
 
       expect(result).toEqual({
+        source: QuerySource.Folder,
         folder: folderConfig,
         path: [
           { ha: { id: 'media-source://' } },
@@ -404,6 +414,38 @@ describe('HAFoldersEngine', () => {
           },
         ],
       });
+    });
+  });
+
+  describe('areResultsFresh', () => {
+    beforeAll(() => {
+      vi.useFakeTimers();
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
+    it('should return true for fresh results', () => {
+      const now = new Date('2026-01-02T07:54:32Z');
+      vi.setSystemTime(now);
+
+      const engine = new HAFoldersEngine();
+      const query = { folder: { type: 'ha' } } as FolderQuery;
+      const resultsTimestamp = new Date('2026-01-02T07:54:30Z');
+
+      expect(engine.areResultsFresh(resultsTimestamp, query)).toBe(true);
+    });
+
+    it('should return false for stale results', () => {
+      const now = new Date('2026-01-02T07:54:32Z');
+      vi.setSystemTime(now);
+
+      const engine = new HAFoldersEngine();
+      const query = { folder: { type: 'ha' } } as FolderQuery;
+      const resultsTimestamp = new Date('2026-01-02T07:53:30Z');
+
+      expect(engine.areResultsFresh(resultsTimestamp, query)).toBe(false);
     });
   });
 });

@@ -28,12 +28,13 @@ status_bar:
 
 ### Available Items
 
-| Button name  | Description                                            |
-| ------------ | ------------------------------------------------------ |
-| `engine`     | The icon of the camera engine for the relevant camera. |
-| `resolution` | The detected media resolution (if any).                |
-| `technology` | The detected media technology (if any).                |
-| `title`      | The media title.                                       |
+| Button name  | Description                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------- |
+| `engine`     | The icon of the camera engine for the relevant camera.                                      |
+| `resolution` | The detected media resolution (if any).                                                     |
+| `severity`   | The media severity indicator (if any) for review severity (e.g. Frigate alerts/detections). |
+| `technology` | The detected media technology (if any).                                                     |
+| `title`      | The media title.                                                                            |
 
 ### Options for each item
 
@@ -73,6 +74,9 @@ status_bar:
       enabled: true
       priority: 50
     resolution:
+      enabled: true
+      priority: 50
+    severity:
       enabled: true
       priority: 50
     technology:

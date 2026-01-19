@@ -1,0 +1,280 @@
+@use './z-index.scss' as *;
+
+:host {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 24px;
+  pointer-events: none;
+  z-index: $z-index-overlay-message;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+.message {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+
+  width: min(92%, 400px);
+  max-height: calc(100% - 48px);
+  padding: 20px 24px;
+  padding-right: 48px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--advanced-camera-card-overlay-message-scrollbar-color)
+    transparent;
+
+  // Glassmorphism background
+  background: var(--advanced-camera-card-overlay-message-background);
+  backdrop-filter: var(--advanced-camera-card-overlay-message-backdrop-filter);
+  -webkit-backdrop-filter: var(--advanced-camera-card-overlay-message-backdrop-filter);
+
+  // Borders & Edge highlights
+  border: var(--advanced-camera-card-overlay-message-border);
+  border-top: var(--advanced-camera-card-overlay-message-border-top);
+  border-radius: var(--advanced-camera-card-border-radius-final);
+
+  // Shadows
+  box-shadow: var(
+    --advanced-camera-card-box-shadow-override,
+    var(--advanced-camera-card-overlay-message-box-shadow)
+  );
+
+  pointer-events: auto;
+
+  // Entry animation (auto-plays on render)
+  animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+// Exit animation
+.message.exiting {
+  animation: slideDown 0.25s ease-out forwards;
+}
+
+@keyframes slideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.02);
+  }
+  80% {
+    transform: translateY(3px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideDown {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  20% {
+    transform: translateY(-4px) scale(1.02);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--advanced-camera-card-overlay-message-icon-color);
+  filter: drop-shadow(
+    0 0 8px
+      color-mix(
+        in oklab,
+        var(--advanced-camera-card-overlay-message-icon-color),
+        transparent 60%
+      )
+  );
+}
+
+.icon advanced-camera-card-icon {
+  --mdc-icon-size: 20px;
+}
+
+.text {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--advanced-camera-card-overlay-message-text-color);
+  word-break: break-word;
+}
+
+.controls {
+  position: absolute;
+  top: 8px;
+  right: 48px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--advanced-camera-card-button-border-radius);
+
+  background: color-mix(
+    in srgb,
+    var(--advanced-camera-card-overlay-message-close-color),
+    transparent 92%
+  );
+}
+
+.control {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--advanced-camera-card-button-border-radius);
+
+  color: color-mix(
+    in srgb,
+    var(--advanced-camera-card-overlay-message-close-color),
+    transparent 40%
+  );
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  advanced-camera-card-icon {
+    --mdc-icon-size: 16px;
+  }
+
+  &:hover {
+    filter: brightness(1.2);
+  }
+
+  // Base control hover color transition (from dimmed to full).
+  &:not([class^='emphasis-']):hover {
+    color: var(--advanced-camera-card-overlay-message-close-color);
+  }
+
+  &.emphasis-low {
+    color: var(--advanced-camera-card-foreground-severity-low-color);
+  }
+  &.emphasis-medium {
+    color: var(--advanced-camera-card-foreground-severity-medium-color);
+  }
+  &.emphasis-high {
+    color: var(--advanced-camera-card-foreground-severity-high-color);
+  }
+}
+
+.close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--advanced-camera-card-button-border-radius);
+
+  background: color-mix(
+    in srgb,
+    var(--advanced-camera-card-overlay-message-close-color),
+    transparent 95%
+  );
+  color: color-mix(
+    in srgb,
+    var(--advanced-camera-card-overlay-message-close-color),
+    transparent 40%
+  );
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.close:hover {
+  background: color-mix(
+    in srgb,
+    var(--advanced-camera-card-overlay-message-close-color),
+    transparent 90%
+  );
+  color: var(--advanced-camera-card-overlay-message-close-color);
+}
+
+.close advanced-camera-card-icon {
+  --mdc-icon-size: 18px;
+}
+
+.details {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--advanced-camera-card-overlay-message-text-color);
+  font-size: 14px;
+  line-height: 1.4;
+
+  advanced-camera-card-icon {
+    flex-shrink: 0;
+    --mdc-icon-size: 18px;
+    opacity: 0.7;
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  &.heading {
+    width: 100%;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 4px;
+
+    advanced-camera-card-icon {
+      opacity: 1;
+    }
+  }
+}
+
+.description {
+  width: 100%;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid
+    color-mix(
+      in srgb,
+      var(--advanced-camera-card-overlay-message-text-color),
+      transparent 80%
+    );
+  color: var(--advanced-camera-card-overlay-message-text-color);
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

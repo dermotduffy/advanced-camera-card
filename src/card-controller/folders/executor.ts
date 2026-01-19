@@ -15,10 +15,8 @@ export class FoldersExecutor {
     this._ha = engines?.ha ?? new HAFoldersEngine();
   }
 
-  public generateDefaultFolderQuery(folder: FolderConfig): FolderQuery | null {
-    return (
-      this._getFolderEngine(folder.type)?.generateDefaultFolderQuery(folder) ?? null
-    );
+  public getDefaultQueryParameters(folder: FolderConfig): FolderQuery | null {
+    return this._getFolderEngine(folder.type)?.getDefaultQueryParameters(folder) ?? null;
   }
 
   public generateChildFolderQuery(
@@ -76,6 +74,15 @@ export class FoldersExecutor {
       hass,
       item,
       favorite,
+    );
+  }
+
+  public areResultsFresh(resultsTimestamp: Date, query: FolderQuery): boolean {
+    return (
+      this._getFolderEngine(query.folder.type)?.areResultsFresh(
+        resultsTimestamp,
+        query,
+      ) ?? true
     );
   }
 

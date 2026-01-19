@@ -1,17 +1,25 @@
 import { z } from 'zod';
-import { thumbnailsControlSchema } from './common/controls/thumbnails';
 import {
-  timelineConfigDefault,
+  thumbnailControlsDefaults,
+  thumbnailsControlSchema,
+} from './common/controls/thumbnails';
+import {
+  timelineCoreConfigDefault,
   timelineCoreConfigSchema,
 } from './common/controls/timeline';
+
+export const timelineConfigDefault = {
+  ...timelineCoreConfigDefault,
+  controls: {
+    thumbnails: thumbnailControlsDefaults,
+  },
+};
 
 export const timelineConfigSchema = timelineCoreConfigSchema
   .extend({
     controls: z
       .object({
-        thumbnails: thumbnailsControlSchema.default(
-          timelineConfigDefault.controls.thumbnails,
-        ),
+        thumbnails: thumbnailsControlSchema.default(thumbnailControlsDefaults),
       })
       .default(timelineConfigDefault.controls),
   })

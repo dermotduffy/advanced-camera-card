@@ -29,7 +29,7 @@ export const menuConfigDefault = {
   buttons: {
     camera_ui: visibleButtonDefault,
     cameras: visibleButtonDefault,
-    clips: visibleButtonDefault,
+    clips: hiddenButtonDefault,
     ptz_home: hiddenButtonDefault,
     display_mode: visibleButtonDefault,
     download: visibleButtonDefault,
@@ -38,6 +38,7 @@ export const menuConfigDefault = {
     iris: visibleButtonDefault,
     fullscreen: visibleButtonDefault,
     image: hiddenButtonDefault,
+    info: visibleButtonDefault,
     live: visibleButtonDefault,
     media_player: visibleButtonDefault,
     microphone: {
@@ -48,8 +49,10 @@ export const menuConfigDefault = {
     play: hiddenButtonDefault,
     ptz_controls: hiddenButtonDefault,
     recordings: hiddenButtonDefault,
+    reviews: visibleButtonDefault,
+    set_review: visibleButtonDefault,
     screenshot: hiddenButtonDefault,
-    snapshots: visibleButtonDefault,
+    snapshots: hiddenButtonDefault,
     substreams: visibleButtonDefault,
     timeline: visibleButtonDefault,
   },
@@ -76,7 +79,7 @@ export const menuConfigSchema = z
       .object({
         camera_ui: visibleButtonSchema.default(menuConfigDefault.buttons.camera_ui),
         cameras: visibleButtonSchema.default(menuConfigDefault.buttons.cameras),
-        clips: visibleButtonSchema.default(menuConfigDefault.buttons.clips),
+        clips: hiddenButtonSchema.default(menuConfigDefault.buttons.clips),
         ptz_home: hiddenButtonSchema.default(menuConfigDefault.buttons.ptz_home),
         display_mode: visibleButtonSchema.default(
           menuConfigDefault.buttons.display_mode,
@@ -87,6 +90,7 @@ export const menuConfigSchema = z
         iris: visibleButtonSchema.default(menuConfigDefault.buttons.iris),
         fullscreen: visibleButtonSchema.default(menuConfigDefault.buttons.fullscreen),
         image: hiddenButtonSchema.default(menuConfigDefault.buttons.image),
+        info: visibleButtonSchema.default(menuConfigDefault.buttons.info),
         live: visibleButtonSchema.default(menuConfigDefault.buttons.live),
         media_player: visibleButtonSchema.default(
           menuConfigDefault.buttons.media_player,
@@ -102,8 +106,10 @@ export const menuConfigSchema = z
         play: hiddenButtonSchema.default(menuConfigDefault.buttons.play),
         ptz_controls: hiddenButtonSchema.default(menuConfigDefault.buttons.ptz_controls),
         recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
+        reviews: visibleButtonSchema.default(menuConfigDefault.buttons.reviews),
+        set_review: visibleButtonSchema.default(menuConfigDefault.buttons.set_review),
         screenshot: hiddenButtonSchema.default(menuConfigDefault.buttons.screenshot),
-        snapshots: visibleButtonSchema.default(menuConfigDefault.buttons.snapshots),
+        snapshots: hiddenButtonSchema.default(menuConfigDefault.buttons.snapshots),
         substreams: visibleButtonSchema.default(menuConfigDefault.buttons.substreams),
         timeline: visibleButtonSchema.default(menuConfigDefault.buttons.timeline),
       })

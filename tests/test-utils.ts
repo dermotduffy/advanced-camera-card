@@ -6,11 +6,21 @@ import { mock } from 'vitest-mock-extended';
 import { Camera } from '../src/camera-manager/camera';
 import { Capabilities } from '../src/camera-manager/capabilities';
 import { CameraManagerEngine } from '../src/camera-manager/engine';
-import { FrigateEvent, FrigateRecording } from '../src/camera-manager/frigate/types';
+import {
+  FrigateEvent,
+  FrigateRecording,
+  FrigateReview,
+} from '../src/camera-manager/frigate/types';
 import { GenericCameraManagerEngine } from '../src/camera-manager/generic/engine-generic';
 import { CameraManager } from '../src/camera-manager/manager';
 import { CameraManagerStore } from '../src/camera-manager/store';
-import { CameraEventCallback } from '../src/camera-manager/types';
+import {
+  CameraEventCallback,
+  EventQuery,
+  QueryType,
+  RecordingQuery,
+  ReviewQuery,
+} from '../src/camera-manager/types';
 import { ActionsManager } from '../src/card-controller/actions/actions-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
 import { CameraURLManager } from '../src/card-controller/camera-url-manager';
@@ -20,6 +30,7 @@ import { CardController } from '../src/card-controller/controller';
 import { DefaultManager } from '../src/card-controller/default-manager';
 import { ExpandManager } from '../src/card-controller/expand-manager';
 import { FoldersManager } from '../src/card-controller/folders/manager';
+import { FolderQuery } from '../src/card-controller/folders/types';
 import { FullscreenManager } from '../src/card-controller/fullscreen/fullscreen-manager';
 import { HASSManager } from '../src/card-controller/hass/hass-manager';
 import { StateWatcherSubscriptionInterface } from '../src/card-controller/hass/state-watcher';
@@ -30,6 +41,7 @@ import { MediaLoadedInfoManager } from '../src/card-controller/media-info-manage
 import { MediaPlayerManager } from '../src/card-controller/media-player-manager';
 import { MessageManager } from '../src/card-controller/message-manager';
 import { MicrophoneManager } from '../src/card-controller/microphone-manager';
+import { OverlayMessageManager } from '../src/card-controller/overlay-message-manager';
 import { QueryStringManager } from '../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../src/card-controller/style-manager';
@@ -57,13 +69,20 @@ import {
 import { Device } from '../src/ha/registry/device/types';
 import { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
 import { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
+import { QuerySource } from '../src/query-source';
 import {
   CapabilitiesRaw,
   EffectsControllerAPI,
   Interaction,
   MediaLoadedInfo,
+  Severity,
 } from '../src/types';
-import { EventViewMedia, ViewMedia, ViewMediaType } from '../src/view/item';
+import {
+  EventViewMedia,
+  ReviewViewMedia,
+  ViewMedia,
+  ViewMediaType,
+} from '../src/view/item';
 import { QueryResults } from '../src/view/query-results';
 import { ViewItemCapabilities } from '../src/view/types';
 import { View, ViewParameters } from '../src/view/view';
@@ -111,7 +130,9 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
     hass.user = user;
   }
   hass.connection.subscribeMessage = vi.fn();
-  hass.connection.sendMessagePromise = vi.fn();
+
+  // ha-nunjucks calls sendMessagePromise to fetch label registry; return empty array to prevent crash.
+  hass.connection.sendMessagePromise = vi.fn().mockResolvedValue([]);
   return hass;
 };
 
@@ -187,6 +208,24 @@ export const createFrigateRecording = (recording?: Partial<FrigateRecording>) =>
     endTime: new Date('2023-04-29T14:59:59'),
     events: 42,
     ...recording,
+  };
+};
+
+export const createFrigateReview = (review?: Partial<FrigateReview>) => {
+  return {
+    id: 'review_id',
+    camera: 'camera',
+    severity: 'alert' as const,
+    start_time: 1683395000,
+    end_time: 1683397124,
+    thumb_path: 'thumb.jpg',
+    has_been_reviewed: false,
+    data: {
+      objects: ['person'],
+      zones: [],
+      audio: [],
+    },
+    ...review,
   };
 };
 
@@ -321,7 +360,7 @@ export const generateViewMediaArray = (options?: {
 
 // ViewMedia itself has no native way to set startTime and ID that aren't linked
 // to an engine.
-export class TestViewMedia extends ViewMedia implements EventViewMedia {
+export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewViewMedia {
   protected _icon: string | null = null;
   protected _id: string | null;
   protected _startTime: Date | null;
@@ -334,6 +373,10 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia {
   protected _score: number | null = null;
   protected _tags: string[] | null = null;
   protected _where: string[] | null = null;
+  protected _severity: Severity | null = null;
+  protected _reviewed: boolean | null = null;
+  protected _description: string | null = null;
+  protected _favorite: boolean | null = null;
 
   constructor(options?: {
     id?: string | null;
@@ -345,12 +388,16 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia {
     inProgress?: boolean;
     contentID?: string;
     title?: string | null;
+    description?: string | null;
     thumbnail?: string | null;
     icon?: string | null;
     what?: string[] | null;
     score?: number | null;
     tags?: string[] | null;
     where?: string[] | null;
+    severity?: Severity | null;
+    reviewed?: boolean | null;
+    favorite?: boolean | null;
   }) {
     super(options?.mediaType ?? ViewMediaType.Clip, {
       ...(options?.cameraID !== null &&
@@ -363,12 +410,16 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia {
     this._inProgress = options?.inProgress !== undefined ? options.inProgress : false;
     this._contentID = options?.contentID ?? null;
     this._title = options?.title !== undefined ? options.title : null;
+    this._description = options?.description !== undefined ? options.description : null;
     this._thumbnail = options?.thumbnail !== undefined ? options.thumbnail : null;
     this._icon = options?.icon !== undefined ? options.icon : null;
     this._what = options?.what !== undefined ? options.what : null;
     this._score = options?.score !== undefined ? options.score : null;
     this._tags = options?.tags !== undefined ? options.tags : null;
     this._where = options?.where !== undefined ? options.where : null;
+    this._severity = options?.severity !== undefined ? options.severity : null;
+    this._reviewed = options?.reviewed !== undefined ? options.reviewed : null;
+    this._favorite = options?.favorite !== undefined ? options.favorite : null;
   }
   public getIcon(): string | null {
     return this._icon;
@@ -391,6 +442,9 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia {
   public getTitle(): string | null {
     return this._title;
   }
+  public getDescription(): string | null {
+    return this._description;
+  }
   public getThumbnail(): string | null {
     return this._thumbnail;
   }
@@ -409,6 +463,21 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public isGroupableWith(_that: EventViewMedia): boolean {
     return false;
+  }
+  public getSeverity(): Severity | null {
+    return this._severity;
+  }
+  public isReviewed(): boolean | null {
+    return this._reviewed;
+  }
+  public setReviewed(reviewed: boolean): void {
+    this._reviewed = reviewed;
+  }
+  public isFavorite(): boolean | null {
+    return this._favorite;
+  }
+  public setFavorite(favorite: boolean): void {
+    this._favorite = favorite;
   }
 }
 
@@ -602,6 +671,7 @@ export const createCardAPI = (): CardController => {
   api.getMediaPlayerManager.mockReturnValue(mock<MediaPlayerManager>());
   api.getMessageManager.mockReturnValue(mock<MessageManager>());
   api.getMicrophoneManager.mockReturnValue(mock<MicrophoneManager>());
+  api.getOverlayMessageManager.mockReturnValue(mock<OverlayMessageManager>());
   api.getQueryStringManager.mockReturnValue(mock<QueryStringManager>());
   api.getStatusBarItemManager.mockReturnValue(mock<StatusBarItemManager>());
   api.getStyleManager.mockReturnValue(mock<StyleManager>());
@@ -718,3 +788,60 @@ export const createRichBrowseMedia = (
     },
   };
 };
+
+export const createEventQuery = (
+  cameraID: string,
+  options?: Partial<EventQuery>,
+): EventQuery => ({
+  source: QuerySource.Camera,
+  type: QueryType.Event,
+  cameraIDs: new Set([cameraID]),
+  ...options,
+});
+
+export const createReviewQuery = (
+  cameraID: string,
+  options?: Partial<ReviewQuery>,
+): ReviewQuery => ({
+  source: QuerySource.Camera,
+  type: QueryType.Review,
+  cameraIDs: new Set([cameraID]),
+  ...options,
+});
+
+export const createRecordingQuery = (
+  cameraID: string,
+  options?: Partial<RecordingQuery>,
+): RecordingQuery => ({
+  source: QuerySource.Camera,
+  type: QueryType.Recording,
+  cameraIDs: new Set([cameraID]),
+  ...options,
+});
+
+export const createFolderQuery = (folderId: string): FolderQuery => ({
+  source: QuerySource.Folder,
+  folder: { id: folderId, type: 'ha', title: folderId },
+  path: [{ ha: { id: 'Root' } }],
+});
+
+export const isEventQuery = (node: {
+  source: QuerySource;
+  type?: QueryType;
+}): node is EventQuery =>
+  node.source === QuerySource.Camera && node.type === QueryType.Event;
+
+export const isRecordingQuery = (node: {
+  source: QuerySource;
+  type?: QueryType;
+}): node is RecordingQuery =>
+  node.source === QuerySource.Camera && node.type === QueryType.Recording;
+
+export const isReviewQuery = (node: {
+  source: QuerySource;
+  type?: QueryType;
+}): node is ReviewQuery =>
+  node.source === QuerySource.Camera && node.type === QueryType.Review;
+
+export const isFolderQuery = (node: { source: QuerySource }): node is FolderQuery =>
+  node.source === QuerySource.Folder;

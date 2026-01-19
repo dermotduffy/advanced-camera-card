@@ -6,8 +6,10 @@ import { CustomAction } from '../../../src/card-controller/actions/actions/custo
 import { DefaultAction } from '../../../src/card-controller/actions/actions/default';
 import { DisplayModeSelectAction } from '../../../src/card-controller/actions/actions/display-mode-select';
 import { DownloadAction } from '../../../src/card-controller/actions/actions/download';
+import { EffectAction } from '../../../src/card-controller/actions/actions/effect';
 import { ExpandAction } from '../../../src/card-controller/actions/actions/expand';
 import { FullscreenAction } from '../../../src/card-controller/actions/actions/fullscreen';
+import { InfoAction } from '../../../src/card-controller/actions/actions/info';
 import { InternalCallbackAction } from '../../../src/card-controller/actions/actions/internal-callback';
 import { LogAction } from '../../../src/card-controller/actions/actions/log';
 import { MediaPlayerAction } from '../../../src/card-controller/actions/actions/media-player';
@@ -29,6 +31,7 @@ import { PTZDigitalAction } from '../../../src/card-controller/actions/actions/p
 import { PTZMultiAction } from '../../../src/card-controller/actions/actions/ptz-multi';
 import { ReloadAction } from '../../../src/card-controller/actions/actions/reload';
 import { ScreenshotAction } from '../../../src/card-controller/actions/actions/screenshot';
+import { SetReviewAction } from '../../../src/card-controller/actions/actions/set-review';
 import { SleepAction } from '../../../src/card-controller/actions/actions/sleep';
 import { StatusBarAction } from '../../../src/card-controller/actions/actions/status-bar';
 import { SubstreamOffAction } from '../../../src/card-controller/actions/actions/substream-off';
@@ -41,7 +44,6 @@ import { ViewAction } from '../../../src/card-controller/actions/actions/view';
 import { ActionFactory } from '../../../src/card-controller/actions/factory';
 import { INTERNAL_CALLBACK_ACTION } from '../../../src/config/schema/actions/custom/internal';
 import { ActionConfig } from '../../../src/config/schema/actions/types';
-import { EffectAction } from '../../../src/card-controller/actions/actions/effect';
 
 // @vitest-environment jsdom
 describe('ActionFactory', () => {
@@ -101,6 +103,7 @@ describe('ActionFactory', () => {
       [{ advanced_camera_card_action: 'folder' as const }, ViewAction],
       [{ advanced_camera_card_action: 'folders' as const }, ViewAction],
       [{ advanced_camera_card_action: 'fullscreen' as const }, FullscreenAction],
+      [{ advanced_camera_card_action: 'info' as const }, InfoAction],
       [{ advanced_camera_card_action: 'image' as const }, ViewAction],
       [
         { advanced_camera_card_action: 'live_substream_off' as const },
@@ -189,6 +192,7 @@ describe('ActionFactory', () => {
         InternalCallbackAction,
       ],
       [{ advanced_camera_card_action: 'reload' as const }, ReloadAction],
+      [{ advanced_camera_card_action: 'set_review' as const }, SetReviewAction],
       [{ advanced_camera_card_action: 'effect' as const }, EffectAction],
     ])(
       'advanced_camera_card_action: $advanced_camera_card_action',

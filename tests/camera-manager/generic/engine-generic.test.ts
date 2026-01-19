@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { GenericCameraManagerEngine } from '../../../src/camera-manager/generic/engine-generic';
 import { Engine, QueryResultsType, QueryType } from '../../../src/camera-manager/types';
+import { QuerySource } from '../../../src/query-source';
 import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { CameraConfig } from '../../../src/config/schema/cameras';
 import { RawAdvancedCameraCardConfig } from '../../../src/config/types';
@@ -43,6 +44,14 @@ describe('GenericCameraManagerEngine', () => {
     expect(camera.getCapabilities()?.has('trigger')).toBeTruthy();
   });
 
+  it('should get default query parameters', async () => {
+    const config = createGenericCameraConfig();
+    const camera = await createEngine().createCamera(createHASS(), config);
+    expect(createEngine().getDefaultQueryParameters(camera, QueryType.Event)).toEqual(
+      {},
+    );
+  });
+
   it('should generate default event query', () => {
     const engine = createEngine();
     expect(
@@ -82,7 +91,11 @@ describe('GenericCameraManagerEngine', () => {
       await engine.getEvents(
         createHASS(),
         createStore([{ cameraID: 'camera-1', engine: engine }]),
-        { type: QueryType.Event, cameraIDs: new Set(['camera-1']) },
+        {
+          source: QuerySource.Camera,
+          type: QueryType.Event,
+          cameraIDs: new Set(['camera-1']),
+        },
       ),
     ).toBeNull();
   });
@@ -93,7 +106,11 @@ describe('GenericCameraManagerEngine', () => {
       await engine.getRecordings(
         createHASS(),
         createStore([{ cameraID: 'camera-1', engine: engine }]),
-        { type: QueryType.Recording, cameraIDs: new Set(['camera-1']) },
+        {
+          source: QuerySource.Camera,
+          type: QueryType.Recording,
+          cameraIDs: new Set(['camera-1']),
+        },
       ),
     ).toBeNull();
   });
@@ -114,6 +131,32 @@ describe('GenericCameraManagerEngine', () => {
     ).toBeNull();
   });
 
+  it('should generate default review query', () => {
+    const engine = createEngine();
+    expect(
+      engine.generateDefaultReviewQuery(
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
+        new Set(['camera-1']),
+        {},
+      ),
+    ).toBeNull();
+  });
+
+  it('should get reviews', async () => {
+    const engine = createEngine();
+    expect(
+      await engine.getReviews(
+        createHASS(),
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
+        {
+          source: QuerySource.Camera,
+          type: QueryType.Review,
+          cameraIDs: new Set(['camera-1']),
+        },
+      ),
+    ).toBeNull();
+  });
+
   it('should generate media from events', async () => {
     const engine = createEngine();
     expect(
@@ -121,6 +164,7 @@ describe('GenericCameraManagerEngine', () => {
         createHASS(),
         createStore([{ cameraID: 'camera-1', engine: engine }]),
         {
+          source: QuerySource.Camera,
           type: QueryType.Event,
           cameraIDs: new Set(['camera-1']),
         },
@@ -139,6 +183,7 @@ describe('GenericCameraManagerEngine', () => {
         createHASS(),
         createStore([{ cameraID: 'camera-1', engine: engine }]),
         {
+          source: QuerySource.Camera,
           type: QueryType.Recording,
           cameraIDs: new Set(['camera-1']),
           start: new Date(),
@@ -146,6 +191,25 @@ describe('GenericCameraManagerEngine', () => {
         },
         {
           type: QueryResultsType.Recording,
+          engine: Engine.Generic,
+        },
+      ),
+    ).toBeNull();
+  });
+
+  it('should generate media from reviews', async () => {
+    const engine = createEngine();
+    expect(
+      engine.generateMediaFromReviews(
+        createHASS(),
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
+        {
+          source: QuerySource.Camera,
+          type: QueryType.Review,
+          cameraIDs: new Set(['camera-1']),
+        },
+        {
+          type: QueryResultsType.Review,
           engine: Engine.Generic,
         },
       ),
@@ -165,6 +229,17 @@ describe('GenericCameraManagerEngine', () => {
   it('should favorite media', async () => {
     expect(
       await createEngine().favoriteMedia(
+        createHASS(),
+        createGenericCameraConfig(),
+        new TestViewMedia(),
+        true,
+      ),
+    ).toBeUndefined();
+  });
+
+  it('should review media', async () => {
+    expect(
+      await createEngine().reviewMedia(
         createHASS(),
         createGenericCameraConfig(),
         new TestViewMedia(),

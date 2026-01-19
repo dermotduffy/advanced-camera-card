@@ -1,27 +1,40 @@
 import { format } from 'date-fns';
 import { CameraManager } from '../../camera-manager/manager';
 import { CameraManagerCameraMetadata } from '../../camera-manager/types';
+import { ViewItemManager } from '../../card-controller/view/item-manager';
+import { ViewManagerEpoch } from '../../card-controller/view/types';
+import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
-import { Icon } from '../../types';
+import { MetadataField, OverlayMessage, OverlayMessageControl } from '../../types';
 import { getDurationString, prettifyTitle } from '../../utils/basic';
+import {
+  downloadMedia,
+  navigateToTimeline,
+  toggleFavorite,
+  toggleReviewed,
+} from '../../utils/media-actions';
 import { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
+import { ViewItemCapabilities } from '../../view/types';
 
-interface Detail {
-  icon?: Icon;
-  hint?: string;
-  title: string;
+export interface OverlayControlsContext {
+  hass?: HomeAssistant;
+  viewItemManager?: ViewItemManager;
+  viewManagerEpoch?: ViewManagerEpoch;
+  capabilities?: ViewItemCapabilities | null;
 }
 
-export class ThumbnailDetailsController {
-  private _details: Detail[] = [];
-  private _heading: string | null = null;
+export class MediaDetailsController {
+  private _details: MetadataField[] = [];
+  private _heading: MetadataField | null = null;
+  private _item: ViewItem | null = null;
 
   public calculate(
     cameraManager?: CameraManager | null,
     item?: ViewItem,
     seek?: Date,
   ): void {
+    this._item = item ?? null;
     const cameraID = ViewItemClassifier.isMedia(item) ? item.getCameraID() : null;
     const cameraMetadata = cameraID
       ? cameraManager?.getCameraMetadata(cameraID) ?? null
@@ -43,12 +56,34 @@ export class ThumbnailDetailsController {
       const rawScore = item.getScore();
       const score = rawScore ? (rawScore * 100).toFixed(2) + '%' : null;
 
-      this._heading = whatWithTags ? `${whatWithTags}${score ? ` ${score}` : ''}` : null;
+      this._heading = whatWithTags
+        ? { title: `${whatWithTags}${score ? ` ${score}` : ''}` }
+        : null;
+      return;
+    }
+
+    if (ViewItemClassifier.isReview(item)) {
+      const title = item.getTitle();
+      const severity = item.getSeverity();
+
+      this._heading = title
+        ? {
+            title: title,
+            emphasis: severity ?? undefined,
+            hint:
+              localize('common.severity') +
+              ': ' +
+              localize('common.severities.' + severity),
+            icon: { icon: 'mdi:circle-medium' },
+          }
+        : null;
       return;
     }
 
     if (cameraMetadata?.title) {
-      this._heading = cameraMetadata.title;
+      this._heading = {
+        title: cameraMetadata.title,
+      };
       return;
     }
 
@@ -137,7 +172,9 @@ export class ThumbnailDetailsController {
 
     // To avoid duplication, if the event has a starttime, the title is omitted
     // from the details.
-    const includeTitle = !ViewItemClassifier.isEvent(item) || !startTime;
+    const includeTitle =
+      (!ViewItemClassifier.isEvent(item) && !ViewItemClassifier.isReview(item)) ||
+      !startTime;
     this._details = [
       ...(includeTitle && itemTitle
         ? [
@@ -154,11 +191,91 @@ export class ThumbnailDetailsController {
     ];
   }
 
-  public getHeading(): string | null {
+  public getHeading(): MetadataField | null {
     return this._heading;
   }
 
-  public getDetails(): Detail[] {
+  public getDetails(): MetadataField[] {
     return this._details;
+  }
+
+  /**
+   * Get an overlay message for the item.
+   * @param context Optional context to include controls.
+   * @returns An OverlayMessage.
+   */
+  public getMessage(context?: OverlayControlsContext): OverlayMessage {
+    return {
+      heading: this._heading ?? undefined,
+      controls: context ? this._getControls(context) : undefined,
+      details: this._details,
+      text: ViewItemClassifier.isMedia(this._item)
+        ? this._item.getDescription() ?? undefined
+        : undefined,
+    };
+  }
+
+  protected _getControls(context: OverlayControlsContext): OverlayMessageControl[] {
+    const controls: OverlayMessageControl[] = [];
+    const item = this._item;
+
+    if (!item) {
+      return controls;
+    }
+
+    if (ViewItemClassifier.isReview(item)) {
+      const isReviewed = item.isReviewed();
+      controls.push({
+        title: isReviewed
+          ? localize('common.set_reviews.unreviewed')
+          : localize('common.set_reviews.reviewed'),
+        icon: { icon: isReviewed ? 'mdi:check-circle' : 'mdi:check-circle-outline' },
+        callback: async () => {
+          const success = await toggleReviewed(item, context);
+          return success ? this.getMessage(context) : null;
+        },
+      });
+    }
+
+    if (context.capabilities?.canFavorite && ViewItemClassifier.isMedia(item)) {
+      const isFavorite = item.isFavorite();
+      controls.push({
+        title: localize('thumbnail.retain_indefinitely'),
+        icon: { icon: isFavorite ? 'mdi:star' : 'mdi:star-outline' },
+        emphasis: isFavorite ? 'medium' : undefined,
+        callback: async () => {
+          const success = await toggleFavorite(item, context);
+          return success ? this.getMessage(context) : null;
+        },
+      });
+    }
+
+    if (context.capabilities?.canDownload && item.getID()) {
+      controls.push({
+        title: localize('thumbnail.download'),
+        icon: { icon: 'mdi:download' },
+        callback: async () => {
+          await downloadMedia(item, context);
+
+          // Close overlay message after download.
+          return null;
+        },
+      });
+    }
+
+    if (ViewItemClassifier.supportsTimeline(item) && context.viewManagerEpoch) {
+      controls.push({
+        title: localize('thumbnail.timeline'),
+        icon: { icon: 'mdi:target' },
+        callback: () => {
+          navigateToTimeline(item, context);
+
+          // Close overlay after timeline navigation
+          return null;
+        },
+      });
+    }
+
+    return controls;
   }
 }

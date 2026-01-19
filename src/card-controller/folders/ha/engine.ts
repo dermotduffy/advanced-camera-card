@@ -1,16 +1,17 @@
+import { sub } from 'date-fns';
 import { NonEmptyTuple } from 'type-fest';
 import { ConditionState } from '../../../conditions/types';
 import {
   FolderConfig,
   folderTypeSchema,
   HA_MEDIA_SOURCE_ROOT,
-  HAFolderPathComponent,
   HAFolderConfig,
+  HAFolderPathComponent,
 } from '../../../config/schema/folders';
 import { getViewItemsFromBrowseMediaArray } from '../../../ha/browse-media/browse-media-to-view-media';
 import { BrowseMediaViewFolder } from '../../../ha/browse-media/item';
 import {
-  BrowseMedia,
+  BROWSE_MEDIA_CACHE_SECONDS,
   BrowseMediaCache,
   BrowseMediaMetadata,
   RichBrowseMedia,
@@ -22,16 +23,18 @@ import {
 } from '../../../ha/browse-media/walker';
 import { getMediaDownloadPath } from '../../../ha/download';
 import { HomeAssistant } from '../../../ha/types';
+import { QuerySource } from '../../../query-source.js';
 import { Endpoint } from '../../../types';
+
 import { ViewFolder, ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import { ViewItemCapabilities } from '../../../view/types';
 import {
   DownloadHelpers,
   EngineOptions,
+  FolderPathComponent,
   FolderQuery,
   FoldersEngine,
-  FolderPathComponent,
 } from '../types';
 import { MediaMatcher } from './media-matcher';
 import { MetadataGenerator } from './metadata-generator.js';
@@ -83,17 +86,18 @@ export class HAFoldersEngine implements FoldersEngine {
     return;
   }
 
-  public generateDefaultFolderQuery(folder: FolderConfig): FolderQuery | null {
+  public getDefaultQueryParameters(folder: FolderConfig): FolderQuery | null {
     if (folder.type !== folderTypeSchema.enum.ha) {
       return null;
     }
     return {
+      source: QuerySource.Folder,
       folder,
-      path: this.getDefaultFolderPathComponents(folder.ha),
+      path: this._getDefaultPathComponents(folder.ha),
     };
   }
 
-  private getDefaultFolderPathComponents(
+  private _getDefaultPathComponents(
     haFolderConfig?: HAFolderConfig,
   ): NonEmptyTuple<FolderPathComponent> {
     const shouldAddDefaultRoot =
@@ -158,14 +162,21 @@ export class HAFoldersEngine implements FoldersEngine {
       targets: BrowseMediaTarget<BrowseMediaMetadata>[],
     ): BrowseMediaStep<BrowseMediaMetadata>[] => {
       const nextComponent = pathComponents.shift();
+      const limit = query.limit ?? null;
+
       return [
         {
           targets,
-          metadataGenerator: (media: BrowseMedia, parent?: BrowseMedia) =>
+          metadataGenerator: (media, parent) =>
             this._metadataGenerator.generate(media, parent, nextComponent?.ha?.parsers),
 
+          // At the final step (no nextComponent), apply limit via earlyExit.
+          ...(limit && {
+            earlyExit: (media) => media.length >= limit,
+          }),
+
           ...(nextComponent && {
-            matcher: (media: RichBrowseMedia<BrowseMediaMetadata>) =>
+            matcher: (media) =>
               this._mediaMatcher.match(hass, media, {
                 matchers: nextComponent.ha?.matchers,
                 // Set foldersOnly to true if there are more stages in the path,
@@ -187,9 +198,11 @@ export class HAFoldersEngine implements FoldersEngine {
       },
     );
 
-    return getViewItemsFromBrowseMediaArray(browseMedia, {
+    const results = getViewItemsFromBrowseMediaArray(browseMedia, {
       folder: query.folder,
+      path: query.path,
     });
+    return query.limit ? results.slice(0, query.limit) : results;
   }
 
   public generateChildFolderQuery(
@@ -202,7 +215,7 @@ export class HAFoldersEngine implements FoldersEngine {
     }
 
     // Get the full configured path to find parsers/matchers for this depth.
-    const fullPath = this.getDefaultFolderPathComponents(query.folder.ha);
+    const fullPath = this._getDefaultPathComponents(query.folder.ha);
     const nextConfiguredComponent = fullPath[query.path.length];
 
     // Use the configured component's parsers/matchers if available, otherwise
@@ -213,5 +226,12 @@ export class HAFoldersEngine implements FoldersEngine {
       ...query,
       path: [...query.path, { folder, ha }],
     };
+  }
+
+  public areResultsFresh(resultsTimestamp: Date, query: FolderQuery): boolean {
+    return (
+      !!query &&
+      resultsTimestamp >= sub(new Date(), { seconds: BROWSE_MEDIA_CACHE_SECONDS })
+    );
   }
 }

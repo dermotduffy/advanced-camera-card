@@ -6,11 +6,22 @@
   "common": {
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "An Advanced Camera Card",
+    "up": "Up",
     "folder": "Folder",
     "live": "Live",
     "no_folder": "No folder to display",
     "no_media": "No media to display",
     "recordings": "Recordings",
+    "set_reviews": {
+      "reviewed": "Mark as reviewed",
+      "unreviewed": "Mark as unreviewed"
+    },
+    "severities": {
+      "high": "High",
+      "low": "Low",
+      "medium": "Medium"
+    },
+    "severity": "Severity",
     "version": "Version"
   },
   "config": {
@@ -83,9 +94,9 @@
         "rotation": "Rotation",
         "rotations": {
           "0": "No rotation",
-          "90": "90 degrees clockwise",
           "180": "180 degrees clockwise",
-          "270": "270 degrees clockwise"
+          "270": "270 degrees clockwise",
+          "90": "90 degrees clockwise"
         }
       },
       "engines": {
@@ -129,6 +140,12 @@
         "image": "Image",
         "jsmpeg": "JSMpeg",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
+      },
+      "media": {
+        "editor_label": "Default Media",
+        "events_type": "Events media subtype",
+        "folders": "Folder IDs",
+        "type": "Default media type"
       },
       "motioneye": {
         "editor_label": "MotionEye options",
@@ -187,7 +204,11 @@
           "snapshots": "Events with new snapshots"
         },
         "motion": "Trigger by auto-detecting the motion sensor",
-        "occupancy": "Trigger by auto-detecting the occupancy sensor"
+        "occupancy": "Trigger by auto-detecting the occupancy sensor",
+        "reviews": {
+          "description": "Trigger on description updates",
+          "editor_label": "Review Triggers"
+        }
       },
       "webrtc_card": {
         "editor_label": "WebRTC Card Options",
@@ -221,15 +242,7 @@
         "thumbnails": {
           "editor_label": "Thumbnails",
           "events_media_type": "Whether to show event thumbnails of clips or snapshots",
-          "events_media_types": {
-            "clips": "Clip thumbnails",
-            "snapshots": "Snapshot thumbnails"
-          },
-          "media_type": "Whether to show thumnails of events or recordings",
-          "media_types": {
-            "events": "Events",
-            "recordings": "Recordings"
-          },
+          "media_type": "What to show thumbnails of",
           "mode": "Thumbnails mode",
           "modes": {
             "above": "Thumbnails above",
@@ -241,6 +254,8 @@
           "show_details": "Show details with thumbnails",
           "show_download_control": "Show download control on thumbnails",
           "show_favorite_control": "Show favorite control on thumbnails",
+          "show_info_control": "Show info control on thumbnails",
+          "show_review_control": "Show review control on thumbnails",
           "show_timeline_control": "Show timeline control on thumbnails",
           "size": "Thumbnails size in pixels"
         },
@@ -279,6 +294,11 @@
         "grid_selected_width_factor": "Increase selected media width by this factor",
         "mode": "Mode"
       },
+      "events_media_types": {
+        "all": "All",
+        "clips": "Clips",
+        "snapshots": "Snapshots"
+      },
       "image": {
         "entity": "Entity for use with entity mode",
         "entity_parameters": "Query parameters added to the entity-based picture URLs (e.g. width=1920&height=1080)",
@@ -302,14 +322,16 @@
         "unselected": "On unselection",
         "visible": "On browser/tab visibility"
       },
+      "media_types": {
+        "auto": "Automatic",
+        "events": "Events",
+        "folder": "Folder",
+        "recordings": "Recordings",
+        "reviews": "Reviews"
+      },
       "timeline": {
         "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
         "events_media_type": "The events media the timeline displays",
-        "events_media_types": {
-          "all": "All event media types",
-          "clips": "Clips",
-          "snapshots": "Snapshots"
-        },
         "show_recordings": "Show recordings",
         "style": "Timeline style",
         "styles": {
@@ -433,6 +455,7 @@
         "fullscreen": "Fullscreen",
         "icon": "Icon",
         "image": "Image",
+        "info": "Info",
         "iris": "Iris / Default View / Unhide menu",
         "live": "Live",
         "media_player": "Send to media player",
@@ -444,7 +467,9 @@
         "ptz_controls": "Show PTZ controls",
         "ptz_home": "PTZ Home",
         "recordings": "Recordings",
+        "reviews": "Reviews",
         "screenshot": "Screenshot",
+        "set_review": "Set review status",
         "snapshots": "Snapshots",
         "substreams": "Substream(s)",
         "timeline": "Timeline",
@@ -604,6 +629,8 @@
         "live": "Live view",
         "recording": "Most recent recording",
         "recordings": "Recordings gallery",
+        "review": "Most recent media to review",
+        "reviews": "Reviews gallery",
         "snapshot": "Most recent snapshot",
         "snapshots": "Snapshots gallery",
         "timeline": "Timeline view"
@@ -734,12 +761,16 @@
     "media_types": {
       "clips": "Clips",
       "recordings": "Recordings",
+      "reviews": "Reviews",
       "snapshots": "Snapshots"
     },
     "not_favorite": "Not Favorite",
+    "not_reviewed": "Not Reviewed",
+    "reviewed": "Reviewed",
     "select_camera": "Select camera...",
     "select_favorite": "Select favorite...",
     "select_media_type": "Select media type...",
+    "select_reviewed": "Select reviewed...",
     "select_tag": "Select tag...",
     "select_what": "Select what...",
     "select_when": "Select when...",
@@ -765,6 +796,7 @@
     "duration": "Duration",
     "events": "Events",
     "in_progress": "In Progress",
+    "info": "Info",
     "no_thumbnail": "No thumbnail available",
     "retain_indefinitely": "Media will be indefinitely retained",
     "score": "Score",

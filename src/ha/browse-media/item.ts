@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { isEqual } from 'lodash-es';
+import { FolderPathComponent } from '../../card-controller/folders/types';
 import { FolderConfig } from '../../config/schema/folders';
 import { formatDateAndTime } from '../../utils/basic';
 import {
@@ -116,8 +117,12 @@ export class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMed
 export class BrowseMediaViewFolder extends ViewFolder {
   private _browseMedia: RichBrowseMedia<BrowseMediaMetadata>;
 
-  constructor(folder: FolderConfig, browseMedia: RichBrowseMedia<BrowseMediaMetadata>) {
-    super(folder, {
+  constructor(
+    folder: FolderConfig,
+    path: readonly FolderPathComponent[],
+    browseMedia: RichBrowseMedia<BrowseMediaMetadata>,
+  ) {
+    super(folder, path, {
       id: browseMedia.media_content_id,
       icon: getIcon(browseMedia.children_media_class ?? browseMedia.media_class),
       title: browseMedia.title,

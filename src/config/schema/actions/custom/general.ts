@@ -7,6 +7,7 @@ const GENERAL_ACTIONS = [
   'download',
   'expand',
   'fullscreen',
+  'info',
   'live_substream_off',
   'live_substream_on',
   'menu_toggle',

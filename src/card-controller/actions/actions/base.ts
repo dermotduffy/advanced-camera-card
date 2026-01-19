@@ -21,26 +21,26 @@ export class BaseAction<T extends ActionConfig> implements Action {
 
   protected _shouldSeekConfirmation(api: CardActionsAPI): boolean {
     const hass = api.getHASSManager().getHASS();
+    const action: ActionConfig = this._action;
 
     return (
-      (typeof this._action.confirmation === 'boolean' && this._action.confirmation) ||
-      (typeof this._action.confirmation === 'object' &&
-        (!this._action.confirmation.exemptions ||
-          !this._action.confirmation.exemptions.some(
-            (entry) => entry.user === hass?.user.id,
-          )))
+      (typeof action.confirmation === 'boolean' && action.confirmation) ||
+      (typeof action.confirmation === 'object' &&
+        (!action.confirmation.exemptions ||
+          !action.confirmation.exemptions.some((entry) => entry.user === hass?.user.id)))
     );
   }
 
   public async execute(api: CardActionsAPI): Promise<void> {
     if (this._shouldSeekConfirmation(api)) {
-      const actionName = isAdvancedCameraCardCustomAction(this._action)
-        ? this._action.advanced_camera_card_action
-        : this._action.action;
+      const action: ActionConfig = this._action;
+      const baseAction = action.action;
+      const actionName = isAdvancedCameraCardCustomAction(action)
+        ? action.advanced_camera_card_action
+        : baseAction;
       const text =
-        (typeof this._action.confirmation === 'object'
-          ? this._action.confirmation.text
-          : null) ?? `${localize('actions.confirmation')}: ${actionName}`;
+        (typeof action.confirmation === 'object' ? action.confirmation.text : null) ??
+        `${localize('actions.confirmation')}: ${actionName}`;
       if (!confirm(text)) {
         throw new ActionAbortError(localize('actions.abort'));
       }
