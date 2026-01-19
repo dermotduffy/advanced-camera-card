@@ -376,6 +376,7 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewVi
   protected _severity: Severity | null = null;
   protected _reviewed: boolean | null = null;
   protected _description: string | null = null;
+  protected _favorite: boolean | null = null;
 
   constructor(options?: {
     id?: string | null;
@@ -396,6 +397,7 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewVi
     where?: string[] | null;
     severity?: Severity | null;
     reviewed?: boolean | null;
+    favorite?: boolean | null;
   }) {
     super(options?.mediaType ?? ViewMediaType.Clip, {
       ...(options?.cameraID !== null &&
@@ -417,6 +419,7 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewVi
     this._where = options?.where !== undefined ? options.where : null;
     this._severity = options?.severity !== undefined ? options.severity : null;
     this._reviewed = options?.reviewed !== undefined ? options.reviewed : null;
+    this._favorite = options?.favorite !== undefined ? options.favorite : null;
   }
   public getIcon(): string | null {
     return this._icon;
@@ -469,6 +472,12 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewVi
   }
   public setReviewed(reviewed: boolean): void {
     this._reviewed = reviewed;
+  }
+  public isFavorite(): boolean | null {
+    return this._favorite;
+  }
+  public setFavorite(favorite: boolean): void {
+    this._favorite = favorite;
   }
 }
 

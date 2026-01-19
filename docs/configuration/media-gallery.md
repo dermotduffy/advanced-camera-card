@@ -45,10 +45,10 @@ media_gallery:
 | Option                  | Default | Description                                                                                              |
 | ----------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
 | `show_details`          | `false` | Whether to show media details (e.g. duration, start time, object detected, etc) alongside the thumbnail. |
-| `show_download_control` | `true`  | Whether to show the download control on each thumbnail.                                                  |
+| `show_download_control` | `false` | Whether to show the download control on each thumbnail.                                                  |
 | `show_favorite_control` | `true`  | Whether to show the favorite ('star') control on each thumbnail.                                         |
 | `show_review_control`   | `true`  | Whether to show the review ('check') control on each thumbnail.                                          |
-| `show_timeline_control` | `true`  | Whether to show the timeline ('target') control on each thumbnail.                                       |
+| `show_timeline_control` | `false` | Whether to show the timeline ('target') control on each thumbnail.                                       |
 | `size`                  | `100`   | The size of the thumbnails in the gallery. Must be &gt;= `75` and &lt;= `300`.                           |
 
 ## Fully expanded reference
@@ -63,10 +63,10 @@ media_gallery:
     thumbnails:
       size: 100
       show_details: false
-      show_download_control: true
+      show_download_control: false
       show_favorite_control: true
       show_review_control: true
-      show_timeline_control: true
+      show_timeline_control: false
   actions:
     entity: light.office_main_lights
     tap_action:

@@ -1,11 +1,17 @@
 import { format } from 'date-fns';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManager } from '../../../src/camera-manager/manager';
-import { MediaDetailsController } from '../../../src/components-lib/media/details-controller';
+import { ViewItemManager } from '../../../src/card-controller/view/item-manager';
+import { ViewManagerEpoch } from '../../../src/card-controller/view/types';
+import {
+  MediaDetailsController,
+  OverlayControlsContext,
+} from '../../../src/components-lib/media/details-controller';
+import { OverlayMessageControl } from '../../../src/types';
 import { formatDateAndTime } from '../../../src/utils/basic';
 import { ViewFolder, ViewMediaType } from '../../../src/view/item';
-import { createFolder, TestViewMedia } from '../../test-utils';
+import { createCardAPI, createFolder, TestViewMedia } from '../../test-utils';
 
 describe('MediaDetailsController', () => {
   describe('should set heading', () => {
@@ -316,6 +322,10 @@ describe('MediaDetailsController', () => {
   });
 
   describe('should get message', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it('should get message', () => {
       const item = new TestViewMedia({
         title: 'Test Title',
@@ -354,6 +364,138 @@ describe('MediaDetailsController', () => {
 
       const message = controller.getMessage();
       expect(message.text).toBeUndefined();
+    });
+
+    it('should get message with controls', async () => {
+      const item = new TestViewMedia({
+        title: 'Test Title',
+        mediaType: ViewMediaType.Review,
+        id: 'review_id',
+        startTime: new Date(),
+      });
+      const viewManagerEpoch = mock<ViewManagerEpoch>();
+      const cardAPI = createCardAPI();
+      viewManagerEpoch.manager = cardAPI.getViewManager();
+      const viewItemManager = mock<ViewItemManager>();
+
+      const context = {
+        capabilities: {
+          canFavorite: true,
+          canDownload: true,
+        },
+        viewItemManager: viewItemManager,
+        viewManagerEpoch: viewManagerEpoch,
+      };
+
+      const controller = new MediaDetailsController();
+      controller.calculate(null, item);
+
+      const message = controller.getMessage(context);
+      const controls = message.controls;
+      expect(controls).toHaveLength(4);
+
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      // 1. Review control
+      expect(controls?.[0].title).toBe('Mark as reviewed');
+      const reviewResult = await controls?.[0].callback?.();
+      expect(reviewResult).not.toBeNull();
+
+      // 1b. Review control (failure)
+      viewItemManager.reviewMedia.mockRejectedValue(new Error('fail'));
+
+      const reviewFailureResult = await controls?.[0].callback?.();
+      expect(reviewFailureResult).toBeNull();
+
+      // 2. Favorite control
+      expect(controls?.[1].title).toBe('Media will be indefinitely retained');
+      const favoriteResult = await controls?.[1].callback?.();
+      expect(favoriteResult).not.toBeNull();
+
+      // 2b. Favorite control (failure)
+      viewItemManager.favorite.mockRejectedValue(new Error('fail'));
+      const favoriteFailureResult = await controls?.[1].callback?.();
+      expect(favoriteFailureResult).toBeNull();
+
+      // 3. Download control
+      expect(controls?.[2].title).toBe('Download media');
+      const downloadResult = await controls?.[2].callback?.();
+      expect(downloadResult).toBeNull();
+
+      // 4. Timeline control
+      expect(controls?.[3].title).toBe('See media in timeline');
+      const timelineResult = await controls?.[3].callback?.();
+      expect(timelineResult).toBeNull();
+    });
+
+    it('should get message with controls for already reviewed/favorited items', () => {
+      const item = new TestViewMedia({
+        mediaType: ViewMediaType.Review,
+        reviewed: true,
+        favorite: true,
+      });
+      const context = {
+        capabilities: {
+          canFavorite: true,
+          canDownload: false,
+        },
+      };
+
+      const controller = new MediaDetailsController();
+      controller.calculate(null, item);
+
+      const message = controller.getMessage(context);
+      const controls = message.controls;
+      expect(controls).toHaveLength(2);
+
+      expect(controls?.[0].title).toBe('Mark as unreviewed');
+      expect(controls?.[0].icon).toEqual({ icon: 'mdi:check-circle' });
+
+      expect(controls?.[1].emphasis).toBe('medium');
+      expect(controls?.[1].icon).toEqual({ icon: 'mdi:star' });
+    });
+
+    it('should get message with controls when item has no ID', () => {
+      const item = new TestViewMedia({
+        id: null,
+      });
+      const context = {
+        capabilities: {
+          canFavorite: false,
+          canDownload: true,
+        },
+      };
+
+      const controller = new MediaDetailsController();
+      controller.calculate(null, item);
+
+      const message = controller.getMessage(context);
+      expect(message.controls).toHaveLength(0);
+    });
+
+    it('should get message with controls when context has no capabilities', () => {
+      const item = new TestViewMedia({
+        id: 'id',
+      });
+      const context = {};
+
+      const controller = new MediaDetailsController();
+      controller.calculate(null, item);
+
+      const message = controller.getMessage(context);
+      expect(message.controls).toHaveLength(0);
+    });
+
+    it('should get empty controls when item is null', () => {
+      const controller = new MediaDetailsController();
+      // Directly call protected method via casting to test the null item branch.
+      // Use cast to unknown first to avoid any-related lint errors.
+      const controls = (
+        controller as unknown as {
+          _getControls: (context: OverlayControlsContext) => OverlayMessageControl[];
+        }
+      )._getControls({});
+      expect(controls).toEqual([]);
     });
   });
 });

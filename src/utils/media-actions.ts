@@ -5,7 +5,7 @@ import { ViewItem } from '../view/item';
 import { ViewItemClassifier } from '../view/item-classifier';
 import { errorToConsole } from './basic';
 
-export interface MediaActionOptions {
+interface MediaActionOptions {
   viewItemManager?: ViewItemManager;
   viewManagerEpoch?: ViewManagerEpoch;
 }
