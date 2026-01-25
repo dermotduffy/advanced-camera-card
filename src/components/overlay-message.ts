@@ -18,11 +18,13 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
     super.connectedCallback();
     window.addEventListener('click', this._handleOutsideInteraction);
     window.addEventListener('focusin', this._handleOutsideInteraction);
+    window.addEventListener('keydown', this._handleKeyDown);
   }
 
   public disconnectedCallback(): void {
     window.removeEventListener('click', this._handleOutsideInteraction);
     window.removeEventListener('focusin', this._handleOutsideInteraction);
+    window.removeEventListener('keydown', this._handleKeyDown);
     super.disconnectedCallback();
   }
 
@@ -122,6 +124,14 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
   protected _handleOutsideInteraction = (ev: Event): void => {
     if (!ev.composedPath().includes(this)) {
       this._dismiss();
+    }
+  };
+
+  protected _handleKeyDown = (ev: KeyboardEvent): void => {
+    if (ev.key === 'Escape') {
+      this._dismiss();
+      ev.stopPropagation();
+      ev.preventDefault();
     }
   };
 
