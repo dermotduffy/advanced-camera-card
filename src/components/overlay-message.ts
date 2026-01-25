@@ -1,5 +1,6 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import overlayMessageStyle from '../scss/overlay-message.scss';
 import { MetadataField, OverlayMessage, OverlayMessageControl } from '../types.js';
@@ -90,8 +91,13 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
   }
 
   protected _renderDetail(detail: MetadataField, isHeading = false): TemplateResult {
+    const classes = {
+      detail: true,
+      heading: isHeading,
+      [`emphasis-${detail.emphasis}`]: !!detail.emphasis,
+    };
     return html`
-      <div class="detail ${isHeading ? 'heading' : ''}">
+      <div class="${classMap(classes)}">
         ${detail.icon
           ? html`<advanced-camera-card-icon
               title=${detail.hint ?? ''}

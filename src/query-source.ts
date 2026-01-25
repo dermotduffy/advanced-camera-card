@@ -1,3 +1,5 @@
+import { Severity } from './severity';
+
 export enum QuerySource {
   // Camera queries are handled by CameraManager.
   Camera = 'camera',
@@ -20,6 +22,7 @@ export interface QueryFilters {
   what?: Set<string>;
   where?: Set<string>;
   reviewed?: boolean;
+  severity?: Set<Severity>;
 }
 
 /**
@@ -32,6 +35,7 @@ interface SupportedFilters {
   what?: boolean;
   where?: boolean;
   reviewed?: boolean;
+  severity?: boolean;
 }
 
 /**
@@ -47,6 +51,7 @@ export const hasUnsupportedFilters = (
     (!supported.tags && !!query.tags?.size) ||
     (!supported.what && !!query.what?.size) ||
     (!supported.where && !!query.where?.size) ||
-    (!supported.reviewed && query.reviewed !== undefined)
+    (!supported.reviewed && query.reviewed !== undefined) ||
+    (!supported.severity && !!query.severity?.size)
   );
 };

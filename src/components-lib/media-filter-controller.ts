@@ -11,7 +11,7 @@ import {
   sub,
 } from 'date-fns';
 import { LitElement } from 'lit';
-import { isEqual, orderBy, uniqWith } from 'lodash-es';
+import { isEqual, orderBy } from 'lodash-es';
 import { CameraManager, CameraQueryClassifier } from '../camera-manager/manager';
 import { DateRange, PartialDateRange } from '../camera-manager/range';
 import {
@@ -25,6 +25,7 @@ import { ViewManagerInterface } from '../card-controller/view/types';
 import { SelectOption, SelectValues } from '../components/select';
 import { CardWideConfig } from '../config/schema/types';
 import { localize } from '../localize/localize';
+import { SEVERITIES, Severity } from '../severity';
 import { ViewMediaType } from '../types';
 import { errorToConsole, formatDate, prettifyTitle } from '../utils/basic';
 import { UnifiedQueryBuilder } from '../view/unified-query-builder';
@@ -38,6 +39,7 @@ export interface MediaFilterCoreDefaults {
   when?: string;
   where?: string[];
   tags?: string[];
+  severity?: Severity[];
 }
 
 export enum MediaFilterCoreFavoriteSelection {
@@ -80,6 +82,7 @@ export class MediaFilterController {
   protected _tagsOptions: SelectOption[] = [];
   protected _favoriteOptions: SelectOption[];
   protected _reviewedOptions: SelectOption[];
+  protected _severityOptions: SelectOption[];
 
   protected _defaults: MediaFilterCoreDefaults | null = null;
   protected _viewManager: ViewManagerInterface | null = null;
@@ -125,6 +128,10 @@ export class MediaFilterController {
         label: localize('media_filter.not_reviewed'),
       },
     ];
+    this._severityOptions = SEVERITIES.map((severity) => ({
+      value: severity,
+      label: localize(`common.severities.${severity}`),
+    }));
     this._staticWhenOptions = [
       {
         value: MediaFilterCoreWhen.Today,
@@ -174,6 +181,9 @@ export class MediaFilterController {
   public getReviewedOptions(): SelectOption[] {
     return this._reviewedOptions;
   }
+  public getSeverityOptions(): SelectOption[] {
+    return this._severityOptions;
+  }
   public getDefaults(): MediaFilterCoreDefaults | null {
     return this._defaults;
   }
@@ -198,6 +208,7 @@ export class MediaFilterController {
       where?: SelectValues;
       what?: SelectValues;
       tags?: SelectValues;
+      severity?: SelectValues;
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _ev?: unknown,
@@ -221,6 +232,7 @@ export class MediaFilterController {
     const where = getArrayValueAsSet(values.where);
     const what = getArrayValueAsSet(values.what);
     const tags = getArrayValueAsSet(values.tags);
+    const severity = getArrayValueAsSet<Severity>(values.severity);
     const limit = cardWideConfig.performance?.features.media_chunk_size;
 
     const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
@@ -236,6 +248,7 @@ export class MediaFilterController {
         ...(tags && { tags }),
         ...(what && { what }),
         ...(where && { where }),
+        ...(severity && { severity }),
       },
     );
 
@@ -280,6 +293,7 @@ export class MediaFilterController {
     let favorite: MediaFilterCoreFavoriteSelection | undefined;
     let reviewed: MediaFilterCoreReviewedSelection | undefined;
     let tags: string[] | undefined;
+    let severity: Severity[] | undefined;
 
     const cameraIDsFromQuery = query.getAllCameraIDs();
 
@@ -326,42 +340,36 @@ export class MediaFilterController {
       mediaTypes.push(MediaFilterMediaType.Reviews);
     }
 
-    if (eventQueries.length > 0) {
-      const whatSets = uniqWith(
-        eventQueries.map((q) => q.what),
-        isEqual,
-      );
-      if (whatSets.length === 1 && eventQueries[0].what?.size) {
-        what = [...eventQueries[0].what];
-      }
-      const whereSets = uniqWith(
-        eventQueries.map((q) => q.where),
-        isEqual,
-      );
-      if (whereSets.length === 1 && eventQueries[0].where?.size) {
-        where = [...eventQueries[0].where];
-      }
-      const tagsSets = uniqWith(
-        eventQueries.map((q) => q.tags),
-        isEqual,
-      );
-      if (tagsSets.length === 1 && eventQueries[0].tags?.size) {
-        tags = [...eventQueries[0].tags];
-      }
+    const whatSets = eventQueries.map((q) => q.what);
+    if (this._hasSingleUniqueValue(whatSets) && whatSets[0]?.size) {
+      what = [...whatSets[0]];
+    }
+
+    const whereSets = eventQueries.map((q) => q.where);
+    if (this._hasSingleUniqueValue(whereSets) && whereSets[0]?.size) {
+      where = [...whereSets[0]];
+    }
+
+    const tagsSets = eventQueries.map((q) => q.tags);
+    if (this._hasSingleUniqueValue(tagsSets) && tagsSets[0]?.size) {
+      tags = [...tagsSets[0]];
     }
 
     // Extract reviewed from review queries (only if explicitly set to true/false)
     const reviewQueries = query.getMediaQueries<ReviewQuery>({ type: QueryType.Review });
-    if (reviewQueries.length > 0) {
-      const reviewedValues = new Set(reviewQueries.map((q) => q.reviewed));
-      if (reviewedValues.size === 1) {
-        const rev = [...reviewedValues][0];
-        if (rev !== undefined) {
-          reviewed = rev
-            ? MediaFilterCoreReviewedSelection.Reviewed
-            : MediaFilterCoreReviewedSelection.NotReviewed;
-        }
+    const reviewedValues = new Set(reviewQueries.map((q) => q.reviewed));
+    if (reviewedValues.size === 1) {
+      const rev = [...reviewedValues][0];
+      if (rev !== undefined) {
+        reviewed = rev
+          ? MediaFilterCoreReviewedSelection.Reviewed
+          : MediaFilterCoreReviewedSelection.NotReviewed;
       }
+    }
+
+    const severitySets = reviewQueries.map((q) => q.severity);
+    if (this._hasSingleUniqueValue(severitySets) && severitySets[0]?.size) {
+      severity = [...severitySets[0]];
     }
 
     this._defaults = {
@@ -372,6 +380,7 @@ export class MediaFilterController {
       ...(favorite !== undefined && { favorite }),
       ...(reviewed !== undefined && { reviewed }),
       ...(tags && { tags }),
+      ...(severity && { severity }),
     };
   }
 
@@ -488,5 +497,12 @@ export class MediaFilterController {
       default:
         return this._stringToDateRange(values.selected);
     }
+  }
+
+  protected _hasSingleUniqueValue(sets: (Set<unknown> | undefined)[]): boolean {
+    if (sets.length === 0) {
+      return false;
+    }
+    return sets.every((s) => isEqual(s, sets[0]));
   }
 }

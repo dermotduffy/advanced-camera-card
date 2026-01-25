@@ -1,18 +1,32 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, assert, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 import { RecordingSegmentsCache } from '../../../src/camera-manager/cache';
-import { FrigateCameraManagerEngine } from '../../../src/camera-manager/frigate/engine-frigate';
+import {
+  FrigateCameraManagerEngine,
+  FrigateQueryResultsClassifier,
+} from '../../../src/camera-manager/frigate/engine-frigate';
 import {
   FrigateEventViewMedia,
   FrigateRecordingViewMedia,
 } from '../../../src/camera-manager/frigate/media';
-import { FrigateEvent, eventSchema } from '../../../src/camera-manager/frigate/types.js';
-import { CameraManagerRequestCache } from '../../../src/camera-manager/types';
+import { getReviews } from '../../../src/camera-manager/frigate/requests';
+import {
+  FrigateEvent,
+  FrigateReview,
+  eventSchema,
+} from '../../../src/camera-manager/frigate/types.js';
+import { CameraManagerStore } from '../../../src/camera-manager/store';
+import { CameraManagerRequestCache, QueryType } from '../../../src/camera-manager/types';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { CameraConfig } from '../../../src/config/schema/cameras';
 import { RawAdvancedCameraCardConfig } from '../../../src/config/types';
+import { QuerySource } from '../../../src/query-source';
+import { Severity } from '../../../src/severity';
 import { ViewMedia, ViewMediaType } from '../../../src/view/item';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import { createCameraConfig, createHASS } from '../../test-utils';
+
+vi.mock('../../../src/camera-manager/frigate/requests');
 
 const createEngine = (): FrigateCameraManagerEngine => {
   return new FrigateCameraManagerEngine(
@@ -55,6 +69,17 @@ const createEvent = (): FrigateEvent => {
     retain_indefinitely: true,
   });
 };
+
+const createFrigateReview = (id: string): FrigateReview => ({
+  id,
+  camera: 'camera-1',
+  start_time: 100,
+  end_time: 200,
+  severity: 'alert',
+  thumb_path: 'thumb.jpg',
+  data: { objects: [], zones: [] },
+  has_been_reviewed: false,
+});
 
 const createClipMedia = (): FrigateEventViewMedia => {
   return new FrigateEventViewMedia(
@@ -138,5 +163,171 @@ describe('getMediaDownloadPath', () => {
       }),
     );
     expect(endpoint).toBeNull();
+  });
+});
+
+describe('getReviews', () => {
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('should fan out requests for multiple severities', async () => {
+    const engine = createEngine();
+    const hass = createHASS();
+    const cameraConfig = createCameraConfig({
+      frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+    });
+    const store = mock<CameraManagerStore>();
+    store.getCameraIDs.mockReturnValue(new Set(['camera-1']));
+    store.getCameraIDsWithCapability.mockReturnValue(new Set(['camera-1']));
+    store.getCameraConfig.mockReturnValue(cameraConfig);
+    store.getCameraConfigs.mockImplementation(function* () {
+      yield cameraConfig;
+    });
+    store.getCameraConfigEntries.mockImplementation(function* () {
+      yield ['camera-1', cameraConfig];
+    });
+    store.hasCameraID.mockReturnValue(true);
+
+    const reviewHigh = createFrigateReview('review-high');
+    const reviewMedium = createFrigateReview('review-medium');
+
+    vi.mocked(getReviews)
+      .mockResolvedValueOnce([reviewHigh])
+      .mockResolvedValueOnce([reviewMedium]);
+
+    const resultsMap = await engine.getReviews(hass, store, {
+      type: QueryType.Review,
+      source: QuerySource.Camera,
+      cameraIDs: new Set(['camera-1']),
+      severity: new Set(['high', 'medium']),
+    });
+
+    expect(getReviews).toHaveBeenCalledTimes(2);
+    expect(getReviews).toHaveBeenCalledWith(
+      hass,
+      expect.objectContaining({
+        severity: 'alert',
+      }),
+    );
+    expect(getReviews).toHaveBeenCalledWith(
+      hass,
+      expect.objectContaining({
+        severity: 'detection',
+      }),
+    );
+
+    const result = resultsMap?.values().next().value;
+
+    assert(result);
+    assert(FrigateQueryResultsClassifier.isFrigateReviewQueryResults(result));
+
+    expect(result.reviews).toHaveLength(2);
+    expect(result.reviews).toContainEqual(reviewHigh);
+    expect(result.reviews).toContainEqual(reviewMedium);
+  });
+
+  it('should handle single severity', async () => {
+    const engine = createEngine();
+    const hass = createHASS();
+    const cameraConfig = createCameraConfig({
+      frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+    });
+    const store = mock<CameraManagerStore>();
+    store.getCameraIDs.mockReturnValue(new Set(['camera-1']));
+    store.getCameraIDsWithCapability.mockReturnValue(new Set(['camera-1']));
+    store.getCameraConfig.mockReturnValue(cameraConfig);
+    store.getCameraConfigs.mockImplementation(function* () {
+      yield cameraConfig;
+    });
+    store.getCameraConfigEntries.mockImplementation(function* () {
+      yield ['camera-1', cameraConfig];
+    });
+    store.hasCameraID.mockReturnValue(true);
+
+    const review = createFrigateReview('review-low');
+
+    vi.mocked(getReviews).mockResolvedValue([review]);
+
+    await engine.getReviews(hass, store, {
+      type: QueryType.Review,
+      source: QuerySource.Camera,
+      cameraIDs: new Set(['camera-1']),
+      severity: new Set<Severity>(['high']),
+    });
+
+    expect(getReviews).toHaveBeenCalledTimes(1);
+    expect(getReviews).toHaveBeenCalledWith(
+      hass,
+      expect.objectContaining({
+        severity: 'alert',
+      }),
+    );
+  });
+
+  it('should ignore low severity', async () => {
+    const engine = createEngine();
+    const hass = createHASS();
+    const cameraConfig = createCameraConfig({
+      frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+    });
+    const store = mock<CameraManagerStore>();
+    store.getCameraIDs.mockReturnValue(new Set(['camera-1']));
+    store.getCameraIDsWithCapability.mockReturnValue(new Set(['camera-1']));
+    store.getCameraConfig.mockReturnValue(cameraConfig);
+    store.getCameraConfigs.mockImplementation(function* () {
+      yield cameraConfig;
+    });
+    store.getCameraConfigEntries.mockImplementation(function* () {
+      yield ['camera-1', cameraConfig];
+    });
+    store.hasCameraID.mockReturnValue(true);
+
+    vi.mocked(getReviews).mockResolvedValue([]);
+
+    await engine.getReviews(hass, store, {
+      type: QueryType.Review,
+      source: QuerySource.Camera,
+      cameraIDs: new Set(['camera-1']),
+      severity: new Set<Severity>(['low']),
+    });
+
+    expect(getReviews).not.toHaveBeenCalled();
+  });
+
+  it('should query all valid severities when severity is undefined', async () => {
+    const engine = createEngine();
+    const hass = createHASS();
+    const cameraConfig = createCameraConfig({
+      frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+    });
+    const store = mock<CameraManagerStore>();
+    store.getCameraIDs.mockReturnValue(new Set(['camera-1']));
+    store.getCameraIDsWithCapability.mockReturnValue(new Set(['camera-1']));
+    store.getCameraConfig.mockReturnValue(cameraConfig);
+    store.getCameraConfigs.mockImplementation(function* () {
+      yield cameraConfig;
+    });
+    store.getCameraConfigEntries.mockImplementation(function* () {
+      yield ['camera-1', cameraConfig];
+    });
+    store.hasCameraID.mockReturnValue(true);
+
+    vi.mocked(getReviews).mockResolvedValue([]);
+
+    await engine.getReviews(hass, store, {
+      type: QueryType.Review,
+      source: QuerySource.Camera,
+      cameraIDs: new Set(['camera-1']),
+      severity: undefined,
+    });
+
+    expect(getReviews).toHaveBeenCalledTimes(1);
+    expect(getReviews).toHaveBeenCalledWith(
+      hass,
+      expect.objectContaining({
+        severity: undefined,
+      }),
+    );
   });
 });

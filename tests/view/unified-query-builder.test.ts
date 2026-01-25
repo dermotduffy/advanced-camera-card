@@ -462,6 +462,24 @@ describe('UnifiedQueryBuilder', () => {
         expect(nodes[0].what).toEqual(new Set(['person']));
         expect(nodes[0].where).toEqual(new Set(['zone']));
       });
+
+      it('should apply severity filter', () => {
+        const { cameraManager, foldersManager } = createMocks();
+        const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+
+        const query = builder.buildFilterQuery(
+          new Set(['camera.office']),
+          new Set(['clips']),
+          {
+            severity: new Set(['high']),
+          },
+        );
+
+        assert(query);
+        const nodes = query.getNodes();
+        expect(nodes).toHaveLength(1);
+        expect(nodes[0].severity).toEqual(new Set(['high']));
+      });
     });
   });
 

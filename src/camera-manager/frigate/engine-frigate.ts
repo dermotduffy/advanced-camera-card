@@ -62,7 +62,6 @@ import { FrigateViewMediaClassifier } from './media-classifier';
 import {
   NativeFrigateEventQuery,
   NativeFrigateRecordingSegmentsQuery,
-  NativeFrigateReviewQuery,
   getEventSummary,
   getEvents,
   getRecordingSegments,
@@ -86,7 +85,7 @@ const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const MEDIA_METADATA_REQUEST_CACHE_AGE_SECONDS = 60;
 const REVIEW_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 
-class FrigateQueryResultsClassifier {
+export class FrigateQueryResultsClassifier {
   public static isFrigateEventQueryResults(
     results: QueryResults,
   ): results is FrigateEventQueryResults {
@@ -484,7 +483,14 @@ export class FrigateCameraManagerEngine
     query: ReviewQuery,
     engineOptions?: EngineOptions,
   ): Promise<ReviewQueryResultsMap | null> {
-    if (hasUnsupportedFilters(query, { what: true, where: true, reviewed: true })) {
+    if (
+      hasUnsupportedFilters(query, {
+        what: true,
+        where: true,
+        reviewed: true,
+        severity: true,
+      })
+    ) {
       return null;
     }
 
@@ -505,23 +511,36 @@ export class FrigateCameraManagerEngine
         return;
       }
 
-      const nativeQuery: NativeFrigateReviewQuery = {
-        instance_id: instanceID,
-        cameras: Array.from(this._getFrigateCameraNamesForCameraIDs(store, cameraIDs)),
-        ...(query.what && { labels: Array.from(query.what) }),
-        ...(query.where && { zones: Array.from(query.where) }),
-        ...(query.end && { before: Math.floor(query.end.getTime() / 1000) }),
-        ...(query.start && { after: Math.floor(query.start.getTime() / 1000) }),
-        ...(query.limit && { limit: query.limit }),
-        ...(query.severity && { severity: FRIGATE_SEVERITY_MAP[query.severity] }),
-        ...(query.reviewed !== undefined && { reviewed: query.reviewed }),
-      };
+      const severities = query.severity?.size ? Array.from(query.severity) : [undefined];
+
+      // Frigate only supports querying for a single severity, so we generate
+      // multiple queries and combine the results.
+      const reviewPromises = severities
+        // Frigate does not support a 'low' severity.
+        .filter((severity) => severity !== 'low')
+        .map((severity) => (!!severity ? FRIGATE_SEVERITY_MAP[severity] : undefined))
+        .map(
+          async (frigateSeverity) =>
+            await getReviews(hass, {
+              instance_id: instanceID,
+              cameras: Array.from(
+                this._getFrigateCameraNamesForCameraIDs(store, cameraIDs),
+              ),
+              ...(query.what && { labels: Array.from(query.what) }),
+              ...(query.where && { zones: Array.from(query.where) }),
+              ...(query.end && { before: Math.floor(query.end.getTime() / 1000) }),
+              ...(query.start && { after: Math.floor(query.start.getTime() / 1000) }),
+              ...(query.limit && { limit: query.limit }),
+              severity: frigateSeverity,
+              ...(query.reviewed !== undefined && { reviewed: query.reviewed }),
+            }),
+        );
 
       const result: FrigateReviewQueryResults = {
         type: QueryResultsType.Review,
         engine: Engine.Frigate,
         instanceID: instanceID,
-        reviews: await getReviews(hass, nativeQuery),
+        reviews: (await Promise.all(reviewPromises)).flat(),
         expiry: add(new Date(), { seconds: REVIEW_REQUEST_CACHE_MAX_AGE_SECONDS }),
         cached: false,
       };

@@ -70,12 +70,12 @@ import { Device } from '../src/ha/registry/device/types';
 import { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
 import { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
 import { QuerySource } from '../src/query-source';
+import { Severity } from '../src/severity';
 import {
   CapabilitiesRaw,
   EffectsControllerAPI,
   Interaction,
   MediaLoadedInfo,
-  Severity,
 } from '../src/types';
 import {
   EventViewMedia,
