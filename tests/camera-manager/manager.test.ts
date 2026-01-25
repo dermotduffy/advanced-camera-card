@@ -822,6 +822,110 @@ describe('CameraManager', () => {
 
       expect(await manager.executeMediaQueries([baseEventQuery])).toEqual([]);
     });
+
+    describe('should merge compatible queries', () => {
+      it('merges queries with identical properties', async () => {
+        const api = createCardAPI();
+        const engine = mock<CameraManagerEngine>();
+        vi.mocked(engine.getEngineType).mockReturnValue(Engine.Generic);
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+        const manager = createCameraManager(api, engine, [
+          { config: createCameraConfig({ ...baseCameraConfig, id: 'cam1' }) },
+          { config: createCameraConfig({ ...baseCameraConfig, id: 'cam2' }) },
+        ]);
+        expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+        const query1: EventQuery = {
+          source: QuerySource.Camera,
+          type: QueryType.Event,
+          cameraIDs: new Set(['cam1']),
+          reviewed: false,
+        };
+        const query2: EventQuery = {
+          source: QuerySource.Camera,
+          type: QueryType.Event,
+          cameraIDs: new Set(['cam2']),
+          reviewed: false,
+        };
+
+        engine.getEvents.mockResolvedValue(new Map());
+        engine.generateMediaFromEvents.mockReturnValue([]);
+
+        await manager.executeMediaQueries([query1, query2]);
+
+        // Should be called once with merged cameraIDs
+        expect(engine.getEvents).toHaveBeenCalledTimes(1);
+        expect(engine.getEvents).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          expect.objectContaining({
+            cameraIDs: new Set(['cam1', 'cam2']),
+            reviewed: false,
+          }),
+          undefined,
+        );
+      });
+
+      it('does not merge queries with different properties', async () => {
+        const api = createCardAPI();
+        const engine = mock<CameraManagerEngine>();
+        vi.mocked(engine.getEngineType).mockReturnValue(Engine.Generic);
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+        const manager = createCameraManager(api, engine, [
+          { config: createCameraConfig({ ...baseCameraConfig, id: 'cam1' }) },
+          { config: createCameraConfig({ ...baseCameraConfig, id: 'cam2' }) },
+        ]);
+        expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+        const query1: EventQuery = {
+          source: QuerySource.Camera,
+          type: QueryType.Event,
+          cameraIDs: new Set(['cam1']),
+          reviewed: false,
+        };
+        const query2: EventQuery = {
+          source: QuerySource.Camera,
+          type: QueryType.Event,
+          cameraIDs: new Set(['cam2']),
+          reviewed: true,
+        };
+
+        engine.getEvents.mockResolvedValue(new Map());
+        engine.generateMediaFromEvents.mockReturnValue([]);
+
+        await manager.executeMediaQueries([query1, query2]);
+
+        // Should be called twice for different queries
+        expect(engine.getEvents).toHaveBeenCalledTimes(2);
+      });
+
+      it('handles single query without merging', async () => {
+        const api = createCardAPI();
+        const engine = mock<CameraManagerEngine>();
+        vi.mocked(engine.getEngineType).mockReturnValue(Engine.Generic);
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+        const manager = createCameraManager(api, engine);
+        expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+        engine.getEvents.mockResolvedValue(
+          new Map([[baseEventQuery, baseEventQueryResults]]),
+        );
+        engine.generateMediaFromEvents.mockReturnValue([]);
+
+        await manager.executeMediaQueries([baseEventQuery]);
+
+        expect(engine.getEvents).toHaveBeenCalledTimes(1);
+        expect(engine.getEvents).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          baseEventQuery,
+          undefined,
+        );
+      });
+    });
   });
 
   describe('should extend media queries', () => {

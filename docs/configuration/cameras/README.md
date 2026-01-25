@@ -178,11 +178,12 @@ cameras:
       # [...]
 ```
 
-| Option        | Default | Description                                                                                                                                                                                                        |
-| ------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `type`        | `auto`  | The default media type to show for this camera. One of `auto`, `events`, `recordings`, `reviews` or `folder`. See below for description of each.                                                                   |
-| `events_type` | `all`   | If `type` is `events`, what subtype of events to show. One of `clips`, `snapshots` or `all` (default).                                                                                                             |
-| `folders`     |         | An optional list of folder IDs to use when `type` is `folder`. If not specified, and `type` is `folder`, will default to showing the default (first) configured folder. See [Folder Configuration](../folders.md). |
+| Option        | Default      | Description                                                                                                                                                                                                                                                             |
+| ------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`        | `auto`       | The default media type to show for this camera. One of `auto`, `events`, `recordings`, `reviews` or `folder`. See below for description of each.                                                                                                                        |
+| `events_type` | `all`        | If `type` is `events`, what subtype of events to show. One of `clips`, `snapshots` or `all` (default).                                                                                                                                                                  |
+| `reviewed`    | `unreviewed` | Whether to filter the media based on review status. One of `unreviewed` (default, shows only unreviewed media), `reviewed` (shorts only reviewed media) or `all` (show regardless of whether reviewed or unreviewed). Only relevant when `type` is `reviews` or `auto`. |
+| `folders`     |              | An optional list of folder IDs to use when `type` is `folder`. If not specified, and `type` is `folder`, will default to showing the default (first) configured folder. See [Folder Configuration](../folders.md).                                                      |
 
 ### Media Types
 

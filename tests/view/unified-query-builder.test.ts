@@ -36,8 +36,26 @@ const createMocks = () => {
   const cameraManager = mock<CameraManager>();
   const foldersManager = mock<FoldersManager>();
   const store = mock<CameraManagerStore>();
+
   cameraManager.getStore.mockReturnValue(store);
   cameraManager.getDefaultQueryParameters.mockReturnValue({});
+
+  store.getCameraIDs.mockReturnValue(new Set());
+  store.getCameraIDsWithCapability.mockReturnValue(new Set());
+  store.getAllDependentCameras.mockReturnValue(new Set());
+  store.getCameraConfig.mockReturnValue(createCameraConfig());
+
+  // By default, make getCameraCapabilities return a set of capabilities that
+  // matches everything, unless the test mocks it otherwise.
+  cameraManager.getCameraCapabilities.mockReturnValue(
+    createCapabilities({
+      clips: true,
+      snapshots: true,
+      recordings: true,
+      reviews: true,
+    }),
+  );
+
   return { cameraManager, foldersManager, store };
 };
 
@@ -470,7 +488,6 @@ describe('UnifiedQueryBuilder', () => {
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
       const folder = createFolder({ id: 'folder1', title: 'Test' });
       const path: [FolderPathComponent] = [{ ha: { id: 'Root' } }];
-
       const query = builder.buildFolderQueryWithPath(folder, path, {
         limit: 10,
       });
@@ -972,7 +989,7 @@ describe('UnifiedQueryBuilder', () => {
       store.getCameraIDsWithCapability.mockReturnValue(new Set(['camera.office']));
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildCameraMediaQuery(MediaTypeSpec.clips());
+      const query = builder.buildCameraMediaQuery('events', { eventsSubtype: 'clips' });
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -986,7 +1003,9 @@ describe('UnifiedQueryBuilder', () => {
       store.getCameraIDsWithCapability.mockReturnValue(new Set(['camera.office']));
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildCameraMediaQuery(MediaTypeSpec.snapshots());
+      const query = builder.buildCameraMediaQuery('events', {
+        eventsSubtype: 'snapshots',
+      });
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({
@@ -1000,7 +1019,7 @@ describe('UnifiedQueryBuilder', () => {
       store.getCameraIDsWithCapability.mockReturnValue(new Set(['camera.office']));
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildCameraMediaQuery(MediaTypeSpec.recordings());
+      const query = builder.buildCameraMediaQuery('recordings');
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({ type: QueryType.Recording });
@@ -1011,7 +1030,7 @@ describe('UnifiedQueryBuilder', () => {
       store.getCameraIDsWithCapability.mockReturnValue(new Set(['camera.office']));
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildCameraMediaQuery(MediaTypeSpec.reviews());
+      const query = builder.buildCameraMediaQuery('reviews');
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({ type: QueryType.Review });
@@ -1022,8 +1041,9 @@ describe('UnifiedQueryBuilder', () => {
       store.getAllDependentCameras.mockReturnValue(new Set(['camera.office', 'dep1']));
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildCameraMediaQuery(MediaTypeSpec.clips(), {
+      const query = builder.buildCameraMediaQuery('events', {
         cameraID: 'camera.office',
+        eventsSubtype: 'clips',
       });
 
       assert(query);
@@ -1038,7 +1058,7 @@ describe('UnifiedQueryBuilder', () => {
       store.getCameraIDsWithCapability.mockReturnValue(new Set(['camera.office']));
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildCameraMediaQuery(MediaTypeSpec.recordings(), {
+      const query = builder.buildCameraMediaQuery('recordings', {
         limit: 30,
       });
 
@@ -1054,7 +1074,7 @@ describe('UnifiedQueryBuilder', () => {
       store.getCameraIDsWithCapability.mockReturnValue(new Set());
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildCameraMediaQuery(MediaTypeSpec.clips());
+      const query = builder.buildCameraMediaQuery('events', { eventsSubtype: 'clips' });
 
       expect(query).toBeNull();
     });
@@ -1063,7 +1083,7 @@ describe('UnifiedQueryBuilder', () => {
       const { cameraManager, foldersManager } = createMocks();
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildCameraMediaQuery({ mediaType: 'folder' });
+      const query = builder.buildCameraMediaQuery('folder');
 
       expect(query).toBeNull();
     });
@@ -1073,7 +1093,7 @@ describe('UnifiedQueryBuilder', () => {
       store.getCameraIDsWithCapability.mockReturnValue(new Set(['camera.office']));
 
       const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
-      const query = builder.buildCameraMediaQuery({ mediaType: 'events' });
+      const query = builder.buildCameraMediaQuery('events');
 
       assert(query);
       expect(query.getNodes()[0]).toMatchObject({ type: QueryType.Event });
@@ -1083,6 +1103,59 @@ describe('UnifiedQueryBuilder', () => {
       expect(store.getCameraIDsWithCapability).toHaveBeenCalledWith({
         anyCapabilities: ['clips', 'snapshots'],
       });
+    });
+
+    it('should skip cameras without capabilities', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDsWithCapability.mockReturnValue(
+        new Set(['capable', 'not-capable']),
+      );
+
+      cameraManager.getCameraCapabilities.mockImplementation((id) => {
+        if (id === 'capable') {
+          return createCapabilities({ clips: true });
+        }
+        return null;
+      });
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildCameraMediaQuery('events', { eventsSubtype: 'clips' });
+
+      assert(query);
+      expect(query.getNodes()).toHaveLength(1);
+      expect(query.getNodes()[0]).toMatchObject({
+        type: QueryType.Event,
+        cameraIDs: new Set(['capable']),
+      });
+    });
+
+    it('should build folder query when camera media type is folder', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['cam1']));
+      store.getCameraConfig.mockReturnValue(
+        createCameraConfig({
+          media: { type: 'folder', folders: ['good', 'bad'] },
+        }),
+      );
+
+      foldersManager.getFolder.mockImplementation((id) => {
+        if (id === 'good') {
+          return createFolder({ id });
+        }
+        return null;
+      });
+      foldersManager.getDefaultQueryParameters.mockImplementation((folder) => {
+        return folder ? createFolderQueryParams(folder, [{ ha: { id: 'id' } }]) : null;
+      });
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultCameraQuery();
+
+      assert(query);
+
+      // Expected result: good included, bad skipped.
+      expect(query.getNodes()).toHaveLength(1);
+      expect(query.getFolderQueries('good')).toHaveLength(1);
     });
   });
 

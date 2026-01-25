@@ -208,7 +208,13 @@ export const signedPathSchema = z.object({
 });
 export type SignedPath = z.infer<typeof signedPathSchema>;
 
-export type EffectName = 'fireworks' | 'ghost' | 'hearts' | 'shamrocks' | 'snow';
+export type EffectName =
+  | 'check'
+  | 'fireworks'
+  | 'ghost'
+  | 'hearts'
+  | 'shamrocks'
+  | 'snow';
 
 export interface EffectsControllerAPI {
   startEffect(name: EffectName, options?: EffectOptions): Promise<void>;

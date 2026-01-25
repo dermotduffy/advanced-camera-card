@@ -11,31 +11,26 @@ import { FoldersManager } from '../card-controller/folders/manager';
 import { FolderPathComponent, FolderQuery } from '../card-controller/folders/types';
 import { CameraMediaType } from '../config/schema/cameras';
 import { FolderConfig } from '../config/schema/folders';
-import { QuerySource } from '../query-source.js';
+import { QueryFilters, QuerySource } from '../query-source.js';
 import { VIEW_MEDIA_TYPES, ViewMediaType } from '../types';
 import { arrayify } from '../utils/basic';
 import { QueryNode, UnifiedQuery } from '../view/unified-query';
+import { getReviewedQueryFilterFromConfig } from './utils/query-filter';
 
-interface MediaQueryBuildOptions {
+interface MediaQueryBuildOptions extends QueryFilters {
   start?: Date;
   end?: Date;
   limit?: number;
 }
 
-interface FilterQueryBuildOptions extends MediaQueryBuildOptions {
-  favorite?: boolean;
-  tags?: Set<string>;
-  what?: Set<string>;
-  where?: Set<string>;
-  reviewed?: boolean;
-}
-
-interface QueryLimitOptions {
+interface QueryFiltersOptions extends QueryFilters {
   limit?: number;
 }
 
+type MediaType = 'events' | 'recordings' | 'reviews' | 'folder';
+
 export interface MediaTypeSpec {
-  mediaType: 'events' | 'recordings' | 'reviews' | 'folder';
+  mediaType: MediaType;
   eventsSubtype?: 'clips' | 'snapshots';
 }
 
@@ -149,7 +144,7 @@ export class UnifiedQueryBuilder {
 
   public buildReviewsQuery(
     cameraIDs: Set<string>,
-    options?: MediaQueryBuildOptions & { reviewed?: boolean },
+    options?: MediaQueryBuildOptions,
   ): UnifiedQuery | null {
     const query = this._addNode(
       new UnifiedQuery(),
@@ -160,11 +155,9 @@ export class UnifiedQueryBuilder {
 
   private _buildReviewsQueryNode(
     cameraIDs: Set<string>,
-    options?: MediaQueryBuildOptions & { reviewed?: boolean },
+    options?: MediaQueryBuildOptions,
   ): ReviewQuery | null {
-    return this._buildBaseQueryNode(QueryType.Review, cameraIDs, options, {
-      reviewed: options?.reviewed,
-    });
+    return this._buildBaseQueryNode(QueryType.Review, cameraIDs, options);
   }
 
   private _buildBaseQueryNode(
@@ -182,7 +175,6 @@ export class UnifiedQueryBuilder {
     type: QueryType.Review,
     cameraIDs: Set<string>,
     options?: MediaQueryBuildOptions,
-    extraProps?: { reviewed?: boolean },
   ): ReviewQuery | null;
   private _buildBaseQueryNode(
     type: QueryType.Event | QueryType.Recording | QueryType.Review,
@@ -200,6 +192,7 @@ export class UnifiedQueryBuilder {
       cameraIDs,
       ...this._mergeDefaultsForCameras(cameraIDs, type),
       ...this._extractCommonOptions(options),
+      ...this._extractFilterOptions(options),
       ...extraProps,
     };
   }
@@ -217,7 +210,7 @@ export class UnifiedQueryBuilder {
   public buildFilterQuery(
     cameraIDs: Set<string> | null,
     mediaTypes: Set<ViewMediaType> | null,
-    options?: FilterQueryBuildOptions,
+    options?: MediaQueryBuildOptions,
   ): UnifiedQuery | null {
     const query = new UnifiedQuery();
 
@@ -249,43 +242,21 @@ export class UnifiedQueryBuilder {
   private _buildFilterQueryNode(
     mediaType: ViewMediaType,
     cameraIDs: Set<string>,
-    options?: FilterQueryBuildOptions,
+    options?: MediaQueryBuildOptions,
   ): EventQuery | RecordingQuery | ReviewQuery | null {
-    const filterProps = {
-      ...(options?.favorite !== undefined && { favorite: options.favorite }),
-      ...(options?.tags && { tags: options.tags }),
-      ...(options?.what && { what: options.what }),
-      ...(options?.where && { where: options.where }),
-      ...(options?.reviewed !== undefined && { reviewed: options.reviewed }),
-    };
-
     switch (mediaType) {
-      case 'clips': {
-        const node = this._buildBaseQueryNode(QueryType.Event, cameraIDs, options, {
+      case 'clips':
+        return this._buildBaseQueryNode(QueryType.Event, cameraIDs, options, {
           hasClip: true,
         });
-        /* istanbul ignore next: see class note on code coverage -- @preserve */
-        return node ? { ...node, ...filterProps } : null;
-      }
-      case 'snapshots': {
-        const node = this._buildBaseQueryNode(QueryType.Event, cameraIDs, options, {
+      case 'snapshots':
+        return this._buildBaseQueryNode(QueryType.Event, cameraIDs, options, {
           hasSnapshot: true,
         });
-        /* istanbul ignore next: see class note on code coverage -- @preserve */
-        return node ? { ...node, ...filterProps } : null;
-      }
-      case 'recordings': {
-        const node = this._buildBaseQueryNode(QueryType.Recording, cameraIDs, options);
-        /* istanbul ignore next: see class note on code coverage -- @preserve */
-        return node ? { ...node, ...filterProps } : null;
-      }
-      case 'reviews': {
-        const node = this._buildBaseQueryNode(QueryType.Review, cameraIDs, options, {
-          reviewed: options?.reviewed,
-        });
-        /* istanbul ignore next: see class note on code coverage -- @preserve */
-        return node ? { ...node, ...filterProps } : null;
-      }
+      case 'recordings':
+        return this._buildBaseQueryNode(QueryType.Recording, cameraIDs, options);
+      case 'reviews':
+        return this._buildBaseQueryNode(QueryType.Review, cameraIDs, options);
     }
   }
 
@@ -296,7 +267,7 @@ export class UnifiedQueryBuilder {
   public buildFolderQueryWithPath(
     folder: FolderConfig,
     path: NonEmptyTuple<FolderPathComponent>,
-    options?: QueryLimitOptions,
+    options?: QueryFiltersOptions,
   ): UnifiedQuery {
     const query = new UnifiedQuery();
     const folderQuery: FolderQuery = {
@@ -311,7 +282,7 @@ export class UnifiedQueryBuilder {
 
   public buildDefaultFolderQuery(
     folderID?: string,
-    options?: QueryLimitOptions,
+    options?: QueryFiltersOptions,
   ): UnifiedQuery | null {
     const query = new UnifiedQuery();
     this._addNode(query, this._buildFolderQueryNode(folderID, options));
@@ -320,7 +291,7 @@ export class UnifiedQueryBuilder {
 
   private _buildFolderQueryNodesForCameras(
     cameraIDs: Set<string>,
-    options?: QueryLimitOptions,
+    options?: QueryFiltersOptions,
   ): QueryNode[] {
     const nodes: QueryNode[] = [];
     for (const cameraID of cameraIDs) {
@@ -339,7 +310,7 @@ export class UnifiedQueryBuilder {
 
   private _buildFolderQueryNode(
     folderID?: string,
-    options?: QueryLimitOptions,
+    options?: QueryFiltersOptions,
   ): QueryNode | null {
     const folder = this._foldersManager.getFolder(folderID);
     const params = folder && this._foldersManager.getDefaultQueryParameters(folder);
@@ -357,7 +328,7 @@ export class UnifiedQueryBuilder {
 
   public buildDefaultCameraQuery(
     cameraID?: string,
-    options?: QueryLimitOptions,
+    options?: QueryFiltersOptions,
   ): UnifiedQuery | null {
     const cameraIDs = cameraID
       ? this._cameraManager.getStore().getAllDependentCameras(cameraID)
@@ -372,7 +343,7 @@ export class UnifiedQueryBuilder {
 
   private _buildDefaultCameraQueryNodes(
     cameraID: string,
-    options?: QueryLimitOptions,
+    options?: QueryFiltersOptions,
   ): QueryNode | QueryNode[] | null {
     const mediaConfig = this._cameraManager.getStore().getCameraConfig(cameraID)?.media;
     const spec = this._resolveMediaTypeSpec(
@@ -384,7 +355,7 @@ export class UnifiedQueryBuilder {
       return null;
     }
 
-    return this._buildQueryNodesCapabilityUnchecked(spec, new Set([cameraID]), {
+    return this._buildQueryNodesCapabilityUnchecked(spec, cameraID, {
       limit: options?.limit,
     });
   }
@@ -394,32 +365,22 @@ export class UnifiedQueryBuilder {
   // =========================================================================
 
   public buildCameraMediaQuery(
-    spec: MediaTypeSpec,
-    options?: QueryLimitOptions & {
+    mediaType: MediaType,
+    options?: QueryFiltersOptions & {
       cameraID?: string;
+      eventsSubtype?: 'clips' | 'snapshots';
     },
   ): UnifiedQuery | null {
-    let neededCapability: CapabilitySearchKeys;
-    switch (spec.mediaType) {
-      case 'events':
-        switch (spec.eventsSubtype) {
-          case 'clips':
-          case 'snapshots':
-            neededCapability = spec.eventsSubtype;
-            break;
-          default:
-            neededCapability = { anyCapabilities: ['clips', 'snapshots'] };
-            break;
-        }
-        break;
-      case 'recordings':
-      case 'reviews':
-        neededCapability = spec.mediaType;
-        break;
-      case 'folder':
-        // Folders are handled separately by buildDefaultFolderQuery.
-        return null;
+    if (mediaType === 'folder') {
+      // Folders are handled separately by buildDefaultFolderQuery.
+      return null;
     }
+
+    // Map the simple media type to the capability required
+    const neededCapability: CapabilitySearchKeys =
+      mediaType === 'events'
+        ? options?.eventsSubtype ?? { anyCapabilities: ['clips', 'snapshots'] }
+        : mediaType;
 
     const cameraIDs = options?.cameraID
       ? this._cameraManager
@@ -428,10 +389,33 @@ export class UnifiedQueryBuilder {
       : this._cameraManager.getStore().getCameraIDsWithCapability(neededCapability);
 
     const query = new UnifiedQuery();
-    this._addNode(
-      query,
-      this._buildQueryNodesCapabilityUnchecked(spec, cameraIDs, options),
-    );
+    for (const cameraID of cameraIDs) {
+      const cameraSpec = this._resolveMediaTypeSpec(
+        cameraID,
+        mediaType,
+        options?.eventsSubtype,
+      );
+      if (!cameraSpec) {
+        continue;
+      }
+
+      // For reviews, resolve the reviewed filter from camera config if not provided
+      const resolvedOptions =
+        cameraSpec.mediaType === 'reviews' && options?.reviewed === undefined
+          ? {
+              ...options,
+              reviewed: getReviewedQueryFilterFromConfig(
+                this._cameraManager.getStore().getCameraConfig(cameraID)?.media
+                  ?.reviewed,
+              ),
+            }
+          : options;
+
+      this._addNode(
+        query,
+        this._buildQueryNodesCapabilityUnchecked(cameraSpec, cameraID, resolvedOptions),
+      );
+    }
     return query.hasNodes() ? query : null;
   }
 
@@ -441,7 +425,9 @@ export class UnifiedQueryBuilder {
     eventsType?: 'clips' | 'snapshots' | 'all',
   ): MediaTypeSpec | null {
     const capabilities = this._cameraManager.getCameraCapabilities(cameraID);
-    if (!capabilities) {
+    const config = this._cameraManager.getStore().getCameraConfig(cameraID);
+
+    if (!capabilities || !config) {
       return null;
     }
 
@@ -473,25 +459,41 @@ export class UnifiedQueryBuilder {
         return hasReviews ? MediaTypeSpec.reviews() : null;
       case 'folder':
         return MediaTypeSpec.folder();
-      case 'events':
-        if (eventsType === 'all' && hasClips && hasSnapshots) {
+      case 'events': {
+        const configEventsType = eventsType ?? config.media?.events_type;
+        if (
+          (!configEventsType || configEventsType === 'all') &&
+          hasClips &&
+          hasSnapshots
+        ) {
           return MediaTypeSpec.events();
         }
-        if ((eventsType === 'all' || eventsType === 'clips') && hasClips) {
+
+        // Resolve to concrete type: prefer config, fallback to available capability
+        const targetType =
+          configEventsType === 'clips' || configEventsType === 'snapshots'
+            ? configEventsType
+            : hasClips
+              ? 'clips'
+              : 'snapshots';
+
+        if (targetType === 'clips' && hasClips) {
           return MediaTypeSpec.clips();
         }
-        if ((eventsType === 'all' || eventsType === 'snapshots') && hasSnapshots) {
+        if (targetType === 'snapshots' && hasSnapshots) {
           return MediaTypeSpec.snapshots();
         }
         return null;
+      }
     }
   }
 
   private _buildQueryNodesCapabilityUnchecked(
     spec: MediaTypeSpec,
-    cameraIDs: Set<string>,
-    options?: QueryLimitOptions,
+    cameraID: string,
+    options?: QueryFiltersOptions,
   ): QueryNode | QueryNode[] | null {
+    const cameraIDs = new Set([cameraID]);
     switch (spec.mediaType) {
       case 'events':
         switch (spec.eventsSubtype) {
@@ -525,6 +527,16 @@ export class UnifiedQueryBuilder {
       ...(options?.start && { start: options.start }),
       ...(options?.end && { end: options.end }),
       ...(options?.limit !== undefined && { limit: options.limit }),
+    };
+  }
+
+  private _extractFilterOptions(options?: QueryFilters): QueryFilters {
+    return {
+      ...(options?.favorite !== undefined && { favorite: options.favorite }),
+      ...(options?.tags && { tags: options.tags }),
+      ...(options?.what && { what: options.what }),
+      ...(options?.where && { where: options.where }),
+      ...(options?.reviewed !== undefined && { reviewed: options.reviewed }),
     };
   }
 

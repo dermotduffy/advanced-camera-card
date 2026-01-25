@@ -22,6 +22,10 @@ export interface OverlayControlsContext {
   viewItemManager?: ViewItemManager;
   viewManagerEpoch?: ViewManagerEpoch;
   capabilities?: ViewItemCapabilities | null;
+
+  // Whether to filter reviewed/unreviewed items after changing the reviewed
+  // state.
+  filterReviewed?: boolean;
 }
 
 export class MediaDetailsController {
@@ -231,7 +235,12 @@ export class MediaDetailsController {
           : localize('common.set_reviews.reviewed'),
         icon: { icon: isReviewed ? 'mdi:check-circle' : 'mdi:check-circle-outline' },
         callback: async () => {
-          const success = await toggleReviewed(item, context);
+          const success = await toggleReviewed(
+            item,
+            context.viewItemManager,
+            context.viewManagerEpoch,
+            context.filterReviewed,
+          );
           return success ? this.getMessage(context) : null;
         },
       });
@@ -244,7 +253,7 @@ export class MediaDetailsController {
         icon: { icon: isFavorite ? 'mdi:star' : 'mdi:star-outline' },
         emphasis: isFavorite ? 'medium' : undefined,
         callback: async () => {
-          const success = await toggleFavorite(item, context);
+          const success = await toggleFavorite(item, context.viewItemManager);
           return success ? this.getMessage(context) : null;
         },
       });
@@ -255,7 +264,7 @@ export class MediaDetailsController {
         title: localize('thumbnail.download'),
         icon: { icon: 'mdi:download' },
         callback: async () => {
-          await downloadMedia(item, context);
+          await downloadMedia(item, context.viewItemManager);
 
           // Close overlay message after download.
           return null;
@@ -268,7 +277,7 @@ export class MediaDetailsController {
         title: localize('thumbnail.timeline'),
         icon: { icon: 'mdi:target' },
         callback: () => {
-          navigateToTimeline(item, context);
+          navigateToTimeline(item, context.viewManagerEpoch);
 
           // Close overlay after timeline navigation
           return null;

@@ -1,7 +1,12 @@
 import { EffectName, EffectsControllerAPI } from '../../types';
+import { Timer } from '../../utils/timer';
 import { EffectComponent, EffectModule, EffectOptions } from './types';
 
 const effectRegistry: Record<EffectName, () => Promise<EffectModule>> = {
+  check: async () => {
+    const module = await import('../../components/effects/check');
+    return { default: module.AdvancedCameraCardEffectCheck };
+  },
   fireworks: async () => {
     const module = await import('../../components/effects/fireworks');
     return { default: module.AdvancedCameraCardEffectFireworks };
@@ -29,6 +34,7 @@ type EffectsContainer = HTMLElement | DocumentFragment;
 export class EffectsController implements EffectsControllerAPI {
   private _importedModules: Map<EffectName, EffectModule> = new Map();
   private _activeInstances: Map<EffectName, EffectComponent | null> = new Map();
+  private _durationTimers: Map<EffectName, Timer> = new Map();
   private _container: EffectsContainer | null = null;
 
   public setContainer(container: EffectsContainer | null): void {
@@ -55,9 +61,28 @@ export class EffectsController implements EffectsControllerAPI {
     effectComponent.fadeIn = options?.fadeIn ?? true;
     this._container.appendChild(effectComponent);
     this._activeInstances.set(name, effectComponent);
+
+    const duration = options?.duration;
+    if (duration !== undefined) {
+      return new Promise<void>((resolve) => {
+        const timer = new Timer();
+        this._durationTimers.set(name, timer);
+        timer.start(duration, async () => {
+          this._durationTimers.delete(name);
+          await this.stopEffect(name);
+          resolve();
+        });
+      });
+    }
   }
 
   public async stopEffect(effect: EffectName): Promise<void> {
+    const timer = this._durationTimers.get(effect);
+    if (timer) {
+      timer.stop();
+      this._durationTimers.delete(effect);
+    }
+
     if (!this._activeInstances.has(effect)) {
       return;
     }

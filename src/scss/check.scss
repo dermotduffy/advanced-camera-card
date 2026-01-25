@@ -1,0 +1,32 @@
+:host {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 1.5s ease-in;
+  pointer-events: none;
+}
+
+.check {
+  width: 80px;
+  height: 80px;
+  color: var(--success-color, #4caf50);
+  filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.3));
+  animation: check-popup 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes check-popup {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}

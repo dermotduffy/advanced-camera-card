@@ -45,6 +45,12 @@ describe('ViewMedia', () => {
     expect(media.isReviewed()).toBeNull();
     expect(media.getIcon()).toBeNull();
     expect(media.getSeverity()).toBeNull();
+    expect(media.getFolder()).toBeNull();
+  });
+
+  it('should construct without options', () => {
+    const media = new ViewMedia(ViewMediaType.Clip);
+    expect(media.getCameraID()).toBeNull();
   });
 
   it('should clone', () => {
@@ -111,5 +117,6 @@ describe('ViewFolder', () => {
     expect(clone).not.toBe(item);
     expect(clone).toBeInstanceOf(ViewFolder);
     expect(clone.getFolder()).toEqual(folder);
+    expect(clone.getPath()).toEqual([]);
   });
 });

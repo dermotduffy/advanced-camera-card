@@ -96,6 +96,15 @@ describe('UnifiedQuery', () => {
       expect(query.getMediaQueries({ cameraID: 'garage' })).toHaveLength(0);
     });
 
+    it('should filter media queries by type', () => {
+      const query = new UnifiedQuery();
+      query.addNode(createEventQuery('front'));
+      query.addNode(createRecordingQuery('front'));
+
+      expect(query.getMediaQueries({ type: QueryType.Event })).toHaveLength(1);
+      expect(query.getMediaQueries({ type: QueryType.Recording })).toHaveLength(1);
+    });
+
     it('should check hasMediaQueriesOfType', () => {
       const query = new UnifiedQuery();
       query.addNode(createEventQuery('front'));

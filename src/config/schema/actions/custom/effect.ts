@@ -3,6 +3,7 @@ import { EffectName } from '../../../../types';
 import { advancedCameraCardCustomActionsBaseSchema } from './base';
 
 const effectNameSchema = z.enum([
+  'check',
   'fireworks',
   'ghost',
   'hearts',

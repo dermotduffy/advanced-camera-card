@@ -3,7 +3,7 @@ import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const';
 import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
 import { QueryResults } from '../../view/query-results';
 import { UnifiedQuery } from '../../view/unified-query';
-import { MediaTypeSpec, UnifiedQueryBuilder } from '../../view/unified-query-builder';
+import { UnifiedQueryBuilder } from '../../view/unified-query-builder';
 import { UnifiedQueryRunner } from '../../view/unified-query-runner';
 import { View } from '../../view/view';
 import { CardViewAPI } from '../types';
@@ -126,8 +126,9 @@ export class ViewQueryExecutor {
       case 'clips':
         viewModifiers.push(
           ...(await executeQuery(
-            builder.buildCameraMediaQuery(MediaTypeSpec.clips(), {
+            builder.buildCameraMediaQuery('events', {
               cameraID: cameraForQuery,
+              eventsSubtype: 'clips',
               limit: this._getLimit(),
             }),
           )),
@@ -139,8 +140,9 @@ export class ViewQueryExecutor {
       case 'snapshots':
         viewModifiers.push(
           ...(await executeQuery(
-            builder.buildCameraMediaQuery(MediaTypeSpec.snapshots(), {
+            builder.buildCameraMediaQuery('events', {
               cameraID: cameraForQuery,
+              eventsSubtype: 'snapshots',
               limit: this._getLimit(),
             }),
           )),
@@ -151,7 +153,7 @@ export class ViewQueryExecutor {
       case 'recordings':
         viewModifiers.push(
           ...(await executeQuery(
-            builder.buildCameraMediaQuery(MediaTypeSpec.recordings(), {
+            builder.buildCameraMediaQuery('recordings', {
               cameraID: cameraForQuery,
               limit: this._getLimit(),
             }),
@@ -163,7 +165,7 @@ export class ViewQueryExecutor {
       case 'reviews':
         viewModifiers.push(
           ...(await executeQuery(
-            builder.buildCameraMediaQuery(MediaTypeSpec.reviews(), {
+            builder.buildCameraMediaQuery('reviews', {
               cameraID: cameraForQuery,
               limit: this._getLimit(),
             }),

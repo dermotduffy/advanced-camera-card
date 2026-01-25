@@ -73,6 +73,7 @@ import {
   CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
   CONF_CAMERAS_ARRAY_MEDIA_EVENTS_TYPE,
   CONF_CAMERAS_ARRAY_MEDIA_FOLDERS,
+  CONF_CAMERAS_ARRAY_MEDIA_REVIEWED,
   CONF_CAMERAS_ARRAY_MEDIA_TYPE,
   CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_DIRECTORY_PATTERN,
   CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_FILE_PATTERN,
@@ -595,6 +596,22 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     {
       value: 'snapshots',
       label: localize('config.common.events_media_types.snapshots'),
+    },
+  ];
+
+  protected _cameraMediaReviewedOptions: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'unreviewed',
+      label: localize('config.cameras.media.revieweds.unreviewed'),
+    },
+    {
+      value: 'reviewed',
+      label: localize('config.cameras.media.revieweds.reviewed'),
+    },
+    {
+      value: 'all',
+      label: localize('config.cameras.media.revieweds.all'),
     },
   ];
 
@@ -2548,6 +2565,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                     },
                   )}
                   ${this._renderOptionSelector(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_MEDIA_REVIEWED, cameraIndex),
+                    this._cameraMediaReviewedOptions,
+                    {
+                      label: localize('config.cameras.media.reviewed'),
+                    },
+                  )}
+                  ${this._renderOptionSelector(
                     getArrayConfigPath(CONF_CAMERAS_ARRAY_MEDIA_FOLDERS, cameraIndex),
                     folderOptions,
                     {
@@ -2895,20 +2919,17 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                   min: BUTTON_SIZE_MIN,
                 })}
                 ${this._renderMenuButton('iris') /* */}
-                ${this._renderMenuButton('cameras') /* */}
-                ${this._renderMenuButton('substreams') /* */}
-                ${this._renderMenuButton('live') /* */}
-                ${this._renderMenuButton('reviews') /* */}
-                ${this._renderMenuButton('clips') /* */}
-                ${this._renderMenuButton('snapshots')}
-                ${this._renderMenuButton('recordings')}
-                ${this._renderMenuButton('folders')}
-                ${this._renderMenuButton('image') /* */}
-                ${this._renderMenuButton('download')}
                 ${this._renderMenuButton('camera_ui')}
-                ${this._renderMenuButton('fullscreen')}
+                ${this._renderMenuButton('cameras') /* */}
+                ${this._renderMenuButton('clips')}
+                ${this._renderMenuButton('display_mode')}
+                ${this._renderMenuButton('download') /* */}
                 ${this._renderMenuButton('expand') /* */}
-                ${this._renderMenuButton('timeline')}
+                ${this._renderMenuButton('folders')}
+                ${this._renderMenuButton('fullscreen')}
+                ${this._renderMenuButton('image') /* */}
+                ${this._renderMenuButton('info') /*  */}
+                ${this._renderMenuButton('live')}
                 ${this._renderMenuButton('media_player')}
                 ${this._renderMenuButton(
                   'microphone',
@@ -2918,12 +2939,17 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                     { label: localize('config.menu.buttons.type') },
                   )}`,
                 )}
-                ${this._renderMenuButton('play') /*  */}
                 ${this._renderMenuButton('mute') /*  */}
-                ${this._renderMenuButton('screenshot')}
-                ${this._renderMenuButton('display_mode')}
+                ${this._renderMenuButton('play')}
                 ${this._renderMenuButton('ptz_controls')}
                 ${this._renderMenuButton('ptz_home')}
+                ${this._renderMenuButton('recordings')}
+                ${this._renderMenuButton('reviews')}
+                ${this._renderMenuButton('screenshot')}
+                ${this._renderMenuButton('set_review')}
+                ${this._renderMenuButton('snapshots')}
+                ${this._renderMenuButton('substreams')}
+                ${this._renderMenuButton('timeline')}
               </div>
             `
           : ''}

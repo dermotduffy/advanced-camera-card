@@ -19,16 +19,15 @@ describe('MediaActions', () => {
   describe('toggleReviewed', () => {
     it('should return false if item is not review', async () => {
       const item = new TestViewMedia({ mediaType: ViewMediaType.Clip });
-      const options = { viewItemManager: mock<ViewItemManager>() };
+      const viewItemManager = mock<ViewItemManager>();
 
-      expect(await toggleReviewed(item, options)).toBe(false);
+      expect(await toggleReviewed(item, viewItemManager)).toBe(false);
     });
 
     it('should return false if manager is missing', async () => {
       const item = new TestViewMedia({ mediaType: ViewMediaType.Review });
-      const options = {};
 
-      expect(await toggleReviewed(item, options)).toBe(false);
+      expect(await toggleReviewed(item)).toBe(false);
     });
 
     it('should toggle review status and update view', async () => {
@@ -48,9 +47,9 @@ describe('MediaActions', () => {
       queryResults.clone.mockReturnValue(queryResults);
       queryResults.removeItem.mockReturnValue(queryResults);
 
-      const options = { viewItemManager, viewManagerEpoch };
-
-      expect(await toggleReviewed(item, options)).toBe(true);
+      expect(await toggleReviewed(item, viewItemManager, viewManagerEpoch, false)).toBe(
+        true,
+      );
       expect(viewItemManager.reviewMedia).toHaveBeenCalledWith(item, true);
       expect(item.isReviewed()).toBe(true);
       expect(viewManager.setViewByParameters).toHaveBeenCalled();
@@ -70,9 +69,9 @@ describe('MediaActions', () => {
       viewManager.getView.mockReturnValue(view);
       view.queryResults = null;
 
-      const options = { viewItemManager, viewManagerEpoch };
-
-      expect(await toggleReviewed(item, options)).toBe(true);
+      expect(await toggleReviewed(item, viewItemManager, viewManagerEpoch, false)).toBe(
+        true,
+      );
       expect(viewManager.setViewByParameters).not.toHaveBeenCalled();
     });
 
@@ -86,9 +85,8 @@ describe('MediaActions', () => {
       viewItemManager.reviewMedia.mockRejectedValue(error);
 
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const options = { viewItemManager };
 
-      expect(await toggleReviewed(item, options)).toBe(false);
+      expect(await toggleReviewed(item, viewItemManager)).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith(error.message);
 
       consoleSpy.mockRestore();
@@ -97,16 +95,17 @@ describe('MediaActions', () => {
 
   describe('toggleFavorite', () => {
     it('should return false if item is not media', async () => {
-      const options = { viewItemManager: mock<ViewItemManager>() };
+      const viewItemManager = mock<ViewItemManager>();
 
-      expect(await toggleFavorite(null as unknown as ViewItem, options)).toBe(false);
+      expect(await toggleFavorite(null as unknown as ViewItem, viewItemManager)).toBe(
+        false,
+      );
     });
 
     it('should return false if manager is missing', async () => {
       const item = new TestViewMedia({ mediaType: ViewMediaType.Clip });
-      const options = {};
 
-      expect(await toggleFavorite(item, options)).toBe(false);
+      expect(await toggleFavorite(item)).toBe(false);
     });
 
     it('should toggle favorite status', async () => {
@@ -115,9 +114,8 @@ describe('MediaActions', () => {
         favorite: false,
       });
       const viewItemManager = mock<ViewItemManager>();
-      const options = { viewItemManager };
 
-      expect(await toggleFavorite(item, options)).toBe(true);
+      expect(await toggleFavorite(item, viewItemManager)).toBe(true);
       expect(viewItemManager.favorite).toHaveBeenCalledWith(item, true);
     });
 
@@ -131,9 +129,8 @@ describe('MediaActions', () => {
       viewItemManager.favorite.mockRejectedValue(error);
 
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const options = { viewItemManager };
 
-      expect(await toggleFavorite(item, options)).toBe(false);
+      expect(await toggleFavorite(item, viewItemManager)).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith(error.message);
 
       consoleSpy.mockRestore();
@@ -143,17 +140,15 @@ describe('MediaActions', () => {
   describe('downloadMedia', () => {
     it('should return false if manager is missing', async () => {
       const item = new TestViewMedia({ mediaType: ViewMediaType.Clip });
-      const options = {};
 
-      expect(await downloadMedia(item, options)).toBe(false);
+      expect(await downloadMedia(item)).toBe(false);
     });
 
     it('should download media', async () => {
       const item = new TestViewMedia({ mediaType: ViewMediaType.Clip });
       const viewItemManager = mock<ViewItemManager>();
-      const options = { viewItemManager };
 
-      expect(await downloadMedia(item, options)).toBe(true);
+      expect(await downloadMedia(item, viewItemManager)).toBe(true);
       expect(viewItemManager.download).toHaveBeenCalledWith(item);
     });
 
@@ -164,9 +159,8 @@ describe('MediaActions', () => {
       viewItemManager.download.mockRejectedValue(error);
 
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const options = { viewItemManager };
 
-      expect(await downloadMedia(item, options)).toBe(false);
+      expect(await downloadMedia(item, viewItemManager)).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith(error.message);
 
       consoleSpy.mockRestore();
@@ -176,9 +170,8 @@ describe('MediaActions', () => {
   describe('navigateToTimeline', () => {
     it('should return early if epoch is missing', () => {
       const item = new TestViewMedia({ mediaType: ViewMediaType.Clip });
-      const options = {};
 
-      expect(navigateToTimeline(item, options)).toBeUndefined();
+      expect(navigateToTimeline(item)).toBeUndefined();
     });
 
     it('should navigate to timeline with correct parameters', () => {
@@ -199,9 +192,7 @@ describe('MediaActions', () => {
         return queryResults;
       });
 
-      const options = { viewManagerEpoch };
-
-      navigateToTimeline(item, options);
+      navigateToTimeline(item, viewManagerEpoch);
 
       expect(viewManager.setViewByParameters).toHaveBeenCalledWith({
         params: {
@@ -220,9 +211,7 @@ describe('MediaActions', () => {
       viewManagerEpoch.manager = viewManager;
       viewManager.getView.mockReturnValue(null);
 
-      const options = { viewManagerEpoch };
-
-      navigateToTimeline(item, options);
+      navigateToTimeline(item, viewManagerEpoch);
 
       expect(viewManager.setViewByParameters).toHaveBeenCalledWith({
         params: {

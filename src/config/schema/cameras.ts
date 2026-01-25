@@ -191,12 +191,19 @@ export type CameraMediaType = (typeof CAMERA_MEDIA_TYPES)[number];
 
 const cameraMediaConfigDefault = {
   type: 'auto' as CameraMediaType,
+  reviewed: 'unreviewed' as CameraMediaReviewedFilter,
 };
+
+const CAMERA_MEDIA_REVIEWED_FILTERS = ['unreviewed', 'reviewed', 'all'] as const;
+export type CameraMediaReviewedFilter = (typeof CAMERA_MEDIA_REVIEWED_FILTERS)[number];
 
 const cameraMediaConfigSchema = z.object({
   type: z.enum(CAMERA_MEDIA_TYPES).default(cameraMediaConfigDefault.type),
   events_type: eventsMediaTypeSchema.optional(),
   folders: z.array(z.string()).optional(),
+  reviewed: z
+    .enum(CAMERA_MEDIA_REVIEWED_FILTERS)
+    .default(cameraMediaConfigDefault.reviewed),
 });
 
 export const cameraConfigSchema = z
