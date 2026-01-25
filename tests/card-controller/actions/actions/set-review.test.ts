@@ -1,11 +1,41 @@
-import { assert, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { SetReviewAction } from '../../../../src/card-controller/actions/actions/set-review';
-import { ViewMedia, ViewMediaType } from '../../../../src/view/item';
+import { ViewMediaType } from '../../../../src/view/item';
 import { QueryResults } from '../../../../src/view/query-results';
 import { createCardAPI, createView, TestViewMedia } from '../../../test-utils';
 
 describe('SetReviewAction', () => {
-  it('should mark item as reviewed', async () => {
+  it('should toggle item reviewed state', async () => {
+    const api = createCardAPI();
+    const item = new TestViewMedia({
+      cameraID: 'camera.office',
+      mediaType: 'review' as ViewMediaType,
+      reviewed: false,
+    });
+
+    const queryResults = new QueryResults({ results: [item], selectedIndex: 0 });
+    const view = createView({ queryResults });
+    vi.mocked(api.getViewManager().getView).mockReturnValue(view);
+
+    const action = new SetReviewAction(
+      {},
+      {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'set_review',
+      },
+    );
+    await action.execute(api);
+
+    expect(api.getViewItemManager().reviewMedia).toBeCalledWith(item, true);
+
+    // toggleReviewed mutates the item in-place
+    expect(item.isReviewed()).toBe(true);
+
+    // Verify UI update is triggered to refresh menu icon
+    expect(api.getCardElementManager().update).toBeCalled();
+  });
+
+  it('should set reviewed to true when requested and currently false', async () => {
     const api = createCardAPI();
     const item = new TestViewMedia({
       cameraID: 'camera.office',
@@ -28,22 +58,10 @@ describe('SetReviewAction', () => {
     await action.execute(api);
 
     expect(api.getViewItemManager().reviewMedia).toBeCalledWith(item, true);
-
-    // Original item is NOT mutated; a clone is created and replaced.
-    expect(item.isReviewed()).toBe(false);
-
-    const setViewParams = vi.mocked(api.getViewManager().setViewByParameters).mock
-      .calls[0][0];
-    const newResults = setViewParams?.params?.queryResults;
-    expect(newResults).toBeInstanceOf(QueryResults);
-
-    const newItem = newResults?.getSelectedResult();
-    expect(newItem).not.toBe(item);
-    assert(newItem instanceof ViewMedia);
-    expect(newItem?.isReviewed()).toBe(true);
+    expect(item.isReviewed()).toBe(true);
   });
 
-  it('should toggle review status when reviewed is not specified', async () => {
+  it('should not act when requested state matches current state', async () => {
     const api = createCardAPI();
     const item = new TestViewMedia({
       cameraID: 'camera.office',
@@ -60,25 +78,12 @@ describe('SetReviewAction', () => {
       {
         action: 'fire-dom-event',
         advanced_camera_card_action: 'set_review',
+        reviewed: true,
       },
     );
     await action.execute(api);
 
-    // Toggle: isReviewed was true, so reviewed should be set to false.
-    expect(api.getViewItemManager().reviewMedia).toBeCalledWith(item, false);
-
-    // Original item is NOT mutated; a clone is created and replaced.
-    expect(item.isReviewed()).toBe(true);
-
-    const setViewParams = vi.mocked(api.getViewManager().setViewByParameters).mock
-      .calls[0][0];
-    const newResults = setViewParams?.params?.queryResults;
-    expect(newResults).toBeInstanceOf(QueryResults);
-
-    const newItem = newResults?.getSelectedResult();
-    expect(newItem).not.toBe(item);
-    assert(newItem instanceof ViewMedia);
-    expect(newItem?.isReviewed()).toBe(false);
+    expect(api.getViewItemManager().reviewMedia).not.toBeCalled();
   });
 
   it('should not act on non-review media', async () => {
@@ -138,5 +143,33 @@ describe('SetReviewAction', () => {
     await action.execute(api);
 
     expect(api.getViewItemManager().reviewMedia).not.toBeCalled();
+  });
+
+  it('should not update UI if review action fails', async () => {
+    const api = createCardAPI();
+    const item = new TestViewMedia({
+      cameraID: 'camera.office',
+      mediaType: 'review' as ViewMediaType,
+      reviewed: false,
+    });
+
+    const queryResults = new QueryResults({ results: [item], selectedIndex: 0 });
+    const view = createView({ queryResults });
+    vi.mocked(api.getViewManager().getView).mockReturnValue(view);
+    vi.mocked(api.getViewItemManager().reviewMedia).mockRejectedValue(
+      new Error('error'),
+    );
+
+    const action = new SetReviewAction(
+      {},
+      {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'set_review',
+      },
+    );
+    await action.execute(api);
+
+    expect(api.getViewItemManager().reviewMedia).toBeCalledWith(item, true);
+    expect(api.getCardElementManager().update).not.toBeCalled();
   });
 });

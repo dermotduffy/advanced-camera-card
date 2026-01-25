@@ -432,7 +432,10 @@ export class MenuButtonController {
     view?: View | null,
   ): MenuItem | null {
     const selectedItem = view?.queryResults?.getSelectedResult();
-    if (!ViewItemClassifier.isMedia(selectedItem)) {
+    if (
+      !ViewItemClassifier.isMedia(selectedItem) ||
+      !(view?.isViewerView() || view?.isGalleryView() || view?.is('timeline'))
+    ) {
       return null;
     }
     return {

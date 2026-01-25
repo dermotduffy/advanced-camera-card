@@ -5,51 +5,55 @@ import { ViewItem } from '../view/item';
 import { ViewItemClassifier } from '../view/item-classifier';
 import { errorToConsole } from './basic';
 
-interface MediaActionOptions {
-  viewItemManager?: ViewItemManager;
-  viewManagerEpoch?: ViewManagerEpoch;
-}
-
 export async function toggleReviewed(
   item: ViewItem,
-  options: MediaActionOptions,
+  viewItemManager?: ViewItemManager,
+  viewManagerEpoch?: ViewManagerEpoch,
+  filterReviewed?: boolean,
 ): Promise<boolean> {
-  if (!ViewItemClassifier.isReview(item) || !options.viewItemManager) {
+  if (!ViewItemClassifier.isReview(item) || !viewItemManager) {
     return false;
   }
 
   const newState = !item.isReviewed();
   try {
-    await options.viewItemManager.reviewMedia(item, newState);
+    await viewItemManager.reviewMedia(item, newState);
   } catch (e) {
     errorToConsole(e as Error);
     return false;
   }
   item.setReviewed(newState);
 
-  // Remove from view results
-  const view = options.viewManagerEpoch?.manager.getView();
-  if (view?.queryResults) {
-    options.viewManagerEpoch?.manager.setViewByParameters({
-      params: {
-        queryResults: view.queryResults.clone().removeItem(item),
-      },
-    });
+  // Only remove from query results if the new state conflicts with the filter:
+  // - If filter is 'false' (unreviewed only) and we toggled TO reviewed → remove
+  // - If filter is 'true' (reviewed only) and we toggled TO unreviewed → remove
+  // - If filter is 'undefined' (both) → never remove
+  const shouldRemove = filterReviewed !== undefined && filterReviewed !== newState;
+
+  if (shouldRemove) {
+    const view = viewManagerEpoch?.manager.getView();
+    if (view?.queryResults) {
+      viewManagerEpoch?.manager.setViewByParameters({
+        params: {
+          queryResults: view.queryResults.clone().removeItem(item),
+        },
+      });
+    }
   }
   return true;
 }
 
 export async function toggleFavorite(
   item: ViewItem,
-  options: MediaActionOptions,
+  viewItemManager?: ViewItemManager,
 ): Promise<boolean> {
-  if (!ViewItemClassifier.isMedia(item) || !options.viewItemManager) {
+  if (!ViewItemClassifier.isMedia(item) || !viewItemManager) {
     return false;
   }
 
   const newState = !item.isFavorite();
   try {
-    await options.viewItemManager.favorite(item, newState);
+    await viewItemManager.favorite(item, newState);
   } catch (e) {
     errorToConsole(e as Error);
     return false;
@@ -59,14 +63,14 @@ export async function toggleFavorite(
 
 export async function downloadMedia(
   item: ViewItem,
-  options: MediaActionOptions,
+  viewItemManager?: ViewItemManager,
 ): Promise<boolean> {
-  if (!options.viewItemManager) {
+  if (!viewItemManager) {
     return false;
   }
 
   try {
-    await options.viewItemManager.download(item);
+    await viewItemManager.download(item);
   } catch (e) {
     errorToConsole(e as Error);
     return false;
@@ -74,15 +78,18 @@ export async function downloadMedia(
   return true;
 }
 
-export function navigateToTimeline(item: ViewItem, options: MediaActionOptions): void {
-  if (!options.viewManagerEpoch) {
+export function navigateToTimeline(
+  item: ViewItem,
+  viewManagerEpoch?: ViewManagerEpoch,
+): void {
+  if (!viewManagerEpoch) {
     return;
   }
 
-  options.viewManagerEpoch.manager.setViewByParameters({
+  viewManagerEpoch.manager.setViewByParameters({
     params: {
       view: 'timeline',
-      queryResults: options.viewManagerEpoch.manager
+      queryResults: viewManagerEpoch.manager
         .getView()
         ?.queryResults?.clone()
         .selectResultIfFound((media) => media === item),

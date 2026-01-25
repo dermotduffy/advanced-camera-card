@@ -145,6 +145,12 @@
         "editor_label": "Default Media",
         "events_type": "Events media subtype",
         "folders": "Folder IDs",
+        "reviewed": "Review status filter",
+        "revieweds": {
+          "all": "All (both reviewed and unreviewed)",
+          "reviewed": "Only reviewed",
+          "unreviewed": "Only unreviewed"
+        },
         "type": "Default media type"
       },
       "motioneye": {

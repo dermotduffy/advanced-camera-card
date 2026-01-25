@@ -1,6 +1,7 @@
 import { add } from 'date-fns';
-import { cloneDeep, sum } from 'lodash-es';
+import { cloneDeep, omit, sum } from 'lodash-es';
 import PQueue from 'p-queue';
+import { EqualityMap } from '../cache/equality-map.js';
 import { CardCameraAPI } from '../card-controller/types.js';
 import { sortItems } from '../card-controller/view/sort.js';
 import {
@@ -475,6 +476,38 @@ export class CameraManager {
     );
   }
 
+  /**
+   * Merge compatible queries by combining cameraIDs for queries with identical
+   * properties (other than cameraIDs). This preserves multi-camera batching for
+   * engines like Frigate that support querying multiple cameras at once.
+   */
+  protected _mergeCompatibleQueries<T extends CameraQuery>(queries: T[]): T[] {
+    if (queries.length <= 1) {
+      return queries;
+    }
+
+    type CameraLessQuery = Omit<T, 'cameraIDs'>;
+
+    // Compare queries ignoring the camera parameter.
+    const groups = new EqualityMap<CameraLessQuery, T>();
+
+    for (const query of queries) {
+      const key: CameraLessQuery = omit(query, 'cameraIDs');
+      const existing = groups.get(key);
+      if (existing) {
+        // Merge cameraIDs into the existing query
+        for (const id of query.cameraIDs) {
+          existing.cameraIDs.add(id);
+        }
+      } else {
+        // Clone with a new Set to avoid mutating the original
+        groups.set(key, { ...query, cameraIDs: new Set(query.cameraIDs) });
+      }
+    }
+
+    return Array.from(groups.values());
+  }
+
   public async extendMediaQueries<T extends MediaQuery>(
     queries: T[],
     results: ViewItem[],
@@ -691,7 +724,7 @@ export class CameraManager {
     query: QT | QT[],
     engineOptions?: EngineOptions,
   ): Promise<Map<QT, QueryReturnType<QT>>> {
-    const _queries = arrayify(query);
+    const _queries = this._mergeCompatibleQueries(arrayify(query));
     const results = new Map<QT, QueryReturnType<QT>>();
     const queryStartTime = new Date();
     const hass = this._api.getHASSManager().getHASS();

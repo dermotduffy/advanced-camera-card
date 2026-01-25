@@ -2,9 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EffectsController } from '../../../src/components-lib/effects/effects-controller';
 import { EffectComponent } from '../../../src/components-lib/effects/types';
 import { EffectName } from '../../../src/types';
+import { flushPromises } from '../../test-utils';
 
 vi.mock('../../../src/components/effects/fireworks', () => ({
   AdvancedCameraCardEffectFireworks: vi.fn(() => createMockEffectComponent()),
+}));
+
+vi.mock('../../../src/components/effects/check', () => ({
+  AdvancedCameraCardEffectCheck: vi.fn(() => createMockEffectComponent()),
 }));
 
 vi.mock('../../../src/components/effects/ghost', () => ({
@@ -39,10 +44,12 @@ describe('EffectsController', () => {
     container = document.createElement('div');
     controller = new EffectsController();
     controller.setContainer(container);
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   describe('startEffect', () => {
@@ -84,6 +91,40 @@ describe('EffectsController', () => {
       await controller.startEffect('ghost');
 
       expect(container.children.length).toBe(1);
+    });
+
+    it('should load and start check effect', async () => {
+      expect(container.children.length).toBe(0);
+
+      await controller.startEffect('check');
+
+      expect(container.children.length).toBe(1);
+    });
+
+    it('should stop effect automatically after duration', async () => {
+      const effectPromise = controller.startEffect('snow', { duration: 1 });
+
+      // Wait for the effect to be added to the DOM.
+      await flushPromises();
+
+      expect(container.children.length).toBe(1);
+
+      vi.advanceTimersByTime(1000);
+      await effectPromise;
+
+      expect(container.children.length).toBe(0);
+    });
+
+    it('should clean up timer when stopped manually', async () => {
+      // Don't await startEffect as it waits for the duration
+      controller.startEffect('snow', { duration: 10 });
+
+      // Wait for the effect to be added to the DOM.
+      await flushPromises();
+
+      await controller.stopEffect('snow');
+
+      expect(container.children.length).toBe(0);
     });
 
     it('should set fadeIn to true by default', async () => {

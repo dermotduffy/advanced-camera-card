@@ -1,5 +1,7 @@
 import { SetReviewActionConfig } from '../../../config/schema/actions/custom/set-review';
+import { toggleReviewed } from '../../../utils/media-actions';
 import { ViewItemClassifier } from '../../../view/item-classifier';
+import { getReviewedQueryFilterFromQuery } from '../../../view/utils/query-filter';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
@@ -7,7 +9,8 @@ export class SetReviewAction extends AdvancedCameraCardAction<SetReviewActionCon
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    const view = api.getViewManager().getView();
+    const viewManager = api.getViewManager();
+    const view = viewManager.getView();
     const queryResults = view?.queryResults;
     const item = queryResults?.getSelectedResult();
 
@@ -15,20 +18,26 @@ export class SetReviewAction extends AdvancedCameraCardAction<SetReviewActionCon
       return;
     }
 
-    const targetReviewedState = this._action.reviewed ?? !item.isReviewed();
+    const targetReviewedState = this._action.reviewed;
+    if (targetReviewedState !== undefined && targetReviewedState === item.isReviewed()) {
+      return;
+    }
 
-    await api.getViewItemManager().reviewMedia(item, targetReviewedState);
+    const results = await Promise.all([
+      toggleReviewed(
+        item,
+        api.getViewItemManager(),
+        viewManager.getEpoch(),
+        getReviewedQueryFilterFromQuery(view?.query, item),
+      ),
+      api
+        .getEffectsControllerAPI()
+        ?.startEffect('check', { duration: 0.4, fadeIn: false }),
+    ]);
 
-    // Clone the item to ensure Lit detects the change.
-    // Test-case: Setting a media item reviewed via the menu, should update the
-    // reviewed state in a thumbnail.
-    const clonedItem = item.clone();
-    clonedItem.setReviewed(targetReviewedState);
-
-    api.getViewManager().setViewByParameters({
-      params: {
-        queryResults: queryResults.clone().replaceItem(item, clonedItem),
-      },
-    });
+    // Trigger UI update to refresh menu icon state
+    if (results[0]) {
+      api.getCardElementManager().update();
+    }
   }
 }

@@ -116,6 +116,8 @@ export const CONF_CAMERAS_ARRAY_TRIGGERS_REVIEWS_DESCRIPTION =
 export const CONF_CAMERAS_ARRAY_MEDIA_TYPE = `${CONF_CAMERAS}.#.media.type` as const;
 export const CONF_CAMERAS_ARRAY_MEDIA_EVENTS_TYPE =
   `${CONF_CAMERAS}.#.media.events_type` as const;
+export const CONF_CAMERAS_ARRAY_MEDIA_REVIEWED =
+  `${CONF_CAMERAS}.#.media.reviewed` as const;
 export const CONF_CAMERAS_ARRAY_MEDIA_FOLDERS =
   `${CONF_CAMERAS}.#.media.folders` as const;
 

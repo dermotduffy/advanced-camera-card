@@ -67,6 +67,9 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
   @property({ attribute: true, type: Boolean })
   public show_info_control = false;
 
+  @property({ attribute: false })
+  public filterReviewed?: boolean;
+
   private _controller = new ThumbnailFeatureController();
 
   protected willUpdate(changedProperties: PropertyValues): void {
@@ -83,6 +86,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
       viewItemManager: this.viewItemManager,
       viewManagerEpoch: this.viewManagerEpoch,
       capabilities: this.item ? this.viewItemManager?.getCapabilities(this.item) : null,
+      filterReviewed: this.filterReviewed,
     };
   }
 
@@ -164,7 +168,12 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
             @click=${async (ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
               if (this.item) {
-                await toggleReviewed(this.item, this._getControlContext());
+                await toggleReviewed(
+                  this.item,
+                  this.viewItemManager,
+                  this.viewManagerEpoch,
+                  this.filterReviewed,
+                );
               }
             }}
           ></advanced-camera-card-icon>`
@@ -179,7 +188,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
                 stopEventFromActivatingCardWideActions(ev);
                 if (
                   this.item &&
-                  (await toggleFavorite(this.item, this._getControlContext()))
+                  (await toggleFavorite(this.item, this.viewItemManager))
                 ) {
                   this.requestUpdate();
                 }
@@ -210,7 +219,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
               if (this.item) {
-                navigateToTimeline(this.item, this._getControlContext());
+                navigateToTimeline(this.item, this.viewManagerEpoch);
               }
             }}
           ></advanced-camera-card-icon>`
@@ -223,7 +232,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
             @click=${async (ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
               if (this.item) {
-                await downloadMedia(this.item, this._getControlContext());
+                await downloadMedia(this.item, this.viewItemManager);
               }
             }}
           ></advanced-camera-card-icon>`
