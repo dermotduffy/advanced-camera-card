@@ -59,6 +59,7 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
   protected _refWhere: Ref<AdvancedCameraCardSelect> = createRef();
   protected _refFavorite: Ref<AdvancedCameraCardSelect> = createRef();
   protected _refReviewed: Ref<AdvancedCameraCardSelect> = createRef();
+  protected _refSeverity: Ref<AdvancedCameraCardSelect> = createRef();
   protected _refTags: Ref<AdvancedCameraCardSelect> = createRef();
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -119,6 +120,7 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
           where: this._refWhere.value?.value ?? undefined,
           what: this._refWhat.value?.value ?? undefined,
           tags: this._refTags.value?.value ?? undefined,
+          severity: this._refSeverity.value?.value ?? undefined,
         },
       );
     };
@@ -260,7 +262,22 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
         clearable
         @advanced-camera-card:select:change=${() => valueChange()}
       >
-      </advanced-camera-card-select>`;
+      </advanced-camera-card-select>
+      ${this._mediaFilterController.getSeverityOptions().length
+        ? html`
+            <advanced-camera-card-select
+              ${ref(this._refSeverity)}
+              label=${localize('common.severity')}
+              placeholder=${localize('media_filter.select_severity')}
+              .options=${this._mediaFilterController.getSeverityOptions()}
+              .initialValue=${defaults?.severity}
+              clearable
+              multiple
+              @advanced-camera-card:select:change=${() => valueChange()}
+            >
+            </advanced-camera-card-select>
+          `
+        : ''}`;
   }
 
   static get styles(): CSSResultGroup {

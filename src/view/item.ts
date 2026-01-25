@@ -1,7 +1,7 @@
 import { clone } from 'lodash-es';
 import { FolderPathComponent } from '../card-controller/folders/types';
 import { FolderConfig } from '../config/schema/folders';
-import { Severity } from '../types';
+import { Severity } from '../severity';
 
 export enum ViewMediaType {
   Clip = 'clip',

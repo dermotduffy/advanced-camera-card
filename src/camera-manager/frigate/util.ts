@@ -1,6 +1,6 @@
 import { toZonedTime } from 'date-fns-tz';
 import { CameraConfig } from '../../config/schema/cameras';
-import { Severity } from '../../types';
+import { Severity } from '../../severity';
 import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
 import {
   FrigateEvent,

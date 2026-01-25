@@ -537,6 +537,7 @@ export class UnifiedQueryBuilder {
       ...(options?.what && { what: options.what }),
       ...(options?.where && { where: options.where }),
       ...(options?.reviewed !== undefined && { reviewed: options.reviewed }),
+      ...(options?.severity && { severity: options.severity }),
     };
   }
 

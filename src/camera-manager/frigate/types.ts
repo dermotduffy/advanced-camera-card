@@ -146,7 +146,6 @@ export interface FrigateRecordingSegmentsQueryResults
 export const FRIGATE_SEVERITY_MAP = {
   high: 'alert',
   medium: 'detection',
-  low: 'significant_motion',
 } as const;
 
 export type FrigateReviewSeverity =
@@ -170,7 +169,7 @@ const frigateReviewDataSchema = z.object({
 const frigateReviewSchema = z.object({
   id: z.string(),
   camera: z.string(),
-  severity: z.enum(['alert', 'detection', 'significant_motion']),
+  severity: z.enum(['alert', 'detection']),
   start_time: z.number(),
   end_time: z.number().nullable(),
   thumb_path: z.string().nullable(),

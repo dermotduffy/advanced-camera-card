@@ -260,6 +260,19 @@
       opacity: 1;
     }
   }
+
+  &.emphasis-low advanced-camera-card-icon {
+    color: var(--advanced-camera-card-foreground-severity-low-color);
+    opacity: 1;
+  }
+  &.emphasis-medium advanced-camera-card-icon {
+    color: var(--advanced-camera-card-foreground-severity-medium-color);
+    opacity: 1;
+  }
+  &.emphasis-high advanced-camera-card-icon {
+    color: var(--advanced-camera-card-foreground-severity-high-color);
+    opacity: 1;
+  }
 }
 
 .description {

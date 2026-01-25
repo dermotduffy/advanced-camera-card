@@ -181,7 +181,7 @@ export const getPTZInfo = async (
   );
 };
 
-export interface NativeFrigateReviewQuery {
+interface NativeFrigateReviewQuery {
   instance_id: string;
   cameras?: string[];
   labels?: string[];

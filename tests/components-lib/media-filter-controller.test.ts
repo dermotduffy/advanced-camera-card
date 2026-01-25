@@ -29,6 +29,7 @@ import {
   MediaFilterMediaType,
 } from '../../src/components-lib/media-filter-controller';
 import { QuerySource } from '../../src/query-source';
+import { Severity } from '../../src/severity';
 import { UnifiedQuery } from '../../src/view/unified-query';
 import {
   createCameraConfig,
@@ -317,6 +318,17 @@ const queryDefaultTestCases: Array<[string, UnifiedQuery, MediaFilterCoreDefault
       mediaTypes: [MediaFilterMediaType.Reviews],
     },
   ],
+  [
+    'severity',
+    createQueryWithNodes([
+      { type: QueryType.Review, severity: new Set<Severity>(['high']) },
+    ]),
+    {
+      cameraIDs: ['camera.kitchen'],
+      mediaTypes: [MediaFilterMediaType.Reviews],
+      severity: ['high'],
+    },
+  ],
 ];
 
 // @vitest-environment jsdom
@@ -381,6 +393,15 @@ describe('MediaFilterController', () => {
     it('tags', () => {
       const controller = new MediaFilterController(createLitElement());
       expect(controller.getTagsOptions()).toEqual([]);
+    });
+
+    it('severity', () => {
+      const controller = new MediaFilterController(createLitElement());
+      expect(controller.getSeverityOptions()).toEqual([
+        { value: 'high', label: 'High' },
+        { value: 'medium', label: 'Medium' },
+        { value: 'low', label: 'Low' },
+      ]);
     });
   });
 
@@ -672,6 +693,36 @@ describe('MediaFilterController', () => {
       expect(nodes?.[0]).toMatchObject({
         type: QueryType.Review,
         reviewed: false,
+      });
+    });
+
+    it('with severity', async () => {
+      const host = createLitElement();
+      const cameraManager = createCameraManager(createCameraStore());
+      const viewManager = mock<ViewManager>();
+      viewManager.getView.mockReturnValue(createView());
+
+      const controller = new MediaFilterController(host);
+      controller.setViewManager(viewManager);
+
+      await controller.valueChangeHandler(
+        cameraManager,
+        mock<FoldersManager>(),
+        {},
+        {
+          mediaTypes: [MediaFilterMediaType.Reviews],
+          when: {},
+          severity: ['high'],
+        },
+      );
+
+      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalled();
+
+      const nodes = getQueryNodes(viewManager);
+      expect(nodes).toHaveLength(1);
+      expect(nodes?.[0]).toMatchObject({
+        type: QueryType.Review,
+        severity: new Set(['high']),
       });
     });
 

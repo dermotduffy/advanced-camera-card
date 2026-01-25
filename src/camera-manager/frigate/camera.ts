@@ -6,12 +6,12 @@ import { CameraConfig } from '../../config/schema/cameras';
 import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
+import { SEVERITIES } from '../../severity';
 import {
   CapabilitiesRaw,
   Endpoint,
   PTZCapabilities,
   PTZMovementType,
-  SEVERITIES,
 } from '../../types';
 import { errorToConsole } from '../../utils/basic';
 import { Camera, CameraInitializationOptions } from '../camera';

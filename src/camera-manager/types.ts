@@ -2,7 +2,7 @@ import { ExpiringEqualityCache } from '../cache/expiring-cache';
 import { SSLCiphers } from '../config/schema/cameras';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
 import { BaseQuery, QueryFilters, QuerySource } from '../query-source';
-import { CapabilityKey, Endpoint, Icon, Severity } from '../types';
+import { CapabilityKey, Endpoint, Icon } from '../types';
 import { ViewMedia } from '../view/item';
 
 // ====
@@ -252,8 +252,6 @@ export interface MediaMetadataQueryResults extends QueryResults {
 
 export interface ReviewQuery extends MediaQuery {
   type: QueryType.Review;
-
-  severity?: Severity;
 }
 export type PartialReviewQuery = Partial<ReviewQuery>;
 

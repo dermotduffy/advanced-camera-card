@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { EffectOptions } from './components-lib/effects/types';
 import type { LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from './ha/types';
+import { Severity } from './severity';
 
 // UI-facing media types for galleries and views.
 export const VIEW_MEDIA_TYPES = ['clips', 'snapshots', 'recordings', 'reviews'] as const;
@@ -221,6 +222,3 @@ export interface EffectsControllerAPI {
   stopEffect(effect: EffectName): void;
   toggleEffect(effect: EffectName, options?: EffectOptions): Promise<void>;
 }
-
-export const SEVERITIES = ['high', 'medium', 'low'] as const;
-export type Severity = (typeof SEVERITIES)[number];
