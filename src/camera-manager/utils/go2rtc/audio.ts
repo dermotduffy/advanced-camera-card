@@ -6,7 +6,10 @@ import { errorToConsole } from '../../../utils/basic';
 import { CameraProxyConfig } from '../../types';
 import { Go2RTCStreamInfo, go2RTCStreamInfoSchema } from './types';
 
-const GO2RTC_METADATA_TIMEOUT_SECONDS = 2;
+// Allow generous amount of time to fetch metadata (timeout matches that used in
+// the Frigate frontend for the same call).
+// See: https://github.com/dermotduffy/advanced-camera-card/issues/2313
+const GO2RTC_METADATA_TIMEOUT_SECONDS = 10;
 
 const getGo2RTCStreamMetadata = async (
   hass: HomeAssistant,
