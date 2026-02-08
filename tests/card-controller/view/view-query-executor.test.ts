@@ -568,48 +568,54 @@ describe('ViewQueryExecutor', () => {
       });
     });
 
-    describe('with a media view', () => {
-      it('should set query and queryResults for events', async () => {
-        const api = createPopulatedAPI();
-        const cameraManager = api.getCameraManager();
-        if (cameraManager) {
-          vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
-            new Capabilities({ clips: true }),
-          );
-        }
+    describe('with a media or gallery view', () => {
+      it.each(['media' as const, 'gallery' as const])(
+        'should set query and queryResults for events with %s view',
+        async (viewName) => {
+          const api = createPopulatedAPI();
+          const cameraManager = api.getCameraManager();
+          if (cameraManager) {
+            vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
+              new Capabilities({ clips: true }),
+            );
+          }
 
-        const viewQueryExecutor = new ViewQueryExecutor(api);
-        const view = new View({
-          view: 'media',
-          camera: 'camera.office',
-        });
+          const viewQueryExecutor = new ViewQueryExecutor(api);
+          const view = new View({
+            view: viewName,
+            camera: 'camera.office',
+          });
 
-        const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
-        applyViewModifiers(view, modifiers);
+          const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
+          applyViewModifiers(view, modifiers);
 
-        expect(view.query).toBeInstanceOf(UnifiedQuery);
-        const queries = view.query?.getMediaQueries({ type: QueryType.Event });
-        expect(queries?.length).toBeGreaterThan(0);
-        expect(queries?.[0].cameraIDs.has('camera.office')).toBe(true);
-        expect(view.queryResults).toBeDefined();
-      });
+          expect(view.query).toBeInstanceOf(UnifiedQuery);
+          const queries = view.query?.getMediaQueries({ type: QueryType.Event });
+          expect(queries?.length).toBeGreaterThan(0);
+          expect(queries?.[0].cameraIDs.has('camera.office')).toBe(true);
+          expect(view.queryResults).toBeDefined();
+        },
+      );
 
-      it('should query all cameras in media view grid mode', async () => {
-        const api = createPopulatedAPI();
-        const viewQueryExecutor = new ViewQueryExecutor(api);
-        const view = createView({
-          view: 'media',
-          camera: 'camera.office',
-          displayMode: 'grid',
-        });
+      it.each(['media' as const, 'gallery' as const])(
+        'should query all cameras in %s view grid mode',
+        async (viewName) => {
+          const api = createPopulatedAPI();
+          const viewQueryExecutor = new ViewQueryExecutor(api);
+          const view = createView({
+            view: viewName,
+            camera: 'camera.office',
+            displayMode: 'grid',
+          });
 
-        const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
-        applyViewModifiers(view, modifiers);
+          const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
+          applyViewModifiers(view, modifiers);
 
-        expect(view.query).toBeInstanceOf(UnifiedQuery);
-        const allCameraIDs = view.query?.getAllCameraIDs();
-        expect(allCameraIDs?.size).toBeGreaterThan(0);
-      });
+          expect(view.query).toBeInstanceOf(UnifiedQuery);
+          const allCameraIDs = view.query?.getAllCameraIDs();
+          expect(allCameraIDs?.size).toBeGreaterThan(0);
+        },
+      );
     });
 
     describe('with an events-based view', () => {

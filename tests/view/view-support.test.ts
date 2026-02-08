@@ -17,7 +17,7 @@ import {
 
 describe('getCameraIDsForViewName', () => {
   describe('views that are always supported', () => {
-    it.each([['diagnostics' as const], ['image' as const], ['media' as const]])(
+    it.each([['diagnostics' as const], ['image' as const]])(
       '%s',
       (viewName: AdvancedCameraCardView) => {
         const cameraManager = createCameraManager();
@@ -51,6 +51,15 @@ describe('getCameraIDsForViewName', () => {
       ['timeline' as const, 'clips' as const],
       ['timeline' as const, 'recordings' as const],
       ['timeline' as const, 'snapshots' as const],
+      ['timeline' as const, 'reviews' as const],
+      ['media' as const, 'clips' as const],
+      ['media' as const, 'recordings' as const],
+      ['media' as const, 'snapshots' as const],
+      ['media' as const, 'reviews' as const],
+      ['gallery' as const, 'clips' as const],
+      ['gallery' as const, 'recordings' as const],
+      ['gallery' as const, 'snapshots' as const],
+      ['gallery' as const, 'reviews' as const],
     ])('%s', (viewName: AdvancedCameraCardView, capabilityKey: CapabilityKey) => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
@@ -111,67 +120,73 @@ describe('getCameraIDsForViewName', () => {
 
   describe('views that respect a folder', () => {
     describe('should return cameras when a folder is present', () => {
-      it.each([['folder' as const], ['folders' as const], ['timeline' as const]])(
-        '%s',
-        (viewName: AdvancedCameraCardView) => {
-          const cameraManager = createCameraManager();
-          vi.mocked(cameraManager.getStore).mockReturnValue(
-            createStore([
-              {
-                cameraID: 'camera-1',
-                config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
-              },
-              {
-                cameraID: 'camera-2',
-              },
-            ]),
-          );
-          const foldersManager = mock<FoldersManager>();
-          vi.mocked(foldersManager.getFolder).mockReturnValue(createFolder());
+      it.each([
+        ['folder' as const],
+        ['folders' as const],
+        ['timeline' as const],
+        ['media' as const],
+        ['gallery' as const],
+      ])('%s', (viewName: AdvancedCameraCardView) => {
+        const cameraManager = createCameraManager();
+        vi.mocked(cameraManager.getStore).mockReturnValue(
+          createStore([
+            {
+              cameraID: 'camera-1',
+              config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
+            },
+            {
+              cameraID: 'camera-2',
+            },
+          ]),
+        );
+        const foldersManager = mock<FoldersManager>();
+        vi.mocked(foldersManager.getFolder).mockReturnValue(createFolder());
 
-          expect(
-            getCameraIDsForViewName(viewName, cameraManager, foldersManager),
-          ).toEqual(new Set(['camera-1', 'camera-2']));
-          expect(
-            getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-1'),
-          ).toEqual(new Set(['camera-1', 'camera-2']));
-          expect(
-            getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-2'),
-          ).toEqual(new Set(['camera-1', 'camera-2']));
-        },
-      );
+        expect(getCameraIDsForViewName(viewName, cameraManager, foldersManager)).toEqual(
+          new Set(['camera-1', 'camera-2']),
+        );
+        expect(
+          getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-1'),
+        ).toEqual(new Set(['camera-1', 'camera-2']));
+        expect(
+          getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-2'),
+        ).toEqual(new Set(['camera-1', 'camera-2']));
+      });
     });
 
     describe('should not return cameras when a folder is absent', () => {
-      it.each([['folder' as const], ['folders' as const], ['timeline' as const]])(
-        '%s',
-        (viewName: AdvancedCameraCardView) => {
-          const cameraManager = createCameraManager();
-          vi.mocked(cameraManager.getStore).mockReturnValue(
-            createStore([
-              {
-                cameraID: 'camera-1',
-                config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
-              },
-              {
-                cameraID: 'camera-2',
-              },
-            ]),
-          );
-          const foldersManager = mock<FoldersManager>();
-          vi.mocked(foldersManager.getFolder).mockReturnValue(null);
+      it.each([
+        ['folder' as const],
+        ['folders' as const],
+        ['timeline' as const],
+        ['media' as const],
+        ['gallery' as const],
+      ])('%s', (viewName: AdvancedCameraCardView) => {
+        const cameraManager = createCameraManager();
+        vi.mocked(cameraManager.getStore).mockReturnValue(
+          createStore([
+            {
+              cameraID: 'camera-1',
+              config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
+            },
+            {
+              cameraID: 'camera-2',
+            },
+          ]),
+        );
+        const foldersManager = mock<FoldersManager>();
+        vi.mocked(foldersManager.getFolder).mockReturnValue(null);
 
-          expect(
-            getCameraIDsForViewName(viewName, cameraManager, foldersManager),
-          ).toEqual(new Set());
-          expect(
-            getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-1'),
-          ).toEqual(new Set());
-          expect(
-            getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-2'),
-          ).toEqual(new Set());
-        },
-      );
+        expect(getCameraIDsForViewName(viewName, cameraManager, foldersManager)).toEqual(
+          new Set(),
+        );
+        expect(
+          getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-1'),
+        ).toEqual(new Set());
+        expect(
+          getCameraIDsForViewName(viewName, cameraManager, foldersManager, 'camera-2'),
+        ).toEqual(new Set());
+      });
     });
   });
 });

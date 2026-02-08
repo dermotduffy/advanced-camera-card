@@ -127,9 +127,14 @@ export class View {
    * Determine if a view is a gallery.
    */
   public isGalleryView(): boolean {
-    return ['clips', 'folders', 'snapshots', 'recordings', 'reviews'].includes(
-      this.view,
-    );
+    return [
+      'clips',
+      'folders',
+      'gallery',
+      'snapshots',
+      'recordings',
+      'reviews',
+    ].includes(this.view);
   }
 
   /**

@@ -91,8 +91,10 @@ export class ActionFactory {
       case 'clips':
       case 'folder':
       case 'folders':
+      case 'gallery':
       case 'image':
       case 'live':
+      case 'media':
       case 'recording':
       case 'recordings':
       case 'review':

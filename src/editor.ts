@@ -368,7 +368,7 @@ const options: EditorOptions = {
     secondary: localize('editor.folders'),
   },
   media_gallery: {
-    icon: 'grid',
+    icon: 'play-box-multiple',
     name: localize('editor.media_gallery'),
     secondary: localize('editor.media_gallery_secondary'),
   },
@@ -432,8 +432,10 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'clips', label: localize('config.view.views.clips') },
     { value: 'folder', label: localize('config.view.views.folder') },
     { value: 'folders', label: localize('config.view.views.folders') },
+    { value: 'gallery', label: localize('config.view.views.gallery') },
     { value: 'image', label: localize('config.view.views.image') },
     { value: 'live', label: localize('config.view.views.live') },
+    { value: 'media', label: localize('config.view.views.media') },
     { value: 'recording', label: localize('config.view.views.recording') },
     { value: 'recordings', label: localize('config.view.views.recordings') },
     { value: 'review', label: localize('config.view.views.review') },
@@ -2927,6 +2929,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${this._renderMenuButton('expand') /* */}
                 ${this._renderMenuButton('folders')}
                 ${this._renderMenuButton('fullscreen')}
+                ${this._renderMenuButton('gallery')}
                 ${this._renderMenuButton('image') /* */}
                 ${this._renderMenuButton('info') /*  */}
                 ${this._renderMenuButton('live')}

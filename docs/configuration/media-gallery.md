@@ -1,18 +1,17 @@
 # `media_gallery`
 
 The `media_gallery` is used for providing an overview of all `clips`,
-`snapshots`, `recordings`, `reviews` and `folder` contents in a thumbnail
-gallery.
+`snapshots`, `recordings`, `reviews` and `folders`.
 
 ```yaml
 media_gallery:
   # [...]
 ```
 
-| Option     | Default | Description                                                                                                                         |
-| ---------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `actions`  |         | [Actions](actions/README.md) to use for all views that use the `media_gallery` (e.g. `clips`, `folder`, `snapshots`, `recordings`). |
-| `controls` |         | Configuration for the Media Gallery controls. See below.                                                                            |
+| Option     | Default | Description                                                                                                                                                |
+| ---------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `actions`  |         | [Actions](actions/README.md) to use for all views that use the `media_gallery` (e.g. `clips`, `snapshots`, `recordings`, `reviews`, `folders`, `gallery`). |
+| `controls` |         | Configuration for the Media Gallery controls. See below.                                                                                                   |
 
 ## `controls`
 

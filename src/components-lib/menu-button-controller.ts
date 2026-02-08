@@ -9,7 +9,6 @@ import {
   AdvancedCameraCardView,
   VIEWS_USER_SPECIFIED,
 } from '../config/schema/common/const';
-import { MenuItemBase } from '../config/schema/elements/custom/menu/base';
 import { MenuItem } from '../config/schema/elements/custom/menu/types';
 import { AdvancedCameraCardConfig } from '../config/schema/types';
 import { getEntityTitle } from '../ha/get-entity-title';
@@ -82,6 +81,7 @@ export class MenuButtonController {
       this._getSnapshotsButton(config, cameraManager, foldersManager, options?.view),
       this._getRecordingsButton(config, cameraManager, foldersManager, options?.view),
       this._getReviewsButton(config, cameraManager, foldersManager, options?.view),
+      this._getGalleryButton(config, cameraManager, foldersManager, options?.view),
       this._getImageButton(config, cameraManager, foldersManager, options?.view),
       this._getTimelineButton(config, cameraManager, foldersManager, options?.view),
       this._getDownloadButton(config, cameraManager, options?.view),
@@ -252,45 +252,17 @@ export class MenuButtonController {
       : null;
   }
 
-  /**
-   * Determine if a media button (clips/snapshots) should be shown. These are
-   * hidden by default if reviews are supported.
-   */
-  protected _shouldShowEventMediaButton(
-    viewName: 'clips' | 'snapshots',
-    buttonConfig: MenuItemBase,
-    cameraManager: CameraManager,
-    foldersManager: FoldersManager,
-    view?: View | null,
-  ): boolean {
-    const supportsEventView =
-      view &&
-      isViewSupportedByCamera(viewName, cameraManager, foldersManager, view.camera);
-    const supportsReviewsView =
-      view &&
-      isViewSupportedByCamera('reviews', cameraManager, foldersManager, view.camera);
-
-    // Show if: explicitly enabled OR (supports view AND reviews not supported)
-    return !!supportsEventView && (buttonConfig.enabled || !supportsReviewsView);
-  }
-
   protected _getClipsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
     view?: View | null,
   ): MenuItem | null {
-    return this._shouldShowEventMediaButton(
-      'clips',
-      config.menu.buttons.clips,
-      cameraManager,
-      foldersManager,
-      view,
-    )
+    return view &&
+      isViewSupportedByCamera('clips', cameraManager, foldersManager, view.camera)
       ? {
           icon: 'mdi:filmstrip',
           ...config.menu.buttons.clips,
-          enabled: true,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.clips'),
           style: view?.is('clips') ? this._getEmphasizedStyle() : {},
@@ -306,17 +278,11 @@ export class MenuButtonController {
     foldersManager: FoldersManager,
     view?: View | null,
   ): MenuItem | null {
-    return this._shouldShowEventMediaButton(
-      'snapshots',
-      config.menu.buttons.snapshots,
-      cameraManager,
-      foldersManager,
-      view,
-    )
+    return view &&
+      isViewSupportedByCamera('snapshots', cameraManager, foldersManager, view.camera)
       ? {
           icon: 'mdi:camera',
           ...config.menu.buttons.snapshots,
-          enabled: true,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.snapshots'),
           style: view?.is('snapshots') ? this._getEmphasizedStyle() : {},
@@ -355,13 +321,33 @@ export class MenuButtonController {
     return view &&
       isViewSupportedByCamera('reviews', cameraManager, foldersManager, view.camera)
       ? {
-          icon: 'mdi:play-box-multiple',
+          icon: 'mdi:play-box-edit-outline',
           ...config.menu.buttons.reviews,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.reviews'),
           style: view.is('reviews') ? this._getEmphasizedStyle() : {},
           tap_action: createViewAction('reviews'),
           hold_action: createViewAction('review'),
+        }
+      : null;
+  }
+
+  protected _getGalleryButton(
+    config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
+    foldersManager: FoldersManager,
+    view?: View | null,
+  ): MenuItem | null {
+    return view &&
+      isViewSupportedByCamera('gallery', cameraManager, foldersManager, view.camera)
+      ? {
+          icon: 'mdi:play-box-multiple',
+          ...config.menu.buttons.gallery,
+          type: 'custom:advanced-camera-card-menu-icon',
+          title: localize('config.menu.buttons.gallery'),
+          style: view.is('gallery') ? this._getEmphasizedStyle() : {},
+          tap_action: createViewAction('gallery'),
+          hold_action: createViewAction('media'),
         }
       : null;
   }

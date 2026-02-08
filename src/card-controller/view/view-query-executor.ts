@@ -105,23 +105,30 @@ export class ViewQueryExecutor {
 
     const cameraForQuery = view.isGrid() ? undefined : view.camera;
 
+    const getDefaultQueryModifiers = async () => {
+      const query = builder.buildDefaultCameraQuery(cameraForQuery, {
+        limit: this._getLimit(),
+      });
+      return await executeQuery(query);
+    };
+
     switch (view.view) {
       case 'live':
         if (config.live.controls.thumbnails.mode !== 'none') {
-          const defaultQuery = builder.buildDefaultCameraQuery(cameraForQuery);
-          if (defaultQuery) {
-            viewModifiers.push(...(await executeQuery(defaultQuery)));
-          }
+          viewModifiers.push(...(await getDefaultQueryModifiers()));
         }
         break;
       case 'timeline':
         // Timeline view always queries all cameras with media capabilities.
         viewModifiers.push(...(await executeQuery(builder.buildDefaultCameraQuery())));
         break;
+      case 'gallery':
       case 'media':
-      // If the user is looking at media in the `media` view and then
-      // changes camera (via the menu) it should default to showing clips
-      // for the new camera.
+        // If the user is looking at media in the `media` view and then changes
+        // camera (via the menu) it should default to the default camera media
+        // type.
+        viewModifiers.push(...(await getDefaultQueryModifiers()));
+        break;
       case 'clip':
       case 'clips':
         viewModifiers.push(

@@ -157,6 +157,15 @@ advanced_camera_card_action: folders
 | --------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
 | `folder`  | The first configured folder (under [`folders`](../../folders.md)). | An optional id of the folder to show, see the `id` parameter under [`folders` configuration](../../folders.md). |
 
+## `gallery`
+
+Change to the `gallery` view.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: gallery
+```
+
 ## `fullscreen`
 
 Toggle fullscreen.
@@ -236,6 +245,15 @@ advanced_camera_card_action: live_substream_select
 | `action`                      | Must be `custom:advanced-camera-card-action`.                                   |
 | `advanced_camera_card_action` | Must be `live_substream_select`.                                                |
 | `camera`                      | The [camera ID](../../cameras/README.md?id=cameras) of the substream to select. |
+
+## `media`
+
+Change to the `media` view.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: media
+```
 
 ## `log`
 
@@ -463,6 +481,24 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: recordings
 ```
 
+## `review`
+
+Change to the `review` view.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: review
+```
+
+## `reviews`
+
+Change to the `reviews` view.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: reviews
+```
+
 ## `reload`
 
 Reload the entire dashboard.
@@ -591,6 +627,33 @@ elements:
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: camera_ui
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:play-box-multiple
+    title: Show media gallery
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: gallery
+    hold_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: media
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:filmstrip
+    title: Show most recent media
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: media
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-r-circle-outline
+    title: Show most recent review
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: review
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-s-circle-outline
+    title: Show reviews
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: reviews
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-d-circle
     title: Show most recent clip

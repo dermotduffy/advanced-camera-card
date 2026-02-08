@@ -231,6 +231,10 @@ describe('config defaults', () => {
             enabled: true,
             priority: 50,
           },
+          gallery: {
+            enabled: true,
+            priority: 50,
+          },
           image: {
             enabled: false,
             priority: 50,
@@ -277,7 +281,7 @@ describe('config defaults', () => {
             priority: 50,
           },
           reviews: {
-            enabled: true,
+            enabled: false,
             priority: 50,
           },
           set_review: {

@@ -361,9 +361,9 @@ conditions:
 
 > [!IMPORTANT]
 > Internally, views associated with the media viewer (e.g. `clip`, `snapshot`,
-> `recording`) are translated to a special view called `media` after the relevant
-> media is fetched. When including views as part of a [condition](conditions.md),
-> you may need to refer to this special `media` view.
+> `review` `recording`) are translated to the `media` view after the relevant
+> media is fetched. When including views as part of a
+> [condition](conditions.md), you may need to refer to the `media` view.
 
 ## Fully expanded reference
 

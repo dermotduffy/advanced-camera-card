@@ -18,6 +18,8 @@ export const VIEWS_USER_SPECIFIED = [
   'clips',
   'folder',
   'folders',
+  'gallery',
+  'media',
   'snapshot',
   'snapshots',
   'recording',
@@ -28,7 +30,4 @@ export const VIEWS_USER_SPECIFIED = [
   'timeline',
 ] as const;
 export type AdvancedCameraCardUserSpecifiedView = (typeof VIEWS_USER_SPECIFIED)[number];
-export type AdvancedCameraCardView =
-  | AdvancedCameraCardUserSpecifiedView
-  | 'media'
-  | 'diagnostics';
+export type AdvancedCameraCardView = AdvancedCameraCardUserSpecifiedView | 'diagnostics';
