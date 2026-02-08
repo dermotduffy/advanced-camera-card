@@ -28,6 +28,8 @@
 .values {
   background: var(--secondary-background-color);
   display: grid;
+
+  grid-template-columns: minmax(0, 1fr);
 }
 // Space submenus from the next top-level options.
 .values + .option,

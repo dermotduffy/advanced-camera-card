@@ -98,6 +98,24 @@
   // --advanced-camera-card-menu-position-left-background: purple;
   // --advanced-camera-card-menu-style-overlay-background: pink;
 
+  /*********
+   * Submenu
+   *********/
+  --advanced-camera-card-submenu-color: var(--advanced-camera-card-text-color);
+  --advanced-camera-card-submenu-background-color: var(
+    --advanced-camera-card-background
+  );
+  --advanced-camera-card-submenu-hover-color: var(--advanced-camera-card-text-color);
+  --advanced-camera-card-submenu-hover-background-color: var(
+    --ha-color-fill-neutral-normal-resting
+  );
+  --advanced-camera-card-submenu-selected-color: var(
+    --advanced-camera-card-foreground-primary
+  );
+  --advanced-camera-card-submenu-selected-background-color: var(
+    --ha-color-fill-primary-quiet-resting
+  );
+
   /************
    * Status bar
    ************/

@@ -1,5 +1,3 @@
-@use 'dotdotdot.scss';
-
 :host {
   display: flex;
   flex-direction: row;
@@ -13,7 +11,18 @@
 
 :host([assigning]) ha-button.assign span,
 :host([assigning]) ha-button.assign advanced-camera-card-icon {
-  color: var(--warning-color);
+  animation: pulse 0.5s infinite;
+
+  @keyframes pulse {
+    50% {
+      color: var(--warning-color);
+    }
+  }
+}
+
+ha-button {
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
 advanced-camera-card-icon {

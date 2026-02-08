@@ -8,11 +8,12 @@ import { CardHelpers, LovelaceCardWithEditor } from '../types';
  */
 export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
   const neededElements = [
-    'ha-button-menu',
     'ha-button',
     'ha-camera-stream',
     'ha-card',
     'ha-combo-box',
+    'ha-dropdown-item',
+    'ha-dropdown',
     'ha-hls-player',
     'ha-icon-button',
     'ha-icon',

@@ -35,10 +35,6 @@ export class AdvancedCameraCardSubmenuButton extends LitElement {
           .hass=${this.hass}
           .icon=${{ icon: this.submenu.icon }}
           .actionHandler=${actionHandler({
-            // Need to allow event to propagate upwards, as it's caught by the
-            // <ha-button-menu> trigger slot to open/close the menu. Further
-            // propagation is forbidden by the @click handler on
-            // <ha-button-menu>.
             allowPropagation: true,
             hasHold: hasAction(this.submenu.hold_action),
             hasDoubleClick: hasAction(this.submenu.double_tap_action),
