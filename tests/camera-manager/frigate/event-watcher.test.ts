@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 import { FrigateEventWatcher } from '../../../src/camera-manager/frigate/event-watcher.js';
 import { FrigateEventChange } from '../../../src/camera-manager/frigate/types.js';
 import { HomeAssistant } from '../../../src/ha/types.js';
@@ -75,6 +75,33 @@ describe('FrigateEventWatcher', () => {
 
     await stateWatcher.unsubscribe(request_2);
     expect(unsubscribeCallback).toBeCalledTimes(1);
+  });
+
+  it('should handle unsubscribe during pending subscription', async () => {
+    const stateWatcher = new FrigateEventWatcher();
+    const hass = createHASS();
+
+    let resolveSubscription: ((callback: () => Promise<void>) => void) | undefined;
+    const subscriptionPromise = new Promise<() => Promise<void>>((resolve) => {
+      resolveSubscription = resolve;
+    });
+    vi.mocked(hass.connection.subscribeMessage).mockReturnValue(subscriptionPromise);
+
+    const request = {
+      instanceID: 'frigate',
+      callback: vi.fn(),
+    };
+
+    // Start subscription (doesn't complete yet as not awaited).
+    const subscribePromise = stateWatcher.subscribe(hass, request);
+
+    // Unsubscribe while subscription is still pending.
+    await stateWatcher.unsubscribe(request);
+
+    // Complete the subscription.
+    assert(resolveSubscription);
+    resolveSubscription(vi.fn());
+    await subscribePromise;
   });
 
   describe('should call handler', () => {

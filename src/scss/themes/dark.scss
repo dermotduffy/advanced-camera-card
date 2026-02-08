@@ -1,12 +1,204 @@
 :host([themes~='dark']) {
-  // This file should include only, and exactly match, values from
-  // https://github.com/home-assistant/frontend/blob/dev/src/resources/styles-data.ts .
+  --sidebar-text-color: var(--primary-text-color);
+  --sidebar-background-color: var(--card-background-color);
+  --app-header-text-color: var(--sidebar-text-color);
+  --app-header-background-color: var(--sidebar-background-color);
+  --app-header-border-bottom: 1px solid var(--divider-color);
 
-  --card-background-color: #1c1c1c;
+  // =====================
+  // Core global color styles
+  // https://github.com/home-assistant/frontend/blob/dev/src/resources/theme/color/color.globals.ts
+  // =====================
   --primary-background-color: #111111;
+  --card-background-color: #1c1c1c;
   --secondary-background-color: #282828;
+  --clear-background-color: #111111;
   --primary-text-color: #e1e1e1;
+  --secondary-text-color: #9b9b9b;
+  --disabled-text-color: #6f6f6f;
+  --switch-unchecked-button-color: #999999;
+  --switch-unchecked-track-color: #9b9b9b;
   --divider-color: rgba(225, 225, 225, 0.12);
-  --app-header-background-color: #101e24;
-  --app-header-text-color: #e1e1e1;
+  --outline-color: rgba(225, 225, 225, 0.12);
+  --outline-hover-color: rgba(225, 225, 225, 0.24);
+  --shadow-color: rgba(0, 0, 0, 0.48);
+
+  --mdc-ripple-color: #aaaaaa;
+  --mdc-linear-progress-buffer-color: rgba(255, 255, 255, 0.1);
+
+  --input-idle-line-color: rgba(255, 255, 255, 0.42);
+  --input-hover-line-color: rgba(255, 255, 255, 0.87);
+  --input-disabled-line-color: rgba(255, 255, 255, 0.06);
+  --input-outlined-idle-border-color: rgba(255, 255, 255, 0.38);
+  --input-outlined-hover-border-color: rgba(255, 255, 255, 0.87);
+  --input-outlined-disabled-border-color: rgba(255, 255, 255, 0.06);
+  --input-fill-color: rgba(255, 255, 255, 0.05);
+  --input-disabled-fill-color: rgba(255, 255, 255, 0.02);
+  --input-ink-color: rgba(255, 255, 255, 0.87);
+  --input-label-ink-color: rgba(255, 255, 255, 0.6);
+  --input-disabled-ink-color: rgba(255, 255, 255, 0.37);
+  --input-dropdown-icon-color: rgba(255, 255, 255, 0.54);
+
+  --codemirror-keyword: #c792ea;
+  --codemirror-operator: #89ddff;
+  --codemirror-variable: #f07178;
+  --codemirror-variable-2: #eeffff;
+  --codemirror-variable-3: #decb6b;
+  --codemirror-builtin: #ffcb6b;
+  --codemirror-atom: #f78c6c;
+  --codemirror-number: #ff5370;
+  --codemirror-def: #82aaff;
+  --codemirror-string: #c3e88d;
+  --codemirror-string-2: #f07178;
+  --codemirror-comment: #545454;
+  --codemirror-tag: #ff5370;
+  --codemirror-meta: #ffcb6b;
+  --codemirror-attribute: #c792ea;
+  --codemirror-property: #c792ea;
+  --codemirror-qualifier: #decb6b;
+  --codemirror-type: #decb6b;
+  --energy-grid-return-color: #a280db;
+  --map-filter: invert(0.9) hue-rotate(170deg) brightness(1.5) contrast(1.2)
+    saturate(0.3);
+  --disabled-color: #464646;
+
+  --ha-button-primary-light-color: #4082a040;
+  --ha-button-warning-light-color: #917b54c1;
+  --ha-button-neutral-color: #d9dae0;
+  --ha-button-neutral-light-color: #6a7081;
+
+  --bar-box-shadow: 0 2px 12px var(--shadow-color);
+
+  // =====================
+  // Semantic color styles
+  // https://github.com/home-assistant/frontend/blob/dev/src/resources/theme/color/semantic.globals.ts
+  // =====================
+
+  /* text */
+  --ha-color-text-primary: var(--white-color);
+  --ha-color-text-secondary: var(--ha-color-neutral-80);
+  --ha-color-text-link: var(--ha-color-primary-60);
+
+  /* border primary */
+  --ha-color-border-normal: var(--ha-color-primary-50);
+
+  /* border neutral */
+  --ha-color-border-neutral-quiet: var(--ha-color-neutral-40);
+  --ha-color-border-neutral-normal: var(--ha-color-neutral-50);
+  --ha-color-border-neutral-loud: var(--ha-color-neutral-70);
+
+  /* border danger */
+  --ha-color-border-danger-normal: var(--ha-color-red-50);
+  --ha-color-border-danger-loud: var(--ha-color-red-50);
+
+  /* border warning */
+  --ha-color-border-warning-normal: var(--ha-color-orange-50);
+  --ha-color-border-warning-loud: var(--ha-color-orange-50);
+
+  /* fill primary quiet */
+  --ha-color-fill-primary-quiet-resting: var(--ha-color-primary-05);
+  --ha-color-fill-primary-quiet-hover: var(--ha-color-primary-10);
+  --ha-color-fill-primary-quiet-active: var(--ha-color-primary-05);
+
+  /* fill primary normal */
+  --ha-color-fill-primary-normal-resting: var(--ha-color-primary-10);
+  --ha-color-fill-primary-normal-hover: var(--ha-color-primary-20);
+  --ha-color-fill-primary-normal-active: var(--ha-color-primary-10);
+
+  /* fill neutral quiet */
+  --ha-color-fill-neutral-quiet-resting: var(--ha-color-neutral-05);
+  --ha-color-fill-neutral-quiet-hover: var(--ha-color-neutral-10);
+  --ha-color-fill-neutral-quiet-active: var(--ha-color-neutral-00);
+
+  /* fill neutral normal */
+  --ha-color-fill-neutral-normal-resting: var(--ha-color-neutral-10);
+  --ha-color-fill-neutral-normal-hover: var(--ha-color-neutral-20);
+  --ha-color-fill-neutral-normal-active: var(--ha-color-neutral-10);
+
+  /* fill disabled quiet */
+  --ha-color-fill-disabled-quiet-resting: var(--ha-color-neutral-10);
+
+  /* fill disabled normal */
+  --ha-color-fill-disabled-normal-resting: var(--ha-color-neutral-20);
+
+  /* fill disabled loud */
+  --ha-color-fill-disabled-loud-resting: var(--ha-color-neutral-30);
+
+  /* fill danger quiet */
+  --ha-color-fill-danger-quiet-resting: var(--ha-color-red-05);
+  --ha-color-fill-danger-quiet-hover: var(--ha-color-red-10);
+  --ha-color-fill-danger-quiet-active: var(--ha-color-red-05);
+
+  /* fill danger normal */
+  --ha-color-fill-danger-normal-resting: var(--ha-color-red-10);
+  --ha-color-fill-danger-normal-hover: var(--ha-color-red-20);
+  --ha-color-fill-danger-normal-active: var(--ha-color-red-10);
+
+  /* fill danger loud */
+  --ha-color-fill-danger-loud-resting: var(--ha-color-red-40);
+  --ha-color-fill-danger-loud-hover: var(--ha-color-red-30);
+  --ha-color-fill-danger-loud-active: var(--ha-color-red-40);
+
+  /* fill warning quiet */
+  --ha-color-fill-warning-quiet-resting: var(--ha-color-orange-05);
+  --ha-color-fill-warning-quiet-hover: var(--ha-color-orange-10);
+  --ha-color-fill-warning-quiet-active: var(--ha-color-orange-05);
+
+  /* fill warning normal */
+  --ha-color-fill-warning-normal-resting: var(--ha-color-orange-10);
+  --ha-color-fill-warning-normal-hover: var(--ha-color-orange-20);
+  --ha-color-fill-warning-normal-active: var(--ha-color-orange-10);
+
+  /* fill warning loud */
+  --ha-color-fill-warning-loud-resting: var(--ha-color-orange-40);
+  --ha-color-fill-warning-loud-hover: var(--ha-color-orange-30);
+  --ha-color-fill-warning-loud-active: var(--ha-color-orange-40);
+
+  /* fill success quiet */
+  --ha-color-fill-success-quiet-resting: var(--ha-color-green-05);
+  --ha-color-fill-success-quiet-hover: var(--ha-color-green-10);
+  --ha-color-fill-success-quiet-active: var(--ha-color-green-05);
+
+  /* fill success normal */
+  --ha-color-fill-success-normal-resting: var(--ha-color-green-10);
+  --ha-color-fill-success-normal-hover: var(--ha-color-green-20);
+  --ha-color-fill-success-normal-active: var(--ha-color-green-10);
+
+  /* fill success loud */
+  --ha-color-fill-success-loud-resting: var(--ha-color-green-40);
+  --ha-color-fill-success-loud-hover: var(--ha-color-green-30);
+  --ha-color-fill-success-loud-active: var(--ha-color-green-40);
+
+  /* on primary */
+  --ha-color-on-primary-quiet: var(--ha-color-primary-70);
+  --ha-color-on-primary-normal: var(--ha-color-primary-60);
+
+  /* on neutral */
+  --ha-color-on-neutral-quiet: var(--ha-color-neutral-70);
+  --ha-color-on-neutral-normal: var(--ha-color-neutral-60);
+  --ha-color-on-neutral-loud: var(--white-color);
+
+  /* on disabled */
+  --ha-color-on-disabled-quiet: var(--ha-color-neutral-40);
+  --ha-color-on-disabled-normal: var(--ha-color-neutral-50);
+  --ha-color-on-disabled-loud: var(--ha-color-neutral-50);
+
+  /* on danger */
+  --ha-color-on-danger-quiet: var(--ha-color-red-70);
+  --ha-color-on-danger-normal: var(--ha-color-red-60);
+  --ha-color-on-danger-loud: var(--white-color);
+
+  /* on warning */
+  --ha-color-on-warning-quiet: var(--ha-color-orange-70);
+  --ha-color-on-warning-normal: var(--ha-color-orange-60);
+  --ha-color-on-warning-loud: var(--white-color);
+
+  /* on success */
+  --ha-color-on-success-quiet: var(--ha-color-green-70);
+  --ha-color-on-success-normal: var(--ha-color-green-60);
+  --ha-color-on-success-loud: var(--white-color);
+
+  /* Surfaces */
+  --ha-color-surface-default: var(--ha-color-neutral-10);
+  --ha-color-on-surface-default: var(--ha-color-neutral-95);
 }

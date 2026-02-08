@@ -23,11 +23,12 @@
         // These tags are provided by the HA frontend and [almost all] cannot be
         // imported by a custom card directly.
         "globalTags": [
-          "ha-button-menu",
           "ha-button",
           "ha-camera-stream",
           "ha-card",
           "ha-combo-box",
+          "ha-dropdown-item",
+          "ha-dropdown",
           "ha-hls-player",
           "ha-icon-button",
           "ha-icon",
