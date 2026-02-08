@@ -7,7 +7,6 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { classMap } from 'lit/directives/class-map.js';
 import { KeyAssignerController } from '../components-lib/key-assigner-controller';
 import { KeyboardShortcut } from '../config/schema/view';
 import { localize } from '../localize/localize';
@@ -44,21 +43,22 @@ export class AdvancedCameraCardKeyAssigner extends LitElement {
     return html`
       <div class="label">${this.label}</div>
       <ha-button
+        title="${localize('key_assigner.assign')}"
+        aria-label="${localize('key_assigner.assign')}"
         class="assign"
         @click=${() => {
           this._controller.toggleAssigning();
         }}
       >
-        <advanced-camera-card-icon .icon=${{ icon: 'mdi:keyboard-settings' }}></advanced-camera-card-icon>
-        <span class="${classMap({
-          dotdotdot: this._controller.isAssigning(),
-        })}">
-          ${this._controller.isAssigning() ? '' : localize('key_assigner.assign')}
-        </span>
+        <advanced-camera-card-icon
+          .icon=${{ icon: 'mdi:keyboard-settings' }}>
+        </advanced-camera-card-icon>
       </ha-button>
       ${
         this._controller.hasValue()
           ? html`<ha-button
+              title="${localize('key_assigner.unassign')}"
+              aria-label="${localize('key_assigner.unassign')}"
               @click=${() => {
                 this._controller.setValue(null);
               }}
@@ -66,7 +66,6 @@ export class AdvancedCameraCardKeyAssigner extends LitElement {
               <advanced-camera-card-icon
                 .icon=${{ icon: 'mdi:keyboard-off' }}
               ></advanced-camera-card-icon>
-              <span> ${localize('key_assigner.unassign')} </span>
             </ha-button>`
           : ''
       }

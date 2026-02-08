@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManagerEngine } from '../../../src/camera-manager/engine';
@@ -540,7 +541,9 @@ describe('FrigateCamera', () => {
         );
 
         expect(camera.getEndpoints({ view: 'media', media })?.ui).toEqual({
-          endpoint: 'http://frigate/recording/front_door/2023-01-01/10',
+          endpoint:
+            'http://frigate/recording/front_door/' +
+            format(media.getStartTime(), 'yyyy-MM-dd/HH'),
         });
       });
 

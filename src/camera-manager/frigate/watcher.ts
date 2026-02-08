@@ -54,8 +54,12 @@ abstract class FrigateWatcher<T> implements FrigateWatcherSubscriptionInterface<
     );
 
     if (!this._hasSubscribers(request.instanceID)) {
-      await this._unsubscribeCallback[request.instanceID]();
+      const callback = this._unsubscribeCallback[request.instanceID];
       delete this._unsubscribeCallback[request.instanceID];
+
+      // Callback may be undefined if unsubscribe is called while subscribe is
+      // still awaiting the Home Assistant connection.
+      await callback?.();
     }
   }
 

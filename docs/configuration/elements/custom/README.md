@@ -79,6 +79,7 @@ elements:
 | `selected`                                                               | `false` | Whether or not to show this item as selected.                                                              |
 | `state_color`                                                            | `true`  | Whether or not the title and icon should be stylized based on state.                                       |
 | `style`                                                                  |         | Position and style the element using CSS.                                                                  |
+| `subtitle`                                                               |         | Optional additional text to display.                                                                       |
 | `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` |         | The [actions](../../actions/README.md) to take when this item is interacted with.                          |
 | `title`                                                                  |         | An optional title to display.                                                                              |
 

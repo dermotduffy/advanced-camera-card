@@ -1,6 +1,5 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../../action-handler-directive.js';
 import { getEntityTitle } from '../../ha/get-entity-title.js';
@@ -28,31 +27,31 @@ export class AdvancedCameraCardSubmenu extends LitElement {
 
     const title = item.title ?? getEntityTitle(this.hass, item.entity);
     const style = styleMap(item.style || {});
+    const disabled = item.enabled === false;
 
     return html`
-      <mwc-list-item
-        graphic=${ifDefined(item.icon || item.entity ? 'icon' : undefined)}
-        ?twoline=${!!item.subtitle}
-        ?selected=${item.selected}
-        ?activated=${item.selected}
-        ?disabled=${item.enabled === false}
+      <ha-dropdown-item
+        class=${item.selected ? 'selected' : ''}
+        ?disabled=${disabled}
         aria-label="${title ?? ''}"
         @action=${(ev: CustomEvent<SubmenuInteraction>) => {
           // Attach the item so ascendants have access to it.
           ev.detail.item = item;
         }}
-        .actionHandler=${actionHandler({
-          allowPropagation: true,
-          hasHold: hasAction(item.hold_action),
-          hasDoubleClick: hasAction(item.double_tap_action),
-        })}
+        .actionHandler=${disabled
+          ? undefined
+          : actionHandler({
+              allowPropagation: true,
+              hasHold: hasAction(item.hold_action),
+              hasDoubleClick: hasAction(item.double_tap_action),
+            })}
       >
         <span style="${style}">${title ?? ''}</span>
         ${item.subtitle
-          ? html`<span slot="secondary" style="${style}">${item.subtitle}</span>`
+          ? html`<span slot="details" style="${style}">${item.subtitle}</span>`
           : ''}
         <advanced-camera-card-icon
-          slot="graphic"
+          slot="icon"
           .hass=${this.hass}
           .icon=${{
             icon: item.icon,
@@ -60,26 +59,16 @@ export class AdvancedCameraCardSubmenu extends LitElement {
           }}
           style="${style}"
         ></advanced-camera-card-icon>
-      </mwc-list-item>
+      </ha-dropdown-item>
     `;
   }
 
   protected render(): TemplateResult {
     return html`
-      <ha-button-menu
-        fixed
-        corner=${'BOTTOM_LEFT'}
-        @closed=${
-          // Prevent the submenu closing from closing anything upstream (e.g.
-          // selecting a submenu in the editor dialog should not close the
-          // editor, see https://github.com/dermotduffy/advanced-camera-card/issues/377).
-          (ev) => ev.stopPropagation()
-        }
-        @click=${(ev: Event) => stopEventFromActivatingCardWideActions(ev)}
-      >
+      <ha-dropdown @click=${(ev: Event) => stopEventFromActivatingCardWideActions(ev)}>
         <slot slot="trigger"></slot>
         ${this.items?.map(this._renderItem.bind(this))}
-      </ha-button-menu>
+      </ha-dropdown>
     `;
   }
 

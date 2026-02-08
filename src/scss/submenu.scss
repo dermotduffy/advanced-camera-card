@@ -1,8 +1,24 @@
 @use './menu-button.scss';
-@import './z-index.scss';
 
 :host {
+  // Without this the submenu (in the card menu) cannot be interacted with (e.g.
+  // hover states don't work).
   pointer-events: auto;
+}
 
-  --mdc-menu-z-index: #{$z-index-submenu};
+ha-dropdown-item {
+  color: var(--advanced-camera-card-submenu-color);
+  background-color: var(--advanced-camera-card-submenu-background-color);
+}
+
+ha-dropdown-item:hover {
+  color: var(--advanced-camera-card-submenu-hover-color);
+  background-color: var(--advanced-camera-card-submenu-hover-background-color);
+}
+
+ha-dropdown-item.selected:not(:hover) {
+  font-weight: var(--ha-font-weight-medium);
+
+  color: var(--advanced-camera-card-submenu-selected-color);
+  background-color: var(--advanced-camera-card-submenu-selected-background-color);
 }
