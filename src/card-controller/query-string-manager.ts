@@ -131,10 +131,16 @@ export class QueryStringManager {
         case 'clip':
         case 'clips':
         case 'diagnostics':
+        case 'folder':
+        case 'folders':
+        case 'gallery':
         case 'image':
         case 'live':
+        case 'media':
         case 'recording':
         case 'recordings':
+        case 'review':
+        case 'reviews':
         case 'snapshot':
         case 'snapshots':
         case 'timeline':
@@ -159,10 +165,16 @@ export class QueryStringManager {
       case 'clip':
       case 'clips':
       case 'diagnostics':
+      case 'folder':
+      case 'folders':
+      case 'gallery':
       case 'image':
       case 'live':
+      case 'media':
       case 'recording':
       case 'recordings':
+      case 'review':
+      case 'reviews':
       case 'snapshot':
       case 'snapshots':
       case 'timeline':

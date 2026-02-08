@@ -39,6 +39,7 @@ export const menuConfigDefault = {
     fullscreen: visibleButtonDefault,
     image: hiddenButtonDefault,
     info: visibleButtonDefault,
+    gallery: visibleButtonDefault,
     live: visibleButtonDefault,
     media_player: visibleButtonDefault,
     microphone: {
@@ -49,7 +50,7 @@ export const menuConfigDefault = {
     play: hiddenButtonDefault,
     ptz_controls: hiddenButtonDefault,
     recordings: hiddenButtonDefault,
-    reviews: visibleButtonDefault,
+    reviews: hiddenButtonDefault,
     set_review: visibleButtonDefault,
     screenshot: hiddenButtonDefault,
     snapshots: hiddenButtonDefault,
@@ -91,6 +92,7 @@ export const menuConfigSchema = z
         fullscreen: visibleButtonSchema.default(menuConfigDefault.buttons.fullscreen),
         image: hiddenButtonSchema.default(menuConfigDefault.buttons.image),
         info: visibleButtonSchema.default(menuConfigDefault.buttons.info),
+        gallery: visibleButtonSchema.default(menuConfigDefault.buttons.gallery),
         live: visibleButtonSchema.default(menuConfigDefault.buttons.live),
         media_player: visibleButtonSchema.default(
           menuConfigDefault.buttons.media_player,
@@ -106,7 +108,7 @@ export const menuConfigSchema = z
         play: hiddenButtonSchema.default(menuConfigDefault.buttons.play),
         ptz_controls: hiddenButtonSchema.default(menuConfigDefault.buttons.ptz_controls),
         recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
-        reviews: visibleButtonSchema.default(menuConfigDefault.buttons.reviews),
+        reviews: hiddenButtonSchema.default(menuConfigDefault.buttons.reviews),
         set_review: visibleButtonSchema.default(menuConfigDefault.buttons.set_review),
         screenshot: hiddenButtonSchema.default(menuConfigDefault.buttons.screenshot),
         snapshots: hiddenButtonSchema.default(menuConfigDefault.buttons.snapshots),
