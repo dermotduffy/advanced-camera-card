@@ -6,7 +6,6 @@
   "common": {
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "An Advanced Camera Card",
-    "up": "Up",
     "folder": "Folder",
     "live": "Live",
     "no_folder": "No folder to display",
@@ -22,6 +21,7 @@
       "medium": "Medium"
     },
     "severity": "Severity",
+    "up": "Up",
     "version": "Version"
   },
   "config": {
@@ -628,6 +628,7 @@
         "untrigger_seconds": "Seconds after inactive state change to untrigger"
       },
       "views": {
+        "auto": "Automatic",
         "clip": "Most recent clip",
         "clips": "Clips gallery",
         "current": "Current view",
@@ -738,6 +739,8 @@
     "no_camera_engine": "Could not determine suitable engine for camera",
     "no_camera_entity": "Could not find camera entity",
     "no_camera_entity_for_triggers": "A camera entity is required in order to autodetect triggers",
+    "no_camera_for_image": "No camera configured for camera image mode",
+    "no_camera_for_live": "No cameras are configured for live view",
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
     "no_camera_or_media_for_timeline": "No camera or media available for timeline",
     "no_dashboard_or_view": "Both 'dashboard_path' and 'view_path' parameters are required for the 'dashboard' cast method",

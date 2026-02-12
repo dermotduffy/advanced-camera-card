@@ -428,6 +428,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
 
   protected _viewModes: EditorSelectOption[] = [
     { value: '', label: '' },
+    { value: 'auto', label: localize('config.view.views.auto') },
     { value: 'clip', label: localize('config.view.views.clip') },
     { value: 'clips', label: localize('config.view.views.clips') },
     { value: 'folder', label: localize('config.view.views.folder') },

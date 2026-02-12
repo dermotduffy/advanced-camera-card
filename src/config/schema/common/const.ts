@@ -8,10 +8,7 @@ export const STATUS_BAR_PRIORITY_MAX = 100;
 
 export const BUTTON_SIZE_MIN = 20;
 
-// The default view (may not be supported on all cameras).
-export const VIEW_DEFAULT = 'live' as const;
-
-export const VIEWS_USER_SPECIFIED = [
+const VIEWS = [
   'diagnostics',
   'live',
   'clip',
@@ -29,5 +26,7 @@ export const VIEWS_USER_SPECIFIED = [
   'image',
   'timeline',
 ] as const;
+export type AdvancedCameraCardView = (typeof VIEWS)[number];
+
+export const VIEWS_USER_SPECIFIED = ['auto', ...VIEWS] as const;
 export type AdvancedCameraCardUserSpecifiedView = (typeof VIEWS_USER_SPECIFIED)[number];
-export type AdvancedCameraCardView = AdvancedCameraCardUserSpecifiedView | 'diagnostics';

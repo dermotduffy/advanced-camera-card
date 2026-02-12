@@ -6,6 +6,7 @@ import { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryBuilder } from '../../view/unified-query-builder';
 import { UnifiedQueryRunner } from '../../view/unified-query-runner';
 import { View } from '../../view/view';
+import { doesViewRequireCamera, isViewSupported } from '../../view/view-support';
 import { CardViewAPI } from '../types';
 import { MergeContextViewModifier } from './modifiers/merge-context';
 import { RemoveContextPropertyViewModifier } from './modifiers/remove-context-property';
@@ -103,7 +104,26 @@ export class ViewQueryExecutor {
       ];
     };
 
-    const cameraForQuery = view.isGrid() ? undefined : view.camera;
+    // Don't query if the view is not supported (e.g. a camera-based view with
+    // no cameras).
+    if (
+      !isViewSupported(
+        view.view,
+        this._api.getCameraManager(),
+        this._api.getFoldersManager(),
+        view.camera,
+      )
+    ) {
+      return null;
+    }
+
+    // Don't query if the view requires a camera, if it's not in grid mode, but
+    // no camera is provided.
+    if (!view.isGrid() && !view.camera && doesViewRequireCamera(view.view)) {
+      return null;
+    }
+
+    const cameraForQuery = view.isGrid() ? undefined : view.camera ?? undefined;
 
     const getDefaultQueryModifiers = async () => {
       const query = builder.buildDefaultCameraQuery(cameraForQuery, {

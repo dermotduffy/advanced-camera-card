@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { actionsSchema } from './actions/types';
-import { VIEW_DEFAULT, VIEWS_USER_SPECIFIED } from './common/const';
+import { VIEWS_USER_SPECIFIED } from './common/const';
 
 const keyboardShortcut = z.object({
   key: z.string(),
@@ -46,7 +46,7 @@ export type PTZKeyboardShortcutName =
   | 'ptz_zoom_out';
 
 export const viewConfigDefault = {
-  default: VIEW_DEFAULT,
+  default: 'auto' as const,
   camera_select: 'current' as const,
   interaction_seconds: 300,
   default_reset: {

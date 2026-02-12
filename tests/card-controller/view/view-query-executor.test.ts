@@ -257,7 +257,7 @@ describe('ViewQueryExecutor', () => {
               const store = createStore([
                 {
                   cameraID: 'camera.office',
-                  capabilities: createCapabilities({ [mode]: true }),
+                  capabilities: createCapabilities({ live: true, [mode]: true }),
                   config: createCameraConfig({
                     media: {
                       type: mode === 'reviews' ? 'reviews' : 'events',
@@ -546,6 +546,34 @@ describe('ViewQueryExecutor', () => {
         expect(view.query).toBeNull();
         expect(view.queryResults).toBeNull();
       });
+
+      it('should handle non-grid view without a camera', async () => {
+        const api = createPopulatedAPI();
+        const viewQueryExecutor = new ViewQueryExecutor(api);
+        const view = createView({
+          view: 'live',
+          camera: null,
+        });
+
+        const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
+        applyViewModifiers(view, modifiers);
+
+        expect(view.query).toBeNull();
+      });
+
+      it('should handle diagnostics view without a camera', async () => {
+        const api = createPopulatedAPI();
+        const viewQueryExecutor = new ViewQueryExecutor(api);
+        const view = createView({
+          view: 'diagnostics',
+          camera: null,
+        });
+
+        const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
+        applyViewModifiers(view, modifiers);
+
+        expect(view.query).toBeNull();
+      });
     });
 
     describe('with a timeline view', () => {
@@ -799,6 +827,7 @@ describe('ViewQueryExecutor', () => {
         'should execute default folder query with %s view',
         async (viewName: AdvancedCameraCardView) => {
           const api = createPopulatedAPI();
+          vi.mocked(api.getFoldersManager().hasFolders).mockReturnValue(true);
           vi.mocked(api.getFoldersManager().getFolder).mockReturnValue({
             type: 'ha',
             id: 'office',
@@ -827,6 +856,7 @@ describe('ViewQueryExecutor', () => {
 
       it('should execute default folder query with folder view and handle null results', async () => {
         const api = createPopulatedAPI();
+        vi.mocked(api.getFoldersManager().hasFolders).mockReturnValue(true);
         vi.mocked(api.getFoldersManager().getFolder).mockReturnValue(null);
         vi.mocked(api.getFoldersManager().getDefaultQueryParameters).mockReturnValue(
           null,

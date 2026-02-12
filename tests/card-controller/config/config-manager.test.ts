@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
+import { AutomationsManager } from '../../../src/card-controller/automations-manager';
 import { ConfigManager } from '../../../src/card-controller/config/config-manager';
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
 import { ConditionStateManager } from '../../../src/conditions/state-manager';
-import { AutomationsManager } from '../../../src/card-controller/automations-manager';
+import { Automation } from '../../../src/config/schema/automations';
+import { AdvancedCameraCardCondition } from '../../../src/config/schema/conditions/types';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
-import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
 import { createGeneralAction } from '../../../src/utils/action';
+import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
 
 /**
  * Create a ConfigManager test setup with real AutomationsManager and ConditionStateManager.
@@ -92,7 +94,7 @@ describe('ConfigManager', () => {
     it('invalid configuration with hint', () => {
       const manager = new ConfigManager(createCardAPI());
       expect(() => manager.setConfig({})).toThrowError(
-        'Invalid configuration: [\n "cameras",\n "type"\n]',
+        'Invalid configuration: [\n "type"\n]',
       );
     });
 
@@ -290,7 +292,7 @@ describe('ConfigManager', () => {
         overrides: [
           {
             conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
-            delete: ['cameras'],
+            delete: ['type'],
           },
         ],
       };
@@ -472,7 +474,7 @@ describe('ConfigManager', () => {
           ],
         });
 
-        manager.setConfig(config as any);
+        manager.setConfig(config);
         await flushPromises();
 
         // Verify keyboard shortcuts automations were added initially with ptz_home
@@ -501,9 +503,10 @@ describe('ConfigManager', () => {
         // This confirms the override removed them (directly verified through add calls)
         const addCalls = addAutomationsSpy.mock.calls;
         const hasKeyboardShortcut = addCalls.some((call) =>
-          call[0].some((automation: any) =>
+          call[0].some((automation: Automation) =>
             automation.conditions?.some(
-              (cond: any) => cond.condition === 'key' && cond.key === 'h',
+              (cond: AdvancedCameraCardCondition) =>
+                cond.condition === 'key' && cond.key === 'h',
             ),
           ),
         );
@@ -524,7 +527,7 @@ describe('ConfigManager', () => {
           ],
         });
 
-        manager.setConfig(config as any);
+        manager.setConfig(config);
         await flushPromises();
 
         // Verify initial payload (folders may be populated with defaults, so
@@ -594,7 +597,7 @@ describe('ConfigManager', () => {
           ],
         });
 
-        manager.setConfig(config as any);
+        manager.setConfig(config);
         await flushPromises();
 
         // Verify automations were added initially
@@ -652,7 +655,7 @@ describe('ConfigManager', () => {
         });
 
         // Initial set should register remote control automations
-        manager.setConfig(config as any);
+        manager.setConfig(config);
         await flushPromises();
 
         // Verify remote-control automations were added initially with config condition
@@ -682,9 +685,9 @@ describe('ConfigManager', () => {
         // Verify new automations don't contain remote-control config conditions
         const addCalls = addAutomationsSpy.mock.calls;
         const hasRemoteControl = addCalls.some((call) =>
-          call[0].some((automation: any) =>
+          call[0].some((automation: Automation) =>
             automation.conditions?.some(
-              (cond: any) =>
+              (cond: AdvancedCameraCardCondition) =>
                 cond.condition === 'config' &&
                 cond.paths?.includes('remote_control.entities.camera'),
             ),

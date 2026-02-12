@@ -20,7 +20,10 @@ export class MediaPlayerAction extends AdvancedCameraCardAction<MediaPlayerActio
     const item = view?.queryResults?.getSelectedResult() ?? null;
 
     if (view?.is('live')) {
-      await mediaPlayerController.playLive(mediaPlayer, getStreamCameraID(view));
+      const cameraID = getStreamCameraID(view);
+      if (cameraID) {
+        await mediaPlayerController.playLive(mediaPlayer, cameraID);
+      }
     } else if (view?.isViewerView() && item && ViewItemClassifier.isMedia(item)) {
       await mediaPlayerController.playMedia(mediaPlayer, item);
     }

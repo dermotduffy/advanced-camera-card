@@ -24,6 +24,7 @@ import {
 import { CardController } from '../../src/card-controller/controller.js';
 import { sortItems } from '../../src/card-controller/view/sort.js';
 import { CameraConfig } from '../../src/config/schema/cameras.js';
+import { advancedCameraCardConfigSchema } from '../../src/config/schema/types.js';
 import { HomeAssistant } from '../../src/ha/types.js';
 import { QuerySource } from '../../src/query-source.js';
 import { Endpoint, PTZMovementType } from '../../src/types.js';
@@ -335,6 +336,21 @@ describe('CameraManager', () => {
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(null);
 
       const manager = createCameraManager(api);
+
+      await manager.initializeCamerasFromConfig();
+      expect(manager.getStore().getCameraCount()).toBe(0);
+    });
+
+    it('without cameras in config', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        advancedCameraCardConfigSchema.parse({
+          type: 'advanced-camera-card' as const,
+        }),
+      );
+
+      const manager = new CameraManager(api);
 
       await manager.initializeCamerasFromConfig();
       expect(manager.getStore().getCameraCount()).toBe(0);

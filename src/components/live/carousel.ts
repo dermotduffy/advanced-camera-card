@@ -109,7 +109,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
     const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
     const view = this.viewManagerEpoch?.manager.getView();
-    if (!cameraIDs?.size || !view) {
+    if (!cameraIDs?.size || !view?.camera) {
       return 0;
     }
     return Math.max(0, Array.from(cameraIDs).indexOf(view.camera));
@@ -248,6 +248,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     }
 
     const cameraID = this.viewFilterCameraID ?? view.camera;
+    if (!cameraID) {
+      return {};
+    }
     const currentIndex = cameraIDs.indexOf(cameraID);
 
     if (currentIndex < 0) {

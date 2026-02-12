@@ -5,12 +5,12 @@ import {
   createGeneralAction,
   createViewAction,
 } from '../utils/action.js';
-import { ViewParameters } from '../view/view';
 import { CardQueryStringAPI } from './types';
 import { SubstreamSelectViewModifier } from './view/modifiers/substream-select';
+import { ViewParametersUserSpecified } from './view/types.js';
 
 interface QueryStringViewIntent {
-  view?: Partial<ViewParameters> & {
+  view?: ViewParametersUserSpecified & {
     default?: boolean;
     substream?: string;
   };

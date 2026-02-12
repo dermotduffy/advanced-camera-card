@@ -10,11 +10,13 @@ import { CameraConfig } from '../config/schema/cameras';
 import { ImageViewConfig } from '../config/schema/image';
 import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../const';
 import { HomeAssistant } from '../ha/types';
+import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
 import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../types.js';
 import './image-updating-player';
 import { resolveImageMode } from './image-updating-player';
 import './media-dimensions-container';
+import { renderMessage } from './message.js';
 import './zoomer.js';
 
 @customElement('advanced-camera-card-image')
@@ -81,8 +83,22 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
   }
 
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.cameraConfig) {
+    if (!this.hass) {
       return;
+    }
+
+    // Determine if this image mode requires a camera
+    const mode = resolveImageMode({
+      imageConfig: this.imageConfig,
+      cameraConfig: this.cameraConfig,
+    });
+
+    if (mode === 'camera' && !this.cameraConfig) {
+      return renderMessage({
+        type: 'info',
+        message: localize('error.no_camera_for_image'),
+        icon: 'mdi:camera-off',
+      });
     }
 
     return this._renderContainer(html`
