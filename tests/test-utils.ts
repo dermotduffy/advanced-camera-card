@@ -72,11 +72,7 @@ import { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
 import { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
 import { QuerySource } from '../src/query-source';
 import { Severity } from '../src/severity';
-import {
-  CapabilitiesRaw,
-  Interaction,
-  MediaLoadedInfo,
-} from '../src/types';
+import { CapabilitiesRaw, Interaction, MediaLoadedInfo } from '../src/types';
 import {
   EventViewMedia,
   ReviewViewMedia,
