@@ -9,7 +9,6 @@ import { actionHandler } from './action-handler-directive.js';
 import { CardController } from './card-controller/controller';
 import { MenuButtonController } from './components-lib/menu-button-controller';
 import './components/effects/effects';
-import { AdvancedCameraCardEffects } from './components/effects/effects';
 import './components/elements.js';
 import { AdvancedCameraCardElements } from './components/elements.js';
 import './components/loading.js';
@@ -96,12 +95,10 @@ class AdvancedCameraCard extends LitElement {
     // diagnostics starting at the top).
     () => this._refMain.value?.scroll({ top: 0 }),
     () => this._refMenu.value?.toggleMenu(),
-    () => this._refEffects.value ?? null,
   );
 
   protected _menuButtonController = new MenuButtonController();
 
-  protected _refEffects: Ref<AdvancedCameraCardEffects> = createRef();
   protected _refElements: Ref<AdvancedCameraCardElements> = createRef();
   protected _refMain: Ref<HTMLElement> = createRef();
   protected _refMenu: Ref<AdvancedCameraCardMenu> = createRef();
@@ -350,7 +347,7 @@ class AdvancedCameraCard extends LitElement {
     // ensure the hover menu styling continues to work.
     return this._renderInDialogIfNecessary(
       html` <advanced-camera-card-effects
-          ${ref(this._refEffects)}
+          .effectsManager=${this._controller.getEffectsManager()}
         ></advanced-camera-card-effects>
         <ha-card
           id="ha-card"
@@ -387,9 +384,9 @@ class AdvancedCameraCard extends LitElement {
                 .loaded=${this._controller
                   .getInitializationManager()
                   .wasEverInitialized()}
-                .effectsControllerAPI=${this._config?.performance?.features
+                .effectsManager=${this._config?.performance?.features
                   .card_loading_effects !== false
-                  ? this._controller.getEffectsControllerAPI()
+                  ? this._controller.getEffectsManager()
                   : undefined}
               ></advanced-camera-card-loading>`
             : ''}

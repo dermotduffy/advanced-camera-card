@@ -8,13 +8,13 @@ export class EffectAction extends AdvancedCameraCardAction<EffectActionConfig> {
 
     switch (this._action.effect_action) {
       case 'start':
-        api.getEffectsControllerAPI()?.startEffect(this._action.effect);
+        api.getEffectsManager().startEffect(this._action.effect);
         break;
       case 'stop':
-        api.getEffectsControllerAPI()?.stopEffect(this._action.effect);
+        api.getEffectsManager().stopEffect(this._action.effect);
         break;
       case 'toggle':
-        api.getEffectsControllerAPI()?.toggleEffect(this._action.effect);
+        api.getEffectsManager().toggleEffect(this._action.effect);
         break;
     }
   }

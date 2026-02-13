@@ -1,7 +1,7 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import loadingStyle from '../scss/loading.scss';
-import { EffectName, EffectsControllerAPI } from '../types';
+import { EffectName, EffectsManagerInterface } from '../types';
 import { getReleaseVersion } from '../utils/diagnostics';
 import './icon';
 
@@ -33,7 +33,7 @@ const getDateEffect = (): EffectName | null => {
 @customElement('advanced-camera-card-loading')
 export class AdvancedCameraCardLoading extends LitElement {
   @property({ attribute: false })
-  public effectsControllerAPI?: EffectsControllerAPI | null;
+  public effectsManager?: EffectsManagerInterface;
 
   @property({ type: Boolean, reflect: true })
   public loaded = false;
@@ -60,13 +60,13 @@ export class AdvancedCameraCardLoading extends LitElement {
   }
 
   private _startEffect(effect: EffectName): void {
-    this.effectsControllerAPI?.startEffect(effect, { fadeIn: false });
+    this.effectsManager?.startEffect(effect, { fadeIn: false });
     this._effectName = effect;
   }
 
   private _stopEffect(): void {
     if (this._effectName) {
-      this.effectsControllerAPI?.stopEffect(this._effectName);
+      this.effectsManager?.stopEffect(this._effectName);
     }
     this._effectName = null;
   }
