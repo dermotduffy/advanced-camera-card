@@ -228,6 +228,17 @@ describe('EffectsManager', () => {
 
       expect(container.children.length).toBe(0);
     });
+
+    it('should clear active effects and timers when container is removed', async () => {
+      manager.startEffect('snow', { duration: 10 });
+      await flushPromises();
+
+      expect(container.children.length).toBe(1);
+
+      manager.removeContainer();
+
+      expect(container.children.length).toBe(0);
+    });
   });
 
   describe('toggleEffect', () => {

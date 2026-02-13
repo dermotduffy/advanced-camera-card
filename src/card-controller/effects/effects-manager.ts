@@ -29,7 +29,15 @@ const effectRegistry: Record<EffectName, () => Promise<EffectModule>> = {
   },
 };
 
+type EffectModuleImporter = (name: EffectName) => Promise<EffectModule | null>;
+
+const defaultImportEffectModule: EffectModuleImporter = async (name: EffectName) => {
+  const effectModule = await effectRegistry[name]?.();
+  return effectModule ?? null;
+};
+
 export class EffectsManager implements EffectsManagerInterface {
+  private _importer: EffectModuleImporter;
   private _importedModules: Map<EffectName, EffectModule> = new Map();
   private _durationTimers: Map<EffectName, Timer> = new Map();
 
@@ -39,7 +47,11 @@ export class EffectsManager implements EffectsManagerInterface {
   // effects can be started).
   private _pendingEffects: Map<EffectName, EffectOptions | undefined> = new Map();
   private _activeEffects: Map<EffectName, EffectComponent | null> = new Map();
-  private _container: EffectsContainer | null = null;
+  protected _container: EffectsContainer | null = null;
+
+  constructor(importer: EffectModuleImporter = defaultImportEffectModule) {
+    this._importer = importer;
+  }
 
   public setContainer(container: EffectsContainer): void {
     this._container = container;
@@ -113,7 +125,7 @@ export class EffectsManager implements EffectsManagerInterface {
       return existingModule;
     }
 
-    const effectModule = await effectRegistry[name]?.();
+    const effectModule = await this._importer(name);
     if (!effectModule) {
       return null;
     }
@@ -125,18 +137,12 @@ export class EffectsManager implements EffectsManagerInterface {
   private async _startEffect(name: EffectName, options?: EffectOptions): Promise<void> {
     const effectModule = await this._importEffectModule(name);
 
-    // Check if the effect was cancelled during loading.
-    if (!effectModule || !this._activeEffects.has(name)) {
-      this._pendingEffects.delete(name);
+    this._pendingEffects.delete(name);
+
+    if (!effectModule || !this._activeEffects.has(name) || !this._container) {
       this._activeEffects.delete(name);
       return;
     }
-
-    if (!this._container) {
-      this._pendingEffects.set(name, options);
-      return;
-    }
-    this._pendingEffects.delete(name);
 
     const effectComponent = new effectModule.default();
     effectComponent.fadeIn = options?.fadeIn ?? true;
