@@ -1,28 +1,36 @@
 import { defineConfig } from 'vitest/config';
 
 // These globs are expected to have 100% coverage.
-const FULL_COVERAGE_FILES_RELATIVE = [
-  'camera-manager/*.ts',
-  'camera-manager/browse-media/camera.ts',
-  'camera-manager/browse-media/utils/*.ts',
-  'camera-manager/frigate/camera.ts',
-  'camera-manager/frigate/requests.ts',
-  'camera-manager/frigate/util.ts',
-  'camera-manager/frigate/watcher.ts',
-  'camera-manager/generic/*.ts',
-  'camera-manager/reolink/*.ts',
-  'camera-manager/utils/**/*.ts',
-  'card-controller/**/*.ts',
-  'components-lib/**/!(controller).ts',
-  'components-lib/!(timeline)/**/controller.ts',
-  'conditions/**/*.ts',
-  'config/**/*.ts',
-  'const.ts',
-  'ha/**/*.ts',
-  'types.ts',
-  'utils/**/*.ts',
-  'view/*.ts',
+const FULL_COVERAGE = [
+  'src/camera-manager/*.ts',
+  'src/camera-manager/browse-media/camera.ts',
+  'src/camera-manager/browse-media/utils/*.ts',
+  'src/camera-manager/frigate/camera.ts',
+  'src/camera-manager/frigate/requests.ts',
+  'src/camera-manager/frigate/util.ts',
+  'src/camera-manager/frigate/watcher.ts',
+  'src/camera-manager/generic/*.ts',
+  'src/camera-manager/reolink/*.ts',
+  'src/camera-manager/utils/**/*.ts',
+  'src/card-controller/**/*.ts',
+  'src/components-lib/**/*.ts',
+  'src/conditions/**/*.ts',
+  'src/config/**/*.ts',
+  'src/const.ts',
+  'src/ha/**/*.ts',
+  'src/types.ts',
+  'src/utils/**/*.ts',
+  'src/view/*.ts',
 ];
+
+const EXCLUSIONS = [
+  '.eslintrc.cjs',
+  'docs/**',
+  'src/components-lib/timeline/controller.ts',
+  'tests/**',
+];
+
+const INCLUSIONS = ['tests/**/*.test.ts'];
 
 interface Threshold {
   statements: number;
@@ -41,10 +49,7 @@ const fullCoverage: Threshold = {
 };
 
 const calculateFullCoverageThresholds = (): Record<string, Threshold> => {
-  return FULL_COVERAGE_FILES_RELATIVE.reduce(
-    (a, v) => ({ ...a, ['**/src/' + v]: fullCoverage }),
-    {},
-  );
+  return FULL_COVERAGE.reduce((a, v) => ({ ...a, [v]: fullCoverage }), {});
 };
 
 // ts-prune-ignore-next
@@ -57,9 +62,9 @@ export default defineConfig({
         inline: ['ha-nunjucks', 'ts-py-datetime'],
       },
     },
-    include: ['tests/**/*.test.ts'],
+    include: INCLUSIONS,
     coverage: {
-      exclude: ['docs/**', 'tests/**', '.eslintrc.cjs'],
+      exclude: EXCLUSIONS,
 
       // Favor istanbul for coverage over v8 due to better accuracy.
       provider: 'istanbul',
