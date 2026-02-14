@@ -378,7 +378,7 @@ describe('config defaults', () => {
       type: 'advanced-camera-card',
       view: {
         camera_select: 'current',
-        default: 'live',
+        default: 'auto',
         keyboard_shortcuts: {
           enabled: true,
           ptz_down: {

@@ -12,7 +12,7 @@ view:
 | `actions`                 |                                                           | [Actions](actions/README.md) to use for all views, individual actions may be overriden by view-specific actions.                                                                                                                                                                                                                                                                                |
 | `camera_select`           | `current`                                                 | The [view](view.md?id=supported-views) to show when a new camera is selected (e.g. in the camera menu). If `current` the view is unchanged when a new camera is selected.                                                                                                                                                                                                                       |
 | `dim`                     | `false`                                                   | Whether or not to 'dim' the brightness of the card (by 25%) if the card `interaction_seconds` has expired (i.e. card has been left unattended for that period of time).                                                                                                                                                                                                                         |
-| `default`                 | `live`                                                    | The view to show in the card by default. The default camera is the first one listed. See [Supported Views](view.md?id=supported-views) below.                                                                                                                                                                                                                                                   |
+| `default`                 | `auto`                                                    | The view to show in the card by default. If `auto`, the card will choose `live` when cameras are configured, `folders` when folders are configured, or `image` otherwise (screensaver). The default camera is the first one listed. See [Supported Views](view.md?id=supported-views) below.                                                                                                    |
 | `default_reset`           |                                                           | The circumstances and behavior that cause the card to reset to the default view. See below.                                                                                                                                                                                                                                                                                                     |
 | `interaction_seconds`     | `300`                                                     | After a mouse/touch interaction with the card, it will be considered "interacted with" until this number of seconds elapses without further interaction. May be used as part of an [interaction condition](conditions.md?id=interaction) or with `reset_after_interaction` to reset the view after the interaction is complete.                                                                 |
 | `keyboard_shortcuts`      | See [usage](../usage/keyboard-shortcuts.md) for defaults. | Configure keyboard shortcuts. See below.                                                                                                                                                                                                                                                                                                                                                        |
@@ -155,7 +155,7 @@ This card supports several different views.
 | `snapshots`  | Shows a gallery of snapshots for this camera.                                                                                                      |
 | `timeline`   | Shows an event timeline.                                                                                                                           |
 
-The default view is `live`, but can be configured by the `view.default` parameter.
+The default view is `auto`. It will select `live` when cameras are configured, `folders` when folders are configured, or `image` otherwise (screensaver). You can override this with `view.default`.
 
 ## Fully expanded reference
 
@@ -163,7 +163,7 @@ The default view is `live`, but can be configured by the `view.default` paramete
 
 ```yaml
 view:
-  default: live
+  default: auto
   camera_select: current
   interaction_seconds: 300
   default_cycle_camera: false

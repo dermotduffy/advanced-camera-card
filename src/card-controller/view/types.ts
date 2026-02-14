@@ -3,6 +3,7 @@ import { AdvancedCameraCardError } from '../../types.js';
 import { ViewItem } from '../../view/item.js';
 import { QueryResults } from '../../view/query-results.js';
 
+import { AdvancedCameraCardUserSpecifiedView } from '../../config/schema/common/const.js';
 import { View, ViewParameters } from '../../view/view.js';
 
 export interface ViewModifier {
@@ -26,12 +27,16 @@ export interface QueryExecutorOptions {
   useCache?: boolean;
 }
 
+export type ViewParametersUserSpecified = Partial<Omit<ViewParameters, 'view'>> & {
+  view?: AdvancedCameraCardUserSpecifiedView;
+};
+
 export interface ViewFactoryOptions {
   // An existing view to evolve from.
   baseView?: View | null;
 
   // View parameters to set/evolve.
-  params?: Partial<ViewParameters>;
+  params?: ViewParametersUserSpecified;
 
   // Modifiers to the view once created.
   modifiers?: ViewModifier[];
@@ -70,5 +75,4 @@ export interface ViewManagerInterface {
   hasMajorMediaChange(oldView?: View | null, newView?: View | null): boolean;
 }
 
-export class ViewNoCameraError extends AdvancedCameraCardError {}
 export class ViewIncompatible extends AdvancedCameraCardError {}

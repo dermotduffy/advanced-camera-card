@@ -1,6 +1,6 @@
 # Cameras
 
-The `cameras` block configures a list of cameras the card should support. The first listed camera is the default.
+The `cameras` block configures a list of cameras the card should support. This block is optional. When present, the first listed camera is the default.
 
 ```yaml
 cameras:

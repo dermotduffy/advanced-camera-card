@@ -16,7 +16,7 @@ declare module 'view' {
 
 interface ViewEvolveParameters {
   view?: AdvancedCameraCardView;
-  camera?: string;
+  camera?: string | null;
   query?: UnifiedQuery | null;
   queryResults?: QueryResults | null;
   context?: ViewContext | null;
@@ -25,7 +25,6 @@ interface ViewEvolveParameters {
 
 export interface ViewParameters extends ViewEvolveParameters {
   view: AdvancedCameraCardView;
-  camera: string;
 }
 
 export const mergeViewContext = (
@@ -37,7 +36,7 @@ export const mergeViewContext = (
 
 export class View {
   public view: AdvancedCameraCardView;
-  public camera: string;
+  public camera: string | null;
   public query: UnifiedQuery | null;
   public queryResults: QueryResults | null;
   public context: ViewContext | null;
@@ -45,7 +44,7 @@ export class View {
 
   constructor(params: ViewParameters) {
     this.view = params.view;
-    this.camera = params.camera;
+    this.camera = params.camera ?? null;
     this.query = params.query ?? null;
     this.queryResults = params.queryResults ?? null;
     this.context = params.context ?? null;

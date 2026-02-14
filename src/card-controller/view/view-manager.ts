@@ -317,7 +317,7 @@ export class ViewManager implements ViewManagerInterface {
 
     this._api.getConditionStateManager()?.setState({
       view: view?.view,
-      camera: view?.camera,
+      camera: view?.camera ?? undefined,
       displayMode: view?.displayMode ?? undefined,
     });
 

@@ -30,9 +30,10 @@ export class SetReviewAction extends AdvancedCameraCardAction<SetReviewActionCon
         viewManager.getEpoch(),
         getReviewedQueryFilterFromQuery(view?.query, item),
       ),
-      api
-        .getEffectsControllerAPI()
-        ?.startEffect('check', { duration: 0.4, fadeIn: false }),
+      api.getEffectsManager().startEffect('check', {
+        duration: 0.4,
+        fadeIn: false,
+      }),
     ]);
 
     // Trigger UI update to refresh menu icon state

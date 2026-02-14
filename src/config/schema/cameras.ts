@@ -329,7 +329,4 @@ export const cameraConfigSchema = z
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
 
-// Avoid using .nonempty() to avoid changing the inferred type
-// (https://github.com/colinhacks/zod#minmaxlength).
-export const camerasConfigSchema = cameraConfigSchema.array().min(1);
-export type CamerasConfig = z.infer<typeof camerasConfigSchema>;
+export const camerasConfigSchema = cameraConfigSchema.array().optional();

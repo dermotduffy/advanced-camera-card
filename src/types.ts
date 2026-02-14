@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { EffectOptions } from './components-lib/effects/types';
+import type { EffectOptions } from './card-controller/effects/types';
 import type { LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from './ha/types';
 import { Severity } from './severity';
 
@@ -217,8 +217,12 @@ export type EffectName =
   | 'shamrocks'
   | 'snow';
 
-export interface EffectsControllerAPI {
+export type EffectsContainer = HTMLElement | DocumentFragment;
+export interface EffectsManagerInterface {
   startEffect(name: EffectName, options?: EffectOptions): Promise<void>;
   stopEffect(effect: EffectName): void;
   toggleEffect(effect: EffectName, options?: EffectOptions): Promise<void>;
+
+  setContainer(container: EffectsContainer): void;
+  removeContainer(): void;
 }

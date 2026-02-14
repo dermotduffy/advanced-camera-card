@@ -123,4 +123,16 @@ describe('generateScreenshotTitle', () => {
 
     expect(generateScreenshotFilename(view)).toBe('media_camera-1.jpg');
   });
+
+  it('should get title for live view without camera', () => {
+    expect(generateScreenshotFilename(createView({ view: 'live', camera: null }))).toBe(
+      'live_2023-06-13-21-54-01.jpg',
+    );
+  });
+
+  it('should get title for viewer view without camera', () => {
+    expect(generateScreenshotFilename(createView({ view: 'media', camera: null }))).toBe(
+      'media.jpg',
+    );
+  });
 });

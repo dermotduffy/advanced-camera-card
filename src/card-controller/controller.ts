@@ -1,5 +1,6 @@
 import { ReactiveController } from 'lit';
 import { CameraManager } from '../camera-manager/manager';
+import { EffectsManager } from './effects/effects-manager';
 import { ConditionStateManager } from '../conditions/state-manager';
 import { AdvancedCameraCardConfig } from '../config/schema/types';
 import { DeviceRegistryManager } from '../ha/registry/device';
@@ -8,7 +9,6 @@ import { EntityRegistryManagerLive } from '../ha/registry/entity';
 import { EntityCache, EntityRegistryManager } from '../ha/registry/entity/types';
 import { ResolvedMediaCache } from '../ha/resolved-media';
 import { LovelaceCardEditor } from '../ha/types';
-import { EffectsControllerAPI } from '../types';
 import { ActionsManager } from './actions/actions-manager';
 import { AutomationsManager } from './automations-manager';
 import { CameraURLManager } from './camera-url-manager';
@@ -28,7 +28,6 @@ import { InitializationManager } from './initialization-manager';
 import { InteractionManager } from './interaction-manager';
 import { KeyboardStateManager } from './keyboard-state-manager';
 import { MediaLoadedInfoManager } from './media-info-manager';
-
 import { MediaPlayerManager } from './media-player-manager';
 import { MessageManager } from './message-manager';
 import { MicrophoneManager } from './microphone-manager';
@@ -67,8 +66,6 @@ import {
 import { ViewItemManager } from './view/item-manager';
 import { ViewManager } from './view/view-manager';
 
-type EffectsControllerAPICallback = () => EffectsControllerAPI | null;
-
 export class CardController
   implements
     CardActionsManagerAPI,
@@ -97,9 +94,8 @@ export class CardController
     CardViewAPI,
     ReactiveController
 {
-  protected _effectsControllerAPICallback: EffectsControllerAPICallback;
-
   protected _conditionStateManager = new ConditionStateManager();
+  protected _effectsManager = new EffectsManager();
 
   // These properties may be used in the construction of 'managers' (and should
   // be created first).
@@ -138,7 +134,6 @@ export class CardController
     host: CardHTMLElement,
     scrollCallback: ScrollCallback,
     menuToggleCallback: MenuToggleCallback,
-    effectsControllerAPICallback: EffectsControllerAPICallback,
   ) {
     host.addController(this);
 
@@ -148,7 +143,6 @@ export class CardController
       scrollCallback,
       menuToggleCallback,
     );
-    this._effectsControllerAPICallback = effectsControllerAPICallback;
   }
 
   // *************************************************************************
@@ -199,8 +193,8 @@ export class CardController
     return this._deviceRegistryManager;
   }
 
-  public getEffectsControllerAPI(): EffectsControllerAPI | null {
-    return this._effectsControllerAPICallback();
+  public getEffectsManager(): EffectsManager {
+    return this._effectsManager;
   }
 
   public getEntityRegistryManager(): EntityRegistryManager {

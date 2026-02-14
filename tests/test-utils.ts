@@ -28,6 +28,7 @@ import { CardElementManager } from '../src/card-controller/card-element-manager'
 import { ConfigManager } from '../src/card-controller/config/config-manager';
 import { CardController } from '../src/card-controller/controller';
 import { DefaultManager } from '../src/card-controller/default-manager';
+import { EffectsManager } from '../src/card-controller/effects/effects-manager';
 import { ExpandManager } from '../src/card-controller/expand-manager';
 import { FoldersManager } from '../src/card-controller/folders/manager';
 import { FolderQuery } from '../src/card-controller/folders/types';
@@ -71,12 +72,7 @@ import { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
 import { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
 import { QuerySource } from '../src/query-source';
 import { Severity } from '../src/severity';
-import {
-  CapabilitiesRaw,
-  EffectsControllerAPI,
-  Interaction,
-  MediaLoadedInfo,
-} from '../src/types';
+import { CapabilitiesRaw, Interaction, MediaLoadedInfo } from '../src/types';
 import {
   EventViewMedia,
   ReviewViewMedia,
@@ -658,7 +654,7 @@ export const createCardAPI = (): CardController => {
   api.getCardElementManager.mockReturnValue(mock<CardElementManager>());
   api.getConditionStateManager.mockReturnValue(mock<ConditionStateManager>());
   api.getConfigManager.mockReturnValue(mock<ConfigManager>());
-  api.getEffectsControllerAPI.mockReturnValue(mock<EffectsControllerAPI>());
+  api.getEffectsManager.mockReturnValue(mock<EffectsManager>());
   api.getEntityRegistryManager.mockReturnValue(mock<EntityRegistryManager>());
   api.getExpandManager.mockReturnValue(mock<ExpandManager>());
   api.getFoldersManager.mockReturnValue(mock<FoldersManager>());

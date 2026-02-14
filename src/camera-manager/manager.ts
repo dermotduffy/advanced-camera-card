@@ -10,7 +10,7 @@ import {
   PTZActionPhase,
   PTZPanTiltAction,
 } from '../config/schema/actions/custom/ptz.js';
-import { CameraConfig, CamerasConfig, Rotation } from '../config/schema/cameras.js';
+import { CameraConfig, Rotation } from '../config/schema/cameras.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 import { localize } from '../localize/localize.js';
 import { Endpoint } from '../types.js';
@@ -166,7 +166,7 @@ export class CameraManager {
     // global config (which does have defaults). The merging must happen in this
     // order, to ensure that the defaults in the cameras global config do not
     // override the values specified in the per-camera config.
-    const cameras = config.cameras.map((camera) =>
+    const cameras = (config.cameras ?? []).map((camera) =>
       recursivelyMergeObjectsNotArrays({}, cloneDeep(config?.cameras_global), camera),
     );
 
@@ -186,7 +186,7 @@ export class CameraManager {
   }
 
   protected async _getEnginesForCameras(
-    camerasConfig: CamerasConfig,
+    camerasConfig: CameraConfig[],
   ): Promise<Map<CameraConfig, CameraManagerEngine>> {
     const output: Map<CameraConfig, CameraManagerEngine> = new Map();
     const engines: Map<Engine, CameraManagerEngine> = new Map();
@@ -228,7 +228,7 @@ export class CameraManager {
     return output;
   }
 
-  protected async _initializeCameras(camerasConfig: CamerasConfig): Promise<void> {
+  protected async _initializeCameras(camerasConfig: CameraConfig[]): Promise<void> {
     const initializationStartTime = new Date();
     const hass = this._api.getHASSManager().getHASS();
 

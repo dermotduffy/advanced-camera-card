@@ -43,8 +43,8 @@ export class StatusBarItemManager {
     view?: View | null;
     mediaLoadedInfo?: MediaLoadedInfo | null;
   }): StatusBarItem[] {
-    const cameraMetadata = options?.view
-      ? options?.cameraManager?.getCameraMetadata(options?.view?.camera)
+    const cameraMetadata = options?.view?.camera
+      ? options?.cameraManager?.getCameraMetadata(options.view.camera)
       : null;
     const engineIcon = cameraMetadata?.engineIcon ?? null;
     const selectedResult = options?.view?.queryResults?.getSelectedResult();

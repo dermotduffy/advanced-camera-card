@@ -111,6 +111,8 @@ interface CapabilitySearchAllAny {
 }
 export type CapabilitySearchKeys = CapabilityKey | CapabilitySearchAllAny;
 export interface CapabilitySearchOptions {
+  // If true, include a parent camera in results when any of its dependent
+  // (child) cameras have the capability, even if the parent itself doesn't.
   inclusive?: boolean;
 }
 

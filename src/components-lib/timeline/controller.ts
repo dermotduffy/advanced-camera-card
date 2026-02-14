@@ -458,7 +458,7 @@ export class TimelineController {
             main: true,
           },
         );
-    } else if (panMode === 'seek-in-camera') {
+    } else if (panMode === 'seek-in-camera' && view.camera) {
       newResults = results
         .clone()
         .selectBestResult(

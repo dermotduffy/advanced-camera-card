@@ -139,7 +139,7 @@ export class AdvancedCameraCardViews extends LitElement {
         ? this.config.media_viewer.controls.timeline
         : undefined;
 
-    const cameraConfig = view
+    const cameraConfig = view?.camera
       ? this.cameraManager?.getStore().getCameraConfig(view.camera) ?? null
       : null;
 
@@ -155,7 +155,7 @@ export class AdvancedCameraCardViews extends LitElement {
       .viewItemManager=${this.viewItemManager}
       .cardWideConfig=${this.cardWideConfig}
     >
-      ${!this.hide && view?.is('image') && cameraConfig
+      ${!this.hide && view?.is('image')
         ? html` <advanced-camera-card-image
             .imageConfig=${this.config.image}
             .viewManagerEpoch=${this.viewManagerEpoch}
