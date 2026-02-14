@@ -346,6 +346,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
         }}
         @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
           this._loadedMediaPlayerController = ev.detail.mediaPlayerController ?? null;
+          this._mediaHeightController.recalculate();
           this._seekHandler();
         }}
         @advanced-camera-card:media:unloaded=${() => {

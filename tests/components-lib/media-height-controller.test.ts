@@ -139,30 +139,29 @@ describe('MediaHeightController', () => {
       expect(host.style.maxHeight).toBe('200px');
     });
 
-    it('should ignore new chil to new children being added', () => {
+    it('should set height on recalculate', () => {
       const host = document.createElement('div');
       const controller = new MediaHeightController(host, 'div');
 
       const root = document.createElement('div');
-      const child_0 = document.createElement('div');
-      child_0.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 100,
+      const child = document.createElement('div');
+      child.getBoundingClientRect = vi.fn().mockReturnValue({
+        height: 700,
       });
-      root.appendChild(child_0);
+      root.appendChild(child);
 
       controller.setRoot(root);
+      controller.setSelected(0);
 
-      const child_1 = document.createElement('div');
-      child_1.getBoundingClientRect = vi.fn().mockReturnValue({
-        height: 200,
+      expect(host.style.maxHeight).toBe('700px');
+
+      child.getBoundingClientRect = vi.fn().mockReturnValue({
+        height: 900,
       });
-      root.appendChild(child_1);
 
-      callMutationHandler();
+      controller.recalculate();
 
-      controller.setSelected(1);
-
-      expect(host.style.maxHeight).toBe('200px');
+      expect(host.style.maxHeight).toBe('900px');
     });
   });
 

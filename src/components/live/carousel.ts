@@ -347,6 +347,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
         @advanced-camera-card:carousel:select=${this._setViewHandler.bind(this)}
         @advanced-camera-card:media:loaded=${() => {
           this._mediaHasLoaded = true;
+          this._mediaHeightController.recalculate();
         }}
         @advanced-camera-card:media:unloaded=${() => {
           this._mediaHasLoaded = false;
