@@ -222,6 +222,7 @@ export class Camera {
   protected _stateChangeHandler = (difference: HassStateDifference): void => {
     this._eventCallback?.({
       cameraID: this.getID(),
+      id: difference.entityID,
       type: isTriggeredState(difference.newState.state) ? 'new' : 'end',
     });
   };

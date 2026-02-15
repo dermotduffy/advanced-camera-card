@@ -201,6 +201,7 @@ describe('Camera', () => {
 
         expect(eventCallback).toBeCalledWith({
           cameraID: 'camera_1',
+          id: 'sensor.force_update',
           type: eventType,
         });
       },

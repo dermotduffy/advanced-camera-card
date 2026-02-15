@@ -1,14 +1,25 @@
-import { orderBy, throttle } from 'lodash-es';
+import { maxBy, throttle } from 'lodash-es';
 import { CameraEvent } from '../camera-manager/types';
 import { isTriggeredState } from '../ha/is-triggered-state';
 import { Timer } from '../utils/timer';
 import { CardTriggersAPI } from './types';
 
+interface CameraTriggerState {
+  // The time of the most recent trigger event. Used to determine the most
+  // recently triggered camera.
+  lastTriggerTime: Date;
+
+  // The set of active trigger source IDs (e.g. entity IDs or Frigate event
+  // IDs).
+  sources: Set<string>;
+
+  // A timer used to delay the untrigger action.
+  untriggerDelayTimer?: Timer;
+}
+
 export class TriggersManager {
   protected _api: CardTriggersAPI;
-
-  protected _triggeredCameras: Map<string, Date> = new Map();
-  protected _triggeredCameraTimers: Map<string, Timer> = new Map();
+  protected _states: Map<string, CameraTriggerState> = new Map();
 
   protected _throttledTriggerAction = throttle(this._triggerAction.bind(this), 1000, {
     trailing: true,
@@ -19,20 +30,25 @@ export class TriggersManager {
   }
 
   public getTriggeredCameraIDs(): Set<string> {
-    return new Set(this._triggeredCameras.keys());
+    const ids = new Set<string>();
+    this._states.forEach((state, cameraID) => {
+      if (this._isStateTriggered(state)) {
+        ids.add(cameraID);
+      }
+    });
+    return ids;
   }
 
   public isTriggered(): boolean {
-    return !!this._triggeredCameras.size;
+    return [...this._states.values()].some((state) => this._isStateTriggered(state));
   }
 
   public getMostRecentlyTriggeredCameraID(): string | null {
-    const sorted = orderBy(
-      [...this._triggeredCameras.entries()],
-      (entry) => entry[1].getTime(),
-      'desc',
+    const mostRecent = maxBy(
+      [...this._states.entries()].filter(([, state]) => this._isStateTriggered(state)),
+      ([, state]) => state.lastTriggerTime.getTime(),
     );
-    return sorted.length ? sorted[0][0] : null;
+    return mostRecent?.[0] ?? null;
   }
 
   public handleInitialCameraTriggers = async (): Promise<boolean> => {
@@ -43,25 +59,32 @@ export class TriggersManager {
       .getCameraManager()
       .getStore()
       .getCameras()) {
-      if (
-        camera
-          .getConfig()
-          .triggers.entities.some((entityID) =>
-            isTriggeredState(hass?.states[entityID]?.state),
-          )
-      ) {
-        triggered = true;
-        await this.handleCameraEvent({
-          cameraID,
-          type: 'new',
-        });
+      for (const entityID of camera.getConfig().triggers.entities) {
+        if (isTriggeredState(hass?.states[entityID]?.state)) {
+          triggered = true;
+          await this.handleCameraEvent({
+            cameraID,
+            id: entityID,
+            type: 'new',
+          });
+        }
       }
     }
     return triggered;
   };
 
   public async handleCameraEvent(ev: CameraEvent): Promise<void> {
-    const triggersConfig = this._api.getConfigManager().getConfig()?.view.triggers;
+    if (ev.type === 'end') {
+      const state = this._states.get(ev.cameraID);
+      state?.sources.delete(ev.id);
+      if (!state?.sources.size) {
+        await this._startUntrigger(ev.cameraID);
+      }
+      return;
+    }
+
+    const config = this._api.getConfigManager().getConfig();
+    const triggersConfig = config?.view?.triggers;
     const selectedCameraID = this._api.getViewManager().getView()?.camera;
 
     if (!triggersConfig || !selectedCameraID) {
@@ -77,12 +100,20 @@ export class TriggersManager {
       return;
     }
 
-    if (ev.type === 'end') {
-      this._startUntriggerTimer(ev.cameraID);
-      return;
+    let state = this._states.get(ev.cameraID);
+    if (!state) {
+      state = {
+        lastTriggerTime: new Date(),
+        sources: new Set(),
+      };
+      this._states.set(ev.cameraID, state);
+    } else {
+      state.lastTriggerTime = new Date();
     }
 
-    this._triggeredCameras.set(ev.cameraID, new Date());
+    state.sources.add(ev.id);
+
+    this._deleteUntriggerDelayTimer(ev.cameraID);
     this._setConditionStateIfNecessary();
     await this._throttledTriggerAction(ev);
   }
@@ -100,9 +131,9 @@ export class TriggersManager {
   }
 
   protected async _triggerAction(ev: CameraEvent): Promise<void> {
-    const triggerAction = this._api.getConfigManager().getConfig()?.view.triggers
-      .actions.trigger;
-    const defaultView = this._api.getConfigManager().getConfig()?.view.default;
+    const config = this._api.getConfigManager().getConfig();
+    const triggerAction = config?.view?.triggers.actions.trigger;
+    const defaultView = config?.view?.default;
 
     // If this is a high-fidelity event where we are certain about new media,
     // don't take action unless it's to change to live (Frigate engine may pump
@@ -153,47 +184,68 @@ export class TriggersManager {
   }
 
   protected _setConditionStateIfNecessary(): void {
-    const triggeredCameraIDs = new Set(this._triggeredCameras.keys());
-    const triggeredState = triggeredCameraIDs.size ? triggeredCameraIDs : undefined;
-
+    const triggeredCameraIDs = this.getTriggeredCameraIDs();
     this._api.getConditionStateManager().setState({
-      triggered: triggeredState,
+      triggered: triggeredCameraIDs.size ? triggeredCameraIDs : undefined,
     });
   }
 
-  protected async _untriggerAction(cameraID: string): Promise<void> {
-    const action = this._api.getConfigManager().getConfig()?.view.triggers
+  protected async _executeUntriggerAction(): Promise<boolean> {
+    const action = this._api.getConfigManager().getConfig()?.view?.triggers
       .actions.untrigger;
 
-    if (action === 'default' && this._hasAllowableInteractionStateForAction()) {
+    if (!action || action === 'none') {
+      return true;
+    }
+
+    if (this._hasAllowableInteractionStateForAction()) {
       await this._api.getViewManager().setViewDefaultWithNewQuery();
     }
-    this._triggeredCameras.delete(cameraID);
-    this._deleteTimer(cameraID);
+    return true;
+  }
+
+  protected async _untriggerAction(cameraID: string): Promise<void> {
+    this._deleteUntriggerDelayTimer(cameraID);
+
+    await this._executeUntriggerAction();
+    this._states.delete(cameraID);
+
     this._setConditionStateIfNecessary();
 
     // Must update master element to remove border pulsing from live view.
     this._api.getCardElementManager().update();
   }
 
-  protected _startUntriggerTimer(cameraID: string): void {
-    this._deleteTimer(cameraID);
+  protected async _startUntrigger(cameraID: string): Promise<void> {
+    this._deleteUntriggerDelayTimer(cameraID);
 
-    const timer = new Timer();
-    this._triggeredCameraTimers.set(cameraID, timer);
-    timer.start(
-      /* istanbul ignore next: the case of config being null here cannot be
-         reached, as there's no way to have the untrigger call happen without
-         a config. -- @preserve */
-      this._api.getConfigManager().getConfig()?.view.triggers.untrigger_seconds ?? 0,
-      async () => {
+    const state = this._states.get(cameraID);
+    if (!state) {
+      return;
+    }
+
+    const config = this._api.getConfigManager().getConfig();
+    const untriggerSeconds = config?.view?.triggers.untrigger_seconds ?? 0;
+
+    if (untriggerSeconds > 0) {
+      state.untriggerDelayTimer = new Timer();
+      state.untriggerDelayTimer.start(untriggerSeconds, async () => {
         await this._untriggerAction(cameraID);
-      },
-    );
+      });
+    } else {
+      await this._untriggerAction(cameraID);
+    }
   }
 
-  protected _deleteTimer(cameraID: string): void {
-    this._triggeredCameraTimers.get(cameraID)?.stop();
-    this._triggeredCameraTimers.delete(cameraID);
+  protected _deleteUntriggerDelayTimer(cameraID: string): void {
+    const state = this._states.get(cameraID);
+    if (state?.untriggerDelayTimer) {
+      state.untriggerDelayTimer.stop();
+      delete state.untriggerDelayTimer;
+    }
+  }
+
+  protected _isStateTriggered(state: CameraTriggerState): boolean {
+    return !!(state.sources.size || state.untriggerDelayTimer);
   }
 }

@@ -8,6 +8,7 @@ const createEventChange = (): FrigateEventChange => {
   return {
     type: 'new',
     before: {
+      id: '1234.5678',
       camera: 'front_door',
       snapshot: null,
       has_clip: false,
@@ -16,6 +17,7 @@ const createEventChange = (): FrigateEventChange => {
       current_zones: [],
     },
     after: {
+      id: '1234.5678',
       camera: 'front_door',
       snapshot: null,
       has_clip: true,
