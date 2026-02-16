@@ -286,7 +286,7 @@
       },
       "triggers": {
         "show_trigger_status": "Pulsar borda quando acionado",
-        "untrigger_seconds": "Segundos após a mudar para o estado inativo para desacionar"
+        "untrigger_delay_seconds": "Segundos após a mudar para o estado inativo para desacionar"
       },
       "views": {
         "clip": "Clipe mais recente",

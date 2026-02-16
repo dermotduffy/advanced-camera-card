@@ -283,7 +283,7 @@
       },
       "triggers": {
         "show_trigger_status": "Exibir estado do gatilho",
-        "untrigger_seconds": "Segundos após a mudar para o estado inativo para desacionar"
+        "untrigger_delay_seconds": "Segundos após a mudar para o estado inativo para desacionar"
       },
       "views": {
         "clip": "Clipe mais recente",

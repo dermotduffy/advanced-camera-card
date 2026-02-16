@@ -99,7 +99,11 @@ Allows overriding of any CSS value, can be used to tweak theming parameters.
 
 ## `triggers`
 
-The `triggers` block controls how the card reacts when a camera is triggered (note that _what_ triggers the camera is controlled by the [`triggers`](cameras/README.md?id=triggers) block within the config for a given camera). This can be used for a variety of purposes, such as allowing the card to automatically change to `live` for a camera that triggers.
+The `triggers` block controls how the card reacts when a camera is triggered
+(note that _what_ triggers the camera is controlled by the
+[`triggers`](cameras/README.md?id=triggers) block within the config for a given
+camera). This can be used for a variety of purposes, such as allowing the card
+to automatically change to `live` for a camera that triggers.
 
 All configuration is under:
 
@@ -109,23 +113,33 @@ view:
     # [...]
 ```
 
-When a camera untriggers (e.g. an entity state returning to something other than
-`on` or `open`), an action can also be taken with an optional number of seconds
-to wait prior to the acting (see `untrigger_seconds`). By default, triggering is
-only allowed when there is no ongoing human interaction with the card. This
-behavior can be controlled by the `interaction_mode` parameter.
+When all trigger sources for a camera end (e.g. an entity state returns to
+something other than `on` or `open`), an untrigger action can be taken.
 
-If the card starts when a trigger entity is already in a triggered state, the
-action will be taken on card startup. If multiple cameras are triggered at
-startup, all are marked as triggered, but the startup action is taken for the
-first triggered camera only.
+The triggered state can be extended by a number of seconds after the source ends
+(see `untrigger_delay_seconds`). Alternatively, a camera can be forcibly
+untriggered after a fixed duration regardless of the state of the trigger
+sources (see `untrigger_force_seconds`).
 
-| Option                   | Default | Description                                                                                                                        |
-| ------------------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `actions`                |         | The actions to take when a camera is triggered. See below.                                                                         |
-| `filter_selected_camera` | `false` | If set to `true` will only trigger on the currently selected camera.                                                               |
-| `show_trigger_status`    | `false` | Whether or not the `live` view should show a visual indication that it is triggered (a pulsing border around the camera edge).     |
-| `untrigger_seconds`      | `0`     | The number of seconds to wait after a camera untriggers before considering the card untriggered and taking the `untrigger` action. |
+By default, trigger/untrigger actions are only taken when there is no ongoing
+human interaction with the card; this behavior can be configured via the
+`interaction_mode` parameter.
+
+> [!TIP] If a camera is already in a triggered state when the card starts, the trigger
+> action is taken immediately. If multiple cameras are triggered at startup, they
+> are all marked as triggered, but the action is only taken for the first one.
+
+| Option                    | Default | Description                                                                                                                                                                                        |
+| ------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `actions`                 |         | The actions to take when a camera is triggered. See below.                                                                                                                                         |
+| `filter_selected_camera`  | `true`  | If set to `true` will only trigger on the currently selected camera.                                                                                                                               |
+| `show_trigger_status`     | `false` | Whether or not the `live` view should show a visual indication that it is triggered (a pulsing border around the camera edge).                                                                     |
+| `untrigger_delay_seconds` | `0`     | The number of seconds to continue to consider the camera triggered after the entity/event/state has reset, before considering the camera untriggered and taking the configured `untrigger` action. |
+| `untrigger_force_seconds` | `0`     | The number of seconds after a camera first triggers before force untriggering that camera. Set to `0` to disable.                                                                                  |
+
+> [!WARNING] If `untrigger_force_seconds` is used to untrigger a camera, the
+> state will need to 'reset' (e.g. an entity would need to change state to
+> `off`) before it will trigger again.
 
 ### Trigger action configuration
 
@@ -181,7 +195,8 @@ view:
   triggers:
     show_trigger_status: false
     filter_selected_camera: true
-    untrigger_seconds: 0
+    untrigger_delay_seconds: 0
+    untrigger_force_seconds: 0
     actions:
       interaction_mode: inactive
       trigger: update

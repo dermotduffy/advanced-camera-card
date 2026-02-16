@@ -592,7 +592,7 @@
         "editor_label": "Zachowanie wyzwalaczy",
         "filter_selected_camera": "Wyzwalaj tylko na wybranej kamerze",
         "show_trigger_status": "Pokaż pulsującą ramkę przy wyzwoleniu",
-        "untrigger_seconds": "Sekundy po ustaniu stanu, aby dezaktywować"
+        "untrigger_delay_seconds": "Sekundy po ustaniu stanu, aby dezaktywować"
       },
       "views": {
         "clip": "Ostatni klip",

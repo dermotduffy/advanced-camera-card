@@ -255,7 +255,8 @@ import {
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
-  CONF_VIEW_TRIGGERS_UNTRIGGER_SECONDS,
+  CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
+  CONF_VIEW_TRIGGERS_UNTRIGGER_FORCE_SECONDS,
   FOLDERS_CONFIGURATION_URL,
   MEDIA_CHUNK_SIZE_MAX,
 } from './const.js';
@@ -1390,8 +1391,11 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
             label: localize(`config.${CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS}`),
           },
         )}
-        ${this._renderNumberInput(CONF_VIEW_TRIGGERS_UNTRIGGER_SECONDS, {
-          default: this._defaults.view.triggers.untrigger_seconds,
+        ${this._renderNumberInput(CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS, {
+          default: this._defaults.view.triggers.untrigger_delay_seconds,
+        })}
+        ${this._renderNumberInput(CONF_VIEW_TRIGGERS_UNTRIGGER_FORCE_SECONDS, {
+          default: this._defaults.view.triggers.untrigger_force_seconds,
         })}
         ${this._putInSubmenu(
           MENU_VIEW_TRIGGERS_ACTIONS,

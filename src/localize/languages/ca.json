@@ -395,7 +395,7 @@
         "editor_label": "Comportament quan s'activa una càmera",
         "filter_selected_camera": "Activa només a la càmera seleccionada",
         "show_trigger_status": "Mostra la vora intermitent quan s'activa",
-        "untrigger_seconds": "Segons després del canvi d'estat inactiu a desactivat"
+        "untrigger_delay_seconds": "Segons després del canvi d'estat inactiu a desactivat"
       },
       "views": {
         "clip": "Clip més recent",

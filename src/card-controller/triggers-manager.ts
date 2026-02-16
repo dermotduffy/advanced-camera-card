@@ -13,8 +13,17 @@ interface CameraTriggerState {
   // IDs).
   sources: Set<string>;
 
+  // The set of ignored event IDs (e.g. events that have been forcibly
+  // untriggered).
+  ignoredSources: Set<string>;
+
   // A timer used to delay the untrigger action.
   untriggerDelayTimer?: Timer;
+
+  // A one-shot timer used to force untriggering a camera if no end event is
+  // seen within a configured duration. This timer starts when the camera first
+  // triggers and is not reset by subsequent trigger events.
+  untriggerForceTimer?: Timer;
 }
 
 export class TriggersManager {
@@ -55,6 +64,7 @@ export class TriggersManager {
     const hass = this._api.getHASSManager().getHASS();
     let triggered = false;
     let startupActionEvent: CameraEvent | null = null;
+    this._states.clear();
 
     for (const [cameraID, camera] of this._api
       .getCameraManager()
@@ -97,12 +107,13 @@ export class TriggersManager {
   ): Promise<boolean> {
     const skipAction = options?.skipAction ?? false;
     if (ev.type === 'end') {
-      const state = this._states.get(ev.cameraID);
-      state?.sources.delete(ev.id);
-      if (!state?.sources.size) {
-        await this._startUntrigger(ev.cameraID);
-      }
-      return true;
+      return this._handleEndEvent(ev);
+    }
+
+    // Ignore stale updates for force-untriggered IDs before doing any further
+    // processing to avoid re-activating muted IDs.
+    if (this._isIgnoredUpdateEvent(ev)) {
+      return false;
     }
 
     const config = this._api.getConfigManager().getConfig();
@@ -122,25 +133,38 @@ export class TriggersManager {
       return false;
     }
 
-    let state = this._states.get(ev.cameraID);
-    if (!state) {
-      state = {
-        lastTriggerTime: new Date(),
-        sources: new Set(),
-      };
-      this._states.set(ev.cameraID, state);
-    } else {
-      state.lastTriggerTime = new Date();
-    }
-
+    const state = this._getOrCreateState(ev.cameraID);
+    state.lastTriggerTime = new Date();
     state.sources.add(ev.id);
 
     this._deleteUntriggerDelayTimer(ev.cameraID);
+    this._startForceUntriggerTimerIfNecessary(
+      ev.cameraID,
+      triggersConfig.untrigger_force_seconds,
+    );
     this._setConditionStateIfNecessary();
     if (!skipAction) {
       await this._throttledTriggerAction(ev);
     }
     return true;
+  }
+
+  protected async _handleEndEvent(ev: CameraEvent): Promise<boolean> {
+    this._deleteIgnoredEventID(ev.cameraID, ev.id);
+
+    const state = this._states.get(ev.cameraID);
+    state?.sources.delete(ev.id);
+    if (!state?.sources.size) {
+      await this._startUntrigger(ev.cameraID);
+    }
+    return true;
+  }
+
+  protected _isIgnoredUpdateEvent(ev: CameraEvent): boolean {
+    return (
+      (ev.type === 'update' || ev.type === 'genai') &&
+      this._hasIgnoredEventID(ev.cameraID, ev.id)
+    );
   }
 
   protected _hasAllowableInteractionStateForAction(): boolean {
@@ -247,9 +271,10 @@ export class TriggersManager {
 
   protected async _untriggerAction(cameraID: string): Promise<void> {
     this._deleteUntriggerDelayTimer(cameraID);
+    this._deleteForceUntriggerTimer(cameraID);
 
     await this._executeUntriggerAction();
-    this._states.delete(cameraID);
+    this._deleteStateIfIdle(cameraID);
 
     this._setConditionStateIfNecessary();
 
@@ -259,6 +284,7 @@ export class TriggersManager {
 
   protected async _startUntrigger(cameraID: string): Promise<void> {
     this._deleteUntriggerDelayTimer(cameraID);
+    this._deleteForceUntriggerTimer(cameraID);
 
     const state = this._states.get(cameraID);
     if (!state) {
@@ -266,15 +292,90 @@ export class TriggersManager {
     }
 
     const config = this._api.getConfigManager().getConfig();
-    const untriggerSeconds = config?.view?.triggers.untrigger_seconds ?? 0;
+    const untriggerDelaySeconds = config?.view?.triggers.untrigger_delay_seconds ?? 0;
 
-    if (untriggerSeconds > 0) {
+    if (untriggerDelaySeconds > 0) {
       state.untriggerDelayTimer = new Timer();
-      state.untriggerDelayTimer.start(untriggerSeconds, async () => {
+      state.untriggerDelayTimer.start(untriggerDelaySeconds, async () => {
         await this._untriggerAction(cameraID);
       });
     } else {
       await this._untriggerAction(cameraID);
+    }
+  }
+
+  protected _startForceUntriggerTimerIfNecessary(
+    cameraID: string,
+    forceUntriggerSeconds: number,
+  ): void {
+    if (forceUntriggerSeconds <= 0) {
+      return;
+    }
+
+    const state = this._states.get(cameraID);
+    if (!state || state.untriggerForceTimer) {
+      return;
+    }
+
+    const timer = new Timer();
+    state.untriggerForceTimer = timer;
+    timer.start(forceUntriggerSeconds, async () => {
+      await this._forceUntrigger(state, cameraID);
+    });
+  }
+
+  protected async _forceUntrigger(
+    state: CameraTriggerState,
+    cameraID: string,
+  ): Promise<void> {
+    state.sources.forEach((id) => this._addIgnoredEventID(cameraID, id));
+    state.sources.clear();
+    this._deleteForceUntriggerTimer(cameraID);
+    await this._startUntrigger(cameraID);
+  }
+
+  protected _addIgnoredEventID(cameraID: string, eventID: string): void {
+    const state = this._getOrCreateState(cameraID);
+    state.ignoredSources.add(eventID);
+  }
+
+  protected _deleteIgnoredEventID(cameraID: string, eventID: string): void {
+    const state = this._states.get(cameraID);
+    if (!state) {
+      return;
+    }
+
+    state.ignoredSources.delete(eventID);
+    this._deleteStateIfIdle(cameraID);
+  }
+
+  protected _hasIgnoredEventID(cameraID: string, eventID: string): boolean {
+    return !!this._states.get(cameraID)?.ignoredSources.has(eventID);
+  }
+
+  protected _getOrCreateState(cameraID: string): CameraTriggerState {
+    let state = this._states.get(cameraID);
+    if (!state) {
+      state = {
+        lastTriggerTime: new Date(),
+        sources: new Set(),
+        ignoredSources: new Set(),
+      };
+      this._states.set(cameraID, state);
+    }
+    return state;
+  }
+
+  protected _deleteStateIfIdle(cameraID: string): void {
+    const state = this._states.get(cameraID);
+    if (
+      state &&
+      !state.sources.size &&
+      !state.ignoredSources.size &&
+      !state.untriggerDelayTimer &&
+      !state.untriggerForceTimer
+    ) {
+      this._states.delete(cameraID);
     }
   }
 
@@ -283,6 +384,14 @@ export class TriggersManager {
     if (state?.untriggerDelayTimer) {
       state.untriggerDelayTimer.stop();
       delete state.untriggerDelayTimer;
+    }
+  }
+
+  protected _deleteForceUntriggerTimer(cameraID: string): void {
+    const state = this._states.get(cameraID);
+    if (state?.untriggerForceTimer) {
+      state.untriggerForceTimer.stop();
+      delete state.untriggerForceTimer;
     }
   }
 

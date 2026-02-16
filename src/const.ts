@@ -180,8 +180,10 @@ export const CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS =
   `${CONF_VIEW_TRIGGERS}.show_trigger_status` as const;
 export const CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA =
   `${CONF_VIEW_TRIGGERS}.filter_selected_camera` as const;
-export const CONF_VIEW_TRIGGERS_UNTRIGGER_SECONDS =
-  `${CONF_VIEW_TRIGGERS}.untrigger_seconds` as const;
+export const CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS =
+  `${CONF_VIEW_TRIGGERS}.untrigger_delay_seconds` as const;
+export const CONF_VIEW_TRIGGERS_UNTRIGGER_FORCE_SECONDS =
+  `${CONF_VIEW_TRIGGERS}.untrigger_force_seconds` as const;
 export const CONF_VIEW_TRIGGERS_ACTIONS = `${CONF_VIEW_TRIGGERS}.actions` as const;
 export const CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER =
   `${CONF_VIEW_TRIGGERS_ACTIONS}.trigger` as const;

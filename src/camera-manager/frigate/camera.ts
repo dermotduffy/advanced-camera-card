@@ -569,6 +569,7 @@ export class FrigateCamera extends Camera {
 
     this._eventCallback?.({
       cameraID,
+      id: review.after.id,
       fidelity: 'high',
       type: review.type,
       review: true,

@@ -67,7 +67,8 @@ export const viewConfigDefault = {
       trigger: 'update' as const,
       untrigger: 'none' as const,
     },
-    untrigger_seconds: 0,
+    untrigger_delay_seconds: 0,
+    untrigger_force_seconds: 0,
   },
   keyboard_shortcuts: keyboardShortcutsDefault,
 };
@@ -93,7 +94,12 @@ export const triggersSchema = z.object({
   show_trigger_status: z
     .boolean()
     .default(viewConfigDefault.triggers.show_trigger_status),
-  untrigger_seconds: z.number().default(viewConfigDefault.triggers.untrigger_seconds),
+  untrigger_delay_seconds: z
+    .number()
+    .default(viewConfigDefault.triggers.untrigger_delay_seconds),
+  untrigger_force_seconds: z
+    .number()
+    .default(viewConfigDefault.triggers.untrigger_force_seconds),
 });
 export type TriggersOptions = z.infer<typeof triggersSchema>;
 

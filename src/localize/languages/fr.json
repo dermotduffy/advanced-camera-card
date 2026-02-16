@@ -542,7 +542,7 @@
         "editor_label": "Comportement en cas de déclenchement d'une caméra",
         "filter_selected_camera": "Déclenchement uniquement sur la caméra sélectionnée",
         "show_trigger_status": "Afficher la bordure clignotante lors du déclenchement",
-        "untrigger_seconds": "Quelques secondes après le changement d'état inactif pour débloquer"
+        "untrigger_delay_seconds": "Quelques secondes après le changement d'état inactif pour débloquer"
       },
       "views": {
         "clip": "Clip le plus récent",
