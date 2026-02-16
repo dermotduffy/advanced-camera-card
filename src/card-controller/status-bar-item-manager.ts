@@ -48,7 +48,9 @@ export class StatusBarItemManager {
       : null;
     const engineIcon = cameraMetadata?.engineIcon ?? null;
     const selectedResult = options?.view?.queryResults?.getSelectedResult();
-    const severity = selectedResult?.getSeverity() ?? null;
+    const severity = options?.view?.isViewerView()
+      ? selectedResult?.getSeverity() ?? null
+      : null;
     const title = options?.view?.is('live')
       ? cameraMetadata?.title ?? null
       : options?.view?.isViewerView()
