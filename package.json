@@ -98,6 +98,14 @@
     "vitest-mock-extended": "^1.3.1"
   },
   "release": {
+    "branches": [
+      "main",
+      {
+        "name": "next",
+        "channel": "next",
+        "prerelease": "rc"
+      }
+    ],
     "plugins": [
       [
         "@semantic-release/commit-analyzer",
