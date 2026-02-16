@@ -625,7 +625,8 @@
         "editor_label": "Trigger behavior",
         "filter_selected_camera": "Only trigger on selected camera",
         "show_trigger_status": "Show pulsing border when triggered",
-        "untrigger_seconds": "Seconds after inactive state change to untrigger"
+        "untrigger_delay_seconds": "Seconds delay after trigger state change before untrigger",
+        "untrigger_force_seconds": "Seconds before forced untrigger"
       },
       "views": {
         "auto": "Automatic",

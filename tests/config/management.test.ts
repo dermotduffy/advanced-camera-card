@@ -3690,5 +3690,62 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
     });
+
+    it('view.triggers.untrigger_seconds -> view.triggers.untrigger_delay_seconds', () => {
+      const config = {
+        type: 'custom:advanced-camera-card',
+        cameras: [{}],
+        view: {
+          triggers: {
+            untrigger_seconds: 42,
+          },
+        },
+        overrides: [
+          {
+            conditions: [
+              {
+                condition: 'media_loaded' as const,
+                media_loaded: true,
+              },
+            ],
+            merge: {
+              view: {
+                triggers: {
+                  untrigger_seconds: 7,
+                },
+              },
+            },
+          },
+        ],
+      };
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        type: 'custom:advanced-camera-card',
+        cameras: [{}],
+        view: {
+          triggers: {
+            untrigger_delay_seconds: 42,
+          },
+        },
+        overrides: [
+          {
+            conditions: [
+              {
+                condition: 'media_loaded' as const,
+                media_loaded: true,
+              },
+            ],
+            merge: {
+              view: {
+                triggers: {
+                  untrigger_delay_seconds: 7,
+                },
+              },
+            },
+          },
+        ],
+      });
+      postUpgradeChecks(config);
+    });
   });
 });

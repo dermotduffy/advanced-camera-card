@@ -23,7 +23,8 @@ vi.mock('lodash-es', async () => ({
 }));
 
 const baseTriggersConfig: TriggersOptions = {
-  untrigger_seconds: 10,
+  untrigger_delay_seconds: 10,
+  untrigger_force_seconds: 0,
   filter_selected_camera: false,
   show_trigger_status: false,
   actions: {
@@ -515,10 +516,36 @@ describe('TriggersManager', () => {
       expect(manager.getTriggeredCameraIDs()).toEqual(new Set());
     });
 
-    it('should untrigger immediately when untrigger_seconds is 0', async () => {
+    it('should stay triggered during the untrigger delay', async () => {
       const api = createTriggerAPI({
         config: {
-          untrigger_seconds: 0,
+          untrigger_delay_seconds: 10,
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      // 1. Trigger the camera.
+      await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
+      expect(manager.isTriggered()).toBe(true);
+
+      // 2. End the event.
+      await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'end' });
+
+      // 3. Verify it's STILL triggered during the delay.
+      expect(manager.isTriggered()).toBe(true);
+
+      // 4. Fast forward and verify it untriggers.
+      vi.setSystemTime(add(start, { seconds: 15 }));
+      vi.runOnlyPendingTimers();
+      await flushPromises();
+
+      expect(manager.isTriggered()).toBe(false);
+    });
+
+    it('should untrigger immediately when untrigger_delay_seconds is 0', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_delay_seconds: 0,
         },
       });
       const manager = new TriggersManager(api);
@@ -536,6 +563,119 @@ describe('TriggersManager', () => {
 
       expect(manager.isTriggered()).toBeFalsy();
       expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+    });
+
+    it('should force untrigger when untrigger_force_seconds expires', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_delay_seconds: 0,
+          untrigger_force_seconds: 5,
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'event-1',
+        type: 'new',
+      });
+
+      vi.advanceTimersByTime(5000);
+      await flushPromises();
+
+      expect(manager.isTriggered()).toBeFalsy();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledTimes(1);
+    });
+
+    it('should not reset force timer on source update', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_delay_seconds: 0,
+          untrigger_force_seconds: 10,
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'event-1',
+        type: 'new',
+      });
+
+      vi.advanceTimersByTime(5000);
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'event-1',
+        type: 'update',
+      });
+
+      vi.advanceTimersByTime(4900);
+      await flushPromises();
+      expect(manager.isTriggered()).toBeTruthy();
+
+      vi.advanceTimersByTime(100);
+      await flushPromises();
+      expect(manager.isTriggered()).toBeFalsy();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledTimes(1);
+    });
+
+    it('should force untrigger all sources when one force timer expires', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_delay_seconds: 0,
+          untrigger_force_seconds: 5,
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'source-1',
+        type: 'new',
+      });
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'source-2',
+        type: 'new',
+      });
+
+      vi.advanceTimersByTime(5000);
+      await flushPromises();
+
+      expect(manager.isTriggered()).toBeFalsy();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledTimes(1);
+    });
+
+    it('should not extend force timer when a second source triggers later', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_delay_seconds: 0,
+          untrigger_force_seconds: 10,
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'source-1',
+        type: 'new',
+      });
+
+      vi.advanceTimersByTime(5000);
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'source-2',
+        type: 'new',
+      });
+
+      vi.advanceTimersByTime(4900);
+      await flushPromises();
+      expect(manager.isTriggered()).toBeTruthy();
+
+      vi.advanceTimersByTime(100);
+      await flushPromises();
+      expect(manager.isTriggered()).toBeFalsy();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledTimes(1);
     });
   });
 
@@ -1178,7 +1318,7 @@ describe('TriggersManager', () => {
   it('should not include cameras with no active sources in triggered IDs even before untrigger action completes', async () => {
     const api = createTriggerAPI({
       config: {
-        untrigger_seconds: 0,
+        untrigger_delay_seconds: 0,
       },
     });
     const manager = new TriggersManager(api);
@@ -1217,5 +1357,169 @@ describe('TriggersManager', () => {
 
     // But the camera should be untriggered.
     expect(manager.isTriggered()).toBe(false);
+  });
+
+  describe('ignore list behavior', () => {
+    it('should ignore updates for event IDs that have been forcibly untriggered', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_delay_seconds: 0,
+          untrigger_force_seconds: 10,
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      // 1. Initial trigger.
+      await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
+
+      // 2. Fast forward to force untrigger.
+      vi.setSystemTime(add(start, { seconds: 15 }));
+      vi.runOnlyPendingTimers();
+      await flushPromises();
+
+      expect(manager.isTriggered()).toBe(false);
+
+      // 3. Send an update for the same ID. It should be ignored.
+      const result = await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'e1',
+        type: 'update',
+      });
+
+      expect(result).toBe(false);
+      expect(manager.isTriggered()).toBe(false);
+    });
+
+    it('should un-ignore an event ID once an end event arrives', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_force_seconds: 10,
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      // 1. Trigger and force untrigger.
+      await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
+      vi.setSystemTime(add(start, { seconds: 15 }));
+      vi.runOnlyPendingTimers();
+      await flushPromises();
+
+      // 2. Send 'end'. This should clear from ignore list even if state was already deleted.
+      await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'end' });
+
+      // 3. Send a new trigger for the same ID. It should be accepted.
+      const result = await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'e1',
+        type: 'new',
+      });
+
+      expect(result).toBe(true);
+      expect(manager.isTriggered()).toBe(true);
+    });
+
+    it('should process updates for event IDs that were never ignored', async () => {
+      const api = createTriggerAPI({
+        config: {
+          actions: {
+            trigger: 'update',
+          },
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      // Simulate an update for a brand new ID (e.g. from an engine we just switched to).
+      // Even without a 'new' event, if it's not in our ignore list, it should be processed.
+      const result = await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'new-engine-event',
+        type: 'update',
+      });
+
+      expect(result).toBe(true);
+      expect(manager.isTriggered()).toBe(true);
+    });
+
+    it('should not suppress same event ID on a different camera', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_delay_seconds: 0,
+          untrigger_force_seconds: 10,
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      // Force-ignore e1 on camera_1.
+      await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
+      vi.setSystemTime(add(start, { seconds: 15 }));
+      vi.runOnlyPendingTimers();
+      await flushPromises();
+
+      // Same ID on a different camera should not be ignored.
+      const result = await manager.handleCameraEvent({
+        cameraID: 'camera_2',
+        id: 'e1',
+        type: 'update',
+      });
+
+      expect(result).toBe(true);
+      expect(manager.getTriggeredCameraIDs()).toContain('camera_2');
+    });
+
+    it('should correctly prune ignore list for a camera with multiple ignored IDs', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_delay_seconds: 0,
+          untrigger_force_seconds: 10,
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      // Force-ignore e1 and e2 on camera_1.
+      await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
+      await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e2', type: 'new' });
+      vi.setSystemTime(add(start, { seconds: 15 }));
+      vi.runOnlyPendingTimers();
+      await flushPromises();
+
+      // End e1. The set should still exist because e2 is still ignored.
+      await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'end' });
+
+      // Verify e2 is still ignored.
+      const result = await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'e2',
+        type: 'update',
+      });
+      expect(result).toBe(false);
+
+      // End e2. The set should now be deleted.
+      await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e2', type: 'end' });
+    });
+  });
+
+  it('should safely handle events with unknown camera IDs', async () => {
+    const api = createTriggerAPI({
+      config: {
+        untrigger_delay_seconds: 0,
+      },
+    });
+    const manager = new TriggersManager(api);
+
+    // Call handleCameraEvent with an unknown camera ID to ensure guard behavior.
+    const result = await manager.handleCameraEvent({
+      cameraID: 'unknown',
+      id: 'e1',
+      type: 'new',
+    });
+    expect(result).toBe(true);
+    expect(manager.getTriggeredCameraIDs()).toContain('unknown');
+
+    await manager.handleCameraEvent({
+      cameraID: 'unknown',
+      id: 'e1',
+      type: 'end',
+    });
+    expect(manager.getTriggeredCameraIDs()).not.toContain('unknown');
   });
 });

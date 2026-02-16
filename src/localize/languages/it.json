@@ -283,7 +283,7 @@
       },
       "triggers": {
         "show_trigger_status": "Mostra bordo pulsante quando attivato",
-        "untrigger_seconds": "Reimposta la vista ai valori predefiniti dopo aver annullato l'attivazione"
+        "untrigger_delay_seconds": "Reimposta la vista ai valori predefiniti dopo aver annullato l'attivazione"
       },
       "views": {
         "clip": "Clip più recente",

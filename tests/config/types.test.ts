@@ -408,7 +408,8 @@ describe('config defaults', () => {
         },
         triggers: {
           show_trigger_status: false,
-          untrigger_seconds: 0,
+          untrigger_delay_seconds: 0,
+          untrigger_force_seconds: 0,
           actions: {
             trigger: 'update',
             untrigger: 'none',

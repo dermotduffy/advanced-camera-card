@@ -19,6 +19,7 @@ import {
   CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
+  CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
 } from '../const';
 import { arrayify } from '../utils/basic';
 import { AdvancedCameraCardCondition } from './schema/conditions/types';
@@ -959,5 +960,9 @@ const UPGRADES = [
         return val;
       },
     },
+  ),
+  upgradeMoveToWithOverrides(
+    'view.triggers.untrigger_seconds',
+    CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
   ),
 ];

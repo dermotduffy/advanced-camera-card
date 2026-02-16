@@ -1280,6 +1280,7 @@ describe('FrigateCamera', () => {
         expect(eventCallback).toBeCalledWith({
           type: 'new',
           cameraID: 'CAMERA_1',
+          id: '123',
           fidelity: 'high',
           review: true,
         });
@@ -1351,6 +1352,7 @@ describe('FrigateCamera', () => {
         expect(eventCallback).toBeCalledWith({
           type: 'update',
           cameraID: 'CAMERA_1',
+          id: '123',
           fidelity: 'high',
           review: true,
         });
@@ -1422,6 +1424,7 @@ describe('FrigateCamera', () => {
         expect(eventCallback).toBeCalledWith({
           type: 'update',
           cameraID: 'CAMERA_1',
+          id: '123',
           fidelity: 'high',
           review: true,
         });
@@ -1785,6 +1788,7 @@ describe('FrigateCamera', () => {
       expect(eventCallback).toBeCalledWith({
         type: 'end',
         cameraID: 'CAMERA_1',
+        id: '123',
         fidelity: 'high',
         review: true,
       });
