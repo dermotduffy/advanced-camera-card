@@ -54,6 +54,7 @@ export class TriggersManager {
   public handleInitialCameraTriggers = async (): Promise<boolean> => {
     const hass = this._api.getHASSManager().getHASS();
     let triggered = false;
+    let startupActionEvent: CameraEvent | null = null;
 
     for (const [cameraID, camera] of this._api
       .getCameraManager()
@@ -62,25 +63,46 @@ export class TriggersManager {
       for (const entityID of camera.getConfig().triggers.entities) {
         if (isTriggeredState(hass?.states[entityID]?.state)) {
           triggered = true;
-          await this.handleCameraEvent({
+          const event: CameraEvent = {
             cameraID,
             id: entityID,
             type: 'new',
-          });
+          };
+          if (
+            await this.handleCameraEvent(event, {
+              skipAction: true,
+            })
+          ) {
+            startupActionEvent ??= event;
+          }
         }
       }
     }
+
+    if (startupActionEvent) {
+      await this._throttledTriggerAction(startupActionEvent);
+    }
+
     return triggered;
   };
 
-  public async handleCameraEvent(ev: CameraEvent): Promise<void> {
+  // Returns true if the event was accepted into trigger state processing.
+  // Returns false if it was ignored (e.g. missing config/view or camera filter
+  // mismatch).
+  public async handleCameraEvent(
+    ev: CameraEvent,
+    options?: {
+      skipAction?: boolean;
+    },
+  ): Promise<boolean> {
+    const skipAction = options?.skipAction ?? false;
     if (ev.type === 'end') {
       const state = this._states.get(ev.cameraID);
       state?.sources.delete(ev.id);
       if (!state?.sources.size) {
         await this._startUntrigger(ev.cameraID);
       }
-      return;
+      return true;
     }
 
     const config = this._api.getConfigManager().getConfig();
@@ -88,7 +110,7 @@ export class TriggersManager {
     const selectedCameraID = this._api.getViewManager().getView()?.camera;
 
     if (!triggersConfig || !selectedCameraID) {
-      return;
+      return false;
     }
 
     const dependentCameraIDs = this._api
@@ -97,7 +119,7 @@ export class TriggersManager {
       .getAllDependentCameras(selectedCameraID);
 
     if (triggersConfig.filter_selected_camera && !dependentCameraIDs.has(ev.cameraID)) {
-      return;
+      return false;
     }
 
     let state = this._states.get(ev.cameraID);
@@ -115,7 +137,10 @@ export class TriggersManager {
 
     this._deleteUntriggerDelayTimer(ev.cameraID);
     this._setConditionStateIfNecessary();
-    await this._throttledTriggerAction(ev);
+    if (!skipAction) {
+      await this._throttledTriggerAction(ev);
+    }
+    return true;
   }
 
   protected _hasAllowableInteractionStateForAction(): boolean {

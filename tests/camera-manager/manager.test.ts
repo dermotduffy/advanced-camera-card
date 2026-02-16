@@ -11,8 +11,6 @@ import {
   QueryResultClassifier,
 } from '../../src/camera-manager/manager.js';
 import {
-  CameraEndpoints,
-  CameraEndpointsContext,
   CameraEvent,
   CameraManagerCameraMetadata,
   Engine,
@@ -32,13 +30,13 @@ import { ViewFolder, ViewItem, ViewMedia } from '../../src/view/item.js';
 import { ViewItemCapabilities } from '../../src/view/types.js';
 import {
   TestViewMedia,
-  createInitializedCamera,
   createCameraConfig,
   createCapabilities,
   createCardAPI,
   createConfig,
   createFolder,
   createHASS,
+  createInitializedCamera,
   generateViewMediaArray,
 } from '../test-utils.js';
 
@@ -386,6 +384,7 @@ describe('CameraManager', async () => {
 
       const cameraEvent: CameraEvent = {
         cameraID: 'camera',
+        id: 'event-1',
         type: 'new',
       };
       eventCallback?.(cameraEvent);

@@ -976,6 +976,129 @@ describe('TriggersManager', () => {
       expect(result).toBeTruthy();
       expect(manager.isTriggered()).toBeTruthy();
     });
+
+    it('should only execute a single trigger action at startup for multiple triggered sources', async () => {
+      const api = createTriggerAPI();
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera_1',
+            config: createCameraConfig({
+              triggers: {
+                entities: ['binary_sensor.motion', 'binary_sensor.occupancy'],
+              },
+            }),
+          },
+        ]),
+      );
+
+      const hass = createHASS({
+        'binary_sensor.motion': createStateEntity({
+          state: 'on',
+        }),
+        'binary_sensor.occupancy': createStateEntity({
+          state: 'open',
+        }),
+      });
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+      const manager = new TriggersManager(api);
+      const result = await manager.handleInitialCameraTriggers();
+
+      expect(result).toBeTruthy();
+      expect(manager.isTriggered()).toBeTruthy();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledTimes(1);
+    });
+
+    it('should prioritize the first triggered camera action at startup', async () => {
+      const api = createTriggerAPI({
+        config: {
+          actions: {
+            trigger: 'live',
+          },
+        },
+      });
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera_1',
+            config: createCameraConfig({
+              triggers: {
+                entities: ['binary_sensor.motion_1'],
+              },
+            }),
+          },
+          {
+            cameraID: 'camera_2',
+            config: createCameraConfig({
+              triggers: {
+                entities: ['binary_sensor.motion_2'],
+              },
+            }),
+          },
+        ]),
+      );
+
+      const hass = createHASS({
+        'binary_sensor.motion_1': createStateEntity({
+          state: 'on',
+        }),
+        'binary_sensor.motion_2': createStateEntity({
+          state: 'on',
+        }),
+      });
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+      const manager = new TriggersManager(api);
+      const result = await manager.handleInitialCameraTriggers();
+
+      expect(result).toBeTruthy();
+      expect(manager.getTriggeredCameraIDs()).toEqual(new Set(['camera_1', 'camera_2']));
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledTimes(1);
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
+        params: {
+          view: 'live',
+          camera: 'camera_1',
+        },
+      });
+    });
+
+    it('should not execute startup action if triggered cameras are filtered out', async () => {
+      const api = createTriggerAPI({
+        config: {
+          filter_selected_camera: true,
+        },
+      });
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera_2',
+            config: createCameraConfig({
+              triggers: {
+                entities: ['binary_sensor.motion_2'],
+              },
+            }),
+          },
+        ]),
+      );
+
+      const hass = createHASS({
+        'binary_sensor.motion_2': createStateEntity({
+          state: 'on',
+        }),
+      });
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+      const manager = new TriggersManager(api);
+      const result = await manager.handleInitialCameraTriggers();
+
+      // A trigger entity was active...
+      expect(result).toBeTruthy();
+      // ...but the camera was filtered out, so no trigger state/action was applied.
+      expect(manager.isTriggered()).toBeFalsy();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+    });
   });
 
   it('should take actions with human interactions when interaction mode is active', async () => {
