@@ -241,26 +241,51 @@ describe('StatusBarItemManager', () => {
       });
     });
 
-    it('should have severity', () => {
-      const manager = new StatusBarItemManager(createCardAPI());
-      const selectedResult = new TestViewMedia({
-        cameraID: 'camera-1',
-      });
-      vi.spyOn(selectedResult, 'getSeverity').mockReturnValue('high');
+    describe('severity', () => {
+      it('should have severity in a viewer view', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+        const selectedResult = new TestViewMedia({
+          cameraID: 'camera-1',
+        });
+        vi.spyOn(selectedResult, 'getSeverity').mockReturnValue('high');
 
-      const queryResults = new QueryResults({
-        results: [selectedResult],
-        selectedIndex: 0,
+        const queryResults = new QueryResults({
+          results: [selectedResult],
+          selectedIndex: 0,
+        });
+
+        expect(
+          manager.calculateItems({
+            view: createView({ view: 'media', queryResults: queryResults }),
+          }),
+        ).toContainEqual({
+          type: 'custom:advanced-camera-card-status-bar-icon' as const,
+          icon: 'mdi:circle-medium',
+          severity: 'high',
+        });
       });
 
-      expect(
-        manager.calculateItems({
-          view: createView({ queryResults: queryResults }),
-        }),
-      ).toContainEqual({
-        type: 'custom:advanced-camera-card-status-bar-icon' as const,
-        icon: 'mdi:circle-medium',
-        severity: 'high',
+      it('should not have severity in live view', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+        const selectedResult = new TestViewMedia({
+          cameraID: 'camera-1',
+        });
+        vi.spyOn(selectedResult, 'getSeverity').mockReturnValue('high');
+
+        const queryResults = new QueryResults({
+          results: [selectedResult],
+          selectedIndex: 0,
+        });
+
+        expect(
+          manager.calculateItems({
+            view: createView({ view: 'live', queryResults: queryResults }),
+          }),
+        ).not.toContainEqual(
+          expect.objectContaining({
+            icon: 'mdi:circle-medium',
+          }),
+        );
       });
     });
   });
