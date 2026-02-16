@@ -9,11 +9,14 @@ import {
   FrigateEventViewMedia,
   FrigateRecordingViewMedia,
 } from '../../../src/camera-manager/frigate/media';
-import { getReviews } from '../../../src/camera-manager/frigate/requests';
 import {
+  getRecordingSegments,
+  getReviews,
+} from '../../../src/camera-manager/frigate/requests';
+import {
+  eventSchema,
   FrigateEvent,
   FrigateReview,
-  eventSchema,
 } from '../../../src/camera-manager/frigate/types.js';
 import { CameraManagerStore } from '../../../src/camera-manager/store';
 import { CameraManagerRequestCache, QueryType } from '../../../src/camera-manager/types';
@@ -24,7 +27,7 @@ import { QuerySource } from '../../../src/query-source';
 import { Severity } from '../../../src/severity';
 import { ViewMedia, ViewMediaType } from '../../../src/view/item';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
-import { createCameraConfig, createHASS } from '../../test-utils';
+import { createCameraConfig, createHASS, TestViewMedia } from '../../test-utils';
 
 vi.mock('../../../src/camera-manager/frigate/requests');
 
@@ -113,6 +116,7 @@ const createFrigateCameraConfig = (
   });
 };
 
+// @vitest-environment jsdom
 describe('getMediaDownloadPath', () => {
   it('should get event with clip download path', async () => {
     const endpoint = await createEngine().getMediaDownloadPath(
@@ -329,5 +333,80 @@ describe('getReviews', () => {
         severity: undefined,
       }),
     );
+  });
+});
+
+describe('getMediaSeekTime', () => {
+  it('should get seek time for review media', async () => {
+    const engine = createEngine();
+    const hass = createHASS();
+    const cameraConfig = createCameraConfig({
+      frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+    });
+    const store = mock<CameraManagerStore>();
+    store.getCameraConfig.mockReturnValue(cameraConfig);
+
+    const startTime = new Date('2023-06-16T20:15:00Z');
+    const endTime = new Date('2023-06-16T20:45:00Z');
+    const media = new TestViewMedia({
+      mediaType: ViewMediaType.Review,
+      cameraID: 'camera-1',
+      startTime,
+      endTime,
+    });
+
+    const segments = [
+      {
+        start_time: new Date('2023-06-16T20:00:00Z').getTime() / 1000,
+        end_time: new Date('2023-06-16T21:00:00Z').getTime() / 1000,
+        id: 'segment-1',
+        motion: 0,
+        objects: 0,
+        segment_size: 0,
+      },
+    ];
+
+    vi.mocked(getRecordingSegments).mockResolvedValue(segments);
+
+    const seekTime = await engine.getMediaSeekTime(hass, store, media, startTime);
+
+    // 15 minutes into the hour-long recording.
+    expect(seekTime).toBe(15 * 60);
+  });
+
+  it('should get zero seek time for clip media when seeking to start', async () => {
+    const engine = createEngine();
+    const hass = createHASS();
+    const cameraConfig = createCameraConfig({
+      frigate: { camera_name: 'camera-1', client_id: 'client-1' },
+    });
+    const store = mock<CameraManagerStore>();
+    store.getCameraConfig.mockReturnValue(cameraConfig);
+
+    const startTime = new Date('2023-06-16T20:15:00Z');
+    const endTime = new Date('2023-06-16T20:15:10Z');
+    const media = new TestViewMedia({
+      mediaType: ViewMediaType.Clip,
+      cameraID: 'camera-1',
+      startTime,
+      endTime,
+    });
+
+    const segments = [
+      {
+        start_time: startTime.getTime() / 1000,
+        end_time: endTime.getTime() / 1000,
+        id: 'segment-1',
+        motion: 0,
+        objects: 0,
+        segment_size: 0,
+      },
+    ];
+
+    vi.mocked(getRecordingSegments).mockResolvedValue(segments);
+
+    const seekTime = await engine.getMediaSeekTime(hass, store, media, startTime);
+
+    expect(seekTime).toBe(0);
   });
 });

@@ -422,11 +422,8 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
    * Fire a media show event when a slide is selected.
    */
   protected async _seekHandler(): Promise<void> {
-    const view = this.viewManagerEpoch?.manager.getView();
-    const seek = view?.context?.mediaViewer?.seek;
     if (
       !this.hass ||
-      !seek ||
       !this._media ||
       !this._loadedMediaPlayerController ||
       this._selected === null
@@ -435,6 +432,13 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     }
     const selectedMedia = this._media[this._selected];
     if (!selectedMedia) {
+      return;
+    }
+
+    const view = this.viewManagerEpoch?.manager.getView();
+    const seek = view?.context?.mediaViewer?.seek ?? selectedMedia.getStartTime();
+
+    if (!seek) {
       return;
     }
 
