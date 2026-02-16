@@ -98,6 +98,7 @@ export type PTZInfo = z.infer<typeof ptzInfoSchema>;
 
 const frigateEventChangeBeforeAfterSchema = z.object({
   camera: z.string(),
+  id: z.string(),
   snapshot: z
     .object({
       frame_time: z.number(),

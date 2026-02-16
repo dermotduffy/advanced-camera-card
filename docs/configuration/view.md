@@ -116,7 +116,9 @@ only allowed when there is no ongoing human interaction with the card. This
 behavior can be controlled by the `interaction_mode` parameter.
 
 If the card starts when a trigger entity is already in a triggered state, the
-action will be taken on card startup.
+action will be taken on card startup. If multiple cameras are triggered at
+startup, all are marked as triggered, but the startup action is taken for the
+first triggered camera only.
 
 | Option                   | Default | Description                                                                                                                        |
 | ------------------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |

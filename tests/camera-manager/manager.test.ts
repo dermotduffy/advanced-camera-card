@@ -439,6 +439,7 @@ describe('CameraManager', () => {
 
       const cameraEvent: CameraEvent = {
         cameraID: 'camera',
+        id: 'event-1',
         type: 'new',
       };
       eventCallback?.(cameraEvent);

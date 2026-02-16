@@ -151,6 +151,10 @@ export interface EngineOptions {
 export interface CameraEvent {
   cameraID: string;
 
+  // Source ID (e.g. entity ID or Frigate event ID), used to determine what has
+  // triggered/untriggered.
+  id: string;
+
   type:
     | 'new' // A new event has started.
     | 'update' // An update for an event is available (except GenAI).

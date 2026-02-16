@@ -920,6 +920,7 @@ describe('FrigateCamera', () => {
             callEventWatcherCallback(eventWatcher, {
               type: 'new',
               before: {
+                id: 'event-1',
                 camera: 'camera.front_door',
                 snapshot: null,
                 has_clip: false,
@@ -928,6 +929,7 @@ describe('FrigateCamera', () => {
                 current_zones: [],
               },
               after: {
+                id: 'event-1',
                 camera: 'camera.front_door',
                 snapshot: null,
                 has_clip: hasClip,
@@ -941,6 +943,7 @@ describe('FrigateCamera', () => {
               expect(eventCallback).toBeCalledWith({
                 type: 'new',
                 cameraID: 'CAMERA_1',
+                id: 'event-1',
                 clip: hasClip && events.includes('clips'),
                 snapshot: hasSnapshot && events.includes('snapshots'),
                 fidelity: 'high',
@@ -989,6 +992,7 @@ describe('FrigateCamera', () => {
           callEventWatcherCallback(eventWatcher, {
             type: 'new',
             before: {
+              id: 'event-1',
               camera: 'camera.front_door',
               snapshot: null,
               has_clip: false,
@@ -997,6 +1001,7 @@ describe('FrigateCamera', () => {
               current_zones: [],
             },
             after: {
+              id: 'event-1',
               camera: 'camera.front_door',
               snapshot: null,
               has_clip: false,
@@ -1046,6 +1051,7 @@ describe('FrigateCamera', () => {
           callEventWatcherCallback(eventWatcher, {
             type: 'new',
             before: {
+              id: 'event-1',
               camera: 'camera.front_door',
               snapshot: null,
               has_clip: false,
@@ -1056,6 +1062,7 @@ describe('FrigateCamera', () => {
               current_zones: [],
             },
             after: {
+              id: 'event-1',
               camera: 'camera.front_door',
               snapshot: null,
               has_clip: false,
@@ -1100,6 +1107,7 @@ describe('FrigateCamera', () => {
         callEventWatcherCallback(eventWatcher, {
           type: 'new',
           before: {
+            id: 'event-1',
             camera: 'camera.front_door',
             snapshot: null,
             has_clip: false,
@@ -1108,6 +1116,7 @@ describe('FrigateCamera', () => {
             current_zones: [],
           },
           after: {
+            id: 'event-1',
             camera: 'camera.front_door',
             snapshot: null,
             has_clip: false,

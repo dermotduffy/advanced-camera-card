@@ -477,7 +477,7 @@ export class FrigateCamera extends Camera {
 
     this._eventCallback?.({
       cameraID,
-
+      id: ev.after.id,
       fidelity: 'high',
       type: ev.type,
       // In cases where there are both clip and snapshot media, ensure to only
