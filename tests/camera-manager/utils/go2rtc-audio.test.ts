@@ -18,7 +18,7 @@ describe('supports2WayAudio', () => {
   });
 
   it('should return false if no endpoint provided', async () => {
-    expect(await supports2WayAudio(hass, null)).toBe(false);
+    expect(await supports2WayAudio(hass, 2, null)).toBe(false);
   });
 
   it('should return false if fetch fails', async () => {
@@ -26,7 +26,7 @@ describe('supports2WayAudio', () => {
     vi.mocked(homeAssistantSignAndFetch).mockRejectedValue(new Error('fetch error'));
 
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const result = await supports2WayAudio(hass, endpoint);
+    const result = await supports2WayAudio(hass, 2, endpoint);
 
     expect(result).toBe(false);
     expect(spy).toHaveBeenCalledWith('fetch error');
@@ -37,7 +37,35 @@ describe('supports2WayAudio', () => {
     vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(endpoint);
     vi.mocked(homeAssistantSignAndFetch).mockResolvedValue({ producers: undefined });
 
-    expect(await supports2WayAudio(hass, endpoint)).toBe(false);
+    expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
+  });
+
+  it('should use default metadata fetch timeout', async () => {
+    vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(endpoint);
+    vi.mocked(homeAssistantSignAndFetch).mockResolvedValue({ producers: [] });
+
+    await supports2WayAudio(hass, 2, endpoint);
+
+    expect(homeAssistantSignAndFetch).toHaveBeenCalledWith(
+      hass,
+      endpoint,
+      expect.anything(),
+      { timeoutSeconds: 2 },
+    );
+  });
+
+  it('should use custom metadata fetch timeout when provided', async () => {
+    vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(endpoint);
+    vi.mocked(homeAssistantSignAndFetch).mockResolvedValue({ producers: [] });
+
+    await supports2WayAudio(hass, 15, endpoint);
+
+    expect(homeAssistantSignAndFetch).toHaveBeenCalledWith(
+      hass,
+      endpoint,
+      expect.anything(),
+      { timeoutSeconds: 15 },
+    );
   });
 
   it('should return false if no producer supports audio', async () => {
@@ -50,7 +78,7 @@ describe('supports2WayAudio', () => {
       ],
     });
 
-    expect(await supports2WayAudio(hass, endpoint)).toBe(false);
+    expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
   });
 
   it('should return true if producer supports audio and sendonly', async () => {
@@ -63,7 +91,7 @@ describe('supports2WayAudio', () => {
       ],
     });
 
-    expect(await supports2WayAudio(hass, endpoint)).toBe(true);
+    expect(await supports2WayAudio(hass, 2, endpoint)).toBe(true);
   });
 
   it('should return true if producer supports audio and sendrecv', async () => {
@@ -76,7 +104,7 @@ describe('supports2WayAudio', () => {
       ],
     });
 
-    expect(await supports2WayAudio(hass, endpoint)).toBe(true);
+    expect(await supports2WayAudio(hass, 2, endpoint)).toBe(true);
   });
 
   it('should handle missing medias in producer', async () => {
@@ -89,6 +117,6 @@ describe('supports2WayAudio', () => {
       ],
     });
 
-    expect(await supports2WayAudio(hass, endpoint)).toBe(false);
+    expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
   });
 });

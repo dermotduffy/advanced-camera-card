@@ -85,19 +85,37 @@ export class Camera {
   ): Promise<Capabilities> {
     const rawCapabilities = await this._getRawCapabilities(options);
     const config = this.getConfig();
-    const has2WayAudio = await liveProviderSupports2WayAudio(
-      options.hass,
-      config,
-      this._getGo2RTCMetadataEndpoint(),
-      this.getProxyConfig(),
-    );
+    const has2WayAudio = await this._has2WayAudioCapability(options.hass);
 
     return new Capabilities(
-      { ...rawCapabilities, '2-way-audio': has2WayAudio },
+      {
+        ...rawCapabilities,
+        '2-way-audio': has2WayAudio,
+      },
       {
         disable: config.capabilities?.disable,
         disableExcept: config.capabilities?.disable_except,
       },
+    );
+  }
+
+  protected async _has2WayAudioCapability(hass: HomeAssistant): Promise<boolean> {
+    if (this._config.capabilities?.disable?.includes('2-way-audio')) {
+      return false;
+    }
+    const disableExcept = this._config.capabilities?.disable_except;
+    if (disableExcept?.length && !disableExcept.includes('2-way-audio')) {
+      return false;
+    }
+    if (this._config.capabilities?.force?.includes('2-way-audio')) {
+      return true;
+    }
+    return await liveProviderSupports2WayAudio(
+      hass,
+      this.getConfig(),
+      this.getConfig().go2rtc.metadata_fetch_timeout_seconds,
+      this._getGo2RTCMetadataEndpoint(),
+      this.getProxyConfig(),
     );
   }
 

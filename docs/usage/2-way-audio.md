@@ -20,6 +20,11 @@ challenging.
 - Only the `webrtc` mode supports 2-way audio:
 - Must have microphone menu button enabled:
 
+If your setup supports 2-way audio but detection is intermittent on load:
+
+- Increase `cameras[].go2rtc.metadata_fetch_timeout_seconds`.
+- Or force the capability with `cameras[].capabilities.force: ['2-way-audio']`.
+
 ## Example configuration
 
 ```yaml
@@ -30,6 +35,8 @@ cameras:
     go2rtc:
       modes:
         - webrtc
+      # Optional: For slower cameras increase timeout (default: 2)
+      metadata_fetch_timeout_seconds: 10
 menu:
   buttons:
     microphone:

@@ -6,18 +6,14 @@ import { errorToConsole } from '../../../utils/basic';
 import { CameraProxyConfig } from '../../types';
 import { Go2RTCStreamInfo, go2RTCStreamInfoSchema } from './types';
 
-// Allow generous amount of time to fetch metadata (timeout matches that used in
-// the Frigate frontend for the same call).
-// See: https://github.com/dermotduffy/advanced-camera-card/issues/2313
-const GO2RTC_METADATA_TIMEOUT_SECONDS = 10;
-
 const getGo2RTCStreamMetadata = async (
   hass: HomeAssistant,
   endpoint: Endpoint,
+  timeoutSeconds: number,
 ): Promise<Go2RTCStreamInfo | null> => {
   try {
     return await homeAssistantSignAndFetch(hass, endpoint, go2RTCStreamInfoSchema, {
-      timeoutSeconds: GO2RTC_METADATA_TIMEOUT_SECONDS,
+      timeoutSeconds,
     });
   } catch (e) {
     errorToConsole(e as Error);
@@ -53,6 +49,7 @@ const streamSupports2WayAudio = (streamInfo: Go2RTCStreamInfo | null): boolean =
  */
 export const supports2WayAudio = async (
   hass: HomeAssistant,
+  metadataFetchTimeoutSeconds: number,
   go2rtcMetadataEndpoint?: Endpoint | null,
   proxyConfig?: CameraProxyConfig,
 ): Promise<boolean> => {
@@ -67,6 +64,10 @@ export const supports2WayAudio = async (
     { context: 'live', openLimit: 1 },
   );
 
-  const streamInfo = await getGo2RTCStreamMetadata(hass, endpoint);
+  const streamInfo = await getGo2RTCStreamMetadata(
+    hass,
+    endpoint,
+    metadataFetchTimeoutSeconds,
+  );
   return streamSupports2WayAudio(streamInfo);
 };

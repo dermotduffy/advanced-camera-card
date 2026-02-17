@@ -76,6 +76,10 @@ describe('Camera', () => {
   });
 
   describe('initialize', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
     it('should initialize and destroy', async () => {
       const camera = new Camera(
         createCameraConfig({
@@ -123,6 +127,7 @@ describe('Camera', () => {
       expect(liveProviderSupports2WayAudio).toHaveBeenCalledWith(
         expect.anything(),
         expect.anything(),
+        2,
         {
           endpoint:
             'http://go2rtc/api/streams?src=stream&video=all&audio=all&microphone',
@@ -153,6 +158,171 @@ describe('Camera', () => {
       });
 
       expect(camera.getCapabilities()?.has('2-way-audio')).toBe(false);
+    });
+
+    it('should pass camera go2rtc metadata timeout', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          go2rtc: {
+            url: 'http://go2rtc',
+            stream: 'stream',
+            metadata_fetch_timeout_seconds: 20,
+          },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+
+      vi.mocked(liveProviderSupports2WayAudio).mockResolvedValue(true);
+
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+      });
+
+      expect(liveProviderSupports2WayAudio).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        20,
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('should force 2-way-audio capability true without metadata fetch', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          capabilities: {
+            force: ['2-way-audio'],
+          },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+      });
+
+      expect(liveProviderSupports2WayAudio).not.toHaveBeenCalled();
+      expect(camera.getCapabilities()?.has('2-way-audio')).toBe(true);
+    });
+
+    it('should prefer disable over force rules', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          capabilities: {
+            disable: ['2-way-audio'],
+            force: ['2-way-audio'],
+          },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+      });
+
+      expect(liveProviderSupports2WayAudio).not.toHaveBeenCalled();
+      expect(camera.getCapabilities()?.has('2-way-audio')).toBe(false);
+    });
+
+    it('should prefer disable_except over force rules', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          capabilities: {
+            disable_except: ['substream'],
+            force: ['2-way-audio'],
+          },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+      });
+
+      expect(liveProviderSupports2WayAudio).not.toHaveBeenCalled();
+      expect(camera.getCapabilities()?.has('2-way-audio')).toBe(false);
+    });
+
+    it('should not fetch metadata when 2-way-audio is disabled', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          capabilities: {
+            disable: ['2-way-audio'],
+          },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+      });
+
+      expect(liveProviderSupports2WayAudio).not.toHaveBeenCalled();
+      expect(camera.getCapabilities()?.has('2-way-audio')).toBe(false);
+    });
+
+    it('should not fetch metadata when disable_except excludes 2-way-audio', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          capabilities: {
+            disable_except: ['substream'],
+          },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+      });
+
+      expect(liveProviderSupports2WayAudio).not.toHaveBeenCalled();
+      expect(camera.getCapabilities()?.has('2-way-audio')).toBe(false);
+    });
+
+    it('should fetch metadata when disable_except includes 2-way-audio', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          capabilities: {
+            disable_except: ['substream', '2-way-audio'],
+          },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+      vi.mocked(liveProviderSupports2WayAudio).mockResolvedValue(true);
+
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+      });
+
+      expect(liveProviderSupports2WayAudio).toHaveBeenCalled();
+      expect(camera.getCapabilities()?.has('2-way-audio')).toBe(true);
+    });
+
+    it('should fetch metadata when disable_except is empty', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          capabilities: {
+            disable_except: [],
+          },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+      vi.mocked(liveProviderSupports2WayAudio).mockResolvedValue(true);
+
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+      });
+
+      expect(liveProviderSupports2WayAudio).toHaveBeenCalled();
+      expect(camera.getCapabilities()?.has('2-way-audio')).toBe(true);
     });
   });
 

@@ -20,6 +20,8 @@ export const CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE =
   `${CONF_CAMERAS}.#.capabilities.disable` as const;
 export const CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT =
   `${CONF_CAMERAS}.#.capabilities.disable_except` as const;
+export const CONF_CAMERAS_ARRAY_CAPABILITIES_FORCE =
+  `${CONF_CAMERAS}.#.capabilities.force` as const;
 export const CONF_CAMERAS_ARRAY_CAST_METHOD = `${CONF_CAMERAS}.#.cast.method` as const;
 export const CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH =
   `${CONF_CAMERAS}.#.cast.dashboard.dashboard_path` as const;
