@@ -71,7 +71,11 @@ describe('live-provider utils', () => {
         live_provider: 'ha',
       });
       const hass = createHASS();
-      const result = await liveProviderSupports2WayAudio(hass, config);
+      const result = await liveProviderSupports2WayAudio(
+        hass,
+        config,
+        config.go2rtc.metadata_fetch_timeout_seconds,
+      );
       expect(result).toBe(false);
     });
 
@@ -82,10 +86,32 @@ describe('live-provider utils', () => {
       const hass = createHASS();
       vi.mocked(go2rtcAudio.supports2WayAudio).mockResolvedValue(true);
 
-      const result = await liveProviderSupports2WayAudio(hass, config);
+      const result = await liveProviderSupports2WayAudio(
+        hass,
+        config,
+        config.go2rtc.metadata_fetch_timeout_seconds,
+      );
       expect(result).toBe(true);
       expect(go2rtcAudio.supports2WayAudio).toHaveBeenCalledWith(
         hass,
+        2,
+        undefined,
+        undefined,
+      );
+    });
+
+    it('should pass metadata fetch timeout through to go2rtc detection', async () => {
+      const config = createCameraConfig({
+        live_provider: 'go2rtc',
+      });
+      const hass = createHASS();
+      vi.mocked(go2rtcAudio.supports2WayAudio).mockResolvedValue(true);
+
+      await liveProviderSupports2WayAudio(hass, config, 30);
+
+      expect(go2rtcAudio.supports2WayAudio).toHaveBeenCalledWith(
+        hass,
+        30,
         undefined,
         undefined,
       );

@@ -23,6 +23,9 @@ describe('config defaults', () => {
         frigate: {
           client_id: 'frigate',
         },
+        go2rtc: {
+          metadata_fetch_timeout_seconds: 2,
+        },
         image: {
           mode: 'auto',
           refresh_seconds: 1,

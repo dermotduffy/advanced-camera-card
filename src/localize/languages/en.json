@@ -30,6 +30,7 @@
       "camera_entity": "Camera Entity",
       "capabilities": {
         "capabilities": {
+          "2-way-audio": "2-way Audio",
           "clips": "Clips",
           "favorite-events": "Favorite Events",
           "favorite-recordings": "Favorite Recordings",
@@ -43,6 +44,7 @@
         },
         "disable": "Disable",
         "disable_except": "Disable except",
+        "force": "Force",
         "editor_label": "Camera capabilities"
       },
       "cast": {

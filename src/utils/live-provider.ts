@@ -25,6 +25,7 @@ export const getResolvedLiveProvider = (
 export const liveProviderSupports2WayAudio = async (
   hass: HomeAssistant,
   config: CameraConfig,
+  metadataFetchTimeoutSeconds: number,
   go2rtcMetadataEndpoint?: Endpoint | null,
   proxyConfig?: CameraProxyConfig,
 ): Promise<boolean> => {
@@ -32,5 +33,10 @@ export const liveProviderSupports2WayAudio = async (
     return false;
   }
 
-  return gortcSupports2WayAudio(hass, go2rtcMetadataEndpoint, proxyConfig);
+  return gortcSupports2WayAudio(
+    hass,
+    metadataFetchTimeoutSeconds,
+    go2rtcMetadataEndpoint,
+    proxyConfig,
+  );
 };

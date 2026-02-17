@@ -38,6 +38,7 @@ import {
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
   CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE,
   CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT,
+  CONF_CAMERAS_ARRAY_CAPABILITIES_FORCE,
   CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH,
   CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH,
   CONF_CAMERAS_ARRAY_CAST_METHOD,
@@ -943,6 +944,14 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     {
       value: 'menu',
       label: localize('config.cameras.capabilities.capabilities.menu'),
+    },
+  ];
+
+  protected _forceableCapabilities: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: '2-way-audio',
+      label: localize('config.cameras.capabilities.capabilities.2-way-audio'),
     },
   ];
 
@@ -2699,6 +2708,16 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                       cameraIndex,
                     ),
                     this._capabilities,
+                    {
+                      multiple: true,
+                    },
+                  )}
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_CAPABILITIES_FORCE,
+                      cameraIndex,
+                    ),
+                    this._forceableCapabilities,
                     {
                       multiple: true,
                     },

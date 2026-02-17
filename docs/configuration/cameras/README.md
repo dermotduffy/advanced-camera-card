@@ -46,10 +46,11 @@ cameras:
       # [...]
 ```
 
-| Option           | Default | Description                                                                                                |
-| ---------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
-| `disable`        |         | A list of camera capabilities to disable. By default all capabilities supported by the camera are enabled. |
-| `disable_except` |         | A list of camera capabilities to leave enabled if supported. Everything else will be disabled.             |
+| Option           | Default | Description                                                                                                                                                              |
+| ---------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `disable`        |         | A list of camera capabilities to disable. By default all capabilities supported by the camera are enabled.                                                               |
+| `disable_except` |         | A list of camera capabilities to leave enabled if supported. Everything else will be disabled.                                                                           |
+| `force`          |         | A list of capabilities to force-enable instead of auto-detecting them. Currently only supports `2-way-audio`. `disable` / `disable_except` take precedence over `force`. |
 
 ### Capabilities
 

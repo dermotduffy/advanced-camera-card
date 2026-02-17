@@ -26,14 +26,22 @@ cameras:
       # [...]
 ```
 
-| Option   | Default                                                                                                                                              | Description                                                                                                                                                                      |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `modes`  | `[webrtc, mse, mp4, mjpeg]`                                                                                                                          | An ordered list of `go2rtc` modes to use. Valid values are `webrtc`, `mse`, `mp4` or `mjpeg` values.                                                                             |
-| `stream` | Determined by camera engine (e.g. `frigate` camera name).                                                                                            | A valid `go2rtc` stream name.                                                                                                                                                    |
-| `url`    | Determined by camera engine (e.g. the `frigate` engine will automatically generate a URL for the go2rtc backend that runs in the Frigate container). | The root `go2rtc` URL the card should stream the video from. This is only needed for non-Frigate usecases, or advanced Frigate usecases. Example: `http://my-custom-go2rtc:1984` |
+| Option                           | Default                                                                                                                                              | Description                                                                                                                                                                      |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `metadata_fetch_timeout_seconds` | `2`                                                                                                                                                  | Timeout for the go2rtc stream metadata fetch (this is used to detect stream capabilities such as `2-way-audio`).                                                                 |
+| `modes`                          | `[webrtc, mse, mp4, mjpeg]`                                                                                                                          | An ordered list of `go2rtc` modes to use. Valid values are `webrtc`, `mse`, `mp4` or `mjpeg` values.                                                                             |
+| `stream`                         | Determined by camera engine (e.g. `frigate` camera name).                                                                                            | A valid `go2rtc` stream name.                                                                                                                                                    |
+| `url`                            | Determined by camera engine (e.g. the `frigate` engine will automatically generate a URL for the go2rtc backend that runs in the Frigate container). | The root `go2rtc` URL the card should stream the video from. This is only needed for non-Frigate usecases, or advanced Frigate usecases. Example: `http://my-custom-go2rtc:1984` |
 
 > [!NOTE]
 > If `url` is manually set and `proxy.live` is set to `auto` on the camera (the default), the video stream will automatically be proxied via the Home Assistant process if the [hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration) is detected. See [proxying](./README.md?id=proxy).
+
+> [!TIP]
+> If you are certain your camera hardware supports 2-way audio but the
+> microphone button is intermittently missing on load, try increasing
+> `metadata_fetch_timeout_seconds` or use
+> [`capabilities.force`](./README.md?id=capabilities) to skip metadata
+> detection entirely.
 
 ## `image`
 
@@ -119,6 +127,7 @@ cameras:
         - mjpeg
       stream: sitting_room
       url: 'https://my.custom.go2rtc.backend'
+      metadata_fetch_timeout_seconds: 2
   - camera_entity: camera.office_jsmpeg
     live_provider: jsmpeg
     jsmpeg:

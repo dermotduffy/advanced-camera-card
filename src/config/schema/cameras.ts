@@ -31,6 +31,11 @@ const LIVE_PROVIDERS = [
 ] as const;
 export type LiveProvider = (typeof LIVE_PROVIDERS)[number];
 
+const go2rtcConfigDefault = {
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2313
+  metadata_fetch_timeout_seconds: 2,
+};
+
 const go2rtcConfigSchema = z.object({
   url: z
     .string()
@@ -39,6 +44,11 @@ const go2rtcConfigSchema = z.object({
   host: z.string().optional(),
   modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array().optional(),
   stream: z.string().optional(),
+  metadata_fetch_timeout_seconds: z
+    .number()
+    .int()
+    .positive()
+    .default(go2rtcConfigDefault.metadata_fetch_timeout_seconds),
 });
 
 const webrtcCardConfigSchema = z
@@ -219,6 +229,7 @@ export const cameraConfigSchema = z
       .object({
         disable: z.enum(capabilityKeys).array().optional(),
         disable_except: z.enum(capabilityKeys).array().optional(),
+        force: z.enum(['2-way-audio']).array().optional(),
       })
       .optional(),
 
@@ -306,7 +317,7 @@ export const cameraConfigSchema = z
 
     // Live provider options.
     live_provider: z.enum(LIVE_PROVIDERS).default(cameraConfigDefault.live_provider),
-    go2rtc: go2rtcConfigSchema.optional(),
+    go2rtc: go2rtcConfigSchema.optional().default(go2rtcConfigDefault),
     image: imageBaseConfigSchema.optional().default(imageConfigDefault),
     jsmpeg: jsmpegConfigSchema.optional(),
     webrtc_card: webrtcCardConfigSchema.optional(),
