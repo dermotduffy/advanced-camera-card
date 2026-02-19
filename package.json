@@ -52,7 +52,7 @@
     "vis-util": "^5.0.7",
     "web-dialog": "^0.0.11",
     "xss": "^1.0.15",
-    "zod": "^3.23.8"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@babel/core": "^7.24.7",

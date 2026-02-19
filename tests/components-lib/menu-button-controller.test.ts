@@ -98,6 +98,8 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller);
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
         icon: 'iris',
         enabled: true,
         permanent: true,
@@ -115,6 +117,8 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
         icon: 'iris',
         enabled: true,
         permanent: true,
@@ -146,6 +150,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { cameraManager: cameraManager });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:video-switch',
         enabled: true,
         priority: 50,
@@ -258,6 +265,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { cameraManager: cameraManager });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:video-input-component',
         style: {},
         title: 'Substream(s)',
@@ -299,6 +309,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:video-input-component',
         style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
         title: 'Substream(s)',
@@ -360,6 +373,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { cameraManager: cameraManager });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:video-input-component',
         title: 'Substream(s)',
         style: {},
@@ -452,6 +468,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:video-input-component',
         title: 'Substream(s)',
         style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
@@ -515,6 +534,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:cctv',
         enabled: true,
         priority: 50,
@@ -534,6 +556,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:cctv',
         enabled: true,
         priority: 50,
@@ -569,6 +594,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:filmstrip',
         enabled: false,
         priority: 50,
@@ -588,6 +616,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:filmstrip',
         enabled: false,
         priority: 50,
@@ -622,6 +653,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:camera',
         enabled: false,
         priority: 50,
@@ -647,6 +681,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:camera',
         enabled: false,
         priority: 50,
@@ -689,6 +726,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:play-box-edit-outline',
         enabled: false,
         priority: 50,
@@ -714,6 +754,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:play-box-edit-outline',
         enabled: false,
         priority: 50,
@@ -754,6 +797,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:play-box-multiple',
         enabled: true,
         priority: 50,
@@ -779,6 +825,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:play-box-multiple',
         enabled: true,
         priority: 50,
@@ -819,6 +868,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:album',
         enabled: false,
         priority: 50,
@@ -844,6 +896,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:album',
         enabled: false,
         priority: 50,
@@ -887,6 +942,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:image',
         enabled: false,
         priority: 50,
@@ -907,6 +965,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:image',
         enabled: false,
         priority: 50,
@@ -942,6 +1003,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:chart-gantt',
         enabled: true,
         priority: 50,
@@ -964,6 +1028,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:chart-gantt',
         enabled: true,
         priority: 50,
@@ -1016,6 +1083,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:download',
         enabled: true,
         priority: 50,
@@ -1084,6 +1154,9 @@ describe('MenuButtonController', () => {
     });
 
     expect(buttons).toContainEqual({
+      alignment: 'matching',
+      state_color: true,
+      permanent: false,
       icon: 'mdi:web',
       enabled: true,
       priority: 50,
@@ -1114,6 +1187,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:microphone',
         enabled: false,
         priority: 50,
@@ -1171,6 +1247,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:microphone-message-off',
         enabled: false,
         priority: 50,
@@ -1200,6 +1279,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:microphone-off',
         enabled: false,
         priority: 50,
@@ -1237,6 +1319,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:microphone-message-off',
         enabled: false,
         priority: 50,
@@ -1269,6 +1354,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:microphone-off',
         enabled: false,
         priority: 50,
@@ -1305,6 +1393,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:microphone',
         enabled: false,
         priority: 50,
@@ -1338,6 +1429,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { fullscreenManager });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:fullscreen',
         enabled: true,
         priority: 50,
@@ -1360,6 +1454,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { fullscreenManager });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:fullscreen-exit',
         enabled: true,
         priority: 50,
@@ -1392,6 +1489,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { inExpandedMode: false });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:arrow-expand-all',
         enabled: false,
         priority: 50,
@@ -1406,6 +1506,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { inExpandedMode: true });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:arrow-collapse-all',
         enabled: false,
         priority: 50,
@@ -1444,6 +1547,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:cast',
         enabled: true,
         priority: 50,
@@ -1497,6 +1603,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:cast',
         enabled: true,
         priority: 50,
@@ -1528,6 +1637,9 @@ describe('MenuButtonController', () => {
     });
 
     expect(buttons).toContainEqual({
+      alignment: 'matching',
+      state_color: true,
+      permanent: false,
       icon: 'mdi:pause',
       enabled: false,
       priority: 50,
@@ -1550,6 +1662,9 @@ describe('MenuButtonController', () => {
     });
 
     expect(buttons).toContainEqual({
+      alignment: 'matching',
+      state_color: true,
+      permanent: false,
       icon: 'mdi:play',
       enabled: false,
       priority: 50,
@@ -1571,6 +1686,9 @@ describe('MenuButtonController', () => {
     });
 
     expect(buttons).toContainEqual({
+      alignment: 'matching',
+      state_color: true,
+      permanent: false,
       icon: 'mdi:volume-high',
       enabled: false,
       priority: 50,
@@ -1593,6 +1711,9 @@ describe('MenuButtonController', () => {
     });
 
     expect(buttons).toContainEqual({
+      alignment: 'matching',
+      state_color: true,
+      permanent: false,
       icon: 'mdi:volume-off',
       enabled: false,
       priority: 50,
@@ -1610,6 +1731,9 @@ describe('MenuButtonController', () => {
     });
 
     expect(buttons).toContainEqual({
+      alignment: 'matching',
+      state_color: true,
+      permanent: false,
       icon: 'mdi:monitor-screenshot',
       enabled: false,
       priority: 50,
@@ -1646,6 +1770,9 @@ describe('MenuButtonController', () => {
         expect(
           calculateButtons(controller, { cameraManager: cameraManager, view: view }),
         ).toContainEqual({
+          alignment: 'matching',
+          state_color: true,
+          permanent: false,
           icon: displayMode === 'single' ? 'mdi:grid' : 'mdi:grid-off',
           enabled: true,
           priority: 50,
@@ -1727,6 +1854,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         enabled: false,
         icon: 'mdi:pan',
         priority: 50,
@@ -1761,6 +1891,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         enabled: false,
         icon: 'mdi:pan',
         priority: 50,
@@ -1793,6 +1926,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         enabled: false,
         icon: 'mdi:pan',
         priority: 50,
@@ -1834,6 +1970,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         enabled: false,
         icon: 'mdi:pan',
         priority: 50,
@@ -1904,6 +2043,9 @@ describe('MenuButtonController', () => {
 
         if (expectedResult) {
           expect(buttons).toContainEqual({
+            alignment: 'matching',
+            state_color: true,
+            permanent: false,
             enabled: false,
             icon: 'mdi:home',
             priority: 50,
@@ -1955,6 +2097,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:folder',
         enabled: true,
         priority: 50,
@@ -1988,6 +2133,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:folder',
         enabled: true,
         priority: 50,
@@ -2027,6 +2175,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:folder-multiple',
         enabled: true,
         priority: 50,
@@ -2090,6 +2241,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:folder-multiple',
         enabled: true,
         priority: 50,

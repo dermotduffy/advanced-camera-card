@@ -5,7 +5,7 @@ export const THUMBNAIL_WIDTH_MIN = 75;
 export const THUMBNAIL_WIDTH_DEFAULT = 100;
 export const THUMBNAIL_WIDTH_MAX = 300;
 
-const thumbnailControlsBaseDefaults = {
+export const thumbnailControlsBaseDefaults = {
   size: THUMBNAIL_WIDTH_DEFAULT,
   show_details: true,
   show_favorite_control: true,

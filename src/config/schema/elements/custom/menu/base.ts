@@ -11,5 +11,6 @@ export const menuBaseSchema = z.object({
     .optional(),
   alignment: z.enum(['matching', 'opposing']).default('matching').optional(),
   icon: z.string().optional(),
+  state_color: z.boolean().default(true).optional(),
   permanent: z.boolean().default(false).optional(),
 });

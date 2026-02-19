@@ -167,7 +167,7 @@ export class CameraManager {
     // order, to ensure that the defaults in the cameras global config do not
     // override the values specified in the per-camera config.
     const cameras = (config.cameras ?? []).map((camera) =>
-      recursivelyMergeObjectsNotArrays({}, cloneDeep(config?.cameras_global), camera),
+      recursivelyMergeObjectsNotArrays(config?.cameras_global, camera),
     );
 
     try {

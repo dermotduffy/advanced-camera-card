@@ -16,8 +16,7 @@ import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { UpdatingImageMediaPlayerController } from '../components-lib/media-player/updating-image.js';
 import { CameraConfig } from '../config/schema/cameras.js';
-import { ImageMode } from '../config/schema/common/image.js';
-import { ImageViewConfig } from '../config/schema/image.js';
+import { type ImageBaseConfig, ImageMode } from '../config/schema/common/image.js';
 import { isHassDifferent } from '../ha/is-hass-different.js';
 import { HomeAssistant } from '../ha/types.js';
 import defaultImage from '../images/iris-screensaver.jpg';
@@ -43,7 +42,7 @@ import { renderMessage } from './message.js';
 const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
 
 export const resolveImageMode = (options?: {
-  imageConfig?: ImageViewConfig;
+  imageConfig?: ImageBaseConfig;
   cameraConfig?: CameraConfig;
 }): Exclude<ImageMode, 'auto'> => {
   if (!options?.imageConfig?.mode) {
@@ -87,7 +86,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
   // 'show_image_during_load' option is true for live views, an overridden
   // config may be used here).
   @property({ attribute: false, hasChanged: contentsChanged })
-  public imageConfig?: ImageViewConfig;
+  public imageConfig?: ImageBaseConfig;
 
   @state()
   protected _message: Message | null = null;

@@ -27,7 +27,6 @@ export const viewerConfigDefault = {
   zoomable: true,
   transition_effect: 'slide' as const,
   snapshot_click_plays_clip: true,
-  display_mode: 'single' as const,
   controls: {
     builtin: true,
     next_previous: {
@@ -106,6 +105,6 @@ export const viewerConfigSchema = z
       })
       .default(viewerConfigDefault.controls),
   })
-  .merge(actionsSchema)
+  .extend(actionsSchema.shape)
   .default(viewerConfigDefault);
 export type ViewerConfig = z.infer<typeof viewerConfigSchema>;

@@ -22,6 +22,6 @@ export const ptzControlsConfigSchema = z.object({
   hide_zoom: z.boolean().default(ptzControlsDefaults.hide_zoom),
   hide_home: z.boolean().default(ptzControlsDefaults.hide_home),
 
-  style: z.object({}).passthrough().optional(),
+  style: z.looseObject({}).optional(),
 });
 export type PTZControlsConfig = z.infer<typeof ptzControlsConfigSchema>;

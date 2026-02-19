@@ -23,7 +23,7 @@ import { PerformActionActionConfig } from '../../src/config/schema/actions/stock
 import { Actions } from '../../src/config/schema/actions/types.js';
 import { advancedCameraCardConfigSchema } from '../../src/config/schema/types.js';
 import { RawAdvancedCameraCardConfig } from '../../src/config/types.js';
-import { getParseErrorPaths } from '../../src/utils/zod.js';
+import { getParseErrorPaths } from '../../src/utils/zod/parse-errors.js';
 
 describe('general functions', () => {
   it('should set value', () => {

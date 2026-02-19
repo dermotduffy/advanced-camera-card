@@ -4,8 +4,8 @@ import { mediaLayoutConfigSchema } from './camera/media-layout';
 import { ptzCameraConfigDefaults, ptzCameraConfigSchema } from './camera/ptz';
 import { aspectRatioSchema } from './common/aspect-ratio';
 import { eventsMediaTypeSchema } from './common/events-media';
+import { imageBaseConfigDefault, imageBaseConfigSchema } from './common/image';
 import { severitySchema } from './common/severity';
-import { imageBaseConfigSchema, imageConfigDefault } from './common/image';
 
 const CAMERA_TRIGGER_EVENT_TYPES = [
   // An event whether or not it has any media yet associated with it.
@@ -56,7 +56,7 @@ const webrtcCardConfigSchema = z
     entity: z.string().optional(),
     url: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 const jsmpegConfigSchema = z.object({
   options: z
@@ -150,6 +150,8 @@ export const cameraConfigDefault = {
     ssl_ciphers: 'auto' as const,
     ssl_verification: 'auto' as const,
   },
+  go2rtc: go2rtcConfigDefault,
+  image: imageBaseConfigDefault,
   always_error_if_entity_unavailable: false,
 };
 
@@ -217,7 +219,7 @@ const cameraMediaConfigSchema = z.object({
 });
 
 export const cameraConfigSchema = z
-  .object({
+  .looseObject({
     camera_entity: z.string().optional(),
 
     // Used for presentation in the UI (autodetected from the entity if
@@ -318,7 +320,7 @@ export const cameraConfigSchema = z
     // Live provider options.
     live_provider: z.enum(LIVE_PROVIDERS).default(cameraConfigDefault.live_provider),
     go2rtc: go2rtcConfigSchema.optional().default(go2rtcConfigDefault),
-    image: imageBaseConfigSchema.optional().default(imageConfigDefault),
+    image: imageBaseConfigSchema.optional().default(imageBaseConfigDefault),
     jsmpeg: jsmpegConfigSchema.optional(),
     webrtc_card: webrtcCardConfigSchema.optional(),
 

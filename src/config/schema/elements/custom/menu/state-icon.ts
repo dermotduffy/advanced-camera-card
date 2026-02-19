@@ -3,9 +3,9 @@ import { stateIconSchema } from '../../stock/state-icon';
 import { menuBaseSchema } from './base';
 
 export const menuStateIconSchema = menuBaseSchema
-  .merge(stateIconSchema)
+  .extend(stateIconSchema.shape)
   .extend({
     type: z.literal('custom:advanced-camera-card-menu-state-icon'),
   })
-  .merge(menuBaseSchema);
+  .extend(menuBaseSchema.shape);
 export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;

@@ -1,12 +1,12 @@
 import { z } from 'zod';
 import { actionsSchema } from './actions/types';
 import {
-  thumbnailControlsDefaults,
+  thumbnailControlsBaseDefaults,
   thumbnailsControlBaseSchema,
 } from './common/controls/thumbnails';
 
 const mediaGalleryThumbnailControlsDefaults = {
-  ...thumbnailControlsDefaults,
+  ...thumbnailControlsBaseDefaults,
   show_details: false,
 };
 
@@ -43,6 +43,6 @@ export const mediaGalleryConfigSchema = z
       })
       .default(mediaGalleryConfigDefault.controls),
   })
-  .merge(actionsSchema)
+  .extend(actionsSchema.shape)
   .default(mediaGalleryConfigDefault);
 export type MediaGalleryConfig = z.infer<typeof mediaGalleryConfigSchema>;
