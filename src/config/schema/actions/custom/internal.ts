@@ -9,7 +9,7 @@ export const internalCallbackActionConfigSchema =
     advanced_camera_card_action: z.literal(INTERNAL_CALLBACK_ACTION),
 
     // The callback is expected to be called with a CardController API object.
-    callback: z.function().args(z.any()).returns(z.promise(z.void())),
+    callback: z.function().input([z.any()]).output(z.promise(z.void())),
   });
 export type InternalCallbackActionConfig = z.infer<
   typeof internalCallbackActionConfigSchema

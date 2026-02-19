@@ -45,8 +45,8 @@ describe('config defaults', () => {
           dynamic: true,
           live: 'auto',
           media: 'auto',
-          ssl_verification: 'auto',
           ssl_ciphers: 'auto',
+          ssl_verification: 'auto',
         },
         ptz: {
           c2r_delay_between_calls_seconds: 0.2,
@@ -56,13 +56,13 @@ describe('config defaults', () => {
           media_resolution: 'low',
         },
         triggers: {
-          events: [],
           entities: [],
+          events: [],
           motion: false,
           occupancy: false,
           reviews: {
-            severities: ['high'],
             description: true,
+            severities: ['high'],
           },
         },
       },
@@ -74,10 +74,11 @@ describe('config defaults', () => {
         aspect_ratio_mode: 'dynamic',
         height: 'auto',
       },
+      elements: [],
       image: {
-        zoomable: true,
         mode: 'auto',
         refresh_seconds: 1,
+        zoomable: true,
       },
       live: {
         auto_mute: ['unselected', 'hidden', 'microphone'],
@@ -203,109 +204,187 @@ describe('config defaults', () => {
         button_size: 40,
         buttons: {
           camera_ui: {
+            alignment: 'matching',
             enabled: true,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           cameras: {
+            alignment: 'matching',
             enabled: true,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           clips: {
+            alignment: 'matching',
             enabled: false,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           display_mode: {
+            alignment: 'matching',
             enabled: true,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           download: {
+            alignment: 'matching',
             enabled: true,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           expand: {
+            alignment: 'matching',
             enabled: false,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           folders: {
+            alignment: 'matching',
             enabled: true,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           fullscreen: {
+            alignment: 'matching',
             enabled: true,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           gallery: {
+            alignment: 'matching',
             enabled: true,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           image: {
+            alignment: 'matching',
             enabled: false,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           info: {
+            alignment: 'matching',
             enabled: true,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           iris: {
+            alignment: 'matching',
             enabled: true,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           live: {
+            alignment: 'matching',
             enabled: true,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           media_player: {
+            alignment: 'matching',
             enabled: true,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           microphone: {
+            alignment: 'matching',
             enabled: false,
+            permanent: false,
             priority: 50,
+            state_color: true,
             type: 'momentary',
           },
           mute: {
+            alignment: 'matching',
             enabled: false,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           play: {
+            alignment: 'matching',
             enabled: false,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           ptz_controls: {
+            alignment: 'matching',
             enabled: false,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           ptz_home: {
+            alignment: 'matching',
             enabled: false,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           recordings: {
+            alignment: 'matching',
             enabled: false,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           reviews: {
+            alignment: 'matching',
             enabled: false,
+            permanent: false,
             priority: 50,
-          },
-          set_review: {
-            enabled: true,
-            priority: 50,
+            state_color: true,
           },
           screenshot: {
+            alignment: 'matching',
             enabled: false,
+            permanent: false,
             priority: 50,
+            state_color: true,
+          },
+          set_review: {
+            alignment: 'matching',
+            enabled: true,
+            permanent: false,
+            priority: 50,
+            state_color: true,
           },
           snapshots: {
+            alignment: 'matching',
             enabled: false,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           substreams: {
+            alignment: 'matching',
             enabled: true,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
           timeline: {
+            alignment: 'matching',
             enabled: true,
+            permanent: false,
             priority: 50,
+            state_color: true,
           },
         },
         position: 'top',
@@ -382,6 +461,15 @@ describe('config defaults', () => {
       view: {
         camera_select: 'current',
         default: 'auto',
+        default_cycle_camera: false,
+        default_reset: {
+          after_interaction: false,
+          entities: [],
+          every_seconds: 0,
+          interaction_mode: 'inactive',
+        },
+        dim: false,
+        interaction_seconds: 300,
         keyboard_shortcuts: {
           enabled: true,
           ptz_down: {
@@ -410,24 +498,15 @@ describe('config defaults', () => {
           themes: ['traditional'],
         },
         triggers: {
+          actions: {
+            interaction_mode: 'inactive',
+            trigger: 'update',
+            untrigger: 'none',
+          },
+          filter_selected_camera: true,
           show_trigger_status: false,
           untrigger_delay_seconds: 0,
           untrigger_force_seconds: 0,
-          actions: {
-            trigger: 'update',
-            untrigger: 'none',
-            interaction_mode: 'inactive',
-          },
-          filter_selected_camera: true,
-        },
-        interaction_seconds: 300,
-        dim: false,
-        default_cycle_camera: false,
-        default_reset: {
-          after_interaction: false,
-          every_seconds: 0,
-          entities: [],
-          interaction_mode: 'inactive',
         },
       },
     });
@@ -457,13 +536,22 @@ describe('config defaults', () => {
       },
       {
         type: 'custom:advanced-camera-card-menu-icon',
-        icon: 'mdi:cat',
+        alignment: 'matching',
+        enabled: true,
         entity: 'camera.kitchen',
+        icon: 'mdi:cat',
+        permanent: false,
+        priority: 50,
+        state_color: true,
       },
       {
         type: 'custom:advanced-camera-card-menu-state-icon',
+        alignment: 'matching',
+        enabled: true,
         entity: 'camera.kitchen',
         icon: 'mdi:sheep',
+        permanent: false,
+        priority: 50,
         state_color: false,
       },
       {
@@ -589,6 +677,7 @@ describe('config defaults', () => {
         icon: 'mdi:car',
         permanent: false,
         priority: 50,
+        state_color: true,
         style: {
           color: 'white',
         },
@@ -646,6 +735,7 @@ describe('config defaults', () => {
         ],
         permanent: false,
         priority: 50,
+        state_color: true,
         style: {
           color: 'white',
         },
@@ -669,7 +759,10 @@ describe('config defaults', () => {
             title: 'Cooking time!',
           },
           'scene.kitchen_tv_scene': {
+            enabled: true,
             icon: 'mdi:television',
+            selected: false,
+            state_color: true,
             title: 'TV!',
           },
         },
@@ -1369,6 +1462,11 @@ describe('should lazy evaluate schemas', () => {
       status_bar_action: 'reset',
       items: [
         {
+          enabled: true,
+          exclusive: false,
+          expand: false,
+          priority: 50,
+          sufficient: false,
           type: 'custom:advanced-camera-card-status-bar-string',
           string: 'Item',
         },
@@ -1379,13 +1477,20 @@ describe('should lazy evaluate schemas', () => {
 });
 
 describe('should handle custom advanced camera card elements', () => {
+  it('should reject non-custom element types', () => {
+    const result = customSchema.safeParse({
+      type: 'foo',
+    });
+    expect(result.success).toBeFalsy();
+  });
+
   it('should add custom error on advanced camera card element', () => {
     const result = customSchema.safeParse({
       type: 'custom:advanced-camera-card-foo',
     });
     expect(result.success).toBeFalsy();
     if (!result.success) {
-      expect(result.error.errors[0]).toEqual({
+      expect(result.error.issues[0]).toEqual({
         code: 'custom',
         message: 'advanced-camera-card custom elements must match specific schemas',
         fatal: true,
@@ -1429,7 +1534,7 @@ it('should strip trailing slashes from go2rtc url', () => {
     ],
   });
   expect(config).toBeTruthy();
-  expect(config.cameras[0].go2rtc.url).toBe('https://my-custom-go2rtc');
+  expect(config.cameras?.[0].go2rtc.url).toBe('https://my-custom-go2rtc');
 });
 
 it('media viewer should not support microphone based conditions', () => {

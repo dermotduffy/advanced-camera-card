@@ -13,13 +13,20 @@ const MENU_STYLES = [
 const MENU_POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
 const MENU_ALIGNMENTS = MENU_POSITIONS;
 
-const visibleButtonDefault = {
+const baseButtonDefault = {
+  alignment: 'matching' as const,
+  state_color: true,
+  permanent: false,
   priority: MENU_PRIORITY_DEFAULT,
+};
+
+const visibleButtonDefault = {
+  ...baseButtonDefault,
   enabled: true,
 };
 
 const hiddenButtonDefault = {
-  priority: MENU_PRIORITY_DEFAULT,
+  ...baseButtonDefault,
   enabled: false,
 };
 
@@ -27,35 +34,37 @@ export const menuConfigDefault = {
   alignment: 'left' as const,
   button_size: 40,
   buttons: {
-    camera_ui: visibleButtonDefault,
-    cameras: visibleButtonDefault,
-    clips: hiddenButtonDefault,
-    ptz_home: hiddenButtonDefault,
-    display_mode: visibleButtonDefault,
-    download: visibleButtonDefault,
-    expand: hiddenButtonDefault,
-    folders: visibleButtonDefault,
-    iris: visibleButtonDefault,
-    fullscreen: visibleButtonDefault,
-    image: hiddenButtonDefault,
-    info: visibleButtonDefault,
-    gallery: visibleButtonDefault,
-    live: visibleButtonDefault,
-    media_player: visibleButtonDefault,
+    // Clone per key so each button has its own default object. This avoids
+    // shared nested default references between keys.
+    camera_ui: { ...visibleButtonDefault },
+    cameras: { ...visibleButtonDefault },
+    clips: { ...hiddenButtonDefault },
+    ptz_home: { ...hiddenButtonDefault },
+    display_mode: { ...visibleButtonDefault },
+    download: { ...visibleButtonDefault },
+    expand: { ...hiddenButtonDefault },
+    folders: { ...visibleButtonDefault },
+    iris: { ...visibleButtonDefault },
+    fullscreen: { ...visibleButtonDefault },
+    image: { ...hiddenButtonDefault },
+    info: { ...visibleButtonDefault },
+    gallery: { ...visibleButtonDefault },
+    live: { ...visibleButtonDefault },
+    media_player: { ...visibleButtonDefault },
     microphone: {
       ...hiddenButtonDefault,
       type: 'momentary' as const,
     },
-    mute: hiddenButtonDefault,
-    play: hiddenButtonDefault,
-    ptz_controls: hiddenButtonDefault,
-    recordings: hiddenButtonDefault,
-    reviews: hiddenButtonDefault,
-    set_review: visibleButtonDefault,
-    screenshot: hiddenButtonDefault,
-    snapshots: hiddenButtonDefault,
-    substreams: visibleButtonDefault,
-    timeline: visibleButtonDefault,
+    mute: { ...hiddenButtonDefault },
+    play: { ...hiddenButtonDefault },
+    ptz_controls: { ...hiddenButtonDefault },
+    recordings: { ...hiddenButtonDefault },
+    reviews: { ...hiddenButtonDefault },
+    set_review: { ...visibleButtonDefault },
+    screenshot: { ...hiddenButtonDefault },
+    snapshots: { ...hiddenButtonDefault },
+    substreams: { ...visibleButtonDefault },
+    timeline: { ...visibleButtonDefault },
   },
   position: 'top' as const,
   style: 'hidden' as const,

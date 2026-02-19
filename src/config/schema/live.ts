@@ -52,7 +52,6 @@ export const liveConfigDefault = {
   zoomable: true,
   transition_effect: 'slide' as const,
   show_image_during_load: true,
-  mode: 'single' as const,
   controls: {
     builtin: true,
     next_previous: {
@@ -126,6 +125,6 @@ export const liveConfigSchema = z
     ),
     zoomable: z.boolean().default(liveConfigDefault.zoomable),
   })
-  .merge(actionsSchema)
+  .extend(actionsSchema.shape)
   .default(liveConfigDefault);
 export type LiveConfig = z.infer<typeof liveConfigSchema>;

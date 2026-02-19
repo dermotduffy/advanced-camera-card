@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { deepRemoveDefaults } from '../../utils/zod';
+import { deepRemoveDefaults } from '../../utils/zod/deep-remove-defaults';
 import { automationsSchema } from './automations';
 import { cameraConfigDefault, cameraConfigSchema, camerasConfigSchema } from './cameras';
 import { cardIDRegex } from './common/const';

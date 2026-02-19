@@ -9,7 +9,7 @@ import { targetSchema } from './target';
 export const callServiceActionSchema = actionBaseSchema.extend({
   action: z.literal('call-service'),
   service: z.string(),
-  data: z.object({}).passthrough().optional(),
+  data: z.looseObject({}).optional(),
   target: targetSchema.optional(),
 });
 export type CallServiceActionConfig = z.infer<typeof callServiceActionSchema>;

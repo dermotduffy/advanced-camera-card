@@ -6,7 +6,7 @@ export const imageConfigSchema = imageBaseConfigSchema
   .extend({
     zoomable: z.boolean().default(imageConfigDefault.zoomable),
   })
-  .merge(actionsSchema)
+  .extend(actionsSchema.shape)
   .default(imageConfigDefault);
 
 export type ImageViewConfig = z.infer<typeof imageConfigSchema>;

@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ZodError } from 'zod';
 import { AutomationsManager } from '../../../src/card-controller/automations-manager';
 import { ConfigManager } from '../../../src/card-controller/config/config-manager';
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
@@ -9,6 +8,7 @@ import { AdvancedCameraCardCondition } from '../../../src/config/schema/conditio
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
 import { createGeneralAction } from '../../../src/utils/action';
 import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
+import { ZodError, z } from 'zod';
 
 /**
  * Create a ConfigManager test setup with real AutomationsManager and ConditionStateManager.
@@ -63,6 +63,7 @@ const TEST_CONDITIONS = {
 
 /** Profile settings for testing */
 const TEST_PROFILES = {
+  CASTING: 'casting' as const,
   LOW_PERFORMANCE: 'low-performance' as const,
 } as const;
 
@@ -78,10 +79,10 @@ describe('ConfigManager', () => {
     });
 
     it('invalid configuration', () => {
-      const spy = vi.spyOn(advancedCameraCardConfigSchema, 'safeParse').mockReturnValue({
-        success: false,
-        error: new ZodError([]),
-      });
+      const schemaForMock: z.ZodType = advancedCameraCardConfigSchema;
+      const spy = vi
+        .spyOn(schemaForMock, 'safeParse')
+        .mockReturnValue({ success: false, error: new ZodError([]) });
 
       const manager = new ConfigManager(createCardAPI());
       expect(() => manager.setConfig({})).toThrowError(
@@ -136,7 +137,7 @@ describe('ConfigManager', () => {
     expect(manager.getRawConfig()).toBe(config);
 
     // Verify at least the camera is set.
-    expect(manager.getConfig()?.cameras[0].camera_entity).toBe('camera.office');
+    expect(manager.getConfig()?.cameras?.[0].camera_entity).toBe('camera.office');
 
     // Verify at least one default was set.
     expect(manager.getConfig()?.menu.alignment).toBe('left');
@@ -167,6 +168,23 @@ describe('ConfigManager', () => {
 
     // Verify at least one low performance default.
     expect(manager.getConfig()?.live.draggable).toBeFalsy();
+  });
+
+  it('should apply casting profile menu changes without affecting unrelated hidden buttons', () => {
+    const manager = new ConfigManager(createCardAPI());
+    const config = {
+      type: 'custom:advanced-camera-card',
+      cameras: [TEST_CAMERAS.OFFICE],
+      profiles: [TEST_PROFILES.CASTING],
+    };
+
+    manager.setConfig(config);
+
+    expect(manager.getConfig()?.menu.buttons.play.enabled).toBeTruthy();
+    expect(manager.getConfig()?.menu.buttons.mute.enabled).toBeTruthy();
+    expect(manager.getConfig()?.menu.buttons.fullscreen.enabled).toBeFalsy();
+    expect(manager.getConfig()?.menu.buttons.media_player.enabled).toBeFalsy();
+    expect(manager.getConfig()?.menu.buttons.clips.enabled).toBeFalsy();
   });
 
   it('should skip identical configs', () => {
@@ -234,6 +252,10 @@ describe('ConfigManager', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: cameras,
+        menu: {
+          style: 'hidden',
+          position: 'top',
+        },
         overrides: [
           {
             conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
@@ -247,10 +269,11 @@ describe('ConfigManager', () => {
 
       manager.setConfig(config);
 
-      expect(api.getStyleManager().updateFromConfig).toBeCalledTimes(1);
-
+      const configBefore = manager.getConfig();
       stateManager.setState({ fullscreen: true });
+      const configAfter = manager.getConfig();
 
+      expect(configAfter).toEqual(configBefore);
       expect(api.getStyleManager().updateFromConfig).toBeCalledTimes(1);
     });
 

@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash-es';
-import { isConfigUpgradeable } from '../../config/management.js';
+import { copyConfig, isConfigUpgradeable } from '../../config/management.js';
 import { setProfiles } from '../../config/profiles/set-profiles.js';
 import {
   AdvancedCameraCardConfig,
@@ -8,7 +8,7 @@ import {
 } from '../../config/schema/types.js';
 import { RawAdvancedCameraCardConfig } from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
-import { getParseErrorPaths } from '../../utils/zod.js';
+import { getParseError } from '../../utils/zod/parse-errors.js';
 import { InitializationAspect } from '../initialization-manager.js';
 import { CardConfigAPI } from '../types.js';
 import { setAutomationsFromConfig } from './load-automations.js';
@@ -64,7 +64,7 @@ export class ConfigManager {
     const parseResult = advancedCameraCardConfigSchema.safeParse(inputConfig);
     if (!parseResult.success) {
       const configUpgradeable = isConfigUpgradeable(inputConfig);
-      const hint = getParseErrorPaths(parseResult.error);
+      const hint = getParseError(parseResult.error);
       let upgradeMessage = '';
       if (configUpgradeable) {
         upgradeMessage = `${localize('error.upgrade_available')}. `;
@@ -72,12 +72,22 @@ export class ConfigManager {
       throw new Error(
         upgradeMessage +
           `${localize('error.invalid_configuration')}: ` +
-          (hint && hint.size
-            ? JSON.stringify([...hint], null, ' ')
-            : localize('error.invalid_configuration_no_hint')),
+          (hint ?? localize('error.invalid_configuration_no_hint')),
       );
     }
-    const config = setProfiles(inputConfig, parseResult.data, parseResult.data.profiles);
+    const config = advancedCameraCardConfigSchema.parse(
+      setProfiles(
+        inputConfig,
+
+        // The config is cloned here because Zod 4 returns shared constant
+        // defaults by reference. Since setProfiles() mutates the configuration
+        // in-place, those mutations would "pollute" the global defaults and break
+        // test isolation if we didn't use a fresh clone here.
+        copyConfig(parseResult.data),
+
+        parseResult.data.profiles,
+      ),
+    );
 
     this._rawConfig = inputConfig;
     if (isEqual(this._config, config)) {

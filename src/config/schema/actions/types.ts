@@ -29,18 +29,15 @@ export type StatusBarActionConfig = z.infer<
   status_bar_action: 'add' | 'remove' | 'reset';
   items?: StatusBarItem[];
 };
-export const statusBarActionConfigSchema: z.ZodSchema<
-  StatusBarActionConfig,
-  z.ZodTypeDef,
-  unknown
-> = advancedCameraCardCustomActionsBaseSchema.extend({
-  advanced_camera_card_action: z.literal('status_bar'),
-  status_bar_action: z.enum(['add', 'remove', 'reset']),
-  items: z
-    .lazy(() => statusBarItemSchema)
-    .array()
-    .optional(),
-});
+export const statusBarActionConfigSchema: z.ZodSchema<StatusBarActionConfig> =
+  advancedCameraCardCustomActionsBaseSchema.extend({
+    advanced_camera_card_action: z.literal('status_bar'),
+    status_bar_action: z.enum(['add', 'remove', 'reset']),
+    items: z
+      .lazy(() => statusBarItemSchema)
+      .array()
+      .optional(),
+  });
 
 const advancedCameraCardCustomActionSchema = z.union([
   cameraSelectActionConfigSchema,
@@ -69,7 +66,6 @@ export const actionConfigSchema = z.union([
   advancedCameraCardCustomActionSchema,
 ]);
 export type ActionConfig = z.infer<typeof actionConfigSchema>;
-
 export const actionsBaseSchema = z
   .object({
     tap_action: actionConfigSchema.or(actionConfigSchema.array()).optional(),
@@ -81,7 +77,7 @@ export const actionsBaseSchema = z
   // Passthrough to allow (at least) entity/camera_image to go through. This
   // card doesn't need these attributes, but handleAction() in
   // custom_card_helpers may depending on how the action is configured.
-  .passthrough();
+  .loose();
 export type Actions = z.infer<typeof actionsBaseSchema>;
 
 export interface AuxillaryActionConfig {

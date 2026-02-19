@@ -77,7 +77,7 @@ export const ptzCameraConfigSchema = z.preprocess(
         .preprocess(
           dataPTZFormatToFullFormat(''),
           z.union([
-            z.record(performActionActionSchema),
+            z.record(z.string(), performActionActionSchema),
 
             // This is used by the data_ style of action.
             z.object({ service: z.string().optional() }),

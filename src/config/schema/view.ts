@@ -45,6 +45,8 @@ export type PTZKeyboardShortcutName =
   | 'ptz_zoom_in'
   | 'ptz_zoom_out';
 
+const interactionModeDefault = 'inactive' as const;
+
 export const viewConfigDefault = {
   default: 'auto' as const,
   camera_select: 'current' as const,
@@ -53,7 +55,7 @@ export const viewConfigDefault = {
     every_seconds: 0,
     after_interaction: false,
     entities: [],
-    interaction_mode: 'inactive' as const,
+    interaction_mode: interactionModeDefault,
   },
   default_cycle_camera: false,
   dim: false,
@@ -64,6 +66,7 @@ export const viewConfigDefault = {
     show_trigger_status: false,
     filter_selected_camera: true,
     actions: {
+      interaction_mode: interactionModeDefault,
       trigger: 'update' as const,
       untrigger: 'none' as const,
     },
@@ -73,7 +76,9 @@ export const viewConfigDefault = {
   keyboard_shortcuts: keyboardShortcutsDefault,
 };
 
-const interactionModeSchema = z.enum(['all', 'inactive', 'active']).default('inactive');
+const interactionModeSchema = z
+  .enum(['all', 'inactive', 'active'])
+  .default(interactionModeDefault);
 export type InteractionMode = z.infer<typeof interactionModeSchema>;
 
 export const triggersSchema = z.object({
@@ -108,7 +113,7 @@ export type ThemeName = z.infer<typeof themeName>;
 
 const themeConfigSchema = z.object({
   themes: themeName.array().default(viewConfigDefault.theme.themes),
-  overrides: z.record(z.string()).optional(),
+  overrides: z.record(z.string(), z.string()).optional(),
 });
 export type ThemeConfig = z.infer<typeof themeConfigSchema>;
 
@@ -128,9 +133,7 @@ export const viewConfigSchema = z
           .default(viewConfigDefault.default_reset.after_interaction),
         every_seconds: z.number().default(viewConfigDefault.default_reset.every_seconds),
         entities: z.string().array().default(viewConfigDefault.default_reset.entities),
-        interaction_mode: interactionModeSchema.default(
-          viewConfigDefault.default_reset.interaction_mode,
-        ),
+        interaction_mode: interactionModeSchema,
       })
       .default(viewConfigDefault.default_reset),
 
@@ -144,5 +147,5 @@ export const viewConfigSchema = z
       viewConfigDefault.keyboard_shortcuts,
     ),
   })
-  .merge(actionsSchema)
+  .extend(actionsSchema.shape)
   .default(viewConfigDefault);

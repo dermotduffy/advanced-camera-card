@@ -1,4 +1,4 @@
-import { deepRemoveDefaults } from '../../utils/zod.js';
+import { deepRemoveDefaults } from '../../utils/zod/deep-remove-defaults.js';
 import { getConfigValue, setConfigValue } from '../management.js';
 import { ProfileType } from '../schema/profiles.js';
 import { advancedCameraCardConfigSchema } from '../schema/types.js';
@@ -31,7 +31,7 @@ export const setProfiles = <T extends RawAdvancedCameraCardConfig>(
   if (!defaultLessParseResult.success) {
     return outputConfig;
   }
-  const defaultLessConfig = defaultLessParseResult.data;
+  const defaultLessConfig = defaultLessParseResult.data as RawAdvancedCameraCardConfig;
 
   const setIfNotSpecified = (key: string, value: unknown) => {
     if (getConfigValue(defaultLessConfig, key) === undefined) {

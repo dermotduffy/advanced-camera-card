@@ -8,5 +8,5 @@ export const serviceCallButtonSchema = elementsBaseSchema.extend({
   // Title is required for service button.
   title: z.string(),
   service: z.string(),
-  service_data: z.object({}).passthrough().optional(),
+  service_data: z.looseObject({}).optional(),
 });

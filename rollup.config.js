@@ -89,7 +89,7 @@ const outputEntryTemplate = {
   sourcemap: dev,
 };
 
-const CIRCULAR_DEPENDENCY_IGNORE_REGEXP = /(ha-nunjucks|ts-py-datetime)/;
+const CIRCULAR_DEPENDENCY_IGNORE_REGEXP = /(ha-nunjucks|ts-py-datetime|zod\/v4)/;
 
 /**
  * @type {import('rollup').RollupOptions}

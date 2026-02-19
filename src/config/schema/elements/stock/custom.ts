@@ -7,11 +7,11 @@ export const customSchema = z
     type: z.string().superRefine((val, ctx) => {
       if (!val.match(/^custom:(?!advanced-camera-card).+/)) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: 'advanced-camera-card custom elements must match specific schemas',
           fatal: true,
         });
       }
     }),
   })
-  .passthrough();
+  .loose();
