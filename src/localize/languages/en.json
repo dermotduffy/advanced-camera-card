@@ -664,6 +664,7 @@
     "cameras_secondary": "What cameras to render on this card",
     "delete": "Delete",
     "dimensions": "Card dimensions",
+    "docs": "Documentation",
     "dimensions_secondary": "Card dimensions & shape options",
     "folders": "Folders",
     "folders_secondary": "What folders to render on this card",

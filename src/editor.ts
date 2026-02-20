@@ -258,6 +258,7 @@ import {
   CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_FORCE_SECONDS,
+  DOCS_URL,
   FOLDERS_CONFIGURATION_URL,
   MEDIA_CHUNK_SIZE_MAX,
 } from './const.js';
@@ -297,6 +298,7 @@ const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
 const MENU_LIVE_CONTROLS_PTZ = 'live.controls.ptz';
 const MENU_LIVE_CONTROLS_THUMBNAILS = 'live.controls.thumbnails';
 const MENU_LIVE_CONTROLS_TIMELINE = 'live.controls.timeline';
+const MENU_LIVE_CONTROLS_TIMELINE_FORMAT = 'live.controls.timeline.format';
 const MENU_LIVE_DISPLAY = 'live.display';
 const MENU_LIVE_MICROPHONE = 'live.microphone';
 const MENU_MEDIA_GALLERY_CONTROLS_FILTER = 'media_gallery.controls.filter';
@@ -305,6 +307,8 @@ const MENU_MEDIA_VIEWER_CONTROLS = 'media_viewer.controls';
 const MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS = 'media_viewer.controls.next_previous';
 const MENU_MEDIA_VIEWER_CONTROLS_THUMBNAILS = 'media_viewer.controls.thumbnails';
 const MENU_MEDIA_VIEWER_CONTROLS_TIMELINE = 'media_viewer.controls.timeline';
+const MENU_MEDIA_VIEWER_CONTROLS_TIMELINE_FORMAT =
+  'media_viewer.controls.timeline.format';
 const MENU_MEDIA_VIEWER_DISPLAY = 'media_viewer.display';
 const MENU_MENU_BUTTONS = 'menu.buttons';
 const MENU_OPTIONS = 'options';
@@ -318,6 +322,76 @@ const MENU_VIEW_DEFAULT_RESET = 'view.default_reset';
 const MENU_VIEW_KEYBOARD_SHORTCUTS = 'view.keyboard_shortcuts';
 const MENU_VIEW_TRIGGERS = 'view.triggers';
 const MENU_VIEW_TRIGGERS_ACTIONS = 'view.triggers.actions';
+
+const SECTION_DOC_LINKS: Record<string, string> = {
+  cameras: 'configuration/cameras/README',
+  dimensions: 'configuration/dimensions',
+  view: 'configuration/view',
+  menu: 'configuration/menu',
+  status_bar: 'configuration/status-bar',
+  live: 'configuration/live',
+  folders: 'configuration/folders',
+  media_viewer: 'configuration/media-viewer',
+  media_gallery: 'configuration/media-gallery',
+  image: 'configuration/image',
+  timeline: 'configuration/timeline',
+  performance: 'configuration/performance',
+  profiles: 'configuration/profiles',
+  remote_control: 'configuration/remote-control',
+};
+
+const SUBMENU_DOC_LINKS: Record<string, string> = {
+  [MENU_VIEW_DEFAULT_RESET]: 'configuration/view?id=default_reset',
+  [MENU_VIEW_TRIGGERS]: 'configuration/view?id=triggers',
+  [MENU_VIEW_TRIGGERS_ACTIONS]: 'configuration/view?id=trigger-action-configuration',
+  [MENU_VIEW_KEYBOARD_SHORTCUTS]: 'configuration/view?id=keyboard_shortcuts',
+  [MENU_CAMERAS]: 'configuration/cameras/README',
+  [MENU_CAMERAS_CAPABILITIES]: 'configuration/cameras/README?id=capabilities',
+  [MENU_CAMERAS_CAST]: 'configuration/cameras/README?id=cast',
+  [MENU_CAMERAS_DEPENDENCIES]: 'configuration/cameras/README?id=dependencies',
+  [MENU_CAMERAS_DIMENSIONS]: 'configuration/cameras/README?id=dimensions',
+  [MENU_CAMERAS_DIMENSIONS_LAYOUT]:
+    'configuration/cameras/README?id=layout-configuration',
+  [MENU_CAMERAS_ENGINE]: 'configuration/cameras/engine',
+  [MENU_CAMERAS_FRIGATE]: 'configuration/cameras/engine?id=frigate',
+  [MENU_CAMERAS_GO2RTC]: 'configuration/cameras/live-provider?id=go2rtc',
+  [MENU_CAMERAS_IMAGE]: 'configuration/cameras/live-provider?id=image',
+  [MENU_CAMERAS_LIVE_PROVIDER]: 'configuration/cameras/live-provider',
+  [MENU_CAMERAS_MOTIONEYE]: 'configuration/cameras/engine?id=motioneye',
+  [MENU_CAMERAS_PROXY]: 'configuration/cameras/README?id=proxy',
+  [MENU_CAMERAS_REOLINK]: 'configuration/cameras/engine?id=reolink',
+  [MENU_CAMERAS_TRIGGERS]: 'configuration/cameras/README?id=triggers',
+  [MENU_CAMERAS_TRIGGERS_REVIEWS]: 'configuration/cameras/README?id=reviews',
+  [MENU_CAMERAS_WEBRTC_CARD]: 'configuration/cameras/live-provider?id=webrtc_card',
+  [MENU_CAMERAS_MEDIA]: 'configuration/cameras/README?id=media',
+  [MENU_FOLDERS]: 'configuration/folders',
+  [MENU_FOLDERS_HA]: 'configuration/folders?id=ha',
+  [MENU_LIVE_CONTROLS]: 'configuration/live?id=controls',
+  [MENU_LIVE_CONTROLS_NEXT_PREVIOUS]: 'configuration/live?id=next_previous',
+  [MENU_LIVE_CONTROLS_PTZ]: 'configuration/live?id=ptz',
+  [MENU_LIVE_CONTROLS_THUMBNAILS]: 'configuration/live?id=thumbnails',
+  [MENU_LIVE_CONTROLS_TIMELINE]: 'configuration/live?id=timeline',
+  [MENU_LIVE_CONTROLS_TIMELINE_FORMAT]: 'configuration/live?id=format',
+  [MENU_LIVE_DISPLAY]: 'configuration/live?id=display',
+  [MENU_LIVE_MICROPHONE]: 'configuration/live?id=microphone',
+  [MENU_MEDIA_GALLERY_CONTROLS_FILTER]: 'configuration/media-gallery?id=filter',
+  [MENU_MEDIA_GALLERY_CONTROLS_THUMBNAILS]: 'configuration/media-gallery?id=thumbnails',
+  [MENU_MEDIA_VIEWER_CONTROLS]: 'configuration/media-viewer?id=controls',
+  [MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS]:
+    'configuration/media-viewer?id=next_previous',
+  [MENU_MEDIA_VIEWER_CONTROLS_THUMBNAILS]: 'configuration/media-viewer?id=thumbnails',
+  [MENU_MEDIA_VIEWER_CONTROLS_TIMELINE]: 'configuration/media-viewer?id=timeline',
+  [MENU_MEDIA_VIEWER_CONTROLS_TIMELINE_FORMAT]: 'configuration/media-viewer?id=format',
+  [MENU_MEDIA_VIEWER_DISPLAY]: 'configuration/media-viewer?id=display',
+  [MENU_MENU_BUTTONS]: 'configuration/menu?id=buttons',
+  [MENU_OPTIONS]: 'configuration/README',
+  [MENU_PERFORMANCE_FEATURES]: 'configuration/performance?id=features',
+  [MENU_PERFORMANCE_STYLE]: 'configuration/performance?id=style',
+  [MENU_REMOTE_CONTROL_ENTITIES]: 'configuration/remote-control?id=entities',
+  [MENU_STATUS_BAR_ITEMS]: 'configuration/status-bar?id=items',
+  [MENU_TIMELINE_FORMAT]: 'configuration/timeline?id=format',
+  [MENU_TIMELINE_CONTROLS_THUMBNAILS]: 'configuration/timeline?id=thumbnails',
+};
 
 interface EditorOptionsSet {
   icon: string;
@@ -1129,6 +1203,22 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     `;
   }
 
+  private _renderDocLinkRow(docPath: string): TemplateResult {
+    return html`
+      <a
+        class="doc-link-row"
+        href="${DOCS_URL}/#/${docPath}"
+        target="_blank"
+        rel="noopener noreferrer"
+        title=${localize('editor.docs')}
+      >
+        <ha-icon icon="mdi:book-open-page-variant"></ha-icon>
+        <div>${localize('editor.docs')}</div>
+        <ha-icon icon="mdi:open-in-new"></ha-icon>
+      </a>
+    `;
+  }
+
   /**
    * Get a localized help label for a given config path.
    * @param configPath The config path.
@@ -1591,6 +1681,8 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
       selected: selected,
     };
 
+    const docPath = SUBMENU_DOC_LINKS[domain as string];
+
     return html` <div class="${classMap(submenuClasses)}">
       <div
         class="submenu-header"
@@ -1601,7 +1693,11 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         <advanced-camera-card-icon .icon=${{ icon: icon }}></advanced-camera-card-icon>
         <span>${localize(labelPath)}</span>
       </div>
-      ${selected ? html`<div class="values">${template}</div>` : ''}
+      ${selected
+        ? html`<div class="values">
+            ${docPath ? this._renderDocLinkRow(docPath) : ''} ${template}
+          </div>`
+        : ''}
     </div>`;
   }
 
@@ -1711,7 +1807,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @returns A rendered template.
    */
   private _renderTimelineCoreControls(
-    domain: string,
+    formatDomain: string,
     configPathStyle: string,
     configPathWindowSeconds: string,
     configPathClusteringThreshold: string,
@@ -1740,7 +1836,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         label: localize(`config.common.${CONF_TIMELINE_SHOW_RECORDINGS}`),
       })}
       ${this._putInSubmenu(
-        `${domain}.format`,
+        formatDomain,
         true,
         'config.common.controls.timeline.format.editor_label',
         'mdi:clock-edit',
@@ -1764,11 +1860,11 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    */
   private _renderMiniTimeline(
     domain: string,
+    formatDomain: string,
     configPathMode: string,
     configPathStyle: string,
     configPathWindowSeconds: string,
     configPathClusteringThreshold: string,
-
     configPathShowRecordings: string,
     configPathFormat24h: string,
     defaultShowRecordings: boolean,
@@ -1784,7 +1880,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         label: localize('config.common.controls.timeline.mode'),
       })}
       ${this._renderTimelineCoreControls(
-        domain,
+        formatDomain,
         configPathStyle,
         configPathWindowSeconds,
         configPathClusteringThreshold,
@@ -2894,6 +2990,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._expandedMenus[MENU_OPTIONS] === 'cameras'
           ? html`
               <div class="values">
+                ${SECTION_DOC_LINKS['cameras']
+                  ? this._renderDocLinkRow(SECTION_DOC_LINKS['cameras'])
+                  : ''}
                 ${cameras.map((_, index) =>
                   this._renderCamera(cameras, index, entities, folders),
                 )}
@@ -2914,6 +3013,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._expandedMenus[MENU_OPTIONS] === 'view'
           ? html`
               <div class="values">
+                ${SECTION_DOC_LINKS['view']
+                  ? this._renderDocLinkRow(SECTION_DOC_LINKS['view'])
+                  : ''}
                 ${this._renderOptionSelector(CONF_VIEW_DEFAULT, this._viewModes)}
                 ${this._renderOptionSelector(
                   CONF_VIEW_CAMERA_SELECT,
@@ -2938,6 +3040,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._expandedMenus[MENU_OPTIONS] === 'menu'
           ? html`
               <div class="values">
+                ${SECTION_DOC_LINKS['menu']
+                  ? this._renderDocLinkRow(SECTION_DOC_LINKS['menu'])
+                  : ''}
                 ${this._renderOptionSelector(CONF_MENU_STYLE, this._menuStyles)}
                 ${this._renderOptionSelector(CONF_MENU_POSITION, this._menuPositions)}
                 ${this._renderOptionSelector(CONF_MENU_ALIGNMENT, this._menuAlignments)}
@@ -2984,6 +3089,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._expandedMenus[MENU_OPTIONS] === 'status_bar'
           ? html`
               <div class="values">
+                ${SECTION_DOC_LINKS['status_bar']
+                  ? this._renderDocLinkRow(SECTION_DOC_LINKS['status_bar'])
+                  : ''}
                 ${this._renderOptionSelector(
                   CONF_STATUS_BAR_STYLE,
                   this._statusBarStyles,
@@ -3013,6 +3121,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._expandedMenus[MENU_OPTIONS] === 'live'
           ? html`
               <div class="values">
+                ${SECTION_DOC_LINKS['live']
+                  ? this._renderDocLinkRow(SECTION_DOC_LINKS['live'])
+                  : ''}
                 ${this._renderSwitch(CONF_LIVE_PRELOAD, this._defaults.live.preload)}
                 ${this._renderSwitch(CONF_LIVE_DRAGGABLE, this._defaults.live.draggable)}
                 ${this._renderSwitch(CONF_LIVE_ZOOMABLE, this._defaults.live.zoomable)}
@@ -3112,6 +3223,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                     )}
                     ${this._renderMiniTimeline(
                       MENU_LIVE_CONTROLS_TIMELINE,
+                      MENU_LIVE_CONTROLS_TIMELINE_FORMAT,
                       CONF_LIVE_CONTROLS_TIMELINE_MODE,
                       CONF_LIVE_CONTROLS_TIMELINE_STYLE,
                       CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
@@ -3187,6 +3299,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._renderOptionSetHeader('folders')}
         ${this._expandedMenus[MENU_OPTIONS] === 'folders'
           ? html` <div class="values">
+              ${SECTION_DOC_LINKS['folders']
+                ? this._renderDocLinkRow(SECTION_DOC_LINKS['folders'])
+                : ''}
               ${folders.map((_, index) => this._renderFolder(folders, index))}
               ${this._renderFolder(folders, folders.length, true)}
             </div>`
@@ -3194,6 +3309,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._renderOptionSetHeader('media_gallery')}
         ${this._expandedMenus[MENU_OPTIONS] === 'media_gallery'
           ? html` <div class="values">
+              ${SECTION_DOC_LINKS['media_gallery']
+                ? this._renderDocLinkRow(SECTION_DOC_LINKS['media_gallery'])
+                : ''}
               ${this._renderThumbnailsControls(
                 MENU_MEDIA_GALLERY_CONTROLS_THUMBNAILS,
                 CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SIZE,
@@ -3214,6 +3332,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._renderOptionSetHeader('media_viewer')}
         ${this._expandedMenus[MENU_OPTIONS] === 'media_viewer'
           ? html` <div class="values">
+              ${SECTION_DOC_LINKS['media_viewer']
+                ? this._renderDocLinkRow(SECTION_DOC_LINKS['media_viewer'])
+                : ''}
               ${this._renderOptionSelector(
                 CONF_MEDIA_VIEWER_AUTO_PLAY,
                 this._mediaActionPositiveConditions,
@@ -3314,6 +3435,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                   )}
                   ${this._renderMiniTimeline(
                     MENU_MEDIA_VIEWER_CONTROLS_TIMELINE,
+                    MENU_MEDIA_VIEWER_CONTROLS_TIMELINE_FORMAT,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
@@ -3331,6 +3453,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._renderOptionSetHeader('image')}
         ${this._expandedMenus[MENU_OPTIONS] === 'image'
           ? html` <div class="values">
+              ${SECTION_DOC_LINKS['image']
+                ? this._renderDocLinkRow(SECTION_DOC_LINKS['image'])
+                : ''}
               ${this._renderImageOptions(
                 CONF_IMAGE_MODE,
                 CONF_IMAGE_URL,
@@ -3343,6 +3468,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._renderOptionSetHeader('timeline')}
         ${this._expandedMenus[MENU_OPTIONS] === 'timeline'
           ? html` <div class="values">
+              ${SECTION_DOC_LINKS['timeline']
+                ? this._renderDocLinkRow(SECTION_DOC_LINKS['timeline'])
+                : ''}
               ${this._renderTimelineCoreControls(
                 MENU_TIMELINE_FORMAT,
                 CONF_TIMELINE_STYLE,
@@ -3372,6 +3500,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._renderOptionSetHeader('dimensions')}
         ${this._expandedMenus[MENU_OPTIONS] === 'dimensions'
           ? html` <div class="values">
+              ${SECTION_DOC_LINKS['dimensions']
+                ? this._renderDocLinkRow(SECTION_DOC_LINKS['dimensions'])
+                : ''}
               ${this._renderOptionSelector(
                 CONF_DIMENSIONS_ASPECT_RATIO_MODE,
                 this._aspectRatioModes,
@@ -3441,6 +3572,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._renderOptionSetHeader('remote_control')}
         ${this._expandedMenus[MENU_OPTIONS] === 'remote_control'
           ? html` <div class="values">
+              ${SECTION_DOC_LINKS['remote_control']
+                ? this._renderDocLinkRow(SECTION_DOC_LINKS['remote_control'])
+                : ''}
               ${this._putInSubmenu(
                 MENU_REMOTE_CONTROL_ENTITIES,
                 true,

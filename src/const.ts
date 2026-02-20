@@ -1,5 +1,5 @@
 export const REPO_URL = 'https://github.com/dermotduffy/advanced-camera-card' as const;
-const DOCS_URL = 'https://card.camera' as const;
+export const DOCS_URL = 'https://card.camera' as const;
 export const TROUBLESHOOTING_URL = `${DOCS_URL}/#/troubleshooting` as const;
 export const STREAM_TROUBLESHOOTING_URL =
   `${TROUBLESHOOTING_URL}?id=stream-does-not-load` as const;
