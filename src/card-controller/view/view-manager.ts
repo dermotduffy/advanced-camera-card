@@ -16,15 +16,15 @@ import {
 import { ViewQueryExecutor } from './view-query-executor';
 
 export class ViewManager implements ViewManagerInterface {
-  protected _view: View | null = null;
-  protected _viewFactory: ViewFactory;
-  protected _viewQueryExecutor: ViewQueryExecutor;
-  protected _api: CardViewAPI;
-  protected _epoch: ViewManagerEpoch = this._createEpoch();
+  private _view: View | null = null;
+  private _viewFactory: ViewFactory;
+  private _viewQueryExecutor: ViewQueryExecutor;
+  private _api: CardViewAPI;
+  private _epoch: ViewManagerEpoch = this._createEpoch();
 
   // Used to mark as a view as "loading" with a given index. Each subsequent
   // async update will use a higher index.
-  protected _loadingIndex = 1;
+  private _loadingIndex = 1;
 
   constructor(
     api: CardViewAPI,
@@ -41,7 +41,7 @@ export class ViewManager implements ViewManagerInterface {
   public getEpoch(): ViewManagerEpoch {
     return this._epoch;
   }
-  protected _createEpoch(oldView?: View | null): ViewManagerEpoch {
+  private _createEpoch(oldView?: View | null): ViewManagerEpoch {
     return {
       manager: this,
       ...(oldView && { oldView }),
@@ -97,7 +97,7 @@ export class ViewManager implements ViewManagerInterface {
       options,
     );
 
-  protected _setViewGeneric(
+  private _setViewGeneric(
     viewFactoryFunc: (options?: ViewFactoryOptions) => View | null,
     options?: ViewFactoryOptions,
   ): void {
@@ -119,14 +119,14 @@ export class ViewManager implements ViewManagerInterface {
     }
   }
 
-  protected _markViewLoadingQuery(view: View, index: number): View {
+  private _markViewLoadingQuery(view: View, index: number): View {
     return view.mergeInContext({ loading: { query: index } });
   }
-  protected _markViewAsNotLoadingQuery(view: View): View {
+  private _markViewAsNotLoadingQuery(view: View): View {
     return view.removeContextProperty('loading', 'query');
   }
 
-  protected _isAllowedToSetView(): boolean {
+  private _isAllowedToSetView(): boolean {
     // It is possible to have a race condition where the view is being set at
     // the same time as the cameras being initialized. Test case: Open
     // folder-based media in the media viewer carousel, then attempt to edit the
@@ -139,7 +139,7 @@ export class ViewManager implements ViewManagerInterface {
       .isInitialized(InitializationAspect.CAMERAS);
   }
 
-  protected async _setViewThenModifyAsync(
+  private async _setViewThenModifyAsync(
     viewFactoryFunc: (options?: ViewFactoryOptions) => View | null,
     viewModifiersFunc: (
       view: View,
@@ -229,7 +229,7 @@ export class ViewManager implements ViewManagerInterface {
     this._setView(newView);
   }
 
-  protected _shouldAdoptQueryAndResults(newView: View): boolean {
+  private _shouldAdoptQueryAndResults(newView: View): boolean {
     // If the user is currently using the viewer, and then switches to the
     // gallery we make an attempt to keep the query/queryResults the same so
     // the gallery can be used to click back and forth to the viewer, and the
@@ -292,7 +292,7 @@ export class ViewManager implements ViewManagerInterface {
     return true;
   };
 
-  protected _setView(view: Readonly<View> | null): void {
+  private _setView(view: Readonly<View> | null): void {
     const oldView = this._view;
 
     log(

@@ -120,14 +120,14 @@ export class FrigateCameraManagerEngine
   extends GenericCameraManagerEngine
   implements CameraManagerEngine
 {
-  protected _entityRegistryManager: EntityRegistryManager;
-  protected _frigateEventWatcher: FrigateEventWatcher;
-  protected _frigateReviewWatcher: FrigateReviewWatcher;
-  protected _recordingSegmentsCache: RecordingSegmentsCache;
-  protected _requestCache: CameraManagerRequestCache;
+  private _entityRegistryManager: EntityRegistryManager;
+  private _frigateEventWatcher: FrigateEventWatcher;
+  private _frigateReviewWatcher: FrigateReviewWatcher;
+  private _recordingSegmentsCache: RecordingSegmentsCache;
+  private _requestCache: CameraManagerRequestCache;
 
   // Garbage collect segments at most once an hour.
-  protected _throttledSegmentGarbageCollector = throttle(
+  private _throttledSegmentGarbageCollector = throttle(
     this._garbageCollectSegments.bind(this),
     60 * 60 * 1000,
     { leading: false, trailing: true },
@@ -272,17 +272,17 @@ export class FrigateCameraManagerEngine
    * If all cameras have identical zones/labels config, creates a single batch query.
    * Otherwise fans out to per-camera queries.
    */
-  protected _generateBatchableQuery(
+  private _generateBatchableQuery(
     store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
     query: PartialEventQuery & { type: QueryType.Event },
   ): EventQuery[] | null;
-  protected _generateBatchableQuery(
+  private _generateBatchableQuery(
     store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
     query: PartialReviewQuery & { type: QueryType.Review },
   ): ReviewQuery[] | null;
-  protected _generateBatchableQuery(
+  private _generateBatchableQuery(
     store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
     query: (PartialEventQuery | PartialReviewQuery) & {
@@ -368,7 +368,7 @@ export class FrigateCameraManagerEngine
     );
   }
 
-  protected _buildInstanceToCameraIDMapFromQuery(
+  private _buildInstanceToCameraIDMapFromQuery(
     store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
   ): Map<string, Set<string>> {
@@ -386,7 +386,7 @@ export class FrigateCameraManagerEngine
     return output;
   }
 
-  protected _getFrigateCameraNamesForCameraIDs(
+  private _getFrigateCameraNamesForCameraIDs(
     store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
   ): Set<string> {
@@ -725,7 +725,7 @@ export class FrigateCameraManagerEngine
     return output.size ? output : null;
   }
 
-  protected _getCameraIDMatch(
+  private _getCameraIDMatch(
     store: CameraManagerReadOnlyConfigStore,
     query: CameraQuery,
     instanceID: string,
@@ -927,7 +927,7 @@ export class FrigateCameraManagerEngine
     return null;
   }
 
-  protected _getQueryableCameraConfig(
+  private _getQueryableCameraConfig(
     store: CameraManagerReadOnlyConfigStore,
     cameraID: string,
   ): CameraConfig | null {
@@ -938,7 +938,7 @@ export class FrigateCameraManagerEngine
     return cameraConfig;
   }
 
-  protected _splitSubLabels(input: string): string[] {
+  private _splitSubLabels(input: string): string[] {
     // A note on Frigate sub_labels: As of Frigate v0.12 sub_labels is a string
     // (not an array) per event, but may contain comma-separated values (e.g.
     // double-take (https://github.com/jakowenko/double-take) identifying two
@@ -1058,7 +1058,7 @@ export class FrigateCameraManagerEngine
    * Garbage collect recording segments that no longer feature in the recordings
    * returned by the Frigate backend.
    */
-  protected async _garbageCollectSegments(
+  private async _garbageCollectSegments(
     hass: HomeAssistant,
     store: CameraManagerReadOnlyConfigStore,
   ): Promise<void> {
@@ -1113,7 +1113,7 @@ export class FrigateCameraManagerEngine
    * @param segments An array of segments dataset items. Must be sorted from oldest to youngest.
    * @returns
    */
-  protected _getSeekTimeInSegments(
+  private _getSeekTimeInSegments(
     startTime: Date,
     targetTime: Date,
     segments: RecordingSegment[],

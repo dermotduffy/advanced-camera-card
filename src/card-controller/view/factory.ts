@@ -19,7 +19,7 @@ interface ResolvedViewTarget {
 }
 
 export class ViewFactory {
-  protected _api: CardViewAPI;
+  private _api: CardViewAPI;
 
   constructor(api: CardViewAPI) {
     this._api = api;
@@ -43,7 +43,7 @@ export class ViewFactory {
     });
   }
 
-  protected _getDefaultViewName = (
+  private _getDefaultViewName = (
     config: AdvancedCameraCardConfig,
   ): AdvancedCameraCardView =>
     resolveViewName(
@@ -52,7 +52,7 @@ export class ViewFactory {
       this._api.getFoldersManager(),
     );
 
-  protected _getDefaultCameraID(
+  private _getDefaultCameraID(
     config: AdvancedCameraCardConfig,
     viewName: AdvancedCameraCardView,
     options?: ViewFactoryOptions,
@@ -114,7 +114,7 @@ export class ViewFactory {
     return view;
   }
 
-  protected _resolveViewName(
+  private _resolveViewName(
     config: AdvancedCameraCardConfig,
     options?: ViewFactoryOptions,
   ): AdvancedCameraCardView {
@@ -128,7 +128,7 @@ export class ViewFactory {
     return options?.baseView?.view ?? this._getDefaultViewName(config);
   }
 
-  protected _resolveCameraID(
+  private _resolveCameraID(
     viewName: AdvancedCameraCardView,
     options?: ViewFactoryOptions,
   ): string | null {
@@ -148,7 +148,7 @@ export class ViewFactory {
     return viewCameraIDs?.keys().next().value ?? null;
   }
 
-  protected _ensureViewCompatibility(
+  private _ensureViewCompatibility(
     viewName: AdvancedCameraCardView,
     cameraID: string | null,
     config: AdvancedCameraCardConfig,
@@ -173,7 +173,7 @@ export class ViewFactory {
     return { viewName, cameraID };
   }
 
-  protected _handleNoCameraForView(
+  private _handleNoCameraForView(
     viewName: AdvancedCameraCardView,
     config: AdvancedCameraCardConfig,
     options?: ViewFactoryOptions,
@@ -195,7 +195,7 @@ export class ViewFactory {
     });
   }
 
-  protected _handleUnsupportedView(
+  private _handleUnsupportedView(
     viewName: AdvancedCameraCardView,
     cameraID: string,
     config: AdvancedCameraCardConfig,
@@ -229,7 +229,7 @@ export class ViewFactory {
     });
   }
 
-  protected _resolveDisplayMode(
+  private _resolveDisplayMode(
     viewName: AdvancedCameraCardView,
     config: AdvancedCameraCardConfig,
     options?: ViewFactoryOptions,
@@ -247,7 +247,7 @@ export class ViewFactory {
     );
   }
 
-  protected _getConfiguredDisplayMode(
+  private _getConfiguredDisplayMode(
     viewName: AdvancedCameraCardView,
     config: AdvancedCameraCardConfig,
   ): ViewDisplayMode | null {

@@ -20,7 +20,7 @@ export class AdvancedCameraCardSubmenu extends LitElement {
   @property({ attribute: false })
   public items?: SubmenuItem[];
 
-  protected _renderItem(item: SubmenuItem): TemplateResult | void {
+  private _renderItem(item: SubmenuItem): TemplateResult | void {
     if (!this.hass) {
       return;
     }

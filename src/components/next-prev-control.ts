@@ -27,7 +27,7 @@ export class AdvancedCameraCardNextPreviousControl extends LitElement {
   public hass?: HomeAssistant;
 
   @state()
-  protected _controlConfig?: NextPreviousControlConfig;
+  private _controlConfig?: NextPreviousControlConfig;
 
   @property({ attribute: false })
   public thumbnail?: string;
@@ -41,7 +41,7 @@ export class AdvancedCameraCardNextPreviousControl extends LitElement {
   // Label that is used for ARIA support and as tooltip.
   @property() label = '';
 
-  protected _embedThumbnailTask = createFetchThumbnailTask(
+  private _embedThumbnailTask = createFetchThumbnailTask(
     this,
     () => this.hass,
     () => this.thumbnail,

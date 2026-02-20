@@ -51,7 +51,7 @@ export interface MenuButtonControllerOptions {
 
 export class MenuButtonController {
   // Array of dynamic menu buttons to be added to menu.
-  protected _dynamicMenuButtons: MenuItem[] = [];
+  private _dynamicMenuButtons: MenuItem[] = [];
 
   public addDynamicMenuButton(button: MenuItem): void {
     if (!this._dynamicMenuButtons.includes(button)) {
@@ -128,7 +128,7 @@ export class MenuButtonController {
     ].filter(isTruthy);
   }
 
-  protected _getIrisButton(config: AdvancedCameraCardConfig): MenuItem {
+  private _getIrisButton(config: AdvancedCameraCardConfig): MenuItem {
     return {
       icon: 'iris',
       ...config.menu.buttons.iris,
@@ -145,7 +145,7 @@ export class MenuButtonController {
     };
   }
 
-  protected _getCamerasButton(
+  private _getCamerasButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
@@ -180,7 +180,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getSubstreamsButton(
+  private _getSubstreamsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
@@ -243,7 +243,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getLiveButton(
+  private _getLiveButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
@@ -261,7 +261,7 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getClipsButton(
+  private _getClipsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
@@ -280,7 +280,7 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getSnapshotsButton(
+  private _getSnapshotsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
@@ -299,7 +299,7 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getRecordingsButton(
+  private _getRecordingsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
@@ -318,7 +318,7 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getReviewsButton(
+  private _getReviewsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
@@ -337,7 +337,7 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getGalleryButton(
+  private _getGalleryButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
@@ -356,7 +356,7 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getImageButton(
+  private _getImageButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
@@ -374,7 +374,7 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getTimelineButton(
+  private _getTimelineButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
@@ -392,7 +392,7 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getDownloadButton(
+  private _getDownloadButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
@@ -414,7 +414,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getInfoButton(
+  private _getInfoButton(
     config: AdvancedCameraCardConfig,
     _cameraManager: CameraManager,
     view?: View | null,
@@ -435,7 +435,7 @@ export class MenuButtonController {
     };
   }
 
-  protected _getSetReviewButton(
+  private _getSetReviewButton(
     config: AdvancedCameraCardConfig,
     view?: View | null,
   ): MenuItem | null {
@@ -460,7 +460,7 @@ export class MenuButtonController {
     };
   }
 
-  protected _getCameraUIButton(
+  private _getCameraUIButton(
     config: AdvancedCameraCardConfig,
     showCameraUIButton?: boolean,
   ): MenuItem | null {
@@ -475,7 +475,7 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getMicrophoneButton(
+  private _getMicrophoneButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
@@ -519,7 +519,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getExpandButton(
+  private _getExpandButton(
     config: AdvancedCameraCardConfig,
     inExpandedMode?: boolean,
   ): MenuItem {
@@ -533,7 +533,7 @@ export class MenuButtonController {
     };
   }
 
-  protected _getFullscreenButton(
+  private _getFullscreenButton(
     config: AdvancedCameraCardConfig,
     fullscreenManager?: FullscreenManager | null,
   ): MenuItem | null {
@@ -550,7 +550,7 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getCastButton(
+  private _getCastButton(
     hass: HomeAssistant,
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
@@ -599,7 +599,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getPlayPauseButton(
+  private _getPlayPauseButton(
     config: AdvancedCameraCardConfig,
     currentMediaLoadedInfo?: MediaLoadedInfo | null,
   ): MenuItem | null {
@@ -620,7 +620,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getMuteUnmuteButton(
+  private _getMuteUnmuteButton(
     config: AdvancedCameraCardConfig,
     currentMediaLoadedInfo?: MediaLoadedInfo | null,
   ): MenuItem | null {
@@ -641,7 +641,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getScreenshotButton(
+  private _getScreenshotButton(
     config: AdvancedCameraCardConfig,
     currentMediaLoadedInfo?: MediaLoadedInfo | null,
   ): MenuItem | null {
@@ -657,7 +657,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getDisplayModeButton(
+  private _getDisplayModeButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
@@ -686,7 +686,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getPTZControlsButton(
+  private _getPTZControlsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
@@ -723,7 +723,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getPTZHomeButton(
+  private _getPTZHomeButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
@@ -754,7 +754,7 @@ export class MenuButtonController {
     };
   }
 
-  protected _getFoldersButton(
+  private _getFoldersButton(
     config: AdvancedCameraCardConfig,
     foldersManager?: FoldersManager | null,
     view?: View | null,
@@ -808,7 +808,7 @@ export class MenuButtonController {
    * Get the style of emphasized menu items.
    * @returns A StyleInfo.
    */
-  protected _getEmphasizedStyle(critical?: boolean): StyleInfo {
+  private _getEmphasizedStyle(critical?: boolean): StyleInfo {
     if (critical) {
       return {
         animation: 'pulse 3s infinite',
@@ -826,7 +826,7 @@ export class MenuButtonController {
    * @param button The button to examine.
    * @returns A StyleInfo object.
    */
-  protected _getStyleFromActions(
+  private _getStyleFromActions(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,

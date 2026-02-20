@@ -103,7 +103,7 @@ export class AdvancedCameraCardElementsCore extends LitElement {
    * Create the root node for our picture elements.
    * @returns The newly created root.
    */
-  protected _createRoot(): HuiConditionalElement {
+  private _createRoot(): HuiConditionalElement {
     const elementConstructor = customElements.get('hui-conditional-element');
     if (!elementConstructor || !this.hass) {
       throw new Error(localize('error.could_not_render_elements'));
@@ -201,7 +201,7 @@ export class AdvancedCameraCardElements extends LitElement {
   @property({ attribute: false })
   public conditionStateManager?: ConditionStateManager;
 
-  protected _addHandler(
+  private _addHandler(
     target: EventTarget,
     eventName: string,
     handler: (ev: Event) => void,
@@ -211,7 +211,7 @@ export class AdvancedCameraCardElements extends LitElement {
     target.addEventListener(eventName, handler);
   }
 
-  protected _menuRemoveHandler = (ev: Event): void => {
+  private _menuRemoveHandler = (ev: Event): void => {
     // Re-dispatch event from this element (instead of the disconnected one, as
     // there is no parent of the disconnected element).
     fireAdvancedCameraCardEvent<MenuItem>(
@@ -221,7 +221,7 @@ export class AdvancedCameraCardElements extends LitElement {
     );
   };
 
-  protected _statusBarRemoveHandler = (ev: Event): void => {
+  private _statusBarRemoveHandler = (ev: Event): void => {
     // Re-dispatch event from this element (instead of the disconnected one, as
     // there is no parent of the disconnected element).
     fireAdvancedCameraCardEvent<StatusBarItem>(
@@ -231,7 +231,7 @@ export class AdvancedCameraCardElements extends LitElement {
     );
   };
 
-  protected _menuAddHandler = (ev: Event): void => {
+  private _menuAddHandler = (ev: Event): void => {
     ev = ev as CustomEvent<MenuItem>;
     const path = ev.composedPath();
     if (!path.length) {
@@ -244,7 +244,7 @@ export class AdvancedCameraCardElements extends LitElement {
     );
   };
 
-  protected _statusBarAddHandler = (ev: Event): void => {
+  private _statusBarAddHandler = (ev: Event): void => {
     ev = ev as CustomEvent<MenuItem>;
     const path = ev.composedPath();
     if (!path.length) {
@@ -299,8 +299,8 @@ export class AdvancedCameraCardElements extends LitElement {
  */
 @customElement('advanced-camera-card-conditional')
 export class AdvancedCameraCardElementsConditional extends LitElement {
-  protected _config?: AdvancedCameraCardConditional;
-  protected _conditionManager: ConditionsManager | null = null;
+  private _config?: AdvancedCameraCardConditional;
+  private _conditionManager: ConditionsManager | null = null;
 
   // A note on hass as an update mechanism:
   //
@@ -344,7 +344,7 @@ export class AdvancedCameraCardElementsConditional extends LitElement {
     super.disconnectedCallback();
   }
 
-  protected _createConditionManager(): void {
+  private _createConditionManager(): void {
     const conditionStateManager = getConditionStateManagerViaEvent(this);
     if (!this._config || !conditionStateManager) {
       return;

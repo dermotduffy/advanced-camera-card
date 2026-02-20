@@ -14,9 +14,9 @@ import { ViewItemClassifier } from '../view/item-classifier';
 import { CardMediaPlayerAPI } from './types';
 
 export class MediaPlayerManager {
-  protected _mediaPlayers: string[] = [];
+  private _mediaPlayers: string[] = [];
 
-  protected _api: CardMediaPlayerAPI;
+  private _api: CardMediaPlayerAPI;
 
   constructor(api: CardMediaPlayerAPI) {
     this._api = api;
@@ -128,7 +128,7 @@ export class MediaPlayerManager {
     }
   }
 
-  protected async _playLiveStandard(
+  private async _playLiveStandard(
     mediaPlayer: string,
     cameraID: string,
     cameraConfig: CameraConfig,
@@ -155,7 +155,7 @@ export class MediaPlayerManager {
     });
   }
 
-  protected async _playLiveDashboard(
+  private async _playLiveDashboard(
     mediaPlayer: string,
     cameraConfig: CameraConfig,
   ): Promise<void> {

@@ -71,15 +71,15 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   public viewFilterCameraID?: string;
 
   // Index between camera name and slide number.
-  protected _cameraToSlide: Record<string, number> = {};
-  protected _refPTZControl: Ref<AdvancedCameraCardPTZ> = createRef();
-  protected _refCarousel: Ref<HTMLElement> = createRef();
+  private _cameraToSlide: Record<string, number> = {};
+  private _refPTZControl: Ref<AdvancedCameraCardPTZ> = createRef();
+  private _refCarousel: Ref<HTMLElement> = createRef();
 
-  protected _mediaActionsController = new MediaActionsController();
-  protected _mediaHeightController = new MediaHeightController(this, '.embla__slide');
+  private _mediaActionsController = new MediaActionsController();
+  private _mediaHeightController = new MediaHeightController(this, '.embla__slide');
 
   @state()
-  protected _mediaHasLoaded = false;
+  private _mediaHasLoaded = false;
 
   public connectedCallback(): void {
     super.connectedCallback();
@@ -96,11 +96,11 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     super.disconnectedCallback();
   }
 
-  protected _getTransitionEffect(): TransitionEffect {
+  private _getTransitionEffect(): TransitionEffect {
     return this.liveConfig?.transition_effect ?? configDefaults.live.transition_effect;
   }
 
-  protected _getSelectedCameraIndex(): number {
+  private _getSelectedCameraIndex(): number {
     if (this.viewFilterCameraID) {
       // If the carousel is limited to a single cameraID, the first (only)
       // element is always the selected one.
@@ -140,7 +140,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     }
   }
 
-  protected _getPlugins(): EmblaCarouselPlugins {
+  private _getPlugins(): EmblaCarouselPlugins {
     return [AutoMediaLoadedInfo()];
   }
 
@@ -151,12 +151,12 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
    * should load simultaneously.
    * @returns
    */
-  protected _getLazyLoadCount(): number | null {
+  private _getLazyLoadCount(): number | null {
     // Defaults to fully-lazy loading.
     return this.liveConfig?.lazy_load === false ? null : 0;
   }
 
-  protected _getSlides(): [TemplateResult[], Record<string, number>] {
+  private _getSlides(): [TemplateResult[], Record<string, number>] {
     if (!this.cameraManager) {
       return [[], {}];
     }
@@ -179,14 +179,14 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     return [slides, cameraToSlide];
   }
 
-  protected _setViewHandler(ev: CustomEvent<CarouselSelected>): void {
+  private _setViewHandler(ev: CustomEvent<CarouselSelected>): void {
     const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
     if (cameraIDs?.size && ev.detail.index !== this._getSelectedCameraIndex()) {
       this._setViewCameraID([...cameraIDs][ev.detail.index]);
     }
   }
 
-  protected _setViewCameraID(cameraID?: string | null): void {
+  private _setViewCameraID(cameraID?: string | null): void {
     if (cameraID) {
       this.viewManagerEpoch?.manager.setViewByParametersWithNewQuery({
         params: {
@@ -196,7 +196,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     }
   }
 
-  protected _renderLive(cameraID: string): TemplateResult | void {
+  private _renderLive(cameraID: string): TemplateResult | void {
     const camera = this.cameraManager?.getStore().getCamera(cameraID);
     if (!this.liveConfig || !this.hass || !this.cameraManager || !camera) {
       return;
@@ -233,11 +233,11 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     `;
   }
 
-  protected _getSubstreamCameraID(cameraID: string, view?: View | null): string {
+  private _getSubstreamCameraID(cameraID: string, view?: View | null): string {
     return view?.context?.live?.overrides?.get(cameraID) ?? cameraID;
   }
 
-  protected _getCameraNeighbors(): CameraNeighbors | null {
+  private _getCameraNeighbors(): CameraNeighbors | null {
     const cameraIDs = this.cameraManager
       ? [...this.cameraManager?.getStore().getCameraIDsWithCapability('live')]
       : [];
@@ -279,7 +279,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     };
   }
 
-  protected _renderNextPrevious(
+  private _renderNextPrevious(
     side: 'left' | 'right',
     neighbors: CameraNeighbors | null,
   ): TemplateResult {
@@ -370,7 +370,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     `;
   }
 
-  protected _setMediaTarget(): void {
+  private _setMediaTarget(): void {
     const view = this.viewManagerEpoch?.manager.getView();
     const selectedCameraIndex = this._getSelectedCameraIndex();
 

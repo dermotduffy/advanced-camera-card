@@ -36,16 +36,16 @@ type MediaActionsTarget = {
 };
 
 export class MediaActionsController {
-  protected _options: MediaActionsControllerOptions | null = null;
-  protected _viewportIntersecting: boolean | null = null;
-  protected _microphoneMuteTimer = new Timer();
-  protected _root: RenderRoot | null = null;
+  private _options: MediaActionsControllerOptions | null = null;
+  private _viewportIntersecting: boolean | null = null;
+  private _microphoneMuteTimer = new Timer();
+  private _root: RenderRoot | null = null;
 
-  protected _eventListeners = new Map<HTMLElement, () => void>();
-  protected _children: MediaPlayerElement[] = [];
-  protected _target: MediaActionsTarget | null = null;
-  protected _mutationObserver = new MutationObserver(this._mutationHandler.bind(this));
-  protected _intersectionObserver = new IntersectionObserver(
+  private _eventListeners = new Map<HTMLElement, () => void>();
+  private _children: MediaPlayerElement[] = [];
+  private _target: MediaActionsTarget | null = null;
+  private _mutationObserver = new MutationObserver(this._mutationHandler.bind(this));
+  private _intersectionObserver = new IntersectionObserver(
     this._intersectionHandler.bind(this),
   );
 
@@ -110,7 +110,7 @@ export class MediaActionsController {
     this._target = null;
   }
 
-  protected async _playTargetIfConfigured(condition: AutoPlayCondition): Promise<void> {
+  private async _playTargetIfConfigured(condition: AutoPlayCondition): Promise<void> {
     if (
       this._target !== null &&
       this._options?.autoPlayConditions?.includes(condition)
@@ -118,10 +118,10 @@ export class MediaActionsController {
       await this._play(this._target.index);
     }
   }
-  protected async _play(index: number): Promise<void> {
+  private async _play(index: number): Promise<void> {
     await (await this._children[index]?.getMediaPlayerController())?.play();
   }
-  protected async _unmuteTargetIfConfigured(
+  private async _unmuteTargetIfConfigured(
     condition: AutoUnmuteCondition,
   ): Promise<void> {
     if (
@@ -131,20 +131,18 @@ export class MediaActionsController {
       await this._unmute(this._target.index);
     }
   }
-  protected async _unmute(index: number): Promise<void> {
+  private async _unmute(index: number): Promise<void> {
     await (await this._children[index]?.getMediaPlayerController())?.unmute();
   }
 
-  protected async _pauseAllIfConfigured(condition: AutoPauseCondition): Promise<void> {
+  private async _pauseAllIfConfigured(condition: AutoPauseCondition): Promise<void> {
     if (this._options?.autoPauseConditions?.includes(condition)) {
       for (const index of this._children.keys()) {
         await this._pause(index);
       }
     }
   }
-  protected async _pauseTargetIfConfigured(
-    condition: AutoPauseCondition,
-  ): Promise<void> {
+  private async _pauseTargetIfConfigured(condition: AutoPauseCondition): Promise<void> {
     if (
       this._target !== null &&
       this._options?.autoPauseConditions?.includes(condition)
@@ -152,18 +150,18 @@ export class MediaActionsController {
       await this._pause(this._target.index);
     }
   }
-  protected async _pause(index: number): Promise<void> {
+  private async _pause(index: number): Promise<void> {
     await (await this._children[index]?.getMediaPlayerController())?.pause();
   }
 
-  protected async _muteAllIfConfigured(condition: AutoMuteCondition): Promise<void> {
+  private async _muteAllIfConfigured(condition: AutoMuteCondition): Promise<void> {
     if (this._options?.autoMuteConditions?.includes(condition)) {
       for (const index of this._children.keys()) {
         await this._mute(index);
       }
     }
   }
-  protected async _muteTargetIfConfigured(condition: AutoMuteCondition): Promise<void> {
+  private async _muteTargetIfConfigured(condition: AutoMuteCondition): Promise<void> {
     if (
       this._target !== null &&
       this._options?.autoMuteConditions?.includes(condition)
@@ -171,11 +169,11 @@ export class MediaActionsController {
       await this._mute(this._target.index);
     }
   }
-  protected async _mute(index: number): Promise<void> {
+  private async _mute(index: number): Promise<void> {
     await (await this._children[index]?.getMediaPlayerController())?.mute();
   }
 
-  protected _mutationHandler(
+  private _mutationHandler(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _mutations: MutationRecord[],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -184,7 +182,7 @@ export class MediaActionsController {
     this._initializeRoot();
   }
 
-  protected _mediaLoadedHandler = async (index: number): Promise<void> => {
+  private _mediaLoadedHandler = async (index: number): Promise<void> => {
     if (this._target?.index !== index) {
       return;
     }
@@ -192,7 +190,7 @@ export class MediaActionsController {
     await this._playTargetIfConfigured(this._target.selected ? 'selected' : 'visible');
   };
 
-  protected _removeChildHandlers(): void {
+  private _removeChildHandlers(): void {
     for (const [child, callback] of this._eventListeners.entries()) {
       child.removeEventListener('advanced-camera-card:media:loaded', callback);
     }
@@ -216,7 +214,7 @@ export class MediaActionsController {
     return true;
   }
 
-  protected _initializeRoot(): void {
+  private _initializeRoot(): void {
     if (!this._options || !this._root) {
       return;
     }
@@ -234,7 +232,7 @@ export class MediaActionsController {
     }
   }
 
-  protected async _intersectionHandler(
+  private async _intersectionHandler(
     entries: IntersectionObserverEntry[],
   ): Promise<void> {
     const wasIntersecting = this._viewportIntersecting;
@@ -248,11 +246,11 @@ export class MediaActionsController {
     }
   }
 
-  protected _visibilityHandler = async (): Promise<void> => {
+  private _visibilityHandler = async (): Promise<void> => {
     await this._changeVisibility(document.visibilityState === 'visible');
   };
 
-  protected _changeVisibility = async (visible: boolean): Promise<void> => {
+  private _changeVisibility = async (visible: boolean): Promise<void> => {
     if (visible) {
       await this._unmuteTargetIfConfigured('visible');
       await this._playTargetIfConfigured('visible');
@@ -262,7 +260,7 @@ export class MediaActionsController {
     }
   };
 
-  protected async _microphoneStateChangeHandler(
+  private async _microphoneStateChangeHandler(
     oldState?: MicrophoneState,
     newState?: MicrophoneState,
   ): Promise<void> {

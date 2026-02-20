@@ -4,8 +4,8 @@ import { View } from '../../../view/view';
 import { ViewModifier } from '../types';
 
 export class SetQueryViewModifier implements ViewModifier {
-  protected _query?: UnifiedQuery | null;
-  protected _queryResults?: QueryResults | null;
+  private _query?: UnifiedQuery | null;
+  private _queryResults?: QueryResults | null;
 
   constructor(options?: {
     query?: UnifiedQuery | null;

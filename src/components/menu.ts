@@ -16,7 +16,7 @@ import './submenu/submenu-button';
 
 @customElement('advanced-camera-card-menu')
 export class AdvancedCameraCardMenu extends LitElement {
-  protected _controller = new MenuController(this);
+  private _controller = new MenuController(this);
 
   @property({ attribute: false })
   public entityRegistryManager?: EntityRegistryManager;
@@ -40,7 +40,7 @@ export class AdvancedCameraCardMenu extends LitElement {
     this._controller.toggleExpanded();
   }
 
-  protected _renderButton(button: MenuItem): TemplateResult | void {
+  private _renderButton(button: MenuItem): TemplateResult | void {
     if (!this.hass) {
       return;
     }
@@ -100,7 +100,7 @@ export class AdvancedCameraCardMenu extends LitElement {
    * specificity, so the most specific theme variable will match, followed by
    * the next most specific, etc.
    */
-  protected _renderPerInstanceStyle(): TemplateResult | void {
+  private _renderPerInstanceStyle(): TemplateResult | void {
     const config = this._controller.getMenuConfig();
     if (!config) {
       return;

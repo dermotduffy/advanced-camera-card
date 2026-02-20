@@ -15,7 +15,7 @@ interface MemoryRangeSetInterface<T> {
 }
 
 export class MemoryRangeSet implements MemoryRangeSetInterface<DateRange> {
-  protected _ranges: DateRange[];
+  private _ranges: DateRange[];
 
   constructor(ranges?: DateRange[]) {
     this._ranges = ranges ?? [];
@@ -44,7 +44,7 @@ export interface ExpiringRange<T extends Date | number> extends Range<T> {
 export class ExpiringMemoryRangeSet
   implements MemoryRangeSetInterface<ExpiringRange<Date>>
 {
-  protected _ranges: ExpiringRange<Date>[];
+  private _ranges: ExpiringRange<Date>[];
 
   constructor(ranges?: ExpiringRange<Date>[]) {
     this._ranges = ranges ?? [];
@@ -63,7 +63,7 @@ export class ExpiringMemoryRangeSet
     this._expireOldRanges();
   }
 
-  protected _expireOldRanges(): void {
+  private _expireOldRanges(): void {
     const now = new Date();
     this._ranges = this._ranges.filter((range) => now < range.expires);
   }

@@ -49,8 +49,8 @@ export class AdvancedCameraCardSelect extends ScopedRegistryHost(LitElement) {
   @property({ attribute: true, type: Boolean })
   public clearable?: boolean = false;
 
-  protected _previouslyReportedValue?: SelectValues;
-  protected _refSelect: Ref<SelectElement> = createRef();
+  private _previouslyReportedValue?: SelectValues;
+  private _refSelect: Ref<SelectElement> = createRef();
 
   static elementDefinitions = {
     ...grSelectElements,
@@ -61,7 +61,7 @@ export class AdvancedCameraCardSelect extends ScopedRegistryHost(LitElement) {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected _valueChangedHandler(_ev: CustomEvent<{ value: unknown }>): void {
+  private _valueChangedHandler(_ev: CustomEvent<{ value: unknown }>): void {
     const value: SelectValues | undefined = this._refSelect.value?.value;
     // The underlying gr-select element is very sensitive and occasionally fires
     // the change event even if the value has not actually changed. Prevent that

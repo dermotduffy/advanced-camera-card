@@ -9,7 +9,7 @@ export interface StateWatcherSubscriptionInterface {
 }
 
 export class StateWatcher implements StateWatcherSubscriptionInterface {
-  protected _watcherCallbacks = new Map<StateWatcherCallback, string[]>();
+  private _watcherCallbacks = new Map<StateWatcherCallback, string[]>();
 
   public setHASS(oldHass: HomeAssistant | null, hass: HomeAssistant): void {
     if (!oldHass) {

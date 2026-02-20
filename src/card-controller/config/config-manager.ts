@@ -18,19 +18,17 @@ import { setKeyboardShortcutsFromConfig } from './load-keyboard-shortcuts.js';
 import { OverridesManager } from './overrides-manager.js';
 
 export class ConfigManager {
-  protected _api: CardConfigAPI;
+  private _api: CardConfigAPI;
 
   // The main base configuration object. For most usecases use getConfig() to
   // get the correct configuration (which will return overrides as appropriate).
   // This variable must be called `_config` or `config` to be compatible with
   // card-mod.
-  protected _config: AdvancedCameraCardConfig | null = null;
-  protected _overriddenConfig: AdvancedCameraCardConfig | null = null;
-  protected _rawConfig: RawAdvancedCameraCardConfig | null = null;
-  protected _cardWideConfig: CardWideConfig | null = null;
-  protected _overridesManager = new OverridesManager(() =>
-    this._processOverrideConfig(),
-  );
+  private _config: AdvancedCameraCardConfig | null = null;
+  private _overriddenConfig: AdvancedCameraCardConfig | null = null;
+  private _rawConfig: RawAdvancedCameraCardConfig | null = null;
+  private _cardWideConfig: CardWideConfig | null = null;
+  private _overridesManager = new OverridesManager(() => this._processOverrideConfig());
 
   constructor(api: CardConfigAPI) {
     this._api = api;
@@ -123,7 +121,7 @@ export class ConfigManager {
     this._api.getCardElementManager().update();
   }
 
-  protected _processOverrideConfig(): void {
+  private _processOverrideConfig(): void {
     const overriddenConfig = this._getOverriddenConfig();
 
     // Save on Lit re-rendering costs by only updating the configuration if it
@@ -168,7 +166,7 @@ export class ConfigManager {
     /* async */ this._initializeBackgroundAndUpdate(previousConfig);
   }
 
-  protected _getOverriddenConfig(): AdvancedCameraCardConfig | null {
+  private _getOverriddenConfig(): AdvancedCameraCardConfig | null {
     /* istanbul ignore if: No (current) way to reach this code -- @preserve */
     if (!this._config) {
       return null;
@@ -186,7 +184,7 @@ export class ConfigManager {
    * Initialize config dependent items in the background. For items that the
    * card hard requires, use InitializationManager instead.
    */
-  protected async _initializeBackgroundAndUpdate(
+  private async _initializeBackgroundAndUpdate(
     previousConfig: AdvancedCameraCardConfig | null,
   ): Promise<void> {
     await this._api.getDefaultManager().initializeIfNecessary(previousConfig);

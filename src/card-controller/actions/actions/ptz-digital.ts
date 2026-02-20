@@ -29,9 +29,9 @@ declare module 'action' {
 }
 
 export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialActionConfig> {
-  protected _timer = new Timer();
+  private _timer = new Timer();
 
-  protected async _stepChange(api: CardActionsAPI, targetID: string): Promise<void> {
+  private async _stepChange(api: CardActionsAPI, targetID: string): Promise<void> {
     api.getViewManager().setViewWithMergedContext(
       generateViewContextForZoom(targetID, {
         requested: this._convertActionToZoomSettings(
@@ -80,9 +80,7 @@ export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialAction
     }
   }
 
-  protected _convertActionToZoomSettings(
-    base?: PartialZoomSettings,
-  ): PartialZoomSettings {
+  private _convertActionToZoomSettings(base?: PartialZoomSettings): PartialZoomSettings {
     if (!this._action.absolute && !this._action.ptz_action) {
       // If neither an absolute position nor an action are specified, the request
       // is assumed to be to return to default.

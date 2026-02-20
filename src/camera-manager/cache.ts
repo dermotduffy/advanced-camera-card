@@ -3,10 +3,10 @@ import { DateRange, MemoryRangeSet } from './range';
 import { RecordingSegment } from './types';
 
 class MemoryRangedCache<Data> {
-  protected _ranges: MemoryRangeSet = new MemoryRangeSet();
-  protected _data: Data[] = [];
-  protected _timeFunc: (data: Data) => number;
-  protected _idFunc: (data: Data) => string;
+  private _ranges: MemoryRangeSet = new MemoryRangeSet();
+  private _data: Data[] = [];
+  private _timeFunc: (data: Data) => number;
+  private _idFunc: (data: Data) => string;
 
   constructor(timeFunc: (data: Data) => number, idFunc: (data: Data) => string) {
     this._timeFunc = timeFunc;
@@ -60,7 +60,7 @@ class MemoryRangedCache<Data> {
 }
 
 export class RecordingSegmentsCache {
-  protected _segments: Map<string, MemoryRangedCache<RecordingSegment>> = new Map();
+  private _segments: Map<string, MemoryRangedCache<RecordingSegment>> = new Map();
 
   public add(cameraID: string, range: DateRange, segments: RecordingSegment[]) {
     let cameraSegmentCache: MemoryRangedCache<RecordingSegment> | undefined =

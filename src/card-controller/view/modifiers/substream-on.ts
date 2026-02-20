@@ -8,7 +8,7 @@ interface SubstreamOnViewModifierAPI {
 }
 
 export class SubstreamOnViewModifier implements ViewModifier {
-  protected _api: SubstreamOnViewModifierAPI;
+  private _api: SubstreamOnViewModifierAPI;
 
   constructor(api: SubstreamOnViewModifierAPI) {
     this._api = api;

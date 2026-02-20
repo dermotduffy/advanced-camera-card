@@ -48,19 +48,19 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
     'advanced-camera-card-date-picker': AdvancedCameraCardDatePicker,
   };
 
-  protected _mediaFilterController = new MediaFilterController(this);
+  private _mediaFilterController = new MediaFilterController(this);
 
-  protected _refMediaType: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refCamera: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refWhen: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refWhenFrom: Ref<AdvancedCameraCardDatePicker> = createRef();
-  protected _refWhenTo: Ref<AdvancedCameraCardDatePicker> = createRef();
-  protected _refWhat: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refWhere: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refFavorite: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refReviewed: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refSeverity: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refTags: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refMediaType: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refCamera: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refWhen: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refWhenFrom: Ref<AdvancedCameraCardDatePicker> = createRef();
+  private _refWhenTo: Ref<AdvancedCameraCardDatePicker> = createRef();
+  private _refWhat: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refWhere: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refFavorite: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refReviewed: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refSeverity: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refTags: Ref<AdvancedCameraCardSelect> = createRef();
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('viewManagerEpoch')) {

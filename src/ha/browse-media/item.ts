@@ -45,9 +45,9 @@ const getIcon = (mediaClass: string): string | null => {
 };
 
 export class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMedia {
-  protected _browseMedia: RichBrowseMedia<BrowseMediaMetadata | undefined>;
-  protected _id: string;
-  protected _icon: string | null;
+  private _browseMedia: RichBrowseMedia<BrowseMediaMetadata | undefined>;
+  private _id: string;
+  private _icon: string | null;
 
   constructor(
     mediaType: ViewMediaType,

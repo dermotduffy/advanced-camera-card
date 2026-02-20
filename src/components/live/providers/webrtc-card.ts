@@ -59,11 +59,11 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
   public controls = false;
 
   @state()
-  protected _message: Message | null = null;
+  private _message: Message | null = null;
 
-  protected hass?: HomeAssistant;
+  private hass?: HomeAssistant;
 
-  protected _mediaPlayerController = new VideoMediaPlayerController(
+  private _mediaPlayerController = new VideoMediaPlayerController(
     this,
     () => this._getVideo(),
     () => this.controls,
@@ -74,7 +74,7 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
   }
 
   // A task to await the load of the WebRTC component.
-  protected _webrtcTask = new Task(this, this._getWebRTCCardElement, () => [1]);
+  private _webrtcTask = new Task(this, this._getWebRTCCardElement, () => [1]);
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -97,7 +97,7 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
     }
   }
 
-  protected _getVideoRTC(): VideoRTC | null {
+  private _getVideoRTC(): VideoRTC | null {
     return (this.renderRoot?.querySelector('#webrtc') ?? null) as VideoRTC | null;
   }
 
@@ -105,13 +105,11 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
    * Get the underlying video player.
    * @returns The player or `null` if not found.
    */
-  protected _getVideo(): HTMLVideoElement | null {
+  private _getVideo(): HTMLVideoElement | null {
     return this._getVideoRTC()?.video ?? null;
   }
 
-  protected async _getWebRTCCardElement(): Promise<
-    CustomElementConstructor | undefined
-  > {
+  private async _getWebRTCCardElement(): Promise<CustomElementConstructor | undefined> {
     await customElements.whenDefined('webrtc-camera');
     return customElements.get('webrtc-camera');
   }
@@ -119,7 +117,7 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
   /**
    * Create the WebRTC element. May throw.
    */
-  protected _createWebRTC(): HTMLElement | null {
+  private _createWebRTC(): HTMLElement | null {
     const webrtcElement = this._webrtcTask.value;
     if (webrtcElement && this.hass && this.cameraConfig) {
       const webrtc = new webrtcElement() as HTMLElement & {

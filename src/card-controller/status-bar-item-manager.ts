@@ -9,14 +9,14 @@ import { CardStatusBarAPI } from './types';
 const RESOLUTION_TOLERANCE_PCT = 0.01;
 
 export class StatusBarItemManager {
-  protected _api: CardStatusBarAPI;
+  private _api: CardStatusBarAPI;
 
   constructor(api: CardStatusBarAPI) {
     this._api = api;
   }
 
-  protected _items: StatusBarItem[] = [];
-  protected _dynamicItems: StatusBarItem[] = [];
+  private _items: StatusBarItem[] = [];
+  private _dynamicItems: StatusBarItem[] = [];
 
   public addDynamicStatusBarItem(item: StatusBarItem): void {
     if (!this._dynamicItems.includes(item)) {
@@ -128,7 +128,7 @@ export class StatusBarItemManager {
     ];
   }
 
-  protected _matchesWidthHeight(
+  private _matchesWidthHeight(
     mediaLoadedInfo: MediaLoadedInfo | null,
     width: number,
     height: number,
@@ -153,7 +153,7 @@ export class StatusBarItemManager {
     );
   }
 
-  protected _calculateResolution(mediaLoadedInfo: MediaLoadedInfo): string {
+  private _calculateResolution(mediaLoadedInfo: MediaLoadedInfo): string {
     // Ordered roughly by a guess at most common towards the top.
     if (this._matchesWidthHeight(mediaLoadedInfo, 1920, 1080)) {
       return '1080p';

@@ -3,11 +3,11 @@ import { Timer } from '../utils/timer';
 import { CardMicrophoneAPI, MicrophoneState } from './types';
 
 export class MicrophoneManager {
-  protected _api: CardMicrophoneAPI;
-  protected _stream?: MediaStream | null;
-  protected _timer = new Timer();
+  private _api: CardMicrophoneAPI;
+  private _stream?: MediaStream | null;
+  private _timer = new Timer();
 
-  protected _state: MicrophoneState = {
+  private _state: MicrophoneState = {
     connected: false,
     muted: true,
     forbidden: false,
@@ -16,7 +16,7 @@ export class MicrophoneManager {
   // We keep desired mute state separate from the overall state so that
   // mute/unmute can be expressed before the stream is even created -- and when
   // it's created it will have the right mute status.
-  protected _desireMute = true;
+  private _desireMute = true;
 
   constructor(api: CardMicrophoneAPI) {
     this._api = api;
@@ -115,7 +115,7 @@ export class MicrophoneManager {
     return !this._stream || this._stream.getTracks().every((track) => !track.enabled);
   }
 
-  protected _setDesiredMuteOnStream(): void {
+  private _setDesiredMuteOnStream(): void {
     this._stream?.getTracks().forEach((track) => {
       track.enabled = !this._desireMute;
     });
@@ -123,7 +123,7 @@ export class MicrophoneManager {
     this._startDisconnectTimer();
   }
 
-  protected _startDisconnectTimer(): void {
+  private _startDisconnectTimer(): void {
     const microphoneConfig = this._api.getConfigManager().getConfig()?.live.microphone;
 
     if (microphoneConfig?.always_connected) {
@@ -139,7 +139,7 @@ export class MicrophoneManager {
     }
   }
 
-  protected _setState(): void {
+  private _setState(): void {
     this._state = {
       stream: this._stream,
       connected: this.isConnected(),

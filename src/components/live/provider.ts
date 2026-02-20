@@ -62,17 +62,17 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   public zoomSettings?: PartialZoomSettings | null;
 
   @state()
-  protected _isVideoMediaLoaded = false;
+  private _isVideoMediaLoaded = false;
 
   @state()
-  protected _hasProviderError = false;
+  private _hasProviderError = false;
 
   @state()
-  protected _showStreamTroubleshooting = false;
+  private _showStreamTroubleshooting = false;
 
-  protected _refProvider: Ref<MediaPlayerElement> = createRef();
+  private _refProvider: Ref<MediaPlayerElement> = createRef();
 
-  protected _lazyLoadController: LazyLoadController = new LazyLoadController(this);
+  private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
   // A note on dynamic imports:
   //
@@ -84,7 +84,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   // Test case: A card with a non-live view, but live pre-loaded, attempts to
   // call mute() when the <advanced-camera-card-live> element first renders in
   // the background. These calls fail without waiting for loading here.
-  protected _importPromises: Promise<unknown>[] = [];
+  private _importPromises: Promise<unknown>[] = [];
 
   constructor() {
     super();
@@ -106,7 +106,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
    * whilst loading.
    * @returns`true` if an image should be shown.
    */
-  protected _shouldShowImageDuringLoading(): boolean {
+  private _shouldShowImageDuringLoading(): boolean {
     return (
       !this._isVideoMediaLoaded &&
       !!this.camera?.getConfig()?.camera_entity &&
@@ -123,12 +123,12 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     super.disconnectedCallback();
   }
 
-  protected _videoMediaShowHandler(): void {
+  private _videoMediaShowHandler(): void {
     this._isVideoMediaLoaded = true;
     this._showStreamTroubleshooting = false;
   }
 
-  protected _providerErrorHandler(): void {
+  private _providerErrorHandler(): void {
     this._hasProviderError = true;
   }
 
@@ -177,7 +177,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     return result;
   }
 
-  protected _renderContainer(template: TemplateResult): TemplateResult {
+  private _renderContainer(template: TemplateResult): TemplateResult {
     const config = this.camera?.getConfig();
     const intermediateTemplate = html` <advanced-camera-card-media-dimensions-container
       .dimensionsConfig=${config?.dimensions}

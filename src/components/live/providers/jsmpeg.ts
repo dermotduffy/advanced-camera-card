@@ -39,7 +39,7 @@ const JSMPEG_URL_SIGN_REFRESH_THRESHOLD_SECONDS = 1 * 60 * 60;
 
 @customElement('advanced-camera-card-live-jsmpeg')
 export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPlayer {
-  protected hass?: HomeAssistant;
+  private hass?: HomeAssistant;
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
@@ -51,13 +51,13 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
   public cardWideConfig?: CardWideConfig;
 
   @state()
-  protected _message: Message | null = null;
+  private _message: Message | null = null;
 
-  protected _jsmpegCanvasElement?: HTMLCanvasElement;
-  protected _jsmpegVideoPlayer?: JSMpeg.VideoElement;
-  protected _refreshPlayerTimer = new Timer();
+  private _jsmpegCanvasElement?: HTMLCanvasElement;
+  private _jsmpegVideoPlayer?: JSMpeg.VideoElement;
+  private _refreshPlayerTimer = new Timer();
 
-  protected _mediaPlayerController = new JSMPEGMediaPlayerController(
+  private _mediaPlayerController = new JSMPEGMediaPlayerController(
     this,
     () => this._jsmpegVideoPlayer ?? null,
     () => this._jsmpegCanvasElement ?? null,
@@ -75,7 +75,7 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     }
   }
 
-  protected async _createJSMPEGPlayer(url: string): Promise<JSMpeg.VideoElement> {
+  private async _createJSMPEGPlayer(url: string): Promise<JSMpeg.VideoElement> {
     this._jsmpegVideoPlayer = await new Promise<JSMpeg.VideoElement>((resolve) => {
       let videoDecoded = false;
       const player = new JSMpeg.VideoElement(
@@ -132,7 +132,7 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     }
   }
 
-  protected _resetPlayer(): void {
+  private _resetPlayer(): void {
     this._message = null;
     this._refreshPlayerTimer.stop();
     if (this._jsmpegVideoPlayer) {
@@ -164,7 +164,7 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     super.disconnectedCallback();
   }
 
-  protected async _refreshPlayer(): Promise<void> {
+  private async _refreshPlayer(): Promise<void> {
     if (!this.hass) {
       return;
     }

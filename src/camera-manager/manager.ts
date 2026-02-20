@@ -129,10 +129,10 @@ interface ExtendedMediaQueryResult<T extends MediaQuery> {
 }
 
 export class CameraManager {
-  protected _api: CardCameraAPI;
-  protected _engineFactory: CameraManagerEngineFactory;
-  protected _store: CameraManagerStore;
-  protected _requestLimit = new PQueue();
+  private _api: CardCameraAPI;
+  private _engineFactory: CameraManagerEngineFactory;
+  private _store: CameraManagerStore;
+  private _requestLimit = new PQueue();
 
   constructor(
     api: CardCameraAPI,
@@ -185,7 +185,7 @@ export class CameraManager {
     await this._store.reset();
   }
 
-  protected async _getEnginesForCameras(
+  private async _getEnginesForCameras(
     camerasConfig: CameraConfig[],
   ): Promise<Map<CameraConfig, CameraManagerEngine>> {
     const output: Map<CameraConfig, CameraManagerEngine> = new Map();
@@ -228,7 +228,7 @@ export class CameraManager {
     return output;
   }
 
-  protected async _initializeCameras(camerasConfig: CameraConfig[]): Promise<void> {
+  private async _initializeCameras(camerasConfig: CameraConfig[]): Promise<void> {
     const initializationStartTime = new Date();
     const hass = this._api.getHASSManager().getHASS();
 
@@ -364,7 +364,7 @@ export class CameraManager {
     });
   }
 
-  protected _generateDefaultQueries<PQT extends PartialCameraQuery>(
+  private _generateDefaultQueries<PQT extends PartialCameraQuery>(
     cameraIDs: string | Set<string>,
     partialQuery: PQT,
   ): PartialQueryConcreteType<PQT>[] | null {
@@ -481,7 +481,7 @@ export class CameraManager {
    * properties (other than cameraIDs). This preserves multi-camera batching for
    * engines like Frigate that support querying multiple cameras at once.
    */
-  protected _mergeCompatibleQueries<T extends CameraQuery>(queries: T[]): T[] {
+  private _mergeCompatibleQueries<T extends CameraQuery>(queries: T[]): T[] {
     if (queries.length <= 1) {
       return queries;
     }
@@ -720,7 +720,7 @@ export class CameraManager {
     );
   }
 
-  protected async _handleQuery<QT extends CameraQuery>(
+  private async _handleQuery<QT extends CameraQuery>(
     query: QT | QT[],
     engineOptions?: EngineOptions,
   ): Promise<Map<QT, QueryReturnType<QT>>> {
@@ -821,7 +821,7 @@ export class CameraManager {
     return results;
   }
 
-  protected _convertQueryResultsToMedia<QT extends CameraQuery>(
+  private _convertQueryResultsToMedia<QT extends CameraQuery>(
     results: ResultsMap<QT>,
   ): ViewMedia[] {
     const mediaArray: ViewMedia[] = [];

@@ -27,10 +27,10 @@ interface CameraTriggerState {
 }
 
 export class TriggersManager {
-  protected _api: CardTriggersAPI;
-  protected _states: Map<string, CameraTriggerState> = new Map();
+  private _api: CardTriggersAPI;
+  private _states: Map<string, CameraTriggerState> = new Map();
 
-  protected _throttledTriggerAction = throttle(this._triggerAction.bind(this), 1000, {
+  private _throttledTriggerAction = throttle(this._triggerAction.bind(this), 1000, {
     trailing: true,
   });
 
@@ -149,7 +149,7 @@ export class TriggersManager {
     return true;
   }
 
-  protected async _handleEndEvent(ev: CameraEvent): Promise<boolean> {
+  private async _handleEndEvent(ev: CameraEvent): Promise<boolean> {
     this._deleteIgnoredEventID(ev.cameraID, ev.id);
 
     const state = this._states.get(ev.cameraID);
@@ -160,14 +160,14 @@ export class TriggersManager {
     return true;
   }
 
-  protected _isIgnoredUpdateEvent(ev: CameraEvent): boolean {
+  private _isIgnoredUpdateEvent(ev: CameraEvent): boolean {
     return (
       (ev.type === 'update' || ev.type === 'genai') &&
       this._hasIgnoredEventID(ev.cameraID, ev.id)
     );
   }
 
-  protected _hasAllowableInteractionStateForAction(): boolean {
+  private _hasAllowableInteractionStateForAction(): boolean {
     const triggersConfig = this._api.getConfigManager().getConfig()?.view.triggers;
     const hasInteraction = this._api.getInteractionManager().hasInteraction();
 
@@ -179,7 +179,7 @@ export class TriggersManager {
     );
   }
 
-  protected async _triggerAction(ev: CameraEvent): Promise<void> {
+  private async _triggerAction(ev: CameraEvent): Promise<void> {
     const config = this._api.getConfigManager().getConfig();
     const triggerAction = config?.view?.triggers.actions.trigger;
     const defaultView = config?.view?.default;
@@ -248,14 +248,14 @@ export class TriggersManager {
     this._api.getCardElementManager().update();
   }
 
-  protected _setConditionStateIfNecessary(): void {
+  private _setConditionStateIfNecessary(): void {
     const triggeredCameraIDs = this.getTriggeredCameraIDs();
     this._api.getConditionStateManager().setState({
       triggered: triggeredCameraIDs.size ? triggeredCameraIDs : undefined,
     });
   }
 
-  protected async _executeUntriggerAction(): Promise<boolean> {
+  private async _executeUntriggerAction(): Promise<boolean> {
     const action = this._api.getConfigManager().getConfig()?.view?.triggers
       .actions.untrigger;
 
@@ -269,7 +269,7 @@ export class TriggersManager {
     return true;
   }
 
-  protected async _untriggerAction(cameraID: string): Promise<void> {
+  private async _untriggerAction(cameraID: string): Promise<void> {
     this._deleteUntriggerDelayTimer(cameraID);
     this._deleteForceUntriggerTimer(cameraID);
 
@@ -282,7 +282,7 @@ export class TriggersManager {
     this._api.getCardElementManager().update();
   }
 
-  protected async _startUntrigger(cameraID: string): Promise<void> {
+  private async _startUntrigger(cameraID: string): Promise<void> {
     this._deleteUntriggerDelayTimer(cameraID);
     this._deleteForceUntriggerTimer(cameraID);
 
@@ -304,7 +304,7 @@ export class TriggersManager {
     }
   }
 
-  protected _startForceUntriggerTimerIfNecessary(
+  private _startForceUntriggerTimerIfNecessary(
     cameraID: string,
     forceUntriggerSeconds: number,
   ): void {
@@ -324,7 +324,7 @@ export class TriggersManager {
     });
   }
 
-  protected async _forceUntrigger(
+  private async _forceUntrigger(
     state: CameraTriggerState,
     cameraID: string,
   ): Promise<void> {
@@ -334,12 +334,12 @@ export class TriggersManager {
     await this._startUntrigger(cameraID);
   }
 
-  protected _addIgnoredEventID(cameraID: string, eventID: string): void {
+  private _addIgnoredEventID(cameraID: string, eventID: string): void {
     const state = this._getOrCreateState(cameraID);
     state.ignoredSources.add(eventID);
   }
 
-  protected _deleteIgnoredEventID(cameraID: string, eventID: string): void {
+  private _deleteIgnoredEventID(cameraID: string, eventID: string): void {
     const state = this._states.get(cameraID);
     if (!state) {
       return;
@@ -349,11 +349,11 @@ export class TriggersManager {
     this._deleteStateIfIdle(cameraID);
   }
 
-  protected _hasIgnoredEventID(cameraID: string, eventID: string): boolean {
+  private _hasIgnoredEventID(cameraID: string, eventID: string): boolean {
     return !!this._states.get(cameraID)?.ignoredSources.has(eventID);
   }
 
-  protected _getOrCreateState(cameraID: string): CameraTriggerState {
+  private _getOrCreateState(cameraID: string): CameraTriggerState {
     let state = this._states.get(cameraID);
     if (!state) {
       state = {
@@ -366,7 +366,7 @@ export class TriggersManager {
     return state;
   }
 
-  protected _deleteStateIfIdle(cameraID: string): void {
+  private _deleteStateIfIdle(cameraID: string): void {
     const state = this._states.get(cameraID);
     if (
       state &&
@@ -379,7 +379,7 @@ export class TriggersManager {
     }
   }
 
-  protected _deleteUntriggerDelayTimer(cameraID: string): void {
+  private _deleteUntriggerDelayTimer(cameraID: string): void {
     const state = this._states.get(cameraID);
     if (state?.untriggerDelayTimer) {
       state.untriggerDelayTimer.stop();
@@ -387,7 +387,7 @@ export class TriggersManager {
     }
   }
 
-  protected _deleteForceUntriggerTimer(cameraID: string): void {
+  private _deleteForceUntriggerTimer(cameraID: string): void {
     const state = this._states.get(cameraID);
     if (state?.untriggerForceTimer) {
       state.untriggerForceTimer.stop();
@@ -395,7 +395,7 @@ export class TriggersManager {
     }
   }
 
-  protected _isStateTriggered(state: CameraTriggerState): boolean {
+  private _isStateTriggered(state: CameraTriggerState): boolean {
     return !!(state.sources.size || state.untriggerDelayTimer);
   }
 }

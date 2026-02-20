@@ -12,15 +12,15 @@ interface ResultSliceOptions {
 }
 
 class ResultSlice {
-  protected _results: ViewItem[];
-  protected _selectedIndex: number | null;
+  private _results: ViewItem[];
+  private _selectedIndex: number | null;
 
   constructor(options?: ResultSliceOptions) {
     this._results = options?.results ?? [];
     this._selectedIndex = this._getInitialSelectedIndex(options);
   }
 
-  protected _getInitialSelectedIndex(options?: ResultSliceOptions): number | null {
+  private _getInitialSelectedIndex(options?: ResultSliceOptions): number | null {
     if (options?.selectedIndex !== undefined && options?.selectedIndex !== null) {
       return options.selectedIndex;
     }
@@ -146,9 +146,9 @@ interface ResultSliceSelectionCriteria {
 }
 
 export class QueryResults {
-  protected _resultsTimestamp: Date | null = null;
-  protected _main: ResultSlice;
-  protected _cameras: CameraResultSlices = new Map();
+  private _resultsTimestamp: Date | null = null;
+  private _main: ResultSlice;
+  private _cameras: CameraResultSlices = new Map();
 
   constructor(options?: ResultSliceOptions) {
     this._resultsTimestamp = new Date();
@@ -156,7 +156,7 @@ export class QueryResults {
     this._buildByCameraSlices(options?.selectApproach);
   }
 
-  protected _buildByCameraSlices(selectApproach?: SelectApproach): void {
+  private _buildByCameraSlices(selectApproach?: SelectApproach): void {
     const cameraMap: Map<string, ViewItem[]> = new Map();
     for (const result of this._main.getResults()) {
       const cameraID = ViewItemClassifier.isMedia(result) ? result.getCameraID() : null;
@@ -335,7 +335,7 @@ export class QueryResults {
     return this;
   }
 
-  protected _getCameraIDsFromCriteria(
+  private _getCameraIDsFromCriteria(
     criteria?: ResultSliceSelectionCriteria,
   ): Set<string> | null {
     return criteria?.allCameras

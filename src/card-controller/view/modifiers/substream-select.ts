@@ -3,7 +3,7 @@ import { View } from '../../../view/view';
 import { ViewModifier } from '../types';
 
 export class SubstreamSelectViewModifier implements ViewModifier {
-  protected _substreamID: string;
+  private _substreamID: string;
 
   constructor(substreamID: string) {
     this._substreamID = substreamID;

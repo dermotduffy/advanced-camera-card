@@ -40,8 +40,8 @@ export class AdvancedCameraCardPTZ extends LitElement {
   @property({ attribute: false })
   public forceVisibility?: boolean;
 
-  protected _controller = new PTZController(this);
-  protected _actions: PTZControllerActions | null = null;
+  private _controller = new PTZController(this);
+  private _actions: PTZControllerActions | null = null;
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('config')) {

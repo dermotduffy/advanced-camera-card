@@ -25,8 +25,8 @@ export class AdvancedCameraCardVideoPlayer extends LitElement implements MediaPl
   @property({ type: Boolean })
   public controls = false;
 
-  protected _refVideo: Ref<MediaPlayerElement<HTMLVideoElement>> = createRef();
-  protected _mediaPlayerController = new VideoMediaPlayerController(
+  private _refVideo: Ref<MediaPlayerElement<HTMLVideoElement>> = createRef();
+  private _mediaPlayerController = new VideoMediaPlayerController(
     this,
     () => this._refVideo.value ?? null,
     () => this.controls,

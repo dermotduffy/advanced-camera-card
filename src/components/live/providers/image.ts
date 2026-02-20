@@ -19,7 +19,7 @@ export class AdvancedCameraCardLiveImage extends LitElement implements MediaPlay
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
-  protected _refImage: Ref<MediaPlayerElement> = createRef();
+  private _refImage: Ref<MediaPlayerElement> = createRef();
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     await this.updateComplete;

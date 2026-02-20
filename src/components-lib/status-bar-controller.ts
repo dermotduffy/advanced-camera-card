@@ -9,11 +9,11 @@ import { arrayify, setOrRemoveAttribute } from '../utils/basic';
 import { Timer } from '../utils/timer';
 
 export class StatusBarController {
-  protected _host: LitElement;
-  protected _config: StatusBarConfig | null = null;
+  private _host: LitElement;
+  private _config: StatusBarConfig | null = null;
 
-  protected _popupTimer = new Timer();
-  protected _items: StatusBarItem[] = [];
+  private _popupTimer = new Timer();
+  private _items: StatusBarItem[] = [];
 
   constructor(host: LitElement) {
     this._host = host;
@@ -90,7 +90,7 @@ export class StatusBarController {
     });
   }
 
-  protected _getSufficientValue(item: StatusBarItem): string | null {
+  private _getSufficientValue(item: StatusBarItem): string | null {
     /* istanbul ignore else: cannot happen -- @preserve */
     if (item.type === 'custom:advanced-camera-card-status-bar-icon') {
       return item.icon;
@@ -103,17 +103,17 @@ export class StatusBarController {
     }
   }
 
-  protected _getSufficientValues(items: StatusBarItem[]): (string | null)[] {
+  private _getSufficientValues(items: StatusBarItem[]): (string | null)[] {
     return items
       .filter((item) => item.enabled !== false && item.sufficient)
       .map((item) => this._getSufficientValue(item));
   }
 
-  protected _show(): void {
+  private _show(): void {
     setOrRemoveAttribute(this._host, false, 'hide');
   }
 
-  protected _hide(): void {
+  private _hide(): void {
     setOrRemoveAttribute(this._host, true, 'hide');
   }
 }

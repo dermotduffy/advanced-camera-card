@@ -18,13 +18,13 @@ import {
  * associated with a result).
  */
 export class ConditionsManager implements ConditionsManagerReadonlyInterface {
-  protected _conditions: AdvancedCameraCardCondition[];
-  protected _stateManager: ConditionStateManagerReadonlyInterface | null;
+  private _conditions: AdvancedCameraCardCondition[];
+  private _stateManager: ConditionStateManagerReadonlyInterface | null;
 
-  protected _listeners: ConditionsListener[] = [];
-  protected _mediaQueries: MediaQueryList[] = [];
-  protected _evaluation: ConditionsEvaluationResult = { result: false };
-  protected _templateRenderer: TemplateRenderer = new TemplateRenderer();
+  private _listeners: ConditionsListener[] = [];
+  private _mediaQueries: MediaQueryList[] = [];
+  private _evaluation: ConditionsEvaluationResult = { result: false };
+  private _templateRenderer: TemplateRenderer = new TemplateRenderer();
 
   constructor(
     conditions: AdvancedCameraCardCondition[],
@@ -73,13 +73,13 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
     return this._evaluation;
   }
 
-  protected _mediaQueryHandler = () => this._evaluate();
+  private _mediaQueryHandler = () => this._evaluate();
 
-  protected _stateManagerHandler = (stateChange: ConditionStateChange): void => {
+  private _stateManagerHandler = (stateChange: ConditionStateChange): void => {
     this._evaluate({ stateChange });
   };
 
-  protected _evaluate(options?: {
+  private _evaluate(options?: {
     stateChange?: ConditionStateChange;
     callListeners?: boolean;
   }): void {
@@ -121,7 +121,7 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
     }
   }
 
-  protected _evaluateCondition(
+  private _evaluateCondition(
     condition: AdvancedCameraCardCondition,
     newState?: ConditionState,
     oldState?: ConditionState,

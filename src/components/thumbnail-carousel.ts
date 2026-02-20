@@ -65,17 +65,17 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
   @property({ attribute: false })
   public fadeThumbnails = false;
 
-  protected _thumbnails: TemplateResult[] = [];
-  protected _builder: UnifiedQueryBuilder | null = null;
+  private _thumbnails: TemplateResult[] = [];
+  private _builder: UnifiedQueryBuilder | null = null;
 
-  protected _getLimit(): number {
+  private _getLimit(): number {
     return (
       this.cardWideConfig?.performance?.features?.media_chunk_size ??
       MEDIA_CHUNK_SIZE_DEFAULT
     );
   }
 
-  protected _getFolderNavOptions(): FolderNavigationParamaters | undefined {
+  private _getFolderNavOptions(): FolderNavigationParamaters | undefined {
     return this._builder && this.viewManagerEpoch
       ? {
           builder: this._builder,
@@ -127,13 +127,13 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
     }
   }
 
-  protected _getSelectedSlide(): number | null {
+  private _getSelectedSlide(): number | null {
     return (
       this.viewManagerEpoch?.manager.getView()?.queryResults?.getSelectedIndex() ?? null
     );
   }
 
-  protected _handleMediaClick(item: ViewMedia): void {
+  private _handleMediaClick(item: ViewMedia): void {
     fireAdvancedCameraCardEvent<ThumbnailMediaSelect>(
       this,
       'thumbnails-carousel:media-select',
@@ -147,7 +147,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
     }
   }
 
-  protected _renderThumbnail(
+  private _renderThumbnail(
     item: ViewItem,
     selected: boolean,
     clickCallback: (item: ViewItem, ev: Event) => void,
@@ -183,7 +183,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
     </advanced-camera-card-thumbnail>`;
   }
 
-  protected _renderThumbnails(): TemplateResult[] {
+  private _renderThumbnails(): TemplateResult[] {
     const upFolderItem = getUpFolderItem(
       this.viewManagerEpoch?.manager.getView()?.query,
     );
@@ -221,7 +221,7 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
     return thumbnails;
   }
 
-  protected _getDirection(): CarouselDirection | null {
+  private _getDirection(): CarouselDirection | null {
     if (this.config?.mode === 'left' || this.config?.mode === 'right') {
       return 'vertical';
     } else if (this.config?.mode === 'above' || this.config?.mode === 'below') {

@@ -19,8 +19,8 @@ interface CameraManagerEngineFactoryOptions {
 }
 
 export class CameraManagerEngineFactory {
-  protected _entityRegistryManager: EntityRegistryManager;
-  protected _deviceRegistryManager: DeviceRegistryManager;
+  private _entityRegistryManager: EntityRegistryManager;
+  private _deviceRegistryManager: DeviceRegistryManager;
 
   constructor(
     entityRegistryManager: EntityRegistryManager,

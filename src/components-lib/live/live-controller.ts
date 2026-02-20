@@ -28,20 +28,20 @@ type LiveControllerHost = LitElement &
   AdvancedCameraCardMessageEventTarget;
 
 export class LiveController implements ReactiveController {
-  protected _host: LiveControllerHost;
+  private _host: LiveControllerHost;
 
   // Whether or not the live view is currently in the background (i.e. preloaded
   // but not visible).
-  protected _inBackground = false;
+  private _inBackground = false;
 
   // Intersection handler is used to detect when the live view flips between
   // foreground and background (in preload mode).
-  protected _intersectionObserver: IntersectionObserver;
+  private _intersectionObserver: IntersectionObserver;
 
   // MediaLoadedInfo object and target from the underlying live media. In the
   // case of pre-loading these may be propagated later (from the original
   // source).
-  protected _lastMediaLoadedInfo: LastMediaLoadedInfo | null = null;
+  private _lastMediaLoadedInfo: LastMediaLoadedInfo | null = null;
 
   constructor(host: LiveControllerHost) {
     this._host = host;
@@ -75,7 +75,7 @@ export class LiveController implements ReactiveController {
     return this._inBackground;
   }
 
-  protected _handleMediaLoaded = (ev: CustomEvent<MediaLoadedInfo>): void => {
+  private _handleMediaLoaded = (ev: CustomEvent<MediaLoadedInfo>): void => {
     this._lastMediaLoadedInfo = {
       source: ev.composedPath()[0],
       mediaLoadedInfo: ev.detail,
@@ -86,7 +86,7 @@ export class LiveController implements ReactiveController {
     }
   };
 
-  protected _intersectionHandler(entries: IntersectionObserverEntry[]): void {
+  private _intersectionHandler(entries: IntersectionObserverEntry[]): void {
     const wasInBackground = this._inBackground;
     this._inBackground = !entries.some((entry) => entry.isIntersecting);
 

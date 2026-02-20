@@ -53,11 +53,11 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   public controls = false;
 
   @state()
-  protected _message: Message | null = null;
+  private _message: Message | null = null;
 
-  protected _player?: VideoRTC;
+  private _player?: VideoRTC;
 
-  protected _mediaPlayerController = new VideoMediaPlayerController(
+  private _mediaPlayerController = new VideoMediaPlayerController(
     this,
     () => this._player?.video ?? null,
     () => this.controls,
@@ -81,7 +81,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     this.requestUpdate();
   }
 
-  protected _handleError(message: Message, e?: Error): void {
+  private _handleError(message: Message, e?: Error): void {
     if (e) {
       errorToConsole(e as Error);
     }
@@ -94,7 +94,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     return;
   }
 
-  protected async _getPlayerSource(): Promise<string | null> {
+  private async _getPlayerSource(): Promise<string | null> {
     const cameraConfig = this.camera?.getConfig();
     const proxyConfig = this.camera?.getProxyConfig();
     if (!this.hass || !cameraConfig) {
@@ -155,7 +155,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     return result;
   }
 
-  protected async _createPlayer(): Promise<void> {
+  private async _createPlayer(): Promise<void> {
     const src = await this._getPlayerSource();
     if (!src) {
       return;

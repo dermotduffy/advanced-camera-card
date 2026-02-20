@@ -13,30 +13,30 @@ import {
 } from './types';
 
 export class ZoomController {
-  protected _element: HTMLElement;
-  protected _panzoom?: PanzoomObject;
+  private _element: HTMLElement;
+  private _panzoom?: PanzoomObject;
 
   // Is the controller zoomed in at all?
-  protected _zoomed = false;
+  private _zoomed = false;
 
   // Is the controller set to the default zoom/pan settings?
-  protected _default = true;
+  private _default = true;
 
   // Should clicks be allowed to propagate, or consumed as a pan/zoom action?
-  protected _allowClick = true;
+  private _allowClick = true;
 
-  protected _defaultSettings: PartialZoomSettings | null;
-  protected _settings: PartialZoomSettings | null;
+  private _defaultSettings: PartialZoomSettings | null;
+  private _settings: PartialZoomSettings | null;
 
   // These values should be suitably less than the value of STEP_DELAY_SECONDS
   // in the ptz_digital action, in order to ensure smooth movements of the
   // digital PTZ actions.
-  protected _debouncedChangeHandler = throttle(this._changeHandler.bind(this), 50);
-  protected _debouncedUpdater = throttle(this._updateBasedOnConfig.bind(this), 50);
+  private _debouncedChangeHandler = throttle(this._changeHandler.bind(this), 50);
+  private _debouncedUpdater = throttle(this._updateBasedOnConfig.bind(this), 50);
 
-  protected _resizeObserver = new ResizeObserver(this._debouncedUpdater);
+  private _resizeObserver = new ResizeObserver(this._debouncedUpdater);
 
-  protected _events = isHoverableDevice()
+  private _events = isHoverableDevice()
     ? {
         down: ['pointerdown'],
         move: ['pointermove'],
@@ -48,7 +48,7 @@ export class ZoomController {
         up: ['touchend', 'touchcancel'],
       };
 
-  protected _downHandler = (ev: Event) => {
+  private _downHandler = (ev: Event) => {
     if (this._shouldZoomOrPan(ev)) {
       this._panzoom?.handleDown(ev as PointerEvent);
       ev.stopPropagation();
@@ -61,7 +61,7 @@ export class ZoomController {
     }
   };
 
-  protected _clickHandler = (ev: Event) => {
+  private _clickHandler = (ev: Event) => {
     // When mouse clicking is used to pan, need to avoid that causing a click
     // handler elsewhere in the card being called. Example: Viewing a snapshot,
     // and panning within it should not cause a related clip to play (the click
@@ -77,21 +77,21 @@ export class ZoomController {
     this._allowClick = true;
   };
 
-  protected _moveHandler = (ev: Event) => {
+  private _moveHandler = (ev: Event) => {
     if (this._shouldZoomOrPan(ev)) {
       this._panzoom?.handleMove(ev as PointerEvent);
       ev.stopPropagation();
     }
   };
 
-  protected _upHandler = (ev: Event) => {
+  private _upHandler = (ev: Event) => {
     if (this._shouldZoomOrPan(ev)) {
       this._panzoom?.handleUp(ev as PointerEvent);
       ev.stopPropagation();
     }
   };
 
-  protected _wheelHandler = (ev: Event) => {
+  private _wheelHandler = (ev: Event) => {
     if (ev instanceof WheelEvent && this._shouldZoomOrPan(ev)) {
       this._panzoom?.zoomWithWheel(ev);
       ev.stopPropagation();
@@ -198,7 +198,7 @@ export class ZoomController {
     this._debouncedUpdater();
   }
 
-  protected _changeHandler(ev: Event): void {
+  private _changeHandler(ev: Event): void {
     const pz = (<CustomEvent<PanzoomEventDetail>>ev).detail;
     const unzoomed = this._isUnzoomed(pz.scale);
 
@@ -228,7 +228,7 @@ export class ZoomController {
     fireAdvancedCameraCardEvent(this._element, 'zoom:change', observed);
   }
 
-  protected _isZoomEqual(a: PartialZoomSettings, b: PartialZoomSettings): boolean {
+  private _isZoomEqual(a: PartialZoomSettings, b: PartialZoomSettings): boolean {
     // The ?? clauses below cannot be reached since this function is only ever
     // used fully specified by this object. It's kept as-is for completeness.
     return (
@@ -256,11 +256,11 @@ export class ZoomController {
     );
   }
 
-  protected _getConfigToUse(): PartialZoomSettings | null {
+  private _getConfigToUse(): PartialZoomSettings | null {
     return isZoomEmpty(this._settings) ? this._defaultSettings : this._settings;
   }
 
-  protected _updateBasedOnConfig(): void {
+  private _updateBasedOnConfig(): void {
     if (!this._panzoom) {
       return;
     }
@@ -329,7 +329,7 @@ export class ZoomController {
    * @param scale The desired (not current) scale.
    * @returns An object with x/y pan % values or null on error.
    */
-  protected _convertPercentToXYPan(
+  private _convertPercentToXYPan(
     x: number,
     y: number,
     scale: number,
@@ -345,7 +345,7 @@ export class ZoomController {
     };
   }
 
-  protected _convertXYPanToPercent(
+  private _convertXYPanToPercent(
     x: number,
     y: number,
     scale: number,
@@ -367,7 +367,7 @@ export class ZoomController {
     };
   }
 
-  protected _getTransformMinMax(
+  private _getTransformMinMax(
     desiredScale: number,
     currentScale?: number,
   ): {
@@ -397,7 +397,7 @@ export class ZoomController {
     };
   }
 
-  protected _getRenderedSize(scale?: number): { width: number; height: number } {
+  private _getRenderedSize(scale?: number): { width: number; height: number } {
     const rect = this._element.getBoundingClientRect();
     return {
       width: rect.width / (scale ?? ZOOM_DEFAULT_SCALE),
@@ -405,11 +405,11 @@ export class ZoomController {
     };
   }
 
-  protected _isUnzoomed(scale?: number): boolean {
+  private _isUnzoomed(scale?: number): boolean {
     return scale !== undefined && round(scale, ZOOM_PRECISION) <= 1;
   }
 
-  protected _isAtDefaultZoomAndPan(x: number, y: number, scale: number): boolean {
+  private _isAtDefaultZoomAndPan(x: number, y: number, scale: number): boolean {
     if (!this._defaultSettings) {
       return this._isUnzoomed(scale);
     }
@@ -438,7 +438,7 @@ export class ZoomController {
     );
   }
 
-  protected _shouldZoomOrPan(ev: Event): boolean {
+  private _shouldZoomOrPan(ev: Event): boolean {
     return (
       !this._isUnzoomed(this._panzoom?.getScale()) ||
       // TouchEvent does not exist on Firefox on non-touch events. See:
@@ -448,7 +448,7 @@ export class ZoomController {
     );
   }
 
-  protected _setTouchAction(touchEnabled: boolean): void {
+  private _setTouchAction(touchEnabled: boolean): void {
     this._element.style.touchAction = touchEnabled ? '' : 'none';
   }
 }

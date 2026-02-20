@@ -13,7 +13,7 @@ import { PartialZoomSettings } from '../components-lib/zoom/types.js';
 
 @customElement('advanced-camera-card-zoomer')
 export class AdvancedCameraCardZoomer extends LitElement {
-  protected _zoom: ZoomController | null = null;
+  private _zoom: ZoomController | null = null;
 
   @property({ attribute: false })
   public defaultSettings?: PartialZoomSettings;
@@ -22,10 +22,10 @@ export class AdvancedCameraCardZoomer extends LitElement {
   public settings?: PartialZoomSettings | null;
 
   @state()
-  protected _zoomed = false;
+  private _zoomed = false;
 
-  protected _zoomHandler = () => (this._zoomed = true);
-  protected _unzoomHandler = () => (this._zoomed = false);
+  private _zoomHandler = () => (this._zoomed = true);
+  private _unzoomHandler = () => (this._zoomed = false);
 
   connectedCallback(): void {
     super.connectedCallback();

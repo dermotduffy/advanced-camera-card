@@ -59,12 +59,12 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
-  protected _refProvider: Ref<MediaPlayerElement> = createRef();
-  protected _refContainer: Ref<HTMLElement> = createRef();
-  protected _lazyLoadController: LazyLoadController = new LazyLoadController(this);
+  private _refProvider: Ref<MediaPlayerElement> = createRef();
+  private _refContainer: Ref<HTMLElement> = createRef();
+  private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
   @state()
-  protected _url: string | null = null;
+  private _url: string | null = null;
 
   constructor() {
     super();
@@ -76,7 +76,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     return (await this._refProvider.value?.getMediaPlayerController()) ?? null;
   }
 
-  protected async _switchToRelatedClipView(): Promise<void> {
+  private async _switchToRelatedClipView(): Promise<void> {
     const view = this.viewManagerEpoch?.manager.getView();
     if (
       !this.hass ||
@@ -108,7 +108,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     });
   }
 
-  protected async _setURL(): Promise<void> {
+  private async _setURL(): Promise<void> {
     const mediaContentID = this.media?.getContentID();
     if (
       !this.media ||
@@ -202,7 +202,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       : null;
   }
 
-  protected _renderContainer(template: TemplateResult): TemplateResult {
+  private _renderContainer(template: TemplateResult): TemplateResult {
     if (!this.media) {
       return template;
     }

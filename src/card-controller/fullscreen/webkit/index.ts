@@ -15,7 +15,7 @@ export class WebkitFullScreenProvider
   extends FullscreenProviderBase
   implements FullscreenProvider
 {
-  protected _playTimer = new Timer();
+  private _playTimer = new Timer();
 
   public connect(): void {
     this._api.getConditionStateManager().addListener(this._stateChangeHandler);
@@ -25,7 +25,7 @@ export class WebkitFullScreenProvider
     this._api.getConditionStateManager().removeListener(this._stateChangeHandler);
   }
 
-  protected _stateChangeHandler = (change: ConditionStateChange): void => {
+  private _stateChangeHandler = (change: ConditionStateChange): void => {
     if (
       change.old.mediaLoadedInfo?.mediaPlayerController?.getFullscreenElement() !==
       change.new.mediaLoadedInfo?.mediaPlayerController?.getFullscreenElement()
@@ -42,7 +42,7 @@ export class WebkitFullScreenProvider
     }
   };
 
-  protected _getVideoElement():
+  private _getVideoElement():
     | (HTMLVideoElement & Partial<WebkitHTMLVideoElement>)
     | null {
     const element = this._api
@@ -74,7 +74,7 @@ export class WebkitFullScreenProvider
     }
   }
 
-  protected _endHandler = (): void => {
+  private _endHandler = (): void => {
     this._handler();
 
     // Webkit on iPhone stops the video when exiting fullscreen (why!). This

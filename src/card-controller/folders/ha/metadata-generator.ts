@@ -12,7 +12,7 @@ import { regexpExtract } from '../../../utils/regexp-extract';
 import { REGEXP_GROUP_VALUE_KEY } from './types';
 
 export class MetadataGenerator {
-  protected _anyDateParser: typeof parser | null = null;
+  private _anyDateParser: typeof parser | null = null;
 
   public async prepare(parsers?: Parser[]): Promise<void> {
     if (this._anyDateParser) {

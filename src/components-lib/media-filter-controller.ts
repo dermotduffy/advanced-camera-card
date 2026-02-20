@@ -68,24 +68,24 @@ export enum MediaFilterMediaType {
 }
 
 export class MediaFilterController {
-  protected _host: LitElement;
+  private _host: LitElement;
 
-  protected _mediaTypeOptions: SelectOption[];
-  protected _cameraOptions: SelectOption[] = [];
+  private _mediaTypeOptions: SelectOption[];
+  private _cameraOptions: SelectOption[] = [];
 
-  protected _whenOptions: SelectOption[] = [];
-  protected _staticWhenOptions: SelectOption[];
-  protected _metaDataWhenOptions: SelectOption[] = [];
+  private _whenOptions: SelectOption[] = [];
+  private _staticWhenOptions: SelectOption[];
+  private _metaDataWhenOptions: SelectOption[] = [];
 
-  protected _whatOptions: SelectOption[] = [];
-  protected _whereOptions: SelectOption[] = [];
-  protected _tagsOptions: SelectOption[] = [];
-  protected _favoriteOptions: SelectOption[];
-  protected _reviewedOptions: SelectOption[];
-  protected _severityOptions: SelectOption[];
+  private _whatOptions: SelectOption[] = [];
+  private _whereOptions: SelectOption[] = [];
+  private _tagsOptions: SelectOption[] = [];
+  private _favoriteOptions: SelectOption[];
+  private _reviewedOptions: SelectOption[];
+  private _severityOptions: SelectOption[];
 
-  protected _defaults: MediaFilterCoreDefaults | null = null;
-  protected _viewManager: ViewManagerInterface | null = null;
+  private _defaults: MediaFilterCoreDefaults | null = null;
+  private _viewManager: ViewManagerInterface | null = null;
 
   constructor(host: LitElement) {
     this._host = host;
@@ -450,15 +450,15 @@ export class MediaFilterController {
     this._host.requestUpdate();
   }
 
-  protected _computeWhenOptions(): void {
+  private _computeWhenOptions(): void {
     this._whenOptions = [...this._staticWhenOptions, ...this._metaDataWhenOptions];
   }
 
-  protected _dateRangeToString(when: DateRange): string {
+  private _dateRangeToString(when: DateRange): string {
     return `${formatDate(when.start)},${formatDate(when.end)}`;
   }
 
-  protected _stringToDateRange(input: string): DateRange {
+  private _stringToDateRange(input: string): DateRange {
     const dates = input.split(',');
     return {
       start: parse(dates[0], 'yyyy-MM-dd', new Date()),
@@ -466,7 +466,7 @@ export class MediaFilterController {
     };
   }
 
-  protected _getWhen(values: {
+  private _getWhen(values: {
     selected?: string | string[];
     from?: Date | null;
     to?: Date | null;
@@ -499,7 +499,7 @@ export class MediaFilterController {
     }
   }
 
-  protected _hasSingleUniqueValue(sets: (Set<unknown> | undefined)[]): boolean {
+  private _hasSingleUniqueValue(sets: (Set<unknown> | undefined)[]): boolean {
     if (sets.length === 0) {
       return false;
     }

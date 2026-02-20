@@ -25,11 +25,11 @@ interface AdvancedCameraCardActionHandlerOptions extends ActionHandlerOptions {
 class ActionHandler extends HTMLElement implements ActionHandlerInterface {
   public holdTime = 0.4;
 
-  protected holdTimer = new Timer();
-  protected doubleClickTimer = new Timer();
+  private holdTimer = new Timer();
+  private doubleClickTimer = new Timer();
 
-  protected held = false;
-  protected started = false;
+  private held = false;
+  private started = false;
 
   public connectedCallback(): void {
     [

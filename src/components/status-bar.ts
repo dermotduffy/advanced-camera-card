@@ -18,7 +18,7 @@ import './icon.js';
 
 @customElement('advanced-camera-card-status-bar')
 export class AdvancedCameraCardStatusBar extends LitElement {
-  protected _controller = new StatusBarController(this);
+  private _controller = new StatusBarController(this);
 
   @property({ attribute: false })
   public items?: StatusBarItem[];
@@ -44,7 +44,7 @@ export class AdvancedCameraCardStatusBar extends LitElement {
    * specificity, so the most specific theme variable will match, followed by
    * the next most specific, etc.
    */
-  protected _renderPerInstanceStyle(): TemplateResult | void {
+  private _renderPerInstanceStyle(): TemplateResult | void {
     const config = this._controller.getConfig();
     if (!config) {
       return;
