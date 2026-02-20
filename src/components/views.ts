@@ -20,6 +20,7 @@ import { DeviceRegistryManager } from '../ha/registry/device/index.js';
 import { ResolvedMediaCache } from '../ha/resolved-media.js';
 import { HomeAssistant } from '../ha/types.js';
 import viewsStyle from '../scss/views.scss';
+import { contentsChanged } from '../utils/basic.js';
 import './surround.js';
 
 // As a special case: The diagnostics view is not dynamically loaded in case
@@ -61,7 +62,7 @@ export class AdvancedCameraCardViews extends LitElement {
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public triggeredCameraIDs?: Set<string>;
 
   @property({ attribute: false })

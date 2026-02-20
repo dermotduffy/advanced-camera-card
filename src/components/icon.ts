@@ -10,14 +10,15 @@ import { customElement, property } from 'lit/decorators.js';
 import { IconController } from '../components-lib/icon-controller';
 import { HomeAssistant } from '../ha/types';
 import iconStyle from '../scss/icon.scss';
-import { Icon } from '../types';
+import { Icon } from '../types.js';
+import { contentsChanged } from '../utils/basic.js';
 
 @customElement('advanced-camera-card-icon')
 export class AdvancedCameraCardIcon extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public icon?: Icon;
 
   // Note: This attribute will allow non-active entity state styles (e.g. 'off',

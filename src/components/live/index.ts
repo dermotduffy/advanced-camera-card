@@ -8,6 +8,7 @@ import { LiveConfig } from '../../config/schema/live.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import basicBlockStyle from '../../scss/basic-block.scss';
+import { contentsChanged } from '../../utils/basic.js';
 import './grid.js';
 
 @customElement('advanced-camera-card-live')
@@ -30,7 +31,7 @@ export class AdvancedCameraCardLive extends LitElement {
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public triggeredCameraIDs?: Set<string>;
 
   private _controller = new LiveController(this);

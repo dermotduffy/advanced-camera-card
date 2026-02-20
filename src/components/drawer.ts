@@ -12,9 +12,13 @@ import 'side-drawer';
 import { SideDrawer } from 'side-drawer';
 import drawerInjectStyle from '../scss/drawer-inject.scss';
 import drawerStyle from '../scss/drawer.scss';
-import { stopEventFromActivatingCardWideActions } from '../utils/action';
-import { getChildrenFromElement, isHoverableDevice } from '../utils/basic';
-import './icon';
+import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
+import {
+  contentsChanged,
+  getChildrenFromElement,
+  isHoverableDevice,
+} from '../utils/basic.js';
+import './icon.js';
 
 export interface DrawerIcons {
   open?: string;
@@ -32,7 +36,7 @@ export class AdvancedCameraCardDrawer extends LitElement {
   @property({ type: Boolean, reflect: true, attribute: true })
   public open = false;
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public icons?: DrawerIcons;
 
   // The 'empty' attribute is used in the styling to change the drawer

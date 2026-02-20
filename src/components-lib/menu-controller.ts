@@ -1,5 +1,5 @@
 import { LitElement } from 'lit';
-import { orderBy } from 'lodash-es';
+import { isEqual, orderBy } from 'lodash-es';
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
 import { SubmenuInteraction } from '../components/submenu/types.js';
 import { ActionConfig, ActionsConfig } from '../config/schema/actions/types.js';
@@ -46,6 +46,9 @@ export class MenuController {
   }
 
   public setButtons(buttons: MenuItem[]): void {
+    if (isEqual(buttons, this._buttons)) {
+      return;
+    }
     this._buttons = buttons;
     this._sortButtons();
     this._host.requestUpdate();

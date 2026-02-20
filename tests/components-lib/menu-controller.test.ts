@@ -252,6 +252,29 @@ describe('MenuController', () => {
         },
       ]);
     });
+
+    it('with identical buttons to avoid unnecessary updates', () => {
+      const host = createLitElement();
+      const controller = new MenuController(host);
+
+      const buttons = [
+        {
+          type: 'custom:advanced-camera-card-menu-icon' as const,
+          icon: 'mdi:cow',
+        },
+      ];
+
+      controller.setButtons(buttons);
+      expect(host.requestUpdate).toBeCalledTimes(1);
+
+      controller.setButtons([
+        {
+          type: 'custom:advanced-camera-card-menu-icon' as const,
+          icon: 'mdi:cow',
+        },
+      ]);
+      expect(host.requestUpdate).toBeCalledTimes(1);
+    });
   });
 
   describe('should get buttons', () => {
