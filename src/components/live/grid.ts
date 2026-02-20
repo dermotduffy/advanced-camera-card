@@ -16,6 +16,7 @@ import { LiveConfig } from '../../config/schema/live.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import liveGridStyle from '../../scss/live-grid.scss';
+import { contentsChanged } from '../../utils/basic.js';
 import './carousel.js';
 
 @customElement('advanced-camera-card-live-grid')
@@ -38,7 +39,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public triggeredCameraIDs?: Set<string>;
 
   private _renderCarousel(cameraID?: string): TemplateResult {

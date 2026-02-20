@@ -9,6 +9,7 @@ import {
   hasAction,
   stopEventFromActivatingCardWideActions,
 } from '../../utils/action.js';
+import { contentsChanged } from '../../utils/basic.js';
 import '../icon.js';
 import { SubmenuInteraction, SubmenuItem } from './types.js';
 
@@ -17,7 +18,7 @@ export class AdvancedCameraCardSubmenu extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public items?: SubmenuItem[];
 
   private _renderItem(item: SubmenuItem): TemplateResult | void {

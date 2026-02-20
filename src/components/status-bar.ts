@@ -14,13 +14,14 @@ import { StatusBarItem } from '../config/schema/actions/types.js';
 import { StatusBarConfig } from '../config/schema/status-bar.js';
 import statusStyle from '../scss/status.scss';
 import { hasAction } from '../utils/action';
+import { contentsChanged } from '../utils/basic.js';
 import './icon.js';
 
 @customElement('advanced-camera-card-status-bar')
 export class AdvancedCameraCardStatusBar extends LitElement {
   private _controller = new StatusBarController(this);
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public items?: StatusBarItem[];
 
   @property({ attribute: false })
