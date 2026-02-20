@@ -17,7 +17,7 @@ interface PTZEntities {
 type PTZEntity = keyof PTZEntities;
 
 export class TPLinkCamera extends EntityCamera {
-  protected _ptzEntities: PTZEntities | null = null;
+  private _ptzEntities: PTZEntities | null = null;
 
   protected async _initialize(
     options: TPLinkCameraInitializationOptions,
@@ -45,7 +45,7 @@ export class TPLinkCamera extends EntityCamera {
     };
   }
 
-  protected async _getPTZEntities(
+  private async _getPTZEntities(
     hass: HomeAssistant,
     entityRegistry: EntityRegistryManager,
   ): Promise<PTZEntities | null> {
@@ -82,7 +82,7 @@ export class TPLinkCamera extends EntityCamera {
     return Object.keys(ptzEntities).length ? ptzEntities : null;
   }
 
-  protected _entitiesToCapabilities(ptzEntities: PTZEntities): PTZCapabilities {
+  private _entitiesToCapabilities(ptzEntities: PTZEntities): PTZCapabilities {
     const tplinkPTZCapabilities: PTZCapabilities = {};
     // TPLink buttons perform relative movements (no stop button needed)
     for (const key of Object.keys(ptzEntities) as PTZEntity[]) {

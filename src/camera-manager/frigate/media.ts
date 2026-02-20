@@ -25,10 +25,10 @@ import {
 } from './util';
 
 export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
-  protected _event: FrigateEvent;
-  protected _contentID: string;
-  protected _thumbnail: string;
-  protected _subLabels: string[] | null;
+  private _event: FrigateEvent;
+  private _contentID: string;
+  private _thumbnail: string;
+  private _subLabels: string[] | null;
 
   constructor(
     mediaType: ViewMediaType,
@@ -107,10 +107,10 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
 }
 
 export class FrigateRecordingViewMedia extends ViewMedia implements RecordingViewMedia {
-  protected _recording: FrigateRecording;
-  protected _id: string;
-  protected _contentID: string;
-  protected _title: string;
+  private _recording: FrigateRecording;
+  private _id: string;
+  private _contentID: string;
+  private _title: string;
 
   constructor(
     mediaType: ViewMediaType,
@@ -156,10 +156,10 @@ export class FrigateRecordingViewMedia extends ViewMedia implements RecordingVie
 }
 
 export class FrigateReviewViewMedia extends ViewMedia implements ReviewViewMedia {
-  protected _review: FrigateReview;
-  protected _contentID: string;
-  protected _thumbnail: string | null;
-  protected _title: string;
+  private _review: FrigateReview;
+  private _contentID: string;
+  private _thumbnail: string | null;
+  private _title: string;
 
   constructor(
     cameraID: string,

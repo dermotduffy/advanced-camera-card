@@ -36,14 +36,14 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
   @property({ attribute: false })
   public imageConfig?: ImageViewConfig;
 
-  protected _refImage: Ref<MediaPlayerElement> = createRef();
+  private _refImage: Ref<MediaPlayerElement> = createRef();
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     await this.updateComplete;
     return (await this._refImage.value?.getMediaPlayerController()) ?? null;
   }
 
-  protected _renderContainer(template: TemplateResult): TemplateResult {
+  private _renderContainer(template: TemplateResult): TemplateResult {
     const zoomTarget = IMAGE_VIEW_ZOOM_TARGET_SENTINEL;
     const view = this.viewManagerEpoch?.manager.getView();
     const mode = resolveImageMode({

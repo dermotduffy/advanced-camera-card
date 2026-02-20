@@ -5,9 +5,9 @@ import { CardHASSAPI } from '../types';
 import { StateWatcher, StateWatcherSubscriptionInterface } from './state-watcher';
 
 export class HASSManager {
-  protected _hass: HomeAssistant | null = null;
-  protected _api: CardHASSAPI;
-  protected _stateWatcher: StateWatcher = new StateWatcher();
+  private _hass: HomeAssistant | null = null;
+  private _api: CardHASSAPI;
+  private _stateWatcher: StateWatcher = new StateWatcher();
 
   constructor(api: CardHASSAPI) {
     this._api = api;

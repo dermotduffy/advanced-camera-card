@@ -33,7 +33,7 @@ export class AdvancedCameraCardLive extends LitElement {
   @property({ attribute: false })
   public triggeredCameraIDs?: Set<string>;
 
-  protected _controller = new LiveController(this);
+  private _controller = new LiveController(this);
 
   protected render(): TemplateResult | void {
     if (!this.hass || !this.cameraManager) {

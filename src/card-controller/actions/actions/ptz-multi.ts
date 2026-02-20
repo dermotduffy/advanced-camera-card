@@ -33,7 +33,7 @@ export class PTZMultiAction extends AdvancedCameraCardAction<PTZMultiActionConfi
     ).execute(api);
   }
 
-  protected _toPTZAction(targetID: string): PTZAction {
+  private _toPTZAction(targetID: string): PTZAction {
     return new PTZAction(
       this._context,
       createPTZAction({
@@ -47,7 +47,7 @@ export class PTZMultiAction extends AdvancedCameraCardAction<PTZMultiActionConfi
     );
   }
 
-  protected _toPTZDigitalAction(targetID: string): PTZDigitalAction {
+  private _toPTZDigitalAction(targetID: string): PTZDigitalAction {
     return new PTZDigitalAction(
       this._context,
       createPTZDigitalAction({

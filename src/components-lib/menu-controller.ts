@@ -11,10 +11,10 @@ import { getActionConfigGivenAction } from '../utils/action';
 import { arrayify, isTruthy, setOrRemoveAttribute } from '../utils/basic.js';
 
 export class MenuController {
-  protected _host: LitElement;
-  protected _config: MenuConfig | null = null;
-  protected _buttons: MenuItem[] = [];
-  protected _expanded = false;
+  private _host: LitElement;
+  private _config: MenuConfig | null = null;
+  private _buttons: MenuItem[] = [];
+  private _expanded = false;
 
   constructor(host: LitElement) {
     this._host = host;
@@ -146,7 +146,7 @@ export class MenuController {
     }
   }
 
-  protected _sortButtons(): void {
+  private _sortButtons(): void {
     this._buttons = orderBy(
       this._buttons,
       (button) => {
@@ -161,11 +161,11 @@ export class MenuController {
     );
   }
 
-  protected _isHidingMenu(): boolean {
+  private _isHidingMenu(): boolean {
     return this._config?.style === 'hidden';
   }
 
-  protected _isMenuToggleAction(action: ActionConfig): boolean {
+  private _isMenuToggleAction(action: ActionConfig): boolean {
     return (
       action.action === 'fire-dom-event' &&
       action.advanced_camera_card_action === 'menu_toggle'

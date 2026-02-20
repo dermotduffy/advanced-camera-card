@@ -29,10 +29,10 @@ const interactionEventSchema = z.object({
 });
 
 export class ActionsManager implements ActionsExecutor {
-  protected _api: CardActionsManagerAPI;
-  protected _actionsInFlight: ActionSet[] = [];
-  protected _actionContext: ActionContext = {};
-  protected _templateRenderer: TemplateRenderer | null;
+  private _api: CardActionsManagerAPI;
+  private _actionsInFlight: ActionSet[] = [];
+  private _actionContext: ActionContext = {};
+  private _templateRenderer: TemplateRenderer | null;
 
   constructor(api: CardActionsManagerAPI, templateRenderer?: TemplateRenderer) {
     this._api = api;

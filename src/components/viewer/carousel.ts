@@ -81,13 +81,13 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
   public showControls = true;
 
   @state()
-  protected _selected: number | null = null;
+  private _selected: number | null = null;
 
-  protected _media: ViewMedia[] | null = null;
-  protected _mediaActionsController = new MediaActionsController();
-  protected _mediaHeightController = new MediaHeightController(this, '.embla__slide');
-  protected _loadedMediaPlayerController: MediaPlayerController | null = null;
-  protected _refCarousel: Ref<HTMLElement> = createRef();
+  private _media: ViewMedia[] | null = null;
+  private _mediaActionsController = new MediaActionsController();
+  private _mediaHeightController = new MediaHeightController(this, '.embla__slide');
+  private _loadedMediaPlayerController: MediaPlayerController | null = null;
+  private _refCarousel: Ref<HTMLElement> = createRef();
 
   public connectedCallback(): void {
     super.connectedCallback();
@@ -108,7 +108,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
    * Get the transition effect to use.
    * @returns An TransitionEffect object.
    */
-  protected _getTransitionEffect(): TransitionEffect {
+  private _getTransitionEffect(): TransitionEffect {
     return (
       this.viewerConfig?.transition_effect ??
       configDefaults.media_viewer.transition_effect
@@ -119,7 +119,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
    * Get the Embla plugins to use.
    * @returns A list of EmblaOptionsTypes.
    */
-  protected _getPlugins(): EmblaCarouselPlugins {
+  private _getPlugins(): EmblaCarouselPlugins {
     return [AutoMediaLoadedInfo()];
   }
 
@@ -128,7 +128,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
    * @returns A BrowseMediaNeighbors with indices and objects of true media
    * neighbors.
    */
-  protected _getMediaNeighbors(): MediaNeighbors | null {
+  private _getMediaNeighbors(): MediaNeighbors | null {
     const mediaCount = this._media?.length ?? 0;
     if (!this._media || this._selected === null) {
       return null;
@@ -152,7 +152,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     };
   }
 
-  protected _setViewSelectedIndex(index: number): void {
+  private _setViewSelectedIndex(index: number): void {
     const view = this.viewManagerEpoch?.manager.getView();
 
     if (!this._media || !view) {
@@ -194,7 +194,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
    * Get slides to include in the render.
    * @returns The slides to include in the render.
    */
-  protected _getSlides(): TemplateResult[] {
+  private _getSlides(): TemplateResult[] {
     if (!this._media) {
       return [];
     }
@@ -273,7 +273,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     }
   }
 
-  protected _renderNextPrevious(
+  private _renderNextPrevious(
     side: 'left' | 'right',
     neighbors?: MediaNeighbors | null,
   ): TemplateResult {
@@ -402,7 +402,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     }
   }
 
-  protected _setMediaTarget(): void {
+  private _setMediaTarget(): void {
     if (!this._media?.length || this._selected === null) {
       this._mediaActionsController.unsetTarget();
     } else {
@@ -421,7 +421,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
   /**
    * Fire a media show event when a slide is selected.
    */
-  protected async _seekHandler(): Promise<void> {
+  private async _seekHandler(): Promise<void> {
     if (
       !this.hass ||
       !this._media ||
@@ -458,7 +458,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     }
   }
 
-  protected _renderMediaItem(media: ViewMedia): TemplateResult | null {
+  private _renderMediaItem(media: ViewMedia): TemplateResult | null {
     const view = this.viewManagerEpoch?.manager.getView();
     if (!this.hass || !view || !this.viewerConfig) {
       return null;

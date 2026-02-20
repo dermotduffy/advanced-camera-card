@@ -96,7 +96,7 @@ export class AdvancedCameraCardViews extends LitElement {
     }
   }
 
-  protected _shouldLivePreload(): boolean {
+  private _shouldLivePreload(): boolean {
     const view = this.viewManagerEpoch?.manager.getView();
     return (
       // Special case: Never preload for diagnostics -- we want that to be as

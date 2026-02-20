@@ -74,9 +74,9 @@ export class AdvancedCameraCardGallery extends LitElement {
   @property({ attribute: false })
   public conditionStateManager?: ConditionStateManagerReadonlyInterface;
 
-  protected _controller = new GalleryController(this);
-  protected _upFolderItem: ViewFolder | null = null;
-  protected _builder: UnifiedQueryBuilder | null = null;
+  private _controller = new GalleryController(this);
+  private _upFolderItem: ViewFolder | null = null;
+  private _builder: UnifiedQueryBuilder | null = null;
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (
@@ -98,14 +98,14 @@ export class AdvancedCameraCardGallery extends LitElement {
     }
   }
 
-  protected _getLimit(): number {
+  private _getLimit(): number {
     return (
       this.cardWideConfig?.performance?.features?.media_chunk_size ??
       MEDIA_CHUNK_SIZE_DEFAULT
     );
   }
 
-  protected _getFolderNavigationParameters(): FolderNavigationParamaters | null {
+  private _getFolderNavigationParameters(): FolderNavigationParamaters | null {
     return this._builder && this.viewManagerEpoch
       ? {
           builder: this._builder,
@@ -115,7 +115,7 @@ export class AdvancedCameraCardGallery extends LitElement {
       : null;
   }
 
-  protected _renderUpFolder(): TemplateResult | void {
+  private _renderUpFolder(): TemplateResult | void {
     if (!this._upFolderItem) {
       return;
     }
@@ -133,7 +133,7 @@ export class AdvancedCameraCardGallery extends LitElement {
     </advanced-camera-card-thumbnail>`;
   }
 
-  protected _renderThumbnails(): TemplateResult | void {
+  private _renderThumbnails(): TemplateResult | void {
     const view = this.viewManagerEpoch?.manager.getView();
     const selected = view?.queryResults?.getSelectedResult();
 
@@ -255,7 +255,7 @@ export class AdvancedCameraCardGallery extends LitElement {
     `;
   }
 
-  protected async _extendGallery(
+  private async _extendGallery(
     ev: CustomEvent<GalleryExtendEvent>,
     direction: 'earlier' | 'later',
     useCache = true,

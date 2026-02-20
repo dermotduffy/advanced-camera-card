@@ -4,8 +4,8 @@ import { homeAssistantWSRequest } from '../../ws-request';
 import { Device, DeviceCache, DeviceList, deviceListSchema } from './types';
 
 export class DeviceRegistryManager {
-  protected _cache: DeviceCache;
-  protected _fetchedDeviceList = false;
+  private _cache: DeviceCache;
+  private _fetchedDeviceList = false;
 
   constructor(cache: DeviceCache) {
     this._cache = cache;
@@ -29,7 +29,7 @@ export class DeviceRegistryManager {
     return this._cache.getMatches(func);
   }
 
-  protected async _fetchDeviceList(hass: HomeAssistant): Promise<void> {
+  private async _fetchDeviceList(hass: HomeAssistant): Promise<void> {
     if (this._fetchedDeviceList) {
       return;
     }

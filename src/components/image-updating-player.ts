@@ -89,16 +89,16 @@ export class AdvancedCameraCardImageUpdatingPlayer
   public imageConfig?: ImageBaseConfig;
 
   @state()
-  protected _message: Message | null = null;
+  private _message: Message | null = null;
 
-  protected _refImage: Ref<HTMLImageElement> = createRef();
+  private _refImage: Ref<HTMLImageElement> = createRef();
 
-  protected _cachedValueController?: CachedValueController<string>;
-  protected _boundVisibilityHandler = this._visibilityHandler.bind(this);
+  private _cachedValueController?: CachedValueController<string>;
+  private _boundVisibilityHandler = this._visibilityHandler.bind(this);
 
-  protected _mediaLoadedInfo: MediaLoadedInfo | null = null;
+  private _mediaLoadedInfo: MediaLoadedInfo | null = null;
 
-  protected _mediaPlayerController = new UpdatingImageMediaPlayerController(
+  private _mediaPlayerController = new UpdatingImageMediaPlayerController(
     this,
     () => this._refImage.value ?? null,
     () => this._cachedValueController ?? null,
@@ -195,7 +195,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
    * @param entity The entity.
    * @returns The state or null if not acceptable.
    */
-  protected _getAcceptableState(entity: string | null): HassEntity | null {
+  private _getAcceptableState(entity: string | null): HassEntity | null {
     const state = (entity ? this.hass?.states[entity] : null) ?? null;
 
     return !!this.hass &&
@@ -228,7 +228,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
   /**
    * Handle document visibility changes.
    */
-  protected _visibilityHandler(): void {
+  private _visibilityHandler(): void {
     if (!this._refImage.value) {
       return;
     }
@@ -258,12 +258,12 @@ export class AdvancedCameraCardImageUpdatingPlayer
    * @param url An input URL (may be relative to document origin)
    * @returns A new URL as a string (absolute, will not be browser cached).
    */
-  protected _buildImageURL(url: URL): string {
+  private _buildImageURL(url: URL): string {
     url.searchParams.append('_t', String(Date.now()));
     return url.toString();
   }
 
-  protected _addQueryParametersToURL(url: URL, parameters?: string): URL {
+  private _addQueryParametersToURL(url: URL, parameters?: string): URL {
     if (parameters) {
       const searchParams = new URLSearchParams(parameters);
       for (const [key, value] of searchParams.entries()) {
@@ -273,7 +273,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
     return url;
   }
 
-  protected _getRelevantEntityForMode(mode: Exclude<ImageMode, 'auto'>): string | null {
+  private _getRelevantEntityForMode(mode: Exclude<ImageMode, 'auto'>): string | null {
     return mode === 'camera'
       ? getCameraEntityFromConfig(this.cameraConfig)
       : mode === 'entity'
@@ -281,7 +281,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
         : null;
   }
 
-  protected _getImageSource(): string {
+  private _getImageSource(): string {
     const mode = resolveImageMode({
       imageConfig: this.imageConfig,
       cameraConfig: this.cameraConfig,
@@ -317,7 +317,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
   /**
    * Force the img element to a safe image.
    */
-  protected _forceSafeImage(stockOnly?: boolean): void {
+  private _forceSafeImage(stockOnly?: boolean): void {
     if (this._refImage.value) {
       this._refImage.value.src =
         !stockOnly && this.imageConfig?.url ? this.imageConfig.url : defaultImage;

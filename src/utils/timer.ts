@@ -1,6 +1,6 @@
 export class Timer {
-  protected _timer: number | null = null;
-  protected _repeated = false;
+  private _timer: number | null = null;
+  private _repeated = false;
 
   public stop(): void {
     if (this._timer) {

@@ -28,7 +28,7 @@ export class Capabilities {
     }
   }
 
-  protected _disable(capability: CapabilityKey): void {
+  private _disable(capability: CapabilityKey): void {
     delete this._capabilities[capability];
   }
 

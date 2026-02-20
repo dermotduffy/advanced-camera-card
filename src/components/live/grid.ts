@@ -41,7 +41,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
   @property({ attribute: false })
   public triggeredCameraIDs?: Set<string>;
 
-  protected _renderCarousel(cameraID?: string): TemplateResult {
+  private _renderCarousel(cameraID?: string): TemplateResult {
     const view = this.viewManagerEpoch?.manager.getView();
     const triggeredCameraID = cameraID ?? view?.camera;
 
@@ -69,7 +69,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
     `;
   }
 
-  protected _gridSelectCamera(cameraID: string): void {
+  private _gridSelectCamera(cameraID: string): void {
     this.viewManagerEpoch?.manager.setViewByParameters({
       params: {
         camera: cameraID,
@@ -77,7 +77,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
     });
   }
 
-  protected _needsGrid(): boolean {
+  private _needsGrid(): boolean {
     const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
     const view = this.viewManagerEpoch?.manager.getView();
     return (

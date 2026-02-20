@@ -42,12 +42,12 @@ export class AdvancedCameraCardDrawer extends LitElement {
   @property({ type: Boolean, reflect: true, attribute: true })
   public empty = true;
 
-  protected _refDrawer: Ref<HTMLElement & { open: boolean }> = createRef();
-  protected _refSlot: Ref<HTMLSlotElement> = createRef();
+  private _refDrawer: Ref<HTMLElement & { open: boolean }> = createRef();
+  private _refSlot: Ref<HTMLSlotElement> = createRef();
 
-  protected _resizeObserver = new ResizeObserver(() => this._hideDrawerIfNecessary());
+  private _resizeObserver = new ResizeObserver(() => this._hideDrawerIfNecessary());
 
-  protected readonly _isHoverableDevice = isHoverableDevice();
+  private readonly _isHoverableDevice = isHoverableDevice();
 
   /**
    * Called on the first update.
@@ -64,7 +64,7 @@ export class AdvancedCameraCardDrawer extends LitElement {
     this._refDrawer.value?.shadowRoot?.appendChild(style);
   }
 
-  protected _slotChanged(): void {
+  private _slotChanged(): void {
     const children = this._refSlot.value
       ? getChildrenFromElement(this._refSlot.value)
       : [];
@@ -77,7 +77,7 @@ export class AdvancedCameraCardDrawer extends LitElement {
     this._hideDrawerIfNecessary();
   }
 
-  protected _hideDrawerIfNecessary(): void {
+  private _hideDrawerIfNecessary(): void {
     if (!this._refDrawer.value) {
       return;
     }

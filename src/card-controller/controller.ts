@@ -94,41 +94,41 @@ export class CardController
     CardViewAPI,
     ReactiveController
 {
-  protected _conditionStateManager = new ConditionStateManager();
-  protected _effectsManager = new EffectsManager();
+  private _conditionStateManager = new ConditionStateManager();
+  private _effectsManager = new EffectsManager();
 
   // These properties may be used in the construction of 'managers' (and should
   // be created first).
-  protected _deviceRegistryManager = new DeviceRegistryManager(new DeviceCache());
-  protected _entityRegistryManager = new EntityRegistryManagerLive(new EntityCache());
-  protected _resolvedMediaCache = new ResolvedMediaCache();
+  private _deviceRegistryManager = new DeviceRegistryManager(new DeviceCache());
+  private _entityRegistryManager = new EntityRegistryManagerLive(new EntityCache());
+  private _resolvedMediaCache = new ResolvedMediaCache();
 
-  protected _actionsManager = new ActionsManager(this, new TemplateRenderer());
-  protected _automationsManager = new AutomationsManager(this);
-  protected _cameraManager = new CameraManager(this);
-  protected _cameraURLManager = new CameraURLManager(this);
-  protected _cardElementManager: CardElementManager;
-  protected _configManager = new ConfigManager(this);
-  protected _defaultManager = new DefaultManager(this);
-  protected _expandManager = new ExpandManager(this);
-  protected _foldersManager = new FoldersManager(this);
-  protected _fullscreenManager = new FullscreenManager(this);
-  protected _hassManager = new HASSManager(this);
-  protected _initializationManager = new InitializationManager(this);
-  protected _interactionManager = new InteractionManager(this);
-  protected _keyboardStateManager = new KeyboardStateManager(this);
-  protected _mediaLoadedInfoManager = new MediaLoadedInfoManager(this);
+  private _actionsManager = new ActionsManager(this, new TemplateRenderer());
+  private _automationsManager = new AutomationsManager(this);
+  private _cameraManager = new CameraManager(this);
+  private _cameraURLManager = new CameraURLManager(this);
+  private _cardElementManager: CardElementManager;
+  private _configManager = new ConfigManager(this);
+  private _defaultManager = new DefaultManager(this);
+  private _expandManager = new ExpandManager(this);
+  private _foldersManager = new FoldersManager(this);
+  private _fullscreenManager = new FullscreenManager(this);
+  private _hassManager = new HASSManager(this);
+  private _initializationManager = new InitializationManager(this);
+  private _interactionManager = new InteractionManager(this);
+  private _keyboardStateManager = new KeyboardStateManager(this);
+  private _mediaLoadedInfoManager = new MediaLoadedInfoManager(this);
 
-  protected _mediaPlayerManager = new MediaPlayerManager(this);
-  protected _messageManager = new MessageManager(this);
-  protected _microphoneManager = new MicrophoneManager(this);
-  protected _overlayMessageManager = new OverlayMessageManager(this);
-  protected _queryStringManager = new QueryStringManager(this);
-  protected _statusBarItemManager = new StatusBarItemManager(this);
-  protected _styleManager = new StyleManager(this);
-  protected _triggersManager = new TriggersManager(this);
-  protected _viewManager = new ViewManager(this);
-  protected _viewItemManager = new ViewItemManager(this);
+  private _mediaPlayerManager = new MediaPlayerManager(this);
+  private _messageManager = new MessageManager(this);
+  private _microphoneManager = new MicrophoneManager(this);
+  private _overlayMessageManager = new OverlayMessageManager(this);
+  private _queryStringManager = new QueryStringManager(this);
+  private _statusBarItemManager = new StatusBarItemManager(this);
+  private _styleManager = new StyleManager(this);
+  private _triggersManager = new TriggersManager(this);
+  private _viewManager = new ViewManager(this);
+  private _viewItemManager = new ViewItemManager(this);
 
   constructor(
     host: CardHTMLElement,

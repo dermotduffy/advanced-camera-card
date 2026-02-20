@@ -357,22 +357,22 @@ export const generateViewMediaArray = (options?: {
 // ViewMedia itself has no native way to set startTime and ID that aren't linked
 // to an engine.
 export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewViewMedia {
-  protected _icon: string | null = null;
-  protected _id: string | null;
-  protected _startTime: Date | null;
-  protected _endTime: Date | null;
-  protected _inProgress: boolean | null;
-  protected _contentID: string | null;
-  protected _title: string | null;
-  protected _thumbnail: string | null;
-  protected _what: string[] | null = null;
-  protected _score: number | null = null;
-  protected _tags: string[] | null = null;
-  protected _where: string[] | null = null;
-  protected _severity: Severity | null = null;
-  protected _reviewed: boolean | null = null;
-  protected _description: string | null = null;
-  protected _favorite: boolean | null = null;
+  private _icon: string | null = null;
+  private _id: string | null;
+  private _startTime: Date | null;
+  private _endTime: Date | null;
+  private _inProgress: boolean | null;
+  private _contentID: string | null;
+  private _title: string | null;
+  private _thumbnail: string | null;
+  private _what: string[] | null = null;
+  private _score: number | null = null;
+  private _tags: string[] | null = null;
+  private _where: string[] | null = null;
+  private _severity: Severity | null = null;
+  private _reviewed: boolean | null = null;
+  private _description: string | null = null;
+  private _favorite: boolean | null = null;
 
   constructor(options?: {
     id?: string | null;

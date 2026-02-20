@@ -54,7 +54,7 @@ export class AdvancedCameraCardSurround extends LitElement {
   /**
    * Determine if a drawer is being used.
    */
-  protected _hasDrawer(): boolean {
+  private _hasDrawer(): boolean {
     return (
       !!this.thumbnailConfig && ['left', 'right'].includes(this.thumbnailConfig.mode)
     );

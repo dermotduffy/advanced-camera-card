@@ -2,7 +2,7 @@ import { ViewItemClassifier } from '../view/item-classifier';
 import { CardCameraURLAPI } from './types';
 
 export class CameraURLManager {
-  protected _api: CardCameraURLAPI;
+  private _api: CardCameraURLAPI;
 
   constructor(api: CardCameraURLAPI) {
     this._api = api;

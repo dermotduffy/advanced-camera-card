@@ -47,18 +47,18 @@ export interface ExtendedMasonry extends Masonry {
 }
 
 export class MediaGridController {
-  protected _host: HTMLElement;
+  private _host: HTMLElement;
 
-  protected _selected: GridID | null;
-  protected _mediaLoadedInfoMap: Map<GridID, MediaLoadedInfo> = new Map();
-  protected _gridContents: MediaGridContents = new Map();
-  protected _masonry: ExtendedMasonry | null = null;
-  protected _displayConfig: ViewDisplayConfig | null = null;
-  protected _hostWidth: number;
-  protected _idAttribute: string;
-  protected _widthFactorAttribute: string;
+  private _selected: GridID | null;
+  private _mediaLoadedInfoMap: Map<GridID, MediaLoadedInfo> = new Map();
+  private _gridContents: MediaGridContents = new Map();
+  private _masonry: ExtendedMasonry | null = null;
+  private _displayConfig: ViewDisplayConfig | null = null;
+  private _hostWidth: number;
+  private _idAttribute: string;
+  private _widthFactorAttribute: string;
 
-  protected _throttledLayout = throttle(
+  private _throttledLayout = throttle(
     () => this._masonry?.layout?.(),
     // Throttle layout calls to larger than the masonry.js transitionDuration
     // value specified below.
@@ -68,18 +68,18 @@ export class MediaGridController {
 
   // If the order in which the observers are declared changes, the unittest must
   // be updated in triggerResizeObserver and triggerMutationObserver.
-  protected _hostMutationObserver = new MutationObserver(
+  private _hostMutationObserver = new MutationObserver(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (_mutations: MutationRecord[], _observer: MutationObserver) =>
       this._calculateGridContentsFromHost(),
   );
-  protected _cellMutationObserver = new MutationObserver(
+  private _cellMutationObserver = new MutationObserver(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (_mutations: MutationRecord[], _observer: MutationObserver) =>
       this._calculateGridContentsFromHost(),
   );
-  protected _hostResizeObserver = new ResizeObserver(this._hostResizeHandler.bind(this));
-  protected _cellResizeObserver = new ResizeObserver(this._cellResizeHandler.bind(this));
+  private _hostResizeObserver = new ResizeObserver(this._hostResizeHandler.bind(this));
+  private _cellResizeObserver = new ResizeObserver(this._cellResizeHandler.bind(this));
 
   constructor(host: HTMLElement, options?: MediaGridConstructorOptions) {
     this._host = host;
@@ -142,7 +142,7 @@ export class MediaGridController {
     return this._selected;
   }
 
-  protected _sortItemsInGrid(): void {
+  private _sortItemsInGrid(): void {
     const existingItems = this._masonry?.items;
     const selectedItem = existingItems?.find(
       (item) => item.element.getAttribute(this._idAttribute) === this._selected,
@@ -201,7 +201,7 @@ export class MediaGridController {
     this._updateSelectedStylesOnElements();
   }
 
-  protected _calculateGridContentsFromHost = (): void => {
+  private _calculateGridContentsFromHost = (): void => {
     const children = getChildrenFromElement(this._host);
     const gridContents: MediaGridContents = new Map();
     for (const child of children) {
@@ -212,7 +212,7 @@ export class MediaGridController {
     this._setGridContents(gridContents);
   };
 
-  protected _setGridContents(gridContents: MediaGridContents): void {
+  private _setGridContents(gridContents: MediaGridContents): void {
     this._gridContents = gridContents;
 
     // Remove media loaded info objects that belong to objects no longer in the
@@ -252,7 +252,7 @@ export class MediaGridController {
     this._setColumnSizeStyles();
   }
 
-  protected _handleMediaLoadedInfoEvent = (ev: CustomEvent<MediaLoadedInfo>): void => {
+  private _handleMediaLoadedInfoEvent = (ev: CustomEvent<MediaLoadedInfo>): void => {
     const eventPath = ev.composedPath();
 
     for (const [id, element] of this._gridContents.entries()) {
@@ -267,7 +267,7 @@ export class MediaGridController {
     }
   };
 
-  protected _hostResizeHandler(): void {
+  private _hostResizeHandler(): void {
     const dimensions = this._host.getBoundingClientRect();
 
     // Only resize things if the width has changed. It is expected that the
@@ -283,11 +283,11 @@ export class MediaGridController {
     }
   }
 
-  protected _cellResizeHandler(): void {
+  private _cellResizeHandler(): void {
     this._throttledLayout();
   }
 
-  protected _addChildEventListeners(child: MediaGridChild): void {
+  private _addChildEventListeners(child: MediaGridChild): void {
     child.addEventListener('click', this._handleSelectGridCellEvent, {
       capture: true,
     });
@@ -298,7 +298,7 @@ export class MediaGridController {
     );
   }
 
-  protected _removeChildEventListeners(child: MediaGridChild): void {
+  private _removeChildEventListeners(child: MediaGridChild): void {
     child.removeEventListener('click', this._handleSelectGridCellEvent, {
       capture: true,
     });
@@ -309,7 +309,7 @@ export class MediaGridController {
     );
   }
 
-  protected _createMasonry(): void {
+  private _createMasonry(): void {
     if (this._masonry) {
       this._masonry.destroy?.();
     }
@@ -325,7 +325,7 @@ export class MediaGridController {
     this._throttledLayout();
   }
 
-  protected _handleSelectGridCellEvent = (ev: Event): void => {
+  private _handleSelectGridCellEvent = (ev: Event): void => {
     const eventPath = ev.composedPath();
 
     for (const [id, element] of this._gridContents.entries()) {
@@ -340,7 +340,7 @@ export class MediaGridController {
     }
   };
 
-  protected _updateSelectedStylesOnElements(): void {
+  private _updateSelectedStylesOnElements(): void {
     for (const [id, element] of this._gridContents.entries()) {
       setOrRemoveAttribute(element, id === this._selected, 'selected');
 
@@ -351,7 +351,7 @@ export class MediaGridController {
     }
   }
 
-  protected _updateWidthFactorStyles(): void {
+  private _updateWidthFactorStyles(): void {
     for (const element of this._gridContents.values()) {
       const widthFactor = element.getAttribute(this._widthFactorAttribute);
       setOrRemoveStyleProperty(
@@ -363,7 +363,7 @@ export class MediaGridController {
     }
   }
 
-  protected _getColumnSize(): number {
+  private _getColumnSize(): number {
     const columns = this._getColumns();
     if (columns === 1) {
       return this._hostWidth;
@@ -372,7 +372,7 @@ export class MediaGridController {
     return Math.max(0, this._hostWidth / columns - MEDIA_GRID_HORIZONTAL_GUTTER_WIDTH);
   }
 
-  protected _getColumns(): number {
+  private _getColumns(): number {
     if (this._displayConfig?.grid_columns) {
       return this._displayConfig?.grid_columns;
     }
@@ -397,7 +397,7 @@ export class MediaGridController {
     return Math.max(1, minColumns);
   }
 
-  protected _setColumnSizeStyles(): void {
+  private _setColumnSizeStyles(): void {
     this._host.style.setProperty(
       '--advanced-camera-card-grid-column-size',
       `${this._getColumnSize()}px`,

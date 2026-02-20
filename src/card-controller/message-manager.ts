@@ -14,8 +14,8 @@ const MESSAGE_TYPE_PRIORITIES: MessagePriority = {
 };
 
 export class MessageManager {
-  protected _message: Message | null = null;
-  protected _api: CardMessageAPI;
+  private _message: Message | null = null;
+  private _api: CardMessageAPI;
 
   constructor(api: CardMessageAPI) {
     this._api = api;

@@ -106,7 +106,7 @@ export class FrigateCamera extends Camera {
     return true;
   }
 
-  protected async _initializeConfig(
+  private async _initializeConfig(
     hass: HomeAssistant,
     entityRegistryManager: EntityRegistryManager,
   ): Promise<void> {
@@ -193,7 +193,7 @@ export class FrigateCamera extends Camera {
     };
   }
 
-  protected _getFrigateCameraNameFromEntity(entity: Entity): string | null {
+  private _getFrigateCameraNameFromEntity(entity: Entity): string | null {
     if (
       entity.platform === 'frigate' &&
       entity.unique_id &&
@@ -244,7 +244,7 @@ export class FrigateCamera extends Camera {
     });
   }
 
-  protected _getJSMPEGEndpoint(): Endpoint | null {
+  private _getJSMPEGEndpoint(): Endpoint | null {
     if (!this._config.frigate.camera_name) {
       return null;
     }
@@ -301,7 +301,7 @@ export class FrigateCamera extends Camera {
     return { endpoint: cameraURL };
   }
 
-  protected async _getPTZCapabilities(
+  private async _getPTZCapabilities(
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
   ): Promise<PTZCapabilities | null> {
@@ -352,7 +352,7 @@ export class FrigateCamera extends Camera {
    * @param cameraConfig The camera config in question.
    * @returns The entity id of the motion sensor or null.
    */
-  protected _getMotionSensor(
+  private _getMotionSensor(
     cameraConfig: CameraConfig,
     entities: Entity[],
   ): string | null {
@@ -376,7 +376,7 @@ export class FrigateCamera extends Camera {
    * @param cameraConfig The camera config in question.
    * @returns The entity id of the occupancy sensor or null.
    */
-  protected _getOccupancySensor(
+  private _getOccupancySensor(
     cameraConfig: CameraConfig,
     entities: Entity[],
   ): string[] | null {
@@ -419,7 +419,7 @@ export class FrigateCamera extends Camera {
     return null;
   }
 
-  protected async _subscribeToEvents(
+  private async _subscribeToEvents(
     hass: HomeAssistant,
     frigateEventWatcher: FrigateWatcherSubscriptionInterface<FrigateEventChange>,
   ): Promise<void> {
@@ -441,7 +441,7 @@ export class FrigateCamera extends Camera {
     this._onDestroy(() => frigateEventWatcher.unsubscribe(request));
   }
 
-  protected _frigateEventHandler = (ev: FrigateEventChange): void => {
+  private _frigateEventHandler = (ev: FrigateEventChange): void => {
     const snapshotChange =
       (!ev.before.has_snapshot && ev.after.has_snapshot) ||
       ev.before.snapshot?.frame_time !== ev.after.snapshot?.frame_time;
@@ -487,7 +487,7 @@ export class FrigateCamera extends Camera {
     });
   };
 
-  protected async _subscribeToReviews(
+  private async _subscribeToReviews(
     hass: HomeAssistant,
     frigateReviewWatcher: FrigateWatcherSubscriptionInterface<FrigateReviewChange>,
   ): Promise<void> {
@@ -512,7 +512,7 @@ export class FrigateCamera extends Camera {
     this._onDestroy(() => frigateReviewWatcher.unsubscribe(request));
   }
 
-  protected _frigateReviewHandler = (review: FrigateReviewChange): void => {
+  private _frigateReviewHandler = (review: FrigateReviewChange): void => {
     const config = this.getConfig();
     const cameraID = this._config.id;
 

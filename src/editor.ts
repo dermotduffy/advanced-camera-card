@@ -419,16 +419,16 @@ const options: EditorOptions = {
 @customElement('advanced-camera-card-editor')
 export class AdvancedCameraCardEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) public hass?: HomeAssistant;
-  @state() protected _config?: RawAdvancedCameraCardConfig;
-  @state() protected _defaults = copyConfig(configDefaults);
+  @state() private _config?: RawAdvancedCameraCardConfig;
+  @state() private _defaults = copyConfig(configDefaults);
 
-  protected _initialized = false;
-  protected _configUpgradeable = false;
+  private _initialized = false;
+  private _configUpgradeable = false;
 
   @state()
-  protected _expandedMenus: Record<string, string | number> = {};
+  private _expandedMenus: Record<string, string | number> = {};
 
-  protected _viewModes: EditorSelectOption[] = [
+  private _viewModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'auto', label: localize('config.view.views.auto') },
     { value: 'clip', label: localize('config.view.views.clip') },
@@ -448,12 +448,12 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'timeline', label: localize('config.view.views.timeline') },
   ];
 
-  protected _cameraSelectViewModes: EditorSelectOption[] = [
+  private _cameraSelectViewModes: EditorSelectOption[] = [
     ...this._viewModes,
     { value: 'current', label: localize('config.view.views.current') },
   ];
 
-  protected _filterModes: EditorSelectOption[] = [
+  private _filterModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'none',
@@ -469,7 +469,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _menuStyles: EditorSelectOption[] = [
+  private _menuStyles: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'none', label: localize('config.menu.styles.none') },
     { value: 'hidden', label: localize('config.menu.styles.hidden') },
@@ -479,7 +479,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'outside', label: localize('config.menu.styles.outside') },
   ];
 
-  protected _menuPositions: EditorSelectOption[] = [
+  private _menuPositions: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'left', label: localize('config.menu.positions.left') },
     { value: 'right', label: localize('config.menu.positions.right') },
@@ -487,7 +487,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'bottom', label: localize('config.menu.positions.bottom') },
   ];
 
-  protected _menuAlignments: EditorSelectOption[] = [
+  private _menuAlignments: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'left', label: localize('config.menu.alignments.left') },
     { value: 'right', label: localize('config.menu.alignments.right') },
@@ -495,7 +495,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'bottom', label: localize('config.menu.alignments.bottom') },
   ];
 
-  protected _nextPreviousControlStyles: EditorSelectOption[] = [
+  private _nextPreviousControlStyles: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'chevrons',
@@ -515,7 +515,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _aspectRatioModes: EditorSelectOption[] = [
+  private _aspectRatioModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'dynamic',
@@ -528,7 +528,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _thumbnailModes: EditorSelectOption[] = [
+  private _thumbnailModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'none',
@@ -552,7 +552,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _thumbnailMediaTypes: EditorSelectOption[] = [
+  private _thumbnailMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'auto',
@@ -572,7 +572,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _timelineThumbnailMediaTypes: EditorSelectOption[] = [
+  private _timelineThumbnailMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'auto',
@@ -588,7 +588,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _thumbnailEventsMediaTypes: EditorSelectOption[] = [
+  private _thumbnailEventsMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'all',
@@ -604,7 +604,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _cameraMediaReviewedOptions: EditorSelectOption[] = [
+  private _cameraMediaReviewedOptions: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'unreviewed',
@@ -620,13 +620,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _transitionEffects: EditorSelectOption[] = [
+  private _transitionEffects: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'none', label: localize('config.media_viewer.transition_effects.none') },
     { value: 'slide', label: localize('config.media_viewer.transition_effects.slide') },
   ];
 
-  protected _imageModes: EditorSelectOption[] = [
+  private _imageModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'camera', label: localize('config.common.image.modes.camera') },
     { value: 'entity', label: localize('config.common.image.modes.entity') },
@@ -634,7 +634,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'url', label: localize('config.common.image.modes.url') },
   ];
 
-  protected _timelineEventsMediaTypes: EditorSelectOption[] = [
+  private _timelineEventsMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'all', label: localize('config.common.events_media_types.all') },
     {
@@ -647,13 +647,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _timelineStyleTypes: EditorSelectOption[] = [
+  private _timelineStyleTypes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'ribbon', label: localize('config.common.timeline.styles.ribbon') },
     { value: 'stack', label: localize('config.common.timeline.styles.stack') },
   ];
 
-  protected _mediaActionNegativeConditions: EditorSelectOption[] = [
+  private _mediaActionNegativeConditions: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'unselected',
@@ -662,7 +662,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'hidden', label: localize('config.common.media_action_conditions.hidden') },
   ];
 
-  protected _mediaActionPositiveConditions: EditorSelectOption[] = [
+  private _mediaActionPositiveConditions: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'selected',
@@ -674,7 +674,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _mediaLiveUnmuteConditions: EditorSelectOption[] = [
+  private _mediaLiveUnmuteConditions: EditorSelectOption[] = [
     ...this._mediaActionPositiveConditions,
     {
       value: 'microphone',
@@ -682,7 +682,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _mediaLiveMuteConditions: EditorSelectOption[] = [
+  private _mediaLiveMuteConditions: EditorSelectOption[] = [
     ...this._mediaActionNegativeConditions,
     {
       value: 'microphone',
@@ -690,7 +690,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _layoutFits: EditorSelectOption[] = [
+  private _layoutFits: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'contain',
@@ -700,21 +700,21 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'fill', label: localize('config.cameras.dimensions.layout.fits.fill') },
   ];
 
-  protected _miniTimelineModes: EditorSelectOption[] = [
+  private _miniTimelineModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'none', label: localize('config.common.controls.timeline.modes.none') },
     { value: 'above', label: localize('config.common.controls.timeline.modes.above') },
     { value: 'below', label: localize('config.common.controls.timeline.modes.below') },
   ];
 
-  protected _profiles: EditorSelectOption[] = [
+  private _profiles: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'casting', label: localize('config.profiles.casting') },
     { value: 'low-performance', label: localize('config.profiles.low-performance') },
     { value: 'scrubbing', label: localize('config.profiles.scrubbing') },
   ];
 
-  protected _go2rtcModes: EditorSelectOption[] = [
+  private _go2rtcModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'mse', label: localize('config.cameras.go2rtc.modes.mse') },
     { value: 'webrtc', label: localize('config.cameras.go2rtc.modes.webrtc') },
@@ -722,19 +722,19 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'mjpeg', label: localize('config.cameras.go2rtc.modes.mjpeg') },
   ];
 
-  protected _microphoneButtonTypes: EditorSelectOption[] = [
+  private _microphoneButtonTypes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'momentary', label: localize('config.menu.buttons.types.momentary') },
     { value: 'toggle', label: localize('config.menu.buttons.types.toggle') },
   ];
 
-  protected _displayModes: EditorSelectOption[] = [
+  private _displayModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'single', label: localize('display_modes.single') },
     { value: 'grid', label: localize('display_modes.grid') },
   ];
 
-  protected _gridSelectPositions: EditorSelectOption[] = [
+  private _gridSelectPositions: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'default',
@@ -750,13 +750,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _castMethods: EditorSelectOption[] = [
+  private _castMethods: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'standard', label: localize('config.cameras.cast.methods.standard') },
     { value: 'dashboard', label: localize('config.cameras.cast.methods.dashboard') },
   ];
 
-  protected _cameraMediaTypes: EditorSelectOption[] = [
+  private _cameraMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'auto', label: localize('config.common.media_types.auto') },
     { value: 'events', label: localize('config.common.media_types.events') },
@@ -765,13 +765,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'folder', label: localize('config.common.media_types.folder') },
   ];
 
-  protected _ptzModes: EditorSelectOption[] = [
+  private _ptzModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'on', label: localize('config.live.controls.ptz.modes.on') },
     { value: 'off', label: localize('config.live.controls.ptz.modes.off') },
   ];
 
-  protected _ptzOrientations: EditorSelectOption[] = [
+  private _ptzOrientations: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'vertical',
@@ -783,7 +783,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _ptzPositions: EditorSelectOption[] = [
+  private _ptzPositions: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'top-left',
@@ -803,7 +803,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _triggersActionsInteractionModes: EditorSelectOption[] = [
+  private _triggersActionsInteractionModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'all',
@@ -819,7 +819,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _triggersActionsTrigger: EditorSelectOption[] = [
+  private _triggersActionsTrigger: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'default',
@@ -839,7 +839,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _triggersActionsUntrigger: EditorSelectOption[] = [
+  private _triggersActionsUntrigger: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'default',
@@ -851,7 +851,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _triggersEvents: EditorSelectOption[] = [
+  private _triggersEvents: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'events',
@@ -867,7 +867,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _severities: EditorSelectOption[] = [
+  private _severities: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'high',
@@ -883,7 +883,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _timelinePanModes: EditorSelectOption[] = [
+  private _timelinePanModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'pan',
@@ -903,7 +903,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _capabilities: EditorSelectOption[] = [
+  private _capabilities: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'live',
@@ -947,7 +947,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _forceableCapabilities: EditorSelectOption[] = [
+  private _forceableCapabilities: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: '2-way-audio',
@@ -955,7 +955,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _defaultResetInteractionModes: EditorSelectOption[] = [
+  private _defaultResetInteractionModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'all',
@@ -971,7 +971,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _proxyModes: EditorSelectOption[] = [
+  private _proxyModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'auto',
@@ -987,7 +987,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _proxySSLCiphers: EditorSelectOption[] = [
+  private _proxySSLCiphers: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'auto',
@@ -1011,7 +1011,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _proxySSLVerification: EditorSelectOption[] = [
+  private _proxySSLVerification: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'auto',
@@ -1027,7 +1027,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _reolinkMediaResolution: EditorSelectOption[] = [
+  private _reolinkMediaResolution: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'high',
@@ -1039,7 +1039,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  protected _statusBarStyles: EditorSelectOption[] = [
+  private _statusBarStyles: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'hover', label: localize('config.status_bar.styles.hover') },
     { value: 'hover-card', label: localize('config.status_bar.styles.hover-card') },
@@ -1049,13 +1049,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'popup', label: localize('config.status_bar.styles.popup') },
   ];
 
-  protected _statusBarPositions: EditorSelectOption[] = [
+  private _statusBarPositions: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'top', label: localize('config.status_bar.positions.top') },
     { value: 'bottom', label: localize('config.status_bar.positions.bottom') },
   ];
 
-  protected _themes: EditorSelectOption[] = [
+  private _themes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'ha', label: localize('config.view.theme.themes.ha') },
     { value: 'dark', label: localize('config.view.theme.themes.dark') },
@@ -1063,7 +1063,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: 'traditional', label: localize('config.view.theme.themes.traditional') },
   ];
 
-  protected _rotations: EditorSelectOption[] = [
+  private _rotations: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 0, label: localize('config.cameras.dimensions.rotations.0') },
     { value: 90, label: localize('config.cameras.dimensions.rotations.90') },
@@ -1105,7 +1105,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param optionSetName The name of the EditorOptionsSet.
    * @returns A rendered template.
    */
-  protected _renderOptionSetHeader(
+  private _renderOptionSetHeader(
     optionSetName: string,
     titleClass?: string,
   ): TemplateResult {
@@ -1134,7 +1134,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param configPath The config path.
    * @returns A localized label.
    */
-  protected _getLabel(configPath: string): string {
+  private _getLabel(configPath: string): string {
     // Strip out array indices from the path.
     const path = configPath
       .split('.')
@@ -1149,7 +1149,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param domain Only entities from this domain will be shown.
    * @returns A rendered template.
    */
-  protected _renderEntitySelector(
+  private _renderEntitySelector(
     configPath: string,
     domain: string,
   ): TemplateResult | void {
@@ -1177,7 +1177,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param params Option parameters to control the selector.
    * @returns A rendered template.
    */
-  protected _renderOptionSelector(
+  private _renderOptionSelector(
     configPath: string,
     options: string[] | { value: unknown; label: string }[] = [],
     params?: {
@@ -1215,7 +1215,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param params Optional parameters to control the selector.
    * @returns A rendered template.
    */
-  protected _renderIconSelector(
+  private _renderIconSelector(
     configPath: string,
     params?: {
       label?: string;
@@ -1246,7 +1246,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param params Optional parameters to control the selector.
    * @returns A rendered template.
    */
-  protected _renderNumberInput(
+  private _renderNumberInput(
     configPath: string,
     params?: {
       min?: number;
@@ -1287,7 +1287,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param info The string to display.
    * @returns A rendered template.
    */
-  protected _renderInfo(info: string): TemplateResult {
+  private _renderInfo(info: string): TemplateResult {
     return html` <span class="info">${info}</span>`;
   }
 
@@ -1297,7 +1297,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param cameraConfig The raw camera configuration object.
    * @returns A string title.
    */
-  protected _getEditorCameraTitle(
+  private _getEditorCameraTitle(
     cameraIndex: number,
     cameraConfig: RawAdvancedCameraCardConfig,
   ): string {
@@ -1334,7 +1334,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param cameraConfig The raw camera configuration object.
    * @returns A string title.
    */
-  protected _getEditorFolderTitle(
+  private _getEditorFolderTitle(
     folderIndex: number,
     folderConfig: RawAdvancedCameraCardConfig,
   ): string {
@@ -1349,7 +1349,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     );
   }
 
-  protected _renderViewDefaultResetMenu(): TemplateResult {
+  private _renderViewDefaultResetMenu(): TemplateResult {
     return this._putInSubmenu(
       MENU_VIEW_DEFAULT_RESET,
       true,
@@ -1379,7 +1379,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     );
   }
 
-  protected _renderViewTriggersMenu(): TemplateResult {
+  private _renderViewTriggersMenu(): TemplateResult {
     return this._putInSubmenu(
       MENU_VIEW_TRIGGERS,
       true,
@@ -1437,7 +1437,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     );
   }
 
-  protected _renderKeyAssigner(
+  private _renderKeyAssigner(
     configPath: string,
     defaultValue: KeyboardShortcut,
   ): TemplateResult {
@@ -1450,7 +1450,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     ></advanced-camera-card-key-assigner>`;
   }
 
-  protected _renderViewKeyboardShortcutMenu(): TemplateResult {
+  private _renderViewKeyboardShortcutMenu(): TemplateResult {
     return this._putInSubmenu(
       MENU_VIEW_KEYBOARD_SHORTCUTS,
       true,
@@ -1496,7 +1496,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     );
   }
 
-  protected _renderStatusBarItem(item: string): TemplateResult {
+  private _renderStatusBarItem(item: string): TemplateResult {
     return html` ${this._putInSubmenu(
       MENU_STATUS_BAR_ITEMS,
       item,
@@ -1519,7 +1519,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     )}`;
   }
 
-  protected _renderMenuButton(
+  private _renderMenuButton(
     button: string,
     additionalOptions?: TemplateResult,
   ): TemplateResult {
@@ -1578,7 +1578,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param template The template to put in the submenu.
    * @returns
    */
-  protected _putInSubmenu(
+  private _putInSubmenu(
     domain: string,
     key: unknown,
     labelPath: string,
@@ -1614,7 +1614,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param configPathPositionY The path to the position.y config.
    * @returns A rendered template.
    */
-  protected _renderMediaLayout(
+  private _renderMediaLayout(
     domain: string,
     labelPath: string,
     configPathFit: string,
@@ -1710,7 +1710,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param defaultShowRecordings Default value of show_recordings.
    * @returns A rendered template.
    */
-  protected _renderTimelineCoreControls(
+  private _renderTimelineCoreControls(
     domain: string,
     configPathStyle: string,
     configPathWindowSeconds: string,
@@ -1762,7 +1762,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param configPathShowRecordings Show recordings config path.
    * @returns A rendered template.
    */
-  protected _renderMiniTimeline(
+  private _renderMiniTimeline(
     domain: string,
     configPathMode: string,
     configPathStyle: string,
@@ -1804,7 +1804,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param configPathSize Next previous size config path.
    * @returns A rendered template.
    */
-  protected _renderViewDisplay(
+  private _renderViewDisplay(
     domain: string,
     configPathMode: string,
     configPathSelectedPosition: string,
@@ -1851,7 +1851,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param configPathSize Next previous size config path.
    * @returns A rendered template.
    */
-  protected _renderNextPreviousControls(
+  private _renderNextPreviousControls(
     domain: string,
     configPathStyle: string,
     configPathSize: string,
@@ -1896,7 +1896,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param options An optional config path to media selection and mini-timeline mode.
    * @returns A rendered template.
    */
-  protected _renderThumbnailsControls(
+  private _renderThumbnailsControls(
     domain: string,
     configPathSize: string,
     configPathShowDetails: string,
@@ -1977,7 +1977,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param configPathMode Filter mode config path.
    * @returns A rendered template.
    */
-  protected _renderFilterControls(
+  private _renderFilterControls(
     domain: string,
     configPathMode: string,
   ): TemplateResult | void {
@@ -1996,7 +1996,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     );
   }
 
-  protected _renderImageOptions(
+  private _renderImageOptions(
     configPathMode: string,
     configPathUrl: string,
     configPathEntity: string,
@@ -2026,7 +2026,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     `;
   }
 
-  protected _modifyConfig(func: (config: RawAdvancedCameraCardConfig) => boolean): void {
+  private _modifyConfig(func: (config: RawAdvancedCameraCardConfig) => boolean): void {
     if (this._config) {
       const newConfig = copyConfig(this._config);
       if (func(newConfig)) {
@@ -2035,7 +2035,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     }
   }
 
-  protected _renderArrayManagementControls(
+  private _renderArrayManagementControls(
     configPathArray: string,
     index: number,
     menu: string,
@@ -2109,7 +2109,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     `;
   }
 
-  protected _renderFolder(
+  private _renderFolder(
     folders: RawAdvancedCameraCardConfigArray,
     folderIndex: number,
     addNewFolder?: boolean,
@@ -2200,7 +2200,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param addNewCamera Whether or not this is a section to add a new non-existent camera.
    * @returns A rendered template.
    */
-  protected _renderCamera(
+  private _renderCamera(
     cameras: RawAdvancedCameraCardConfigArray,
     cameraIndex: number,
     entities: string[],
@@ -2784,7 +2784,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param type The allowable input
    * @returns A rendered template.
    */
-  protected _renderStringInput(
+  private _renderStringInput(
     configPath: string,
     params?: {
       label?: string;
@@ -2828,7 +2828,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param params Optional parameters to control the selector.
    * @returns A rendered template.
    */
-  protected _renderSwitch(
+  private _renderSwitch(
     configPath: string,
     valueDefault: boolean,
     params?: {
@@ -2852,7 +2852,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     `;
   }
 
-  protected _updateConfig(config: RawAdvancedCameraCardConfig): void {
+  private _updateConfig(config: RawAdvancedCameraCardConfig): void {
     this._config = config;
     fireHASSEvent(this, 'config-changed', { config: this._config });
   }
@@ -3471,7 +3471,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * Close the editor menu with the given domain.
    * @param targetDomain The menu domain to close.
    */
-  protected _closeMenu(targetDomain: string) {
+  private _closeMenu(targetDomain: string) {
     delete this._expandedMenus[targetDomain];
     this.requestUpdate();
   }
@@ -3481,7 +3481,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * @param targetDomain The menu domain to open.
    * @param key The menu object key to open.
    */
-  protected _openMenu(targetDomain: string, key: number | string) {
+  private _openMenu(targetDomain: string, key: number | string) {
     this._expandedMenus[targetDomain] = key;
     this.requestUpdate();
   }
@@ -3490,7 +3490,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * Toggle an editor menu.
    * @param ev An event.
    */
-  protected _toggleMenu(ev: { target: EditorMenuTarget | null }): void {
+  private _toggleMenu(ev: { target: EditorMenuTarget | null }): void {
     if (ev && ev.target) {
       const domain = ev.target.domain;
       const key = ev.target.key;
@@ -3507,10 +3507,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
    * Handle a changed option value.
    * @param ev Event triggering the change.
    */
-  protected _valueChangedHandler(
-    key: string,
-    ev: CustomEvent<{ value: unknown }>,
-  ): void {
+  private _valueChangedHandler(key: string, ev: CustomEvent<{ value: unknown }>): void {
     if (!this._config || !this.hass) {
       return;
     }

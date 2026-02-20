@@ -42,7 +42,7 @@ customElements.whenDefined('ha-hls-player').then(() => {
     @query('#video')
     protected _video: HTMLVideoElement;
 
-    protected _mediaPlayerController = new VideoMediaPlayerController(
+    private _mediaPlayerController = new VideoMediaPlayerController(
       this,
       () => this._video,
       () => this.controls,

@@ -4,8 +4,8 @@ import { FullscreenProviderFactory } from './factory';
 import { FullscreenProvider } from './types';
 
 export class FullscreenManager {
-  protected _api: CardFullscreenAPI;
-  protected _provider: FullscreenProvider | null;
+  private _api: CardFullscreenAPI;
+  private _provider: FullscreenProvider | null;
 
   constructor(api: CardFullscreenAPI, provider?: FullscreenProvider) {
     this._api = api;
@@ -48,7 +48,7 @@ export class FullscreenManager {
     }
   }
 
-  protected _fullscreenHandler = (): void => {
+  private _fullscreenHandler = (): void => {
     this._api.getExpandManager().setExpanded(false);
 
     this._setConditionState();
@@ -59,7 +59,7 @@ export class FullscreenManager {
     this._api.getCardElementManager().update();
   };
 
-  protected _setConditionState(): void {
+  private _setConditionState(): void {
     this._api.getConditionStateManager()?.setState({
       fullscreen: this.isInFullscreen(),
     });

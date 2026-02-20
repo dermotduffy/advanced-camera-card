@@ -2,13 +2,13 @@ import { ReactiveController, ReactiveControllerHost } from 'lit';
 import { Timer } from '../utils/timer';
 
 export class CachedValueController<T> implements ReactiveController {
-  protected _value?: T;
-  protected _host: ReactiveControllerHost;
-  protected _timerSeconds: number;
-  protected _callback: () => T;
-  protected _timerStartCallback?: () => void;
-  protected _timerStopCallback?: () => void;
-  protected _timer = new Timer();
+  private _value?: T;
+  private _host: ReactiveControllerHost;
+  private _timerSeconds: number;
+  private _callback: () => T;
+  private _timerStartCallback?: () => void;
+  private _timerStopCallback?: () => void;
+  private _timer = new Timer();
 
   constructor(
     host: ReactiveControllerHost,

@@ -41,16 +41,16 @@ type PTZEntity = keyof PTZEntities;
 
 export class ReolinkCamera extends EntityCamera {
   // The HostID identifying the camera or NVR.
-  protected _reolinkHostID: string | null = null;
+  private _reolinkHostID: string | null = null;
 
   // For NVRs, the Camera UID.
-  protected _reolinkCameraUID: string | null = null;
+  private _reolinkCameraUID: string | null = null;
 
   // The channel number as used by the Reolink integration.
-  protected _reolinkChannel: number | null = null;
+  private _reolinkChannel: number | null = null;
 
   // Entities used for PTZ control.
-  protected _ptzEntities: PTZEntities | null = null;
+  private _ptzEntities: PTZEntities | null = null;
 
   /**
    * Reolink cameras require additional options not present in the base class
@@ -62,7 +62,7 @@ export class ReolinkCamera extends EntityCamera {
     return super.initialize(options);
   }
 
-  protected async _getChannelFromConfigurationURL(
+  private async _getChannelFromConfigurationURL(
     hass: HomeAssistant,
     deviceRegistryManager: DeviceRegistryManager,
   ): Promise<number | null> {
@@ -84,7 +84,7 @@ export class ReolinkCamera extends EntityCamera {
     }
   }
 
-  protected async _initializeChannel(
+  private async _initializeChannel(
     hass: HomeAssistant,
     deviceRegistryManager: DeviceRegistryManager,
   ): Promise<void> {
@@ -169,7 +169,7 @@ export class ReolinkCamera extends EntityCamera {
     };
   }
 
-  protected _entitiesToCapabilities(
+  private _entitiesToCapabilities(
     hass: HomeAssistant,
     ptzEntities: PTZEntities,
   ): PTZCapabilities | null {
@@ -203,7 +203,7 @@ export class ReolinkCamera extends EntityCamera {
     return Object.keys(reolinkPTZCapabilities).length ? reolinkPTZCapabilities : null;
   }
 
-  protected async _getPTZEntities(
+  private async _getPTZEntities(
     hass: HomeAssistant,
     entityRegistry: EntityRegistryManager,
   ): Promise<PTZEntities | null> {
@@ -264,7 +264,7 @@ export class ReolinkCamera extends EntityCamera {
     return this._reolinkChannel;
   }
 
-  protected _getPTZEntityUniqueIDPrefix(): string {
+  private _getPTZEntityUniqueIDPrefix(): string {
     return `${this._reolinkHostID}_${this._reolinkCameraUID ?? this._reolinkChannel}_`;
   }
 

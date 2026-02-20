@@ -43,7 +43,7 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
   @property({ attribute: false })
   public viewItemManager?: ViewItemManager;
 
-  protected _renderCarousel(filterCamera?: string): TemplateResult {
+  private _renderCarousel(filterCamera?: string): TemplateResult {
     const selectedCameraID = this.viewManagerEpoch?.manager.getView()?.camera;
 
     // Get the camera's grid width factor from its dimensions config.
@@ -76,7 +76,7 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
     }
   }
 
-  protected _needsGrid(): boolean {
+  private _needsGrid(): boolean {
     const view = this.viewManagerEpoch?.manager.getView();
     const cameraIDs = view?.queryResults?.getCameraIDs();
     return (
@@ -86,7 +86,7 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
     );
   }
 
-  protected _gridSelectCamera(cameraID: string): void {
+  private _gridSelectCamera(cameraID: string): void {
     const view = this.viewManagerEpoch?.manager.getView();
     this.viewManagerEpoch?.manager.setViewByParameters({
       params: {

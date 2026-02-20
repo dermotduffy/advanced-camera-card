@@ -20,8 +20,8 @@ export class AdvancedCameraCardMediaGrid extends LitElement {
   @property({ attribute: false })
   public displayConfig?: ViewDisplayConfig;
 
-  protected _controller: MediaGridController | null = null;
-  protected _refSlot: Ref<HTMLSlotElement> = createRef();
+  private _controller: MediaGridController | null = null;
+  private _refSlot: Ref<HTMLSlotElement> = createRef();
 
   connectedCallback(): void {
     super.connectedCallback();

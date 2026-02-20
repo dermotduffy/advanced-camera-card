@@ -12,7 +12,7 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
   @property({ attribute: false })
   public message: OverlayMessage | null = null;
 
-  protected _refMessage: Ref<HTMLElement> = createRef();
+  private _refMessage: Ref<HTMLElement> = createRef();
 
   public connectedCallback(): void {
     super.connectedCallback();
@@ -64,7 +64,7 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
     `;
   }
 
-  protected _renderControl(control: OverlayMessageControl): TemplateResult {
+  private _renderControl(control: OverlayMessageControl): TemplateResult {
     const emphasisClass = control.emphasis ? `emphasis-${control.emphasis}` : '';
     return html`
       <div
@@ -81,7 +81,7 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
     `;
   }
 
-  protected async _handleControlClick(control: OverlayMessageControl): Promise<void> {
+  private async _handleControlClick(control: OverlayMessageControl): Promise<void> {
     const result = await control.callback();
     if (result === null) {
       // null = close the message
@@ -92,7 +92,7 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
     }
   }
 
-  protected _renderDetail(detail: MetadataField, isHeading = false): TemplateResult {
+  private _renderDetail(detail: MetadataField, isHeading = false): TemplateResult {
     const classes = {
       detail: true,
       heading: isHeading,
@@ -111,23 +111,23 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
     `;
   }
 
-  protected _dismiss = (): void => {
+  private _dismiss = (): void => {
     this._refMessage.value?.classList.add('exiting');
   };
 
-  protected _handleAnimationEnd = (ev: AnimationEvent): void => {
+  private _handleAnimationEnd = (ev: AnimationEvent): void => {
     if (ev.animationName === 'slideDown') {
       dispatchDismissOverlayMessageEvent(this);
     }
   };
 
-  protected _handleOutsideInteraction = (ev: Event): void => {
+  private _handleOutsideInteraction = (ev: Event): void => {
     if (!ev.composedPath().includes(this)) {
       this._dismiss();
     }
   };
 
-  protected _handleKeyDown = (ev: KeyboardEvent): void => {
+  private _handleKeyDown = (ev: KeyboardEvent): void => {
     if (ev.key === 'Escape') {
       this._dismiss();
       ev.stopPropagation();

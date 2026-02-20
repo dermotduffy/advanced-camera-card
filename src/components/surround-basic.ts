@@ -19,9 +19,9 @@ export class AdvancedCameraCardSurroundBasic extends LitElement {
     right?: DrawerIcons;
   };
 
-  protected _refDrawerLeft: Ref<AdvancedCameraCardDrawer> = createRef();
-  protected _refDrawerRight: Ref<AdvancedCameraCardDrawer> = createRef();
-  protected _boundDrawerHandler = this._drawerHandler.bind(this);
+  private _refDrawerLeft: Ref<AdvancedCameraCardDrawer> = createRef();
+  private _refDrawerRight: Ref<AdvancedCameraCardDrawer> = createRef();
+  private _boundDrawerHandler = this._drawerHandler.bind(this);
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -41,7 +41,7 @@ export class AdvancedCameraCardSurroundBasic extends LitElement {
     super.disconnectedCallback();
   }
 
-  protected _drawerHandler(ev: Event) {
+  private _drawerHandler(ev: Event) {
     const drawer = (ev as CustomEvent<AdvancedCameraCardDrawerOpen>).detail.drawer;
     const open = ev.type.endsWith(':open');
     if (drawer === 'left' && this._refDrawerLeft.value) {

@@ -53,9 +53,9 @@ export class ReolinkQueryResultsClassifier {
 }
 
 export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
-  protected _camerasCache = new BrowseMediaCache<BrowseMediaReolinkCameraMetadata>();
-  protected _cache = new BrowseMediaCache<BrowseMediaMetadata>();
-  protected _deviceRegistryManager: DeviceRegistryManager;
+  private _camerasCache = new BrowseMediaCache<BrowseMediaReolinkCameraMetadata>();
+  private _cache = new BrowseMediaCache<BrowseMediaMetadata>();
+  private _deviceRegistryManager: DeviceRegistryManager;
 
   public constructor(
     entityRegistryManager: EntityRegistryManager,
@@ -81,7 +81,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     return Engine.Reolink;
   }
 
-  protected _reolinkFileMetadataGenerator(
+  private _reolinkFileMetadataGenerator(
     cameraID: string,
     media: BrowseMedia,
     parent?: RichBrowseMedia<BrowseMediaMetadata>,
@@ -133,7 +133,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     };
   }
 
-  protected _reolinkDirectoryMetadataGenerator(
+  private _reolinkDirectoryMetadataGenerator(
     cameraID: string,
     media: BrowseMedia,
   ): BrowseMediaMetadata | null {
@@ -149,7 +149,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       : null;
   }
 
-  protected _reolinkCameraMetadataGenerator(
+  private _reolinkCameraMetadataGenerator(
     media: BrowseMedia,
   ): BrowseMediaReolinkCameraMetadata | null {
     // Example: "media-source://reolink/CAM|01J8XHYTNH77WE3C654K03KX1F|0"
@@ -179,7 +179,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     });
   }
 
-  protected async _getMatchingDirectories(
+  private async _getMatchingDirectories(
     hass: HomeAssistant,
     camera: ReolinkCamera,
     matchOptions?: {

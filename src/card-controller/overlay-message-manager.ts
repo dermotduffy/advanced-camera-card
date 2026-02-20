@@ -2,8 +2,8 @@ import { OverlayMessage } from '../types';
 import { CardOverlayMessageAPI } from './types';
 
 export class OverlayMessageManager {
-  protected _message: OverlayMessage | null = null;
-  protected _api: CardOverlayMessageAPI;
+  private _message: OverlayMessage | null = null;
+  private _api: CardOverlayMessageAPI;
 
   constructor(api: CardOverlayMessageAPI) {
     this._api = api;

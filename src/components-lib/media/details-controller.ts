@@ -219,7 +219,7 @@ export class MediaDetailsController {
     };
   }
 
-  protected _getControls(context: OverlayControlsContext): OverlayMessageControl[] {
+  private _getControls(context: OverlayControlsContext): OverlayMessageControl[] {
     const controls: OverlayMessageControl[] = [];
     const item = this._item;
 

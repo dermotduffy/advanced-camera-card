@@ -27,15 +27,15 @@ export enum InitializationAspect {
 // =========================================================================
 
 export class InitializationManager {
-  protected _api: CardInitializerAPI;
+  private _api: CardInitializerAPI;
 
   // A concurrency limit is placed to ensure that on card load multiple async
   // contexts do not attempt to initialize the card at the same time. This is
   // not strictly necessary, just more efficient, as long as the "Rules for
   // initialization" (above) are followed.
-  protected _initializationQueue = new PQueue({ concurrency: 1 });
-  protected _initializer: Initializer;
-  protected _everInitialized = false;
+  private _initializationQueue = new PQueue({ concurrency: 1 });
+  private _initializer: Initializer;
+  private _everInitialized = false;
 
   constructor(api: CardInitializerAPI, initializer?: Initializer) {
     this._api = api;
@@ -76,7 +76,7 @@ export class InitializationManager {
     await this._initializationQueue.add(() => this._initializeMandatory());
   }
 
-  protected async _initializeMandatory(): Promise<void> {
+  private async _initializeMandatory(): Promise<void> {
     const hass = this._api.getHASSManager().getHASS();
     if (!hass || this.isInitializedMandatory()) {
       return;

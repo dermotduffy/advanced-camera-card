@@ -34,10 +34,10 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
   public entityRegistryManager?: EntityRegistryManager;
 
   @state()
-  protected _optionTitles?: Record<string, string>;
+  private _optionTitles?: Record<string, string>;
 
-  protected _generatedSubmenuItems?: MenuSubmenuItem[];
-  protected _generatedIcon?: Icon;
+  private _generatedSubmenuItems?: MenuSubmenuItem[];
+  private _generatedIcon?: Icon;
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     // No need to update the submenu unless the select entity has changed.
@@ -50,7 +50,7 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
     );
   }
 
-  protected async _refreshOptionTitles(): Promise<void> {
+  private async _refreshOptionTitles(): Promise<void> {
     if (!this.hass || !this.submenuSelect) {
       return;
     }

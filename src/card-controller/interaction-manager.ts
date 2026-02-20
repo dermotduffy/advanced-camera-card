@@ -4,9 +4,9 @@ import { Timer } from '../utils/timer';
 import { CardInteractionAPI } from './types';
 
 export class InteractionManager {
-  protected _timer = new Timer();
-  protected _api: CardInteractionAPI;
-  protected _interacted = false;
+  private _timer = new Timer();
+  private _api: CardInteractionAPI;
+  private _interacted = false;
 
   constructor(api: CardInteractionAPI) {
     this._api = api;
@@ -26,7 +26,7 @@ export class InteractionManager {
     return this._interacted;
   }
 
-  protected _setInteraction(val: boolean): void {
+  private _setInteraction(val: boolean): void {
     this._interacted = val;
     setOrRemoveAttribute(
       this._api.getCardElementManager().getElement(),
@@ -36,7 +36,7 @@ export class InteractionManager {
     this._api.getConditionStateManager().setState({ interaction: val });
   }
 
-  protected _reportInteraction(): void {
+  private _reportInteraction(): void {
     this._timer.stop();
     this._setInteraction(true);
 

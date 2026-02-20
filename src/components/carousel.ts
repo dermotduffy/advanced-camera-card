@@ -48,12 +48,12 @@ export class AdvancedCameraCardCarousel extends LitElement {
   @property({ attribute: false })
   public selected = 0;
 
-  protected _refParent: Ref<HTMLSlotElement> = createRef();
-  protected _refRoot: Ref<HTMLElement> = createRef();
-  protected _carousel: CarouselController | null = null;
+  private _refParent: Ref<HTMLSlotElement> = createRef();
+  private _refRoot: Ref<HTMLElement> = createRef();
+  private _carousel: CarouselController | null = null;
 
   // Track slide count to distinguish user-navigation from content changes.
-  protected _previousSlideCount: number | null = null;
+  private _previousSlideCount: number | null = null;
 
   connectedCallback(): void {
     super.connectedCallback();

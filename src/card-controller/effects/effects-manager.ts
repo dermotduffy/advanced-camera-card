@@ -47,7 +47,7 @@ export class EffectsManager implements EffectsManagerInterface {
   // effects can be started).
   private _pendingEffects: Map<EffectName, EffectOptions | undefined> = new Map();
   private _activeEffects: Map<EffectName, EffectComponent | null> = new Map();
-  protected _container: EffectsContainer | null = null;
+  private _container: EffectsContainer | null = null;
 
   constructor(importer: EffectModuleImporter = defaultImportEffectModule) {
     this._importer = importer;

@@ -25,10 +25,10 @@ export class AdvancedCameraCardThumbnailFeatureThumbnail extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
-  protected _embedThumbnailTask?: Task<FetchThumbnailTaskArgs, string | null>;
+  private _embedThumbnailTask?: Task<FetchThumbnailTaskArgs, string | null>;
 
   // Only load thumbnails on view in case there is a very large number of them.
-  protected _intersectionObserver = new IntersectionObserver(
+  private _intersectionObserver = new IntersectionObserver(
     this._intersectionHandler.bind(this),
   );
 
@@ -57,7 +57,7 @@ export class AdvancedCameraCardThumbnailFeatureThumbnail extends LitElement {
     }
   }
 
-  protected _intersectionHandler(entries: IntersectionObserverEntry[]): void {
+  private _intersectionHandler(entries: IntersectionObserverEntry[]): void {
     if (
       this._embedThumbnailTask?.status === TaskStatus.INITIAL &&
       entries.some((entry) => entry.isIntersecting)

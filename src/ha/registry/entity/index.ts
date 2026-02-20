@@ -15,8 +15,8 @@ import {
 // non-trivial in size (after which they are cached forever).
 
 export class EntityRegistryManagerLive implements EntityRegistryManager {
-  protected _cache: EntityCache;
-  protected _fetchedEntityList = false;
+  private _cache: EntityCache;
+  private _fetchedEntityList = false;
 
   constructor(cache: EntityCache) {
     this._cache = cache;

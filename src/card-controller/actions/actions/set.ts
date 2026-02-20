@@ -9,10 +9,10 @@ import { ActionFactory } from '../factory';
 import { Action } from '../types';
 
 export class ActionSet implements Action {
-  protected _context: ActionContext;
-  protected _actions: Action[] = [];
-  protected _factory = new ActionFactory();
-  protected _stopped = false;
+  private _context: ActionContext;
+  private _actions: Action[] = [];
+  private _factory = new ActionFactory();
+  private _stopped = false;
 
   constructor(
     context: ActionContext,

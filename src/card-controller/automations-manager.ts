@@ -7,13 +7,13 @@ import { CardAutomationsAPI, TaggedAutomation } from './types.js';
 const MAX_NESTED_AUTOMATION_EXECUTIONS = 10;
 
 export class AutomationsManager {
-  protected _api: CardAutomationsAPI;
+  private _api: CardAutomationsAPI;
 
-  protected _automations = new Map<TaggedAutomation, ConditionsManager>();
+  private _automations = new Map<TaggedAutomation, ConditionsManager>();
 
   // A counter to avoid infinite loops, increases every time actions are run,
   // decreases every time actions are complete.
-  protected _nestedAutomationExecutions = 0;
+  private _nestedAutomationExecutions = 0;
 
   constructor(api: CardAutomationsAPI) {
     this._api = api;
@@ -41,7 +41,7 @@ export class AutomationsManager {
     }
   }
 
-  protected _execute(automation: Automation, result: ConditionsEvaluationResult): void {
+  private _execute(automation: Automation, result: ConditionsEvaluationResult): void {
     if (
       !this._api.getHASSManager().hasHASS() ||
       // Never execute automations if the card hasn't finished initializing, as

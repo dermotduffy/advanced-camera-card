@@ -19,11 +19,11 @@ export type CardHTMLElement = LitElement &
   CardMediaReviewEventTarget;
 
 export class CardElementManager {
-  protected _api: CardElementAPI;
+  private _api: CardElementAPI;
 
-  protected _element: CardHTMLElement;
-  protected _scrollCallback: ScrollCallback;
-  protected _menuToggleCallback: MenuToggleCallback;
+  private _element: CardHTMLElement;
+  private _scrollCallback: ScrollCallback;
+  private _menuToggleCallback: MenuToggleCallback;
 
   constructor(
     api: CardElementAPI,
@@ -220,7 +220,7 @@ export class CardElementManager {
     );
   }
 
-  protected _handleMediaReviewed = (ev: CustomEvent<ViewItem>): void => {
+  private _handleMediaReviewed = (ev: CustomEvent<ViewItem>): void => {
     // If the selected media item has a change of review status, update the card
     // (e.g. for the menu).
     if (

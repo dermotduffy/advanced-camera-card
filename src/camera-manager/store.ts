@@ -38,8 +38,8 @@ export interface CameraManagerReadOnlyConfigStore {
 }
 
 export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
-  protected _cameras: Map<string, Camera> = new Map();
-  protected _enginesByType: Map<Engine, CameraManagerEngine> = new Map();
+  private _cameras: Map<string, Camera> = new Map();
+  private _enginesByType: Map<Engine, CameraManagerEngine> = new Map();
 
   public addCamera(camera: Camera): void {
     this._cameras.set(camera.getID(), camera);

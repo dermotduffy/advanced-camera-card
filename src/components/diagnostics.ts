@@ -20,7 +20,7 @@ export class AdvancedCameraCardDiagnostics extends LitElement {
   @property({ attribute: false })
   public rawConfig?: RawAdvancedCameraCardConfig;
 
-  protected async _renderDiagnostics(): Promise<TemplateResult> {
+  private async _renderDiagnostics(): Promise<TemplateResult> {
     const diagnostics = await getDiagnostics(
       this.hass,
       this.deviceRegistryManager,

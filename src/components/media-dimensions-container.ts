@@ -17,10 +17,10 @@ export class AdvancedCameraCardMediaDimensionsContainer extends LitElement {
   @property({ attribute: false })
   public dimensionsConfig?: CameraDimensionsConfig;
 
-  protected _controller = new MediaDimensionsContainerController(this);
+  private _controller = new MediaDimensionsContainerController(this);
 
-  protected _refInnerContainer: Ref<HTMLElement> = createRef();
-  protected _refOuterContainer: Ref<HTMLElement> = createRef();
+  private _refInnerContainer: Ref<HTMLElement> = createRef();
+  private _refOuterContainer: Ref<HTMLElement> = createRef();
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('dimensionsConfig')) {

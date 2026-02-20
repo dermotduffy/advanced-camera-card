@@ -45,8 +45,8 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     @query('.player:not(.hidden)')
     protected _player: MediaPlayer;
 
-    protected _mediaLoadedInfoPerStream: Record<StreamType, MediaLoadedInfo> = {};
-    protected _mediaLoadedInfoDispatched: MediaLoadedInfo | null = null;
+    private _mediaLoadedInfoPerStream: Record<StreamType, MediaLoadedInfo> = {};
+    private _mediaLoadedInfoDispatched: MediaLoadedInfo | null = null;
 
     // ========================================================================================
     // Minor modifications from:
@@ -58,7 +58,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       return (await this._player?.getMediaPlayerController()) ?? null;
     }
 
-    protected _storeMediaLoadedInfoHandler(
+    private _storeMediaLoadedInfoHandler(
       stream: StreamType,
       ev: CustomEvent<MediaLoadedInfo>,
     ) {
@@ -66,10 +66,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       ev.stopPropagation();
     }
 
-    protected _storeMediaLoadedInfo(
-      stream: StreamType,
-      mediaLoadedInfo: MediaLoadedInfo,
-    ) {
+    private _storeMediaLoadedInfo(stream: StreamType, mediaLoadedInfo: MediaLoadedInfo) {
       this._mediaLoadedInfoPerStream[stream] = mediaLoadedInfo;
       this.requestUpdate();
     }

@@ -10,8 +10,8 @@ import {
  * A class to manage state used in the evaluation of conditions.
  */
 export class ConditionStateManager implements ConditionStateManagerReadonlyInterface {
-  protected _listeners: ConditionStateListener[] = [];
-  protected _state: ConditionState = {};
+  private _listeners: ConditionStateListener[] = [];
+  private _state: ConditionState = {};
 
   public addListener(listener: ConditionStateListener): void {
     this._listeners.push(listener);
@@ -29,7 +29,7 @@ export class ConditionStateManager implements ConditionStateManagerReadonlyInter
     this._processStateChange(this._calculateTrueChange(state));
   }
 
-  protected _processStateChange(changeState: ConditionState): void {
+  private _processStateChange(changeState: ConditionState): void {
     if (!Object.keys(changeState).length) {
       return;
     }
@@ -42,7 +42,7 @@ export class ConditionStateManager implements ConditionStateManagerReadonlyInter
     this._callListeners({ old: oldState, change: changeState, new: this._state });
   }
 
-  protected _calculateTrueChange(change: ConditionState): ConditionState {
+  private _calculateTrueChange(change: ConditionState): ConditionState {
     const changeState: ConditionState = {};
 
     for (const key of Object.keys(change)) {
@@ -54,7 +54,7 @@ export class ConditionStateManager implements ConditionStateManagerReadonlyInter
     return changeState;
   }
 
-  protected _callListeners = (stateChange: ConditionStateChange): void => {
+  private _callListeners = (stateChange: ConditionStateChange): void => {
     this._listeners.forEach((listener) => listener(stateChange));
   };
 }
