@@ -688,11 +688,12 @@
     "profiles_secondary": "Choose pre-configured sets of defaults",
     "remote_control": "Remote Control",
     "remote_control_secondary": "Options for remote controlling the card",
+    "toggle_diagnostics": "Toggle diagnostics",
     "status_bar": "Status bar",
     "status_bar_secondary": "Status bar look & feel options",
     "timeline": "Timeline",
     "timeline_secondary": "Event timeline options",
-    "upgrade": "Upgrade",
+    "upgrade": "Automatic Upgrade",
     "upgrade_available": "An automatic card configuration upgrade is available",
     "view": "View",
     "view_secondary": "What the card should show and how to show it"

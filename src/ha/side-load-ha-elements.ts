@@ -22,7 +22,6 @@ export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
     'ha-spinner',
     'ha-state-icon',
     'ha-web-rtc-player',
-    'mwc-button',
     'mwc-list-item',
     'state-badge',
   ];

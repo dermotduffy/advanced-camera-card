@@ -24,7 +24,10 @@ import {
 import { ActionsManager } from '../src/card-controller/actions/actions-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
 import { CameraURLManager } from '../src/card-controller/camera-url-manager';
-import { CardElementManager } from '../src/card-controller/card-element-manager';
+import {
+  CardElementManager,
+  CardHTMLElement,
+} from '../src/card-controller/card-element-manager';
 import { ConfigManager } from '../src/card-controller/config/config-manager';
 import { CardController } from '../src/card-controller/controller';
 import { DefaultManager } from '../src/card-controller/default-manager';
@@ -624,6 +627,13 @@ export const createParent = (options?: { children?: HTMLElement[] }): HTMLElemen
   const parent = document.createElement('div');
   parent.append(...(options?.children ?? []));
   return parent;
+};
+
+export const createCardHTMLElement = (): CardHTMLElement => {
+  const element = createLitElement() as CardHTMLElement;
+  element.getCardSize = vi.fn();
+  element.setConfig = vi.fn();
+  return element;
 };
 
 export const createLitElement = (): LitElement => {

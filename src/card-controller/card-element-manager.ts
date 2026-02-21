@@ -1,8 +1,10 @@
 import { LitElement, ReactiveControllerHost } from 'lit';
 import { ActionEventTarget } from '../action-handler-directive';
 import { isCardInPanel } from '../ha/panel';
+import { LovelaceCard } from '../ha/types';
 import { setOrRemoveAttribute } from '../utils/basic';
 import { isBeingCasted } from '../utils/casting';
+import { isAncestorInEventPath } from '../utils/event-ancestor';
 import { CardMediaReviewEventTarget } from '../utils/review';
 import { ViewItem } from '../view/item';
 import { ActionExecutionRequestEventTarget } from './actions/utils/execution-request';
@@ -12,7 +14,8 @@ import { CardElementAPI } from './types';
 export type ScrollCallback = () => void;
 export type MenuToggleCallback = () => void;
 
-export type CardHTMLElement = LitElement &
+export type CardHTMLElement = LovelaceCard &
+  LitElement &
   ReactiveControllerHost &
   ActionEventTarget &
   ActionExecutionRequestEventTarget &
@@ -141,6 +144,10 @@ export class CardElementManager {
       'popstate',
       this._api.getQueryStringManager().requestExecution,
     );
+    window.addEventListener(
+      'advanced-camera-card:editor:diagnostics',
+      this._editorDiagnosticsHandler,
+    );
 
     this._api.getConditionStateManager()?.setState({
       userAgent: navigator.userAgent,
@@ -218,6 +225,10 @@ export class CardElementManager {
       'popstate',
       this._api.getQueryStringManager().requestExecution,
     );
+    window.removeEventListener(
+      'advanced-camera-card:editor:diagnostics',
+      this._editorDiagnosticsHandler,
+    );
   }
 
   private _handleMediaReviewed = (ev: CustomEvent<ViewItem>): void => {
@@ -228,6 +239,23 @@ export class CardElementManager {
       ev.detail
     ) {
       this.update();
+    }
+  };
+
+  protected _editorDiagnosticsHandler = (ev: Event): void => {
+    const toggleDiagnostics = (): void => {
+      const viewManager = this._api.getViewManager();
+      if (viewManager.getView()?.view === 'diagnostics') {
+        viewManager.setViewDefault();
+      } else {
+        viewManager.setViewByParameters({
+          params: { view: 'diagnostics' },
+        });
+      }
+    };
+
+    if (isAncestorInEventPath(this._element, ev, 'hui-dialog-edit-card')) {
+      toggleDiagnostics();
     }
   };
 }

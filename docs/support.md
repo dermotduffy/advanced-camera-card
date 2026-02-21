@@ -19,8 +19,10 @@ incrementally improve, and I think time is better spent working on reproducible
 issues or new features, than guessing what versions/options you are using. The
 new issue template asks for the minimum possible information to support you:
 
-- **Diagnostics**: On the card, hold down the Iris (default) menu button for a
-  few seconds then paste the diagnostics into the issue between the backticks.
+- **Diagnostics**: On the card, fetch the diagnostics and paste into the issue
+  between the backticks. You can fetch the diagnostics in either of two ways:
+  - Hold down the Iris (default) menu button for a few seconds.
+  - Open the card editor and click the 'Toggle Diagnostics' button.
 - **Description of the problem**: I need to understand the issue in sufficient
   detail.
 
