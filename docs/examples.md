@@ -60,8 +60,9 @@ cameras:
         - substream
         # Optionally allow media on this substream.
         - clips
-        - snapshots
         - recordings
+        - reviews
+        - snapshots
         # Optionally allow PTZ controls on the substream.
         - ptz
 automations:
