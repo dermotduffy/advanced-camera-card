@@ -271,6 +271,7 @@ import { localize } from './localize/localize.js';
 import editorStyle from './scss/editor.scss';
 import { arrayMove, prettifyTitle } from './utils/basic.js';
 import { getCameraID } from './utils/camera.js';
+import { fireAdvancedCameraCardEvent } from './utils/fire-advanced-camera-card-event.js';
 import { getFolderID } from './utils/folder.js';
 
 const MENU_CAMERAS = 'cameras';
@@ -2965,26 +2966,6 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
       []) as RawAdvancedCameraCardConfigArray;
 
     return html`
-      ${this._configUpgradeable
-        ? html` <div class="upgrade">
-              <span>${localize('editor.upgrade_available')}</span>
-              <span>
-                <mwc-button
-                  raised
-                  label="${localize('editor.upgrade')}"
-                  @click=${() => {
-                    if (this._config) {
-                      const upgradedConfig = copyConfig(this._config);
-                      upgradeConfig(upgradedConfig);
-                      this._updateConfig(upgradedConfig);
-                    }
-                  }}
-                >
-                </mwc-button>
-              </span>
-            </div>
-            <br />`
-        : html``}
       <div class="card-config">
         ${this._renderOptionSetHeader('cameras')}
         ${this._expandedMenus[MENU_OPTIONS] === 'cameras'
@@ -3597,6 +3578,34 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 </div>`
               : ''}`
           : html``}
+        <div class="action-buttons">
+          ${this._configUpgradeable
+            ? html`<ha-button
+                appearance="filled"
+                variant="warning"
+                title=${localize('editor.upgrade_available')}
+                aria-label=${localize('editor.upgrade_available')}
+                @click=${() => {
+                  if (this._config) {
+                    const upgradedConfig = copyConfig(this._config);
+                    upgradeConfig(upgradedConfig);
+                    this._updateConfig(upgradedConfig);
+                  }
+                }}
+              >
+                ${localize('editor.upgrade')}
+              </ha-button>`
+            : ''}
+          <ha-button
+            title=${localize('editor.toggle_diagnostics')}
+            aria-label=${localize('editor.toggle_diagnostics')}
+            @click=${() => {
+              fireAdvancedCameraCardEvent(this, 'editor:diagnostics');
+            }}
+          >
+            ${localize('editor.toggle_diagnostics')}
+          </ha-button>
+        </div>
       </div>
     `;
   }

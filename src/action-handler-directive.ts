@@ -32,15 +32,7 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
   private started = false;
 
   public connectedCallback(): void {
-    [
-      'touchcancel',
-      'mouseout',
-      'mouseup',
-      'touchmove',
-      'mousewheel',
-      'wheel',
-      'scroll',
-    ].forEach((ev) => {
+    ['mouseup', 'mousewheel', 'scroll', 'touchcancel', 'wheel'].forEach((ev) => {
       document.addEventListener(
         ev,
         () => {
