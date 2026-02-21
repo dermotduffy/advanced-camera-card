@@ -58,9 +58,11 @@ cameras:
     capabilities:
       disable_except:
         - substream
-        # Without this the button for recorded clips will not get shown
+        # Optionally allow media on this substream.
         - clips
-        # Also allow PTZ controls on the substream.
+        - snapshots
+        - recordings
+        # Optionally allow PTZ controls on the substream.
         - ptz
 automations:
   - conditions:
