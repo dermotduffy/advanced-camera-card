@@ -128,9 +128,13 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
   }
 
   private _getSelectedSlide(): number | null {
-    return (
-      this.viewManagerEpoch?.manager.getView()?.queryResults?.getSelectedIndex() ?? null
-    );
+    const view = this.viewManagerEpoch?.manager.getView();
+    const selectedIndex = view?.queryResults?.getSelectedIndex() ?? null;
+    if (selectedIndex === null) {
+      return null;
+    }
+    const hasUpFolder = !!getUpFolderItem(view?.query);
+    return hasUpFolder ? selectedIndex + 1 : selectedIndex;
   }
 
   private _handleMediaClick(item: ViewMedia): void {
