@@ -105,7 +105,54 @@ describe('GalleryCoreController', () => {
       ).toBeCalledWith(sentinel);
     });
 
-    it('should not observe when sentinel is null', () => {
+    it('should disconnect when sentinel changes to null', () => {
+      const sentinel = document.createElement('div');
+      let currentSentinel: HTMLElement | null = sentinel;
+      const getSentinelBottom = vi.fn(() => currentSentinel);
+      const host = createLitElement();
+
+      const controller = createController({
+        host,
+        getSentinelBottom,
+      });
+
+      // First call with a real sentinel.
+      controller.hostUpdated();
+
+      currentSentinel = null;
+      controller.hostUpdated();
+
+      expect(
+        vi.mocked(IntersectionObserver).mock.results[0].value.disconnect,
+      ).toBeCalledTimes(2);
+      expect(
+        vi.mocked(IntersectionObserver).mock.results[0].value.observe,
+      ).toBeCalledTimes(1);
+    });
+
+    it('should skip disconnect/observe when sentinel is unchanged', () => {
+      const sentinel = document.createElement('div');
+      const getSentinelBottom = vi.fn(() => sentinel);
+      const host = createLitElement();
+
+      const controller = createController({
+        host,
+        getSentinelBottom,
+      });
+
+      controller.hostUpdated();
+      controller.hostUpdated();
+
+      // Only called once despite two hostUpdated() calls.
+      expect(
+        vi.mocked(IntersectionObserver).mock.results[0].value.disconnect,
+      ).toBeCalledTimes(1);
+      expect(
+        vi.mocked(IntersectionObserver).mock.results[0].value.observe,
+      ).toBeCalledTimes(1);
+    });
+
+    it('should not observe when sentinel is null from the start', () => {
       const getSentinelBottom = vi.fn(() => null);
       const host = createLitElement();
 
@@ -118,7 +165,7 @@ describe('GalleryCoreController', () => {
 
       expect(
         vi.mocked(IntersectionObserver).mock.results[0].value.disconnect,
-      ).toBeCalled();
+      ).not.toBeCalled();
       expect(
         vi.mocked(IntersectionObserver).mock.results[0].value.observe,
       ).not.toBeCalled();

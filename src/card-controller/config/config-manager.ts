@@ -73,18 +73,14 @@ export class ConfigManager {
           (hint ?? localize('error.invalid_configuration_no_hint')),
       );
     }
-    const config = advancedCameraCardConfigSchema.parse(
-      setProfiles(
-        inputConfig,
-
-        // The config is cloned here because Zod 4 returns shared constant
-        // defaults by reference. Since setProfiles() mutates the configuration
-        // in-place, those mutations would "pollute" the global defaults and break
-        // test isolation if we didn't use a fresh clone here.
-        copyConfig(parseResult.data),
-
-        parseResult.data.profiles,
-      ),
+    // The config is cloned here because Zod 4 returns shared constant
+    // defaults by reference. Since setProfiles() mutates the configuration
+    // in-place, those mutations would "pollute" the global defaults and break
+    // test isolation if we didn't use a fresh clone here.
+    const config = setProfiles(
+      inputConfig,
+      copyConfig(parseResult.data),
+      parseResult.data.profiles,
     );
 
     this._rawConfig = inputConfig;

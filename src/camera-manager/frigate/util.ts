@@ -155,11 +155,9 @@ export const getReviewThumbnailURL = (
  * Get generic review severity.
  */
 export const getReviewSeverity = (severity: FrigateReviewSeverity): Severity => {
+  // Frigate severities: 'alert' -> 'high', 'detection' -> 'medium'.
   if (severity === 'alert') {
     return 'high';
   }
-  if (severity === 'detection') {
-    return 'medium';
-  }
-  return 'low';
+  return 'medium';
 };

@@ -22,7 +22,7 @@ describe('OverlayMessageManager', () => {
 
   it('should set and get message', () => {
     const manager = new OverlayMessageManager(api);
-    const message = { message: 'foo' };
+    const message = { text: 'foo' };
     manager.setMessage(message);
 
     expect(manager.getMessage()).toBe(message);
@@ -32,7 +32,7 @@ describe('OverlayMessageManager', () => {
 
   it('should reset message', () => {
     const manager = new OverlayMessageManager(api);
-    manager.setMessage({ message: 'foo' });
+    manager.setMessage({ text: 'foo' });
     vi.clearAllMocks();
 
     manager.reset();

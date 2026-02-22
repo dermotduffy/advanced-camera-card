@@ -63,6 +63,8 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
 
   private hass?: HomeAssistant;
 
+  private _videoRTC: VideoRTC | null = null;
+
   private _mediaPlayerController = new VideoMediaPlayerController(
     this,
     () => this._getVideo(),
@@ -85,6 +87,7 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
   }
 
   disconnectedCallback(): void {
+    this._videoRTC = null;
     this._message = null;
     super.disconnectedCallback();
   }
@@ -97,16 +100,12 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
     }
   }
 
-  private _getVideoRTC(): VideoRTC | null {
-    return (this.renderRoot?.querySelector('#webrtc') ?? null) as VideoRTC | null;
-  }
-
   /**
    * Get the underlying video player.
    * @returns The player or `null` if not found.
    */
   private _getVideo(): HTMLVideoElement | null {
-    return this._getVideoRTC()?.video ?? null;
+    return this._videoRTC?.video ?? null;
   }
 
   private async _getWebRTCCardElement(): Promise<CustomElementConstructor | undefined> {
@@ -196,7 +195,7 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
     // Extract the video component after it has been rendered and generate the
     // media load event.
     this.updateComplete.then(() => {
-      const videoRTC = this._getVideoRTC();
+      this._videoRTC = this.renderRoot?.querySelector('#webrtc') ?? null;
       const video = this._getVideo();
       if (video) {
         setControlsOnVideo(video, this.controls);
@@ -210,7 +209,9 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
               supportsPause: true,
               hasAudio: mayHaveAudio(video),
             },
-            ...(videoRTC && { technology: getTechnologyForVideoRTC(videoRTC) }),
+            ...(this._videoRTC && {
+              technology: getTechnologyForVideoRTC(this._videoRTC),
+            }),
           });
         };
         video.onplay = () => dispatchMediaPlayEvent(this);
