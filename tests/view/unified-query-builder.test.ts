@@ -652,6 +652,91 @@ describe('UnifiedQueryBuilder', () => {
       assert(isReviewQuery(query.getNodes()[0]));
     });
 
+    it('should apply reviewed filter from config for reviews query', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['camera.office']));
+      store.getCameraConfig.mockReturnValue(
+        createCameraConfig({ media: { type: 'auto', reviewed: 'unreviewed' } }),
+      );
+
+      cameraManager.getCameraCapabilities.mockReturnValue(
+        createCapabilities({ reviews: true }),
+      );
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultCameraQuery();
+
+      assert(query);
+      expect(query.getNodes()[0]).toMatchObject({
+        type: QueryType.Review,
+        reviewed: false,
+      });
+    });
+
+    it('should apply reviewed=true filter from config', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['camera.office']));
+      store.getCameraConfig.mockReturnValue(
+        createCameraConfig({ media: { type: 'auto', reviewed: 'reviewed' } }),
+      );
+
+      cameraManager.getCameraCapabilities.mockReturnValue(
+        createCapabilities({ reviews: true }),
+      );
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultCameraQuery();
+
+      assert(query);
+      expect(query.getNodes()[0]).toMatchObject({
+        type: QueryType.Review,
+        reviewed: true,
+      });
+    });
+
+    it('should not apply reviewed filter when config is all', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['camera.office']));
+      store.getCameraConfig.mockReturnValue(
+        createCameraConfig({ media: { type: 'auto', reviewed: 'all' } }),
+      );
+
+      cameraManager.getCameraCapabilities.mockReturnValue(
+        createCapabilities({ reviews: true }),
+      );
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultCameraQuery();
+
+      assert(query);
+      assert(isReviewQuery(query.getNodes()[0]));
+      expect(query.getNodes()[0]).not.toHaveProperty('reviewed');
+    });
+
+    it('should not apply reviewed filter to non-review queries', () => {
+      const { cameraManager, foldersManager, store } = createMocks();
+      store.getCameraIDs.mockReturnValue(new Set(['camera.office']));
+      store.getCameraConfig.mockReturnValue(
+        createCameraConfig({
+          media: { type: 'auto', reviewed: 'unreviewed' },
+        }),
+      );
+
+      cameraManager.getCameraCapabilities.mockReturnValue(
+        createCapabilities({ clips: true }),
+      );
+
+      const builder = new UnifiedQueryBuilder(cameraManager, foldersManager);
+      const query = builder.buildDefaultCameraQuery();
+
+      assert(query);
+      expect(query.getNodes()[0]).toMatchObject({
+        type: QueryType.Event,
+        hasClip: true,
+      });
+      expect(query.getNodes()[0]).not.toHaveProperty('reviewed');
+    });
+
     it('should build clips query for camera with clips capability', () => {
       const { cameraManager, foldersManager, store } = createMocks();
       store.getCameraIDs.mockReturnValue(new Set(['camera.office']));

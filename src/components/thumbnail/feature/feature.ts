@@ -167,13 +167,16 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
             }}
             @click=${async (ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              if (this.item) {
-                await toggleReviewed(
+              if (
+                this.item &&
+                (await toggleReviewed(
                   this.item,
                   this.viewItemManager,
                   this.viewManagerEpoch,
                   this.filterReviewed,
-                );
+                ))
+              ) {
+                this.requestUpdate();
               }
             }}
           ></advanced-camera-card-icon>`
