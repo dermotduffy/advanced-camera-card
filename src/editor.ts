@@ -269,6 +269,7 @@ import { sideLoadHomeAssistantElements } from './ha/side-load-ha-elements.js';
 import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
 import editorStyle from './scss/editor.scss';
+import type { CapabilityKey } from './types.js';
 import { arrayMove, prettifyTitle } from './utils/basic.js';
 import { getCameraID } from './utils/camera.js';
 import { fireAdvancedCameraCardEvent } from './utils/fire-advanced-camera-card-event.js';
@@ -978,49 +979,36 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  private _capabilities: EditorSelectOption[] = [
-    { value: '', label: '' },
-    {
-      value: 'live',
-      label: localize('config.cameras.capabilities.capabilities.live'),
-    },
-    {
-      value: 'substream',
-      label: localize('config.cameras.capabilities.capabilities.substream'),
-    },
-    {
-      value: 'clips',
-      label: localize('config.cameras.capabilities.capabilities.clips'),
-    },
-    {
-      value: 'recordings',
-      label: localize('config.cameras.capabilities.capabilities.recordings'),
-    },
-    {
-      value: 'snapshots',
-      label: localize('config.cameras.capabilities.capabilities.snapshots'),
-    },
-    {
-      value: 'favorite-events',
-      label: localize('config.cameras.capabilities.capabilities.favorite-events'),
-    },
-    {
-      value: 'favorite-recordings',
-      label: localize('config.cameras.capabilities.capabilities.favorite-recordings'),
-    },
-    {
-      value: 'seek',
-      label: localize('config.cameras.capabilities.capabilities.seek'),
-    },
-    {
-      value: 'ptz',
-      label: localize('config.cameras.capabilities.capabilities.ptz'),
-    },
-    {
-      value: 'menu',
-      label: localize('config.cameras.capabilities.capabilities.menu'),
-    },
-  ];
+  private _capabilities: EditorSelectOption[] = (() => {
+    // 'satisfies' enforces all CapabilityKey values are present at compile time.
+    const labels = {
+      '2-way-audio': localize('config.cameras.capabilities.capabilities.2-way-audio'),
+      clips: localize('config.cameras.capabilities.capabilities.clips'),
+      'favorite-events': localize(
+        'config.cameras.capabilities.capabilities.favorite-events',
+      ),
+      'favorite-recordings': localize(
+        'config.cameras.capabilities.capabilities.favorite-recordings',
+      ),
+      live: localize('config.cameras.capabilities.capabilities.live'),
+      menu: localize('config.cameras.capabilities.capabilities.menu'),
+      ptz: localize('config.cameras.capabilities.capabilities.ptz'),
+      recordings: localize('config.cameras.capabilities.capabilities.recordings'),
+      'remote-control-entity': localize(
+        'config.cameras.capabilities.capabilities.remote-control-entity',
+      ),
+      reviews: localize('config.cameras.capabilities.capabilities.reviews'),
+      seek: localize('config.cameras.capabilities.capabilities.seek'),
+      snapshots: localize('config.cameras.capabilities.capabilities.snapshots'),
+      substream: localize('config.cameras.capabilities.capabilities.substream'),
+      trigger: localize('config.cameras.capabilities.capabilities.trigger'),
+    } satisfies Record<CapabilityKey, string>;
+
+    return [
+      { value: '', label: '' },
+      ...Object.entries(labels).map(([value, label]) => ({ value, label })),
+    ];
+  })();
 
   private _forceableCapabilities: EditorSelectOption[] = [
     { value: '', label: '' },

@@ -38,9 +38,12 @@
           "menu": "Menu",
           "ptz": "PTZ",
           "recordings": "Recordings",
+          "remote-control-entity": "Remote Control Entity",
+          "reviews": "Reviews",
           "seek": "Seeking",
           "snapshots": "Snapshots",
-          "substream": "Substream"
+          "substream": "Substream",
+          "trigger": "Trigger"
         },
         "disable": "Disable",
         "disable_except": "Disable except",
