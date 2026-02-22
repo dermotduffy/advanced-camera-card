@@ -23,6 +23,7 @@ export class GalleryCoreController implements ReactiveController {
 
   private _options: GalleryCoreOptions | null = null;
   private _touchScrollYPosition: number | null = null;
+  private _observedSentinel: HTMLElement | null = null;
 
   // Wheel / touch events may be voluminous, throttle extension calls.
   private _throttledExtendUp = throttle(
@@ -99,14 +100,21 @@ export class GalleryCoreController implements ReactiveController {
     this._host.removeEventListener('touchend', this._touchEndHandler);
     this._resizeObserver.disconnect();
     this._intersectionObserver.disconnect();
+    this._observedSentinel = null;
   }
 
   public hostUpdated(): void {
     const sentinel = this._getSentintelBottom();
-    this._intersectionObserver.disconnect();
 
-    if (sentinel) {
-      this._intersectionObserver.observe(sentinel);
+    // Avoid redundant observer disconnect/reconnect on every Lit update cycle
+    // when the sentinel element hasn't changed.
+    if (sentinel !== this._observedSentinel) {
+      this._intersectionObserver.disconnect();
+      this._observedSentinel = sentinel;
+
+      if (sentinel) {
+        this._intersectionObserver.observe(sentinel);
+      }
     }
   }
 

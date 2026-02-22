@@ -311,7 +311,7 @@ describe('getChildrenFromElement', () => {
 describe('recursivelyMergeObjectsNotArrays', () => {
   it('should recursively merge objects but replace arrays', () => {
     expect(
-      recursivelyMergeObjectsNotArrays(
+      recursivelyMergeObjectsNotArrays<Record<string, unknown>>(
         {},
         {
           a: {
@@ -358,7 +358,7 @@ describe('recursivelyMergeObjectsNotArrays', () => {
 describe('recursivelyMergeObjectsConcatenatingArraysUniquely', () => {
   it('should recursively merge objects but uniquely concat arrays', () => {
     expect(
-      recursivelyMergeObjectsConcatenatingArraysUniquely(
+      recursivelyMergeObjectsConcatenatingArraysUniquely<Record<string, unknown>>(
         {},
         {
           a: {

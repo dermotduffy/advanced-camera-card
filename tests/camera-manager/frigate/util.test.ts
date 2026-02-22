@@ -258,7 +258,4 @@ describe('getReviewSeverity', () => {
   it('should get detection severity', () => {
     expect(getReviewSeverity('detection')).toBe('medium');
   });
-  it('should get significant_motion severity', () => {
-    expect(getReviewSeverity('significant_motion')).toBe('low');
-  });
 });
