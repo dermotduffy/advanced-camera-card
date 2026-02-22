@@ -355,9 +355,11 @@ export class UnifiedQueryBuilder {
       return null;
     }
 
-    return this._buildQueryNodesCapabilityUnchecked(spec, cameraID, {
-      limit: options?.limit,
-    });
+    return this._buildQueryNodesCapabilityUnchecked(
+      spec,
+      cameraID,
+      this._resolveReviewedFilter(spec, cameraID, options),
+    );
   }
 
   // =========================================================================
@@ -399,21 +401,13 @@ export class UnifiedQueryBuilder {
         continue;
       }
 
-      // For reviews, resolve the reviewed filter from camera config if not provided
-      const resolvedOptions =
-        cameraSpec.mediaType === 'reviews' && options?.reviewed === undefined
-          ? {
-              ...options,
-              reviewed: getReviewedQueryFilterFromConfig(
-                this._cameraManager.getStore().getCameraConfig(cameraID)?.media
-                  ?.reviewed,
-              ),
-            }
-          : options;
-
       this._addNode(
         query,
-        this._buildQueryNodesCapabilityUnchecked(cameraSpec, cameraID, resolvedOptions),
+        this._buildQueryNodesCapabilityUnchecked(
+          cameraSpec,
+          cameraID,
+          this._resolveReviewedFilter(cameraSpec, cameraID, options),
+        ),
       );
     }
     return query.hasNodes() ? query : null;
@@ -527,6 +521,22 @@ export class UnifiedQueryBuilder {
       ...(options?.start && { start: options.start }),
       ...(options?.end && { end: options.end }),
       ...(options?.limit !== undefined && { limit: options.limit }),
+    };
+  }
+
+  private _resolveReviewedFilter(
+    spec: MediaTypeSpec,
+    cameraID: string,
+    options?: QueryFiltersOptions,
+  ): QueryFiltersOptions | undefined {
+    if (spec.mediaType !== 'reviews' || options?.reviewed !== undefined) {
+      return options;
+    }
+    return {
+      ...options,
+      reviewed: getReviewedQueryFilterFromConfig(
+        this._cameraManager.getStore().getCameraConfig(cameraID)?.media?.reviewed,
+      ),
     };
   }
 
