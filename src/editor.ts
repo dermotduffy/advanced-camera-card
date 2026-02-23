@@ -61,6 +61,7 @@ import {
   CONF_CAMERAS_ARRAY_FRIGATE_LABELS,
   CONF_CAMERAS_ARRAY_FRIGATE_URL,
   CONF_CAMERAS_ARRAY_FRIGATE_ZONES,
+  CONF_CAMERAS_ARRAY_GO2RTC_METADATA_FETCH_TIMEOUT_SECONDS,
   CONF_CAMERAS_ARRAY_GO2RTC_MODES,
   CONF_CAMERAS_ARRAY_GO2RTC_STREAM,
   CONF_CAMERAS_ARRAY_GO2RTC_URL,
@@ -2518,6 +2519,17 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                   )}
                   ${this._renderStringInput(
                     getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_URL, cameraIndex),
+                  )}
+                  ${this._renderNumberInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_GO2RTC_METADATA_FETCH_TIMEOUT_SECONDS,
+                      cameraIndex,
+                    ),
+                    {
+                      min: 0,
+                      default:
+                        this._defaults.cameras.go2rtc.metadata_fetch_timeout_seconds,
+                    },
                   )} `,
                 )}
                 ${this._putInSubmenu(

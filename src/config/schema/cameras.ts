@@ -41,13 +41,12 @@ const go2rtcConfigSchema = z.object({
     .string()
     .transform((input) => input.replace(/\/+$/, ''))
     .optional(),
-  host: z.string().optional(),
   modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array().optional(),
   stream: z.string().optional(),
   metadata_fetch_timeout_seconds: z
     .number()
     .int()
-    .positive()
+    .nonnegative()
     .default(go2rtcConfigDefault.metadata_fetch_timeout_seconds),
 });
 

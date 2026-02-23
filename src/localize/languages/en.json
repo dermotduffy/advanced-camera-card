@@ -117,6 +117,7 @@
       },
       "go2rtc": {
         "editor_label": "go2rtc Options",
+        "metadata_fetch_timeout_seconds": "Metadata fetch timeout in seconds",
         "modes": {
           "editor_label": "go2rtc Modes",
           "mjpeg": "Motion JPEG (MJPEG)",
