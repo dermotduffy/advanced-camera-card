@@ -2497,7 +2497,6 @@ __metadata:
     compute-scroll-into-view: "npm:^3.1.1"
     conventional-changelog-conventionalcommits: "npm:^8.0.0"
     date-fns: "npm:^3.6.0"
-    date-fns-tz: "npm:^3.1.3"
     docsify-cli: "npm:^4.4.4"
     embla-carousel: "npm:^8.6.0"
     embla-carousel-wheel-gestures: "npm:^8.0.1"
@@ -4011,15 +4010,6 @@ __metadata:
     whatwg-mimetype: "npm:^3.0.0"
     whatwg-url: "npm:^12.0.0"
   checksum: 10c0/928d9a21db31d3dcee125d514fddfeb88067c348b1225e9d2c6ca55db16e1cbe49bf58c092cae7163de958f415fd5c612c2aef2eef87896e097656fce205d766
-  languageName: node
-  linkType: hard
-
-"date-fns-tz@npm:^3.1.3":
-  version: 3.1.3
-  resolution: "date-fns-tz@npm:3.1.3"
-  peerDependencies:
-    date-fns: ^3.0.0
-  checksum: 10c0/dcedf178a96632a798966cf5a881441aefc451cc308336a98919e49c2df8eff7a302d19b9d3903c50838dd0912533f862f0bfb9429e8c28c1c3ce5da19ccb64e
   languageName: node
   linkType: hard
 

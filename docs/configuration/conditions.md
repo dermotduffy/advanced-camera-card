@@ -92,7 +92,17 @@ conditions:
 
 ## `fullscreen`
 
-Matches based on whether the card is in fullscreen.
+Matches based on whether the card (or media within it) is in fullscreen mode.
+
+> [!WARNING]
+> When fullscreen is entered via a video player's built-in controls (rather than
+> the card's own fullscreen [action](actions/custom/README.md) or menu button),
+> the browser fullscreens the video element itself rather than the card. Any
+> automation action that replaces that video element (e.g. switching substreams)
+> will immediately exit fullscreen. A partial workaround may be to use the
+> card's fullscreen action instead. See [Fullscreen with HD substream
+> switching](../examples.md?id=fullscreen-with-hd-substream-switching) for an
+> approach that combines substream switching with the card's fullscreen.
 
 ```yaml
 conditions:

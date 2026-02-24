@@ -1,4 +1,3 @@
-import { toZonedTime } from 'date-fns-tz';
 import { CameraConfig } from '../../config/schema/cameras';
 import { Severity } from '../../severity';
 import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
@@ -14,7 +13,6 @@ import {
  * @param event
  */
 export const getEventTitle = (event: FrigateEvent): string => {
-  const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const durationSeconds = Math.round(
     event.end_time
       ? event.end_time - event.start_time
@@ -23,7 +21,7 @@ export const getEventTitle = (event: FrigateEvent): string => {
   const score = event.top_score !== null ? ` ${Math.round(event.top_score * 100)}%` : '';
 
   return `${formatDateAndTime(
-    toZonedTime(event.start_time * 1000, localTimezone),
+    new Date(event.start_time * 1000),
   )} [${durationSeconds}s, ${prettifyTitle(event.label)}${score}]`;
 };
 
@@ -115,7 +113,6 @@ export const getReviewTitle = (review: FrigateReview): string => {
     return objects;
   }
 
-  const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const durationSeconds = Math.round(
     review.end_time
       ? review.end_time - review.start_time
@@ -123,7 +120,7 @@ export const getReviewTitle = (review: FrigateReview): string => {
   );
 
   return `${formatDateAndTime(
-    toZonedTime(review.start_time * 1000, localTimezone),
+    new Date(review.start_time * 1000),
   )} [${durationSeconds}s${objects}]`;
 };
 
