@@ -59,6 +59,7 @@ export class MediaHeightController {
   // rendered height never changes and thus ResizeObserver never fires). This
   // manual "wakeup" allows the controller to temporarily lift the constraint
   // and peek at the true desired height.
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2109
   public recalculate(): void {
     this._debouncedSetHeight();
   }
@@ -86,7 +87,6 @@ export class MediaHeightController {
 
     // Calculate the true height.
     const selectedHeight = this._selectedChild.getBoundingClientRect().height;
-    const hostHeight = this._host.getBoundingClientRect().height;
 
     // Reset the original height so that browser transition animation can be
     // applied from the current to the target.
@@ -96,12 +96,7 @@ export class MediaHeightController {
     this._selectedChild.getBoundingClientRect();
 
     if (selectedHeight && !isNaN(selectedHeight) && selectedHeight > 0) {
-      // Set the height to the larger of the selected child or the host itself.
-      // This ensures that the host (the carousel) expands to fit the media, but
-      // does not shrink smaller than itself (which would cause a "flash" or
-      // jump).
-      // See: https://github.com/dermotduffy/advanced-camera-card/issues/2109
-      this._host.style.maxHeight = `${Math.max(selectedHeight, hostHeight)}px`;
+      this._host.style.maxHeight = `${selectedHeight}px`;
     }
   }
 
