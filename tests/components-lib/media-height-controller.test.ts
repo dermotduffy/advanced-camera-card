@@ -163,6 +163,32 @@ describe('MediaHeightController', () => {
 
       expect(host.style.maxHeight).toBe('900px');
     });
+
+    it('should allow height to shrink when selected child is shorter', () => {
+      const host = document.createElement('div');
+      const controller = new MediaHeightController(host, 'div');
+
+      const root = document.createElement('div');
+      const child_0 = document.createElement('div');
+      child_0.getBoundingClientRect = vi.fn().mockReturnValue({
+        height: 750,
+      });
+      const child_1 = document.createElement('div');
+      child_1.getBoundingClientRect = vi.fn().mockReturnValue({
+        height: 562,
+      });
+      root.appendChild(child_0);
+      root.appendChild(child_1);
+
+      controller.setRoot(root);
+      controller.setSelected(0);
+
+      expect(host.style.maxHeight).toBe('750px');
+
+      controller.setSelected(1);
+
+      expect(host.style.maxHeight).toBe('562px');
+    });
   });
 
   it('should destroy', () => {
