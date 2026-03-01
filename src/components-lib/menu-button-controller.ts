@@ -717,7 +717,7 @@ export class MenuButtonController {
         style: isOn ? this._getEmphasizedStyle() : {},
         type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.ptz_controls'),
-        tap_action: createPTZControlsAction(!isOn),
+        tap_action: createPTZControlsAction({ enabled: !isOn }),
       };
     }
     return null;

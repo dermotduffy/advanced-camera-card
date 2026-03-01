@@ -1,9 +1,9 @@
 import {
   CSSResultGroup,
+  html,
   LitElement,
   PropertyValues,
   TemplateResult,
-  html,
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -13,7 +13,10 @@ import { CameraManager } from '../camera-manager/manager.js';
 import { PTZController } from '../components-lib/ptz/ptz-controller.js';
 import { PTZControllerActions } from '../components-lib/ptz/types.js';
 import { Actions } from '../config/schema/actions/types.js';
-import { PTZControlsConfig } from '../config/schema/common/controls/ptz.js';
+import {
+  PTZControlsConfig,
+  PTZControlType,
+} from '../config/schema/common/controls/ptz.js';
 import { HomeAssistant } from '../ha/types.js';
 import { localize } from '../localize/localize.js';
 import ptzStyle from '../scss/ptz.scss';
@@ -39,6 +42,9 @@ export class AdvancedCameraCardPTZ extends LitElement {
 
   @property({ attribute: false })
   public forceVisibility?: boolean;
+
+  @property({ attribute: false })
+  public type?: PTZControlType;
 
   private _controller = new PTZController(this);
   private _actions: PTZControllerActions | null = null;
@@ -106,8 +112,10 @@ export class AdvancedCameraCardPTZ extends LitElement {
       : null;
 
     const config = this._controller.getConfig();
+    const isGestures = this.type === 'gestures';
     return html` <div class="ptz">
-      ${!config?.hide_pan_tilt &&
+      ${!isGestures &&
+      !config?.hide_pan_tilt &&
       (this._actions?.left ||
         this._actions?.right ||
         this._actions?.up ||
@@ -119,13 +127,17 @@ export class AdvancedCameraCardPTZ extends LitElement {
             ${renderIcon('down', 'mdi:arrow-down', { actions: this._actions?.down })}
           </div>`
         : ''}
-      ${!config?.hide_zoom && (this._actions?.zoom_in || this._actions?.zoom_out)
+      ${!isGestures &&
+      !config?.hide_zoom &&
+      (this._actions?.zoom_in || this._actions?.zoom_out)
         ? html` <div class="ptz-zoom">
             ${renderIcon('zoom_in', 'mdi:plus', { actions: this._actions.zoom_in })}
             ${renderIcon('zoom_out', 'mdi:minus', { actions: this._actions.zoom_out })}
           </div>`
         : html``}
-      ${!config?.hide_home && (this._actions?.home || presetSubmenuItems?.length)
+      ${!isGestures &&
+      !config?.hide_home &&
+      (this._actions?.home || presetSubmenuItems?.length)
         ? html`<div class="ptz-presets">
             ${renderIcon('home', 'mdi:home', { actions: this._actions?.home })}
             ${presetSubmenuItems?.length
@@ -149,6 +161,26 @@ export class AdvancedCameraCardPTZ extends LitElement {
               : ''}
           </div>`
         : ''}
+      ${
+        // The type toggle switches between buttons and gestures. On
+        // digital-only cameras, gestures have no effect (the drag controller
+        // never activates), so the toggle is meaningless and hidden in that
+        // case.
+        !config?.hide_type && this._controller.hasPhysicalPTZ()
+          ? html`<div
+              class="ptz-type"
+              @click=${(ev: Event) => this._controller.toggleTypeHandler(ev, this.type)}
+            >
+              <advanced-camera-card-icon
+                class=${classMap({
+                  selected: this.type === 'gestures',
+                })}
+                .icon=${{ icon: 'mdi:cursor-pointer' }}
+                .title=${localize('elements.ptz.type')}
+              ></advanced-camera-card-icon>
+            </div>`
+          : ''
+      }
     </div>`;
   }
 

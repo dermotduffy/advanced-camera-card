@@ -47,8 +47,8 @@
         },
         "disable": "Disable",
         "disable_except": "Disable except",
-        "force": "Force",
-        "editor_label": "Camera capabilities"
+        "editor_label": "Camera capabilities",
+        "force": "Force"
       },
       "cast": {
         "dashboard": {
@@ -388,6 +388,7 @@
           "editor_label": "PTZ",
           "hide_home": "Hide home & preset controls",
           "hide_pan_tilt": "Hide pan & tilt control",
+          "hide_type": "Hide type toggle button",
           "hide_zoom": "Hide zoom control",
           "mode": "Mode",
           "modes": {
@@ -405,6 +406,11 @@
             "bottom-right": "Bottom right",
             "top-left": "Top left",
             "top-right": "Top right"
+          },
+          "type": "Default type",
+          "types": {
+            "buttons": "Buttons",
+            "gestures": "Gestures"
           }
         }
       },
@@ -668,8 +674,8 @@
     "cameras_secondary": "What cameras to render on this card",
     "delete": "Delete",
     "dimensions": "Card dimensions",
-    "docs": "Documentation",
     "dimensions_secondary": "Card dimensions & shape options",
+    "docs": "Documentation",
     "folders": "Folders",
     "folders_secondary": "What folders to render on this card",
     "image": "Image",
@@ -692,11 +698,11 @@
     "profiles_secondary": "Choose pre-configured sets of defaults",
     "remote_control": "Remote Control",
     "remote_control_secondary": "Options for remote controlling the card",
-    "toggle_diagnostics": "Toggle diagnostics",
     "status_bar": "Status bar",
     "status_bar_secondary": "Status bar look & feel options",
     "timeline": "Timeline",
     "timeline_secondary": "Event timeline options",
+    "toggle_diagnostics": "Toggle diagnostics",
     "upgrade": "Automatic Upgrade",
     "upgrade_available": "An automatic card configuration upgrade is available",
     "view": "View",
@@ -709,6 +715,7 @@
       "left": "Left",
       "presets": "Presets",
       "right": "Right",
+      "type": "PTZ Type",
       "up": "Up",
       "zoom_in": "Zoom In",
       "zoom_out": "Zoom Out"

@@ -633,7 +633,9 @@ const ptzControlSettingsTransform = (data: unknown): unknown => {
     'hide_pan_tilt',
     'hide_zoom',
     'hide_home',
+    'hide_type',
     'style',
+    'type',
   ];
 
   const keys = Object.keys(data);

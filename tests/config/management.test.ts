@@ -977,6 +977,25 @@ describe('should handle version specific upgrades', () => {
         });
         postUpgradeChecks(config);
       });
+
+      it('should not upgrade ptz settings-only config', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          live: {
+            controls: {
+              ptz: {
+                type: 'gestures',
+                hide_type: true,
+                mode: 'on',
+                orientation: 'vertical',
+                position: 'bottom-right',
+              },
+            },
+          },
+        };
+        expect(upgradeConfig(config)).toBeFalsy();
+      });
     });
 
     it('should move view.timeout_seconds', () => {

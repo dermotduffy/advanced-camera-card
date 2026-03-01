@@ -74,11 +74,16 @@ live:
 | --------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `hide_home`     | `false`        | When `true` the Home and Presets buttons of the control are hidden                                                                                                                                                              |
 | `hide_pan_tilt` | `false`        | When `true` the Pan & Tilt buttons of the control is hidden                                                                                                                                                                     |
+| `hide_type`     | `false`        | When `true` the button that switches between `buttons` and `gestures` PTZ control types is hidden. This button is automatically hidden on cameras without physical PTZ support.                                                 |
 | `hide_zoom`     | `false`        | When `true` the Zoom button of the control is hidden                                                                                                                                                                            |
 | `mode`          | `auto`         | If `on` or `off`, by default will always or never show PTZ controls respectively, if `auto` will show PTZ controls only if the camera supports real PTZ.                                                                        |
 | `orientation`   | `horizontal`   | Whether to show a `vertical` or `horizontal` PTZ control.                                                                                                                                                                       |
 | `position`      | `bottom-right` | Whether to position the control on the `top-left`, `top-right`, `bottom-left` or `bottom-right`. This may be overridden by using the `style` parameter to precisely control placement.                                          |
 | `style`         |                | Optionally position and style the element using CSS. Similar to [Picture Element styling](https://www.home-assistant.io/dashboards/picture-elements/#how-to-use-the-style-object), except without any default, e.g. `left: 42%` |
+| `type`          | `buttons`      | The PTZ control type: `buttons` shows directional button controls, `gestures` enables drag, pinch, and scroll wheel to pan, tilt, and zoom. Gesture controls only function on cameras with physical PTZ support.                |
+
+> [!WARNING]
+> PTZ control precision is affected by latency at multiple points: the command round-trip to the camera, the camera's own response time, and the delay before movement is visible in the live stream. Additionally, cameras that only support relative movement may move in non-smooth discrete steps, while continuous movement cameras may overshoot the intended position before a stop command arrives.
 
 To configure the PTZ _actions_ taken for a particular camera, see [Camera PTZ Settings](./cameras/README.md?id=ptz).
 
@@ -214,6 +219,8 @@ live:
       hide_pan_tilt: false
       hide_zoom: false
       hide_home: false
+      hide_type: false
+      type: buttons
       style:
         # Optionally override the default style.
         right: 5%

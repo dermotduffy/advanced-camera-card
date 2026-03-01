@@ -2308,6 +2308,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@use-gesture/core@npm:10.3.1":
+  version: 10.3.1
+  resolution: "@use-gesture/core@npm:10.3.1"
+  checksum: 10c0/2e3b5c0f7fe26cdb47be3a9c2a58a6a9edafc5b2895b07d2898eda9ab5a2b29fb0098b15597baa0856907b593075cd44cc69bba4785c9cfb7b6fabaa3b52cd3e
+  languageName: node
+  linkType: hard
+
+"@use-gesture/vanilla@npm:^10.3.1":
+  version: 10.3.1
+  resolution: "@use-gesture/vanilla@npm:10.3.1"
+  dependencies:
+    "@use-gesture/core": "npm:10.3.1"
+  checksum: 10c0/b407eb9646f07281fdcaa71bb07f7ba2d3af62292c211dcc52fcf83452aff08027f9facd9f6c055e65609d289a34a69b6357363da08cde99bf969474d752f0cf
+  languageName: node
+  linkType: hard
+
 "@vitest/coverage-istanbul@npm:^1.6.0":
   version: 1.6.0
   resolution: "@vitest/coverage-istanbul@npm:1.6.0"
@@ -2491,6 +2507,7 @@ __metadata:
     "@types/masonry-layout": "npm:^4.2.8"
     "@typescript-eslint/eslint-plugin": "npm:^8.30.1"
     "@typescript-eslint/parser": "npm:^8.30.1"
+    "@use-gesture/vanilla": "npm:^10.3.1"
     "@vitest/coverage-istanbul": "npm:^1.6.0"
     any-date-parser: "npm:^2.2.0"
     component-emitter: "npm:^1.3.1"

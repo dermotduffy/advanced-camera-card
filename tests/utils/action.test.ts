@@ -110,9 +110,10 @@ describe('createDisplayModeAction', () => {
 });
 
 describe('createPTZControlsAction', () => {
-  it('should create PTZ controls action', () => {
+  it('should create PTZ controls action with enabled', () => {
     expect(
-      createPTZControlsAction(true, {
+      createPTZControlsAction({
+        enabled: true,
         cardID: 'card_id',
       }),
     ).toEqual({
@@ -120,6 +121,18 @@ describe('createPTZControlsAction', () => {
       advanced_camera_card_action: 'ptz_controls',
       enabled: true,
       card_id: 'card_id',
+    });
+  });
+
+  it('should create PTZ controls action with type', () => {
+    expect(
+      createPTZControlsAction({
+        type: 'gestures',
+      }),
+    ).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'ptz_controls',
+      type: 'gestures',
     });
   });
 });

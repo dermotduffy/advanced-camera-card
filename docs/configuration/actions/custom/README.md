@@ -388,7 +388,7 @@ advanced_camera_card_action: ptz
 
 ## `ptz_controls`
 
-Show or hide the PTZ controls.
+Show, hide, or change the type of the PTZ controls.
 
 ```yaml
 action: custom:advanced-camera-card-action
@@ -396,11 +396,12 @@ advanced_camera_card_action: ptz_controls
 # [...]
 ```
 
-| Parameter                     | Description                                              |
-| ----------------------------- | -------------------------------------------------------- |
-| `action`                      | Must be `custom:advanced-camera-card-action`.            |
-| `advanced_camera_card_action` | Must be `ptz_controls`.                                  |
-| `show`                        | If `true` shows the PTZ controls, if `false` hides them. |
+| Parameter                     | Description                                                                                                                               |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                                                                                             |
+| `advanced_camera_card_action` | Must be `ptz_controls`.                                                                                                                   |
+| `enabled`                     | If `true` shows the PTZ controls, if `false` hides them. If omitted and `type` is also omitted, toggles the current visibility.           |
+| `type`                        | Set the PTZ control type to `buttons` or `gestures`. Setting `type` alone does not affect the `enabled`/visibility state of the controls. |
 
 ## `ptz_digital`
 

@@ -61,8 +61,14 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   @property({ attribute: false })
   public zoomSettings?: PartialZoomSettings | null;
 
+  @property({ attribute: false })
+  public zoom = true;
+
   @state()
   private _isVideoMediaLoaded = false;
+
+  @state()
+  private _zoomed = false;
 
   @state()
   private _hasProviderError = false;
@@ -177,6 +183,16 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     return result;
   }
 
+  // Builtin (native) video controls require all three conditions:
+  // - controls.builtin: user config enables native controls.
+  // - zoom: Whether digital zoom/panning is allowed (this will be false when a
+  //   'gesture' type PTZ control is active).
+  // - !_zoomed: the user has not actually digital zoomed in (when zoomed, we
+  //   want to hide the controls).
+  private _getEffectiveBuiltinControls(): boolean {
+    return !!this.liveConfig?.controls.builtin && this.zoom && !this._zoomed;
+  }
+
   private _renderContainer(template: TemplateResult): TemplateResult {
     const config = this.camera?.getConfig();
     const intermediateTemplate = html` <advanced-camera-card-media-dimensions-container
@@ -203,10 +219,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               : undefined,
           )}
           .settings=${this.zoomSettings}
-          @advanced-camera-card:zoom:zoomed=${async () =>
-            (await this.getMediaPlayerController())?.setControls(false)}
-          @advanced-camera-card:zoom:unzoomed=${async () =>
-            (await this.getMediaPlayerController())?.setControls()}
+          .zoom=${this.zoom}
+          @advanced-camera-card:zoom:zoomed=${() => (this._zoomed = true)}
+          @advanced-camera-card:zoom:unzoomed=${() => (this._zoomed = false)}
         >
           ${intermediateTemplate}
         </advanced-camera-card-zoomer>`
@@ -303,7 +318,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
             class=${classMap(classes)}
             .hass=${this.hass}
             .cameraConfig=${cameraConfig}
-            ?controls=${this.liveConfig.controls.builtin}
+            ?controls=${this._getEffectiveBuiltinControls()}
             @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
           >
           </advanced-camera-card-live-ha>`
@@ -316,7 +331,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               .cameraEndpoints=${this.cameraEndpoints}
               .microphoneState=${this.microphoneState}
               .microphoneConfig=${this.liveConfig.microphone}
-              ?controls=${this.liveConfig.controls.builtin}
+              ?controls=${this._getEffectiveBuiltinControls()}
               @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
             >
             </advanced-camera-card-live-go2rtc>`
@@ -328,7 +343,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                 .cameraConfig=${cameraConfig}
                 .cameraEndpoints=${this.cameraEndpoints}
                 .cardWideConfig=${this.cardWideConfig}
-                ?controls=${this.liveConfig.controls.builtin}
+                ?controls=${this._getEffectiveBuiltinControls()}
                 @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
               >
               </advanced-camera-card-live-webrtc-card>`

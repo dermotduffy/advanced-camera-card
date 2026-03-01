@@ -3,10 +3,17 @@ import { dispatchActionExecutionRequest } from '../../card-controller/actions/ut
 import { SubmenuInteraction } from '../../components/submenu/types.js';
 import { PTZAction } from '../../config/schema/actions/custom/ptz.js';
 import { Actions, ActionsConfig } from '../../config/schema/actions/types.js';
-import { PTZControlsConfig } from '../../config/schema/common/controls/ptz.js';
+import {
+  PTZControlsConfig,
+  PTZControlType,
+} from '../../config/schema/common/controls/ptz.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { Interaction } from '../../types.js';
-import { createPTZMultiAction, getActionConfigGivenAction } from '../../utils/action.js';
+import {
+  createPTZControlsAction,
+  createPTZMultiAction,
+  getActionConfigGivenAction,
+} from '../../utils/action.js';
 import { PTZControllerActions } from './types';
 
 export class PTZController {
@@ -69,14 +76,28 @@ export class PTZController {
     }
   }
 
+  public toggleTypeHandler(ev: Event, currentType?: PTZControlType): void {
+    ev.stopPropagation();
+
+    dispatchActionExecutionRequest(this._host, {
+      actions: createPTZControlsAction({
+        type: currentType === 'gestures' ? 'buttons' : 'gestures',
+      }),
+    });
+  }
+
+  public hasPhysicalPTZ(): boolean {
+    return (
+      !!this._cameraID &&
+      !!this._cameraManager?.getCameraCapabilities(this._cameraID)?.hasPTZCapability()
+    );
+  }
+
   public shouldDisplay(): boolean {
     return this._forceVisibility !== undefined
       ? this._forceVisibility
       : this._config?.mode === 'auto'
-        ? !!this._cameraID &&
-          !!this._cameraManager
-            ?.getCameraCapabilities(this._cameraID)
-            ?.hasPTZCapability()
+        ? this.hasPhysicalPTZ()
         : this._config?.mode === 'on';
   }
 

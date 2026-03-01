@@ -19,11 +19,12 @@ export class ZoomController {
   // Is the controller zoomed in at all?
   private _zoomed = false;
 
-  // Is the controller set to the default zoom/pan settings?
-  private _default = true;
-
   // Should clicks be allowed to propagate, or consumed as a pan/zoom action?
   private _allowClick = true;
+
+  // Whether zoom/pan gestures are active. When `false`, all gesture events pass
+  // through untouched (used to yield to PTZ gesture mode).
+  private _zoom = true;
 
   private _defaultSettings: PartialZoomSettings | null;
   private _settings: PartialZoomSettings | null;
@@ -196,6 +197,14 @@ export class ZoomController {
   public setSettings(config: PartialZoomSettings | null): void {
     this._settings = config;
     this._debouncedUpdater();
+  }
+
+  public isActivated(): boolean {
+    return !!this._panzoom;
+  }
+
+  public setZoom(value: boolean): void {
+    this._zoom = value;
   }
 
   private _changeHandler(ev: Event): void {
@@ -439,6 +448,9 @@ export class ZoomController {
   }
 
   private _shouldZoomOrPan(ev: Event): boolean {
+    if (!this._zoom) {
+      return false;
+    }
     return (
       !this._isUnzoomed(this._panzoom?.getScale()) ||
       // TouchEvent does not exist on Firefox on non-touch events. See:

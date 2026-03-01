@@ -121,10 +121,12 @@ import {
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_LIVE_CONTROLS_PTZ_HIDE_HOME,
   CONF_LIVE_CONTROLS_PTZ_HIDE_PAN_TILT,
+  CONF_LIVE_CONTROLS_PTZ_HIDE_TYPE,
   CONF_LIVE_CONTROLS_PTZ_HIDE_ZOOM,
   CONF_LIVE_CONTROLS_PTZ_MODE,
   CONF_LIVE_CONTROLS_PTZ_ORIENTATION,
   CONF_LIVE_CONTROLS_PTZ_POSITION,
+  CONF_LIVE_CONTROLS_PTZ_TYPE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
@@ -857,6 +859,18 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     {
       value: 'horizontal',
       label: localize('config.live.controls.ptz.orientations.horizontal'),
+    },
+  ];
+
+  private _ptzTypes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'buttons',
+      label: localize('config.live.controls.ptz.types.buttons'),
+    },
+    {
+      value: 'gestures',
+      label: localize('config.live.controls.ptz.types.gestures'),
     },
   ];
 
@@ -3226,6 +3240,10 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                           this._ptzModes,
                         )}
                         ${this._renderOptionSelector(
+                          CONF_LIVE_CONTROLS_PTZ_TYPE,
+                          this._ptzTypes,
+                        )}
+                        ${this._renderOptionSelector(
                           CONF_LIVE_CONTROLS_PTZ_POSITION,
                           this._ptzPositions,
                         )}
@@ -3252,6 +3270,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                           this._defaults.live.controls.ptz.hide_home,
                           {
                             label: localize('config.live.controls.ptz.hide_home'),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          CONF_LIVE_CONTROLS_PTZ_HIDE_TYPE,
+                          this._defaults.live.controls.ptz.hide_type,
+                          {
+                            label: localize('config.live.controls.ptz.hide_type'),
                           },
                         )}
                       `,
