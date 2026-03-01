@@ -3,8 +3,9 @@
   "tasks": [
     {
       "label": "Rollup",
-      "type": "npm",
-      "script": "start",
+      "type": "shell",
+      "command": "${workspaceFolder}/.vscode/run-once.sh",
+      "args": ["/tmp/advanced-camera-card-rollup.pid", "10001", "yarn", "start"],
       "problemMatcher": {
         "pattern": [
           {
@@ -22,7 +23,8 @@
       },
       "isBackground": true,
       "runOptions": {
-        "runOn": "folderOpen"
+        "runOn": "folderOpen",
+        "instanceLimit": 1
       }
     }
   ]
