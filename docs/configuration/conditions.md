@@ -16,7 +16,7 @@ certain configurations (in `overrides`) or to display "picture elements" (in
 
 ## `and`
 
-Evaluates to `true` if _all_ embedded conditions evaluate to `true`.
+Evaluates to `true` if _all_ embedded conditions evaluate to `true`. At least one condition is required.
 
 ```yaml
 conditions:
@@ -164,7 +164,7 @@ conditions:
 | `key`       |         | Any [keyboard key value](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values), e.g. `ArrowLeft`. |
 | `meta`      | `false` | An optional value to match whether the `meta` key is being held.                                                                  |
 | `shift`     | `false` | An optional value to match whether the `shift` key is being held.                                                                 |
-| `state`     | `down`  | An optional value to match the state of the. Must be one of `down` or `up`.                                                       |
+| `state`     | `down`  | An optional value to match the state of the key. Must be one of `down` or `up`.                                                   |
 
 ## `media_loaded`
 
@@ -229,7 +229,7 @@ See [Home Assistant conditions documentation](https://www.home-assistant.io/dash
 
 ## `or`
 
-Evaluates to `true` if _any_ embedded condition evaluates to `true`.
+Evaluates to `true` if _any_ embedded condition evaluates to `true`. At least one condition is required.
 
 ```yaml
 conditions:

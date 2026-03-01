@@ -33,14 +33,12 @@ This action will respect the value of the `view.camera_select` to choose the app
 
 ## `camera_ui`
 
-Download the displayed media.
+Open the UI for the selected camera engine (e.g. the Frigate UI).
 
 ```yaml
 action: custom:advanced-camera-card-action
 advanced_camera_card_action: camera_ui
 ```
-
-Open the UI for the selected camera engine (e.g. the Frigate UI).
 
 ## `clip`
 
@@ -208,13 +206,13 @@ Turn off the substream (if on).
 
 ```yaml
 action: custom:advanced-camera-card-action
-advanced_camera_card_action: live_substream_on
+advanced_camera_card_action: live_substream_off
 ```
 
 | Parameter                     | Description                                   |
 | ----------------------------- | --------------------------------------------- |
 | `action`                      | Must be `custom:advanced-camera-card-action`. |
-| `advanced_camera_card_action` | Must be `live_substream_on`.                  |
+| `advanced_camera_card_action` | Must be `live_substream_off`.                 |
 
 ## `live_substream_on`
 
