@@ -640,6 +640,36 @@ describe('ZoomController', () => {
     });
   });
 
+  it('should report activation state', () => {
+    const element = document.createElement('div');
+    vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
+
+    const controller = new ZoomController(element);
+    expect(controller.isActivated()).toBe(false);
+
+    controller.activate();
+    expect(controller.isActivated()).toBe(true);
+  });
+
+  it('should not zoom or pan when zoom is disabled', () => {
+    const element = document.createElement('div');
+
+    const panzoom = createMockPanZoom();
+    vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+
+    const controller = createAndRegisterZoom(element);
+
+    // Simulate being zoomed in.
+    panzoom.getScale = vi.fn().mockReturnValue(1.2);
+
+    controller.setZoom(false);
+
+    const ev = new PointerEvent('pointerdown');
+    element.dispatchEvent(ev);
+
+    expect(panzoom.handleDown).not.toBeCalled();
+  });
+
   it('should set touch action on zoom/unzoom', () => {
     const element = document.createElement('div');
     vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());

@@ -92,8 +92,10 @@ describe('config defaults', () => {
             style: 'chevrons',
           },
           ptz: {
+            type: 'buttons',
             hide_home: false,
             hide_pan_tilt: false,
+            hide_type: false,
             hide_zoom: false,
             mode: 'auto',
             orientation: 'horizontal',
@@ -163,8 +165,10 @@ describe('config defaults', () => {
             style: 'thumbnails',
           },
           ptz: {
+            type: 'buttons',
             hide_home: false,
             hide_pan_tilt: false,
+            hide_type: false,
             hide_zoom: false,
             mode: 'off',
             orientation: 'horizontal',
@@ -1072,7 +1076,6 @@ describe('config defaults', () => {
       {
         action: 'custom:advanced-camera-card-action',
         advanced_camera_card_action: 'ptz_controls',
-        enabled: true,
       },
       {
         action: 'custom:advanced-camera-card-action',

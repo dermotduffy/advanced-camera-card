@@ -290,6 +290,8 @@ export const CONF_LIVE_CONTROLS_PTZ_HIDE_HOME =
   `${CONF_LIVE}.controls.ptz.hide_home` as const;
 export const CONF_LIVE_CONTROLS_PTZ_HIDE_PAN_TILT =
   `${CONF_LIVE}.controls.ptz.hide_pan_tilt` as const;
+export const CONF_LIVE_CONTROLS_PTZ_HIDE_TYPE =
+  `${CONF_LIVE}.controls.ptz.hide_type` as const;
 export const CONF_LIVE_CONTROLS_PTZ_HIDE_ZOOM =
   `${CONF_LIVE}.controls.ptz.hide_zoom` as const;
 export const CONF_LIVE_CONTROLS_PTZ_MODE = `${CONF_LIVE}.controls.ptz.mode` as const;
@@ -297,6 +299,7 @@ export const CONF_LIVE_CONTROLS_PTZ_ORIENTATION =
   `${CONF_LIVE}.controls.ptz.orientation` as const;
 export const CONF_LIVE_CONTROLS_PTZ_POSITION =
   `${CONF_LIVE}.controls.ptz.position` as const;
+export const CONF_LIVE_CONTROLS_PTZ_TYPE = `${CONF_LIVE}.controls.ptz.type` as const;
 export const CONF_LIVE_CONTROLS_WHEEL = `${CONF_LIVE}.controls.wheel` as const;
 
 export const CONF_LIVE_CONTROLS_THUMBNAILS_MODE =

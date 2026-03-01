@@ -5,7 +5,6 @@ import { EqualityMap } from '../cache/equality-map.js';
 import { CardCameraAPI } from '../card-controller/types.js';
 import { sortItems } from '../card-controller/view/sort.js';
 import {
-  PTZ_PAN_TILT_ACTIONS,
   PTZAction,
   PTZActionPhase,
   PTZPanTiltAction,
@@ -910,21 +909,22 @@ export class CameraManager {
    * For example: with 90° rotation, pressing "left" should send "down" to camera.
    */
   private _rotatePTZAction(action: PTZAction, rotation?: Rotation): PTZAction {
-    if (!rotation) {
+    if (
+      !rotation ||
+      action === 'preset' ||
+      action === 'zoom_in' ||
+      action === 'zoom_out'
+    ) {
       return action;
     }
 
-    // Pan/tilt directions in clockwise order for rotation calculation
-    const index = PTZ_PAN_TILT_ACTIONS.indexOf(action as PTZPanTiltAction);
-
-    if (index === -1) {
-      // Not a directional action (e.g., zoom_in, zoom_out, preset)
-      return action;
-    }
+    // Directions in clockwise order for rotation calculation.
+    const CLOCKWISE: PTZPanTiltAction[] = ['up', 'right', 'down', 'left'];
+    const index = CLOCKWISE.indexOf(action);
 
     // Each 90° rotation shifts the direction index counter-clockwise.
     const shift = (4 - rotation / 90) % 4;
-    return PTZ_PAN_TILT_ACTIONS[(index + shift) % 4];
+    return CLOCKWISE[(index + shift) % 4];
   }
 
   public async executePTZAction(

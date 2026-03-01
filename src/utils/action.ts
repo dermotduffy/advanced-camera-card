@@ -34,6 +34,7 @@ import {
   AdvancedCameraCardCustomActionConfig,
 } from '../config/schema/actions/types.js';
 import { AdvancedCameraCardUserSpecifiedView } from '../config/schema/common/const.js';
+import { PTZControlType } from '../config/schema/common/controls/ptz.js';
 import { ServiceCallRequest } from '../ha/types.js';
 import type { EffectName } from '../types.js';
 import { arrayify } from './basic.js';
@@ -111,16 +112,16 @@ export function createDisplayModeAction(
   };
 }
 
-export function createPTZControlsAction(
-  enabled: boolean,
-  options?: {
-    cardID?: string;
-  },
-): PTZControlsActionConfig {
+export function createPTZControlsAction(options?: {
+  cardID?: string;
+  enabled?: boolean;
+  type?: PTZControlType;
+}): PTZControlsActionConfig {
   return {
     action: 'fire-dom-event',
     advanced_camera_card_action: 'ptz_controls',
-    enabled: enabled,
+    ...(options?.enabled !== undefined && { enabled: options.enabled }),
+    ...(options?.type && { type: options.type }),
     ...(options?.cardID && { card_id: options.cardID }),
   };
 }

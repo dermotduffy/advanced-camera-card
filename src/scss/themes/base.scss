@@ -280,6 +280,11 @@
     var(--advanced-camera-card-ptz-background),
     transparent var(--advanced-camera-card-control-background-opacity)
   );
+  --advanced-camera-card-ptz-color-selected: color-mix(
+    in oklab,
+    var(--advanced-camera-card-foreground-primary),
+    transparent 20%
+  );
 
   /******************
    * Overlay Message
