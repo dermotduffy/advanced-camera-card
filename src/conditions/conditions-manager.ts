@@ -331,13 +331,13 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
         return { result: true, triggerData };
       }
       case 'not': {
-        // "Not" is just an inversed `and`. There is no trigger data for "not
+        // "Not" is an inverted `or` (NOR). There is no trigger data for "not
         // triggering".
         return {
           result: !this._evaluateCondition(
             {
               ...condition,
-              condition: 'and',
+              condition: 'or',
             },
             newState,
             oldState,

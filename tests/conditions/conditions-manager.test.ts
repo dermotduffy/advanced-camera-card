@@ -1317,17 +1317,21 @@ describe('ConditionsManager', () => {
         stateManager,
       );
 
+      // Neither sub-condition is true initially, so `not` passes.
       expect(manager.getEvaluation().result).toBeTruthy();
 
+      // fullscreen becomes true — any sub-condition being true means `not` fails.
       stateManager.setState({ fullscreen: true });
-      expect(manager.getEvaluation().result).toBeTruthy();
+      expect(manager.getEvaluation().result).toBeFalsy();
 
       stateManager.setState({ expand: true });
       expect(manager.getEvaluation().result).toBeFalsy();
 
+      // fullscreen reverts, but expand is still true, so `not` still fails.
       stateManager.setState({ fullscreen: false });
-      expect(manager.getEvaluation().result).toBeTruthy();
+      expect(manager.getEvaluation().result).toBeFalsy();
 
+      // Both sub-conditions are false again, so `not` passes.
       stateManager.setState({ expand: false });
       expect(manager.getEvaluation().result).toBeTruthy();
 
