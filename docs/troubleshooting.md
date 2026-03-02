@@ -131,7 +131,7 @@ your Home Assistant log as there may be more information in there.
 > Frigate must be modified, i.e. Frigate does not encode clips in a Chromecast
 > compatible format out of the box (specifically: audio must be enabled in the AAC
 > codec, whether your camera supports audio or not). See the [Frigate Home
-> Assistant documentation](https://docs.frigate.video/integrations/home-assistant)
+> Assistant documentation](https://docs.frigate.video/integrations/home-assistant/)
 > or [this issue](https://github.com/blakeblackshear/frigate/issues/3175) for
 > more.
 

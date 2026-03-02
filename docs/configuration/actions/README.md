@@ -17,7 +17,7 @@ action functionality. In general, the Advanced Camera Card functionality is a su
 of that offered by stock Home Assistant.
 
 Stock action functionality is used for Stock [Home Assistant picture
-elements](https://www.home-assistant.io/lovelace/picture-elements/). Extended
+elements](https://www.home-assistant.io/dashboards/picture-elements/). Extended
 Advanced Camera Card behavior covers all other interactions on the Advanced Camera Card (e.g.
 menu icon elements, submenus and actions on the card or views).
 

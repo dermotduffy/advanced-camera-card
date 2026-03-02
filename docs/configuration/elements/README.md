@@ -3,7 +3,7 @@
 ## Introduction to elements <!-- {docsify-ignore} -->
 
 This card supports the [Picture Elements configuration
-syntax](https://www.home-assistant.io/lovelace/picture-elements/) to seamlessly
+syntax](https://www.home-assistant.io/dashboards/picture-elements/) to seamlessly
 allow the user to add custom elements to the card.
 
 ```yaml

@@ -1,0 +1,7 @@
+exclude_path = [
+  "node_modules",
+  "vscode://"
+]
+timeout = 20
+max_retries = 3
+accept = [200, 204]

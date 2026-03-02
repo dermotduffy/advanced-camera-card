@@ -66,7 +66,7 @@ Which in turn will cast the specified Home Assistant dashboard (and view) to the
 
 For the example above to work, a dashboard with `dashboard-cast` URL must exist:
 
-![image](https://github.com/user-attachments/assets/67f0e145-df05-412a-8c6d-897feb5439d2)
+![image](../images/cast-dashboard.png)
 
 Within that dashboard, create an `office` view and finally within that view you can place the Advanced Camera Card configured for that camera for a proper full-screen casting experience:
 
@@ -87,7 +87,7 @@ views:
 
 The `casting` profile pre-configures the card to be casted to a 16:9 screen (such as a TV), including hiding all interactive elements and the menu. The `low-performance` profile is also recommended, as normally casting devices have limited hardware capabilities.
 
-![](https://github.com/user-attachments/assets/bd96c4ad-36f5-4501-9018-23b496e7edc5)
+![image](../images/cast-profile.jpg)
 
 When casting to a Google Nest Hub, the following configuration can be used:
 

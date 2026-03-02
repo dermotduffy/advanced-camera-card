@@ -25,7 +25,7 @@ A comprehensive camera card for Home Assistant.
 - Grid or carousel/swipeable media, thumbnails and cameras.
 - Direct media downloads.
 - Lovelace visual editing.
-- Full [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/) support.
+- Full [Picture Elements](https://www.home-assistant.io/dashboards/picture-elements/) support.
 - Theme friendly.
 
 See [full documentation](https://dermotduffy.github.io/advanced-camera-card).
