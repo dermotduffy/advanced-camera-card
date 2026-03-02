@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { elementsBaseSchema } from '../base';
 
-// https://www.home-assistant.io/lovelace/picture-elements/#image-element
+// https://www.home-assistant.io/dashboards/picture-elements/#image-element
 export const imageSchema = elementsBaseSchema.extend({
   type: z.literal('image'),
   entity: z.string().optional(),

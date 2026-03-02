@@ -30,7 +30,7 @@ elements:
     # [...]
 ```
 
-Configuration is similar to a stock [Picture Elements Icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element).
+Configuration is similar to a stock [Picture Elements Icon](https://www.home-assistant.io/dashboards/picture-elements/#icon-element).
 
 | Parameter                                                                | Default    | Description                                                                                                                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -119,7 +119,7 @@ elements:
     # [...]
 ```
 
-Configuration is similar to a stock [Picture Elements State Icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon).
+Configuration is similar to a stock [Picture Elements State Icon](https://www.home-assistant.io/dashboards/picture-elements/#state-icon).
 
 | Parameter                                                                | Default    | Description                                                                                                                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

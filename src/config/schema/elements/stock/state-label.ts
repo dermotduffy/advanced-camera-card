@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { elementsBaseSchema } from '../base';
 
-// https://www.home-assistant.io/lovelace/picture-elements/#state-label
+// https://www.home-assistant.io/dashboards/picture-elements/#state-label
 export const stateLabelSchema = elementsBaseSchema.extend({
   type: z.literal('state-label'),
   entity: z.string(),

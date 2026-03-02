@@ -203,7 +203,7 @@ cameras:
 ```
 
 > [!WARNING]
-> Browsers will reject [mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content): if you access Home Assistant over `https`, you must also put `go2rtc` behind `https` and use that in the `url` parameter. Check [go2rtc proxying](#go2rtc) as an alternative.
+> Browsers will reject [mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Mixed_content): if you access Home Assistant over `https`, you must also put `go2rtc` behind `https` and use that in the `url` parameter. Check [go2rtc proxying](#go2rtc) as an alternative.
 
 ## Card Mod
 
@@ -216,7 +216,7 @@ card contents.
 
 This example changes the color and removes the padding around a [Picture
 Elements state
-label](https://www.home-assistant.io/lovelace/picture-elements/#state-label).
+label](https://www.home-assistant.io/dashboards/picture-elements/#state-label).
 
 ```yaml
 type: custom:advanced-camera-card

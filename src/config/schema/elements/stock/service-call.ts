@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { elementsBaseSchema } from '../base';
 
-// https://www.home-assistant.io/lovelace/picture-elements/#service-call-button
+// https://www.home-assistant.io/dashboards/picture-elements/#service-call-button
 export const serviceCallButtonSchema = elementsBaseSchema.extend({
   type: z.literal('service-button'),
 

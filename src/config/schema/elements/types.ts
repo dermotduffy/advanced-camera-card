@@ -23,7 +23,7 @@ import { stateLabelSchema } from './stock/state-label';
 // typescript circular dependency errors as the types need to be both included
 // in the master pictureElementSchema, but also refer to it internally.
 
-// https://www.home-assistant.io/lovelace/picture-elements/#image-element
+// https://www.home-assistant.io/dashboards/picture-elements/#image-element
 export const conditionalSchema = z.object({
   type: z.literal('conditional'),
   conditions: stockConditionSchema.array(),
