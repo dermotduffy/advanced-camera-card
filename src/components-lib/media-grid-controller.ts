@@ -63,7 +63,10 @@ export class MediaGridController {
     // Throttle layout calls to larger than the masonry.js transitionDuration
     // value specified below.
     300,
-    { trailing: true, leading: false },
+    {
+      leading: true,
+      trailing: true
+    },
   );
 
   // If the order in which the observers are declared changes, the unittest must
@@ -186,10 +189,7 @@ export class MediaGridController {
     this._sortItemsInGrid();
     this._updateSelectedStylesOnElements();
 
-    // Sizes and positions may change when an element is selected, so re-do the
-    // layout (must come after the call to _updateStylesOnElements in order to
-    // ensure the right styles are applied first).
-    this._throttledLayout();
+    this._forceLayout();
   }
 
   public unselectAll() {
@@ -199,6 +199,18 @@ export class MediaGridController {
     }
     this._selected = null;
     this._updateSelectedStylesOnElements();
+
+    this._forceLayout();
+  }
+
+  protected _forceLayout(): void {
+    this._throttledLayout.cancel(); // Cancel possible pending layout
+
+    // Force browser reflow so masonry measures the updated element size
+    this._host.getBoundingClientRect();
+
+    // Sizes and positions may change when an element is selected, so re-do the layout
+    this._masonry?.layout?.();
   }
 
   private _calculateGridContentsFromHost = (): void => {
