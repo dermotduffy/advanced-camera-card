@@ -318,7 +318,9 @@ export class MediaGridController {
       columnWidth: this._getColumnSize(),
       initLayout: false,
       percentPosition: true,
-      transitionDuration: '0.2s',
+      transitionDuration: 0,
+      stagger: 0,
+      resize: false,
       gutter: MEDIA_GRID_HORIZONTAL_GUTTER_WIDTH,
     }) as ExtendedMasonry;
     this._masonry.addItems?.([...this._gridContents.values()]);
