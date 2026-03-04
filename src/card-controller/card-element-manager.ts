@@ -178,7 +178,6 @@ export class CardElementManager {
     // reconnection, to ensure the state subscription/unsubscription works
     // correctly for triggers.
     this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
-    this._api.getCameraManager().destroy();
 
     this._element.removeEventListener(
       'mousemove',

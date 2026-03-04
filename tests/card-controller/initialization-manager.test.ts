@@ -216,11 +216,13 @@ describe('InitializationManager', () => {
   });
 
   it('should uninitialize', () => {
+    const api = createCardAPI();
     const initializer = mock<Initializer>();
-    const manager = new InitializationManager(createCardAPI(), initializer);
+    const manager = new InitializationManager(api, initializer);
 
     manager.uninitialize(InitializationAspect.CAMERAS);
 
     expect(initializer.uninitialize).toBeCalledWith(InitializationAspect.CAMERAS);
+    expect(api.getCameraManager().destroy).toBeCalled();
   });
 });
