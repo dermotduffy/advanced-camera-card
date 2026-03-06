@@ -90,6 +90,7 @@ export type WebkitHTMLVideoElement = HTMLVideoElement & {
 };
 
 export type FullscreenElement = HTMLElement;
+export type PIPElement = HTMLVideoElement;
 
 export interface MediaPlayerController {
   play(): Promise<void>;
@@ -103,6 +104,7 @@ export interface MediaPlayerController {
   setControls(controls?: boolean): Promise<void>;
   isPaused(): boolean;
   getFullscreenElement(): FullscreenElement | null;
+  getPIPElement(): PIPElement | null;
 }
 
 export interface MediaPlayer {

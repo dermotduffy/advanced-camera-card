@@ -69,6 +69,7 @@ export class CardElementManager {
     this._api.getExpandManager().initialize();
     this._api.getMediaLoadedInfoManager().initialize();
     this._api.getMicrophoneManager().initialize();
+    this._api.getPIPManager().initialize();
     this._api.getKeyboardStateManager().initialize();
 
     // These initializers are called when the config is updated, but on initial
@@ -169,6 +170,7 @@ export class CardElementManager {
     // When the dashboard 'tab' is changed, the media is effectively unloaded.
     this._api.getMediaLoadedInfoManager().clear();
     this._api.getFullscreenManager().disconnect();
+    this._api.getPIPManager().uninitialize();
     this._api.getKeyboardStateManager().uninitialize();
     this._api.getActionsManager().uninitialize();
     this._api.getDefaultManager().uninitialize();

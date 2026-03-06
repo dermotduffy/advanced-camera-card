@@ -350,6 +350,20 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: pause
 ```
 
+## `pip`
+
+Toggle Picture-in-Picture mode. Floats the video element as a native browser overlay. Only supported by elements based on videos (e.g. notably not the `image`, or `jsmpeg` [live providers](../../cameras/live-provider.md)).
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: pip
+```
+
+| Parameter                     | Description                                   |
+| ----------------------------- | --------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`. |
+| `advanced_camera_card_action` | Must be `pip`.                                |
+
 ## `play`
 
 Play the selected media.
@@ -702,6 +716,12 @@ elements:
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: fullscreen
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:picture-in-picture-bottom-right
+    title: PIP
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: pip
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-l-circle
     title: Show image view

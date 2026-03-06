@@ -4,6 +4,7 @@ import { FoldersManager } from '../card-controller/folders/manager';
 import { FullscreenManager } from '../card-controller/fullscreen/fullscreen-manager';
 import { MediaPlayerManager } from '../card-controller/media-player-manager';
 import { MicrophoneManager } from '../card-controller/microphone-manager';
+import { PIPManager } from '../card-controller/pip-manager';
 import { ViewManager } from '../card-controller/view/view-manager';
 import {
   AdvancedCameraCardView,
@@ -45,6 +46,7 @@ export interface MenuButtonControllerOptions {
   inExpandedMode?: boolean;
   microphoneManager?: MicrophoneManager | null;
   mediaPlayerController?: MediaPlayerManager | null;
+  pipManager?: PIPManager | null;
   viewManager?: ViewManager | null;
   view?: View | null;
 }
@@ -100,6 +102,7 @@ export class MenuButtonController {
       ),
       this._getExpandButton(config, options?.inExpandedMode),
       this._getFullscreenButton(config, options?.fullscreenManager),
+      this._getPIPButton(config, options?.pipManager),
       this._getCastButton(
         hass,
         config,
@@ -546,6 +549,25 @@ export class MenuButtonController {
           title: localize('config.menu.buttons.fullscreen'),
           tap_action: createGeneralAction('fullscreen'),
           style: inFullscreen ? this._getEmphasizedStyle() : {},
+        }
+      : null;
+  }
+
+  private _getPIPButton(
+    config: AdvancedCameraCardConfig,
+    pipManager?: PIPManager | null,
+  ): MenuItem | null {
+    const inPIP = pipManager?.isInPIP();
+    return pipManager?.isAvailable()
+      ? {
+          icon: inPIP
+            ? 'mdi:picture-in-picture-bottom-right-outline'
+            : 'mdi:picture-in-picture-bottom-right',
+          ...config.menu.buttons.pip,
+          type: 'custom:advanced-camera-card-menu-icon',
+          title: localize('config.menu.buttons.pip'),
+          tap_action: createGeneralAction('pip'),
+          style: inPIP ? this._getEmphasizedStyle() : {},
         }
       : null;
   }

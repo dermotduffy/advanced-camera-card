@@ -23,6 +23,7 @@ import type { MediaPlayerManager } from './media-player-manager';
 import type { MessageManager } from './message-manager';
 import type { MicrophoneManager } from './microphone-manager';
 import type { OverlayMessageManager } from './overlay-message-manager';
+import type { PIPManager } from './pip-manager';
 import type { QueryStringManager } from './query-string-manager';
 import type { StatusBarItemManager } from './status-bar-item-manager';
 import type { StyleManager } from './style-manager';
@@ -54,6 +55,7 @@ export interface CardActionsAPI {
   getMessageManager(): MessageManager;
   getMicrophoneManager(): MicrophoneManager;
   getOverlayMessageManager(): OverlayMessageManager;
+  getPIPManager(): PIPManager;
   getStatusBarItemManager(): StatusBarItemManager;
   getTriggersManager(): TriggersManager;
   getViewItemManager(): ViewItemManager;
@@ -150,6 +152,7 @@ export interface CardElementAPI {
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMediaPlayerManager(): MediaPlayerManager;
   getMicrophoneManager(): MicrophoneManager;
+  getPIPManager(): PIPManager;
   getQueryStringManager(): QueryStringManager;
   getViewManager(): ViewManager;
 }
@@ -172,6 +175,11 @@ export interface CardFullscreenAPI {
   getExpandManager(): ExpandManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMediaPlayerManager(): MediaPlayerManager;
+}
+
+export interface CardPIPAPI {
+  getCardElementManager(): CardElementManager;
+  getConditionStateManager(): ConditionStateManager;
 }
 
 export interface CardHASSAPI {

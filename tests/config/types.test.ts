@@ -320,6 +320,13 @@ describe('config defaults', () => {
             priority: 50,
             state_color: true,
           },
+          pip: {
+            alignment: 'matching',
+            enabled: false,
+            permanent: false,
+            priority: 50,
+            state_color: true,
+          },
           play: {
             alignment: 'matching',
             enabled: false,

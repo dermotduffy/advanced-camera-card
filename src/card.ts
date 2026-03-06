@@ -264,6 +264,7 @@ class AdvancedCameraCard extends LitElement {
             inExpandedMode: this._controller.getExpandManager().isExpanded(),
             mediaPlayerController: this._controller.getMediaPlayerManager(),
             microphoneManager: this._controller.getMicrophoneManager(),
+            pipManager: this._controller.getPIPManager(),
             showCameraUIButton: this._controller.getCameraURLManager().hasCameraURL(),
             view: view,
             viewManager: this._controller.getViewManager(),

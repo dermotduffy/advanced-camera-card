@@ -1,5 +1,5 @@
 import { LitElement } from 'lit';
-import { FullscreenElement, MediaPlayerController } from '../../types';
+import { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
 import { screenshotImage } from '../../utils/screenshot';
 
 export class ImageMediaPlayerController implements MediaPlayerController {
@@ -57,5 +57,9 @@ export class ImageMediaPlayerController implements MediaPlayerController {
 
   public getFullscreenElement(): FullscreenElement | null {
     return this._getImageCallback() ?? null;
+  }
+
+  public getPIPElement(): PIPElement | null {
+    return null;
   }
 }

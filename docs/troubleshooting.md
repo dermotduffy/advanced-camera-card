@@ -257,6 +257,29 @@ that is currently loaded supports 2-way audio. See [Using 2-way
 audio](usage/2-way-audio.md) for more information about the requirements that
 must be followed.
 
+### Picture-in-Picture only shows video but not other card controls
+
+Picture-in-Picture (PIP) uses the browser's [native video PIP
+API](https://caniuse.com/picture-in-picture) which floats the raw video element
+into a small window. This means:
+
+- **No card UI in the PIP window.** Only the video itself is shown — no menu,
+  status bar, timeline, or other card elements. The card remains fully
+  functional on the dashboard behind it.
+- **Limited browser support.** Not all browsers support the PIP API. See
+  [Can I use: Picture-in-Picture](https://caniuse.com/picture-in-picture) for
+  current browser compatibility.
+- **Non-video live providers are not supported.** Providers such as `image` or
+  `jsmpeg` do not use a native `<video>` element so PIP is unavailable for
+  these.
+
+A more fully featured PIP mode (showing the entire card in a floating window)
+was explored using the experimental [Document Picture-in-Picture
+API](https://caniuse.com/mdn-api_documentpictureinpicture), however it proved
+unworkable: Home Assistant state updates cannot reach a card in a separate
+document, and browser-managed styles (`adoptedStyleSheets`) are cleared when
+elements move between documents — resulting in an unstyled, non-updating card.
+
 ### New version not working in Chrome
 
 When upgrading the card it's recommended to reset the frontend cache. Sometimes

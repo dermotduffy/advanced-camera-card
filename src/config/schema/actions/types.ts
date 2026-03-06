@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { statusBarItemBaseSchema } from '../common/status-bar';
 import { severitySchema } from '../common/severity';
+import { statusBarItemBaseSchema } from '../common/status-bar';
 import { advancedCameraCardCustomActionsBaseSchema } from './custom/base';
 import { cameraSelectActionConfigSchema } from './custom/camera-select';
 import { viewDisplayModeActionConfigSchema } from './custom/display-mode';

@@ -1,6 +1,5 @@
 import { ReactiveController } from 'lit';
 import { CameraManager } from '../camera-manager/manager';
-import { EffectsManager } from './effects/effects-manager';
 import { ConditionStateManager } from '../conditions/state-manager';
 import { AdvancedCameraCardConfig } from '../config/schema/types';
 import { DeviceRegistryManager } from '../ha/registry/device';
@@ -20,6 +19,7 @@ import {
 } from './card-element-manager';
 import { ConfigManager } from './config/config-manager';
 import { DefaultManager } from './default-manager';
+import { EffectsManager } from './effects/effects-manager';
 import { ExpandManager } from './expand-manager';
 import { FoldersManager } from './folders/manager';
 import { FullscreenManager } from './fullscreen/fullscreen-manager';
@@ -32,6 +32,7 @@ import { MediaPlayerManager } from './media-player-manager';
 import { MessageManager } from './message-manager';
 import { MicrophoneManager } from './microphone-manager';
 import { OverlayMessageManager } from './overlay-message-manager';
+import { PIPManager } from './pip-manager';
 import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
@@ -58,6 +59,7 @@ import {
   CardMessageAPI,
   CardMicrophoneAPI,
   CardOverlayMessageAPI,
+  CardPIPAPI,
   CardQueryStringAPI,
   CardStyleAPI,
   CardTriggersAPI,
@@ -80,6 +82,7 @@ export class CardController
     CardExpandAPI,
     CardFullscreenAPI,
     CardHASSAPI,
+    CardPIPAPI,
     CardInitializerAPI,
     CardInteractionAPI,
     CardKeyboardStateAPI,
@@ -123,6 +126,7 @@ export class CardController
   private _messageManager = new MessageManager(this);
   private _microphoneManager = new MicrophoneManager(this);
   private _overlayMessageManager = new OverlayMessageManager(this);
+  private _pipManager = new PIPManager(this);
   private _queryStringManager = new QueryStringManager(this);
   private _statusBarItemManager = new StatusBarItemManager(this);
   private _styleManager = new StyleManager(this);
@@ -250,6 +254,10 @@ export class CardController
 
   public getOverlayMessageManager(): OverlayMessageManager {
     return this._overlayMessageManager;
+  }
+
+  public getPIPManager(): PIPManager {
+    return this._pipManager;
   }
 
   public getQueryStringManager(): QueryStringManager {

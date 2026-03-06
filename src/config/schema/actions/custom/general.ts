@@ -17,6 +17,7 @@ const GENERAL_ACTIONS = [
   'microphone_unmute',
   'mute',
   'pause',
+  'pip',
   'play',
   'reload',
   'screenshot',

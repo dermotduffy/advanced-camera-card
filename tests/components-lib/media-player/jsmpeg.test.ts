@@ -249,4 +249,14 @@ describe('JSMPEGMediaPlayerController', () => {
       expect(controller.getFullscreenElement()).toBeNull();
     });
   });
+
+  it('should return null for getPIPElement', () => {
+    const controller = new JSMPEGMediaPlayerController(
+      createLitElement(),
+      () => mock<JSMpeg.VideoElement>(),
+      () => null,
+    );
+
+    expect(controller.getPIPElement()).toBeNull();
+  });
 });

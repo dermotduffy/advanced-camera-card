@@ -189,4 +189,14 @@ describe('UpdatingImageMediaPlayerController', () => {
       expect(controller.getFullscreenElement()).toBeNull();
     });
   });
+
+  it('should return null for getPIPElement', () => {
+    const controller = new UpdatingImageMediaPlayerController(
+      createLitElement(),
+      () => null,
+      () => mock<CachedValueController<string>>(),
+    );
+
+    expect(controller.getPIPElement()).toBeNull();
+  });
 });
