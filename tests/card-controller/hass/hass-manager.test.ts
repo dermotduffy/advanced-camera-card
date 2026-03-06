@@ -138,7 +138,9 @@ describe('HASSManager', () => {
       // render cycle.
       expect(api.getInitializationManager().uninitialize).toBeCalledWith('cameras');
       expect(api.getInitializationManager().uninitialize).toBeCalledWith('view');
-      expect(api.getInitializationManager().uninitialize).toBeCalledWith('initial-trigger');
+      expect(api.getInitializationManager().uninitialize).toBeCalledWith(
+        'initial-trigger',
+      );
     });
 
     it('hass is null', () => {
