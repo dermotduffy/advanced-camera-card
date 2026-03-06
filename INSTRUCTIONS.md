@@ -32,6 +32,7 @@
 
   - Prefer `interface` for object structures; `type` for unions/intersections.
   - Avoid `any` at all costs (in both source and tests); use `unknown`, proper generics, or `as unknown as T` for unavoidable type coercions. In tests, use `assert` (imported from `vitest`) for type narrowing.
+  - Never use non-null assertions (`!`); use a null check with an early return or conditional instead.
   - Use `zod` for runtime validation if external data is involved.
   - `noUnusedParameters` and `noImplicitReturns` are enforced — all parameters must be used and all code paths must return.
 
