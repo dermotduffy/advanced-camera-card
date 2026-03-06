@@ -2,8 +2,8 @@
 
 :host {
   --advanced-camera-card-menu-button-size: 40px;
-  --mdc-icon-button-size: var(--advanced-camera-card-menu-button-size);
-  --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
+  --ha-icon-button-size: var(--advanced-camera-card-menu-button-size);
+  --mdc-icon-size: calc(var(--ha-icon-button-size) / 2);
 
   pointer-events: auto;
 
