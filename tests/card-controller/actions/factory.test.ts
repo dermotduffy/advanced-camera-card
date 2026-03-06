@@ -23,6 +23,7 @@ import { MuteAction } from '../../../src/card-controller/actions/actions/mute';
 import { NavigateAction } from '../../../src/card-controller/actions/actions/navigate';
 import { NoneAction } from '../../../src/card-controller/actions/actions/none';
 import { PauseAction } from '../../../src/card-controller/actions/actions/pause';
+import { PIPAction } from '../../../src/card-controller/actions/actions/pip';
 import { PerformActionAction } from '../../../src/card-controller/actions/actions/perform-action';
 import { PlayAction } from '../../../src/card-controller/actions/actions/play';
 import { PTZAction } from '../../../src/card-controller/actions/actions/ptz';
@@ -152,6 +153,7 @@ describe('ActionFactory', () => {
       ],
       [{ advanced_camera_card_action: 'mute' as const }, MuteAction],
       [{ advanced_camera_card_action: 'pause' as const }, PauseAction],
+      [{ advanced_camera_card_action: 'pip' as const }, PIPAction],
       [{ advanced_camera_card_action: 'play' as const }, PlayAction],
       [{ advanced_camera_card_action: 'ptz_digital' as const }, PTZDigitalAction],
       [

@@ -27,6 +27,7 @@ import { NavigateAction } from './actions/navigate';
 import { NoneAction } from './actions/none';
 import { PauseAction } from './actions/pause';
 import { PerformActionAction } from './actions/perform-action';
+import { PIPAction } from './actions/pip';
 import { PlayAction } from './actions/play';
 import { PTZAction } from './actions/ptz';
 import { PTZControlsAction } from './actions/ptz-controls';
@@ -146,6 +147,8 @@ export class ActionFactory {
         return new PlayAction(context, action, options?.config);
       case 'pause':
         return new PauseAction(context, action, options?.config);
+      case 'pip':
+        return new PIPAction(context, action, options?.config);
       case 'screenshot':
         return new ScreenshotAction(context, action, options?.config);
       case 'display_mode_select':

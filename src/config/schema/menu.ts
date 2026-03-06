@@ -56,6 +56,7 @@ export const menuConfigDefault = {
       type: 'momentary' as const,
     },
     mute: { ...hiddenButtonDefault },
+    pip: { ...hiddenButtonDefault },
     play: { ...hiddenButtonDefault },
     ptz_controls: { ...hiddenButtonDefault },
     recordings: { ...hiddenButtonDefault },
@@ -114,6 +115,7 @@ export const menuConfigSchema = z
           })
           .default(menuConfigDefault.buttons.microphone),
         mute: hiddenButtonSchema.default(menuConfigDefault.buttons.mute),
+        pip: hiddenButtonSchema.default(menuConfigDefault.buttons.pip),
         play: hiddenButtonSchema.default(menuConfigDefault.buttons.play),
         ptz_controls: hiddenButtonSchema.default(menuConfigDefault.buttons.ptz_controls),
         recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),

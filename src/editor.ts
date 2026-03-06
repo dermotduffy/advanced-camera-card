@@ -3067,6 +3067,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                   )}`,
                 )}
                 ${this._renderMenuButton('mute') /*  */}
+                ${this._renderMenuButton('pip') /*   */}
                 ${this._renderMenuButton('play')}
                 ${this._renderMenuButton('ptz_controls')}
                 ${this._renderMenuButton('ptz_home')}

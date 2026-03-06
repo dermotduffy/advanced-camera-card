@@ -114,4 +114,10 @@ describe('ImageMediaPlayerController', () => {
       expect(controller.getFullscreenElement()).toBeNull();
     });
   });
+
+  it('should return null for getPIPElement', () => {
+    const controller = new ImageMediaPlayerController(createLitElement(), () => null);
+
+    expect(controller.getPIPElement()).toBeNull();
+  });
 });

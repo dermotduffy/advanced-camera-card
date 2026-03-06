@@ -8,6 +8,7 @@ import { FoldersManager } from '../../src/card-controller/folders/manager.js';
 import { FolderQuery } from '../../src/card-controller/folders/types';
 import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager.js';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
+import { PIPManager } from '../../src/card-controller/pip-manager.js';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager.js';
 import { ViewManager } from '../../src/card-controller/view/view-manager.js';
 import {
@@ -1480,6 +1481,75 @@ describe('MenuButtonController', () => {
 
       expect(buttons).not.toContainEqual(
         expect.objectContaining({ title: 'Fullscreen' }),
+      );
+    });
+  });
+
+  describe('should have pip button', () => {
+    it('when not in PIP mode', () => {
+      const pipManager = mock<PIPManager>();
+      vi.mocked(pipManager.isInPIP).mockReturnValue(false);
+      vi.mocked(pipManager.isAvailable).mockReturnValue(true);
+
+      const buttons = calculateButtons(controller, { pipManager });
+
+      expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
+        icon: 'mdi:picture-in-picture-bottom-right',
+        enabled: false,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Picture in Picture',
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'pip',
+        },
+        style: {},
+      });
+    });
+
+    it('when in PIP mode', () => {
+      const pipManager = mock<PIPManager>();
+      vi.mocked(pipManager.isInPIP).mockReturnValue(true);
+      vi.mocked(pipManager.isAvailable).mockReturnValue(true);
+
+      const buttons = calculateButtons(controller, { pipManager });
+
+      expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
+        icon: 'mdi:picture-in-picture-bottom-right-outline',
+        enabled: false,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Picture in Picture',
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'pip',
+        },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+      });
+    });
+
+    it('when not supported', () => {
+      const pipManager = mock<PIPManager>();
+      vi.mocked(pipManager.isAvailable).mockReturnValue(false);
+
+      const buttons = calculateButtons(controller, { pipManager });
+
+      expect(buttons).not.toContainEqual(
+        expect.objectContaining({ title: 'Picture in Picture' }),
+      );
+    });
+
+    it('when no pipManager provided', () => {
+      const buttons = calculateButtons(controller, {});
+
+      expect(buttons).not.toContainEqual(
+        expect.objectContaining({ title: 'Picture in Picture' }),
       );
     });
   });

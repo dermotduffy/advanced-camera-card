@@ -1,6 +1,6 @@
 import JSMpeg from '@cycjimmy/jsmpeg-player';
 import { LitElement } from 'lit';
-import { FullscreenElement, MediaPlayerController } from '../../types';
+import { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
 
 export class JSMPEGMediaPlayerController implements MediaPlayerController {
   private _host: LitElement;
@@ -69,5 +69,10 @@ export class JSMPEGMediaPlayerController implements MediaPlayerController {
 
   public getFullscreenElement(): FullscreenElement | null {
     return this._getCanvasElementCallback() ?? null;
+  }
+
+  public getPIPElement(): PIPElement | null {
+    // JSMpeg renders to a canvas, not a video element.
+    return null;
   }
 }
