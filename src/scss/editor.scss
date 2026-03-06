@@ -1,7 +1,7 @@
 @use './button.scss';
 
 .option {
-  padding: 4px 4px;
+  padding: 8px 4px;
   cursor: pointer;
 }
 .option.option-overrides .title {
@@ -87,15 +87,16 @@
   margin-top: 10px;
 }
 
-.submenu .controls {
+.submenu .values .controls {
   display: inline-block;
   margin-left: auto;
   margin-right: 0px;
   margin-bottom: 5px;
+  margin-top: 5px;
 }
-.submenu .controls ha-icon-button {
-  --mdc-icon-button-size: 32px;
-  --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
+.submenu .values .controls ha-icon-button {
+  --ha-icon-button-size: 32px;
+  --mdc-icon-size: calc(var(--ha-icon-button-size) / 2);
 }
 span.info {
   padding: 10px;
