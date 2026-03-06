@@ -48,12 +48,13 @@ export class HASSManager {
         if (this._hass) {
           log(
             this._api.getConfigManager().getCardWideConfig(),
-            'Advanced Camera Card: HA connection restored, reinitializing cameras',
+            'Advanced Camera Card: HA connection restored, reinitializing...',
           );
 
           this._api
             .getInitializationManager()
             .uninitialize(InitializationAspect.CAMERAS);
+          this._api.getCameraManager().destroy();
           this._api.getInitializationManager().uninitialize(InitializationAspect.VIEW);
           this._api
             .getInitializationManager()

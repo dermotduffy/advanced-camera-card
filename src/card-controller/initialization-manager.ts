@@ -169,9 +169,5 @@ export class InitializationManager {
 
   public uninitialize(aspect: InitializationAspect): void {
     this._initializer.uninitialize(aspect);
-
-    if (aspect === InitializationAspect.CAMERAS) {
-      this._api.getCameraManager().destroy();
-    }
   }
 }

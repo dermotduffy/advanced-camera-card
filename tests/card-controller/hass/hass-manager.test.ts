@@ -137,6 +137,7 @@ describe('HASSManager', () => {
       // to event sources (e.g. Frigate WebSocket events) on the next
       // render cycle.
       expect(api.getInitializationManager().uninitialize).toBeCalledWith('cameras');
+      expect(api.getCameraManager().destroy).toBeCalled();
       expect(api.getInitializationManager().uninitialize).toBeCalledWith('view');
       expect(api.getInitializationManager().uninitialize).toBeCalledWith(
         'initial-trigger',
