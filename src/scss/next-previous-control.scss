@@ -7,8 +7,8 @@
   );
   --advanced-camera-card-left-position: 45px;
   --advanced-camera-card-right-position: 45px;
-  --mdc-icon-button-size: var(--advanced-camera-card-next-prev-size);
-  --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
+  --ha-icon-button-size: var(--advanced-camera-card-next-prev-size);
+  --mdc-icon-size: calc(var(--ha-icon-button-size) / 2);
 }
 
 .controls {
