@@ -1332,12 +1332,12 @@ describe('should convert webrtc card PTZ to Advanced Camera Card PTZ', () => {
         cameraConfigSchema.parse({
           ptz: {
             service: 'foo',
-            [`data_${action}_start`]: {
+            [`data_start_${action}`]: {
               device: '048123',
               cmd: action,
               phase: 'start',
             },
-            [`data_${action}_stop`]: {
+            [`data_end_${action}`]: {
               device: '048123',
               cmd: action,
               phase: 'stop',
@@ -1371,7 +1371,7 @@ describe('should convert webrtc card PTZ to Advanced Camera Card PTZ', () => {
     });
   });
 
-  it('presets', () => {
+  it('presets via presets sub-object', () => {
     expect(
       cameraConfigSchema.parse({
         ptz: {
@@ -1408,6 +1408,93 @@ describe('should convert webrtc card PTZ to Advanced Camera Card PTZ', () => {
                 device: '048123',
                 cmd: 'another',
               },
+            },
+          },
+        }),
+      }),
+    );
+  });
+
+  it('actions_left takes priority over data_left', () => {
+    const result = cameraConfigSchema.parse({
+      ptz: {
+        service: 'foo',
+        data_left: { cmd: 'from_data' },
+        actions_left: {
+          action: 'perform-action',
+          perform_action: 'bar',
+          data: { cmd: 'from_actions' },
+        },
+      },
+    });
+    expect(result).toEqual(
+      expect.objectContaining({
+        ptz: expect.objectContaining({
+          actions_left: {
+            action: 'perform-action',
+            perform_action: 'bar',
+            data: { cmd: 'from_actions' },
+          },
+        }),
+      }),
+    );
+  });
+
+  it('data_home creates a home preset', () => {
+    expect(
+      cameraConfigSchema.parse({
+        ptz: {
+          service: 'foo',
+          data_home: {
+            device: '048123',
+            cmd: 'home',
+          },
+        },
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        ptz: expect.objectContaining({
+          presets: {
+            home: {
+              action: 'perform-action',
+              perform_action: 'foo',
+              data: {
+                device: '048123',
+                cmd: 'home',
+              },
+            },
+          },
+        }),
+      }),
+    );
+  });
+
+  it('data_home does not overwrite existing home preset', () => {
+    expect(
+      cameraConfigSchema.parse({
+        ptz: {
+          service: 'foo',
+          data_home: {
+            device: '048123',
+            cmd: 'home_data',
+          },
+          presets: {
+            home: {
+              action: 'perform-action',
+              perform_action: 'bar',
+              data: { cmd: 'home_preset' },
+            },
+          },
+        },
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        ptz: expect.objectContaining({
+          presets: {
+            home: {
+              action: 'perform-action',
+              perform_action: 'bar',
+              data: { cmd: 'home_preset' },
             },
           },
         }),

@@ -540,6 +540,33 @@ const upgradePTZElementsToLive = function (): (data: unknown) => boolean {
   };
 };
 
+// Upgrade old internal `data_*_stop` / `data_*_start` keys to
+// WebRTC-compatible `data_end_*` / `data_start_*` ordering.
+// WebRTC uses `data_start_left` / `data_end_left` (not `data_left_start` /
+// `data_left_stop`).
+// See: https://github.com/dermotduffy/advanced-camera-card/issues/2385
+// See: https://github.com/AlexxIT/WebRTC/blob/master/custom_components/webrtc/www/webrtc-camera.js
+const ptzIncorrectDataToWebRTCDataTransform = (data: unknown): unknown => {
+  if (typeof data !== 'object' || !data) {
+    return undefined;
+  }
+  let modified = false;
+  const out = { ...data };
+  for (const key of Object.keys(out)) {
+    const match = key.match(/^data_(.+)_(start|stop)$/);
+    if (match) {
+      const phase = match[2] === 'stop' ? 'end' : match[2];
+      const webrtcKey = `data_${phase}_${match[1]}`;
+      if (!(webrtcKey in out)) {
+        out[webrtcKey] = out[key];
+      }
+      delete out[key];
+      modified = true;
+    }
+  }
+  return modified ? out : undefined;
+};
+
 const ptzActionsToCamerasGlobalTransform = (data: unknown): unknown => {
   if (typeof data !== 'object' || !data) {
     return undefined;
@@ -966,5 +993,10 @@ const UPGRADES = [
   upgradeMoveToWithOverrides(
     'view.triggers.untrigger_seconds',
     CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
+  ),
+  upgradeWithOverrides('cameras_global.ptz', ptzIncorrectDataToWebRTCDataTransform),
+  upgradeArrayOfObjects(
+    CONF_CAMERAS,
+    upgradeWithOverrides('ptz', ptzIncorrectDataToWebRTCDataTransform),
   ),
 ];

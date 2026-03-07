@@ -3766,5 +3766,85 @@ describe('should handle version specific upgrades', () => {
       });
       postUpgradeChecks(config);
     });
+
+    describe('ptz data_*_start/stop -> data_start/end_* (WebRTC ordering)', () => {
+      it('in cameras_global.ptz', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          cameras_global: {
+            ptz: {
+              service: 'service.ptz',
+              data_left_start: { cmd: 'left_start' },
+              data_left_stop: { cmd: 'left_stop' },
+            },
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.cameras_global.ptz).toEqual({
+          service: 'service.ptz',
+          data_start_left: { cmd: 'left_start' },
+          data_end_left: { cmd: 'left_stop' },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('in cameras[n].ptz', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [
+            {
+              ptz: {
+                service: 'service.ptz',
+                data_right_start: { cmd: 'right_start' },
+                data_right_stop: { cmd: 'right_stop' },
+              },
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.cameras[0].ptz).toEqual({
+          service: 'service.ptz',
+          data_start_right: { cmd: 'right_start' },
+          data_end_right: { cmd: 'right_stop' },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('ignores non-object ptz value', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          cameras_global: {
+            ptz: 'not-an-object',
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeFalsy();
+      });
+
+      it('does not overwrite existing WebRTC key', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          cameras_global: {
+            ptz: {
+              service: 'service.ptz',
+              data_left_stop: { cmd: 'old' },
+              data_end_left: { cmd: 'new' },
+            },
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.cameras_global.ptz).toEqual({
+          service: 'service.ptz',
+          data_end_left: { cmd: 'new' },
+        });
+        postUpgradeChecks(config);
+      });
+    });
   });
 });
