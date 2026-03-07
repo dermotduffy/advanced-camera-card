@@ -188,6 +188,7 @@ export interface CardHASSAPI {
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
+  getInitializationManager(): InitializationManager;
   getInteractionManager(): InteractionManager;
   getMediaPlayerManager(): MediaPlayerManager;
   getMessageManager(): MessageManager;
