@@ -679,6 +679,46 @@ describe('ConfigManager', () => {
         // The automation should still not execute because it was deleted by the override
         expect(executeActionsMock).not.toHaveBeenCalled();
       });
+
+      it('should not reload user automations for unrelated override changes', async () => {
+        const { manager, stateManager, api, addAutomationsSpy, deleteAutomationsSpy } =
+          createConfigManagerTestSetup();
+
+        const executeActionsMock = vi.fn();
+        vi.mocked(api.getActionsManager().executeActions).mockImplementation(
+          executeActionsMock,
+        );
+
+        const automation = {
+          conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
+          actions: [createGeneralAction('screenshot')],
+        };
+        const config = createConfig({
+          automations: [automation],
+          overrides: [
+            {
+              conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
+              set: {
+                'menu.buttons.microphone.enabled': false,
+              },
+            },
+          ],
+        });
+
+        manager.setConfig(config);
+        await flushPromises();
+
+        addAutomationsSpy.mockClear();
+        deleteAutomationsSpy.mockClear();
+        executeActionsMock.mockClear();
+
+        stateManager.setState({ fullscreen: true });
+        await flushPromises();
+
+        expect(deleteAutomationsSpy).not.toHaveBeenCalled();
+        expect(addAutomationsSpy).not.toHaveBeenCalled();
+        expect(executeActionsMock).toHaveBeenCalledTimes(1);
+      });
     });
 
     describe('remote-control loader with overrides', () => {
