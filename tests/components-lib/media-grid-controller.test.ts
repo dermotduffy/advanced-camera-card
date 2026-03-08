@@ -17,7 +17,11 @@ import {
 
 vi.mock('lodash-es', async () => ({
   ...(await vi.importActual('lodash-es')),
-  throttle: vi.fn((fn) => fn),
+  throttle: vi.fn((fn) => {
+    const throttled = vi.fn(fn) as unknown as { cancel: () => void };
+    throttled.cancel = vi.fn();
+    return throttled;
+  }),
 }));
 
 const masonry = mock<ExtendedMasonry>();
@@ -394,7 +398,7 @@ describe('MediaGridController', () => {
       expect.objectContaining({
         initLayout: false,
         percentPosition: true,
-        transitionDuration: '0.2s',
+        transitionDuration: 0,
       }),
     );
   });
