@@ -3110,6 +3110,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${this._renderStatusBarItem('resolution') /* */}
                 ${this._renderStatusBarItem('technology') /* */}
                 ${this._renderStatusBarItem('engine') /* */}
+                ${this._renderStatusBarItem('upgrade') /* */}
               </div>
             `
           : ''}

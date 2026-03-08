@@ -28,7 +28,7 @@ describe('InfoAction', () => {
 
     await action.execute(api);
 
-    expect(api.getOverlayMessageManager().setMessage).toBeCalled();
+    expect(api.getNotificationManager().setNotification).toBeCalled();
   });
 
   it('should not handle info action without media', async () => {
@@ -45,6 +45,6 @@ describe('InfoAction', () => {
 
     await action.execute(api);
 
-    expect(api.getOverlayMessageManager().setMessage).not.toBeCalled();
+    expect(api.getNotificationManager().setNotification).not.toBeCalled();
   });
 });

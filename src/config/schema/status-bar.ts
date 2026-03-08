@@ -26,6 +26,7 @@ export const statusBarConfigDefault = {
     severity: statusBarItemDefault,
     technology: statusBarItemDefault,
     title: statusBarItemDefault,
+    upgrade: statusBarItemDefault,
   },
   position: 'bottom' as const,
   style: 'popup' as const,
@@ -53,6 +54,7 @@ export const statusBarConfigSchema = z
         ),
         severity: statusBarItemBaseSchema.default(statusBarConfigDefault.items.severity),
         title: statusBarItemBaseSchema.default(statusBarConfigDefault.items.title),
+        upgrade: statusBarItemBaseSchema.default(statusBarConfigDefault.items.upgrade),
       })
       .default(statusBarConfigDefault.items),
   })

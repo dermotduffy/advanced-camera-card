@@ -3,9 +3,9 @@ import frigateSVG from '../camera-manager/frigate/assets/frigate.svg';
 import motioneyeSVG from '../camera-manager/motioneye/assets/motioneye.svg';
 import reolinkSVG from '../camera-manager/reolink/assets/reolink.svg';
 import tplinkSVG from '../camera-manager/tplink/assets/tplink.svg';
+import { Icon } from '../config/schema/common/icon';
 import { HomeAssistant } from '../ha/types';
 import irisSVG from '../images/iris.svg';
-import { Icon } from '../types';
 
 export class IconController {
   public getCustomIcon(icon?: Icon): string | null {

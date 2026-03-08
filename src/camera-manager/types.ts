@@ -1,8 +1,9 @@
 import { ExpiringEqualityCache } from '../cache/expiring-cache';
 import { SSLCiphers } from '../config/schema/cameras';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
+import { InternalIcon } from '../config/schema/common/icon';
 import { BaseQuery, QueryFilters, QuerySource } from '../query-source';
-import { CapabilityKey, Endpoint, Icon } from '../types';
+import { CapabilityKey, Endpoint } from '../types';
 import { ViewMedia } from '../view/item';
 
 // ====
@@ -118,7 +119,7 @@ export interface CapabilitySearchOptions {
 
 export interface CameraManagerCameraMetadata {
   title: string;
-  icon: Icon;
+  icon: InternalIcon;
 
   // Engine icon is just a string since it will never be entity-derived.
   engineIcon?: string;

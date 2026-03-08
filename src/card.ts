@@ -16,7 +16,7 @@ import './components/menu.js';
 import { AdvancedCameraCardMenu } from './components/menu.js';
 import './components/message.js';
 import { renderMessage } from './components/message.js';
-import './components/overlay-message.js';
+import './components/notification.js';
 import './components/overlay.js';
 import { AdvancedCameraCardOverlay } from './components/overlay.js';
 import './components/status-bar';
@@ -32,7 +32,7 @@ import { REPO_URL } from './const.js';
 import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
-import { MediaLoadedInfo, Message, OverlayMessage } from './types.js';
+import { MediaLoadedInfo, Message } from './types.js';
 import { hasAction } from './utils/action.js';
 import { getReleaseVersion } from './utils/diagnostics';
 
@@ -288,6 +288,7 @@ class AdvancedCameraCard extends LitElement {
           cameraManager: this._controller.getCameraManager(),
           view: this._controller.getViewManager().getView(),
           mediaLoadedInfo: this._controller.getMediaLoadedInfoManager().get(),
+          isUpgradeable: this._controller.getConfigManager().isUpgradeable(),
         })}
         .config=${this._config.status_bar}
       ></advanced-camera-card-status-bar>
@@ -374,11 +375,8 @@ class AdvancedCameraCard extends LitElement {
             () => this.requestUpdate() /* Refresh play/pause menu button */
           }
           @advanced-camera-card:focus=${() => this.focus()}
-          @advanced-camera-card:overlay-message:show=${(
-            ev: CustomEvent<OverlayMessage>,
-          ) => this._controller.getOverlayMessageManager().setMessage(ev.detail)}
-          @advanced-camera-card:overlay-message:dismiss=${() =>
-            this._controller.getOverlayMessageManager().reset()}
+          @advanced-camera-card:notification:dismiss=${() =>
+            this._controller.getNotificationManager().reset()}
         >
           ${showLoading
             ? html`<advanced-camera-card-loading
@@ -459,10 +457,12 @@ class AdvancedCameraCard extends LitElement {
               >
               </advanced-camera-card-elements>`
             : ``}
-          ${this._controller.getOverlayMessageManager().getMessage()
-            ? html`<advanced-camera-card-overlay-message
-                .message=${this._controller.getOverlayMessageManager().getMessage()}
-              ></advanced-camera-card-overlay-message>`
+          ${this._controller.getNotificationManager().getNotification()
+            ? html`<advanced-camera-card-notification
+                .notification=${this._controller
+                  .getNotificationManager()
+                  .getNotification()}
+              ></advanced-camera-card-notification>`
             : ''}
         </ha-card>`,
     );

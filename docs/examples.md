@@ -729,6 +729,42 @@ cameras:
     id: office-webrtc
 ```
 
+## Notifications
+
+Show a notification with controls that respond to different interactions. In
+this example, tapping the control navigates to the `clips` (media gallery) view
+and double-tapping navigates to the `clip` (media player) view.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+elements:
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:bell
+    title: Show notification
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: notification
+      notification:
+        heading:
+          text: Motion detected
+          icon: mdi:motion-sensor
+          severity: medium
+        text: Motion was detected in the office.
+        controls:
+          - icon: mdi:filmstrip
+            tooltip: View clips (tap) / clip (double-tap)
+            actions:
+              tap_action:
+                action: custom:advanced-camera-card-action
+                advanced_camera_card_action: clips
+              double_tap_action:
+                action: custom:advanced-camera-card-action
+                advanced_camera_card_action: clip
+            dismiss: false
+```
+
 ## Overriding configuration
 
 You can override card configuration when certain [conditions](configuration/conditions.md) are met.

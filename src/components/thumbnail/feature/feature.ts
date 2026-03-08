@@ -9,24 +9,27 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../../../camera-manager/manager';
+import { dispatchActionExecutionRequest } from '../../../card-controller/actions/utils/execution-request';
 import { ViewItemManager } from '../../../card-controller/view/item-manager';
 import { ViewManagerEpoch } from '../../../card-controller/view/types';
 import {
   MediaDetailsController,
-  OverlayControlsContext,
+  NotificationControlsContext,
 } from '../../../components-lib/media/details-controller';
 import { ThumbnailFeatureController } from '../../../components-lib/thumbnail/feature/controller';
 import { HomeAssistant } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import thumbnailFeatureStyle from '../../../scss/thumbnail-feature.scss';
-import { stopEventFromActivatingCardWideActions } from '../../../utils/action';
+import {
+  createNotificationAction,
+  stopEventFromActivatingCardWideActions,
+} from '../../../utils/action';
 import {
   downloadMedia,
   navigateToTimeline,
   toggleFavorite,
   toggleReviewed,
 } from '../../../utils/media-actions';
-import { dispatchShowOverlayMessageEvent } from '../../../utils/overlay-message';
 import { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import '../../icon.js';
@@ -80,7 +83,7 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
     }
   }
 
-  private _getControlContext(): OverlayControlsContext {
+  private _getControlContext(): NotificationControlsContext {
     return {
       hass: this.hass,
       viewItemManager: this.viewItemManager,
@@ -207,10 +210,13 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
               stopEventFromActivatingCardWideActions(ev);
               const detailsController = new MediaDetailsController();
               detailsController.calculate(this.cameraManager, this.item);
-              dispatchShowOverlayMessageEvent(
-                this,
-                detailsController.getMessage(this._getControlContext()),
-              );
+              dispatchActionExecutionRequest(this, {
+                actions: [
+                  createNotificationAction(
+                    detailsController.getNotification(this._getControlContext()),
+                  ),
+                ],
+              });
             }}
           ></advanced-camera-card-icon>`
         : ''}

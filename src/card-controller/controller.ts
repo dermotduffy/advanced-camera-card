@@ -31,7 +31,7 @@ import { MediaLoadedInfoManager } from './media-info-manager';
 import { MediaPlayerManager } from './media-player-manager';
 import { MessageManager } from './message-manager';
 import { MicrophoneManager } from './microphone-manager';
-import { OverlayMessageManager } from './overlay-message-manager';
+import { NotificationManager } from './notification-manager';
 import { PIPManager } from './pip-manager';
 import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
@@ -58,7 +58,7 @@ import {
   CardMediaPlayerAPI,
   CardMessageAPI,
   CardMicrophoneAPI,
-  CardOverlayMessageAPI,
+  CardNotificationAPI,
   CardPIPAPI,
   CardQueryStringAPI,
   CardStyleAPI,
@@ -90,7 +90,7 @@ export class CardController
     CardMediaPlayerAPI,
     CardMessageAPI,
     CardMicrophoneAPI,
-    CardOverlayMessageAPI,
+    CardNotificationAPI,
     CardQueryStringAPI,
     CardStyleAPI,
     CardTriggersAPI,
@@ -125,7 +125,7 @@ export class CardController
   private _mediaPlayerManager = new MediaPlayerManager(this);
   private _messageManager = new MessageManager(this);
   private _microphoneManager = new MicrophoneManager(this);
-  private _overlayMessageManager = new OverlayMessageManager(this);
+  private _notificationManager = new NotificationManager(this);
   private _pipManager = new PIPManager(this);
   private _queryStringManager = new QueryStringManager(this);
   private _statusBarItemManager = new StatusBarItemManager(this);
@@ -252,8 +252,8 @@ export class CardController
     this._microphoneManager = new MicrophoneManager(this);
   }
 
-  public getOverlayMessageManager(): OverlayMessageManager {
-    return this._overlayMessageManager;
+  public getNotificationManager(): NotificationManager {
+    return this._notificationManager;
   }
 
   public getPIPManager(): PIPManager {

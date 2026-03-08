@@ -8,9 +8,9 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { IconController } from '../components-lib/icon-controller';
+import { InternalIcon } from '../config/schema/common/icon.js';
 import { HomeAssistant } from '../ha/types';
 import iconStyle from '../scss/icon.scss';
-import { Icon } from '../types.js';
 import { contentsChanged } from '../utils/basic.js';
 
 @customElement('advanced-camera-card-icon')
@@ -19,7 +19,7 @@ export class AdvancedCameraCardIcon extends LitElement {
   public hass?: HomeAssistant;
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  public icon?: Icon;
+  public icon?: InternalIcon;
 
   // Note: This attribute will allow non-active entity state styles (e.g. 'off',
   // 'unavailable') to be overriden from outside the icon itself. This is useful

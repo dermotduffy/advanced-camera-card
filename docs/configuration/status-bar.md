@@ -35,6 +35,7 @@ status_bar:
 | `severity`   | The media severity indicator (if any) for review severity (e.g. Frigate alerts/detections). |
 | `technology` | The detected media technology (if any).                                                     |
 | `title`      | The media title.                                                                            |
+| `upgrade`    | An indicator that appears when a configuration upgrade is available.                        |
 
 ### Options for each item
 
@@ -83,6 +84,9 @@ status_bar:
       enabled: true
       priority: 50
     title:
+      enabled: true
+      priority: 50
+    upgrade:
       enabled: true
       priority: 50
 ```
