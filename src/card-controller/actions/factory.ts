@@ -25,6 +25,7 @@ import { MoreInfoAction } from './actions/more-info';
 import { MuteAction } from './actions/mute';
 import { NavigateAction } from './actions/navigate';
 import { NoneAction } from './actions/none';
+import { NotificationAction } from './actions/notification';
 import { PauseAction } from './actions/pause';
 import { PerformActionAction } from './actions/perform-action';
 import { PIPAction } from './actions/pip';
@@ -163,6 +164,8 @@ export class ActionFactory {
         return new PTZControlsAction(context, action, options?.config);
       case 'log':
         return new LogAction(context, action, options?.config);
+      case 'notification':
+        return new NotificationAction(context, action, options?.config);
       case 'status_bar':
         return new StatusBarAction(context, action, options?.config);
       case 'reload':

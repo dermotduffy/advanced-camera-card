@@ -21,7 +21,7 @@ import { MediaLoadedInfoManager } from '../../src/card-controller/media-info-man
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
 import { MessageManager } from '../../src/card-controller/message-manager';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager';
-import { OverlayMessageManager } from '../../src/card-controller/overlay-message-manager';
+import { NotificationManager } from '../../src/card-controller/notification-manager';
 import { PIPManager } from '../../src/card-controller/pip-manager';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
@@ -54,7 +54,7 @@ vi.mock('../../src/card-controller/media-info-manager');
 vi.mock('../../src/card-controller/media-player-manager');
 vi.mock('../../src/card-controller/message-manager');
 vi.mock('../../src/card-controller/microphone-manager');
-vi.mock('../../src/card-controller/overlay-message-manager');
+vi.mock('../../src/card-controller/notification-manager');
 vi.mock('../../src/card-controller/pip-manager');
 vi.mock('../../src/card-controller/query-string-manager');
 vi.mock('../../src/card-controller/status-bar-item-manager');
@@ -226,9 +226,9 @@ describe('CardController', () => {
       );
     });
 
-    it('getOverlayMessageManager', () => {
-      expect(createController().getOverlayMessageManager()).toBe(
-        vi.mocked(OverlayMessageManager).mock.instances[0],
+    it('getNotificationManager', () => {
+      expect(createController().getNotificationManager()).toBe(
+        vi.mocked(NotificationManager).mock.instances[0],
       );
     });
 

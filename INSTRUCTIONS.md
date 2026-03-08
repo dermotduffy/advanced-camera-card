@@ -67,3 +67,19 @@
 - **Think through UX before implementing.** For any user-visible change, reason through the full set of states and edge cases it touches. Flag them before writing code, not after.
 
 - **Be concise.** Short, direct answers are preferred. Skip preamble, avoid restating the question, and don't summarize what you just did unless asked.
+
+- **No re-exports or pass-through files.** Have callers import directly from the source module. Don't create files that only re-export from another file.
+
+- **Single source of truth for types.** When a Zod schema defines a shape, derive the TypeScript type from it (`z.infer<typeof schema>`). Don't maintain a parallel interface that duplicates the schema.
+
+- **Separate external API from internal extensions.** User-facing schemas should only contain user-configurable fields. For internal-only fields, create a derived interface (e.g. `interface InternalFoo extends Foo { internalField?: ... }`). Never expose internal plumbing in external schemas.
+
+- **Extract shared schemas eagerly.** If a schema (e.g. `iconSchema`) could apply to multiple features, put it in `config/schema/common/` from the start rather than nesting it under a specific feature.
+
+- **Name fields for their semantic purpose.** Choose names that reflect what the field means in context. Ask yourself what the field actually does.
+
+- **Accurate comment headings.** If a comment section covers multiple related items, the heading must reflect all of them — not just the first one added.
+
+- **Check CSS inheritance before adding interactive elements.** Parent rules like `pointer-events: none` silently block children. When adding clickable items to a container, verify the full CSS cascade allows interaction.
+
+- **Preserve alphabetical ordering.** When inserting into a list, file, or set of sections that is fully or mostly alphabetized, maintain that ordering.

@@ -2,17 +2,29 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
-import overlayMessageStyle from '../scss/overlay-message.scss';
-import { MetadataField, OverlayMessage, OverlayMessageControl } from '../types.js';
-import { dispatchDismissOverlayMessageEvent } from '../utils/overlay-message.js';
+import { actionHandler } from '../action-handler-directive.js';
+import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request';
+import {
+  Notification,
+  NotificationControl,
+  NotificationDetail,
+} from '../config/schema/actions/types.js';
+import notificationStyle from '../scss/notification.scss';
+import {
+  getActionConfigGivenAction,
+  hasAction,
+  stopEventFromActivatingCardWideActions,
+} from '../utils/action.js';
+import { arrayify } from '../utils/basic.js';
+import { dispatchDismissNotificationEvent } from '../utils/notification.js';
 import './icon.js';
 
-@customElement('advanced-camera-card-overlay-message')
-export class AdvancedCameraCardOverlayMessage extends LitElement {
+@customElement('advanced-camera-card-notification')
+export class AdvancedCameraCardNotification extends LitElement {
   @property({ attribute: false })
-  public message: OverlayMessage | null = null;
+  public notification: Notification | null = null;
 
-  private _refMessage: Ref<HTMLElement> = createRef();
+  private _refNotification: Ref<HTMLElement> = createRef();
 
   public connectedCallback(): void {
     super.connectedCallback();
@@ -29,20 +41,20 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    if (!this.message) {
+    if (!this.notification) {
       return;
     }
 
-    const heading = this.message.heading;
-    const details = this.message.details ?? [];
-    const text = this.message.text;
-    const controls = this.message.controls ?? [];
+    const heading = this.notification.heading;
+    const details = this.notification.details ?? [];
+    const text = this.notification.text;
+    const controls = this.notification.controls ?? [];
 
     return html`
       <div class="backdrop" @click=${this._dismiss}></div>
       <div
-        class="message"
-        ${ref(this._refMessage)}
+        class="notification"
+        ${ref(this._refNotification)}
         @animationend=${this._handleAnimationEnd}
       >
         <div class="details">
@@ -64,60 +76,70 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
     `;
   }
 
-  private _renderControl(control: OverlayMessageControl): TemplateResult {
-    const emphasisClass = control.emphasis ? `emphasis-${control.emphasis}` : '';
+  private _renderControl(control: NotificationControl): TemplateResult {
+    const severityClass = control.severity ? `severity-${control.severity}` : '';
     return html`
       <div
-        class="control ${emphasisClass}"
-        title=${control.title}
-        @click=${async () => this._handleControlClick(control)}
+        class="control ${severityClass}"
+        title=${control.tooltip ?? ''}
+        .actionHandler=${actionHandler({
+          hasHold: hasAction(control.actions?.hold_action),
+          hasDoubleClick: hasAction(control.actions?.double_tap_action),
+        })}
+        @action=${(ev: CustomEvent) => this._handleControlAction(ev, control)}
       >
         ${control.icon
           ? html`<advanced-camera-card-icon
-              .icon=${control.icon}
+              .icon=${{ icon: control.icon }}
             ></advanced-camera-card-icon>`
           : ''}
       </div>
     `;
   }
 
-  private async _handleControlClick(control: OverlayMessageControl): Promise<void> {
-    const result = await control.callback();
-    if (result === null) {
-      // null = close the message
+  private _handleControlAction(
+    ev: CustomEvent<{ action: string }>,
+    control: NotificationControl,
+  ): void {
+    stopEventFromActivatingCardWideActions(ev);
+
+    const action = getActionConfigGivenAction(ev.detail.action, control.actions);
+    if (action) {
+      dispatchActionExecutionRequest(this, {
+        actions: arrayify(action),
+      });
+    }
+    if (control.dismiss !== false) {
       this._dismiss();
-    } else {
-      // Updated message = keep open and refresh
-      this.message = result;
     }
   }
 
-  private _renderDetail(detail: MetadataField, isHeading = false): TemplateResult {
+  private _renderDetail(detail: NotificationDetail, isHeading = false): TemplateResult {
     const classes = {
       detail: true,
       heading: isHeading,
-      [`emphasis-${detail.emphasis}`]: !!detail.emphasis,
+      [`severity-${detail.severity}`]: !!detail.severity,
     };
     return html`
       <div class="${classMap(classes)}">
         ${detail.icon
           ? html`<advanced-camera-card-icon
-              title=${detail.hint ?? ''}
-              .icon=${detail.icon}
+              title=${detail.tooltip ?? ''}
+              .icon=${{ icon: detail.icon }}
             ></advanced-camera-card-icon>`
           : ''}
-        <span title=${detail.title}>${detail.title}</span>
+        <span title=${detail.text}>${detail.text}</span>
       </div>
     `;
   }
 
   private _dismiss = (): void => {
-    this._refMessage.value?.classList.add('exiting');
+    this._refNotification.value?.classList.add('exiting');
   };
 
   private _handleAnimationEnd = (ev: AnimationEvent): void => {
     if (ev.animationName === 'slideDown') {
-      dispatchDismissOverlayMessageEvent(this);
+      dispatchDismissNotificationEvent(this);
     }
   };
 
@@ -136,12 +158,12 @@ export class AdvancedCameraCardOverlayMessage extends LitElement {
   };
 
   static get styles(): CSSResultGroup {
-    return unsafeCSS(overlayMessageStyle);
+    return unsafeCSS(notificationStyle);
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'advanced-camera-card-overlay-message': AdvancedCameraCardOverlayMessage;
+    'advanced-camera-card-notification': AdvancedCameraCardNotification;
   }
 }

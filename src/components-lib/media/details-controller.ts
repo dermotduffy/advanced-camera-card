@@ -3,9 +3,14 @@ import { CameraManager } from '../../camera-manager/manager';
 import { CameraManagerCameraMetadata } from '../../camera-manager/types';
 import { ViewItemManager } from '../../card-controller/view/item-manager';
 import { ViewManagerEpoch } from '../../card-controller/view/types';
+import {
+  Notification,
+  NotificationControl,
+  NotificationDetail,
+} from '../../config/schema/actions/types';
 import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
-import { MetadataField, OverlayMessage, OverlayMessageControl } from '../../types';
+import { createInternalCallbackAction } from '../../utils/action';
 import { getDurationString, prettifyTitle } from '../../utils/basic';
 import {
   downloadMedia,
@@ -17,7 +22,7 @@ import { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import { ViewItemCapabilities } from '../../view/types';
 
-export interface OverlayControlsContext {
+export interface NotificationControlsContext {
   hass?: HomeAssistant;
   viewItemManager?: ViewItemManager;
   viewManagerEpoch?: ViewManagerEpoch;
@@ -29,8 +34,8 @@ export interface OverlayControlsContext {
 }
 
 export class MediaDetailsController {
-  private _details: MetadataField[] = [];
-  private _heading: MetadataField | null = null;
+  private _details: NotificationDetail[] = [];
+  private _heading: NotificationDetail | null = null;
   private _item: ViewItem | null = null;
 
   public calculate(
@@ -61,7 +66,7 @@ export class MediaDetailsController {
       const score = rawScore ? (rawScore * 100).toFixed(2) + '%' : null;
 
       this._heading = whatWithTags
-        ? { title: `${whatWithTags}${score ? ` ${score}` : ''}` }
+        ? { text: `${whatWithTags}${score ? ` ${score}` : ''}` }
         : null;
       return;
     }
@@ -72,13 +77,13 @@ export class MediaDetailsController {
 
       this._heading = title
         ? {
-            title: title,
-            emphasis: severity ?? undefined,
-            hint:
+            text: title,
+            severity: severity ?? undefined,
+            tooltip:
               localize('common.severity') +
               ': ' +
               localize('common.severities.' + severity),
-            icon: { icon: 'mdi:circle-medium' },
+            icon: 'mdi:circle-medium',
           }
         : null;
       return;
@@ -86,7 +91,7 @@ export class MediaDetailsController {
 
     if (cameraMetadata?.title) {
       this._heading = {
-        title: cameraMetadata.title,
+        text: cameraMetadata.title,
       };
       return;
     }
@@ -121,54 +126,54 @@ export class MediaDetailsController {
       ...(startTime
         ? [
             {
-              hint: localize('thumbnail.start'),
-              icon: { icon: 'mdi:calendar-clock-outline' },
-              title: format(startTime, 'yyyy-MM-dd HH:mm:ss'),
+              tooltip: localize('thumbnail.start'),
+              icon: 'mdi:calendar-clock-outline',
+              text: format(startTime, 'yyyy-MM-dd HH:mm:ss'),
             },
           ]
         : []),
       ...(duration || inProgress
         ? [
             {
-              hint: localize('thumbnail.duration'),
-              icon: { icon: 'mdi:clock-outline' },
-              title: `${duration ?? ''}${duration && inProgress ? ' ' : ''}${inProgress ?? ''}`,
+              tooltip: localize('thumbnail.duration'),
+              icon: 'mdi:clock-outline',
+              text: `${duration ?? ''}${duration && inProgress ? ' ' : ''}${inProgress ?? ''}`,
             },
           ]
         : []),
       ...(cameraMetadata?.title
         ? [
             {
-              hint: localize('thumbnail.camera'),
-              title: cameraMetadata.title,
-              icon: { icon: 'mdi:cctv' },
+              tooltip: localize('thumbnail.camera'),
+              text: cameraMetadata.title,
+              icon: 'mdi:cctv',
             },
           ]
         : []),
       ...(where
         ? [
             {
-              hint: localize('thumbnail.where'),
-              title: where,
-              icon: { icon: 'mdi:map-marker-outline' },
+              tooltip: localize('thumbnail.where'),
+              text: where,
+              icon: 'mdi:map-marker-outline',
             },
           ]
         : []),
       ...(tags
         ? [
             {
-              hint: localize('thumbnail.tag'),
-              title: tags,
-              icon: { icon: 'mdi:tag' },
+              tooltip: localize('thumbnail.tag'),
+              text: tags,
+              icon: 'mdi:tag',
             },
           ]
         : []),
       ...(seekString
         ? [
             {
-              hint: localize('thumbnail.seek'),
-              title: seekString,
-              icon: { icon: 'mdi:clock-fast' },
+              tooltip: localize('thumbnail.seek'),
+              text: seekString,
+              icon: 'mdi:clock-fast',
             },
           ]
         : []),
@@ -183,10 +188,10 @@ export class MediaDetailsController {
       ...(includeTitle && itemTitle
         ? [
             {
-              title: itemTitle,
+              text: itemTitle,
               ...(details.length > 0 && {
-                icon: { icon: 'mdi:rename' },
-                hint: localize('thumbnail.title'),
+                icon: 'mdi:rename',
+                tooltip: localize('thumbnail.title'),
               }),
             },
           ]
@@ -195,20 +200,15 @@ export class MediaDetailsController {
     ];
   }
 
-  public getHeading(): MetadataField | null {
+  public getHeading(): NotificationDetail | null {
     return this._heading;
   }
 
-  public getDetails(): MetadataField[] {
+  public getDetails(): NotificationDetail[] {
     return this._details;
   }
 
-  /**
-   * Get an overlay message for the item.
-   * @param context Optional context to include controls.
-   * @returns An OverlayMessage.
-   */
-  public getMessage(context?: OverlayControlsContext): OverlayMessage {
+  public getNotification(context?: NotificationControlsContext): Notification {
     return {
       heading: this._heading ?? undefined,
       controls: context ? this._getControls(context) : undefined,
@@ -219,8 +219,8 @@ export class MediaDetailsController {
     };
   }
 
-  private _getControls(context: OverlayControlsContext): OverlayMessageControl[] {
-    const controls: OverlayMessageControl[] = [];
+  private _getControls(context: NotificationControlsContext): NotificationControl[] {
+    const controls: NotificationControl[] = [];
     const item = this._item;
 
     if (!item) {
@@ -230,57 +230,71 @@ export class MediaDetailsController {
     if (ViewItemClassifier.isReview(item)) {
       const isReviewed = item.isReviewed();
       controls.push({
-        title: isReviewed
+        tooltip: isReviewed
           ? localize('common.set_reviews.unreviewed')
           : localize('common.set_reviews.reviewed'),
-        icon: { icon: isReviewed ? 'mdi:check-circle' : 'mdi:check-circle-outline' },
-        callback: async () => {
-          const success = await toggleReviewed(
-            item,
-            context.viewItemManager,
-            context.viewManagerEpoch,
-            context.filterReviewed,
-          );
-          return success ? this.getMessage(context) : null;
+        icon: isReviewed ? 'mdi:check-circle' : 'mdi:check-circle-outline',
+        actions: {
+          tap_action: createInternalCallbackAction(async (api) => {
+            const success = await toggleReviewed(
+              item,
+              context.viewItemManager,
+              context.viewManagerEpoch,
+              context.filterReviewed,
+            );
+            if (success) {
+              api
+                .getNotificationManager()
+                .setNotification(this.getNotification(context));
+            }
+          }),
         },
+        dismiss: false,
       });
     }
 
     if (context.capabilities?.canFavorite && ViewItemClassifier.isMedia(item)) {
       const isFavorite = item.isFavorite();
       controls.push({
-        title: localize('thumbnail.retain_indefinitely'),
-        icon: { icon: isFavorite ? 'mdi:star' : 'mdi:star-outline' },
-        emphasis: isFavorite ? 'medium' : undefined,
-        callback: async () => {
-          const success = await toggleFavorite(item, context.viewItemManager);
-          return success ? this.getMessage(context) : null;
+        tooltip: localize('thumbnail.retain_indefinitely'),
+        icon: isFavorite ? 'mdi:star' : 'mdi:star-outline',
+        severity: isFavorite ? 'medium' : undefined,
+        actions: {
+          tap_action: createInternalCallbackAction(async (api) => {
+            const success = await toggleFavorite(item, context.viewItemManager);
+            if (success) {
+              api
+                .getNotificationManager()
+                .setNotification(this.getNotification(context));
+            }
+          }),
         },
+        dismiss: false,
       });
     }
 
     if (context.capabilities?.canDownload && item.getID()) {
       controls.push({
-        title: localize('thumbnail.download'),
-        icon: { icon: 'mdi:download' },
-        callback: async () => {
-          await downloadMedia(item, context.viewItemManager);
-
-          // Close overlay message after download.
-          return null;
+        tooltip: localize('thumbnail.download'),
+        icon: 'mdi:download',
+        dismiss: true,
+        actions: {
+          tap_action: createInternalCallbackAction(async () => {
+            await downloadMedia(item, context.viewItemManager);
+          }),
         },
       });
     }
 
     if (ViewItemClassifier.supportsTimeline(item) && context.viewManagerEpoch) {
       controls.push({
-        title: localize('thumbnail.timeline'),
-        icon: { icon: 'mdi:target' },
-        callback: () => {
-          navigateToTimeline(item, context.viewManagerEpoch);
-
-          // Close overlay after timeline navigation
-          return null;
+        tooltip: localize('thumbnail.timeline'),
+        icon: 'mdi:target',
+        dismiss: true,
+        actions: {
+          tap_action: createInternalCallbackAction(async () => {
+            navigateToTimeline(item, context.viewManagerEpoch);
+          }),
         },
       });
     }

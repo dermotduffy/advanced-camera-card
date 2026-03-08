@@ -8,11 +8,12 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { CameraManager } from '../../camera-manager/manager';
 import { MediaDetailsController } from '../../components-lib/media/details-controller';
+import { NotificationDetail } from '../../config/schema/actions/types';
 import { HomeAssistant } from '../../ha/types';
 import thumbnailDetailsStyle from '../../scss/thumbnail-details.scss';
-import { MetadataField } from '../../types';
 import { ViewItem } from '../../view/item';
 import '../icon';
 
@@ -42,7 +43,10 @@ export class AdvancedCameraCardThumbnailDetails extends LitElement {
     const heading = this._controller.getHeading();
     const details = this._controller.getDetails();
 
-    const renderDetail = (detail: MetadataField, heading = false): TemplateResult => {
+    const renderDetail = (
+      detail: NotificationDetail,
+      heading = false,
+    ): TemplateResult => {
       return html`<div
         class=${classMap({
           heading,
@@ -50,12 +54,12 @@ export class AdvancedCameraCardThumbnailDetails extends LitElement {
       >
         ${detail.icon
           ? html` <advanced-camera-card-icon
-              severity=${detail.emphasis}
-              title=${detail.hint ?? ''}
-              .icon=${detail.icon}
+              severity=${ifDefined(detail.severity)}
+              title=${detail.tooltip ?? ''}
+              .icon=${{ icon: detail.icon }}
             ></advanced-camera-card-icon>`
           : ''}
-        <span title=${detail.title}>${detail.title}</span>
+        <span title=${detail.text}>${detail.text}</span>
       </div>`;
     };
 

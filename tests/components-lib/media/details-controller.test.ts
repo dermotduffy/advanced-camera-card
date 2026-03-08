@@ -1,17 +1,38 @@
 import { format } from 'date-fns';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManager } from '../../../src/camera-manager/manager';
+import { ActionFactory } from '../../../src/card-controller/actions/factory';
+import { CardController } from '../../../src/card-controller/controller';
 import { ViewItemManager } from '../../../src/card-controller/view/item-manager';
 import { ViewManagerEpoch } from '../../../src/card-controller/view/types';
 import {
   MediaDetailsController,
-  OverlayControlsContext,
+  NotificationControlsContext,
 } from '../../../src/components-lib/media/details-controller';
-import { OverlayMessageControl } from '../../../src/types';
+import { NotificationControl } from '../../../src/config/schema/actions/types';
 import { formatDateAndTime } from '../../../src/utils/basic';
+import { downloadMedia, navigateToTimeline } from '../../../src/utils/media-actions';
 import { ViewFolder, ViewMediaType } from '../../../src/view/item';
 import { createCardAPI, createFolder, TestViewMedia } from '../../test-utils';
+
+vi.mock('../../../src/utils/media-actions', async (importOriginal) => ({
+  ...((await importOriginal()) as object),
+  downloadMedia: vi.fn(),
+  navigateToTimeline: vi.fn(),
+}));
+
+async function executeControlAction(
+  control: NotificationControl,
+  api: CardController,
+): Promise<void> {
+  const tapAction = control.actions?.tap_action;
+
+  assert(tapAction && !Array.isArray(tapAction));
+  const action = new ActionFactory().createAction({}, tapAction);
+
+  await action?.execute(api);
+}
 
 describe('MediaDetailsController', () => {
   describe('should set heading', () => {
@@ -24,7 +45,7 @@ describe('MediaDetailsController', () => {
 
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
-      expect(controller.getHeading()?.title).toBe('Person, Car: Tag1, Tag2 50.00%');
+      expect(controller.getHeading()?.text).toBe('Person, Car: Tag1, Tag2 50.00%');
     });
 
     it('should set heading on event with tags', () => {
@@ -34,7 +55,7 @@ describe('MediaDetailsController', () => {
 
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
-      expect(controller.getHeading()?.title).toBe('Tag1, Tag2');
+      expect(controller.getHeading()?.text).toBe('Tag1, Tag2');
     });
 
     it('should set heading on event with what', () => {
@@ -44,7 +65,7 @@ describe('MediaDetailsController', () => {
 
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
-      expect(controller.getHeading()?.title).toBe('Person, Car');
+      expect(controller.getHeading()?.text).toBe('Person, Car');
     });
 
     it('should set null heading on event with no other information', () => {
@@ -73,7 +94,7 @@ describe('MediaDetailsController', () => {
 
       const controller = new MediaDetailsController();
       controller.calculate(cameraManager, item);
-      expect(controller.getHeading()?.title).toBe('Camera Title');
+      expect(controller.getHeading()?.text).toBe('Camera Title');
     });
 
     it('should set heading on recording without camera metadata', () => {
@@ -106,9 +127,9 @@ describe('MediaDetailsController', () => {
         const controller = new MediaDetailsController();
         controller.calculate(null, item);
         expect(controller.getDetails()).toContainEqual({
-          title: 'Test Event',
-          icon: { icon: 'mdi:rename' },
-          hint: 'Title',
+          text: 'Test Event',
+          icon: 'mdi:rename',
+          tooltip: 'Title',
         });
       });
 
@@ -121,7 +142,7 @@ describe('MediaDetailsController', () => {
         controller.calculate(null, item);
         expect(controller.getDetails()).toEqual([
           {
-            title: 'Test Event',
+            text: 'Test Event',
           },
         ]);
       });
@@ -136,7 +157,7 @@ describe('MediaDetailsController', () => {
         controller.calculate(null, item);
         expect(controller.getDetails()).not.toContainEqual(
           expect.objectContaining({
-            title: 'Test Event',
+            text: 'Test Event',
           }),
         );
       });
@@ -153,9 +174,9 @@ describe('MediaDetailsController', () => {
 
       // Use formatDateAndTime to generate expected value (formats in local time with seconds)
       expect(controller.getDetails()).toContainEqual({
-        title: formatDateAndTime(startTime, true),
-        hint: 'Start',
-        icon: { icon: 'mdi:calendar-clock-outline' },
+        text: formatDateAndTime(startTime, true),
+        tooltip: 'Start',
+        icon: 'mdi:calendar-clock-outline',
       });
     });
 
@@ -169,9 +190,9 @@ describe('MediaDetailsController', () => {
         const controller = new MediaDetailsController();
         controller.calculate(null, item);
         expect(controller.getDetails()).toContainEqual({
-          title: '1m 0s',
-          hint: 'Duration',
-          icon: { icon: 'mdi:clock-outline' },
+          text: '1m 0s',
+          tooltip: 'Duration',
+          icon: 'mdi:clock-outline',
         });
       });
 
@@ -185,9 +206,9 @@ describe('MediaDetailsController', () => {
         const controller = new MediaDetailsController();
         controller.calculate(null, item);
         expect(controller.getDetails()).toContainEqual({
-          title: 'In Progress',
-          hint: 'Duration',
-          icon: { icon: 'mdi:clock-outline' },
+          text: 'In Progress',
+          tooltip: 'Duration',
+          icon: 'mdi:clock-outline',
         });
       });
 
@@ -201,9 +222,9 @@ describe('MediaDetailsController', () => {
         const controller = new MediaDetailsController();
         controller.calculate(null, item);
         expect(controller.getDetails()).toContainEqual({
-          title: '1m 0s In Progress',
-          hint: 'Duration',
-          icon: { icon: 'mdi:clock-outline' },
+          text: '1m 0s In Progress',
+          tooltip: 'Duration',
+          icon: 'mdi:clock-outline',
         });
       });
     });
@@ -222,9 +243,9 @@ describe('MediaDetailsController', () => {
       const controller = new MediaDetailsController();
       controller.calculate(cameraManager, item);
       expect(controller.getDetails()).toContainEqual({
-        title: 'Camera Title',
-        hint: 'Camera',
-        icon: { icon: 'mdi:cctv' },
+        text: 'Camera Title',
+        tooltip: 'Camera',
+        icon: 'mdi:cctv',
       });
     });
 
@@ -237,9 +258,9 @@ describe('MediaDetailsController', () => {
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
       expect(controller.getDetails()).toContainEqual({
-        title: 'Where1, Where2',
-        hint: 'Where',
-        icon: { icon: 'mdi:map-marker-outline' },
+        text: 'Where1, Where2',
+        tooltip: 'Where',
+        icon: 'mdi:map-marker-outline',
       });
     });
 
@@ -252,9 +273,9 @@ describe('MediaDetailsController', () => {
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
       expect(controller.getDetails()).toContainEqual({
-        title: 'Tag1, Tag2',
-        hint: 'Tag',
-        icon: { icon: 'mdi:tag' },
+        text: 'Tag1, Tag2',
+        tooltip: 'Tag',
+        icon: 'mdi:tag',
       });
     });
 
@@ -267,9 +288,9 @@ describe('MediaDetailsController', () => {
 
       // Use format() to generate expected value (formats in local time)
       expect(controller.getDetails()).toContainEqual({
-        title: format(seekTime, 'HH:mm:ss'),
-        hint: 'Seek',
-        icon: { icon: 'mdi:clock-fast' },
+        text: format(seekTime, 'HH:mm:ss'),
+        tooltip: 'Seek',
+        icon: 'mdi:clock-fast',
       });
     });
     it('should set heading on review', () => {
@@ -282,10 +303,10 @@ describe('MediaDetailsController', () => {
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
       const heading = controller.getHeading();
-      expect(heading?.title).toBe('Review Title');
-      expect(heading?.emphasis).toBe('high');
-      expect(heading?.icon).toEqual({ icon: 'mdi:circle-medium' });
-      expect(heading?.hint).toBe('Severity: High');
+      expect(heading?.text).toBe('Review Title');
+      expect(heading?.severity).toBe('high');
+      expect(heading?.icon).toBe('mdi:circle-medium');
+      expect(heading?.tooltip).toBe('Severity: High');
     });
 
     it('should set heading on review without severity', () => {
@@ -298,8 +319,8 @@ describe('MediaDetailsController', () => {
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
       const heading = controller.getHeading();
-      expect(heading?.title).toBe('Review Title');
-      expect(heading?.emphasis).toBeUndefined();
+      expect(heading?.text).toBe('Review Title');
+      expect(heading?.severity).toBeUndefined();
     });
 
     it('should set null heading on review with no title', () => {
@@ -321,12 +342,12 @@ describe('MediaDetailsController', () => {
     });
   });
 
-  describe('should get message', () => {
+  describe('should get notification', () => {
     afterEach(() => {
       vi.restoreAllMocks();
     });
 
-    it('should get message', () => {
+    it('should get notification', () => {
       const item = new TestViewMedia({
         title: 'Test Title',
         what: ['person'],
@@ -336,25 +357,25 @@ describe('MediaDetailsController', () => {
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
 
-      const message = controller.getMessage();
-      expect(message.heading?.title).toBe('Person');
-      expect(message.details).toContainEqual({
-        title: 'Test Title',
+      const notification = controller.getNotification();
+      expect(notification.heading?.text).toBe('Person');
+      expect(notification.details).toContainEqual({
+        text: 'Test Title',
       });
-      expect(message.text).toBe('Test Description');
+      expect(notification.text).toBe('Test Description');
     });
 
-    it('should get message without media', () => {
+    it('should get notification without media', () => {
       const item = new ViewFolder(createFolder(), []);
 
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
 
-      const message = controller.getMessage();
-      expect(message.text).toBeUndefined();
+      const notification = controller.getNotification();
+      expect(notification.text).toBeUndefined();
     });
 
-    it('should get message with null description', () => {
+    it('should get notification with null description', () => {
       const item = new TestViewMedia({
         description: null,
       });
@@ -362,11 +383,11 @@ describe('MediaDetailsController', () => {
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
 
-      const message = controller.getMessage();
-      expect(message.text).toBeUndefined();
+      const notification = controller.getNotification();
+      expect(notification.text).toBeUndefined();
     });
 
-    it('should get message with controls', async () => {
+    it('should get notification with controls', async () => {
       const item = new TestViewMedia({
         title: 'Test Title',
         mediaType: ViewMediaType.Review,
@@ -390,45 +411,52 @@ describe('MediaDetailsController', () => {
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
 
-      const message = controller.getMessage(context);
-      const controls = message.controls;
+      const notification = controller.getNotification(context);
+      const controls = notification.controls;
+      assert(controls);
       expect(controls).toHaveLength(4);
 
       vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       // 1. Review control
-      expect(controls?.[0].title).toBe('Mark as reviewed');
-      const reviewResult = await controls?.[0].callback?.();
-      expect(reviewResult).not.toBeNull();
+      expect(controls?.[0].tooltip).toBe('Mark as reviewed');
+      expect(controls?.[0].dismiss).toBe(false);
+      await executeControlAction(controls[0], cardAPI);
+      expect(cardAPI.getNotificationManager().setNotification).toHaveBeenCalled();
 
       // 1b. Review control (failure)
+      vi.mocked(cardAPI.getNotificationManager().setNotification).mockClear();
       viewItemManager.reviewMedia.mockRejectedValue(new Error('fail'));
-
-      const reviewFailureResult = await controls?.[0].callback?.();
-      expect(reviewFailureResult).toBeNull();
+      await executeControlAction(controls[0], cardAPI);
+      expect(cardAPI.getNotificationManager().setNotification).not.toHaveBeenCalled();
 
       // 2. Favorite control
-      expect(controls?.[1].title).toBe('Media will be indefinitely retained');
-      const favoriteResult = await controls?.[1].callback?.();
-      expect(favoriteResult).not.toBeNull();
+      expect(controls?.[1].tooltip).toBe('Media will be indefinitely retained');
+      expect(controls?.[1].dismiss).toBe(false);
+      await executeControlAction(controls[1], cardAPI);
+      expect(cardAPI.getNotificationManager().setNotification).toHaveBeenCalled();
 
       // 2b. Favorite control (failure)
+      vi.mocked(cardAPI.getNotificationManager().setNotification).mockClear();
       viewItemManager.favorite.mockRejectedValue(new Error('fail'));
-      const favoriteFailureResult = await controls?.[1].callback?.();
-      expect(favoriteFailureResult).toBeNull();
+      await executeControlAction(controls[1], cardAPI);
+      expect(cardAPI.getNotificationManager().setNotification).not.toHaveBeenCalled();
 
       // 3. Download control
-      expect(controls?.[2].title).toBe('Download media');
-      const downloadResult = await controls?.[2].callback?.();
-      expect(downloadResult).toBeNull();
+      expect(controls?.[2].tooltip).toBe('Download media');
+      expect(controls?.[2].dismiss).toBe(true);
+      vi.mocked(downloadMedia).mockResolvedValue(true);
+      await executeControlAction(controls[2], cardAPI);
+      expect(downloadMedia).toHaveBeenCalledWith(item, viewItemManager);
 
       // 4. Timeline control
-      expect(controls?.[3].title).toBe('See media in timeline');
-      const timelineResult = await controls?.[3].callback?.();
-      expect(timelineResult).toBeNull();
+      expect(controls?.[3].tooltip).toBe('See media in timeline');
+      expect(controls?.[3].dismiss).toBe(true);
+      await executeControlAction(controls[3], cardAPI);
+      expect(navigateToTimeline).toHaveBeenCalledWith(item, viewManagerEpoch);
     });
 
-    it('should get message with controls for already reviewed/favorited items', () => {
+    it('should get notification with controls for already reviewed/favorited items', () => {
       const item = new TestViewMedia({
         mediaType: ViewMediaType.Review,
         reviewed: true,
@@ -444,18 +472,18 @@ describe('MediaDetailsController', () => {
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
 
-      const message = controller.getMessage(context);
-      const controls = message.controls;
+      const notification = controller.getNotification(context);
+      const controls = notification.controls;
       expect(controls).toHaveLength(2);
 
-      expect(controls?.[0].title).toBe('Mark as unreviewed');
-      expect(controls?.[0].icon).toEqual({ icon: 'mdi:check-circle' });
+      expect(controls?.[0].tooltip).toBe('Mark as unreviewed');
+      expect(controls?.[0].icon).toBe('mdi:check-circle');
 
-      expect(controls?.[1].emphasis).toBe('medium');
-      expect(controls?.[1].icon).toEqual({ icon: 'mdi:star' });
+      expect(controls?.[1].severity).toBe('medium');
+      expect(controls?.[1].icon).toBe('mdi:star');
     });
 
-    it('should get message with controls when item has no ID', () => {
+    it('should get notification with controls when item has no ID', () => {
       const item = new TestViewMedia({
         id: null,
       });
@@ -469,11 +497,11 @@ describe('MediaDetailsController', () => {
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
 
-      const message = controller.getMessage(context);
-      expect(message.controls).toHaveLength(0);
+      const notification = controller.getNotification(context);
+      expect(notification.controls).toHaveLength(0);
     });
 
-    it('should get message with controls when context has no capabilities', () => {
+    it('should get notification with controls when context has no capabilities', () => {
       const item = new TestViewMedia({
         id: 'id',
       });
@@ -482,8 +510,8 @@ describe('MediaDetailsController', () => {
       const controller = new MediaDetailsController();
       controller.calculate(null, item);
 
-      const message = controller.getMessage(context);
-      expect(message.controls).toHaveLength(0);
+      const notification = controller.getNotification(context);
+      expect(notification.controls).toHaveLength(0);
     });
 
     it('should get empty controls when item is null', () => {
@@ -492,7 +520,7 @@ describe('MediaDetailsController', () => {
       // Use cast to unknown first to avoid any-related lint errors.
       const controls = (
         controller as unknown as {
-          _getControls: (context: OverlayControlsContext) => OverlayMessageControl[];
+          _getControls: (context: NotificationControlsContext) => NotificationControl[];
         }
       )._getControls({});
       expect(controls).toEqual([]);

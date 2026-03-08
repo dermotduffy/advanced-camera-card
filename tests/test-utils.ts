@@ -45,7 +45,7 @@ import { MediaLoadedInfoManager } from '../src/card-controller/media-info-manage
 import { MediaPlayerManager } from '../src/card-controller/media-player-manager';
 import { MessageManager } from '../src/card-controller/message-manager';
 import { MicrophoneManager } from '../src/card-controller/microphone-manager';
-import { OverlayMessageManager } from '../src/card-controller/overlay-message-manager';
+import { NotificationManager } from '../src/card-controller/notification-manager';
 import { PIPManager } from '../src/card-controller/pip-manager';
 import { QueryStringManager } from '../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
@@ -678,7 +678,7 @@ export const createCardAPI = (): CardController => {
   api.getMediaPlayerManager.mockReturnValue(mock<MediaPlayerManager>());
   api.getMessageManager.mockReturnValue(mock<MessageManager>());
   api.getMicrophoneManager.mockReturnValue(mock<MicrophoneManager>());
-  api.getOverlayMessageManager.mockReturnValue(mock<OverlayMessageManager>());
+  api.getNotificationManager.mockReturnValue(mock<NotificationManager>());
   api.getPIPManager.mockReturnValue(mock<PIPManager>());
   api.getQueryStringManager.mockReturnValue(mock<QueryStringManager>());
   api.getStatusBarItemManager.mockReturnValue(mock<StatusBarItemManager>());

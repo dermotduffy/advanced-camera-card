@@ -19,9 +19,26 @@ import { substreamSelectActionConfigSchema } from './custom/substream-select';
 import { viewActionConfigSchema } from './custom/view';
 import { stockActionSchema } from './stock/types';
 
-// Provide a manual type definition to avoid the `any` that would be created by
-// the lazy() evaluation below.
+// ============================================================================
+// Notification and Status Bar action schemas are co-located here because their
+// content schemas reference actionConfigSchema (creating a circular dep).
+// Each uses z.lazy + a manual type annotation to break the cycle and preserve
+// correct type inference.
 // See: https://zod.dev/?id=recursive-types
+// ============================================================================
+
+export type NotificationActionConfig = z.infer<
+  typeof advancedCameraCardCustomActionsBaseSchema
+> & {
+  advanced_camera_card_action: 'notification';
+  notification: Notification;
+};
+export const notificationActionConfigSchema: z.ZodSchema<NotificationActionConfig> =
+  advancedCameraCardCustomActionsBaseSchema.extend({
+    advanced_camera_card_action: z.literal('notification'),
+    notification: z.lazy(() => notificationSchema),
+  });
+
 export type StatusBarActionConfig = z.infer<
   typeof advancedCameraCardCustomActionsBaseSchema
 > & {
@@ -46,6 +63,7 @@ const advancedCameraCardCustomActionSchema = z.union([
   internalCallbackActionConfigSchema,
   logActionConfigSchema,
   mediaPlayerActionConfigSchema,
+  notificationActionConfigSchema,
   ptzActionConfigSchema,
   ptzControlsActionConfigSchema,
   ptzDigitalActionConfigSchema,
@@ -66,6 +84,7 @@ export const actionConfigSchema = z.union([
   advancedCameraCardCustomActionSchema,
 ]);
 export type ActionConfig = z.infer<typeof actionConfigSchema>;
+
 export const actionsBaseSchema = z
   .object({
     tap_action: actionConfigSchema.or(actionConfigSchema.array()).optional(),
@@ -89,6 +108,38 @@ export type ActionsConfig = Actions & AuxillaryActionConfig;
 export const actionsSchema = z.object({
   actions: actionsBaseSchema.optional(),
 });
+
+// ============================================================================
+//                         Notification Elements
+//
+// Note: Notification schemas are defined here (after actionsBaseSchema) so
+// controls can directly reference actionsBaseSchema without z.lazy.
+// ============================================================================
+
+const notificationBaseSchema = z.object({
+  icon: z.string().optional(),
+  tooltip: z.string().optional(),
+  severity: severitySchema.optional(),
+});
+
+export const notificationDetailSchema = notificationBaseSchema.extend({
+  text: z.string(),
+});
+export type NotificationDetail = z.infer<typeof notificationDetailSchema>;
+
+export const notificationControlSchema = notificationBaseSchema.extend({
+  actions: actionsBaseSchema.optional(),
+  dismiss: z.boolean().default(true),
+});
+export type NotificationControl = z.infer<typeof notificationControlSchema>;
+
+export const notificationSchema = z.object({
+  heading: notificationDetailSchema.optional(),
+  controls: notificationControlSchema.array().optional(),
+  details: notificationDetailSchema.array().optional(),
+  text: z.string().optional(),
+});
+export type Notification = z.infer<typeof notificationSchema>;
 
 // ============================================================================
 //                         Status Bar Elements

@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import type { EffectOptions } from './card-controller/effects/types';
 import type { LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from './ha/types';
-import { Severity } from './severity';
 
 // UI-facing media types for galleries and views.
 export const VIEW_MEDIA_TYPES = ['clips', 'snapshots', 'recordings', 'reviews'] as const;
@@ -62,24 +61,6 @@ export interface Message {
   context?: unknown;
   dotdotdot?: boolean;
   url?: MessageURL;
-}
-
-export interface MetadataField {
-  title: string;
-  icon?: Icon;
-  hint?: string;
-  emphasis?: Severity;
-}
-
-export interface OverlayMessageControl extends MetadataField {
-  callback: () => OverlayMessage | null | Promise<OverlayMessage | null>;
-}
-
-export interface OverlayMessage {
-  heading?: MetadataField;
-  controls?: OverlayMessageControl[];
-  details?: MetadataField[];
-  text?: string;
 }
 
 export type WebkitHTMLVideoElement = HTMLVideoElement & {
@@ -181,21 +162,6 @@ export const capabilityKeys: readonly [CapabilityKey, ...CapabilityKey[]] = [
   '2-way-audio',
   'trigger',
 ] as const;
-
-export interface Icon {
-  // If set, this icon will be used.
-  icon?: string;
-
-  // If icon is not set, this entity's icon will be used (and HA will be asked
-  // to render it).
-  entity?: string;
-
-  // Whether or not to change the icon color depending on entity state.
-  stateColor?: boolean;
-
-  // If an icon is not otherwise resolved / available, this will be used instead.
-  fallback?: string;
-}
 
 export interface Interaction {
   action: string;

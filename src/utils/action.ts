@@ -28,10 +28,12 @@ import { SetReviewActionConfig } from '../config/schema/actions/custom/set-revie
 import { SubstreamSelectActionConfig } from '../config/schema/actions/custom/substream-select.js';
 import { ViewActionConfig } from '../config/schema/actions/custom/view.js';
 import { PerformActionActionConfig } from '../config/schema/actions/stock/perform-action.js';
+import type { Notification } from '../config/schema/actions/types.js';
 import {
   ActionConfig,
-  ActionsConfig,
+  Actions,
   AdvancedCameraCardCustomActionConfig,
+  NotificationActionConfig,
 } from '../config/schema/actions/types.js';
 import { AdvancedCameraCardUserSpecifiedView } from '../config/schema/common/const.js';
 import { PTZControlType } from '../config/schema/common/controls/ptz.js';
@@ -270,6 +272,20 @@ export function createSetReviewAction(reviewed?: boolean): SetReviewActionConfig
   };
 }
 
+export function createNotificationAction(
+  notification: Notification,
+  options?: {
+    cardID?: string;
+  },
+): NotificationActionConfig {
+  return {
+    action: 'fire-dom-event',
+    advanced_camera_card_action: 'notification',
+    notification,
+    ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
 /**
  * Get an action configuration given a config and an interaction (e.g. 'tap').
  * @param interaction The interaction: `tap`, `hold` or `double_tap`
@@ -278,7 +294,7 @@ export function createSetReviewAction(reviewed?: boolean): SetReviewActionConfig
  */
 export function getActionConfigGivenAction(
   interaction?: string,
-  config?: ActionsConfig | null,
+  config?: Actions | null,
 ): ActionConfig | ActionConfig[] | null {
   if (!interaction || !config) {
     return null;

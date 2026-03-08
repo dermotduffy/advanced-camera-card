@@ -6,6 +6,7 @@
   "common": {
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "An Advanced Camera Card",
+    "dismiss": "Dismiss",
     "folder": "Folder",
     "live": "Live",
     "no_folder": "No folder to display",
@@ -557,7 +558,8 @@
         "priority": "Item priority",
         "resolution": "Resolution",
         "technology": "Technology",
-        "title": "Title"
+        "title": "Title",
+        "upgrade": "Configuration upgrade notification"
       },
       "popup_seconds": "Status bar popup seconds",
       "position": "Status bar position",
@@ -820,6 +822,12 @@
   },
   "media_viewer": {
     "unseekable": "Seek time not found in media"
+  },
+  "notification": {
+    "upgrade": {
+      "heading": "Configuration upgrade available",
+      "text": "A configuration upgrade is available. To upgrade, edit this card (Dashboard pencil icon \u2192 Three-dot menu \u2192 Edit) and click the 'Automatic Upgrade' button in the card editor."
+    }
   },
   "thumbnail": {
     "camera": "Camera",

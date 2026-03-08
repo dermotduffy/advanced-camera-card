@@ -10,6 +10,7 @@ import {
   createInternalCallbackAction,
   createLogAction,
   createMediaPlayerAction,
+  createNotificationAction,
   createPerformAction,
   createPTZAction,
   createPTZControlsAction,
@@ -353,6 +354,27 @@ describe('createSetReviewAction', () => {
       action: 'fire-dom-event',
       advanced_camera_card_action: 'set_review',
       reviewed: undefined,
+    });
+  });
+});
+
+describe('createNotificationAction', () => {
+  it('should create notification action', () => {
+    const notification = { text: 'test' };
+    expect(createNotificationAction(notification)).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'notification',
+      notification,
+    });
+  });
+
+  it('should create notification action with cardID', () => {
+    const notification = { text: 'test' };
+    expect(createNotificationAction(notification, { cardID: 'card_id' })).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'notification',
+      notification,
+      card_id: 'card_id',
     });
   });
 });

@@ -441,6 +441,10 @@ describe('config defaults', () => {
             enabled: true,
             priority: 50,
           },
+          upgrade: {
+            enabled: true,
+            priority: 50,
+          },
         },
         popup_seconds: 3,
         position: 'bottom',
@@ -1065,6 +1069,30 @@ describe('config defaults', () => {
       {
         action: 'custom:advanced-camera-card-action',
         advanced_camera_card_action: 'mute',
+      },
+      {
+        action: 'custom:advanced-camera-card-action',
+        advanced_camera_card_action: 'notification',
+        notification: {
+          heading: {
+            text: 'Attention',
+            icon: 'mdi:alert',
+            severity: 'high',
+          },
+          text: 'Something happened.',
+          details: [{ text: 'Detail 1', icon: 'mdi:info' }],
+          controls: [
+            {
+              icon: 'mdi:check',
+              tooltip: 'Acknowledge',
+              dismiss: true,
+            },
+            {
+              icon: 'mdi:eye',
+              dismiss: false,
+            },
+          ],
+        },
       },
       {
         action: 'custom:advanced-camera-card-action',

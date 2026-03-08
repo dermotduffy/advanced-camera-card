@@ -28,6 +28,7 @@ export class ConfigManager {
   private _overriddenConfig: AdvancedCameraCardConfig | null = null;
   private _rawConfig: RawAdvancedCameraCardConfig | null = null;
   private _cardWideConfig: CardWideConfig | null = null;
+  private _upgradeable = false;
   private _overridesManager = new OverridesManager(() => this._processOverrideConfig());
 
   constructor(api: CardConfigAPI) {
@@ -54,17 +55,22 @@ export class ConfigManager {
     return this._rawConfig;
   }
 
+  public isUpgradeable(): boolean {
+    return this._upgradeable;
+  }
+
   public setConfig(inputConfig?: RawAdvancedCameraCardConfig): void {
     if (!inputConfig) {
       throw new Error(localize('error.invalid_configuration'));
     }
 
     const parseResult = advancedCameraCardConfigSchema.safeParse(inputConfig);
+    this._upgradeable = isConfigUpgradeable(inputConfig);
+
     if (!parseResult.success) {
-      const configUpgradeable = isConfigUpgradeable(inputConfig);
       const hint = getParseError(parseResult.error);
       let upgradeMessage = '';
-      if (configUpgradeable) {
+      if (this._upgradeable) {
         upgradeMessage = `${localize('error.upgrade_available')}. `;
       }
       throw new Error(

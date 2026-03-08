@@ -22,9 +22,10 @@ import { MoreInfoAction } from '../../../src/card-controller/actions/actions/mor
 import { MuteAction } from '../../../src/card-controller/actions/actions/mute';
 import { NavigateAction } from '../../../src/card-controller/actions/actions/navigate';
 import { NoneAction } from '../../../src/card-controller/actions/actions/none';
+import { NotificationAction } from '../../../src/card-controller/actions/actions/notification';
 import { PauseAction } from '../../../src/card-controller/actions/actions/pause';
-import { PIPAction } from '../../../src/card-controller/actions/actions/pip';
 import { PerformActionAction } from '../../../src/card-controller/actions/actions/perform-action';
+import { PIPAction } from '../../../src/card-controller/actions/actions/pip';
 import { PlayAction } from '../../../src/card-controller/actions/actions/play';
 import { PTZAction } from '../../../src/card-controller/actions/actions/ptz';
 import { PTZControlsAction } from '../../../src/card-controller/actions/actions/ptz-controls';
@@ -125,6 +126,13 @@ describe('ActionFactory', () => {
           message: 'Hello, world!' as const,
         },
         LogAction,
+      ],
+      [
+        {
+          advanced_camera_card_action: 'notification' as const,
+          notification: { text: 'test' },
+        },
+        NotificationAction,
       ],
       [
         {

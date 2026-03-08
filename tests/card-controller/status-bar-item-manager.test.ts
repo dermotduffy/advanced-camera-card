@@ -241,6 +241,56 @@ describe('StatusBarItemManager', () => {
       });
     });
 
+    describe('upgrade', () => {
+      it('should show upgrade item when upgradeable', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+
+        const items = manager.calculateItems({
+          isUpgradeable: true,
+        });
+
+        expect(items).toContainEqual(
+          expect.objectContaining({
+            type: 'custom:advanced-camera-card-status-bar-icon' as const,
+            icon: 'mdi:update',
+            severity: 'medium',
+            actions: expect.objectContaining({
+              tap_action: expect.objectContaining({
+                action: 'fire-dom-event',
+                advanced_camera_card_action: 'notification',
+              }),
+            }),
+          }),
+        );
+      });
+
+      it('should not show upgrade item when not upgradeable', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+
+        const items = manager.calculateItems({
+          isUpgradeable: false,
+        });
+
+        expect(items).not.toContainEqual(
+          expect.objectContaining({
+            icon: 'mdi:update',
+          }),
+        );
+      });
+
+      it('should not show upgrade item by default', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+
+        const items = manager.calculateItems();
+
+        expect(items).not.toContainEqual(
+          expect.objectContaining({
+            icon: 'mdi:update',
+          }),
+        );
+      });
+    });
+
     describe('severity', () => {
       it('should have severity in a viewer view', () => {
         const manager = new StatusBarItemManager(createCardAPI());

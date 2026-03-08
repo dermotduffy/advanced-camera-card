@@ -341,6 +341,52 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: mute
 ```
 
+## `notification`
+
+[](../../common/experimental-warning.md ':include')
+
+Show a notification overlay on the card with optional controls.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: notification
+# [...]
+```
+
+| Parameter                     | Description                                   |
+| ----------------------------- | --------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`. |
+| `advanced_camera_card_action` | Must be `notification`.                       |
+| `notification`                | The notification to display. See below.       |
+
+### `notification`
+
+| Parameter  | Description                                                                           |
+| ---------- | ------------------------------------------------------------------------------------- |
+| `heading`  | An optional heading. Uses the same format as [`details`](README.md?id=details) below. |
+| `text`     | An optional text string to display as the notification body.                          |
+| `details`  | An optional list of metadata. See [`details`](README.md?id=details) below.            |
+| `controls` | An optional list of controls. See [`controls`](README.md?id=controls) below.          |
+
+### Details
+
+| Parameter  | Description                                                   |
+| ---------- | ------------------------------------------------------------- |
+| `text`     | The detail text.                                              |
+| `icon`     | An optional icon (e.g. `mdi:alert`).                          |
+| `tooltip`  | An optional tooltip string (shown on hover).                  |
+| `severity` | An optional severity level, one of `low`, `medium` or `high`. |
+
+### Controls
+
+| Parameter  | Default | Description                                                                                                                                                                                               |
+| ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `icon`     |         | An optional icon (e.g. `mdi:check-circle`).                                                                                                                                                               |
+| `tooltip`  |         | An optional tooltip string (shown on hover).                                                                                                                                                              |
+| `severity` |         | An optional severity level, one of `low`, `medium` or `high`.                                                                                                                                             |
+| `actions`  |         | [Actions](../README.md) to execute on interaction. Supports `tap_action`, `hold_action`, `double_tap_action`, `start_tap_action`, `end_tap_action`. See [example](../../../examples.md?id=notifications). |
+| `dismiss`  | `true`  | Whether to dismiss the notification after the control's actions execute.                                                                                                                                  |
+
 ## `pause`
 
 Pause the selected media.
@@ -740,6 +786,29 @@ elements:
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: info
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-m-circle-outline
+    title: Show notification
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: notification
+      notification:
+        heading:
+          text: Attention
+          icon: mdi:alert
+          severity: high
+        text: Something important happened.
+        controls:
+          - icon: mdi:filmstrip
+            tooltip: View clips (tap) / View clip (double-tap)
+            actions:
+              tap_action:
+                action: custom:advanced-camera-card-action
+                advanced_camera_card_action: clips
+              double_tap_action:
+                action: custom:advanced-camera-card-action
+                advanced_camera_card_action: clip
+            dismiss: false
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-n-circle
     title: Turn off substream
