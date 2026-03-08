@@ -7,10 +7,10 @@ action: custom:advanced-camera-card-action
 # [...]
 ```
 
-| Parameter                     | Description                                         |
-| ----------------------------- | --------------------------------------------------- |
-| `action`                      | Must be `custom:advanced-camera-card-action`.       |
-| `advanced_camera_card_action` | A supported Advanced Camera Card action. See below. |
+| Parameter                     | Description                                                        |
+| ----------------------------- | ------------------------------------------------------------------ |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                      |
+| `advanced_camera_card_action` | A supported Advanced Camera Card action. One of the below actions. |
 
 ## `camera_select`
 
@@ -353,11 +353,11 @@ advanced_camera_card_action: notification
 # [...]
 ```
 
-| Parameter                     | Description                                   |
-| ----------------------------- | --------------------------------------------- |
-| `action`                      | Must be `custom:advanced-camera-card-action`. |
-| `advanced_camera_card_action` | Must be `notification`.                       |
-| `notification`                | The notification to display. See below.       |
+| Parameter                     | Description                                                         |
+| ----------------------------- | ------------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                       |
+| `advanced_camera_card_action` | Must be `notification`.                                             |
+| `notification`                | The notification to display. See [`notification`](#notification-1). |
 
 ### `notification`
 
@@ -478,7 +478,7 @@ advanced_camera_card_action: ptz_digital
 | `target_id`                   | The currently selected camera or media | The target (camera or media) to execute a digital PTZ action on. Can be a camera ID, or another media ID (e.g. for Frigate, can specify a media/event ID). |
 | `ptz_action`                  |                                        | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`.                                                                     |
 | `ptz_phase`                   |                                        | Optional parameter that is one of `start` or `stop` to start or stop the movement separately.                                                              |
-| `absolute`                    |                                        | Optional parameter to specify exact absolute pan and zoom settings. See below.                                                                             |
+| `absolute`                    |                                        | Optional parameter to specify exact absolute pan and zoom settings. See [`absolute`](#absolute).                                                           |
 
 > [!NOTE]
 > If no `ptz_action` is specified and no `absolute` value is specified, the camera returns to its "home" position. See [Camera layout configuration](../../cameras/README.md?id=layout-configuration) to configure the default "home" position for digital PTZ.
@@ -601,11 +601,11 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: sleep
 ```
 
-| Parameter                     | Description                                   |
-| ----------------------------- | --------------------------------------------- |
-| `action`                      | Must be `custom:advanced-camera-card-action`. |
-| `advanced_camera_card_action` | Must be `sleep`.                              |
-| `duration`                    | A duration object. See below.                 |
+| Parameter                     | Description                                     |
+| ----------------------------- | ----------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.   |
+| `advanced_camera_card_action` | Must be `sleep`.                                |
+| `duration`                    | A duration object. See [`duration`](#duration). |
 
 ### `duration`
 
@@ -643,7 +643,7 @@ advanced_camera_card_action: status_bar
 | Parameter           | Default | Description                                                                                                                                             |
 | ------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `status_bar_action` |         | If `add` adds `items` to the status bar, if `remove` removes items and if `reset` resets the status bar entirely (removes all dynamically added items). |
-| `items`             |         | The items to `add` or `remove`. See below.                                                                                                              |
+| `items`             |         | The items to `add` or `remove`. See [`items`](#items).                                                                                                  |
 
 ### `items`
 

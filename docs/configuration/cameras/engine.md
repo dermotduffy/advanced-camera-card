@@ -56,8 +56,8 @@ cameras:
 
 | Option   | Default | Description                                                                                                   |
 | -------- | ------- | ------------------------------------------------------------------------------------------------------------- |
-| `images` |         | Configure how MotionEye images are consumed. See below.                                                       |
-| `movies` |         | Configure how MotionEye movies are consumed. See below.                                                       |
+| `images` |         | Configure how MotionEye images are consumed. See [`images` / `movies`](#images-movies).                       |
+| `movies` |         | Configure how MotionEye movies are consumed. See [`images` / `movies`](#images-movies).                       |
 | `url`    |         | The URL of the MotionEye server. If set, this value will be (exclusively) used for a `Camera UI` menu button. |
 
 ### `images` / `movies`

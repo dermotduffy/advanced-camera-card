@@ -32,11 +32,11 @@ To send an action to a specific named Advanced Camera Card:
 > [!NOTE]
 > For backwards compatibility, the card will also respond to `frigate-card-action` as a query-parameter with the same syntax.
 
-| Parameter | Description                                                                                       |
-| --------- | ------------------------------------------------------------------------------------------------- |
-| `ACTION`  | One of the supported Advanced Camera Card custom actions. See below.                              |
-| `CARD_ID` | When specified only cards that have a [`card_id`](../configuration/README.md) parameter will act. |
-| `VALUE`   | An optional value to use with the `camera_select` and `live_substream_select` actions.            |
+| Parameter | Description                                                                                            |
+| --------- | ------------------------------------------------------------------------------------------------------ |
+| `ACTION`  | One of the supported Advanced Camera Card custom actions. See [Supported Actions](#supported-actions). |
+| `CARD_ID` | When specified only cards that have a [`card_id`](../configuration/README.md) parameter will act.      |
+| `VALUE`   | An optional value to use with the `camera_select` and `live_substream_select` actions.                 |
 
 > [!TIP]
 > Both `.` and `:` may be used as the delimiter. If you use `:` some
@@ -45,7 +45,7 @@ To send an action to a specific named Advanced Camera Card:
 > [!NOTE]
 > If a dashboard has multiple Advanced Camera Cards on it, even if they are on
 > different 'tabs' within that dashboard, they will all respond to the actions
-> unless the action is targeted with a `CARD_ID` as shown above.
+> unless the action is targeted with a `CARD_ID` as shown [above](#instructions).
 
 ## Supported Actions
 

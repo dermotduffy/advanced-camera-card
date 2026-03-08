@@ -14,7 +14,7 @@ menu:
 
 Clicking this button will allow you to choose a Google Cast device to cast the camera stream to, or the clip that is currently playing.
 
-There are two different casting methods for cameras: `standard` and `dashboard` (see below).
+There are two different casting methods for cameras: `standard` and `dashboard` (see [Standard Casting](#standard-casting) and [Dashboard Casting](#dashboard-casting)).
 
 ## Standard Casting
 
