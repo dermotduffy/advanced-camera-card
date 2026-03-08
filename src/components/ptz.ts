@@ -140,7 +140,7 @@ export class AdvancedCameraCardPTZ extends LitElement {
       (this._actions?.home || presetSubmenuItems?.length)
         ? html`<div class="ptz-presets">
             ${renderIcon('home', 'mdi:home', { actions: this._actions?.home })}
-            ${presetSubmenuItems?.length
+            ${presetSubmenuItems && presetSubmenuItems.length > 1
               ? html`<advanced-camera-card-submenu
                   class="presets"
                   .hass=${this.hass}
