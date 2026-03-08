@@ -11,7 +11,7 @@ media_gallery:
 | Option     | Default | Description                                                                                                                                                |
 | ---------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `actions`  |         | [Actions](actions/README.md) to use for all views that use the `media_gallery` (e.g. `clips`, `snapshots`, `recordings`, `reviews`, `folders`, `gallery`). |
-| `controls` |         | Configuration for the Media Gallery controls. See below.                                                                                                   |
+| `controls` |         | Configuration for the Media Gallery controls. See [`controls`](#controls).                                                                                 |
 
 ## `controls`
 

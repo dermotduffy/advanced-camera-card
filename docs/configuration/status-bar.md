@@ -7,13 +7,13 @@ status_bar:
   # [...]
 ```
 
-| Option          | Default  | Description                                                                                                                |
-| --------------- | -------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `position`      | `bottom` | Whether to place the status bar at the `top` or `bottom` of the card.                                                      |
-| `popup_seconds` | `3`      | The number of seconds to display the status bar when using the `popup` style.                                              |
-| `height`        | `46`     | The height of the status bar in pixels.                                                                                    |
-| `items`         |          | Whether to show or hide built-in status bar items. See below.                                                              |
-| `style`         | `popup`  | The status bar style to show by default, one of `none`, `hover`, `hover-card`, `overlay`, `outside` or `popup`. See below. |
+| Option          | Default  | Description                                                                                                                            |
+| --------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `position`      | `bottom` | Whether to place the status bar at the `top` or `bottom` of the card.                                                                  |
+| `popup_seconds` | `3`      | The number of seconds to display the status bar when using the `popup` style.                                                          |
+| `height`        | `46`     | The height of the status bar in pixels.                                                                                                |
+| `items`         |          | Whether to show or hide built-in status bar items. See [`items`](#items).                                                              |
+| `style`         | `popup`  | The status bar style to show by default, one of `none`, `hover`, `hover-card`, `overlay`, `outside` or `popup`. See [`style`](#style). |
 
 ## `items`
 

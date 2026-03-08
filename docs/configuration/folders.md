@@ -15,7 +15,7 @@ folders:
 | Option  | Default | Description                                                                                                                                                                                                |
 | ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `id`    |         | An optional folder `id` which can be used by [camera `media` configuration](./cameras/README.md#media) or [`folder` actions](./actions/custom/README.md?id=folder) to show a particular folder's contents. |
-| `ha`    |         | Options for `ha` folder types. See below.                                                                                                                                                                  |
+| `ha`    |         | Options for `ha` folder types. See [`ha`](#ha).                                                                                                                                                            |
 | `icon`  |         | An optional folder icon.                                                                                                                                                                                   |
 | `title` |         | An optional folder title.                                                                                                                                                                                  |
 | `type`  | `ha`    | The type of folder, `ha` for Home Assistant media folders (currently the only supported type of folder).                                                                                                   |
@@ -34,7 +34,7 @@ folders:
 | Option | Default                     | Description                                                                                                                                                                                     |
 | ------ | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `url`  |                             | An optional Home Assistant `Media` browser URL to use as the query base. If `path` is also specified, those matchers/parsers are applied against folders "below" the folder specified in `url`. |
-| `path` | [`{ id: media-source:// }`] | An optional array of parsers and matchers to dynamically compare and extract metadata from the Home Assistant media folder hierarchy. See below.                                                |
+| `path` | [`{ id: media-source:// }`] | An optional array of parsers and matchers to dynamically compare and extract metadata from the Home Assistant media folder hierarchy. See [`path`](#path).                                      |
 
 > [!NOTE]
 > The `url` is never fetched, nor sent over the network. It is only processed locally in your browser. The host part of the URL can optionally be removed.
@@ -45,11 +45,11 @@ An array of values that represents the path to a Home Assistant media item, e.g.
 a media item at a path of `one/two/three` would be represented by a path array
 of length three.
 
-| Option     | Default | Description                                                                                                                                                    |
-| ---------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`       |         | An optional exact media item to select, usually the parent of where `matchers` and `parsers` should apply.                                                     |
-| `matchers` |         | An optional array of matchers to evaluate whether to return a given media item. If no matcher is specified, everything in the given folder matches. See below. |
-| `parsers`  |         | An optional array of parsers that extract data out of a media item. See below.                                                                                 |
+| Option     | Default | Description                                                                                                                                                                    |
+| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `id`       |         | An optional exact media item to select, usually the parent of where `matchers` and `parsers` should apply.                                                                     |
+| `matchers` |         | An optional array of matchers to evaluate whether to return a given media item. If no matcher is specified, everything in the given folder matches. See [Matchers](#matchers). |
+| `parsers`  |         | An optional array of parsers that extract data out of a media item. See [Parsers](#parsers).                                                                                   |
 
 If `url` is also specified, parsers/matchers are applied starting at that
 folder, otherwise they are applied from the media source root (i.e.
