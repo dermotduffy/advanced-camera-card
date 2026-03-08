@@ -144,7 +144,10 @@ export class ConfigManager {
     // effective configuration.
     setKeyboardShortcutsFromConfig(this._api);
     setRemoteControlEntityFromConfig(this._api);
-    if (!previousConfig || !isEqual(previousConfig.automations, this._overriddenConfig.automations)) {
+    if (
+      !previousConfig ||
+      !isEqual(previousConfig.automations, this._overriddenConfig.automations)
+    ) {
       setAutomationsFromConfig(this._api);
     }
 
