@@ -65,7 +65,7 @@ export class MediaGridController {
     300,
     {
       leading: true,
-      trailing: true
+      trailing: true,
     },
   );
 
