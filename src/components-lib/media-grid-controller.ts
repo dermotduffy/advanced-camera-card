@@ -3,6 +3,7 @@ import Masonry from 'masonry-layout';
 import { ViewDisplayConfig } from '../config/schema/common/display';
 import { MediaLoadedInfo } from '../types';
 import {
+  forceReflow,
   getChildrenFromElement,
   setOrRemoveAttribute,
   setOrRemoveStyleProperty,
@@ -58,13 +59,10 @@ export class MediaGridController {
   private _idAttribute: string;
   private _widthFactorAttribute: string;
 
-  private _throttledLayout = throttle(
-    () => this._masonry?.layout?.(),
-    // Throttle layout calls to larger than the masonry.js transitionDuration
-    // value specified below.
-    300,
-    { trailing: true, leading: false },
-  );
+  private _throttledLayout = throttle(() => this._masonry?.layout?.(), 300, {
+    leading: true,
+    trailing: true,
+  });
 
   // If the order in which the observers are declared changes, the unittest must
   // be updated in triggerResizeObserver and triggerMutationObserver.
@@ -186,10 +184,7 @@ export class MediaGridController {
     this._sortItemsInGrid();
     this._updateSelectedStylesOnElements();
 
-    // Sizes and positions may change when an element is selected, so re-do the
-    // layout (must come after the call to _updateStylesOnElements in order to
-    // ensure the right styles are applied first).
-    this._throttledLayout();
+    this._forceLayout();
   }
 
   public unselectAll() {
@@ -199,6 +194,19 @@ export class MediaGridController {
     }
     this._selected = null;
     this._updateSelectedStylesOnElements();
+
+    this._forceLayout();
+  }
+
+  protected _forceLayout(): void {
+    // Cancel possible pending layout
+    this._throttledLayout.cancel();
+
+    // Force browser reflow so masonry measures the updated element size
+    forceReflow(this._host);
+
+    // Sizes and positions may change when an element is selected, so re-do the layout
+    this._masonry?.layout?.();
   }
 
   private _calculateGridContentsFromHost = (): void => {
@@ -318,7 +326,11 @@ export class MediaGridController {
       columnWidth: this._getColumnSize(),
       initLayout: false,
       percentPosition: true,
-      transitionDuration: '0.2s',
+      transitionDuration: 0,
+      stagger: 0,
+
+      // This controller handles resizes.
+      resize: false,
       gutter: MEDIA_GRID_HORIZONTAL_GUTTER_WIDTH,
     }) as ExtendedMasonry;
     this._masonry.addItems?.([...this._gridContents.values()]);
