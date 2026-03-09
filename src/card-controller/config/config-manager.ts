@@ -138,32 +138,59 @@ export class ConfigManager {
     setFoldersFromConfig(this._api);
     this._api.getStyleManager().updateFromConfig();
 
-    // Ensure features that register automations or other side-effects from
-    // configuration are updated when overrides change (e.g. remote_control).
-    // Re-run loaders that may add/remove automations based on the current
-    // effective configuration.
-    setKeyboardShortcutsFromConfig(this._api);
-    setRemoteControlEntityFromConfig(this._api);
-    setAutomationsFromConfig(this._api);
+    // Only re-run side-effect callbacks when their relevant config section
+    // changed. As an example of why: Automation loaders delete then recreate
+    // automations, which destroys associated ConditionsManagers. If a condition
+    // transition (e.g. microphone connect) triggers both a user automation and
+    // an unrelated override, an unconditional reload would delete the
+    // automation mid-transition — the freshly created replacement has no prior
+    // state, treats the current condition as its baseline, and never fires the
+    // action.
+    const runIfChanged = <T>(
+      extract: (config: AdvancedCameraCardConfig) => T,
+      callback: () => void,
+      skipFirst?: boolean,
+    ): void => {
+      if (!previousConfig) {
+        if (!skipFirst) {
+          callback();
+        }
+        return;
+      }
+      if (!isEqual(extract(previousConfig), extract(overriddenConfig))) {
+        callback();
+      }
+    };
 
-    if (
-      previousConfig &&
-      (!isEqual(previousConfig?.cameras, this._overriddenConfig?.cameras) ||
-        !isEqual(previousConfig?.cameras_global, this._overriddenConfig?.cameras_global))
-    ) {
-      this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
-      this._api.getCameraManager().destroy();
-    }
-
-    if (
-      previousConfig &&
-      previousConfig?.live.microphone.always_connected !==
-        this._overriddenConfig?.live.microphone.always_connected
-    ) {
-      this._api
-        .getInitializationManager()
-        .uninitialize(InitializationAspect.MICROPHONE_CONNECT);
-    }
+    runIfChanged(
+      (config) => config.view.keyboard_shortcuts,
+      () => setKeyboardShortcutsFromConfig(this._api),
+    );
+    runIfChanged(
+      (config) => config.remote_control,
+      () => setRemoteControlEntityFromConfig(this._api),
+    );
+    runIfChanged(
+      (config) => config.automations,
+      () => setAutomationsFromConfig(this._api),
+    );
+    runIfChanged(
+      (config) => [config.cameras, config.cameras_global],
+      () => {
+        this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
+        this._api.getCameraManager().destroy();
+      },
+      true,
+    );
+    runIfChanged(
+      (config) => config.live.microphone.always_connected,
+      () => {
+        this._api
+          .getInitializationManager()
+          .uninitialize(InitializationAspect.MICROPHONE_CONNECT);
+      },
+      true,
+    );
 
     /* async */ this._initializeBackgroundAndUpdate(previousConfig);
   }
