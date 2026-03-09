@@ -27,6 +27,9 @@
 :host([data-style='popup'][hide]) {
   opacity: 0;
 }
+:host([data-style='popup'][hide]) .item.action {
+  pointer-events: none;
+}
 
 /*********************
  * Status bar contents
