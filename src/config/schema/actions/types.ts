@@ -33,7 +33,7 @@ export type NotificationActionConfig = z.infer<
   advanced_camera_card_action: 'notification';
   notification: Notification;
 };
-export const notificationActionConfigSchema: z.ZodSchema<NotificationActionConfig> =
+const notificationActionConfigSchema: z.ZodSchema<NotificationActionConfig> =
   advancedCameraCardCustomActionsBaseSchema.extend({
     advanced_camera_card_action: z.literal('notification'),
     notification: z.lazy(() => notificationSchema),
@@ -122,18 +122,18 @@ const notificationBaseSchema = z.object({
   severity: severitySchema.optional(),
 });
 
-export const notificationDetailSchema = notificationBaseSchema.extend({
+const notificationDetailSchema = notificationBaseSchema.extend({
   text: z.string(),
 });
 export type NotificationDetail = z.infer<typeof notificationDetailSchema>;
 
-export const notificationControlSchema = notificationBaseSchema.extend({
+const notificationControlSchema = notificationBaseSchema.extend({
   actions: actionsBaseSchema.optional(),
   dismiss: z.boolean().default(true),
 });
 export type NotificationControl = z.infer<typeof notificationControlSchema>;
 
-export const notificationSchema = z.object({
+const notificationSchema = z.object({
   heading: notificationDetailSchema.optional(),
   controls: notificationControlSchema.array().optional(),
   details: notificationDetailSchema.array().optional(),

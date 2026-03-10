@@ -62,6 +62,12 @@ describe('ReolinkCamera', () => {
     platform: 'reolink',
   });
 
+  const numberEntityZoom = createRegistryEntity({
+    entity_id: 'number.office_reolink_zoom',
+    unique_id: '85270002TS7D4RUP_0_zoom',
+    platform: 'reolink',
+  });
+
   const ptzPopulatedEntityRegistryManager = new EntityRegistryManagerMock([
     cameraEntity,
     buttonEntityPTZLeft,
@@ -852,6 +858,405 @@ describe('ReolinkCamera', () => {
 
         await camera.executePTZAction(executor, 'preset');
         expect(executor.executeActions).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('should execute absolute zoom action', () => {
+      it('should discover zoom number entity', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            cameraEntity,
+            numberEntityZoom,
+          ]),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+
+        expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
+          zoomIn: ['relative'],
+          zoomOut: ['relative'],
+        });
+      });
+
+      it('should ignore disabled zoom number entity', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            cameraEntity,
+            createRegistryEntity({
+              entity_id: 'number.office_reolink_zoom',
+              unique_id: '85270002TS7D4RUP_0_zoom',
+              platform: 'reolink',
+              disabled_by: 'user',
+            }),
+          ]),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+
+        expect(camera.getCapabilities()?.getPTZCapabilities()).toBeNull();
+      });
+
+      it('should prefer button entities over number entity for zoom', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            cameraEntity,
+            buttonEntityPTZZoomIn,
+            buttonEntityPTZZoomOut,
+            buttonEntityPTZStop,
+            numberEntityZoom,
+          ]),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+
+        expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
+          zoomIn: ['continuous'],
+          zoomOut: ['continuous'],
+        });
+      });
+
+      it('should zoom in via number entity', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            cameraEntity,
+            numberEntityZoom,
+          ]),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+        const executor = mock<ActionsExecutor>();
+
+        await camera.executePTZAction(executor, 'zoom_in', {
+          hass: createHASS({
+            'number.office_reolink_zoom': createStateEntity({
+              state: '10',
+              attributes: { min: 0, max: 33 },
+            }),
+          }),
+        });
+
+        expect(executor.executeActions).toHaveBeenCalledWith({
+          actions: [
+            {
+              action: 'perform-action',
+              perform_action: 'number.set_value',
+              data: { value: 13 },
+              target: { entity_id: 'number.office_reolink_zoom' },
+            },
+          ],
+        });
+      });
+
+      it('should zoom out via number entity', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            cameraEntity,
+            numberEntityZoom,
+          ]),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+        const executor = mock<ActionsExecutor>();
+
+        await camera.executePTZAction(executor, 'zoom_out', {
+          hass: createHASS({
+            'number.office_reolink_zoom': createStateEntity({
+              state: '10',
+              attributes: { min: 0, max: 33 },
+            }),
+          }),
+        });
+
+        expect(executor.executeActions).toHaveBeenCalledWith({
+          actions: [
+            {
+              action: 'perform-action',
+              perform_action: 'number.set_value',
+              data: { value: 7 },
+              target: { entity_id: 'number.office_reolink_zoom' },
+            },
+          ],
+        });
+      });
+
+      it('should clamp zoom in to max', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            cameraEntity,
+            numberEntityZoom,
+          ]),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+        const executor = mock<ActionsExecutor>();
+
+        await camera.executePTZAction(executor, 'zoom_in', {
+          hass: createHASS({
+            'number.office_reolink_zoom': createStateEntity({
+              state: '32',
+              attributes: { min: 0, max: 33 },
+            }),
+          }),
+        });
+
+        expect(executor.executeActions).toHaveBeenCalledWith({
+          actions: [
+            {
+              action: 'perform-action',
+              perform_action: 'number.set_value',
+              data: { value: 33 },
+              target: { entity_id: 'number.office_reolink_zoom' },
+            },
+          ],
+        });
+      });
+
+      it('should clamp zoom out to min', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            cameraEntity,
+            numberEntityZoom,
+          ]),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+        const executor = mock<ActionsExecutor>();
+
+        await camera.executePTZAction(executor, 'zoom_out', {
+          hass: createHASS({
+            'number.office_reolink_zoom': createStateEntity({
+              state: '1',
+              attributes: { min: 0, max: 33 },
+            }),
+          }),
+        });
+
+        expect(executor.executeActions).toHaveBeenCalledWith({
+          actions: [
+            {
+              action: 'perform-action',
+              perform_action: 'number.set_value',
+              data: { value: 0 },
+              target: { entity_id: 'number.office_reolink_zoom' },
+            },
+          ],
+        });
+      });
+
+      it('should not execute when state is unavailable', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            cameraEntity,
+            numberEntityZoom,
+          ]),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+        const executor = mock<ActionsExecutor>();
+
+        await camera.executePTZAction(executor, 'zoom_in', {
+          hass: createHASS({
+            'number.office_reolink_zoom': createStateEntity({
+              state: 'unavailable',
+              attributes: { min: 0, max: 33 },
+            }),
+          }),
+        });
+
+        expect(executor.executeActions).not.toHaveBeenCalled();
+      });
+
+      it('should not execute when min/max attributes are missing', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            cameraEntity,
+            numberEntityZoom,
+          ]),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+        const executor = mock<ActionsExecutor>();
+
+        await camera.executePTZAction(executor, 'zoom_in', {
+          hass: createHASS({
+            'number.office_reolink_zoom': createStateEntity({
+              state: '10',
+            }),
+          }),
+        });
+
+        expect(executor.executeActions).not.toHaveBeenCalled();
+      });
+
+      it('should not execute when hass is not provided', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            cameraEntity,
+            numberEntityZoom,
+          ]),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+        const executor = mock<ActionsExecutor>();
+
+        await camera.executePTZAction(executor, 'zoom_in');
+
+        expect(executor.executeActions).not.toHaveBeenCalled();
+      });
+
+      it('should use continuous zoom when button entities exist', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            cameraEntity,
+            buttonEntityPTZZoomIn,
+            buttonEntityPTZZoomOut,
+            buttonEntityPTZStop,
+            numberEntityZoom,
+          ]),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+        const executor = mock<ActionsExecutor>();
+
+        await camera.executePTZAction(executor, 'zoom_in', { phase: 'start' });
+
+        expect(executor.executeActions).toHaveBeenCalledWith({
+          actions: [
+            {
+              action: 'perform-action',
+              perform_action: 'button.press',
+              target: { entity_id: 'button.office_reolink_ptz_zoom_in' },
+            },
+          ],
+        });
+      });
+
+      it('should not zoom when neither zoom button nor number entity exists', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            cameraEntity,
+            buttonEntityPTZLeft,
+            buttonEntityPTZStop,
+          ]),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+        const executor = mock<ActionsExecutor>();
+
+        await camera.executePTZAction(executor, 'zoom_in', { phase: 'start' });
+
+        expect(executor.executeActions).not.toHaveBeenCalled();
+      });
+
+      it('should use step of at least 1', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: new EntityRegistryManagerMock([
+            cameraEntity,
+            numberEntityZoom,
+          ]),
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+        });
+        const executor = mock<ActionsExecutor>();
+
+        // Range of 5: 10% = 0.5, rounds to 1, step = max(1, 1) = 1.
+        await camera.executePTZAction(executor, 'zoom_in', {
+          hass: createHASS({
+            'number.office_reolink_zoom': createStateEntity({
+              state: '2',
+              attributes: { min: 0, max: 5 },
+            }),
+          }),
+        });
+
+        expect(executor.executeActions).toHaveBeenCalledWith({
+          actions: [
+            {
+              action: 'perform-action',
+              perform_action: 'number.set_value',
+              data: { value: 3 },
+              target: { entity_id: 'number.office_reolink_zoom' },
+            },
+          ],
+        });
       });
     });
   });

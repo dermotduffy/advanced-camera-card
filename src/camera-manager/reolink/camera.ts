@@ -1,5 +1,9 @@
 import { ActionsExecutor } from '../../card-controller/actions/types';
-import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
+import {
+  PTZAction,
+  PTZActionPhase,
+  PTZBaseAction,
+} from '../../config/schema/actions/custom/ptz';
 import { DeviceRegistryManager } from '../../ha/registry/device/index';
 import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
@@ -20,6 +24,21 @@ import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 // Reolink channels are zero indexed.
 const REOLINK_DEFAULT_CHANNEL = 0;
 
+// Reolink cameras expose zoom via two independent entity types:
+//  - Button entities (ptz_zoom_in / ptz_zoom_out): continuous start/stop
+//    movement, disabled by default in the Reolink integration.
+//  - Number entity (zoom): absolute position, always enabled. Present on
+//    digital-zoom-only models that lack button entities entirely.
+//
+// When only the number entity is available we call `number.set_value` with a
+// target computed as a fraction of the entity's range per tap (so ~10 taps
+// covers it). Rapid taps may collapse into a single step since HA state lags
+// (e.g. 3 rapid taps may only result in a single apparent zoom -- local state
+// may need to be introduced if this presents an unacceptable UX).
+
+// Fraction of the zoom range to step per zoom action when using number entity.
+const ZOOM_POSITION_STEP_FRACTION = 0.1;
+
 interface ReolinkCameraInitializationOptions extends CameraInitializationOptions {
   entityRegistryManager: EntityRegistryManager;
   deviceRegistryManager: DeviceRegistryManager;
@@ -27,7 +46,10 @@ interface ReolinkCameraInitializationOptions extends CameraInitializationOptions
 
 class ReolinkInitializationError extends CameraInitializationError {}
 
-interface PTZEntities {
+// Button entities for continuous PTZ movement (press to start, press stop to
+// end). Discovered from button.{name}_ptz_{action} entities. Zoom button
+// entities are disabled by default in the Reolink integration.
+interface PTZButtonEntities {
   stop?: string;
   left?: string;
   right?: string;
@@ -35,9 +57,28 @@ interface PTZEntities {
   down?: string;
   zoom_in?: string;
   zoom_out?: string;
+}
+
+interface PTZEntities extends PTZButtonEntities {
+  // Number entity for absolute zoom positioning (number.{name}_zoom).
+  // Used as a fallback when zoom_in/zoom_out button entities are absent.
+  // Some Reolink cameras (e.g. digital-zoom-only models) expose zoom only
+  // through this entity.
+  zoom?: string;
+
+  // Select entity for PTZ presets (select.{name}_ptz_preset).
   presets?: string;
 }
-type PTZEntity = keyof PTZEntities;
+
+const PTZ_BUTTON_ENTITY_KEYS: readonly (keyof PTZButtonEntities)[] = [
+  'stop',
+  'left',
+  'right',
+  'up',
+  'down',
+  'zoom_in',
+  'zoom_out',
+];
 
 export class ReolinkCamera extends EntityCamera {
   // The HostID identifying the camera or NVR.
@@ -191,6 +232,13 @@ export class ReolinkCamera extends EntityCamera {
       }
     }
 
+    if (!reolinkPTZCapabilities.zoomIn && ptzEntities.zoom) {
+      reolinkPTZCapabilities.zoomIn = [PTZMovementType.Relative];
+    }
+    if (!reolinkPTZCapabilities.zoomOut && ptzEntities.zoom) {
+      reolinkPTZCapabilities.zoomOut = [PTZMovementType.Relative];
+    }
+
     const ptzPresetsEntityState = ptzEntities?.presets
       ? hass.states[ptzEntities.presets]
       : null;
@@ -231,19 +279,9 @@ export class ReolinkCamera extends EntityCamera {
         ent.entity_id.startsWith('select.'),
     );
 
-    const uniqueSuffixes: PTZEntity[] = [
-      'stop',
-      'left',
-      'right',
-      'up',
-      'down',
-      'zoom_in',
-      'zoom_out',
-    ];
-
     const ptzEntities: PTZEntities = {};
     for (const buttonEntity of buttonEntities) {
-      for (const uniqueIDSuffix of uniqueSuffixes) {
+      for (const uniqueIDSuffix of PTZ_BUTTON_ENTITY_KEYS) {
         if (
           buttonEntity.unique_id &&
           String(buttonEntity.unique_id).endsWith(uniqueIDSuffix)
@@ -255,6 +293,14 @@ export class ReolinkCamera extends EntityCamera {
 
     if (ptzPresetEntities.length === 1) {
       ptzEntities.presets = ptzPresetEntities[0].entity_id;
+    }
+
+    const zoomNumberEntities = allRelevantEntities.filter(
+      (ent: Entity) =>
+        ent.unique_id === `${uniqueIDPrefix}zoom` && ent.entity_id.startsWith('number.'),
+    );
+    if (zoomNumberEntities.length === 1) {
+      ptzEntities.zoom = zoomNumberEntities[0].entity_id;
     }
 
     return Object.keys(ptzEntities).length ? ptzEntities : null;
@@ -294,6 +340,7 @@ export class ReolinkCamera extends EntityCamera {
     executor: ActionsExecutor,
     action: PTZAction,
     options?: {
+      hass?: HomeAssistant;
       phase?: PTZActionPhase;
       preset?: string;
     },
@@ -319,11 +366,32 @@ export class ReolinkCamera extends EntityCamera {
       return true;
     }
 
+    if (action === 'zoom_in' || action === 'zoom_out') {
+      return (
+        // Try a continuous action first, if not available fall back to an
+        // absolute step.
+        (await this._executeContinuousPTZAction(executor, action, options)) ||
+        (await this._executeAbsoluteZoomAction(executor, action, options))
+      );
+    }
+
+    return this._executeContinuousPTZAction(executor, action, options);
+  }
+
+  // Handles PTZ via button entities (button.press) for continuous start/stop
+  // movement.
+  private async _executeContinuousPTZAction(
+    executor: ActionsExecutor,
+    action: PTZBaseAction,
+    options?: {
+      phase?: PTZActionPhase;
+    },
+  ): Promise<boolean> {
     const entityID =
       options?.phase === 'start'
-        ? this._ptzEntities[action]
+        ? this._ptzEntities?.[action]
         : options?.phase === 'stop'
-          ? this._ptzEntities.stop
+          ? this._ptzEntities?.stop
           : null;
     if (!entityID) {
       return false;
@@ -335,6 +403,46 @@ export class ReolinkCamera extends EntityCamera {
           action: 'perform-action',
           perform_action: 'button.press',
           target: { entity_id: entityID },
+        },
+      ],
+    });
+    return true;
+  }
+
+  // Handles zoom via the number entity (number.set_value) when zoom button
+  // entities are absent.
+  private async _executeAbsoluteZoomAction(
+    executor: ActionsExecutor,
+    action: 'zoom_in' | 'zoom_out',
+    options?: {
+      hass?: HomeAssistant;
+    },
+  ): Promise<boolean> {
+    if (!this._ptzEntities?.zoom) {
+      return false;
+    }
+
+    const state = options?.hass?.states[this._ptzEntities.zoom];
+    const min = Number(state?.attributes?.min);
+    const max = Number(state?.attributes?.max);
+    const current = Number(state?.state);
+    if (isNaN(min) || isNaN(max) || isNaN(current)) {
+      return false;
+    }
+
+    const step = Math.max(1, Math.round((max - min) * ZOOM_POSITION_STEP_FRACTION));
+    const target =
+      action === 'zoom_in'
+        ? Math.min(current + step, max)
+        : Math.max(current - step, min);
+
+    await executor.executeActions({
+      actions: [
+        {
+          action: 'perform-action',
+          perform_action: 'number.set_value',
+          data: { value: target },
+          target: { entity_id: this._ptzEntities.zoom },
         },
       ],
     });
