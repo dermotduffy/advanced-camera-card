@@ -278,8 +278,12 @@ export class MediaGridController {
       // Reset the column CSS sizes first.
       this._setColumnSizeStyles();
 
-      // Need to recreate the masonry layout since the column width will differ.
-      this._createMasonry();
+      // Update the column width on the existing Masonry instance rather than
+      // destroying and recreating it. A destroy resets the container height to
+      // 0, which can cause an ancestor scrollbar to appear/disappear, changing
+      // the available width and triggering an infinite resize oscillation.
+      this._masonry?.option?.({ columnWidth: this._getColumnSize() });
+      this._throttledLayout();
     }
   }
 
