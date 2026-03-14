@@ -274,6 +274,72 @@ describe('ProblemManager', () => {
     });
   });
 
+  describe('logging', () => {
+    it('should log on static detection when problem is active', async () => {
+      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const api = createCardAPI();
+      const result = createProblemResult({ notification: { text: 'Legacy problem' } });
+      vi.mocked(mockLegacyResource.hasResult).mockReturnValue(true);
+      vi.mocked(mockLegacyResource.getResult).mockReturnValue(result);
+
+      const manager = new ProblemManager(api);
+      await manager.detectStatic(createHASS());
+
+      expect(spy).toBeCalledWith('Advanced Camera Card: Legacy problem');
+      spy.mockRestore();
+    });
+
+    it('should log on dynamic detection when problem becomes active', () => {
+      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const api = createCardAPI();
+      const stateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
+      const result = createProblemResult({
+        notification: { text: 'Stream problem' },
+      });
+      vi.mocked(mockStreamNotLoading.hasResult)
+        .mockReturnValueOnce(false)
+        .mockReturnValue(true);
+      vi.mocked(mockStreamNotLoading.getResult).mockReturnValue(result);
+
+      const manager = new ProblemManager(api);
+      manager.initialize();
+
+      stateManager.setState({ view: 'live' });
+
+      expect(spy).toBeCalledWith('Advanced Camera Card: Stream problem');
+      spy.mockRestore();
+    });
+
+    it('should only log once per problem key', async () => {
+      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const api = createCardAPI();
+      const result = createProblemResult({ notification: { text: 'Repeated' } });
+      vi.mocked(mockLegacyResource.hasResult).mockReturnValue(true);
+      vi.mocked(mockLegacyResource.getResult).mockReturnValue(result);
+
+      const manager = new ProblemManager(api);
+      await manager.detectStatic(createHASS());
+      await manager.detectStatic(createHASS());
+
+      expect(spy).toBeCalledTimes(1);
+      spy.mockRestore();
+    });
+
+    it('should not log when problem has no result', async () => {
+      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const api = createCardAPI();
+      vi.mocked(mockLegacyResource.hasResult).mockReturnValue(false);
+
+      const manager = new ProblemManager(api);
+      await manager.detectStatic(createHASS());
+
+      expect(spy).not.toBeCalled();
+      spy.mockRestore();
+    });
+  });
+
   describe('destroy', () => {
     it('should destroy all problems and clear', () => {
       const api = createCardAPI();
