@@ -943,8 +943,12 @@ export class CameraManager {
       action,
       camera.getConfig().dimensions?.rotation,
     );
+    const hass = this._api.getHASSManager().getHASS();
     await this._requestLimit.add(() =>
-      camera.executePTZAction(this._api.getActionsManager(), rotatedAction, options),
+      camera.executePTZAction(this._api.getActionsManager(), rotatedAction, {
+        ...options,
+        hass: hass ?? undefined,
+      }),
     );
   }
 }

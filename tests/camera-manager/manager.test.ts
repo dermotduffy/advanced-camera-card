@@ -1328,6 +1328,36 @@ describe('CameraManager', () => {
       // No visible action.
     });
 
+    it('successfully with null hass', async () => {
+      const api = createCardAPI();
+      const engine = mock<CameraManagerEngine>();
+      const hass = createHASS();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+      const action = {
+        action: 'perform-action' as const,
+        perform_action: 'action',
+      };
+      const manager = createCameraManager(api, engine, [
+        {
+          config: createCameraConfig({
+            baseCameraConfig,
+            id: 'another',
+            ptz: {
+              actions_left: action,
+            },
+          }),
+        },
+      ]);
+      expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
+      manager.executePTZAction('another', 'left');
+
+      expect(api.getActionsManager().executeActions).toBeCalledWith({
+        actions: action,
+      });
+    });
+
     it('successfully', async () => {
       const api = createCardAPI();
       const engine = mock<CameraManagerEngine>();

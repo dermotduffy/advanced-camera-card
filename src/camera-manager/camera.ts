@@ -225,6 +225,7 @@ export class Camera {
     executor: ActionsExecutor,
     action: PTZAction,
     options?: {
+      hass?: HomeAssistant;
       phase?: PTZActionPhase;
       preset?: string;
     },
