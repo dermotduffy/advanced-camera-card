@@ -16,6 +16,7 @@ import {
 export class ProblemManager {
   private _api: CardProblemAPI;
   private _problems = new Map<ProblemKey, Problem>();
+  private _loggedKeys = new Set<ProblemKey>();
 
   constructor(api: CardProblemAPI) {
     this._api = api;
@@ -46,6 +47,7 @@ export class ProblemManager {
   public async detectStatic(hass: HomeAssistant): Promise<void> {
     for (const problem of this._problems.values()) {
       await problem.detectStatic?.(hass);
+      this._logIfNew(problem);
     }
     this._api.getCardElementManager().update();
   }
@@ -122,9 +124,20 @@ export class ProblemManager {
       const hadResult = problem.hasResult();
       problem.detectDynamic?.(context);
       stateChanged ||= problem.hasResult() !== hadResult;
+      this._logIfNew(problem);
     }
     if (stateChanged) {
       this._api.getCardElementManager().update();
+    }
+  }
+
+  private _logIfNew(problem: Problem): void {
+    if (problem.hasResult() && !this._loggedKeys.has(problem.key)) {
+      this._loggedKeys.add(problem.key);
+      const text = problem.getResult()?.notification.text;
+      if (text) {
+        console.warn(`Advanced Camera Card: ${text}`);
+      }
     }
   }
 }
