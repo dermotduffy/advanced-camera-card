@@ -1,7 +1,11 @@
 export const REPO_URL = 'https://github.com/dermotduffy/advanced-camera-card' as const;
 export const DOCS_URL = 'https://card.camera' as const;
 export const TROUBLESHOOTING_URL = `${DOCS_URL}/#/troubleshooting` as const;
-export const STREAM_TROUBLESHOOTING_URL =
+export const TROUBLESHOOTING_CONFIG_UPGRADE_URL =
+  `${TROUBLESHOOTING_URL}?id=configuration-upgrade-available` as const;
+export const TROUBLESHOOTING_LEGACY_RESOURCE_URL =
+  `${TROUBLESHOOTING_URL}?id=legacy-dashboard-resource-detected` as const;
+export const TROUBLESHOOTING_STREAM_URL =
   `${TROUBLESHOOTING_URL}?id=stream-does-not-load` as const;
 const CONFIGURATION_URL = `${DOCS_URL}/#/configuration`;
 export const FOLDERS_CONFIGURATION_URL = `${CONFIGURATION_URL}/folders`;

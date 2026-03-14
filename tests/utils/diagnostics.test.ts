@@ -151,6 +151,25 @@ describe('getDiagnostics', () => {
     });
   });
 
+  it('should include problems in diagnostics', async () => {
+    const deviceRegistryManager = mock<DeviceRegistryManager>();
+    deviceRegistryManager.getMatchingDevices.mockResolvedValue([]);
+
+    const problems = {
+      config_upgrade: true,
+      legacy_resource: false,
+    };
+
+    const result = await getDiagnostics(
+      hass,
+      deviceRegistryManager,
+      { cameras: [{ camera_entity: 'camera.office' }] },
+      problems,
+    );
+
+    expect(result.problems).toEqual(problems);
+  });
+
   it('should fetch diagnostics without device model', async () => {
     const deviceRegistryManager = mock<DeviceRegistryManager>();
     deviceRegistryManager.getMatchingDevices.mockResolvedValue([]);

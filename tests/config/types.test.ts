@@ -441,7 +441,15 @@ describe('config defaults', () => {
             enabled: true,
             priority: 50,
           },
-          upgrade: {
+          problem_config_upgrade: {
+            enabled: true,
+            priority: 50,
+          },
+          problem_legacy_resource: {
+            enabled: true,
+            priority: 50,
+          },
+          problem_stream_not_loading: {
             enabled: true,
             priority: 50,
           },

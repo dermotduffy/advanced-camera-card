@@ -7,6 +7,10 @@ import { styleMap } from 'lit/directives/style-map.js';
 import 'web-dialog';
 import { actionHandler } from './action-handler-directive.js';
 import { CardController } from './card-controller/controller';
+import type {
+  ProblemKey,
+  ProblemTriggerEventData,
+} from './card-controller/problems/types.js';
 import { MenuButtonController } from './components-lib/menu-button-controller';
 import './components/effects/effects';
 import './components/elements.js';
@@ -170,7 +174,9 @@ class AdvancedCameraCard extends LitElement {
     }
 
     if (!this._controller.getInitializationManager().isInitializedMandatory()) {
-      this._controller.getInitializationManager().initializeMandatory();
+      /* async */ this._controller.getInitializationManager().initializeMandatory();
+    } else if (!this._controller.getInitializationManager().isInitializedBackground()) {
+      /* async */ this._controller.getInitializationManager().initializeBackground();
     }
     return true;
   }
@@ -288,7 +294,7 @@ class AdvancedCameraCard extends LitElement {
           cameraManager: this._controller.getCameraManager(),
           view: this._controller.getViewManager().getView(),
           mediaLoadedInfo: this._controller.getMediaLoadedInfoManager().get(),
-          isUpgradeable: this._controller.getConfigManager().isUpgradeable(),
+          problems: this._controller.getProblemManager().getProblemResults(),
         })}
         .config=${this._config.status_bar}
       ></advanced-camera-card-status-bar>
@@ -365,6 +371,12 @@ class AdvancedCameraCard extends LitElement {
           }}
           @advanced-camera-card:media:unloaded=${() =>
             this._controller.getMediaLoadedInfoManager().clear()}
+          @advanced-camera-card:problem:notify=${(ev: CustomEvent<ProblemKey>) =>
+            this._controller.getProblemManager().forceNotify(ev.detail)}
+          @advanced-camera-card:problem:trigger=${({
+            detail: { key, ...context },
+          }: CustomEvent<ProblemTriggerEventData>) =>
+            this._controller.getProblemManager().trigger(key, context)}
           @advanced-camera-card:media:volumechange=${
             () => this.requestUpdate() /* Refresh mute menu button */
           }
@@ -411,6 +423,7 @@ class AdvancedCameraCard extends LitElement {
                 ? this._controller.getTriggersManager().getTriggeredCameraIDs()
                 : undefined}
               .deviceRegistryManager=${this._controller.getDeviceRegistryManager()}
+              .problems=${this._controller.getProblemManager().getProblemPresence()}
             ></advanced-camera-card-views>
             ${this._controller.getMessageManager().hasMessage()
               ? // Keep message rendering to last to show messages that may have been

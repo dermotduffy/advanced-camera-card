@@ -123,27 +123,6 @@ describe('ConfigManager', () => {
     expect(manager.getConfig()).toBeNull();
     expect(manager.getNonOverriddenConfig()).toBeNull();
     expect(manager.getRawConfig()).toBeNull();
-    expect(manager.isUpgradeable()).toBe(false);
-  });
-
-  describe('isUpgradeable', () => {
-    it('should return true for upgradeable config', () => {
-      const manager = new ConfigManager(createCardAPI());
-      manager.setConfig({
-        type: 'custom:frigate-card',
-        cameras: [TEST_CAMERAS.OFFICE],
-      });
-      expect(manager.isUpgradeable()).toBe(true);
-    });
-
-    it('should return false for non-upgradeable config', () => {
-      const manager = new ConfigManager(createCardAPI());
-      manager.setConfig({
-        type: 'custom:advanced-camera-card',
-        cameras: [TEST_CAMERAS.OFFICE],
-      });
-      expect(manager.isUpgradeable()).toBe(false);
-    });
   });
 
   it('should successfully parse basic config', () => {

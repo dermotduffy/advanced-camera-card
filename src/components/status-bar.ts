@@ -4,6 +4,7 @@ import {
   PropertyValues,
   TemplateResult,
   html,
+  nothing,
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -101,6 +102,7 @@ export class AdvancedCameraCardStatusBar extends LitElement {
             return html`<div
               .actionHandler=${handler}
               class="${classes}"
+              title=${item.title ?? nothing}
               data-severity=${item.severity ?? ''}
               @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
             >
@@ -111,6 +113,7 @@ export class AdvancedCameraCardStatusBar extends LitElement {
               .actionHandler=${handler}
               .icon=${{ icon: item.icon }}
               class="${classes}"
+              title=${item.title ?? nothing}
               data-severity=${item.severity ?? ''}
               @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
             ></advanced-camera-card-icon>`;
@@ -118,6 +121,7 @@ export class AdvancedCameraCardStatusBar extends LitElement {
             return html`<img
               .actionHandler=${handler}
               class="${classes}"
+              title=${item.title ?? nothing}
               src="${item.image}"
               data-severity=${item.severity ?? ''}
               @action=${(ev) => this._controller.actionHandler(ev, item.actions)}

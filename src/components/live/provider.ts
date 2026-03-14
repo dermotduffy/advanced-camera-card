@@ -18,7 +18,6 @@ import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch
 import { PartialZoomSettings } from '../../components-lib/zoom/types.js';
 import { LiveConfig } from '../../config/schema/live.js';
 import { CardWideConfig } from '../../config/schema/types.js';
-import { STREAM_TROUBLESHOOTING_URL } from '../../const.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import liveProviderStyle from '../../scss/live-provider.scss';
@@ -28,6 +27,7 @@ import {
   MediaPlayerController,
   MediaPlayerElement,
 } from '../../types.js';
+import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event.js';
 import { getResolvedLiveProvider } from '../../utils/live-provider.js';
 import { dispatchMediaUnloadedEvent } from '../../utils/media-info.js';
 import '../icon.js';
@@ -73,9 +73,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   @state()
   private _hasProviderError = false;
 
-  @state()
-  private _showStreamTroubleshooting = false;
-
   private _refProvider: Ref<MediaPlayerElement> = createRef();
 
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
@@ -118,8 +115,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       !!this.camera?.getConfig()?.camera_entity &&
       !!this.hass &&
       !!this.liveConfig?.show_image_during_load &&
-      !this._showStreamTroubleshooting &&
-      // Do not continue to show image during loading if an error has occurred.
       !this._hasProviderError
     );
   }
@@ -131,11 +126,19 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   private _videoMediaShowHandler(): void {
     this._isVideoMediaLoaded = true;
-    this._showStreamTroubleshooting = false;
   }
 
-  private _providerErrorHandler(): void {
+  private _providerErrorHandler(ev: Event): void {
+    ev.stopPropagation();
     this._hasProviderError = true;
+
+    const cameraID = this.camera?.getID();
+    if (cameraID) {
+      fireAdvancedCameraCardEvent(this, 'problem:trigger', {
+        key: 'stream_not_loading' as const,
+        cameraID,
+      });
+    }
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -305,7 +308,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               // so it should not be hidden.
               hidden: false,
             })}
-            @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
+            @advanced-camera-card:live:error=${(ev: Event) =>
+              this._providerErrorHandler(ev)}
             @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
               ev.detail.placeholder = provider !== 'image';
             }}
@@ -319,7 +323,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
             .hass=${this.hass}
             .cameraConfig=${cameraConfig}
             ?controls=${this._getEffectiveBuiltinControls()}
-            @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
+            @advanced-camera-card:live:error=${(ev: Event) =>
+              this._providerErrorHandler(ev)}
           >
           </advanced-camera-card-live-ha>`
         : provider === 'go2rtc'
@@ -332,7 +337,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               .microphoneState=${this.microphoneState}
               .microphoneConfig=${this.liveConfig.microphone}
               ?controls=${this._getEffectiveBuiltinControls()}
-              @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
+              @advanced-camera-card:live:error=${(ev: Event) =>
+                this._providerErrorHandler(ev)}
             >
             </advanced-camera-card-live-go2rtc>`
           : provider === 'webrtc-card'
@@ -344,7 +350,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                 .cameraEndpoints=${this.cameraEndpoints}
                 .cardWideConfig=${this.cardWideConfig}
                 ?controls=${this._getEffectiveBuiltinControls()}
-                @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
+                @advanced-camera-card:live:error=${(ev: Event) =>
+                  this._providerErrorHandler(ev)}
               >
               </advanced-camera-card-live-webrtc-card>`
             : provider === 'jsmpeg'
@@ -355,7 +362,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                   .cameraConfig=${cameraConfig}
                   .cameraEndpoints=${this.cameraEndpoints}
                   .cardWideConfig=${this.cardWideConfig}
-                  @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
+                  @advanced-camera-card:live:error=${(ev: Event) =>
+                    this._providerErrorHandler(ev)}
                 >
                 </advanced-camera-card-live-jsmpeg>`
               : html``}
@@ -364,24 +372,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       ? html`<advanced-camera-card-icon
           title=${localize('error.awaiting_live')}
           .icon=${{ icon: 'mdi:progress-helper' }}
-          @click=${() => {
-            this._showStreamTroubleshooting = !this._showStreamTroubleshooting;
-          }}
+          @click=${() =>
+            fireAdvancedCameraCardEvent(this, 'problem:notify', 'stream_not_loading')}
         ></advanced-camera-card-icon>`
-      : ''}
-    ${this._showStreamTroubleshooting
-      ? renderMessage(
-          {
-            type: 'error',
-            icon: 'mdi:camera-off',
-            message: localize('error.stream_not_loading'),
-            url: {
-              link: STREAM_TROUBLESHOOTING_URL,
-              title: localize('error.troubleshooting'),
-            },
-          },
-          { overlay: true },
-        )
       : ''}`;
   }
 

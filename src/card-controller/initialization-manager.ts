@@ -1,6 +1,6 @@
 import PQueue from 'p-queue';
-import { loadLanguages } from '../localize/localize';
 import { sideLoadHomeAssistantElements } from '../ha/side-load-ha-elements';
+import { loadLanguages } from '../localize/localize';
 import { Initializer } from '../utils/initializer/initializer';
 import { CardInitializerAPI } from './types';
 
@@ -9,6 +9,7 @@ export enum InitializationAspect {
   SIDE_LOAD_ELEMENTS = 'side-load-elements',
   CAMERAS = 'cameras',
   MICROPHONE_CONNECT = 'microphone-connect',
+  PROBLEMS = 'problems',
   VIEW = 'view',
 
   // The initial triggering must happen after both the config is set (and
@@ -48,6 +49,10 @@ export class InitializationManager {
 
   public isInitialized(aspect: InitializationAspect): boolean {
     return this._initializer.isInitialized(aspect);
+  }
+
+  public isInitializedBackground(): boolean {
+    return this._initializer.isInitialized(InitializationAspect.PROBLEMS);
   }
 
   public isInitializedMandatory(): boolean {
@@ -165,6 +170,25 @@ export class InitializationManager {
     });
 
     this._api.getCardElementManager().update();
+  }
+
+  public async initializeBackground(): Promise<void> {
+    await this._initializationQueue.add(() => this._initializeBackground());
+  }
+
+  private async _initializeBackground(): Promise<void> {
+    const hass = this._api.getHASSManager().getHASS();
+    if (!hass) {
+      return;
+    }
+
+    await this._initializer.initializeIfNecessary(
+      InitializationAspect.PROBLEMS,
+      async () => {
+        await this._api.getProblemManager().detectStatic(hass);
+        return true;
+      },
+    );
   }
 
   public uninitialize(aspect: InitializationAspect): void {

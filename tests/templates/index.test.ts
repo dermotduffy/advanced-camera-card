@@ -44,7 +44,7 @@ describe('TemplateRenderer', () => {
   it('should include triggers', () => {
     const conditionState: ConditionState = {
       camera: 'camera',
-      view: 'view',
+      view: 'live',
     };
     const triggerData: ConditionsTriggerData = {
       camera: {
@@ -70,7 +70,7 @@ describe('TemplateRenderer', () => {
     expect(renderTemplate).toHaveBeenCalledWith(hass, 'value', {
       acc: {
         camera: 'camera',
-        view: 'view',
+        view: 'live',
         trigger: {
           camera: {
             to: 'camera',
@@ -80,7 +80,7 @@ describe('TemplateRenderer', () => {
       },
       advanced_camera_card: {
         camera: 'camera',
-        view: 'view',
+        view: 'live',
         trigger: {
           camera: {
             to: 'camera',

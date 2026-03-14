@@ -2,13 +2,17 @@ import { isEqual } from 'lodash-es';
 import { CameraManager } from '../camera-manager/manager';
 import { StatusBarItem } from '../config/schema/actions/types';
 import { StatusBarConfig } from '../config/schema/status-bar';
-import { localize } from '../localize/localize';
 import { MediaLoadedInfo } from '../types';
 import { createNotificationAction } from '../utils/action';
 import { View } from '../view/view';
+import { KeyedProblemResult, ProblemKey } from './problems/types';
 import { CardStatusBarAPI } from './types';
 
 const RESOLUTION_TOLERANCE_PCT = 0.01;
+
+const problemKeyToStatusBarKey = (key: ProblemKey): keyof StatusBarConfig['items'] => {
+  return `problem_${key}`;
+};
 
 export class StatusBarItemManager {
   private _api: CardStatusBarAPI;
@@ -44,7 +48,7 @@ export class StatusBarItemManager {
     cameraManager?: CameraManager | null;
     view?: View | null;
     mediaLoadedInfo?: MediaLoadedInfo | null;
-    isUpgradeable?: boolean;
+    problems?: KeyedProblemResult[] | null;
   }): StatusBarItem[] {
     const cameraMetadata = options?.view?.camera
       ? options?.cameraManager?.getCameraMetadata(options.view.camera)
@@ -128,26 +132,22 @@ export class StatusBarItemManager {
           ]
         : []),
 
-      ...(options?.isUpgradeable
-        ? [
-            {
-              type: 'custom:advanced-camera-card-status-bar-icon' as const,
-              icon: 'mdi:update',
-              severity: 'medium' as const,
-              actions: {
-                tap_action: createNotificationAction({
-                  heading: {
-                    text: localize('notification.upgrade.heading'),
-                    icon: 'mdi:update',
-                    severity: 'medium',
-                  },
-                  text: localize('notification.upgrade.text'),
-                }),
-              },
-              ...options?.statusConfig?.items.upgrade,
-            },
-          ]
-        : []),
+      ...(options?.problems ?? [])
+        .filter(
+          ({ key }) =>
+            options?.statusConfig?.items[problemKeyToStatusBarKey(key)]?.enabled !==
+            false,
+        )
+        .map(({ key, problem }) => ({
+          type: 'custom:advanced-camera-card-status-bar-icon' as const,
+          icon: problem.icon,
+          severity: problem.severity,
+          title: problem.notification.heading?.text,
+          actions: {
+            tap_action: createNotificationAction(problem.notification),
+          },
+          ...options?.statusConfig?.items[problemKeyToStatusBarKey(key)],
+        })),
       ...this._dynamicItems,
     ];
   }

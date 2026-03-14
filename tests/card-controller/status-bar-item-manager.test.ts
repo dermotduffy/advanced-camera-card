@@ -241,12 +241,28 @@ describe('StatusBarItemManager', () => {
       });
     });
 
-    describe('upgrade', () => {
-      it('should show upgrade item when upgradeable', () => {
+    describe('problems', () => {
+      it('should show problem items', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems({
-          isUpgradeable: true,
+          problems: [
+            {
+              key: 'config_upgrade',
+              problem: {
+                icon: 'mdi:update',
+                severity: 'medium',
+                notification: {
+                  heading: {
+                    text: 'Upgrade available',
+                    icon: 'mdi:update',
+                    severity: 'medium',
+                  },
+                  text: 'Upgrade text',
+                },
+              },
+            },
+          ],
         });
 
         expect(items).toContainEqual(
@@ -254,6 +270,7 @@ describe('StatusBarItemManager', () => {
             type: 'custom:advanced-camera-card-status-bar-icon' as const,
             icon: 'mdi:update',
             severity: 'medium',
+            title: 'Upgrade available',
             actions: expect.objectContaining({
               tap_action: expect.objectContaining({
                 action: 'fire-dom-event',
@@ -264,11 +281,11 @@ describe('StatusBarItemManager', () => {
         );
       });
 
-      it('should not show upgrade item when not upgradeable', () => {
+      it('should not show problem items when empty', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems({
-          isUpgradeable: false,
+          problems: [],
         });
 
         expect(items).not.toContainEqual(
@@ -278,7 +295,7 @@ describe('StatusBarItemManager', () => {
         );
       });
 
-      it('should not show upgrade item by default', () => {
+      it('should not show problem items by default', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems();
@@ -286,6 +303,99 @@ describe('StatusBarItemManager', () => {
         expect(items).not.toContainEqual(
           expect.objectContaining({
             icon: 'mdi:update',
+          }),
+        );
+      });
+
+      it('should filter out disabled problems', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+
+        const items = manager.calculateItems({
+          statusConfig: {
+            position: 'bottom',
+            style: 'popup',
+            popup_seconds: 3,
+            height: 40,
+            items: {
+              engine: { enabled: true, priority: 50 },
+              resolution: { enabled: true, priority: 50 },
+              severity: { enabled: true, priority: 50 },
+              technology: { enabled: true, priority: 50 },
+              title: { enabled: true, priority: 50 },
+              problem_config_upgrade: { enabled: false, priority: 50 },
+              problem_legacy_resource: { enabled: true, priority: 50 },
+              problem_stream_not_loading: { enabled: true, priority: 50 },
+            },
+          },
+          problems: [
+            {
+              key: 'config_upgrade',
+              problem: {
+                icon: 'mdi:update',
+                severity: 'medium',
+                notification: {
+                  heading: {
+                    text: 'Upgrade available',
+                    icon: 'mdi:update',
+                    severity: 'medium',
+                  },
+                  text: 'Upgrade text',
+                },
+              },
+            },
+          ],
+        });
+
+        expect(items).not.toContainEqual(
+          expect.objectContaining({
+            icon: 'mdi:update',
+          }),
+        );
+      });
+
+      it('should apply config overrides to problem items', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+
+        const items = manager.calculateItems({
+          statusConfig: {
+            position: 'bottom',
+            style: 'popup',
+            popup_seconds: 3,
+            height: 40,
+            items: {
+              engine: { enabled: true, priority: 50 },
+              resolution: { enabled: true, priority: 50 },
+              severity: { enabled: true, priority: 50 },
+              technology: { enabled: true, priority: 50 },
+              title: { enabled: true, priority: 50 },
+              problem_config_upgrade: { enabled: true, priority: 90 },
+              problem_legacy_resource: { enabled: true, priority: 50 },
+              problem_stream_not_loading: { enabled: true, priority: 50 },
+            },
+          },
+          problems: [
+            {
+              key: 'config_upgrade',
+              problem: {
+                icon: 'mdi:update',
+                severity: 'medium',
+                notification: {
+                  heading: {
+                    text: 'Upgrade available',
+                    icon: 'mdi:update',
+                    severity: 'medium',
+                  },
+                  text: 'Upgrade text',
+                },
+              },
+            },
+          ],
+        });
+
+        expect(items).toContainEqual(
+          expect.objectContaining({
+            icon: 'mdi:update',
+            priority: 90,
           }),
         );
       });

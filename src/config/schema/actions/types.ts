@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { linkSchema } from '../common/link';
 import { severitySchema } from '../common/severity';
 import { statusBarItemBaseSchema } from '../common/status-bar';
 import { advancedCameraCardCustomActionsBaseSchema } from './custom/base';
@@ -138,6 +139,7 @@ const notificationSchema = z.object({
   controls: notificationControlSchema.array().optional(),
   details: notificationDetailSchema.array().optional(),
   text: z.string().optional(),
+  link: linkSchema.optional(),
 });
 export type Notification = z.infer<typeof notificationSchema>;
 
@@ -157,6 +159,7 @@ const statusBarItemElementsBaseSchema = statusBarItemBaseSchema.extend({
   exclusive: z.boolean().default(false).optional(),
   expand: z.boolean().default(false).optional(),
   severity: severitySchema.optional(),
+  title: z.string().optional(),
   actions: actionsBaseSchema.optional(),
 });
 
