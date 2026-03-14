@@ -33,6 +33,7 @@ import { MessageManager } from './message-manager';
 import { MicrophoneManager } from './microphone-manager';
 import { NotificationManager } from './notification-manager';
 import { PIPManager } from './pip-manager';
+import { ProblemManager } from './problems/manager';
 import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
@@ -60,6 +61,7 @@ import {
   CardMicrophoneAPI,
   CardNotificationAPI,
   CardPIPAPI,
+  CardProblemAPI,
   CardQueryStringAPI,
   CardStyleAPI,
   CardTriggersAPI,
@@ -83,6 +85,7 @@ export class CardController
     CardFullscreenAPI,
     CardHASSAPI,
     CardPIPAPI,
+    CardProblemAPI,
     CardInitializerAPI,
     CardInteractionAPI,
     CardKeyboardStateAPI,
@@ -127,6 +130,7 @@ export class CardController
   private _microphoneManager = new MicrophoneManager(this);
   private _notificationManager = new NotificationManager(this);
   private _pipManager = new PIPManager(this);
+  private _problemManager = new ProblemManager(this);
   private _queryStringManager = new QueryStringManager(this);
   private _statusBarItemManager = new StatusBarItemManager(this);
   private _styleManager = new StyleManager(this);
@@ -258,6 +262,10 @@ export class CardController
 
   public getPIPManager(): PIPManager {
     return this._pipManager;
+  }
+
+  public getProblemManager(): ProblemManager {
+    return this._problemManager;
   }
 
   public getQueryStringManager(): QueryStringManager {

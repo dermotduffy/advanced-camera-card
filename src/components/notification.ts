@@ -61,6 +61,17 @@ export class AdvancedCameraCardNotification extends LitElement {
           ${heading ? this._renderDetail(heading, true) : ''}
           ${details.map((detail) => this._renderDetail(detail))}
           ${text ? html`<div class="description">${text}</div>` : ''}
+          ${this.notification.link
+            ? html`<div class="url">
+                <a
+                  href=${this.notification.link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  @click=${stopEventFromActivatingCardWideActions}
+                  >${this.notification.link.title}</a
+                >
+              </div>`
+            : ''}
         </div>
         ${controls.length
           ? html`<div class="controls">

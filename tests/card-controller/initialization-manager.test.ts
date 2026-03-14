@@ -215,6 +215,65 @@ describe('InitializationManager', () => {
     });
   });
 
+  it('should report background initialization status', () => {
+    const initializer = mock<Initializer>();
+    const manager = new InitializationManager(createCardAPI(), initializer);
+
+    initializer.isInitialized.mockReturnValue(false);
+    expect(manager.isInitializedBackground()).toBe(false);
+
+    initializer.isInitialized.mockReturnValue(true);
+    expect(manager.isInitializedBackground()).toBe(true);
+
+    expect(initializer.isInitialized).toBeCalledWith(InitializationAspect.PROBLEMS);
+  });
+
+  describe('should initialize background', () => {
+    it('without hass', async () => {
+      const api = createCardAPI();
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+
+      await manager.initializeBackground();
+
+      expect(initializer.initializeIfNecessary).not.toBeCalled();
+    });
+
+    it('successfully', async () => {
+      const api = createCardAPI();
+      const hass = createHASS();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+      const initializer = mock<Initializer>();
+      initializer.initializeIfNecessary.mockResolvedValue(true);
+      const manager = new InitializationManager(api, initializer);
+
+      await manager.initializeBackground();
+
+      expect(initializer.initializeIfNecessary).toBeCalledWith(
+        InitializationAspect.PROBLEMS,
+        expect.any(Function),
+      );
+    });
+
+    it('should call detectStatic on problem manager', async () => {
+      const api = createCardAPI();
+      const hass = createHASS();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+      const initializer = mock<Initializer>();
+      initializer.initializeIfNecessary.mockImplementation(async (_aspect, callback) => {
+        return callback ? await callback() : true;
+      });
+
+      const manager = new InitializationManager(api, initializer);
+
+      await manager.initializeBackground();
+
+      expect(api.getProblemManager().detectStatic).toBeCalledWith(hass);
+    });
+  });
+
   it('should uninitialize', () => {
     const initializer = mock<Initializer>();
     const manager = new InitializationManager(createCardAPI(), initializer);

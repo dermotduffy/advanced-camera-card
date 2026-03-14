@@ -26,7 +26,11 @@ export const statusBarConfigDefault = {
     severity: statusBarItemDefault,
     technology: statusBarItemDefault,
     title: statusBarItemDefault,
-    upgrade: statusBarItemDefault,
+
+    // Problems.
+    problem_config_upgrade: statusBarItemDefault,
+    problem_legacy_resource: statusBarItemDefault,
+    problem_stream_not_loading: statusBarItemDefault,
   },
   position: 'bottom' as const,
   style: 'popup' as const,
@@ -46,15 +50,25 @@ export const statusBarConfigSchema = z
     items: z
       .object({
         engine: statusBarItemBaseSchema.default(statusBarConfigDefault.items.engine),
-        technology: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.technology,
-        ),
         resolution: statusBarItemBaseSchema.default(
           statusBarConfigDefault.items.resolution,
         ),
         severity: statusBarItemBaseSchema.default(statusBarConfigDefault.items.severity),
+        technology: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.technology,
+        ),
         title: statusBarItemBaseSchema.default(statusBarConfigDefault.items.title),
-        upgrade: statusBarItemBaseSchema.default(statusBarConfigDefault.items.upgrade),
+
+        // Problems.
+        problem_config_upgrade: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.problem_config_upgrade,
+        ),
+        problem_legacy_resource: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.problem_legacy_resource,
+        ),
+        problem_stream_not_loading: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.problem_stream_not_loading,
+        ),
       })
       .default(statusBarConfigDefault.items),
   })

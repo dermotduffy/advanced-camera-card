@@ -2281,8 +2281,8 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${renderMessage({
                   message: localize('config.folders.ha.path_info'),
                   icon: 'mdi:information-outline',
-                  url: {
-                    link: FOLDERS_CONFIGURATION_URL,
+                  link: {
+                    url: FOLDERS_CONFIGURATION_URL,
                     title: localize('error.configuration'),
                   },
                 })}

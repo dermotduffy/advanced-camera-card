@@ -156,6 +156,7 @@ elements:
 | `priority`   | `50`    | The item priority. Higher priority items are ordered closer to the start of the status bar (i.e. an item with priority `70` will order further to the left than an item with priority `60`). Minimum `0`, maximum `100`. |
 | `severity`   |         | An optional severity level, one of `low`, `medium` or `high`. Colors the item accordingly.                                                                                                                               |
 | `sufficient` | `false` | Whether or not this item is sufficient to display the status bar if it's otherwise hidden (e.g. with the `popup` [status bar style](../../status-bar.md)).                                                               |
+| `title`      |         | An optional tooltip shown on hover.                                                                                                                                                                                      |
 
 ## `status-bar-image`
 
@@ -178,6 +179,7 @@ elements:
 | `priority`   | `50`    | The item priority. Higher priority items are ordered closer to the start of the status bar (i.e. an item with priority `70` will order further to the left than an item with priority `60`). Minimum `0`, maximum `100`. |
 | `severity`   |         | An optional severity level, one of `low`, `medium` or `high`. Colors the item accordingly.                                                                                                                               |
 | `sufficient` | `false` | Whether or not this item is sufficient to display the status bar if it's otherwise hidden (e.g. with the `popup` [status bar style](../../status-bar.md)).                                                               |
+| `title`      |         | An optional tooltip shown on hover.                                                                                                                                                                                      |
 
 ## `status-bar-string`
 
@@ -200,6 +202,7 @@ elements:
 | `priority`   | `50`    | The item priority. Higher priority items are ordered closer to the start of the status bar (i.e. an item with priority `70` will order further to the left than an item with priority `60`). Minimum `0`, maximum `100`. |
 | `severity`   |         | An optional severity level, one of `low`, `medium` or `high`. Colors the item accordingly.                                                                                                                               |
 | `sufficient` | `false` | Whether or not this item is sufficient to display the status bar if it's otherwise hidden (e.g. with the `popup` [status bar style](../../status-bar.md)).                                                               |
+| `title`      |         | An optional tooltip shown on hover.                                                                                                                                                                                      |
 
 ## Fully expanded reference
 

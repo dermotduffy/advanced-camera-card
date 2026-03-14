@@ -290,3 +290,21 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+.url {
+  margin-top: 8px;
+  width: 100%;
+
+  a {
+    color: var(--advanced-camera-card-notification-text-color);
+    font-size: 13px;
+    opacity: 0.8;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}

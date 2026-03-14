@@ -47,6 +47,7 @@ import { MessageManager } from '../src/card-controller/message-manager';
 import { MicrophoneManager } from '../src/card-controller/microphone-manager';
 import { NotificationManager } from '../src/card-controller/notification-manager';
 import { PIPManager } from '../src/card-controller/pip-manager';
+import { ProblemManager } from '../src/card-controller/problems/manager';
 import { QueryStringManager } from '../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../src/card-controller/style-manager';
@@ -680,6 +681,7 @@ export const createCardAPI = (): CardController => {
   api.getMicrophoneManager.mockReturnValue(mock<MicrophoneManager>());
   api.getNotificationManager.mockReturnValue(mock<NotificationManager>());
   api.getPIPManager.mockReturnValue(mock<PIPManager>());
+  api.getProblemManager.mockReturnValue(mock<ProblemManager>());
   api.getQueryStringManager.mockReturnValue(mock<QueryStringManager>());
   api.getStatusBarItemManager.mockReturnValue(mock<StatusBarItemManager>());
   api.getStyleManager.mockReturnValue(mock<StyleManager>());

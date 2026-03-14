@@ -767,7 +767,6 @@
     "no_supported_camera": "The selected camera or media does not support this view",
     "no_supported_cameras": "No cameras support this view",
     "reconnecting": "Reconnecting",
-    "stream_not_loading": "The video stream has not yet loaded. This is could for any number of reasons. If configured (and by default), there will be an image refreshing every second until the stream loads correctly",
     "too_many_automations": "Too many nested automation calls, please check your configuration for loops",
     "troubleshooting": "Check troubleshooting",
     "unknown": "Unknown error",
@@ -823,10 +822,21 @@
   "media_viewer": {
     "unseekable": "Seek time not found in media"
   },
-  "notification": {
-    "upgrade": {
+  "problems": {
+    "troubleshooting_guide": "Troubleshooting guide",
+    "config_upgrade": {
       "heading": "Configuration upgrade available",
       "text": "A configuration upgrade is available. To upgrade, edit this card (Dashboard pencil icon \u2192 Three-dot menu \u2192 Edit) and click the 'Automatic Upgrade' button in the card editor."
+    },
+    "legacy_resource": {
+      "heading": "Legacy dashboard resource detected",
+      "text_both": "The legacy 'frigate-hass-card.js' resource is still registered, please either manually remove it or click the delete icon to automatically remove it. It will be removed in a future release.",
+      "text_only_legacy": "The legacy 'frigate-hass-card.js' resource must be replaced with 'advanced-camera-card.js'. It will be removed in a future release.",
+      "remove": "Remove legacy resource"
+    },
+    "stream_not_loading": {
+      "heading": "Live stream not loading",
+      "text": "The video stream has not yet loaded. This could be for any number of reasons. If configured (and by default), there will be an image refreshing every second until the stream loads correctly"
     }
   },
   "thumbnail": {

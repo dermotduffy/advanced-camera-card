@@ -1,9 +1,10 @@
 import yaml from 'js-yaml';
 import { describe, expect, it } from 'vitest';
 import { MessageController } from '../../../src/components-lib/message/controller';
+import { Link } from '../../../src/config/schema/common/link';
 import { TROUBLESHOOTING_URL } from '../../../src/const';
 import { localize } from '../../../src/localize/localize';
-import { Message, MessageType, MessageURL } from '../../../src/types';
+import { Message, MessageType } from '../../../src/types';
 
 describe('MessageController', () => {
   describe('should return the correct message string', () => {
@@ -65,8 +66,8 @@ describe('MessageController', () => {
     it('should show for errors', () => {
       const controller = new MessageController();
       const message: Message = { message: 'Error message', type: 'error' };
-      expect(controller.getURL(message)).toEqual({
-        link: TROUBLESHOOTING_URL,
+      expect(controller.getLink(message)).toEqual({
+        url: TROUBLESHOOTING_URL,
         title: localize('error.troubleshooting'),
       });
     });
@@ -81,7 +82,7 @@ describe('MessageController', () => {
             icon: 'mdi:car',
             type,
           };
-          expect(controller.getURL(message)).toBeNull();
+          expect(controller.getLink(message)).toBeNull();
         },
       );
     });
@@ -90,21 +91,21 @@ describe('MessageController', () => {
       it('by default', () => {
         const controller = new MessageController();
         const message: Message = { message: 'Error message', type: 'error' };
-        expect(controller.getURL(message)?.link).toBe(TROUBLESHOOTING_URL);
+        expect(controller.getLink(message)?.url).toBe(TROUBLESHOOTING_URL);
       });
 
       it('when specified', () => {
         const controller = new MessageController();
-        const url: MessageURL = {
-          link: 'link',
+        const url: Link = {
+          url: 'link',
           title: 'title',
         };
         const message: Message = {
           message: 'Error message',
           type: 'error',
-          url,
+          link: url,
         };
-        expect(controller.getURL(message)).toBe(url);
+        expect(controller.getLink(message)).toBe(url);
       });
     });
   });
