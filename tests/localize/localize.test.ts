@@ -188,9 +188,7 @@ describe('loadLanguages', () => {
 
     await loadLanguages(hass);
 
-    expect(localize('common.advanced_camera_card')).toBe(
-      'Advanced Camera Card',
-    );
+    expect(localize('common.advanced_camera_card')).toBe('Advanced Camera Card');
   });
 });
 
