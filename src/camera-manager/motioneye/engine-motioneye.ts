@@ -96,6 +96,8 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     parent?: RichBrowseMedia<BrowseMediaMetadata>,
   ): BrowseMediaMetadata | null {
     let startDate = parent?._metadata?.startDate ?? new Date();
+    /* istanbul ignore next: dateFormat is always non-null for files because
+       Zod requires file_pattern to contain % -- @preserve */
     if (dateFormat) {
       const extensionlessTitle = media.title.replace(/\.[^/.]+$/, '');
       startDate = parse(extensionlessTitle, dateFormat, startDate);
