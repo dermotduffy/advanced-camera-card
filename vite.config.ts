@@ -2,14 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 // These globs are expected to have 100% coverage.
 const FULL_COVERAGE = [
-  'src/camera-manager/*.ts',
-  'src/camera-manager/browse-media/*.ts',
-  'src/camera-manager/frigate/*.ts',
-  'src/camera-manager/generic/*.ts',
-  'src/camera-manager/motioneye/camera.ts',
-  'src/camera-manager/reolink/*.ts',
-  'src/camera-manager/tplink/*.ts',
-  'src/camera-manager/utils/**/*.ts',
+  'src/camera-manager/**/*.ts',
   'src/card-controller/**/*.ts',
   'src/components-lib/**/*.ts',
   'src/conditions/**/*.ts',
