@@ -9,6 +9,7 @@ const FULL_COVERAGE = [
   'src/config/**/*.ts',
   'src/const.ts',
   'src/ha/**/*.ts',
+  'src/localize/**/*.ts',
   'src/types.ts',
   'src/utils/**/*.ts',
   'src/view/*.ts',

@@ -70,9 +70,7 @@ export const loadLanguages = async (hass: HomeAssistant): Promise<boolean> => {
     languages[lang] = await import('./languages/pt-BR.json');
   }
 
-  if (lang) {
-    advancedCameraCardLanguage = lang;
-  }
+  advancedCameraCardLanguage = lang;
   return true;
 };
 
