@@ -1,48 +1,23 @@
 import { defineConfig } from 'vitest/config';
 
-// These globs are expected to have 100% coverage.
-const FULL_COVERAGE = [
-  'src/camera-manager/**/*.ts',
-  'src/card-controller/**/*.ts',
-  'src/components-lib/**/*.ts',
-  'src/conditions/**/*.ts',
-  'src/config/**/*.ts',
-  'src/const.ts',
-  'src/ha/**/*.ts',
-  'src/localize/**/*.ts',
-  'src/types.ts',
-  'src/utils/**/*.ts',
-  'src/view/*.ts',
-];
-
 const EXCLUSIONS = [
   '.eslintrc.cjs',
   'docs/**',
-  'src/components-lib/timeline/controller.ts',
   'tests/**',
+
+  // Web-components.
+  'src/card.ts',
+  'src/components/**/*.ts',
+  'src/editor.ts',
+
+  // Timeline controller (can be added later).
+  'src/components-lib/timeline/controller.ts',
+
+  // HA patches.
+  'src/patches/**/*.ts',
 ];
 
 const INCLUSIONS = ['tests/**/*.test.ts'];
-
-interface Threshold {
-  statements: number;
-  branches: number;
-  functions: number;
-  lines: number;
-  perFile: boolean;
-}
-
-const fullCoverage: Threshold = {
-  statements: 100,
-  branches: 100,
-  functions: 100,
-  lines: 100,
-  perFile: true,
-};
-
-const calculateFullCoverageThresholds = (): Record<string, Threshold> => {
-  return FULL_COVERAGE.reduce((a, v) => ({ ...a, [v]: fullCoverage }), {});
-};
 
 // ts-prune-ignore-next
 export default defineConfig({
@@ -61,7 +36,13 @@ export default defineConfig({
       // Favor istanbul for coverage over v8 due to better accuracy.
       provider: 'istanbul',
       thresholds: {
-        ...calculateFullCoverageThresholds(),
+        perFile: true,
+        'src/**/*.ts': {
+          statements: 100,
+          branches: 100,
+          functions: 100,
+          lines: 100,
+        },
       },
     },
   },

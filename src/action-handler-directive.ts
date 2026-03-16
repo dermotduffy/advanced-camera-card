@@ -10,8 +10,9 @@ import { ActionHandlerDetail, ActionHandlerOptions } from './ha/types.js';
 import { stopEventFromActivatingCardWideActions } from './utils/action.js';
 import { Timer } from './utils/timer.js';
 
-interface ActionHandlerInterface extends HTMLElement {
+export interface ActionHandlerInterface extends HTMLElement {
   holdTime: number;
+  connectedCallback(): void;
   bind(element: Element, options): void;
 }
 interface ActionHandlerElement extends HTMLElement {
@@ -55,16 +56,8 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
     element.actionHandlerOptions = options;
 
     element.addEventListener('contextmenu', (ev: Event) => {
-      const e = ev || window.event;
-      if (e.preventDefault) {
-        e.preventDefault();
-      }
-      if (e.stopPropagation) {
-        e.stopPropagation();
-      }
-      e.cancelBubble = true;
-      e.returnValue = false;
-      return false;
+      ev.preventDefault();
+      ev.stopPropagation();
     });
 
     const start = (): void => {
@@ -167,11 +160,7 @@ const actionHandlerBind = (
   element: ActionHandlerElement,
   options?: AdvancedCameraCardActionHandlerOptions,
 ): void => {
-  const actionhandler: ActionHandler = getActionHandler();
-  if (!actionhandler) {
-    return;
-  }
-  actionhandler.bind(element, options);
+  getActionHandler().bind(element, options);
 };
 
 export const actionHandler = directive(
@@ -181,6 +170,7 @@ export const actionHandler = directive(
       return noChange;
     }
 
+    // istanbul ignore next -- @preserve Required by Lit Directive API but never called (update() is used instead)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     render(_options?: AdvancedCameraCardActionHandlerOptions) {}
   },
