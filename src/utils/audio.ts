@@ -39,10 +39,12 @@ export const hasAudio = (
   // We check that the track is not muted because muted means no media data
   // is flowing (e.g., the source isn't producing audio). It is not related to
   // the audio being muted by the user on the receiving end.
-  if (pc) {
+  // Only trust receivers when the connection is actually established — a stale
+  // RTCPeerConnection (e.g. WebRTC failed, fell back to MSE) will have
+  // receivers with muted tracks that don't reflect actual media availability.
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2417
+  if (pc && pc.connectionState === 'connected') {
     const receivers = pc.getReceivers();
-
-    // Only trust receivers if they're populated (connection established)
     if (receivers.length > 0) {
       return receivers.some(
         (receiver) => receiver.track?.kind === 'audio' && !receiver.track?.muted,
