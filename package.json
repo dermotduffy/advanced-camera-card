@@ -185,7 +185,7 @@
     "docs-check-links": "docker run --init --rm -v \"$(pwd):/input\" -w /input lycheeverse/lychee --config lychee.toml \"./docs/\"",
     "docs-update-images": "./scripts/docs-update-images.sh",
     "docs-update-dependencies": "./scripts/docs-update-dependencies.sh",
-    "lint": "eslint 'src/**/*.ts'",
+    "lint": "eslint '{src,tests}/**/*.ts'",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "rollup": "rollup -c",

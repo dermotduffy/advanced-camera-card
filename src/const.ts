@@ -364,6 +364,11 @@ const CONF_IMAGE = 'image' as const;
 export const CONF_IMAGE_ENTITY = `${CONF_IMAGE}.entity` as const;
 export const CONF_IMAGE_ENTITY_PARAMETERS = `${CONF_IMAGE}.entity_parameters` as const;
 export const CONF_IMAGE_MODE = `${CONF_IMAGE}.mode` as const;
+export const CONF_IMAGE_PROXY_DYNAMIC = `${CONF_IMAGE}.proxy.dynamic` as const;
+export const CONF_IMAGE_PROXY_ENABLED = `${CONF_IMAGE}.proxy.enabled` as const;
+export const CONF_IMAGE_PROXY_SSL_CIPHERS = `${CONF_IMAGE}.proxy.ssl_ciphers` as const;
+export const CONF_IMAGE_PROXY_SSL_VERIFICATION =
+  `${CONF_IMAGE}.proxy.ssl_verification` as const;
 export const CONF_IMAGE_REFRESH_SECONDS = `${CONF_IMAGE}.refresh_seconds` as const;
 export const CONF_IMAGE_URL = `${CONF_IMAGE}.url` as const;
 

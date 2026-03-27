@@ -334,12 +334,7 @@ Configures whether and how the content is proxied via
 [hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration)
 (this must be installed separately). This allows fetching media or live streams
 **through** the Home Assistant process itself, allowing the card to access
-resources it otherwise would not be able to directly access. There are [security
-and performance
-implications](https://github.com/dermotduffy/hass-web-proxy-integration?tab=readme-ov-file#considerations)
-to consider before installing
-[hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration)
-and using this functionality.
+resources it otherwise would not be able to directly access.
 
 ```yaml
 cameras:
@@ -349,6 +344,8 @@ cameras:
 ```
 
 ![Camera Proxying](../../images/proxy.png 'Camera Proxying :size=400')
+
+[](../common/proxy-warning.md ':include')
 
 For live streams, only the `go2rtc` [live provider](./live-provider.md) currently supports live stream proxying.
 
@@ -360,20 +357,15 @@ For media, not all [engines](./engine.md) benefit from proxying:
 | `reolink`, `motioneye` | May be used to fetch videos in cases where the browser may not be able to access the camera/NVR, or the camera/NVR may use a self-signed SSL certificate that your browser would otherwise reject due to [mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Mixed_content). |
 | `generic`              | `generic` cameras do not have media, so proxying currently would serve no purpose.                                                                                                                                                                                                                      |
 
-Regardless of the parameters, the integration will never attempt to proxy
-content if the
-[hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration)
-is not detected.
-
 Proxying parameters:
 
-| Option             | Default | Description                                                                                                                                                                                                                                                                                                                      |
-| ------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `live`             | `auto`  | Whether or not to proxy live streams. `true` to proxy, `false` to not proxy, or `auto` to allow the camera engine to decide whether to proxy or not. Not all [live providers](./live-provider.md) support proxying live streams.                                                                                                 |
-| `media`            | `auto`  | Whether or not to proxy media items. `true` to proxy, `false` to not proxy, or `auto` to allow the camera engine to decide whether to proxy or not.                                                                                                                                                                              |
-| `dynamic`          | `true`  | Whether to dynamically (at the time) request proxying of the required media item, or rely on statically user-configured pre-existing proxying. See the [hass-web-proxy-integration documentation](https://github.com/dermotduffy/hass-web-proxy-integration).                                                                    |
-| `ssl_verification` | `auto`  | Whether to verify the validity of SSL certificates. If `true` always verifies, if `false` never verifies and if `auto` the [engine](./engine.md) decides the best setting for that camera ecosystem.                                                                                                                             |
-| `ssl_ciphers`      | `auto`  | Whether to use `default`, `intermediate`, `insecure` or `modern` SSL ciphers. See the [Home Assistant code](https://github.com/home-assistant/core/blob/dev/homeassistant/util/ssl.py) for the precise list of SSL ciphers each implies. If `auto` the [engine](./engine.md) decides the best setting for that camera ecosystem. |
+| Option             | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `live`             | `auto`  | Whether or not to proxy live streams. `true` to proxy (will show an error if the proxy integration is unavailable), `false` to not proxy, or `auto` to allow the camera engine to decide whether to proxy or not. If `auto` resolves to proxying, the card will still fall back to the original URL if the proxy integration is unavailable. Not all [live providers](./live-provider.md) support proxying live streams. |
+| `media`            | `auto`  | Whether or not to proxy media items. `true` to proxy (will show an error if the proxy integration is unavailable), `false` to not proxy, or `auto` to allow the camera engine to decide whether to proxy or not. If `auto` resolves to proxying, the card will still fall back to the original URL if the proxy integration is unavailable.                                                                              |
+| `dynamic`          | `true`  | Whether to dynamically (at the time) request proxying of the required media item, or rely on statically user-configured pre-existing proxying. See the [hass-web-proxy-integration documentation](https://github.com/dermotduffy/hass-web-proxy-integration).                                                                                                                                                            |
+| `ssl_verification` | `auto`  | Whether to verify the validity of SSL certificates. If `true` always verifies, if `false` never verifies and if `auto` the [engine](./engine.md) decides the best setting for that camera ecosystem.                                                                                                                                                                                                                     |
+| `ssl_ciphers`      | `auto`  | Whether to use `default`, `intermediate`, `insecure` or `modern` SSL ciphers. See the [Home Assistant code](https://github.com/home-assistant/core/blob/dev/homeassistant/util/ssl.py) for the precise list of SSL ciphers each implies. If `auto` the [engine](./engine.md) decides the best setting for that camera ecosystem.                                                                                         |
 
 ## `triggers`
 

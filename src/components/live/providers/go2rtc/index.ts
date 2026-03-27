@@ -6,35 +6,26 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { Camera } from '../../../../camera-manager/camera.js';
 import { CameraEndpoints } from '../../../../camera-manager/types.js';
 import { MicrophoneState } from '../../../../card-controller/types.js';
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
 import { VideoMediaPlayerController } from '../../../../components-lib/media-player/video.js';
+import { SignedURLController } from '../../../../components-lib/signed-url-controller.js';
 import { MicrophoneConfig } from '../../../../config/schema/live.js';
-import { homeAssistantSignPath } from '../../../../ha/sign-path.js';
 import { HomeAssistant } from '../../../../ha/types.js';
-import { createProxiedEndpointIfNecessary } from '../../../../ha/web-proxy.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
-import { MediaPlayer, MediaPlayerController, Message } from '../../../../types.js';
-import { errorToConsole } from '../../../../utils/basic.js';
+import { MediaPlayer, MediaPlayerController } from '../../../../types.js';
 import { renderMessage } from '../../../message.js';
 import { VideoRTC } from './video-rtc.js';
 
 customElements.define('advanced-camera-card-live-go2rtc-player', VideoRTC);
 
-// Note (2023-02-18): Depending on the behavior of the player / browser is
-// possible this URL will need to be re-signed in order to avoid HA spamming
-// logs after the expiry time, but this complexity is not added for now until
-// there are verified cases of this being an issue (see equivalent in the JSMPEG
-// provider).
-const GO2RTC_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
-
 @customElement('advanced-camera-card-live-go2rtc')
 export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer {
-  // Not an reactive property to avoid resetting the video.
+  // Not a reactive property to avoid resetting the video.
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
@@ -52,15 +43,30 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   @property({ attribute: true, type: Boolean })
   public controls = false;
 
-  @state()
-  private _message: Message | null = null;
-
   private _player?: VideoRTC;
+  private _hasLiveError = false;
 
   private _mediaPlayerController = new VideoMediaPlayerController(
     this,
     () => this._player?.video ?? null,
     () => this.controls,
+  );
+
+  private _signedURLController = new SignedURLController(
+    this,
+    () => {
+      const endpoint = this.cameraEndpoints?.go2rtc;
+      if (!this.hass || !endpoint) {
+        return {};
+      }
+      return {
+        hass: this.hass,
+        endpoint,
+        proxyConfig: this.camera?.getLiveProxyConfig(),
+        proxyEndpointOptions: { websocket: true },
+      };
+    },
+    () => this._createPlayer(),
   );
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
@@ -69,7 +75,6 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
 
   disconnectedCallback(): void {
     this._player = undefined;
-    this._message = null;
     super.disconnectedCallback();
   }
 
@@ -81,82 +86,8 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     this.requestUpdate();
   }
 
-  private _handleError(message: Message, e?: Error): void {
-    if (e) {
-      errorToConsole(e as Error);
-    }
-
-    this._message = {
-      type: 'error',
-      ...message,
-    };
-    dispatchLiveErrorEvent(this);
-    return;
-  }
-
-  private async _getPlayerSource(): Promise<string | null> {
-    const cameraConfig = this.camera?.getConfig();
-    const proxyConfig = this.camera?.getProxyConfig();
-    if (!this.hass || !cameraConfig) {
-      return null;
-    }
-
-    const streamEndpoint = this.cameraEndpoints?.go2rtc;
-    if (!streamEndpoint) {
-      this._handleError({
-        message: localize('error.live_camera_no_endpoint'),
-        context: cameraConfig,
-      });
-      return null;
-    }
-
-    let result: string | null = null;
-
-    try {
-      const endpoint = await createProxiedEndpointIfNecessary(
-        this.hass,
-        streamEndpoint,
-        proxyConfig,
-        {
-          context: 'live',
-          ttl: GO2RTC_URL_SIGN_EXPIRY_SECONDS,
-          websocket: true,
-
-          // The link may need to be opened multiple times.
-          openLimit: 0,
-        },
-      );
-
-      if (endpoint.sign) {
-        result = await homeAssistantSignPath(
-          this.hass,
-          endpoint.endpoint,
-          GO2RTC_URL_SIGN_EXPIRY_SECONDS,
-        );
-        if (!result) {
-          this._handleError({
-            message: localize('error.failed_sign'),
-            context: cameraConfig,
-          });
-        }
-      } else {
-        result = endpoint.endpoint;
-      }
-    } catch (e) {
-      this._handleError(
-        {
-          message: localize('error.failed_proxy'),
-          context: cameraConfig,
-        },
-        e as Error,
-      );
-    }
-
-    return result;
-  }
-
-  private async _createPlayer(): Promise<void> {
-    const src = await this._getPlayerSource();
+  private _createPlayer(): void {
+    const src = this._signedURLController.getValue();
     if (!src) {
       return;
     }
@@ -178,12 +109,20 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('cameraEndpoints')) {
-      this._message = null;
+      // Clear old player; the new one is created by the
+      // SignedURLController's valueChangeCallback once the URL resolves.
+      this._player = undefined;
     }
 
-    if (!this._message && (!this._player || changedProps.has('cameraEndpoints'))) {
-      this._createPlayer();
+    // Only treat a missing go2rtc endpoint as an error after cameraEndpoints
+    // has been explicitly set (not undefined / still loading).
+    const hasError =
+      !!this._signedURLController.getError() ||
+      (!!this.cameraEndpoints && !this.cameraEndpoints.go2rtc);
+    if (hasError && !this._hasLiveError) {
+      dispatchLiveErrorEvent(this);
     }
+    this._hasLiveError = hasError;
 
     if (changedProps.has('controls') && this._player) {
       this._player.setControls(this.controls);
@@ -203,8 +142,22 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   }
 
   protected render(): TemplateResult | void {
-    if (this._message) {
-      return renderMessage(this._message);
+    const error = this._signedURLController.getError();
+    if (error) {
+      return renderMessage({
+        type: 'error',
+        message: localize(
+          error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign',
+        ),
+        context: this.camera?.getConfig(),
+      });
+    }
+    if (!this.cameraEndpoints?.go2rtc) {
+      return renderMessage({
+        type: 'error',
+        message: localize('error.live_camera_no_endpoint'),
+        context: this.camera?.getConfig(),
+      });
     }
     return html`${this._player}`;
   }
@@ -216,6 +169,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
 
 declare global {
   interface HTMLElementTagNameMap {
+    'advanced-camera-card-live-go2rtc-player': VideoRTC;
     'advanced-camera-card-live-go2rtc': AdvancedCameraCardGo2RTC;
   }
 }

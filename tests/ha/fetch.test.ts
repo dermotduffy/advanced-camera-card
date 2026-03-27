@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { homeAssistantSignAndFetch } from '../../src/ha/fetch';
-import { homeAssistantSignPath } from '../../src/ha/sign-path';
+import { homeAssistantGetSignedURLIfNecessary } from '../../src/ha/sign-path';
 import { AdvancedCameraCardError, Endpoint } from '../../src/types';
 import { createHASS } from '../test-utils';
 
@@ -18,7 +18,6 @@ describe('homeAssistantSignAndFetch', () => {
 
   beforeEach(() => {
     vi.stubGlobal('fetch', fetchMock);
-    vi.mocked(homeAssistantSignPath).mockResolvedValue('http://signed');
   });
 
   afterEach(() => {
@@ -27,26 +26,31 @@ describe('homeAssistantSignAndFetch', () => {
   });
 
   it('should return parsed data on successful call with endpoint', async () => {
+    const endpoint: Endpoint = { endpoint: 'http://example.com' };
+    vi.mocked(homeAssistantGetSignedURLIfNecessary).mockResolvedValue(
+      'http://example.com',
+    );
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => response,
     });
 
-    const endpoint: Endpoint = { endpoint: 'http://example.com' };
-    expect(await homeAssistantSignAndFetch(createHASS(), endpoint, schema)).toEqual(
-      response,
-    );
-    expect(homeAssistantSignPath).not.toHaveBeenCalled();
+    const hass = createHASS();
+    expect(await homeAssistantSignAndFetch(hass, endpoint, schema)).toEqual(response);
+    expect(homeAssistantGetSignedURLIfNecessary).toHaveBeenCalledWith(hass, endpoint);
     expect(fetchMock).toHaveBeenCalledWith('http://example.com', {});
   });
 
   it('should pass timeout signal when timeoutSeconds is provided', async () => {
+    const endpoint: Endpoint = { endpoint: 'http://example.com' };
+    vi.mocked(homeAssistantGetSignedURLIfNecessary).mockResolvedValue(
+      'http://example.com',
+    );
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => response,
     });
 
-    const endpoint: Endpoint = { endpoint: 'http://example.com' };
     expect(
       await homeAssistantSignAndFetch(createHASS(), endpoint, schema, {
         timeoutSeconds: 5,
@@ -58,6 +62,7 @@ describe('homeAssistantSignAndFetch', () => {
   });
 
   it('should sign path if requested', async () => {
+    vi.mocked(homeAssistantGetSignedURLIfNecessary).mockResolvedValue('http://signed');
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => response,
@@ -69,12 +74,14 @@ describe('homeAssistantSignAndFetch', () => {
     };
     const hass = createHASS();
     expect(await homeAssistantSignAndFetch(hass, endpoint, schema)).toEqual(response);
-    expect(homeAssistantSignPath).toHaveBeenCalledWith(hass, 'http://example.com');
+    expect(homeAssistantGetSignedURLIfNecessary).toHaveBeenCalledWith(hass, endpoint);
     expect(fetchMock).toHaveBeenCalledWith('http://signed', {});
   });
 
   it('should throw on sign failure', async () => {
-    vi.mocked(homeAssistantSignPath).mockRejectedValueOnce(new Error('Sign failed'));
+    vi.mocked(homeAssistantGetSignedURLIfNecessary).mockRejectedValueOnce(
+      new Error('Sign failed'),
+    );
 
     const endpoint: Endpoint = {
       endpoint: 'http://example.com',
@@ -85,8 +92,8 @@ describe('homeAssistantSignAndFetch', () => {
     ).rejects.toThrow(/Could not sign Home Assistant URL/);
   });
 
-  it('should throw if sign path returns null', async () => {
-    vi.mocked(homeAssistantSignPath).mockResolvedValue(null);
+  it('should throw if sign endpoint returns null', async () => {
+    vi.mocked(homeAssistantGetSignedURLIfNecessary).mockResolvedValue(null);
 
     const endpoint: Endpoint = {
       endpoint: 'http://example.com',
@@ -98,9 +105,12 @@ describe('homeAssistantSignAndFetch', () => {
   });
 
   it('should throw on fetch failure', async () => {
+    const endpoint: Endpoint = { endpoint: 'http://example.com' };
+    vi.mocked(homeAssistantGetSignedURLIfNecessary).mockResolvedValue(
+      'http://example.com',
+    );
     fetchMock.mockRejectedValueOnce(new Error('Fetch failed'));
 
-    const endpoint: Endpoint = { endpoint: 'http://example.com' };
     try {
       await homeAssistantSignAndFetch(createHASS(), endpoint, schema);
       expect.fail('Should have thrown');
@@ -117,6 +127,10 @@ describe('homeAssistantSignAndFetch', () => {
   });
 
   it('should throw on non-ok response', async () => {
+    const endpoint: Endpoint = { endpoint: 'http://example.com' };
+    vi.mocked(homeAssistantGetSignedURLIfNecessary).mockResolvedValue(
+      'http://example.com',
+    );
     const response = {
       ok: false,
       status: 404,
@@ -124,7 +138,6 @@ describe('homeAssistantSignAndFetch', () => {
     } as Response;
     fetchMock.mockResolvedValueOnce(response);
 
-    const endpoint: Endpoint = { endpoint: 'http://example.com' };
     try {
       await homeAssistantSignAndFetch(createHASS(), endpoint, schema);
       expect.fail('Should have thrown');
@@ -140,6 +153,10 @@ describe('homeAssistantSignAndFetch', () => {
   });
 
   it('should throw on JSON parse failure', async () => {
+    const endpoint: Endpoint = { endpoint: 'http://example.com' };
+    vi.mocked(homeAssistantGetSignedURLIfNecessary).mockResolvedValue(
+      'http://example.com',
+    );
     const response = {
       ok: true,
       json: async () => {
@@ -148,7 +165,6 @@ describe('homeAssistantSignAndFetch', () => {
     } as unknown as Response;
     fetchMock.mockResolvedValueOnce(response);
 
-    const endpoint: Endpoint = { endpoint: 'http://example.com' };
     try {
       await homeAssistantSignAndFetch(createHASS(), endpoint, schema);
       expect.fail('Should have thrown');
@@ -166,14 +182,16 @@ describe('homeAssistantSignAndFetch', () => {
   });
 
   it('should throw on schema validation failure', async () => {
+    const endpoint: Endpoint = { endpoint: 'http://example.com' };
+    vi.mocked(homeAssistantGetSignedURLIfNecessary).mockResolvedValue(
+      'http://example.com',
+    );
     const data = { val: 'string' };
     const response = {
       ok: true,
       json: async () => data,
     } as unknown as Response;
     fetchMock.mockResolvedValueOnce(response);
-
-    const endpoint: Endpoint = { endpoint: 'http://example.com' };
 
     try {
       await homeAssistantSignAndFetch(createHASS(), endpoint, schema);

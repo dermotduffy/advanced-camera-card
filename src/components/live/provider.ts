@@ -302,6 +302,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
             ${ref(this._refProvider)}
             .hass=${this.hass}
             .cameraConfig=${cameraConfig}
+            .proxyConfig=${this.camera.getLiveProxyConfig()}
             class=${classMap({
               ...classes,
               // The image provider is providing the temporary loading image,

@@ -6,13 +6,14 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { QueryType } from '../../camera-manager/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
+import { SignedURLController } from '../../components-lib/signed-url-controller.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
 import { CameraConfig } from '../../config/schema/cameras.js';
@@ -21,17 +22,16 @@ import { ViewerConfig } from '../../config/schema/viewer.js';
 import { canonicalizeHAURL } from '../../ha/canonical-url.js';
 import { isHARelativeURL } from '../../ha/is-ha-relative-url.js';
 import { ResolvedMediaCache, resolveMedia } from '../../ha/resolved-media.js';
-import { homeAssistantSignPath } from '../../ha/sign-path.js';
-import { HomeAssistant, ResolvedMedia } from '../../ha/types.js';
-import { createProxiedEndpointIfNecessary } from '../../ha/web-proxy.js';
+import { HomeAssistant } from '../../ha/types.js';
+import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';
 import viewerProviderStyle from '../../scss/viewer-provider.scss';
 import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../../types.js';
-import { errorToConsole } from '../../utils/basic.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { VideoContentType, ViewMedia } from '../../view/item.js';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer.js';
 import '../image-player.js';
+import { renderMessage } from '../message.js';
 import { renderProgressIndicator } from '../progress-indicator.js';
 import '../video-player.js';
 import './../media-dimensions-container';
@@ -60,15 +60,32 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   public cardWideConfig?: CardWideConfig;
 
   private _refProvider: Ref<MediaPlayerElement> = createRef();
-  private _refContainer: Ref<HTMLElement> = createRef();
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
-  @state()
-  private _url: string | null = null;
+  private _resolvedMediaURL: string | null = null;
+
+  private _signedURLController = new SignedURLController(this, () => {
+    if (!this.hass || !this._resolvedMediaURL) {
+      return {};
+    }
+    // HA-relative URLs need no proxying or signing.
+    if (isHARelativeURL(this._resolvedMediaURL)) {
+      return {
+        endpoint: { endpoint: canonicalizeHAURL(this.hass, this._resolvedMediaURL) },
+      };
+    }
+    const cameraID = this.media?.getCameraID();
+    const camera = cameraID ? this.cameraManager?.getStore().getCamera(cameraID) : null;
+    return {
+      hass: this.hass,
+      endpoint: { endpoint: this._resolvedMediaURL },
+      proxyConfig: camera?.getMediaProxyConfig(),
+    };
+  });
 
   constructor() {
     super();
-    this._lazyLoadController.addListener((loaded) => loaded && this._setURL());
+    this._lazyLoadController.addListener((loaded) => loaded && this._resolveURL());
   }
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
@@ -108,69 +125,23 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     });
   }
 
-  private async _setURL(): Promise<void> {
-    const mediaContentID = this.media?.getContentID();
-    if (
-      !this.media ||
-      !mediaContentID ||
-      !this.hass ||
-      !this._lazyLoadController?.isLoaded()
-    ) {
+  private async _resolveURL(): Promise<void> {
+    const contentID = this.media?.getContentID();
+    if (!contentID || !this.hass || !this._lazyLoadController?.isLoaded()) {
+      this._resolvedMediaURL = null;
       return;
     }
 
-    let resolvedMedia: ResolvedMedia | null =
-      this.resolvedMediaCache?.get(mediaContentID) ?? null;
-    if (!resolvedMedia) {
-      resolvedMedia = await resolveMedia(
-        this.hass,
-        mediaContentID,
-        this.resolvedMediaCache,
-      );
-    }
+    // Clear immediately so the SignedURLController doesn't see a stale URL
+    // from the previous media item during the async gap.
+    this._resolvedMediaURL = null;
 
-    if (!resolvedMedia) {
-      return;
-    }
+    const resolved =
+      this.resolvedMediaCache?.get(contentID) ??
+      (await resolveMedia(this.hass, contentID, this.resolvedMediaCache));
 
-    const unsignedURL = resolvedMedia.url;
-    if (isHARelativeURL(unsignedURL)) {
-      // No need to proxy or sign local resolved URLs.
-      this._url = canonicalizeHAURL(this.hass, unsignedURL);
-      return;
-    }
-
-    const cameraID = this.media.getCameraID();
-    const camera = cameraID ? this.cameraManager?.getStore().getCamera(cameraID) : null;
-    const proxyConfig = camera?.getProxyConfig();
-
-    if (!proxyConfig) {
-      this._url = unsignedURL;
-      return;
-    }
-
-    try {
-      // Create endpoint from unsigned URL - it doesn't need signing initially
-      const unsignedEndpoint = { endpoint: unsignedURL, sign: false };
-      const proxiedEndpoint = await createProxiedEndpointIfNecessary(
-        this.hass,
-        unsignedEndpoint,
-        proxyConfig,
-        {
-          context: 'media',
-          // The link may need to be opened multiple times.
-          openLimit: 0,
-        },
-      );
-
-      if (proxiedEndpoint.sign) {
-        this._url = await homeAssistantSignPath(this.hass, proxiedEndpoint.endpoint);
-      } else {
-        this._url = proxiedEndpoint.endpoint;
-      }
-    } catch (e) {
-      errorToConsole(e as Error);
-    }
+    this._resolvedMediaURL = resolved?.url ?? null;
+    this.requestUpdate();
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -187,7 +158,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       changedProps.has('resolvedMediaCache') ||
       changedProps.has('hass')
     ) {
-      this._setURL();
+      this._resolveURL();
     }
 
     if (changedProps.has('viewerConfig') && this.viewerConfig?.zoomable) {
@@ -260,7 +231,19 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       return;
     }
 
-    if (!this._url) {
+    const error = this._signedURLController.getError();
+    if (error) {
+      return renderMessage({
+        type: 'error',
+        message: localize(
+          error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign',
+        ),
+        context: this.media?.getContentID(),
+      });
+    }
+
+    const url = this._signedURLController.getValue();
+    if (!url) {
       return renderProgressIndicator({
         cardWideConfig: this.cardWideConfig,
       });
@@ -280,7 +263,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
               muted
               playsinline
               title="${this.media.getTitle() ?? ''}"
-              url=${this._url}
+              url=${url}
               .hass=${this.hass}
               ?controls=${this.viewerConfig.controls.builtin}
             >
@@ -288,7 +271,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
           : html`
               <advanced-camera-card-video-player
                 ${ref(this._refProvider)}
-                url=${this._url}
+                url=${url}
                 aria-label="${this.media.getTitle() ?? ''}"
                 title="${this.media.getTitle() ?? ''}"
                 ?controls=${this.viewerConfig.controls.builtin}
@@ -297,7 +280,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
             `
         : html`<advanced-camera-card-image-player
             ${ref(this._refProvider)}
-            url="${this._url}"
+            url="${url}"
             aria-label="${this.media.getTitle() ?? ''}"
             title="${this.media.getTitle() ?? ''}"
             @click=${() => {

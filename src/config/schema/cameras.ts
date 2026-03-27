@@ -5,6 +5,7 @@ import { ptzCameraConfigDefaults, ptzCameraConfigSchema } from './camera/ptz';
 import { aspectRatioSchema } from './common/aspect-ratio';
 import { eventsMediaTypeSchema } from './common/events-media';
 import { imageBaseConfigDefault, imageBaseConfigSchema } from './common/image';
+import { proxyBaseConfigDefault, proxyBaseConfigSchema } from './common/proxy';
 import { severitySchema } from './common/severity';
 
 const CAMERA_TRIGGER_EVENT_TYPES = [
@@ -143,32 +144,18 @@ export const cameraConfigDefault = {
     },
   },
   proxy: {
-    dynamic: true,
+    ...proxyBaseConfigDefault,
     live: 'auto' as const,
     media: 'auto' as const,
-    ssl_ciphers: 'auto' as const,
-    ssl_verification: 'auto' as const,
   },
   go2rtc: go2rtcConfigDefault,
   image: imageBaseConfigDefault,
   always_error_if_entity_unavailable: false,
 };
 
-const SSL_CIPHERS = ['default', 'insecure', 'intermediate', 'modern'] as const;
-export type SSLCiphers = (typeof SSL_CIPHERS)[number];
-
-const proxyConfigSchema = z.object({
+const proxyConfigSchema = proxyBaseConfigSchema.extend({
   live: z.boolean().or(z.literal('auto')).default(cameraConfigDefault.proxy.live),
   media: z.boolean().or(z.literal('auto')).default(cameraConfigDefault.proxy.media),
-  dynamic: z.boolean().default(cameraConfigDefault.proxy.dynamic),
-  ssl_verification: z
-    .boolean()
-    .or(z.literal('auto'))
-    .default(cameraConfigDefault.proxy.ssl_verification),
-  ssl_ciphers: z
-    .enum(SSL_CIPHERS)
-    .or(z.literal('auto'))
-    .default(cameraConfigDefault.proxy.ssl_ciphers),
 });
 
 const rotationSchema = z

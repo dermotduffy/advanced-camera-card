@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ViewItemManager } from '../../../src/card-controller/view/item-manager';
-import { homeAssistantSignPath } from '../../../src/ha/sign-path.js';
+import { homeAssistantGetSignedURLIfNecessary } from '../../../src/ha/sign-path.js';
 import { downloadURL } from '../../../src/utils/download';
 import { ViewFolder, ViewMediaType } from '../../../src/view/item';
 import {
@@ -57,6 +57,12 @@ describe('ViewItemManager', () => {
   });
 
   describe('download', () => {
+    beforeEach(() => {
+      vi.mocked(homeAssistantGetSignedURLIfNecessary).mockImplementation(
+        async (_hass, endpoint) => endpoint.endpoint,
+      );
+    });
+
     afterEach(() => {
       vi.restoreAllMocks();
     });
@@ -85,7 +91,7 @@ describe('ViewItemManager', () => {
       });
 
       const signError = new Error('sign-error');
-      vi.mocked(homeAssistantSignPath).mockRejectedValue(signError);
+      vi.mocked(homeAssistantGetSignedURLIfNecessary).mockRejectedValue(signError);
 
       expect(await manager.download(item)).toBe(false);
       expect(api.getMessageManager().setErrorIfHigherPriority).toHaveBeenCalledWith(
@@ -108,7 +114,9 @@ describe('ViewItemManager', () => {
         endpoint: 'foo',
       });
 
-      vi.mocked(homeAssistantSignPath).mockResolvedValue('http://foo/signed-url');
+      vi.mocked(homeAssistantGetSignedURLIfNecessary).mockResolvedValue(
+        'http://foo/signed-url',
+      );
 
       expect(await manager.download(item)).toBe(true);
       expect(downloadURL).toBeCalledWith(
@@ -129,7 +137,9 @@ describe('ViewItemManager', () => {
         endpoint: 'foo',
       });
 
-      vi.mocked(homeAssistantSignPath).mockResolvedValue('http://foo/signed-url');
+      vi.mocked(homeAssistantGetSignedURLIfNecessary).mockResolvedValue(
+        'http://foo/signed-url',
+      );
 
       expect(await manager.download(item)).toBe(true);
       expect(downloadURL).toBeCalledWith('http://foo/signed-url', 'media_id.mp4');
@@ -146,8 +156,6 @@ describe('ViewItemManager', () => {
         sign: false,
         endpoint: 'foo',
       });
-
-      expect(homeAssistantSignPath).not.toBeCalled();
 
       expect(await manager.download(item)).toBe(true);
       expect(downloadURL).toBeCalledWith('foo', 'camera-office_id.mp4');

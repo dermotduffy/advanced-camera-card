@@ -5,11 +5,6 @@ export const imageBaseConfigDefault = {
   refresh_seconds: 1,
 };
 
-export const imageConfigDefault = {
-  ...imageBaseConfigDefault,
-  zoomable: true,
-};
-
 const IMAGE_MODES = ['auto', 'camera', 'entity', 'screensaver', 'url'] as const;
 export type ImageMode = (typeof IMAGE_MODES)[number];
 

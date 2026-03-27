@@ -119,4 +119,10 @@ describe('supports2WayAudio', () => {
 
     expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
   });
+
+  it('should return false if proxied endpoint is null', async () => {
+    vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(null);
+
+    expect(await supports2WayAudio(hass, 2, endpoint)).toBe(false);
+  });
 });

@@ -173,29 +173,9 @@
         "url": "MotionEye UI URL"
       },
       "proxy": {
-        "dynamic": "Dynamic proxying",
         "editor_label": "Camera proxying",
         "live": "Live proxying",
-        "media": "Media proxying",
-        "modes": {
-          "auto": "Proxying automatically configured",
-          "false": "Proxying disabled",
-          "true": "Proxying enabled"
-        },
-        "ssl_ciphers": {
-          "auto": "SSL ciphers automatically configured",
-          "default": "Default SSL ciphers",
-          "editor_label": "SSL ciphers",
-          "insecure": "Insecure SSL ciphers",
-          "intermediate": "Intermediate SSL ciphers",
-          "modern": "Modern SSL ciphers"
-        },
-        "ssl_verification": {
-          "auto": "SSL verification automatically configured",
-          "editor_label": "SSL verification",
-          "false": "SSL verification disabled",
-          "true": "SSL verification enabled"
-        }
+        "media": "Media proxying"
       },
       "reolink": {
         "editor_label": "Reolink options",
@@ -322,6 +302,9 @@
           "screensaver": "Embedded screensaver image",
           "url": "Arbitrary image specified by URL"
         },
+        "proxy": {
+          "editor_label": "Image proxying"
+        },
         "refresh_seconds": "Number of seconds after which to refresh (0=never)",
         "url": "Static image URL"
       },
@@ -341,6 +324,28 @@
         "folder": "Folder",
         "recordings": "Recordings",
         "reviews": "Reviews"
+      },
+      "proxy": {
+        "dynamic": "Dynamic proxying",
+        "modes": {
+          "auto": "Proxying automatically configured",
+          "false": "Proxying disabled",
+          "true": "Proxying enabled"
+        },
+        "ssl_ciphers": {
+          "auto": "SSL ciphers automatically configured",
+          "default": "Default SSL ciphers",
+          "editor_label": "SSL ciphers",
+          "insecure": "Insecure SSL ciphers",
+          "intermediate": "Intermediate SSL ciphers",
+          "modern": "Modern SSL ciphers"
+        },
+        "ssl_verification": {
+          "auto": "SSL verification automatically configured",
+          "editor_label": "SSL verification",
+          "false": "SSL verification disabled",
+          "true": "SSL verification enabled"
+        }
       },
       "timeline": {
         "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",

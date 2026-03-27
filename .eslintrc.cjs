@@ -9,7 +9,10 @@ module.exports = {
     'prettier', // Uses eslint-config-prettier to disable ESLint rules from @typescript-eslint/eslint-plugin that would conflict with prettier
   ],
   rules: {
-    // Place to specify ESLint rules. Can be used to overwrite rules specified from the extended configs
-    // e.g. "@typescript-eslint/explicit-function-return-type": "off",
+    // Place to specify ESLint rules. Can be used to overwrite rules specified
+    // from the extended configs e.g.
+    // "@typescript-eslint/explicit-function-return-type": "off",
+    '@typescript-eslint/no-explicit-any': 'error',
+    'no-multi-assign': 'error',
   },
 };
