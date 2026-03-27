@@ -2,7 +2,10 @@
   width: 100%;
   height: 100%;
   display: block;
-  overflow: auto;
+
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2424
+  overflow-x: clip;
+  overflow-y: auto;
 
   // Hide scrollbar: IE and Edge
   -ms-overflow-style: none;
