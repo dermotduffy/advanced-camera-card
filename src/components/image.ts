@@ -7,7 +7,11 @@ import { ViewManagerEpoch } from '../card-controller/view/types';
 import { ZoomSettingsObserved } from '../components-lib/zoom/types';
 import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context';
 import { CameraConfig } from '../config/schema/cameras';
-import { ImageViewConfig } from '../config/schema/image';
+import {
+  type EnabledProxyConfig,
+  resolveProxyConfig,
+} from '../config/schema/common/proxy';
+import { ImageViewConfig, type ImageViewProxyConfig } from '../config/schema/image';
 import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../const';
 import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize.js';
@@ -82,6 +86,16 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
       : intermediateTemplate}`;
   }
 
+  private _resolveProxyConfig(proxy?: ImageViewProxyConfig): EnabledProxyConfig | null {
+    return proxy
+      ? {
+          ...resolveProxyConfig(proxy),
+          enabled: proxy.enabled,
+          enforce: proxy.enabled,
+        }
+      : null;
+  }
+
   protected render(): TemplateResult | void {
     if (!this.hass) {
       return;
@@ -108,6 +122,7 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
         .view=${this.viewManagerEpoch?.manager.getView()}
         .imageConfig=${this.imageConfig}
         .cameraConfig=${this.cameraConfig}
+        .proxyConfig=${this._resolveProxyConfig(this.imageConfig?.proxy) ?? undefined}
       >
       </advanced-camera-card-image-updating-player>
     `);

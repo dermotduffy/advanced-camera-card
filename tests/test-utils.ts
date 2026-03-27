@@ -130,6 +130,7 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
   if (user) {
     hass.user = user;
   }
+  hass.config.components = [];
   hass.connection.subscribeMessage = vi.fn();
 
   // ha-nunjucks calls sendMessagePromise to fetch label registry; return empty array to prevent crash.

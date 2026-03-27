@@ -110,6 +110,10 @@ import {
   CONF_IMAGE_ENTITY,
   CONF_IMAGE_ENTITY_PARAMETERS,
   CONF_IMAGE_MODE,
+  CONF_IMAGE_PROXY_DYNAMIC,
+  CONF_IMAGE_PROXY_ENABLED,
+  CONF_IMAGE_PROXY_SSL_CIPHERS,
+  CONF_IMAGE_PROXY_SSL_VERIFICATION,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_URL,
   CONF_LIVE_AUTO_MUTE,
@@ -315,6 +319,7 @@ const MENU_MEDIA_VIEWER_CONTROLS_TIMELINE = 'media_viewer.controls.timeline';
 const MENU_MEDIA_VIEWER_CONTROLS_TIMELINE_FORMAT =
   'media_viewer.controls.timeline.format';
 const MENU_MEDIA_VIEWER_DISPLAY = 'media_viewer.display';
+const MENU_IMAGE_PROXY = 'image.proxy';
 const MENU_MENU_BUTTONS = 'menu.buttons';
 const MENU_OPTIONS = 'options';
 const MENU_PERFORMANCE_FEATURES = 'performance.features';
@@ -388,6 +393,7 @@ const SUBMENU_DOC_LINKS: Record<string, string> = {
   [MENU_MEDIA_VIEWER_CONTROLS_TIMELINE]: 'configuration/media-viewer?id=timeline',
   [MENU_MEDIA_VIEWER_CONTROLS_TIMELINE_FORMAT]: 'configuration/media-viewer?id=format',
   [MENU_MEDIA_VIEWER_DISPLAY]: 'configuration/media-viewer?id=display',
+  [MENU_IMAGE_PROXY]: 'configuration/image?id=proxy',
   [MENU_MENU_BUTTONS]: 'configuration/menu?id=buttons',
   [MENU_OPTIONS]: 'configuration/README',
   [MENU_PERFORMANCE_FEATURES]: 'configuration/performance?id=features',
@@ -1053,15 +1059,15 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: '', label: '' },
     {
       value: 'auto',
-      label: localize('config.cameras.proxy.modes.auto'),
+      label: localize('config.common.proxy.modes.auto'),
     },
     {
       value: true,
-      label: localize('config.cameras.proxy.modes.true'),
+      label: localize('config.common.proxy.modes.true'),
     },
     {
       value: false,
-      label: localize('config.cameras.proxy.modes.false'),
+      label: localize('config.common.proxy.modes.false'),
     },
   ];
 
@@ -1069,23 +1075,23 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: '', label: '' },
     {
       value: 'auto',
-      label: localize('config.cameras.proxy.ssl_ciphers.auto'),
+      label: localize('config.common.proxy.ssl_ciphers.auto'),
     },
     {
       value: 'default',
-      label: localize('config.cameras.proxy.ssl_ciphers.default'),
+      label: localize('config.common.proxy.ssl_ciphers.default'),
     },
     {
       value: 'insecure',
-      label: localize('config.cameras.proxy.ssl_ciphers.insecure'),
+      label: localize('config.common.proxy.ssl_ciphers.insecure'),
     },
     {
       value: 'intermediate',
-      label: localize('config.cameras.proxy.ssl_ciphers.intermediate'),
+      label: localize('config.common.proxy.ssl_ciphers.intermediate'),
     },
     {
       value: 'modern',
-      label: localize('config.cameras.proxy.ssl_ciphers.modern'),
+      label: localize('config.common.proxy.ssl_ciphers.modern'),
     },
   ];
 
@@ -1093,15 +1099,15 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     { value: '', label: '' },
     {
       value: 'auto',
-      label: localize('config.cameras.proxy.ssl_verification.auto'),
+      label: localize('config.common.proxy.ssl_verification.auto'),
     },
     {
       value: true,
-      label: localize('config.cameras.proxy.ssl_verification.true'),
+      label: localize('config.common.proxy.ssl_verification.true'),
     },
     {
       value: false,
-      label: localize('config.cameras.proxy.ssl_verification.false'),
+      label: localize('config.common.proxy.ssl_verification.false'),
     },
   ];
 
@@ -2102,6 +2108,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     configPathEntity: string,
     configPathEntityParameters: string,
     configPathRefreshSeconds: string,
+    options?: {
+      proxyMenu?: TemplateResult;
+    },
   ): TemplateResult {
     return html`
       ${this._renderOptionSelector(configPathMode, this._imageModes, {
@@ -2123,7 +2132,62 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
       ${this._renderNumberInput(configPathRefreshSeconds, {
         label: localize('config.common.image.refresh_seconds'),
       })}
+      ${options?.proxyMenu ?? html``}
     `;
+  }
+
+  private _renderProxySubmenu(
+    domain: string,
+    key: unknown,
+    labelPath: string,
+    configPathDynamic: string,
+    dynamicDefault: boolean,
+    configPathSSLCiphers: string,
+    configPathSSLVerification: string,
+    options?: {
+      configPathEnabled?: string;
+      configPathLive?: string;
+      configPathMedia?: string;
+      enabledDefault?: boolean;
+    },
+  ): TemplateResult {
+    return this._putInSubmenu(
+      domain,
+      key,
+      labelPath,
+      'mdi:arrow-decision',
+      html`
+        ${options?.configPathEnabled !== undefined &&
+        options.enabledDefault !== undefined
+          ? this._renderSwitch(options.configPathEnabled, options.enabledDefault, {
+              label: localize('config.common.proxy.modes.true'),
+            })
+          : html``}
+        ${options?.configPathLive
+          ? this._renderOptionSelector(options.configPathLive, this._proxyModes, {
+              label: localize('config.cameras.proxy.live'),
+            })
+          : html``}
+        ${options?.configPathMedia
+          ? this._renderOptionSelector(options.configPathMedia, this._proxyModes, {
+              label: localize('config.cameras.proxy.media'),
+            })
+          : html``}
+        ${this._renderSwitch(configPathDynamic, dynamicDefault, {
+          label: localize('config.common.proxy.dynamic'),
+        })}
+        ${this._renderOptionSelector(
+          configPathSSLVerification,
+          this._proxySSLVerification,
+          {
+            label: localize('config.common.proxy.ssl_verification.editor_label'),
+          },
+        )}
+        ${this._renderOptionSelector(configPathSSLCiphers, this._proxySSLCiphers, {
+          label: localize('config.common.proxy.ssl_ciphers.editor_label'),
+        })}
+      `,
+    );
   }
 
   private _modifyConfig(func: (config: RawAdvancedCameraCardConfig) => boolean): void {
@@ -2835,53 +2899,27 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                   )}
                 `,
               )}
-              ${this._putInSubmenu(
+              ${this._renderProxySubmenu(
                 MENU_CAMERAS_PROXY,
                 cameraIndex,
                 'config.cameras.proxy.editor_label',
-                'mdi:arrow-decision',
-                html`
-                  ${this._renderOptionSelector(
-                    getArrayConfigPath(CONF_CAMERAS_ARRAY_PROXY_LIVE, cameraIndex),
-                    this._proxyModes,
-                    {
-                      label: localize('config.cameras.proxy.live'),
-                    },
-                  )}
-                  ${this._renderOptionSelector(
-                    getArrayConfigPath(CONF_CAMERAS_ARRAY_PROXY_MEDIA, cameraIndex),
-                    this._proxyModes,
-                    {
-                      label: localize('config.cameras.proxy.media'),
-                    },
-                  )}
-                  ${this._renderSwitch(
-                    getArrayConfigPath(CONF_CAMERAS_ARRAY_PROXY_DYNAMIC, cameraIndex),
-                    this._defaults.cameras.proxy.dynamic,
-                  )}
-                  ${this._renderOptionSelector(
-                    getArrayConfigPath(
-                      CONF_CAMERAS_ARRAY_PROXY_SSL_VERIFICATION,
-                      cameraIndex,
-                    ),
-                    this._proxySSLVerification,
-                    {
-                      label: localize(
-                        'config.cameras.proxy.ssl_verification.editor_label',
-                      ),
-                    },
-                  )}
-                  ${this._renderOptionSelector(
-                    getArrayConfigPath(
-                      CONF_CAMERAS_ARRAY_PROXY_SSL_CIPHERS,
-                      cameraIndex,
-                    ),
-                    this._proxySSLCiphers,
-                    {
-                      label: localize('config.cameras.proxy.ssl_ciphers.editor_label'),
-                    },
-                  )}
-                `,
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_PROXY_DYNAMIC, cameraIndex),
+                this._defaults.cameras.proxy.dynamic,
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_PROXY_SSL_CIPHERS, cameraIndex),
+                getArrayConfigPath(
+                  CONF_CAMERAS_ARRAY_PROXY_SSL_VERIFICATION,
+                  cameraIndex,
+                ),
+                {
+                  configPathLive: getArrayConfigPath(
+                    CONF_CAMERAS_ARRAY_PROXY_LIVE,
+                    cameraIndex,
+                  ),
+                  configPathMedia: getArrayConfigPath(
+                    CONF_CAMERAS_ARRAY_PROXY_MEDIA,
+                    cameraIndex,
+                  ),
+                },
               )}
             </div>`
           : ``}
@@ -3470,6 +3508,21 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 CONF_IMAGE_ENTITY,
                 CONF_IMAGE_ENTITY_PARAMETERS,
                 CONF_IMAGE_REFRESH_SECONDS,
+                {
+                  proxyMenu: this._renderProxySubmenu(
+                    MENU_IMAGE_PROXY,
+                    true,
+                    'config.common.image.proxy.editor_label',
+                    CONF_IMAGE_PROXY_DYNAMIC,
+                    this._defaults.image.proxy.dynamic,
+                    CONF_IMAGE_PROXY_SSL_CIPHERS,
+                    CONF_IMAGE_PROXY_SSL_VERIFICATION,
+                    {
+                      configPathEnabled: CONF_IMAGE_PROXY_ENABLED,
+                      enabledDefault: this._defaults.image.proxy.enabled,
+                    },
+                  ),
+                },
               )}
             </div>`
           : ''}

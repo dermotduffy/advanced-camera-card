@@ -55,7 +55,7 @@ export class UpdatingImageMediaPlayerController implements MediaPlayerController
 
   public async getScreenshotURL(): Promise<string | null> {
     await this._host.updateComplete;
-    return this._getCachedValueController()?.value ?? null;
+    return this._getCachedValueController()?.getValue() ?? null;
   }
 
   public getFullscreenElement(): FullscreenElement | null {

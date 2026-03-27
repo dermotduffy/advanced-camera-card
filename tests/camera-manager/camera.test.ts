@@ -133,7 +133,12 @@ describe('Camera', () => {
             'http://go2rtc/api/streams?src=stream&video=all&audio=all&microphone',
           sign: false,
         },
-        expect.anything(),
+        expect.objectContaining({
+          dynamic: true,
+          ssl_verification: true,
+          ssl_ciphers: 'default',
+          enabled: false,
+        }),
       );
 
       expect(camera.getCapabilities()?.has('2-way-audio')).toBe(true);
@@ -184,7 +189,99 @@ describe('Camera', () => {
         expect.anything(),
         20,
         expect.anything(),
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('should pass proxy config when web proxy is available', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          go2rtc: {
+            url: 'http://go2rtc',
+            stream: 'stream',
+          },
+          proxy: {
+            live: true,
+          },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+
+      vi.mocked(liveProviderSupports2WayAudio).mockResolvedValue(true);
+
+      const hass = createHASS();
+      hass.config.components = ['hass_web_proxy'];
+
+      await camera.initialize({
+        hass,
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+      });
+
+      expect(liveProviderSupports2WayAudio).toHaveBeenCalledWith(
         expect.anything(),
+        expect.anything(),
+        2,
+        expect.anything(),
+        {
+          dynamic: true,
+          ssl_verification: true,
+          ssl_ciphers: 'default',
+          live: true,
+          media: false,
+          enabled: true,
+          enforce: true,
+        },
+      );
+
+      expect(camera.getCapabilities()?.has('2-way-audio')).toBe(true);
+    });
+
+    it('should return live proxy config', () => {
+      const camera = new Camera(
+        createCameraConfig({
+          proxy: { live: true },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+      expect(camera.getLiveProxyConfig()).toEqual(
+        expect.objectContaining({ enabled: true, enforce: true }),
+      );
+    });
+
+    it('should return media proxy config', () => {
+      const camera = new Camera(
+        createCameraConfig({
+          proxy: { media: true },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+      expect(camera.getMediaProxyConfig()).toEqual(
+        expect.objectContaining({ enabled: true, enforce: true }),
+      );
+    });
+
+    it('should not enforce live proxy config when live proxying is auto', () => {
+      const camera = new Camera(
+        createCameraConfig({
+          live_provider: 'go2rtc',
+          go2rtc: { url: 'http://go2rtc' },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+      expect(camera.getLiveProxyConfig()).toEqual(
+        expect.objectContaining({ enabled: true, enforce: false }),
+      );
+    });
+
+    it('should not enforce media proxy config when media proxying is auto', () => {
+      const camera = new Camera(
+        createCameraConfig({
+          proxy: { media: 'auto' },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+      expect(camera.getMediaProxyConfig()).toEqual(
+        expect.objectContaining({ enabled: false, enforce: false }),
       );
     });
 

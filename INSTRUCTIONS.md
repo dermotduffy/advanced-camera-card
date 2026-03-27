@@ -35,6 +35,9 @@
   - Never use non-null assertions (`!`); use a null check with an early return or conditional instead.
   - Use `zod` for runtime validation if external data is involved.
   - `noUnusedParameters` and `noImplicitReturns` are enforced — all parameters must be used and all code paths must return.
+  - Prefer explicitly returning `null` rather than `undefined` for absent or empty state values.
+  - Prefer `async`/`await` over verbose Promise chaining (`.then().catch()`).
+  - Prefer instantiating `Date` objects for timestamps rather than using raw numbers (e.g. `Date.now()`).
 
 - **Testing (Vitest):**
 

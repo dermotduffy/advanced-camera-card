@@ -11,12 +11,13 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { isEqual } from 'lodash-es';
-import { CameraManager } from '../camera-manager/manager.js';
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { UpdatingImageMediaPlayerController } from '../components-lib/media-player/updating-image.js';
+import { SignedURLController } from '../components-lib/signed-url-controller.js';
 import { CameraConfig } from '../config/schema/cameras.js';
 import { type ImageBaseConfig, ImageMode } from '../config/schema/common/image.js';
+import { EnabledProxyConfig } from '../config/schema/common/proxy.js';
 import { isHassDifferent } from '../ha/is-hass-different.js';
 import { HomeAssistant } from '../ha/types.js';
 import defaultImage from '../images/iris-screensaver.jpg';
@@ -79,8 +80,8 @@ export class AdvancedCameraCardImageUpdatingPlayer
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
-  @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  @property({ attribute: false, hasChanged: contentsChanged })
+  public proxyConfig?: EnabledProxyConfig;
 
   // Using contentsChanged to ensure overridden configs (e.g. when the
   // 'show_image_during_load' option is true for live views, an overridden
@@ -89,11 +90,36 @@ export class AdvancedCameraCardImageUpdatingPlayer
   public imageConfig?: ImageBaseConfig;
 
   @state()
-  private _message: Message | null = null;
+  private _imageLoadError = false;
 
   private _refImage: Ref<HTMLImageElement> = createRef();
 
-  private _cachedValueController?: CachedValueController<string>;
+  private _cachedValueController = new CachedValueController(
+    this,
+    () => this.imageConfig?.refresh_seconds ?? null,
+    () => this._getImageSource(),
+    () => dispatchMediaPlayEvent(this),
+    () => dispatchMediaPauseEvent(this),
+    // Clear image load errors on each timer tick so the next render retries the
+    // <img>. Retries are bounded by refresh_seconds, not a tight loop.
+    () => {
+      this._imageLoadError = false;
+    },
+  );
+
+  private _signedURLController = new SignedURLController(
+    this,
+    () => ({
+      hass: this.hass,
+      endpoint: this.imageConfig?.url ? { endpoint: this.imageConfig.url } : undefined,
+      proxyConfig: this.proxyConfig,
+    }),
+    () => {
+      this._cachedValueController.clearValue();
+      this._imageLoadError = false;
+    },
+  );
+
   private _boundVisibilityHandler = this._visibilityHandler.bind(this);
 
   private _mediaLoadedInfo: MediaLoadedInfo | null = null;
@@ -101,7 +127,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
   private _mediaPlayerController = new UpdatingImageMediaPlayerController(
     this,
     () => this._refImage.value ?? null,
-    () => this._cachedValueController ?? null,
+    () => this._cachedValueController,
   );
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
@@ -143,21 +169,6 @@ export class AdvancedCameraCardImageUpdatingPlayer
    * @param _changedProps The changed properties
    */
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('imageConfig')) {
-      if (this._cachedValueController) {
-        this._cachedValueController.removeController();
-      }
-      if (this.imageConfig) {
-        this._cachedValueController = new CachedValueController(
-          this,
-          this.imageConfig.refresh_seconds,
-          this._getImageSource.bind(this),
-          () => dispatchMediaPlayEvent(this),
-          () => dispatchMediaPauseEvent(this),
-        );
-      }
-    }
-
     const relevantEntity = this._getRelevantEntityForMode(
       resolveImageMode({
         imageConfig: this.imageConfig,
@@ -170,19 +181,18 @@ export class AdvancedCameraCardImageUpdatingPlayer
     // the state is not acceptable, discard the old value (to allow a stock or
     // backup image to be displayed).
     if (
+      changedProps.has('imageConfig') ||
       changedProps.has('cameraConfig') ||
+      changedProps.has('proxyConfig') ||
       changedProps.has('view') ||
       (relevantEntity && !this._getAcceptableState(relevantEntity))
     ) {
       this._cachedValueController?.clearValue();
+      this._imageLoadError = false;
     }
 
-    if (!this._cachedValueController?.value) {
+    if (!this._cachedValueController?.getValue()) {
       this._cachedValueController?.updateValue();
-    }
-
-    if (['imageConfig', 'view'].some((prop) => changedProps.has(prop))) {
-      this._message = null;
     }
   }
 
@@ -220,7 +230,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
    */
   disconnectedCallback(): void {
     this._cachedValueController?.stopTimer();
-    this._message = null;
+    this._imageLoadError = false;
     document.removeEventListener('visibilitychange', this._boundVisibilityHandler);
     super.disconnectedCallback();
   }
@@ -254,12 +264,23 @@ export class AdvancedCameraCardImageUpdatingPlayer
   }
 
   /**
-   * Build a working absolute image URL that the browser will not cache.
-   * @param url An input URL (may be relative to document origin)
-   * @returns A new URL as a string (absolute, will not be browser cached).
+   * Build an image URL that the browser will not cache. Supports two modes:
+   * - 'query-string': Appends a `_t` parameter. This is the most robust way to
+   *   defeat caching (it bypasses HTTP caches) but it changes the path sent to
+   *   the server and so can invalidate signed URLs.
+   * - 'fragment': Appends a `_t` fragment. This is less robust (the browser
+   *   might still serve from its HTTP cache) but it does not change the URL
+   *   sent to the server so it is safe for signed URLs.
+   * @param url The input URL.
+   * @param mode The cache-busting mode.
+   * @returns The cache-busted URL string.
    */
-  private _buildImageURL(url: URL): string {
-    url.searchParams.append('_t', String(Date.now()));
+  private _buildCacheBustURL(url: URL, mode: 'query-string' | 'fragment'): string {
+    if (mode === 'query-string') {
+      url.searchParams.append('_t', String(Date.now()));
+    } else {
+      url.hash = `_t=${Date.now()}`;
+    }
     return url.toString();
   }
 
@@ -294,7 +315,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
       if (state?.attributes.entity_picture) {
         const urlObj = new URL(state.attributes.entity_picture, document.baseURI);
         this._addQueryParametersToURL(urlObj, this.imageConfig?.entity_parameters);
-        return this._buildImageURL(urlObj);
+        return this._buildCacheBustURL(urlObj, 'query-string');
       }
     }
 
@@ -303,12 +324,21 @@ export class AdvancedCameraCardImageUpdatingPlayer
       if (state?.attributes.entity_picture) {
         const urlObj = new URL(state.attributes.entity_picture, document.baseURI);
         this._addQueryParametersToURL(urlObj, this.imageConfig?.entity_parameters);
-        return this._buildImageURL(urlObj);
+        return this._buildCacheBustURL(urlObj, 'query-string');
       }
     }
 
     if (mode === 'url' && this.imageConfig?.url) {
-      return this._buildImageURL(new URL(this.imageConfig.url, document.baseURI));
+      const url = this._signedURLController.getValue();
+      if (url) {
+        const urlObj = new URL(url, document.baseURI);
+        if (this.proxyConfig?.enabled) {
+          // Use a fragment for cache-busting proxied URLs, as this does not
+          // change the path and thus preserves the validity of the signed URL.
+          return this._buildCacheBustURL(urlObj, 'fragment');
+        }
+        return this._buildCacheBustURL(urlObj, 'query-string');
+      }
     }
 
     return defaultImage;
@@ -319,17 +349,43 @@ export class AdvancedCameraCardImageUpdatingPlayer
    */
   private _forceSafeImage(stockOnly?: boolean): void {
     if (this._refImage.value) {
-      this._refImage.value.src =
-        !stockOnly && this.imageConfig?.url ? this.imageConfig.url : defaultImage;
+      // Avoid restoring the raw configured URL when proxying is enabled, since
+      // that would bypass the proxied/signed URL path on visibility changes.
+      const configuredURL =
+        !stockOnly && !this.proxyConfig?.enabled ? this.imageConfig?.url ?? null : null;
+      this._refImage.value.src = configuredURL ?? defaultImage;
     }
   }
 
+  private _getDisplayMessage(): Message | null {
+    const error = this._signedURLController.getError();
+    if (error) {
+      return {
+        type: 'error',
+        message: localize(
+          error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign',
+        ),
+        context: this.proxyConfig,
+      };
+    }
+    if (this._imageLoadError) {
+      return {
+        type: 'error',
+        message: localize('error.image_load_error'),
+        context: this.imageConfig,
+      };
+    }
+    return null;
+  }
+
   protected render(): TemplateResult | void {
-    if (this._message) {
-      return renderMessage(this._message);
+    const message = this._getDisplayMessage();
+    if (message) {
+      return renderMessage(message);
     }
 
-    const src = this._cachedValueController?.value;
+    const src = this._cachedValueController?.getValue();
+
     // Note the use of live() below to ensure the update will restore the image
     // src if it's been changed via _forceSafeImage().
     return src
@@ -364,13 +420,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
                 // failed to load.
                 this._forceSafeImage(true);
               } else if (mode === 'url') {
-                // In url mode, the user likely specified a URL that cannot be
-                // resolved. Show an error message.
-                this._message = {
-                  type: 'error',
-                  message: localize('error.image_load_error'),
-                  context: this.imageConfig,
-                };
+                this._imageLoadError = true;
               }
             }}
           />

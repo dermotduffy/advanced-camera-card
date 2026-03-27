@@ -7,7 +7,9 @@ describe('getParseErrorPaths', () => {
     const result = z
       .object({ a: z.string(), b: z.number() })
       .safeParse({ a: 1, b: 'a' });
-    if (result.success) return;
+    if (result.success) {
+      return;
+    }
     expect(getParseErrorPaths(result.error)).toEqual(new Set(['a', 'b']));
   });
 
@@ -15,13 +17,17 @@ describe('getParseErrorPaths', () => {
     const result = z
       .object({ a: z.object({ b: z.string() }) })
       .safeParse({ a: { b: 1 } });
-    if (result.success) return;
+    if (result.success) {
+      return;
+    }
     expect(getParseErrorPaths(result.error)).toEqual(new Set(['a.b']));
   });
 
   it('should get array error paths', () => {
     const result = z.array(z.string()).safeParse([1, 'a', 2]);
-    if (result.success) return;
+    if (result.success) {
+      return;
+    }
     expect(getParseErrorPaths(result.error)).toEqual(new Set(['[0]', '[2]']));
   });
 
@@ -29,7 +35,9 @@ describe('getParseErrorPaths', () => {
     const result = z
       .object({ a: z.array(z.object({ b: z.string() })) })
       .safeParse({ a: [{ b: 1 }, { b: 'a' }, { b: 2 }] });
-    if (result.success) return;
+    if (result.success) {
+      return;
+    }
     expect(getParseErrorPaths(result.error)).toEqual(new Set(['a[0].b', 'a[2].b']));
   });
 });

@@ -77,6 +77,12 @@ describe('config defaults', () => {
       elements: [],
       image: {
         mode: 'auto',
+        proxy: {
+          dynamic: true,
+          ssl_ciphers: 'auto',
+          ssl_verification: 'auto',
+          enabled: false,
+        },
         refresh_seconds: 1,
         zoomable: true,
       },
