@@ -127,27 +127,7 @@
         "url": "URL de l’interface MotionEye"
       },
       "proxy": {
-        "dynamic": "Proxy dynamique",
-        "editor_label": "Proxy de la caméra",
-        "modes": {
-          "auto": "Proxy automatique",
-          "false": "Proxy désactivé",
-          "true": "Proxy activé"
-        },
-        "ssl_ciphers": {
-          "auto": "Chiffrement SSL automatique",
-          "default": "Chiffrement SSL par défaut",
-          "editor_label": "Chiffrement SSL",
-          "insecure": "Chiffrement SSL non sécurisé",
-          "intermediate": "Chiffrement SSL intermédiaire",
-          "modern": "Chiffrement SSL moderne"
-        },
-        "ssl_verification": {
-          "auto": "Vérification SSL automatique",
-          "editor_label": "Vérification SSL",
-          "false": "Vérification SSL désactivée",
-          "true": "Vérification SSL activée"
-        }
+        "editor_label": "Proxy de la caméra"
       },
       "reolink": {
         "editor_label": "Option Reolink",
@@ -178,15 +158,6 @@
       }
     },
     "common": {
-      "media_types": {
-        "events": "Événements",
-        "recordings": "Enregistrements"
-      },
-      "events_media_types": {
-        "all": "Tous types de médias",
-        "clips": "Extraits",
-        "snapshots": "Instantanés"
-      },
       "controls": {
         "builtin": "Commandes vidéo intégrées",
         "filter": {
@@ -257,6 +228,11 @@
         "grid_selected_width_factor": "Augmenter la largeur du média sélectionnée par ce facteur",
         "mode": "Mode"
       },
+      "events_media_types": {
+        "all": "Tous types de médias",
+        "clips": "Extraits",
+        "snapshots": "Instantanés"
+      },
       "image": {
         "entity": "Entité à utiliser avec le mode entité",
         "entity_parameters": "Paramètres de requête ajoutés aux URL des images basées sur l'entité (par exemple, width=1920&height=1080)",
@@ -278,6 +254,32 @@
         "selected": "Sur sélection",
         "unselected": "Lors de la désélection",
         "visible": "Sur la visibilité du navigateur/onglet"
+      },
+      "media_types": {
+        "events": "Événements",
+        "recordings": "Enregistrements"
+      },
+      "proxy": {
+        "dynamic": "Proxy dynamique",
+        "modes": {
+          "auto": "Proxy automatique",
+          "false": "Proxy désactivé",
+          "true": "Proxy activé"
+        },
+        "ssl_ciphers": {
+          "auto": "Chiffrement SSL automatique",
+          "default": "Chiffrement SSL par défaut",
+          "editor_label": "Chiffrement SSL",
+          "insecure": "Chiffrement SSL non sécurisé",
+          "intermediate": "Chiffrement SSL intermédiaire",
+          "modern": "Chiffrement SSL moderne"
+        },
+        "ssl_verification": {
+          "auto": "Vérification SSL automatique",
+          "editor_label": "Vérification SSL",
+          "false": "Vérification SSL désactivée",
+          "true": "Vérification SSL activée"
+        }
       },
       "timeline": {
         "clustering_threshold": "Nombre d'événements pour lesquels ils sont regroupés (0 = pas de clustering)",

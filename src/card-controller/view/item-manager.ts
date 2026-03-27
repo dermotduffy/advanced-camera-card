@@ -1,9 +1,9 @@
 import { format } from 'date-fns';
+import { homeAssistantGetSignedURLIfNecessary } from '../../ha/sign-path';
 import { localize } from '../../localize/localize';
 import { AdvancedCameraCardError } from '../../types';
 import { errorToConsole } from '../../utils/basic';
 import { downloadURL } from '../../utils/download';
-import { homeAssistantSignPath } from '../../ha/sign-path';
 import { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import { ViewItemCapabilities } from '../../view/types';
@@ -90,22 +90,19 @@ export class ViewItemManager {
       throw new AdvancedCameraCardError(localize('error.download_no_media'));
     }
 
-    let finalURL = endpoint.endpoint;
-    if (endpoint.sign) {
-      let response: string | null | undefined;
-      try {
-        response = await homeAssistantSignPath(hass, endpoint.endpoint);
-      } catch (e) {
-        errorToConsole(e as Error);
-      }
-
-      if (!response) {
-        throw new AdvancedCameraCardError(localize('error.download_sign_failed'));
-      }
-      finalURL = response;
+    let url: string | null;
+    try {
+      url = await homeAssistantGetSignedURLIfNecessary(hass, endpoint);
+    } catch (e) {
+      errorToConsole(e as Error);
+      url = null;
     }
 
-    downloadURL(finalURL, this._generateDownloadFilename(item));
+    if (!url) {
+      throw new AdvancedCameraCardError(localize('error.download_sign_failed'));
+    }
+
+    downloadURL(url, this._generateDownloadFilename(item));
   }
 
   private _generateDownloadFilename(item: ViewItem): string {

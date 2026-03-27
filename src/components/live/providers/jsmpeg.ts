@@ -14,7 +14,7 @@ import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispa
 import { JSMPEGMediaPlayerController } from '../../../components-lib/media-player/jsmpeg.js';
 import { CameraConfig } from '../../../config/schema/cameras.js';
 import { CardWideConfig } from '../../../config/schema/types.js';
-import { homeAssistantSignPath } from '../../../ha/sign-path.js';
+import { homeAssistantGetSignedURLIfNecessary } from '../../../ha/sign-path.js';
 import { HomeAssistant } from '../../../ha/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveJSMPEGStyle from '../../../scss/live-jsmpeg.scss';
@@ -186,9 +186,9 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
 
     let response: string | null | undefined;
     try {
-      response = await homeAssistantSignPath(
+      response = await homeAssistantGetSignedURLIfNecessary(
         this.hass,
-        endpoint.endpoint,
+        endpoint,
         JSMPEG_URL_SIGN_EXPIRY_SECONDS,
       );
     } catch (e) {

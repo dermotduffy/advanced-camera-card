@@ -1,6 +1,6 @@
-import { SignedPath, signedPathSchema } from '../types';
-import { homeAssistantWSRequest } from './ws-request';
+import { type Endpoint, SignedPath, signedPathSchema } from '../types';
 import { HomeAssistant } from './types';
+import { homeAssistantWSRequest } from './ws-request';
 
 /**
  * Request that HA sign a path. May throw.
@@ -29,4 +29,22 @@ export async function homeAssistantSignPath(
     return null;
   }
   return hass.hassUrl(response.path);
+}
+
+/**
+ * Sign an endpoint's path if the endpoint requires signing.
+ * @param hass The HomeAssistant object used to request the signature.
+ * @param endpoint The endpoint to potentially sign.
+ * @param expires An optional number of seconds to sign the path for.
+ * @returns The signed or unsigned URL, or null if signing failed.
+ */
+export async function homeAssistantGetSignedURLIfNecessary(
+  hass: HomeAssistant,
+  endpoint: Endpoint,
+  expires?: number,
+): Promise<string | null> {
+  if (!endpoint.sign) {
+    return endpoint.endpoint;
+  }
+  return await homeAssistantSignPath(hass, endpoint.endpoint, expires);
 }

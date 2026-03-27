@@ -1,7 +1,7 @@
 import { ExpiringEqualityCache } from '../cache/expiring-cache';
-import { SSLCiphers } from '../config/schema/cameras';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
 import { InternalIcon } from '../config/schema/common/icon';
+import { ResolvedProxyConfig } from '../config/schema/common/proxy';
 import { BaseQuery, QueryFilters, QuerySource } from '../query-source';
 import { CapabilityKey, Endpoint } from '../types';
 import { ViewMedia } from '../view/item';
@@ -137,12 +137,9 @@ export interface CameraEndpoints {
   webrtcCard?: Endpoint;
 }
 
-export interface CameraProxyConfig {
-  dynamic: boolean;
+export interface CameraProxyConfig extends ResolvedProxyConfig {
   live: boolean;
   media: boolean;
-  ssl_verification: boolean;
-  ssl_ciphers: SSLCiphers;
 }
 
 export interface EngineOptions {
