@@ -1793,6 +1793,24 @@ describe('MenuButtonController', () => {
     });
   });
 
+  it('should not have mute button without audio', () => {
+    const mediaPlayerController = mock<MediaPlayerController>();
+    const buttons = calculateButtons(controller, {
+      currentMediaLoadedInfo: createMediaLoadedInfo({
+        capabilities: {
+          hasAudio: false,
+        },
+        mediaPlayerController,
+      }),
+    });
+
+    expect(buttons).not.toContainEqual(
+      expect.objectContaining({
+        title: 'Mute / Unmute',
+      }),
+    );
+  });
+
   it('should have screenshot button', () => {
     const buttons = calculateButtons(controller, {
       currentMediaLoadedInfo: createMediaLoadedInfo({

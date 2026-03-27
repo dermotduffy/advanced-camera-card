@@ -82,8 +82,12 @@ describe('hasAudio', () => {
     } as unknown as RTCRtpReceiver;
   };
 
-  const createMockPeerConnection = (receivers: RTCRtpReceiver[]): RTCPeerConnection => {
+  const createMockPeerConnection = (
+    receivers: RTCRtpReceiver[],
+    connectionState: RTCPeerConnectionState = 'connected',
+  ): RTCPeerConnection => {
     return {
+      connectionState,
       getReceivers: () => receivers,
     } as unknown as RTCPeerConnection;
   };
@@ -115,6 +119,21 @@ describe('hasAudio', () => {
       // Empty receivers means connection not established, falls back to mayHaveAudio
       // With no properties set on video, mayHaveAudio returns true (generous default)
       expect(hasAudio(createMockVideo(), pc, '')).toBe(true);
+    });
+
+    it('should ignore receivers when connection is not established', () => {
+      const pc = createMockPeerConnection([createMockReceiver('audio', true)], 'new');
+
+      // Stale connection with muted receiver should fall through to
+      // mayHaveAudio (generous default returns true)
+      expect(hasAudio(createMockVideo(), pc, '')).toBe(true);
+    });
+
+    it('should fall through to mseCodecs when connection is not established', () => {
+      const pc = createMockPeerConnection([createMockReceiver('audio', true)], 'new');
+
+      // Stale WebRTC connection but MSE has audio codecs
+      expect(hasAudio(createMockVideo(), pc, 'avc1.640029,flac')).toBe(true);
     });
   });
 
