@@ -133,8 +133,9 @@
         "entity": "Entität für Entitäts-Modus",
         "entity_parameters": "Abfrage-Parameter für Entitäts-basierende Photo URLs (z.B. width=1920&height=1080)",
         "modes": {
+          "default": "Standard-Eingebettetes Bild",
           "entity": "Entität mit entity_picture Attribut",
-          "screensaver": "Eingebettetes Bild für Bildschirmschoner"
+          "screensaver": "Zufälliges Bild"
         }
       },
       "media_action_conditions": {

@@ -42,12 +42,21 @@ import { renderMessage } from './message.js';
 // See TOKEN_CHANGE_INTERVAL in https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py .
 const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
 
+const SCREENSAVER_URL = 'https://picsum.photos';
+const SCREENSAVER_REFRESH_SECONDS = 60;
+const SCREENSAVER_DEFAULT_WIDTH = 500;
+const SCREENSAVER_DEFAULT_HEIGHT = Math.round(SCREENSAVER_DEFAULT_WIDTH / (16 / 9));
+
+// Round requested dimensions to the nearest multiple to avoid fetching a unique
+// image for every minor size difference.
+const SCREENSAVER_DIMENSION_BUCKET = 100;
+
 export const resolveImageMode = (options?: {
   imageConfig?: ImageBaseConfig;
   cameraConfig?: CameraConfig;
 }): Exclude<ImageMode, 'auto'> => {
   if (!options?.imageConfig?.mode) {
-    return 'screensaver';
+    return 'default';
   } else if (options?.imageConfig?.mode !== 'auto') {
     return options.imageConfig.mode;
   }
@@ -60,7 +69,7 @@ export const resolveImageMode = (options?: {
     return 'camera';
   }
 
-  return 'screensaver';
+  return 'default';
 };
 
 /**
@@ -96,7 +105,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
 
   private _cachedValueController = new CachedValueController(
     this,
-    () => this.imageConfig?.refresh_seconds ?? null,
+    () => this._getEffectiveRefreshSeconds(),
     () => this._getImageSource(),
     () => dispatchMediaPlayEvent(this),
     () => dispatchMediaPauseEvent(this),
@@ -235,6 +244,16 @@ export class AdvancedCameraCardImageUpdatingPlayer
     super.disconnectedCallback();
   }
 
+  private _getScreensaverURL(): string {
+    const bucket = (value: number, fallback: number): number =>
+      Math.ceil((value || fallback) / SCREENSAVER_DIMENSION_BUCKET) *
+      SCREENSAVER_DIMENSION_BUCKET;
+    const w = bucket(this.clientWidth, SCREENSAVER_DEFAULT_WIDTH);
+    const h = bucket(this.clientHeight, SCREENSAVER_DEFAULT_HEIGHT);
+    const urlObj = new URL(`${SCREENSAVER_URL}/${w}/${h}`);
+    return this._buildCacheBustURL(urlObj, 'query-string');
+  }
+
   /**
    * Handle document visibility changes.
    */
@@ -294,6 +313,19 @@ export class AdvancedCameraCardImageUpdatingPlayer
     return url;
   }
 
+  private _getEffectiveRefreshSeconds(): number | null {
+    const seconds = this.imageConfig?.refresh_seconds ?? null;
+    if (seconds !== 'auto') {
+      return seconds;
+    }
+
+    const mode = resolveImageMode({
+      imageConfig: this.imageConfig,
+      cameraConfig: this.cameraConfig,
+    });
+    return mode === 'screensaver' ? SCREENSAVER_REFRESH_SECONDS : 1;
+  }
+
   private _getRelevantEntityForMode(mode: Exclude<ImageMode, 'auto'>): string | null {
     return mode === 'camera'
       ? getCameraEntityFromConfig(this.cameraConfig)
@@ -339,6 +371,10 @@ export class AdvancedCameraCardImageUpdatingPlayer
         }
         return this._buildCacheBustURL(urlObj, 'query-string');
       }
+    }
+
+    if (mode === 'screensaver') {
+      return this._getScreensaverURL();
     }
 
     return defaultImage;
@@ -397,7 +433,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
               const mediaLoadedInfo = createMediaLoadedInfo(ev, {
                 mediaPlayerController: this._mediaPlayerController,
                 capabilities: {
-                  supportsPause: !!this.imageConfig?.refresh_seconds,
+                  supportsPause: !!this._getEffectiveRefreshSeconds(),
                 },
               });
               // Avoid the media being reported as repeatedly loading unless the
@@ -412,12 +448,10 @@ export class AdvancedCameraCardImageUpdatingPlayer
                 imageConfig: this.imageConfig,
                 cameraConfig: this.cameraConfig,
               });
-              if (mode === 'camera' || mode === 'entity') {
-                // In camera or entity mode, the user has likely not made an
-                // error, but HA may be unavailble, so show the stock image.
-                // Don't let the URL override the stock image in this case, as
-                // this could create an error loop if that URL subsequently
-                // failed to load.
+              if (mode === 'camera' || mode === 'entity' || mode === 'screensaver') {
+                // In camera, entity, or screensaver mode the user has likely
+                // not made an error, but the source may be unavailable, so show
+                // the stock image.
                 this._forceSafeImage(true);
               } else if (mode === 'url') {
                 this._imageLoadError = true;

@@ -28,7 +28,7 @@ describe('config defaults', () => {
         },
         image: {
           mode: 'auto',
-          refresh_seconds: 1,
+          refresh_seconds: 'auto',
         },
         live_provider: 'auto',
         motioneye: {
@@ -83,7 +83,7 @@ describe('config defaults', () => {
           ssl_verification: 'auto',
           enabled: false,
         },
-        refresh_seconds: 1,
+        refresh_seconds: 'auto',
         zoomable: true,
       },
       live: {
