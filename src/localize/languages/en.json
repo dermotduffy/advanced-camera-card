@@ -27,7 +27,7 @@
   },
   "config": {
     "cameras": {
-      "always_error_if_entity_unavailable": "Always treat entity unavailability as error",
+      "always_error_if_entity_unavailable": "Always treat entity unavailability as an error",
       "camera_entity": "Camera Entity",
       "capabilities": {
         "capabilities": {
@@ -109,8 +109,8 @@
         "editor_label": "Camera engine options"
       },
       "frigate": {
-        "camera_name": "Frigate camera name (Autodetected from entity)",
-        "client_id": "Frigate client id (For >1 Frigate server)",
+        "camera_name": "Frigate camera name (autodetected from entity)",
+        "client_id": "Frigate client id (for >1 Frigate server)",
         "editor_label": "Frigate options",
         "labels": "Frigate labels/object filters",
         "url": "Frigate server URL",
@@ -129,11 +129,11 @@
         "stream": "go2rtc stream name",
         "url": "go2rtc URL"
       },
-      "icon": "Icon for this camera (Autodetected from entity)",
+      "icon": "Icon for this camera (autodetected from entity)",
       "id": "Unique ID for this camera in this card",
       "image": {
         "editor_label": "Image Options",
-        "refresh_seconds": "Number of seconds after which to refresh live image (0=never)",
+        "refresh_seconds": "Seconds between live image refreshes (0=never)",
         "url": "Image URL to use instead of camera entity snapshot"
       },
       "live_provider": "Live view provider for this camera",
@@ -186,7 +186,7 @@
         },
         "url": "Reolink UI URL"
       },
-      "title": "Title for this camera (Autodetected from entity)",
+      "title": "Title for this camera (autodetected from entity)",
       "triggers": {
         "editor_label": "Trigger options",
         "entities": "Trigger from other entities",
@@ -234,7 +234,7 @@
         },
         "thumbnails": {
           "editor_label": "Thumbnails",
-          "events_media_type": "Whether to show event thumbnails of clips or snapshots",
+          "events_media_type": "Events media type shown in thumbnails",
           "media_type": "What to show thumbnails of",
           "mode": "Thumbnails mode",
           "modes": {
@@ -306,7 +306,7 @@
         "proxy": {
           "editor_label": "Image proxying"
         },
-        "refresh_seconds": "Number of seconds after which to refresh (0=never)",
+        "refresh_seconds": "Seconds between refreshes (0=never)",
         "url": "Static image URL"
       },
       "media_action_conditions": {
@@ -349,15 +349,15 @@
         }
       },
       "timeline": {
-        "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
-        "events_media_type": "The events media the timeline displays",
+        "clustering_threshold": "Number of events before clustering (0=no clustering)",
+        "events_media_type": "Events media type shown on the timeline",
         "show_recordings": "Show recordings",
         "style": "Timeline style",
         "styles": {
           "ribbon": "Events on a single ribbon",
           "stack": "Stacked & clustered events"
         },
-        "window_seconds": "The default length of the timeline view in seconds"
+        "window_seconds": "Default timeline window length in seconds"
       }
     },
     "dimensions": {
@@ -426,10 +426,10 @@
       "lazy_unload": "Live cameras are lazily unloaded",
       "microphone": {
         "always_connected": "Always keep the microphone connected",
-        "disconnect_seconds": "Seconds after which to disconnect microphone (0=never)",
+        "disconnect_seconds": "Seconds before disconnecting microphone (0=never)",
         "editor_label": "Microphone",
         "enabled": "Microphone enabled",
-        "mute_after_microphone_mute_seconds": "Seconds after microphone mute to mute inbound audio"
+        "mute_after_microphone_mute_seconds": "Seconds after microphone mute before muting inbound audio"
       },
       "preload": "Preload live view in the background",
       "show_image_during_load": "Show still image while the live stream is loading",
@@ -525,7 +525,7 @@
       }
     },
     "overrides": {
-      "info": "This card configuration has manually specified overrides configured which may override values shown in the visual editor, please consult the code editor to view/modify these overrides"
+      "info": "This card has manually specified overrides that may override values shown in the visual editor. Consult the code editor to view or modify them"
     },
     "performance": {
       "features": {
@@ -541,7 +541,7 @@
         "box_shadow": "Shadows",
         "editor_label": "Style Options"
       },
-      "warning": "This card is in low profile mode so defaults have changed to optimize performance"
+      "warning": "This card is in low profile mode, so defaults have changed to optimize performance"
     },
     "profiles": {
       "casting": "Casting",
@@ -600,7 +600,7 @@
         }
       },
       "dim": "Dim when no interaction",
-      "interaction_seconds": "Seconds after user action to remain interacted with (0=never)",
+      "interaction_seconds": "Seconds of inactivity before interaction state ends (0=never)",
       "keyboard_shortcuts": {
         "editor_label": "Keyboard shortcuts",
         "enabled": "Keyboard shortcuts enabled",
@@ -732,7 +732,7 @@
   },
   "error": {
     "awaiting_folder": "Waiting for folder to load",
-    "awaiting_live": "Waiting for live stream to load ...",
+    "awaiting_live": "Waiting for live stream to load...",
     "awaiting_media": "Waiting for media to load",
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
@@ -751,7 +751,7 @@
     "failed_retain": "Could not retain event",
     "failed_sign": "Could not sign Home Assistant URL",
     "fetching_diagnostics": "Fetching diagnostics",
-    "image_load_error": "The image could not be loaded",
+    "image_load_error": "Could not load image",
     "invalid_configuration": "Invalid configuration",
     "invalid_configuration_no_hint": "No location hint available (bad or missing type?)",
     "invalid_configuration_override": "Invalid override configuration",
@@ -778,7 +778,7 @@
     "unknown": "Unknown error",
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",
     "webrtc_card_reported_error": "WebRTC Card reported an error",
-    "webrtc_card_waiting": "Waiting for WebRTC Card to load ..."
+    "webrtc_card_waiting": "Waiting for WebRTC Card to load..."
   },
   "key_assigner": {
     "assign": "Assign",
@@ -853,7 +853,7 @@
     "in_progress": "In Progress",
     "info": "Info",
     "no_thumbnail": "No thumbnail available",
-    "retain_indefinitely": "Media will be indefinitely retained",
+    "retain_indefinitely": "Retain media indefinitely",
     "score": "Score",
     "seek": "Seek",
     "start": "Start",
