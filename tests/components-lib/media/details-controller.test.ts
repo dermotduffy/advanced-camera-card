@@ -431,7 +431,7 @@ describe('MediaDetailsController', () => {
       expect(cardAPI.getNotificationManager().setNotification).not.toHaveBeenCalled();
 
       // 2. Favorite control
-      expect(controls?.[1].tooltip).toBe('Media will be indefinitely retained');
+      expect(controls?.[1].tooltip).toBe('Retain media indefinitely');
       expect(controls?.[1].dismiss).toBe(false);
       await executeControlAction(controls[1], cardAPI);
       expect(cardAPI.getNotificationManager().setNotification).toHaveBeenCalled();
