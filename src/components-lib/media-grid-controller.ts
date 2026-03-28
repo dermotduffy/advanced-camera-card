@@ -156,7 +156,7 @@ export class MediaGridController {
       this._masonry
     ) {
       // Implementation note: With the latest version of the Masonry library
-      // (4.2.2) using the prepended() and appended() methods in quick sucession
+      // (4.2.2) using the prepended() and appended() methods in quick succession
       // causes the layout to not show the newly added items. Instead, access
       // the items in place and swap them around.
       const otherItems = existingItems?.filter((item) => item !== selectedItem);
