@@ -115,7 +115,7 @@ describe('loadLanguages', () => {
 
     await loadLanguages(hass);
 
-    expect(localize('common.live')).toBe('En directe');
+    expect(localize('common.no_media')).toBe('No hi ha suport per mostrar');
   });
 
   it('should load and use German translations', async () => {
@@ -135,7 +135,7 @@ describe('loadLanguages', () => {
 
     await loadLanguages(hass);
 
-    expect(localize('common.live')).toBe('En direct');
+    expect(localize('common.no_media')).toBe('Aucun média à afficher');
   });
 
   it('should load and use Italian translations', async () => {
@@ -167,7 +167,7 @@ describe('loadLanguages', () => {
 
     await loadLanguages(hass);
 
-    expect(localize('common.live')).toBe('Ao Vivo');
+    expect(localize('common.no_media')).toBe('Sem média');
   });
 
   it('should load and use Brazilian Portuguese translations', async () => {
@@ -178,7 +178,7 @@ describe('loadLanguages', () => {
 
     await loadLanguages(hass);
 
-    expect(localize('common.live')).toBe('Ao Vivo');
+    expect(localize('common.no_media')).toBe('Nenhuma mídia para exibir');
   });
 
   it('should fall back to English for unsupported language', async () => {
