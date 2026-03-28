@@ -225,9 +225,9 @@ describe('localize', () => {
     hass.language = 'de';
     await loadLanguages(hass);
 
-    // 'common.dismiss' exists only in English, so the German lookup throws and
-    // falls back to English.
-    expect(localize('common.dismiss')).toBe('Dismiss');
+    // 'common.no_media' exists only in English, so the German lookup throws
+    // and falls back to English.
+    expect(localize('common.no_media')).toBe('No media to display');
   });
 
   it('should perform search and replace', async () => {
