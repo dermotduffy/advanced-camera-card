@@ -1,9 +1,6 @@
 {
   "common": {
-    "live": "Ao Vivo",
-    "no_media": "Nenhuma mídia para exibir",
-    "recordings": "Gravações",
-    "version": "Versão"
+    "no_media": "Nenhuma mídia para exibir"
   },
   "config": {
     "cameras": {
@@ -122,7 +119,6 @@
         },
         "thumbnails": {
           "editor_label": "Miniaturas",
-          "events_media_type": "Se deve mostrar miniaturas de clipes ou snapshots",
           "mode": "Modo de miniaturas",
           "modes": {
             "above": "Miniaturas acima da mídia",
@@ -157,16 +153,13 @@
         "url": "Imagem arbitrária especificada por URL"
       },
       "media_action_conditions": {
-        "all": "Todas as oportunidades",
         "hidden": "Ao ocultar o navegador/aba",
-        "never": "Nunca",
         "selected": "Ao selecionar",
         "unselected": "Ao desselecionar",
         "visible": "Ao mostrar o navegador/aba"
       },
       "timeline": {
         "clustering_threshold": "A contagem de eventos nos quais eles são agrupados (0 = sem agrupamento)",
-        "events_media_type": "A mídia que a linha do tempo exibe",
         "show_recordings": "Mostrar gravações",
         "window_seconds": "A duração padrão da visualização da linha do tempo em segundos"
       }
@@ -304,7 +297,6 @@
   },
   "editor": {
     "add_new_camera": "Adicionar nova câmera",
-    "button": "Botão",
     "camera": "Câmera",
     "cameras": "Câmeras",
     "cameras_secondary": "Quais câmeras renderizar neste cartão",
@@ -345,7 +337,6 @@
   },
   "error": {
     "could_not_render_elements": "Não foi possível renderizar os elementos da imagem",
-    "could_not_resolve": "Não foi possível resolver o URL de mídia",
     "diagnostics": "Diagnósticos do cartão. Revise as informações confidenciais antes de compartilhar",
     "download_no_media": "Nenhuma mídia para download",
     "download_sign_failed": "Não foi possível assinar o URL de mídia para download",
@@ -365,18 +356,15 @@
     "live_camera_unavailable": "Câmera indisponível",
     "no_camera_engine": "Não foi possível determinar o motor adequado para a câmera",
     "no_camera_entity": "Não foi possível encontrar a entidade da câmera",
-    "no_camera_entity_for_triggers": "Uma entidade de câmera é necessária para detectar automaticamente os gatilhos",
     "no_camera_id": "Não foi possível determinar o ID da câmera para a câmera a seguir, pode ser necessário definir o parâmetro 'id' manualmente",
     "no_live_camera": "O parâmetro camera_entity deve ser definido e válido para este provedor ativo",
     "reconnecting": "Reconectando",
     "troubleshooting": "Verifique a solução de problemas",
-    "unknown": "Erro desconhecido",
     "upgrade_available": "Uma atualização automatizada da configuração do cartão está disponível, visite o editor visual do cartão",
     "webrtc_card_reported_error": "O cartão WebRTC relatou um erro",
     "webrtc_card_waiting": "Aguardando o cartão WebRTC carregar ..."
   },
   "media_filter": {
-    "all": "Todos",
     "camera": "Câmera",
     "favorite": "Favorito",
     "media_type": "Tipo de mídia",
@@ -408,16 +396,13 @@
     "camera": "Câmera",
     "download": "Baixar mídia",
     "duration": "Duração",
-    "events": "Eventos",
     "in_progress": "Em andamento",
     "no_thumbnail": "Nenhuma miniatura disponível",
     "retain_indefinitely": "Evento será retido por tempo indeterminado",
-    "score": "Pontuação",
     "seek": "Procurar",
     "start": "Início",
     "tag": "Etiqueta",
     "timeline": "Ver evento na linha do tempo",
-    "what": "O que",
     "where": "Onde"
   },
   "timeline": {

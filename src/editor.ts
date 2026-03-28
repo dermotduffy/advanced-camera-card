@@ -452,7 +452,7 @@ const options: EditorOptions = {
   folders: {
     icon: 'folder-multiple',
     name: localize('editor.folders'),
-    secondary: localize('editor.folders'),
+    secondary: localize('editor.folders_secondary'),
   },
   media_gallery: {
     icon: 'play-box-multiple',

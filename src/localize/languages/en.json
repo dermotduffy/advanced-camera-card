@@ -6,12 +6,8 @@
   "common": {
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "An Advanced Camera Card",
-    "dismiss": "Dismiss",
     "folder": "Folder",
-    "live": "Live",
-    "no_folder": "No folder to display",
     "no_media": "No media to display",
-    "recordings": "Recordings",
     "set_reviews": {
       "reviewed": "Mark as reviewed",
       "unreviewed": "Mark as unreviewed"
@@ -22,8 +18,7 @@
       "medium": "Medium"
     },
     "severity": "Severity",
-    "up": "Up",
-    "version": "Version"
+    "up": "Up"
   },
   "config": {
     "cameras": {
@@ -234,8 +229,6 @@
         },
         "thumbnails": {
           "editor_label": "Thumbnails",
-          "events_media_type": "Events media type shown in thumbnails",
-          "media_type": "What to show thumbnails of",
           "mode": "Thumbnails mode",
           "modes": {
             "above": "Thumbnails above",
@@ -310,11 +303,9 @@
         "url": "Static image URL"
       },
       "media_action_conditions": {
-        "all": "All opportunities",
         "hidden": "On browser/tab hiding",
         "microphone_mute": "On microphone mute",
         "microphone_unmute": "On microphone unmute",
-        "never": "Never",
         "selected": "On selection",
         "unselected": "On unselection",
         "visible": "On browser/tab visibility"
@@ -350,7 +341,6 @@
       },
       "timeline": {
         "clustering_threshold": "Number of events before clustering (0=no clustering)",
-        "events_media_type": "Events media type shown on the timeline",
         "show_recordings": "Show recordings",
         "style": "Timeline style",
         "styles": {
@@ -428,7 +418,6 @@
         "always_connected": "Always keep the microphone connected",
         "disconnect_seconds": "Seconds before disconnecting microphone (0=never)",
         "editor_label": "Microphone",
-        "enabled": "Microphone enabled",
         "mute_after_microphone_mute_seconds": "Seconds after microphone mute before muting inbound audio"
       },
       "preload": "Preload live view in the background",
@@ -560,7 +549,6 @@
       "items": {
         "enabled": "Item enabled",
         "engine": "Camera engine",
-        "live_provider": "Live provider",
         "priority": "Item priority",
         "resolution": "Resolution",
         "technology": "Technology",
@@ -677,7 +665,6 @@
   "editor": {
     "add_new_camera": "Add new camera",
     "add_new_folder": "Add new folder",
-    "button": "Button",
     "camera": "Camera",
     "cameras": "Cameras",
     "cameras_secondary": "What cameras to render on this card",
@@ -731,14 +718,12 @@
     }
   },
   "error": {
-    "awaiting_folder": "Waiting for folder to load",
     "awaiting_live": "Waiting for live stream to load...",
     "awaiting_media": "Waiting for media to load",
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
     "configuration": "Check configuration",
     "could_not_render_elements": "Could not render picture elements",
-    "could_not_resolve": "Could not resolve media URL",
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",
     "download_no_media": "No media to download",
     "download_sign_failed": "Could not sign media URL for download",
@@ -763,9 +748,7 @@
     "live_camera_unavailable": "Camera unavailable",
     "no_camera_engine": "Could not determine suitable engine for camera",
     "no_camera_entity": "Could not find camera entity",
-    "no_camera_entity_for_triggers": "A camera entity is required in order to autodetect triggers",
     "no_camera_for_image": "No camera configured for camera image mode",
-    "no_camera_for_live": "No cameras are configured for live view",
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
     "no_camera_or_media_for_timeline": "No camera or media available for timeline",
     "no_dashboard_or_view": "Both 'dashboard_path' and 'view_path' parameters are required for the 'dashboard' cast method",
@@ -775,7 +758,6 @@
     "reconnecting": "Reconnecting",
     "too_many_automations": "Too many nested automation calls, please check your configuration for loops",
     "troubleshooting": "Check troubleshooting",
-    "unknown": "Unknown error",
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",
     "webrtc_card_reported_error": "WebRTC Card reported an error",
     "webrtc_card_waiting": "Waiting for WebRTC Card to load..."
@@ -791,7 +773,6 @@
     "unassign": "Unassign"
   },
   "media_filter": {
-    "all": "All",
     "camera": "Camera",
     "favorite": "Favorite",
     "media_type": "Media Type",
@@ -849,18 +830,14 @@
     "camera": "Camera",
     "download": "Download media",
     "duration": "Duration",
-    "events": "Events",
     "in_progress": "In Progress",
-    "info": "Info",
     "no_thumbnail": "No thumbnail available",
     "retain_indefinitely": "Retain media indefinitely",
-    "score": "Score",
     "seek": "Seek",
     "start": "Start",
     "tag": "Tag",
     "timeline": "See media in timeline",
     "title": "Title",
-    "what": "What",
     "where": "Where"
   },
   "timeline": {
