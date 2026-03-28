@@ -193,14 +193,14 @@ export class AdvancedCameraCardGallery extends LitElement {
     const hasItems =
       (this._controller.getItems()?.length ?? 0) > 0 || !!this._upFolderItem;
 
-    const showFilter =
-      this.galleryConfig && this.galleryConfig.controls.filter.mode !== 'none';
+    const filterMode = this.galleryConfig?.controls.filter.mode;
+    const showFilter = filterMode && filterMode !== 'none';
 
     return html`
       <advanced-camera-card-surround-basic
         .drawerIcons=${{
           ...(showFilter && {
-            [this.galleryConfig!.controls.filter.mode]: GALLERY_FILTER_MENU_ICONS,
+            [filterMode]: GALLERY_FILTER_MENU_ICONS,
           }),
         }}
       >
@@ -211,7 +211,7 @@ export class AdvancedCameraCardGallery extends LitElement {
               .foldersManager=${this.foldersManager}
               .viewManagerEpoch=${this.viewManagerEpoch}
               .cardWideConfig=${this.cardWideConfig}
-              slot=${this.galleryConfig.controls.filter.mode}
+              slot=${filterMode}
             >
             </advanced-camera-card-media-filter>`
           : ''}

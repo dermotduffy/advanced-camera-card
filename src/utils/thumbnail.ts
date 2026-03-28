@@ -20,29 +20,23 @@ const fetchThumbnail = async (
   if (thumbnailURL.startsWith('data:') || thumbnailURL.match(ABSOLUTE_URL_REGEX)) {
     return thumbnailURL;
   }
-  return new Promise((resolve, reject) => {
-    hass
-      .fetchWithAuth(thumbnailURL)
-      // Since we are fetching with an authorization header, we cannot just put the
-      // URL directly into the document; we need to embed the image. We could do this
-      // using blob URLs, but then we would need to keep track of them in order to
-      // release them properly. Instead, we embed the thumbnail using base64.
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(response.statusText);
-        }
-        return response.blob();
-      })
-      .then((blob) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result;
-          resolve(typeof result === 'string' ? result : null);
-        };
-        reader.onerror = (e) => reject(e);
-        reader.readAsDataURL(blob);
-      })
-      .catch((e) => reject(e));
+  // Since we are fetching with an authorization header, we cannot just put the
+  // URL directly into the document; we need to embed the image. We could do this
+  // using blob URLs, but then we would need to keep track of them in order to
+  // release them properly. Instead, we embed the thumbnail using base64.
+  const response = await hass.fetchWithAuth(thumbnailURL);
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+  const blob = await response.blob();
+  return new Promise<string | null>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      resolve(typeof result === 'string' ? result : null);
+    };
+    reader.onerror = (e) => reject(e);
+    reader.readAsDataURL(blob);
   });
 };
 
