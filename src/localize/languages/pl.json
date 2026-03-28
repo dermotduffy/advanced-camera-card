@@ -265,8 +265,9 @@
         "mode": "Tryb obrazu",
         "modes": {
           "camera": "Zrzut (snapshot) z encji kamery Home Assistant",
+          "default": "Domyślny wbudowany obraz",
           "entity": "Encja z atrybutem entity_picture",
-          "screensaver": "Wbudowany wygaszacz ekranu",
+          "screensaver": "Losowy obraz",
           "url": "Dowolny obraz z URL"
         },
         "refresh_seconds": "Sekundy do odświeżenia (0=nigdy)",

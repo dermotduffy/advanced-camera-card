@@ -298,8 +298,9 @@
         "mode": "Image mode",
         "modes": {
           "camera": "Home Assistant camera snapshot of camera entity",
+          "default": "Default embedded image",
           "entity": "Entity with entity_picture attribute",
-          "screensaver": "Embedded screensaver image",
+          "screensaver": "Random image",
           "url": "Arbitrary image specified by URL"
         },
         "proxy": {

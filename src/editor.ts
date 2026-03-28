@@ -714,8 +714,12 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
   private _imageModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'camera', label: localize('config.common.image.modes.camera') },
+    { value: 'default', label: localize('config.common.image.modes.default') },
     { value: 'entity', label: localize('config.common.image.modes.entity') },
-    { value: 'screensaver', label: localize('config.common.image.modes.screensaver') },
+    {
+      value: 'screensaver',
+      label: localize('config.common.image.modes.screensaver'),
+    },
     { value: 'url', label: localize('config.common.image.modes.url') },
   ];
 
