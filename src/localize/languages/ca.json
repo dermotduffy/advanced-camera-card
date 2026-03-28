@@ -1,9 +1,6 @@
 {
   "common": {
-    "live": "En directe",
-    "no_media": "No hi ha suport per mostrar",
-    "recordings": "Enregistraments",
-    "version": "Versió"
+    "no_media": "No hi ha suport per mostrar"
   },
   "config": {
     "cameras": {
@@ -142,8 +139,6 @@
         },
         "thumbnails": {
           "editor_label": "Miniatures",
-          "events_media_type": "Si voleu mostrar miniatures d'esdeveniments de clips o instantànies",
-          "media_type": "Si voleu mostrar miniatures d'esdeveniments o enregistraments",
           "mode": "Mode de miniatures",
           "modes": {
             "above": "Miniatures a dalt",
@@ -192,18 +187,15 @@
         "url": "URL d'imatge estàtica per a la visualització d'imatges"
       },
       "media_action_conditions": {
-        "all": "Totes les oportunitats",
         "hidden": "A l'amagat del navegador/pestanya",
         "microphone_mute": "Si el micròfon està en silenci",
         "microphone_unmute": "Si el micròfon no està en silenci",
-        "never": "Mai",
         "selected": "A la selecció",
         "unselected": "En desselecció",
         "visible": "En la visualització del navegador/pestanya"
       },
       "timeline": {
         "clustering_threshold": "El recompte d'esdeveniments en què s'agrupen (0=sense agrupació)",
-        "events_media_type": "Els esdeveniments multimèdia que mostra la línia de temps",
         "show_recordings": "Mostra les gravacions",
         "style": "Estil de cronologia",
         "styles": {
@@ -260,7 +252,6 @@
         "always_connected": "Mantingueu sempre el micròfon connectat",
         "disconnect_seconds": "Segons després dels quals desconnectar el micròfon (0=mai)",
         "editor_label": "Micròfon",
-        "enabled": "El micròfon està activat",
         "mute_after_microphone_mute_seconds": "Segons després de silenciar el micròfon per silenciar l'àudio entrant"
       },
       "preload": "Carregueu prèviament la visualització en directe en segon pla",
@@ -417,7 +408,6 @@
   },
   "editor": {
     "add_new_camera": "Afegeix una càmera nova",
-    "button": "Botó",
     "camera": "Càmera",
     "cameras": "Càmeres",
     "cameras_secondary": "Quines càmeres renderitzar en aquesta targeta",
@@ -461,7 +451,6 @@
   "error": {
     "awaiting_live": "S'està esperant que es carregui la transmissió en directe ...",
     "could_not_render_elements": "No s'han pogut representar els elements de la imatge",
-    "could_not_resolve": "No s'ha pogut resoldre l'URL multimèdia",
     "diagnostics": "Diagnòstic de targetes. Reviseu la informació confidencial abans de compartir-la",
     "download_no_media": "No hi ha contingut multimèdia per descarregar",
     "download_sign_failed": "No s'ha pogut signar l'URL multimèdia per baixar-la",
@@ -481,20 +470,17 @@
     "live_camera_unavailable": "Càmera no disponible",
     "no_camera_engine": "No s'ha pogut determinar el motor adequat per a la càmera",
     "no_camera_entity": "No s'ha pogut trobar l'entitat de la càmera",
-    "no_camera_entity_for_triggers": "Es requereix una entitat de càmera per detectar automàticament els activadors",
     "no_camera_id": "No s'ha pogut determinar l'identificador de la càmera per a la següent càmera, és possible que hagis d'establir el paràmetre 'id' manualment",
     "no_dashboard_or_view": "Tant els paràmetres 'dashboard_path' com 'view_path' són necessaris per al mètode d'emissió 'dashboard'",
     "no_live_camera": "El paràmetre 'camera_entity' s'ha de configurar i validar per a aquest proveïdor en directe",
     "reconnecting": "Reconnectant",
     "too_many_automations": "Hi ha massa trucades d'automatització imbricades, comproveu la vostra configuració per veure si hi ha bucles",
     "troubleshooting": "Comproveu la resolució de problemes",
-    "unknown": "Error desconegut",
     "upgrade_available": "Hi ha disponible una actualització automàtica de la configuració de la targeta; visiteu l'editor de targetes visuals",
     "webrtc_card_reported_error": "La targeta WebRTC ha informat d'un error",
     "webrtc_card_waiting": "S'està esperant que es carregui la targeta WebRTC ..."
   },
   "media_filter": {
-    "all": "Tots",
     "camera": "Càmera",
     "favorite": "Preferit",
     "media_type": "Tipus de suport multimèdia",
@@ -530,16 +516,13 @@
     "camera": "Càmera",
     "download": "Descarregar mitjans multimèdia",
     "duration": "Durada",
-    "events": "Esdeveniments",
     "in_progress": "En procés",
     "no_thumbnail": "No hi ha cap miniatura disponible",
     "retain_indefinitely": "Els mitjans multimèdia es conservaran indefinidament",
-    "score": "Puntuació",
     "seek": "Buscar",
     "start": "Començar",
     "tag": "Etiqueta",
     "timeline": "Veure els mitjans multimèdia a la línia de temps",
-    "what": "Què",
     "where": "On"
   },
   "timeline": {

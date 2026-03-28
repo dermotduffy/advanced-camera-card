@@ -7,11 +7,7 @@
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "Zaawansowana karta kamery",
     "folder": "Folder",
-    "live": "Na żywo",
-    "no_folder": "Brak folderu do wyświetlenia",
-    "no_media": "Brak mediów do wyświetlenia",
-    "recordings": "Nagrania",
-    "version": "Wersja"
+    "no_media": "Brak mediów do wyświetlenia"
   },
   "config": {
     "cameras": {
@@ -200,12 +196,10 @@
         },
         "thumbnails": {
           "editor_label": "Miniatury",
-          "events_media_type": "Typ miniatur zdarzeń (klipy czy zrzuty)",
           "events_media_types": {
             "clips": "Miniatury klipów",
             "snapshots": "Miniatury zrzutów"
           },
-          "media_type": "Typ miniatur (zdarzenia czy nagrania)",
           "media_types": {
             "events": "Zdarzenia",
             "recordings": "Nagrania"
@@ -274,11 +268,9 @@
         "url": "Statyczny URL obrazu"
       },
       "media_action_conditions": {
-        "all": "Zawsze",
         "hidden": "Gdy przeglądarka/karta jest ukryta",
         "microphone_mute": "Gdy mikrofon jest wyciszony",
         "microphone_unmute": "Gdy mikrofon jest włączony",
-        "never": "Nigdy",
         "selected": "Po wybraniu",
         "unselected": "Po odznaczeniu",
         "visible": "Gdy przeglądarka/karta jest widoczna"
@@ -307,7 +299,6 @@
       },
       "timeline": {
         "clustering_threshold": "Liczba zdarzeń, przy której są grupowane (0=brak)",
-        "events_media_type": "Typ mediów wyświetlany na osi czasu",
         "events_media_types": {
           "all": "Wszystkie typy mediów",
           "clips": "Klipy",
@@ -384,7 +375,6 @@
         "always_connected": "Zawsze utrzymuj połączenie mikrofonu",
         "disconnect_seconds": "Sekundy do rozłączenia mikrofonu (0=nigdy)",
         "editor_label": "Mikrofon",
-        "enabled": "Mikrofon włączony",
         "mute_after_microphone_mute_seconds": "Sekundy po wyciszeniu mikrofonu do wyciszenia dźwięku przychodzącego"
       },
       "preload": "Wstępne ładowanie widoku w tle",
@@ -510,7 +500,6 @@
       "items": {
         "enabled": "Element włączony",
         "engine": "Silnik kamery",
-        "live_provider": "Dostawca na żywo",
         "priority": "Priorytet elementu",
         "resolution": "Rozdzielczość",
         "technology": "Technologia",
@@ -620,7 +609,6 @@
   "editor": {
     "add_new_camera": "Dodaj nową kamerę",
     "add_new_folder": "Dodaj nowy folder",
-    "button": "Przycisk",
     "camera": "Kamera",
     "cameras": "Kamery",
     "cameras_secondary": "Jakie kamery renderować na tej karcie",
@@ -671,14 +659,12 @@
     }
   },
   "error": {
-    "awaiting_folder": "Oczekiwanie na załadowanie folderu",
     "awaiting_live": "Oczekiwanie na strumień na żywo...",
     "awaiting_media": "Oczekiwanie na załadowanie mediów",
     "camera_initialization": "Inicjalizacja kamery nie powiodła się",
     "camera_initialization_reolink": "Nie można zainicjować kamery Reolink",
     "configuration": "Sprawdź konfigurację",
     "could_not_render_elements": "Nie można wyrenderować elementów obrazu",
-    "could_not_resolve": "Nie można rozwiązać URL mediów",
     "diagnostics": "Diagnostyka karty. Przejrzyj pod kątem poufnych informacji przed udostępnieniem",
     "download_no_media": "Brak mediów do pobrania",
     "download_sign_failed": "Nie udało się podpisać URL mediów do pobrania",
@@ -703,7 +689,6 @@
     "live_camera_unavailable": "Kamera niedostępna",
     "no_camera_engine": "Nie można określić odpowiedniego silnika dla kamery",
     "no_camera_entity": "Nie można znaleźć encji kamery",
-    "no_camera_entity_for_triggers": "Encja kamery jest wymagana do automatycznego wykrywania wyzwalaczy",
     "no_camera_id": "Nie można określić ID kamery, może być konieczne ręczne ustawienie parametru 'id'",
     "no_camera_or_media_for_timeline": "Brak dostępnej kamery lub mediów dla osi czasu",
     "no_dashboard_or_view": "Zarówno 'dashboard_path' jak i 'view_path' są wymagane dla metody cast 'dashboard'",
@@ -714,7 +699,6 @@
     "stream_not_loading": "Strumień wideo jeszcze się nie załadował. Może to wynikać z wielu przyczyn. Domyślnie będzie wyświetlany odświeżany obraz, dopóki strumień nie załaduje się poprawnie",
     "too_many_automations": "Zbyt wiele zagnieżdżonych wywołań automatyzacji, sprawdź konfigurację pod kątem pętli",
     "troubleshooting": "Sprawdź rozwiązywanie problemów",
-    "unknown": "Nieznany błąd",
     "upgrade_available": "Dostępna jest automatyczna aktualizacja konfiguracji karty, odwiedź wizualny edytor karty",
     "webrtc_card_reported_error": "Karta WebRTC zgłosiła błąd",
     "webrtc_card_waiting": "Oczekiwanie na załadowanie karty WebRTC..."
@@ -730,7 +714,6 @@
     "unassign": "Usuń przypisanie"
   },
   "media_filter": {
-    "all": "Wszystkie",
     "camera": "Kamera",
     "favorite": "Ulubione",
     "media_type": "Typ mediów",
@@ -766,17 +749,14 @@
     "camera": "Kamera",
     "download": "Pobierz media",
     "duration": "Czas trwania",
-    "events": "Zdarzenia",
     "in_progress": "W toku",
     "no_thumbnail": "Brak dostępnej miniatury",
     "retain_indefinitely": "Media będą przechowywane bezterminowo",
-    "score": "Wynik (Score)",
     "seek": "Szukaj",
     "start": "Start",
     "tag": "Tag",
     "timeline": "Zobacz na osi czasu",
     "title": "Tytuł",
-    "what": "Co",
     "where": "Gdzie"
   },
   "timeline": {

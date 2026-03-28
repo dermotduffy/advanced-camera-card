@@ -6,8 +6,7 @@
   "common": {
     "advanced_camera_card": "Erweiterte Kamera-Karte",
     "advanced_camera_card_description": "Eine Erweiterte Kamera-Karte",
-    "folder": "Ordner",
-    "no_folder": "Keine Ordner"
+    "folder": "Ordner"
   },
   "config": {
     "cameras": {
@@ -98,9 +97,7 @@
     "common": {
       "controls": {
         "builtin": "Eingebettete Video Bedienelemente",
-        "thumbnails": {
-          "media_type": "Ob Vorschau von Ereignissen oder Aufzeichnungen angezeigt werden"
-        },
+        "thumbnails": {},
         "timeline": {
           "format": {
             "24h": "24h Uhr",
@@ -223,7 +220,6 @@
         "always_connected": "Mikrofon immer verbunden lassen",
         "disconnect_seconds": "Sekunden nach denen das Mikrofon getrennt wird (0=niemals)",
         "editor_label": "Mikrofon",
-        "enabled": "Mikrofon aktivieren",
         "mute_after_microphone_mute_seconds": "Sekunden nach denen das Mikrofon stumm geschalten wird, um eingehendes Audio stumm zu schalten"
       },
       "zoomable": "Live-Kameras können gezoomt / gepant werden"
@@ -279,7 +275,6 @@
       "items": {
         "enabled": "Eintrag aktiviert",
         "engine": "Kamera-Backend",
-        "live_provider": "Live-Anbieter",
         "priority": "Eintrags-Priorität",
         "resolution": "Auflösung",
         "technology": "Technologie",
@@ -393,7 +388,6 @@
     }
   },
   "error": {
-    "awaiting_folder": "Warte auf Laden des Ordners",
     "awaiting_live": "Warte auf Live-Stream ...",
     "awaiting_media": "Warte auf Medium ...",
     "camera_initialization": "Kamera-Initialisierung fehlgeschlagen",

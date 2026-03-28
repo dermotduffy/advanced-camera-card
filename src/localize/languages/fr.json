@@ -1,9 +1,6 @@
 {
   "common": {
-    "live": "En direct",
-    "no_media": "Aucun média à afficher",
-    "recordings": "Enregistrements",
-    "version": "Version"
+    "no_media": "Aucun média à afficher"
   },
   "config": {
     "cameras": {
@@ -182,8 +179,6 @@
         },
         "thumbnails": {
           "editor_label": "Vignettes",
-          "events_media_type": "S'il faut afficher des vignettes de clips ou des instantanés",
-          "media_type": "Afficher ou non les vignettes des événements ou des enregistrements",
           "mode": "Mode vignettes",
           "modes": {
             "above": "Vignettes en haut",
@@ -246,11 +241,9 @@
         "url": "URL d'image statique pour l'affichage de l'image"
       },
       "media_action_conditions": {
-        "all": "Toutes les opportunités",
         "hidden": "Sur le navigateur/onglet masqué",
         "microphone_mute": "Sourdine du microphone activée",
         "microphone_unmute": "Sourdine du microphone désactivée",
-        "never": "Jamais",
         "selected": "Sur sélection",
         "unselected": "Lors de la désélection",
         "visible": "Sur la visibilité du navigateur/onglet"
@@ -283,7 +276,6 @@
       },
       "timeline": {
         "clustering_threshold": "Nombre d'événements pour lesquels ils sont regroupés (0 = pas de clustering)",
-        "events_media_type": "Médias affichés par la chronologie",
         "show_recordings": "Afficher les enregistrements",
         "style": "Style de chronologie",
         "styles": {
@@ -341,7 +333,6 @@
         "always_connected": "Toujours garder le microphone connecté",
         "disconnect_seconds": "Secondes après quoi déconnecter le microphone (0=jamais)",
         "editor_label": "Microphone",
-        "enabled": "Microphone activé",
         "mute_after_microphone_mute_seconds": "Secondes après la mise en sourdine du microphone pour couper l'audio entrant"
       },
       "preload": "Précharger la vue en direct en arrière-plan",
@@ -459,7 +450,6 @@
       "items": {
         "enabled": "Élément activé",
         "engine": "Moteur de camera",
-        "live_provider": "Fournisseur de flux en direct",
         "priority": "Priorité de l'élément",
         "resolution": "Résolution",
         "technology": "Technologie",
@@ -566,7 +556,6 @@
   },
   "editor": {
     "add_new_camera": "Ajouter une nouvelle caméra",
-    "button": "Bouton",
     "camera": "Caméra",
     "cameras": "Caméras",
     "cameras_secondary": "Quelles caméras afficher sur cette carte",
@@ -617,7 +606,6 @@
     "camera_initialization": "Échec de l'initialisation de la caméra",
     "camera_initialization_reolink": "Impossible d'initialiser la caméra Reolink",
     "could_not_render_elements": "Impossible de restituer les éléments de l'image",
-    "could_not_resolve": "Impossible de résoudre l'URL du média",
     "diagnostics": "Diagnostic de la carte. Veuillez enlever les informations confidentielles avant de les partager",
     "download_no_media": "Aucun média à télécharger",
     "download_sign_failed": "Impossible de signer l'URL du média à télécharger",
@@ -639,7 +627,6 @@
     "live_camera_unavailable": "Caméra indisponible",
     "no_camera_engine": "Impossible de déterminer le moteur approprié pour la caméra",
     "no_camera_entity": "Impossible de trouver l'entité de caméra",
-    "no_camera_entity_for_triggers": "Une entité caméra est requise pour détecter automatiquement les déclencheurs",
     "no_camera_id": "Impossible de déterminer l'identifiant de la caméra suivante. Il faudra peut-être définir le paramètre « ID » manuellement",
     "no_dashboard_or_view": "Les paramètres 'dashboard_path' et 'view_path' sont requis pour la méthode de conversion 'dashboard'",
     "no_live_camera": "Le paramètre camera_entity doit être défini et valide pour ce fournisseur en direct",
@@ -649,7 +636,6 @@
     "stream_not_loading": "Le flux vidéo n'a pas encore été chargé. Cela peut être du à plusieurs raisons. Si configurée (et par défaut), une image se rafraichira toutes les secondes jusqu'au chargement correct du flux.",
     "too_many_automations": "Trop d'appels d'automatisation imbriqués, veuillez vérifier votre configuration pour les boucles",
     "troubleshooting": "Vérifier le dépannage",
-    "unknown": "Erreur inconnue",
     "upgrade_available": "Une mise à niveau automatisée de la configuration de la carte est disponible, veuillez visiter l'éditeur visuel de la carte",
     "webrtc_card_reported_error": "La carte WebRTC a signalé une erreur",
     "webrtc_card_waiting": "En attente du chargement de la carte WebRTC..."
@@ -659,7 +645,6 @@
     "unassign": "Désassigner"
   },
   "media_filter": {
-    "all": "Tous",
     "camera": "Caméra",
     "favorite": "Préféré",
     "media_type": "Type de support",
@@ -695,16 +680,13 @@
     "camera": "Caméra",
     "download": "Télécharger des médias",
     "duration": "Durée",
-    "events": "Événements",
     "in_progress": "En cours",
     "no_thumbnail": "Aucune vignette disponible",
     "retain_indefinitely": "Les médias seront conservés indéfiniment",
-    "score": "Score",
     "seek": "Chercher",
     "start": "Commencer",
     "tag": "Étiqueter",
     "timeline": "Voir les médias dans la chronologie",
-    "what": "Quoi",
     "where": "Où"
   },
   "timeline": {
