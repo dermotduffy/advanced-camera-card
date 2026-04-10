@@ -5,12 +5,12 @@ import { Notification } from '../../config/schema/actions/types';
 import { HomeAssistant } from '../../ha/types';
 import { isTruthy } from '../../utils/basic';
 import {
-  KeyedIssueDescription,
   Issue,
   IssueDescription,
   IssueKey,
   IssuePresence,
   IssueTriggerContextKey,
+  KeyedIssueDescription,
 } from './types';
 
 export class IssueStateManager {

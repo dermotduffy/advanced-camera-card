@@ -3,10 +3,9 @@ import { afterEach, assert, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mock } from 'vitest-mock-extended';
 import { CardController } from '../../../src/card-controller/controller';
 import { IssueManager } from '../../../src/card-controller/issues/issue-manager';
-import { Issue } from '../../../src/card-controller/issues/types';
+import { Issue, IssueKey } from '../../../src/card-controller/issues/types';
 import { ConditionStateManager } from '../../../src/conditions/state-manager';
 import { InteractionMode } from '../../../src/config/schema/view';
-import { IssueKey } from '../../../src/card-controller/issues/types';
 import { createCardAPI, createConfig } from '../../test-utils';
 
 const DEFAULT_RETRY_SECONDS = 1;

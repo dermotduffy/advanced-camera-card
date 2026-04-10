@@ -33,8 +33,8 @@ export const statusBarConfigDefault = {
     technology: statusBarItemDefault,
     title: statusBarItemDefault,
 
-    // Issues: permanent by default so the status bar stays visible while
-    // issues are active even in popup mode.
+    // Issues: permanent by default so the status bar stays visible while issues
+    // are active even in popup mode.
     issue_config_error: statusBarIssueItemDefault,
     issue_config_upgrade: statusBarIssueItemDefault,
     issue_connection: statusBarIssueItemDefault,

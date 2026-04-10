@@ -16,13 +16,13 @@ import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscre
 import { HASSManager } from '../../src/card-controller/hass/hass-manager';
 import { InitializationManager } from '../../src/card-controller/initialization-manager';
 import { InteractionManager } from '../../src/card-controller/interaction-manager';
+import { IssueManager } from '../../src/card-controller/issues/issue-manager';
 import { KeyboardStateManager } from '../../src/card-controller/keyboard-state-manager';
 import { MediaLoadedInfoManager } from '../../src/card-controller/media-info-manager';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager';
 import { NotificationManager } from '../../src/card-controller/notification-manager';
 import { PIPManager } from '../../src/card-controller/pip-manager';
-import { IssueManager } from '../../src/card-controller/issues/issue-manager';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../../src/card-controller/style-manager';

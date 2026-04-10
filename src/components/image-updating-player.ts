@@ -12,6 +12,7 @@ import { live } from 'lit/directives/live.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { isEqual } from 'lodash-es';
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
+import { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { UpdatingImageMediaPlayerController } from '../components-lib/media-player/updating-image.js';
 import { dataToContext } from '../components-lib/notification/data-to-context.js';
@@ -27,7 +28,6 @@ import defaultImage from '../images/iris-screensaver.jpg';
 import { localize } from '../localize/localize.js';
 import imageUpdatingPlayerStyle from '../scss/image-updating-player.scss';
 import { MediaLoadedInfo, MediaPlayer, MediaPlayerController } from '../types.js';
-import { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { contentsChanged } from '../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 import {

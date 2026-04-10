@@ -170,8 +170,8 @@ export class CardElementManager {
     setOrRemoveAttribute(this._element, false, 'casted');
 
     // Suspend issue evaluation so state changes below (e.g. clearing
-    // mediaLoadedInfo) don't arm timers while the card is detached. Issue
-    // state is preserved; evaluation resumes via resume() on reconnect.
+    // mediaLoadedInfo) don't arm timers while the card is detached. Issue state
+    // is preserved; evaluation resumes via resume() on reconnect.
     this._api.getIssueManager().suspend();
 
     // When the dashboard 'tab' is changed, the media is effectively unloaded.

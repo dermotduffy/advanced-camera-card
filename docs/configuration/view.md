@@ -40,7 +40,7 @@ view:
 
 ## `issues`
 
-Configure how the card handles issues and automatic retries.
+Configure how the card handles errors/issues and automatic retries.
 
 All configuration is under:
 
