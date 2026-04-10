@@ -5,6 +5,10 @@ declare module 'view' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface ViewContext {}
 }
+declare module 'problem' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  interface ProblemTriggerContext {}
+}
 declare module 'action' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface ActionContext {}

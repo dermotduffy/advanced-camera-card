@@ -33,8 +33,8 @@ export interface NotificationControlsContext {
   filterReviewed?: boolean;
 }
 
-export class MediaDetailsController {
-  private _details: NotificationDetail[] = [];
+export class MediaNotificationController {
+  private _metadata: NotificationDetail[] = [];
   private _heading: NotificationDetail | null = null;
   private _item: ViewItem | null = null;
 
@@ -50,7 +50,7 @@ export class MediaDetailsController {
       : null;
 
     this._calculateHeading(cameraMetadata, item);
-    this._calculateDetails(cameraMetadata, item, seek);
+    this._calculateMetadata(cameraMetadata, item, seek);
   }
 
   private _calculateHeading(
@@ -99,7 +99,7 @@ export class MediaDetailsController {
     this._heading = null;
   }
 
-  private _calculateDetails(
+  private _calculateMetadata(
     cameraMetadata: CameraManagerCameraMetadata | null,
     item?: ViewItem,
     seek?: Date,
@@ -111,7 +111,7 @@ export class MediaDetailsController {
     const duration = startTime && endTime ? getDurationString(startTime, endTime) : null;
     const inProgress = ViewItemClassifier.isMedia(item)
       ? item.inProgress()
-        ? localize('thumbnail.in_progress')
+        ? localize('common.in_progress')
         : null
       : null;
     const where = ViewItemClassifier.isMedia(item)
@@ -184,7 +184,7 @@ export class MediaDetailsController {
     const includeTitle =
       (!ViewItemClassifier.isEvent(item) && !ViewItemClassifier.isReview(item)) ||
       !startTime;
-    this._details = [
+    this._metadata = [
       ...(includeTitle && itemTitle
         ? [
             {
@@ -204,18 +204,20 @@ export class MediaDetailsController {
     return this._heading;
   }
 
-  public getDetails(): NotificationDetail[] {
-    return this._details;
+  public getMetadata(): NotificationDetail[] {
+    return this._metadata;
   }
 
   public getNotification(context?: NotificationControlsContext): Notification {
+    const description = ViewItemClassifier.isMedia(this._item)
+      ? this._item.getDescription()
+      : null;
+
     return {
       heading: this._heading ?? undefined,
       controls: context ? this._getControls(context) : undefined,
-      details: this._details,
-      text: ViewItemClassifier.isMedia(this._item)
-        ? this._item.getDescription() ?? undefined
-        : undefined,
+      metadata: this._metadata,
+      body: description ? { text: description } : undefined,
     };
   }
 

@@ -401,8 +401,12 @@
     "no_dashboard_or_view": "Beide Prameter 'dashboard_path' und 'view_path' sind für die Sende-Methode 'dashboard' erforderlich",
     "no_supported_camera": "Die ausgewählte Kamera unterstützt diese Ansicht nicht",
     "no_supported_cameras": "Keine Kameras unterstützen diese Ansicht",
-    "stream_not_loading": "Der Videostream wurde nicht geladen. Dafür kann es verschiedene Gründe geben. Wenn konfiguriert (Standard), wird ein Bild jede Sekunde angezeigt, bis der Steam richtig lädt",
     "too_many_automations": "Zu viele automatisierte Anfragen, bitte prüfe deine Konfiguration auf etwaige Schleifen"
+  },
+  "problems": {
+    "media_load": {
+      "text": "Der Videostream wurde nicht geladen. Dafür kann es verschiedene Gründe geben. Wenn konfiguriert (Standard), wird ein Bild jede Sekunde angezeigt, bis der Steam richtig lädt"
+    }
   },
   "key_assigner": {
     "assign": "Zuweisen",

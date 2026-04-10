@@ -7,6 +7,7 @@
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "Zaawansowana karta kamery",
     "folder": "Folder",
+    "in_progress": "W toku",
     "no_media": "Brak mediów do wyświetlenia"
   },
   "config": {
@@ -664,7 +665,7 @@
     "camera_initialization": "Inicjalizacja kamery nie powiodła się",
     "camera_initialization_reolink": "Nie można zainicjować kamery Reolink",
     "configuration": "Sprawdź konfigurację",
-    "could_not_render_elements": "Nie można wyrenderować elementów obrazu",
+    "could_not_create_elements": "Nie można wyrenderować elementów obrazu",
     "diagnostics": "Diagnostyka karty. Przejrzyj pod kątem poufnych informacji przed udostępnieniem",
     "download_no_media": "Brak mediów do pobrania",
     "download_sign_failed": "Nie udało się podpisać URL mediów do pobrania",
@@ -696,12 +697,16 @@
     "no_supported_camera": "Wybrana kamera lub media nie obsługują tego widoku",
     "no_supported_cameras": "Żadna kamera nie obsługuje tego widoku",
     "reconnecting": "Ponowne łączenie",
-    "stream_not_loading": "Strumień wideo jeszcze się nie załadował. Może to wynikać z wielu przyczyn. Domyślnie będzie wyświetlany odświeżany obraz, dopóki strumień nie załaduje się poprawnie",
     "too_many_automations": "Zbyt wiele zagnieżdżonych wywołań automatyzacji, sprawdź konfigurację pod kątem pętli",
     "troubleshooting": "Sprawdź rozwiązywanie problemów",
     "upgrade_available": "Dostępna jest automatyczna aktualizacja konfiguracji karty, odwiedź wizualny edytor karty",
     "webrtc_card_reported_error": "Karta WebRTC zgłosiła błąd",
     "webrtc_card_waiting": "Oczekiwanie na załadowanie karty WebRTC..."
+  },
+  "problems": {
+    "media_load": {
+      "text": "Strumień wideo jeszcze się nie załadował. Może to wynikać z wielu przyczyn. Domyślnie będzie wyświetlany odświeżany obraz, dopóki strumień nie załaduje się poprawnie"
+    }
   },
   "key_assigner": {
     "assign": "Przypisz",
@@ -749,7 +754,6 @@
     "camera": "Kamera",
     "download": "Pobierz media",
     "duration": "Czas trwania",
-    "in_progress": "W toku",
     "no_thumbnail": "Brak dostępnej miniatury",
     "retain_indefinitely": "Media będą przechowywane bezterminowo",
     "seek": "Szukaj",

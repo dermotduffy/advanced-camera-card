@@ -4,7 +4,6 @@ import {
   AdvancedCameraCardMediaLoadedEventTarget,
   dispatchExistingMediaLoadedInfoAsEvent,
 } from '../../utils/media-info.js';
-import { AdvancedCameraCardMessageEventTarget } from '../message/dispatch.js';
 
 interface LiveViewContext {
   // A cameraID override (used for dependencies/substreams to force a different
@@ -23,9 +22,7 @@ interface LastMediaLoadedInfo {
   source: EventTarget;
 }
 
-type LiveControllerHost = LitElement &
-  AdvancedCameraCardMediaLoadedEventTarget &
-  AdvancedCameraCardMessageEventTarget;
+type LiveControllerHost = LitElement & AdvancedCameraCardMediaLoadedEventTarget;
 
 export class LiveController implements ReactiveController {
   private _host: LiveControllerHost;

@@ -1,7 +1,9 @@
 import { ViewContext } from 'view';
 import { log } from '../../utils/debug';
+import { createNotificationFromError } from '../../components-lib/notification/factory';
 import { getStreamCameraID } from '../../utils/substream';
 import { View } from '../../view/view';
+import { getViewTargetID } from '../../view/target-id';
 import { InitializationAspect } from '../initialization-manager';
 import { CardViewAPI } from '../types';
 import { ViewFactory } from './factory';
@@ -112,18 +114,35 @@ export class ViewManager implements ViewManagerInterface {
         ...options,
       });
     } catch (e) {
-      this._api.getMessageManager().setErrorIfHigherPriority(e);
+      if (!this._view) {
+        view = this._getFailSafeView(viewFactoryFunc);
+      }
+      const notification = createNotificationFromError(e);
+      /* istanbul ignore next: catch always provides a non-null error -- @preserve */
+      if (notification) {
+        this._api.getNotificationManager().setNotification(notification);
+      }
     }
     if (view) {
       this._setView(view);
     }
   }
 
-  private _markViewLoadingQuery(view: View, index: number): View {
-    return view.mergeInContext({ loading: { query: index } });
+  private _getFailSafeView(
+    viewFactoryFunc: (options?: ViewFactoryOptions) => View | null,
+  ): View | null {
+    try {
+      return viewFactoryFunc({ baseView: null, failSafe: true });
+    } catch {
+      return null;
+    }
   }
-  private _markViewAsNotLoadingQuery(view: View): View {
-    return view.removeContextProperty('loading', 'query');
+
+  private _markViewLoadingQuery(view: View, index: number): void {
+    view.mergeInContext({ loading: { query: index } });
+  }
+  private _markViewAsNotLoadingQuery(view: View): void {
+    view.removeContextProperty('loading', 'query');
   }
 
   private _isAllowedToSetView(): boolean {
@@ -163,7 +182,14 @@ export class ViewManager implements ViewManagerInterface {
         },
       });
     } catch (e) {
-      this._api.getMessageManager().setErrorIfHigherPriority(e);
+      if (!this._view) {
+        initialView = this._getFailSafeView(viewFactoryFunc);
+      }
+      const notification = createNotificationFromError(e);
+      /* istanbul ignore next: catch always provides a non-null error -- @preserve */
+      if (notification) {
+        this._api.getNotificationManager().setNotification(notification);
+      }
     }
 
     if (!initialView) {
@@ -205,13 +231,15 @@ export class ViewManager implements ViewManagerInterface {
       // the contrary, small changes such as the user zooming in are fine to
       // merge into the resultant view.
       if (this._view.context?.loading?.query === loadingIndex) {
-        this._setView(this._markViewAsNotLoadingQuery(this._view.clone()));
+        const view = this._view.clone();
+        this._markViewAsNotLoadingQuery(view);
+        this._setView(view);
       }
       return;
     }
 
     if (error) {
-      this._api.getMessageManager().setErrorIfHigherPriority(error);
+      this._api.getProblemManager().trigger('media_query', { error });
       return;
     }
 
@@ -220,6 +248,8 @@ export class ViewManager implements ViewManagerInterface {
     if (!this._view) {
       return;
     }
+
+    this._api.getProblemManager().reset('media_query');
 
     const newView = this._view.clone();
     if (this._view.context?.loading?.query === loadingIndex) {
@@ -279,7 +309,7 @@ export class ViewManager implements ViewManagerInterface {
     );
   }
 
-  public initialize = async (): Promise<boolean> => {
+  public initialize = async (): Promise<void> => {
     // If the query string contains a view related action, we don't set any view
     // here and allow that action to be triggered by the next call of to execute
     // query actions (called at least once per render cycle).
@@ -289,7 +319,6 @@ export class ViewManager implements ViewManagerInterface {
       // query is answered.
       this.setViewDefaultWithNewQuery({ failSafe: true });
     }
-    return true;
   };
 
   private _setView(view: Readonly<View> | null): void {
@@ -312,13 +341,13 @@ export class ViewManager implements ViewManagerInterface {
       this._api.getCardElementManager().scrollReset();
     }
 
-    this._api.getMessageManager().reset();
     this._api.getStyleManager().setExpandedMode();
 
     this._api.getConditionStateManager()?.setState({
       view: view?.view,
       camera: view?.camera ?? undefined,
       displayMode: view?.displayMode ?? undefined,
+      targetID: view ? getViewTargetID(view) ?? undefined : undefined,
     });
 
     this._api.getCardElementManager().update();

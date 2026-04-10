@@ -7,9 +7,9 @@ import { CardController } from '../../../src/card-controller/controller';
 import { ViewItemManager } from '../../../src/card-controller/view/item-manager';
 import { ViewManagerEpoch } from '../../../src/card-controller/view/types';
 import {
-  MediaDetailsController,
+  MediaNotificationController,
   NotificationControlsContext,
-} from '../../../src/components-lib/media/details-controller';
+} from '../../../src/components-lib/media/notification-controller';
 import { NotificationControl } from '../../../src/config/schema/actions/types';
 import { formatDateAndTime } from '../../../src/utils/basic';
 import { downloadMedia, navigateToTimeline } from '../../../src/utils/media-actions';
@@ -34,7 +34,7 @@ async function executeControlAction(
   await action?.execute(api);
 }
 
-describe('MediaDetailsController', () => {
+describe('MediaNotificationController', () => {
   describe('should set heading', () => {
     it('should set heading on event with what, tags and score', () => {
       const item = new TestViewMedia({
@@ -43,7 +43,7 @@ describe('MediaDetailsController', () => {
         score: 0.5,
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
       expect(controller.getHeading()?.text).toBe('Person, Car: Tag1, Tag2 50.00%');
     });
@@ -53,7 +53,7 @@ describe('MediaDetailsController', () => {
         tags: ['tag1', 'tag2'],
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
       expect(controller.getHeading()?.text).toBe('Tag1, Tag2');
     });
@@ -63,7 +63,7 @@ describe('MediaDetailsController', () => {
         what: ['person', 'car'],
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
       expect(controller.getHeading()?.text).toBe('Person, Car');
     });
@@ -76,7 +76,7 @@ describe('MediaDetailsController', () => {
         score: null,
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
       expect(controller.getHeading()).toBeNull();
     });
@@ -92,7 +92,7 @@ describe('MediaDetailsController', () => {
         mediaType: ViewMediaType.Recording,
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(cameraManager, item);
       expect(controller.getHeading()?.text).toBe('Camera Title');
     });
@@ -102,7 +102,7 @@ describe('MediaDetailsController', () => {
         mediaType: ViewMediaType.Recording,
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
       expect(controller.getHeading()).toBeNull();
     });
@@ -110,7 +110,7 @@ describe('MediaDetailsController', () => {
     it('should set no heading on folder', () => {
       const item = new ViewFolder(createFolder(), []);
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
       expect(controller.getHeading()).toBeNull();
     });
@@ -124,9 +124,9 @@ describe('MediaDetailsController', () => {
           where: ['where1', 'where2'],
         });
 
-        const controller = new MediaDetailsController();
+        const controller = new MediaNotificationController();
         controller.calculate(null, item);
-        expect(controller.getDetails()).toContainEqual({
+        expect(controller.getMetadata()).toContainEqual({
           text: 'Test Event',
           icon: 'mdi:rename',
           tooltip: 'Title',
@@ -138,9 +138,9 @@ describe('MediaDetailsController', () => {
           title: 'Test Event',
         });
 
-        const controller = new MediaDetailsController();
+        const controller = new MediaNotificationController();
         controller.calculate(null, item);
-        expect(controller.getDetails()).toEqual([
+        expect(controller.getMetadata()).toEqual([
           {
             text: 'Test Event',
           },
@@ -153,9 +153,9 @@ describe('MediaDetailsController', () => {
           startTime: new Date('2025-05-22T21:12:00Z'),
         });
 
-        const controller = new MediaDetailsController();
+        const controller = new MediaNotificationController();
         controller.calculate(null, item);
-        expect(controller.getDetails()).not.toContainEqual(
+        expect(controller.getMetadata()).not.toContainEqual(
           expect.objectContaining({
             text: 'Test Event',
           }),
@@ -169,11 +169,11 @@ describe('MediaDetailsController', () => {
         startTime,
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
 
       // Use formatDateAndTime to generate expected value (formats in local time with seconds)
-      expect(controller.getDetails()).toContainEqual({
+      expect(controller.getMetadata()).toContainEqual({
         text: formatDateAndTime(startTime, true),
         tooltip: 'Start',
         icon: 'mdi:calendar-clock-outline',
@@ -187,9 +187,9 @@ describe('MediaDetailsController', () => {
           endTime: new Date('2025-05-18T17:04:00Z'),
         });
 
-        const controller = new MediaDetailsController();
+        const controller = new MediaNotificationController();
         controller.calculate(null, item);
-        expect(controller.getDetails()).toContainEqual({
+        expect(controller.getMetadata()).toContainEqual({
           text: '1m 0s',
           tooltip: 'Duration',
           icon: 'mdi:clock-outline',
@@ -203,10 +203,10 @@ describe('MediaDetailsController', () => {
           inProgress: true,
         });
 
-        const controller = new MediaDetailsController();
+        const controller = new MediaNotificationController();
         controller.calculate(null, item);
-        expect(controller.getDetails()).toContainEqual({
-          text: 'In Progress',
+        expect(controller.getMetadata()).toContainEqual({
+          text: 'In progress...',
           tooltip: 'Duration',
           icon: 'mdi:clock-outline',
         });
@@ -219,10 +219,10 @@ describe('MediaDetailsController', () => {
           inProgress: true,
         });
 
-        const controller = new MediaDetailsController();
+        const controller = new MediaNotificationController();
         controller.calculate(null, item);
-        expect(controller.getDetails()).toContainEqual({
-          text: '1m 0s In Progress',
+        expect(controller.getMetadata()).toContainEqual({
+          text: '1m 0s In progress...',
           tooltip: 'Duration',
           icon: 'mdi:clock-outline',
         });
@@ -240,9 +240,9 @@ describe('MediaDetailsController', () => {
         cameraID: 'camera_1',
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(cameraManager, item);
-      expect(controller.getDetails()).toContainEqual({
+      expect(controller.getMetadata()).toContainEqual({
         text: 'Camera Title',
         tooltip: 'Camera',
         icon: 'mdi:cctv',
@@ -255,9 +255,9 @@ describe('MediaDetailsController', () => {
         where: ['where1', 'where2'],
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
-      expect(controller.getDetails()).toContainEqual({
+      expect(controller.getMetadata()).toContainEqual({
         text: 'Where1, Where2',
         tooltip: 'Where',
         icon: 'mdi:map-marker-outline',
@@ -270,9 +270,9 @@ describe('MediaDetailsController', () => {
         tags: ['tag1', 'tag2'],
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
-      expect(controller.getDetails()).toContainEqual({
+      expect(controller.getMetadata()).toContainEqual({
         text: 'Tag1, Tag2',
         tooltip: 'Tag',
         icon: 'mdi:tag',
@@ -283,11 +283,11 @@ describe('MediaDetailsController', () => {
       const item = new TestViewMedia();
       const seekTime = new Date('2025-05-20T07:14:57Z');
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item, seekTime);
 
       // Use format() to generate expected value (formats in local time)
-      expect(controller.getDetails()).toContainEqual({
+      expect(controller.getMetadata()).toContainEqual({
         text: format(seekTime, 'HH:mm:ss'),
         tooltip: 'Seek',
         icon: 'mdi:clock-fast',
@@ -300,7 +300,7 @@ describe('MediaDetailsController', () => {
         severity: 'high',
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
       const heading = controller.getHeading();
       expect(heading?.text).toBe('Review Title');
@@ -316,7 +316,7 @@ describe('MediaDetailsController', () => {
         severity: null,
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
       const heading = controller.getHeading();
       expect(heading?.text).toBe('Review Title');
@@ -329,16 +329,16 @@ describe('MediaDetailsController', () => {
         title: null,
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
       expect(controller.getHeading()).toBeNull();
     });
 
     it('should calculate with null item', () => {
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, undefined);
       expect(controller.getHeading()).toBeNull();
-      expect(controller.getDetails()).toEqual([]);
+      expect(controller.getMetadata()).toEqual([]);
     });
   });
 
@@ -354,25 +354,25 @@ describe('MediaDetailsController', () => {
         description: 'Test Description',
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
 
       const notification = controller.getNotification();
       expect(notification.heading?.text).toBe('Person');
-      expect(notification.details).toContainEqual({
+      expect(notification.metadata).toContainEqual({
         text: 'Test Title',
       });
-      expect(notification.text).toBe('Test Description');
+      expect(notification.body).toEqual({ text: 'Test Description' });
     });
 
     it('should get notification without media', () => {
       const item = new ViewFolder(createFolder(), []);
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
 
       const notification = controller.getNotification();
-      expect(notification.text).toBeUndefined();
+      expect(notification.body).toBeUndefined();
     });
 
     it('should get notification with null description', () => {
@@ -380,11 +380,11 @@ describe('MediaDetailsController', () => {
         description: null,
       });
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
 
       const notification = controller.getNotification();
-      expect(notification.text).toBeUndefined();
+      expect(notification.body).toBeUndefined();
     });
 
     it('should get notification with controls', async () => {
@@ -408,7 +408,7 @@ describe('MediaDetailsController', () => {
         viewManagerEpoch: viewManagerEpoch,
       };
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
 
       const notification = controller.getNotification(context);
@@ -469,7 +469,7 @@ describe('MediaDetailsController', () => {
         },
       };
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
 
       const notification = controller.getNotification(context);
@@ -494,7 +494,7 @@ describe('MediaDetailsController', () => {
         },
       };
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
 
       const notification = controller.getNotification(context);
@@ -507,7 +507,7 @@ describe('MediaDetailsController', () => {
       });
       const context = {};
 
-      const controller = new MediaDetailsController();
+      const controller = new MediaNotificationController();
       controller.calculate(null, item);
 
       const notification = controller.getNotification(context);
@@ -515,11 +515,11 @@ describe('MediaDetailsController', () => {
     });
 
     it('should get empty controls when item is null', () => {
-      const controller = new MediaDetailsController();
+      const ctrl = new MediaNotificationController();
       // Directly call protected method via casting to test the null item branch.
       // Use cast to unknown first to avoid any-related lint errors.
       const controls = (
-        controller as unknown as {
+        ctrl as unknown as {
           _getControls: (context: NotificationControlsContext) => NotificationControl[];
         }
       )._getControls({});

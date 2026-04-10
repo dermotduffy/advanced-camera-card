@@ -1,5 +1,6 @@
 {
   "common": {
+    "in_progress": "En cours",
     "no_media": "Aucun média à afficher"
   },
   "config": {
@@ -605,7 +606,7 @@
     "awaiting_media": "En attente du chargement des médias",
     "camera_initialization": "Échec de l'initialisation de la caméra",
     "camera_initialization_reolink": "Impossible d'initialiser la caméra Reolink",
-    "could_not_render_elements": "Impossible de restituer les éléments de l'image",
+    "could_not_create_elements": "Impossible de restituer les éléments de l'image",
     "diagnostics": "Diagnostic de la carte. Veuillez enlever les informations confidentielles avant de les partager",
     "download_no_media": "Aucun média à télécharger",
     "download_sign_failed": "Impossible de signer l'URL du média à télécharger",
@@ -633,12 +634,16 @@
     "no_supported_camera": "La caméra sélectionnée ne prend pas en charge cette vue",
     "no_supported_cameras": "Aucune caméra ne prend en charge cette vue",
     "reconnecting": "Reconnexion",
-    "stream_not_loading": "Le flux vidéo n'a pas encore été chargé. Cela peut être du à plusieurs raisons. Si configurée (et par défaut), une image se rafraichira toutes les secondes jusqu'au chargement correct du flux.",
     "too_many_automations": "Trop d'appels d'automatisation imbriqués, veuillez vérifier votre configuration pour les boucles",
     "troubleshooting": "Vérifier le dépannage",
     "upgrade_available": "Une mise à niveau automatisée de la configuration de la carte est disponible, veuillez visiter l'éditeur visuel de la carte",
     "webrtc_card_reported_error": "La carte WebRTC a signalé une erreur",
     "webrtc_card_waiting": "En attente du chargement de la carte WebRTC..."
+  },
+  "problems": {
+    "media_load": {
+      "text": "Le flux vidéo ou le média enregistré n'a pas encore été chargé. Cela peut être du à plusieurs raisons. La carte tentera de recharger automatiquement après un délai d'attente."
+    }
   },
   "key_assigner": {
     "assign": "Assigner",
@@ -680,7 +685,6 @@
     "camera": "Caméra",
     "download": "Télécharger des médias",
     "duration": "Durée",
-    "in_progress": "En cours",
     "no_thumbnail": "Aucune vignette disponible",
     "retain_indefinitely": "Les médias seront conservés indéfiniment",
     "seek": "Chercher",

@@ -31,7 +31,7 @@ import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { VideoContentType, ViewMedia } from '../../view/item.js';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer.js';
 import '../image-player.js';
-import { renderMessage } from '../message.js';
+import { renderNotificationBlockFromText } from '../notification/block.js';
 import { renderProgressIndicator } from '../progress-indicator.js';
 import '../video-player.js';
 import './../media-dimensions-container';
@@ -233,13 +233,13 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
 
     const error = this._signedURLController.getError();
     if (error) {
-      return renderMessage({
-        type: 'error',
-        message: localize(
-          error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign',
-        ),
-        context: this.media?.getContentID(),
-      });
+      const contentID = this.media?.getContentID();
+      return renderNotificationBlockFromText(
+        localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign'),
+        {
+          ...(contentID && { metadata: [{ text: contentID, icon: 'mdi:identifier' }] }),
+        },
+      );
     }
 
     const url = this._signedURLController.getValue();

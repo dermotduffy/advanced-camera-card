@@ -18,9 +18,9 @@ import { AdvancedCameraCardElements } from './components/elements.js';
 import './components/loading.js';
 import './components/menu.js';
 import { AdvancedCameraCardMenu } from './components/menu.js';
-import './components/message.js';
-import { renderMessage } from './components/message.js';
-import './components/notification.js';
+import './components/notification/block.js';
+import { renderNotificationBlock } from './components/notification/block.js';
+import './components/notification/popup.js';
 import './components/overlay.js';
 import { AdvancedCameraCardOverlay } from './components/overlay.js';
 import './components/status-bar';
@@ -36,7 +36,7 @@ import { REPO_URL } from './const.js';
 import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
-import { MediaLoadedInfo, Message } from './types.js';
+import { MediaLoadedInfo } from './types.js';
 import { hasAction } from './utils/action.js';
 import { getReleaseVersion } from './utils/diagnostics';
 
@@ -167,9 +167,9 @@ class AdvancedCameraCard extends LitElement {
       return false;
     }
 
-    // Always allow messages to render, as a message may be generated during
+    // Always allow blocking problems to render, as they may be generated during
     // initialization.
-    if (this._controller.getMessageManager().hasMessage()) {
+    if (this._controller.getProblemManager().getStateManager().hasFullCardProblem()) {
       return true;
     }
 
@@ -294,7 +294,10 @@ class AdvancedCameraCard extends LitElement {
           cameraManager: this._controller.getCameraManager(),
           view: this._controller.getViewManager().getView(),
           mediaLoadedInfo: this._controller.getMediaLoadedInfoManager().get(),
-          problems: this._controller.getProblemManager().getProblemResults(),
+          problems: this._controller
+            .getProblemManager()
+            .getStateManager()
+            .getProblemDescriptions(),
         })}
         .config=${this._config.status_bar}
       ></advanced-camera-card-status-bar>
@@ -346,10 +349,14 @@ class AdvancedCameraCard extends LitElement {
 
     const actions = this._controller.getActionsManager().getMergedActions();
     const cameraManager = this._controller.getCameraManager();
+    const fullCardProblem = this._controller
+      .getProblemManager()
+      .getStateManager()
+      .getFullCardProblem();
 
     const showLoading =
       this._config?.performance?.features.card_loading_indicator !== false &&
-      !this._controller.getMessageManager().hasMessage();
+      !fullCardProblem;
 
     // Caution: Keep the main div and the menu next to one another in order to
     // ensure the hover menu styling continues to work.
@@ -364,15 +371,13 @@ class AdvancedCameraCard extends LitElement {
             hasDoubleClick: hasAction(actions.double_tap_action),
           })}
           style="${styleMap(this._controller.getStyleManager().getAspectRatioStyle())}"
-          @advanced-camera-card:message=${(ev: CustomEvent<Message>) =>
-            this._controller.getMessageManager().setMessageIfHigherPriority(ev.detail)}
           @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
             this._controller.getMediaLoadedInfoManager().set(ev.detail);
           }}
           @advanced-camera-card:media:unloaded=${() =>
             this._controller.getMediaLoadedInfoManager().clear()}
           @advanced-camera-card:problem:notify=${(ev: CustomEvent<ProblemKey>) =>
-            this._controller.getProblemManager().forceNotify(ev.detail)}
+            this._controller.getProblemManager().showNotification(ev.detail)}
           @advanced-camera-card:problem:trigger=${({
             detail: { key, ...context },
           }: CustomEvent<ProblemTriggerEventData>) =>
@@ -416,19 +421,20 @@ class AdvancedCameraCard extends LitElement {
               .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
               .rawConfig=${this._controller.getConfigManager().getRawConfig()}
               .configManager=${this._controller.getConfigManager()}
-              .hide=${!!this._controller.getMessageManager().hasMessage()}
+              .hide=${!!fullCardProblem}
               .microphoneState=${this._controller.getMicrophoneManager().getState()}
               .conditionStateManager=${this._controller.getConditionStateManager()}
               .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
                 ? this._controller.getTriggersManager().getTriggeredCameraIDs()
                 : undefined}
               .deviceRegistryManager=${this._controller.getDeviceRegistryManager()}
-              .problems=${this._controller.getProblemManager().getProblemPresence()}
+              .problems=${this._controller
+                .getProblemManager()
+                .getStateManager()
+                .getProblemPresence()}
             ></advanced-camera-card-views>
-            ${this._controller.getMessageManager().hasMessage()
-              ? // Keep message rendering to last to show messages that may have been
-                // generated during the render.
-                renderMessage(this._controller.getMessageManager().getMessage())
+            ${fullCardProblem
+              ? renderNotificationBlock(fullCardProblem.notification)
               : ''}
           </div>
           ${this._renderMenuStatusContainer('bottom')}

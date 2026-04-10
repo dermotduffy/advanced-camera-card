@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { CameraManager } from '../../camera-manager/manager';
-import { MediaDetailsController } from '../../components-lib/media/details-controller';
+import { MediaNotificationController } from '../../components-lib/media/notification-controller';
 import { NotificationDetail } from '../../config/schema/actions/types';
 import { HomeAssistant } from '../../ha/types';
 import thumbnailDetailsStyle from '../../scss/thumbnail-details.scss';
@@ -31,17 +31,17 @@ export class AdvancedCameraCardThumbnailDetails extends LitElement {
   @property({ attribute: false })
   public seek?: Date;
 
-  private _controller = new MediaDetailsController();
+  private _notificationController = new MediaNotificationController();
 
   protected willUpdate(changedProperties: PropertyValues): void {
     if (['item', 'seek', 'cameraManager'].some((prop) => changedProperties.has(prop))) {
-      this._controller.calculate(this.cameraManager, this.item, this.seek);
+      this._notificationController.calculate(this.cameraManager, this.item, this.seek);
     }
   }
 
   protected render(): TemplateResult | void {
-    const heading = this._controller.getHeading();
-    const details = this._controller.getDetails();
+    const heading = this._notificationController.getHeading();
+    const details = this._notificationController.getMetadata();
 
     const renderDetail = (
       detail: NotificationDetail,

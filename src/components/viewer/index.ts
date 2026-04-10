@@ -18,7 +18,7 @@ import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';
 import viewerStyle from '../../scss/viewer.scss';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
-import { renderMessage } from '../message.js';
+import { renderNotificationBlockFromText } from '../notification/block.js';
 import './grid';
 
 export interface MediaViewerViewContext {
@@ -83,14 +83,10 @@ export class AdvancedCameraCardViewer extends LitElement {
       // media.
       const loadingMedia =
         !!this.viewManagerEpoch.manager.getView()?.context?.loading?.query;
-      return renderMessage({
-        type: 'info',
-        message: loadingMedia
-          ? localize('error.awaiting_media')
-          : localize('common.no_media'),
-        icon: 'mdi:multimedia',
-        dotdotdot: loadingMedia,
-      });
+      return renderNotificationBlockFromText(
+        loadingMedia ? localize('error.awaiting_media') : localize('common.no_media'),
+        { icon: 'mdi:multimedia', in_progress: loadingMedia },
+      );
     }
 
     return html` <advanced-camera-card-viewer-grid

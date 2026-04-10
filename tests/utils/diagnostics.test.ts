@@ -104,6 +104,7 @@ describe('getDiagnostics', () => {
       lang: 'en',
       ha_version: '2023.9.0',
       timezone: expect.anything(),
+      problems: [],
     });
   });
 
@@ -148,6 +149,7 @@ describe('getDiagnostics', () => {
       date: now,
       lang: 'en',
       timezone: expect.anything(),
+      problems: [],
     });
   });
 
@@ -155,10 +157,7 @@ describe('getDiagnostics', () => {
     const deviceRegistryManager = mock<DeviceRegistryManager>();
     deviceRegistryManager.getMatchingDevices.mockResolvedValue([]);
 
-    const problems = {
-      config_upgrade: true,
-      legacy_resource: false,
-    };
+    const problems = new Set(['config_upgrade'] as const);
 
     const result = await getDiagnostics(
       hass,
@@ -167,7 +166,7 @@ describe('getDiagnostics', () => {
       problems,
     );
 
-    expect(result.problems).toEqual(problems);
+    expect(result.problems).toEqual(['config_upgrade']);
   });
 
   it('should fetch diagnostics without device model', async () => {
@@ -194,6 +193,7 @@ describe('getDiagnostics', () => {
       date: now,
       lang: 'en',
       timezone: expect.anything(),
+      problems: [],
     });
   });
 });

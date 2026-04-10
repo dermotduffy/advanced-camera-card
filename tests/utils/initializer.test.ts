@@ -6,9 +6,8 @@ describe('Initializer', () => {
     const initializer = new Initializer();
 
     expect(initializer.isInitialized('foo')).toBeFalsy();
-    expect(
-      await initializer.initializeIfNecessary('foo', async () => true),
-    ).toBeTruthy();
+
+    await initializer.initializeIfNecessary('foo', async () => {});
     expect(initializer.isInitialized('foo')).toBeTruthy();
   });
 
@@ -16,9 +15,7 @@ describe('Initializer', () => {
     const initializer = new Initializer();
 
     expect(initializer.isInitialized('foo')).toBeFalsy();
-    expect(
-      await initializer.initializeIfNecessary('foo', async () => true),
-    ).toBeTruthy();
+    await initializer.initializeIfNecessary('foo');
     expect(initializer.isInitialized('foo')).toBeTruthy();
   });
 
@@ -26,12 +23,8 @@ describe('Initializer', () => {
     const initializer = new Initializer();
 
     expect(initializer.isInitialized('foo')).toBeFalsy();
-    expect(
-      await initializer.initializeIfNecessary('foo', async () => true),
-    ).toBeTruthy();
-    expect(
-      await initializer.initializeIfNecessary('foo', async () => true),
-    ).toBeTruthy();
+    await initializer.initializeIfNecessary('foo', async () => {});
+    await initializer.initializeIfNecessary('foo', async () => {});
     expect(initializer.isInitialized('foo')).toBeTruthy();
   });
 
@@ -39,9 +32,11 @@ describe('Initializer', () => {
     const initializer = new Initializer();
 
     expect(initializer.isInitialized('foo')).toBeFalsy();
-    expect(
-      await initializer.initializeIfNecessary('foo', async () => false),
-    ).toBeFalsy();
+    await expect(
+      initializer.initializeIfNecessary('foo', async () => {
+        throw new Error('test');
+      }),
+    ).rejects.toThrow('test');
     expect(initializer.isInitialized('foo')).toBeFalsy();
   });
 
@@ -49,20 +44,20 @@ describe('Initializer', () => {
     const initializer = new Initializer();
 
     expect(initializer.isInitializedMultiple(['foo', 'bar'])).toBeFalsy();
-    expect(
-      await initializer.initializeMultipleIfNecessary({
-        foo: async () => true,
-        bar: async () => false,
+    await expect(
+      initializer.initializeMultipleIfNecessary({
+        foo: async () => {},
+        bar: async () => {
+          throw new Error('test');
+        },
       }),
-    ).toBeFalsy();
+    ).rejects.toThrow('test');
 
     expect(initializer.isInitializedMultiple(['foo', 'bar'])).toBeFalsy();
 
-    expect(
-      await initializer.initializeMultipleIfNecessary({
-        bar: async () => true,
-      }),
-    ).toBeTruthy();
+    await initializer.initializeMultipleIfNecessary({
+      bar: async () => {},
+    });
 
     expect(initializer.isInitializedMultiple(['foo', 'bar'])).toBeTruthy();
   });

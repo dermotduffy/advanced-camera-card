@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash-es';
+import { ConfigParseError } from './error.js';
 import { copyConfig, isConfigUpgradeable } from '../../config/management.js';
 import { setProfiles } from '../../config/profiles/set-profiles.js';
 import {
@@ -56,7 +57,7 @@ export class ConfigManager {
 
   public setConfig(inputConfig?: RawAdvancedCameraCardConfig): void {
     if (!inputConfig) {
-      throw new Error(localize('error.invalid_configuration'));
+      throw new ConfigParseError(localize('error.invalid_configuration'));
     }
 
     const parseResult = advancedCameraCardConfigSchema.safeParse(inputConfig);
@@ -67,7 +68,7 @@ export class ConfigManager {
       if (isConfigUpgradeable(inputConfig)) {
         upgradeMessage = `${localize('error.upgrade_available')}. `;
       }
-      throw new Error(
+      throw new ConfigParseError(
         upgradeMessage +
           `${localize('error.invalid_configuration')}: ` +
           (hint ?? localize('error.invalid_configuration_no_hint')),
@@ -109,7 +110,6 @@ export class ConfigManager {
     this._api.getInitializationManager().uninitialize(InitializationAspect.VIEW);
     this._api.getViewManager().reset();
 
-    this._api.getMessageManager().reset();
     this._api.getStatusBarItemManager().removeAllDynamicStatusBarItems();
 
     this._processOverrideConfig();
@@ -118,11 +118,28 @@ export class ConfigManager {
   }
 
   private _processOverrideConfig(): void {
-    const overriddenConfig = this._getOverriddenConfig();
+    /* istanbul ignore if: No (current) way to reach this code -- @preserve */
+    if (!this._config) {
+      return;
+    }
+
+    let overriddenConfig: AdvancedCameraCardConfig;
+    try {
+      overriddenConfig = this._overridesManager.getConfig(this._config);
+    } catch (ev) {
+      this._api.getProblemManager().trigger('config_error', { error: ev });
+      return;
+    }
+
+    // Clear any prior config error on success. This method runs both from
+    // setConfig() and from condition-change-driven override recomputations;
+    // resetting here ensures a transient override error is cleared when
+    // conditions change to produce a valid config again.
+    this._api.getProblemManager().reset('config_error');
 
     // Save on Lit re-rendering costs by only updating the configuration if it
     // actually changes.
-    if (!overriddenConfig || isEqual(overriddenConfig, this._overriddenConfig)) {
+    if (isEqual(overriddenConfig, this._overriddenConfig)) {
       return;
     }
 
@@ -187,20 +204,6 @@ export class ConfigManager {
     );
 
     /* async */ this._initializeBackgroundAndUpdate(previousConfig);
-  }
-
-  private _getOverriddenConfig(): AdvancedCameraCardConfig | null {
-    /* istanbul ignore if: No (current) way to reach this code -- @preserve */
-    if (!this._config) {
-      return null;
-    }
-
-    try {
-      return this._overridesManager.getConfig(this._config);
-    } catch (ev) {
-      this._api.getMessageManager().setErrorIfHigherPriority(ev);
-      return null;
-    }
   }
 
   /**

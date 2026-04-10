@@ -4,7 +4,7 @@ import { HomeAssistant } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import { createInternalCallbackAction } from '../../../utils/action';
 import { CardActionsAPI } from '../../types';
-import { Problem, ProblemResult } from '../types';
+import { Problem, ProblemDescription } from '../types';
 
 const LEGACY_RESOURCE_FILENAME = 'frigate-hass-card.js';
 
@@ -34,10 +34,10 @@ export class LegacyResourceProblem implements Problem {
   private _legacyResourceIDs: string[] = [];
   private _hasCorrectResource = false;
   private _checked = false;
-  private _triggerUpdate: () => void;
+  private _changeCallback: (() => void) | null;
 
-  constructor(triggerUpdate: () => void) {
-    this._triggerUpdate = triggerUpdate;
+  constructor(changeCallback?: () => void) {
+    this._changeCallback = changeCallback ?? null;
   }
 
   public async detectStatic(hass: HomeAssistant): Promise<void> {
@@ -76,12 +76,12 @@ export class LegacyResourceProblem implements Problem {
     }
   }
 
-  public hasResult(): boolean {
+  public hasProblem(): boolean {
     return this._checked && this._legacyResourceIDs.length > 0;
   }
 
-  public getResult(): ProblemResult | null {
-    if (!this.hasResult()) {
+  public getProblem(): ProblemDescription | null {
+    if (!this.hasProblem()) {
       return null;
     }
 
@@ -98,7 +98,7 @@ export class LegacyResourceProblem implements Problem {
           icon: 'mdi:alert',
           severity: 'high',
         },
-        text,
+        body: { text },
         link: {
           url: TROUBLESHOOTING_LEGACY_RESOURCE_URL,
           title: localize('problems.troubleshooting_guide'),
@@ -152,9 +152,9 @@ export class LegacyResourceProblem implements Problem {
       this._checked = false;
       await this.detectStatic(hass);
 
-      const fixed = !this.hasResult();
+      const fixed = !this.hasProblem();
       if (fixed) {
-        this._triggerUpdate();
+        this._changeCallback?.();
       }
       return fixed;
     } catch {

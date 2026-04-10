@@ -43,11 +43,11 @@ import { InteractionManager } from '../src/card-controller/interaction-manager';
 import { KeyboardStateManager } from '../src/card-controller/keyboard-state-manager';
 import { MediaLoadedInfoManager } from '../src/card-controller/media-info-manager';
 import { MediaPlayerManager } from '../src/card-controller/media-player-manager';
-import { MessageManager } from '../src/card-controller/message-manager';
 import { MicrophoneManager } from '../src/card-controller/microphone-manager';
 import { NotificationManager } from '../src/card-controller/notification-manager';
 import { PIPManager } from '../src/card-controller/pip-manager';
-import { ProblemManager } from '../src/card-controller/problems/manager';
+import { ProblemStateManager } from '../src/card-controller/problems/state-manager';
+import { ProblemManager } from '../src/card-controller/problems/problem-manager';
 import { QueryStringManager } from '../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../src/card-controller/style-manager';
@@ -678,11 +678,14 @@ export const createCardAPI = (): CardController => {
   api.getKeyboardStateManager.mockReturnValue(mock<KeyboardStateManager>());
   api.getMediaLoadedInfoManager.mockReturnValue(mock<MediaLoadedInfoManager>());
   api.getMediaPlayerManager.mockReturnValue(mock<MediaPlayerManager>());
-  api.getMessageManager.mockReturnValue(mock<MessageManager>());
   api.getMicrophoneManager.mockReturnValue(mock<MicrophoneManager>());
   api.getNotificationManager.mockReturnValue(mock<NotificationManager>());
   api.getPIPManager.mockReturnValue(mock<PIPManager>());
-  api.getProblemManager.mockReturnValue(mock<ProblemManager>());
+
+  const problemManager = mock<ProblemManager>();
+  problemManager.getStateManager.mockReturnValue(mock<ProblemStateManager>());
+  api.getProblemManager.mockReturnValue(problemManager);
+
   api.getQueryStringManager.mockReturnValue(mock<QueryStringManager>());
   api.getStatusBarItemManager.mockReturnValue(mock<StatusBarItemManager>());
   api.getStyleManager.mockReturnValue(mock<StyleManager>());

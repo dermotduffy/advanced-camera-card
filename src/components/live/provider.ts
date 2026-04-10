@@ -31,7 +31,7 @@ import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-ca
 import { getResolvedLiveProvider } from '../../utils/live-provider.js';
 import { dispatchMediaUnloadedEvent } from '../../utils/media-info.js';
 import '../icon.js';
-import { renderMessage } from '../message.js';
+import { renderNotificationBlockFromText } from '../notification/block.js';
 import './../media-dimensions-container';
 
 @customElement('advanced-camera-card-live-provider')
@@ -72,6 +72,12 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   @state()
   private _hasProviderError = false;
+
+  // Whether the camera entity has ever been in a non-unavailable state. Used
+  // to suppress transient unavailability errors for entities that were
+  // previously working (e.g. during PTZ operations).
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2124
+  private _entityHasBeenAvailable = false;
 
   private _refProvider: Ref<MediaPlayerElement> = createRef();
 
@@ -121,6 +127,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   public disconnectedCallback(): void {
     this._isVideoMediaLoaded = false;
+    this._entityHasBeenAvailable = false;
     super.disconnectedCallback();
   }
 
@@ -132,11 +139,12 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     ev.stopPropagation();
     this._hasProviderError = true;
 
-    const cameraID = this.camera?.getID();
-    if (cameraID) {
+    // this.camera is already substream-aware (resolved by the carousel layer).
+    const targetID = this.camera?.getID();
+    if (targetID) {
       fireAdvancedCameraCardEvent(this, 'problem:trigger', {
-        key: 'stream_not_loading' as const,
-        cameraID,
+        key: 'media_load' as const,
+        targetID,
       });
     }
   }
@@ -162,6 +170,10 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     }
 
     if (changedProps.has('camera')) {
+      this._isVideoMediaLoaded = false;
+      this._hasProviderError = false;
+      this._entityHasBeenAvailable = false;
+
       const provider = getResolvedLiveProvider(this.camera?.getConfig());
       if (provider === 'jsmpeg') {
         this._importPromises.push(import('./providers/jsmpeg.js'));
@@ -256,9 +268,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     ) {
       if (!cameraConfig?.camera_entity) {
         dispatchLiveErrorEvent(this);
-        return renderMessage({
-          message: localize('error.no_live_camera'),
-          type: 'error',
+        return renderNotificationBlockFromText(localize('error.no_live_camera'), {
           icon: 'mdi:camera',
           context: cameraConfig,
         });
@@ -267,25 +277,28 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       const stateObj = this.hass.states[cameraConfig.camera_entity];
       if (!stateObj) {
         dispatchLiveErrorEvent(this);
-        return renderMessage({
-          message: localize('error.live_camera_not_found'),
-          type: 'error',
+        return renderNotificationBlockFromText(localize('error.live_camera_not_found'), {
           icon: 'mdi:camera',
           context: cameraConfig,
         });
       }
 
       if (stateObj.state === 'unavailable') {
-        dispatchLiveErrorEvent(this);
-        dispatchMediaUnloadedEvent(this);
-        return renderMessage({
-          message: `${localize('error.live_camera_unavailable')}${
-            this.label ? `: ${this.label}` : ''
-          }`,
-          type: 'info',
-          icon: 'mdi:cctv-off',
-          dotdotdot: true,
-        });
+        if (
+          !this._entityHasBeenAvailable ||
+          cameraConfig.always_error_if_entity_unavailable
+        ) {
+          dispatchLiveErrorEvent(this);
+          dispatchMediaUnloadedEvent(this);
+          return renderNotificationBlockFromText(
+            `${localize('error.live_camera_unavailable')}${
+              this.label ? `: ${this.label}` : ''
+            }`,
+            { icon: 'mdi:cctv-off', in_progress: true },
+          );
+        }
+      } else {
+        this._entityHasBeenAvailable = true;
       }
     }
 
@@ -374,7 +387,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
           title=${localize('error.awaiting_live')}
           .icon=${{ icon: 'mdi:progress-helper' }}
           @click=${() =>
-            fireAdvancedCameraCardEvent(this, 'problem:notify', 'stream_not_loading')}
+            fireAdvancedCameraCardEvent(this, 'problem:notify', 'media_load')}
         ></advanced-camera-card-icon>`
       : ''}`;
   }

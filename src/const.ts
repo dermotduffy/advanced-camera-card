@@ -5,10 +5,8 @@ export const TROUBLESHOOTING_CONFIG_UPGRADE_URL =
   `${TROUBLESHOOTING_URL}?id=configuration-upgrade-available` as const;
 export const TROUBLESHOOTING_LEGACY_RESOURCE_URL =
   `${TROUBLESHOOTING_URL}?id=legacy-dashboard-resource-detected` as const;
-export const TROUBLESHOOTING_STREAM_URL =
-  `${TROUBLESHOOTING_URL}?id=stream-does-not-load` as const;
-const CONFIGURATION_URL = `${DOCS_URL}/#/configuration`;
-export const FOLDERS_CONFIGURATION_URL = `${CONFIGURATION_URL}/folders`;
+export const TROUBLESHOOTING_MEDIA_URL =
+  `${TROUBLESHOOTING_URL}?id=media-does-not-load` as const;
 
 export const CONF_AUTOMATIONS = 'automations' as const;
 
@@ -453,5 +451,3 @@ export const MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA = 131072;
 // improved rendering performance.
 export const MEDIA_CHUNK_SIZE_DEFAULT = 50;
 export const MEDIA_CHUNK_SIZE_MAX = 1000;
-
-export const IMAGE_VIEW_ZOOM_TARGET_SENTINEL = '__IMAGE_VIEW_ZOOM__';

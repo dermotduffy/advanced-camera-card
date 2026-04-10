@@ -36,8 +36,8 @@ import { UnifiedQueryBuilder } from '../../view/unified-query-builder.js';
 import { UnifiedQueryRunner } from '../../view/unified-query-runner.js';
 import { getReviewedQueryFilterFromQuery } from '../../view/utils/query-filter.js';
 import '../media-filter.js';
-import '../message.js';
-import { renderMessage } from '../message.js';
+import '../notification/block.js';
+import { renderNotificationBlockFromText } from '../notification/block.js';
 import '../surround-basic.js';
 import '../thumbnail/thumbnail.js';
 import './gallery-core.js';
@@ -216,14 +216,10 @@ export class AdvancedCameraCardGallery extends LitElement {
             </advanced-camera-card-media-filter>`
           : ''}
         ${!hasItems
-          ? renderMessage({
-              type: 'info',
-              message: isLoading
-                ? localize('error.awaiting_media')
-                : localize('common.no_media'),
-              icon: 'mdi:multimedia',
-              dotdotdot: isLoading,
-            })
+          ? renderNotificationBlockFromText(
+              isLoading ? localize('error.awaiting_media') : localize('common.no_media'),
+              { icon: 'mdi:multimedia', in_progress: isLoading },
+            )
           : html`<advanced-camera-card-gallery-core
               .hass=${this.hass}
               .columnWidth=${this._controller.getColumnWidth(

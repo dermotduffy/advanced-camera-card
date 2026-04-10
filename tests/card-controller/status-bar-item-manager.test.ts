@@ -48,7 +48,7 @@ describe('StatusBarItemManager', () => {
   describe('should have standard status bar items', () => {
     describe('should have title', () => {
       describe('live', () => {
-        it('with metadata', () => {
+        it('should show with metadata', () => {
           const manager = new StatusBarItemManager(createCardAPI());
           const store = createStore([
             {
@@ -74,7 +74,7 @@ describe('StatusBarItemManager', () => {
           });
         });
 
-        it('without metadata', () => {
+        it('should handle without metadata', () => {
           const manager = new StatusBarItemManager(createCardAPI());
           const cameraManager = createCameraManager();
           expect(
@@ -87,7 +87,7 @@ describe('StatusBarItemManager', () => {
       });
 
       describe('media', () => {
-        it('with a title', () => {
+        it('should show with a title', () => {
           const manager = new StatusBarItemManager(createCardAPI());
           const cameraManager = createCameraManager();
 
@@ -114,7 +114,7 @@ describe('StatusBarItemManager', () => {
           });
         });
 
-        it('without a title', () => {
+        it('should handle without a title', () => {
           const manager = new StatusBarItemManager(createCardAPI());
           const cameraManager = createCameraManager();
 
@@ -187,7 +187,7 @@ describe('StatusBarItemManager', () => {
     });
 
     describe('should have technology', () => {
-      it('webrtc', () => {
+      it('should show webrtc icon', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         expect(
@@ -200,7 +200,7 @@ describe('StatusBarItemManager', () => {
         });
       });
 
-      it('non-webrtc', () => {
+      it('should show non-webrtc string', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         expect(
@@ -258,7 +258,7 @@ describe('StatusBarItemManager', () => {
                     icon: 'mdi:update',
                     severity: 'medium',
                   },
-                  text: 'Upgrade text',
+                  body: { text: 'Upgrade text' },
                 },
               },
             },
@@ -322,9 +322,13 @@ describe('StatusBarItemManager', () => {
               severity: { enabled: true, priority: 50 },
               technology: { enabled: true, priority: 50 },
               title: { enabled: true, priority: 50 },
+              problem_config_error: { enabled: true, priority: 50 },
               problem_config_upgrade: { enabled: false, priority: 50 },
+              problem_connection: { enabled: true, priority: 50 },
+              problem_initialization: { enabled: true, priority: 50 },
               problem_legacy_resource: { enabled: true, priority: 50 },
-              problem_stream_not_loading: { enabled: true, priority: 50 },
+              problem_media_load: { enabled: true, priority: 50 },
+              problem_media_query: { enabled: true, priority: 50 },
             },
           },
           problems: [
@@ -339,7 +343,7 @@ describe('StatusBarItemManager', () => {
                     icon: 'mdi:update',
                     severity: 'medium',
                   },
-                  text: 'Upgrade text',
+                  body: { text: 'Upgrade text' },
                 },
               },
             },
@@ -368,9 +372,13 @@ describe('StatusBarItemManager', () => {
               severity: { enabled: true, priority: 50 },
               technology: { enabled: true, priority: 50 },
               title: { enabled: true, priority: 50 },
+              problem_config_error: { enabled: true, priority: 50 },
               problem_config_upgrade: { enabled: true, priority: 90 },
+              problem_connection: { enabled: true, priority: 50 },
+              problem_initialization: { enabled: true, priority: 50 },
               problem_legacy_resource: { enabled: true, priority: 50 },
-              problem_stream_not_loading: { enabled: true, priority: 50 },
+              problem_media_load: { enabled: true, priority: 50 },
+              problem_media_query: { enabled: true, priority: 50 },
             },
           },
           problems: [
@@ -385,7 +393,7 @@ describe('StatusBarItemManager', () => {
                     icon: 'mdi:update',
                     severity: 'medium',
                   },
-                  text: 'Upgrade text',
+                  body: { text: 'Upgrade text' },
                 },
               },
             },

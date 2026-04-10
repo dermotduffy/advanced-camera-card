@@ -1,0 +1,98 @@
+// Shared styles for notification-block and notification-popup.
+// Callers must set:
+//   --notification-text-color   (text, link, context border)
+//   --notification-control-color (controls, spinner)
+
+.controls .spinner {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  padding-right: 8px;
+  margin-right: 4px;
+  border-right: 1px solid
+    color-mix(in srgb, var(--notification-control-color), transparent 70%);
+}
+
+.control {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--advanced-camera-card-button-border-radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  color: color-mix(in srgb, var(--notification-control-color), transparent 40%);
+
+  advanced-camera-card-icon {
+    --mdc-icon-size: 16px;
+  }
+
+  &:hover {
+    filter: brightness(1.2);
+  }
+
+  // Base control hover color transition (from dimmed to full).
+  &:not(.severity-low):not(.severity-medium):not(.severity-high):hover {
+    color: var(--notification-control-color);
+  }
+
+  &.severity-low {
+    color: var(--advanced-camera-card-foreground-severity-low-color);
+  }
+  &.severity-medium {
+    color: var(--advanced-camera-card-foreground-severity-medium-color);
+  }
+  &.severity-high {
+    color: var(--advanced-camera-card-foreground-severity-high-color);
+  }
+}
+
+.detail {
+  &.severity-low advanced-camera-card-icon {
+    color: var(--advanced-camera-card-foreground-severity-low-color);
+    opacity: 1;
+  }
+  &.severity-medium advanced-camera-card-icon {
+    color: var(--advanced-camera-card-foreground-severity-medium-color);
+    opacity: 1;
+  }
+  &.severity-high advanced-camera-card-icon {
+    color: var(--advanced-camera-card-foreground-severity-high-color);
+    opacity: 1;
+  }
+}
+
+.url {
+  a {
+    color: var(--notification-text-color);
+    font-size: 13px;
+    opacity: 0.8;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+.context {
+  pre {
+    overflow-x: auto;
+    border: 1px dotted
+      color-mix(in srgb, var(--notification-text-color), transparent 70%);
+    padding: 0.75em;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--notification-text-color);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}

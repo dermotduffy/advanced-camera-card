@@ -29,11 +29,11 @@ import { InteractionManager } from './interaction-manager';
 import { KeyboardStateManager } from './keyboard-state-manager';
 import { MediaLoadedInfoManager } from './media-info-manager';
 import { MediaPlayerManager } from './media-player-manager';
-import { MessageManager } from './message-manager';
 import { MicrophoneManager } from './microphone-manager';
 import { NotificationManager } from './notification-manager';
 import { PIPManager } from './pip-manager';
-import { ProblemManager } from './problems/manager';
+import { createProblemManager } from './problems/factory';
+import { ProblemManager } from './problems/problem-manager';
 import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
@@ -57,11 +57,10 @@ import {
   CardKeyboardStateAPI,
   CardMediaLoadedAPI,
   CardMediaPlayerAPI,
-  CardMessageAPI,
   CardMicrophoneAPI,
   CardNotificationAPI,
   CardPIPAPI,
-  CardProblemAPI,
+  CardProblemManagerAPI,
   CardQueryStringAPI,
   CardStyleAPI,
   CardTriggersAPI,
@@ -85,13 +84,12 @@ export class CardController
     CardFullscreenAPI,
     CardHASSAPI,
     CardPIPAPI,
-    CardProblemAPI,
+    CardProblemManagerAPI,
     CardInitializerAPI,
     CardInteractionAPI,
     CardKeyboardStateAPI,
     CardMediaLoadedAPI,
     CardMediaPlayerAPI,
-    CardMessageAPI,
     CardMicrophoneAPI,
     CardNotificationAPI,
     CardQueryStringAPI,
@@ -126,11 +124,10 @@ export class CardController
   private _mediaLoadedInfoManager = new MediaLoadedInfoManager(this);
 
   private _mediaPlayerManager = new MediaPlayerManager(this);
-  private _messageManager = new MessageManager(this);
   private _microphoneManager = new MicrophoneManager(this);
   private _notificationManager = new NotificationManager(this);
   private _pipManager = new PIPManager(this);
-  private _problemManager = new ProblemManager(this);
+  private _problemManager = createProblemManager(this);
   private _queryStringManager = new QueryStringManager(this);
   private _statusBarItemManager = new StatusBarItemManager(this);
   private _styleManager = new StyleManager(this);
@@ -243,10 +240,6 @@ export class CardController
 
   public getMediaPlayerManager(): MediaPlayerManager {
     return this._mediaPlayerManager;
-  }
-
-  public getMessageManager(): MessageManager {
-    return this._messageManager;
   }
 
   public getMicrophoneManager(): MicrophoneManager {

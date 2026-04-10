@@ -39,6 +39,8 @@ describe('setFoldersFromConfig', () => {
 
     setFoldersFromConfig(api);
 
-    expect(api.getMessageManager().setErrorIfHigherPriority).toBeCalledWith(error);
+    expect(api.getProblemManager().trigger).toBeCalledWith('config_error', {
+      error,
+    });
   });
 });

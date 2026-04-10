@@ -28,23 +28,28 @@ status_bar:
 
 ### Available Items
 
-| Button name                  | Description                                                                                 |
-| ---------------------------- | ------------------------------------------------------------------------------------------- |
-| `engine`                     | The icon of the camera engine for the relevant camera.                                      |
-| `problem_config_upgrade`     | An indicator that appears when a configuration upgrade is available.                        |
-| `problem_legacy_resource`    | An indicator that appears when a legacy `frigate-hass-card` resource is still registered.   |
-| `problem_stream_not_loading` | An indicator that appears when a live stream has not loaded within 10 seconds.              |
-| `resolution`                 | The detected media resolution (if any).                                                     |
-| `severity`                   | The media severity indicator (if any) for review severity (e.g. Frigate alerts/detections). |
-| `technology`                 | The detected media technology (if any).                                                     |
-| `title`                      | The media title.                                                                            |
+| Button name               | Description                                                                                                    |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `engine`                  | The icon of the camera engine for the relevant camera.                                                         |
+| `problem_config_error`    | An indicator that appears when the card configuration has an error.                                            |
+| `problem_config_upgrade`  | An indicator that appears when a configuration upgrade is available.                                           |
+| `problem_connection`      | An indicator that appears when the Home Assistant connection is lost.                                          |
+| `problem_initialization`  | An indicator that appears when camera initialization fails.                                                    |
+| `problem_legacy_resource` | An indicator that appears when a legacy `frigate-hass-card` resource is still registered.                      |
+| `problem_media_load`      | An indicator that appears when media (live stream, recorded media, or image) has not loaded within 10 seconds. |
+| `problem_media_query`     | An indicator that appears when a media query (e.g. fetching thumbnails or clips) fails.                        |
+| `resolution`              | The detected media resolution (if any).                                                                        |
+| `severity`                | The media severity indicator (if any) for review severity (e.g. Frigate alerts/detections).                    |
+| `technology`              | The detected media technology (if any).                                                                        |
+| `title`                   | The media title.                                                                                               |
 
 ### Options for each item
 
-| Option     | Default | Description                                                                                                                                                                                                              |
-| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `enabled`  | `true`  | Whether or not to show the item.                                                                                                                                                                                         |
-| `priority` | `50`    | The item priority. Higher priority items are ordered closer to the start of the status bar (i.e. an item with priority `70` will order further to the left than an item with priority `60`). Minimum `0`, maximum `100`. |
+| Option      | Default                                | Description                                                                                                                                                                                                              |
+| ----------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `enabled`   | `true`                                 | Whether or not to show the item.                                                                                                                                                                                         |
+| `permanent` | `true` for problems, `false` otherwise | When `true`, the status bar stays visible in `popup` mode as long as this item is present (instead of auto-hiding after `popup_seconds`). All problem items default to `true` so errors remain visible.                  |
+| `priority`  | `50`                                   | The item priority. Higher priority items are ordered closer to the start of the status bar (i.e. an item with priority `70` will order further to the left than an item with priority `60`). Minimum `0`, maximum `100`. |
 
 ## `style`
 
@@ -76,13 +81,25 @@ status_bar:
     engine:
       enabled: true
       priority: 50
+    problem_config_error:
+      enabled: true
+      priority: 50
     problem_config_upgrade:
+      enabled: true
+      priority: 50
+    problem_connection:
+      enabled: true
+      priority: 50
+    problem_initialization:
       enabled: true
       priority: 50
     problem_legacy_resource:
       enabled: true
       priority: 50
-    problem_stream_not_loading:
+    problem_media_load:
+      enabled: true
+      priority: 50
+    problem_media_query:
       enabled: true
       priority: 50
     resolution:

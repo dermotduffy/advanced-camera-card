@@ -26,7 +26,7 @@ const createInitializedCardAPI = (initialized?: boolean): CardController => {
 };
 
 describe('should act correctly when view is set', () => {
-  it('basic view', () => {
+  it('should set basic view', () => {
     const view = createView({
       view: 'live',
       camera: 'camera',
@@ -45,17 +45,17 @@ describe('should act correctly when view is set', () => {
     expect(manager.hasView()).toBeTruthy();
     expect(api.getMediaLoadedInfoManager().clear).toBeCalled();
     expect(api.getCardElementManager().scrollReset).toBeCalled();
-    expect(api.getMessageManager().reset).toBeCalled();
     expect(api.getStyleManager().setExpandedMode).toBeCalled();
     expect(api.getConditionStateManager()?.setState).toBeCalledWith({
       view: 'live',
       camera: 'camera',
       displayMode: 'grid',
+      targetID: 'camera',
     });
     expect(api.getCardElementManager().update).toBeCalled();
   });
 
-  it('view with minor changes without media clearing or scroll', () => {
+  it('should set view with minor changes without media clearing or scroll', () => {
     const view_1 = createView({
       view: 'live',
       camera: 'camera',
@@ -89,7 +89,7 @@ describe('should act correctly when view is set', () => {
   });
 });
 
-it('setViewWithMergedContext', () => {
+it('should set view with merged context', () => {
   const api = createInitializedCardAPI();
   const factory = mock<ViewFactory>();
 
@@ -113,14 +113,14 @@ it('setViewWithMergedContext', () => {
   expect(manager.getView()?.context).toEqual(context);
 });
 
-it('getEpoch', () => {
+it('should return epoch', () => {
   const factory = mock<ViewFactory>();
   const manager = new ViewManager(createCardAPI(), { viewFactory: factory });
   expect(manager.getEpoch()).toBeTruthy();
   expect(manager.getEpoch().manager).toBe(manager);
 });
 
-it('reset', () => {
+it('should reset view', () => {
   const factory = mock<ViewFactory>();
   const manager = new ViewManager(createInitializedCardAPI(), { viewFactory: factory });
 
@@ -166,7 +166,7 @@ describe('should not set view without cameras being initialized', () => {
   });
 });
 
-it('setViewDefault', () => {
+it('should set view default', () => {
   const factory = mock<ViewFactory>();
   factory.getViewDefault.mockReturnValue(createView());
 
@@ -177,7 +177,7 @@ it('setViewDefault', () => {
   expect(manager.getView()?.camera).toBe('camera');
 });
 
-it('setViewByParameters', () => {
+it('should set view by parameters', () => {
   const factory = mock<ViewFactory>();
   factory.getViewByParameters.mockReturnValue(createView());
 
@@ -188,7 +188,7 @@ it('setViewByParameters', () => {
   expect(manager.getView()?.camera).toBe('camera');
 });
 
-it('setViewDefaultWithNewQuery', async () => {
+it('should set view default with new query', async () => {
   const viewFactory = mock<ViewFactory>();
   viewFactory.getViewDefault.mockReturnValue(createView());
 
@@ -205,7 +205,7 @@ it('setViewDefaultWithNewQuery', async () => {
   expect(manager.getView()?.camera).toBe('camera');
 });
 
-it('setViewByParametersWithNewQuery', async () => {
+it('should set view by parameters with new query', async () => {
   const viewFactory = mock<ViewFactory>();
   viewFactory.getViewByParameters.mockReturnValue(createView());
 
@@ -222,7 +222,7 @@ it('setViewByParametersWithNewQuery', async () => {
   expect(manager.getView()?.camera).toBe('camera');
 });
 
-it('setViewByParametersWithExistingQuery', async () => {
+it('should set view by parameters with existing query', async () => {
   const viewFactory = mock<ViewFactory>();
   viewFactory.getViewByParameters.mockReturnValue(createView());
 
@@ -241,34 +241,113 @@ it('setViewByParametersWithExistingQuery', async () => {
 });
 
 describe('should handle exceptions', () => {
-  it('should handle exceptions in sync calls', () => {
-    const error = new Error();
+  it('should retry with failSafe when no existing view in sync calls', () => {
     const viewFactory = mock<ViewFactory>();
-    viewFactory.getViewDefault.mockImplementation(() => {
-      throw error;
-    });
+    const failSafeView = createView();
+    viewFactory.getViewDefault
+      .mockImplementationOnce(() => {
+        throw new Error('message');
+      })
+      .mockReturnValueOnce(failSafeView);
 
     const api = createInitializedCardAPI();
     const manager = new ViewManager(api, { viewFactory: viewFactory });
     manager.setViewDefault();
 
-    expect(manager.hasView()).toBeFalsy();
-    expect(api.getMessageManager().setErrorIfHigherPriority).toBeCalledWith(error);
+    expect(manager.hasView()).toBeTruthy();
+    expect(manager.getView()).toBe(failSafeView);
+    expect(viewFactory.getViewDefault).toBeCalledWith(
+      expect.objectContaining({ baseView: null, failSafe: true }),
+    );
+    expect(api.getNotificationManager().setNotification).toBeCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ text: 'message' }),
+      }),
+    );
   });
 
-  it('should handle viewFactory exceptions in async calls', async () => {
-    const error = new Error();
+  it('should not retry with failSafe when existing view in sync calls', () => {
     const viewFactory = mock<ViewFactory>();
-    viewFactory.getViewDefault.mockImplementation(() => {
-      throw error;
-    });
+    const existingView = createView();
+    viewFactory.getViewDefault
+      .mockReturnValueOnce(existingView)
+      .mockImplementationOnce(() => {
+        throw new Error('message');
+      });
+
+    const api = createInitializedCardAPI();
+    const manager = new ViewManager(api, { viewFactory: viewFactory });
+    manager.setViewDefault();
+    manager.setViewDefault();
+
+    expect(manager.getView()).toBe(existingView);
+    expect(viewFactory.getViewDefault).toBeCalledTimes(2);
+    expect(api.getNotificationManager().setNotification).toBeCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ text: 'message' }),
+      }),
+    );
+  });
+
+  it('should retry with failSafe when no existing view in async calls', async () => {
+    const viewFactory = mock<ViewFactory>();
+    const failSafeView = createView();
+    viewFactory.getViewDefault
+      .mockImplementationOnce(() => {
+        throw new Error('message');
+      })
+      .mockReturnValueOnce(failSafeView);
 
     const api = createInitializedCardAPI();
     const manager = new ViewManager(api, { viewFactory: viewFactory });
     await manager.setViewDefaultWithNewQuery();
 
+    expect(manager.hasView()).toBeTruthy();
+    expect(viewFactory.getViewDefault).toBeCalledWith(
+      expect.objectContaining({ baseView: null, failSafe: true }),
+    );
+    expect(api.getNotificationManager().setNotification).toBeCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ text: 'message' }),
+      }),
+    );
+  });
+
+  it('should not retry with failSafe when existing view in async calls', async () => {
+    const viewFactory = mock<ViewFactory>();
+    const existingView = createView();
+    viewFactory.getViewDefault
+      .mockReturnValueOnce(existingView)
+      .mockImplementationOnce(() => {
+        throw new Error('message');
+      });
+
+    const api = createInitializedCardAPI();
+    const manager = new ViewManager(api, { viewFactory: viewFactory });
+    manager.setViewDefault();
+    await manager.setViewDefaultWithNewQuery();
+
+    expect(manager.getView()).not.toBeNull();
+    expect(viewFactory.getViewDefault).toBeCalledTimes(2);
+    expect(api.getNotificationManager().setNotification).toBeCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ text: 'message' }),
+      }),
+    );
+  });
+
+  it('should return null when failSafe view factory also throws', () => {
+    const viewFactory = mock<ViewFactory>();
+    viewFactory.getViewDefault.mockImplementation(() => {
+      throw new Error('message');
+    });
+
+    const api = createInitializedCardAPI();
+    const manager = new ViewManager(api, { viewFactory });
+    manager.setViewDefault();
+
     expect(manager.hasView()).toBeFalsy();
-    expect(api.getMessageManager().setErrorIfHigherPriority).toBeCalledWith(error);
+    expect(viewFactory.getViewDefault).toBeCalledTimes(2);
   });
 
   it('should handle viewQueryExecutor exceptions in async calls', async () => {
@@ -290,7 +369,10 @@ describe('should handle exceptions', () => {
     expect(manager.hasView()).toBeTruthy();
 
     // But an error will also be generated.
-    expect(api.getMessageManager().setErrorIfHigherPriority).toBeCalledWith(error);
+    expect(api.getProblemManager().trigger).toBeCalledWith(
+      'media_query',
+      expect.objectContaining({ error }),
+    );
   });
 });
 
@@ -431,7 +513,7 @@ describe('hasMajorMediaChange', () => {
 });
 
 describe('should initialize', () => {
-  it('without querystring', async () => {
+  it('should initialize without querystring', async () => {
     const view = createView({
       view: 'live',
       camera: 'camera',
@@ -445,12 +527,12 @@ describe('should initialize', () => {
       viewFactory: viewFactory,
     });
 
-    expect(await manager.initialize()).toBeTruthy();
+    await manager.initialize();
 
     expect(manager.getView()).toBe(view);
   });
 
-  it('with querystring', async () => {
+  it('should initialize with querystring', async () => {
     const api = createCardAPI();
     const factory = mock<ViewFactory>();
     const manager = new ViewManager(api, { viewFactory: factory });
@@ -458,7 +540,7 @@ describe('should initialize', () => {
       true,
     );
 
-    expect(await manager.initialize()).toBeTruthy();
+    await manager.initialize();
 
     expect(manager.hasView()).toBeFalsy();
   });
@@ -480,7 +562,8 @@ describe('should apply async view modifications', () => {
       }),
     ]);
 
-    const manager = new ViewManager(createInitializedCardAPI(), {
+    const api = createInitializedCardAPI();
+    const manager = new ViewManager(api, {
       viewFactory: viewFactory,
       viewQueryExecutor: viewQueryExecutor,
     });
@@ -490,6 +573,7 @@ describe('should apply async view modifications', () => {
     expect(manager.getView()?.query).toBe(query);
     expect(manager.getView()?.queryResults).toBe(queryResults);
     expect(manager.getView()?.context?.loading?.query).toBeUndefined();
+    expect(api.getProblemManager().reset).toBeCalledWith('media_query');
   });
 
   it('should not apply modifications if there is a major media change', async () => {

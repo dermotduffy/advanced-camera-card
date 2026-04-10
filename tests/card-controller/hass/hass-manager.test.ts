@@ -61,60 +61,7 @@ describe('HASSManager', () => {
   });
 
   describe('should handle connection state change when', () => {
-    it('initially disconnected', () => {
-      const api = createCardAPI();
-      const manager = new HASSManager(api);
-
-      const disconnectedHASS = createHASS();
-      disconnectedHASS.connected = false;
-
-      manager.setHASS(disconnectedHASS);
-
-      expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
-        expect.objectContaining({
-          message: 'Reconnecting',
-          icon: 'mdi:lan-disconnect',
-          type: 'connection',
-          dotdotdot: true,
-        }),
-      );
-    });
-
-    it('disconnected', () => {
-      const api = createCardAPI();
-      const manager = new HASSManager(api);
-
-      manager.setHASS(createHASS());
-
-      const disconnectedHASS = createHASS();
-      disconnectedHASS.connected = false;
-      manager.setHASS(disconnectedHASS);
-
-      expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
-        expect.objectContaining({
-          message: 'Reconnecting',
-          icon: 'mdi:lan-disconnect',
-          type: 'connection',
-          dotdotdot: true,
-        }),
-      );
-    });
-
-    it('reconnected', () => {
-      const api = createCardAPI();
-      const manager = new HASSManager(api);
-
-      const disconnectedHASS = createHASS();
-      disconnectedHASS.connected = false;
-      manager.setHASS(disconnectedHASS);
-
-      const reconnectedHASS = createHASS();
-      manager.setHASS(reconnectedHASS);
-
-      expect(api.getMessageManager().resetType).toBeCalled();
-    });
-
-    it('reconnected reinitializes cameras and view', () => {
+    it('should reinitialize cameras and view on reconnect', () => {
       const api = createCardAPI();
       const manager = new HASSManager(api);
 
@@ -144,7 +91,7 @@ describe('HASSManager', () => {
       );
     });
 
-    it('hass is null', () => {
+    it('should not crash when hass is null', () => {
       const api = createCardAPI();
       const manager = new HASSManager(api);
       const connectedHASS = createHASS();
@@ -152,23 +99,12 @@ describe('HASSManager', () => {
 
       manager.setHASS(connectedHASS);
       manager.setHASS(null);
-
-      expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
-        expect.objectContaining({
-          message: 'Reconnecting',
-          icon: 'mdi:lan-disconnect',
-          type: 'connection',
-          dotdotdot: true,
-        }),
-      );
-
       manager.setHASS(connectedHASS);
-      expect(api.getMessageManager().resetType).toBeCalled();
     });
   });
 
   describe('should not set default view when', () => {
-    it('selected camera is unknown', () => {
+    it('should not set default view when selected camera is unknown', () => {
       const api = createCardAPI();
       vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
       vi.mocked(api.getCameraManager().getStore).mockReturnValue(
@@ -199,7 +135,7 @@ describe('HASSManager', () => {
       expect(api.getViewManager().setViewDefault).not.toBeCalled();
     });
 
-    it('when there is card interaction', () => {
+    it('should not set default view when there is card interaction', () => {
       const api = createCardAPI();
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({

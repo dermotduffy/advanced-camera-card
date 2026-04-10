@@ -8,8 +8,8 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { isEqual } from 'lodash-es';
+import { ProblemTriggerEventData } from '../card-controller/problems/types.js';
 import { TemplateRenderer } from '../card-controller/templates/index.js';
-import { dispatchAdvancedCameraCardErrorEvent } from '../components-lib/message/dispatch.js';
 import { ConditionsManager } from '../conditions/conditions-manager.js';
 import { getConditionStateManagerViaEvent } from '../conditions/state-manager-via-event.js';
 import { ConditionStateManager } from '../conditions/state-manager.js';
@@ -34,6 +34,12 @@ import elementsStyle from '../scss/elements.scss';
 import { AdvancedCameraCardError } from '../types.js';
 import { errorToConsole } from '../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
+
+class ElementsCreationError extends AdvancedCameraCardError {
+  constructor(context?: unknown) {
+    super(localize('error.could_not_create_elements'), context);
+  }
+}
 
 /* A note on picture element rendering:
  *
@@ -106,7 +112,7 @@ export class AdvancedCameraCardElementsCore extends LitElement {
   private _createRoot(): HuiConditionalElement {
     const elementConstructor = customElements.get('hui-conditional-element');
     if (!elementConstructor || !this.hass) {
-      throw new Error(localize('error.could_not_render_elements'));
+      throw new ElementsCreationError(this._renderedElements);
     }
 
     const element = new elementConstructor() as HuiConditionalElement;
@@ -145,7 +151,11 @@ export class AdvancedCameraCardElementsCore extends LitElement {
       this._renderedElements = elements;
       this._root = this._createRoot();
     } catch (e) {
-      return dispatchAdvancedCameraCardErrorEvent(this, e as AdvancedCameraCardError);
+      errorToConsole(e as Error);
+      fireAdvancedCameraCardEvent<ProblemTriggerEventData>(this, 'problem:trigger', {
+        key: 'config_error',
+        error: new ElementsCreationError(elements),
+      });
     }
   };
 

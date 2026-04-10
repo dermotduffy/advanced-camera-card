@@ -49,7 +49,7 @@ import { ActionConfig } from '../../../src/config/schema/actions/types';
 
 // @vitest-environment jsdom
 describe('ActionFactory', () => {
-  it('mismatched card-id', () => {
+  it('should return null for mismatched card-id', () => {
     const factory = new ActionFactory();
     expect(
       factory.createAction(
@@ -130,7 +130,7 @@ describe('ActionFactory', () => {
       [
         {
           advanced_camera_card_action: 'notification' as const,
-          notification: { text: 'test' },
+          notification: { body: { text: 'test' } },
         },
         NotificationAction,
       ],

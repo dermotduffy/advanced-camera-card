@@ -267,6 +267,105 @@ describe('StatusBarController', () => {
         expect(host.getAttribute('hide')).toBe(null);
       });
 
+      it('should not start popup timer when permanent items are present', () => {
+        const host = createLitElement();
+        setOrRemoveAttribute(host, true, 'hide');
+
+        const controller = new StatusBarController(host);
+        controller.setConfig(
+          createConfig({
+            style: 'popup',
+          }),
+        );
+
+        const permanentItem = {
+          type: 'custom:advanced-camera-card-status-bar-icon' as const,
+          icon: 'mdi:alert',
+          sufficient: true,
+          permanent: true,
+        };
+
+        controller.setItems([permanentItem]);
+        expect(host.getAttribute('hide')).toBe(null);
+
+        // Timer should not hide the bar.
+        vi.advanceTimersByTime(10000);
+        expect(host.getAttribute('hide')).toBe(null);
+      });
+
+      it('should start popup timer when permanent items are removed', () => {
+        const host = createLitElement();
+
+        const controller = new StatusBarController(host);
+        controller.setConfig(
+          createConfig({
+            style: 'popup',
+          }),
+        );
+
+        const permanentItem = {
+          type: 'custom:advanced-camera-card-status-bar-icon' as const,
+          icon: 'mdi:alert',
+          sufficient: true,
+          permanent: true,
+        };
+        const nonPermanentItem = {
+          type: 'custom:advanced-camera-card-status-bar-string' as const,
+          string: 'Title',
+          sufficient: true,
+        };
+
+        // Start with permanent item — bar stays visible.
+        controller.setItems([permanentItem, nonPermanentItem]);
+        vi.advanceTimersByTime(10000);
+        expect(host.getAttribute('hide')).toBe(null);
+
+        // Remove permanent item — popup timer starts.
+        controller.setItems([nonPermanentItem]);
+        expect(host.getAttribute('hide')).toBe(null);
+
+        vi.advanceTimersByTime(3000);
+        expect(host.getAttribute('hide')).not.toBe(null);
+      });
+
+      it('should start popup timer when permanent item is removed without changing sufficient items', () => {
+        const host = createLitElement();
+
+        const controller = new StatusBarController(host);
+        controller.setConfig(
+          createConfig({
+            style: 'popup',
+          }),
+        );
+
+        const sufficientItem = {
+          type: 'custom:advanced-camera-card-status-bar-string' as const,
+          string: 'Title',
+          sufficient: true,
+        };
+        // A permanent item that is NOT sufficient — removing it does not
+        // change the sufficient-values set, so the popup timer takes the
+        // dedicated permanent-removal branch.
+        const permanentInsufficientItem = {
+          type: 'custom:advanced-camera-card-status-bar-icon' as const,
+          icon: 'mdi:alert',
+          sufficient: false,
+          permanent: true,
+        };
+
+        controller.setItems([sufficientItem, permanentInsufficientItem]);
+        vi.advanceTimersByTime(10000);
+        expect(host.getAttribute('hide')).toBe(null);
+
+        // Remove the permanent (insufficient) item — sufficient values are
+        // unchanged, but the popup timer must still start.
+        controller.setItems([sufficientItem]);
+        expect(host.getAttribute('hide')).toBe(null);
+
+        vi.advanceTimersByTime(3000);
+        expect(host.getAttribute('hide')).not.toBe(null);
+      });
+
       it('should hide popup after expiry', () => {
         const host = createLitElement();
 

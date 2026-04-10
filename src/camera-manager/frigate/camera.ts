@@ -5,7 +5,6 @@ import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/pt
 import { CameraConfig } from '../../config/schema/cameras';
 import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
-import { localize } from '../../localize/localize';
 import { SEVERITIES } from '../../severity';
 import {
   CapabilitiesRaw,
@@ -15,7 +14,7 @@ import {
 } from '../../types';
 import { errorToConsole } from '../../utils/basic';
 import { Camera, CameraInitializationOptions } from '../camera';
-import { CameraInitializationError } from '../error';
+import { CameraNoEntityError } from '../error';
 import { CameraEndpoints, CameraEndpointsContext } from '../types';
 import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
 import {
@@ -123,7 +122,7 @@ export class FrigateCamera extends Camera {
     if (cameraEntity && (!hasCameraName || hasAutoTriggers)) {
       entity = await entityRegistryManager.getEntity(hass, cameraEntity);
       if (!entity) {
-        throw new CameraInitializationError(localize('error.no_camera_entity'), config);
+        throw new CameraNoEntityError(config);
       }
     }
 

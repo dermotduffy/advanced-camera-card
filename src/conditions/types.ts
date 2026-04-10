@@ -1,3 +1,4 @@
+import { ProblemPresence } from '../card-controller/problems/types';
 import { KeysState, MicrophoneState } from '../card-controller/types';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
 import { ViewDisplayMode } from '../config/schema/common/display';
@@ -17,7 +18,11 @@ export interface ConditionState {
   mediaLoadedInfo?: MediaLoadedInfo | null;
   microphone?: MicrophoneState;
   panel?: boolean;
+  problems?: ProblemPresence;
   hass?: HomeAssistant;
+
+  // Generic media target identifier. See @view/target-id for details.
+  targetID?: string;
   triggered?: Set<string>;
   userAgent?: string;
   view?: AdvancedCameraCardView;

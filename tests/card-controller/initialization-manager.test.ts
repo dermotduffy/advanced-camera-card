@@ -20,14 +20,14 @@ describe('InitializationManager', () => {
   });
 
   describe('should correctly determine when mandatory initialization is required', () => {
-    it('without config', () => {
+    it('should handle without config', () => {
       const api = createCardAPI();
       const manager = new InitializationManager(api);
 
       expect(manager.isInitializedMandatory()).toBeFalsy();
     });
 
-    it('without aspects', () => {
+    it('should handle without aspects', () => {
       const api = createCardAPI();
       const manager = new InitializationManager(api);
 
@@ -36,7 +36,7 @@ describe('InitializationManager', () => {
       expect(manager.isInitializedMandatory()).toBeFalsy();
     });
 
-    it('with microphone if configured', () => {
+    it('should handle with microphone if configured', () => {
       const api = createCardAPI();
       const manager = new InitializationManager(api);
 
@@ -50,24 +50,22 @@ describe('InitializationManager', () => {
   });
 
   describe('should initialize mandatory', () => {
-    it('without hass', async () => {
+    it('should handle without hass', async () => {
       const manager = new InitializationManager(createCardAPI());
       await manager.initializeMandatory();
       expect(manager.wasEverInitialized()).toBeFalsy();
     });
 
-    it('without config', async () => {
+    it('should handle without config', async () => {
       const api = createCardAPI();
       const manager = new InitializationManager(api);
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      vi.mocked(loadLanguages).mockResolvedValue(true);
-      vi.mocked(sideLoadHomeAssistantElements).mockResolvedValue(true);
 
       await manager.initializeMandatory();
       expect(manager.wasEverInitialized()).toBeFalsy();
     });
 
-    it('successfully', async () => {
+    it('should succeed', async () => {
       const stateListener = vi.fn();
       const stateMananger = new ConditionStateManager();
       stateMananger.addListener(stateListener);
@@ -77,17 +75,12 @@ describe('InitializationManager', () => {
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       const config = createConfig();
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(config);
-      vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(false);
+      vi.mocked(
+        api.getProblemManager().getStateManager().hasFullCardProblem,
+      ).mockReturnValue(false);
       vi.mocked(api.getQueryStringManager().hasViewRelatedActionsToRun).mockReturnValue(
         false,
       );
-      vi.mocked(loadLanguages).mockResolvedValue(true);
-      vi.mocked(sideLoadHomeAssistantElements).mockResolvedValue(true);
-      vi.mocked(api.getCameraManager().initializeCamerasFromConfig).mockResolvedValue(
-        true,
-      );
-      vi.mocked(api.getViewManager().initialize).mockResolvedValue(true);
-
       const manager = new InitializationManager(api);
 
       expect(manager.isInitialized(InitializationAspect.LANGUAGES)).toBeFalsy();
@@ -126,18 +119,13 @@ describe('InitializationManager', () => {
       expect(manager.isInitialized(InitializationAspect.INITIAL_TRIGGER)).toBeTruthy();
     });
 
-    it('successfully with microphone if configured', async () => {
+    it('should succeed with microphone if configured', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(
         api.getMicrophoneManager().shouldConnectOnInitialization,
       ).mockReturnValue(true);
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-      vi.mocked(loadLanguages).mockResolvedValue(true);
-      vi.mocked(sideLoadHomeAssistantElements).mockResolvedValue(true);
-      vi.mocked(api.getCameraManager().initializeCamerasFromConfig).mockResolvedValue(
-        true,
-      );
 
       const manager = new InitializationManager(api);
 
@@ -146,18 +134,15 @@ describe('InitializationManager', () => {
       expect(api.getMicrophoneManager().connect).toBeCalled();
     });
 
-    it('with message set during initialization', async () => {
+    it('should handle message set during initialization', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-      vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(true);
+      vi.mocked(
+        api.getProblemManager().getStateManager().hasFullCardProblem,
+      ).mockReturnValue(true);
       vi.mocked(api.getQueryStringManager().hasViewRelatedActionsToRun).mockReturnValue(
         false,
-      );
-      vi.mocked(loadLanguages).mockResolvedValue(true);
-      vi.mocked(sideLoadHomeAssistantElements).mockResolvedValue(true);
-      vi.mocked(api.getCameraManager().initializeCamerasFromConfig).mockResolvedValue(
-        true,
       );
 
       const manager = new InitializationManager(api);
@@ -167,52 +152,118 @@ describe('InitializationManager', () => {
       expect(api.getViewManager().initialize).not.toBeCalled();
     });
 
-    it('with languages and side load elements in progress', async () => {
+    it('should handle languages and side load elements in progress', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       const initializer = mock<Initializer>();
       const manager = new InitializationManager(api, initializer);
-      initializer.initializeMultipleIfNecessary.mockResolvedValue(false);
+      initializer.initializeMultipleIfNecessary.mockRejectedValue(
+        new Error('initialization failed'),
+      );
 
       await manager.initializeMandatory();
 
       expect(manager.wasEverInitialized()).toBeFalsy();
     });
 
-    it('with cameras in progress', async () => {
+    it('should handle cameras initialization failure', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
 
       const initializer = mock<Initializer>();
       const manager = new InitializationManager(api, initializer);
+
+      // First call (languages/side-load) succeeds, second (cameras) fails.
       initializer.initializeMultipleIfNecessary
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('cameras failed'));
 
       await manager.initializeMandatory();
 
       expect(manager.wasEverInitialized()).toBeFalsy();
+      expect(api.getProblemManager().trigger).toBeCalledWith(
+        'initialization',
+        expect.objectContaining({ error: expect.any(Error) }),
+      );
     });
 
-    it('with triggers in progress', async () => {
+    it('should handle initial trigger initialization failure', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
 
       const initializer = mock<Initializer>();
       const manager = new InitializationManager(api, initializer);
-      initializer.initializeMultipleIfNecessary
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true);
+
+      // First initializeIfNecessary call (view) succeeds, second
+      // (initial_trigger) fails.
       initializer.initializeIfNecessary
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('triggers failed'));
 
       await manager.initializeMandatory();
 
       expect(manager.wasEverInitialized()).toBeFalsy();
+      expect(api.getProblemManager().trigger).toBeCalledWith(
+        'initialization',
+        expect.objectContaining({ error: expect.any(Error) }),
+      );
     });
+
+    it('should handle VIEW initialization failure', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+      initializer.initializeIfNecessary.mockRejectedValueOnce(
+        new Error('view initialization failed'),
+      );
+
+      await manager.initializeMandatory();
+
+      expect(manager.wasEverInitialized()).toBeFalsy();
+      expect(api.getProblemManager().trigger).toBeCalledWith(
+        'initialization',
+        expect.objectContaining({ error: expect.any(Error) }),
+      );
+    });
+
+    it('should handle non-Error thrown during initialization', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+      // Throw a non-Error to exercise the else-branch in _tryInitialize
+      initializer.initializeMultipleIfNecessary.mockRejectedValueOnce('string error');
+
+      await manager.initializeMandatory();
+
+      expect(manager.wasEverInitialized()).toBeFalsy();
+      expect(api.getProblemManager().trigger).toBeCalledWith(
+        'initialization',
+        expect.objectContaining({ error: 'string error' }),
+      );
+    });
+  });
+
+  it('should uninitialize mandatory aspects', () => {
+    const initializer = mock<Initializer>();
+    const manager = new InitializationManager(createCardAPI(), initializer);
+
+    manager.uninitializeMandatory();
+
+    expect(initializer.uninitialize).toBeCalledWith(InitializationAspect.CAMERAS);
+    expect(initializer.uninitialize).toBeCalledWith(
+      InitializationAspect.MICROPHONE_CONNECT,
+    );
+    expect(initializer.uninitialize).toBeCalledWith(InitializationAspect.VIEW);
+    expect(initializer.uninitialize).toBeCalledWith(
+      InitializationAspect.INITIAL_TRIGGER,
+    );
   });
 
   it('should report background initialization status', () => {
@@ -229,7 +280,7 @@ describe('InitializationManager', () => {
   });
 
   describe('should initialize background', () => {
-    it('without hass', async () => {
+    it('should handle without hass', async () => {
       const api = createCardAPI();
       const initializer = mock<Initializer>();
       const manager = new InitializationManager(api, initializer);
@@ -239,13 +290,12 @@ describe('InitializationManager', () => {
       expect(initializer.initializeIfNecessary).not.toBeCalled();
     });
 
-    it('successfully', async () => {
+    it('should succeed', async () => {
       const api = createCardAPI();
       const hass = createHASS();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
       const initializer = mock<Initializer>();
-      initializer.initializeIfNecessary.mockResolvedValue(true);
       const manager = new InitializationManager(api, initializer);
 
       await manager.initializeBackground();
@@ -263,14 +313,19 @@ describe('InitializationManager', () => {
 
       const initializer = mock<Initializer>();
       initializer.initializeIfNecessary.mockImplementation(async (_aspect, callback) => {
-        return callback ? await callback() : true;
+        if (callback) {
+          await callback();
+        }
       });
 
       const manager = new InitializationManager(api, initializer);
 
       await manager.initializeBackground();
 
-      expect(api.getProblemManager().detectStatic).toBeCalledWith(hass);
+      expect(api.getProblemManager().getStateManager().detectStatic).toBeCalledWith(
+        hass,
+      );
+      expect(api.getProblemManager().evaluate).toBeCalled();
     });
   });
 

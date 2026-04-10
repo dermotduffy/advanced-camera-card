@@ -1,6 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
+import { keyed } from 'lit/directives/keyed.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../camera-manager/manager';
 import { ViewManagerEpoch } from '../card-controller/view/types';
@@ -12,15 +13,15 @@ import {
   resolveProxyConfig,
 } from '../config/schema/common/proxy';
 import { ImageViewConfig, type ImageViewProxyConfig } from '../config/schema/image';
-import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../const';
 import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
 import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../types.js';
+import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../view/target-id.js';
 import './image-updating-player';
 import { resolveImageMode } from './image-updating-player';
 import './media-dimensions-container';
-import { renderMessage } from './message.js';
+import { renderNotificationBlockFromText } from './notification/block.js';
 import './zoomer.js';
 
 @customElement('advanced-camera-card-image')
@@ -48,7 +49,7 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
   }
 
   private _renderContainer(template: TemplateResult): TemplateResult {
-    const zoomTarget = IMAGE_VIEW_ZOOM_TARGET_SENTINEL;
+    const zoomTarget = IMAGE_VIEW_TARGET_ID_SENTINEL;
     const view = this.viewManagerEpoch?.manager.getView();
     const mode = resolveImageMode({
       imageConfig: this.imageConfig,
@@ -108,23 +109,30 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
     });
 
     if (mode === 'camera' && !this.cameraConfig) {
-      return renderMessage({
-        type: 'info',
-        message: localize('error.no_camera_for_image'),
+      return renderNotificationBlockFromText(localize('error.no_camera_for_image'), {
         icon: 'mdi:camera-off',
       });
     }
 
+    const view = this.viewManagerEpoch?.manager.getView();
+    const mediaEpoch = view?.context?.mediaEpoch?.[IMAGE_VIEW_TARGET_ID_SENTINEL] ?? 0;
+
     return this._renderContainer(html`
-      <advanced-camera-card-image-updating-player
-        ${ref(this._refImage)}
-        .hass=${this.hass}
-        .view=${this.viewManagerEpoch?.manager.getView()}
-        .imageConfig=${this.imageConfig}
-        .cameraConfig=${this.cameraConfig}
-        .proxyConfig=${this._resolveProxyConfig(this.imageConfig?.proxy) ?? undefined}
-      >
-      </advanced-camera-card-image-updating-player>
+      ${keyed(
+        mediaEpoch,
+        html`
+          <advanced-camera-card-image-updating-player
+            ${ref(this._refImage)}
+            .hass=${this.hass}
+            .view=${view}
+            .imageConfig=${this.imageConfig}
+            .cameraConfig=${this.cameraConfig}
+            .proxyConfig=${this._resolveProxyConfig(this.imageConfig?.proxy) ??
+            undefined}
+          >
+          </advanced-camera-card-image-updating-player>
+        `,
+      )}
     `);
   }
 

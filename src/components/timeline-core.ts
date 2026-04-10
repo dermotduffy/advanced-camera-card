@@ -30,7 +30,7 @@ import { contentsChanged } from '../utils/basic';
 import './date-picker.js';
 import { AdvancedCameraCardDatePicker, DatePickerEvent } from './date-picker.js';
 import './icon';
-import { renderMessage } from './message';
+import { renderNotificationBlockFromText } from './notification/block';
 import './thumbnail/thumbnail.js';
 
 /**
@@ -151,11 +151,9 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
 
     if (isLoading) {
       if (!this.mini) {
-        return renderMessage({
-          message: localize('error.awaiting_media'),
+        return renderNotificationBlockFromText(localize('error.awaiting_media'), {
           icon: 'mdi:chart-gantt',
-          type: 'info',
-          dotdotdot: true,
+          in_progress: true,
         });
       }
       return;
@@ -163,11 +161,10 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
 
     if (!view?.query || !view.query.hasNodes()) {
       if (!this.mini) {
-        return renderMessage({
-          message: localize('error.no_camera_or_media_for_timeline'),
-          icon: 'mdi:chart-gantt',
-          type: 'info',
-        });
+        return renderNotificationBlockFromText(
+          localize('error.no_camera_or_media_for_timeline'),
+          { icon: 'mdi:chart-gantt' },
+        );
       }
       return;
     }

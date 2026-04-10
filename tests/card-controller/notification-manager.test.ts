@@ -22,7 +22,7 @@ describe('NotificationManager', () => {
 
   it('should set and get notification', () => {
     const manager = new NotificationManager(api);
-    const notification = { text: 'foo' };
+    const notification = { body: { text: 'foo' } };
     manager.setNotification(notification);
 
     expect(manager.getNotification()).toBe(notification);
@@ -32,7 +32,7 @@ describe('NotificationManager', () => {
 
   it('should reset notification', () => {
     const manager = new NotificationManager(api);
-    manager.setNotification({ text: 'foo' });
+    manager.setNotification({ body: { text: 'foo' } });
     vi.clearAllMocks();
 
     manager.reset();

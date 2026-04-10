@@ -70,7 +70,6 @@ export class CardElementManager {
     this._api.getMediaLoadedInfoManager().initialize();
     this._api.getMicrophoneManager().initialize();
     this._api.getPIPManager().initialize();
-    this._api.getProblemManager().initialize();
     this._api.getKeyboardStateManager().initialize();
 
     // These initializers are called when the config is updated, but on initial
@@ -159,6 +158,8 @@ export class CardElementManager {
     // disconnected/reconnected when dashboard 'tab' changes happen within HA.
     this._api.getQueryStringManager().requestExecution();
 
+    this._api.getProblemManager().resume();
+
     // Make sure reconnections call the initialization code.
     this._element.requestUpdate();
   }
@@ -168,20 +169,30 @@ export class CardElementManager {
     setOrRemoveAttribute(this._element, false, 'tabindex');
     setOrRemoveAttribute(this._element, false, 'casted');
 
+    // Suspend problem evaluation so state changes below (e.g. clearing
+    // mediaLoadedInfo) don't arm timers while the card is detached. Problem
+    // state is preserved; evaluation resumes via resume() on reconnect.
+    this._api.getProblemManager().suspend();
+
     // When the dashboard 'tab' is changed, the media is effectively unloaded.
     this._api.getMediaLoadedInfoManager().clear();
     this._api.getFullscreenManager().disconnect();
     this._api.getPIPManager().uninitialize();
-    this._api.getProblemManager().uninitialize();
     this._api.getKeyboardStateManager().uninitialize();
     this._api.getActionsManager().uninitialize();
+    this._api.getInteractionManager().uninitialize();
     this._api.getDefaultManager().uninitialize();
     this._api.getHASSManager().getStateWatcher()?.unsubscribe(this.update);
 
-    // Uninitialize cameras to cause them to reinitialize on
+    // Uninitialize cameras and triggers to cause them to reinitialize on
     // reconnection, to ensure the state subscription/unsubscription works
-    // correctly for triggers.
+    // correctly and triggers that changed while detached are picked up.
+    // Reset trigger state first to stop stale timers and clear condition state.
+    this._api.getTriggersManager().reset();
     this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
+    this._api
+      .getInitializationManager()
+      .uninitialize(InitializationAspect.INITIAL_TRIGGER);
     this._api.getCameraManager().destroy();
 
     this._element.removeEventListener(

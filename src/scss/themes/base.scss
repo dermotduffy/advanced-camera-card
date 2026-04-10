@@ -229,19 +229,6 @@
   );
 
   /*********
-   * Message
-   *********/
-  --advanced-camera-card-message-color: var(--advanced-camera-card-text-color);
-  --advanced-camera-card-message-background: var(--advanced-camera-card-background);
-
-  --advanced-camera-card-message-overlay-background: var(
-    --advanced-camera-card-control-background-transparent
-  );
-  --advanced-camera-card-message-overlay-color: var(
-    --advanced-camera-card-control-foreground
-  );
-
-  /*********
   * Trigger
   *********/
   --advanced-camera-card-trigger-border-color: var(--advanced-camera-card-warning-color);
@@ -287,23 +274,30 @@
   );
 
   /**************
-   * Notification
+   * Notification (block)
    **************/
-  --advanced-camera-card-notification-background: linear-gradient(
+  --advanced-camera-card-notification-block-background: var(
+    --advanced-camera-card-background
+  );
+  --advanced-camera-card-notification-block-color: var(
+    --advanced-camera-card-text-color
+  );
+
+  /**************
+   * Notification (popup)
+   **************/
+  --advanced-camera-card-notification-popup-background: linear-gradient(
     135deg,
     rgba(35, 35, 35, 0.75) 0%,
     rgba(15, 15, 15, 0.65) 100%
   );
-  --advanced-camera-card-notification-backdrop-filter: blur(20px) saturate(180%);
-  --advanced-camera-card-notification-border: 1px solid rgba(255, 255, 255, 0.1);
-  --advanced-camera-card-notification-border-top: 1px solid rgba(255, 255, 255, 0.15);
-  --advanced-camera-card-notification-box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5),
+  --advanced-camera-card-notification-popup-backdrop-filter: blur(20px) saturate(180%);
+  --advanced-camera-card-notification-popup-border: 1px solid rgba(255, 255, 255, 0.1);
+  --advanced-camera-card-notification-popup-border-top: 1px solid
+    rgba(255, 255, 255, 0.15);
+  --advanced-camera-card-notification-popup-box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5),
     0 2px 8px 0 rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-
-  --advanced-camera-card-notification-text-color: #ffffff;
-  --advanced-camera-card-notification-icon-color: var(
-    --advanced-camera-card-foreground-primary
-  );
-  --advanced-camera-card-notification-scrollbar-color: rgba(255, 255, 255, 0.2);
-  --advanced-camera-card-notification-close-color: #ffffff;
+  --advanced-camera-card-notification-popup-color: #ffffff;
+  --advanced-camera-card-notification-popup-scrollbar-color: rgba(255, 255, 255, 0.2);
+  --advanced-camera-card-notification-popup-close-color: #ffffff;
 }

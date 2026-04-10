@@ -1,6 +1,5 @@
 import { hasHAConnectionStateChanged } from '../../ha/has-hass-connection-changed';
 import { HomeAssistant } from '../../ha/types';
-import { localize } from '../../localize/localize';
 import { log } from '../../utils/debug';
 import { InitializationAspect } from '../initialization-manager';
 import { CardHASSAPI } from '../types';
@@ -29,16 +28,7 @@ export class HASSManager {
 
   public setHASS(hass?: HomeAssistant | null): void {
     if (hasHAConnectionStateChanged(this._hass, hass)) {
-      if (!hass?.connected) {
-        this._api.getMessageManager().setMessageIfHigherPriority({
-          message: localize('error.reconnecting'),
-          icon: 'mdi:lan-disconnect',
-          type: 'connection',
-          dotdotdot: true,
-        });
-      } else {
-        this._api.getMessageManager().resetType('connection');
-
+      if (hass?.connected) {
         // When the HA WebSocket connection is restored after a drop,
         // reinitialize cameras and the view. This is necessary because
         // event subscriptions (e.g. Frigate WebSocket subscriptions via

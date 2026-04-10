@@ -1,29 +1,29 @@
 import { isConfigUpgradeable } from '../../../config/management.js';
-import { RawAdvancedCameraCardConfig } from '../../../config/types.js';
 import { TROUBLESHOOTING_CONFIG_UPGRADE_URL } from '../../../const.js';
 import { localize } from '../../../localize/localize.js';
-import { Problem, ProblemResult } from '../types';
+import { CardProblemManagerAPI } from '../../types';
+import { Problem, ProblemDescription } from '../types';
 
 export class ConfigUpgradeProblem implements Problem {
   public readonly key = 'config_upgrade' as const;
 
+  private _api: CardProblemManagerAPI;
   private _upgradeable = false;
-  private _getRawConfig: () => RawAdvancedCameraCardConfig | null;
 
-  constructor(getRawConfig: () => RawAdvancedCameraCardConfig | null) {
-    this._getRawConfig = getRawConfig;
+  constructor(api: CardProblemManagerAPI) {
+    this._api = api;
   }
 
   public async detectStatic(): Promise<void> {
-    const rawConfig = this._getRawConfig();
+    const rawConfig = this._api.getConfigManager().getRawConfig();
     this._upgradeable = !!rawConfig && isConfigUpgradeable(rawConfig);
   }
 
-  public hasResult(): boolean {
+  public hasProblem(): boolean {
     return this._upgradeable;
   }
 
-  public getResult(): ProblemResult | null {
+  public getProblem(): ProblemDescription | null {
     if (!this._upgradeable) {
       return null;
     }
@@ -36,7 +36,7 @@ export class ConfigUpgradeProblem implements Problem {
           icon: 'mdi:update',
           severity: 'medium',
         },
-        text: localize('problems.config_upgrade.text'),
+        body: { text: localize('problems.config_upgrade.text') },
         link: {
           url: TROUBLESHOOTING_CONFIG_UPGRADE_URL,
           title: localize('problems.troubleshooting_guide'),

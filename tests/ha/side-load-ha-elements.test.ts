@@ -14,12 +14,12 @@ describe('sideLoadHomeAssistantElements', () => {
     vi.unstubAllGlobals();
   });
 
-  it('returns true if all elements already registered', async () => {
+  it('should return if all elements already registered', async () => {
     vi.mocked(customElements.get).mockResolvedValue(LitElement);
-    expect(await sideLoadHomeAssistantElements()).toBe(true);
+    await sideLoadHomeAssistantElements();
   });
 
-  it('returns false when the picture glance card cannot be found', async () => {
+  it('should throw when the picture glance card cannot be found', async () => {
     vi.mocked(customElements.get).mockReturnValue(undefined);
 
     const createCardElement = vi.fn();
@@ -29,10 +29,10 @@ describe('sideLoadHomeAssistantElements', () => {
       }),
     });
 
-    expect(await sideLoadHomeAssistantElements()).toBe(false);
+    await expect(sideLoadHomeAssistantElements()).rejects.toThrow();
   });
 
-  it('returns true when elements are loaded', async () => {
+  it('should return when elements are loaded', async () => {
     vi.mocked(customElements.get).mockImplementation((name: string) => {
       if (name === 'hui-picture-glance-card') {
         const result = LitElement;
@@ -50,7 +50,7 @@ describe('sideLoadHomeAssistantElements', () => {
       }),
     });
 
-    expect(await sideLoadHomeAssistantElements()).toBe(true);
+    await sideLoadHomeAssistantElements();
 
     expect(customElements.whenDefined).toHaveBeenCalledWith('hui-picture-glance-card');
     expect(createCardElement).toHaveBeenCalledWith({

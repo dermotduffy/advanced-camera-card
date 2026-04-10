@@ -29,7 +29,9 @@ describe('QueryStringManager', () => {
   it('should reject malformed query string', async () => {
     setQueryString('BOGUS_KEY=BOGUS_VALUE');
     const api = createCardAPI();
-    vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(true);
+    vi.mocked(
+      api.getProblemManager().getStateManager().hasFullCardProblem,
+    ).mockReturnValue(true);
     const manager = new QueryStringManager(api);
 
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
@@ -230,7 +232,7 @@ describe('QueryStringManager', () => {
   });
 
   describe('should handle conflicting but valid actions', () => {
-    it('view and default with camera and substream specified', async () => {
+    it('should handle view and default with camera and substream specified', async () => {
       setQueryString(
         '?advanced-camera-card-action.id.clips=' +
           '&advanced-camera-card-action.id.live_substream_select=camera.kitchen_hd' +
@@ -253,7 +255,7 @@ describe('QueryStringManager', () => {
       expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
     });
 
-    it('multiple cameras specified', async () => {
+    it('should handle multiple cameras specified', async () => {
       setQueryString(
         '?advanced-camera-card-action.id.camera_select=camera.kitchen' +
           '&advanced-camera-card-action.id.camera_select=camera.office',

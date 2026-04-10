@@ -19,11 +19,10 @@ import { InteractionManager } from '../../src/card-controller/interaction-manage
 import { KeyboardStateManager } from '../../src/card-controller/keyboard-state-manager';
 import { MediaLoadedInfoManager } from '../../src/card-controller/media-info-manager';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
-import { MessageManager } from '../../src/card-controller/message-manager';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager';
 import { NotificationManager } from '../../src/card-controller/notification-manager';
 import { PIPManager } from '../../src/card-controller/pip-manager';
-import { ProblemManager } from '../../src/card-controller/problems/manager';
+import { ProblemManager } from '../../src/card-controller/problems/problem-manager';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../../src/card-controller/style-manager';
@@ -53,11 +52,11 @@ vi.mock('../../src/card-controller/interaction-manager');
 vi.mock('../../src/card-controller/keyboard-state-manager');
 vi.mock('../../src/card-controller/media-info-manager');
 vi.mock('../../src/card-controller/media-player-manager');
-vi.mock('../../src/card-controller/message-manager');
 vi.mock('../../src/card-controller/microphone-manager');
 vi.mock('../../src/card-controller/notification-manager');
 vi.mock('../../src/card-controller/pip-manager');
-vi.mock('../../src/card-controller/problems/manager');
+vi.mock('../../src/card-controller/problems/state-manager');
+vi.mock('../../src/card-controller/problems/problem-manager');
 vi.mock('../../src/card-controller/query-string-manager');
 vi.mock('../../src/card-controller/status-bar-item-manager');
 vi.mock('../../src/card-controller/style-manager');
@@ -102,164 +101,158 @@ describe('CardController', () => {
   });
 
   describe('accessors', () => {
-    it('getActionsManager', () => {
+    it('should return getActionsManager', () => {
       expect(createController().getActionsManager()).toBe(
         vi.mocked(ActionsManager).mock.instances[0],
       );
     });
 
-    it('getAutomationsManager', () => {
+    it('should return getAutomationsManager', () => {
       expect(createController().getAutomationsManager()).toBe(
         vi.mocked(AutomationsManager).mock.instances[0],
       );
     });
 
-    it('getDefaultManager', () => {
+    it('should return getDefaultManager', () => {
       expect(createController().getDefaultManager()).toBe(
         vi.mocked(DefaultManager).mock.instances[0],
       );
     });
 
-    it('getCameraManager', () => {
+    it('should return getCameraManager', () => {
       expect(createController().getCameraManager()).toBe(
         vi.mocked(CameraManager).mock.instances[0],
       );
     });
 
-    it('getCameraURLManager', () => {
+    it('should return getCameraURLManager', () => {
       expect(createController().getCameraURLManager()).toBe(
         vi.mocked(CameraURLManager).mock.instances[0],
       );
     });
 
-    it('getCardElementManager', () => {
+    it('should return getCardElementManager', () => {
       expect(createController().getCardElementManager()).toBe(
         vi.mocked(CardElementManager).mock.instances[0],
       );
     });
 
-    it('ConditionStateManager', () => {
+    it('should return ConditionStateManager', () => {
       expect(createController().getConditionStateManager()).toBe(
         vi.mocked(ConditionStateManager).mock.instances[0],
       );
     });
 
-    it('getConfigElement', async () => {
+    it('should return getConfigElement', async () => {
       expect(
         (await CardController.getConfigElement()) instanceof AdvancedCameraCardEditor,
       );
     });
 
-    it('getConfigManager', () => {
+    it('should return getConfigManager', () => {
       expect(createController().getConfigManager()).toBe(
         vi.mocked(ConfigManager).mock.instances[0],
       );
     });
 
-    it('getDeviceRegistryManager', () => {
+    it('should return getDeviceRegistryManager', () => {
       expect(createController().getDeviceRegistryManager()).toBe(
         vi.mocked(DeviceRegistryManager).mock.instances[0],
       );
     });
 
-    it('getEntityRegistryManager', () => {
+    it('should return getEntityRegistryManager', () => {
       expect(createController().getEntityRegistryManager()).toBe(
         vi.mocked(EntityRegistryManagerLive).mock.instances[0],
       );
     });
 
-    it('getExpandManager', () => {
+    it('should return getExpandManager', () => {
       expect(createController().getExpandManager()).toBe(
         vi.mocked(ExpandManager).mock.instances[0],
       );
     });
 
-    it('getFoldersManager', () => {
+    it('should return getFoldersManager', () => {
       expect(createController().getFoldersManager()).toBe(
         vi.mocked(FoldersManager).mock.instances[0],
       );
     });
 
-    it('getFullscreenManager', () => {
+    it('should return getFullscreenManager', () => {
       expect(createController().getFullscreenManager()).toBe(
         vi.mocked(FullscreenManager).mock.instances[0],
       );
     });
 
-    it('getHASSManager', () => {
+    it('should return getHASSManager', () => {
       expect(createController().getHASSManager()).toBe(
         vi.mocked(HASSManager).mock.instances[0],
       );
     });
 
-    it('getInitializationManager', () => {
+    it('should return getInitializationManager', () => {
       expect(createController().getInitializationManager()).toBe(
         vi.mocked(InitializationManager).mock.instances[0],
       );
     });
 
-    it('getInteractionManager', () => {
+    it('should return getInteractionManager', () => {
       expect(createController().getInteractionManager()).toBe(
         vi.mocked(InteractionManager).mock.instances[0],
       );
     });
 
-    it('getKeyboardStateManager', () => {
+    it('should return getKeyboardStateManager', () => {
       expect(createController().getKeyboardStateManager()).toBe(
         vi.mocked(KeyboardStateManager).mock.instances[0],
       );
     });
 
-    it('getMediaLoadedInfoManager', () => {
+    it('should return getMediaLoadedInfoManager', () => {
       expect(createController().getMediaLoadedInfoManager()).toBe(
         vi.mocked(MediaLoadedInfoManager).mock.instances[0],
       );
     });
 
-    it('getMediaPlayerManager', () => {
+    it('should return getMediaPlayerManager', () => {
       expect(createController().getMediaPlayerManager()).toBe(
         vi.mocked(MediaPlayerManager).mock.instances[0],
       );
     });
 
-    it('getMessageManager', () => {
-      expect(createController().getMessageManager()).toBe(
-        vi.mocked(MessageManager).mock.instances[0],
-      );
-    });
-
-    it('getNotificationManager', () => {
+    it('should return getNotificationManager', () => {
       expect(createController().getNotificationManager()).toBe(
         vi.mocked(NotificationManager).mock.instances[0],
       );
     });
 
-    it('getPIPManager', () => {
+    it('should return getPIPManager', () => {
       expect(createController().getPIPManager()).toBe(
         vi.mocked(PIPManager).mock.instances[0],
       );
     });
 
-    it('getProblemManager', () => {
+    it('should return getProblemManager', () => {
       expect(createController().getProblemManager()).toBe(
         vi.mocked(ProblemManager).mock.instances[0],
       );
     });
 
-    it('getMicrophoneManager', () => {
+    it('should return getMicrophoneManager', () => {
       expect(createController().getMicrophoneManager()).toBe(
         vi.mocked(MicrophoneManager).mock.instances[0],
       );
     });
 
-    it('getResolvedMediaCache', () => {
+    it('should return getResolvedMediaCache', () => {
       expect(createController().getResolvedMediaCache()).toBe(
         vi.mocked(ResolvedMediaCache).mock.instances[0],
       );
     });
 
     describe('getStubConfig', () => {
-      it('with camera entities', () => {
+      it('should handle with camera entities', () => {
         expect(
           CardController.getStubConfig(['camera.office', 'binary_sensor.motion']),
         ).toEqual({
@@ -267,44 +260,44 @@ describe('CardController', () => {
         });
       });
 
-      it('without camera entities', () => {
+      it('should handle without camera entities', () => {
         expect(CardController.getStubConfig(['binary_sensor.motion'])).toEqual({
           cameras: [{ camera_entity: 'camera.demo' }],
         });
       });
     });
 
-    it('getQueryStringManager', () => {
+    it('should return getQueryStringManager', () => {
       expect(createController().getQueryStringManager()).toBe(
         vi.mocked(QueryStringManager).mock.instances[0],
       );
     });
 
-    it('getStatusBarItemManager', () => {
+    it('should return getStatusBarItemManager', () => {
       expect(createController().getStatusBarItemManager()).toBe(
         vi.mocked(StatusBarItemManager).mock.instances[0],
       );
     });
 
-    it('getStyleManager', () => {
+    it('should return getStyleManager', () => {
       expect(createController().getStyleManager()).toBe(
         vi.mocked(StyleManager).mock.instances[0],
       );
     });
 
-    it('getTriggersManager', () => {
+    it('should return getTriggersManager', () => {
       expect(createController().getTriggersManager()).toBe(
         vi.mocked(TriggersManager).mock.instances[0],
       );
     });
 
-    it('getViewItemManager', () => {
+    it('should return getViewItemManager', () => {
       expect(createController().getViewItemManager()).toBe(
         vi.mocked(ViewItemManager).mock.instances[0],
       );
     });
 
-    it('getViewManager', () => {
+    it('should return getViewManager', () => {
       expect(createController().getViewManager()).toBe(
         vi.mocked(ViewManager).mock.instances[0],
       );
@@ -312,7 +305,7 @@ describe('CardController', () => {
   });
 
   describe('creaters ', () => {
-    it('createCameraManager', () => {
+    it('should create createCameraManager', () => {
       const controller = createController();
       const original = controller.getCameraManager();
 
@@ -321,7 +314,7 @@ describe('CardController', () => {
       expect(controller.getCameraManager()).not.toBe(original);
     });
 
-    it('createMicrophoneManager', () => {
+    it('should create createMicrophoneManager', () => {
       const controller = createController();
       const original = controller.getMicrophoneManager();
 
@@ -332,14 +325,14 @@ describe('CardController', () => {
   });
 
   describe('handlers', () => {
-    it('hostConnected', () => {
+    it('should handle hostConnected', () => {
       createController().hostConnected();
       expect(
         vi.mocked(CardElementManager).mock.instances[0].elementConnected,
       ).toBeCalled();
     });
 
-    it('hostDisconnected', () => {
+    it('should handle hostDisconnected', () => {
       createController().hostDisconnected();
       expect(
         vi.mocked(CardElementManager).mock.instances[0].elementDisconnected,

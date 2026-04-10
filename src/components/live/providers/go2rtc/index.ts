@@ -18,7 +18,7 @@ import { HomeAssistant } from '../../../../ha/types.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
 import { MediaPlayer, MediaPlayerController } from '../../../../types.js';
-import { renderMessage } from '../../../message.js';
+import { renderNotificationBlockFromText } from '../../../notification/block.js';
 import { VideoRTC } from './video-rtc.js';
 
 customElements.define('advanced-camera-card-live-go2rtc-player', VideoRTC);
@@ -144,18 +144,13 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   protected render(): TemplateResult | void {
     const error = this._signedURLController.getError();
     if (error) {
-      return renderMessage({
-        type: 'error',
-        message: localize(
-          error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign',
-        ),
-        context: this.camera?.getConfig(),
-      });
+      return renderNotificationBlockFromText(
+        localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign'),
+        { context: this.camera?.getConfig() },
+      );
     }
     if (!this.cameraEndpoints?.go2rtc) {
-      return renderMessage({
-        type: 'error',
-        message: localize('error.live_camera_no_endpoint'),
+      return renderNotificationBlockFromText(localize('error.live_camera_no_endpoint'), {
         context: this.camera?.getConfig(),
       });
     }

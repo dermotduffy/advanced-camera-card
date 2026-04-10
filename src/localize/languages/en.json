@@ -7,7 +7,9 @@
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "An Advanced Camera Card",
     "folder": "Folder",
+    "in_progress": "In progress...",
     "no_media": "No media to display",
+    "retry": "Retry",
     "set_reviews": {
       "reviewed": "Mark as reviewed",
       "unreviewed": "Mark as unreviewed"
@@ -588,6 +590,10 @@
         }
       },
       "dim": "Dim when no interaction",
+      "errors": {
+        "editor_label": "Errors",
+        "retry_seconds": "Seconds between error retries (0=disabled)"
+      },
       "interaction_seconds": "Seconds of inactivity before interaction state ends (0=never)",
       "keyboard_shortcuts": {
         "editor_label": "Keyboard shortcuts",
@@ -723,8 +729,9 @@
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
     "configuration": "Check configuration",
-    "could_not_render_elements": "Could not render picture elements",
+    "could_not_create_elements": "Could not create picture elements",
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",
+    "download_failed": "Download failed",
     "download_no_media": "No media to download",
     "download_sign_failed": "Could not sign media URL for download",
     "duplicate_camera_id": "Duplicate camera id for the following camera, use the 'id' parameter to uniquely identify cameras",
@@ -736,6 +743,7 @@
     "failed_retain": "Could not retain event",
     "failed_sign": "Could not sign Home Assistant URL",
     "fetching_diagnostics": "Fetching diagnostics",
+    "home_assistant_elements_load_failed": "Could not load required Home Assistant elements",
     "image_load_error": "Could not load image",
     "invalid_configuration": "Invalid configuration",
     "invalid_configuration_no_hint": "No location hint available (bad or missing type?)",
@@ -746,12 +754,12 @@
     "live_camera_no_endpoint": "Could not get camera endpoint for this live provider (incomplete configuration?)",
     "live_camera_not_found": "The configured camera_entity was not found",
     "live_camera_unavailable": "Camera unavailable",
+    "microphone_not_supported": "Microphone is not supported in this browser",
     "no_camera_engine": "Could not determine suitable engine for camera",
     "no_camera_entity": "Could not find camera entity",
     "no_camera_for_image": "No camera configured for camera image mode",
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
     "no_camera_or_media_for_timeline": "No camera or media available for timeline",
-    "no_dashboard_or_view": "Both 'dashboard_path' and 'view_path' parameters are required for the 'dashboard' cast method",
     "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
     "no_supported_camera": "The selected camera or media does not support this view",
     "no_supported_cameras": "No cameras support this view",
@@ -810,27 +818,42 @@
     "unseekable": "Seek time not found in media"
   },
   "problems": {
-    "troubleshooting_guide": "Troubleshooting guide",
+    "config_error": {
+      "heading": "Configuration error",
+      "text": "An error occurred evaluating the card configuration"
+    },
     "config_upgrade": {
       "heading": "Configuration upgrade available",
       "text": "A configuration upgrade is available. To upgrade, edit this card (Dashboard pencil icon \u2192 Three-dot menu \u2192 Edit) and click the 'Automatic Upgrade' button in the card editor"
     },
+    "connection": {
+      "heading": "Connection lost",
+      "text": "Connection to Home Assistant lost. Reconnecting"
+    },
+    "initialization": {
+      "heading": "Initialization failed",
+      "text": "Card initialization failed"
+    },
     "legacy_resource": {
       "heading": "Legacy dashboard resource detected",
+      "remove": "Remove legacy resource",
       "text_both": "The legacy 'frigate-hass-card.js' resource is still registered, please either manually remove it or click the delete icon to automatically remove it. It will be removed in a future release",
-      "text_only_legacy": "The legacy 'frigate-hass-card.js' resource must be replaced with 'advanced-camera-card.js'. It will be removed in a future release",
-      "remove": "Remove legacy resource"
+      "text_only_legacy": "The legacy 'frigate-hass-card.js' resource must be replaced with 'advanced-camera-card.js'. It will be removed in a future release"
     },
-    "stream_not_loading": {
-      "heading": "Live stream not loading",
-      "text": "The video stream has not yet loaded. This could be for any number of reasons. If configured (and by default), there will be an image refreshing every second until the stream loads correctly"
+    "media_load": {
+      "heading": "Media not loading",
+      "text": "The media has not yet loaded. This could be for any number of reasons. For live views and if configured (and by default), there will be an image refreshing every second until the stream loads correctly or the media loading is retried"
+    },
+    "troubleshooting_guide": "Troubleshooting guide",
+    "media_query": {
+      "heading": "Media query failed",
+      "text": "An error occurred fetching media (e.g. thumbnails) for this view."
     }
   },
   "thumbnail": {
     "camera": "Camera",
     "download": "Download media",
     "duration": "Duration",
-    "in_progress": "In Progress",
     "no_thumbnail": "No thumbnail available",
     "retain_indefinitely": "Retain media indefinitely",
     "seek": "Seek",

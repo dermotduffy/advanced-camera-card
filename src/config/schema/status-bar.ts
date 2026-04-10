@@ -16,6 +16,12 @@ const STATUS_BAR_POSITIONS = ['top', 'bottom'] as const;
 const statusBarItemDefault = {
   priority: STATUS_BAR_PRIORITY_DEFAULT,
   enabled: true,
+  permanent: false,
+};
+
+const statusBarProblemItemDefault = {
+  ...statusBarItemDefault,
+  permanent: true,
 };
 
 export const statusBarConfigDefault = {
@@ -27,10 +33,15 @@ export const statusBarConfigDefault = {
     technology: statusBarItemDefault,
     title: statusBarItemDefault,
 
-    // Problems.
-    problem_config_upgrade: statusBarItemDefault,
-    problem_legacy_resource: statusBarItemDefault,
-    problem_stream_not_loading: statusBarItemDefault,
+    // Problems: permanent by default so the status bar stays visible while
+    // problems are active even in popup mode.
+    problem_config_error: statusBarProblemItemDefault,
+    problem_config_upgrade: statusBarProblemItemDefault,
+    problem_connection: statusBarProblemItemDefault,
+    problem_initialization: statusBarProblemItemDefault,
+    problem_legacy_resource: statusBarProblemItemDefault,
+    problem_media_load: statusBarProblemItemDefault,
+    problem_media_query: statusBarProblemItemDefault,
   },
   position: 'bottom' as const,
   style: 'popup' as const,
@@ -60,14 +71,26 @@ export const statusBarConfigSchema = z
         title: statusBarItemBaseSchema.default(statusBarConfigDefault.items.title),
 
         // Problems.
+        problem_config_error: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.problem_config_error,
+        ),
         problem_config_upgrade: statusBarItemBaseSchema.default(
           statusBarConfigDefault.items.problem_config_upgrade,
+        ),
+        problem_connection: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.problem_connection,
+        ),
+        problem_initialization: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.problem_initialization,
         ),
         problem_legacy_resource: statusBarItemBaseSchema.default(
           statusBarConfigDefault.items.problem_legacy_resource,
         ),
-        problem_stream_not_loading: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.problem_stream_not_loading,
+        problem_media_load: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.problem_media_load,
+        ),
+        problem_media_query: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.problem_media_query,
         ),
       })
       .default(statusBarConfigDefault.items),

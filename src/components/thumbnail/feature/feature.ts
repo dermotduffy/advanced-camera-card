@@ -13,9 +13,9 @@ import { dispatchActionExecutionRequest } from '../../../card-controller/actions
 import { ViewItemManager } from '../../../card-controller/view/item-manager';
 import { ViewManagerEpoch } from '../../../card-controller/view/types';
 import {
-  MediaDetailsController,
+  MediaNotificationController,
   NotificationControlsContext,
-} from '../../../components-lib/media/details-controller';
+} from '../../../components-lib/media/notification-controller';
 import { ThumbnailFeatureController } from '../../../components-lib/thumbnail/feature/controller';
 import { HomeAssistant } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
@@ -208,12 +208,12 @@ export class AdvancedCameraCardThumbnailFeature extends LitElement {
             title=${this.item?.getDescription() ?? ''}
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              const detailsController = new MediaDetailsController();
-              detailsController.calculate(this.cameraManager, this.item);
+              const notificationController = new MediaNotificationController();
+              notificationController.calculate(this.cameraManager, this.item);
               dispatchActionExecutionRequest(this, {
                 actions: [
                   createNotificationAction(
-                    detailsController.getNotification(this._getControlContext()),
+                    notificationController.getNotification(this._getControlContext()),
                   ),
                 ],
               });

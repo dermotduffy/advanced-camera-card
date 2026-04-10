@@ -361,14 +361,17 @@ advanced_camera_card_action: notification
 
 ### `notification`
 
-| Parameter  | Description                                                                           |
-| ---------- | ------------------------------------------------------------------------------------- |
-| `heading`  | An optional heading. Uses the same format as [`details`](README.md?id=details) below. |
-| `text`     | An optional text string to display as the notification body.                          |
-| `details`  | An optional list of metadata. See [`details`](README.md?id=details) below.            |
-| `controls` | An optional list of controls. See [`controls`](README.md?id=controls) below.          |
+| Parameter     | Description                                                                                                |
+| ------------- | ---------------------------------------------------------------------------------------------------------- |
+| `heading`     | An optional heading. Uses the same format as [`metadata`](README.md?id=metadata) below.                    |
+| `body`        | An optional body. Uses the same format as [`metadata`](README.md?id=metadata) below.                       |
+| `metadata`    | An optional list of metadata to show with the notification. See [`metadata`](README.md?id=metadata) below. |
+| `context`     | An optional list of preformatted text strings shown as a technical detail block (e.g. YAML).               |
+| `link`        | An optional link displayed below the body. See [`link`](../../common/link.md).                             |
+| `in_progress` | If `true`, shows a loading indicator.                                                                      |
+| `controls`    | An optional list of controls. See [`controls`](README.md?id=controls) below.                               |
 
-### Details
+### Metadata
 
 | Parameter  | Description                                                   |
 | ---------- | ------------------------------------------------------------- |

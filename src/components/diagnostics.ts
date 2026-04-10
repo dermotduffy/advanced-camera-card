@@ -8,8 +8,7 @@ import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { getDiagnostics } from '../utils/diagnostics';
-import { renderMessage } from './message';
-
+import { renderNotificationBlockFromText } from './notification/block';
 @customElement('advanced-camera-card-diagnostics')
 export class AdvancedCameraCardDiagnostics extends LitElement {
   // Not a reactive property to avoid multiple diagnostics fetches.
@@ -32,8 +31,7 @@ export class AdvancedCameraCardDiagnostics extends LitElement {
       this.problems,
     );
 
-    return renderMessage({
-      message: localize('error.diagnostics'),
+    return renderNotificationBlockFromText(localize('error.diagnostics'), {
       icon: 'mdi:cogs',
       context: diagnostics,
     });
@@ -42,10 +40,9 @@ export class AdvancedCameraCardDiagnostics extends LitElement {
   protected render(): TemplateResult | void {
     return html`${until(
       this._renderDiagnostics(),
-      renderMessage({
-        message: localize('error.fetching_diagnostics'),
-        dotdotdot: true,
+      renderNotificationBlockFromText(localize('error.fetching_diagnostics'), {
         icon: 'mdi:cogs',
+        in_progress: true,
       }),
     )}`;
   }

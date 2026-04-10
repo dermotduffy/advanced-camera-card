@@ -19,7 +19,7 @@ import {
 
 vi.mock('lodash-es', async () => ({
   ...(await vi.importActual('lodash-es')),
-  throttle: vi.fn((fn) => fn),
+  throttle: vi.fn((fn) => Object.assign(fn, { cancel: vi.fn() })),
 }));
 
 const baseTriggersConfig: TriggersOptions = {
@@ -535,6 +535,56 @@ describe('TriggersManager', () => {
       expect(manager.isTriggered()).toBe(true);
 
       // 4. Fast forward and verify it untriggers.
+      vi.setSystemTime(add(start, { seconds: 15 }));
+      vi.runOnlyPendingTimers();
+      await flushPromises();
+
+      expect(manager.isTriggered()).toBe(false);
+    });
+
+    it('should stop timers on reset while untrigger delay is pending', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_delay_seconds: 10,
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      // Trigger then end to start the untrigger delay timer.
+      await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
+      await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'end' });
+      expect(manager.isTriggered()).toBe(true);
+
+      // Reset clears all states and timers.
+      manager.reset();
+      expect(manager.isTriggered()).toBe(false);
+
+      // Advancing past the delay should not cause errors or state changes.
+      vi.setSystemTime(add(start, { seconds: 15 }));
+      vi.runOnlyPendingTimers();
+      await flushPromises();
+
+      expect(manager.isTriggered()).toBe(false);
+    });
+
+    it('should stop force untrigger timer on reset', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_delay_seconds: 0,
+          untrigger_force_seconds: 10,
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      // Trigger to start the force untrigger timer.
+      await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
+      expect(manager.isTriggered()).toBe(true);
+
+      // Reset clears all states and timers.
+      manager.reset();
+      expect(manager.isTriggered()).toBe(false);
+
+      // Advancing past the force timer should not cause errors.
       vi.setSystemTime(add(start, { seconds: 15 }));
       vi.runOnlyPendingTimers();
       await flushPromises();

@@ -7,7 +7,6 @@ import {
 } from '../const';
 import { Entity } from '../ha/registry/entity/types';
 import { supportsFeature } from '../ha/supports-feature';
-import { localize } from '../localize/localize';
 import { errorToConsole } from '../utils/basic';
 import { ViewMedia } from '../view/item';
 import { ViewItemClassifier } from '../view/item-classifier';
@@ -165,12 +164,10 @@ export class MediaPlayerManager {
     }
 
     const dashboardConfig = cameraConfig.cast?.dashboard;
+
+    // Guaranteed by schema refinement when cast.method is 'dashboard', but
+    // needed for TypeScript narrowing since refine() doesn't narrow types.
     if (!dashboardConfig?.dashboard_path || !dashboardConfig?.view_path) {
-      this._api.getMessageManager().setMessageIfHigherPriority({
-        type: 'error',
-        icon: 'mdi:cast',
-        message: localize('error.no_dashboard_or_view'),
-      });
       return;
     }
 

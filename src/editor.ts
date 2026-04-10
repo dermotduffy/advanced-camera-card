@@ -3,7 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import './components/icon.js';
 import './components/key-assigner.js';
-import { renderMessage } from './components/message.js';
+import { renderNotificationBlock } from './components/notification/block.js';
 import {
   copyConfig,
   deleteConfigValue,
@@ -266,7 +266,6 @@ import {
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_FORCE_SECONDS,
   DOCS_URL,
-  FOLDERS_CONFIGURATION_URL,
   MEDIA_CHUNK_SIZE_MAX,
 } from './const.js';
 import { fireHASSEvent } from './ha/fire-hass-event.js';
@@ -1180,10 +1179,8 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
 
   protected willUpdate(): void {
     if (!this._initialized) {
-      sideLoadHomeAssistantElements().then((success) => {
-        if (success) {
-          this._initialized = true;
-        }
+      sideLoadHomeAssistantElements().then(() => {
+        this._initialized = true;
       });
     }
   }
@@ -2346,12 +2343,10 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${this._renderStringInput(
                   getArrayConfigPath(CONF_FOLDERS_ARRAY_HA_URL, folderIndex),
                 )}
-                ${renderMessage({
-                  message: localize('config.folders.ha.path_info'),
-                  icon: 'mdi:information-outline',
-                  link: {
-                    url: FOLDERS_CONFIGURATION_URL,
-                    title: localize('error.configuration'),
+                ${renderNotificationBlock({
+                  body: {
+                    text: localize('config.folders.ha.path_info'),
+                    icon: 'mdi:information-outline',
                   },
                 })}
               `,

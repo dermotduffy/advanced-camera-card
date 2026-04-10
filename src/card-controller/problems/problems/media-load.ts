@@ -1,0 +1,213 @@
+import type { ProblemTriggerContext } from 'problem';
+import { ConditionState } from '../../../conditions/types.js';
+import { Notification } from '../../../config/schema/actions/types.js';
+import { TROUBLESHOOTING_MEDIA_URL } from '../../../const.js';
+import { localize } from '../../../localize/localize.js';
+import { Timer } from '../../../utils/timer.js';
+import { isAnyMediaViewName } from '../../../view/view.js';
+import { CardProblemManagerAPI } from '../../types.js';
+import { createRetryControl } from '../retry-control.js';
+import { Problem, ProblemDescription } from '../types.js';
+
+declare module 'problem' {
+  interface ProblemTriggerContext {
+    media_load: { targetID: string };
+  }
+}
+
+const MEDIA_LOADING_TIMEOUT_SECONDS = 10;
+
+export class MediaLoadProblem implements Problem {
+  public readonly key = 'media_load' as const;
+
+  private _problemActive = false;
+  private _erroredTargetIDs = new Set<string>();
+
+  // Timer fires when a target has been loading too long without success.
+  private _timer = new Timer();
+  private _timerTargetID: string | null = null;
+
+  private _api: CardProblemManagerAPI;
+  private _onChange: (() => void) | null;
+
+  constructor(api: CardProblemManagerAPI, onChange?: () => void) {
+    this._api = api;
+    this._onChange = onChange ?? null;
+  }
+
+  // =========================================================================
+  // Explicit trigger — called when a component fires a problem:trigger event.
+  // =========================================================================
+
+  public trigger(context: ProblemTriggerContext['media_load']): void {
+    this._erroredTargetIDs.add(context.targetID);
+  }
+
+  // =========================================================================
+  // Detection — called by the manager on every state change.
+  // =========================================================================
+
+  public detectDynamic(state: ConditionState): void {
+    if (!isAnyMediaViewName(state.view)) {
+      this._deactivate();
+      return;
+    }
+
+    if (state.mediaLoadedInfo) {
+      this._handleMediaLoaded(state);
+    } else {
+      this._handleMediaNotLoaded(state);
+    }
+  }
+
+  // =========================================================================
+  // State queries — called by the manager to read current state.
+  // =========================================================================
+
+  public hasProblem(): boolean {
+    return this._problemActive;
+  }
+
+  public getProblem(): ProblemDescription | null {
+    if (!this._problemActive) {
+      return null;
+    }
+    return {
+      icon: 'mdi:cctv-off',
+      severity: 'high',
+      notification: this.getNotification(),
+    };
+  }
+
+  public getNotification(): Notification {
+    return {
+      heading: {
+        text: localize('problems.media_load.heading'),
+        icon: 'mdi:cctv-off',
+        severity: 'high' as const,
+      },
+      body: {
+        text: localize('problems.media_load.text'),
+      },
+      link: {
+        url: TROUBLESHOOTING_MEDIA_URL,
+        title: localize('problems.troubleshooting_guide'),
+      },
+      controls: [createRetryControl(this.key)],
+    };
+  }
+
+  // =========================================================================
+  // Retry — called by the manager to schedule a media reload.
+  // =========================================================================
+
+  public needsRetry(): boolean {
+    return this._problemActive;
+  }
+
+  public retry(): boolean {
+    // Capture the pending timer target before _deactivate() clears it.
+    const pendingTarget = this._timerTargetID;
+
+    // Reset the pending timer so the timeout window can restart after the
+    // retry.
+    this._deactivate();
+
+    // Build the set of targets to retry: all errored targets plus the target
+    // the pending timer was tracking (so a user-initiated retry works even
+    // before the timeout fires).
+    const retryTargets = new Set(this._erroredTargetIDs);
+    if (pendingTarget) {
+      retryTargets.add(pendingTarget);
+    }
+
+    if (!retryTargets.size) {
+      return false;
+    }
+
+    const view = this._api.getViewManager().getView();
+    const mediaEpoch = { ...(view?.context?.mediaEpoch ?? {}) };
+    for (const id of retryTargets) {
+      mediaEpoch[id] = (mediaEpoch[id] ?? 0) + 1;
+    }
+
+    // Clear errored targets so the next detectDynamic does not see stale
+    // errors and immediately re-activate via _hasError().
+    this._erroredTargetIDs.clear();
+
+    this._api.getViewManager().setViewWithMergedContext({ mediaEpoch });
+    return false;
+  }
+
+  // =========================================================================
+  // Lifecycle.
+  // =========================================================================
+
+  public reset(): void {
+    this._deactivate();
+    this._erroredTargetIDs.clear();
+  }
+
+  // =========================================================================
+  // Private helpers.
+  // =========================================================================
+
+  // Media loaded successfully: deactivate and clear the error for this target
+  // so it won't immediately re-trigger on the next evaluation.
+  private _handleMediaLoaded(state: ConditionState): void {
+    this._deactivate();
+    if (state.targetID) {
+      this._erroredTargetIDs.delete(state.targetID);
+    }
+  }
+
+  // Media not yet loaded: activate immediately if there is a known provider
+  // error for this target, otherwise start a timeout to detect slow loads.
+  private _handleMediaNotLoaded(state: ConditionState): void {
+    if (this._hasError(state)) {
+      this._activate();
+      return;
+    }
+
+    const targetID = state.targetID ?? null;
+
+    // When the target changes to one without a known error, clear the active
+    // state so the new target gets its own timeout window instead of
+    // inheriting the previous target's error.
+    if (this._problemActive && this._timerTargetID !== targetID) {
+      this._deactivate();
+    }
+
+    if (this._problemActive) {
+      return;
+    }
+    // Restart the timer whenever the target changes so each target gets its
+    // own timeout window.
+    if (!this._timer.isRunning() || this._timerTargetID !== targetID) {
+      this._timerTargetID = targetID;
+      this._timer.start(MEDIA_LOADING_TIMEOUT_SECONDS, () => {
+        // Record the error on timeout so retry() knows which epoch to bump.
+        if (targetID) {
+          this._erroredTargetIDs.add(targetID);
+        }
+        this._activate();
+        this._onChange?.();
+      });
+    }
+  }
+
+  private _hasError(state: ConditionState): boolean {
+    return !!state.targetID && this._erroredTargetIDs.has(state.targetID);
+  }
+
+  private _activate(): void {
+    this._timer.stop();
+    this._problemActive = true;
+  }
+
+  private _deactivate(): void {
+    this._timer.stop();
+    this._timerTargetID = null;
+    this._problemActive = false;
+  }
+}

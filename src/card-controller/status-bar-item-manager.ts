@@ -5,7 +5,7 @@ import { StatusBarConfig } from '../config/schema/status-bar';
 import { MediaLoadedInfo } from '../types';
 import { createNotificationAction } from '../utils/action';
 import { View } from '../view/view';
-import { KeyedProblemResult, ProblemKey } from './problems/types';
+import { KeyedProblemDescription, ProblemKey } from './problems/types';
 import { CardStatusBarAPI } from './types';
 
 const RESOLUTION_TOLERANCE_PCT = 0.01;
@@ -48,7 +48,7 @@ export class StatusBarItemManager {
     cameraManager?: CameraManager | null;
     view?: View | null;
     mediaLoadedInfo?: MediaLoadedInfo | null;
-    problems?: KeyedProblemResult[] | null;
+    problems?: KeyedProblemDescription[] | null;
   }): StatusBarItem[] {
     const cameraMetadata = options?.view?.camera
       ? options?.cameraManager?.getCameraMetadata(options.view.camera)

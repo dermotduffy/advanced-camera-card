@@ -136,10 +136,12 @@ export type NotificationControl = z.infer<typeof notificationControlSchema>;
 
 const notificationSchema = z.object({
   heading: notificationDetailSchema.optional(),
-  controls: notificationControlSchema.array().optional(),
-  details: notificationDetailSchema.array().optional(),
-  text: z.string().optional(),
+  body: notificationDetailSchema.optional(),
+  metadata: notificationDetailSchema.array().optional(),
+  context: z.string().array().optional(),
   link: linkSchema.optional(),
+  in_progress: z.boolean().optional(),
+  controls: notificationControlSchema.array().optional(),
 });
 export type Notification = z.infer<typeof notificationSchema>;
 

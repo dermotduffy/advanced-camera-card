@@ -14,30 +14,31 @@ import { isEqual } from 'lodash-es';
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { UpdatingImageMediaPlayerController } from '../components-lib/media-player/updating-image.js';
+import { dataToContext } from '../components-lib/notification/data-to-context.js';
 import { SignedURLController } from '../components-lib/signed-url-controller.js';
+import { Notification } from '../config/schema/actions/types.js';
 import { CameraConfig } from '../config/schema/cameras.js';
 import { type ImageBaseConfig, ImageMode } from '../config/schema/common/image.js';
 import { EnabledProxyConfig } from '../config/schema/common/proxy.js';
+import { TROUBLESHOOTING_URL } from '../const.js';
 import { isHassDifferent } from '../ha/is-hass-different.js';
 import { HomeAssistant } from '../ha/types.js';
 import defaultImage from '../images/iris-screensaver.jpg';
 import { localize } from '../localize/localize.js';
 import imageUpdatingPlayerStyle from '../scss/image-updating-player.scss';
-import {
-  MediaLoadedInfo,
-  MediaPlayer,
-  MediaPlayerController,
-  Message,
-} from '../types.js';
+import { MediaLoadedInfo, MediaPlayer, MediaPlayerController } from '../types.js';
+import { ProblemTriggerEventData } from '../card-controller/problems/types.js';
 import { contentsChanged } from '../utils/basic.js';
+import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 import {
   createMediaLoadedInfo,
   dispatchExistingMediaLoadedInfoAsEvent,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
 } from '../utils/media-info.js';
+import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../view/target-id.js';
 import { View } from '../view/view.js';
-import { renderMessage } from './message.js';
+import { renderNotificationBlock } from './notification/block.js';
 
 // See TOKEN_CHANGE_INTERVAL in https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py .
 const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
@@ -393,31 +394,35 @@ export class AdvancedCameraCardImageUpdatingPlayer
     }
   }
 
-  private _getDisplayMessage(): Message | null {
+  private _getDisplayNotification(): Notification | null {
     const error = this._signedURLController.getError();
     if (error) {
       return {
-        type: 'error',
-        message: localize(
-          error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign',
-        ),
-        context: this.proxyConfig,
+        heading: {
+          text: localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign'),
+          icon: 'mdi:alert-circle',
+        },
+        link: { url: TROUBLESHOOTING_URL, title: localize('error.troubleshooting') },
+        context: this.proxyConfig ? dataToContext(this.proxyConfig) : undefined,
       };
     }
     if (this._imageLoadError) {
       return {
-        type: 'error',
-        message: localize('error.image_load_error'),
-        context: this.imageConfig,
+        heading: {
+          text: localize('error.image_load_error'),
+          icon: 'mdi:alert-circle',
+        },
+        link: { url: TROUBLESHOOTING_URL, title: localize('error.troubleshooting') },
+        context: this.imageConfig ? dataToContext(this.imageConfig) : undefined,
       };
     }
     return null;
   }
 
   protected render(): TemplateResult | void {
-    const message = this._getDisplayMessage();
-    if (message) {
-      return renderMessage(message);
+    const notification = this._getDisplayNotification();
+    if (notification) {
+      return renderNotificationBlock(notification);
     }
 
     const src = this._cachedValueController?.getValue();
@@ -449,13 +454,18 @@ export class AdvancedCameraCardImageUpdatingPlayer
                 cameraConfig: this.cameraConfig,
               });
               if (mode === 'camera' || mode === 'entity' || mode === 'screensaver') {
-                // In camera, entity, or screensaver mode the user has likely
-                // not made an error, but the source may be unavailable, so show
-                // the stock image.
                 this._forceSafeImage(true);
               } else if (mode === 'url') {
                 this._imageLoadError = true;
               }
+              fireAdvancedCameraCardEvent<ProblemTriggerEventData>(
+                this,
+                'problem:trigger',
+                {
+                  key: 'media_load',
+                  targetID: IMAGE_VIEW_TARGET_ID_SENTINEL,
+                },
+              );
             }}
           />
         `
