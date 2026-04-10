@@ -1,15 +1,12 @@
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { ProblemStateManager } from '../../../src/card-controller/problems/state-manager';
-import {
-  Problem,
-  ProblemDescription,
-} from '../../../src/card-controller/problems/types';
+import { IssueStateManager } from '../../../src/card-controller/issues/state-manager';
+import { Issue, IssueDescription } from '../../../src/card-controller/issues/types';
 import { createHASS } from '../../test-utils';
 
-const createProblemDescription = (
-  overrides?: Partial<ProblemDescription>,
-): ProblemDescription => ({
+const createIssueDescription = (
+  overrides?: Partial<IssueDescription>,
+): IssueDescription => ({
   icon: 'mdi:test',
   severity: 'high',
   notification: {
@@ -23,19 +20,19 @@ const createProblemDescription = (
   ...overrides,
 });
 
-describe('ProblemStateManager', () => {
-  let mockConfigUpgrade: Problem;
-  let mockLegacyResource: Problem;
-  let mockMediaLoad: Problem;
+describe('IssueStateManager', () => {
+  let mockConfigUpgrade: Issue;
+  let mockLegacyResource: Issue;
+  let mockMediaLoad: Issue;
 
-  const createManager = (problems?: Problem[]): ProblemStateManager => {
-    const manager = new ProblemStateManager();
-    for (const problem of problems ?? [
+  const createManager = (issues?: Issue[]): IssueStateManager => {
+    const manager = new IssueStateManager();
+    for (const issue of issues ?? [
       mockConfigUpgrade,
       mockLegacyResource,
       mockMediaLoad,
     ]) {
-      manager.addProblem(problem);
+      manager.addIssue(issue);
     }
     return manager;
   };
@@ -43,14 +40,14 @@ describe('ProblemStateManager', () => {
   beforeEach(() => {
     vi.resetAllMocks();
 
-    mockConfigUpgrade = mock<Problem>({ key: 'config_upgrade' });
-    mockLegacyResource = mock<Problem>({ key: 'legacy_resource' });
-    mockMediaLoad = mock<Problem>({ key: 'media_load' });
+    mockConfigUpgrade = mock<Issue>({ key: 'config_upgrade' });
+    mockLegacyResource = mock<Issue>({ key: 'legacy_resource' });
+    mockMediaLoad = mock<Issue>({ key: 'media_load' });
   });
 
-  it('should register all provided problems on construction', () => {
+  it('should register all provided issues on construction', () => {
     const manager = createManager();
-    const presence = manager.getProblemPresence();
+    const presence = manager.getIssuePresence();
 
     expect(presence.has('config_upgrade')).toBe(false);
     expect(presence.has('legacy_resource')).toBe(false);
@@ -58,7 +55,7 @@ describe('ProblemStateManager', () => {
   });
 
   describe('detectStatic', () => {
-    it('should call detectStatic on all problems', async () => {
+    it('should call detectStatic on all issues', async () => {
       const manager = createManager();
       const hass = createHASS();
 
@@ -74,7 +71,7 @@ describe('ProblemStateManager', () => {
   });
 
   describe('trigger', () => {
-    it('should call trigger on the matching problem', () => {
+    it('should call trigger on the matching issue', () => {
       const manager = createManager();
 
       manager.trigger('media_load', { targetID: 'cam1' });
@@ -94,7 +91,7 @@ describe('ProblemStateManager', () => {
   });
 
   describe('detectDynamic', () => {
-    it('should call detectDynamic on problems with the given state', () => {
+    it('should call detectDynamic on issues with the given state', () => {
       const manager = createManager();
 
       manager.detectDynamic({ view: 'live' });
@@ -104,85 +101,85 @@ describe('ProblemStateManager', () => {
     });
   });
 
-  describe('getFullCardProblem', () => {
-    it('should return first full-card problem', () => {
-      const result = createProblemDescription();
-      vi.mocked(mockMediaLoad.hasProblem).mockReturnValue(true);
-      assert(mockMediaLoad.isFullCardProblem);
-      vi.mocked(mockMediaLoad.isFullCardProblem).mockReturnValue(true);
-      vi.mocked(mockMediaLoad.getProblem).mockReturnValue(result);
+  describe('getFullCardIssue', () => {
+    it('should return first full-card issue', () => {
+      const result = createIssueDescription();
+      vi.mocked(mockMediaLoad.hasIssue).mockReturnValue(true);
+      assert(mockMediaLoad.isFullCardIssue);
+      vi.mocked(mockMediaLoad.isFullCardIssue).mockReturnValue(true);
+      vi.mocked(mockMediaLoad.getIssue).mockReturnValue(result);
 
       const manager = createManager();
 
-      expect(manager.getFullCardProblem()).toBe(result);
+      expect(manager.getFullCardIssue()).toBe(result);
     });
 
-    it('should return null when only popup problems exist', () => {
-      vi.mocked(mockMediaLoad.hasProblem).mockReturnValue(true);
-      assert(mockMediaLoad.isFullCardProblem);
-      vi.mocked(mockMediaLoad.isFullCardProblem).mockReturnValue(false);
+    it('should return null when only popup issues exist', () => {
+      vi.mocked(mockMediaLoad.hasIssue).mockReturnValue(true);
+      assert(mockMediaLoad.isFullCardIssue);
+      vi.mocked(mockMediaLoad.isFullCardIssue).mockReturnValue(false);
 
       const manager = createManager();
 
-      expect(manager.getFullCardProblem()).toBeNull();
+      expect(manager.getFullCardIssue()).toBeNull();
     });
 
-    it('should skip inactive full-card problems', () => {
-      vi.mocked(mockMediaLoad.hasProblem).mockReturnValue(false);
+    it('should skip inactive full-card issues', () => {
+      vi.mocked(mockMediaLoad.hasIssue).mockReturnValue(false);
 
       const manager = createManager();
 
-      expect(manager.getFullCardProblem()).toBeNull();
+      expect(manager.getFullCardIssue()).toBeNull();
     });
   });
 
-  describe('hasFullCardProblem', () => {
-    it('should return true when full-card problem exists', () => {
-      vi.mocked(mockMediaLoad.hasProblem).mockReturnValue(true);
-      assert(mockMediaLoad.isFullCardProblem);
-      vi.mocked(mockMediaLoad.isFullCardProblem).mockReturnValue(true);
-      vi.mocked(mockMediaLoad.getProblem).mockReturnValue(createProblemDescription());
+  describe('hasFullCardIssue', () => {
+    it('should return true when full-card issue exists', () => {
+      vi.mocked(mockMediaLoad.hasIssue).mockReturnValue(true);
+      assert(mockMediaLoad.isFullCardIssue);
+      vi.mocked(mockMediaLoad.isFullCardIssue).mockReturnValue(true);
+      vi.mocked(mockMediaLoad.getIssue).mockReturnValue(createIssueDescription());
 
-      expect(createManager().hasFullCardProblem()).toBe(true);
+      expect(createManager().hasFullCardIssue()).toBe(true);
     });
 
-    it('should return false when no full-card problems', () => {
-      expect(createManager().hasFullCardProblem()).toBe(false);
+    it('should return false when no full-card issues', () => {
+      expect(createManager().hasFullCardIssue()).toBe(false);
     });
   });
 
-  describe('getProblemDescriptions', () => {
-    it('should return results for active problems', () => {
-      const result = createProblemDescription();
-      vi.mocked(mockConfigUpgrade.getProblem).mockReturnValue(result);
+  describe('getIssueDescriptions', () => {
+    it('should return results for active issues', () => {
+      const result = createIssueDescription();
+      vi.mocked(mockConfigUpgrade.getIssue).mockReturnValue(result);
 
       const manager = createManager();
 
-      expect(manager.getProblemDescriptions()).toEqual([
-        { key: 'config_upgrade', problem: result },
+      expect(manager.getIssueDescriptions()).toEqual([
+        { key: 'config_upgrade', issue: result },
       ]);
     });
 
-    it('should return empty array when no problems active', () => {
-      expect(createManager().getProblemDescriptions()).toEqual([]);
+    it('should return empty array when no issues active', () => {
+      expect(createManager().getIssueDescriptions()).toEqual([]);
     });
   });
 
-  describe('getProblemPresence', () => {
+  describe('getIssuePresence', () => {
     it('should return presence map', () => {
-      vi.mocked(mockConfigUpgrade.hasProblem).mockReturnValue(true);
-      vi.mocked(mockLegacyResource.hasProblem).mockReturnValue(false);
+      vi.mocked(mockConfigUpgrade.hasIssue).mockReturnValue(true);
+      vi.mocked(mockLegacyResource.hasIssue).mockReturnValue(false);
 
       const manager = createManager();
 
-      const presence = manager.getProblemPresence();
+      const presence = manager.getIssuePresence();
       expect(presence.has('config_upgrade')).toBe(true);
       expect(presence.has('legacy_resource')).toBe(false);
     });
   });
 
   describe('getNotification', () => {
-    it('should return notification for a problem', () => {
+    it('should return notification for an issue', () => {
       const notification = { body: { text: 'test' } };
       mockMediaLoad.getNotification = vi.fn().mockReturnValue(notification);
 
@@ -197,7 +194,7 @@ describe('ProblemStateManager', () => {
   });
 
   describe('retry', () => {
-    it('should call retry on problems that want retry with non-exclusive result', () => {
+    it('should call retry on issues that want retry with non-exclusive result', () => {
       assert(mockMediaLoad.needsRetry);
       assert(mockMediaLoad.retry);
       vi.mocked(mockMediaLoad.needsRetry).mockReturnValue(true);
@@ -209,7 +206,7 @@ describe('ProblemStateManager', () => {
       expect(mockMediaLoad.retry).toBeCalled();
     });
 
-    it('should call retry on problems that want retry with exclusive result', () => {
+    it('should call retry on issues that want retry with exclusive result', () => {
       assert(mockMediaLoad.needsRetry);
       assert(mockMediaLoad.retry);
       vi.mocked(mockMediaLoad.needsRetry).mockReturnValue(true);
@@ -220,7 +217,7 @@ describe('ProblemStateManager', () => {
       expect(mockMediaLoad.retry).toBeCalled();
     });
 
-    it('should not call retry on problems that do not want retry', () => {
+    it('should not call retry on issues that do not want retry', () => {
       assert(mockMediaLoad.needsRetry);
       vi.mocked(mockMediaLoad.needsRetry).mockReturnValue(false);
 
@@ -231,7 +228,7 @@ describe('ProblemStateManager', () => {
       expect(mockMediaLoad.retry).not.toBeCalled();
     });
 
-    it('should stop after exclusive result and not call retry on subsequent problems', () => {
+    it('should stop after exclusive result and not call retry on subsequent issues', () => {
       // configUpgrade returns exclusive (true) → loop should stop.
       // mediaLoad is registered after, so its retry should not be called.
       assert(mockConfigUpgrade.needsRetry);
@@ -249,7 +246,7 @@ describe('ProblemStateManager', () => {
       expect(mockMediaLoad.retry).not.toBeCalled();
     });
 
-    it('should continue after non-exclusive result and call retry on subsequent problems', () => {
+    it('should continue after non-exclusive result and call retry on subsequent issues', () => {
       // configUpgrade returns non-exclusive (false) → loop should continue.
       assert(mockConfigUpgrade.needsRetry);
       assert(mockConfigUpgrade.retry);
@@ -269,7 +266,7 @@ describe('ProblemStateManager', () => {
   });
 
   describe('retry with key', () => {
-    it('should call retry on the matching problem when needsRetry is true', () => {
+    it('should call retry on the matching issue when needsRetry is true', () => {
       assert(mockMediaLoad.needsRetry);
       assert(mockMediaLoad.retry);
       vi.mocked(mockMediaLoad.needsRetry).mockReturnValue(true);
@@ -280,7 +277,7 @@ describe('ProblemStateManager', () => {
       expect(mockMediaLoad.retry).toBeCalled();
     });
 
-    it('should not call retry on the matching problem when needsRetry is false', () => {
+    it('should not call retry on the matching issue when needsRetry is false', () => {
       assert(mockMediaLoad.needsRetry);
       vi.mocked(mockMediaLoad.needsRetry).mockReturnValue(false);
 
@@ -310,62 +307,60 @@ describe('ProblemStateManager', () => {
   });
 
   describe('needsRetry', () => {
-    it('should return true when problems want retry', () => {
+    it('should return true when issues want retry', () => {
       assert(mockMediaLoad.needsRetry);
       vi.mocked(mockMediaLoad.needsRetry).mockReturnValue(true);
 
       expect(createManager().needsRetry()).toBe(true);
     });
 
-    it('should return false when no problems want retry', () => {
+    it('should return false when no issues want retry', () => {
       expect(createManager().needsRetry()).toBe(false);
     });
   });
 
   describe('logging', () => {
-    it('should log on static detection when problem is active', async () => {
+    it('should log on static detection when issue is active', async () => {
       const spy = vi.spyOn(console, 'warn').mockReturnValue();
-      const result = createProblemDescription({
-        notification: { body: { text: 'Legacy problem' } },
+      const result = createIssueDescription({
+        notification: { body: { text: 'Legacy issue' } },
       });
-      vi.mocked(mockLegacyResource.hasProblem).mockReturnValue(true);
-      vi.mocked(mockLegacyResource.getProblem).mockReturnValue(result);
+      vi.mocked(mockLegacyResource.hasIssue).mockReturnValue(true);
+      vi.mocked(mockLegacyResource.getIssue).mockReturnValue(result);
 
       const manager = createManager();
       await manager.detectStatic(createHASS());
 
       expect(spy).toBeCalledWith(
-        'Advanced Camera Card: [problem=legacy_resource] Legacy problem',
+        'Advanced Camera Card: [issue=legacy_resource] Legacy issue',
       );
       spy.mockRestore();
     });
 
-    it('should log on dynamic evaluation when problem becomes active', () => {
+    it('should log on dynamic evaluation when issue becomes active', () => {
       const spy = vi.spyOn(console, 'warn').mockReturnValue();
-      const result = createProblemDescription({
-        notification: { body: { text: 'Stream problem' } },
+      const result = createIssueDescription({
+        notification: { body: { text: 'Stream issue' } },
       });
-      vi.mocked(mockMediaLoad.hasProblem)
-        .mockReturnValueOnce(false)
-        .mockReturnValue(true);
-      vi.mocked(mockMediaLoad.getProblem).mockReturnValue(result);
+      vi.mocked(mockMediaLoad.hasIssue).mockReturnValueOnce(false).mockReturnValue(true);
+      vi.mocked(mockMediaLoad.getIssue).mockReturnValue(result);
 
       const manager = createManager();
       manager.detectDynamic({ view: 'live' });
 
       expect(spy).toBeCalledWith(
-        'Advanced Camera Card: [problem=media_load] Stream problem',
+        'Advanced Camera Card: [issue=media_load] Stream issue',
       );
       spy.mockRestore();
     });
 
-    it('should only log once per problem key', async () => {
+    it('should only log once per issue key', async () => {
       const spy = vi.spyOn(console, 'warn').mockReturnValue();
-      const result = createProblemDescription({
+      const result = createIssueDescription({
         notification: { body: { text: 'Repeated' } },
       });
-      vi.mocked(mockLegacyResource.hasProblem).mockReturnValue(true);
-      vi.mocked(mockLegacyResource.getProblem).mockReturnValue(result);
+      vi.mocked(mockLegacyResource.hasIssue).mockReturnValue(true);
+      vi.mocked(mockLegacyResource.getIssue).mockReturnValue(result);
 
       const manager = createManager();
       await manager.detectStatic(createHASS());
@@ -375,9 +370,9 @@ describe('ProblemStateManager', () => {
       spy.mockRestore();
     });
 
-    it('should not log when problem has no result', async () => {
+    it('should not log when issue has no result', async () => {
       const spy = vi.spyOn(console, 'warn').mockReturnValue();
-      vi.mocked(mockLegacyResource.hasProblem).mockReturnValue(false);
+      vi.mocked(mockLegacyResource.hasIssue).mockReturnValue(false);
 
       const manager = createManager();
       await manager.detectStatic(createHASS());
@@ -386,14 +381,14 @@ describe('ProblemStateManager', () => {
       spy.mockRestore();
     });
 
-    it('should not log when problem result has no summarizable text', async () => {
+    it('should not log when issue result has no summarizable text', async () => {
       const spy = vi.spyOn(console, 'warn').mockReturnValue();
       // Notification has neither body.text nor heading.text
-      const result = createProblemDescription({
+      const result = createIssueDescription({
         notification: {},
       });
-      vi.mocked(mockLegacyResource.hasProblem).mockReturnValue(true);
-      vi.mocked(mockLegacyResource.getProblem).mockReturnValue(result);
+      vi.mocked(mockLegacyResource.hasIssue).mockReturnValue(true);
+      vi.mocked(mockLegacyResource.getIssue).mockReturnValue(result);
 
       const manager = createManager();
       await manager.detectStatic(createHASS());
@@ -404,7 +399,7 @@ describe('ProblemStateManager', () => {
   });
 
   describe('reset', () => {
-    it('should reset a specific problem by key', () => {
+    it('should reset a specific issue by key', () => {
       const manager = createManager();
       manager.reset('media_load');
 
@@ -414,7 +409,7 @@ describe('ProblemStateManager', () => {
       expect(mockConfigUpgrade.reset).not.toBeCalled();
     });
 
-    it('should reset all problems when no key is given', () => {
+    it('should reset all issues when no key is given', () => {
       const manager = createManager();
       manager.reset();
 
@@ -436,7 +431,7 @@ describe('ProblemStateManager', () => {
   });
 
   describe('destroy', () => {
-    it('should destroy all problems and clear', () => {
+    it('should destroy all issues and clear', () => {
       const manager = createManager();
       manager.destroy();
 
@@ -446,7 +441,7 @@ describe('ProblemStateManager', () => {
       expect(mockConfigUpgrade.reset).toBeCalled();
       expect(mockLegacyResource.reset).toBeCalled();
       expect(mockMediaLoad.reset).toBeCalled();
-      expect(manager.getProblemPresence().size).toBe(0);
+      expect(manager.getIssuePresence().size).toBe(0);
     });
   });
 });

@@ -239,7 +239,7 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     if (error) {
-      this._api.getProblemManager().trigger('media_query', { error });
+      this._api.getIssueManager().trigger('media_query', { error });
       return;
     }
 
@@ -249,7 +249,7 @@ export class ViewManager implements ViewManagerInterface {
       return;
     }
 
-    this._api.getProblemManager().reset('media_query');
+    this._api.getIssueManager().reset('media_query');
 
     const newView = this._view.clone();
     if (this._view.context?.loading?.query === loadingIndex) {

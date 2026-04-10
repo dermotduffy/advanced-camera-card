@@ -1,45 +1,45 @@
-import type { ProblemTriggerContext } from 'problem';
+import type { IssueTriggerContext } from 'issue';
 import { ConditionState } from '../../../conditions/types.js';
 import { Notification } from '../../../config/schema/actions/types.js';
 import { TROUBLESHOOTING_MEDIA_URL } from '../../../const.js';
 import { localize } from '../../../localize/localize.js';
 import { Timer } from '../../../utils/timer.js';
 import { isAnyMediaViewName } from '../../../view/view.js';
-import { CardProblemManagerAPI } from '../../types.js';
+import { CardIssueManagerAPI } from '../../types.js';
 import { createRetryControl } from '../retry-control.js';
-import { Problem, ProblemDescription } from '../types.js';
+import { Issue, IssueDescription } from '../types.js';
 
-declare module 'problem' {
-  interface ProblemTriggerContext {
+declare module 'issue' {
+  interface IssueTriggerContext {
     media_load: { targetID: string };
   }
 }
 
 const MEDIA_LOADING_TIMEOUT_SECONDS = 10;
 
-export class MediaLoadProblem implements Problem {
+export class MediaLoadIssue implements Issue {
   public readonly key = 'media_load' as const;
 
-  private _problemActive = false;
+  private _issueActive = false;
   private _erroredTargetIDs = new Set<string>();
 
   // Timer fires when a target has been loading too long without success.
   private _timer = new Timer();
   private _timerTargetID: string | null = null;
 
-  private _api: CardProblemManagerAPI;
+  private _api: CardIssueManagerAPI;
   private _onChange: (() => void) | null;
 
-  constructor(api: CardProblemManagerAPI, onChange?: () => void) {
+  constructor(api: CardIssueManagerAPI, onChange?: () => void) {
     this._api = api;
     this._onChange = onChange ?? null;
   }
 
   // =========================================================================
-  // Explicit trigger — called when a component fires a problem:trigger event.
+  // Explicit trigger — called when a component fires an issue:trigger event.
   // =========================================================================
 
-  public trigger(context: ProblemTriggerContext['media_load']): void {
+  public trigger(context: IssueTriggerContext['media_load']): void {
     this._erroredTargetIDs.add(context.targetID);
   }
 
@@ -64,12 +64,12 @@ export class MediaLoadProblem implements Problem {
   // State queries — called by the manager to read current state.
   // =========================================================================
 
-  public hasProblem(): boolean {
-    return this._problemActive;
+  public hasIssue(): boolean {
+    return this._issueActive;
   }
 
-  public getProblem(): ProblemDescription | null {
-    if (!this._problemActive) {
+  public getIssue(): IssueDescription | null {
+    if (!this._issueActive) {
       return null;
     }
     return {
@@ -82,16 +82,16 @@ export class MediaLoadProblem implements Problem {
   public getNotification(): Notification {
     return {
       heading: {
-        text: localize('problems.media_load.heading'),
+        text: localize('issues.media_load.heading'),
         icon: 'mdi:cctv-off',
         severity: 'high' as const,
       },
       body: {
-        text: localize('problems.media_load.text'),
+        text: localize('issues.media_load.text'),
       },
       link: {
         url: TROUBLESHOOTING_MEDIA_URL,
-        title: localize('problems.troubleshooting_guide'),
+        title: localize('issues.troubleshooting_guide'),
       },
       controls: [createRetryControl(this.key)],
     };
@@ -102,7 +102,7 @@ export class MediaLoadProblem implements Problem {
   // =========================================================================
 
   public needsRetry(): boolean {
-    return this._problemActive;
+    return this._issueActive;
   }
 
   public retry(): boolean {
@@ -174,11 +174,11 @@ export class MediaLoadProblem implements Problem {
     // When the target changes to one without a known error, clear the active
     // state so the new target gets its own timeout window instead of
     // inheriting the previous target's error.
-    if (this._problemActive && this._timerTargetID !== targetID) {
+    if (this._issueActive && this._timerTargetID !== targetID) {
       this._deactivate();
     }
 
-    if (this._problemActive) {
+    if (this._issueActive) {
       return;
     }
     // Restart the timer whenever the target changes so each target gets its
@@ -202,12 +202,12 @@ export class MediaLoadProblem implements Problem {
 
   private _activate(): void {
     this._timer.stop();
-    this._problemActive = true;
+    this._issueActive = true;
   }
 
   private _deactivate(): void {
     this._timer.stop();
     this._timerTargetID = null;
-    this._problemActive = false;
+    this._issueActive = false;
   }
 }

@@ -703,7 +703,7 @@
     "webrtc_card_reported_error": "Karta WebRTC zgłosiła błąd",
     "webrtc_card_waiting": "Oczekiwanie na załadowanie karty WebRTC..."
   },
-  "problems": {
+  "issues": {
     "media_load": {
       "text": "Strumień wideo jeszcze się nie załadował. Może to wynikać z wielu przyczyn. Domyślnie będzie wyświetlany odświeżany obraz, dopóki strumień nie załaduje się poprawnie"
     }

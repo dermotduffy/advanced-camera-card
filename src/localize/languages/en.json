@@ -817,7 +817,7 @@
   "media_viewer": {
     "unseekable": "Seek time not found in media"
   },
-  "problems": {
+  "issues": {
     "config_error": {
       "heading": "Configuration error",
       "text": "An error occurred evaluating the card configuration"

@@ -1,17 +1,17 @@
-import type { ProblemTriggerContext } from 'problem';
+import type { IssueTriggerContext } from 'issue';
 import { isActionAllowedBasedOnInteractionState } from '../../utils/interaction-mode';
 import { Timer } from '../../utils/timer';
-import { CardProblemManagerAPI } from '../types';
-import { ProblemStateManager } from './state-manager';
-import { Problem, ProblemKey, ProblemTriggerContextKey } from './types';
+import { CardIssueManagerAPI } from '../types';
+import { IssueStateManager } from './state-manager';
+import { Issue, IssueKey, IssueTriggerContextKey } from './types';
 
-// Wraps the passive ProblemStateManager with reaction logic: evaluates problems
-// on state changes, schedules retries, and updates the card. Full-card problems
-// are rendered by card.ts via getStateManager().getFullCardProblem(). Non-full-
-// card problem notifications are shown on demand via showNotification().
-export class ProblemManager {
-  private _api: CardProblemManagerAPI;
-  private _stateManager = new ProblemStateManager();
+// Wraps the passive IssueStateManager with reaction logic: evaluates issues
+// on state changes, schedules retries, and updates the card. Full-card issues
+// are rendered by card.ts via getStateManager().getFullCardIssue(). Non-full-
+// card issue notifications are shown on demand via showNotification().
+export class IssueManager {
+  private _api: CardIssueManagerAPI;
+  private _stateManager = new IssueStateManager();
   private _retryTimer = new Timer();
   private _suspended = false;
 
@@ -21,7 +21,7 @@ export class ProblemManager {
   // and presence computation would run twice per evaluation.
   private _evaluating = false;
 
-  constructor(api: CardProblemManagerAPI) {
+  constructor(api: CardIssueManagerAPI) {
     this._api = api;
     api.getConditionStateManager().addListener(() => this.evaluate());
   }
@@ -30,11 +30,11 @@ export class ProblemManager {
   // Setup.
   // =========================================================================
 
-  public addProblem(problem: Problem): void {
-    this._stateManager.addProblem(problem);
+  public addIssue(issue: Issue): void {
+    this._stateManager.addIssue(issue);
   }
 
-  public getStateManager(): ProblemStateManager {
+  public getStateManager(): IssueStateManager {
     return this._stateManager;
   }
 
@@ -42,17 +42,17 @@ export class ProblemManager {
   // Detection & reaction.
   // =========================================================================
 
-  // Called by components that detect a problem directly (e.g. a provider
+  // Called by components that detect an issue directly (e.g. a provider
   // error event), bypassing the condition-state polling loop.
-  public trigger<K extends ProblemTriggerContextKey>(
+  public trigger<K extends IssueTriggerContextKey>(
     key: K,
-    context: ProblemTriggerContext[K],
+    context: IssueTriggerContext[K],
   ): void {
     this._stateManager.trigger(key, context);
     this.evaluate();
   }
 
-  // Evaluate all dynamic problems against current state, then react to any
+  // Evaluate all dynamic issues against current state, then react to any
   // changes: notify, update condition state, and schedule retries.
   public evaluate(): void {
     if (this._suspended || this._evaluating) {
@@ -66,7 +66,7 @@ export class ProblemManager {
 
       if (
         this._api.getConditionStateManager().setState({
-          problems: this._stateManager.getProblemPresence(),
+          issues: this._stateManager.getIssuePresence(),
         })
       ) {
         this._api.getCardElementManager().update();
@@ -78,15 +78,15 @@ export class ProblemManager {
     }
   }
 
-  public retry(key: ProblemKey, force?: boolean): void {
+  public retry(key: IssueKey, force?: boolean): void {
     this._stateManager.retry(key, force);
     this._retryTimer.stop();
     this.evaluate();
   }
 
-  // Show the notification for a problem on demand (e.g. user clicks a loading
-  // icon) regardless of whether the problem is currently active.
-  public showNotification(key: ProblemKey): void {
+  // Show the notification for an issue on demand (e.g. user clicks a loading
+  // icon) regardless of whether the issue is currently active.
+  public showNotification(key: IssueKey): void {
     const notification = this._stateManager.getNotification(key);
     if (notification) {
       this._api.getNotificationManager().setNotification(notification);
@@ -97,10 +97,10 @@ export class ProblemManager {
   // Lifecycle.
   // =========================================================================
 
-  public reset(key?: ProblemKey): void {
-    // When resetting a specific key that has no active problem, skip the
+  public reset(key?: IssueKey): void {
+    // When resetting a specific key that has no active issue, skip the
     // reset+evaluate cycle entirely to avoid unnecessary work.
-    if (key && !this._stateManager.getProblemPresence().has(key)) {
+    if (key && !this._stateManager.getIssuePresence().has(key)) {
       return;
     }
     this._stateManager.reset(key);
@@ -108,7 +108,7 @@ export class ProblemManager {
   }
 
   // Gate evaluation while the card is detached so timers don't arm or mature
-  // offscreen. Problem state is preserved (including full-card problems like
+  // offscreen. Issue state is preserved (including full-card issues like
   // config_error). Evaluation resumes on resume().
   public suspend(): void {
     this._suspended = true;
@@ -135,7 +135,7 @@ export class ProblemManager {
       return;
     }
     const retrySeconds =
-      this._api.getConfigManager().getConfig()?.view.errors.retry_seconds ?? 0;
+      this._api.getConfigManager().getConfig()?.view.issues.retry_seconds ?? 0;
     if (retrySeconds <= 0 || this._retryTimer.isRunning()) {
       return;
     }
@@ -153,7 +153,7 @@ export class ProblemManager {
 
   private _isScheduledRetryAllowed(): boolean {
     const interactionMode = this._api.getConfigManager().getConfig()?.view
-      .errors.interaction_mode;
+      .issues.interaction_mode;
     return (
       !!interactionMode &&
       isActionAllowedBasedOnInteractionState(

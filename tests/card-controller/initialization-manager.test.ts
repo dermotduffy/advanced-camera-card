@@ -76,7 +76,7 @@ describe('InitializationManager', () => {
       const config = createConfig();
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(config);
       vi.mocked(
-        api.getProblemManager().getStateManager().hasFullCardProblem,
+        api.getIssueManager().getStateManager().hasFullCardIssue,
       ).mockReturnValue(false);
       vi.mocked(api.getQueryStringManager().hasViewRelatedActionsToRun).mockReturnValue(
         false,
@@ -139,7 +139,7 @@ describe('InitializationManager', () => {
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       vi.mocked(
-        api.getProblemManager().getStateManager().hasFullCardProblem,
+        api.getIssueManager().getStateManager().hasFullCardIssue,
       ).mockReturnValue(true);
       vi.mocked(api.getQueryStringManager().hasViewRelatedActionsToRun).mockReturnValue(
         false,
@@ -182,7 +182,7 @@ describe('InitializationManager', () => {
       await manager.initializeMandatory();
 
       expect(manager.wasEverInitialized()).toBeFalsy();
-      expect(api.getProblemManager().trigger).toBeCalledWith(
+      expect(api.getIssueManager().trigger).toBeCalledWith(
         'initialization',
         expect.objectContaining({ error: expect.any(Error) }),
       );
@@ -205,7 +205,7 @@ describe('InitializationManager', () => {
       await manager.initializeMandatory();
 
       expect(manager.wasEverInitialized()).toBeFalsy();
-      expect(api.getProblemManager().trigger).toBeCalledWith(
+      expect(api.getIssueManager().trigger).toBeCalledWith(
         'initialization',
         expect.objectContaining({ error: expect.any(Error) }),
       );
@@ -225,7 +225,7 @@ describe('InitializationManager', () => {
       await manager.initializeMandatory();
 
       expect(manager.wasEverInitialized()).toBeFalsy();
-      expect(api.getProblemManager().trigger).toBeCalledWith(
+      expect(api.getIssueManager().trigger).toBeCalledWith(
         'initialization',
         expect.objectContaining({ error: expect.any(Error) }),
       );
@@ -243,7 +243,7 @@ describe('InitializationManager', () => {
       await manager.initializeMandatory();
 
       expect(manager.wasEverInitialized()).toBeFalsy();
-      expect(api.getProblemManager().trigger).toBeCalledWith(
+      expect(api.getIssueManager().trigger).toBeCalledWith(
         'initialization',
         expect.objectContaining({ error: 'string error' }),
       );
@@ -276,7 +276,7 @@ describe('InitializationManager', () => {
     initializer.isInitialized.mockReturnValue(true);
     expect(manager.isInitializedBackground()).toBe(true);
 
-    expect(initializer.isInitialized).toBeCalledWith(InitializationAspect.PROBLEMS);
+    expect(initializer.isInitialized).toBeCalledWith(InitializationAspect.ISSUES);
   });
 
   describe('should initialize background', () => {
@@ -301,12 +301,12 @@ describe('InitializationManager', () => {
       await manager.initializeBackground();
 
       expect(initializer.initializeIfNecessary).toBeCalledWith(
-        InitializationAspect.PROBLEMS,
+        InitializationAspect.ISSUES,
         expect.any(Function),
       );
     });
 
-    it('should call detectStatic on problem manager', async () => {
+    it('should call detectStatic on issue manager', async () => {
       const api = createCardAPI();
       const hass = createHASS();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
@@ -322,10 +322,8 @@ describe('InitializationManager', () => {
 
       await manager.initializeBackground();
 
-      expect(api.getProblemManager().getStateManager().detectStatic).toBeCalledWith(
-        hass,
-      );
-      expect(api.getProblemManager().evaluate).toBeCalled();
+      expect(api.getIssueManager().getStateManager().detectStatic).toBeCalledWith(hass);
+      expect(api.getIssueManager().evaluate).toBeCalled();
     });
   });
 

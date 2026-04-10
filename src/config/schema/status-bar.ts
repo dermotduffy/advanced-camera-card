@@ -19,7 +19,7 @@ const statusBarItemDefault = {
   permanent: false,
 };
 
-const statusBarProblemItemDefault = {
+const statusBarIssueItemDefault = {
   ...statusBarItemDefault,
   permanent: true,
 };
@@ -33,15 +33,15 @@ export const statusBarConfigDefault = {
     technology: statusBarItemDefault,
     title: statusBarItemDefault,
 
-    // Problems: permanent by default so the status bar stays visible while
-    // problems are active even in popup mode.
-    problem_config_error: statusBarProblemItemDefault,
-    problem_config_upgrade: statusBarProblemItemDefault,
-    problem_connection: statusBarProblemItemDefault,
-    problem_initialization: statusBarProblemItemDefault,
-    problem_legacy_resource: statusBarProblemItemDefault,
-    problem_media_load: statusBarProblemItemDefault,
-    problem_media_query: statusBarProblemItemDefault,
+    // Issues: permanent by default so the status bar stays visible while
+    // issues are active even in popup mode.
+    issue_config_error: statusBarIssueItemDefault,
+    issue_config_upgrade: statusBarIssueItemDefault,
+    issue_connection: statusBarIssueItemDefault,
+    issue_initialization: statusBarIssueItemDefault,
+    issue_legacy_resource: statusBarIssueItemDefault,
+    issue_media_load: statusBarIssueItemDefault,
+    issue_media_query: statusBarIssueItemDefault,
   },
   position: 'bottom' as const,
   style: 'popup' as const,
@@ -70,27 +70,27 @@ export const statusBarConfigSchema = z
         ),
         title: statusBarItemBaseSchema.default(statusBarConfigDefault.items.title),
 
-        // Problems.
-        problem_config_error: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.problem_config_error,
+        // Issues.
+        issue_config_error: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.issue_config_error,
         ),
-        problem_config_upgrade: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.problem_config_upgrade,
+        issue_config_upgrade: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.issue_config_upgrade,
         ),
-        problem_connection: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.problem_connection,
+        issue_connection: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.issue_connection,
         ),
-        problem_initialization: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.problem_initialization,
+        issue_initialization: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.issue_initialization,
         ),
-        problem_legacy_resource: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.problem_legacy_resource,
+        issue_legacy_resource: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.issue_legacy_resource,
         ),
-        problem_media_load: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.problem_media_load,
+        issue_media_load: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.issue_media_load,
         ),
-        problem_media_query: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.problem_media_query,
+        issue_media_query: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.issue_media_query,
         ),
       })
       .default(statusBarConfigDefault.items),

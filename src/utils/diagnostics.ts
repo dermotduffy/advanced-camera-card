@@ -1,5 +1,5 @@
 import pkg from '../../package.json';
-import { ProblemKey, ProblemPresence } from '../card-controller/problems/types';
+import { IssueKey, IssuePresence } from '../card-controller/issues/types';
 import { RawAdvancedCameraCardConfig } from '../config/types';
 import { getIntegrationManifest } from '../ha/integration';
 import { IntegrationManifest } from '../ha/integration/types';
@@ -47,7 +47,7 @@ interface Diagnostics {
 
   ha_version?: string;
   config?: RawAdvancedCameraCardConfig;
-  problems?: ProblemKey[];
+  issues?: IssueKey[];
 
   custom_integrations: {
     frigate: IntegrationDiagnostics & {
@@ -82,7 +82,7 @@ export const getDiagnostics = async (
   hass?: HomeAssistant,
   deviceRegistryManager?: DeviceRegistryManager,
   rawConfig?: RawAdvancedCameraCardConfig,
-  problems?: ProblemPresence,
+  issues?: IssuePresence,
 ): Promise<Diagnostics> => {
   // Get the Frigate devices in order to extract the Frigate integration and
   // server version numbers.
@@ -124,7 +124,7 @@ export const getDiagnostics = async (
       },
       hass_web_proxy: await getIntegrationDiagnostics(HASS_WEB_PROXY_DOMAIN, hass),
     },
-    problems: problems ? [...problems] : [],
+    issues: issues ? [...issues] : [],
     ...(rawConfig && { config: rawConfig }),
   };
 };

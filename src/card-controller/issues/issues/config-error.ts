@@ -1,39 +1,39 @@
-import type { ProblemTriggerContext } from 'problem';
+import type { IssueTriggerContext } from 'issue';
 import { createNotificationFromError } from '../../../components-lib/notification/factory.js';
 import { localize } from '../../../localize/localize.js';
-import { Problem, ProblemDescription } from '../types.js';
+import { Issue, IssueDescription } from '../types.js';
 
-declare module 'problem' {
-  interface ProblemTriggerContext {
+declare module 'issue' {
+  interface IssueTriggerContext {
     config_error: { error: unknown };
   }
 }
 
-export class ConfigErrorProblem implements Problem {
+export class ConfigErrorIssue implements Issue {
   public readonly key = 'config_error' as const;
 
   private _error: unknown = null;
 
-  public trigger(context: ProblemTriggerContext['config_error']): void {
+  public trigger(context: IssueTriggerContext['config_error']): void {
     this._error = context.error;
   }
 
-  public hasProblem(): boolean {
+  public hasIssue(): boolean {
     return this._error !== null;
   }
 
-  public isFullCardProblem(): boolean {
+  public isFullCardIssue(): boolean {
     return true;
   }
 
-  public getProblem(): ProblemDescription | null {
+  public getIssue(): IssueDescription | null {
     if (this._error === null) {
       return null;
     }
     // this._error is non-null (guarded above), so the factory always returns
     // a Notification here.
     const notification = createNotificationFromError(this._error, {
-      heading: { text: localize('problems.config_error.heading') },
+      heading: { text: localize('issues.config_error.heading') },
     });
     /* istanbul ignore next: this._error is non-null -- @preserve */
     if (!notification) {

@@ -39,7 +39,7 @@ describe('setFoldersFromConfig', () => {
 
     setFoldersFromConfig(api);
 
-    expect(api.getProblemManager().trigger).toBeCalledWith('config_error', {
+    expect(api.getIssueManager().trigger).toBeCalledWith('config_error', {
       error,
     });
   });

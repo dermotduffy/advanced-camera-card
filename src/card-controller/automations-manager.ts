@@ -50,7 +50,7 @@ export class AutomationsManager {
       !this._api.getInitializationManager().isInitializedMandatory() ||
       // Never execute automations if there's an error (as our automation loop
       // avoidance -- which shows as an error -- would not work!).
-      this._api.getProblemManager().getStateManager().hasFullCardProblem()
+      this._api.getIssueManager().getStateManager().hasFullCardIssue()
     ) {
       return;
     }

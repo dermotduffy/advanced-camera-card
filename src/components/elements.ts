@@ -8,7 +8,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { isEqual } from 'lodash-es';
-import { ProblemTriggerEventData } from '../card-controller/problems/types.js';
+import { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { TemplateRenderer } from '../card-controller/templates/index.js';
 import { ConditionsManager } from '../conditions/conditions-manager.js';
 import { getConditionStateManagerViaEvent } from '../conditions/state-manager-via-event.js';
@@ -152,7 +152,7 @@ export class AdvancedCameraCardElementsCore extends LitElement {
       this._root = this._createRoot();
     } catch (e) {
       errorToConsole(e as Error);
-      fireAdvancedCameraCardEvent<ProblemTriggerEventData>(this, 'problem:trigger', {
+      fireAdvancedCameraCardEvent<IssueTriggerEventData>(this, 'issue:trigger', {
         key: 'config_error',
         error: new ElementsCreationError(elements),
       });

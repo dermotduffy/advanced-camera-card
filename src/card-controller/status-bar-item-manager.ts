@@ -5,13 +5,13 @@ import { StatusBarConfig } from '../config/schema/status-bar';
 import { MediaLoadedInfo } from '../types';
 import { createNotificationAction } from '../utils/action';
 import { View } from '../view/view';
-import { KeyedProblemDescription, ProblemKey } from './problems/types';
+import { KeyedIssueDescription, IssueKey } from './issues/types';
 import { CardStatusBarAPI } from './types';
 
 const RESOLUTION_TOLERANCE_PCT = 0.01;
 
-const problemKeyToStatusBarKey = (key: ProblemKey): keyof StatusBarConfig['items'] => {
-  return `problem_${key}`;
+const issueKeyToStatusBarKey = (key: IssueKey): keyof StatusBarConfig['items'] => {
+  return `issue_${key}`;
 };
 
 export class StatusBarItemManager {
@@ -48,7 +48,7 @@ export class StatusBarItemManager {
     cameraManager?: CameraManager | null;
     view?: View | null;
     mediaLoadedInfo?: MediaLoadedInfo | null;
-    problems?: KeyedProblemDescription[] | null;
+    issues?: KeyedIssueDescription[] | null;
   }): StatusBarItem[] {
     const cameraMetadata = options?.view?.camera
       ? options?.cameraManager?.getCameraMetadata(options.view.camera)
@@ -132,21 +132,20 @@ export class StatusBarItemManager {
           ]
         : []),
 
-      ...(options?.problems ?? [])
+      ...(options?.issues ?? [])
         .filter(
           ({ key }) =>
-            options?.statusConfig?.items[problemKeyToStatusBarKey(key)]?.enabled !==
-            false,
+            options?.statusConfig?.items[issueKeyToStatusBarKey(key)]?.enabled !== false,
         )
-        .map(({ key, problem }) => ({
+        .map(({ key, issue }) => ({
           type: 'custom:advanced-camera-card-status-bar-icon' as const,
-          icon: problem.icon,
-          severity: problem.severity,
-          title: problem.notification.heading?.text,
+          icon: issue.icon,
+          severity: issue.severity,
+          title: issue.notification.heading?.text,
           actions: {
-            tap_action: createNotificationAction(problem.notification),
+            tap_action: createNotificationAction(issue.notification),
           },
-          ...options?.statusConfig?.items[problemKeyToStatusBarKey(key)],
+          ...options?.statusConfig?.items[issueKeyToStatusBarKey(key)],
         })),
       ...this._dynamicItems,
     ];

@@ -5,9 +5,9 @@ declare module 'view' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface ViewContext {}
 }
-declare module 'problem' {
+declare module 'issue' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-  interface ProblemTriggerContext {}
+  interface IssueTriggerContext {}
 }
 declare module 'action' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type

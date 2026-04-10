@@ -150,7 +150,7 @@ describe('ConfigManager', () => {
       displayMode: undefined,
       camera: undefined,
     });
-    expect(api.getProblemManager().reset).toBeCalledWith('config_error');
+    expect(api.getIssueManager().reset).toBeCalledWith('config_error');
     expect(api.getMediaLoadedInfoManager().clear).toBeCalled();
     expect(api.getViewManager().reset).toBeCalled();
     expect(api.getAutomationsManager().addAutomations).toBeCalled();
@@ -327,7 +327,7 @@ describe('ConfigManager', () => {
 
       stateManager.setState({ fullscreen: true });
       expect(manager.getConfig()).not.toBeNull();
-      expect(api.getProblemManager().trigger).toBeCalledWith(
+      expect(api.getIssueManager().trigger).toBeCalledWith(
         'config_error',
         expect.objectContaining({ error: expect.any(Error) }),
       );

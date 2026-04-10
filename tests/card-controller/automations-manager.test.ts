@@ -56,14 +56,14 @@ describe('AutomationsManager', () => {
       expect(api.getActionsManager().executeActions).not.toBeCalled();
     });
 
-    it('should do nothing with a problem is present', () => {
+    it('should do nothing when an issue is present', () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
       vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
         true,
       );
       vi.mocked(
-        api.getProblemManager().getStateManager().hasFullCardProblem,
+        api.getIssueManager().getStateManager().hasFullCardIssue,
       ).mockReturnValue(true);
 
       const stateManager = new ConditionStateManager();

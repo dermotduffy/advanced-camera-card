@@ -142,7 +142,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     // this.camera is already substream-aware (resolved by the carousel layer).
     const targetID = this.camera?.getID();
     if (targetID) {
-      fireAdvancedCameraCardEvent(this, 'problem:trigger', {
+      fireAdvancedCameraCardEvent(this, 'issue:trigger', {
         key: 'media_load' as const,
         targetID,
       });
@@ -386,8 +386,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       ? html`<advanced-camera-card-icon
           title=${localize('error.awaiting_live')}
           .icon=${{ icon: 'mdi:progress-helper' }}
-          @click=${() =>
-            fireAdvancedCameraCardEvent(this, 'problem:notify', 'media_load')}
+          @click=${() => fireAdvancedCameraCardEvent(this, 'issue:notify', 'media_load')}
         ></advanced-camera-card-icon>`
       : ''}`;
   }

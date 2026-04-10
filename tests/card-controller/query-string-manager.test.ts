@@ -29,9 +29,9 @@ describe('QueryStringManager', () => {
   it('should reject malformed query string', async () => {
     setQueryString('BOGUS_KEY=BOGUS_VALUE');
     const api = createCardAPI();
-    vi.mocked(
-      api.getProblemManager().getStateManager().hasFullCardProblem,
-    ).mockReturnValue(true);
+    vi.mocked(api.getIssueManager().getStateManager().hasFullCardIssue).mockReturnValue(
+      true,
+    );
     const manager = new QueryStringManager(api);
 
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();

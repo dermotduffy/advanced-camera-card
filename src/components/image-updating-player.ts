@@ -27,7 +27,7 @@ import defaultImage from '../images/iris-screensaver.jpg';
 import { localize } from '../localize/localize.js';
 import imageUpdatingPlayerStyle from '../scss/image-updating-player.scss';
 import { MediaLoadedInfo, MediaPlayer, MediaPlayerController } from '../types.js';
-import { ProblemTriggerEventData } from '../card-controller/problems/types.js';
+import { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { contentsChanged } from '../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 import {
@@ -458,14 +458,10 @@ export class AdvancedCameraCardImageUpdatingPlayer
               } else if (mode === 'url') {
                 this._imageLoadError = true;
               }
-              fireAdvancedCameraCardEvent<ProblemTriggerEventData>(
-                this,
-                'problem:trigger',
-                {
-                  key: 'media_load',
-                  targetID: IMAGE_VIEW_TARGET_ID_SENTINEL,
-                },
-              );
+              fireAdvancedCameraCardEvent<IssueTriggerEventData>(this, 'issue:trigger', {
+                key: 'media_load',
+                targetID: IMAGE_VIEW_TARGET_ID_SENTINEL,
+              });
             }}
           />
         `

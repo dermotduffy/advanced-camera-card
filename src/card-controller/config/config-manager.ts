@@ -127,7 +127,7 @@ export class ConfigManager {
     try {
       overriddenConfig = this._overridesManager.getConfig(this._config);
     } catch (ev) {
-      this._api.getProblemManager().trigger('config_error', { error: ev });
+      this._api.getIssueManager().trigger('config_error', { error: ev });
       return;
     }
 
@@ -135,7 +135,7 @@ export class ConfigManager {
     // setConfig() and from condition-change-driven override recomputations;
     // resetting here ensures a transient override error is cleared when
     // conditions change to produce a valid config again.
-    this._api.getProblemManager().reset('config_error');
+    this._api.getIssueManager().reset('config_error');
 
     // Save on Lit re-rendering costs by only updating the configuration if it
     // actually changes.

@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createProblemManager } from '../../../src/card-controller/problems/factory';
-import { ProblemManager } from '../../../src/card-controller/problems/problem-manager';
+import { createIssueManager } from '../../../src/card-controller/issues/factory';
+import { IssueManager } from '../../../src/card-controller/issues/issue-manager';
 import { ConditionStateManager } from '../../../src/conditions/state-manager';
 import { createCardAPI } from '../../test-utils';
 
-describe('createProblemManager', () => {
+describe('createIssueManager', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -14,15 +14,15 @@ describe('createProblemManager', () => {
     vi.useRealTimers();
   });
 
-  it('should return a ProblemManager instance', () => {
-    const manager = createProblemManager(createCardAPI());
-    expect(manager).toBeInstanceOf(ProblemManager);
+  it('should return a IssueManager instance', () => {
+    const manager = createIssueManager(createCardAPI());
+    expect(manager).toBeInstanceOf(IssueManager);
   });
 
-  it('should register all expected problems', () => {
-    const manager = createProblemManager(createCardAPI()).getStateManager();
+  it('should register all expected issues', () => {
+    const manager = createIssueManager(createCardAPI()).getStateManager();
 
-    expect(manager.getProblemDescriptions()).toHaveLength(0);
+    expect(manager.getIssueDescriptions()).toHaveLength(0);
 
     const expectedKeys = [
       'config_error',
@@ -39,22 +39,22 @@ describe('createProblemManager', () => {
     }
   });
 
-  it('should wire changeCallback so timer-based problems activate via evaluate', () => {
+  it('should wire changeCallback so timer-based issues activate via evaluate', () => {
     const api = createCardAPI();
     const stateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
-    const manager = createProblemManager(api);
+    const manager = createIssueManager(api);
 
     // Setting view starts the media_load timer (via the condition state
     // listener → evaluate → detectDynamic).
     stateManager.setState({ view: 'live' });
-    expect(manager.getStateManager().getProblemPresence().has('media_load')).toBe(false);
+    expect(manager.getStateManager().getIssuePresence().has('media_load')).toBe(false);
 
     // After the timeout, the changeCallback fires evaluate which
     // updates the card element.
     vi.advanceTimersByTime(10000);
 
-    expect(manager.getStateManager().getProblemPresence().has('media_load')).toBe(true);
+    expect(manager.getStateManager().getIssuePresence().has('media_load')).toBe(true);
   });
 });

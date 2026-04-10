@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ConfigUpgradeProblem } from '../../../../src/card-controller/problems/problems/config-upgrade';
+import { ConfigUpgradeIssue } from '../../../../src/card-controller/issues/issues/config-upgrade';
 import { isConfigUpgradeable } from '../../../../src/config/management';
 import { RawAdvancedCameraCardConfig } from '../../../../src/config/types';
 import { createCardAPI } from '../../../test-utils';
@@ -12,49 +12,49 @@ const createAPI = (rawConfig?: RawAdvancedCameraCardConfig) => {
   return api;
 };
 
-describe('ConfigUpgradeProblem', () => {
+describe('ConfigUpgradeIssue', () => {
   it('should have correct key', () => {
-    const problem = new ConfigUpgradeProblem(createAPI());
-    expect(problem.key).toBe('config_upgrade');
+    const issue = new ConfigUpgradeIssue(createAPI());
+    expect(issue.key).toBe('config_upgrade');
   });
 
   it('should detect upgradeable config', async () => {
     vi.mocked(isConfigUpgradeable).mockReturnValue(true);
     const rawConfig = { type: 'custom:frigate-card' };
-    const problem = new ConfigUpgradeProblem(createAPI(rawConfig));
+    const issue = new ConfigUpgradeIssue(createAPI(rawConfig));
 
-    await problem.detectStatic();
+    await issue.detectStatic();
 
-    expect(problem.hasProblem()).toBe(true);
+    expect(issue.hasIssue()).toBe(true);
     expect(isConfigUpgradeable).toBeCalledWith(rawConfig);
   });
 
   it('should detect non-upgradeable config', async () => {
     vi.mocked(isConfigUpgradeable).mockReturnValue(false);
     const rawConfig = { type: 'custom:advanced-camera-card' };
-    const problem = new ConfigUpgradeProblem(createAPI(rawConfig));
+    const issue = new ConfigUpgradeIssue(createAPI(rawConfig));
 
-    await problem.detectStatic();
+    await issue.detectStatic();
 
-    expect(problem.hasProblem()).toBe(false);
+    expect(issue.hasIssue()).toBe(false);
   });
 
   it('should handle null raw config', async () => {
-    const problem = new ConfigUpgradeProblem(createAPI());
+    const issue = new ConfigUpgradeIssue(createAPI());
 
-    await problem.detectStatic();
+    await issue.detectStatic();
 
-    expect(problem.hasProblem()).toBe(false);
-    expect(problem.getProblem()).toBeNull();
+    expect(issue.hasIssue()).toBe(false);
+    expect(issue.getIssue()).toBeNull();
   });
 
   it('should return result when upgradeable', async () => {
     vi.mocked(isConfigUpgradeable).mockReturnValue(true);
-    const problem = new ConfigUpgradeProblem(createAPI({ type: 'custom:frigate-card' }));
+    const issue = new ConfigUpgradeIssue(createAPI({ type: 'custom:frigate-card' }));
 
-    await problem.detectStatic();
+    await issue.detectStatic();
 
-    const result = problem.getProblem();
+    const result = issue.getIssue();
     expect(result).toEqual(
       expect.objectContaining({
         icon: 'mdi:update',

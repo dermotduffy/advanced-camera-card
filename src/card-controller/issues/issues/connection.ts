@@ -1,8 +1,8 @@
 import { ConditionState } from '../../../conditions/types.js';
 import { localize } from '../../../localize/localize.js';
-import { Problem, ProblemDescription } from '../types.js';
+import { Issue, IssueDescription } from '../types.js';
 
-export class ConnectionProblem implements Problem {
+export class ConnectionIssue implements Issue {
   public readonly key = 'connection' as const;
 
   private _connectionLost = false;
@@ -16,15 +16,15 @@ export class ConnectionProblem implements Problem {
     }
   }
 
-  public hasProblem(): boolean {
+  public hasIssue(): boolean {
     return this._connectionLost;
   }
 
-  public isFullCardProblem(): boolean {
+  public isFullCardIssue(): boolean {
     return true;
   }
 
-  public getProblem(): ProblemDescription | null {
+  public getIssue(): IssueDescription | null {
     if (!this._connectionLost) {
       return null;
     }
@@ -33,11 +33,11 @@ export class ConnectionProblem implements Problem {
       severity: 'high',
       notification: {
         heading: {
-          text: localize('problems.connection.heading'),
+          text: localize('issues.connection.heading'),
           icon: 'mdi:lan-disconnect',
           severity: 'high',
         },
-        body: { text: localize('problems.connection.text') },
+        body: { text: localize('issues.connection.text') },
         in_progress: true,
       },
     };

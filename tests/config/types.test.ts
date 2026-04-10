@@ -452,37 +452,37 @@ describe('config defaults', () => {
             permanent: false,
             priority: 50,
           },
-          problem_config_error: {
+          issue_config_error: {
             enabled: true,
             permanent: true,
             priority: 50,
           },
-          problem_config_upgrade: {
+          issue_config_upgrade: {
             enabled: true,
             permanent: true,
             priority: 50,
           },
-          problem_connection: {
+          issue_connection: {
             enabled: true,
             permanent: true,
             priority: 50,
           },
-          problem_initialization: {
+          issue_initialization: {
             enabled: true,
             permanent: true,
             priority: 50,
           },
-          problem_legacy_resource: {
+          issue_legacy_resource: {
             enabled: true,
             permanent: true,
             priority: 50,
           },
-          problem_media_load: {
+          issue_media_load: {
             enabled: true,
             permanent: true,
             priority: 50,
           },
-          problem_media_query: {
+          issue_media_query: {
             enabled: true,
             permanent: true,
             priority: 50,
@@ -565,7 +565,7 @@ describe('config defaults', () => {
           untrigger_delay_seconds: 0,
           untrigger_force_seconds: 0,
         },
-        errors: {
+        issues: {
           interaction_mode: 'inactive',
           retry_seconds: 60,
         },

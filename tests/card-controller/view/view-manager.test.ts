@@ -369,7 +369,7 @@ describe('should handle exceptions', () => {
     expect(manager.hasView()).toBeTruthy();
 
     // But an error will also be generated.
-    expect(api.getProblemManager().trigger).toBeCalledWith(
+    expect(api.getIssueManager().trigger).toBeCalledWith(
       'media_query',
       expect.objectContaining({ error }),
     );
@@ -573,7 +573,7 @@ describe('should apply async view modifications', () => {
     expect(manager.getView()?.query).toBe(query);
     expect(manager.getView()?.queryResults).toBe(queryResults);
     expect(manager.getView()?.context?.loading?.query).toBeUndefined();
-    expect(api.getProblemManager().reset).toBeCalledWith('media_query');
+    expect(api.getIssueManager().reset).toBeCalledWith('media_query');
   });
 
   it('should not apply modifications if there is a major media change', async () => {

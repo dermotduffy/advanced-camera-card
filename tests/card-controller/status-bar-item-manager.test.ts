@@ -241,15 +241,15 @@ describe('StatusBarItemManager', () => {
       });
     });
 
-    describe('problems', () => {
-      it('should show problem items', () => {
+    describe('issues', () => {
+      it('should show issue items', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems({
-          problems: [
+          issues: [
             {
               key: 'config_upgrade',
-              problem: {
+              issue: {
                 icon: 'mdi:update',
                 severity: 'medium',
                 notification: {
@@ -281,11 +281,11 @@ describe('StatusBarItemManager', () => {
         );
       });
 
-      it('should not show problem items when empty', () => {
+      it('should not show issue items when empty', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems({
-          problems: [],
+          issues: [],
         });
 
         expect(items).not.toContainEqual(
@@ -295,7 +295,7 @@ describe('StatusBarItemManager', () => {
         );
       });
 
-      it('should not show problem items by default', () => {
+      it('should not show issue items by default', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems();
@@ -307,7 +307,7 @@ describe('StatusBarItemManager', () => {
         );
       });
 
-      it('should filter out disabled problems', () => {
+      it('should filter out disabled issues', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems({
@@ -322,19 +322,19 @@ describe('StatusBarItemManager', () => {
               severity: { enabled: true, priority: 50 },
               technology: { enabled: true, priority: 50 },
               title: { enabled: true, priority: 50 },
-              problem_config_error: { enabled: true, priority: 50 },
-              problem_config_upgrade: { enabled: false, priority: 50 },
-              problem_connection: { enabled: true, priority: 50 },
-              problem_initialization: { enabled: true, priority: 50 },
-              problem_legacy_resource: { enabled: true, priority: 50 },
-              problem_media_load: { enabled: true, priority: 50 },
-              problem_media_query: { enabled: true, priority: 50 },
+              issue_config_error: { enabled: true, priority: 50 },
+              issue_config_upgrade: { enabled: false, priority: 50 },
+              issue_connection: { enabled: true, priority: 50 },
+              issue_initialization: { enabled: true, priority: 50 },
+              issue_legacy_resource: { enabled: true, priority: 50 },
+              issue_media_load: { enabled: true, priority: 50 },
+              issue_media_query: { enabled: true, priority: 50 },
             },
           },
-          problems: [
+          issues: [
             {
               key: 'config_upgrade',
-              problem: {
+              issue: {
                 icon: 'mdi:update',
                 severity: 'medium',
                 notification: {
@@ -357,7 +357,7 @@ describe('StatusBarItemManager', () => {
         );
       });
 
-      it('should apply config overrides to problem items', () => {
+      it('should apply config overrides to issue items', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems({
@@ -372,19 +372,19 @@ describe('StatusBarItemManager', () => {
               severity: { enabled: true, priority: 50 },
               technology: { enabled: true, priority: 50 },
               title: { enabled: true, priority: 50 },
-              problem_config_error: { enabled: true, priority: 50 },
-              problem_config_upgrade: { enabled: true, priority: 90 },
-              problem_connection: { enabled: true, priority: 50 },
-              problem_initialization: { enabled: true, priority: 50 },
-              problem_legacy_resource: { enabled: true, priority: 50 },
-              problem_media_load: { enabled: true, priority: 50 },
-              problem_media_query: { enabled: true, priority: 50 },
+              issue_config_error: { enabled: true, priority: 50 },
+              issue_config_upgrade: { enabled: true, priority: 90 },
+              issue_connection: { enabled: true, priority: 50 },
+              issue_initialization: { enabled: true, priority: 50 },
+              issue_legacy_resource: { enabled: true, priority: 50 },
+              issue_media_load: { enabled: true, priority: 50 },
+              issue_media_query: { enabled: true, priority: 50 },
             },
           },
-          problems: [
+          issues: [
             {
               key: 'config_upgrade',
-              problem: {
+              issue: {
                 icon: 'mdi:update',
                 severity: 'medium',
                 notification: {

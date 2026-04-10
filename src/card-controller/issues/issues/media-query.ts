@@ -1,32 +1,32 @@
-import type { ProblemTriggerContext } from 'problem';
+import type { IssueTriggerContext } from 'issue';
 import { createNotificationFromError } from '../../../components-lib/notification/factory.js';
 import { Notification } from '../../../config/schema/actions/types.js';
 import { localize } from '../../../localize/localize.js';
-import { CardProblemManagerAPI } from '../../types.js';
+import { CardIssueManagerAPI } from '../../types.js';
 import { createRetryControl } from '../retry-control.js';
-import { Problem, ProblemDescription } from '../types.js';
+import { Issue, IssueDescription } from '../types.js';
 
-declare module 'problem' {
-  interface ProblemTriggerContext {
+declare module 'issue' {
+  interface IssueTriggerContext {
     media_query: { error: unknown };
   }
 }
 
-export class MediaQueryProblem implements Problem {
+export class MediaQueryIssue implements Issue {
   public readonly key = 'media_query' as const;
 
-  private _api: CardProblemManagerAPI;
+  private _api: CardIssueManagerAPI;
   private _error: unknown = null;
 
-  constructor(api: CardProblemManagerAPI) {
+  constructor(api: CardIssueManagerAPI) {
     this._api = api;
   }
 
-  public trigger(context: ProblemTriggerContext['media_query']): void {
+  public trigger(context: IssueTriggerContext['media_query']): void {
     this._error = context.error;
   }
 
-  public hasProblem(): boolean {
+  public hasIssue(): boolean {
     return this._error !== null;
   }
 
@@ -41,7 +41,7 @@ export class MediaQueryProblem implements Problem {
     this._error = null;
     this._api.getViewManager().setViewByParametersWithNewQuery();
 
-    // Exclusive retry. No other problem should attempt to retry until the next
+    // Exclusive retry. No other issue should attempt to retry until the next
     // evaluation cycle, when we'll know if this was successful.
     return true;
   }
@@ -51,7 +51,7 @@ export class MediaQueryProblem implements Problem {
       return null;
     }
     const notification = createNotificationFromError(this._error, {
-      heading: { text: localize('problems.media_query.heading') },
+      heading: { text: localize('issues.media_query.heading') },
     });
     /* istanbul ignore next: this._error is non-null -- @preserve */
     if (!notification) {
@@ -63,7 +63,7 @@ export class MediaQueryProblem implements Problem {
     };
   }
 
-  public getProblem(): ProblemDescription | null {
+  public getIssue(): IssueDescription | null {
     const notification = this.getNotification();
     return notification !== null
       ? { icon: 'mdi:alert', severity: 'high', notification }

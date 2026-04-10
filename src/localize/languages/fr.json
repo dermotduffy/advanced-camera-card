@@ -640,7 +640,7 @@
     "webrtc_card_reported_error": "La carte WebRTC a signalé une erreur",
     "webrtc_card_waiting": "En attente du chargement de la carte WebRTC..."
   },
-  "problems": {
+  "issues": {
     "media_load": {
       "text": "Le flux vidéo ou le média enregistré n'a pas encore été chargé. Cela peut être du à plusieurs raisons. La carte tentera de recharger automatiquement après un délai d'attente."
     }

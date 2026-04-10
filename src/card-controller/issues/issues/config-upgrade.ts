@@ -1,16 +1,16 @@
 import { isConfigUpgradeable } from '../../../config/management.js';
 import { TROUBLESHOOTING_CONFIG_UPGRADE_URL } from '../../../const.js';
 import { localize } from '../../../localize/localize.js';
-import { CardProblemManagerAPI } from '../../types';
-import { Problem, ProblemDescription } from '../types';
+import { CardIssueManagerAPI } from '../../types';
+import { Issue, IssueDescription } from '../types';
 
-export class ConfigUpgradeProblem implements Problem {
+export class ConfigUpgradeIssue implements Issue {
   public readonly key = 'config_upgrade' as const;
 
-  private _api: CardProblemManagerAPI;
+  private _api: CardIssueManagerAPI;
   private _upgradeable = false;
 
-  constructor(api: CardProblemManagerAPI) {
+  constructor(api: CardIssueManagerAPI) {
     this._api = api;
   }
 
@@ -19,11 +19,11 @@ export class ConfigUpgradeProblem implements Problem {
     this._upgradeable = !!rawConfig && isConfigUpgradeable(rawConfig);
   }
 
-  public hasProblem(): boolean {
+  public hasIssue(): boolean {
     return this._upgradeable;
   }
 
-  public getProblem(): ProblemDescription | null {
+  public getIssue(): IssueDescription | null {
     if (!this._upgradeable) {
       return null;
     }
@@ -32,14 +32,14 @@ export class ConfigUpgradeProblem implements Problem {
       severity: 'medium',
       notification: {
         heading: {
-          text: localize('problems.config_upgrade.heading'),
+          text: localize('issues.config_upgrade.heading'),
           icon: 'mdi:update',
           severity: 'medium',
         },
-        body: { text: localize('problems.config_upgrade.text') },
+        body: { text: localize('issues.config_upgrade.text') },
         link: {
           url: TROUBLESHOOTING_CONFIG_UPGRADE_URL,
-          title: localize('problems.troubleshooting_guide'),
+          title: localize('issues.troubleshooting_guide'),
         },
       },
     };

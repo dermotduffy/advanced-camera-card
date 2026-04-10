@@ -17,13 +17,13 @@ import type { FullscreenManager } from './fullscreen/fullscreen-manager';
 import type { HASSManager } from './hass/hass-manager';
 import type { InitializationManager } from './initialization-manager';
 import type { InteractionManager } from './interaction-manager';
+import type { IssueManager } from './issues/issue-manager';
 import type { KeyboardStateManager } from './keyboard-state-manager';
 import type { MediaLoadedInfoManager } from './media-info-manager';
 import type { MediaPlayerManager } from './media-player-manager';
 import type { MicrophoneManager } from './microphone-manager';
 import type { NotificationManager } from './notification-manager';
 import type { PIPManager } from './pip-manager';
-import type { ProblemManager } from './problems/problem-manager';
 import type { QueryStringManager } from './query-string-manager';
 import type { StatusBarItemManager } from './status-bar-item-manager';
 import type { StyleManager } from './style-manager';
@@ -55,7 +55,7 @@ export interface CardActionsAPI {
   getMicrophoneManager(): MicrophoneManager;
   getNotificationManager(): NotificationManager;
   getPIPManager(): PIPManager;
-  getProblemManager(): ProblemManager;
+  getIssueManager(): IssueManager;
   getStatusBarItemManager(): StatusBarItemManager;
   getTriggersManager(): TriggersManager;
   getViewItemManager(): ViewItemManager;
@@ -70,7 +70,7 @@ export interface CardAutomationsAPI {
   getHASSManager(): HASSManager;
   getInitializationManager(): InitializationManager;
   getNotificationManager(): NotificationManager;
-  getProblemManager(): ProblemManager;
+  getIssueManager(): IssueManager;
 }
 
 export interface CardCameraAPI {
@@ -106,7 +106,7 @@ export interface CardConfigAPI {
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMediaPlayerManager(): MediaPlayerManager;
   getMicrophoneManager(): MicrophoneManager;
-  getProblemManager(): ProblemManager;
+  getIssueManager(): IssueManager;
   getStatusBarItemManager(): StatusBarItemManager;
   getStyleManager(): StyleManager;
   getViewManager(): ViewManager;
@@ -117,7 +117,7 @@ export interface CardConfigLoaderAPI {
   getConfigManager(): ConfigManager;
   getFoldersManager(): FoldersManager;
   getHASSManager(): HASSManager;
-  getProblemManager(): ProblemManager;
+  getIssueManager(): IssueManager;
 }
 
 export interface CardDefaultManagerAPI {
@@ -153,7 +153,7 @@ export interface CardElementAPI {
   getMediaPlayerManager(): MediaPlayerManager;
   getMicrophoneManager(): MicrophoneManager;
   getPIPManager(): PIPManager;
-  getProblemManager(): ProblemManager;
+  getIssueManager(): IssueManager;
   getQueryStringManager(): QueryStringManager;
   getTriggersManager(): TriggersManager;
   getViewManager(): ViewManager;
@@ -212,7 +212,7 @@ export interface CardInitializerAPI {
   getEntityRegistryManager(): EntityRegistryManager;
   getHASSManager(): HASSManager;
   getMediaPlayerManager(): MediaPlayerManager;
-  getProblemManager(): ProblemManager;
+  getIssueManager(): IssueManager;
   getQueryStringManager(): QueryStringManager;
   getResolvedMediaCache(): ResolvedMediaCache;
   getTriggersManager(): TriggersManager;
@@ -254,7 +254,7 @@ export interface CardNotificationAPI {
   getCardElementManager(): CardElementManager;
 }
 
-export interface CardProblemManagerAPI {
+export interface CardIssueManagerAPI {
   getCameraManager(): CameraManager;
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
@@ -313,7 +313,7 @@ export interface CardViewAPI {
   getInitializationManager(): InitializationManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getNotificationManager(): NotificationManager;
-  getProblemManager(): ProblemManager;
+  getIssueManager(): IssueManager;
   getQueryStringManager(): QueryStringManager;
   getStyleManager(): StyleManager;
   getTriggersManager(): TriggersManager;

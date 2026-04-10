@@ -403,7 +403,7 @@
     "no_supported_cameras": "Keine Kameras unterstützen diese Ansicht",
     "too_many_automations": "Zu viele automatisierte Anfragen, bitte prüfe deine Konfiguration auf etwaige Schleifen"
   },
-  "problems": {
+  "issues": {
     "media_load": {
       "text": "Der Videostream wurde nicht geladen. Dafür kann es verschiedene Gründe geben. Wenn konfiguriert (Standard), wird ein Bild jede Sekunde angezeigt, bis der Steam richtig lädt"
     }

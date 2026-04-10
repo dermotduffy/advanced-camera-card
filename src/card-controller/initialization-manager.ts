@@ -10,7 +10,7 @@ export enum InitializationAspect {
   SIDE_LOAD_ELEMENTS = 'side-load-elements',
   CAMERAS = 'cameras',
   MICROPHONE_CONNECT = 'microphone-connect',
-  PROBLEMS = 'problems',
+  ISSUES = 'issues',
   VIEW = 'view',
 
   // The initial triggering must happen after both the config is set (and
@@ -53,7 +53,7 @@ export class InitializationManager {
   }
 
   public isInitializedBackground(): boolean {
-    return this._initializer.isInitialized(InitializationAspect.PROBLEMS);
+    return this._initializer.isInitialized(InitializationAspect.ISSUES);
   }
 
   public isInitializedMandatory(): boolean {
@@ -189,19 +189,19 @@ export class InitializationManager {
       if (e instanceof Error) {
         errorToConsole(e);
       }
-      this._setInitializationProblem(e);
+      this._setInitializationIssue(e);
       return false;
     }
 
-    if (this._api.getProblemManager().getStateManager().hasFullCardProblem()) {
+    if (this._api.getIssueManager().getStateManager().hasFullCardIssue()) {
       return false;
     }
 
     return true;
   }
 
-  private _setInitializationProblem(error: unknown): void {
-    this._api.getProblemManager().trigger('initialization', { error });
+  private _setInitializationIssue(error: unknown): void {
+    this._api.getIssueManager().trigger('initialization', { error });
   }
 
   public async initializeBackground(): Promise<void> {
@@ -215,13 +215,10 @@ export class InitializationManager {
     }
 
     await this._tryInitialize(() =>
-      this._initializer.initializeIfNecessary(
-        InitializationAspect.PROBLEMS,
-        async () => {
-          await this._api.getProblemManager().getStateManager().detectStatic(hass);
-          this._api.getProblemManager().evaluate();
-        },
-      ),
+      this._initializer.initializeIfNecessary(InitializationAspect.ISSUES, async () => {
+        await this._api.getIssueManager().getStateManager().detectStatic(hass);
+        this._api.getIssueManager().evaluate();
+      }),
     );
   }
 

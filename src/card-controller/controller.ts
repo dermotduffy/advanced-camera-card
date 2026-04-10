@@ -32,8 +32,8 @@ import { MediaPlayerManager } from './media-player-manager';
 import { MicrophoneManager } from './microphone-manager';
 import { NotificationManager } from './notification-manager';
 import { PIPManager } from './pip-manager';
-import { createProblemManager } from './problems/factory';
-import { ProblemManager } from './problems/problem-manager';
+import { createIssueManager } from './issues/factory';
+import { IssueManager } from './issues/issue-manager';
 import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
@@ -60,7 +60,7 @@ import {
   CardMicrophoneAPI,
   CardNotificationAPI,
   CardPIPAPI,
-  CardProblemManagerAPI,
+  CardIssueManagerAPI,
   CardQueryStringAPI,
   CardStyleAPI,
   CardTriggersAPI,
@@ -84,7 +84,7 @@ export class CardController
     CardFullscreenAPI,
     CardHASSAPI,
     CardPIPAPI,
-    CardProblemManagerAPI,
+    CardIssueManagerAPI,
     CardInitializerAPI,
     CardInteractionAPI,
     CardKeyboardStateAPI,
@@ -127,7 +127,7 @@ export class CardController
   private _microphoneManager = new MicrophoneManager(this);
   private _notificationManager = new NotificationManager(this);
   private _pipManager = new PIPManager(this);
-  private _problemManager = createProblemManager(this);
+  private _issueManager = createIssueManager(this);
   private _queryStringManager = new QueryStringManager(this);
   private _statusBarItemManager = new StatusBarItemManager(this);
   private _styleManager = new StyleManager(this);
@@ -257,8 +257,8 @@ export class CardController
     return this._pipManager;
   }
 
-  public getProblemManager(): ProblemManager {
-    return this._problemManager;
+  public getIssueManager(): IssueManager {
+    return this._issueManager;
   }
 
   public getQueryStringManager(): QueryStringManager {

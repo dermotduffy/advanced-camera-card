@@ -158,7 +158,7 @@ export class CardElementManager {
     // disconnected/reconnected when dashboard 'tab' changes happen within HA.
     this._api.getQueryStringManager().requestExecution();
 
-    this._api.getProblemManager().resume();
+    this._api.getIssueManager().resume();
 
     // Make sure reconnections call the initialization code.
     this._element.requestUpdate();
@@ -169,10 +169,10 @@ export class CardElementManager {
     setOrRemoveAttribute(this._element, false, 'tabindex');
     setOrRemoveAttribute(this._element, false, 'casted');
 
-    // Suspend problem evaluation so state changes below (e.g. clearing
-    // mediaLoadedInfo) don't arm timers while the card is detached. Problem
+    // Suspend issue evaluation so state changes below (e.g. clearing
+    // mediaLoadedInfo) don't arm timers while the card is detached. Issue
     // state is preserved; evaluation resumes via resume() on reconnect.
-    this._api.getProblemManager().suspend();
+    this._api.getIssueManager().suspend();
 
     // When the dashboard 'tab' is changed, the media is effectively unloaded.
     this._api.getMediaLoadedInfoManager().clear();

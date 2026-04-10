@@ -1,26 +1,26 @@
-import type { ProblemTriggerContext } from 'problem';
+import type { IssueTriggerContext } from 'issue';
 import { createNotificationFromError } from '../../../components-lib/notification/factory.js';
-import { CardProblemManagerAPI } from '../../types';
+import { CardIssueManagerAPI } from '../../types';
 import { createRetryControl } from '../retry-control.js';
-import { Problem, ProblemDescription } from '../types';
+import { Issue, IssueDescription } from '../types';
 
-declare module 'problem' {
-  interface ProblemTriggerContext {
+declare module 'issue' {
+  interface IssueTriggerContext {
     initialization: { error: unknown };
   }
 }
 
-export class InitializationProblem implements Problem {
+export class InitializationIssue implements Issue {
   public readonly key = 'initialization' as const;
 
-  private _api: CardProblemManagerAPI;
+  private _api: CardIssueManagerAPI;
   private _error: unknown = null;
 
-  constructor(api: CardProblemManagerAPI) {
+  constructor(api: CardIssueManagerAPI) {
     this._api = api;
   }
 
-  public trigger(context: ProblemTriggerContext['initialization']): void {
+  public trigger(context: IssueTriggerContext['initialization']): void {
     this._error = context.error;
   }
 
@@ -38,7 +38,7 @@ export class InitializationProblem implements Problem {
   }
 
   public retry(): boolean {
-    // Clear the error so the full-card problem is removed and
+    // Clear the error so the full-card issue is removed and
     // shouldUpdate() no longer short-circuits before initializeMandatory().
     this._error = null;
 
@@ -49,15 +49,15 @@ export class InitializationProblem implements Problem {
     return false;
   }
 
-  public hasProblem(): boolean {
+  public hasIssue(): boolean {
     return this._error !== null;
   }
 
-  public isFullCardProblem(): boolean {
+  public isFullCardIssue(): boolean {
     return true;
   }
 
-  public getProblem(): ProblemDescription | null {
+  public getIssue(): IssueDescription | null {
     if (this._error === null) {
       return null;
     }

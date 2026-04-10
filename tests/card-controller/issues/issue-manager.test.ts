@@ -2,20 +2,20 @@
 import { afterEach, assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CardController } from '../../../src/card-controller/controller';
-import { ProblemManager } from '../../../src/card-controller/problems/problem-manager';
-import { Problem } from '../../../src/card-controller/problems/types';
+import { IssueManager } from '../../../src/card-controller/issues/issue-manager';
+import { Issue } from '../../../src/card-controller/issues/types';
 import { ConditionStateManager } from '../../../src/conditions/state-manager';
 import { InteractionMode } from '../../../src/config/schema/view';
-import { ProblemKey } from '../../../src/card-controller/problems/types';
+import { IssueKey } from '../../../src/card-controller/issues/types';
 import { createCardAPI, createConfig } from '../../test-utils';
 
 const DEFAULT_RETRY_SECONDS = 1;
 
-const createProblem = (key: ProblemKey, overrides?: Partial<Problem>): Problem =>
+const createIssue = (key: IssueKey, overrides?: Partial<Issue>): Issue =>
   mock({
     key,
-    hasProblem: vi.fn().mockReturnValue(false),
-    getProblem: vi.fn().mockReturnValue(null),
+    hasIssue: vi.fn().mockReturnValue(false),
+    getIssue: vi.fn().mockReturnValue(null),
     needsRetry: vi.fn().mockReturnValue(false),
     ...overrides,
   });
@@ -26,8 +26,8 @@ const createRetriableSetup = (options?: {
   hasInteraction?: boolean;
 }): {
   api: CardController;
-  manager: ProblemManager;
-  problem: Problem;
+  manager: IssueManager;
+  issue: Issue;
 } => {
   const api = createCardAPI();
   vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
@@ -43,26 +43,26 @@ const createRetriableSetup = (options?: {
     ...config,
     view: {
       ...config.view,
-      errors: {
+      issues: {
         interaction_mode: options?.interactionMode ?? 'inactive',
         retry_seconds: options?.retrySeconds ?? DEFAULT_RETRY_SECONDS,
       },
     },
   });
 
-  const manager = new ProblemManager(api);
+  const manager = new IssueManager(api);
 
-  const problem = createProblem('media_load', {
-    hasProblem: vi.fn().mockReturnValueOnce(false).mockReturnValue(true),
+  const issue = createIssue('media_load', {
+    hasIssue: vi.fn().mockReturnValueOnce(false).mockReturnValue(true),
     needsRetry: vi.fn().mockReturnValue(true),
     retry: vi.fn().mockReturnValue(false),
   });
-  manager.addProblem(problem);
+  manager.addIssue(issue);
 
-  return { api, manager, problem };
+  return { api, manager, issue };
 };
 
-describe('ProblemManager', () => {
+describe('IssueManager', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -76,45 +76,45 @@ describe('ProblemManager', () => {
     const stateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
-    const manager = new ProblemManager(api);
-    const problem = createProblem('config_error', {
+    const manager = new IssueManager(api);
+    const issue = createIssue('config_error', {
       detectDynamic: vi.fn(),
     });
-    manager.addProblem(problem);
+    manager.addIssue(issue);
 
     stateManager.setState({ view: 'live' });
 
-    expect(problem.detectDynamic).toBeCalled();
+    expect(issue.detectDynamic).toBeCalled();
   });
 
-  describe('addProblem / getStateManager', () => {
-    it('should make added problems accessible via getManager', () => {
-      const manager = new ProblemManager(createCardAPI());
+  describe('addIssue / getStateManager', () => {
+    it('should make added issues accessible via getManager', () => {
+      const manager = new IssueManager(createCardAPI());
 
-      const problem = createProblem('config_error');
-      manager.addProblem(problem);
+      const issue = createIssue('config_error');
+      manager.addIssue(issue);
 
-      expect(manager.getStateManager().getProblemPresence().has('config_error')).toBe(
+      expect(manager.getStateManager().getIssuePresence().has('config_error')).toBe(
         false,
       );
     });
   });
 
   describe('trigger', () => {
-    it('should trigger the problem and call evaluate', () => {
+    it('should trigger the issue and call evaluate', () => {
       const api = createCardAPI();
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
-      const manager = new ProblemManager(api);
+      const manager = new IssueManager(api);
 
-      const problem = createProblem('config_error', {
+      const issue = createIssue('config_error', {
         trigger: vi.fn(),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       manager.trigger('config_error', { error: new Error('cfg') });
 
-      expect(problem.trigger).toBeCalledWith({ error: expect.any(Error) });
+      expect(issue.trigger).toBeCalledWith({ error: expect.any(Error) });
     });
 
     it('should update presence even when state was mutated before detectDynamic', () => {
@@ -122,23 +122,23 @@ describe('ProblemManager', () => {
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
       vi.mocked(api.getConditionStateManager().setState).mockReturnValue(true);
 
-      const manager = new ProblemManager(api);
+      const manager = new IssueManager(api);
 
-      // hasProblem returns true from the start — simulates trigger() having
+      // hasIssue returns true from the start — simulates trigger() having
       // already mutated state before detectDynamic snapshots. The
       // before/after check inside detectDynamic sees true→true (no
       // transition), but the presence comparison against ConditionState
       // must still detect the change.
-      const problem = createProblem('config_error', {
-        hasProblem: vi.fn().mockReturnValue(true),
+      const issue = createIssue('config_error', {
+        hasIssue: vi.fn().mockReturnValue(true),
         trigger: vi.fn(),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       manager.trigger('config_error', { error: new Error('cfg') });
 
       expect(api.getConditionStateManager().setState).toBeCalledWith({
-        problems: new Set(['config_error']),
+        issues: new Set(['config_error']),
       });
       expect(api.getCardElementManager().update).toBeCalled();
     });
@@ -146,34 +146,34 @@ describe('ProblemManager', () => {
 
   describe('retry', () => {
     it('should call retry on the manager and reset the timer', () => {
-      const { manager, problem } = createRetriableSetup();
+      const { manager, issue } = createRetriableSetup();
 
       // Start the timer via evaluate, then immediately retry.
       manager.evaluate();
       manager.retry('media_load');
 
-      expect(problem.retry).toBeCalled();
+      expect(issue.retry).toBeCalled();
 
       // Timer should have been reset — advancing less than retrySeconds
       // should not fire it again.
-      assert(problem.retry);
-      vi.mocked(problem.retry).mockClear();
+      assert(issue.retry);
+      vi.mocked(issue.retry).mockClear();
       vi.advanceTimersByTime(500);
-      expect(problem.retry).not.toBeCalled();
+      expect(issue.retry).not.toBeCalled();
     });
 
     it('should force retry even when needsRetry is false', () => {
       const api = createCardAPI();
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
-      const manager = new ProblemManager(api);
-      const problem = createProblem('media_load', {
+      const manager = new IssueManager(api);
+      const issue = createIssue('media_load', {
         retry: vi.fn().mockReturnValue(false),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       manager.retry('media_load', true);
 
-      expect(problem.retry).toBeCalled();
+      expect(issue.retry).toBeCalled();
     });
   });
 
@@ -183,16 +183,16 @@ describe('ProblemManager', () => {
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
       vi.mocked(api.getConditionStateManager().setState).mockReturnValue(true);
 
-      const manager = new ProblemManager(api);
-      const problem = createProblem('config_error', {
-        hasProblem: vi.fn().mockReturnValue(true),
+      const manager = new IssueManager(api);
+      const issue = createIssue('config_error', {
+        hasIssue: vi.fn().mockReturnValue(true),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       manager.evaluate();
 
       expect(api.getConditionStateManager().setState).toBeCalledWith({
-        problems: new Set(['config_error']),
+        issues: new Set(['config_error']),
       });
       expect(api.getCardElementManager().update).toBeCalled();
     });
@@ -201,14 +201,14 @@ describe('ProblemManager', () => {
       const api = createCardAPI();
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
-      const manager = new ProblemManager(api);
-      const problem = createProblem('config_error');
-      manager.addProblem(problem);
+      const manager = new IssueManager(api);
+      const issue = createIssue('config_error');
+      manager.addIssue(issue);
 
       manager.evaluate();
 
       expect(api.getConditionStateManager().setState).toBeCalledWith({
-        problems: new Set(),
+        issues: new Set(),
       });
       expect(api.getCardElementManager().update).not.toBeCalled();
     });
@@ -218,16 +218,16 @@ describe('ProblemManager', () => {
       const stateManager = new ConditionStateManager();
       vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
-      const manager = new ProblemManager(api);
-      const problem = createProblem('config_error', {
-        hasProblem: vi.fn().mockReturnValue(true),
+      const manager = new IssueManager(api);
+      const issue = createIssue('config_error', {
+        hasIssue: vi.fn().mockReturnValue(true),
         detectDynamic: vi.fn(),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       stateManager.setState({ view: 'live' });
 
-      expect(problem.detectDynamic).toBeCalled();
+      expect(issue.detectDynamic).toBeCalled();
     });
 
     it('should not re-enter evaluate when setState triggers listener', () => {
@@ -235,19 +235,19 @@ describe('ProblemManager', () => {
       const stateManager = new ConditionStateManager();
       vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
-      const manager = new ProblemManager(api);
-      const problem = createProblem('config_error', {
-        hasProblem: vi.fn().mockReturnValue(true),
+      const manager = new IssueManager(api);
+      const issue = createIssue('config_error', {
+        hasIssue: vi.fn().mockReturnValue(true),
         detectDynamic: vi.fn(),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       // Calling evaluate() will call setState() on the real
       // ConditionStateManager, which fires listeners synchronously. The
       // reentrancy guard must prevent detectDynamic from running twice.
       manager.evaluate();
 
-      expect(problem.detectDynamic).toBeCalledTimes(1);
+      expect(issue.detectDynamic).toBeCalledTimes(1);
     });
   });
 
@@ -255,13 +255,13 @@ describe('ProblemManager', () => {
     it('should call setNotification when a notification is available', () => {
       const api = createCardAPI();
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
-      const manager = new ProblemManager(api);
+      const manager = new IssueManager(api);
 
       const notification = { body: { text: 'test notification' } };
-      const problem = createProblem('media_query', {
+      const issue = createIssue('media_query', {
         getNotification: vi.fn().mockReturnValue(notification),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       manager.showNotification('media_query');
 
@@ -269,7 +269,7 @@ describe('ProblemManager', () => {
     });
 
     it('should not call setNotification when no notification exists for key', () => {
-      const manager = new ProblemManager(createCardAPI());
+      const manager = new IssueManager(createCardAPI());
 
       manager.showNotification('initialization');
 
@@ -278,14 +278,14 @@ describe('ProblemManager', () => {
   });
 
   describe('scheduled retries', () => {
-    it('should not schedule a retry when no problem wants retry', () => {
+    it('should not schedule a retry when no issue wants retry', () => {
       const api = createCardAPI();
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
 
-      const manager = new ProblemManager(api);
-      const problem = createProblem('config_error');
-      manager.addProblem(problem);
+      const manager = new IssueManager(api);
+      const issue = createIssue('config_error');
+      manager.addIssue(issue);
 
       manager.evaluate();
       vi.runAllTimers();
@@ -298,99 +298,99 @@ describe('ProblemManager', () => {
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(null);
 
-      const manager = new ProblemManager(api);
+      const manager = new IssueManager(api);
 
-      const problem = createProblem('media_load', {
-        hasProblem: vi.fn().mockReturnValueOnce(false).mockReturnValue(true),
+      const issue = createIssue('media_load', {
+        hasIssue: vi.fn().mockReturnValueOnce(false).mockReturnValue(true),
         needsRetry: vi.fn().mockReturnValue(true),
         retry: vi.fn().mockReturnValue(false),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       manager.evaluate();
       vi.runAllTimers();
 
-      expect(problem.retry).not.toBeCalled();
+      expect(issue.retry).not.toBeCalled();
     });
 
     it('should not schedule a retry when retry_seconds is 0', () => {
-      const { problem } = createRetriableSetup({ retrySeconds: 0 });
+      const { issue } = createRetriableSetup({ retrySeconds: 0 });
 
       vi.runAllTimers();
 
-      expect(problem.retry).not.toBeCalled();
+      expect(issue.retry).not.toBeCalled();
     });
 
-    it('should schedule a retry when a problem wants retry and retry_seconds > 0', () => {
-      const { manager, problem } = createRetriableSetup({ retrySeconds: 5 });
+    it('should schedule a retry when an issue wants retry and retry_seconds > 0', () => {
+      const { manager, issue } = createRetriableSetup({ retrySeconds: 5 });
 
       manager.evaluate();
       vi.advanceTimersByTime(5000);
 
-      expect(problem.retry).toBeCalled();
+      expect(issue.retry).toBeCalled();
     });
 
-    it('should call retry on the problem when the timer fires', () => {
-      const { manager, problem } = createRetriableSetup();
+    it('should call retry on the issue when the timer fires', () => {
+      const { manager, issue } = createRetriableSetup();
 
       manager.evaluate();
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
 
-      expect(problem.retry).toBeCalled();
+      expect(issue.retry).toBeCalled();
     });
 
     it('should not schedule a second timer if one is already running', () => {
-      const { manager, problem } = createRetriableSetup({ retrySeconds: 10 });
+      const { manager, issue } = createRetriableSetup({ retrySeconds: 10 });
 
       manager.evaluate();
       manager.evaluate();
 
       vi.advanceTimersByTime(10000);
 
-      expect(problem.retry).toBeCalledTimes(1);
+      expect(issue.retry).toBeCalledTimes(1);
     });
 
     it('should stop repeated timer when needsRetry becomes false', () => {
-      const { manager, problem } = createRetriableSetup();
+      const { manager, issue } = createRetriableSetup();
 
       manager.evaluate();
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
-      expect(problem.retry).toBeCalledTimes(1);
+      expect(issue.retry).toBeCalledTimes(1);
 
-      assert(problem.needsRetry);
-      vi.mocked(problem.needsRetry).mockReturnValue(false);
+      assert(issue.needsRetry);
+      vi.mocked(issue.needsRetry).mockReturnValue(false);
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
 
-      expect(problem.retry).toBeCalledTimes(1);
+      expect(issue.retry).toBeCalledTimes(1);
 
       vi.advanceTimersByTime(5000);
-      expect(problem.retry).toBeCalledTimes(1);
+      expect(issue.retry).toBeCalledTimes(1);
     });
 
     it('should skip scheduled retry when user is interacting and mode is inactive', () => {
-      const { manager, problem } = createRetriableSetup({
+      const { manager, issue } = createRetriableSetup({
         hasInteraction: true,
       });
 
       manager.evaluate();
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
 
-      expect(problem.retry).not.toBeCalled();
+      expect(issue.retry).not.toBeCalled();
     });
 
     it('should allow scheduled retry when user is not interacting and mode is inactive', () => {
-      const { manager, problem } = createRetriableSetup({
+      const { manager, issue } = createRetriableSetup({
         hasInteraction: false,
       });
 
       manager.evaluate();
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
 
-      expect(problem.retry).toBeCalled();
+      expect(issue.retry).toBeCalled();
     });
 
     it('should allow scheduled retry when mode is all regardless of interaction', () => {
-      const { manager, problem } = createRetriableSetup({
+      const { manager, issue } = createRetriableSetup({
         interactionMode: 'all',
         hasInteraction: true,
       });
@@ -398,104 +398,104 @@ describe('ProblemManager', () => {
       manager.evaluate();
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
 
-      expect(problem.retry).toBeCalled();
+      expect(issue.retry).toBeCalled();
     });
 
     it('should retry on next interval after interaction ends', () => {
-      const { api, manager, problem } = createRetriableSetup({
+      const { api, manager, issue } = createRetriableSetup({
         hasInteraction: true,
       });
 
       manager.evaluate();
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
-      expect(problem.retry).not.toBeCalled();
+      expect(issue.retry).not.toBeCalled();
 
       vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(false);
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
-      expect(problem.retry).toBeCalled();
+      expect(issue.retry).toBeCalled();
     });
   });
 
   describe('reset', () => {
-    it('should reset a specific problem and re-evaluate', () => {
+    it('should reset a specific issue and re-evaluate', () => {
       const api = createCardAPI();
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
-      const manager = new ProblemManager(api);
+      const manager = new IssueManager(api);
 
-      const problem = createProblem('config_error', {
-        hasProblem: vi.fn().mockReturnValue(true),
+      const issue = createIssue('config_error', {
+        hasIssue: vi.fn().mockReturnValue(true),
         reset: vi.fn(),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       manager.reset('config_error');
 
-      expect(problem.reset).toBeCalled();
+      expect(issue.reset).toBeCalled();
     });
 
-    it('should skip reset when targeted key has no active problem', () => {
+    it('should skip reset when targeted key has no active issue', () => {
       const api = createCardAPI();
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
-      const manager = new ProblemManager(api);
+      const manager = new IssueManager(api);
 
-      const problem = createProblem('config_error', {
-        hasProblem: vi.fn().mockReturnValue(false),
+      const issue = createIssue('config_error', {
+        hasIssue: vi.fn().mockReturnValue(false),
         detectDynamic: vi.fn(),
         reset: vi.fn(),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       manager.reset('config_error');
 
-      expect(problem.reset).not.toBeCalled();
-      expect(problem.detectDynamic).not.toBeCalled();
+      expect(issue.reset).not.toBeCalled();
+      expect(issue.detectDynamic).not.toBeCalled();
     });
   });
 
   describe('suspend / resume', () => {
     it('should stop the retry timer on suspend', () => {
-      const { manager, problem } = createRetriableSetup({ retrySeconds: 5 });
+      const { manager, issue } = createRetriableSetup({ retrySeconds: 5 });
 
       manager.evaluate();
       manager.suspend();
 
       vi.advanceTimersByTime(5000);
 
-      expect(problem.retry).not.toBeCalled();
+      expect(issue.retry).not.toBeCalled();
     });
 
     it('should gate evaluate while suspended', () => {
       const api = createCardAPI();
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
-      const manager = new ProblemManager(api);
-      const problem = createProblem('config_error', {
-        hasProblem: vi.fn().mockReturnValue(true),
+      const manager = new IssueManager(api);
+      const issue = createIssue('config_error', {
+        hasIssue: vi.fn().mockReturnValue(true),
         detectDynamic: vi.fn(),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       manager.suspend();
       manager.evaluate();
 
-      expect(problem.detectDynamic).not.toBeCalled();
+      expect(issue.detectDynamic).not.toBeCalled();
     });
 
-    it('should preserve problem state across suspend', () => {
+    it('should preserve issue state across suspend', () => {
       const api = createCardAPI();
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
-      const manager = new ProblemManager(api);
-      const problem = createProblem('config_error', {
-        hasProblem: vi.fn().mockReturnValue(true),
+      const manager = new IssueManager(api);
+      const issue = createIssue('config_error', {
+        hasIssue: vi.fn().mockReturnValue(true),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       manager.suspend();
 
-      expect(manager.getStateManager().getProblemPresence().has('config_error')).toBe(
+      expect(manager.getStateManager().getIssuePresence().has('config_error')).toBe(
         true,
       );
     });
@@ -505,75 +505,75 @@ describe('ProblemManager', () => {
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
       vi.mocked(api.getConditionStateManager().setState).mockReturnValue(true);
 
-      const manager = new ProblemManager(api);
-      const problem = createProblem('config_error', {
-        hasProblem: vi.fn().mockReturnValue(true),
+      const manager = new IssueManager(api);
+      const issue = createIssue('config_error', {
+        hasIssue: vi.fn().mockReturnValue(true),
         detectDynamic: vi.fn(),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       manager.suspend();
       manager.resume();
 
-      expect(problem.detectDynamic).toBeCalled();
+      expect(issue.detectDynamic).toBeCalled();
       expect(api.getCardElementManager().update).toBeCalled();
     });
 
-    // Problem-internal timers (e.g. media_load) can still mutate state while
+    // Issue-internal timers (e.g. media_load) can still mutate state while
     // suspended because the gate is on manager evaluation, not on
-    // individual problem callbacks. This is acceptable: on resume, evaluate()
-    // surfaces the stale problem, and a subsequent successful media load
+    // individual issue callbacks. This is acceptable: on resume, evaluate()
+    // surfaces the stale issue, and a subsequent successful media load
     // clears it via detectDynamic. This test documents that contract.
-    it('should surface problem that matured during suspension after resume', () => {
+    it('should surface issue that matured during suspension after resume', () => {
       const api = createCardAPI();
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
       vi.mocked(api.getConditionStateManager().setState).mockReturnValue(true);
 
-      const manager = new ProblemManager(api);
+      const manager = new IssueManager(api);
 
-      // Simulate a problem that activates its own state during suspension
-      // (e.g. a timer callback setting _problemActive = true).
-      const problem = createProblem('media_load', {
-        hasProblem: vi.fn().mockReturnValue(false),
+      // Simulate an issue that activates its own state during suspension
+      // (e.g. a timer callback setting _issueActive = true).
+      const issue = createIssue('media_load', {
+        hasIssue: vi.fn().mockReturnValue(false),
       });
-      manager.addProblem(problem);
+      manager.addIssue(issue);
 
       manager.suspend();
 
-      // Problem matures while suspended.
-      vi.mocked(problem.hasProblem).mockReturnValue(true);
+      // Issue matures while suspended.
+      vi.mocked(issue.hasIssue).mockReturnValue(true);
 
       // evaluate() is gated — no update.
       manager.evaluate();
       expect(api.getCardElementManager().update).not.toBeCalled();
 
-      // On resume, the matured problem surfaces.
+      // On resume, the matured issue surfaces.
       manager.resume();
       expect(api.getCardElementManager().update).toBeCalled();
 
-      // A subsequent state change that resolves the problem clears it.
-      vi.mocked(problem.hasProblem).mockReturnValue(false);
+      // A subsequent state change that resolves the issue clears it.
+      vi.mocked(issue.hasIssue).mockReturnValue(false);
       vi.mocked(api.getConditionStateManager().setState).mockReturnValue(true);
       manager.evaluate();
 
       expect(api.getConditionStateManager().setState).toBeCalledWith({
-        problems: new Set(),
+        issues: new Set(),
       });
     });
   });
 
   describe('destroy', () => {
     it('should stop the retry timer and destroy the manager', () => {
-      const { manager, problem } = createRetriableSetup({ retrySeconds: 5 });
-      assert(problem.reset);
+      const { manager, issue } = createRetriableSetup({ retrySeconds: 5 });
+      assert(issue.reset);
 
       manager.evaluate();
       manager.destroy();
 
       vi.advanceTimersByTime(5000);
 
-      expect(problem.retry).not.toBeCalled();
-      expect(problem.reset).toBeCalled();
+      expect(issue.retry).not.toBeCalled();
+      expect(issue.reset).toBeCalled();
     });
   });
 });

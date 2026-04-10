@@ -4,7 +4,7 @@ import { HomeAssistant } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import { createInternalCallbackAction } from '../../../utils/action';
 import { CardActionsAPI } from '../../types';
-import { Problem, ProblemDescription } from '../types';
+import { Issue, IssueDescription } from '../types';
 
 const LEGACY_RESOURCE_FILENAME = 'frigate-hass-card.js';
 
@@ -28,7 +28,7 @@ const resourcesSchema = z.array(
   }),
 );
 
-export class LegacyResourceProblem implements Problem {
+export class LegacyResourceIssue implements Issue {
   public readonly key = 'legacy_resource' as const;
 
   private _legacyResourceIDs: string[] = [];
@@ -76,38 +76,38 @@ export class LegacyResourceProblem implements Problem {
     }
   }
 
-  public hasProblem(): boolean {
+  public hasIssue(): boolean {
     return this._checked && this._legacyResourceIDs.length > 0;
   }
 
-  public getProblem(): ProblemDescription | null {
-    if (!this.hasProblem()) {
+  public getIssue(): IssueDescription | null {
+    if (!this.hasIssue()) {
       return null;
     }
 
     const text = this._hasCorrectResource
-      ? localize('problems.legacy_resource.text_both')
-      : localize('problems.legacy_resource.text_only_legacy');
+      ? localize('issues.legacy_resource.text_both')
+      : localize('issues.legacy_resource.text_only_legacy');
 
     return {
       icon: 'mdi:alert',
       severity: 'high',
       notification: {
         heading: {
-          text: localize('problems.legacy_resource.heading'),
+          text: localize('issues.legacy_resource.heading'),
           icon: 'mdi:alert',
           severity: 'high',
         },
         body: { text },
         link: {
           url: TROUBLESHOOTING_LEGACY_RESOURCE_URL,
-          title: localize('problems.troubleshooting_guide'),
+          title: localize('issues.troubleshooting_guide'),
         },
         ...(this._hasCorrectResource
           ? {
               controls: [
                 {
-                  tooltip: localize('problems.legacy_resource.remove'),
+                  tooltip: localize('issues.legacy_resource.remove'),
                   icon: 'mdi:delete',
                   severity: 'high',
                   actions: {
@@ -152,7 +152,7 @@ export class LegacyResourceProblem implements Problem {
       this._checked = false;
       await this.detectStatic(hass);
 
-      const fixed = !this.hasProblem();
+      const fixed = !this.hasIssue();
       if (fixed) {
         this._changeCallback?.();
       }

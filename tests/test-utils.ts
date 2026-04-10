@@ -46,8 +46,8 @@ import { MediaPlayerManager } from '../src/card-controller/media-player-manager'
 import { MicrophoneManager } from '../src/card-controller/microphone-manager';
 import { NotificationManager } from '../src/card-controller/notification-manager';
 import { PIPManager } from '../src/card-controller/pip-manager';
-import { ProblemStateManager } from '../src/card-controller/problems/state-manager';
-import { ProblemManager } from '../src/card-controller/problems/problem-manager';
+import { IssueStateManager } from '../src/card-controller/issues/state-manager';
+import { IssueManager } from '../src/card-controller/issues/issue-manager';
 import { QueryStringManager } from '../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../src/card-controller/style-manager';
@@ -682,9 +682,9 @@ export const createCardAPI = (): CardController => {
   api.getNotificationManager.mockReturnValue(mock<NotificationManager>());
   api.getPIPManager.mockReturnValue(mock<PIPManager>());
 
-  const problemManager = mock<ProblemManager>();
-  problemManager.getStateManager.mockReturnValue(mock<ProblemStateManager>());
-  api.getProblemManager.mockReturnValue(problemManager);
+  const issueManager = mock<IssueManager>();
+  issueManager.getStateManager.mockReturnValue(mock<IssueStateManager>());
+  api.getIssueManager.mockReturnValue(issueManager);
 
   api.getQueryStringManager.mockReturnValue(mock<QueryStringManager>());
   api.getStatusBarItemManager.mockReturnValue(mock<StatusBarItemManager>());
