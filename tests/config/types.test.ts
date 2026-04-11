@@ -567,7 +567,7 @@ describe('config defaults', () => {
         },
         issues: {
           interaction_mode: 'inactive',
-          retry_seconds: 60,
+          retry_seconds: 'auto',
         },
       },
     });

@@ -590,11 +590,17 @@
         }
       },
       "dim": "Dim when no interaction",
-      "errors": {
-        "editor_label": "Errors",
-        "retry_seconds": "Seconds between error retries (0=disabled)"
-      },
       "interaction_seconds": "Seconds of inactivity before interaction state ends (0=never)",
+      "issues": {
+        "editor_label": "Issues/Errors",
+        "interaction_mode": "How automatic retries behave when the card has human interaction",
+        "interaction_modes": {
+          "active": "Only retry when card has active human interaction",
+          "all": "Retry regardless of human interaction",
+          "inactive": "Only retry when card has no human interaction"
+        },
+        "retry_seconds": "Seconds between automatic retries [default=adaptive, 0=disabled]"
+      },
       "keyboard_shortcuts": {
         "editor_label": "Keyboard shortcuts",
         "enabled": "Keyboard shortcuts enabled",

@@ -152,6 +152,11 @@ export const CONF_VIEW_CAMERA_SELECT = `${CONF_VIEW}.camera_select` as const;
 export const CONF_VIEW_DEFAULT = `${CONF_VIEW}.default` as const;
 export const CONF_VIEW_DIM = `${CONF_VIEW}.dim` as const;
 export const CONF_VIEW_INTERACTION_SECONDS = `${CONF_VIEW}.interaction_seconds` as const;
+export const CONF_VIEW_ISSUES = `${CONF_VIEW}.issues` as const;
+export const CONF_VIEW_ISSUES_INTERACTION_MODE =
+  `${CONF_VIEW_ISSUES}.interaction_mode` as const;
+export const CONF_VIEW_ISSUES_RETRY_SECONDS =
+  `${CONF_VIEW_ISSUES}.retry_seconds` as const;
 export const CONF_VIEW_KEYBOARD_SHORTCUTS = `${CONF_VIEW}.keyboard_shortcuts` as const;
 export const CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED =
   `${CONF_VIEW}.keyboard_shortcuts.enabled` as const;

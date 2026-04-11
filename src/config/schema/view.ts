@@ -76,7 +76,7 @@ export const viewConfigDefault = {
   keyboard_shortcuts: keyboardShortcutsDefault,
   issues: {
     interaction_mode: interactionModeDefault,
-    retry_seconds: 60,
+    retry_seconds: 'auto' as const,
   },
 };
 
@@ -155,7 +155,9 @@ export const viewConfigSchema = z
     issues: z
       .object({
         interaction_mode: interactionModeSchema,
-        retry_seconds: z.number().min(0).default(viewConfigDefault.issues.retry_seconds),
+        retry_seconds: z
+          .union([z.literal('auto'), z.number().min(0)])
+          .default(viewConfigDefault.issues.retry_seconds),
       })
       .default(viewConfigDefault.issues),
   })

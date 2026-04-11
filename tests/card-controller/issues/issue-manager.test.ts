@@ -2,7 +2,11 @@
 import { afterEach, assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CardController } from '../../../src/card-controller/controller';
-import { IssueManager } from '../../../src/card-controller/issues/issue-manager';
+import {
+  IssueManager,
+  RETRY_EXPONENTIAL_BASE_SECONDS,
+  RETRY_EXPONENTIAL_MAX_SECONDS,
+} from '../../../src/card-controller/issues/issue-manager';
 import { Issue, IssueKey } from '../../../src/card-controller/issues/types';
 import { ConditionStateManager } from '../../../src/conditions/state-manager';
 import { InteractionMode } from '../../../src/config/schema/view';
@@ -20,7 +24,7 @@ const createIssue = (key: IssueKey, overrides?: Partial<Issue>): Issue =>
   });
 
 const createRetriableSetup = (options?: {
-  retrySeconds?: number;
+  retrySeconds?: 'auto' | number;
   interactionMode?: InteractionMode;
   hasInteraction?: boolean;
 }): {
@@ -68,6 +72,7 @@ describe('IssueManager', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it('should register a listener on the condition state manager on construction', () => {
@@ -313,8 +318,9 @@ describe('IssueManager', () => {
     });
 
     it('should not schedule a retry when retry_seconds is 0', () => {
-      const { issue } = createRetriableSetup({ retrySeconds: 0 });
+      const { manager, issue } = createRetriableSetup({ retrySeconds: 0 });
 
+      manager.evaluate();
       vi.runAllTimers();
 
       expect(issue.retry).not.toBeCalled();
@@ -412,6 +418,165 @@ describe('IssueManager', () => {
       vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(false);
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
       expect(issue.retry).toBeCalled();
+    });
+  });
+
+  describe('auto retry (exponential backoff)', () => {
+    it('should schedule the first retry within the 15s–30s jitter range', () => {
+      // Math.random returns 0 → jitter = 0.5 → delay = base * 0.5 = 15s.
+      vi.spyOn(Math, 'random').mockReturnValue(0);
+      const { manager, issue } = createRetriableSetup({ retrySeconds: 'auto' });
+      manager.evaluate();
+
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.5 * 1000 - 1);
+      expect(issue.retry).not.toBeCalled();
+
+      vi.advanceTimersByTime(1);
+      expect(issue.retry).toBeCalledTimes(1);
+    });
+
+    it('should schedule the first retry at the upper bound when jitter is max', () => {
+      // Math.random returns 1 → jitter = 1.0 → delay = base * 1.0 = 30s.
+      vi.spyOn(Math, 'random').mockReturnValue(1);
+      const { manager, issue } = createRetriableSetup({ retrySeconds: 'auto' });
+      manager.evaluate();
+
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 1.0 * 1000 - 1);
+      expect(issue.retry).not.toBeCalled();
+
+      vi.advanceTimersByTime(1);
+      expect(issue.retry).toBeCalledTimes(1);
+    });
+
+    it('should double the base delay on each successive attempt', () => {
+      // Math.random returns 0.5 → jitter = 0.75 → delays: 22.5, 45, 90 seconds.
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      const { manager, issue } = createRetriableSetup({ retrySeconds: 'auto' });
+      manager.evaluate();
+
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
+      expect(issue.retry).toBeCalledTimes(1);
+
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 2 * 0.75 * 1000);
+      expect(issue.retry).toBeCalledTimes(2);
+
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 4 * 0.75 * 1000);
+      expect(issue.retry).toBeCalledTimes(3);
+    });
+
+    it('should cap the backoff at the max delay', () => {
+      // Drive 5 pre-cap attempts (30, 60, 120, 240, 480 seconds), then assert
+      // the 6th attempt clamps to MAX instead of the would-be 960.
+      vi.spyOn(Math, 'random').mockReturnValue(1);
+      const { manager, issue } = createRetriableSetup({ retrySeconds: 'auto' });
+      manager.evaluate();
+
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 1 * 1000);
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 2 * 1000);
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 4 * 1000);
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 8 * 1000);
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 16 * 1000);
+      expect(issue.retry).toBeCalledTimes(5);
+
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_MAX_SECONDS * 1000);
+      expect(issue.retry).toBeCalledTimes(6);
+    });
+
+    it('should reset the attempt counter when the issue clears', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      const { manager, issue } = createRetriableSetup({ retrySeconds: 'auto' });
+      manager.evaluate();
+
+      // Run two retries — second delay should be 2x the first.
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 2 * 0.75 * 1000);
+      expect(issue.retry).toBeCalledTimes(2);
+
+      // Clear the issue: needsRetry returns false. The next timer fire sees
+      // it cleared and resets the attempt counter.
+      assert(issue.needsRetry);
+      vi.mocked(issue.needsRetry).mockReturnValue(false);
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 4 * 0.75 * 1000);
+      expect(issue.retry).toBeCalledTimes(2);
+
+      // Re-arm: needsRetry returns true again, evaluate to re-schedule.
+      vi.mocked(issue.needsRetry).mockReturnValue(true);
+      manager.evaluate();
+
+      // Next delay should be back at the base (attempt 0), not continuing
+      // from where we left off.
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
+      expect(issue.retry).toBeCalledTimes(3);
+    });
+
+    it('should not grow the delay while retries are gated by user interaction', () => {
+      // Auto mode + interaction gating: when the timer fires while the user
+      // is interacting, the retry is skipped (not counted as an attempt) and
+      // the timer re-arms at the *same* delay, not the next exponential step.
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      const { api, manager, issue } = createRetriableSetup({
+        retrySeconds: 'auto',
+        hasInteraction: true,
+      });
+      manager.evaluate();
+
+      // Three gated firings — each at the base delay (22.5s with 0.75 jitter).
+      // If the counter were incrementing on gated fires, the second would be
+      // at 45s and we'd never reach it after only 22.5s.
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
+      expect(issue.retry).not.toBeCalled();
+
+      // Clear the interaction. The next firing — still at the base delay —
+      // is now allowed and the retry runs.
+      vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(false);
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
+      expect(issue.retry).toBeCalledTimes(1);
+    });
+
+    it('should reset the attempt counter when retries are disabled and re-enabled', () => {
+      // Drive auto-mode retries to push _retryAttempt > 0, then disable
+      // retries (retry_seconds=0) and re-enable. The next retry must fire at
+      // the base delay, not at the inflated delay the prior counter implies.
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      const { api, manager, issue } = createRetriableSetup({ retrySeconds: 'auto' });
+      manager.evaluate();
+
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 2 * 0.75 * 1000);
+      expect(issue.retry).toBeCalledTimes(2);
+
+      // Disable retries via config.
+      const config = createConfig();
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue({
+        ...config,
+        view: {
+          ...config.view,
+          issues: { interaction_mode: 'inactive', retry_seconds: 0 },
+        },
+      });
+
+      // Let the pending timer fire. The retry runs (#3), then evaluate sees
+      // retry_seconds=0 and resets _retryAttempt.
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 4 * 0.75 * 1000);
+      expect(issue.retry).toBeCalledTimes(3);
+
+      // Re-enable.
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue({
+        ...config,
+        view: {
+          ...config.view,
+          issues: { interaction_mode: 'inactive', retry_seconds: 'auto' },
+        },
+      });
+      manager.evaluate();
+
+      // Without the reset, _retryAttempt would be 3 here, making the next
+      // delay BASE * 8 * 0.75 = 180s. With the reset, it's BASE * 0.75 = 22.5s,
+      // so advancing only the base interval triggers the next retry.
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
+      expect(issue.retry).toBeCalledTimes(4);
     });
   });
 

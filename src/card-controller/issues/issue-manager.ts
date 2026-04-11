@@ -5,6 +5,14 @@ import { CardIssueManagerAPI } from '../types';
 import { IssueStateManager } from './state-manager';
 import { Issue, IssueKey, IssueTriggerContextKey } from './types';
 
+// Exponential backoff schedule for 'auto' retry. The base is set above the
+// per-media retry threshold (~10s) so the issue-level backoff kicks in *after*
+// lower-level recovery has had a chance to work, not in parallel with it.
+export const RETRY_EXPONENTIAL_BASE_SECONDS = 30;
+export const RETRY_EXPONENTIAL_MAX_SECONDS = 600;
+const RETRY_EXPONENTIAL_JITTER_MIN = 0.5;
+const RETRY_EXPONENTIAL_JITTER_MAX = 1.0;
+
 // Wraps the passive IssueStateManager with reaction logic: evaluates issues
 // on state changes, schedules retries, and updates the card. Full-card issues
 // are rendered by card.ts via getStateManager().getFullCardIssue(). Non-full-
@@ -13,6 +21,7 @@ export class IssueManager {
   private _api: CardIssueManagerAPI;
   private _stateManager = new IssueStateManager();
   private _retryTimer = new Timer();
+  private _retryAttempt = 0;
   private _suspended = false;
 
   // Reentrancy guard: evaluate() calls setState() on the condition state
@@ -132,23 +141,57 @@ export class IssueManager {
   private _scheduleRetryIfNeeded(): void {
     if (!this._stateManager.needsRetry()) {
       this._retryTimer.stop();
+      this._retryAttempt = 0;
       return;
     }
-    const retrySeconds =
-      this._api.getConfigManager().getConfig()?.view.issues.retry_seconds ?? 0;
-    if (retrySeconds <= 0 || this._retryTimer.isRunning()) {
+    if (this._retryTimer.isRunning()) {
       return;
     }
-    this._retryTimer.startRepeated(retrySeconds, () => {
+
+    const config = this._api.getConfigManager().getConfig();
+    if (!config) {
+      this._retryAttempt = 0;
+      return;
+    }
+    const delaySeconds = this._nextRetryDelaySeconds(config.view.issues.retry_seconds);
+    if (delaySeconds === null) {
+      this._retryAttempt = 0;
+      return;
+    }
+
+    this._retryTimer.start(delaySeconds, () => {
       if (!this._stateManager.needsRetry()) {
-        this._retryTimer.stop();
+        this._retryAttempt = 0;
         return;
       }
       if (this._isScheduledRetryAllowed()) {
         this._stateManager.retry();
+        this._retryAttempt++;
+        // evaluate() re-arms the timer via _scheduleRetryIfNeeded.
         this.evaluate();
+      } else {
+        // Retry was gated (e.g. user interaction). This isn't a failed attempt
+        // so don't increment — re-arm at the same delay.
+        this._scheduleRetryIfNeeded();
       }
     });
+  }
+
+  private _nextRetryDelaySeconds(retryConfig: 'auto' | number): number | null {
+    if (typeof retryConfig === 'number') {
+      return retryConfig === 0 ? null : retryConfig;
+    }
+
+    // 'auto': exponential backoff, capped, with jitter to avoid thundering-herd
+    // when multiple cards retry the same backend in lockstep.
+    const exp = Math.min(
+      RETRY_EXPONENTIAL_MAX_SECONDS,
+      RETRY_EXPONENTIAL_BASE_SECONDS * 2 ** this._retryAttempt,
+    );
+    const jitter =
+      RETRY_EXPONENTIAL_JITTER_MIN +
+      Math.random() * (RETRY_EXPONENTIAL_JITTER_MAX - RETRY_EXPONENTIAL_JITTER_MIN);
+    return exp * jitter;
   }
 
   private _isScheduledRetryAllowed(): boolean {
