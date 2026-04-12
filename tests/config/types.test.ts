@@ -566,7 +566,7 @@ describe('config defaults', () => {
           untrigger_force_seconds: 0,
         },
         issues: {
-          interaction_mode: 'inactive',
+          interaction_mode: 'all',
           retry_seconds: 'auto',
         },
       },

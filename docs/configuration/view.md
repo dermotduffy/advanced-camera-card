@@ -50,10 +50,10 @@ view:
     # [...]
 ```
 
-| Option             | Default    | Description                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ------------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `interaction_mode` | `inactive` | Whether scheduled retries should happen when the card is being interacted with. If `all`, retries will always happen regardless. If `inactive` retries will only happen if the card has _not_ had human interaction recently (as defined by `view.interaction_seconds`). If `active` retries will only happen if the card _has_ had human interaction recently. User-initiated retries are always allowed.                                                |
-| `retry_seconds`    | `auto`     | Controls automatic retry attempts when an issue is detected (e.g. media not loading, query error). When `auto`, the card uses an exponential backoff schedule starting at ~30 seconds and capped at 10 minutes, with jitter to avoid multiple cards retrying in lockstep. A positive number sets a fixed retry interval in seconds. `0` disables automatic retries entirely. User-initiated retries (e.g. clicking a notification) always run regardless. |
+| Option             | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `interaction_mode` | `all`   | Whether scheduled retries should happen when the card is being interacted with. If `all`, retries will always happen regardless. If `inactive` retries will only happen if the card has _not_ had human interaction recently (as defined by `view.interaction_seconds`). If `active` retries will only happen if the card _has_ had human interaction recently. User-initiated retries are always allowed.                                                |
+| `retry_seconds`    | `auto`  | Controls automatic retry attempts when an issue is detected (e.g. media not loading, query error). When `auto`, the card uses an exponential backoff schedule starting at ~30 seconds and capped at 10 minutes, with jitter to avoid multiple cards retrying in lockstep. A positive number sets a fixed retry interval in seconds. `0` disables automatic retries entirely. User-initiated retries (e.g. clicking a notification) always run regardless. |
 
 ## `keyboard_shortcuts`
 
@@ -212,7 +212,7 @@ view:
   render_entities:
     - switch.render_card
   issues:
-    interaction_mode: inactive
+    interaction_mode: all
     retry_seconds: auto
   dim: false
   triggers:

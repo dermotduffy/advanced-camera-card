@@ -75,7 +75,7 @@ export const viewConfigDefault = {
   },
   keyboard_shortcuts: keyboardShortcutsDefault,
   issues: {
-    interaction_mode: interactionModeDefault,
+    interaction_mode: 'all' as const,
     retry_seconds: 'auto' as const,
   },
 };
