@@ -52,6 +52,14 @@
     padding: 4px 8px;
     border-radius: var(--advanced-camera-card-button-border-radius);
     background: color-mix(in srgb, var(--notification-control-color), transparent 92%);
+
+    // When there are no interactive controls (spinner-only case, e.g.
+    // Connection / Starting full-card notifications) drop the pill chrome so
+    // the spinner looks like a status indicator, not a clickable button.
+    &:not(:has(.control)) {
+      padding: 0;
+      background: none;
+    }
   }
 }
 

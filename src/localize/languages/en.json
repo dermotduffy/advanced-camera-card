@@ -207,6 +207,11 @@
       }
     },
     "common": {
+      "interaction_modes": {
+        "active": "Only when actively interacting",
+        "all": "Always regardless of interaction",
+        "inactive": "Only when not interacting"
+      },
       "controls": {
         "builtin": "Built-in video controls",
         "filter": {
@@ -582,23 +587,13 @@
         "editor_label": "Default view reset behavior",
         "entities": "Reset to the default view on entity state change",
         "every_seconds": "Reset to default view every X seconds (0=never)",
-        "interaction_mode": "How default reset behaves when the card has human interaction",
-        "interaction_modes": {
-          "active": "Only allow reset when card has active human interaction",
-          "all": "Reset regardless of human interaction",
-          "inactive": "Only reset when card has no human interaction"
-        }
+        "interaction_mode": "How default reset behaves when the card has human interaction"
       },
       "dim": "Dim when no interaction",
       "interaction_seconds": "Seconds of inactivity before interaction state ends (0=never)",
       "issues": {
         "editor_label": "Issues/Errors",
         "interaction_mode": "How automatic retries behave when the card has human interaction",
-        "interaction_modes": {
-          "active": "Only retry when card has active human interaction",
-          "all": "Retry regardless of human interaction",
-          "inactive": "Only retry when card has no human interaction"
-        },
         "retry_seconds": "Seconds between automatic retries [default=adaptive, 0=disabled]"
       },
       "keyboard_shortcuts": {
@@ -625,11 +620,6 @@
         "actions": {
           "editor_label": "Trigger actions",
           "interaction_mode": "How to handle actions when the card has human interaction",
-          "interaction_modes": {
-            "active": "Only trigger actions when card has human interaction",
-            "all": "Trigger actions regardless of human interaction",
-            "inactive": "Only trigger actions when card has no human interaction"
-          },
           "trigger": "Trigger action",
           "triggers": {
             "default": "Change to or update default view",
@@ -833,8 +823,14 @@
       "text": "A configuration upgrade is available. To upgrade, edit this card (Dashboard pencil icon \u2192 Three-dot menu \u2192 Edit) and click the 'Automatic Upgrade' button in the card editor"
     },
     "connection": {
-      "heading": "Connection lost",
-      "text": "Connection to Home Assistant lost. Reconnecting"
+      "lost": {
+        "heading": "Connection lost",
+        "text": "Connection to Home Assistant lost"
+      },
+      "starting": {
+        "heading": "Home Assistant is starting",
+        "text": "Waiting for Home Assistant startup to complete"
+      }
     },
     "initialization": {
       "heading": "Initialization failed",

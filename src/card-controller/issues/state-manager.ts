@@ -79,10 +79,11 @@ export class IssueStateManager {
   }
 
   public getIssuePresence(): IssuePresence {
-    const presence = new Set<IssueKey>();
+    const presence: IssuePresence = new Map();
     for (const issue of this._issues.values()) {
-      if (issue.hasIssue()) {
-        presence.add(issue.key);
+      const description = issue.getIssue();
+      if (description) {
+        presence.set(issue.key, description);
       }
     }
     return presence;
@@ -150,7 +151,7 @@ export class IssueStateManager {
     this._loggedKeys.add(issue.key);
     const summary = summarizeNotification(description.notification);
     if (summary) {
-      console.warn(`Advanced Camera Card: [issue=${issue.key}] ${summary}`);
+      console.warn(`Advanced Camera Card [issue=${issue.key}]: ${summary}`);
     }
   }
 }

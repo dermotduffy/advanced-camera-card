@@ -908,19 +908,19 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  private _triggersActionsInteractionModes: EditorSelectOption[] = [
+  private _interactionModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'all',
-      label: localize('config.view.triggers.actions.interaction_modes.all'),
+      label: localize('config.common.interaction_modes.all'),
     },
     {
       value: 'inactive',
-      label: localize('config.view.triggers.actions.interaction_modes.inactive'),
+      label: localize('config.common.interaction_modes.inactive'),
     },
     {
       value: 'active',
-      label: localize('config.view.triggers.actions.interaction_modes.active'),
+      label: localize('config.common.interaction_modes.active'),
     },
   ];
 
@@ -1044,38 +1044,6 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     {
       value: '2-way-audio',
       label: localize('config.cameras.capabilities.capabilities.2-way-audio'),
-    },
-  ];
-
-  private _defaultResetInteractionModes: EditorSelectOption[] = [
-    { value: '', label: '' },
-    {
-      value: 'all',
-      label: localize('config.view.default_reset.interaction_modes.all'),
-    },
-    {
-      value: 'inactive',
-      label: localize('config.view.default_reset.interaction_modes.inactive'),
-    },
-    {
-      value: 'active',
-      label: localize('config.view.default_reset.interaction_modes.active'),
-    },
-  ];
-
-  private _issuesInteractionModes: EditorSelectOption[] = [
-    { value: '', label: '' },
-    {
-      value: 'all',
-      label: localize('config.view.issues.interaction_modes.all'),
-    },
-    {
-      value: 'inactive',
-      label: localize('config.view.issues.interaction_modes.inactive'),
-    },
-    {
-      value: 'active',
-      label: localize('config.view.issues.interaction_modes.active'),
     },
   ];
 
@@ -1485,7 +1453,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._renderNumberInput(CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS)}
         ${this._renderOptionSelector(
           CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
-          this._defaultResetInteractionModes,
+          this._interactionModes,
           {
             label: localize('config.view.default_reset.interaction_mode'),
           },
@@ -1510,7 +1478,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
       html`
         ${this._renderOptionSelector(
           CONF_VIEW_ISSUES_INTERACTION_MODE,
-          this._issuesInteractionModes,
+          this._interactionModes,
           {
             label: localize('config.view.issues.interaction_mode'),
           },
@@ -1568,7 +1536,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
           )}
           ${this._renderOptionSelector(
             CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE,
-            this._triggersActionsInteractionModes,
+            this._interactionModes,
             {
               label: localize('config.view.triggers.actions.interaction_mode'),
             },

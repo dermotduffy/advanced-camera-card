@@ -1,4 +1,4 @@
-import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
+import { HassEntities, HassEntity, STATE_RUNNING } from 'home-assistant-js-websocket';
 import { LitElement } from 'lit';
 import screenfull from 'screenfull';
 import { expect, vi } from 'vitest';
@@ -131,6 +131,10 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
     hass.user = user;
   }
   hass.config.components = [];
+
+  // Default to a fully-started HA so existing tests that don't care about
+  // startup state still represent a "ready" instance.
+  hass.config.state = STATE_RUNNING;
   hass.connection.subscribeMessage = vi.fn();
 
   // ha-nunjucks calls sendMessagePromise to fetch label registry; return empty array to prevent crash.

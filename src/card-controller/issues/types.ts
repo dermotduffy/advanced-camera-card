@@ -24,7 +24,13 @@ export interface KeyedIssueDescription {
   issue: IssueDescription;
 }
 
-export type IssuePresence = Set<IssueKey>;
+// Map of currently active issues keyed by IssueKey, with each entry's value
+// being the issue's current rendered description. Stored as a Map (not just
+// a Set of keys) so that sub-state changes within an issue — e.g.
+// ConnectionIssue swapping between 'lost' and 'starting' — are reflected as
+// real value-level diffs to the condition state, triggering re-renders and
+// any user-defined conditions that depend on issue state.
+export type IssuePresence = Map<IssueKey, IssueDescription>;
 
 export type IssueTriggerContextKey = keyof IssueTriggerContext;
 export type IssueTriggerEventData = {

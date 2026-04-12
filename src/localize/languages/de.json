@@ -301,12 +301,7 @@
         "after_interaction": "Zurücksetzen auf Standardansicht nach Ende der Benutzerinteraktion",
         "editor_label": "Verhalten Zurücksetzen auf Standardansicht",
         "entities": "Nach Zustandsänderung der Entität Zurücksetzen auf Standardansicht",
-        "interaction_mode": "Wie der Standard-Reset bei Benutzerinteraktion verhalten soll",
-        "interaction_modes": {
-          "active": "Zeige nur wenn Karte Nutzerinteraktion erfährt",
-          "all": "Zurücksetzen unabhängig von Benutzerinteraktion",
-          "inactive": "Nur zurücksetzen wenn keine Nutzerinteraktion"
-        }
+        "interaction_mode": "Wie der Standard-Reset bei Benutzerinteraktion verhalten soll"
       },
       "dim": "Abdimmen wenn keine Interaktion",
       "interaction_seconds": "Sekunden nach der Interaktion aktiv bleiben (0=niemals)",
@@ -334,11 +329,6 @@
         "actions": {
           "editor_label": "Auslöseaktion",
           "interaction_mode": "Wie Aktion verarbeiten, wenn Karte Nutzerinteraktion hat",
-          "interaction_modes": {
-            "active": "Nur auslösen, wenn Karte Nutzerinteraktion hat",
-            "all": "Auslösen unabhängig von Nutzerinteraktion",
-            "inactive": "Nur auslösen wenn Karte keine Nutzerinteraktion hat"
-          },
           "trigger": "Auslöseaktion",
           "triggers": {
             "default": "Wechseln in oder Anpassen der Standardansicht",

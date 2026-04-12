@@ -531,12 +531,7 @@
         "editor_label": "Zachowanie resetu widoku domyślnego",
         "entities": "Resetuj do widoku domyślnego przy zmianie stanu encji",
         "every_seconds": "Resetuj do widoku domyślnego co X sekund (0=nigdy)",
-        "interaction_mode": "Jak reset domyślny zachowuje się przy interakcji człowieka",
-        "interaction_modes": {
-          "active": "Zezwalaj na reset tylko przy aktywnej interakcji",
-          "all": "Resetuj niezależnie od interakcji",
-          "inactive": "Resetuj tylko przy braku interakcji"
-        }
+        "interaction_mode": "Jak reset domyślny zachowuje się przy interakcji człowieka"
       },
       "dim": "Przyciemnij przy braku interakcji",
       "interaction_seconds": "Sekundy podtrzymania interakcji po akcji użytkownika (0=nigdy)",
@@ -564,11 +559,6 @@
         "actions": {
           "editor_label": "Akcje wyzwalaczy",
           "interaction_mode": "Obsługa akcji przy interakcji człowieka",
-          "interaction_modes": {
-            "active": "Wyzwalaj tylko przy interakcji człowieka",
-            "all": "Wyzwalaj niezależnie od interakcji",
-            "inactive": "Wyzwalaj tylko przy braku interakcji"
-          },
           "trigger": "Akcja aktywacji",
           "triggers": {
             "default": "Zmień na lub zaktualizuj widok domyślny",

@@ -124,7 +124,7 @@ export const getDiagnostics = async (
       },
       hass_web_proxy: await getIntegrationDiagnostics(HASS_WEB_PROXY_DOMAIN, hass),
     },
-    issues: issues ? [...issues] : [],
+    issues: issues ? [...issues.keys()] : [],
     ...(rawConfig && { config: rawConfig }),
   };
 };

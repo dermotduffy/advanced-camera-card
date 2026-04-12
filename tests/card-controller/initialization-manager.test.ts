@@ -1,3 +1,4 @@
+import { STATE_STARTING } from 'home-assistant-js-websocket';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import {
@@ -62,6 +63,24 @@ describe('InitializationManager', () => {
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
       await manager.initializeMandatory();
+      expect(manager.wasEverInitialized()).toBeFalsy();
+    });
+
+    it('should be a no-op when hass.config.state is not RUNNING', async () => {
+      const api = createCardAPI();
+      const hass = createHASS();
+      hass.config.state = STATE_STARTING;
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+
+      await manager.initializeMandatory();
+
+      expect(initializer.initializeMultipleIfNecessary).not.toBeCalled();
+      expect(initializer.initializeIfNecessary).not.toBeCalled();
+      expect(api.getIssueManager().trigger).not.toBeCalled();
       expect(manager.wasEverInitialized()).toBeFalsy();
     });
 

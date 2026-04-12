@@ -1,3 +1,4 @@
+import { STATE_RUNNING } from 'home-assistant-js-websocket';
 import PQueue from 'p-queue';
 import { sideLoadHomeAssistantElements } from '../ha/side-load-ha-elements';
 import { loadLanguages } from '../localize/localize';
@@ -85,6 +86,15 @@ export class InitializationManager {
   private async _initializeMandatory(): Promise<void> {
     const hass = this._api.getHASSManager().getHASS();
     if (!hass || this.isInitializedMandatory()) {
+      return;
+    }
+
+    // Wait until HA has finished loading integrations before attempting init.
+    // Otherwise integration-specific WS calls (e.g. Frigate event
+    // subscriptions) fail with "Unknown command" against a half-loaded HA. The
+    // HASSManager will trigger another init attempt as soon as
+    // hass.config.state transitions to RUNNING.
+    if (hass.config?.state !== STATE_RUNNING) {
       return;
     }
 

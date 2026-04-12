@@ -38,12 +38,12 @@ export class InitializationIssue implements Issue {
   }
 
   public retry(): boolean {
-    // Clear the error so the full-card issue is removed and
-    // shouldUpdate() no longer short-circuits before initializeMandatory().
+    // Clear the error so the full-card issue is removed and shouldUpdate()
+    // no longer short-circuits before initializeMandatory().
     this._error = null;
 
-    // Reset init state so _initializeMandatory() re-attempts on the next render
-    // cycle.
+    // Reset init state so initializeMandatory() re-attempts on the next
+    // render cycle.
     this._api.getInitializationManager().uninitializeMandatory();
     this._api.getCameraManager().destroy();
     return false;

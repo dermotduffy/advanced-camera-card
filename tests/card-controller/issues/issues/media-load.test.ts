@@ -315,6 +315,43 @@ describe('MediaLoadIssue', () => {
       );
     });
 
+    it('should include metadata for errored targets', () => {
+      const issue = new MediaLoadIssue(createAPI());
+      issue.trigger({ targetID: 'camera.office' });
+
+      const notification = issue.getNotification();
+      expect(notification.metadata).toEqual([
+        expect.objectContaining({ text: 'camera.office', icon: 'mdi:cctv' }),
+      ]);
+    });
+
+    it('should include the pending timer target in metadata', () => {
+      const issue = new MediaLoadIssue(createAPI());
+
+      // Start a load timer (no explicit error yet, just slow-loading).
+      issue.detectDynamic({ targetID: 'camera.garden', view: 'live' });
+
+      const notification = issue.getNotification();
+      expect(notification.metadata).toEqual([
+        expect.objectContaining({ text: 'camera.garden', icon: 'mdi:cctv' }),
+      ]);
+    });
+
+    it('should use camera title when available', () => {
+      const api = createAPI();
+      vi.mocked(api.getCameraManager().getCameraMetadata).mockReturnValue({
+        title: 'Office',
+        icon: { icon: 'mdi:cctv' },
+      });
+      const issue = new MediaLoadIssue(api);
+      issue.trigger({ targetID: 'camera.office' });
+
+      const notification = issue.getNotification();
+      expect(notification.metadata).toEqual([
+        expect.objectContaining({ text: 'Office' }),
+      ]);
+    });
+
     it('should include a retry control with wired callback', async () => {
       const api = createCardAPI();
       const issue = new MediaLoadIssue(api);
@@ -375,7 +412,7 @@ describe('MediaLoadIssue', () => {
   });
 
   describe('retry', () => {
-    it('should deactivate issue and reset timer', () => {
+    it('should keep issue active after retry so error stays visible', () => {
       const onChange = vi.fn();
       const issue = new MediaLoadIssue(createAPI(), onChange);
 
@@ -385,25 +422,9 @@ describe('MediaLoadIssue', () => {
 
       issue.retry();
 
-      expect(issue.hasIssue()).toBe(false);
-      // Timer should not re-fire after retry.
-      vi.advanceTimersByTime(10000);
-      expect(onChange).toBeCalledTimes(1); // Only the original activation.
-    });
-
-    it('should deactivate pending timer before timeout', () => {
-      const onChange = vi.fn();
-      const issue = new MediaLoadIssue(createAPI(), onChange);
-
-      issue.detectDynamic({ view: 'live' });
-      vi.advanceTimersByTime(5000);
-
-      issue.retry();
-
-      // Timer was stopped — should not fire.
-      vi.advanceTimersByTime(10000);
-      expect(issue.hasIssue()).toBe(false);
-      expect(onChange).not.toBeCalled();
+      // Issue remains active — no new 10s grace period. The error stays
+      // visible while the provider re-attempts loading underneath.
+      expect(issue.hasIssue()).toBe(true);
     });
 
     it('should return false when no targets have errors', () => {
@@ -476,18 +497,23 @@ describe('MediaLoadIssue', () => {
       });
     });
 
-    it('should clear errored targets after retry', () => {
+    it('should keep errored targets and issue state after retry', () => {
       const api = createAPI();
       vi.mocked(api.getViewManager().getView).mockReturnValue(mock<View>());
       const issue = new MediaLoadIssue(api);
 
       issue.trigger({ targetID: 'camera-1' });
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+      expect(issue.hasIssue()).toBe(true);
+
       issue.retry();
 
-      // After retry, the errored target is cleared — detecting the same
-      // target without media does not immediately activate.
+      // After retry, the issue stays active and the errored target is
+      // preserved — no new 10s grace period. If media:loaded fires, the
+      // existing _handleMediaLoaded path will clear everything.
+      expect(issue.hasIssue()).toBe(true);
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
-      expect(issue.hasIssue()).toBe(false);
+      expect(issue.hasIssue()).toBe(true);
     });
   });
 

@@ -63,6 +63,13 @@ export class IssueManager {
 
   // Evaluate all dynamic issues against current state, then react to any
   // changes: notify, update condition state, and schedule retries.
+  //
+  // Detection of "anything changed" is delegated to the condition state
+  // manager: IssuePresence is a Map<IssueKey, IssueDescription>, so its
+  // deep equality check naturally catches both presence-set churn (issues
+  // appearing/disappearing) and content-level churn (an issue swapping
+  // sub-states without changing its key, e.g. ConnectionIssue going from
+  // 'lost' to 'starting').
   public evaluate(): void {
     if (this._suspended || this._evaluating) {
       return;

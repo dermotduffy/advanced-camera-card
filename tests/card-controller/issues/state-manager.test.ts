@@ -166,14 +166,16 @@ describe('IssueStateManager', () => {
   });
 
   describe('getIssuePresence', () => {
-    it('should return presence map', () => {
-      vi.mocked(mockConfigUpgrade.hasIssue).mockReturnValue(true);
-      vi.mocked(mockLegacyResource.hasIssue).mockReturnValue(false);
+    it('should return a map keyed by issue key with the current description as value', () => {
+      const description = createIssueDescription();
+      vi.mocked(mockConfigUpgrade.getIssue).mockReturnValue(description);
+      vi.mocked(mockLegacyResource.getIssue).mockReturnValue(null);
 
       const manager = createManager();
 
       const presence = manager.getIssuePresence();
       expect(presence.has('config_upgrade')).toBe(true);
+      expect(presence.get('config_upgrade')).toBe(description);
       expect(presence.has('legacy_resource')).toBe(false);
     });
   });
@@ -332,7 +334,7 @@ describe('IssueStateManager', () => {
       await manager.detectStatic(createHASS());
 
       expect(spy).toBeCalledWith(
-        'Advanced Camera Card: [issue=legacy_resource] Legacy issue',
+        'Advanced Camera Card [issue=legacy_resource]: Legacy issue',
       );
       spy.mockRestore();
     });
@@ -349,7 +351,7 @@ describe('IssueStateManager', () => {
       manager.detectDynamic({ view: 'live' });
 
       expect(spy).toBeCalledWith(
-        'Advanced Camera Card: [issue=media_load] Stream issue',
+        'Advanced Camera Card [issue=media_load]: Stream issue',
       );
       spy.mockRestore();
     });

@@ -283,6 +283,15 @@ class AdvancedCameraCard extends LitElement {
       return;
     }
 
+    // Suppress the status bar entirely while a full-card issue (config
+    // error, lost connection, failed initialization) is rendering. Those
+    // take over the card and the status bar would be either redundant
+    // chrome (showing the engine icon etc. over an error) or physically
+    // obscuring the notification (in popup/overlay styles).
+    if (this._controller.getIssueManager().getStateManager().hasFullCardIssue()) {
+      return;
+    }
+
     return html`
       <advanced-camera-card-status-bar
         slot=${ifDefined(slot)}

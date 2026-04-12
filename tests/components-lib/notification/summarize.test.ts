@@ -27,4 +27,22 @@ describe('summarizeNotification', () => {
     const notification: Notification = {};
     expect(summarizeNotification(notification)).toBeNull();
   });
+
+  it('should append metadata text in brackets', () => {
+    const notification: Notification = {
+      body: { text: 'Media not loading' },
+      metadata: [{ text: 'camera.office' }, { text: 'camera.garden' }],
+    };
+    expect(summarizeNotification(notification)).toBe(
+      'Media not loading [camera.office, camera.garden]',
+    );
+  });
+
+  it('should not append brackets when metadata is empty', () => {
+    const notification: Notification = {
+      body: { text: 'Body text' },
+      metadata: [],
+    };
+    expect(summarizeNotification(notification)).toBe('Body text');
+  });
 });

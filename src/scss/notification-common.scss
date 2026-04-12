@@ -11,10 +11,14 @@
   align-items: center;
   justify-content: center;
   opacity: 0.5;
-  padding-right: 8px;
-  margin-right: 4px;
-  border-right: 1px solid
-    color-mix(in srgb, var(--notification-control-color), transparent 70%);
+
+  // Only render the divider when the spinner is followed by controls.
+  &:not(:last-child) {
+    padding-right: 8px;
+    margin-right: 4px;
+    border-right: 1px solid
+      color-mix(in srgb, var(--notification-control-color), transparent 70%);
+  }
 }
 
 .control {

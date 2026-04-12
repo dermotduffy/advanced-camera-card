@@ -80,6 +80,11 @@ export class MediaLoadIssue implements Issue {
   }
 
   public getNotification(): Notification {
+    const targets = new Set(this._erroredTargetIDs);
+    if (this._timerTargetID) {
+      targets.add(this._timerTargetID);
+    }
+
     return {
       heading: {
         text: localize('issues.media_load.heading'),
@@ -89,6 +94,12 @@ export class MediaLoadIssue implements Issue {
       body: {
         text: localize('issues.media_load.text'),
       },
+      ...(targets.size && {
+        metadata: Array.from(targets).map((id) => ({
+          text: this._api.getCameraManager().getCameraMetadata(id)?.title ?? id,
+          icon: 'mdi:cctv',
+        })),
+      }),
       link: {
         url: TROUBLESHOOTING_MEDIA_URL,
         title: localize('issues.troubleshooting_guide'),
@@ -106,19 +117,12 @@ export class MediaLoadIssue implements Issue {
   }
 
   public retry(): boolean {
-    // Capture the pending timer target before _deactivate() clears it.
-    const pendingTarget = this._timerTargetID;
-
-    // Reset the pending timer so the timeout window can restart after the
-    // retry.
-    this._deactivate();
-
-    // Build the set of targets to retry: all errored targets plus the target
-    // the pending timer was tracking (so a user-initiated retry works even
-    // before the timeout fires).
+    // Build the set of targets to retry: all errored targets plus the
+    // target the pending timer was tracking (so a user-initiated retry
+    // works even before the timeout fires).
     const retryTargets = new Set(this._erroredTargetIDs);
-    if (pendingTarget) {
-      retryTargets.add(pendingTarget);
+    if (this._timerTargetID) {
+      retryTargets.add(this._timerTargetID);
     }
 
     if (!retryTargets.size) {
@@ -131,10 +135,12 @@ export class MediaLoadIssue implements Issue {
       mediaEpoch[id] = (mediaEpoch[id] ?? 0) + 1;
     }
 
-    // Clear errored targets so the next detectDynamic does not see stale
-    // errors and immediately re-activate via _hasError().
-    this._erroredTargetIDs.clear();
-
+    // Intentionally keep _issueActive, _erroredTargetIDs, and the pending
+    // timer in place. The issue stays visible while the provider
+    // re-attempts loading underneath. If the retry succeeds,
+    // _handleMediaLoaded will clear everything when media:loaded fires. If
+    // it fails silently (e.g. bogus stream name), the error stays visible
+    // immediately — no new 10s grace period.
     this._api.getViewManager().setViewWithMergedContext({ mediaEpoch });
     return false;
   }

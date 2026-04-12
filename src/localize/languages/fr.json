@@ -481,12 +481,7 @@
         "editor_label": "Comportement de réinitialisation de la vue par défaut",
         "entities": "Réinitialiser à la vue par défaut lors du changement d'état de l'entité",
         "every_seconds": "Actualiser la vue par défaut toutes les X secondes (0=jamais)",
-        "interaction_mode": "Comment la réinitialisation par défaut se comporte lorsque la carte a une interaction humaine",
-        "interaction_modes": {
-          "active": "Autoriser la réinitialisation uniquement lorsque la carte a une interaction humaine active",
-          "all": "Réinitialiser indépendamment de l'interaction humaine",
-          "inactive": "Réinitialiser uniquement lorsque la carte n'a pas d'interaction humaine"
-        }
+        "interaction_mode": "Comment la réinitialisation par défaut se comporte lorsque la carte a une interaction humaine"
       },
       "dim": "Assombrir si pas d'interaction",
       "interaction_seconds": "Secondes après l'action de l'utilisateur pour maintenir l'interaction (0=jamais)",
@@ -514,11 +509,6 @@
         "actions": {
           "editor_label": "Actions de déclenchement",
           "interaction_mode": "Comment gérer les actions lorsque la carte comporte une interaction humaine ?",
-          "interaction_modes": {
-            "active": "Ne déclencher des actions que lorsque la carte a une interaction humaine",
-            "all": "Déclencher des actions sans interaction humaine",
-            "inactive": "Ne déclencher des actions que lorsque la carte n'a pas d'interaction humaine"
-          },
           "trigger": "Actions de déclenchement",
           "triggers": {
             "default": "Changement vers ou mise à jour de la vue par défaut",

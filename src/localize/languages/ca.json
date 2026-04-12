@@ -366,11 +366,6 @@
         "actions": {
           "editor_label": "Activar accions",
           "interaction_mode": "Com gestionar les accions quan la targeta té interacció humana",
-          "interaction_modes": {
-            "active": "Activa només accions quan la targeta té interacció humana",
-            "all": "Activa accions independentment de la interacció humana",
-            "inactive": "Només activa accions quan la targeta no té interacció humana"
-          },
           "trigger": "Activar l'acció",
           "triggers": {
             "default": "Canvia o actualitza la vista predeterminada",

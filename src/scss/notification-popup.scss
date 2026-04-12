@@ -118,6 +118,14 @@
     var(--advanced-camera-card-notification-popup-close-color),
     transparent 92%
   );
+
+  // When there are no interactive controls (spinner-only case) drop the pill
+  // chrome so the spinner looks like as a status indicator, not a clickable
+  // button.
+  &:not(:has(.control)) {
+    padding: 0;
+    background: none;
+  }
 }
 
 .close {
