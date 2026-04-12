@@ -4,6 +4,7 @@ import { Notification } from '../../../config/schema/actions/types.js';
 import { TROUBLESHOOTING_MEDIA_URL } from '../../../const.js';
 import { localize } from '../../../localize/localize.js';
 import { Timer } from '../../../utils/timer.js';
+import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../../view/target-id.js';
 import { isAnyMediaViewName } from '../../../view/view.js';
 import { CardIssueManagerAPI } from '../../types.js';
 import { createRetryControl } from '../retry-control.js';
@@ -96,8 +97,11 @@ export class MediaLoadIssue implements Issue {
       },
       ...(targets.size && {
         metadata: Array.from(targets).map((id) => ({
-          text: this._api.getCameraManager().getCameraMetadata(id)?.title ?? id,
-          icon: 'mdi:cctv',
+          text:
+            id === IMAGE_VIEW_TARGET_ID_SENTINEL
+              ? localize('editor.image')
+              : this._api.getCameraManager().getCameraMetadata(id)?.title ?? id,
+          icon: id === IMAGE_VIEW_TARGET_ID_SENTINEL ? 'mdi:image' : 'mdi:cctv',
         })),
       }),
       link: {

@@ -110,10 +110,21 @@ export class AdvancedCameraCardImageUpdatingPlayer
     () => this._getImageSource(),
     () => dispatchMediaPlayEvent(this),
     () => dispatchMediaPauseEvent(this),
-    // Clear image load errors on each timer tick so the next render retries the
-    // <img>. Retries are bounded by refresh_seconds, not a tight loop.
+    // Clear image load errors on each timer tick so the next render retries
+    // the <img> — but only for modes where the underlying URL genuinely
+    // changes between ticks (camera/entity snapshots). For mode: url, the
+    // same static URL will fail the same way every time, so clearing the
+    // error just causes a visible flicker (notification → blank <img> →
+    // notification) every refresh_seconds. URL-mode retries are driven by
+    // mediaEpoch (user-initiated or auto-retry) instead.
     () => {
-      this._imageLoadError = false;
+      const mode = resolveImageMode({
+        imageConfig: this.imageConfig,
+        cameraConfig: this.cameraConfig,
+      });
+      if (mode !== 'url') {
+        this._imageLoadError = false;
+      }
     },
   );
 

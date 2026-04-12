@@ -352,6 +352,16 @@ describe('MediaLoadIssue', () => {
       ]);
     });
 
+    it('should use localized label and image icon for the image-view sentinel', () => {
+      const issue = new MediaLoadIssue(createAPI());
+      issue.trigger({ targetID: IMAGE_VIEW_TARGET_ID_SENTINEL });
+
+      const notification = issue.getNotification();
+      expect(notification.metadata).toEqual([
+        expect.objectContaining({ text: 'Image', icon: 'mdi:image' }),
+      ]);
+    });
+
     it('should include a retry control with wired callback', async () => {
       const api = createCardAPI();
       const issue = new MediaLoadIssue(api);
