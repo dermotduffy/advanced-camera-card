@@ -25,6 +25,22 @@ export const CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH =
   `${CONF_CAMERAS}.#.cast.dashboard.dashboard_path` as const;
 export const CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH =
   `${CONF_CAMERAS}.#.cast.dashboard.view_path` as const;
+export const CONF_CAMERAS_ARRAY_CALL_MODE_ENABLED =
+  `${CONF_CAMERAS}.#.call_mode.enabled` as const;
+export const CONF_CAMERAS_ARRAY_CALL_MODE_STREAM =
+  `${CONF_CAMERAS}.#.call_mode.stream` as const;
+export const CONF_CAMERAS_ARRAY_CALL_MODE_AUTO_ENABLE_MICROPHONE =
+  `${CONF_CAMERAS}.#.call_mode.auto_enable_microphone` as const;
+export const CONF_CAMERAS_ARRAY_CALL_MODE_AUTO_ENABLE_SPEAKER =
+  `${CONF_CAMERAS}.#.call_mode.auto_enable_speaker` as const;
+export const CONF_CAMERAS_ARRAY_CALL_MODE_LOCK_NAVIGATION =
+  `${CONF_CAMERAS}.#.call_mode.lock_navigation` as const;
+export const CONF_CAMERAS_ARRAY_CALL_MODE_SHOW_IN_MENU =
+  `${CONF_CAMERAS}.#.call_mode.show_in_menu` as const;
+export const CONF_CAMERAS_ARRAY_CALL_MODE_RESUME_NORMAL_STREAM_ON_END =
+  `${CONF_CAMERAS}.#.call_mode.resume_normal_stream_on_end` as const;
+export const CONF_CAMERAS_ARRAY_CALL_MODE_END_CALL_ON_VIEW_CHANGE =
+  `${CONF_CAMERAS}.#.call_mode.end_call_on_view_change` as const;
 export const CONF_CAMERAS_ARRAY_DIMENSIONS_ASPECT_RATIO =
   `${CONF_CAMERAS}.#.dimensions.aspect_ratio` as const;
 export const CONF_CAMERAS_ARRAY_DIMENSIONS_ROTATION =
@@ -367,6 +383,7 @@ export const CONF_MENU_BUTTON_SIZE = `${CONF_MENU}.button_size` as const;
 export const CONF_MENU_BUTTONS = `${CONF_MENU}.buttons` as const;
 
 export const CONF_MENU_BUTTONS_FULLSCREEN = `${CONF_MENU_BUTTONS}.fullscreen` as const;
+export const CONF_MENU_BUTTONS_CALL = `${CONF_MENU_BUTTONS}.call` as const;
 export const CONF_MENU_BUTTONS_IRIS = `${CONF_MENU_BUTTONS}.iris` as const;
 export const CONF_MENU_BUTTONS_PLAY = `${CONF_MENU_BUTTONS}.play` as const;
 export const CONF_MENU_BUTTONS_MUTE = `${CONF_MENU_BUTTONS}.mute` as const;

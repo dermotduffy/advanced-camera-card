@@ -3,6 +3,7 @@
   - [`actions`](../actions/README.md)
   - [`automations`](../automations.md)
   - [`cameras`](README.md)
+    - [`call_mode`](call-mode.md)
     - [`live_provider`](live-provider.md)
     - [`engine`](engine.md)
   - [`conditions`](../conditions.md)

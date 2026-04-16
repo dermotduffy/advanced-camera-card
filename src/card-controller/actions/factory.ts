@@ -3,6 +3,8 @@ import { INTERNAL_CALLBACK_ACTION } from '../../config/schema/actions/custom/int
 import { ActionConfig, AuxillaryActionConfig } from '../../config/schema/actions/types';
 import { isAdvancedCameraCardCustomAction } from '../../utils/action';
 import { CallServiceAction } from './actions/call-service';
+import { CallEndAction } from './actions/call-end';
+import { CallStartAction } from './actions/call-start';
 import { CameraSelectAction } from './actions/camera-select';
 import { CameraUIAction } from './actions/camera-ui';
 import { CustomAction } from './actions/custom';
@@ -83,6 +85,10 @@ export class ActionFactory {
     }
 
     switch (action.advanced_camera_card_action) {
+      case 'call_end':
+        return new CallEndAction(context, action, options?.config);
+      case 'call_start':
+        return new CallStartAction(context, action, options?.config);
       case 'default':
         return new DefaultAction(context, action, options?.config);
       case 'clip':

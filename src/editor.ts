@@ -36,6 +36,14 @@ import {
   CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_ALWAYS_ERROR_IF_ENTITY_UNAVAILABLE,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
+  CONF_CAMERAS_ARRAY_CALL_MODE_AUTO_ENABLE_MICROPHONE,
+  CONF_CAMERAS_ARRAY_CALL_MODE_AUTO_ENABLE_SPEAKER,
+  CONF_CAMERAS_ARRAY_CALL_MODE_ENABLED,
+  CONF_CAMERAS_ARRAY_CALL_MODE_END_CALL_ON_VIEW_CHANGE,
+  CONF_CAMERAS_ARRAY_CALL_MODE_LOCK_NAVIGATION,
+  CONF_CAMERAS_ARRAY_CALL_MODE_RESUME_NORMAL_STREAM_ON_END,
+  CONF_CAMERAS_ARRAY_CALL_MODE_SHOW_IN_MENU,
+  CONF_CAMERAS_ARRAY_CALL_MODE_STREAM,
   CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE,
   CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT,
   CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH,
@@ -263,6 +271,7 @@ import { getCameraID } from './utils/camera.js';
 const MENU_CAMERAS = 'cameras';
 const MENU_CAMERAS_CAPABILITIES = 'cameras.capabilities';
 const MENU_CAMERAS_CAST = 'cameras.cast';
+const MENU_CAMERAS_CALL_MODE = 'cameras.call_mode';
 const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
 const MENU_CAMERAS_DIMENSIONS = 'cameras.dimensions';
 const MENU_CAMERAS_DIMENSIONS_LAYOUT = 'cameras.dimensions.layout';
@@ -2127,6 +2136,12 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     entities: string[],
     addNewCamera?: boolean,
   ): TemplateResult | void {
+    const callModeEnabled = !!getConfigValue(
+      this._config,
+      getArrayConfigPath(CONF_CAMERAS_ARRAY_CALL_MODE_ENABLED, cameraIndex),
+      this._defaults.cameras.call_mode.enabled,
+    );
+
     const liveProviders: EditorSelectOption[] = [
       { value: '', label: '' },
       { value: 'auto', label: localize('config.cameras.live_providers.auto') },
@@ -2382,6 +2397,107 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                     getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
                   )}`,
                 )}`,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_CALL_MODE,
+                cameraIndex,
+                'config.cameras.call_mode.editor_label',
+                'mdi:phone',
+                html`
+                  ${this._renderSwitch(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_CALL_MODE_ENABLED,
+                      cameraIndex,
+                    ),
+                    this._defaults.cameras.call_mode.enabled,
+                    {
+                      label: localize('config.cameras.call_mode.enabled'),
+                    },
+                  )}
+                  ${callModeEnabled
+                    ? html`
+                        ${this._renderStringInput(
+                          getArrayConfigPath(
+                            CONF_CAMERAS_ARRAY_CALL_MODE_STREAM,
+                            cameraIndex,
+                          ),
+                          {
+                            label: localize('config.cameras.call_mode.stream'),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          getArrayConfigPath(
+                            CONF_CAMERAS_ARRAY_CALL_MODE_AUTO_ENABLE_MICROPHONE,
+                            cameraIndex,
+                          ),
+                          this._defaults.cameras.call_mode.auto_enable_microphone,
+                          {
+                            label: localize(
+                              'config.cameras.call_mode.auto_enable_microphone',
+                            ),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          getArrayConfigPath(
+                            CONF_CAMERAS_ARRAY_CALL_MODE_AUTO_ENABLE_SPEAKER,
+                            cameraIndex,
+                          ),
+                          this._defaults.cameras.call_mode.auto_enable_speaker,
+                          {
+                            label: localize(
+                              'config.cameras.call_mode.auto_enable_speaker',
+                            ),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          getArrayConfigPath(
+                            CONF_CAMERAS_ARRAY_CALL_MODE_LOCK_NAVIGATION,
+                            cameraIndex,
+                          ),
+                          this._defaults.cameras.call_mode.lock_navigation,
+                          {
+                            label: localize(
+                              'config.cameras.call_mode.lock_navigation',
+                            ),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          getArrayConfigPath(
+                            CONF_CAMERAS_ARRAY_CALL_MODE_SHOW_IN_MENU,
+                            cameraIndex,
+                          ),
+                          this._defaults.cameras.call_mode.show_in_menu,
+                          {
+                            label: localize('config.cameras.call_mode.show_in_menu'),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          getArrayConfigPath(
+                            CONF_CAMERAS_ARRAY_CALL_MODE_RESUME_NORMAL_STREAM_ON_END,
+                            cameraIndex,
+                          ),
+                          this._defaults.cameras.call_mode.resume_normal_stream_on_end,
+                          {
+                            label: localize(
+                              'config.cameras.call_mode.resume_normal_stream_on_end',
+                            ),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          getArrayConfigPath(
+                            CONF_CAMERAS_ARRAY_CALL_MODE_END_CALL_ON_VIEW_CHANGE,
+                            cameraIndex,
+                          ),
+                          this._defaults.cameras.call_mode.end_call_on_view_change,
+                          {
+                            label: localize(
+                              'config.cameras.call_mode.end_call_on_view_change',
+                            ),
+                          },
+                        )}
+                      `
+                    : ''}
+                `,
               )}
               ${this._putInSubmenu(
                 MENU_CAMERAS_DEPENDENCIES,
@@ -2791,6 +2907,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${this._renderMenuButton('image') /* */}
                 ${this._renderMenuButton('download')}
                 ${this._renderMenuButton('camera_ui')}
+                ${this._renderMenuButton('call')}
                 ${this._renderMenuButton('fullscreen')}
                 ${this._renderMenuButton('expand') /* */}
                 ${this._renderMenuButton('timeline')}

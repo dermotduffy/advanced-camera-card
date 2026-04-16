@@ -27,6 +27,7 @@ export const menuConfigDefault = {
   alignment: 'left' as const,
   button_size: 40,
   buttons: {
+    call: visibleButtonDefault,
     camera_ui: visibleButtonDefault,
     cameras: visibleButtonDefault,
     clips: visibleButtonDefault,
@@ -74,6 +75,7 @@ export const menuConfigSchema = z
     alignment: z.enum(MENU_ALIGNMENTS).default(menuConfigDefault.alignment),
     buttons: z
       .object({
+        call: visibleButtonSchema.default(menuConfigDefault.buttons.call),
         camera_ui: visibleButtonSchema.default(menuConfigDefault.buttons.camera_ui),
         cameras: visibleButtonSchema.default(menuConfigDefault.buttons.cameras),
         clips: visibleButtonSchema.default(menuConfigDefault.buttons.clips),

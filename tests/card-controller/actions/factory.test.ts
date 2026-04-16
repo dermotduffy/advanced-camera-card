@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { CallServiceAction } from '../../../src/card-controller/actions/actions/call-service';
+import { CallEndAction } from '../../../src/card-controller/actions/actions/call-end';
+import { CallStartAction } from '../../../src/card-controller/actions/actions/call-start';
 import { CameraSelectAction } from '../../../src/card-controller/actions/actions/camera-select';
 import { CameraUIAction } from '../../../src/card-controller/actions/actions/camera-ui';
 import { CustomAction } from '../../../src/card-controller/actions/actions/custom';
@@ -85,6 +87,8 @@ describe('ActionFactory', () => {
     it.each([
       [{ advanced_camera_card_action: 'camera_select' as const }, CameraSelectAction],
       [{ advanced_camera_card_action: 'camera_ui' as const }, CameraUIAction],
+      [{ advanced_camera_card_action: 'call_end' as const }, CallEndAction],
+      [{ advanced_camera_card_action: 'call_start' as const }, CallStartAction],
       [{ advanced_camera_card_action: 'clip' as const }, ViewAction],
       [{ advanced_camera_card_action: 'clips' as const }, ViewAction],
       [{ advanced_camera_card_action: 'default' as const }, DefaultAction],

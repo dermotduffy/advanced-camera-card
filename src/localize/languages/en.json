@@ -3,6 +3,17 @@
     "abort": "Aborted action",
     "confirmation": "Are you sure you want to perform this action"
   },
+  "call": {
+    "active": "Call in progress",
+    "connecting": "Connecting call",
+    "end": "End call",
+    "ending": "Ending call",
+    "mute_microphone": "Mute microphone",
+    "mute_speaker": "Mute speaker",
+    "start": "Call",
+    "unmute_microphone": "Unmute microphone",
+    "unmute_speaker": "Unmute speaker"
+  },
   "common": {
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "An Advanced Camera Card",
@@ -15,6 +26,17 @@
   },
   "config": {
     "cameras": {
+      "call_mode": {
+        "auto_enable_microphone": "Auto-enable microphone on call start",
+        "auto_enable_speaker": "Auto-enable speaker on call start",
+        "editor_label": "Call mode",
+        "enabled": "Enable call mode",
+        "end_call_on_view_change": "End call if a view change is attempted",
+        "lock_navigation": "Lock navigation during a call",
+        "resume_normal_stream_on_end": "Resume the normal stream when the call ends",
+        "show_in_menu": "Show call button in the menu",
+        "stream": "Call stream name"
+      },
       "always_error_if_entity_unavailable": "Always treat entity unavailability as error",
       "camera_entity": "Camera Entity",
       "capabilities": {
@@ -422,6 +444,7 @@
           "matching": "Matching the menu alignment",
           "opposing": "Opposing the menu alignment"
         },
+        "call": "Call",
         "camera_ui": "Camera user interface",
         "cameras": "Cameras",
         "clips": "Clips",
@@ -673,6 +696,12 @@
     "awaiting_media": "Waiting for media to load",
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
+    "call_mode_disabled": "Call mode is not enabled for the selected camera",
+    "call_mode_live_only": "Call mode can only be started from the live view",
+    "call_mode_no_stream": "A dedicated call stream must be configured before starting a call",
+    "call_mode_provider_unsupported": "This initial call mode implementation currently supports go2rtc live streams only",
+    "call_mode_stream_failed": "The call stream could not be established",
+    "call_mode_substream_unsupported": "Call mode cannot be started while a substream override is active",
     "configuration": "Check configuration",
     "could_not_render_elements": "Could not render picture elements",
     "could_not_resolve": "Could not resolve media URL",

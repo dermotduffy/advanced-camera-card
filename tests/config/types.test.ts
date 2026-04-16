@@ -15,6 +15,15 @@ describe('config defaults', () => {
       cameras: [{}],
       cameras_global: {
         always_error_if_entity_unavailable: false,
+        call_mode: {
+          enabled: false,
+          auto_enable_microphone: true,
+          auto_enable_speaker: true,
+          lock_navigation: true,
+          show_in_menu: true,
+          resume_normal_stream_on_end: true,
+          end_call_on_view_change: false,
+        },
         dependencies: {
           all_cameras: false,
           cameras: [],
@@ -193,6 +202,10 @@ describe('config defaults', () => {
         alignment: 'left',
         button_size: 40,
         buttons: {
+          call: {
+            enabled: true,
+            priority: 50,
+          },
           camera_ui: {
             enabled: true,
             priority: 50,

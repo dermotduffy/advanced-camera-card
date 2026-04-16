@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { advancedCameraCardCustomActionsBaseSchema } from './base';
 
 const GENERAL_ACTIONS = [
+  'call_end',
+  'call_start',
   'camera_ui',
   'default',
   'download',
