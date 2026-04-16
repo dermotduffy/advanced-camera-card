@@ -100,7 +100,7 @@ export class ConfigManager {
       displayMode: undefined,
       camera: undefined,
     });
-    this._api.getMediaLoadedInfoManager().clear();
+    this._api.getMediaLoadedInfoManager().clear({ all: true });
 
     this._api.getInitializationManager().uninitialize(InitializationAspect.VIEW);
     this._api.getViewManager().reset();

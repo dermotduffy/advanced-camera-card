@@ -63,12 +63,17 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     () => this.controls,
   );
 
+  protected _destroyPlayer(): void {
+    this._player?.disconnectNow?.();
+    this._player = undefined;
+  }
+
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     return this._mediaPlayerController;
   }
 
   disconnectedCallback(): void {
-    this._player = undefined;
+    this._destroyPlayer();
     this._message = null;
     super.disconnectedCallback();
   }
@@ -90,6 +95,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
       type: 'error',
       ...message,
     };
+    this._destroyPlayer();
     dispatchLiveErrorEvent(this);
     return;
   }
@@ -161,6 +167,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
       return;
     }
 
+    this._destroyPlayer();
     this._player = new VideoRTC();
     this._player.mediaPlayerController = this._mediaPlayerController;
     this._player.microphoneStream = this.microphoneState?.stream ?? null;

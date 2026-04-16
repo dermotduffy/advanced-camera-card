@@ -218,6 +218,20 @@ export class VideoRTC extends HTMLElement {
     }
   }
 
+  disconnectNow() {
+    if (this.disconnectTID) {
+      clearTimeout(this.disconnectTID);
+      this.disconnectTID = 0;
+    }
+
+    if (this.reconnectTID) {
+      clearTimeout(this.reconnectTID);
+      this.reconnectTID = 0;
+    }
+
+    this.ondisconnect();
+  }
+
   setControls(controls) {
     this.controls = controls;
 
@@ -432,8 +446,10 @@ export class VideoRTC extends HTMLElement {
       this.pc = null;
     }
 
-    this.video.src = '';
-    this.video.srcObject = null;
+    if (this.video) {
+      this.video.src = '';
+      this.video.srcObject = null;
+    }
 
     this._audioTracksMuteStateCleanup?.();
     this._audioTracksMuteStateCleanup = null;
@@ -570,7 +586,7 @@ export class VideoRTC extends HTMLElement {
             const data = buf.slice(0, bufLen);
             sb.appendBuffer(data);
             bufLen = 0;
-          } catch (e) {
+          } catch {
             // console.debug(e);
           }
         }
@@ -604,7 +620,7 @@ export class VideoRTC extends HTMLElement {
         } else {
           try {
             sb.appendBuffer(data);
-          } catch (e) {
+          } catch {
             // console.debug(e);
           }
         }

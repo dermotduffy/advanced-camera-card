@@ -160,7 +160,10 @@ describe('CardElementManager', () => {
 
     expect(element.getAttribute('panel')).toBeNull();
     expect(element.getAttribute('casted')).toBeNull();
-    expect(api.getMediaLoadedInfoManager().clear).toBeCalled();
+    expect(api.getCallManager().endCall).toBeCalledWith({
+      modifyViewContext: false,
+    });
+    expect(api.getMediaLoadedInfoManager().clear).toBeCalledWith({ all: true });
     expect(api.getFullscreenManager().disconnect).toBeCalled();
 
     expect(removeEventListener).toBeCalledWith(
@@ -193,7 +196,7 @@ describe('CardElementManager', () => {
     );
     expect(windowRemoveEventListener).toBeCalledWith('popstate', expect.anything());
 
-    expect(api.getMediaLoadedInfoManager().clear).toBeCalled();
+    expect(api.getMediaLoadedInfoManager().clear).toBeCalledWith({ all: true });
     expect(api.getFullscreenManager().disconnect).toBeCalled();
     expect(api.getKeyboardStateManager().uninitialize).toBeCalled();
     expect(api.getActionsManager().uninitialize).toBeCalled();

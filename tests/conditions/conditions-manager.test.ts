@@ -1,5 +1,5 @@
 import { HassEntities } from 'home-assistant-js-websocket';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MicrophoneState } from '../../src/card-controller/types';
 import { ConditionsManager } from '../../src/conditions/conditions-manager';
 import { ConditionStateManager } from '../../src/conditions/state-manager';
@@ -11,6 +11,12 @@ import {
   createStateEntity,
   createUser,
 } from '../test-utils';
+
+interface HaNunjucksWindow extends Window {
+  haNunjucks?: {
+    renderTemplate: (hass: HomeAssistant, template: string) => string | boolean;
+  };
+}
 
 // @vitest-environment jsdom
 describe('ConditionsManager', () => {
@@ -515,6 +521,24 @@ describe('ConditionsManager', () => {
           vi.mocked(hass.connection.sendMessagePromise).mockResolvedValue([]);
           return hass;
         };
+
+        beforeEach(() => {
+          (window as HaNunjucksWindow).haNunjucks = {
+            renderTemplate: vi.fn((hass: HomeAssistant, template: string) => {
+              if (template === '{{ is_state("sensor.foo", "on") }}') {
+                return hass.states['sensor.foo']?.state === 'on';
+              }
+              if (template === '{{ hass.states["light.office"].state }}') {
+                return hass.states['light.office']?.state ?? '';
+              }
+              return false;
+            }),
+          };
+        });
+
+        afterEach(() => {
+          delete (window as HaNunjucksWindow).haNunjucks;
+        });
 
         it('should evaluate true when template evalutes to true', () => {
           const stateManager = new ConditionStateManager();

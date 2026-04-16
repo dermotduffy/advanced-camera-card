@@ -153,7 +153,8 @@ export class CardElementManager {
     setOrRemoveAttribute(this._element, false, 'casted');
 
     // When the dashboard 'tab' is changed, the media is effectively unloaded.
-    this._api.getMediaLoadedInfoManager().clear();
+    void this._api.getCallManager().endCall({ modifyViewContext: false });
+    this._api.getMediaLoadedInfoManager().clear({ all: true });
     this._api.getFullscreenManager().disconnect();
     this._api.getKeyboardStateManager().uninitialize();
     this._api.getActionsManager().uninitialize();

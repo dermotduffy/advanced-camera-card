@@ -1,6 +1,12 @@
-import { HASS, renderTemplate } from 'ha-nunjucks/dist';
 import { ConditionState, ConditionsTriggerData } from '../../conditions/types';
 import { HomeAssistant } from '../../ha/types';
+
+type HANunjucksRenderTemplate = (
+  hass: unknown,
+  str: string,
+  context?: object,
+  validate?: boolean,
+) => string | boolean;
 
 interface TemplateMediaData {
   title: string;
@@ -70,13 +76,7 @@ export class TemplateRenderer {
     templateContext?: TemplateContext,
   ): unknown {
     if (typeof data === 'string') {
-      return renderTemplate(
-        // ha-nunjucks has a more complete model of the Home Assistant object, but
-        // does not export it as a type.
-        hass as unknown as typeof HASS,
-        data,
-        templateContext,
-      );
+      return this._getRenderTemplate()?.(hass, data, templateContext) ?? data;
     } else if (Array.isArray(data)) {
       return data.map((item) =>
         this._renderTemplateRecursively(hass, item, templateContext),
@@ -89,5 +89,17 @@ export class TemplateRenderer {
       return result;
     }
     return data;
+  }
+
+  protected _getRenderTemplate(): HANunjucksRenderTemplate | null {
+    return (
+      (globalThis as {
+        window?: {
+          haNunjucks?: {
+            renderTemplate?: HANunjucksRenderTemplate;
+          };
+        };
+      }).window?.haNunjucks?.renderTemplate ?? null
+    );
   }
 }

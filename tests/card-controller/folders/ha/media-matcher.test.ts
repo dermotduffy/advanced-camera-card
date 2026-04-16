@@ -1,5 +1,4 @@
-import { renderTemplate } from 'ha-nunjucks';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MediaMatcher } from '../../../../src/card-controller/folders/ha/media-matcher';
 import { Matcher } from '../../../../src/config/schema/folders';
 import {
@@ -9,9 +8,22 @@ import {
 import { createHASS } from '../../../test-utils';
 import { sub } from 'date-fns';
 
-vi.mock('ha-nunjucks');
+const renderTemplate = vi.fn();
 
 describe('MediaMatcher', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubGlobal('window', {
+      haNunjucks: {
+        renderTemplate,
+      },
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   describe('match', () => {
     const createMediaItem = (
       title: string,
