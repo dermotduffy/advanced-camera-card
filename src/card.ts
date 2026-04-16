@@ -4,10 +4,12 @@ import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import { styleMap } from 'lit/directives/style-map.js';
+import 'ha-nunjucks/dist';
 import 'web-dialog';
 import { actionHandler } from './action-handler-directive.js';
 import { CardController } from './card-controller/controller';
 import { MenuButtonController } from './components-lib/menu-button-controller';
+import './components/call-controls.js';
 import './components/effects/effects';
 import { AdvancedCameraCardEffects } from './components/effects/effects';
 import './components/elements.js';
@@ -246,6 +248,7 @@ class AdvancedCameraCard extends LitElement {
 
   protected _renderMenu(slot?: string): TemplateResult | void {
     const view = this._controller.getViewManager().getView();
+    const currentMediaLoadedInfo = this._getSelectedMediaLoadedInfo();
     if (!this._hass || !this._config) {
       return;
     }
@@ -261,7 +264,8 @@ class AdvancedCameraCard extends LitElement {
           this._controller.getCameraManager(),
           this._controller.getFoldersManager(),
           {
-            currentMediaLoadedInfo: this._controller.getMediaLoadedInfoManager().get(),
+            callManager: this._controller.getCallManager(),
+            currentMediaLoadedInfo,
             fullscreenManager: this._controller.getFullscreenManager(),
             inExpandedMode: this._controller.getExpandManager().isExpanded(),
             mediaPlayerController: this._controller.getMediaPlayerManager(),
@@ -288,12 +292,72 @@ class AdvancedCameraCard extends LitElement {
           statusConfig: this._config.status_bar,
           cameraManager: this._controller.getCameraManager(),
           view: this._controller.getViewManager().getView(),
-          mediaLoadedInfo: this._controller.getMediaLoadedInfoManager().get(),
+          mediaLoadedInfo: this._getSelectedMediaLoadedInfo(),
         })}
         .config=${this._config.status_bar}
       ></advanced-camera-card-status-bar>
     `;
   }
+
+  protected _getSelectedMediaLoadedInfo(): MediaLoadedInfo | null {
+    const selectedCameraID = this._controller.getViewManager().getView()?.camera;
+    return (
+      this._controller.getMediaLoadedInfoManager().get(selectedCameraID) ??
+      this._controller.getMediaLoadedInfoManager().get()
+    );
+  }
+
+  protected _getMediaEventCameraID(ev: Event): string | null {
+    for (const target of ev.composedPath()) {
+      if (
+        typeof target === 'object' &&
+        target !== null &&
+        'camera' in target &&
+        (target as { camera?: { getID?: () => string } }).camera?.getID
+      ) {
+        return (target as { camera: { getID: () => string } }).camera.getID();
+      }
+
+      if (
+        typeof target === 'object' &&
+        target !== null &&
+        'viewFilterCameraID' in target &&
+        (target as { viewFilterCameraID?: string }).viewFilterCameraID
+      ) {
+        return (target as { viewFilterCameraID: string }).viewFilterCameraID;
+      }
+
+      if (target instanceof HTMLElement) {
+        const gridID = target.getAttribute('grid-id');
+        if (gridID) {
+          return gridID;
+        }
+      }
+    }
+
+    return this._controller.getViewManager().getView()?.camera ?? null;
+  }
+
+  protected _handleMediaLoaded = (ev: CustomEvent<MediaLoadedInfo>): void => {
+    const cameraID = this._getMediaEventCameraID(ev);
+    const selectedCameraID = this._controller.getViewManager().getView()?.camera;
+
+    this._controller.getMediaLoadedInfoManager().set(ev.detail, {
+      cameraID,
+      selectCurrent: !cameraID || !selectedCameraID || cameraID === selectedCameraID,
+    });
+    void this._controller.getCallManager().onMediaLoaded(ev.detail, cameraID);
+  };
+
+  protected _handleMediaUnloaded = (ev: Event): void => {
+    this._controller.getMediaLoadedInfoManager().clear({
+      cameraID: this._getMediaEventCameraID(ev),
+    });
+  };
+
+  protected _handleLiveError = (ev: Event): void => {
+    void this._controller.getCallManager().onLiveError(this._getMediaEventCameraID(ev));
+  };
 
   protected updated(): void {
     if (this._controller.getInitializationManager().isInitializedMandatory()) {
@@ -360,10 +424,9 @@ class AdvancedCameraCard extends LitElement {
           style="${styleMap(this._controller.getStyleManager().getAspectRatioStyle())}"
           @advanced-camera-card:message=${(ev: CustomEvent<Message>) =>
             this._controller.getMessageManager().setMessageIfHigherPriority(ev.detail)}
-          @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) =>
-            this._controller.getMediaLoadedInfoManager().set(ev.detail)}
-          @advanced-camera-card:media:unloaded=${() =>
-            this._controller.getMediaLoadedInfoManager().clear()}
+          @advanced-camera-card:media:loaded=${this._handleMediaLoaded}
+          @advanced-camera-card:media:unloaded=${this._handleMediaUnloaded}
+          @advanced-camera-card:live:error=${this._handleLiveError}
           @advanced-camera-card:media:volumechange=${
             () => this.requestUpdate() /* Refresh mute menu button */
           }
@@ -409,6 +472,14 @@ class AdvancedCameraCard extends LitElement {
                 : undefined}
               .deviceRegistryManager=${this._controller.getDeviceRegistryManager()}
             ></advanced-camera-card-views>
+            <advanced-camera-card-call-controls
+              .callState=${this._controller.getCallManager().getState()}
+              .microphoneState=${this._controller.getMicrophoneManager().getState()}
+              .mediaLoadedInfo=${this._controller
+                .getMediaLoadedInfoManager()
+                .get(this._controller.getCallManager().getState().camera)}
+              .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
+            ></advanced-camera-card-call-controls>
             ${this._controller.getMessageManager().hasMessage()
               ? // Keep message rendering to last to show messages that may have been
                 // generated during the render.

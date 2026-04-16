@@ -4,6 +4,7 @@ import { mock } from 'vitest-mock-extended';
 import { Capabilities } from '../../src/camera-manager/capabilities.js';
 import { CameraManager } from '../../src/camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../../src/camera-manager/types.js';
+import { CallManager } from '../../src/card-controller/call-manager.js';
 import { FoldersManager } from '../../src/card-controller/folders/manager.js';
 import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager.js';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
@@ -54,6 +55,7 @@ const calculateButtons = (
     config?: AdvancedCameraCardConfig;
     cameraManager?: CameraManager;
     foldersManager?: FoldersManager;
+    callManager?: CallManager;
     view?: View | null;
     viewManager?: ViewManager;
   },
@@ -499,6 +501,72 @@ describe('MenuButtonController', () => {
           },
         ],
       });
+    });
+  });
+
+  describe('should have call button', () => {
+    it('when call mode is enabled for the active camera', () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            config: createCameraConfig({
+              call_mode: {
+                enabled: true,
+                stream: 'doorbell',
+                show_in_menu: true,
+              },
+            }),
+          },
+        ]),
+      );
+      const callManager = mock<CallManager>();
+      callManager.isActive.mockReturnValue(false);
+
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        callManager,
+        view: createView({ camera: 'camera-1', view: 'live' }),
+      });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          icon: 'mdi:phone',
+          title: 'Call',
+          tap_action: createGeneralAction('call_start'),
+        }),
+      );
+    });
+
+    it('should hide while a call is active', () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            config: createCameraConfig({
+              call_mode: {
+                enabled: true,
+                stream: 'doorbell',
+                show_in_menu: true,
+              },
+            }),
+          },
+        ]),
+      );
+      const callManager = mock<CallManager>();
+      callManager.isActive.mockReturnValue(true);
+
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        callManager,
+        view: createView({ camera: 'camera-1', view: 'live' }),
+      });
+
+      expect(buttons).not.toContainEqual(
+        expect.objectContaining({
+          title: 'Call',
+        }),
+      );
     });
   });
 

@@ -1,5 +1,6 @@
 import { StyleInfo } from 'lit/directives/style-map';
 import { CameraManager } from '../camera-manager/manager';
+import { CallManager } from '../card-controller/call-manager';
 import { FoldersManager } from '../card-controller/folders/manager';
 import { FullscreenManager } from '../card-controller/fullscreen/fullscreen-manager';
 import { MediaPlayerManager } from '../card-controller/media-player-manager';
@@ -32,6 +33,7 @@ import { View } from '../view/view';
 import { getCameraIDsForViewName, isViewSupportedByCamera } from '../view/view-support';
 
 export interface MenuButtonControllerOptions {
+  callManager?: CallManager | null;
   currentMediaLoadedInfo?: MediaLoadedInfo | null;
   showCameraUIButton?: boolean;
   fullscreenManager?: FullscreenManager | null;
@@ -81,6 +83,7 @@ export class MenuButtonController {
       this._getTimelineButton(config, cameraManager, foldersManager, options?.view),
       this._getDownloadButton(config, cameraManager, options?.view),
       this._getCameraUIButton(config, options?.showCameraUIButton),
+      this._getCallButton(config, cameraManager, options?.view, options?.callManager),
       this._getMicrophoneButton(
         config,
         cameraManager,
@@ -378,6 +381,30 @@ export class MenuButtonController {
           tap_action: createGeneralAction('camera_ui'),
         }
       : null;
+  }
+
+  protected _getCallButton(
+    config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
+    view?: View | null,
+    callManager?: CallManager | null,
+  ): MenuItem | null {
+    if (!view || !view.is('live') || callManager?.isActive() || hasSubstream(view)) {
+      return null;
+    }
+
+    const cameraConfig = cameraManager.getStore().getCameraConfig(view.camera);
+    if (!cameraConfig?.call_mode?.enabled || !cameraConfig.call_mode.show_in_menu) {
+      return null;
+    }
+
+    return {
+      icon: 'mdi:phone',
+      ...config.menu.buttons.call,
+      type: 'custom:advanced-camera-card-menu-icon',
+      title: localize('config.menu.buttons.call'),
+      tap_action: createGeneralAction('call_start'),
+    };
   }
 
   protected _getMicrophoneButton(
