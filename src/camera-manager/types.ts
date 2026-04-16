@@ -116,6 +116,7 @@ export interface CameraManagerCameraMetadata {
 export interface CameraEndpointsContext {
   media?: ViewMedia;
   view?: AdvancedCameraCardView;
+  callModeStream?: string;
 }
 
 export interface CameraEndpoints {

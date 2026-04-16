@@ -23,6 +23,7 @@ import { CardWideConfig, configDefaults } from '../../config/schema/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import liveCarouselStyle from '../../scss/live-carousel.scss';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
+import { getCallStream } from '../../utils/call.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
 import { getStreamCameraID } from '../../utils/substream.js';
@@ -204,6 +205,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
     const cameraMetadata = this.cameraManager.getCameraMetadata(cameraID);
     const view = this.viewManagerEpoch?.manager.getView();
+    const callModeStream = this._getCallModeStream(cameraID, view);
 
     return html`
       <div class="embla__slide">
@@ -213,8 +215,12 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
             : undefined}
           .camera=${camera}
           .cameraEndpoints=${guard(
-            [this.cameraManager, cameraID],
-            () => this.cameraManager?.getCameraEndpoints(cameraID) ?? undefined,
+            [this.cameraManager, cameraID, callModeStream],
+            () =>
+              this.cameraManager?.getCameraEndpoints(cameraID, {
+                callModeStream,
+                view: view?.view,
+              }) ?? undefined,
           )}
           .label=${cameraMetadata?.title ?? ''}
           .liveConfig=${this.liveConfig}
@@ -231,6 +237,10 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
         </advanced-camera-card-live-provider>
       </div>
     `;
+  }
+
+  protected _getCallModeStream(viewCameraID: string, view?: View | null): string | undefined {
+    return view?.camera === viewCameraID ? getCallStream(view, viewCameraID) ?? undefined : undefined;
   }
 
   protected _getSubstreamCameraID(cameraID: string, view?: View | null): string {

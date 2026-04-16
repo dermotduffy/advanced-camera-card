@@ -58,4 +58,24 @@ describe('MediaLoadedInfoManager', () => {
       expect.objectContaining({ mediaLoadedInfo }),
     );
   });
+
+  it('should track media info by camera without overwriting the selected media', () => {
+    const api = createCardAPI();
+    const manager = new MediaLoadedInfoManager(api);
+    const selectedMedia = createMediaLoadedInfo();
+    const otherMedia = createMediaLoadedInfo({ width: 200, height: 200 });
+
+    manager.set(selectedMedia, { cameraID: 'camera-1' });
+    manager.set(otherMedia, { cameraID: 'camera-2', selectCurrent: false });
+
+    expect(manager.get()).toBe(selectedMedia);
+    expect(manager.get('camera-1')).toBe(selectedMedia);
+    expect(manager.get('camera-2')).toBe(otherMedia);
+    expect(manager.getLastKnown('camera-2')).toBe(otherMedia);
+
+    manager.clear({ cameraID: 'camera-2' });
+
+    expect(manager.get()).toBe(selectedMedia);
+    expect(manager.get('camera-2')).toBeNull();
+  });
 });

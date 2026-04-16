@@ -45,6 +45,10 @@ export interface ViewFactoryOptions {
   // `live` view if the configured default view is not supported.
   failSafe?: boolean;
 
+  // Internal callers may need to modify view context while a temporary mode is
+  // actively blocking user-driven navigation.
+  ignoreNavigationLock?: boolean;
+
   // Options for the query executor that control how a query is executed and the
   // result selected.
   queryExecutorOptions?: QueryExecutorOptions;

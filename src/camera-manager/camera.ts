@@ -151,7 +151,7 @@ export class Camera {
    */
   public getEndpoints(context?: CameraEndpointsContext): CameraEndpoints | null {
     const ui = this._getUIEndpoint(context);
-    const go2rtc = this._getGo2RTCStreamEndpoint();
+    const go2rtc = this._getGo2RTCStreamEndpoint(context);
     const webrtcCard = this._getWebRTCCardEndpoint();
 
     return ui || go2rtc || webrtcCard
@@ -171,8 +171,10 @@ export class Camera {
     return getGo2RTCMetadataEndpoint(this._config);
   }
 
-  protected _getGo2RTCStreamEndpoint(): Endpoint | null {
-    return getGo2RTCStreamEndpoint(this._config);
+  protected _getGo2RTCStreamEndpoint(context?: CameraEndpointsContext): Endpoint | null {
+    return getGo2RTCStreamEndpoint(this._config, {
+      ...(context?.callModeStream && { stream: context.callModeStream }),
+    });
   }
 
   protected _getWebRTCCardEndpoint(): Endpoint | null {

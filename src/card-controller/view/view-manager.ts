@@ -1,5 +1,6 @@
 import { ViewContext } from 'view';
 import { log } from '../../utils/debug';
+import { getCallStream } from '../../utils/call';
 import { getStreamCameraID } from '../../utils/substream';
 import { QueryClassifier } from '../../view/query-classifier';
 import { View } from '../../view/view';
@@ -115,7 +116,7 @@ export class ViewManager implements ViewManagerInterface {
     } catch (e) {
       this._api.getMessageManager().setErrorIfHigherPriority(e);
     }
-    if (view) {
+    if (view && this._allowViewChange(view, options)) {
       this._setView(view);
     }
   }
@@ -138,6 +139,24 @@ export class ViewManager implements ViewManagerInterface {
     return this._api
       .getInitializationManager()
       .isInitialized(InitializationAspect.CAMERAS);
+  }
+
+  protected _allowViewChange(view: View, options?: ViewFactoryOptions): boolean {
+    if (
+      !options?.ignoreNavigationLock &&
+      this._view &&
+      this._api.getCallManager().shouldEndOnViewChange() &&
+      this.hasMajorMediaChange(this._view, view)
+    ) {
+      void this._api.getCallManager().endCall({
+        modifyViewContext: false,
+        preserveCallStream: false,
+      });
+      view.removeContext('call');
+      return true;
+    }
+
+    return !!options?.ignoreNavigationLock || !this._api.getCallManager().isNavigationLocked();
   }
 
   protected async _setViewThenModifyAsync(
@@ -168,6 +187,10 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     if (!initialView) {
+      return;
+    }
+
+    if (!this._allowViewChange(initialView, options)) {
       return;
     }
 
@@ -272,6 +295,9 @@ export class ViewManager implements ViewManagerInterface {
       (compareView?.view === 'live' &&
         oldView &&
         getStreamCameraID(oldView) !== getStreamCameraID(compareView)) ||
+      (compareView?.view === 'live' &&
+        oldView &&
+        getCallStream(oldView) !== getCallStream(compareView)) ||
       // When in the live view, the queryResults contain the events that
       // happened in the past -- not reflective of the actual live media viewer
       // the user is seeing.

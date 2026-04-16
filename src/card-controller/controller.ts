@@ -12,6 +12,7 @@ import { EffectsControllerAPI } from '../types';
 import { ActionsManager } from './actions/actions-manager';
 import { AutomationsManager } from './automations-manager';
 import { CameraURLManager } from './camera-url-manager';
+import { CallManager } from './call-manager';
 import {
   CardElementManager,
   CardHTMLElement,
@@ -72,6 +73,7 @@ export class CardController
     CardAutomationsAPI,
     CardCameraAPI,
     CardCameraURLAPI,
+    CardCallAPI,
     CardConditionAPI,
     CardConfigAPI,
     CardDefaultManagerAPI,
@@ -107,6 +109,7 @@ export class CardController
   protected _automationsManager = new AutomationsManager(this);
   protected _cameraManager = new CameraManager(this);
   protected _cameraURLManager = new CameraURLManager(this);
+  protected _callManager = new CallManager(this);
   protected _cardElementManager: CardElementManager;
   protected _configManager = new ConfigManager(this);
   protected _defaultManager = new DefaultManager(this);
@@ -166,6 +169,10 @@ export class CardController
 
   public getCameraURLManager(): CameraURLManager {
     return this._cameraURLManager;
+  }
+
+  public getCallManager(): CallManager {
+    return this._callManager;
   }
 
   public getCardElementManager(): CardElementManager {

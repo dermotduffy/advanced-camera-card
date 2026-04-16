@@ -13,6 +13,7 @@ import { CameraManagerStore } from '../src/camera-manager/store';
 import { CameraEventCallback } from '../src/camera-manager/types';
 import { ActionsManager } from '../src/card-controller/actions/actions-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
+import { CallManager } from '../src/card-controller/call-manager';
 import { CameraURLManager } from '../src/card-controller/camera-url-manager';
 import { CardElementManager } from '../src/card-controller/card-element-manager';
 import { ConfigManager } from '../src/card-controller/config/config-manager';
@@ -586,6 +587,7 @@ export const createCardAPI = (): CardController => {
   api.getDefaultManager.mockReturnValue(mock<DefaultManager>());
   api.getCameraManager.mockReturnValue(mock<CameraManager>());
   api.getCameraURLManager.mockReturnValue(mock<CameraURLManager>());
+  api.getCallManager.mockReturnValue(mock<CallManager>());
   api.getCardElementManager.mockReturnValue(mock<CardElementManager>());
   api.getConditionStateManager.mockReturnValue(mock<ConditionStateManager>());
   api.getConfigManager.mockReturnValue(mock<ConfigManager>());

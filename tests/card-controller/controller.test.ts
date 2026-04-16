@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CameraManager } from '../../src/camera-manager/manager';
 import { ActionsManager } from '../../src/card-controller/actions/actions-manager';
 import { AutomationsManager } from '../../src/card-controller/automations-manager';
+import { CallManager } from '../../src/card-controller/call-manager';
 import { CameraURLManager } from '../../src/card-controller/camera-url-manager';
 import {
   CardElementManager,
@@ -38,6 +39,7 @@ import { mock } from 'vitest-mock-extended';
 vi.mock('../../src/camera-manager/manager');
 vi.mock('../../src/card-controller/actions/actions-manager');
 vi.mock('../../src/card-controller/automations-manager');
+vi.mock('../../src/card-controller/call-manager');
 vi.mock('../../src/card-controller/camera-url-manager');
 vi.mock('../../src/card-controller/card-element-manager');
 vi.mock('../../src/card-controller/config/config-manager');
@@ -132,6 +134,12 @@ describe('CardController', () => {
     it('getCameraURLManager', () => {
       expect(createController().getCameraURLManager()).toBe(
         vi.mocked(CameraURLManager).mock.instances[0],
+      );
+    });
+
+    it('getCallManager', () => {
+      expect(createController().getCallManager()).toBe(
+        vi.mocked(CallManager).mock.instances[0],
       );
     });
 

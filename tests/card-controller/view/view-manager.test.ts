@@ -166,6 +166,83 @@ describe('should not set view without cameras being initialized', () => {
   });
 });
 
+describe('should respect call navigation lock', () => {
+  it('should ignore view requests while locked', () => {
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(createView({ camera: 'camera-1' }));
+    factory.getViewByParameters.mockReturnValue(createView({ camera: 'camera-2' }));
+
+    const api = createInitializedCardAPI();
+    vi.mocked(api.getCallManager().isNavigationLocked).mockReturnValue(true);
+
+    const manager = new ViewManager(api, { viewFactory: factory });
+    manager.setViewDefault();
+    manager.setViewByParameters({ camera: 'camera-2' });
+
+    expect(manager.getView()).toBeNull();
+  });
+
+  it('should allow internal requests to bypass the lock', () => {
+    const factory = mock<ViewFactory>();
+    factory.getViewByParameters.mockReturnValue(createView({ camera: 'camera-2' }));
+
+    const api = createInitializedCardAPI();
+    vi.mocked(api.getCallManager().isNavigationLocked).mockReturnValue(true);
+
+    const manager = new ViewManager(api, { viewFactory: factory });
+    manager.setViewByParameters({ camera: 'camera-2', ignoreNavigationLock: true });
+
+    expect(manager.getView()?.camera).toBe('camera-2');
+  });
+
+  it('should end the call and allow the view change when configured', () => {
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(
+      createView({
+        camera: 'camera-1',
+        context: {
+          call: {
+            camera: 'camera-1',
+            state: 'in_call',
+            stream: 'doorbell',
+          },
+        },
+      }),
+    );
+    factory.getViewByParameters.mockReturnValue(
+      createView({
+        camera: 'camera-2',
+        context: {
+          call: {
+            camera: 'camera-1',
+            state: 'in_call',
+            stream: 'doorbell',
+          },
+        },
+      }),
+    );
+
+    const api = createInitializedCardAPI();
+    vi.mocked(api.getCallManager().isNavigationLocked).mockReturnValue(false);
+    vi.mocked(api.getCallManager().shouldEndOnViewChange).mockReturnValue(false);
+
+    const manager = new ViewManager(api, { viewFactory: factory });
+    manager.setViewDefault();
+
+    vi.mocked(api.getCallManager().isNavigationLocked).mockReturnValue(true);
+    vi.mocked(api.getCallManager().shouldEndOnViewChange).mockReturnValue(true);
+
+    manager.setViewByParameters({ camera: 'camera-2' });
+
+    expect(api.getCallManager().endCall).toBeCalledWith({
+      modifyViewContext: false,
+      preserveCallStream: false,
+    });
+    expect(manager.getView()?.camera).toBe('camera-2');
+    expect(manager.getView()?.context?.call).toBeUndefined();
+  });
+});
+
 it('setViewDefault', () => {
   const factory = mock<ViewFactory>();
   factory.getViewDefault.mockReturnValue(createView());

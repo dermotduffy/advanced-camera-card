@@ -5,6 +5,7 @@ import type { DeviceRegistryManager } from '../ha/registry/device';
 import type { EntityRegistryManager } from '../ha/registry/entity/types';
 import type { ResolvedMediaCache } from '../ha/resolved-media';
 import type { EffectsControllerAPI } from '../types';
+import type { CallManager } from './call-manager';
 import type { ActionsManager } from './actions/actions-manager';
 import type { AutomationsManager } from './automations-manager';
 import type { CameraURLManager } from './camera-url-manager';
@@ -40,6 +41,7 @@ export interface CardActionsAPI {
   getActionsManager(): ActionsManager;
   getCameraManager(): CameraManager;
   getCameraURLManager(): CameraURLManager;
+  getCallManager(): CallManager;
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
@@ -58,6 +60,16 @@ export interface CardActionsAPI {
   getViewManager(): ViewManager;
 }
 export type CardActionsManagerAPI = CardActionsAPI;
+
+export interface CardCallAPI {
+  getCameraManager(): CameraManager;
+  getCardElementManager(): CardElementManager;
+  getConditionStateManager(): ConditionStateManager;
+  getMediaLoadedInfoManager(): MediaLoadedInfoManager;
+  getMessageManager(): MessageManager;
+  getMicrophoneManager(): MicrophoneManager;
+  getViewManager(): ViewManager;
+}
 
 export interface CardAutomationsAPI {
   getActionsManager(): ActionsManager;
@@ -92,6 +104,7 @@ export interface CardConditionAPI {
 export interface CardConfigAPI {
   getAutomationsManager(): AutomationsManager;
   getCameraManager(): CameraManager;
+  getCallManager(): CallManager;
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
@@ -136,6 +149,7 @@ export interface CardDownloadAPI {
 export interface CardElementAPI {
   getActionsManager(): ActionsManager;
   getCameraManager(): CameraManager;
+  getCallManager(): CallManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
@@ -286,6 +300,7 @@ export interface CardTriggersAPI {
 export interface CardViewAPI {
   getCameraManager(): CameraManager;
   getCardElementManager(): CardElementManager;
+  getCallManager(): CallManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getFoldersManager(): FoldersManager;
