@@ -3,6 +3,17 @@
     "abort": "Przerwano akcję",
     "confirmation": "Czy na pewno chcesz wykonać tę akcję?"
   },
+  "call": {
+    "active": "Połączenie w toku",
+    "connecting": "Nawiązywanie połączenia",
+    "end": "Zakończ połączenie",
+    "ending": "Kończenie połączenia",
+    "mute_microphone": "Wycisz mikrofon",
+    "mute_speaker": "Wycisz głośnik",
+    "start": "Zadzwoń",
+    "unmute_microphone": "Włącz mikrofon",
+    "unmute_speaker": "Włącz głośnik"
+  },
   "common": {
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "Zaawansowana karta kamery",

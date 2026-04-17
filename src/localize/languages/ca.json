@@ -1,4 +1,15 @@
 {
+  "call": {
+    "active": "Trucada en curs",
+    "connecting": "S'està connectant la trucada",
+    "end": "Finalitza la trucada",
+    "ending": "S'està finalitzant la trucada",
+    "mute_microphone": "Silencia el micròfon",
+    "mute_speaker": "Silencia l'altaveu",
+    "start": "Truca",
+    "unmute_microphone": "Treu el silenci del micròfon",
+    "unmute_speaker": "Treu el silenci de l'altaveu"
+  },
   "common": {
     "live": "En directe",
     "no_media": "No hi ha suport per mostrar",

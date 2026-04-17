@@ -1,4 +1,15 @@
 {
+  "call": {
+    "active": "Appel en cours",
+    "connecting": "Appel en cours de connexion",
+    "end": "Terminer l'appel",
+    "ending": "Fin de l'appel",
+    "mute_microphone": "Couper le microphone",
+    "mute_speaker": "Couper le haut-parleur",
+    "start": "Appeler",
+    "unmute_microphone": "Réactiver le microphone",
+    "unmute_speaker": "Réactiver le haut-parleur"
+  },
   "common": {
     "live": "En direct",
     "no_media": "Aucun média à afficher",

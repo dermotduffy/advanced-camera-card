@@ -3,6 +3,17 @@
     "abort": "Aktion abbrechen",
     "confirmation": "Bist du sicher, dass die Aktion durchgeführt werden soll?"
   },
+  "call": {
+    "active": "Anruf läuft",
+    "connecting": "Anruf wird verbunden",
+    "end": "Anruf beenden",
+    "ending": "Anruf wird beendet",
+    "mute_microphone": "Mikrofon stummschalten",
+    "mute_speaker": "Lautsprecher stummschalten",
+    "start": "Anrufen",
+    "unmute_microphone": "Mikrofon-Stummschaltung aufheben",
+    "unmute_speaker": "Lautsprecher-Stummschaltung aufheben"
+  },
   "common": {
     "advanced_camera_card": "Erweiterte Kamera-Karte",
     "advanced_camera_card_description": "Eine Erweiterte Kamera-Karte",

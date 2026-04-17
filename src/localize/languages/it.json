@@ -1,4 +1,15 @@
 {
+  "call": {
+    "active": "Chiamata in corso",
+    "connecting": "Connessione della chiamata",
+    "end": "Termina chiamata",
+    "ending": "Chiusura chiamata",
+    "mute_microphone": "Disattiva microfono",
+    "mute_speaker": "Disattiva altoparlante",
+    "start": "Chiama",
+    "unmute_microphone": "Riattiva microfono",
+    "unmute_speaker": "Riattiva altoparlante"
+  },
   "common": {
     "live": "Live",
     "no_media": "Nessun contenuto multimediale da visualizzare",
