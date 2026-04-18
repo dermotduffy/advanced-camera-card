@@ -46,7 +46,8 @@
 
 .ptz-move,
 .ptz-zoom,
-.ptz-presets {
+.ptz-presets,
+.ptz-type {
   position: relative;
 
   transition:
@@ -70,16 +71,19 @@
 }
 
 :host([data-orientation='horizontal']) .ptz .ptz-zoom,
-:host([data-orientation='horizontal']) .ptz .ptz-presets {
+:host([data-orientation='horizontal']) .ptz .ptz-presets,
+:host([data-orientation='horizontal']) .ptz .ptz-type {
   width: calc(var(--advanced-camera-card-ptz-icon-size) * 1.5);
 }
 :host([data-orientation='vertical']) .ptz .ptz-zoom,
-:host([data-orientation='vertical']) .ptz .ptz-presets {
+:host([data-orientation='vertical']) .ptz .ptz-presets,
+:host([data-orientation='vertical']) .ptz .ptz-type {
   height: calc(var(--advanced-camera-card-ptz-icon-size) * 1.5);
 }
 
 .ptz-zoom,
-.ptz-presets {
+.ptz-presets,
+.ptz-type {
   border-radius: var(--advanced-camera-card-border-radius-final);
 }
 
@@ -119,16 +123,27 @@ advanced-camera-card-submenu:not(.disabled) {
 }
 
 .ptz-presets,
-.ptz-zoom {
+.ptz-zoom,
+.ptz-type {
   display: flex;
   align-items: center;
   justify-content: space-evenly;
 }
 :host([data-orientation='vertical']) .ptz-presets,
-:host([data-orientation='vertical']) .ptz-zoom {
+:host([data-orientation='vertical']) .ptz-zoom,
+:host([data-orientation='vertical']) .ptz-type {
   flex-direction: row;
 }
 :host([data-orientation='horizontal']) .ptz-presets,
-:host([data-orientation='horizontal']) .ptz-zoom {
+:host([data-orientation='horizontal']) .ptz-zoom,
+:host([data-orientation='horizontal']) .ptz-type {
   flex-direction: column;
+}
+
+.ptz-type {
+  cursor: pointer;
+
+  advanced-camera-card-icon.selected {
+    color: var(--advanced-camera-card-ptz-color-selected);
+  }
 }

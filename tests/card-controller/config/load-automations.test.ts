@@ -24,7 +24,7 @@ describe('setAutomationsFromConfig', () => {
       },
     ];
     const api = createCardAPI();
-    vi.mocked(api.getConfigManager().getNonOverriddenConfig).mockReturnValue(
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
       createConfig({
         automations: automations,
       }),

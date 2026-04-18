@@ -20,7 +20,11 @@ assignees: ''
 **[REQUIRED] Card diagnostic information:**
 
 <!--
-On the card, hold down the Iris (default) menu button for a few seconds then paste the diagnostics *between* the pair of triple backticks below. No help can be provided without this.
+No help can be provided without this information. Fetch the diagnostics and paste them *between* the pair of triple backticks below.
+
+Use either of two ways to fetch the diagnostics:
+  - Hold down the Iris (default) menu button for a few seconds.
+  - Open the card editor and click the 'Toggle Diagnostics' button.
 -->
 
 ```yaml

@@ -17,7 +17,11 @@ import {
 
 vi.mock('lodash-es', async () => ({
   ...(await vi.importActual('lodash-es')),
-  throttle: vi.fn((fn) => fn),
+  throttle: vi.fn((fn) => {
+    const throttled = vi.fn(fn) as unknown as { cancel: () => void };
+    throttled.cancel = vi.fn();
+    return throttled;
+  }),
 }));
 
 const masonry = mock<ExtendedMasonry>();
@@ -394,7 +398,7 @@ describe('MediaGridController', () => {
       expect.objectContaining({
         initLayout: false,
         percentPosition: true,
-        transitionDuration: '0.2s',
+        transitionDuration: 0,
       }),
     );
   });
@@ -487,7 +491,7 @@ describe('MediaGridController', () => {
     expect(masonry.layout).toBeCalled();
   });
 
-  it('should re-create masonry when host size changes', () => {
+  it('should update masonry column width when host size changes', () => {
     const children = createChildren();
     const parent = createParent({ children: children });
     createController(parent);
@@ -504,18 +508,16 @@ describe('MediaGridController', () => {
     // Clear mock state.
     vi.mocked(Masonry).mockClear();
     vi.mocked(masonry.layout)?.mockClear();
+    vi.mocked(masonry.option)?.mockClear();
 
     // Resize the host.
     setElementWidth(parent, 3000);
     triggerResizeObserver('host');
 
-    // Masonry should be reconstructed, styles set and layout called.
-    expect(Masonry).toBeCalledWith(
-      parent,
-      expect.objectContaining({
-        columnWidth: 599,
-      }),
-    );
+    // Masonry should not be recreated, but column width should be updated
+    // via option() and layout should be called.
+    expect(Masonry).not.toBeCalled();
+    expect(masonry.option).toBeCalledWith({ columnWidth: 599 });
     expect(
       parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
     ).toBe('599px');
@@ -524,10 +526,12 @@ describe('MediaGridController', () => {
     // Clear mock state.
     vi.mocked(Masonry).mockClear();
     vi.mocked(masonry.layout)?.mockClear();
+    vi.mocked(masonry.option)?.mockClear();
 
-    // Triger with the same sizes.
+    // Trigger with the same sizes.
     triggerResizeObserver('host');
     expect(Masonry).not.toBeCalled();
+    expect(masonry.option).not.toBeCalled();
     expect(masonry.layout).not.toBeCalled();
   });
 

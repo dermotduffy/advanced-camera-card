@@ -1,14 +1,16 @@
 import { fromUnixTime } from 'date-fns';
 import { isEqual } from 'lodash-es';
 import { CameraConfig } from '../../config/schema/cameras';
+import { Severity } from '../../severity';
 import {
   EventViewMedia,
   RecordingViewMedia,
+  ReviewViewMedia,
   VideoContentType,
   ViewMedia,
   ViewMediaType,
 } from '../../view/item';
-import { FrigateEvent, FrigateRecording } from './types';
+import { FrigateEvent, FrigateRecording, FrigateReview } from './types';
 import {
   getEventMediaContentID,
   getEventThumbnailURL,
@@ -16,13 +18,17 @@ import {
   getRecordingID,
   getRecordingMediaContentID,
   getRecordingTitle,
+  getReviewMediaContentID,
+  getReviewSeverity,
+  getReviewThumbnailURL,
+  getReviewTitle,
 } from './util';
 
 export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
-  protected _event: FrigateEvent;
-  protected _contentID: string;
-  protected _thumbnail: string;
-  protected _subLabels: string[] | null;
+  private _event: FrigateEvent;
+  private _contentID: string;
+  private _thumbnail: string;
+  private _subLabels: string[] | null;
 
   constructor(
     mediaType: ViewMediaType,
@@ -66,6 +72,9 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
   public getTitle(): string | null {
     return getEventTitle(this._event);
   }
+  public getDescription(): string | null {
+    return this._event.data?.description ?? null;
+  }
   public getThumbnail(): string | null {
     return this._thumbnail;
   }
@@ -98,10 +107,10 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
 }
 
 export class FrigateRecordingViewMedia extends ViewMedia implements RecordingViewMedia {
-  protected _recording: FrigateRecording;
-  protected _id: string;
-  protected _contentID: string;
-  protected _title: string;
+  private _recording: FrigateRecording;
+  private _id: string;
+  private _contentID: string;
+  private _title: string;
 
   constructor(
     mediaType: ViewMediaType,
@@ -143,6 +152,74 @@ export class FrigateRecordingViewMedia extends ViewMedia implements RecordingVie
   }
   public getEventCount(): number {
     return this._recording.events;
+  }
+}
+
+export class FrigateReviewViewMedia extends ViewMedia implements ReviewViewMedia {
+  private _review: FrigateReview;
+  private _contentID: string;
+  private _thumbnail: string | null;
+  private _title: string;
+
+  constructor(
+    cameraID: string,
+    review: FrigateReview,
+    contentID: string,
+    thumbnail: string | null,
+  ) {
+    super(ViewMediaType.Review, { cameraID });
+    this._review = review;
+    this._contentID = contentID;
+    this._thumbnail = thumbnail;
+    this._title = this._review.data.metadata?.title ?? getReviewTitle(review);
+  }
+
+  public getID(): string {
+    return this._review.id;
+  }
+  public getStartTime(): Date {
+    return fromUnixTime(this._review.start_time);
+  }
+  public getEndTime(): Date | null {
+    return this._review.end_time ? fromUnixTime(this._review.end_time) : null;
+  }
+  public inProgress(): boolean | null {
+    return !this.getEndTime();
+  }
+  public getVideoContentType(): VideoContentType | null {
+    return VideoContentType.HLS;
+  }
+  public getContentID(): string | null {
+    return this._contentID;
+  }
+  public getTitle(): string | null {
+    return this._review.data.metadata?.title ?? this._title;
+  }
+  public getDescription(): string | null {
+    return (
+      this._review.data.metadata?.scene ??
+      this._review.data.metadata?.shortSummary ??
+      null
+    );
+  }
+  public getThumbnail(): string | null {
+    return this._thumbnail;
+  }
+  public getSeverity(): Severity | null {
+    return getReviewSeverity(this._review.severity);
+  }
+  public isReviewed(): boolean {
+    return !!this._review.has_been_reviewed;
+  }
+  public setReviewed(reviewed: boolean): void {
+    this._review.has_been_reviewed = reviewed;
+  }
+  public getWhat(): string[] | null {
+    return this._review.data.objects ?? null;
+  }
+  public getWhere(): string[] | null {
+    const zones = this._review.data.zones;
+    return zones?.length ? zones : null;
   }
 }
 
@@ -199,6 +276,27 @@ export class FrigateViewMediaFactory {
         recording,
       ),
       getRecordingTitle(cameraTitle, recording),
+    );
+  }
+
+  static createReviewViewMedia(
+    cameraID: string,
+    review: FrigateReview,
+    cameraConfig: CameraConfig,
+  ): FrigateReviewViewMedia | null {
+    if (!cameraConfig.frigate.client_id || !cameraConfig.frigate.camera_name) {
+      return null;
+    }
+
+    return new FrigateReviewViewMedia(
+      cameraID,
+      review,
+      getReviewMediaContentID(
+        cameraConfig.frigate.client_id,
+        cameraConfig.frigate.camera_name,
+        review,
+      ),
+      getReviewThumbnailURL(cameraConfig.frigate.client_id, review),
     );
   }
 }

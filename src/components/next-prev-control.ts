@@ -2,9 +2,9 @@ import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { NextPreviousControlConfig } from '../config/schema/common/controls/next-previous.js';
+import { Icon } from '../config/schema/common/icon.js';
 import { HomeAssistant } from '../ha/types.js';
 import controlStyle from '../scss/next-previous-control.scss';
-import { Icon } from '../types.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 
@@ -27,7 +27,7 @@ export class AdvancedCameraCardNextPreviousControl extends LitElement {
   public hass?: HomeAssistant;
 
   @state()
-  protected _controlConfig?: NextPreviousControlConfig;
+  private _controlConfig?: NextPreviousControlConfig;
 
   @property({ attribute: false })
   public thumbnail?: string;
@@ -41,7 +41,7 @@ export class AdvancedCameraCardNextPreviousControl extends LitElement {
   // Label that is used for ARIA support and as tooltip.
   @property() label = '';
 
-  protected _embedThumbnailTask = createFetchThumbnailTask(
+  private _embedThumbnailTask = createFetchThumbnailTask(
     this,
     () => this.hass,
     () => this.thumbnail,

@@ -22,6 +22,9 @@ import { MediaLoadedInfoManager } from '../../src/card-controller/media-info-man
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
 import { MessageManager } from '../../src/card-controller/message-manager';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager';
+import { NotificationManager } from '../../src/card-controller/notification-manager';
+import { PIPManager } from '../../src/card-controller/pip-manager';
+import { ProblemManager } from '../../src/card-controller/problems/manager';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../../src/card-controller/style-manager';
@@ -33,8 +36,6 @@ import { AdvancedCameraCardEditor } from '../../src/editor';
 import { DeviceRegistryManager } from '../../src/ha/registry/device';
 import { EntityRegistryManagerLive } from '../../src/ha/registry/entity';
 import { ResolvedMediaCache } from '../../src/ha/resolved-media';
-import { EffectsControllerAPI } from '../../src/types';
-import { mock } from 'vitest-mock-extended';
 
 vi.mock('../../src/camera-manager/manager');
 vi.mock('../../src/card-controller/actions/actions-manager');
@@ -56,6 +57,9 @@ vi.mock('../../src/card-controller/media-info-manager');
 vi.mock('../../src/card-controller/media-player-manager');
 vi.mock('../../src/card-controller/message-manager');
 vi.mock('../../src/card-controller/microphone-manager');
+vi.mock('../../src/card-controller/notification-manager');
+vi.mock('../../src/card-controller/pip-manager');
+vi.mock('../../src/card-controller/problems/manager');
 vi.mock('../../src/card-controller/query-string-manager');
 vi.mock('../../src/card-controller/status-bar-item-manager');
 vi.mock('../../src/card-controller/style-manager');
@@ -74,7 +78,7 @@ const createCardElement = (): CardHTMLElement => {
 };
 
 const createController = (): CardController => {
-  return new CardController(createCardElement(), vi.fn(), vi.fn(), vi.fn());
+  return new CardController(createCardElement(), vi.fn(), vi.fn());
 };
 
 // @vitest-environment jsdom
@@ -87,15 +91,8 @@ describe('CardController', () => {
     const element = createCardElement();
     const scrollCallback = vi.fn();
     const menuToggleCallback = vi.fn();
-    const effectsControllerAPI = mock<EffectsControllerAPI>();
-    const effectsControllerAPICallback = vi.fn().mockReturnValue(effectsControllerAPI);
 
-    const controller = new CardController(
-      element,
-      scrollCallback,
-      menuToggleCallback,
-      effectsControllerAPICallback,
-    );
+    const controller = new CardController(element, scrollCallback, menuToggleCallback);
 
     expect(CardElementManager).toBeCalledWith(
       controller,
@@ -103,7 +100,7 @@ describe('CardController', () => {
       scrollCallback,
       menuToggleCallback,
     );
-    expect(controller.getEffectsControllerAPI()).toBe(effectsControllerAPI);
+    expect(controller.getEffectsManager()).toBeTruthy();
   });
 
   describe('accessors', () => {
@@ -236,6 +233,24 @@ describe('CardController', () => {
     it('getMessageManager', () => {
       expect(createController().getMessageManager()).toBe(
         vi.mocked(MessageManager).mock.instances[0],
+      );
+    });
+
+    it('getNotificationManager', () => {
+      expect(createController().getNotificationManager()).toBe(
+        vi.mocked(NotificationManager).mock.instances[0],
+      );
+    });
+
+    it('getPIPManager', () => {
+      expect(createController().getPIPManager()).toBe(
+        vi.mocked(PIPManager).mock.instances[0],
+      );
+    });
+
+    it('getProblemManager', () => {
+      expect(createController().getProblemManager()).toBe(
+        vi.mocked(ProblemManager).mock.instances[0],
       );
     });
 

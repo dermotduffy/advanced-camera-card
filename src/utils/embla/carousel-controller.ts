@@ -17,21 +17,21 @@ type EmblaCarouselPlugins = CreatePluginType<LoosePluginType, Record<string, unk
 export type CarouselDirection = 'vertical' | 'horizontal';
 
 export class CarouselController {
-  protected _parent: HTMLElement;
-  protected _root: HTMLElement;
-  protected _direction: CarouselDirection;
-  protected _startIndex: number;
-  protected _transitionEffect: TransitionEffect;
-  protected _loop: boolean;
-  protected _dragFree: boolean;
-  protected _draggable: boolean;
-  protected _textDirection: TextDirection;
-  protected _wheelScrolling: boolean;
+  private _parent: HTMLElement;
+  private _root: HTMLElement;
+  private _direction: CarouselDirection;
+  private _startIndex: number;
+  private _transitionEffect: TransitionEffect;
+  private _loop: boolean;
+  private _dragFree: boolean;
+  private _draggable: boolean;
+  private _textDirection: TextDirection;
+  private _wheelScrolling: boolean;
 
-  protected _plugins: EmblaCarouselPlugins;
-  protected _carousel: EmblaCarouselType;
+  private _plugins: EmblaCarouselPlugins;
+  private _carousel: EmblaCarouselType;
 
-  protected _mutationObserver = new MutationObserver(
+  private _mutationObserver = new MutationObserver(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (_mutations: MutationRecord[], _observer: MutationObserver) =>
       this._refreshCarouselContents(),
@@ -95,6 +95,9 @@ export class CarouselController {
   }
 
   public selectSlide(index: number): void {
+    if (index < 0 || index >= this._carousel.slideNodes().length) {
+      return;
+    }
     this._carousel.scrollTo(index, this._transitionEffect === 'none');
 
     // This event exists to allow the caller to know the difference between
@@ -102,6 +105,10 @@ export class CarouselController {
     // (e.g. carousel drags). See the note in auto-media-loaded-info.ts on how
     // this is used.
     const newSlide = this.getSlide(index);
+
+    /* istanbul ignore if: defensive guard for getSlide returning null which can
+    only happen with an index out of bounds, which is guarded against above --
+    @preserve */
     if (newSlide) {
       fireAdvancedCameraCardEvent<CarouselSelected>(
         this._parent,
@@ -114,16 +121,15 @@ export class CarouselController {
     }
   }
 
-  protected _refreshCarouselContents = (): void => {
-    const newSlides = getChildrenFromElement(this._parent);
-    const slidesChanged = !isEqual(this._carousel.slideNodes(), newSlides);
+  private _refreshCarouselContents = (): void => {
+    const slides = getChildrenFromElement(this._parent);
+    const slidesChanged = !isEqual(this._carousel.slideNodes(), slides);
     if (slidesChanged) {
-      this._carousel.destroy();
-      this._carousel = this._createCarousel(newSlides);
+      this._carousel.reInit({ slides });
     }
   };
 
-  protected _createCarousel(slides: HTMLElement[]): EmblaCarouselType {
+  private _createCarousel(slides: HTMLElement[]): EmblaCarouselType {
     const carousel = EmblaCarousel(
       this._root,
       {

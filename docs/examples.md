@@ -43,6 +43,12 @@ This example will automatically turn on the first configured substream when the
 card is put in fullscreen mode, and turn off the substream when exiting
 fullscreen mode.
 
+> [!WARNING]
+> When fullscreen is entered via a video player's built-in controls (rather than
+> the card's fullscreen menu button), automation actions that replace _that_ video
+> element (e.g. switching substreams from one video to another) will immediately exit fullscreen (as the browser sees the video the user clicked on be destroyed). See the
+> [fullscreen condition](configuration/conditions.md?id=fullscreen) for details.
+
 ```yaml
 type: custom:advanced-camera-card
 cameras:
@@ -60,8 +66,9 @@ cameras:
         - substream
         # Optionally allow media on this substream.
         - clips
-        - snapshots
         - recordings
+        - reviews
+        - snapshots
         # Optionally allow PTZ controls on the substream.
         - ptz
 automations:
@@ -74,6 +81,55 @@ automations:
     actions_not:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: live_substream_off
+```
+
+### Fullscreen with display mode and substream switching
+
+This example adds a custom menu button that switches to single display mode,
+activates the HD substream, and enters card fullscreen — all in a single tap.
+An automation restores the grid layout and substream when fullscreen is exited.
+This is useful in [grid](configuration/live.md) layouts where the card's
+standard fullscreen button would show all cameras rather than a single HD
+stream.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+    dependencies:
+      cameras:
+        - office_hd
+  - camera_entity: camera.office_hd
+    title: Office HD
+    id: office_hd
+    capabilities:
+      disable_except:
+        - substream
+live:
+  display:
+    mode: grid
+elements:
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:fullscreen
+    title: Fullscreen HD
+    tap_action:
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: display_mode_select
+        display_mode: single
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: live_substream_on
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: fullscreen
+automations:
+  - conditions:
+      - condition: fullscreen
+        fullscreen: false
+    actions:
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: live_substream_off
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: display_mode_select
+        display_mode: grid
 ```
 
 ### Responding to key input
@@ -147,7 +203,7 @@ cameras:
 ```
 
 > [!WARNING]
-> Browsers will reject [mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content): if you access Home Assistant over `https`, you must also put `go2rtc` behind `https` and use that in the `url` parameter. Check [go2rtc proxying](#go2rtc) as an alternative.
+> Browsers will reject [mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Mixed_content): if you access Home Assistant over `https`, you must also put `go2rtc` behind `https` and use that in the `url` parameter. Check [go2rtc proxying](#go2rtc) as an alternative.
 
 ## Card Mod
 
@@ -160,7 +216,7 @@ card contents.
 
 This example changes the color and removes the padding around a [Picture
 Elements state
-label](https://www.home-assistant.io/lovelace/picture-elements/#state-label).
+label](https://www.home-assistant.io/dashboards/picture-elements/#state-label).
 
 ```yaml
 type: custom:advanced-camera-card
@@ -671,6 +727,42 @@ cameras:
     live_provider: webrtc-card
     title: Office (WebRTC)
     id: office-webrtc
+```
+
+## Notifications
+
+Show a notification with controls that respond to different interactions. In
+this example, tapping the control navigates to the `clips` (media gallery) view
+and double-tapping navigates to the `clip` (media player) view.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.office
+elements:
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:bell
+    title: Show notification
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: notification
+      notification:
+        heading:
+          text: Motion detected
+          icon: mdi:motion-sensor
+          severity: medium
+        text: Motion was detected in the office.
+        controls:
+          - icon: mdi:filmstrip
+            tooltip: View clips (tap) / clip (double-tap)
+            actions:
+              tap_action:
+                action: custom:advanced-camera-card-action
+                advanced_camera_card_action: clips
+              double_tap_action:
+                action: custom:advanced-camera-card-action
+                advanced_camera_card_action: clip
+            dismiss: false
 ```
 
 ## Overriding configuration

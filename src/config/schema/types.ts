@@ -1,15 +1,13 @@
 import { z } from 'zod';
-import { deepRemoveDefaults } from '../../utils/zod';
+import { deepRemoveDefaults } from '../../utils/zod/deep-remove-defaults';
 import { automationsSchema } from './automations';
 import { cameraConfigDefault, cameraConfigSchema, camerasConfigSchema } from './cameras';
 import { cardIDRegex } from './common/const';
-import { timelineConfigDefault } from './common/controls/timeline';
-import { imageConfigDefault } from './common/image';
 import { DebugConfig, debugConfigDefault, debugConfigSchema } from './debug';
 import { dimensionsConfigSchema } from './dimensions';
 import { pictureElementsSchema } from './elements/types';
 import { foldersConfigSchema } from './folders';
-import { imageConfigSchema } from './image';
+import { imageConfigDefault, imageConfigSchema } from './image';
 import { liveConfigDefault, liveConfigSchema } from './live';
 import { mediaGalleryConfigDefault, mediaGalleryConfigSchema } from './media-gallery';
 import { menuConfigDefault, menuConfigSchema } from './menu';
@@ -22,7 +20,7 @@ import {
 import { profilesSchema } from './profiles';
 import { remoteControlConfigDefault, remoteControlConfigSchema } from './remote-control';
 import { statusBarConfigDefault, statusBarConfigSchema } from './status-bar';
-import { timelineConfigSchema } from './timeline';
+import { timelineConfigDefault, timelineConfigSchema } from './timeline';
 import { viewConfigDefault, viewConfigSchema } from './view';
 import { viewerConfigDefault, viewerConfigSchema } from './viewer';
 

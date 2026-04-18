@@ -8,7 +8,7 @@ type InitializationCallback = () => Promise<boolean>;
  * applied to the usage of this class.
  */
 export class Initializer {
-  protected _initialized: Set<string> = new Set();
+  private _initialized: Set<string> = new Set();
 
   public async initializeMultipleIfNecessary(
     aspects: Record<string, InitializationCallback>,

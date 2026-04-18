@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { actionsSchema } from './actions/types';
-import { VIEW_DEFAULT, VIEWS_USER_SPECIFIED } from './common/const';
+import { VIEWS_USER_SPECIFIED } from './common/const';
 
 const keyboardShortcut = z.object({
   key: z.string(),
@@ -45,15 +45,17 @@ export type PTZKeyboardShortcutName =
   | 'ptz_zoom_in'
   | 'ptz_zoom_out';
 
+const interactionModeDefault = 'inactive' as const;
+
 export const viewConfigDefault = {
-  default: VIEW_DEFAULT,
+  default: 'auto' as const,
   camera_select: 'current' as const,
   interaction_seconds: 300,
   default_reset: {
     every_seconds: 0,
     after_interaction: false,
     entities: [],
-    interaction_mode: 'inactive' as const,
+    interaction_mode: interactionModeDefault,
   },
   default_cycle_camera: false,
   dim: false,
@@ -64,15 +66,19 @@ export const viewConfigDefault = {
     show_trigger_status: false,
     filter_selected_camera: true,
     actions: {
+      interaction_mode: interactionModeDefault,
       trigger: 'update' as const,
       untrigger: 'none' as const,
     },
-    untrigger_seconds: 0,
+    untrigger_delay_seconds: 0,
+    untrigger_force_seconds: 0,
   },
   keyboard_shortcuts: keyboardShortcutsDefault,
 };
 
-const interactionModeSchema = z.enum(['all', 'inactive', 'active']).default('inactive');
+const interactionModeSchema = z
+  .enum(['all', 'inactive', 'active'])
+  .default(interactionModeDefault);
 export type InteractionMode = z.infer<typeof interactionModeSchema>;
 
 export const triggersSchema = z.object({
@@ -93,7 +99,12 @@ export const triggersSchema = z.object({
   show_trigger_status: z
     .boolean()
     .default(viewConfigDefault.triggers.show_trigger_status),
-  untrigger_seconds: z.number().default(viewConfigDefault.triggers.untrigger_seconds),
+  untrigger_delay_seconds: z
+    .number()
+    .default(viewConfigDefault.triggers.untrigger_delay_seconds),
+  untrigger_force_seconds: z
+    .number()
+    .default(viewConfigDefault.triggers.untrigger_force_seconds),
 });
 export type TriggersOptions = z.infer<typeof triggersSchema>;
 
@@ -102,7 +113,7 @@ export type ThemeName = z.infer<typeof themeName>;
 
 const themeConfigSchema = z.object({
   themes: themeName.array().default(viewConfigDefault.theme.themes),
-  overrides: z.record(z.string()).optional(),
+  overrides: z.record(z.string(), z.string()).optional(),
 });
 export type ThemeConfig = z.infer<typeof themeConfigSchema>;
 
@@ -122,9 +133,7 @@ export const viewConfigSchema = z
           .default(viewConfigDefault.default_reset.after_interaction),
         every_seconds: z.number().default(viewConfigDefault.default_reset.every_seconds),
         entities: z.string().array().default(viewConfigDefault.default_reset.entities),
-        interaction_mode: interactionModeSchema.default(
-          viewConfigDefault.default_reset.interaction_mode,
-        ),
+        interaction_mode: interactionModeSchema,
       })
       .default(viewConfigDefault.default_reset),
 
@@ -138,5 +147,5 @@ export const viewConfigSchema = z
       viewConfigDefault.keyboard_shortcuts,
     ),
   })
-  .merge(actionsSchema)
+  .extend(actionsSchema.shape)
   .default(viewConfigDefault);

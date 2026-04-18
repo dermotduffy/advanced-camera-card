@@ -10,6 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { FoldersManager } from '../card-controller/folders/manager.js';
+import { ProblemPresence } from '../card-controller/problems/types.js';
 import { MicrophoneState } from '../card-controller/types.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
@@ -20,6 +21,7 @@ import { DeviceRegistryManager } from '../ha/registry/device/index.js';
 import { ResolvedMediaCache } from '../ha/resolved-media.js';
 import { HomeAssistant } from '../ha/types.js';
 import viewsStyle from '../scss/views.scss';
+import { contentsChanged } from '../utils/basic.js';
 import './surround.js';
 
 // As a special case: The diagnostics view is not dynamically loaded in case
@@ -61,11 +63,14 @@ export class AdvancedCameraCardViews extends LitElement {
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public triggeredCameraIDs?: Set<string>;
 
   @property({ attribute: false })
   public deviceRegistryManager?: DeviceRegistryManager;
+
+  @property({ attribute: false })
+  public problems?: ProblemPresence;
 
   @property({ attribute: false })
   public conditionStateManager?: ConditionStateManagerReadonlyInterface;
@@ -76,16 +81,14 @@ export class AdvancedCameraCardViews extends LitElement {
       if (view?.is('live') || this._shouldLivePreload()) {
         import('./live/index.js');
       }
-      if (view?.isMediaGalleryView() && !view.is('folders')) {
-        import('./gallery/media-gallery.js');
+      if (view?.isGalleryView()) {
+        import('./gallery/gallery.js');
       } else if (view?.isViewerView()) {
         import('./viewer/index.js');
       } else if (view?.is('image')) {
         import('./image.js');
       } else if (view?.is('timeline')) {
         import('./timeline.js');
-      } else if (view?.is('folders')) {
-        import('./gallery/folder-gallery.js');
       }
     }
 
@@ -98,7 +101,7 @@ export class AdvancedCameraCardViews extends LitElement {
     }
   }
 
-  protected _shouldLivePreload(): boolean {
+  private _shouldLivePreload(): boolean {
     const view = this.viewManagerEpoch?.manager.getView();
     return (
       // Special case: Never preload for diagnostics -- we want that to be as
@@ -141,7 +144,7 @@ export class AdvancedCameraCardViews extends LitElement {
         ? this.config.media_viewer.controls.timeline
         : undefined;
 
-    const cameraConfig = view
+    const cameraConfig = view?.camera
       ? this.cameraManager?.getStore().getCameraConfig(view.camera) ?? null
       : null;
 
@@ -157,7 +160,7 @@ export class AdvancedCameraCardViews extends LitElement {
       .viewItemManager=${this.viewItemManager}
       .cardWideConfig=${this.cardWideConfig}
     >
-      ${!this.hide && view?.is('image') && cameraConfig
+      ${!this.hide && view?.is('image')
         ? html` <advanced-camera-card-image
             .imageConfig=${this.config.image}
             .viewManagerEpoch=${this.viewManagerEpoch}
@@ -167,16 +170,18 @@ export class AdvancedCameraCardViews extends LitElement {
           >
           </advanced-camera-card-image>`
         : ``}
-      ${!this.hide && view?.isMediaGalleryView() && !view.is('folders')
-        ? html` <advanced-camera-card-media-gallery
+      ${!this.hide && view?.isGalleryView()
+        ? html` <advanced-camera-card-gallery
             .hass=${this.hass}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .galleryConfig=${this.config.media_gallery}
             .cameraManager=${this.cameraManager}
+            .foldersManager=${this.foldersManager}
             .viewItemManager=${this.viewItemManager}
             .cardWideConfig=${this.cardWideConfig}
+            .conditionStateManager=${this.conditionStateManager}
           >
-          </advanced-camera-card-media-gallery>`
+          </advanced-camera-card-gallery>`
         : ``}
       ${!this.hide && view?.isViewerView()
         ? html`
@@ -187,6 +192,7 @@ export class AdvancedCameraCardViews extends LitElement {
               .resolvedMediaCache=${this.resolvedMediaCache}
               .cameraManager=${this.cameraManager}
               .cardWideConfig=${this.cardWideConfig}
+              .viewItemManager=${this.viewItemManager}
             >
             </advanced-camera-card-viewer>
           `
@@ -209,17 +215,9 @@ export class AdvancedCameraCardViews extends LitElement {
             .hass=${this.hass}
             .rawConfig=${this.rawConfig}
             .deviceRegistryManager=${this.deviceRegistryManager}
+            .problems=${this.problems}
           >
           </advanced-camera-card-diagnostics>`
-        : ``}
-      ${!this.hide && view?.is('folders')
-        ? html` <advanced-camera-card-folder-gallery
-            .hass=${this.hass}
-            .viewManagerEpoch=${this.viewManagerEpoch}
-            .viewItemManager=${this.viewItemManager}
-            .galleryConfig=${this.config.media_gallery}
-            .foldersManager=${this.foldersManager}
-          ></advanced-camera-card-folder-gallery>`
         : ``}
       ${
         // Note: Subtle difference in condition below vs the other views in

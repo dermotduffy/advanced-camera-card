@@ -11,10 +11,7 @@
     "unmute_speaker": "Ativar altifalante"
   },
   "common": {
-    "live": "Ao Vivo",
-    "no_media": "Sem média",
-    "recordings": "Gravações",
-    "version": "Versão"
+    "no_media": "Sem média"
   },
   "config": {
     "cameras": {
@@ -117,6 +114,11 @@
       }
     },
     "common": {
+      "events_media_types": {
+        "all": "Todos os tipos de mídia",
+        "clips": "Clipes",
+        "snapshots": "Instantâneos"
+      },
       "controls": {
         "filter": {
           "editor_label": "Editor de titulos",
@@ -140,11 +142,6 @@
         },
         "thumbnails": {
           "editor_label": "Editor de titulos",
-          "events_media_type": "Mostrar miniaturas de clipes ou snapshots",
-          "events_media_types": {
-            "clips": "Miniaturas de clipes",
-            "snapshots": "Miniaturas de Snapshots"
-          },
           "mode": "Modos",
           "modes": {
             "above": "Miniaturas acima da mídia",
@@ -179,21 +176,13 @@
         "url": "Imagem arbitrária especificada por URL"
       },
       "media_action_conditions": {
-        "all": "Todas as oportunidades",
         "hidden": "Ao ocultar o navegador/aba",
-        "never": "Nunca",
         "selected": "Ao selecionar",
         "unselected": "Ao desselecionar",
         "visible": "Ao mostrar o navegador/aba"
       },
       "timeline": {
         "clustering_threshold": "A contagem de eventos nos quais eles são agrupados (0 = sem agrupamento)",
-        "events_media_type": "A mídia que a linha do tempo exibe",
-        "events_media_types": {
-          "all": "Todos os tipos de mídia",
-          "clips": "Clipes",
-          "snapshots": "Instantâneos"
-        },
         "show_recordings": "Mostrar gravações",
         "window_seconds": "A duração padrão da visualização da linha do tempo em segundos"
       }
@@ -310,7 +299,7 @@
       },
       "triggers": {
         "show_trigger_status": "Exibir estado do gatilho",
-        "untrigger_seconds": "Segundos após a mudar para o estado inativo para desacionar"
+        "untrigger_delay_seconds": "Segundos após a mudar para o estado inativo para desacionar"
       },
       "views": {
         "clip": "Clipe mais recente",
@@ -326,7 +315,6 @@
   },
   "editor": {
     "add_new_camera": "Adicionar nova câmera",
-    "button": "Botão",
     "camera": "Câmera",
     "cameras": "Câmeras",
     "cameras_secondary": "Câmeras para renderizar neste cartão",
@@ -365,7 +353,6 @@
   },
   "error": {
     "could_not_render_elements": "Não foi possível renderizar os elementos da imagem",
-    "could_not_resolve": "Não foi possível resolver o URL de mídia",
     "diagnostics": "Diagnósticos do cartão. Reveja as informações confidenciais antes de partilhar",
     "download_no_media": "Nenhuma mídia para download",
     "download_sign_failed": "Não foi possível assinar o URL de mídia para download",
@@ -385,18 +372,15 @@
     "live_camera_unavailable": "Câmera ao vivo indisponivel",
     "no_camera_engine": "Não existe câmera",
     "no_camera_entity": "Não existe uma entidade câmera",
-    "no_camera_entity_for_triggers": "Não existe camera para a acção",
     "no_camera_id": "Não foi possível determinar o ID da câmera para a câmera a seguir, pode ser necessário definir o parâmetro 'id' manualmente",
     "no_live_camera": "O parâmetro camera_entity deve ser definido e válido para este serviço ativo",
     "reconnecting": "A voltar a ligar",
     "troubleshooting": "Verifique a solução de problemas",
-    "unknown": "Erro desconhecido",
     "upgrade_available": "Uma atualização automatizada da configuração do cartão está disponível, visite o editor visual do cartão",
     "webrtc_card_reported_error": "O cartão WebRTC relatou um erro",
     "webrtc_card_waiting": "Aguardar o cartão WebRTC carregar ..."
   },
   "media_filter": {
-    "all": "Todos",
     "camera": "Camera",
     "favorite": "Favoritos",
     "media_type": "Tipos de media",
@@ -425,15 +409,12 @@
   "thumbnail": {
     "camera": "Camera",
     "duration": "Duração",
-    "events": "Eventos",
     "in_progress": "Em andamento",
     "no_thumbnail": "Nenhuma miniatura disponível",
     "retain_indefinitely": "Evento será retido por tempo indeterminado",
-    "score": "Pontuação",
     "seek": "Procurar",
     "start": "Início",
     "timeline": "Ver evento na linha do tempo",
-    "what": "O quê",
     "where": "Onde"
   },
   "timeline": {

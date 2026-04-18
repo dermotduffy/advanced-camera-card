@@ -68,7 +68,7 @@ export class BrowseMediaWalker {
     ).flat();
   }
 
-  protected async _walkBrowseMedia<M>(
+  private async _walkBrowseMedia<M>(
     hass: HomeAssistant,
     step: BrowseMediaStep<M>,
     options?: {
@@ -111,7 +111,7 @@ export class BrowseMediaWalker {
     return await this.walk(hass, nextSteps, options);
   }
 
-  protected async _browseMedia<M>(
+  private async _browseMedia<M>(
     hass: HomeAssistant,
     target: string | RichBrowseMedia<M>,
     options?: {

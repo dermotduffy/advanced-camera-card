@@ -19,9 +19,9 @@ item containing `conditions` and at least one of `merge`, `delete` or `set` spec
 | Option       | Default | Description                                                                                                  |
 | ------------ | ------- | ------------------------------------------------------------------------------------------------------------ |
 | `conditions` |         | A list of [conditions](conditions.md) that must evaluate to `true` in order for the overrides to be applied. |
-| `delete`     |         | An array of configuration paths to delete. See below.                                                        |
-| `merge`      |         | A dictionary of configuration paths to merge. See below.                                                     |
-| `set`        |         | A dictionary of configuration paths to set. See below.                                                       |
+| `delete`     |         | An array of configuration paths to delete. See [`delete`](#delete).                                          |
+| `merge`      |         | A dictionary of configuration paths to merge. See [`merge`](#merge).                                         |
+| `set`        |         | A dictionary of configuration paths to set. See [`set`](#set).                                               |
 
 ## Configuration Paths
 

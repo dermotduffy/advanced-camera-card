@@ -144,7 +144,7 @@ describe('UpdatingImageMediaPlayerController', () => {
     it('should return screenshot URL with cached value controller', async () => {
       const url = 'data:image/png;base64,';
       const cachedValueController = mock<CachedValueController<string>>();
-      Object.defineProperty(cachedValueController, 'value', { value: url });
+      cachedValueController.getValue.mockReturnValue(url);
 
       const controller = new UpdatingImageMediaPlayerController(
         createLitElement(),
@@ -188,5 +188,15 @@ describe('UpdatingImageMediaPlayerController', () => {
 
       expect(controller.getFullscreenElement()).toBeNull();
     });
+  });
+
+  it('should return null for getPIPElement', () => {
+    const controller = new UpdatingImageMediaPlayerController(
+      createLitElement(),
+      () => null,
+      () => mock<CachedValueController<string>>(),
+    );
+
+    expect(controller.getPIPElement()).toBeNull();
   });
 });

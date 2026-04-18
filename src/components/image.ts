@@ -7,14 +7,20 @@ import { ViewManagerEpoch } from '../card-controller/view/types';
 import { ZoomSettingsObserved } from '../components-lib/zoom/types';
 import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context';
 import { CameraConfig } from '../config/schema/cameras';
-import { ImageViewConfig } from '../config/schema/image';
+import {
+  type EnabledProxyConfig,
+  resolveProxyConfig,
+} from '../config/schema/common/proxy';
+import { ImageViewConfig, type ImageViewProxyConfig } from '../config/schema/image';
 import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../const';
 import { HomeAssistant } from '../ha/types';
+import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
 import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../types.js';
 import './image-updating-player';
 import { resolveImageMode } from './image-updating-player';
 import './media-dimensions-container';
+import { renderMessage } from './message.js';
 import './zoomer.js';
 
 @customElement('advanced-camera-card-image')
@@ -34,14 +40,14 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
   @property({ attribute: false })
   public imageConfig?: ImageViewConfig;
 
-  protected _refImage: Ref<MediaPlayerElement> = createRef();
+  private _refImage: Ref<MediaPlayerElement> = createRef();
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     await this.updateComplete;
     return (await this._refImage.value?.getMediaPlayerController()) ?? null;
   }
 
-  protected _renderContainer(template: TemplateResult): TemplateResult {
+  private _renderContainer(template: TemplateResult): TemplateResult {
     const zoomTarget = IMAGE_VIEW_ZOOM_TARGET_SENTINEL;
     const view = this.viewManagerEpoch?.manager.getView();
     const mode = resolveImageMode({
@@ -80,9 +86,33 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
       : intermediateTemplate}`;
   }
 
+  private _resolveProxyConfig(proxy?: ImageViewProxyConfig): EnabledProxyConfig | null {
+    return proxy
+      ? {
+          ...resolveProxyConfig(proxy),
+          enabled: proxy.enabled,
+          enforce: proxy.enabled,
+        }
+      : null;
+  }
+
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.cameraConfig) {
+    if (!this.hass) {
       return;
+    }
+
+    // Determine if this image mode requires a camera
+    const mode = resolveImageMode({
+      imageConfig: this.imageConfig,
+      cameraConfig: this.cameraConfig,
+    });
+
+    if (mode === 'camera' && !this.cameraConfig) {
+      return renderMessage({
+        type: 'info',
+        message: localize('error.no_camera_for_image'),
+        icon: 'mdi:camera-off',
+      });
     }
 
     return this._renderContainer(html`
@@ -92,6 +122,7 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
         .view=${this.viewManagerEpoch?.manager.getView()}
         .imageConfig=${this.imageConfig}
         .cameraConfig=${this.cameraConfig}
+        .proxyConfig=${this._resolveProxyConfig(this.imageConfig?.proxy) ?? undefined}
       >
       </advanced-camera-card-image-updating-player>
     `);

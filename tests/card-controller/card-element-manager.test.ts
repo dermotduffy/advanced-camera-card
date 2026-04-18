@@ -1,13 +1,17 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CardElementManager } from '../../src/card-controller/card-element-manager';
 import { StateWatcher } from '../../src/card-controller/hass/state-watcher';
+import { QueryResults } from '../../src/view/query-results';
+import { View } from '../../src/view/view';
 import {
   callStateWatcherCallback,
   createCardAPI,
+  createCardHTMLElement,
   createConfig,
-  createLitElement,
   createStateEntity,
+  createView,
+  TestViewMedia,
 } from '../test-utils';
 
 // @vitest-environment jsdom
@@ -17,7 +21,7 @@ describe('CardElementManager', () => {
   });
 
   it('should get element', () => {
-    const element = createLitElement();
+    const element = createCardHTMLElement();
     const manager = new CardElementManager(
       createCardAPI(),
       element,
@@ -32,7 +36,7 @@ describe('CardElementManager', () => {
     const callback = vi.fn();
     const manager = new CardElementManager(
       createCardAPI(),
-      createLitElement(),
+      createCardHTMLElement(),
       callback,
       () => undefined,
     );
@@ -46,7 +50,7 @@ describe('CardElementManager', () => {
     const callback = vi.fn();
     const manager = new CardElementManager(
       createCardAPI(),
-      createLitElement(),
+      createCardHTMLElement(),
       () => undefined,
       callback,
     );
@@ -57,7 +61,7 @@ describe('CardElementManager', () => {
   });
 
   it('should update', () => {
-    const element = createLitElement();
+    const element = createCardHTMLElement();
     const manager = new CardElementManager(
       createCardAPI(),
       element,
@@ -70,7 +74,7 @@ describe('CardElementManager', () => {
   });
 
   it('should get hasUpdated', () => {
-    const element = createLitElement();
+    const element = createCardHTMLElement();
     element.hasUpdated = true;
     const manager = new CardElementManager(
       createCardAPI(),
@@ -86,7 +90,7 @@ describe('CardElementManager', () => {
     const windowAddEventListener = vi.spyOn(global.window, 'addEventListener');
 
     const addEventListener = vi.fn();
-    const element = createLitElement();
+    const element = createCardHTMLElement();
     element.addEventListener = addEventListener;
 
     const api = createCardAPI();
@@ -129,6 +133,10 @@ describe('CardElementManager', () => {
     );
     expect(windowAddEventListener).toBeCalledWith('location-changed', expect.anything());
     expect(windowAddEventListener).toBeCalledWith('popstate', expect.anything());
+    expect(windowAddEventListener).toBeCalledWith(
+      'advanced-camera-card:editor:diagnostics',
+      expect.anything(),
+    );
 
     expect(api.getInteractionManager().initialize).toBeCalled();
     expect(api.getFullscreenManager().initialize).toBeCalled();
@@ -140,7 +148,7 @@ describe('CardElementManager', () => {
   it('should disconnect', () => {
     const windowRemoveEventListener = vi.spyOn(global.window, 'removeEventListener');
 
-    const element = createLitElement();
+    const element = createCardHTMLElement();
     element.setAttribute('panel', '');
     element.setAttribute('casted', '');
 
@@ -195,6 +203,10 @@ describe('CardElementManager', () => {
       expect.anything(),
     );
     expect(windowRemoveEventListener).toBeCalledWith('popstate', expect.anything());
+    expect(windowRemoveEventListener).toBeCalledWith(
+      'advanced-camera-card:editor:diagnostics',
+      expect.anything(),
+    );
 
     expect(api.getMediaLoadedInfoManager().clear).toBeCalledWith({ all: true });
     expect(api.getFullscreenManager().disconnect).toBeCalled();
@@ -217,7 +229,7 @@ describe('CardElementManager', () => {
       const stateWatcher = mock<StateWatcher>();
       vi.mocked(api.getHASSManager().getStateWatcher).mockReturnValue(stateWatcher);
 
-      const element = createLitElement();
+      const element = createCardHTMLElement();
       const manager = new CardElementManager(
         api,
         element,
@@ -245,7 +257,7 @@ describe('CardElementManager', () => {
       const stateWatcher = mock<StateWatcher>();
       vi.mocked(api.getHASSManager().getStateWatcher).mockReturnValue(stateWatcher);
 
-      const element = createLitElement();
+      const element = createCardHTMLElement();
       const manager = new CardElementManager(
         api,
         element,
@@ -262,6 +274,167 @@ describe('CardElementManager', () => {
       callStateWatcherCallback(stateWatcher, diff);
 
       expect(element.requestUpdate).toBeCalled();
+    });
+
+    it('selected media review status changes', () => {
+      const api = createCardAPI();
+      const selectedMedia = new TestViewMedia({ id: 'media-1' });
+      const queryResults = new QueryResults({
+        results: [selectedMedia],
+        selectedIndex: 0,
+      });
+      const view = createView({ queryResults });
+
+      vi.mocked(api.getViewManager().getView).mockReturnValue(view);
+
+      const element = createCardHTMLElement();
+      const manager = new CardElementManager(
+        api,
+        element,
+        () => undefined,
+        () => undefined,
+      );
+
+      manager.elementConnected();
+
+      // Clear any previous calls from elementConnected.
+      vi.mocked(element.requestUpdate).mockClear();
+
+      // Dispatch the media reviewed event with the selected media item.
+      element.dispatchEvent(
+        new CustomEvent('advanced-camera-card:media:reviewed', {
+          detail: selectedMedia,
+        }),
+      );
+
+      expect(element.requestUpdate).toBeCalled();
+    });
+
+    it('non-selected media review status changes does not update', () => {
+      const api = createCardAPI();
+      const selectedMedia = new TestViewMedia({ id: 'media-1' });
+      const otherMedia = new TestViewMedia({ id: 'media-2' });
+      const queryResults = new QueryResults({
+        results: [selectedMedia, otherMedia],
+        selectedIndex: 0,
+      });
+      const view = createView({ queryResults });
+
+      vi.mocked(api.getViewManager().getView).mockReturnValue(view);
+
+      const element = createCardHTMLElement();
+      const manager = new CardElementManager(
+        api,
+        element,
+        () => undefined,
+        () => undefined,
+      );
+
+      manager.elementConnected();
+
+      // Clear any previous calls from elementConnected.
+      vi.mocked(element.requestUpdate).mockClear();
+
+      // Dispatch the media reviewed event with a DIFFERENT media item.
+      element.dispatchEvent(
+        new CustomEvent('advanced-camera-card:media:reviewed', {
+          detail: otherMedia,
+        }),
+      );
+
+      // Should NOT update because the reviewed item is not the selected item.
+      expect(element.requestUpdate).not.toBeCalled();
+    });
+  });
+
+  describe('should handle diagnostics', () => {
+    afterEach(() => {
+      vi.clearAllMocks();
+    });
+
+    const createDialogWithCard = (element: HTMLElement) => {
+      const dialog = document.createElement('hui-dialog-edit-card');
+      dialog.attachShadow({ mode: 'open' });
+      assert(dialog.shadowRoot);
+      dialog.shadowRoot.append(element);
+      return dialog;
+    };
+
+    const fireFromDialog = (dialog: HTMLElement) => {
+      const editorDiv = document.createElement('div');
+      assert(dialog.shadowRoot);
+      dialog.shadowRoot.append(editorDiv);
+      editorDiv.dispatchEvent(
+        new CustomEvent('advanced-camera-card:editor:diagnostics', {
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    };
+
+    it('sets view to diagnostics if card is in editor', () => {
+      const api = createCardAPI();
+      const element = createCardHTMLElement();
+      const manager = new CardElementManager(
+        api,
+        element,
+        () => undefined,
+        () => undefined,
+      );
+
+      const dialog = createDialogWithCard(element);
+      document.body.append(dialog);
+      manager.elementConnected();
+
+      fireFromDialog(dialog);
+
+      expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+        params: { view: 'diagnostics' },
+      });
+    });
+
+    it('resets to default view if already in diagnostics view', () => {
+      const api = createCardAPI();
+      const element = createCardHTMLElement();
+      const manager = new CardElementManager(
+        api,
+        element,
+        () => undefined,
+        () => undefined,
+      );
+
+      vi.mocked(api.getViewManager().getView).mockReturnValue(
+        new View({ view: 'diagnostics' }),
+      );
+
+      const dialog = createDialogWithCard(element);
+      document.body.append(dialog);
+      manager.elementConnected();
+
+      fireFromDialog(dialog);
+
+      expect(api.getViewManager().setViewDefault).toBeCalled();
+    });
+
+    it('does not set view to diagnostics if card is not in editor', () => {
+      const api = createCardAPI();
+      const element = createCardHTMLElement();
+      const manager = new CardElementManager(
+        api,
+        element,
+        () => undefined,
+        () => undefined,
+      );
+
+      manager.elementConnected();
+
+      // Event fired from a different dialog that does not contain the card
+      const otherDialog = document.createElement('hui-dialog-edit-card');
+      otherDialog.attachShadow({ mode: 'open' });
+      document.body.append(otherDialog);
+      fireFromDialog(otherDialog);
+
+      expect(api.getViewManager().setViewByParameters).not.toBeCalled();
     });
   });
 });

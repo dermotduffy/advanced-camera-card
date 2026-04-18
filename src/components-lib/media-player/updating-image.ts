@@ -1,5 +1,5 @@
 import { LitElement } from 'lit';
-import { FullscreenElement, MediaPlayerController } from '../../types';
+import { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
 import { CachedValueController } from '../cached-value-controller';
 
 export class UpdatingImageMediaPlayerController implements MediaPlayerController {
@@ -55,10 +55,14 @@ export class UpdatingImageMediaPlayerController implements MediaPlayerController
 
   public async getScreenshotURL(): Promise<string | null> {
     await this._host.updateComplete;
-    return this._getCachedValueController()?.value ?? null;
+    return this._getCachedValueController()?.getValue() ?? null;
   }
 
   public getFullscreenElement(): FullscreenElement | null {
     return this._getImageCallback() ?? null;
+  }
+
+  public getPIPElement(): PIPElement | null {
+    return null;
   }
 }

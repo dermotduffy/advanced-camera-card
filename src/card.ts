@@ -8,10 +8,13 @@ import 'ha-nunjucks/dist';
 import 'web-dialog';
 import { actionHandler } from './action-handler-directive.js';
 import { CardController } from './card-controller/controller';
+import type {
+  ProblemKey,
+  ProblemTriggerEventData,
+} from './card-controller/problems/types.js';
 import { MenuButtonController } from './components-lib/menu-button-controller';
 import './components/call-controls.js';
 import './components/effects/effects';
-import { AdvancedCameraCardEffects } from './components/effects/effects';
 import './components/elements.js';
 import { AdvancedCameraCardElements } from './components/elements.js';
 import './components/loading.js';
@@ -19,6 +22,7 @@ import './components/menu.js';
 import { AdvancedCameraCardMenu } from './components/menu.js';
 import './components/message.js';
 import { renderMessage } from './components/message.js';
+import './components/notification.js';
 import './components/overlay.js';
 import { AdvancedCameraCardOverlay } from './components/overlay.js';
 import './components/status-bar';
@@ -97,12 +101,10 @@ class AdvancedCameraCard extends LitElement {
     // diagnostics starting at the top).
     () => this._refMain.value?.scroll({ top: 0 }),
     () => this._refMenu.value?.toggleMenu(),
-    () => this._refEffects.value ?? null,
   );
 
   protected _menuButtonController = new MenuButtonController();
 
-  protected _refEffects: Ref<AdvancedCameraCardEffects> = createRef();
   protected _refElements: Ref<AdvancedCameraCardElements> = createRef();
   protected _refMain: Ref<HTMLElement> = createRef();
   protected _refMenu: Ref<AdvancedCameraCardMenu> = createRef();
@@ -174,7 +176,9 @@ class AdvancedCameraCard extends LitElement {
     }
 
     if (!this._controller.getInitializationManager().isInitializedMandatory()) {
-      this._controller.getInitializationManager().initializeMandatory();
+      /* async */ this._controller.getInitializationManager().initializeMandatory();
+    } else if (!this._controller.getInitializationManager().isInitializedBackground()) {
+      /* async */ this._controller.getInitializationManager().initializeBackground();
     }
     return true;
   }
@@ -237,9 +241,9 @@ class AdvancedCameraCard extends LitElement {
 
     return html`
       ${position === 'overlay'
-        ? html`<advanced-camera-card-overlay
-            >${getContents('overlay')}</advanced-camera-card-overlay
-          >`
+        ? html`<advanced-camera-card-overlay>
+            ${getContents('overlay')}
+          </advanced-camera-card-overlay>`
         : html`<div class="outerlay" data-position="${position}">
             ${getContents('outerlay')}
           </div>`}
@@ -270,6 +274,7 @@ class AdvancedCameraCard extends LitElement {
             inExpandedMode: this._controller.getExpandManager().isExpanded(),
             mediaPlayerController: this._controller.getMediaPlayerManager(),
             microphoneManager: this._controller.getMicrophoneManager(),
+            pipManager: this._controller.getPIPManager(),
             showCameraUIButton: this._controller.getCameraURLManager().hasCameraURL(),
             view: view,
             viewManager: this._controller.getViewManager(),
@@ -293,6 +298,7 @@ class AdvancedCameraCard extends LitElement {
           cameraManager: this._controller.getCameraManager(),
           view: this._controller.getViewManager().getView(),
           mediaLoadedInfo: this._getSelectedMediaLoadedInfo(),
+          problems: this._controller.getProblemManager().getProblemResults(),
         })}
         .config=${this._config.status_bar}
       ></advanced-camera-card-status-bar>
@@ -413,7 +419,7 @@ class AdvancedCameraCard extends LitElement {
     // ensure the hover menu styling continues to work.
     return this._renderInDialogIfNecessary(
       html` <advanced-camera-card-effects
-          ${ref(this._refEffects)}
+          .effectsManager=${this._controller.getEffectsManager()}
         ></advanced-camera-card-effects>
         <ha-card
           id="ha-card"
@@ -427,6 +433,12 @@ class AdvancedCameraCard extends LitElement {
           @advanced-camera-card:media:loaded=${this._handleMediaLoaded}
           @advanced-camera-card:media:unloaded=${this._handleMediaUnloaded}
           @advanced-camera-card:live:error=${this._handleLiveError}
+          @advanced-camera-card:problem:notify=${(ev: CustomEvent<ProblemKey>) =>
+            this._controller.getProblemManager().forceNotify(ev.detail)}
+          @advanced-camera-card:problem:trigger=${({
+            detail: { key, ...context },
+          }: CustomEvent<ProblemTriggerEventData>) =>
+            this._controller.getProblemManager().trigger(key, context)}
           @advanced-camera-card:media:volumechange=${
             () => this.requestUpdate() /* Refresh mute menu button */
           }
@@ -437,15 +449,17 @@ class AdvancedCameraCard extends LitElement {
             () => this.requestUpdate() /* Refresh play/pause menu button */
           }
           @advanced-camera-card:focus=${() => this.focus()}
+          @advanced-camera-card:notification:dismiss=${() =>
+            this._controller.getNotificationManager().reset()}
         >
           ${showLoading
             ? html`<advanced-camera-card-loading
                 .loaded=${this._controller
                   .getInitializationManager()
                   .wasEverInitialized()}
-                .effectsControllerAPI=${this._config?.performance?.features
+                .effectsManager=${this._config?.performance?.features
                   .card_loading_effects !== false
-                  ? this._controller.getEffectsControllerAPI()
+                  ? this._controller.getEffectsManager()
                   : undefined}
               ></advanced-camera-card-loading>`
             : ''}
@@ -471,6 +485,7 @@ class AdvancedCameraCard extends LitElement {
                 ? this._controller.getTriggersManager().getTriggeredCameraIDs()
                 : undefined}
               .deviceRegistryManager=${this._controller.getDeviceRegistryManager()}
+              .problems=${this._controller.getProblemManager().getProblemPresence()}
             ></advanced-camera-card-views>
             <advanced-camera-card-call-controls
               .callState=${this._controller.getCallManager().getState()}
@@ -525,6 +540,13 @@ class AdvancedCameraCard extends LitElement {
               >
               </advanced-camera-card-elements>`
             : ``}
+          ${this._controller.getNotificationManager().getNotification()
+            ? html`<advanced-camera-card-notification
+                .notification=${this._controller
+                  .getNotificationManager()
+                  .getNotification()}
+              ></advanced-camera-card-notification>`
+            : ''}
         </ha-card>`,
     );
   }

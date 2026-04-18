@@ -16,7 +16,7 @@ certain configurations (in `overrides`) or to display "picture elements" (in
 
 ## `and`
 
-Evaluates to `true` if _all_ embedded conditions evaluate to `true`.
+Evaluates to `true` if _all_ embedded conditions evaluate to `true`. At least one condition is required.
 
 ```yaml
 conditions:
@@ -92,7 +92,17 @@ conditions:
 
 ## `fullscreen`
 
-Matches based on whether the card is in fullscreen.
+Matches based on whether the card (or media within it) is in fullscreen mode.
+
+> [!WARNING]
+> When fullscreen is entered via a video player's built-in controls (rather than
+> the card's own fullscreen [action](actions/custom/README.md) or menu button),
+> the browser fullscreens the video element itself rather than the card. Any
+> automation action that replaces that video element (e.g. switching substreams)
+> will immediately exit fullscreen. A partial workaround may be to use the
+> card's fullscreen action instead. See [Fullscreen with HD substream
+> switching](../examples.md?id=fullscreen-with-hd-substream-switching) for an
+> approach that combines substream switching with the card's fullscreen.
 
 ```yaml
 conditions:
@@ -154,7 +164,7 @@ conditions:
 | `key`       |         | Any [keyboard key value](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values), e.g. `ArrowLeft`. |
 | `meta`      | `false` | An optional value to match whether the `meta` key is being held.                                                                  |
 | `shift`     | `false` | An optional value to match whether the `shift` key is being held.                                                                 |
-| `state`     | `down`  | An optional value to match the state of the. Must be one of `down` or `up`.                                                       |
+| `state`     | `down`  | An optional value to match the state of the key. Must be one of `down` or `up`.                                                   |
 
 ## `media_loaded`
 
@@ -192,7 +202,10 @@ match.
 
 ## `not`
 
-Evaluates to `true` if _all_ embedded conditions evaluate to `false`.
+Evaluates to `true` if every embedded condition is `false`. At least one
+condition is required.
+
+> [!IMPORTANT] > `not` is a **NOR** operation, not a **NAND**. If _any_ sub-condition is `true`, the `not` condition evaluates to `false` — even if other sub-conditions are `false`. To pass, _all_ sub-conditions must be `false`. This behavior matches the [Home Assistant equivalent](https://www.home-assistant.io/docs/scripts/conditions/#not-condition).
 
 ```yaml
 conditions:
@@ -203,7 +216,7 @@ conditions:
 | Parameter    | Description                                                                                                     |
 | ------------ | --------------------------------------------------------------------------------------------------------------- |
 | `condition`  | Must be `not`.                                                                                                  |
-| `conditions` | A list of other conditions _all_ of which must evaluate `false` in order for this condition to evaluate `true`. |
+| `conditions` | A list of other conditions _none_ of which must evaluate `true` in order for this condition to evaluate `true`. |
 
 ## `numeric_state`
 
@@ -219,7 +232,7 @@ See [Home Assistant conditions documentation](https://www.home-assistant.io/dash
 
 ## `or`
 
-Evaluates to `true` if _any_ embedded condition evaluates to `true`.
+Evaluates to `true` if _any_ embedded condition evaluates to `true`. At least one condition is required.
 
 ```yaml
 conditions:
@@ -234,7 +247,7 @@ conditions:
 
 ## `screen`
 
-Matches based on [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries).
+Matches based on [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Using).
 
 ```yaml
 conditions:
@@ -242,10 +255,10 @@ conditions:
     # [...]
 ```
 
-| Parameter     | Description                                                                                                                                                                                                                                                                                                                                                                    |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `condition`   | Must be `screen`.                                                                                                                                                                                                                                                                                                                                                              |
-| `media_query` | Any valid [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries) string. Media queries must start and end with parentheses. This may be used to alter card configuration based on device/media properties (e.g. viewport width, orientation). Please note that `width` and `height` refer to the entire viewport not just the card. |
+| Parameter     | Description                                                                                                                                                                                                                                                                                                                                                             |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition`   | Must be `screen`.                                                                                                                                                                                                                                                                                                                                                       |
+| `media_query` | Any valid [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Using) string. Media queries must start and end with parentheses. This may be used to alter card configuration based on device/media properties (e.g. viewport width, orientation). Please note that `width` and `height` refer to the entire viewport not just the card. |
 
 See the [screen conditions examples](../examples.md?id=screen-conditions).
 
@@ -324,7 +337,7 @@ conditions:
 
 ## `user_agent`
 
-Matches based on the [User-Agent](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent).
+Matches based on the [User-Agent](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/User-Agent).
 
 ```yaml
 conditions:
@@ -361,9 +374,9 @@ conditions:
 
 > [!IMPORTANT]
 > Internally, views associated with the media viewer (e.g. `clip`, `snapshot`,
-> `recording`) are translated to a special view called `media` after the relevant
-> media is fetched. When including views as part of a [condition](conditions.md),
-> you may need to refer to this special `media` view.
+> `review` `recording`) are translated to the `media` view after the relevant
+> media is fetched. When including views as part of a
+> [condition](conditions.md), you may need to refer to the `media` view.
 
 ## Fully expanded reference
 

@@ -28,6 +28,9 @@ export const getPTZTarget = (
         };
   } else if (view.is('live')) {
     const substreamAwareCameraID = getStreamCameraID(view);
+    if (!substreamAwareCameraID) {
+      return null;
+    }
     let type: PTZType = 'digital';
 
     if (options?.type !== 'digital' && options?.cameraManager) {

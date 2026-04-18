@@ -8,6 +8,7 @@ import { CameraManagerReadOnlyConfigStore } from './store';
 import {
   CameraManagerCameraMetadata,
   CameraQuery,
+  DefaultQueryParameters,
   Engine,
   EngineOptions,
   EventQuery,
@@ -17,11 +18,15 @@ import {
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
+  PartialReviewQuery,
   QueryReturnType,
+  QueryType,
   RecordingQuery,
   RecordingQueryResultsMap,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
+  ReviewQuery,
+  ReviewQueryResultsMap,
 } from './types';
 
 export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
@@ -30,6 +35,15 @@ export interface CameraManagerEngine {
   getEngineType(): Engine;
 
   createCamera(hass: HomeAssistant, cameraConfig: CameraConfig): Promise<Camera>;
+
+  /**
+   * Get default query parameters for a camera based on its configuration.
+   * Engines read their own config and return generic filter params.
+   */
+  getDefaultQueryParameters(
+    camera: Camera,
+    queryType: QueryType,
+  ): DefaultQueryParameters;
 
   generateDefaultEventQuery(
     store: CameraManagerReadOnlyConfigStore,
@@ -70,6 +84,19 @@ export interface CameraManagerEngine {
     engineOptions?: EngineOptions,
   ): Promise<RecordingSegmentsQueryResultsMap | null>;
 
+  generateDefaultReviewQuery(
+    store: CameraManagerReadOnlyConfigStore,
+    cameraIDs: Set<string>,
+    query?: PartialReviewQuery,
+  ): ReviewQuery[] | null;
+
+  getReviews(
+    hass: HomeAssistant,
+    store: CameraManagerReadOnlyConfigStore,
+    query: ReviewQuery,
+    engineOptions?: EngineOptions,
+  ): Promise<ReviewQueryResultsMap | null>;
+
   generateMediaFromEvents(
     hass: HomeAssistant,
     store: CameraManagerReadOnlyConfigStore,
@@ -84,6 +111,13 @@ export interface CameraManagerEngine {
     results: QueryReturnType<RecordingQuery>,
   ): ViewMedia[] | null;
 
+  generateMediaFromReviews(
+    hass: HomeAssistant,
+    store: CameraManagerReadOnlyConfigStore,
+    query: ReviewQuery,
+    results: QueryReturnType<ReviewQuery>,
+  ): ViewMedia[] | null;
+
   getMediaDownloadPath(
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
@@ -95,6 +129,13 @@ export interface CameraManagerEngine {
     cameraConfig: CameraConfig,
     media: ViewMedia,
     favorite: boolean,
+  ): Promise<void>;
+
+  reviewMedia(
+    hass: HomeAssistant,
+    cameraConfig: CameraConfig,
+    media: ViewMedia,
+    reviewed: boolean,
   ): Promise<void>;
 
   getQueryResultMaxAge(query: CameraQuery): number | null;

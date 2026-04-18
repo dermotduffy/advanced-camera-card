@@ -3,20 +3,26 @@ import { CameraManager } from '../camera-manager/manager';
 import { StatusBarItem } from '../config/schema/actions/types';
 import { StatusBarConfig } from '../config/schema/status-bar';
 import { MediaLoadedInfo } from '../types';
+import { createNotificationAction } from '../utils/action';
 import { View } from '../view/view';
+import { KeyedProblemResult, ProblemKey } from './problems/types';
 import { CardStatusBarAPI } from './types';
 
 const RESOLUTION_TOLERANCE_PCT = 0.01;
 
+const problemKeyToStatusBarKey = (key: ProblemKey): keyof StatusBarConfig['items'] => {
+  return `problem_${key}`;
+};
+
 export class StatusBarItemManager {
-  protected _api: CardStatusBarAPI;
+  private _api: CardStatusBarAPI;
 
   constructor(api: CardStatusBarAPI) {
     this._api = api;
   }
 
-  protected _items: StatusBarItem[] = [];
-  protected _dynamicItems: StatusBarItem[] = [];
+  private _items: StatusBarItem[] = [];
+  private _dynamicItems: StatusBarItem[] = [];
 
   public addDynamicStatusBarItem(item: StatusBarItem): void {
     if (!this._dynamicItems.includes(item)) {
@@ -42,15 +48,20 @@ export class StatusBarItemManager {
     cameraManager?: CameraManager | null;
     view?: View | null;
     mediaLoadedInfo?: MediaLoadedInfo | null;
+    problems?: KeyedProblemResult[] | null;
   }): StatusBarItem[] {
-    const cameraMetadata = options?.view
-      ? options?.cameraManager?.getCameraMetadata(options?.view?.camera)
+    const cameraMetadata = options?.view?.camera
+      ? options?.cameraManager?.getCameraMetadata(options.view.camera)
       : null;
     const engineIcon = cameraMetadata?.engineIcon ?? null;
+    const selectedResult = options?.view?.queryResults?.getSelectedResult();
+    const severity = options?.view?.isViewerView()
+      ? selectedResult?.getSeverity() ?? null
+      : null;
     const title = options?.view?.is('live')
       ? cameraMetadata?.title ?? null
       : options?.view?.isViewerView()
-        ? options?.view.queryResults?.getSelectedResult()?.getTitle() ?? null
+        ? selectedResult?.getTitle() ?? null
         : null;
     const resolution = options?.mediaLoadedInfo
       ? this._calculateResolution(options?.mediaLoadedInfo)
@@ -60,6 +71,17 @@ export class StatusBarItemManager {
       : null;
 
     return [
+      ...(severity
+        ? [
+            {
+              type: 'custom:advanced-camera-card-status-bar-icon' as const,
+              icon: 'mdi:circle-medium',
+              severity,
+              ...options?.statusConfig?.items.severity,
+            },
+          ]
+        : []),
+
       ...(title
         ? [
             {
@@ -109,11 +131,28 @@ export class StatusBarItemManager {
             },
           ]
         : []),
+
+      ...(options?.problems ?? [])
+        .filter(
+          ({ key }) =>
+            options?.statusConfig?.items[problemKeyToStatusBarKey(key)]?.enabled !==
+            false,
+        )
+        .map(({ key, problem }) => ({
+          type: 'custom:advanced-camera-card-status-bar-icon' as const,
+          icon: problem.icon,
+          severity: problem.severity,
+          title: problem.notification.heading?.text,
+          actions: {
+            tap_action: createNotificationAction(problem.notification),
+          },
+          ...options?.statusConfig?.items[problemKeyToStatusBarKey(key)],
+        })),
       ...this._dynamicItems,
     ];
   }
 
-  protected _matchesWidthHeight(
+  private _matchesWidthHeight(
     mediaLoadedInfo: MediaLoadedInfo | null,
     width: number,
     height: number,
@@ -138,7 +177,7 @@ export class StatusBarItemManager {
     );
   }
 
-  protected _calculateResolution(mediaLoadedInfo: MediaLoadedInfo): string {
+  private _calculateResolution(mediaLoadedInfo: MediaLoadedInfo): string {
     // Ordered roughly by a guess at most common towards the top.
     if (this._matchesWidthHeight(mediaLoadedInfo, 1920, 1080)) {
       return '1080p';

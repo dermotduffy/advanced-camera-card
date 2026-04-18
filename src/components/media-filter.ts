@@ -11,12 +11,11 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../camera-manager/manager';
+import { FoldersManager } from '../card-controller/folders/manager';
 import { ViewManagerEpoch } from '../card-controller/view/types';
 import {
   MediaFilterController,
-  MediaFilterCoreFavoriteSelection,
   MediaFilterCoreWhen,
-  MediaFilterMediaType,
 } from '../components-lib/media-filter-controller';
 import { CardWideConfig } from '../config/schema/types';
 import { HomeAssistant } from '../ha/types';
@@ -39,6 +38,9 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
   public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
+  public foldersManager?: FoldersManager;
+
+  @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
   static elementDefinitions = {
@@ -46,62 +48,79 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
     'advanced-camera-card-date-picker': AdvancedCameraCardDatePicker,
   };
 
-  protected _mediaFilterController = new MediaFilterController(this);
+  private _mediaFilterController = new MediaFilterController(this);
 
-  protected _refMediaType: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refCamera: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refWhen: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refWhenFrom: Ref<AdvancedCameraCardDatePicker> = createRef();
-  protected _refWhenTo: Ref<AdvancedCameraCardDatePicker> = createRef();
-  protected _refWhat: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refWhere: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refFavorite: Ref<AdvancedCameraCardSelect> = createRef();
-  protected _refTags: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refMediaType: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refCamera: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refWhen: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refWhenFrom: Ref<AdvancedCameraCardDatePicker> = createRef();
+  private _refWhenTo: Ref<AdvancedCameraCardDatePicker> = createRef();
+  private _refWhat: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refWhere: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refFavorite: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refReviewed: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refSeverity: Ref<AdvancedCameraCardSelect> = createRef();
+  private _refTags: Ref<AdvancedCameraCardSelect> = createRef();
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('viewManagerEpoch')) {
       this._mediaFilterController.setViewManager(this.viewManagerEpoch?.manager ?? null);
     }
 
-    if (changedProps.has('cameraManager') && this.cameraManager) {
-      this._mediaFilterController.computeCameraOptions(this.cameraManager);
+    if (
+      (changedProps.has('cameraManager') || changedProps.has('foldersManager')) &&
+      this.cameraManager &&
+      this.foldersManager
+    ) {
+      this._mediaFilterController.computeCameraOptions(
+        this.cameraManager,
+        this.foldersManager,
+      );
       this._mediaFilterController.computeMetadataOptions(this.cameraManager);
     }
 
     // The first time the viewManager is set, compute the initial default selections.
     if (
-      !changedProps.get('viewManager') &&
+      (!changedProps.get('viewManager') || changedProps.has('foldersManager')) &&
       this.viewManagerEpoch &&
-      this.cameraManager
+      this.cameraManager &&
+      this.foldersManager
     ) {
-      this._mediaFilterController.computeInitialDefaultsFromView(this.cameraManager);
+      this._mediaFilterController.computeInitialDefaultsFromView(
+        this.cameraManager,
+        this.foldersManager,
+      );
     }
   }
 
   protected render(): TemplateResult | void {
     const valueChange = async () => {
-      if (!this.cameraManager || !this.viewManagerEpoch || !this.cardWideConfig) {
+      if (
+        !this.cameraManager ||
+        !this.foldersManager ||
+        !this.viewManagerEpoch ||
+        !this.cardWideConfig
+      ) {
         return;
       }
       await this._mediaFilterController.valueChangeHandler(
         this.cameraManager,
+        this.foldersManager,
         this.cardWideConfig,
         {
           camera: this._refCamera.value?.value ?? undefined,
-          mediaType: (this._refMediaType.value?.value ?? undefined) as
-            | MediaFilterMediaType
-            | undefined,
+          mediaTypes: this._refMediaType.value?.value ?? undefined,
           when: {
             selected: this._refWhen.value?.value ?? undefined,
             from: this._refWhenFrom.value?.value,
             to: this._refWhenTo.value?.value,
           },
-          favorite: (this._refFavorite.value?.value ?? undefined) as
-            | MediaFilterCoreFavoriteSelection
-            | undefined,
+          favorite: this._refFavorite.value?.value ?? undefined,
+          reviewed: this._refReviewed.value?.value ?? undefined,
           where: this._refWhere.value?.value ?? undefined,
           what: this._refWhat.value?.value ?? undefined,
           tags: this._refTags.value?.value ?? undefined,
+          severity: this._refSeverity.value?.value ?? undefined,
         },
       );
     };
@@ -126,7 +145,6 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
       return;
     }
 
-    const controls = this._mediaFilterController.getControlsToShow(this.cameraManager);
     const defaults = this._mediaFilterController.getDefaults();
     const whatOptions = this._mediaFilterController.getWhatOptions();
     const tagsOptions = this._mediaFilterController.getTagsOptions();
@@ -137,7 +155,9 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
         label=${localize('media_filter.media_type')}
         placeholder=${localize('media_filter.select_media_type')}
         .options=${this._mediaFilterController.getMediaTypeOptions()}
-        .initialValue=${defaults?.mediaType}
+        .initialValue=${defaults?.mediaTypes}
+        multiple
+        clearable
         @advanced-camera-card:select:change=${() => valueChange()}
       >
       </advanced-camera-card-select>
@@ -184,7 +204,7 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
         @advanced-camera-card:select:change=${() => valueChange()}
       >
       </advanced-camera-card-select>
-      ${controls.events && whatOptions.length
+      ${whatOptions.length
         ? html` <advanced-camera-card-select
             ${ref(this._refWhat)}
             label=${localize('media_filter.what')}
@@ -197,7 +217,7 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
           >
           </advanced-camera-card-select>`
         : ''}
-      ${controls.events && tagsOptions.length
+      ${tagsOptions.length
         ? html` <advanced-camera-card-select
             ${ref(this._refTags)}
             label=${localize('media_filter.tag')}
@@ -210,7 +230,7 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
           >
           </advanced-camera-card-select>`
         : ''}
-      ${controls.events && whereOptions.length
+      ${whereOptions.length
         ? html` <advanced-camera-card-select
             ${ref(this._refWhere)}
             label=${localize('media_filter.where')}
@@ -223,15 +243,36 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
           >
           </advanced-camera-card-select>`
         : ''}
-      ${controls.favorites
+      <advanced-camera-card-select
+        ${ref(this._refFavorite)}
+        label=${localize('media_filter.favorite')}
+        placeholder=${localize('media_filter.select_favorite')}
+        .options=${this._mediaFilterController.getFavoriteOptions()}
+        .initialValue=${defaults?.favorite}
+        clearable
+        @advanced-camera-card:select:change=${() => valueChange()}
+      >
+      </advanced-camera-card-select>
+      <advanced-camera-card-select
+        ${ref(this._refReviewed)}
+        label=${localize('media_filter.reviewed')}
+        placeholder=${localize('media_filter.select_reviewed')}
+        .options=${this._mediaFilterController.getReviewedOptions()}
+        .initialValue=${defaults?.reviewed}
+        clearable
+        @advanced-camera-card:select:change=${() => valueChange()}
+      >
+      </advanced-camera-card-select>
+      ${this._mediaFilterController.getSeverityOptions().length
         ? html`
             <advanced-camera-card-select
-              ${ref(this._refFavorite)}
-              label=${localize('media_filter.favorite')}
-              placeholder=${localize('media_filter.select_favorite')}
-              .options=${this._mediaFilterController.getFavoriteOptions()}
-              .initialValue=${defaults?.favorite}
+              ${ref(this._refSeverity)}
+              label=${localize('common.severity')}
+              placeholder=${localize('media_filter.select_severity')}
+              .options=${this._mediaFilterController.getSeverityOptions()}
+              .initialValue=${defaults?.severity}
               clearable
+              multiple
               @advanced-camera-card:select:change=${() => valueChange()}
             >
             </advanced-camera-card-select>

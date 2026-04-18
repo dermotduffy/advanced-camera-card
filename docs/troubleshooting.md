@@ -2,23 +2,46 @@
 
 ## Highlighted Issues
 
-### Duplicate versions / Duplicate element registrations / `Custom element not found: advanced-camera-card`
+### Legacy dashboard resource detected
 
-If your card appears to not load anymore (but was working previously), you're
-seeing the version of the card changing between reloads, or seeing log entries
-like:
+You still have the old `frigate-hass-card.js` resource registered in your
+dashboard (and not `advanced-camera-card.js`). Having both registered causes
+duplicate element registration errors and unpredictable behavior. Symptoms
+include the card not loading, the version changing between reloads, or log
+entries like:
 
 `Failed to execute 'define' on 'CustomElementRegistry': the name "focus-trap" has already been used with this registry window`
 
-Verify that your dashboard resources contain only a single instance of the card
-(for HACS users, you should see only `/hacsfiles/advanced-camera-card/`. If you
-_also_ see `/hacsfiles/frigate-card/`, remove it, clear your caches and reload).
+To fix:
 
-Steps:
+1. Edit your dashboard (click the three-dot menu in the top right) and select
+   **Manage Resources**.
+1. Remove any entry referring to `frigate-hass-card`. You should only have a
+   single entry for `advanced-camera-card`.
+1. Optionally, delete the `frigate-hass-card` directory on your filesystem if
+   present (e.g. `$HA_PATH/www/community/frigate-hass-card`), as long as an
+   `advanced-camera-card` directory exists there too.
+1. Clear your browser cache and reload.
 
-1. Edit your dashboard -> (Three dots menu) -> `Manage Resources`. Remove any line item that refers to `frigate-hass-card`. You should only have a single row entry for `advanced-camera-card`.
-1. [Optionally] You can delete the frigate-hass-card directory on your filesystem if present, e.g. `$HA_PATH/www/community/frigate-hass-card`, as long as it has an `advanced-camera-card` directory there too.
-1. Clear all your caches.
+If you are an admin user and the card detects both resources are registered, an
+alert icon will appear in the status bar -- clicking it will display a
+notification with a button to automatically remove the legacy resource.
+
+### Configuration upgrade available
+
+If you see a notification that a configuration upgrade is available, it means
+your card configuration uses an older format that can be automatically updated.
+
+To upgrade:
+
+1. Open your Home Assistant dashboard.
+1. Click the pencil icon to enter edit mode.
+1. Click the three-dot menu on your card and choose **Edit**.
+1. In the card editor, click the **Automatic Upgrade** button at the top.
+1. Review the changes and save.
+
+If the automatic upgrade button is not visible, your configuration may already
+be up to date. Try clearing your browser cache and reloading.
 
 ### Stream does not load
 
@@ -131,7 +154,7 @@ your Home Assistant log as there may be more information in there.
 > Frigate must be modified, i.e. Frigate does not encode clips in a Chromecast
 > compatible format out of the box (specifically: audio must be enabled in the AAC
 > codec, whether your camera supports audio or not). See the [Frigate Home
-> Assistant documentation](https://docs.frigate.video/integrations/home-assistant)
+> Assistant documentation](https://docs.frigate.video/integrations/home-assistant/)
 > or [this issue](https://github.com/blakeblackshear/frigate/issues/3175) for
 > more.
 
@@ -256,6 +279,29 @@ configuration](configuration/menu.md?id=available-buttons)) and if the media
 that is currently loaded supports 2-way audio. See [Using 2-way
 audio](usage/2-way-audio.md) for more information about the requirements that
 must be followed.
+
+### Picture-in-Picture only shows video but not other card controls
+
+Picture-in-Picture (PIP) uses the browser's [native video PIP
+API](https://caniuse.com/picture-in-picture) which floats the raw video element
+into a small window. This means:
+
+- **No card UI in the PIP window.** Only the video itself is shown — no menu,
+  status bar, timeline, or other card elements. The card remains fully
+  functional on the dashboard behind it.
+- **Limited browser support.** Not all browsers support the PIP API. See
+  [Can I use: Picture-in-Picture](https://caniuse.com/picture-in-picture) for
+  current browser compatibility.
+- **Non-video live providers are not supported.** Providers such as `image` or
+  `jsmpeg` do not use a native `<video>` element so PIP is unavailable for
+  these.
+
+A more fully featured PIP mode (showing the entire card in a floating window)
+was explored using the experimental [Document Picture-in-Picture
+API](https://caniuse.com/mdn-api_documentpictureinpicture), however it proved
+unworkable: Home Assistant state updates cannot reach a card in a separate
+document, and browser-managed styles (`adoptedStyleSheets`) are cleared when
+elements move between documents — resulting in an unstyled, non-updating card.
 
 ### New version not working in Chrome
 

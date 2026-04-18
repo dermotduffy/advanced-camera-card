@@ -9,8 +9,8 @@ import { CardDefaultManagerAPI } from './types';
  * Manages automated resetting to the default view.
  */
 export class DefaultManager {
-  protected _timer = new Timer();
-  protected _api: CardDefaultManagerAPI;
+  private _timer = new Timer();
+  private _api: CardDefaultManagerAPI;
 
   constructor(api: CardDefaultManagerAPI) {
     this._api = api;
@@ -75,17 +75,17 @@ export class DefaultManager {
     this._api.getAutomationsManager().deleteAutomations(this);
   }
 
-  protected _stateChangeHandler = (): void => {
+  private _stateChangeHandler = (): void => {
     this._setToDefaultIfAllowed();
   };
 
-  protected _setToDefaultIfAllowed(): void {
+  private _setToDefaultIfAllowed(): void {
     if (this._isAutomatedUpdateAllowed()) {
       this._api.getViewManager().setViewDefault();
     }
   }
 
-  protected _isAutomatedUpdateAllowed(): boolean {
+  private _isAutomatedUpdateAllowed(): boolean {
     const interactionMode = this._api.getConfigManager().getConfig()?.view
       .default_reset.interaction_mode;
     return (

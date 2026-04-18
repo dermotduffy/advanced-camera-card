@@ -22,8 +22,8 @@ declare module 'action' {
 }
 
 export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
-  protected _timer = new Timer();
-  protected _stopped = false;
+  private _timer = new Timer();
+  private _stopped = false;
 
   public async stop(): Promise<void> {
     this._stopped = true;

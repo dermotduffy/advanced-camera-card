@@ -1,5 +1,5 @@
 import { LitElement } from 'lit';
-import { FullscreenElement, MediaPlayerController } from '../../types';
+import { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
 import { hideMediaControlsTemporarily, setControlsOnVideo } from '../../utils/controls';
 import { screenshotVideo } from '../../utils/screenshot';
 
@@ -105,6 +105,10 @@ export class VideoMediaPlayerController implements MediaPlayerController {
   }
 
   public getFullscreenElement(): FullscreenElement | null {
+    return this._getVideoCallback() ?? null;
+  }
+
+  public getPIPElement(): PIPElement | null {
     return this._getVideoCallback() ?? null;
   }
 }

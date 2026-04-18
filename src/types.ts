@@ -1,9 +1,11 @@
 import { z } from 'zod';
-import type { EffectOptions } from './components-lib/effects/types';
+import type { EffectOptions } from './card-controller/effects/types';
+import type { Link } from './config/schema/common/link';
 import type { LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from './ha/types';
 
-export type ClipsOrSnapshots = 'clips' | 'snapshots';
-export type ClipsOrSnapshotsOrAll = 'clips' | 'snapshots' | 'all';
+// UI-facing media types for galleries and views.
+export const VIEW_MEDIA_TYPES = ['clips', 'snapshots', 'recordings', 'reviews'] as const;
+export type ViewMediaType = (typeof VIEW_MEDIA_TYPES)[number];
 
 export class AdvancedCameraCardError extends Error {
   context?: unknown;
@@ -48,10 +50,6 @@ export interface MediaLoadedInfo {
 }
 
 export type MessageType = 'info' | 'error' | 'connection' | 'diagnostics';
-export interface MessageURL {
-  link: string;
-  title: string;
-}
 
 export interface Message {
   message: string;
@@ -59,7 +57,7 @@ export interface Message {
   icon?: string;
   context?: unknown;
   dotdotdot?: boolean;
-  url?: MessageURL;
+  link?: Link;
 }
 
 export type WebkitHTMLVideoElement = HTMLVideoElement & {
@@ -70,6 +68,7 @@ export type WebkitHTMLVideoElement = HTMLVideoElement & {
 };
 
 export type FullscreenElement = HTMLElement;
+export type PIPElement = HTMLVideoElement;
 
 export interface MediaPlayerController {
   play(): Promise<void>;
@@ -83,6 +82,7 @@ export interface MediaPlayerController {
   setControls(controls?: boolean): Promise<void>;
   isPaused(): boolean;
   getFullscreenElement(): FullscreenElement | null;
+  getPIPElement(): PIPElement | null;
 }
 
 export interface MediaPlayer {
@@ -124,6 +124,7 @@ export interface CapabilitiesRaw {
   clips?: boolean;
   recordings?: boolean;
   snapshots?: boolean;
+  reviews?: boolean;
 
   'favorite-events'?: boolean;
   'favorite-recordings'?: boolean;
@@ -151,27 +152,13 @@ export const capabilityKeys: readonly [CapabilityKey, ...CapabilityKey[]] = [
   'menu',
   'ptz',
   'recordings',
+  'reviews',
   'seek',
   'snapshots',
   'substream',
   '2-way-audio',
   'trigger',
 ] as const;
-
-export interface Icon {
-  // If set, this icon will be used.
-  icon?: string;
-
-  // If icon is not set, this entity's icon will be used (and HA will be asked
-  // to render it).
-  entity?: string;
-
-  // Whether or not to change the icon color depending on entity state.
-  stateColor?: boolean;
-
-  // If an icon is not otherwise resolved / available, this will be used instead.
-  fallback?: string;
-}
 
 export interface Interaction {
   action: string;
@@ -187,10 +174,20 @@ export const signedPathSchema = z.object({
 });
 export type SignedPath = z.infer<typeof signedPathSchema>;
 
-export type EffectName = 'fireworks' | 'ghost' | 'hearts' | 'shamrocks' | 'snow';
+export type EffectName =
+  | 'check'
+  | 'fireworks'
+  | 'ghost'
+  | 'hearts'
+  | 'shamrocks'
+  | 'snow';
 
-export interface EffectsControllerAPI {
+export type EffectsContainer = HTMLElement | DocumentFragment;
+export interface EffectsManagerInterface {
   startEffect(name: EffectName, options?: EffectOptions): Promise<void>;
   stopEffect(effect: EffectName): void;
   toggleEffect(effect: EffectName, options?: EffectOptions): Promise<void>;
+
+  setContainer(container: EffectsContainer): void;
+  removeContainer(): void;
 }

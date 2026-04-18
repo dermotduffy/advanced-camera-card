@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
+import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import { ViewFactory } from '../../../src/card-controller/view/factory';
 import { ViewModifier } from '../../../src/card-controller/view/types';
 import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
@@ -9,6 +11,7 @@ import {
   createCapabilities,
   createCardAPI,
   createConfig,
+  createFolder,
   createStore,
   createView,
 } from '../../test-utils';
@@ -20,7 +23,7 @@ describe('getViewDefault', () => {
     expect(factory.getViewDefault()).toBeNull();
   });
 
-  it('should throw if no cameras support view', () => {
+  it('should throw when no cameras support view', () => {
     const api = createCardAPI();
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
     vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
@@ -45,6 +48,23 @@ describe('getViewDefault', () => {
 
     const factory = new ViewFactory(api);
     expect(() => factory.getViewDefault()).toThrowError(/No cameras support this view/);
+  });
+
+  it('should use folders view as default when folders exist without cameras', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getFoldersManager).mockReturnValue(mock<FoldersManager>());
+    vi.mocked(api.getFoldersManager().hasFolders).mockReturnValue(true);
+    vi.mocked(api.getFoldersManager().getFolder).mockReturnValue(createFolder());
+
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(createStore([]));
+
+    const factory = new ViewFactory(api);
+    const view = factory.getViewDefault();
+
+    expect(view?.view).toBe('folders');
+    expect(view?.camera).toBeNull();
   });
 
   it('should create view', () => {
@@ -217,13 +237,61 @@ describe('getViewByParameters', () => {
     const factory = new ViewFactory(api);
     expect(() =>
       factory.getViewByParameters({
-        // Since no camera is specified, and no camera supports the capabilities
-        // necessary for this view, the view will be null.
         params: {
           view: 'snapshots',
         },
       }),
     ).toThrowError(/No cameras support this view/);
+  });
+
+  describe('should handle no camera for view with failsafe', () => {
+    it('should choose default view when it does not require a camera', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(createStore([]));
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          view: {
+            default: 'diagnostics',
+          },
+        }),
+      );
+
+      const factory = new ViewFactory(api);
+      const view = factory.getViewByParameters({
+        params: {
+          view: 'live',
+        },
+        failSafe: true,
+      });
+      expect(view?.is('diagnostics')).toBeTruthy();
+      expect(view?.camera).toBeNull();
+    });
+
+    it('should choose default view and camera when it requires a camera', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([{ cameraID: 'camera.one' }]),
+      );
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          view: {
+            default: 'live',
+          },
+        }),
+      );
+
+      const factory = new ViewFactory(api);
+      const view = factory.getViewByParameters({
+        params: {
+          view: 'snapshots',
+        },
+        failSafe: true,
+      });
+      expect(view?.is('live')).toBeTruthy();
+      expect(view?.camera).toBe('camera.one');
+    });
   });
 
   describe('should handle unsupported view', () => {
@@ -284,6 +352,24 @@ describe('getViewByParameters', () => {
         failSafe: true,
       });
       expect(view?.is('live')).toBeTruthy();
+    });
+
+    it('should throw and omit capabilities when camera object is missing from store', () => {
+      const api = createCardAPI();
+      const store = createStore([{ cameraID: 'camera.one' }]);
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
+      vi.spyOn(store, 'getCamera').mockReturnValue(null);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+
+      const factory = new ViewFactory(api);
+      expect(() =>
+        factory.getViewByParameters({
+          params: {
+            camera: 'camera.one',
+            view: 'snapshots',
+          },
+        }),
+      ).toThrowError(/The selected camera or media does not support this view/);
     });
   });
 

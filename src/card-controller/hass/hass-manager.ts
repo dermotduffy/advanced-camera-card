@@ -1,13 +1,15 @@
 import { hasHAConnectionStateChanged } from '../../ha/has-hass-connection-changed';
 import { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
+import { log } from '../../utils/debug';
+import { InitializationAspect } from '../initialization-manager';
 import { CardHASSAPI } from '../types';
 import { StateWatcher, StateWatcherSubscriptionInterface } from './state-watcher';
 
 export class HASSManager {
-  protected _hass: HomeAssistant | null = null;
-  protected _api: CardHASSAPI;
-  protected _stateWatcher: StateWatcher = new StateWatcher();
+  private _hass: HomeAssistant | null = null;
+  private _api: CardHASSAPI;
+  private _stateWatcher: StateWatcher = new StateWatcher();
 
   constructor(api: CardHASSAPI) {
     this._api = api;
@@ -36,6 +38,28 @@ export class HASSManager {
         });
       } else {
         this._api.getMessageManager().resetType('connection');
+
+        // When the HA WebSocket connection is restored after a drop,
+        // reinitialize cameras and the view. This is necessary because
+        // event subscriptions (e.g. Frigate WebSocket subscriptions via
+        // hass.connection.subscribeMessage) are tied to the old connection
+        // and are lost when it drops. Without reinitialization, triggers
+        // and thumbnail updates stop working.
+        if (this._hass) {
+          log(
+            this._api.getConfigManager().getCardWideConfig(),
+            'Advanced Camera Card: HA connection restored, reinitializing...',
+          );
+
+          this._api
+            .getInitializationManager()
+            .uninitialize(InitializationAspect.CAMERAS);
+          this._api.getCameraManager().destroy();
+          this._api.getInitializationManager().uninitialize(InitializationAspect.VIEW);
+          this._api
+            .getInitializationManager()
+            .uninitialize(InitializationAspect.INITIAL_TRIGGER);
+        }
       }
     }
 

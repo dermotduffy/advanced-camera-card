@@ -5,12 +5,14 @@ export const THUMBNAIL_WIDTH_MIN = 75;
 export const THUMBNAIL_WIDTH_DEFAULT = 100;
 export const THUMBNAIL_WIDTH_MAX = 300;
 
-const thumbnailControlsBaseDefaults = {
+export const thumbnailControlsBaseDefaults = {
   size: THUMBNAIL_WIDTH_DEFAULT,
   show_details: true,
   show_favorite_control: true,
-  show_timeline_control: true,
-  show_download_control: true,
+  show_timeline_control: false,
+  show_download_control: false,
+  show_review_control: true,
+  show_info_control: true,
 };
 
 // Configuration for the actual rendered thumbnail.
@@ -30,6 +32,12 @@ export const thumbnailsControlBaseSchema = z.object({
   show_download_control: z
     .boolean()
     .default(thumbnailControlsBaseDefaults.show_download_control),
+  show_review_control: z
+    .boolean()
+    .default(thumbnailControlsBaseDefaults.show_review_control),
+  show_info_control: z
+    .boolean()
+    .default(thumbnailControlsBaseDefaults.show_info_control),
 });
 export type ThumbnailsControlBaseConfig = z.infer<typeof thumbnailsControlBaseSchema>;
 

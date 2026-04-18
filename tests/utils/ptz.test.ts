@@ -120,6 +120,14 @@ describe('getPTZTarget', () => {
         type: 'digital',
       });
     });
+
+    it('without cameraID', () => {
+      const view = createView({
+        view: 'live',
+        camera: null,
+      });
+      expect(getPTZTarget(view, { cameraManager: createCameraManager() })).toBeNull();
+    });
   });
 
   describe('in non-media views', () => {

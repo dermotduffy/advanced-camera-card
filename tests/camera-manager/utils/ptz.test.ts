@@ -4,7 +4,7 @@ import {
   getConfiguredPTZMovementType,
   getPTZCapabilitiesFromCameraConfig,
 } from '../../../src/camera-manager/utils/ptz';
-import { PTZAction } from '../../../src/config/ptz';
+import { PTZAction } from '../../../src/config/schema/actions/custom/ptz';
 import { createCameraConfig } from '../../test-utils';
 
 const action = {

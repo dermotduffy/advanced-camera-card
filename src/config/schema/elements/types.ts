@@ -4,11 +4,8 @@ import {
   statusBarImageItemSchema,
   statusBarStringItemSchema,
 } from '../actions/types';
-import { StockCondition, stockConditionSchema } from '../conditions/stock/types';
-import {
-  AdvancedCameraCardCondition,
-  advancedCameraCardConditionSchema,
-} from '../conditions/types';
+import { stockConditionSchema } from '../conditions/stock/types';
+import { advancedCameraCardConditionSchema } from '../conditions/types';
 import { menuIconSchema } from './custom/menu/icon';
 import { menuStateIconSchema } from './custom/menu/state-icon';
 import { menuSubmenuSchema } from './custom/menu/submenu';
@@ -25,36 +22,30 @@ import { stateLabelSchema } from './stock/state-label';
 // include other elements. Putting these elements elsewhere would cause
 // typescript circular dependency errors as the types need to be both included
 // in the master pictureElementSchema, but also refer to it internally.
-//
-// Provide a manual type definition to avoid the `any` that would be created by
-// the lazy() evaluation below.
-// See: https://zod.dev/?id=recursive-types
 
-// https://www.home-assistant.io/lovelace/picture-elements/#image-element
-type Conditional = {
-  type: 'conditional';
-  conditions: StockCondition[];
-  elements?: PictureElements;
-};
-export const conditionalSchema: z.ZodSchema<Conditional, z.ZodTypeDef> = z.object({
+// https://www.home-assistant.io/dashboards/picture-elements/#image-element
+export const conditionalSchema = z.object({
   type: z.literal('conditional'),
   conditions: stockConditionSchema.array(),
-  elements: z.lazy(() => pictureElementsSchema),
+
+  get elements() {
+    // Recursive schema.
+    return pictureElementsSchema;
+  },
 });
 
-export type AdvancedCameraCardConditional = {
-  type: 'custom:advanced-camera-card-conditional';
-  conditions: AdvancedCameraCardCondition[];
-  elements?: PictureElements;
-};
-const advancedCameraCardConditionalSchema: z.ZodSchema<
-  AdvancedCameraCardConditional,
-  z.ZodTypeDef
-> = z.object({
+const advancedCameraCardConditionalSchema = z.object({
   type: z.literal('custom:advanced-camera-card-conditional'),
   conditions: advancedCameraCardConditionSchema.array(),
-  elements: z.lazy(() => pictureElementsSchema),
+
+  get elements() {
+    // Recursive schema.
+    return pictureElementsSchema;
+  },
 });
+export type AdvancedCameraCardConditional = z.infer<
+  typeof advancedCameraCardConditionalSchema
+>;
 
 // Cannot use discriminatedUnion since customSchema uses a superRefine, which
 // causes false rejections.
@@ -77,5 +68,5 @@ const pictureElementSchema = z.union([
   statusBarStringItemSchema,
 ]);
 
-export const pictureElementsSchema = pictureElementSchema.array().optional();
+export const pictureElementsSchema = pictureElementSchema.array().optional().default([]);
 export type PictureElements = z.infer<typeof pictureElementsSchema>;

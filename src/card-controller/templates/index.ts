@@ -45,7 +45,7 @@ export class TemplateRenderer {
     );
   };
 
-  protected _generateTemplateContext(
+  private _generateTemplateContext(
     options?: TemplateRenderOptions,
   ): TemplateContext | undefined {
     if (
@@ -70,7 +70,7 @@ export class TemplateRenderer {
     };
   }
 
-  protected _renderTemplateRecursively(
+  private _renderTemplateRecursively(
     hass: HomeAssistant,
     data: unknown,
     templateContext?: TemplateContext,

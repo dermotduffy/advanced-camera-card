@@ -4,6 +4,7 @@ import {
   PropertyValues,
   TemplateResult,
   html,
+  nothing,
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -14,13 +15,14 @@ import { StatusBarItem } from '../config/schema/actions/types.js';
 import { StatusBarConfig } from '../config/schema/status-bar.js';
 import statusStyle from '../scss/status.scss';
 import { hasAction } from '../utils/action';
+import { contentsChanged } from '../utils/basic.js';
 import './icon.js';
 
 @customElement('advanced-camera-card-status-bar')
 export class AdvancedCameraCardStatusBar extends LitElement {
-  protected _controller = new StatusBarController(this);
+  private _controller = new StatusBarController(this);
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public items?: StatusBarItem[];
 
   @property({ attribute: false })
@@ -44,7 +46,7 @@ export class AdvancedCameraCardStatusBar extends LitElement {
    * specificity, so the most specific theme variable will match, followed by
    * the next most specific, etc.
    */
-  protected _renderPerInstanceStyle(): TemplateResult | void {
+  private _renderPerInstanceStyle(): TemplateResult | void {
     const config = this._controller.getConfig();
     if (!config) {
       return;
@@ -100,6 +102,8 @@ export class AdvancedCameraCardStatusBar extends LitElement {
             return html`<div
               .actionHandler=${handler}
               class="${classes}"
+              title=${item.title ?? nothing}
+              data-severity=${item.severity ?? ''}
               @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
             >
               ${item.string}
@@ -109,13 +113,17 @@ export class AdvancedCameraCardStatusBar extends LitElement {
               .actionHandler=${handler}
               .icon=${{ icon: item.icon }}
               class="${classes}"
+              title=${item.title ?? nothing}
+              data-severity=${item.severity ?? ''}
               @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
             ></advanced-camera-card-icon>`;
           } else if (item.type === 'custom:advanced-camera-card-status-bar-image') {
             return html`<img
               .actionHandler=${handler}
               class="${classes}"
+              title=${item.title ?? nothing}
               src="${item.image}"
+              data-severity=${item.severity ?? ''}
               @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
             />`;
           }

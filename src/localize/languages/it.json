@@ -11,10 +11,7 @@
     "unmute_speaker": "Riattiva altoparlante"
   },
   "common": {
-    "live": "Live",
-    "no_media": "Nessun contenuto multimediale da visualizzare",
-    "recordings": "Registrazioni",
-    "version": "Versione"
+    "no_media": "Nessun contenuto multimediale da visualizzare"
   },
   "config": {
     "cameras": {
@@ -117,6 +114,11 @@
       }
     },
     "common": {
+      "events_media_types": {
+        "all": "Tutti i tipi di media",
+        "clips": "Clip",
+        "snapshots": "Istantanee"
+      },
       "controls": {
         "filter": {
           "editor_label": "Filtro multimediale",
@@ -140,11 +142,6 @@
         },
         "thumbnails": {
           "editor_label": "Miniature",
-          "events_media_type": "Se mostrare miniature di clip o istantanee",
-          "events_media_types": {
-            "clips": "Miniature di clip",
-            "snapshots": "Miniature istantanee"
-          },
           "mode": "Modalità miniatura",
           "modes": {
             "above": "Miniature sopra",
@@ -179,21 +176,13 @@
         "url": "URL di immagine statica per la vista dell'immagine"
       },
       "media_action_conditions": {
-        "all": "Tutte le opportunità",
         "hidden": "Sul browser/nascondere le schede",
-        "never": "Mai",
         "selected": "Sulla selezione",
         "unselected": "Sulla non selezione",
         "visible": "Sul browser/visibilità della scheda"
       },
       "timeline": {
         "clustering_threshold": "Il conteggio degli eventi in cui sono raggruppati (0 = nessun clustering)",
-        "events_media_type": "I media vengono visualizzati la sequenza temporale",
-        "events_media_types": {
-          "all": "Tutti i tipi di media",
-          "clips": "Clip",
-          "snapshots": "Istantanee"
-        },
         "show_recordings": "Mostra registrazioni",
         "window_seconds": "La lunghezza predefinita della vista della sequenza temporale in secondi"
       }
@@ -310,7 +299,7 @@
       },
       "triggers": {
         "show_trigger_status": "Mostra bordo pulsante quando attivato",
-        "untrigger_seconds": "Reimposta la vista ai valori predefiniti dopo aver annullato l'attivazione"
+        "untrigger_delay_seconds": "Reimposta la vista ai valori predefiniti dopo aver annullato l'attivazione"
       },
       "views": {
         "clip": "Clip più recente",
@@ -326,7 +315,6 @@
   },
   "editor": {
     "add_new_camera": "Aggiungi nuova telecamera",
-    "button": "Pulsante",
     "camera": "Telecamera",
     "cameras": "Telecamere",
     "cameras_secondary": "Quali telecamere visualizzare su questa card",
@@ -365,7 +353,6 @@
   },
   "error": {
     "could_not_render_elements": "Impossibile renderizzare gli elementi dell'immagine",
-    "could_not_resolve": "Impossibile risolvere l'URL dei media",
     "diagnostics": "Diagnostica delle carte.Si prega di rivedere per informazioni riservate prima di condividere",
     "download_no_media": "Nessun media da scaricare",
     "download_sign_failed": "Impossibile firmare URL multimediale per il download",
@@ -385,18 +372,15 @@
     "live_camera_unavailable": "Telecamera non disponibile",
     "no_camera_engine": "Impossibile determinare il motore adatto per la fotocamera",
     "no_camera_entity": "Impossibile trovare l'entità fotocamera",
-    "no_camera_entity_for_triggers": "È necessaria un'entità telecamera per rilevare automaticamente i trigger",
     "no_camera_id": "Impossibile determinare l'ID della telecamera , potrebbe essere necessario impostare manualmente il parametro 'ID'",
     "no_live_camera": "Il parametro fotocamera_enty deve essere impostato e valido per questo provider live",
     "reconnecting": "Riconnessione",
     "troubleshooting": "Controllare la risoluzione dei problemi",
-    "unknown": "Errore sconosciuto",
     "upgrade_available": "È disponibile un aggiornamento di configurazione della scheda automatizzato, visitare l'editor di schede visive",
     "webrtc_card_reported_error": "La scheda WebRTC ha riportato un errore",
     "webrtc_card_waiting": "Aspettando che la scheda WebRTC si carichi ..."
   },
   "media_filter": {
-    "all": "Tutto",
     "camera": "Telecamera",
     "favorite": "Preferito",
     "media_type": "Tipo di supporto",
@@ -426,15 +410,12 @@
   "thumbnail": {
     "camera": "Camera",
     "duration": "Durata",
-    "events": "Eventi",
     "in_progress": "In corso",
     "no_thumbnail": "Nessuna miniatura disponibile",
     "retain_indefinitely": "L'evento sarà mantenuto indefinitamente",
-    "score": "Punteggio",
     "seek": "Cercare",
     "start": "Inizio",
     "timeline": "Vedi evento nella timeline",
-    "what": "Che cosa",
     "where": "Dove"
   },
   "timeline": {

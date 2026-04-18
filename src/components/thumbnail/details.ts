@@ -7,8 +7,11 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { CameraManager } from '../../camera-manager/manager';
-import { ThumbnailDetailsController } from '../../components-lib/thumbnail/details-controller';
+import { MediaDetailsController } from '../../components-lib/media/details-controller';
+import { NotificationDetail } from '../../config/schema/actions/types';
 import { HomeAssistant } from '../../ha/types';
 import thumbnailDetailsStyle from '../../scss/thumbnail-details.scss';
 import { ViewItem } from '../../view/item';
@@ -28,7 +31,7 @@ export class AdvancedCameraCardThumbnailDetails extends LitElement {
   @property({ attribute: false })
   public seek?: Date;
 
-  private _controller = new ThumbnailDetailsController();
+  private _controller = new MediaDetailsController();
 
   protected willUpdate(changedProperties: PropertyValues): void {
     if (['item', 'seek', 'cameraManager'].some((prop) => changedProperties.has(prop))) {
@@ -40,28 +43,29 @@ export class AdvancedCameraCardThumbnailDetails extends LitElement {
     const heading = this._controller.getHeading();
     const details = this._controller.getDetails();
 
+    const renderDetail = (
+      detail: NotificationDetail,
+      heading = false,
+    ): TemplateResult => {
+      return html`<div
+        class=${classMap({
+          heading,
+        })}
+      >
+        ${detail.icon
+          ? html` <advanced-camera-card-icon
+              severity=${ifDefined(detail.severity)}
+              title=${detail.tooltip ?? ''}
+              .icon=${{ icon: detail.icon }}
+            ></advanced-camera-card-icon>`
+          : ''}
+        <span title=${detail.text}>${detail.text}</span>
+      </div>`;
+    };
+
     return html`
-      ${heading
-        ? html` <div class="heading">
-            <span title=${heading}>${heading}</span>
-          </div>`
-        : ``}
-      ${details
-        ? html` <div class="details">
-            ${details.map(
-              (detail) =>
-                html`<div>
-                  ${detail.icon
-                    ? html` <advanced-camera-card-icon
-                        title=${detail.hint ?? ''}
-                        .icon=${detail.icon}
-                      ></advanced-camera-card-icon>`
-                    : ''}
-                  <span>${detail.title}</span>
-                </div>`,
-            )}
-          </div>`
-        : ''}
+      ${heading ? renderDetail(heading, true) : ``}
+      ${details.length ? details.map((detail) => renderDetail(detail)) : ``}
     `;
   }
 

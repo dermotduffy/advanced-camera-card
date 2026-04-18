@@ -29,10 +29,10 @@ const interactionEventSchema = z.object({
 });
 
 export class ActionsManager implements ActionsExecutor {
-  protected _api: CardActionsManagerAPI;
-  protected _actionsInFlight: ActionSet[] = [];
-  protected _actionContext: ActionContext = {};
-  protected _templateRenderer: TemplateRenderer | null;
+  private _api: CardActionsManagerAPI;
+  private _actionsInFlight: ActionSet[] = [];
+  private _actionContext: ActionContext = {};
+  private _templateRenderer: TemplateRenderer | null;
 
   constructor(api: CardActionsManagerAPI, templateRenderer?: TemplateRenderer) {
     this._api = api;
@@ -53,7 +53,7 @@ export class ActionsManager implements ActionsExecutor {
     let specificActions: Actions | undefined = undefined;
     if (view?.is('live')) {
       specificActions = config?.live.actions;
-    } else if (view?.isMediaGalleryView()) {
+    } else if (view?.isGalleryView()) {
       specificActions = config?.media_gallery?.actions;
     } else if (view?.isViewerView()) {
       specificActions = config?.media_viewer.actions;

@@ -25,8 +25,8 @@ export class AdvancedCameraCardVideoPlayer extends LitElement implements MediaPl
   @property({ type: Boolean })
   public controls = false;
 
-  protected _refVideo: Ref<MediaPlayerElement<HTMLVideoElement>> = createRef();
-  protected _mediaPlayerController = new VideoMediaPlayerController(
+  private _refVideo: Ref<MediaPlayerElement<HTMLVideoElement>> = createRef();
+  private _mediaPlayerController = new VideoMediaPlayerController(
     this,
     () => this._refVideo.value ?? null,
     () => this.controls,
@@ -53,7 +53,7 @@ export class AdvancedCameraCardVideoPlayer extends LitElement implements MediaPl
             );
           }
         }}
-        @loadeddata=${(ev: Event) => {
+        @loadeddata="${(ev: Event) => {
           dispatchMediaLoadedEvent(this, ev, {
             ...(this._mediaPlayerController && {
               mediaPlayerController: this._mediaPlayerController,
@@ -64,7 +64,7 @@ export class AdvancedCameraCardVideoPlayer extends LitElement implements MediaPl
             },
             technology: ['mp4'],
           });
-        }}
+        }}"
         @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
         @play=${() => dispatchMediaPlayEvent(this)}
         @pause=${() => dispatchMediaPauseEvent(this)}

@@ -4,11 +4,11 @@ import { isValidMediaLoadedInfo } from '../utils/media-info';
 import { CardMediaLoadedAPI } from './types';
 
 export class MediaLoadedInfoManager {
-  protected _api: CardMediaLoadedAPI;
-  protected _current: MediaLoadedInfo | null = null;
-  protected _lastKnown: MediaLoadedInfo | null = null;
-  protected _currentByCamera = new Map<string, MediaLoadedInfo>();
-  protected _lastKnownByCamera = new Map<string, MediaLoadedInfo>();
+  private _api: CardMediaLoadedAPI;
+  private _current: MediaLoadedInfo | null = null;
+  private _lastKnown: MediaLoadedInfo | null = null;
+  private _currentByCamera = new Map<string, MediaLoadedInfo>();
+  private _lastKnownByCamera = new Map<string, MediaLoadedInfo>();
 
   constructor(api: CardMediaLoadedAPI) {
     this._api = api;

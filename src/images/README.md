@@ -29,3 +29,11 @@ $ convert -strip -interlace Plane -quality 85% -scale 492x277 iris-screensaver-o
 
 - Outline addded manually
 - Opacity adjustmented manually
+
+## check-circle.svg
+
+**Link**: https://pictogrammers.com/library/mdi/icon/check-circle/
+
+**Description**: Check circle, included to avoid loading time.
+
+**License**: https://www.apache.org/licenses/LICENSE-2.0

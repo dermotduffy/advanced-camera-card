@@ -4,9 +4,9 @@ import { KeyboardShortcut } from '../config/schema/view';
 import { setOrRemoveAttribute } from '../utils/basic';
 
 export class KeyAssignerController implements ReactiveController {
-  protected _host: LitElement;
-  protected _assigning = false;
-  protected _value: KeyboardShortcut | null = null;
+  private _host: LitElement;
+  private _assigning = false;
+  private _value: KeyboardShortcut | null = null;
 
   constructor(host: LitElement) {
     this._host = host;
@@ -40,7 +40,7 @@ export class KeyAssignerController implements ReactiveController {
   public toggleAssigning(): void {
     this._setAssigning(!this._assigning);
   }
-  protected _setAssigning(assigning: boolean): void {
+  private _setAssigning(assigning: boolean): void {
     this._assigning = assigning;
     setOrRemoveAttribute(this._host, this._assigning, 'assigning');
 
@@ -53,11 +53,11 @@ export class KeyAssignerController implements ReactiveController {
     this._host.requestUpdate();
   }
 
-  protected _blurEventHandler = (): void => {
+  private _blurEventHandler = (): void => {
     this._setAssigning(false);
   };
 
-  protected _keydownEventHandler = (ev: KeyboardEvent): void => {
+  private _keydownEventHandler = (ev: KeyboardEvent): void => {
     // Don't allow _only_ a modifier.
     if (!ev.key || ['Control', 'Alt', 'Shift', 'Meta'].includes(ev.key)) {
       return;

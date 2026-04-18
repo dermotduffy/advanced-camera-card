@@ -1,10 +1,17 @@
 import { z } from 'zod';
 import { advancedCameraCardCustomActionsBaseSchema } from './base';
 
-export const PTZ_PAN_TILT_ACTIONS = ['up', 'right', 'down', 'left'] as const;
+const PTZ_PAN_ACTIONS = ['left', 'right'] as const;
+export type PTZPanAction = (typeof PTZ_PAN_ACTIONS)[number];
+
+const PTZ_TILT_ACTIONS = ['up', 'down'] as const;
+export type PTZTiltAction = (typeof PTZ_TILT_ACTIONS)[number];
+
+const PTZ_PAN_TILT_ACTIONS = [...PTZ_PAN_ACTIONS, ...PTZ_TILT_ACTIONS] as const;
 export type PTZPanTiltAction = (typeof PTZ_PAN_TILT_ACTIONS)[number];
 
 const PTZ_ZOOM_ACTIONS = ['zoom_in', 'zoom_out'] as const;
+export type PTZZoomAction = (typeof PTZ_ZOOM_ACTIONS)[number];
 const PTZ_BASE_ACTIONS = [...PTZ_PAN_TILT_ACTIONS, ...PTZ_ZOOM_ACTIONS] as const;
 export type PTZBaseAction = (typeof PTZ_BASE_ACTIONS)[number];
 

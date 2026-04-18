@@ -2,7 +2,6 @@ import { ViewContext } from 'view';
 import { log } from '../../utils/debug';
 import { getCallStream } from '../../utils/call';
 import { getStreamCameraID } from '../../utils/substream';
-import { QueryClassifier } from '../../view/query-classifier';
 import { View } from '../../view/view';
 import { InitializationAspect } from '../initialization-manager';
 import { CardViewAPI } from '../types';
@@ -18,15 +17,15 @@ import {
 import { ViewQueryExecutor } from './view-query-executor';
 
 export class ViewManager implements ViewManagerInterface {
-  protected _view: View | null = null;
-  protected _viewFactory: ViewFactory;
-  protected _viewQueryExecutor: ViewQueryExecutor;
-  protected _api: CardViewAPI;
-  protected _epoch: ViewManagerEpoch = this._createEpoch();
+  private _view: View | null = null;
+  private _viewFactory: ViewFactory;
+  private _viewQueryExecutor: ViewQueryExecutor;
+  private _api: CardViewAPI;
+  private _epoch: ViewManagerEpoch = this._createEpoch();
 
   // Used to mark as a view as "loading" with a given index. Each subsequent
   // async update will use a higher index.
-  protected _loadingIndex = 1;
+  private _loadingIndex = 1;
 
   constructor(
     api: CardViewAPI,
@@ -43,7 +42,7 @@ export class ViewManager implements ViewManagerInterface {
   public getEpoch(): ViewManagerEpoch {
     return this._epoch;
   }
-  protected _createEpoch(oldView?: View | null): ViewManagerEpoch {
+  private _createEpoch(oldView?: View | null): ViewManagerEpoch {
     return {
       manager: this,
       ...(oldView && { oldView }),
@@ -99,7 +98,7 @@ export class ViewManager implements ViewManagerInterface {
       options,
     );
 
-  protected _setViewGeneric(
+  private _setViewGeneric(
     viewFactoryFunc: (options?: ViewFactoryOptions) => View | null,
     options?: ViewFactoryOptions,
   ): void {
@@ -121,14 +120,14 @@ export class ViewManager implements ViewManagerInterface {
     }
   }
 
-  protected _markViewLoadingQuery(view: View, index: number): View {
+  private _markViewLoadingQuery(view: View, index: number): View {
     return view.mergeInContext({ loading: { query: index } });
   }
-  protected _markViewAsNotLoadingQuery(view: View): View {
+  private _markViewAsNotLoadingQuery(view: View): View {
     return view.removeContextProperty('loading', 'query');
   }
 
-  protected _isAllowedToSetView(): boolean {
+  private _isAllowedToSetView(): boolean {
     // It is possible to have a race condition where the view is being set at
     // the same time as the cameras being initialized. Test case: Open
     // folder-based media in the media viewer carousel, then attempt to edit the
@@ -141,7 +140,7 @@ export class ViewManager implements ViewManagerInterface {
       .isInitialized(InitializationAspect.CAMERAS);
   }
 
-  protected _allowViewChange(view: View, options?: ViewFactoryOptions): boolean {
+  private _allowViewChange(view: View, options?: ViewFactoryOptions): boolean {
     if (
       !options?.ignoreNavigationLock &&
       this._view &&
@@ -156,10 +155,13 @@ export class ViewManager implements ViewManagerInterface {
       return true;
     }
 
-    return !!options?.ignoreNavigationLock || !this._api.getCallManager().isNavigationLocked();
+    return (
+      !!options?.ignoreNavigationLock ||
+      !this._api.getCallManager().isNavigationLocked()
+    );
   }
 
-  protected async _setViewThenModifyAsync(
+  private async _setViewThenModifyAsync(
     viewFactoryFunc: (options?: ViewFactoryOptions) => View | null,
     viewModifiersFunc: (
       view: View,
@@ -253,23 +255,23 @@ export class ViewManager implements ViewManagerInterface {
     this._setView(newView);
   }
 
-  protected _shouldAdoptQueryAndResults(newView: View): boolean {
+  private _shouldAdoptQueryAndResults(newView: View): boolean {
     // If the user is currently using the viewer, and then switches to the
     // gallery we make an attempt to keep the query/queryResults the same so
     // the gallery can be used to click back and forth to the viewer, and the
-    // selected media can be centered in the gallery. See the matching code in
-    // `updated()` in `gallery.ts`. We specifically must ensure that the new
-    // target media of the gallery (e.g. clips, snapshots or recordings) is
-    // equal to the queries that are currently used in the viewer.
+    // selected media can be centered in the gallery.
     //
     // See: https://github.com/dermotduffy/advanced-camera-card/issues/885
 
-    const switchingFromViewerToGallery =
-      this._view?.isViewerView() && newView?.isMediaGalleryView();
-    const newMediaType = newView?.getDefaultMediaType();
-    const alreadyHasMatchingQuery =
-      QueryClassifier.getMediaType(this._view?.query) === newMediaType;
-    return !!switchingFromViewerToGallery && alreadyHasMatchingQuery;
+    if (!this._view?.isViewerView() || !newView?.isGalleryView()) {
+      return false;
+    }
+
+    // Check if the viewer came from this gallery type. If they did, we preserve
+    // the query/results to ensure consistency in navigation between media &
+    // gallery.
+    const originView = this._view?.context?.gallery?.originView;
+    return originView === newView.view;
   }
 
   public setViewWithMergedContext(context: ViewContext | null): void {
@@ -319,7 +321,7 @@ export class ViewManager implements ViewManagerInterface {
     return true;
   };
 
-  protected _setView(view: Readonly<View> | null): void {
+  private _setView(view: Readonly<View> | null): void {
     const oldView = this._view;
 
     log(
@@ -344,7 +346,7 @@ export class ViewManager implements ViewManagerInterface {
 
     this._api.getConditionStateManager()?.setState({
       view: view?.view,
-      camera: view?.camera,
+      camera: view?.camera ?? undefined,
       displayMode: view?.displayMode ?? undefined,
     });
 

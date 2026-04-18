@@ -1,8 +1,12 @@
 import { LitElement, ReactiveControllerHost } from 'lit';
 import { ActionEventTarget } from '../action-handler-directive';
 import { isCardInPanel } from '../ha/panel';
+import { LovelaceCard } from '../ha/types';
 import { setOrRemoveAttribute } from '../utils/basic';
 import { isBeingCasted } from '../utils/casting';
+import { isAncestorInEventPath } from '../utils/event-ancestor';
+import { CardMediaReviewEventTarget } from '../utils/review';
+import { ViewItem } from '../view/item';
 import { ActionExecutionRequestEventTarget } from './actions/utils/execution-request';
 import { InitializationAspect } from './initialization-manager';
 import { CardElementAPI } from './types';
@@ -10,17 +14,19 @@ import { CardElementAPI } from './types';
 export type ScrollCallback = () => void;
 export type MenuToggleCallback = () => void;
 
-export type CardHTMLElement = LitElement &
+export type CardHTMLElement = LovelaceCard &
+  LitElement &
   ReactiveControllerHost &
   ActionEventTarget &
-  ActionExecutionRequestEventTarget;
+  ActionExecutionRequestEventTarget &
+  CardMediaReviewEventTarget;
 
 export class CardElementManager {
-  protected _api: CardElementAPI;
+  private _api: CardElementAPI;
 
-  protected _element: CardHTMLElement;
-  protected _scrollCallback: ScrollCallback;
-  protected _menuToggleCallback: MenuToggleCallback;
+  private _element: CardHTMLElement;
+  private _scrollCallback: ScrollCallback;
+  private _menuToggleCallback: MenuToggleCallback;
 
   constructor(
     api: CardElementAPI,
@@ -63,6 +69,8 @@ export class CardElementManager {
     this._api.getExpandManager().initialize();
     this._api.getMediaLoadedInfoManager().initialize();
     this._api.getMicrophoneManager().initialize();
+    this._api.getPIPManager().initialize();
+    this._api.getProblemManager().initialize();
     this._api.getKeyboardStateManager().initialize();
 
     // These initializers are called when the config is updated, but on initial
@@ -120,6 +128,10 @@ export class CardElementManager {
       'advanced-camera-card:action:execution-request',
       this._api.getActionsManager().handleActionExecutionRequestEvent,
     );
+    this._element.addEventListener(
+      'advanced-camera-card:media:reviewed',
+      this._handleMediaReviewed,
+    );
 
     // Listen for HA `navigate` actions.
     // See: https://github.com/home-assistant/frontend/blob/273992c8e9c3062c6e49481b6d7d688a07067232/src/common/navigate.ts#L43
@@ -133,6 +145,10 @@ export class CardElementManager {
     window.addEventListener(
       'popstate',
       this._api.getQueryStringManager().requestExecution,
+    );
+    window.addEventListener(
+      'advanced-camera-card:editor:diagnostics',
+      this._editorDiagnosticsHandler,
     );
 
     this._api.getConditionStateManager()?.setState({
@@ -156,6 +172,8 @@ export class CardElementManager {
     void this._api.getCallManager().endCall({ modifyViewContext: false });
     this._api.getMediaLoadedInfoManager().clear({ all: true });
     this._api.getFullscreenManager().disconnect();
+    this._api.getPIPManager().uninitialize();
+    this._api.getProblemManager().uninitialize();
     this._api.getKeyboardStateManager().uninitialize();
     this._api.getActionsManager().uninitialize();
     this._api.getDefaultManager().uninitialize();
@@ -199,6 +217,10 @@ export class CardElementManager {
       'advanced-camera-card:action:execution-request',
       this._api.getActionsManager().handleActionExecutionRequestEvent,
     );
+    this._element.removeEventListener(
+      'advanced-camera-card:media:reviewed',
+      this._handleMediaReviewed,
+    );
 
     window.removeEventListener(
       'location-changed',
@@ -208,5 +230,37 @@ export class CardElementManager {
       'popstate',
       this._api.getQueryStringManager().requestExecution,
     );
+    window.removeEventListener(
+      'advanced-camera-card:editor:diagnostics',
+      this._editorDiagnosticsHandler,
+    );
   }
+
+  private _handleMediaReviewed = (ev: CustomEvent<ViewItem>): void => {
+    // If the selected media item has a change of review status, update the card
+    // (e.g. for the menu).
+    if (
+      this._api.getViewManager().getView()?.queryResults?.getSelectedResult() ===
+      ev.detail
+    ) {
+      this.update();
+    }
+  };
+
+  protected _editorDiagnosticsHandler = (ev: Event): void => {
+    const toggleDiagnostics = (): void => {
+      const viewManager = this._api.getViewManager();
+      if (viewManager.getView()?.view === 'diagnostics') {
+        viewManager.setViewDefault();
+      } else {
+        viewManager.setViewByParameters({
+          params: { view: 'diagnostics' },
+        });
+      }
+    };
+
+    if (isAncestorInEventPath(this._element, ev, 'hui-dialog-edit-card')) {
+      toggleDiagnostics();
+    }
+  };
 }

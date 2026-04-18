@@ -1,13 +1,16 @@
-import { Query } from '../../../view/query';
 import { QueryResults } from '../../../view/query-results';
+import { UnifiedQuery } from '../../../view/unified-query';
 import { View } from '../../../view/view';
 import { ViewModifier } from '../types';
 
 export class SetQueryViewModifier implements ViewModifier {
-  protected _query?: Query | null;
-  protected _queryResults?: QueryResults | null;
+  private _query?: UnifiedQuery | null;
+  private _queryResults?: QueryResults | null;
 
-  constructor(options?: { query?: Query | null; queryResults?: QueryResults | null }) {
+  constructor(options?: {
+    query?: UnifiedQuery | null;
+    queryResults?: QueryResults | null;
+  }) {
     this._query = options?.query;
     this._queryResults = options?.queryResults;
   }

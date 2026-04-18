@@ -13,19 +13,22 @@ import { PartialZoomSettings } from '../components-lib/zoom/types.js';
 
 @customElement('advanced-camera-card-zoomer')
 export class AdvancedCameraCardZoomer extends LitElement {
-  protected _zoom: ZoomController | null = null;
-
   @property({ attribute: false })
   public defaultSettings?: PartialZoomSettings;
 
   @property({ attribute: false })
   public settings?: PartialZoomSettings | null;
 
-  @state()
-  protected _zoomed = false;
+  @property({ attribute: false })
+  public zoom = true;
 
-  protected _zoomHandler = () => (this._zoomed = true);
-  protected _unzoomHandler = () => (this._zoomed = false);
+  @state()
+  private _zoomed = false;
+
+  private _zoomController = new ZoomController(this);
+
+  private _zoomHandler = () => (this._zoomed = true);
+  private _unzoomHandler = () => (this._zoomed = false);
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -37,7 +40,7 @@ export class AdvancedCameraCardZoomer extends LitElement {
   }
 
   disconnectedCallback(): void {
-    this._zoom?.deactivate();
+    this._zoomController.deactivate();
     this.removeEventListener('advanced-camera-card:zoom:zoomed', this._zoomHandler);
     this.removeEventListener('advanced-camera-card:zoom:unzoomed', this._unzoomHandler);
     super.disconnectedCallback();
@@ -48,22 +51,19 @@ export class AdvancedCameraCardZoomer extends LitElement {
       setOrRemoveAttribute(this, this._zoomed, 'zoomed');
     }
 
-    if (this._zoom) {
-      if (changedProps.has('defaultSettings')) {
-        this._zoom.setDefaultSettings(this.defaultSettings ?? null);
-      }
-      // If config is null, make no change to the zoom.
-      if (changedProps.has('settings') && this.settings) {
-        this._zoom.setSettings(this.settings);
-      }
-    } else {
-      // Ensure that the configuration will be set before activation (vs
-      // activating in `connectedCallback`).
-      this._zoom = new ZoomController(this, {
-        config: this.settings,
-        defaultConfig: this.defaultSettings,
-      });
-      this._zoom.activate();
+    if (changedProps.has('zoom')) {
+      this._zoomController.setZoom(this.zoom);
+    }
+    if (changedProps.has('defaultSettings')) {
+      this._zoomController.setDefaultSettings(this.defaultSettings ?? null);
+    }
+    // If config is null, make no change to the zoom.
+    if (changedProps.has('settings') && this.settings) {
+      this._zoomController.setSettings(this.settings);
+    }
+
+    if (!this._zoomController.isActivated()) {
+      this._zoomController.activate();
     }
   }
 
@@ -77,7 +77,6 @@ export class AdvancedCameraCardZoomer extends LitElement {
         width: 100%;
         height: 100%;
         display: block;
-        cursor: auto;
       }
       :host([zoomed]) {
         cursor: move;

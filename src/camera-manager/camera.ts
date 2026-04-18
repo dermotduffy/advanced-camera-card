@@ -2,6 +2,7 @@ import { ActionsExecutor } from '../card-controller/actions/types';
 import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
 import { PTZAction, PTZActionPhase } from '../config/schema/actions/custom/ptz';
 import { CameraConfig } from '../config/schema/cameras';
+import { EnabledProxyConfig, resolveProxyConfig } from '../config/schema/common/proxy';
 import { isTriggeredState } from '../ha/is-triggered-state';
 import { HassStateDifference, HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
@@ -85,19 +86,39 @@ export class Camera {
   ): Promise<Capabilities> {
     const rawCapabilities = await this._getRawCapabilities(options);
     const config = this.getConfig();
-    const has2WayAudio = await liveProviderSupports2WayAudio(
-      options.hass,
-      config,
-      this._getGo2RTCMetadataEndpoint(),
-      this.getProxyConfig(),
-    );
+    const has2WayAudio = await this._has2WayAudioCapability(options.hass);
 
     return new Capabilities(
-      { ...rawCapabilities, '2-way-audio': has2WayAudio },
+      {
+        ...rawCapabilities,
+        '2-way-audio': has2WayAudio,
+      },
       {
         disable: config.capabilities?.disable,
         disableExcept: config.capabilities?.disable_except,
       },
+    );
+  }
+
+  protected async _has2WayAudioCapability(hass: HomeAssistant): Promise<boolean> {
+    // Check disable/disableExcept/force early to short-circuit the expensive
+    // network call to fetch go2rtc metadata.
+    if (this._config.capabilities?.disable?.includes('2-way-audio')) {
+      return false;
+    }
+    const disableExcept = this._config.capabilities?.disable_except;
+    if (disableExcept?.length && !disableExcept.includes('2-way-audio')) {
+      return false;
+    }
+    if (this._config.capabilities?.force?.includes('2-way-audio')) {
+      return true;
+    }
+    return await liveProviderSupports2WayAudio(
+      hass,
+      this.getConfig(),
+      this.getConfig().go2rtc.metadata_fetch_timeout_seconds,
+      this._getGo2RTCMetadataEndpoint(),
+      this.getLiveProxyConfig(),
     );
   }
 
@@ -119,7 +140,7 @@ export class Camera {
   }
 
   public async destroy(): Promise<void> {
-    this._destroyCallbacks.forEach((callback) => callback());
+    await Promise.all(this._destroyCallbacks.map((callback) => callback()));
   }
 
   public getConfig(): CameraConfig {
@@ -188,6 +209,7 @@ export class Camera {
 
   public getProxyConfig(): CameraProxyConfig {
     return {
+      ...resolveProxyConfig(this._config.proxy),
       live:
         this._config.proxy.live === 'auto'
           ? // Live is proxied if the live provider is go2rtc and if a go2rtc
@@ -195,13 +217,32 @@ export class Camera {
             this._config.live_provider === 'go2rtc' && !!this._config.go2rtc?.url
           : this._config.proxy.live,
       media: this._config.proxy.media === 'auto' ? false : this._config.proxy.media,
+    };
+  }
 
-      dynamic: this._config.proxy.dynamic,
-      ssl_verification: this._config.proxy.ssl_verification !== false,
-      ssl_ciphers:
-        this._config.proxy.ssl_ciphers === 'auto'
-          ? 'default'
-          : this._config.proxy.ssl_ciphers,
+  public getLiveProxyConfig(): EnabledProxyConfig {
+    const config = this.getProxyConfig();
+    return {
+      ...config,
+
+      // `enabled` uses the resolved engine decision (so `auto` may become
+      // true), whereas `enforce` uses the raw user setting so only an explicit
+      // `true` means "fail instead of falling back" if the proxy is unavailable.
+      enabled: config.live,
+      enforce: this._config.proxy.live === true,
+    };
+  }
+
+  public getMediaProxyConfig(): EnabledProxyConfig {
+    const config = this.getProxyConfig();
+    return {
+      ...config,
+
+      // `enabled` uses the resolved engine decision (so `auto` may become
+      // true), whereas `enforce` uses the raw user setting so only an explicit
+      // `true` means "fail instead of falling back" if the proxy is unavailable.
+      enabled: config.media,
+      enforce: this._config.proxy.media === true,
     };
   }
 
@@ -209,6 +250,7 @@ export class Camera {
     executor: ActionsExecutor,
     action: PTZAction,
     options?: {
+      hass?: HomeAssistant;
       phase?: PTZActionPhase;
       preset?: string;
     },
@@ -233,11 +275,10 @@ export class Camera {
     this._destroyCallbacks.push(callback);
   }
 
-  protected _subscribeBasedOnCapabilities(
+  private _subscribeBasedOnCapabilities(
     stateWatcher: StateWatcherSubscriptionInterface,
   ): void {
     if (this._capabilities?.has('trigger')) {
-      stateWatcher.unsubscribe(this._stateChangeHandler);
       stateWatcher.subscribe(this._stateChangeHandler, this._config.triggers.entities);
     }
   }

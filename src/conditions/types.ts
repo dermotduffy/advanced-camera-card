@@ -1,5 +1,6 @@
 import { KeysState, MicrophoneState } from '../card-controller/types';
 import type { CallSessionState } from '../card-controller/call-manager';
+import { AdvancedCameraCardView } from '../config/schema/common/const';
 import { ViewDisplayMode } from '../config/schema/common/display';
 import { AdvancedCameraCardConfig } from '../config/schema/types';
 import { HomeAssistant } from '../ha/types';
@@ -21,7 +22,7 @@ export interface ConditionState {
   hass?: HomeAssistant;
   triggered?: Set<string>;
   userAgent?: string;
-  view?: string;
+  view?: AdvancedCameraCardView;
 }
 
 export interface ConditionStateChange {

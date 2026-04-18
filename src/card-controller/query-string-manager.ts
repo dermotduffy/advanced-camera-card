@@ -5,12 +5,12 @@ import {
   createGeneralAction,
   createViewAction,
 } from '../utils/action.js';
-import { ViewParameters } from '../view/view';
 import { CardQueryStringAPI } from './types';
 import { SubstreamSelectViewModifier } from './view/modifiers/substream-select';
+import { ViewParametersUserSpecified } from './view/types.js';
 
 interface QueryStringViewIntent {
-  view?: Partial<ViewParameters> & {
+  view?: ViewParametersUserSpecified & {
     default?: boolean;
     substream?: string;
   };
@@ -18,8 +18,8 @@ interface QueryStringViewIntent {
 }
 
 export class QueryStringManager {
-  protected _api: CardQueryStringAPI;
-  protected _shouldRun = true;
+  private _api: CardQueryStringAPI;
+  private _shouldRun = true;
 
   constructor(api: CardQueryStringAPI) {
     this._api = api;
@@ -42,7 +42,7 @@ export class QueryStringManager {
     }
   };
 
-  protected async _executeViewRelated(intent: QueryStringViewIntent): Promise<void> {
+  private async _executeViewRelated(intent: QueryStringViewIntent): Promise<void> {
     if (intent.view) {
       if (intent.view.default) {
         await this._api.getViewManager().setViewDefaultWithNewQuery({
@@ -67,13 +67,13 @@ export class QueryStringManager {
     }
   }
 
-  protected async _executeNonViewRelated(intent: QueryStringViewIntent): Promise<void> {
+  private async _executeNonViewRelated(intent: QueryStringViewIntent): Promise<void> {
     if (intent.other) {
       await this._api.getActionsManager().executeActions({ actions: intent.other });
     }
   }
 
-  protected _calculateIntent(): QueryStringViewIntent {
+  private _calculateIntent(): QueryStringViewIntent {
     const result: QueryStringViewIntent = {};
     for (const action of this._getActions()) {
       if (this._isViewAction(action)) {
@@ -93,7 +93,7 @@ export class QueryStringManager {
     return result;
   }
 
-  protected _getActions(): AdvancedCameraCardCustomActionConfig[] {
+  private _getActions(): AdvancedCameraCardCustomActionConfig[] {
     const params = new URLSearchParams(window.location.search);
     const actions: AdvancedCameraCardCustomActionConfig[] = [];
     const configuredCardID = this._api.getConfigManager().getConfig()?.card_id;
@@ -131,10 +131,16 @@ export class QueryStringManager {
         case 'clip':
         case 'clips':
         case 'diagnostics':
+        case 'folder':
+        case 'folders':
+        case 'gallery':
         case 'image':
         case 'live':
+        case 'media':
         case 'recording':
         case 'recordings':
+        case 'review':
+        case 'reviews':
         case 'snapshot':
         case 'snapshots':
         case 'timeline':
@@ -152,17 +158,23 @@ export class QueryStringManager {
     return actions;
   }
 
-  protected _isViewAction = (
+  private _isViewAction = (
     action: AdvancedCameraCardCustomActionConfig,
   ): action is ViewActionConfig => {
     switch (action.advanced_camera_card_action) {
       case 'clip':
       case 'clips':
       case 'diagnostics':
+      case 'folder':
+      case 'folders':
+      case 'gallery':
       case 'image':
       case 'live':
+      case 'media':
       case 'recording':
       case 'recordings':
+      case 'review':
+      case 'reviews':
       case 'snapshot':
       case 'snapshots':
       case 'timeline':

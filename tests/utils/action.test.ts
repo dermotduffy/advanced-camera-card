@@ -10,12 +10,14 @@ import {
   createInternalCallbackAction,
   createLogAction,
   createMediaPlayerAction,
+  createNotificationAction,
   createPerformAction,
   createPTZAction,
   createPTZControlsAction,
   createPTZDigitalAction,
   createPTZMultiAction,
   createSelectOptionAction,
+  createSetReviewAction,
   createViewAction,
   getActionConfigGivenAction,
   hasAction,
@@ -109,9 +111,10 @@ describe('createDisplayModeAction', () => {
 });
 
 describe('createPTZControlsAction', () => {
-  it('should create PTZ controls action', () => {
+  it('should create PTZ controls action with enabled', () => {
     expect(
-      createPTZControlsAction(true, {
+      createPTZControlsAction({
+        enabled: true,
         cardID: 'card_id',
       }),
     ).toEqual({
@@ -119,6 +122,18 @@ describe('createPTZControlsAction', () => {
       advanced_camera_card_action: 'ptz_controls',
       enabled: true,
       card_id: 'card_id',
+    });
+  });
+
+  it('should create PTZ controls action with type', () => {
+    expect(
+      createPTZControlsAction({
+        type: 'gestures',
+      }),
+    ).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'ptz_controls',
+      type: 'gestures',
     });
   });
 });
@@ -312,6 +327,53 @@ describe('createEffectAction', () => {
       advanced_camera_card_action: 'effect',
       effect: 'snow',
       effect_action: 'start',
+      card_id: 'card_id',
+    });
+  });
+});
+
+describe('createSetReviewAction', () => {
+  it('should create set review action', () => {
+    expect(createSetReviewAction(true)).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'set_review',
+      reviewed: true,
+    });
+  });
+
+  it('should create set review action with false', () => {
+    expect(createSetReviewAction(false)).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'set_review',
+      reviewed: false,
+    });
+  });
+
+  it('should create set review action with undefined', () => {
+    expect(createSetReviewAction()).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'set_review',
+      reviewed: undefined,
+    });
+  });
+});
+
+describe('createNotificationAction', () => {
+  it('should create notification action', () => {
+    const notification = { text: 'test' };
+    expect(createNotificationAction(notification)).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'notification',
+      notification,
+    });
+  });
+
+  it('should create notification action with cardID', () => {
+    const notification = { text: 'test' };
+    expect(createNotificationAction(notification, { cardID: 'card_id' })).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'notification',
+      notification,
       card_id: 'card_id',
     });
   });

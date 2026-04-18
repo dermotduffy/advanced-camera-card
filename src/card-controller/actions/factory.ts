@@ -11,9 +11,10 @@ import { CustomAction } from './actions/custom';
 import { DefaultAction } from './actions/default';
 import { DisplayModeSelectAction } from './actions/display-mode-select';
 import { DownloadAction } from './actions/download';
-import { ExpandAction } from './actions/expand';
 import { EffectAction } from './actions/effect';
+import { ExpandAction } from './actions/expand';
 import { FullscreenAction } from './actions/fullscreen';
+import { InfoAction } from './actions/info';
 import { InternalCallbackAction } from './actions/internal-callback';
 import { LogAction } from './actions/log';
 import { MediaPlayerAction } from './actions/media-player';
@@ -26,8 +27,10 @@ import { MoreInfoAction } from './actions/more-info';
 import { MuteAction } from './actions/mute';
 import { NavigateAction } from './actions/navigate';
 import { NoneAction } from './actions/none';
+import { NotificationAction } from './actions/notification';
 import { PauseAction } from './actions/pause';
 import { PerformActionAction } from './actions/perform-action';
+import { PIPAction } from './actions/pip';
 import { PlayAction } from './actions/play';
 import { PTZAction } from './actions/ptz';
 import { PTZControlsAction } from './actions/ptz-controls';
@@ -35,6 +38,7 @@ import { PTZDigitalAction } from './actions/ptz-digital';
 import { PTZMultiAction } from './actions/ptz-multi';
 import { ReloadAction } from './actions/reload';
 import { ScreenshotAction } from './actions/screenshot';
+import { SetReviewAction } from './actions/set-review';
 import { SleepAction } from './actions/sleep';
 import { StatusBarAction } from './actions/status-bar';
 import { SubstreamOffAction } from './actions/substream-off';
@@ -95,10 +99,14 @@ export class ActionFactory {
       case 'clips':
       case 'folder':
       case 'folders':
+      case 'gallery':
       case 'image':
       case 'live':
+      case 'media':
       case 'recording':
       case 'recordings':
+      case 'review':
+      case 'reviews':
       case 'snapshot':
       case 'snapshots':
       case 'timeline':
@@ -116,6 +124,8 @@ export class ActionFactory {
         return new ExpandAction(context, action, options?.config);
       case 'fullscreen':
         return new FullscreenAction(context, action, options?.config);
+      case 'info':
+        return new InfoAction(context, action, options?.config);
       case 'menu_toggle':
         return new MenuToggleAction(context, action, options?.config);
       case 'camera_select':
@@ -144,6 +154,8 @@ export class ActionFactory {
         return new PlayAction(context, action, options?.config);
       case 'pause':
         return new PauseAction(context, action, options?.config);
+      case 'pip':
+        return new PIPAction(context, action, options?.config);
       case 'screenshot':
         return new ScreenshotAction(context, action, options?.config);
       case 'display_mode_select':
@@ -158,10 +170,14 @@ export class ActionFactory {
         return new PTZControlsAction(context, action, options?.config);
       case 'log':
         return new LogAction(context, action, options?.config);
+      case 'notification':
+        return new NotificationAction(context, action, options?.config);
       case 'status_bar':
         return new StatusBarAction(context, action, options?.config);
       case 'reload':
         return new ReloadAction(context, action, options?.config);
+      case 'set_review':
+        return new SetReviewAction(context, action, options?.config);
       case INTERNAL_CALLBACK_ACTION:
         return new InternalCallbackAction(context, action, options?.config);
     }

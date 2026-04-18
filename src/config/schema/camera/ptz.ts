@@ -6,32 +6,58 @@ export const ptzCameraConfigDefaults = {
   c2r_delay_between_calls_seconds: 0.2,
 };
 
-// To avoid lots of YAML duplication, provide an easy way to just specify the
-// service data as actions for each PTZ action, and it will be preprocessed
-// into the full form. This also provides compatability with the AlexIT/WebRTC
-// PTZ configuration.
-const dataPTZFormatToFullFormat = function (suffix: string): (data: unknown) => unknown {
-  return (data) => {
+// Converts WebRTC `data_*` shorthand keys into full `actions_*` perform-action
+// objects (e.g. `data_start_left` → `actions_left_start`, `data_end_left` →
+// `actions_left_stop`, `data_left` → `actions_left`, `data_home` → preset).
+// See: https://github.com/AlexxIT/WebRTC/blob/master/custom_components/webrtc/www/webrtc-camera.js
+const dataPTZFormatToFullFormat =
+  (suffix: string) =>
+  (data: unknown): unknown => {
     if (!data || typeof data !== 'object' || !data['service']) {
       return data;
     }
+
+    const service = data['service'];
     const out = { ...data };
-    Object.keys(data).forEach((key) => {
-      const match = key.match(/^data_(.+)$/);
-      const name = match?.[1];
-      if (name && !(`${suffix}${name}` in data)) {
+
+    for (const key of Object.keys(data)) {
+      const webrtc = key.match(/^data_(start|end)_(.+)$/);
+      const name = webrtc
+        ? `${webrtc[2]}_${webrtc[1] === 'end' ? 'stop' : webrtc[1]}`
+        : key.match(/^data_(.+)$/)?.[1];
+
+      if (!name) {
+        continue;
+      }
+
+      // Route `data_home` into a `home` preset listed first so the PTZ
+      // home button (which activates the first preset) uses it.
+      if (suffix && name === 'home') {
+        const presets =
+          out['presets'] && typeof out['presets'] === 'object' ? out['presets'] : {};
+        if (!('home' in presets)) {
+          out['presets'] = {
+            home: {
+              action: 'perform-action',
+              perform_action: service,
+              data: out[key],
+            },
+            ...presets,
+          };
+        }
+      } else if (!(`${suffix}${name}` in out)) {
         out[`${suffix}${name}`] = {
           action: 'perform-action',
-          perform_action: data['service'],
-          data: data[key],
+          perform_action: service,
+          data: out[key],
         };
-        delete out[key];
-        delete out['service'];
       }
-    });
+
+      delete out[key];
+      delete out['service'];
+    }
     return out;
   };
-};
 
 export const ptzCameraConfigSchema = z.preprocess(
   dataPTZFormatToFullFormat('actions_'),
@@ -77,7 +103,7 @@ export const ptzCameraConfigSchema = z.preprocess(
         .preprocess(
           dataPTZFormatToFullFormat(''),
           z.union([
-            z.record(performActionActionSchema),
+            z.record(z.string(), performActionActionSchema),
 
             // This is used by the data_ style of action.
             z.object({ service: z.string().optional() }),

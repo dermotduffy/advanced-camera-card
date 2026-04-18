@@ -6,13 +6,9 @@ import {
   CONF_CAMERAS_GLOBAL_PTZ,
   CONF_DIMENSIONS_HEIGHT,
   CONF_ELEMENTS,
-  CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
-  CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
-  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_OVERRIDES,
   CONF_PROFILES,
   CONF_STATUS_BAR,
-  CONF_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_VIEW_DEFAULT_CYCLE_CAMERA,
   CONF_VIEW_DEFAULT_RESET_ENTITIES,
   CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
@@ -23,6 +19,7 @@ import {
   CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
+  CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
 } from '../const';
 import { arrayify } from '../utils/basic';
 import { AdvancedCameraCardCondition } from './schema/conditions/types';
@@ -543,6 +540,33 @@ const upgradePTZElementsToLive = function (): (data: unknown) => boolean {
   };
 };
 
+// Upgrade old internal `data_*_stop` / `data_*_start` keys to
+// WebRTC-compatible `data_end_*` / `data_start_*` ordering.
+// WebRTC uses `data_start_left` / `data_end_left` (not `data_left_start` /
+// `data_left_stop`).
+// See: https://github.com/dermotduffy/advanced-camera-card/issues/2385
+// See: https://github.com/AlexxIT/WebRTC/blob/master/custom_components/webrtc/www/webrtc-camera.js
+const ptzIncorrectDataToWebRTCDataTransform = (data: unknown): unknown => {
+  if (typeof data !== 'object' || !data) {
+    return undefined;
+  }
+  let modified = false;
+  const out = { ...data };
+  for (const key of Object.keys(out)) {
+    const match = key.match(/^data_(.+)_(start|stop)$/);
+    if (match) {
+      const phase = match[2] === 'stop' ? 'end' : match[2];
+      const webrtcKey = `data_${phase}_${match[1]}`;
+      if (!(webrtcKey in out)) {
+        out[webrtcKey] = out[key];
+      }
+      delete out[key];
+      modified = true;
+    }
+  }
+  return modified ? out : undefined;
+};
+
 const ptzActionsToCamerasGlobalTransform = (data: unknown): unknown => {
   if (typeof data !== 'object' || !data) {
     return undefined;
@@ -636,7 +660,9 @@ const ptzControlSettingsTransform = (data: unknown): unknown => {
     'hide_pan_tilt',
     'hide_zoom',
     'hide_home',
+    'hide_type',
     'style',
+    'type',
   ];
 
   const keys = Object.keys(data);
@@ -825,18 +851,19 @@ const UPGRADES = [
   upgradeWithOverrides('media_viewer.auto_unmute', (data) =>
     data === 'all' ? ['selected', 'visible'] : data === 'never' ? null : arrayify(data),
   ),
+
   upgradeMoveToWithOverrides(
     'live.controls.thumbnails.media',
-    CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
+    'live.controls.thumbnails.events_media_type',
   ),
-  upgradeMoveToWithOverrides('timeline.media', CONF_TIMELINE_EVENTS_MEDIA_TYPE),
+  upgradeMoveToWithOverrides('timeline.media', 'timeline.events_media_type'),
   upgradeMoveToWithOverrides(
     'live.controls.timeline.media',
-    CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
+    'live.controls.timeline.events_media_type',
   ),
   upgradeMoveToWithOverrides(
     'media_viewer.controls.timeline.media',
-    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
+    'media_viewer.controls.timeline.events_media_type',
   ),
   upgradeMoveToWithOverrides('view.scan', CONF_VIEW_TRIGGERS),
   upgradeMoveToWithOverrides(
@@ -944,4 +971,32 @@ const UPGRADES = [
     frigateCardToAdvancedCameraCardStyleTransform,
   ),
   upgradeMoveToWithOverrides('menu.buttons.frigate', 'menu.buttons.iris'),
+
+  // v8.0.0+
+  upgradeMoveToWithOverrides(
+    'live.controls.thumbnails.media_type',
+    'cameras_global.media.type',
+  ),
+  upgradeMoveToWithOverrides(
+    'live.controls.thumbnails.events_media_type',
+    'cameras_global.media.events_type',
+    {
+      transform: (val) => {
+        // 'all' is the default, delete it
+        if (val === 'all') {
+          return null;
+        }
+        return val;
+      },
+    },
+  ),
+  upgradeMoveToWithOverrides(
+    'view.triggers.untrigger_seconds',
+    CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
+  ),
+  upgradeWithOverrides('cameras_global.ptz', ptzIncorrectDataToWebRTCDataTransform),
+  upgradeArrayOfObjects(
+    CONF_CAMERAS,
+    upgradeWithOverrides('ptz', ptzIncorrectDataToWebRTCDataTransform),
+  ),
 ];

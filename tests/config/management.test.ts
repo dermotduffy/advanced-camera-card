@@ -23,7 +23,7 @@ import { PerformActionActionConfig } from '../../src/config/schema/actions/stock
 import { Actions } from '../../src/config/schema/actions/types.js';
 import { advancedCameraCardConfigSchema } from '../../src/config/schema/types.js';
 import { RawAdvancedCameraCardConfig } from '../../src/config/types.js';
-import { getParseErrorPaths } from '../../src/utils/zod.js';
+import { getParseErrorPaths } from '../../src/utils/zod/parse-errors.js';
 
 describe('general functions', () => {
   it('should set value', () => {
@@ -977,6 +977,25 @@ describe('should handle version specific upgrades', () => {
         });
         postUpgradeChecks(config);
       });
+
+      it('should not upgrade ptz settings-only config', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          live: {
+            controls: {
+              ptz: {
+                type: 'gestures',
+                hide_type: true,
+                mode: 'on',
+                orientation: 'vertical',
+                position: 'bottom-right',
+              },
+            },
+          },
+        };
+        expect(upgradeConfig(config)).toBeFalsy();
+      });
     });
 
     it('should move view.timeout_seconds', () => {
@@ -1512,10 +1531,17 @@ describe('should handle version specific upgrades', () => {
           expect(config).toEqual({
             type: 'custom:advanced-camera-card',
             cameras: [{}],
+            ...(mediaEventType !== 'all' && {
+              cameras_global: {
+                media: {
+                  events_type: mediaEventType,
+                },
+              },
+            }),
             live: {
               controls: {
                 thumbnails: {
-                  events_media_type: mediaEventType,
+                  // v8.0.0+ migration moves events_media_type to cameras_global .
                 },
               },
             },
@@ -3585,6 +3611,240 @@ describe('should handle version specific upgrades', () => {
         ],
       });
       postUpgradeChecks(config);
+    });
+  });
+
+  describe('v8.0.0+', () => {
+    describe('live.controls.thumbnails.media_type -> cameras_global.media.type', () => {
+      it.each([['events' as const], ['recordings' as const]])(
+        '%s',
+        (mediaType: string) => {
+          const config = {
+            type: 'custom:advanced-camera-card',
+            cameras: [{}],
+            live: {
+              controls: {
+                thumbnails: {
+                  media_type: mediaType,
+                },
+              },
+            },
+          };
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:advanced-camera-card',
+            cameras: [{}],
+            live: {
+              controls: {
+                thumbnails: {},
+              },
+            },
+            cameras_global: {
+              media: {
+                type: mediaType,
+              },
+            },
+          });
+          postUpgradeChecks(config);
+        },
+      );
+    });
+
+    describe('live.controls.thumbnails.events_media_type -> cameras_global.media.events_type', () => {
+      it.each([['clips' as const], ['snapshots' as const]])(
+        '%s',
+        (eventsType: string) => {
+          const config = {
+            type: 'custom:advanced-camera-card',
+            cameras: [{}],
+            live: {
+              controls: {
+                thumbnails: {
+                  events_media_type: eventsType,
+                },
+              },
+            },
+          };
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:advanced-camera-card',
+            cameras: [{}],
+            live: {
+              controls: {
+                thumbnails: {},
+              },
+            },
+            cameras_global: {
+              media: {
+                events_type: eventsType,
+              },
+            },
+          });
+          postUpgradeChecks(config);
+        },
+      );
+
+      it('all', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: {
+            controls: {
+              thumbnails: {
+                events_media_type: 'all',
+              },
+            },
+          },
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          live: {
+            controls: {
+              thumbnails: {},
+            },
+          },
+        });
+        postUpgradeChecks(config);
+      });
+    });
+
+    it('view.triggers.untrigger_seconds -> view.triggers.untrigger_delay_seconds', () => {
+      const config = {
+        type: 'custom:advanced-camera-card',
+        cameras: [{}],
+        view: {
+          triggers: {
+            untrigger_seconds: 42,
+          },
+        },
+        overrides: [
+          {
+            conditions: [
+              {
+                condition: 'media_loaded' as const,
+                media_loaded: true,
+              },
+            ],
+            merge: {
+              view: {
+                triggers: {
+                  untrigger_seconds: 7,
+                },
+              },
+            },
+          },
+        ],
+      };
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        type: 'custom:advanced-camera-card',
+        cameras: [{}],
+        view: {
+          triggers: {
+            untrigger_delay_seconds: 42,
+          },
+        },
+        overrides: [
+          {
+            conditions: [
+              {
+                condition: 'media_loaded' as const,
+                media_loaded: true,
+              },
+            ],
+            merge: {
+              view: {
+                triggers: {
+                  untrigger_delay_seconds: 7,
+                },
+              },
+            },
+          },
+        ],
+      });
+      postUpgradeChecks(config);
+    });
+
+    describe('ptz data_*_start/stop -> data_start/end_* (WebRTC ordering)', () => {
+      it('in cameras_global.ptz', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          cameras_global: {
+            ptz: {
+              service: 'service.ptz',
+              data_left_start: { cmd: 'left_start' },
+              data_left_stop: { cmd: 'left_stop' },
+            },
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.cameras_global.ptz).toEqual({
+          service: 'service.ptz',
+          data_start_left: { cmd: 'left_start' },
+          data_end_left: { cmd: 'left_stop' },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('in cameras[n].ptz', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [
+            {
+              ptz: {
+                service: 'service.ptz',
+                data_right_start: { cmd: 'right_start' },
+                data_right_stop: { cmd: 'right_stop' },
+              },
+            },
+          ],
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.cameras[0].ptz).toEqual({
+          service: 'service.ptz',
+          data_start_right: { cmd: 'right_start' },
+          data_end_right: { cmd: 'right_stop' },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('ignores non-object ptz value', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          cameras_global: {
+            ptz: 'not-an-object',
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeFalsy();
+      });
+
+      it('does not overwrite existing WebRTC key', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{}],
+          cameras_global: {
+            ptz: {
+              service: 'service.ptz',
+              data_left_stop: { cmd: 'old' },
+              data_end_left: { cmd: 'new' },
+            },
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.cameras_global.ptz).toEqual({
+          service: 'service.ptz',
+          data_end_left: { cmd: 'new' },
+        });
+        postUpgradeChecks(config);
+      });
     });
   });
 });

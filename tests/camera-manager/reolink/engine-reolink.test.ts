@@ -23,6 +23,7 @@ import {
   QueryReturnType,
   QueryType,
 } from '../../../src/camera-manager/types';
+import { QuerySource } from '../../../src/query-source';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { BrowseMedia, browseMediaSchema } from '../../../src/ha/browse-media/types';
 import { BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
@@ -340,6 +341,7 @@ describe('ReolinkCameraManagerEngine', () => {
         expect(
           await engine.getEvents(createHASS(), createStore(), {
             ...query,
+            source: QuerySource.Camera,
             cameraIDs: new Set(['office']),
             type: QueryType.Event,
           }),
@@ -360,6 +362,7 @@ describe('ReolinkCameraManagerEngine', () => {
         createHASS(),
         store,
         {
+          source: QuerySource.Camera,
           type: QueryType.Event,
           cameraIDs: new Set(['office']),
           start: new Date('2024-11-04T21:00:00'),
@@ -377,6 +380,7 @@ describe('ReolinkCameraManagerEngine', () => {
               cameraIDs: new Set(['office']),
               end: new Date('2024-11-04T22:00:00'),
               start: new Date('2024-11-04T21:00:00'),
+              source: 'camera',
               type: 'event-query',
             },
             {
@@ -473,6 +477,7 @@ describe('ReolinkCameraManagerEngine', () => {
           createHASS(),
           store,
           {
+            source: QuerySource.Camera,
             type: QueryType.Event,
             cameraIDs: new Set(['office']),
             start: new Date('2024-11-04T21:00:00'),
@@ -510,6 +515,7 @@ describe('ReolinkCameraManagerEngine', () => {
 
       const hass = createHASS();
       await engine.getEvents(hass, store, {
+        source: QuerySource.Camera,
         type: QueryType.Event,
         cameraIDs: new Set(['office']),
         start: new Date('2024-11-04T21:00:00'),
@@ -561,6 +567,7 @@ describe('ReolinkCameraManagerEngine', () => {
           });
 
         const events = await engine.getEvents(createHASS(), store, {
+          source: QuerySource.Camera,
           type: QueryType.Event,
           cameraIDs: new Set(['office']),
           start: new Date('2024-11-04T21:00:00'),
@@ -574,6 +581,7 @@ describe('ReolinkCameraManagerEngine', () => {
                 cameraIDs: new Set(['office']),
                 end: new Date('2024-11-04T22:00:00'),
                 start: new Date('2024-11-04T21:00:00'),
+                source: 'camera',
                 type: 'event-query',
               },
               {
@@ -603,6 +611,7 @@ describe('ReolinkCameraManagerEngine', () => {
         const store = await createStoreWithReolinkCamera(engine);
 
         const events = await engine.getEvents(createHASS(), store, {
+          source: QuerySource.Camera,
           type: QueryType.Event,
           cameraIDs: new Set(['office']),
           start: new Date('2024-11-04T21:00:00'),
@@ -616,6 +625,7 @@ describe('ReolinkCameraManagerEngine', () => {
                 cameraIDs: new Set(['office']),
                 end: new Date('2024-11-04T22:00:00'),
                 start: new Date('2024-11-04T21:00:00'),
+                source: 'camera',
                 type: 'event-query',
               },
               {
@@ -638,6 +648,7 @@ describe('ReolinkCameraManagerEngine', () => {
 
         const hass = createHASS();
         const events = await engine.getEvents(hass, store, {
+          source: QuerySource.Camera,
           type: QueryType.Event,
           cameraIDs: new Set(['office']),
         });
@@ -647,6 +658,7 @@ describe('ReolinkCameraManagerEngine', () => {
             [
               {
                 cameraIDs: new Set(['office']),
+                source: 'camera',
                 type: 'event-query',
               },
               {
@@ -678,6 +690,7 @@ describe('ReolinkCameraManagerEngine', () => {
         });
 
         const events = await engine.getEvents(createHASS(), store, {
+          source: QuerySource.Camera,
           type: QueryType.Event,
           cameraIDs: new Set(['office']),
           start: new Date('2024-11-04T21:00:00'),
@@ -691,6 +704,7 @@ describe('ReolinkCameraManagerEngine', () => {
                 cameraIDs: new Set(['office']),
                 end: new Date('2024-11-04T22:00:00'),
                 start: new Date('2024-11-04T21:00:00'),
+                source: 'camera',
                 type: 'event-query',
               },
               {
@@ -731,6 +745,7 @@ describe('ReolinkCameraManagerEngine', () => {
         });
 
         const events = await engine.getEvents(createHASS(), store, {
+          source: QuerySource.Camera,
           type: QueryType.Event,
           cameraIDs: new Set(['office']),
           start: new Date('2024-11-04T21:00:00'),
@@ -744,6 +759,7 @@ describe('ReolinkCameraManagerEngine', () => {
                 cameraIDs: new Set(['office']),
                 end: new Date('2024-11-04T22:00:00'),
                 start: new Date('2024-11-04T21:00:00'),
+                source: 'camera',
                 type: 'event-query',
               },
               {
@@ -792,6 +808,7 @@ describe('ReolinkCameraManagerEngine', () => {
           });
 
         const events = await engine.getEvents(createHASS(), store, {
+          source: QuerySource.Camera,
           type: QueryType.Event,
           cameraIDs: new Set(['office']),
           start: new Date('2024-11-04T21:00:00'),
@@ -805,6 +822,7 @@ describe('ReolinkCameraManagerEngine', () => {
                 cameraIDs: new Set(['office']),
                 end: new Date('2024-11-04T22:00:00'),
                 start: new Date('2024-11-04T21:00:00'),
+                source: 'camera',
                 type: 'event-query',
               },
               {
@@ -851,6 +869,7 @@ describe('ReolinkCameraManagerEngine', () => {
           });
 
         const events = await engine.getEvents(createHASS(), store, {
+          source: QuerySource.Camera,
           type: QueryType.Event,
           cameraIDs: new Set(['office']),
           start: new Date('2024-11-04T21:00:00'),
@@ -864,6 +883,7 @@ describe('ReolinkCameraManagerEngine', () => {
                 cameraIDs: new Set(['office']),
                 end: new Date('2024-11-04T22:00:00'),
                 start: new Date('2024-11-04T21:00:00'),
+                source: 'camera',
                 type: 'event-query',
               },
               {
@@ -910,6 +930,7 @@ describe('ReolinkCameraManagerEngine', () => {
           });
 
         const events = await engine.getEvents(createHASS(), store, {
+          source: QuerySource.Camera,
           type: QueryType.Event,
           cameraIDs: new Set(['office']),
           start: new Date('2024-11-04T21:00:00'),
@@ -923,6 +944,7 @@ describe('ReolinkCameraManagerEngine', () => {
                 cameraIDs: new Set(['office']),
                 end: new Date('2024-11-04T22:00:00'),
                 start: new Date('2024-11-04T21:00:00'),
+                source: 'camera',
                 type: 'event-query',
               },
               {
@@ -958,6 +980,7 @@ describe('ReolinkCameraManagerEngine', () => {
   describe('should generate media from events', () => {
     it('should generate media successfully', () => {
       const query: EventQuery = {
+        source: QuerySource.Camera,
         type: QueryType.Event,
         cameraIDs: new Set(['office']),
         start: new Date('2024-11-04T21:00:00'),
@@ -1004,6 +1027,7 @@ describe('ReolinkCameraManagerEngine', () => {
 
     it('should reject non-reolink results', () => {
       const query: EventQuery = {
+        source: QuerySource.Camera,
         type: QueryType.Event,
         cameraIDs: new Set(['office']),
         start: new Date('2024-11-04T21:00:00'),

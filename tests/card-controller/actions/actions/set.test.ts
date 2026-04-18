@@ -6,7 +6,7 @@ import { createCardAPI } from '../../../test-utils';
 describe('ActionSet', () => {
   it('should execute single action', async () => {
     const api = createCardAPI();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     const set = new ActionSet({}, createLogAction('Hello, world!'));
 
     const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
@@ -30,7 +30,7 @@ describe('ActionSet', () => {
 
   it('should stop execution', async () => {
     const api = createCardAPI();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     const set = new ActionSet({}, createLogAction('Hello, world!'));
 
     const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);

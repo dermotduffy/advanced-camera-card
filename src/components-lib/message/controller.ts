@@ -1,7 +1,8 @@
 import yaml from 'js-yaml';
+import { Link } from '../../config/schema/common/link.js';
 import { TROUBLESHOOTING_URL } from '../../const';
 import { localize } from '../../localize/localize.js';
-import { Message, MessageURL } from '../../types';
+import { Message } from '../../types';
 
 export class MessageController {
   public getMessageString(message: Message): string {
@@ -21,11 +22,11 @@ export class MessageController {
         : 'mdi:information-outline';
   }
 
-  public getURL(message: Message): MessageURL | null {
-    return message.url
-      ? message.url
+  public getLink(message: Message): Link | null {
+    return message.link
+      ? message.link
       : message.type === 'error'
-        ? { link: TROUBLESHOOTING_URL, title: localize('error.troubleshooting') }
+        ? { url: TROUBLESHOOTING_URL, title: localize('error.troubleshooting') }
         : null;
   }
 

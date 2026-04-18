@@ -14,6 +14,7 @@ import {
 import { BrowseMediaStep, BrowseMediaTarget } from '../../ha/browse-media/walker';
 import { isMediaWithinDates } from '../../ha/browse-media/within-dates';
 import { HomeAssistant } from '../../ha/types';
+import { hasUnsupportedFilters } from '../../query-source.js';
 import { allPromises, formatDate, isValidDate } from '../../utils/basic';
 import { ViewMedia } from '../../view/item';
 import { BrowseMediaCameraManagerEngine } from '../browse-media/engine-browse-media';
@@ -59,8 +60,8 @@ const MOTIONEYE_REPL_SUBSTITUTIONS: Record<string, string> = {
 const MOTIONEYE_REPL_REGEXP = new RegExp(/(%Y|%m|%d|%H|%M|%S)/g);
 
 export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine {
-  protected _directoryCache = new BrowseMediaCache<BrowseMediaMetadata>();
-  protected _fileCache = new BrowseMediaCache<BrowseMediaMetadata>();
+  private _directoryCache = new BrowseMediaCache<BrowseMediaMetadata>();
+  private _fileCache = new BrowseMediaCache<BrowseMediaMetadata>();
 
   public getEngineType(): Engine {
     return Engine.MotionEye;
@@ -80,7 +81,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     });
   }
 
-  protected _convertMotionEyeTimeFormatToDateFNS(part: string): string {
+  private _convertMotionEyeTimeFormatToDateFNS(part: string): string {
     return part.replace(
       MOTIONEYE_REPL_REGEXP,
       (_, key) => MOTIONEYE_REPL_SUBSTITUTIONS[key],
@@ -88,13 +89,15 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
   }
 
   // Get metadata for a MotionEye media file.
-  protected _motionEyeMetadataGeneratorFile(
+  private _motionEyeMetadataGeneratorFile(
     cameraID: string,
     dateFormat: string | null,
     media: BrowseMedia,
     parent?: RichBrowseMedia<BrowseMediaMetadata>,
   ): BrowseMediaMetadata | null {
     let startDate = parent?._metadata?.startDate ?? new Date();
+    /* istanbul ignore next: dateFormat is always non-null for files because
+       Zod requires file_pattern to contain % -- @preserve */
     if (dateFormat) {
       const extensionlessTitle = media.title.replace(/\.[^/.]+$/, '');
       startDate = parse(extensionlessTitle, dateFormat, startDate);
@@ -111,7 +114,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
   }
 
   // Get metadata for a MotionEye media directory.
-  protected _motionEyeMetadataGeneratorDirectory(
+  private _motionEyeMetadataGeneratorDirectory(
     cameraID: string,
     dateFormat: string | null,
     media: BrowseMedia,
@@ -133,7 +136,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
   }
 
   // Get media directories that match a given criteria.
-  protected async _getMatchingDirectories(
+  private async _getMatchingDirectories(
     hass: HomeAssistant,
     store: CameraManagerReadOnlyConfigStore,
     cameraID: string,
@@ -224,8 +227,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     query: EventQuery,
     engineOptions?: EngineOptions,
   ): Promise<EventQueryResultsMap | null> {
-    // MotionEye does not support these query types and they will never match.
-    if (query.favorite || query.tags?.size || query.what?.size || query.where?.size) {
+    if (hasUnsupportedFilters(query)) {
       return null;
     }
 

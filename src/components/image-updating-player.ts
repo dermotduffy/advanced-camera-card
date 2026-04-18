@@ -11,13 +11,13 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { isEqual } from 'lodash-es';
-import { CameraManager } from '../camera-manager/manager.js';
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { UpdatingImageMediaPlayerController } from '../components-lib/media-player/updating-image.js';
+import { SignedURLController } from '../components-lib/signed-url-controller.js';
 import { CameraConfig } from '../config/schema/cameras.js';
-import { ImageMode } from '../config/schema/common/image.js';
-import { ImageViewConfig } from '../config/schema/image.js';
+import { type ImageBaseConfig, ImageMode } from '../config/schema/common/image.js';
+import { EnabledProxyConfig } from '../config/schema/common/proxy.js';
 import { isHassDifferent } from '../ha/is-hass-different.js';
 import { HomeAssistant } from '../ha/types.js';
 import defaultImage from '../images/iris-screensaver.jpg';
@@ -42,12 +42,21 @@ import { renderMessage } from './message.js';
 // See TOKEN_CHANGE_INTERVAL in https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py .
 const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
 
+const SCREENSAVER_URL = 'https://picsum.photos';
+const SCREENSAVER_REFRESH_SECONDS = 60;
+const SCREENSAVER_DEFAULT_WIDTH = 500;
+const SCREENSAVER_DEFAULT_HEIGHT = Math.round(SCREENSAVER_DEFAULT_WIDTH / (16 / 9));
+
+// Round requested dimensions to the nearest multiple to avoid fetching a unique
+// image for every minor size difference.
+const SCREENSAVER_DIMENSION_BUCKET = 100;
+
 export const resolveImageMode = (options?: {
-  imageConfig?: ImageViewConfig;
+  imageConfig?: ImageBaseConfig;
   cameraConfig?: CameraConfig;
 }): Exclude<ImageMode, 'auto'> => {
   if (!options?.imageConfig?.mode) {
-    return 'screensaver';
+    return 'default';
   } else if (options?.imageConfig?.mode !== 'auto') {
     return options.imageConfig.mode;
   }
@@ -60,7 +69,7 @@ export const resolveImageMode = (options?: {
     return 'camera';
   }
 
-  return 'screensaver';
+  return 'default';
 };
 
 /**
@@ -80,29 +89,54 @@ export class AdvancedCameraCardImageUpdatingPlayer
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
-  @property({ attribute: false })
-  public cameraManager?: CameraManager;
+  @property({ attribute: false, hasChanged: contentsChanged })
+  public proxyConfig?: EnabledProxyConfig;
 
   // Using contentsChanged to ensure overridden configs (e.g. when the
   // 'show_image_during_load' option is true for live views, an overridden
   // config may be used here).
   @property({ attribute: false, hasChanged: contentsChanged })
-  public imageConfig?: ImageViewConfig;
+  public imageConfig?: ImageBaseConfig;
 
   @state()
-  protected _message: Message | null = null;
+  private _imageLoadError = false;
 
-  protected _refImage: Ref<HTMLImageElement> = createRef();
+  private _refImage: Ref<HTMLImageElement> = createRef();
 
-  protected _cachedValueController?: CachedValueController<string>;
-  protected _boundVisibilityHandler = this._visibilityHandler.bind(this);
+  private _cachedValueController = new CachedValueController(
+    this,
+    () => this._getEffectiveRefreshSeconds(),
+    () => this._getImageSource(),
+    () => dispatchMediaPlayEvent(this),
+    () => dispatchMediaPauseEvent(this),
+    // Clear image load errors on each timer tick so the next render retries the
+    // <img>. Retries are bounded by refresh_seconds, not a tight loop.
+    () => {
+      this._imageLoadError = false;
+    },
+  );
 
-  protected _mediaLoadedInfo: MediaLoadedInfo | null = null;
+  private _signedURLController = new SignedURLController(
+    this,
+    () => ({
+      hass: this.hass,
+      endpoint: this.imageConfig?.url ? { endpoint: this.imageConfig.url } : undefined,
+      proxyConfig: this.proxyConfig,
+    }),
+    () => {
+      this._cachedValueController.clearValue();
+      this._imageLoadError = false;
+    },
+  );
 
-  protected _mediaPlayerController = new UpdatingImageMediaPlayerController(
+  private _boundVisibilityHandler = this._visibilityHandler.bind(this);
+
+  private _mediaLoadedInfo: MediaLoadedInfo | null = null;
+
+  private _mediaPlayerController = new UpdatingImageMediaPlayerController(
     this,
     () => this._refImage.value ?? null,
-    () => this._cachedValueController ?? null,
+    () => this._cachedValueController,
   );
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
@@ -144,21 +178,6 @@ export class AdvancedCameraCardImageUpdatingPlayer
    * @param _changedProps The changed properties
    */
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('imageConfig')) {
-      if (this._cachedValueController) {
-        this._cachedValueController.removeController();
-      }
-      if (this.imageConfig) {
-        this._cachedValueController = new CachedValueController(
-          this,
-          this.imageConfig.refresh_seconds,
-          this._getImageSource.bind(this),
-          () => dispatchMediaPlayEvent(this),
-          () => dispatchMediaPauseEvent(this),
-        );
-      }
-    }
-
     const relevantEntity = this._getRelevantEntityForMode(
       resolveImageMode({
         imageConfig: this.imageConfig,
@@ -171,19 +190,18 @@ export class AdvancedCameraCardImageUpdatingPlayer
     // the state is not acceptable, discard the old value (to allow a stock or
     // backup image to be displayed).
     if (
+      changedProps.has('imageConfig') ||
       changedProps.has('cameraConfig') ||
+      changedProps.has('proxyConfig') ||
       changedProps.has('view') ||
       (relevantEntity && !this._getAcceptableState(relevantEntity))
     ) {
       this._cachedValueController?.clearValue();
+      this._imageLoadError = false;
     }
 
-    if (!this._cachedValueController?.value) {
+    if (!this._cachedValueController?.getValue()) {
       this._cachedValueController?.updateValue();
-    }
-
-    if (['imageConfig', 'view'].some((prop) => changedProps.has(prop))) {
-      this._message = null;
     }
   }
 
@@ -196,7 +214,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
    * @param entity The entity.
    * @returns The state or null if not acceptable.
    */
-  protected _getAcceptableState(entity: string | null): HassEntity | null {
+  private _getAcceptableState(entity: string | null): HassEntity | null {
     const state = (entity ? this.hass?.states[entity] : null) ?? null;
 
     return !!this.hass &&
@@ -221,15 +239,25 @@ export class AdvancedCameraCardImageUpdatingPlayer
    */
   disconnectedCallback(): void {
     this._cachedValueController?.stopTimer();
-    this._message = null;
+    this._imageLoadError = false;
     document.removeEventListener('visibilitychange', this._boundVisibilityHandler);
     super.disconnectedCallback();
+  }
+
+  private _getScreensaverURL(): string {
+    const bucket = (value: number, fallback: number): number =>
+      Math.ceil((value || fallback) / SCREENSAVER_DIMENSION_BUCKET) *
+      SCREENSAVER_DIMENSION_BUCKET;
+    const w = bucket(this.clientWidth, SCREENSAVER_DEFAULT_WIDTH);
+    const h = bucket(this.clientHeight, SCREENSAVER_DEFAULT_HEIGHT);
+    const urlObj = new URL(`${SCREENSAVER_URL}/${w}/${h}`);
+    return this._buildCacheBustURL(urlObj, 'query-string');
   }
 
   /**
    * Handle document visibility changes.
    */
-  protected _visibilityHandler(): void {
+  private _visibilityHandler(): void {
     if (!this._refImage.value) {
       return;
     }
@@ -255,16 +283,27 @@ export class AdvancedCameraCardImageUpdatingPlayer
   }
 
   /**
-   * Build a working absolute image URL that the browser will not cache.
-   * @param url An input URL (may be relative to document origin)
-   * @returns A new URL as a string (absolute, will not be browser cached).
+   * Build an image URL that the browser will not cache. Supports two modes:
+   * - 'query-string': Appends a `_t` parameter. This is the most robust way to
+   *   defeat caching (it bypasses HTTP caches) but it changes the path sent to
+   *   the server and so can invalidate signed URLs.
+   * - 'fragment': Appends a `_t` fragment. This is less robust (the browser
+   *   might still serve from its HTTP cache) but it does not change the URL
+   *   sent to the server so it is safe for signed URLs.
+   * @param url The input URL.
+   * @param mode The cache-busting mode.
+   * @returns The cache-busted URL string.
    */
-  protected _buildImageURL(url: URL): string {
-    url.searchParams.append('_t', String(Date.now()));
+  private _buildCacheBustURL(url: URL, mode: 'query-string' | 'fragment'): string {
+    if (mode === 'query-string') {
+      url.searchParams.append('_t', String(Date.now()));
+    } else {
+      url.hash = `_t=${Date.now()}`;
+    }
     return url.toString();
   }
 
-  protected _addQueryParametersToURL(url: URL, parameters?: string): URL {
+  private _addQueryParametersToURL(url: URL, parameters?: string): URL {
     if (parameters) {
       const searchParams = new URLSearchParams(parameters);
       for (const [key, value] of searchParams.entries()) {
@@ -274,7 +313,20 @@ export class AdvancedCameraCardImageUpdatingPlayer
     return url;
   }
 
-  protected _getRelevantEntityForMode(mode: Exclude<ImageMode, 'auto'>): string | null {
+  private _getEffectiveRefreshSeconds(): number | null {
+    const seconds = this.imageConfig?.refresh_seconds ?? null;
+    if (seconds !== 'auto') {
+      return seconds;
+    }
+
+    const mode = resolveImageMode({
+      imageConfig: this.imageConfig,
+      cameraConfig: this.cameraConfig,
+    });
+    return mode === 'screensaver' ? SCREENSAVER_REFRESH_SECONDS : 1;
+  }
+
+  private _getRelevantEntityForMode(mode: Exclude<ImageMode, 'auto'>): string | null {
     return mode === 'camera'
       ? getCameraEntityFromConfig(this.cameraConfig)
       : mode === 'entity'
@@ -282,7 +334,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
         : null;
   }
 
-  protected _getImageSource(): string {
+  private _getImageSource(): string {
     const mode = resolveImageMode({
       imageConfig: this.imageConfig,
       cameraConfig: this.cameraConfig,
@@ -295,7 +347,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
       if (state?.attributes.entity_picture) {
         const urlObj = new URL(state.attributes.entity_picture, document.baseURI);
         this._addQueryParametersToURL(urlObj, this.imageConfig?.entity_parameters);
-        return this._buildImageURL(urlObj);
+        return this._buildCacheBustURL(urlObj, 'query-string');
       }
     }
 
@@ -304,12 +356,25 @@ export class AdvancedCameraCardImageUpdatingPlayer
       if (state?.attributes.entity_picture) {
         const urlObj = new URL(state.attributes.entity_picture, document.baseURI);
         this._addQueryParametersToURL(urlObj, this.imageConfig?.entity_parameters);
-        return this._buildImageURL(urlObj);
+        return this._buildCacheBustURL(urlObj, 'query-string');
       }
     }
 
     if (mode === 'url' && this.imageConfig?.url) {
-      return this._buildImageURL(new URL(this.imageConfig.url, document.baseURI));
+      const url = this._signedURLController.getValue();
+      if (url) {
+        const urlObj = new URL(url, document.baseURI);
+        if (this.proxyConfig?.enabled) {
+          // Use a fragment for cache-busting proxied URLs, as this does not
+          // change the path and thus preserves the validity of the signed URL.
+          return this._buildCacheBustURL(urlObj, 'fragment');
+        }
+        return this._buildCacheBustURL(urlObj, 'query-string');
+      }
+    }
+
+    if (mode === 'screensaver') {
+      return this._getScreensaverURL();
     }
 
     return defaultImage;
@@ -318,19 +383,45 @@ export class AdvancedCameraCardImageUpdatingPlayer
   /**
    * Force the img element to a safe image.
    */
-  protected _forceSafeImage(stockOnly?: boolean): void {
+  private _forceSafeImage(stockOnly?: boolean): void {
     if (this._refImage.value) {
-      this._refImage.value.src =
-        !stockOnly && this.imageConfig?.url ? this.imageConfig.url : defaultImage;
+      // Avoid restoring the raw configured URL when proxying is enabled, since
+      // that would bypass the proxied/signed URL path on visibility changes.
+      const configuredURL =
+        !stockOnly && !this.proxyConfig?.enabled ? this.imageConfig?.url ?? null : null;
+      this._refImage.value.src = configuredURL ?? defaultImage;
     }
   }
 
+  private _getDisplayMessage(): Message | null {
+    const error = this._signedURLController.getError();
+    if (error) {
+      return {
+        type: 'error',
+        message: localize(
+          error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign',
+        ),
+        context: this.proxyConfig,
+      };
+    }
+    if (this._imageLoadError) {
+      return {
+        type: 'error',
+        message: localize('error.image_load_error'),
+        context: this.imageConfig,
+      };
+    }
+    return null;
+  }
+
   protected render(): TemplateResult | void {
-    if (this._message) {
-      return renderMessage(this._message);
+    const message = this._getDisplayMessage();
+    if (message) {
+      return renderMessage(message);
     }
 
-    const src = this._cachedValueController?.value;
+    const src = this._cachedValueController?.getValue();
+
     // Note the use of live() below to ensure the update will restore the image
     // src if it's been changed via _forceSafeImage().
     return src
@@ -342,7 +433,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
               const mediaLoadedInfo = createMediaLoadedInfo(ev, {
                 mediaPlayerController: this._mediaPlayerController,
                 capabilities: {
-                  supportsPause: !!this.imageConfig?.refresh_seconds,
+                  supportsPause: !!this._getEffectiveRefreshSeconds(),
                 },
               });
               // Avoid the media being reported as repeatedly loading unless the
@@ -357,21 +448,13 @@ export class AdvancedCameraCardImageUpdatingPlayer
                 imageConfig: this.imageConfig,
                 cameraConfig: this.cameraConfig,
               });
-              if (mode === 'camera' || mode === 'entity') {
-                // In camera or entity mode, the user has likely not made an
-                // error, but HA may be unavailble, so show the stock image.
-                // Don't let the URL override the stock image in this case, as
-                // this could create an error loop if that URL subsequently
-                // failed to load.
+              if (mode === 'camera' || mode === 'entity' || mode === 'screensaver') {
+                // In camera, entity, or screensaver mode the user has likely
+                // not made an error, but the source may be unavailable, so show
+                // the stock image.
                 this._forceSafeImage(true);
               } else if (mode === 'url') {
-                // In url mode, the user likely specified a URL that cannot be
-                // resolved. Show an error message.
-                this._message = {
-                  type: 'error',
-                  message: localize('error.image_load_error'),
-                  context: this.imageConfig,
-                };
+                this._imageLoadError = true;
               }
             }}
           />

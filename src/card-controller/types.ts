@@ -4,8 +4,8 @@ import type { Automation } from '../config/schema/automations';
 import type { DeviceRegistryManager } from '../ha/registry/device';
 import type { EntityRegistryManager } from '../ha/registry/entity/types';
 import type { ResolvedMediaCache } from '../ha/resolved-media';
-import type { EffectsControllerAPI } from '../types';
 import type { CallManager } from './call-manager';
+import type { EffectsManagerInterface } from '../types';
 import type { ActionsManager } from './actions/actions-manager';
 import type { AutomationsManager } from './automations-manager';
 import type { CameraURLManager } from './camera-url-manager';
@@ -23,6 +23,9 @@ import type { MediaLoadedInfoManager } from './media-info-manager';
 import type { MediaPlayerManager } from './media-player-manager';
 import type { MessageManager } from './message-manager';
 import type { MicrophoneManager } from './microphone-manager';
+import type { NotificationManager } from './notification-manager';
+import type { PIPManager } from './pip-manager';
+import type { ProblemManager } from './problems/manager';
 import type { QueryStringManager } from './query-string-manager';
 import type { StatusBarItemManager } from './status-bar-item-manager';
 import type { StyleManager } from './style-manager';
@@ -45,7 +48,7 @@ export interface CardActionsAPI {
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
-  getEffectsControllerAPI(): EffectsControllerAPI | null;
+  getEffectsManager(): EffectsManagerInterface;
   getExpandManager(): ExpandManager;
   getFoldersManager(): FoldersManager;
   getFullscreenManager(): FullscreenManager;
@@ -54,6 +57,8 @@ export interface CardActionsAPI {
   getMediaPlayerManager(): MediaPlayerManager;
   getMessageManager(): MessageManager;
   getMicrophoneManager(): MicrophoneManager;
+  getNotificationManager(): NotificationManager;
+  getPIPManager(): PIPManager;
   getStatusBarItemManager(): StatusBarItemManager;
   getTriggersManager(): TriggersManager;
   getViewItemManager(): ViewItemManager;
@@ -125,8 +130,8 @@ export interface CardConfigLoaderAPI {
   getAutomationsManager(): AutomationsManager;
   getConfigManager(): ConfigManager;
   getFoldersManager(): FoldersManager;
-  getMessageManager(): MessageManager;
   getHASSManager(): HASSManager;
+  getMessageManager(): MessageManager;
 }
 
 export interface CardDefaultManagerAPI {
@@ -162,7 +167,10 @@ export interface CardElementAPI {
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMediaPlayerManager(): MediaPlayerManager;
   getMicrophoneManager(): MicrophoneManager;
+  getPIPManager(): PIPManager;
+  getProblemManager(): ProblemManager;
   getQueryStringManager(): QueryStringManager;
+  getViewManager(): ViewManager;
 }
 
 export interface CardExpandAPI {
@@ -185,12 +193,18 @@ export interface CardFullscreenAPI {
   getMediaPlayerManager(): MediaPlayerManager;
 }
 
+export interface CardPIPAPI {
+  getCardElementManager(): CardElementManager;
+  getConditionStateManager(): ConditionStateManager;
+}
+
 export interface CardHASSAPI {
   getCameraManager(): CameraManager;
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
+  getInitializationManager(): InitializationManager;
   getInteractionManager(): InteractionManager;
   getMediaPlayerManager(): MediaPlayerManager;
   getMessageManager(): MessageManager;
@@ -215,6 +229,7 @@ export interface CardInitializerAPI {
   getHASSManager(): HASSManager;
   getMediaPlayerManager(): MediaPlayerManager;
   getMessageManager(): MessageManager;
+  getProblemManager(): ProblemManager;
   getQueryStringManager(): QueryStringManager;
   getResolvedMediaCache(): ResolvedMediaCache;
   getTriggersManager(): TriggersManager;
@@ -257,6 +272,17 @@ export interface CardMessageAPI {
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
+}
+
+export interface CardNotificationAPI {
+  getCardElementManager(): CardElementManager;
+}
+
+export interface CardProblemAPI {
+  getCardElementManager(): CardElementManager;
+  getConditionStateManager(): ConditionStateManager;
+  getConfigManager(): ConfigManager;
+  getNotificationManager(): NotificationManager;
 }
 
 export interface CardMicrophoneAPI {

@@ -27,6 +27,9 @@
 :host([data-style='popup'][hide]) {
   opacity: 0;
 }
+:host([data-style='popup'][hide]) .item.action {
+  pointer-events: none;
+}
 
 /*********************
  * Status bar contents
@@ -64,6 +67,7 @@
 
 .item.action {
   cursor: pointer;
+  pointer-events: auto;
 }
 
 img.item,
@@ -82,3 +86,17 @@ advanced-camera-card-icon.item {
 
 // Further theme related styling is dynamically applied by `status-bar.ts`, see
 // `_renderPerInstanceStyle`.
+
+/*****************
+ * Severity colors
+ *****************/
+
+.item[data-severity='high'] {
+  color: var(--advanced-camera-card-foreground-severity-high-color);
+}
+.item[data-severity='medium'] {
+  color: var(--advanced-camera-card-foreground-severity-medium-color);
+}
+.item[data-severity='low'] {
+  color: var(--advanced-camera-card-foreground-severity-low-color);
+}

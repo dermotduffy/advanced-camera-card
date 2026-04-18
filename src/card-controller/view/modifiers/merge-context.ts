@@ -3,7 +3,7 @@ import { View } from '../../../view/view';
 import { ViewModifier } from '../types';
 
 export class MergeContextViewModifier implements ViewModifier {
-  protected _context?: ViewContext | null;
+  private _context?: ViewContext | null;
 
   constructor(context?: ViewContext | null) {
     this._context = context;

@@ -54,8 +54,7 @@ To add translations, you can manually edit the JSON translation files in
 
 [![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/dermotduffy/advanced-camera-card)
 
-You can use the [VS Code Dev Containers](https://code.visualstudio.com/docs/remote/containers) extension to
-speed up the development environment creation. Simply:
+You can use the [VS Code Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers) extension to speed up the development environment creation. Simply:
 
 1. Clone the repository to your machine
 2. Open VS Code on it
@@ -84,3 +83,13 @@ Some environment variables are supported in a `.env` file:
 The Home Assistant container will get preconfigured during first initialization,
 therefore, if you changed the Home Assistant configuration, you will need to
 remove the HA container and start another.
+
+### Documentation
+
+Docs are served with [Docsify](https://docsify.js.org/) from the `docs/` directory and validated with:
+
+```sh
+$ yarn run docs-check-links
+```
+
+Run this before submitting a documentation PR.

@@ -24,7 +24,9 @@ import {
 import { CardController } from '../../src/card-controller/controller.js';
 import { sortItems } from '../../src/card-controller/view/sort.js';
 import { CameraConfig } from '../../src/config/schema/cameras.js';
+import { advancedCameraCardConfigSchema } from '../../src/config/schema/types.js';
 import { HomeAssistant } from '../../src/ha/types.js';
+import { QuerySource } from '../../src/query-source.js';
 import { Endpoint, PTZMovementType } from '../../src/types.js';
 import { ViewFolder, ViewItem, ViewMedia } from '../../src/view/item.js';
 import { ViewItemCapabilities } from '../../src/view/types.js';
@@ -40,8 +42,8 @@ import {
   generateViewMediaArray,
 } from '../test-utils.js';
 
-describe('QueryClassifier', async () => {
-  it('should classify event query', async () => {
+describe('QueryClassifier', () => {
+  it('should classify event query', () => {
     expect(CameraQueryClassifier.isEventQuery({ type: QueryType.Event })).toBeTruthy();
     expect(
       CameraQueryClassifier.isEventQuery({ type: QueryType.Recording }),
@@ -53,7 +55,7 @@ describe('QueryClassifier', async () => {
       CameraQueryClassifier.isEventQuery({ type: QueryType.MediaMetadata }),
     ).toBeFalsy();
   });
-  it('should classify recording query', async () => {
+  it('should classify recording query', () => {
     expect(
       CameraQueryClassifier.isRecordingQuery({ type: QueryType.Event }),
     ).toBeFalsy();
@@ -67,7 +69,7 @@ describe('QueryClassifier', async () => {
       CameraQueryClassifier.isRecordingQuery({ type: QueryType.MediaMetadata }),
     ).toBeFalsy();
   });
-  it('should classify recording segments query', async () => {
+  it('should classify recording segments query', () => {
     expect(
       CameraQueryClassifier.isRecordingSegmentsQuery({ type: QueryType.Event }),
     ).toBeFalsy();
@@ -83,7 +85,7 @@ describe('QueryClassifier', async () => {
       CameraQueryClassifier.isRecordingSegmentsQuery({ type: QueryType.MediaMetadata }),
     ).toBeFalsy();
   });
-  it('should classify media metadata query', async () => {
+  it('should classify media metadata query', () => {
     expect(
       CameraQueryClassifier.isMediaMetadataQuery({ type: QueryType.Event }),
     ).toBeFalsy();
@@ -96,6 +98,19 @@ describe('QueryClassifier', async () => {
     expect(
       CameraQueryClassifier.isMediaMetadataQuery({ type: QueryType.MediaMetadata }),
     ).toBeTruthy();
+  });
+  it('should classify review query', () => {
+    expect(CameraQueryClassifier.isReviewQuery({ type: QueryType.Event })).toBeFalsy();
+    expect(
+      CameraQueryClassifier.isReviewQuery({ type: QueryType.Recording }),
+    ).toBeFalsy();
+    expect(
+      CameraQueryClassifier.isReviewQuery({ type: QueryType.RecordingSegments }),
+    ).toBeFalsy();
+    expect(
+      CameraQueryClassifier.isReviewQuery({ type: QueryType.MediaMetadata }),
+    ).toBeFalsy();
+    expect(CameraQueryClassifier.isReviewQuery({ type: QueryType.Review })).toBeTruthy();
   });
 });
 
@@ -193,9 +208,32 @@ describe('QueryResultClassifier', async () => {
       ),
     ).toBeTruthy();
   });
+  it('should classify review query result', async () => {
+    expect(
+      QueryResultClassifier.isReviewQueryResult(createResults(QueryResultsType.Event)),
+    ).toBeFalsy();
+    expect(
+      QueryResultClassifier.isReviewQueryResult(
+        createResults(QueryResultsType.Recording),
+      ),
+    ).toBeFalsy();
+    expect(
+      QueryResultClassifier.isReviewQueryResult(
+        createResults(QueryResultsType.RecordingSegments),
+      ),
+    ).toBeFalsy();
+    expect(
+      QueryResultClassifier.isReviewQueryResult(
+        createResults(QueryResultsType.MediaMetadata),
+      ),
+    ).toBeFalsy();
+    expect(
+      QueryResultClassifier.isReviewQueryResult(createResults(QueryResultsType.Review)),
+    ).toBeTruthy();
+  });
 });
 
-describe('CameraManager', async () => {
+describe('CameraManager', () => {
   const baseCameraConfig = {
     id: 'id',
     camera_entity: 'camera.foo',
@@ -203,6 +241,7 @@ describe('CameraManager', async () => {
   };
 
   const baseEventQuery: EventQuery = {
+    source: QuerySource.Camera,
     type: QueryType.Event as const,
     cameraIDs: new Set(['id']),
   };
@@ -213,6 +252,7 @@ describe('CameraManager', async () => {
   };
 
   const baseRecordingQuery = {
+    source: QuerySource.Camera as const,
     type: QueryType.Recording as const,
     cameraIDs: new Set(['id']),
   };
@@ -264,7 +304,7 @@ describe('CameraManager', async () => {
     return new CameraManager(api, { factory: mockFactory });
   };
 
-  it('should construct', async () => {
+  it('should construct', () => {
     const manager = new CameraManager(createCardAPI());
     expect(manager.getStore()).toBeTruthy();
   });
@@ -296,6 +336,21 @@ describe('CameraManager', async () => {
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(null);
 
       const manager = createCameraManager(api);
+
+      await manager.initializeCamerasFromConfig();
+      expect(manager.getStore().getCameraCount()).toBe(0);
+    });
+
+    it('without cameras in config', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        advancedCameraCardConfigSchema.parse({
+          type: 'advanced-camera-card' as const,
+        }),
+      );
+
+      const manager = new CameraManager(api);
 
       await manager.initializeCamerasFromConfig();
       expect(manager.getStore().getCameraCount()).toBe(0);
@@ -439,6 +494,11 @@ describe('CameraManager', async () => {
           'generateDefaultRecordingSegmentsQuery',
           'generateDefaultRecordingSegmentsQueries',
         ],
+        [
+          QueryType.Review as const,
+          'generateDefaultReviewQuery',
+          'generateDefaultReviewQueries',
+        ],
       ])(
         'basic %s',
         async (
@@ -478,6 +538,33 @@ describe('CameraManager', async () => {
 
         engine.generateDefaultEventQuery.mockReturnValue(null);
         expect(manager.generateDefaultEventQueries('id')).toBeNull();
+      });
+    });
+
+    describe('getDefaultQueryParameters', () => {
+      it('should return empty object for non-existent camera', async () => {
+        const api = createCardAPI();
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+        const manager = createCameraManager(api, mock<CameraManagerEngine>());
+
+        expect(
+          manager.getDefaultQueryParameters('not_a_camera', QueryType.Event),
+        ).toEqual({});
+      });
+
+      it('should return parameters from engine for existing camera', async () => {
+        const api = createCardAPI();
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+        const engine = mock<CameraManagerEngine>();
+        const manager = createCameraManager(api, engine);
+        expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+        engine.getDefaultQueryParameters.mockReturnValue({ what: new Set(['person']) });
+        expect(manager.getDefaultQueryParameters('id', QueryType.Event)).toEqual({
+          what: new Set(['person']),
+        });
       });
     });
 
@@ -586,6 +673,34 @@ describe('CameraManager', async () => {
         baseEventQuery,
         engineOptions,
       );
+    });
+  });
+
+  describe('should review media', () => {
+    it('without camera', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      const manager = createCameraManager(api);
+      const media = new TestViewMedia();
+
+      await manager.reviewMedia(media, true);
+    });
+
+    it('successfully', async () => {
+      const api = createCardAPI();
+      const hass = createHASS();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+      const engine = mock<CameraManagerEngine>();
+      vi.mocked(engine.getEngineType).mockReturnValue(Engine.Generic);
+
+      const manager = createCameraManager(api, engine);
+      expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+      const media = new TestViewMedia({ cameraID: 'id' });
+
+      await manager.reviewMedia(media, true);
+
+      expect(engine.reviewMedia).toBeCalledWith(hass, expect.anything(), media, true);
     });
   });
 
@@ -724,6 +839,110 @@ describe('CameraManager', async () => {
 
       expect(await manager.executeMediaQueries([baseEventQuery])).toEqual([]);
     });
+
+    describe('should merge compatible queries', () => {
+      it('merges queries with identical properties', async () => {
+        const api = createCardAPI();
+        const engine = mock<CameraManagerEngine>();
+        vi.mocked(engine.getEngineType).mockReturnValue(Engine.Generic);
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+        const manager = createCameraManager(api, engine, [
+          { config: createCameraConfig({ ...baseCameraConfig, id: 'cam1' }) },
+          { config: createCameraConfig({ ...baseCameraConfig, id: 'cam2' }) },
+        ]);
+        expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+        const query1: EventQuery = {
+          source: QuerySource.Camera,
+          type: QueryType.Event,
+          cameraIDs: new Set(['cam1']),
+          reviewed: false,
+        };
+        const query2: EventQuery = {
+          source: QuerySource.Camera,
+          type: QueryType.Event,
+          cameraIDs: new Set(['cam2']),
+          reviewed: false,
+        };
+
+        engine.getEvents.mockResolvedValue(new Map());
+        engine.generateMediaFromEvents.mockReturnValue([]);
+
+        await manager.executeMediaQueries([query1, query2]);
+
+        // Should be called once with merged cameraIDs
+        expect(engine.getEvents).toHaveBeenCalledTimes(1);
+        expect(engine.getEvents).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          expect.objectContaining({
+            cameraIDs: new Set(['cam1', 'cam2']),
+            reviewed: false,
+          }),
+          undefined,
+        );
+      });
+
+      it('does not merge queries with different properties', async () => {
+        const api = createCardAPI();
+        const engine = mock<CameraManagerEngine>();
+        vi.mocked(engine.getEngineType).mockReturnValue(Engine.Generic);
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+        const manager = createCameraManager(api, engine, [
+          { config: createCameraConfig({ ...baseCameraConfig, id: 'cam1' }) },
+          { config: createCameraConfig({ ...baseCameraConfig, id: 'cam2' }) },
+        ]);
+        expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+        const query1: EventQuery = {
+          source: QuerySource.Camera,
+          type: QueryType.Event,
+          cameraIDs: new Set(['cam1']),
+          reviewed: false,
+        };
+        const query2: EventQuery = {
+          source: QuerySource.Camera,
+          type: QueryType.Event,
+          cameraIDs: new Set(['cam2']),
+          reviewed: true,
+        };
+
+        engine.getEvents.mockResolvedValue(new Map());
+        engine.generateMediaFromEvents.mockReturnValue([]);
+
+        await manager.executeMediaQueries([query1, query2]);
+
+        // Should be called twice for different queries
+        expect(engine.getEvents).toHaveBeenCalledTimes(2);
+      });
+
+      it('handles single query without merging', async () => {
+        const api = createCardAPI();
+        const engine = mock<CameraManagerEngine>();
+        vi.mocked(engine.getEngineType).mockReturnValue(Engine.Generic);
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+        const manager = createCameraManager(api, engine);
+        expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+        engine.getEvents.mockResolvedValue(
+          new Map([[baseEventQuery, baseEventQueryResults]]),
+        );
+        engine.generateMediaFromEvents.mockReturnValue([]);
+
+        await manager.executeMediaQueries([baseEventQuery]);
+
+        expect(engine.getEvents).toHaveBeenCalledTimes(1);
+        expect(engine.getEvents).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          baseEventQuery,
+          undefined,
+        );
+      });
+    });
   });
 
   describe('should extend media queries', () => {
@@ -739,7 +958,7 @@ describe('CameraManager', async () => {
       new TestViewMedia({
         startTime: add(dateBase, { days: 2 }),
       }),
-      new ViewFolder(createFolder()),
+      new ViewFolder(createFolder(), []),
     ];
 
     it('without hass', async () => {
@@ -1107,6 +1326,36 @@ describe('CameraManager', async () => {
       manager.executePTZAction('id', 'left', {});
 
       // No visible action.
+    });
+
+    it('successfully with null hass', async () => {
+      const api = createCardAPI();
+      const engine = mock<CameraManagerEngine>();
+      const hass = createHASS();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+      const action = {
+        action: 'perform-action' as const,
+        perform_action: 'action',
+      };
+      const manager = createCameraManager(api, engine, [
+        {
+          config: createCameraConfig({
+            baseCameraConfig,
+            id: 'another',
+            ptz: {
+              actions_left: action,
+            },
+          }),
+        },
+      ]);
+      expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
+      manager.executePTZAction('another', 'left');
+
+      expect(api.getActionsManager().executeActions).toBeCalledWith({
+        actions: action,
+      });
     });
 
     it('successfully', async () => {

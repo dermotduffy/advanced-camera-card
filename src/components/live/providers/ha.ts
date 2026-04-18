@@ -24,7 +24,7 @@ export class AdvancedCameraCardLiveHA extends LitElement implements MediaPlayer 
   @property({ attribute: true, type: Boolean })
   public controls = false;
 
-  protected _playerRef: Ref<MediaPlayerElement> = createRef();
+  private _playerRef: Ref<MediaPlayerElement> = createRef();
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     await this.updateComplete;

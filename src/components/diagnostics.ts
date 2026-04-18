@@ -1,6 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
+import { ProblemPresence } from '../card-controller/problems/types';
 import { RawAdvancedCameraCardConfig } from '../config/types';
 import { DeviceRegistryManager } from '../ha/registry/device';
 import { HomeAssistant } from '../ha/types';
@@ -20,11 +21,15 @@ export class AdvancedCameraCardDiagnostics extends LitElement {
   @property({ attribute: false })
   public rawConfig?: RawAdvancedCameraCardConfig;
 
-  protected async _renderDiagnostics(): Promise<TemplateResult> {
+  @property({ attribute: false })
+  public problems?: ProblemPresence;
+
+  private async _renderDiagnostics(): Promise<TemplateResult> {
     const diagnostics = await getDiagnostics(
       this.hass,
       this.deviceRegistryManager,
       this.rawConfig,
+      this.problems,
     );
 
     return renderMessage({

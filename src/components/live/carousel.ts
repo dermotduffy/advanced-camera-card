@@ -15,8 +15,13 @@ import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import { MediaHeightController } from '../../components-lib/media-height-controller.js';
+import { PTZDragController } from '../../components-lib/ptz/drag-controller.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
+import {
+  ptzControlsDefaults,
+  PTZControlType,
+} from '../../config/schema/common/controls/ptz.js';
 import { TransitionEffect } from '../../config/schema/common/transition-effect.js';
 import { LiveConfig } from '../../config/schema/live.js';
 import { CardWideConfig, configDefaults } from '../../config/schema/types.js';
@@ -33,7 +38,6 @@ import '../carousel';
 import { EmblaCarouselPlugins } from '../carousel.js';
 import '../next-prev-control.js';
 import '../ptz.js';
-import { AdvancedCameraCardPTZ } from '../ptz.js';
 import './provider.js';
 
 const ADVANCED_CAMERA_CARD_LIVE_PROVIDER = 'advanced-camera-card-live-provider';
@@ -71,16 +75,15 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   @property({ attribute: false })
   public viewFilterCameraID?: string;
 
-  // Index between camera name and slide number.
-  protected _cameraToSlide: Record<string, number> = {};
-  protected _refPTZControl: Ref<AdvancedCameraCardPTZ> = createRef();
-  protected _refCarousel: Ref<HTMLElement> = createRef();
+  private _refCarousel: Ref<HTMLElement> = createRef();
 
-  protected _mediaActionsController = new MediaActionsController();
-  protected _mediaHeightController = new MediaHeightController(this, '.embla__slide');
+  private _mediaActionsController = new MediaActionsController();
+  private _mediaHeightController = new MediaHeightController(this, '.embla__slide');
+
+  private _ptzDragController = new PTZDragController(this);
 
   @state()
-  protected _mediaHasLoaded = false;
+  private _mediaHasLoaded = false;
 
   public connectedCallback(): void {
     super.connectedCallback();
@@ -97,11 +100,39 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     super.disconnectedCallback();
   }
 
-  protected _getTransitionEffect(): TransitionEffect {
-    return this.liveConfig?.transition_effect ?? configDefaults.live.transition_effect;
+  private _getDisplayPTZType(cameraID: string | null): PTZControlType {
+    if (
+      !cameraID ||
+      // For cameras without physical PTZ, always display buttons so the user
+      // can control digital zoom. Gesture type controls have no effect on those
+      // cameras.
+      !this.cameraManager?.getCameraCapabilities(cameraID)?.hasPTZCapability()
+    ) {
+      return 'buttons';
+    }
+    return (
+      this.viewManagerEpoch?.manager.getView()?.context?.ptzControls?.type ??
+      this.liveConfig?.controls.ptz.type ??
+      ptzControlsDefaults.type
+    );
   }
 
-  protected _getSelectedCameraIndex(): number {
+  private _isGesturesPTZActive(
+    view: View | null | undefined,
+    cameraID: string | null,
+  ): boolean {
+    // _getDisplayPTZType returns 'buttons' for digital-only cameras, so this
+    // implicitly guards against cameras without physical PTZ capability.
+    return (
+      this._getDisplayPTZType(cameraID) === 'gestures' &&
+      view?.context?.ptzControls?.enabled !== false
+    );
+  }
+
+  private _getTransitionEffect = (): TransitionEffect =>
+    this.liveConfig?.transition_effect ?? configDefaults.live.transition_effect;
+
+  private _getSelectedCameraIndex(): number {
     if (this.viewFilterCameraID) {
       // If the carousel is limited to a single cameraID, the first (only)
       // element is always the selected one.
@@ -110,7 +141,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
     const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
     const view = this.viewManagerEpoch?.manager.getView();
-    if (!cameraIDs?.size || !view) {
+    if (!cameraIDs?.size || !view?.camera) {
       return 0;
     }
     return Math.max(0, Array.from(cameraIDs).indexOf(view.camera));
@@ -141,25 +172,13 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     }
   }
 
-  protected _getPlugins(): EmblaCarouselPlugins {
+  private _getPlugins(): EmblaCarouselPlugins {
     return [AutoMediaLoadedInfo()];
   }
 
-  /**
-   * Returns the number of slides to lazily load. 0 means all slides are lazy
-   * loaded, 1 means that 1 slide on each side of the currently selected slide
-   * should lazy load, etc. `null` means lazy loading is disabled and everything
-   * should load simultaneously.
-   * @returns
-   */
-  protected _getLazyLoadCount(): number | null {
-    // Defaults to fully-lazy loading.
-    return this.liveConfig?.lazy_load === false ? null : 0;
-  }
-
-  protected _getSlides(): [TemplateResult[], Record<string, number>] {
+  private _getSlides(): TemplateResult[] {
     if (!this.cameraManager) {
-      return [[], {}];
+      return [];
     }
 
     const view = this.viewManagerEpoch?.manager.getView();
@@ -168,26 +187,23 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       : this.cameraManager?.getStore().getCameraIDsWithCapability('live');
 
     const slides: TemplateResult[] = [];
-    const cameraToSlide: Record<string, number> = {};
-
     for (const cameraID of cameraIDs ?? []) {
       const slide = this._renderLive(this._getSubstreamCameraID(cameraID, view));
       if (slide) {
-        cameraToSlide[cameraID] = slides.length;
         slides.push(slide);
       }
     }
-    return [slides, cameraToSlide];
+    return slides;
   }
 
-  protected _setViewHandler(ev: CustomEvent<CarouselSelected>): void {
+  private _setViewHandler(ev: CustomEvent<CarouselSelected>): void {
     const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
     if (cameraIDs?.size && ev.detail.index !== this._getSelectedCameraIndex()) {
       this._setViewCameraID([...cameraIDs][ev.detail.index]);
     }
   }
 
-  protected _setViewCameraID(cameraID?: string | null): void {
+  private _setViewCameraID(cameraID?: string | null): void {
     if (cameraID) {
       this.viewManagerEpoch?.manager.setViewByParametersWithNewQuery({
         params: {
@@ -197,7 +213,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     }
   }
 
-  protected _renderLive(cameraID: string): TemplateResult | void {
+  private _renderLive(cameraID: string): TemplateResult | void {
     const camera = this.cameraManager?.getStore().getCamera(cameraID);
     if (!this.liveConfig || !this.hass || !this.cameraManager || !camera) {
       return;
@@ -227,6 +243,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
           .hass=${this.hass}
           .cardWideConfig=${this.cardWideConfig}
           .zoomSettings=${view?.context?.zoom?.[cameraID]?.requested}
+          .zoom=${!this._isGesturesPTZActive(view, cameraID)}
           @advanced-camera-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
             handleZoomSettingsObservedEvent(
               ev,
@@ -239,15 +256,17 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     `;
   }
 
-  protected _getCallModeStream(viewCameraID: string, view?: View | null): string | undefined {
-    return view?.camera === viewCameraID ? getCallStream(view, viewCameraID) ?? undefined : undefined;
+  private _getCallModeStream(viewCameraID: string, view?: View | null): string | undefined {
+    return view?.camera === viewCameraID
+      ? getCallStream(view, viewCameraID) ?? undefined
+      : undefined;
   }
 
-  protected _getSubstreamCameraID(cameraID: string, view?: View | null): string {
+  private _getSubstreamCameraID(cameraID: string, view?: View | null): string {
     return view?.context?.live?.overrides?.get(cameraID) ?? cameraID;
   }
 
-  protected _getCameraNeighbors(): CameraNeighbors | null {
+  private _getCameraNeighbors(): CameraNeighbors | null {
     const cameraIDs = this.cameraManager
       ? [...this.cameraManager?.getStore().getCameraIDsWithCapability('live')]
       : [];
@@ -258,6 +277,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     }
 
     const cameraID = this.viewFilterCameraID ?? view.camera;
+    if (!cameraID) {
+      return {};
+    }
     const currentIndex = cameraIDs.indexOf(cameraID);
 
     if (currentIndex < 0) {
@@ -286,7 +308,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     };
   }
 
-  protected _renderNextPrevious(
+  private _renderNextPrevious(
     side: 'left' | 'right',
     neighbors: CameraNeighbors | null,
   ): TemplateResult {
@@ -319,8 +341,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       return;
     }
 
-    const [slides, cameraToSlide] = this._getSlides();
-    this._cameraToSlide = cameraToSlide;
+    const slides = this._getSlides();
     if (!slides.length) {
       return;
     }
@@ -328,12 +349,18 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     const hasMultipleCameras = slides.length > 1;
     const neighbors = this._getCameraNeighbors();
 
+    const streamAwareCameraID = getStreamCameraID(view, this.viewFilterCameraID);
+    const gesturesPTZActive = this._isGesturesPTZActive(view, streamAwareCameraID);
+
     const forcePTZVisibility =
       !this._mediaHasLoaded ||
       (!!this.viewFilterCameraID && this.viewFilterCameraID !== view.camera) ||
       view.context?.ptzControls?.enabled === false
         ? false
         : view.context?.ptzControls?.enabled;
+
+    const dragEnabled =
+      hasMultipleCameras && this.liveConfig?.draggable && !gesturesPTZActive;
 
     // Notes on the below:
     // - guard() is used to avoid reseting the carousel unless the
@@ -343,7 +370,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       <advanced-camera-card-carousel
         ${ref(this._refCarousel)}
         .loop=${hasMultipleCameras}
-        .dragEnabled=${hasMultipleCameras && this.liveConfig?.draggable}
+        .dragEnabled=${dragEnabled}
         .plugins=${guard(
           [this.cameraManager, this.liveConfig],
           this._getPlugins.bind(this),
@@ -370,14 +397,15 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
         .hass=${this.hass}
         .config=${this.liveConfig.controls.ptz}
         .cameraManager=${this.cameraManager}
-        .cameraID=${getStreamCameraID(view, this.viewFilterCameraID)}
+        .cameraID=${streamAwareCameraID}
         .forceVisibility=${forcePTZVisibility}
+        .type=${this._getDisplayPTZType(streamAwareCameraID)}
       >
       </advanced-camera-card-ptz>
     `;
   }
 
-  protected _setMediaTarget(): void {
+  private _setMediaTarget(): void {
     const view = this.viewManagerEpoch?.manager.getView();
     const selectedCameraIndex = this._getSelectedCameraIndex();
 
@@ -408,6 +436,18 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     // See: https://github.com/dermotduffy/advanced-camera-card/issues/1626
     if (rootChanged || changedProperties.has('viewManagerEpoch')) {
       this._setMediaTarget();
+    }
+
+    const carouselEl = this._refCarousel.value;
+    const view = this.viewManagerEpoch?.manager.getView();
+    const streamAwareCameraID = view
+      ? getStreamCameraID(view, this.viewFilterCameraID)
+      : null;
+
+    if (this._isGesturesPTZActive(view, streamAwareCameraID) && carouselEl) {
+      this._ptzDragController.activateIfNecessary(carouselEl);
+    } else {
+      this._ptzDragController.deactivateIfNecessary();
     }
   }
 

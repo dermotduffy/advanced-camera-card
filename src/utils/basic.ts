@@ -8,8 +8,6 @@ import { StyleInfo } from 'lit/directives/style-map';
 import { isEqualWith, mergeWith, round, uniq } from 'lodash-es';
 import { AdvancedCameraCardError } from '../types';
 
-export type ModifyInterface<T, R> = Omit<T, keyof R> & R;
-
 /**
  * Prettify a title by converting '_' to spaces and capitalizing words.
  * @param input The input string.
@@ -249,16 +247,16 @@ export const getChildrenFromElement = (parent: HTMLElement): HTMLElement[] => {
   return children.filter(isHTMLElement);
 };
 
-export const recursivelyMergeObjectsNotArrays = <T>(target: T, src1: T, src2: T): T => {
-  return mergeWith(target, src1, src2, (_a, b) => (Array.isArray(b) ? b : undefined));
+export const recursivelyMergeObjectsNotArrays = <T>(
+  ...srcs: (Partial<T> | undefined | null)[]
+): T => {
+  return mergeWith({}, ...srcs, (_a, b) => (Array.isArray(b) ? b : undefined));
 };
 
 export const recursivelyMergeObjectsConcatenatingArraysUniquely = <T>(
-  target: T,
-  src1: T,
-  src2: T,
+  ...srcs: (Partial<T> | undefined | null)[]
 ): T => {
-  return mergeWith(target, src1, src2, (a, b) =>
+  return mergeWith({}, ...srcs, (a, b) =>
     Array.isArray(a) ? uniq(a.concat(b)) : undefined,
   );
 };

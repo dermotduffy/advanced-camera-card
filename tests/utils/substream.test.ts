@@ -3,6 +3,7 @@ import {
   getStreamCameraID,
   hasSubstream,
   removeSubstream,
+  setSubstream,
 } from '../../src/utils/substream';
 import { View } from '../../src/view/view';
 import { createView } from '../test-utils';
@@ -62,6 +63,25 @@ describe('hasSubstream/getStreamCameraID', () => {
       expect(getStreamCameraID(view, 'camera3')).toBe('camera3');
     });
   });
+
+  it('should correctly handle null cameras', () => {
+    expect(getStreamCameraID(createView({ camera: null }))).toBeNull();
+    expect(hasSubstream(createView({ camera: null }))).toBeFalsy();
+  });
+});
+
+describe('setSubstream', () => {
+  it('should set substream', () => {
+    const view = createView({ camera: 'camera1' });
+    setSubstream(view, 'substream1');
+    expect(view.context?.live?.overrides?.get('camera1')).toBe('substream1');
+  });
+
+  it('should return null without a camera', () => {
+    const view = createView({ camera: null });
+    setSubstream(view, 'foo');
+    expect(view.context).toBeNull();
+  });
 });
 
 describe('removeSubstream', () => {
@@ -99,5 +119,13 @@ describe('removeSubstream', () => {
         overrides: new Map([['camera', 'camera2']]),
       },
     });
+  });
+
+  it('should not remove substream without camera', () => {
+    const view = createView({
+      camera: null,
+    });
+    removeSubstream(view);
+    expect(view.context).toBeNull();
   });
 });

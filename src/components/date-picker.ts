@@ -16,7 +16,7 @@ export class AdvancedCameraCardDatePicker extends LitElement {
   @property({ attribute: false })
   public icon?: string;
 
-  protected _refInput: Ref<HTMLInputElement> = createRef();
+  private _refInput: Ref<HTMLInputElement> = createRef();
 
   get value(): Date | null {
     return this._refInput.value?.value ? new Date(this._refInput.value.value) : null;

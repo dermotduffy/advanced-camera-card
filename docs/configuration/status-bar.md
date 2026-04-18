@@ -7,13 +7,13 @@ status_bar:
   # [...]
 ```
 
-| Option          | Default  | Description                                                                                                                |
-| --------------- | -------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `position`      | `bottom` | Whether to place the status bar at the `top` or `bottom` of the card.                                                      |
-| `popup_seconds` | `3`      | The number of seconds to display the status bar when using the `popup` style.                                              |
-| `height`        | `46`     | The height of the status bar in pixels.                                                                                    |
-| `items`         |          | Whether to show or hide built-in status bar items. See below.                                                              |
-| `style`         | `popup`  | The status bar style to show by default, one of `none`, `hover`, `hover-card`, `overlay`, `outside` or `popup`. See below. |
+| Option          | Default  | Description                                                                                                                            |
+| --------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `position`      | `bottom` | Whether to place the status bar at the `top` or `bottom` of the card.                                                                  |
+| `popup_seconds` | `3`      | The number of seconds to display the status bar when using the `popup` style.                                                          |
+| `height`        | `40`     | The height of the status bar in pixels.                                                                                                |
+| `items`         |          | Whether to show or hide built-in status bar items. See [`items`](#items).                                                              |
+| `style`         | `popup`  | The status bar style to show by default, one of `none`, `hover`, `hover-card`, `overlay`, `outside` or `popup`. See [`style`](#style). |
 
 ## `items`
 
@@ -28,12 +28,16 @@ status_bar:
 
 ### Available Items
 
-| Button name  | Description                                            |
-| ------------ | ------------------------------------------------------ |
-| `engine`     | The icon of the camera engine for the relevant camera. |
-| `resolution` | The detected media resolution (if any).                |
-| `technology` | The detected media technology (if any).                |
-| `title`      | The media title.                                       |
+| Button name                  | Description                                                                                 |
+| ---------------------------- | ------------------------------------------------------------------------------------------- |
+| `engine`                     | The icon of the camera engine for the relevant camera.                                      |
+| `problem_config_upgrade`     | An indicator that appears when a configuration upgrade is available.                        |
+| `problem_legacy_resource`    | An indicator that appears when a legacy `frigate-hass-card` resource is still registered.   |
+| `problem_stream_not_loading` | An indicator that appears when a live stream has not loaded within 10 seconds.              |
+| `resolution`                 | The detected media resolution (if any).                                                     |
+| `severity`                   | The media severity indicator (if any) for review severity (e.g. Frigate alerts/detections). |
+| `technology`                 | The detected media technology (if any).                                                     |
+| `title`                      | The media title.                                                                            |
 
 ### Options for each item
 
@@ -66,13 +70,25 @@ This card supports several menu styles.
 status_bar:
   position: bottom
   popup_seconds: 3
-  height: 46
+  height: 40
   style: popup
   items:
     engine:
       enabled: true
       priority: 50
+    problem_config_upgrade:
+      enabled: true
+      priority: 50
+    problem_legacy_resource:
+      enabled: true
+      priority: 50
+    problem_stream_not_loading:
+      enabled: true
+      priority: 50
     resolution:
+      enabled: true
+      priority: 50
+    severity:
       enabled: true
       priority: 50
     technology:

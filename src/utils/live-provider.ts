@@ -1,7 +1,7 @@
-import { CameraProxyConfig } from '../camera-manager/types';
 import { supports2WayAudio as gortcSupports2WayAudio } from '../camera-manager/utils/go2rtc/audio';
 import { CameraConfig } from '../config/schema/cameras';
 import { LiveProvider } from '../config/schema/cameras.js';
+import { EnabledProxyConfig } from '../config/schema/common/proxy';
 import { HomeAssistant } from '../ha/types';
 import { Endpoint } from '../types';
 
@@ -25,12 +25,18 @@ export const getResolvedLiveProvider = (
 export const liveProviderSupports2WayAudio = async (
   hass: HomeAssistant,
   config: CameraConfig,
+  metadataFetchTimeoutSeconds: number,
   go2rtcMetadataEndpoint?: Endpoint | null,
-  proxyConfig?: CameraProxyConfig,
+  proxyConfig?: EnabledProxyConfig,
 ): Promise<boolean> => {
   if (getResolvedLiveProvider(config) !== 'go2rtc') {
     return false;
   }
 
-  return gortcSupports2WayAudio(hass, go2rtcMetadataEndpoint, proxyConfig);
+  return gortcSupports2WayAudio(
+    hass,
+    metadataFetchTimeoutSeconds,
+    go2rtcMetadataEndpoint,
+    proxyConfig,
+  );
 };

@@ -1,15 +1,15 @@
 import { add } from 'date-fns';
-import { cloneDeep, sum } from 'lodash-es';
+import { cloneDeep, omit, sum } from 'lodash-es';
 import PQueue from 'p-queue';
+import { EqualityMap } from '../cache/equality-map.js';
 import { CardCameraAPI } from '../card-controller/types.js';
 import { sortItems } from '../card-controller/view/sort.js';
 import {
-  PTZ_PAN_TILT_ACTIONS,
   PTZAction,
   PTZActionPhase,
   PTZPanTiltAction,
 } from '../config/schema/actions/custom/ptz.js';
-import { CameraConfig, CamerasConfig, Rotation } from '../config/schema/cameras.js';
+import { CameraConfig, Rotation } from '../config/schema/cameras.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 import { localize } from '../localize/localize.js';
 import { Endpoint } from '../types.js';
@@ -35,6 +35,7 @@ import {
   CameraEndpointsContext,
   CameraManagerCameraMetadata,
   CameraQuery,
+  DefaultQueryParameters,
   Engine,
   EngineOptions,
   EventQuery,
@@ -49,6 +50,7 @@ import {
   PartialQueryConcreteType,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
+  PartialReviewQuery,
   QueryResults,
   QueryResultsType,
   QueryReturnType,
@@ -60,6 +62,8 @@ import {
   RecordingSegmentsQueryResults,
   RecordingSegmentsQueryResultsMap,
   ResultsMap,
+  ReviewQuery,
+  ReviewQueryResults,
 } from './types.js';
 
 export class CameraQueryClassifier {
@@ -82,6 +86,11 @@ export class CameraQueryClassifier {
     query: CameraQuery | PartialCameraQuery,
   ): query is MediaMetadataQuery {
     return query.type === QueryType.MediaMetadata;
+  }
+  public static isReviewQuery(
+    query: CameraQuery | PartialCameraQuery,
+  ): query is ReviewQuery {
+    return query.type === QueryType.Review;
   }
 }
 
@@ -106,18 +115,23 @@ export class QueryResultClassifier {
   ): queryResults is MediaMetadataQueryResults {
     return queryResults?.type === QueryResultsType.MediaMetadata;
   }
+  public static isReviewQueryResult(
+    queryResults?: QueryResults | null,
+  ): queryResults is ReviewQueryResults {
+    return queryResults?.type === QueryResultsType.Review;
+  }
 }
 
-export interface ExtendedMediaQueryResult<T extends MediaQuery> {
+interface ExtendedMediaQueryResult<T extends MediaQuery> {
   queries: T[];
   results: ViewItem[];
 }
 
 export class CameraManager {
-  protected _api: CardCameraAPI;
-  protected _engineFactory: CameraManagerEngineFactory;
-  protected _store: CameraManagerStore;
-  protected _requestLimit = new PQueue();
+  private _api: CardCameraAPI;
+  private _engineFactory: CameraManagerEngineFactory;
+  private _store: CameraManagerStore;
+  private _requestLimit = new PQueue();
 
   constructor(
     api: CardCameraAPI,
@@ -151,8 +165,8 @@ export class CameraManager {
     // global config (which does have defaults). The merging must happen in this
     // order, to ensure that the defaults in the cameras global config do not
     // override the values specified in the per-camera config.
-    const cameras = config.cameras.map((camera) =>
-      recursivelyMergeObjectsNotArrays({}, cloneDeep(config?.cameras_global), camera),
+    const cameras = (config.cameras ?? []).map((camera) =>
+      recursivelyMergeObjectsNotArrays(config?.cameras_global, camera),
     );
 
     try {
@@ -170,8 +184,8 @@ export class CameraManager {
     await this._store.reset();
   }
 
-  protected async _getEnginesForCameras(
-    camerasConfig: CamerasConfig,
+  private async _getEnginesForCameras(
+    camerasConfig: CameraConfig[],
   ): Promise<Map<CameraConfig, CameraManagerEngine>> {
     const output: Map<CameraConfig, CameraManagerEngine> = new Map();
     const engines: Map<Engine, CameraManagerEngine> = new Map();
@@ -213,7 +227,7 @@ export class CameraManager {
     return output;
   }
 
-  protected async _initializeCameras(camerasConfig: CamerasConfig): Promise<void> {
+  private async _initializeCameras(camerasConfig: CameraConfig[]): Promise<void> {
     const initializationStartTime = new Date();
     const hass = this._api.getHASSManager().getHASS();
 
@@ -308,6 +322,17 @@ export class CameraManager {
     });
   }
 
+  public getDefaultQueryParameters(
+    cameraID: string,
+    queryType: QueryType,
+  ): DefaultQueryParameters {
+    const camera = this._store.getCamera(cameraID);
+    if (!camera) {
+      return {};
+    }
+    return camera.getEngine().getDefaultQueryParameters(camera, queryType);
+  }
+
   public generateDefaultRecordingQueries(
     cameraIDs: string | Set<string>,
     partialQuery?: PartialRecordingQuery,
@@ -328,7 +353,17 @@ export class CameraManager {
     });
   }
 
-  protected _generateDefaultQueries<PQT extends PartialCameraQuery>(
+  public generateDefaultReviewQueries(
+    cameraIDs: string | Set<string>,
+    partialQuery?: PartialReviewQuery,
+  ): ReviewQuery[] | null {
+    return this._generateDefaultQueries(cameraIDs, {
+      type: QueryType.Review,
+      ...partialQuery,
+    });
+  }
+
+  private _generateDefaultQueries<PQT extends PartialCameraQuery>(
     cameraIDs: string | Set<string>,
     partialQuery: PQT,
   ): PartialQueryConcreteType<PQT>[] | null {
@@ -352,6 +387,12 @@ export class CameraManager {
         );
       } else if (CameraQueryClassifier.isRecordingSegmentsQuery(partialQuery)) {
         queries = engine.generateDefaultRecordingSegmentsQuery(
+          this._store,
+          cameraIDs,
+          partialQuery,
+        );
+      } else if (CameraQueryClassifier.isReviewQuery(partialQuery)) {
+        queries = engine.generateDefaultReviewQuery(
           this._store,
           cameraIDs,
           partialQuery,
@@ -432,6 +473,38 @@ export class CameraManager {
     return this._convertQueryResultsToMedia(
       await this._handleQuery(queries, engineOptions),
     );
+  }
+
+  /**
+   * Merge compatible queries by combining cameraIDs for queries with identical
+   * properties (other than cameraIDs). This preserves multi-camera batching for
+   * engines like Frigate that support querying multiple cameras at once.
+   */
+  private _mergeCompatibleQueries<T extends CameraQuery>(queries: T[]): T[] {
+    if (queries.length <= 1) {
+      return queries;
+    }
+
+    type CameraLessQuery = Omit<T, 'cameraIDs'>;
+
+    // Compare queries ignoring the camera parameter.
+    const groups = new EqualityMap<CameraLessQuery, T>();
+
+    for (const query of queries) {
+      const key: CameraLessQuery = omit(query, 'cameraIDs');
+      const existing = groups.get(key);
+      if (existing) {
+        // Merge cameraIDs into the existing query
+        for (const id of query.cameraIDs) {
+          existing.cameraIDs.add(id);
+        }
+      } else {
+        // Clone with a new Set to avoid mutating the original
+        groups.set(key, { ...query, cameraIDs: new Set(query.cameraIDs) });
+      }
+    }
+
+    return Array.from(groups.values());
   }
 
   public async extendMediaQueries<T extends MediaQuery>(
@@ -568,6 +641,33 @@ export class CameraManager {
     );
   }
 
+  public async reviewMedia(media: ViewMedia, reviewed: boolean): Promise<void> {
+    const cameraConfig = this._store.getCameraConfigForMedia(media);
+    const engine = this._store.getEngineForMedia(media);
+    const hass = this._api.getHASSManager().getHASS();
+
+    if (!cameraConfig || !engine || !hass) {
+      return;
+    }
+
+    const queryStartTime = new Date();
+
+    await this._requestLimit.add(() =>
+      engine.reviewMedia(hass, cameraConfig, media, reviewed),
+    );
+
+    log(
+      this._api.getConfigManager().getCardWideConfig(),
+      'Advanced Camera Card CameraManager review media request (',
+      `Duration: ${(new Date().getTime() - queryStartTime.getTime()) / 1000}s,`,
+      'Media:',
+      media.getID(),
+      ', Reviewed:',
+      reviewed,
+      ')',
+    );
+  }
+
   public areMediaQueriesResultsFresh<T extends MediaQuery>(
     resultsTimestamp: Date,
     queries: T[] | null,
@@ -619,11 +719,11 @@ export class CameraManager {
     );
   }
 
-  protected async _handleQuery<QT extends CameraQuery>(
+  private async _handleQuery<QT extends CameraQuery>(
     query: QT | QT[],
     engineOptions?: EngineOptions,
   ): Promise<Map<QT, QueryReturnType<QT>>> {
-    const _queries = arrayify(query);
+    const _queries = this._mergeCompatibleQueries(arrayify(query));
     const results = new Map<QT, QueryReturnType<QT>>();
     const queryStartTime = new Date();
     const hass = this._api.getHASSManager().getHASS();
@@ -662,6 +762,13 @@ export class CameraManager {
         )) as Map<QT, QueryReturnType<QT>> | null;
       } else if (CameraQueryClassifier.isMediaMetadataQuery(query)) {
         engineResult = (await engine.getMediaMetadata(
+          hass,
+          this._store,
+          query,
+          engineOptions,
+        )) as Map<QT, QueryReturnType<QT>> | null;
+      } else if (CameraQueryClassifier.isReviewQuery(query)) {
+        engineResult = (await engine.getReviews(
           hass,
           this._store,
           query,
@@ -713,7 +820,7 @@ export class CameraManager {
     return results;
   }
 
-  protected _convertQueryResultsToMedia<QT extends CameraQuery>(
+  private _convertQueryResultsToMedia<QT extends CameraQuery>(
     results: ResultsMap<QT>,
   ): ViewMedia[] {
     const mediaArray: ViewMedia[] = [];
@@ -739,6 +846,11 @@ export class CameraManager {
           QueryResultClassifier.isRecordingQueryResult(result)
         ) {
           media = engine.generateMediaFromRecordings(hass, this._store, query, result);
+        } else if (
+          CameraQueryClassifier.isReviewQuery(query) &&
+          QueryResultClassifier.isReviewQueryResult(result)
+        ) {
+          media = engine.generateMediaFromReviews(hass, this._store, query, result);
         }
         if (media) {
           mediaArray.push(...media);
@@ -797,21 +909,22 @@ export class CameraManager {
    * For example: with 90° rotation, pressing "left" should send "down" to camera.
    */
   private _rotatePTZAction(action: PTZAction, rotation?: Rotation): PTZAction {
-    if (!rotation) {
+    if (
+      !rotation ||
+      action === 'preset' ||
+      action === 'zoom_in' ||
+      action === 'zoom_out'
+    ) {
       return action;
     }
 
-    // Pan/tilt directions in clockwise order for rotation calculation
-    const index = PTZ_PAN_TILT_ACTIONS.indexOf(action as PTZPanTiltAction);
-
-    if (index === -1) {
-      // Not a directional action (e.g., zoom_in, zoom_out, preset)
-      return action;
-    }
+    // Directions in clockwise order for rotation calculation.
+    const CLOCKWISE: PTZPanTiltAction[] = ['up', 'right', 'down', 'left'];
+    const index = CLOCKWISE.indexOf(action);
 
     // Each 90° rotation shifts the direction index counter-clockwise.
     const shift = (4 - rotation / 90) % 4;
-    return PTZ_PAN_TILT_ACTIONS[(index + shift) % 4];
+    return CLOCKWISE[(index + shift) % 4];
   }
 
   public async executePTZAction(
@@ -830,8 +943,12 @@ export class CameraManager {
       action,
       camera.getConfig().dimensions?.rotation,
     );
+    const hass = this._api.getHASSManager().getHASS();
     await this._requestLimit.add(() =>
-      camera.executePTZAction(this._api.getActionsManager(), rotatedAction, options),
+      camera.executePTZAction(this._api.getActionsManager(), rotatedAction, {
+        ...options,
+        hass: hass ?? undefined,
+      }),
     );
   }
 }

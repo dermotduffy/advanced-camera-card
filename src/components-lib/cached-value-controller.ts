@@ -2,40 +2,42 @@ import { ReactiveController, ReactiveControllerHost } from 'lit';
 import { Timer } from '../utils/timer';
 
 export class CachedValueController<T> implements ReactiveController {
-  protected _value?: T;
-  protected _host: ReactiveControllerHost;
-  protected _timerSeconds: number;
-  protected _callback: () => T;
-  protected _timerStartCallback?: () => void;
-  protected _timerStopCallback?: () => void;
-  protected _timer = new Timer();
+  private _host: ReactiveControllerHost & HTMLElement;
+
+  private _value: T | null = null;
+
+  private _timerSeconds: number | null = null;
+
+  private _callback: () => T;
+
+  private _getTimerSecondsCallback: () => number | null;
+
+  private _timerStartCallback?: () => void;
+  private _timerStopCallback?: () => void;
+  private _timerTickCallback?: () => void;
+  private _timer = new Timer();
 
   constructor(
-    host: ReactiveControllerHost,
-    timerSeconds: number,
+    host: ReactiveControllerHost & HTMLElement,
+    getTimerSecondsCallback: () => number | null,
     callback: () => T,
     timerStartCallback?: () => void,
     timerStopCallback?: () => void,
+    timerTickCallback?: () => void,
   ) {
-    this._timerSeconds = timerSeconds;
+    this._getTimerSecondsCallback = getTimerSecondsCallback;
+    this._timerSeconds = getTimerSecondsCallback();
     this._callback = callback;
     this._timerStartCallback = timerStartCallback;
     this._timerStopCallback = timerStopCallback;
+    this._timerTickCallback = timerTickCallback;
     (this._host = host).addController(this);
-  }
-
-  /**
-   * Remove the controller for the host.
-   */
-  public removeController(): void {
-    this.stopTimer();
-    this._host.removeController(this);
   }
 
   /**
    * Get the value.
    */
-  get value(): T | undefined {
+  public getValue(): T | null {
     return this._value;
   }
 
@@ -44,13 +46,14 @@ export class CachedValueController<T> implements ReactiveController {
    */
   public updateValue(): void {
     this._value = this._callback();
+    this._host.requestUpdate();
   }
 
   /**
    * Clear the cached value.
    */
   public clearValue(): void {
-    this._value = undefined;
+    this._value = null;
   }
 
   /**
@@ -69,15 +72,29 @@ export class CachedValueController<T> implements ReactiveController {
   public startTimer(): void {
     this.stopTimer();
 
+    if (!this._timerSeconds || this._timerSeconds <= 0) {
+      return;
+    }
+
     this._timerStartCallback?.();
     this._timer.startRepeated(this._timerSeconds, () => {
+      this._timerTickCallback?.();
       this.updateValue();
-      this._host.requestUpdate();
     });
   }
 
   public hasTimer(): boolean {
     return this._timer.isRunning();
+  }
+
+  public hostUpdate(): void {
+    const newTimerSeconds = this._getTimerSecondsCallback();
+    if (newTimerSeconds !== this._timerSeconds) {
+      this._timerSeconds = newTimerSeconds;
+      if (this._host.isConnected) {
+        this.startTimer();
+      }
+    }
   }
 
   /**
@@ -86,7 +103,6 @@ export class CachedValueController<T> implements ReactiveController {
   hostConnected(): void {
     this.updateValue();
     this.startTimer();
-    this._host.requestUpdate();
   }
 
   /**

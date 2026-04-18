@@ -101,4 +101,28 @@ describe('should handle media_player action', () => {
 
     expect(api.getMediaPlayerManager().playMedia).not.toBeCalled();
   });
+
+  it('to not play live without camera', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getViewManager().getView).mockReturnValue(
+      createView({
+        camera: null,
+        view: 'live',
+      }),
+    );
+
+    const action = new MediaPlayerAction(
+      {},
+      {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'media_player',
+        media_player_action: 'play',
+        media_player: 'this_is_a_media_player',
+      },
+    );
+
+    await action.execute(api);
+
+    expect(api.getMediaPlayerManager().playLive).not.toBeCalled();
+  });
 });

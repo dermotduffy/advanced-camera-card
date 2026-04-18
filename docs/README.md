@@ -27,12 +27,20 @@ See [Advanced Installation](advanced-installation.md) for other installation res
 
 ## Initial configuration
 
-### Minimal configuration
+### Minimal camera configuration
 
 ```yaml
 type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
+```
+
+### Minimal folder configuration
+
+```yaml
+type: custom:advanced-camera-card
+folders:
+  - type: ha
 ```
 
 ### Video scrubbing configuration

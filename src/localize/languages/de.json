@@ -17,8 +17,7 @@
   "common": {
     "advanced_camera_card": "Erweiterte Kamera-Karte",
     "advanced_camera_card_description": "Eine Erweiterte Kamera-Karte",
-    "folder": "Ordner",
-    "no_folder": "Keine Ordner"
+    "folder": "Ordner"
   },
   "config": {
     "cameras": {
@@ -87,38 +86,18 @@
         "rotation": "Rotation",
         "rotations": {
           "0": "Keine Rotation",
-          "90": "90 Grad im Uhrzeigersinn",
           "180": "180 Grad im Uhrzeigersinn",
-          "270": "270 Grad im Uhrzeigersinn"
+          "270": "270 Grad im Uhrzeigersinn",
+          "90": "90 Grad im Uhrzeigersinn"
         }
       },
       "go2rtc": {
         "url": "go2rtc URL"
       },
       "proxy": {
-        "dynamic": "Dynamischer Proxy",
         "editor_label": "Kamera Proxy",
         "live": "Live Proxy",
-        "media": "Medien Proxy",
-        "modes": {
-          "auto": "Proxy automatisch konfigurieren",
-          "false": "Proxy deaktiviert",
-          "true": "Proxy aktiviert"
-        },
-        "ssl_ciphers": {
-          "auto": "SSL ciphers automatisch konfiguriert",
-          "default": "Standard SSL ciphers",
-          "editor_label": "SSL ciphers",
-          "insecure": "Unsichere SSL ciphers",
-          "intermediate": "Zwischen SSL ciphers",
-          "modern": "Moderne SSL ciphers"
-        },
-        "ssl_verification": {
-          "auto": "SSL Überprüfung automatisch konfiguriert",
-          "editor_label": "SSL Überprüfung",
-          "false": "SSL Überprüfung deaktiviert",
-          "true": "SSL Überprüfung aktiviert"
-        }
+        "media": "Medien Proxy"
       },
       "reolink": {
         "editor_label": "Reolink Optionen",
@@ -141,13 +120,7 @@
     "common": {
       "controls": {
         "builtin": "Eingebettete Video Bedienelemente",
-        "thumbnails": {
-          "media_type": "Ob Vorschau von Ereignissen oder Aufzeichnungen angezeigt werden",
-          "media_types": {
-            "events": "Ereignisse",
-            "recordings": "Aufzeichnungen"
-          }
-        },
+        "thumbnails": {},
         "timeline": {
           "format": {
             "24h": "24h Uhr",
@@ -180,13 +153,40 @@
         "entity": "Entität für Entitäts-Modus",
         "entity_parameters": "Abfrage-Parameter für Entitäts-basierende Photo URLs (z.B. width=1920&height=1080)",
         "modes": {
+          "default": "Standard-Eingebettetes Bild",
           "entity": "Entität mit entity_picture Attribut",
-          "screensaver": "Eingebettetes Bild für Bildschirmschoner"
+          "screensaver": "Zufälliges Bild"
         }
       },
       "media_action_conditions": {
         "microphone_mute": "Bei Mikrofon Stummschaltung",
         "microphone_unmute": "Bei Mikrofon Reaktivierung"
+      },
+      "media_types": {
+        "events": "Ereignisse",
+        "recordings": "Aufzeichnungen"
+      },
+      "proxy": {
+        "dynamic": "Dynamischer Proxy",
+        "modes": {
+          "auto": "Proxy automatisch konfigurieren",
+          "false": "Proxy deaktiviert",
+          "true": "Proxy aktiviert"
+        },
+        "ssl_ciphers": {
+          "auto": "SSL ciphers automatisch konfiguriert",
+          "default": "Standard SSL ciphers",
+          "editor_label": "SSL ciphers",
+          "insecure": "Unsichere SSL ciphers",
+          "intermediate": "Zwischen SSL ciphers",
+          "modern": "Moderne SSL ciphers"
+        },
+        "ssl_verification": {
+          "auto": "SSL Überprüfung automatisch konfiguriert",
+          "editor_label": "SSL Überprüfung",
+          "false": "SSL Überprüfung deaktiviert",
+          "true": "SSL Überprüfung aktiviert"
+        }
       },
       "timeline": {
         "style": "Zeitleisten Stil",
@@ -243,7 +243,6 @@
         "always_connected": "Mikrofon immer verbunden lassen",
         "disconnect_seconds": "Sekunden nach denen das Mikrofon getrennt wird (0=niemals)",
         "editor_label": "Mikrofon",
-        "enabled": "Mikrofon aktivieren",
         "mute_after_microphone_mute_seconds": "Sekunden nach denen das Mikrofon stumm geschalten wird, um eingehendes Audio stumm zu schalten"
       },
       "zoomable": "Live-Kameras können gezoomt / gepant werden"
@@ -299,7 +298,6 @@
       "items": {
         "enabled": "Eintrag aktiviert",
         "engine": "Kamera-Backend",
-        "live_provider": "Live-Anbieter",
         "priority": "Eintrags-Priorität",
         "resolution": "Auflösung",
         "technology": "Technologie",
@@ -413,7 +411,6 @@
     }
   },
   "error": {
-    "awaiting_folder": "Warte auf Laden des Ordners",
     "awaiting_live": "Warte auf Live-Stream ...",
     "awaiting_media": "Warte auf Medium ...",
     "camera_initialization": "Kamera-Initialisierung fehlgeschlagen",

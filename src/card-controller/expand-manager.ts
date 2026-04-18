@@ -2,8 +2,8 @@ import { setOrRemoveAttribute } from '../utils/basic';
 import { CardExpandAPI } from './types';
 
 export class ExpandManager {
-  protected _expanded = false;
-  protected _api: CardExpandAPI;
+  private _expanded = false;
+  private _api: CardExpandAPI;
 
   constructor(api: CardExpandAPI) {
     this._api = api;
@@ -37,7 +37,7 @@ export class ExpandManager {
     this._api.getCardElementManager().update();
   }
 
-  protected _setConditionState(): void {
+  private _setConditionState(): void {
     this._api.getConditionStateManager()?.setState({
       expand: this._expanded,
     });

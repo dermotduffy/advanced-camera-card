@@ -142,6 +142,34 @@ describe('PTZController', () => {
     });
   });
 
+  describe('hasPhysicalPTZ', () => {
+    it('should return false without camera', () => {
+      const controller = new PTZController(document.createElement('div'));
+      expect(controller.hasPhysicalPTZ()).toBeFalsy();
+    });
+
+    it('should return false without PTZ capability', () => {
+      const controller = new PTZController(document.createElement('div'));
+      controller.setCamera(createCameraManager(), 'camera.office');
+      expect(controller.hasPhysicalPTZ()).toBeFalsy();
+    });
+
+    it('should return true with PTZ capability', () => {
+      const cameraManager = createCameraManager();
+      vi.mocked(cameraManager).getCameraCapabilities.mockReturnValue(
+        createCapabilities({
+          ptz: {
+            left: [PTZMovementType.Relative],
+          },
+        }),
+      );
+
+      const controller = new PTZController(document.createElement('div'));
+      controller.setCamera(cameraManager, 'camera.office');
+      expect(controller.hasPhysicalPTZ()).toBeTruthy();
+    });
+  });
+
   describe('should get PTZ actions', () => {
     it.each([
       ['left' as const],
@@ -361,6 +389,79 @@ describe('PTZController', () => {
           },
         },
       });
+    });
+  });
+
+  describe('should toggle type', () => {
+    it('from gestures to buttons', () => {
+      const element = document.createElement('div');
+      const handler = vi.fn();
+      element.addEventListener('advanced-camera-card:action:execution-request', handler);
+
+      const controller = new PTZController(element);
+      const ev = new Event('click');
+      vi.spyOn(ev, 'stopPropagation');
+
+      controller.toggleTypeHandler(ev, 'gestures');
+
+      expect(ev.stopPropagation).toBeCalled();
+      expect(handler).toBeCalledWith(
+        expect.objectContaining({
+          detail: {
+            actions: {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'ptz_controls',
+              type: 'buttons',
+            },
+          },
+        }),
+      );
+    });
+
+    it('from buttons to gestures', () => {
+      const element = document.createElement('div');
+      const handler = vi.fn();
+      element.addEventListener('advanced-camera-card:action:execution-request', handler);
+
+      const controller = new PTZController(element);
+      const ev = new Event('click');
+
+      controller.toggleTypeHandler(ev, 'buttons');
+
+      expect(handler).toBeCalledWith(
+        expect.objectContaining({
+          detail: {
+            actions: {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'ptz_controls',
+              type: 'gestures',
+            },
+          },
+        }),
+      );
+    });
+
+    it('from undefined to gestures', () => {
+      const element = document.createElement('div');
+      const handler = vi.fn();
+      element.addEventListener('advanced-camera-card:action:execution-request', handler);
+
+      const controller = new PTZController(element);
+      const ev = new Event('click');
+
+      controller.toggleTypeHandler(ev);
+
+      expect(handler).toBeCalledWith(
+        expect.objectContaining({
+          detail: {
+            actions: {
+              action: 'fire-dom-event',
+              advanced_camera_card_action: 'ptz_controls',
+              type: 'gestures',
+            },
+          },
+        }),
+      );
     });
   });
 

@@ -3,8 +3,8 @@ import { View } from '../../../view/view';
 import { ViewModifier } from '../types';
 
 export class RemoveContextPropertyViewModifier implements ViewModifier {
-  protected _key: keyof ViewContext;
-  protected _property: PropertyKey;
+  private _key: keyof ViewContext;
+  private _property: PropertyKey;
 
   constructor(key: keyof ViewContext, property: PropertyKey) {
     this._key = key;

@@ -270,4 +270,20 @@ describe('VideoMediaPlayerController', () => {
       expect(controller.getFullscreenElement()).toBeNull();
     });
   });
+
+  describe('should get PIP element', () => {
+    it('should return video element when available', () => {
+      const video = mock<HTMLVideoElement>();
+
+      const controller = new VideoMediaPlayerController(createLitElement(), () => video);
+
+      expect(controller.getPIPElement()).toBe(video);
+    });
+
+    it('should return null without video', () => {
+      const controller = new VideoMediaPlayerController(createLitElement(), () => null);
+
+      expect(controller.getPIPElement()).toBeNull();
+    });
+  });
 });

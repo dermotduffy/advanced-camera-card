@@ -4,6 +4,7 @@ import { FoldersExecutor } from '../../../src/card-controller/folders/executor';
 import { HAFoldersEngine } from '../../../src/card-controller/folders/ha/engine';
 import { FolderQuery } from '../../../src/card-controller/folders/types';
 import { FolderConfig } from '../../../src/config/schema/folders';
+import { QuerySource } from '../../../src/query-source';
 import { Endpoint } from '../../../src/types';
 import { ViewFolder } from '../../../src/view/item';
 import { createFolder, createHASS, TestViewMedia } from '../../test-utils';
@@ -50,6 +51,34 @@ describe('FoldersExecutor', () => {
       });
 
       expect(executor.getItemCapabilities(item)).toEqual(capabilities);
+    });
+  });
+
+  describe('getDefaultQueryParameters', () => {
+    it('should return null for non-existent folder engine', () => {
+      const folder: FolderConfig = {
+        type: 'UNKNOWN',
+      } as unknown as FolderConfig;
+      const executor = new FoldersExecutor();
+
+      expect(executor.getDefaultQueryParameters(folder)).toBeNull();
+    });
+
+    it('should get default query parameters for HA folder engine', () => {
+      const folder = createFolder();
+      const haFolderEngine = mock<HAFoldersEngine>();
+      const expectedQuery: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: folder,
+        path: [{}],
+      };
+      haFolderEngine.getDefaultQueryParameters.mockReturnValue(expectedQuery);
+
+      const executor = new FoldersExecutor({
+        ha: haFolderEngine,
+      });
+
+      expect(executor.getDefaultQueryParameters(folder)).toEqual(expectedQuery);
     });
   });
 
@@ -105,39 +134,15 @@ describe('FoldersExecutor', () => {
     });
   });
 
-  describe('generateDefaultFolderQuery', () => {
-    it('should generate default folder query', () => {
-      const folder: FolderConfig = createFolder();
-      const query: FolderQuery = {
-        folder,
-        path: [{ ha: { id: 'media-source://' } }],
-      };
-
-      const haFolderEngine = mock<HAFoldersEngine>();
-      haFolderEngine.generateDefaultFolderQuery.mockReturnValue(query);
-      const executor = new FoldersExecutor({ ha: haFolderEngine });
-
-      expect(executor.generateDefaultFolderQuery(folder)).toEqual(query);
-    });
-
-    it('should return null for non-existent folder engine', () => {
-      const folder: FolderConfig = {
-        type: 'UNKNOWN',
-      } as unknown as FolderConfig;
-      const executor = new FoldersExecutor();
-
-      expect(executor.generateDefaultFolderQuery(folder)).toBeNull();
-    });
-  });
-
   describe('generateChildFolderQuery', () => {
     it('should generate child folder query', () => {
       const folder: FolderConfig = createFolder();
       const query: FolderQuery = {
+        source: QuerySource.Folder,
         folder,
         path: [{ ha: { id: 'media-source://' } }],
       };
-      const viewFolder = new ViewFolder(folder);
+      const viewFolder = new ViewFolder(folder, []);
 
       const haFolderEngine = mock<HAFoldersEngine>();
       haFolderEngine.generateChildFolderQuery.mockReturnValue(query);
@@ -152,10 +157,11 @@ describe('FoldersExecutor', () => {
         type: 'UNKNOWN',
       } as unknown as FolderConfig;
       const query: FolderQuery = {
+        source: QuerySource.Folder,
         folder,
         path: [{ ha: { id: 'media-source://' } }],
       };
-      const viewFolder = new ViewFolder(folder);
+      const viewFolder = new ViewFolder(folder, []);
       const executor = new FoldersExecutor();
 
       expect(executor.generateChildFolderQuery(query, viewFolder)).toBeNull();
@@ -176,6 +182,7 @@ describe('FoldersExecutor', () => {
     it('should expand folder', async () => {
       const folder = createFolder();
       const query: FolderQuery = {
+        source: QuerySource.Folder,
         folder,
         path: [{ ha: { id: 'media-source://' } }],
       };
@@ -184,7 +191,7 @@ describe('FoldersExecutor', () => {
         folder,
         startTime: new Date('2023-04-29T14:27'),
       });
-      const folderItem = new ViewFolder(folder);
+      const folderItem = new ViewFolder(folder, []);
 
       const haFolderEngine = mock<HAFoldersEngine>();
       haFolderEngine.expandFolder.mockResolvedValue([folderItem, mediaItem, folderItem]);
@@ -199,6 +206,32 @@ describe('FoldersExecutor', () => {
         folderItem,
         mediaItem,
       ]);
+    });
+  });
+
+  describe('areResultsFresh', () => {
+    it('should return true for non-existent engine', () => {
+      const folder: FolderConfig = {
+        type: 'UNKNOWN',
+      } as unknown as FolderConfig;
+      const query: FolderQuery = { source: QuerySource.Folder, folder, path: [{}] };
+      const executor = new FoldersExecutor();
+
+      expect(executor.areResultsFresh(new Date(), query)).toBe(true);
+    });
+
+    it('should get results from HA engine', () => {
+      const folder = createFolder();
+      const query: FolderQuery = { source: QuerySource.Folder, folder, path: [{}] };
+      const haFolderEngine = mock<HAFoldersEngine>();
+      haFolderEngine.areResultsFresh.mockReturnValue(false);
+
+      const executor = new FoldersExecutor({
+        ha: haFolderEngine,
+      });
+
+      expect(executor.areResultsFresh(new Date(), query)).toBe(false);
+      expect(haFolderEngine.areResultsFresh).toHaveBeenCalled();
     });
   });
 });

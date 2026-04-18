@@ -5,8 +5,12 @@ import { FoldersManager } from '../card-controller/folders/manager';
 import { FullscreenManager } from '../card-controller/fullscreen/fullscreen-manager';
 import { MediaPlayerManager } from '../card-controller/media-player-manager';
 import { MicrophoneManager } from '../card-controller/microphone-manager';
+import { PIPManager } from '../card-controller/pip-manager';
 import { ViewManager } from '../card-controller/view/view-manager';
-import { VIEWS_USER_SPECIFIED } from '../config/schema/common/const';
+import {
+  AdvancedCameraCardView,
+  VIEWS_USER_SPECIFIED,
+} from '../config/schema/common/const';
 import { MenuItem } from '../config/schema/elements/custom/menu/types';
 import { AdvancedCameraCardConfig } from '../config/schema/types';
 import { getEntityTitle } from '../ha/get-entity-title';
@@ -20,6 +24,7 @@ import {
   createMediaPlayerAction,
   createPTZControlsAction,
   createPTZMultiAction,
+  createSetReviewAction,
   createViewAction,
   isAdvancedCameraCardCustomAction,
 } from '../utils/action';
@@ -28,9 +33,12 @@ import { isBeingCasted } from '../utils/casting';
 import { getPTZTarget } from '../utils/ptz';
 import { getStreamCameraID, hasSubstream } from '../utils/substream';
 import { ViewItemClassifier } from '../view/item-classifier';
-import { QueryClassifier } from '../view/query-classifier';
+import { resolveViewName } from '../view/utils/resolve-default';
 import { View } from '../view/view';
-import { getCameraIDsForViewName, isViewSupportedByCamera } from '../view/view-support';
+import {
+  getCameraIDsWithCapabilityForView,
+  isViewSupported,
+} from '../view/view-support';
 
 export interface MenuButtonControllerOptions {
   callManager?: CallManager | null;
@@ -40,13 +48,14 @@ export interface MenuButtonControllerOptions {
   inExpandedMode?: boolean;
   microphoneManager?: MicrophoneManager | null;
   mediaPlayerController?: MediaPlayerManager | null;
+  pipManager?: PIPManager | null;
   viewManager?: ViewManager | null;
   view?: View | null;
 }
 
 export class MenuButtonController {
   // Array of dynamic menu buttons to be added to menu.
-  protected _dynamicMenuButtons: MenuItem[] = [];
+  private _dynamicMenuButtons: MenuItem[] = [];
 
   public addDynamicMenuButton(button: MenuItem): void {
     if (!this._dynamicMenuButtons.includes(button)) {
@@ -79,9 +88,13 @@ export class MenuButtonController {
       this._getClipsButton(config, cameraManager, foldersManager, options?.view),
       this._getSnapshotsButton(config, cameraManager, foldersManager, options?.view),
       this._getRecordingsButton(config, cameraManager, foldersManager, options?.view),
+      this._getReviewsButton(config, cameraManager, foldersManager, options?.view),
+      this._getGalleryButton(config, cameraManager, foldersManager, options?.view),
       this._getImageButton(config, cameraManager, foldersManager, options?.view),
       this._getTimelineButton(config, cameraManager, foldersManager, options?.view),
       this._getDownloadButton(config, cameraManager, options?.view),
+      this._getInfoButton(config, cameraManager, options?.view),
+      this._getSetReviewButton(config, options?.view),
       this._getCameraUIButton(config, options?.showCameraUIButton),
       this._getCallButton(config, cameraManager, options?.view, options?.callManager),
       this._getMicrophoneButton(
@@ -92,6 +105,7 @@ export class MenuButtonController {
       ),
       this._getExpandButton(config, options?.inExpandedMode),
       this._getFullscreenButton(config, options?.fullscreenManager),
+      this._getPIPButton(config, options?.pipManager),
       this._getCastButton(
         hass,
         config,
@@ -108,13 +122,19 @@ export class MenuButtonController {
       this._getFoldersButton(config, foldersManager, options?.view),
 
       ...this._dynamicMenuButtons.map((button) => ({
-        style: this._getStyleFromActions(config, button, options),
+        style: this._getStyleFromActions(
+          config,
+          cameraManager,
+          foldersManager,
+          button,
+          options,
+        ),
         ...button,
       })),
     ].filter(isTruthy);
   }
 
-  protected _getIrisButton(config: AdvancedCameraCardConfig): MenuItem {
+  private _getIrisButton(config: AdvancedCameraCardConfig): MenuItem {
     return {
       icon: 'iris',
       ...config.menu.buttons.iris,
@@ -131,7 +151,7 @@ export class MenuButtonController {
     };
   }
 
-  protected _getCamerasButton(
+  private _getCamerasButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
@@ -166,12 +186,12 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getSubstreamsButton(
+  private _getSubstreamsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
   ): MenuItem | null {
-    if (!view) {
+    if (!view?.camera) {
       return null;
     }
 
@@ -180,7 +200,7 @@ export class MenuButtonController {
       .getAllDependentCameras(view.camera, 'substream');
 
     if (substreamCameraIDs.size && view.is('live')) {
-      const substreams = [...substreamCameraIDs].filter(
+      const substreams = Array.from(substreamCameraIDs).filter(
         (cameraID) => cameraID !== view.camera,
       );
       const streams = [view.camera, ...substreams];
@@ -229,33 +249,31 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getLiveButton(
+  private _getLiveButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
     view?: View | null,
   ): MenuItem | null {
-    return view &&
-      isViewSupportedByCamera('live', cameraManager, foldersManager, view.camera)
+    return isViewSupported('live', cameraManager, foldersManager, view?.camera)
       ? {
           icon: 'mdi:cctv',
           ...config.menu.buttons.live,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.live'),
-          style: view.is('live') ? this._getEmphasizedStyle() : {},
+          style: view?.is('live') ? this._getEmphasizedStyle() : {},
           tap_action: createViewAction('live'),
         }
       : null;
   }
 
-  protected _getClipsButton(
+  private _getClipsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
     view?: View | null,
   ): MenuItem | null {
-    return view &&
-      isViewSupportedByCamera('clips', cameraManager, foldersManager, view.camera)
+    return isViewSupported('clips', cameraManager, foldersManager, view?.camera)
       ? {
           icon: 'mdi:filmstrip',
           ...config.menu.buttons.clips,
@@ -268,14 +286,13 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getSnapshotsButton(
+  private _getSnapshotsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
     view?: View | null,
   ): MenuItem | null {
-    return view &&
-      isViewSupportedByCamera('snapshots', cameraManager, foldersManager, view.camera)
+    return isViewSupported('snapshots', cameraManager, foldersManager, view?.camera)
       ? {
           icon: 'mdi:camera',
           ...config.menu.buttons.snapshots,
@@ -288,34 +305,70 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getRecordingsButton(
+  private _getRecordingsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
     view?: View | null,
   ): MenuItem | null {
-    return view &&
-      isViewSupportedByCamera('recordings', cameraManager, foldersManager, view.camera)
+    return isViewSupported('recordings', cameraManager, foldersManager, view?.camera)
       ? {
           icon: 'mdi:album',
           ...config.menu.buttons.recordings,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.recordings'),
-          style: view.is('recordings') ? this._getEmphasizedStyle() : {},
+          style: view?.is('recordings') ? this._getEmphasizedStyle() : {},
           tap_action: createViewAction('recordings'),
           hold_action: createViewAction('recording'),
         }
       : null;
   }
 
-  protected _getImageButton(
+  private _getReviewsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
     view?: View | null,
   ): MenuItem | null {
-    return view &&
-      isViewSupportedByCamera('image', cameraManager, foldersManager, view.camera)
+    return isViewSupported('reviews', cameraManager, foldersManager, view?.camera)
+      ? {
+          icon: 'mdi:play-box-edit-outline',
+          ...config.menu.buttons.reviews,
+          type: 'custom:advanced-camera-card-menu-icon',
+          title: localize('config.view.views.reviews'),
+          style: view?.is('reviews') ? this._getEmphasizedStyle() : {},
+          tap_action: createViewAction('reviews'),
+          hold_action: createViewAction('review'),
+        }
+      : null;
+  }
+
+  private _getGalleryButton(
+    config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
+    foldersManager: FoldersManager,
+    view?: View | null,
+  ): MenuItem | null {
+    return isViewSupported('gallery', cameraManager, foldersManager, view?.camera)
+      ? {
+          icon: 'mdi:play-box-multiple',
+          ...config.menu.buttons.gallery,
+          type: 'custom:advanced-camera-card-menu-icon',
+          title: localize('config.menu.buttons.gallery'),
+          style: view?.is('gallery') ? this._getEmphasizedStyle() : {},
+          tap_action: createViewAction('gallery'),
+          hold_action: createViewAction('media'),
+        }
+      : null;
+  }
+
+  private _getImageButton(
+    config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
+    foldersManager: FoldersManager,
+    view?: View | null,
+  ): MenuItem | null {
+    return isViewSupported('image', cameraManager, foldersManager, view?.camera)
       ? {
           icon: 'mdi:image',
           ...config.menu.buttons.image,
@@ -327,26 +380,25 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getTimelineButton(
+  private _getTimelineButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
     view?: View | null,
   ): MenuItem | null {
-    return view &&
-      isViewSupportedByCamera('timeline', cameraManager, foldersManager, view.camera)
+    return isViewSupported('timeline', cameraManager, foldersManager, view?.camera)
       ? {
           icon: 'mdi:chart-gantt',
           ...config.menu.buttons.timeline,
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.timeline'),
-          style: view.is('timeline') ? this._getEmphasizedStyle() : {},
+          style: view?.is('timeline') ? this._getEmphasizedStyle() : {},
           tap_action: createViewAction('timeline'),
         }
       : null;
   }
 
-  protected _getDownloadButton(
+  private _getDownloadButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
@@ -368,7 +420,53 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getCameraUIButton(
+  private _getInfoButton(
+    config: AdvancedCameraCardConfig,
+    _cameraManager: CameraManager,
+    view?: View | null,
+  ): MenuItem | null {
+    const selectedItem = view?.queryResults?.getSelectedResult();
+    if (
+      !ViewItemClassifier.isMedia(selectedItem) ||
+      !(view?.isViewerView() || view?.isGalleryView() || view?.is('timeline'))
+    ) {
+      return null;
+    }
+    return {
+      icon: 'mdi:information-outline',
+      ...config.menu.buttons.info,
+      type: 'custom:advanced-camera-card-menu-icon',
+      title: localize('config.menu.buttons.info'),
+      tap_action: createGeneralAction('info'),
+    };
+  }
+
+  private _getSetReviewButton(
+    config: AdvancedCameraCardConfig,
+    view?: View | null,
+  ): MenuItem | null {
+    const selectedItem = view?.queryResults?.getSelectedResult();
+    if (!view?.isViewerView() || !ViewItemClassifier.isReview(selectedItem)) {
+      return null;
+    }
+    const isReviewed = selectedItem.isReviewed();
+    if (isReviewed === null) {
+      return null;
+    }
+
+    return {
+      icon: isReviewed ? 'mdi:check-circle' : 'mdi:check-circle-outline',
+      ...config.menu.buttons.set_review,
+      type: 'custom:advanced-camera-card-menu-icon',
+      title: isReviewed
+        ? localize('common.set_reviews.unreviewed')
+        : localize('common.set_reviews.reviewed'),
+      tap_action: createSetReviewAction(),
+      style: isReviewed ? this._getEmphasizedStyle() : {},
+    };
+  }
+
+  private _getCameraUIButton(
     config: AdvancedCameraCardConfig,
     showCameraUIButton?: boolean,
   ): MenuItem | null {
@@ -383,7 +481,7 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getCallButton(
+  private _getCallButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
@@ -407,13 +505,14 @@ export class MenuButtonController {
     };
   }
 
-  protected _getMicrophoneButton(
+  private _getMicrophoneButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
     microphoneManager?: MicrophoneManager | null,
   ): MenuItem | null {
-    if (!view) {
+    const streamCameraID = view ? getStreamCameraID(view) : null;
+    if (!streamCameraID) {
       return null;
     }
 
@@ -426,7 +525,7 @@ export class MenuButtonController {
       return null;
     }
 
-    const capabilities = cameraManager.getCameraCapabilities(getStreamCameraID(view));
+    const capabilities = cameraManager.getCameraCapabilities(streamCameraID);
 
     if (microphoneManager && capabilities?.has('2-way-audio')) {
       const unavailable =
@@ -459,7 +558,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getExpandButton(
+  private _getExpandButton(
     config: AdvancedCameraCardConfig,
     inExpandedMode?: boolean,
   ): MenuItem {
@@ -473,7 +572,7 @@ export class MenuButtonController {
     };
   }
 
-  protected _getFullscreenButton(
+  private _getFullscreenButton(
     config: AdvancedCameraCardConfig,
     fullscreenManager?: FullscreenManager | null,
   ): MenuItem | null {
@@ -490,7 +589,26 @@ export class MenuButtonController {
       : null;
   }
 
-  protected _getCastButton(
+  private _getPIPButton(
+    config: AdvancedCameraCardConfig,
+    pipManager?: PIPManager | null,
+  ): MenuItem | null {
+    const inPIP = pipManager?.isInPIP();
+    return pipManager?.isAvailable()
+      ? {
+          icon: inPIP
+            ? 'mdi:picture-in-picture-bottom-right-outline'
+            : 'mdi:picture-in-picture-bottom-right',
+          ...config.menu.buttons.pip,
+          type: 'custom:advanced-camera-card-menu-icon',
+          title: localize('config.menu.buttons.pip'),
+          tap_action: createGeneralAction('pip'),
+          style: inPIP ? this._getEmphasizedStyle() : {},
+        }
+      : null;
+  }
+
+  private _getCastButton(
     hass: HomeAssistant,
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
@@ -500,7 +618,9 @@ export class MenuButtonController {
     if (!view) {
       return null;
     }
-    const selectedCameraConfig = cameraManager.getStore().getCameraConfig(view.camera);
+    const selectedCameraConfig = view.camera
+      ? cameraManager.getStore().getCameraConfig(view.camera)
+      : null;
     if (
       mediaPlayerController?.hasMediaPlayers() &&
       (view.isViewerView() || (view.is('live') && selectedCameraConfig?.camera_entity))
@@ -537,7 +657,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getPlayPauseButton(
+  private _getPlayPauseButton(
     config: AdvancedCameraCardConfig,
     currentMediaLoadedInfo?: MediaLoadedInfo | null,
   ): MenuItem | null {
@@ -558,7 +678,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getMuteUnmuteButton(
+  private _getMuteUnmuteButton(
     config: AdvancedCameraCardConfig,
     currentMediaLoadedInfo?: MediaLoadedInfo | null,
   ): MenuItem | null {
@@ -579,7 +699,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getScreenshotButton(
+  private _getScreenshotButton(
     config: AdvancedCameraCardConfig,
     currentMediaLoadedInfo?: MediaLoadedInfo | null,
   ): MenuItem | null {
@@ -595,14 +715,14 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getDisplayModeButton(
+  private _getDisplayModeButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     foldersManager: FoldersManager,
     view?: View | null,
   ): MenuItem | null {
     const viewCameraIDs = view
-      ? getCameraIDsForViewName(view.view, cameraManager, foldersManager)
+      ? getCameraIDsWithCapabilityForView(view.view, cameraManager, foldersManager)
       : null;
     if (
       view?.supportsMultipleDisplayModes() &&
@@ -624,7 +744,7 @@ export class MenuButtonController {
     return null;
   }
 
-  protected _getPTZControlsButton(
+  private _getPTZControlsButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
@@ -655,13 +775,13 @@ export class MenuButtonController {
         style: isOn ? this._getEmphasizedStyle() : {},
         type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.ptz_controls'),
-        tap_action: createPTZControlsAction(!isOn),
+        tap_action: createPTZControlsAction({ enabled: !isOn }),
       };
     }
     return null;
   }
 
-  protected _getPTZHomeButton(
+  private _getPTZHomeButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
@@ -692,20 +812,19 @@ export class MenuButtonController {
     };
   }
 
-  protected _getFoldersButton(
+  private _getFoldersButton(
     config: AdvancedCameraCardConfig,
     foldersManager?: FoldersManager | null,
     view?: View | null,
   ): MenuItem | null {
-    const folders = [...(foldersManager?.getFolders() ?? [])];
-    if (!folders?.length) {
+    const folders = Array.from(foldersManager?.getFolders() ?? []);
+    if (!foldersManager?.hasFolders()) {
       return null;
     }
 
     if (folders.length === 1) {
-      const isSelected =
-        QueryClassifier.isFolderQuery(view?.query) &&
-        view.query.getQuery()?.folder.id === folders[0][0];
+      const folderID = folders[0][0];
+      const isSelected = !!view?.query?.getFolderQueries(folderID).length;
       const folder = folders[0][1];
 
       return {
@@ -720,9 +839,7 @@ export class MenuButtonController {
     }
 
     const submenuItems = folders.map(([id, folder]) => {
-      const isSelected =
-        QueryClassifier.isFolderQuery(view?.query) &&
-        view.query.getQuery()?.folder.id === id;
+      const isSelected = !!view?.query?.getFolderQueries(id).length;
 
       return {
         enabled: true,
@@ -749,7 +866,7 @@ export class MenuButtonController {
    * Get the style of emphasized menu items.
    * @returns A StyleInfo.
    */
-  protected _getEmphasizedStyle(critical?: boolean): StyleInfo {
+  private _getEmphasizedStyle(critical?: boolean): StyleInfo {
     if (critical) {
       return {
         animation: 'pulse 3s infinite',
@@ -767,11 +884,14 @@ export class MenuButtonController {
    * @param button The button to examine.
    * @returns A StyleInfo object.
    */
-  protected _getStyleFromActions(
+  private _getStyleFromActions(
     config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
+    foldersManager: FoldersManager,
     button: MenuItem,
     options?: MenuButtonControllerOptions,
   ): StyleInfo {
+    // Review
     for (const actionSet of [
       button.tap_action,
       button.double_tap_action,
@@ -788,10 +908,14 @@ export class MenuButtonController {
           VIEWS_USER_SPECIFIED.some(
             (viewName) =>
               viewName === action.advanced_camera_card_action &&
-              options?.view?.is(action.advanced_camera_card_action),
+              options?.view?.is(
+                action.advanced_camera_card_action as AdvancedCameraCardView,
+              ),
           ) ||
           (action.advanced_camera_card_action === 'default' &&
-            options?.view?.is(config.view.default)) ||
+            options?.view?.is(
+              resolveViewName(config.view.default, cameraManager, foldersManager),
+            )) ||
           (action.advanced_camera_card_action === 'fullscreen' &&
             !!options?.fullscreenManager?.isInFullscreen()) ||
           (action.advanced_camera_card_action === 'camera_select' &&

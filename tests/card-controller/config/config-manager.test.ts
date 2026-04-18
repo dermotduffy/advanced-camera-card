@@ -1,12 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ZodError } from 'zod';
+import { ZodError, z } from 'zod';
+import { AutomationsManager } from '../../../src/card-controller/automations-manager';
 import { ConfigManager } from '../../../src/card-controller/config/config-manager';
+import { setRemoteControlEntityFromConfig } from '../../../src/card-controller/config/load-control-entities';
+import { setKeyboardShortcutsFromConfig } from '../../../src/card-controller/config/load-keyboard-shortcuts';
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
 import { ConditionStateManager } from '../../../src/conditions/state-manager';
-import { AutomationsManager } from '../../../src/card-controller/automations-manager';
+import { Automation } from '../../../src/config/schema/automations';
+import { AdvancedCameraCardCondition } from '../../../src/config/schema/conditions/types';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
-import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
 import { createGeneralAction } from '../../../src/utils/action';
+import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
 
 /**
  * Create a ConfigManager test setup with real AutomationsManager and ConditionStateManager.
@@ -61,6 +65,7 @@ const TEST_CONDITIONS = {
 
 /** Profile settings for testing */
 const TEST_PROFILES = {
+  CASTING: 'casting' as const,
   LOW_PERFORMANCE: 'low-performance' as const,
 } as const;
 
@@ -76,10 +81,10 @@ describe('ConfigManager', () => {
     });
 
     it('invalid configuration', () => {
-      const spy = vi.spyOn(advancedCameraCardConfigSchema, 'safeParse').mockReturnValue({
-        success: false,
-        error: new ZodError([]),
-      });
+      const schemaForMock: z.ZodType = advancedCameraCardConfigSchema;
+      const spy = vi
+        .spyOn(schemaForMock, 'safeParse')
+        .mockReturnValue({ success: false, error: new ZodError([]) });
 
       const manager = new ConfigManager(createCardAPI());
       expect(() => manager.setConfig({})).toThrowError(
@@ -92,7 +97,7 @@ describe('ConfigManager', () => {
     it('invalid configuration with hint', () => {
       const manager = new ConfigManager(createCardAPI());
       expect(() => manager.setConfig({})).toThrowError(
-        'Invalid configuration: [\n "cameras",\n "type"\n]',
+        'Invalid configuration: [\n "type"\n]',
       );
     });
 
@@ -134,7 +139,7 @@ describe('ConfigManager', () => {
     expect(manager.getRawConfig()).toBe(config);
 
     // Verify at least the camera is set.
-    expect(manager.getConfig()?.cameras[0].camera_entity).toBe('camera.office');
+    expect(manager.getConfig()?.cameras?.[0].camera_entity).toBe('camera.office');
 
     // Verify at least one default was set.
     expect(manager.getConfig()?.menu.alignment).toBe('left');
@@ -165,6 +170,23 @@ describe('ConfigManager', () => {
 
     // Verify at least one low performance default.
     expect(manager.getConfig()?.live.draggable).toBeFalsy();
+  });
+
+  it('should apply casting profile menu changes without affecting unrelated hidden buttons', () => {
+    const manager = new ConfigManager(createCardAPI());
+    const config = {
+      type: 'custom:advanced-camera-card',
+      cameras: [TEST_CAMERAS.OFFICE],
+      profiles: [TEST_PROFILES.CASTING],
+    };
+
+    manager.setConfig(config);
+
+    expect(manager.getConfig()?.menu.buttons.play.enabled).toBeTruthy();
+    expect(manager.getConfig()?.menu.buttons.mute.enabled).toBeTruthy();
+    expect(manager.getConfig()?.menu.buttons.fullscreen.enabled).toBeFalsy();
+    expect(manager.getConfig()?.menu.buttons.media_player.enabled).toBeFalsy();
+    expect(manager.getConfig()?.menu.buttons.clips.enabled).toBeFalsy();
   });
 
   it('should skip identical configs', () => {
@@ -232,6 +254,10 @@ describe('ConfigManager', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: cameras,
+        menu: {
+          style: 'hidden',
+          position: 'top',
+        },
         overrides: [
           {
             conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
@@ -245,10 +271,11 @@ describe('ConfigManager', () => {
 
       manager.setConfig(config);
 
-      expect(api.getStyleManager().updateFromConfig).toBeCalledTimes(1);
-
+      const configBefore = manager.getConfig();
       stateManager.setState({ fullscreen: true });
+      const configAfter = manager.getConfig();
 
+      expect(configAfter).toEqual(configBefore);
       expect(api.getStyleManager().updateFromConfig).toBeCalledTimes(1);
     });
 
@@ -290,7 +317,7 @@ describe('ConfigManager', () => {
         overrides: [
           {
             conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
-            delete: ['cameras'],
+            delete: ['type'],
           },
         ],
       };
@@ -472,7 +499,7 @@ describe('ConfigManager', () => {
           ],
         });
 
-        manager.setConfig(config as any);
+        manager.setConfig(config);
         await flushPromises();
 
         // Verify keyboard shortcuts automations were added initially with ptz_home
@@ -501,9 +528,10 @@ describe('ConfigManager', () => {
         // This confirms the override removed them (directly verified through add calls)
         const addCalls = addAutomationsSpy.mock.calls;
         const hasKeyboardShortcut = addCalls.some((call) =>
-          call[0].some((automation: any) =>
+          call[0].some((automation: Automation) =>
             automation.conditions?.some(
-              (cond: any) => cond.condition === 'key' && cond.key === 'h',
+              (cond: AdvancedCameraCardCondition) =>
+                cond.condition === 'key' && cond.key === 'h',
             ),
           ),
         );
@@ -524,7 +552,7 @@ describe('ConfigManager', () => {
           ],
         });
 
-        manager.setConfig(config as any);
+        manager.setConfig(config);
         await flushPromises();
 
         // Verify initial payload (folders may be populated with defaults, so
@@ -594,7 +622,7 @@ describe('ConfigManager', () => {
           ],
         });
 
-        manager.setConfig(config as any);
+        manager.setConfig(config);
         await flushPromises();
 
         // Verify automations were added initially
@@ -632,6 +660,46 @@ describe('ConfigManager', () => {
         // The automation should still not execute because it was deleted by the override
         expect(executeActionsMock).not.toHaveBeenCalled();
       });
+
+      it('should not reload user automations for unrelated override changes', async () => {
+        const { manager, stateManager, api, addAutomationsSpy, deleteAutomationsSpy } =
+          createConfigManagerTestSetup();
+
+        const executeActionsMock = vi.fn();
+        vi.mocked(api.getActionsManager().executeActions).mockImplementation(
+          executeActionsMock,
+        );
+
+        const automation = {
+          conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
+          actions: [createGeneralAction('screenshot')],
+        };
+        const config = createConfig({
+          automations: [automation],
+          overrides: [
+            {
+              conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
+              set: {
+                'menu.buttons.microphone.enabled': false,
+              },
+            },
+          ],
+        });
+
+        manager.setConfig(config);
+        await flushPromises();
+
+        addAutomationsSpy.mockClear();
+        deleteAutomationsSpy.mockClear();
+        executeActionsMock.mockClear();
+
+        stateManager.setState({ fullscreen: true });
+        await flushPromises();
+
+        expect(deleteAutomationsSpy).not.toHaveBeenCalled();
+        expect(addAutomationsSpy).not.toHaveBeenCalled();
+        expect(executeActionsMock).toHaveBeenCalledTimes(1);
+      });
     });
 
     describe('remote-control loader with overrides', () => {
@@ -652,7 +720,7 @@ describe('ConfigManager', () => {
         });
 
         // Initial set should register remote control automations
-        manager.setConfig(config as any);
+        manager.setConfig(config);
         await flushPromises();
 
         // Verify remote-control automations were added initially with config condition
@@ -682,9 +750,9 @@ describe('ConfigManager', () => {
         // Verify new automations don't contain remote-control config conditions
         const addCalls = addAutomationsSpy.mock.calls;
         const hasRemoteControl = addCalls.some((call) =>
-          call[0].some((automation: any) =>
+          call[0].some((automation: Automation) =>
             automation.conditions?.some(
-              (cond: any) =>
+              (cond: AdvancedCameraCardCondition) =>
                 cond.condition === 'config' &&
                 cond.paths?.includes('remote_control.entities.camera'),
             ),
@@ -710,6 +778,73 @@ describe('ConfigManager', () => {
               ]),
             }),
           ]),
+        );
+      });
+
+      it('should not reload remote-control automations for unrelated override changes', async () => {
+        const { manager, stateManager, deleteAutomationsSpy } =
+          createConfigManagerTestSetup();
+
+        const config = createConfig({
+          remote_control: {
+            entities: { camera: 'input_select.camera' },
+          },
+          overrides: [
+            {
+              conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
+              set: {
+                'menu.buttons.microphone.enabled': false,
+              },
+            },
+          ],
+        });
+
+        manager.setConfig(config);
+        await flushPromises();
+
+        deleteAutomationsSpy.mockClear();
+
+        stateManager.setState({ fullscreen: true });
+        await flushPromises();
+
+        expect(deleteAutomationsSpy).not.toHaveBeenCalledWith(
+          setRemoteControlEntityFromConfig,
+        );
+      });
+    });
+
+    describe('keyboard-shortcuts loader with overrides', () => {
+      it('should not reload keyboard-shortcut automations for unrelated override changes', async () => {
+        const { manager, stateManager, deleteAutomationsSpy } =
+          createConfigManagerTestSetup();
+
+        const config = createConfig({
+          view: {
+            keyboard_shortcuts: {
+              enabled: true,
+              ptz_left: { key: 'ArrowLeft' },
+            },
+          },
+          overrides: [
+            {
+              conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
+              set: {
+                'menu.buttons.microphone.enabled': false,
+              },
+            },
+          ],
+        });
+
+        manager.setConfig(config);
+        await flushPromises();
+
+        deleteAutomationsSpy.mockClear();
+
+        stateManager.setState({ fullscreen: true });
+        await flushPromises();
+
+        expect(deleteAutomationsSpy).not.toHaveBeenCalledWith(
+          setKeyboardShortcutsFromConfig,
         );
       });
     });

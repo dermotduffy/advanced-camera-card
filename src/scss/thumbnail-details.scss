@@ -2,37 +2,57 @@
   display: flex;
   flex-direction: column;
 
-  width: 100%;
-  margin-left: 5px;
-  padding: 5px;
-  color: var(--advanced-camera-card-thumbnail-text-color);
-  overflow: hidden;
-  column-gap: 5%;
-}
+  // Wrap "details that don't fit" off the side instead of showing part of a
+  // detail.
+  align-content: flex-start;
+  flex-wrap: wrap;
 
-div.heading {
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-div.details {
-  flex: 1;
   justify-content: center;
 
-  display: flex;
-  flex-direction: column;
-  flex-wrap: wrap;
-  --mdc-icon-size: 16px;
+  width: 100%;
 
   // Details panel can shrink as well as grow.
   min-height: 0px;
+  max-height: var(--advanced-camera-card-thumbnail-size);
+
+  margin-left: 5px;
+
+  color: var(--advanced-camera-card-thumbnail-text-color);
+
+  overflow: hidden;
+
+  --mdc-icon-size: 16px;
 }
 
-div.details div {
+div {
+  width: 100%;
+
   display: flex;
   align-items: center;
+  gap: 5px;
+
+  container-type: normal;
+  font-size: 0.95cqh;
+
+  &.heading {
+    font-weight: bold;
+    font-size: 1cqh;
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
 }
 
-div.details div * {
-  margin: 0px 3px;
+[severity='high'] {
+  color: var(--advanced-camera-card-thumbnail-icon-severity-high-color);
+}
+[severity='medium'] {
+  color: var(--advanced-camera-card-thumbnail-icon-severity-medium-color);
+}
+[severity='low'] {
+  color: var(--advanced-camera-card-thumbnail-icon-severity-low-color);
 }

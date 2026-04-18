@@ -24,17 +24,21 @@ import {
   PTZActionConfig,
   PTZActionPhase,
 } from '../config/schema/actions/custom/ptz.js';
+import { SetReviewActionConfig } from '../config/schema/actions/custom/set-review.js';
 import { SubstreamSelectActionConfig } from '../config/schema/actions/custom/substream-select.js';
 import { ViewActionConfig } from '../config/schema/actions/custom/view.js';
 import { PerformActionActionConfig } from '../config/schema/actions/stock/perform-action.js';
+import type { Notification } from '../config/schema/actions/types.js';
 import {
   ActionConfig,
-  ActionsConfig,
+  Actions,
   AdvancedCameraCardCustomActionConfig,
+  NotificationActionConfig,
 } from '../config/schema/actions/types.js';
 import { AdvancedCameraCardUserSpecifiedView } from '../config/schema/common/const.js';
+import { PTZControlType } from '../config/schema/common/controls/ptz.js';
 import { ServiceCallRequest } from '../ha/types.js';
-import { EffectName } from '../types.js';
+import type { EffectName } from '../types.js';
 import { arrayify } from './basic.js';
 
 export function createGeneralAction(
@@ -110,16 +114,16 @@ export function createDisplayModeAction(
   };
 }
 
-export function createPTZControlsAction(
-  enabled: boolean,
-  options?: {
-    cardID?: string;
-  },
-): PTZControlsActionConfig {
+export function createPTZControlsAction(options?: {
+  cardID?: string;
+  enabled?: boolean;
+  type?: PTZControlType;
+}): PTZControlsActionConfig {
   return {
     action: 'fire-dom-event',
     advanced_camera_card_action: 'ptz_controls',
-    enabled: enabled,
+    ...(options?.enabled !== undefined && { enabled: options.enabled }),
+    ...(options?.type && { type: options.type }),
     ...(options?.cardID && { card_id: options.cardID }),
   };
 }
@@ -260,6 +264,28 @@ export function createEffectAction(
   };
 }
 
+export function createSetReviewAction(reviewed?: boolean): SetReviewActionConfig {
+  return {
+    action: 'fire-dom-event',
+    advanced_camera_card_action: 'set_review',
+    reviewed,
+  };
+}
+
+export function createNotificationAction(
+  notification: Notification,
+  options?: {
+    cardID?: string;
+  },
+): NotificationActionConfig {
+  return {
+    action: 'fire-dom-event',
+    advanced_camera_card_action: 'notification',
+    notification,
+    ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
 /**
  * Get an action configuration given a config and an interaction (e.g. 'tap').
  * @param interaction The interaction: `tap`, `hold` or `double_tap`
@@ -268,7 +294,7 @@ export function createEffectAction(
  */
 export function getActionConfigGivenAction(
   interaction?: string,
-  config?: ActionsConfig | null,
+  config?: Actions | null,
 ): ActionConfig | ActionConfig[] | null {
   if (!interaction || !config) {
     return null;

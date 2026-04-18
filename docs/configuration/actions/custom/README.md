@@ -7,10 +7,10 @@ action: custom:advanced-camera-card-action
 # [...]
 ```
 
-| Parameter                     | Description                                         |
-| ----------------------------- | --------------------------------------------------- |
-| `action`                      | Must be `custom:advanced-camera-card-action`.       |
-| `advanced_camera_card_action` | A supported Advanced Camera Card action. See below. |
+| Parameter                     | Description                                                        |
+| ----------------------------- | ------------------------------------------------------------------ |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                      |
+| `advanced_camera_card_action` | A supported Advanced Camera Card action. One of the below actions. |
 
 ## `camera_select`
 
@@ -33,14 +33,12 @@ This action will respect the value of the `view.camera_select` to choose the app
 
 ## `camera_ui`
 
-Download the displayed media.
+Open the UI for the selected camera engine (e.g. the Frigate UI).
 
 ```yaml
 action: custom:advanced-camera-card-action
 advanced_camera_card_action: camera_ui
 ```
-
-Open the UI for the selected camera engine (e.g. the Frigate UI).
 
 ## `clip`
 
@@ -157,6 +155,15 @@ advanced_camera_card_action: folders
 | --------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
 | `folder`  | The first configured folder (under [`folders`](../../folders.md)). | An optional id of the folder to show, see the `id` parameter under [`folders` configuration](../../folders.md). |
 
+## `gallery`
+
+Change to the `gallery` view.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: gallery
+```
+
 ## `fullscreen`
 
 Toggle fullscreen.
@@ -175,6 +182,15 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: image
 ```
 
+## `info`
+
+Show media metadata (e.g. event time, camera, descriptions).
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: info
+```
+
 ## `live`
 
 Change to the `live` view.
@@ -190,13 +206,13 @@ Turn off the substream (if on).
 
 ```yaml
 action: custom:advanced-camera-card-action
-advanced_camera_card_action: live_substream_on
+advanced_camera_card_action: live_substream_off
 ```
 
 | Parameter                     | Description                                   |
 | ----------------------------- | --------------------------------------------- |
 | `action`                      | Must be `custom:advanced-camera-card-action`. |
-| `advanced_camera_card_action` | Must be `live_substream_on`.                  |
+| `advanced_camera_card_action` | Must be `live_substream_off`.                 |
 
 ## `live_substream_on`
 
@@ -227,6 +243,15 @@ advanced_camera_card_action: live_substream_select
 | `action`                      | Must be `custom:advanced-camera-card-action`.                                   |
 | `advanced_camera_card_action` | Must be `live_substream_select`.                                                |
 | `camera`                      | The [camera ID](../../cameras/README.md?id=cameras) of the substream to select. |
+
+## `media`
+
+Change to the `media` view.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: media
+```
 
 ## `log`
 
@@ -316,6 +341,52 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: mute
 ```
 
+## `notification`
+
+[](../../common/experimental-warning.md ':include')
+
+Show a notification overlay on the card with optional controls.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: notification
+# [...]
+```
+
+| Parameter                     | Description                                                         |
+| ----------------------------- | ------------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                       |
+| `advanced_camera_card_action` | Must be `notification`.                                             |
+| `notification`                | The notification to display. See [`notification`](#notification-1). |
+
+### `notification`
+
+| Parameter  | Description                                                                           |
+| ---------- | ------------------------------------------------------------------------------------- |
+| `heading`  | An optional heading. Uses the same format as [`details`](README.md?id=details) below. |
+| `text`     | An optional text string to display as the notification body.                          |
+| `details`  | An optional list of metadata. See [`details`](README.md?id=details) below.            |
+| `controls` | An optional list of controls. See [`controls`](README.md?id=controls) below.          |
+
+### Details
+
+| Parameter  | Description                                                   |
+| ---------- | ------------------------------------------------------------- |
+| `text`     | The detail text.                                              |
+| `icon`     | An optional icon (e.g. `mdi:alert`).                          |
+| `tooltip`  | An optional tooltip string (shown on hover).                  |
+| `severity` | An optional severity level, one of `low`, `medium` or `high`. |
+
+### Controls
+
+| Parameter  | Default | Description                                                                                                                                                                                               |
+| ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `icon`     |         | An optional icon (e.g. `mdi:check-circle`).                                                                                                                                                               |
+| `tooltip`  |         | An optional tooltip string (shown on hover).                                                                                                                                                              |
+| `severity` |         | An optional severity level, one of `low`, `medium` or `high`.                                                                                                                                             |
+| `actions`  |         | [Actions](../README.md) to execute on interaction. Supports `tap_action`, `hold_action`, `double_tap_action`, `start_tap_action`, `end_tap_action`. See [example](../../../examples.md?id=notifications). |
+| `dismiss`  | `true`  | Whether to dismiss the notification after the control's actions execute.                                                                                                                                  |
+
 ## `pause`
 
 Pause the selected media.
@@ -324,6 +395,20 @@ Pause the selected media.
 action: custom:advanced-camera-card-action
 advanced_camera_card_action: pause
 ```
+
+## `pip`
+
+Toggle Picture-in-Picture mode. Floats the video element as a native browser overlay. Only supported by elements based on videos (e.g. notably not the `image`, or `jsmpeg` [live providers](../../cameras/live-provider.md)).
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: pip
+```
+
+| Parameter                     | Description                                   |
+| ----------------------------- | --------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`. |
+| `advanced_camera_card_action` | Must be `pip`.                                |
 
 ## `play`
 
@@ -361,7 +446,7 @@ advanced_camera_card_action: ptz
 
 ## `ptz_controls`
 
-Show or hide the PTZ controls.
+Show, hide, or change the type of the PTZ controls.
 
 ```yaml
 action: custom:advanced-camera-card-action
@@ -369,11 +454,12 @@ advanced_camera_card_action: ptz_controls
 # [...]
 ```
 
-| Parameter                     | Description                                              |
-| ----------------------------- | -------------------------------------------------------- |
-| `action`                      | Must be `custom:advanced-camera-card-action`.            |
-| `advanced_camera_card_action` | Must be `ptz_controls`.                                  |
-| `show`                        | If `true` shows the PTZ controls, if `false` hides them. |
+| Parameter                     | Description                                                                                                                               |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                                                                                             |
+| `advanced_camera_card_action` | Must be `ptz_controls`.                                                                                                                   |
+| `enabled`                     | If `true` shows the PTZ controls, if `false` hides them. If omitted and `type` is also omitted, toggles the current visibility.           |
+| `type`                        | Set the PTZ control type to `buttons` or `gestures`. Setting `type` alone does not affect the `enabled`/visibility state of the controls. |
 
 ## `ptz_digital`
 
@@ -385,14 +471,14 @@ advanced_camera_card_action: ptz_digital
 # [...]
 ```
 
-| Parameter                     | Default                                                                                       | Description                                                                                                                                                |
-| ----------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `action`                      |                                                                                               | Must be `custom:advanced-camera-card-action`.                                                                                                              |
-| `advanced_camera_card_action` |                                                                                               | Must be `ptz_digital`.                                                                                                                                     |
-| `target_id`                   | The currently selected camera or media                                                        | The target (camera or media) to execute a digital PTZ action on. Can be a camera ID, or another media ID (e.g. for Frigate, can specify a media/event ID). |
-| `ptz_action`                  | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`.        |
-| `ptz_phase`                   | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
-| `absolute`                    | Optional parameter to specify exact absolute pan and zoom settings. See below.                |
+| Parameter                     | Default                                | Description                                                                                                                                                |
+| ----------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `action`                      |                                        | Must be `custom:advanced-camera-card-action`.                                                                                                              |
+| `advanced_camera_card_action` |                                        | Must be `ptz_digital`.                                                                                                                                     |
+| `target_id`                   | The currently selected camera or media | The target (camera or media) to execute a digital PTZ action on. Can be a camera ID, or another media ID (e.g. for Frigate, can specify a media/event ID). |
+| `ptz_action`                  |                                        | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`.                                                                     |
+| `ptz_phase`                   |                                        | Optional parameter that is one of `start` or `stop` to start or stop the movement separately.                                                              |
+| `absolute`                    |                                        | Optional parameter to specify exact absolute pan and zoom settings. See [`absolute`](#absolute).                                                           |
 
 > [!NOTE]
 > If no `ptz_action` is specified and no `absolute` value is specified, the camera returns to its "home" position. See [Camera layout configuration](../../cameras/README.md?id=layout-configuration) to configure the default "home" position for digital PTZ.
@@ -454,6 +540,24 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: recordings
 ```
 
+## `review`
+
+Change to the `review` view.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: review
+```
+
+## `reviews`
+
+Change to the `reviews` view.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: reviews
+```
+
 ## `reload`
 
 Reload the entire dashboard.
@@ -472,6 +576,22 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: screenshot
 ```
 
+## `set_review`
+
+Mark a review as reviewed or unreviewed.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: set_review
+# [...]
+```
+
+| Parameter                     | Default | Description                                                                                                               |
+| ----------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `action`                      |         | Must be `custom:advanced-camera-card-action`.                                                                             |
+| `advanced_camera_card_action` |         | Must be `set_review`.                                                                                                     |
+| `reviewed`                    |         | If `true` marks as reviewed, if `false` marks as unreviewed. If not specified (the default), toggles the reviewed status. |
+
 ## `sleep`
 
 Take no action for a given duration. Useful to pause between multiple other actions.
@@ -481,11 +601,11 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: sleep
 ```
 
-| Parameter                     | Description                                   |
-| ----------------------------- | --------------------------------------------- |
-| `action`                      | Must be `custom:advanced-camera-card-action`. |
-| `advanced_camera_card_action` | Must be `sleep`.                              |
-| `duration`                    | A duration object. See below.                 |
+| Parameter                     | Description                                     |
+| ----------------------------- | ----------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.   |
+| `advanced_camera_card_action` | Must be `sleep`.                                |
+| `duration`                    | A duration object. See [`duration`](#duration). |
 
 ### `duration`
 
@@ -523,7 +643,7 @@ advanced_camera_card_action: status_bar
 | Parameter           | Default | Description                                                                                                                                             |
 | ------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `status_bar_action` |         | If `add` adds `items` to the status bar, if `remove` removes items and if `reset` resets the status bar entirely (removes all dynamically added items). |
-| `items`             |         | The items to `add` or `remove`. See below.                                                                                                              |
+| `items`             |         | The items to `add` or `remove`. See [`items`](#items).                                                                                                  |
 
 ### `items`
 
@@ -566,6 +686,33 @@ elements:
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: camera_ui
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:play-box-multiple
+    title: Show media gallery
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: gallery
+    hold_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: media
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:filmstrip
+    title: Show most recent media
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: media
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-r-circle-outline
+    title: Show most recent review
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: review
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-s-circle-outline
+    title: Show reviews
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: reviews
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-d-circle
     title: Show most recent clip
@@ -616,6 +763,12 @@ elements:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: fullscreen
   - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:picture-in-picture-bottom-right
+    title: PIP
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: pip
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-l-circle
     title: Show image view
     tap_action:
@@ -627,6 +780,35 @@ elements:
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: live
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-i-circle-outline
+    title: Info
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: info
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-m-circle-outline
+    title: Show notification
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: notification
+      notification:
+        heading:
+          text: Attention
+          icon: mdi:alert
+          severity: high
+        text: Something important happened.
+        controls:
+          - icon: mdi:filmstrip
+            tooltip: View clips (tap) / View clip (double-tap)
+            actions:
+              tap_action:
+                action: custom:advanced-camera-card-action
+                advanced_camera_card_action: clips
+              double_tap_action:
+                action: custom:advanced-camera-card-action
+                advanced_camera_card_action: clip
+            dismiss: false
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-n-circle
     title: Turn off substream
@@ -794,18 +976,25 @@ elements:
       advanced_camera_card_action: snapshots
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-h-circle-outline
+    title: Set reviewed
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: set_review
+      reviewed: true
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:alpha-i-circle-outline
     title: Show timeline
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: timeline
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-i-circle-outline
+    icon: mdi:alpha-j-circle-outline
     title: Unmute
     tap_action:
       action: custom:advanced-camera-card-action
       advanced_camera_card_action: unmute
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-j-circle-outline
+    icon: mdi:alpha-k-circle-outline
     title: Add status bar contents
     tap_action:
       - action: custom:advanced-camera-card-action
@@ -834,7 +1023,7 @@ elements:
             priority: 50
             sufficient: false
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-k-circle-outline
+    icon: mdi:alpha-l-circle-outline
     title: Remove status bar contents
     tap_action:
       - action: custom:advanced-camera-card-action
@@ -863,21 +1052,21 @@ elements:
             priority: 50
             sufficient: false
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-l-circle-outline
+    icon: mdi:alpha-m-circle-outline
     title: Reset status bar contents
     tap_action:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: status_bar
         status_bar_action: reset
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-m-circle-outline
+    icon: mdi:alpha-n-circle-outline
     title: View Folder Media
     tap_action:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: folder
         folder: my-folder
   - type: custom:advanced-camera-card-menu-icon
-    icon: mdi:alpha-n-circle-outline
+    icon: mdi:alpha-o-circle-outline
     title: View Folders Gallery
     tap_action:
       - action: custom:advanced-camera-card-action

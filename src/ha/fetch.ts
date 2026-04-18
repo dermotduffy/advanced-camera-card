@@ -1,7 +1,7 @@
 import { ZodSchema } from 'zod';
 import { localize } from '../localize/localize';
 import { AdvancedCameraCardError, Endpoint } from '../types';
-import { homeAssistantSignPath } from './sign-path';
+import { homeAssistantGetSignedURLIfNecessary } from './sign-path';
 import { HomeAssistant } from './types';
 
 /**
@@ -22,25 +22,20 @@ export const homeAssistantSignAndFetch = async <T>(
     timeoutSeconds?: number;
   },
 ): Promise<T> => {
-  let url: string | null = endpoint.endpoint;
-  const sign = endpoint.sign;
+  let url: string | null;
+  try {
+    url = await homeAssistantGetSignedURLIfNecessary(hass, endpoint);
+  } catch (error) {
+    throw new AdvancedCameraCardError(localize('error.failed_sign'), {
+      endpoint,
+      error,
+    });
+  }
 
-  // Sign the path if needed
-  if (sign) {
-    try {
-      url = await homeAssistantSignPath(hass, url);
-    } catch (error) {
-      throw new AdvancedCameraCardError(localize('error.failed_sign'), {
-        endpoint,
-        error,
-      });
-    }
-
-    if (!url) {
-      throw new AdvancedCameraCardError(localize('error.failed_sign'), {
-        endpoint,
-      });
-    }
+  if (!url) {
+    throw new AdvancedCameraCardError(localize('error.failed_sign'), {
+      endpoint,
+    });
   }
 
   let response: Response;

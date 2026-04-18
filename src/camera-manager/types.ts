@@ -1,7 +1,9 @@
 import { ExpiringEqualityCache } from '../cache/expiring-cache';
-import { SSLCiphers } from '../config/schema/cameras';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
-import { CapabilityKey, Endpoint, Icon } from '../types';
+import { InternalIcon } from '../config/schema/common/icon';
+import { ResolvedProxyConfig } from '../config/schema/common/proxy';
+import { BaseQuery, QueryFilters, QuerySource } from '../query-source';
+import { CapabilityKey, Endpoint } from '../types';
 import { ViewMedia } from '../view/item';
 
 // ====
@@ -13,6 +15,7 @@ export enum QueryType {
   Recording = 'recording-query',
   RecordingSegments = 'recording-segments-query',
   MediaMetadata = 'media-metadata',
+  Review = 'review-query',
 }
 
 export enum QueryResultsType {
@@ -20,6 +23,7 @@ export enum QueryResultsType {
   Recording = 'recording-results',
   RecordingSegments = 'recording-segments-results',
   MediaMetadata = 'media-metadata-results',
+  Review = 'review-results',
 }
 
 export enum Engine {
@@ -46,10 +50,12 @@ interface LimitedDataQuery {
 }
 
 export interface MediaQuery
-  extends CameraQuery,
+  extends BaseQuery,
+    CameraQuery,
+    QueryFilters,
     Partial<TimeBasedDataQuery>,
     Partial<LimitedDataQuery> {
-  favorite?: boolean;
+  source: QuerySource.Camera;
 }
 
 export interface QueryResults {
@@ -74,14 +80,18 @@ export type QueryReturnType<QT> = QT extends EventQuery
       ? RecordingSegmentsQueryResults
       : QT extends MediaMetadataQuery
         ? MediaMetadataQueryResults
-        : never;
+        : QT extends ReviewQuery
+          ? ReviewQueryResults
+          : never;
 export type PartialQueryConcreteType<PQT> = PQT extends PartialEventQuery
   ? EventQuery
   : PQT extends PartialRecordingQuery
     ? RecordingQuery
     : PQT extends PartialRecordingSegmentsQuery
       ? RecordingSegmentsQuery
-      : never;
+      : PQT extends PartialReviewQuery
+        ? ReviewQuery
+        : never;
 
 export type ResultsMap<QT> = Map<QT, QueryReturnType<QT>>;
 export type EventQueryResultsMap = ResultsMap<EventQuery>;
@@ -102,12 +112,14 @@ interface CapabilitySearchAllAny {
 }
 export type CapabilitySearchKeys = CapabilityKey | CapabilitySearchAllAny;
 export interface CapabilitySearchOptions {
+  // If true, include a parent camera in results when any of its dependent
+  // (child) cameras have the capability, even if the parent itself doesn't.
   inclusive?: boolean;
 }
 
 export interface CameraManagerCameraMetadata {
   title: string;
-  icon: Icon;
+  icon: InternalIcon;
 
   // Engine icon is just a string since it will never be entity-derived.
   engineIcon?: string;
@@ -126,12 +138,9 @@ export interface CameraEndpoints {
   webrtcCard?: Endpoint;
 }
 
-export interface CameraProxyConfig {
-  dynamic: boolean;
+export interface CameraProxyConfig extends ResolvedProxyConfig {
   live: boolean;
   media: boolean;
-  ssl_verification: boolean;
-  ssl_ciphers: SSLCiphers;
 }
 
 export interface EngineOptions {
@@ -145,16 +154,21 @@ export interface CameraEvent {
   // triggered/untriggered.
   id: string;
 
-  type: 'new' | 'update' | 'end';
+  type:
+    | 'new' // A new event has started.
+    | 'update' // An update for an event is available (except GenAI).
+    | 'end' // An event has ended.
+    | 'genai'; // An AI based update is available.
 
   // When fidelity is `high`, the engine is assumed to provide exact details of
   // what new media is available. Otherwise all media types are assumed to be
   // possibly newly available.
   fidelity?: 'high' | 'low';
 
-  // Whether a new clip/snapshot/recording may be available.
+  // Whether new media may be available.
   clip?: boolean;
   snapshot?: boolean;
+  review?: boolean;
 }
 export type CameraEventCallback = (ev: CameraEvent) => void;
 
@@ -162,6 +176,21 @@ export class CameraManagerRequestCache extends ExpiringEqualityCache<
   CameraQuery,
   QueryResults
 > {}
+
+// ====================
+// Default Query Params
+// ====================
+
+/**
+ * Default query parameters that engines can provide based on camera configuration.
+ */
+export interface DefaultQueryParameters {
+  // Object labels (what was detected)
+  what?: Set<string>;
+
+  // Zones (where detection occurred)
+  where?: Set<string>;
+}
 
 // ===========
 // Event Query
@@ -175,15 +204,6 @@ export interface EventQuery extends MediaQuery {
 
   // Frigate equivalent: has_clip
   hasClip?: boolean;
-
-  // Frigate equivalent: label
-  what?: Set<string>;
-
-  // Frigate equivalent: sub_label
-  tags?: Set<string>;
-
-  // Frigate equivalent: zone
-  where?: Set<string>;
 }
 export type PartialEventQuery = Partial<EventQuery>;
 
@@ -230,3 +250,18 @@ export interface MediaMetadataQueryResults extends QueryResults {
   type: QueryResultsType.MediaMetadata;
   metadata: MediaMetadata;
 }
+
+// ============
+// Review Query
+// ============
+
+export interface ReviewQuery extends MediaQuery {
+  type: QueryType.Review;
+}
+export type PartialReviewQuery = Partial<ReviewQuery>;
+
+export interface ReviewQueryResults extends QueryResults {
+  type: QueryResultsType.Review;
+}
+
+export type ReviewQueryResultsMap = ResultsMap<ReviewQuery>;

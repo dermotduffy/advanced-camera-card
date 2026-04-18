@@ -16,6 +16,7 @@ import { LiveConfig } from '../../config/schema/live.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import liveGridStyle from '../../scss/live-grid.scss';
+import { contentsChanged } from '../../utils/basic.js';
 import './carousel.js';
 
 @customElement('advanced-camera-card-live-grid')
@@ -38,10 +39,10 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public triggeredCameraIDs?: Set<string>;
 
-  protected _renderCarousel(cameraID?: string): TemplateResult {
+  private _renderCarousel(cameraID?: string): TemplateResult {
     const view = this.viewManagerEpoch?.manager.getView();
     const triggeredCameraID = cameraID ?? view?.camera;
 
@@ -69,7 +70,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
     `;
   }
 
-  protected _gridSelectCamera(cameraID: string): void {
+  private _gridSelectCamera(cameraID: string): void {
     this.viewManagerEpoch?.manager.setViewByParameters({
       params: {
         camera: cameraID,
@@ -77,7 +78,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
     });
   }
 
-  protected _needsGrid(): boolean {
+  private _needsGrid(): boolean {
     const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
     const view = this.viewManagerEpoch?.manager.getView();
     return (

@@ -23,8 +23,8 @@ export class AdvancedCameraCardImagePlayer extends LitElement implements MediaPl
   @property()
   public technology?: MediaTechnology;
 
-  protected _refImage: Ref<MediaPlayerElement<HTMLImageElement>> = createRef();
-  protected _mediaPlayerController = new ImageMediaPlayerController(
+  private _refImage: Ref<MediaPlayerElement<HTMLImageElement>> = createRef();
+  private _mediaPlayerController = new ImageMediaPlayerController(
     this,
     () => this._refImage.value ?? null,
   );

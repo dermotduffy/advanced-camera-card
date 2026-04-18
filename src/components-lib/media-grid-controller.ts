@@ -3,6 +3,7 @@ import Masonry from 'masonry-layout';
 import { ViewDisplayConfig } from '../config/schema/common/display';
 import { MediaLoadedInfo } from '../types';
 import {
+  forceReflow,
   getChildrenFromElement,
   setOrRemoveAttribute,
   setOrRemoveStyleProperty,
@@ -47,39 +48,36 @@ export interface ExtendedMasonry extends Masonry {
 }
 
 export class MediaGridController {
-  protected _host: HTMLElement;
+  private _host: HTMLElement;
 
-  protected _selected: GridID | null;
-  protected _mediaLoadedInfoMap: Map<GridID, MediaLoadedInfo> = new Map();
-  protected _gridContents: MediaGridContents = new Map();
-  protected _masonry: ExtendedMasonry | null = null;
-  protected _displayConfig: ViewDisplayConfig | null = null;
-  protected _hostWidth: number;
-  protected _idAttribute: string;
-  protected _widthFactorAttribute: string;
+  private _selected: GridID | null;
+  private _mediaLoadedInfoMap: Map<GridID, MediaLoadedInfo> = new Map();
+  private _gridContents: MediaGridContents = new Map();
+  private _masonry: ExtendedMasonry | null = null;
+  private _displayConfig: ViewDisplayConfig | null = null;
+  private _hostWidth: number;
+  private _idAttribute: string;
+  private _widthFactorAttribute: string;
 
-  protected _throttledLayout = throttle(
-    () => this._masonry?.layout?.(),
-    // Throttle layout calls to larger than the masonry.js transitionDuration
-    // value specified below.
-    300,
-    { trailing: true, leading: false },
-  );
+  private _throttledLayout = throttle(() => this._masonry?.layout?.(), 300, {
+    leading: true,
+    trailing: true,
+  });
 
   // If the order in which the observers are declared changes, the unittest must
   // be updated in triggerResizeObserver and triggerMutationObserver.
-  protected _hostMutationObserver = new MutationObserver(
+  private _hostMutationObserver = new MutationObserver(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (_mutations: MutationRecord[], _observer: MutationObserver) =>
       this._calculateGridContentsFromHost(),
   );
-  protected _cellMutationObserver = new MutationObserver(
+  private _cellMutationObserver = new MutationObserver(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (_mutations: MutationRecord[], _observer: MutationObserver) =>
       this._calculateGridContentsFromHost(),
   );
-  protected _hostResizeObserver = new ResizeObserver(this._hostResizeHandler.bind(this));
-  protected _cellResizeObserver = new ResizeObserver(this._cellResizeHandler.bind(this));
+  private _hostResizeObserver = new ResizeObserver(this._hostResizeHandler.bind(this));
+  private _cellResizeObserver = new ResizeObserver(this._cellResizeHandler.bind(this));
 
   constructor(host: HTMLElement, options?: MediaGridConstructorOptions) {
     this._host = host;
@@ -142,7 +140,7 @@ export class MediaGridController {
     return this._selected;
   }
 
-  protected _sortItemsInGrid(): void {
+  private _sortItemsInGrid(): void {
     const existingItems = this._masonry?.items;
     const selectedItem = existingItems?.find(
       (item) => item.element.getAttribute(this._idAttribute) === this._selected,
@@ -158,7 +156,7 @@ export class MediaGridController {
       this._masonry
     ) {
       // Implementation note: With the latest version of the Masonry library
-      // (4.2.2) using the prepended() and appended() methods in quick sucession
+      // (4.2.2) using the prepended() and appended() methods in quick succession
       // causes the layout to not show the newly added items. Instead, access
       // the items in place and swap them around.
       const otherItems = existingItems?.filter((item) => item !== selectedItem);
@@ -186,10 +184,7 @@ export class MediaGridController {
     this._sortItemsInGrid();
     this._updateSelectedStylesOnElements();
 
-    // Sizes and positions may change when an element is selected, so re-do the
-    // layout (must come after the call to _updateStylesOnElements in order to
-    // ensure the right styles are applied first).
-    this._throttledLayout();
+    this._forceLayout();
   }
 
   public unselectAll() {
@@ -199,9 +194,22 @@ export class MediaGridController {
     }
     this._selected = null;
     this._updateSelectedStylesOnElements();
+
+    this._forceLayout();
   }
 
-  protected _calculateGridContentsFromHost = (): void => {
+  protected _forceLayout(): void {
+    // Cancel possible pending layout
+    this._throttledLayout.cancel();
+
+    // Force browser reflow so masonry measures the updated element size
+    forceReflow(this._host);
+
+    // Sizes and positions may change when an element is selected, so re-do the layout
+    this._masonry?.layout?.();
+  }
+
+  private _calculateGridContentsFromHost = (): void => {
     const children = getChildrenFromElement(this._host);
     const gridContents: MediaGridContents = new Map();
     for (const child of children) {
@@ -212,7 +220,7 @@ export class MediaGridController {
     this._setGridContents(gridContents);
   };
 
-  protected _setGridContents(gridContents: MediaGridContents): void {
+  private _setGridContents(gridContents: MediaGridContents): void {
     this._gridContents = gridContents;
 
     // Remove media loaded info objects that belong to objects no longer in the
@@ -252,7 +260,7 @@ export class MediaGridController {
     this._setColumnSizeStyles();
   }
 
-  protected _handleMediaLoadedInfoEvent = (ev: CustomEvent<MediaLoadedInfo>): void => {
+  private _handleMediaLoadedInfoEvent = (ev: CustomEvent<MediaLoadedInfo>): void => {
     const eventPath = ev.composedPath();
 
     for (const [id, element] of this._gridContents.entries()) {
@@ -267,7 +275,7 @@ export class MediaGridController {
     }
   };
 
-  protected _hostResizeHandler(): void {
+  private _hostResizeHandler(): void {
     const dimensions = this._host.getBoundingClientRect();
 
     // Only resize things if the width has changed. It is expected that the
@@ -278,16 +286,20 @@ export class MediaGridController {
       // Reset the column CSS sizes first.
       this._setColumnSizeStyles();
 
-      // Need to recreate the masonry layout since the column width will differ.
-      this._createMasonry();
+      // Update the column width on the existing Masonry instance rather than
+      // destroying and recreating it. A destroy resets the container height to
+      // 0, which can cause an ancestor scrollbar to appear/disappear, changing
+      // the available width and triggering an infinite resize oscillation.
+      this._masonry?.option?.({ columnWidth: this._getColumnSize() });
+      this._throttledLayout();
     }
   }
 
-  protected _cellResizeHandler(): void {
+  private _cellResizeHandler(): void {
     this._throttledLayout();
   }
 
-  protected _addChildEventListeners(child: MediaGridChild): void {
+  private _addChildEventListeners(child: MediaGridChild): void {
     child.addEventListener('click', this._handleSelectGridCellEvent, {
       capture: true,
     });
@@ -298,7 +310,7 @@ export class MediaGridController {
     );
   }
 
-  protected _removeChildEventListeners(child: MediaGridChild): void {
+  private _removeChildEventListeners(child: MediaGridChild): void {
     child.removeEventListener('click', this._handleSelectGridCellEvent, {
       capture: true,
     });
@@ -309,7 +321,7 @@ export class MediaGridController {
     );
   }
 
-  protected _createMasonry(): void {
+  private _createMasonry(): void {
     if (this._masonry) {
       this._masonry.destroy?.();
     }
@@ -318,14 +330,18 @@ export class MediaGridController {
       columnWidth: this._getColumnSize(),
       initLayout: false,
       percentPosition: true,
-      transitionDuration: '0.2s',
+      transitionDuration: 0,
+      stagger: 0,
+
+      // This controller handles resizes.
+      resize: false,
       gutter: MEDIA_GRID_HORIZONTAL_GUTTER_WIDTH,
     }) as ExtendedMasonry;
     this._masonry.addItems?.([...this._gridContents.values()]);
     this._throttledLayout();
   }
 
-  protected _handleSelectGridCellEvent = (ev: Event): void => {
+  private _handleSelectGridCellEvent = (ev: Event): void => {
     const eventPath = ev.composedPath();
 
     for (const [id, element] of this._gridContents.entries()) {
@@ -340,7 +356,7 @@ export class MediaGridController {
     }
   };
 
-  protected _updateSelectedStylesOnElements(): void {
+  private _updateSelectedStylesOnElements(): void {
     for (const [id, element] of this._gridContents.entries()) {
       setOrRemoveAttribute(element, id === this._selected, 'selected');
 
@@ -351,7 +367,7 @@ export class MediaGridController {
     }
   }
 
-  protected _updateWidthFactorStyles(): void {
+  private _updateWidthFactorStyles(): void {
     for (const element of this._gridContents.values()) {
       const widthFactor = element.getAttribute(this._widthFactorAttribute);
       setOrRemoveStyleProperty(
@@ -363,7 +379,7 @@ export class MediaGridController {
     }
   }
 
-  protected _getColumnSize(): number {
+  private _getColumnSize(): number {
     const columns = this._getColumns();
     if (columns === 1) {
       return this._hostWidth;
@@ -372,7 +388,7 @@ export class MediaGridController {
     return Math.max(0, this._hostWidth / columns - MEDIA_GRID_HORIZONTAL_GUTTER_WIDTH);
   }
 
-  protected _getColumns(): number {
+  private _getColumns(): number {
     if (this._displayConfig?.grid_columns) {
       return this._displayConfig?.grid_columns;
     }
@@ -397,7 +413,7 @@ export class MediaGridController {
     return Math.max(1, minColumns);
   }
 
-  protected _setColumnSizeStyles(): void {
+  private _setColumnSizeStyles(): void {
     this._host.style.setProperty(
       '--advanced-camera-card-grid-column-size',
       `${this._getColumnSize()}px`,

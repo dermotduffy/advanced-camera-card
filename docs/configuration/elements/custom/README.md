@@ -30,7 +30,7 @@ elements:
     # [...]
 ```
 
-Configuration is similar to a stock [Picture Elements Icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element).
+Configuration is similar to a stock [Picture Elements Icon](https://www.home-assistant.io/dashboards/picture-elements/#icon-element).
 
 | Parameter                                                                | Default    | Description                                                                                                                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -62,7 +62,7 @@ elements:
 | `enabled`                                                                | `true`     | Whether or not to show this menu item.                                                                                                                                                                                                                                                                                       |
 | `entity`                                                                 |            | An optional Home Assistant entity for use with actions.                                                                                                                                                                                                                                                                      |
 | `icon`                                                                   |            | An required icon to display, e.g. `mdi:car`. See also [custom icons](../../../usage/custom-icons.md).                                                                                                                                                                                                                        |
-| `items`                                                                  |            | A list of menu items, as described below.                                                                                                                                                                                                                                                                                    |
+| `items`                                                                  |            | A list of menu items, as described [below](#submenu-items).                                                                                                                                                                                                                                                                  |
 | `permanent`                                                              | `false`    | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                                                                             |
 | `priority`                                                               | `50`       | The menu item priority. Higher priority items are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`). Priority applies separately to `matching` and `opposing` groups (see `alignment` above). Minimum `0`, maximum `100`. |
 | `style`                                                                  |            | Position and style the element using CSS.                                                                                                                                                                                                                                                                                    |
@@ -119,7 +119,7 @@ elements:
     # [...]
 ```
 
-Configuration is similar to a stock [Picture Elements State Icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon).
+Configuration is similar to a stock [Picture Elements State Icon](https://www.home-assistant.io/dashboards/picture-elements/#state-icon).
 
 | Parameter                                                                | Default    | Description                                                                                                                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -154,7 +154,9 @@ elements:
 | `expand`     | `false` | If `false` this status bar item will consume the minimum possible space, if `true` will expand to the available space.                                                                                                   |
 | `icon`       |         | The icon to show in the status bar, e.g. `mdi:camera-front`. See also [custom icons](../../../usage/custom-icons.md).                                                                                                    |
 | `priority`   | `50`    | The item priority. Higher priority items are ordered closer to the start of the status bar (i.e. an item with priority `70` will order further to the left than an item with priority `60`). Minimum `0`, maximum `100`. |
+| `severity`   |         | An optional severity level, one of `low`, `medium` or `high`. Colors the item accordingly.                                                                                                                               |
 | `sufficient` | `false` | Whether or not this item is sufficient to display the status bar if it's otherwise hidden (e.g. with the `popup` [status bar style](../../status-bar.md)).                                                               |
+| `title`      |         | An optional tooltip shown on hover.                                                                                                                                                                                      |
 
 ## `status-bar-image`
 
@@ -175,7 +177,9 @@ elements:
 | `expand`     | `false` | If `false` this status bar item will consume the minimum possible space, if `true` will expand to the available space.                                                                                                   |
 | `image`      |         | The image to show in the status bar, e.g. `https://my.site.com/status.png`.                                                                                                                                              |
 | `priority`   | `50`    | The item priority. Higher priority items are ordered closer to the start of the status bar (i.e. an item with priority `70` will order further to the left than an item with priority `60`). Minimum `0`, maximum `100`. |
+| `severity`   |         | An optional severity level, one of `low`, `medium` or `high`. Colors the item accordingly.                                                                                                                               |
 | `sufficient` | `false` | Whether or not this item is sufficient to display the status bar if it's otherwise hidden (e.g. with the `popup` [status bar style](../../status-bar.md)).                                                               |
+| `title`      |         | An optional tooltip shown on hover.                                                                                                                                                                                      |
 
 ## `status-bar-string`
 
@@ -196,7 +200,9 @@ elements:
 | `expand`     | `false` | If `false` this status bar item will consume the minimum possible space, if `true` will expand to the available space.                                                                                                   |
 | `string`     |         | The string to show in the status bar, e.g. `Intruder detected!`                                                                                                                                                          |
 | `priority`   | `50`    | The item priority. Higher priority items are ordered closer to the start of the status bar (i.e. an item with priority `70` will order further to the left than an item with priority `60`). Minimum `0`, maximum `100`. |
+| `severity`   |         | An optional severity level, one of `low`, `medium` or `high`. Colors the item accordingly.                                                                                                                               |
 | `sufficient` | `false` | Whether or not this item is sufficient to display the status bar if it's otherwise hidden (e.g. with the `popup` [status bar style](../../status-bar.md)).                                                               |
+| `title`      |         | An optional tooltip shown on hover.                                                                                                                                                                                      |
 
 ## Fully expanded reference
 
@@ -331,6 +337,7 @@ elements:
     expand: false
     string: 'Intruder alert!'
     priority: 50
+    severity: high
     sufficient: false
   - type: custom:advanced-camera-card-status-bar-icon
     enabled: true
@@ -338,6 +345,7 @@ elements:
     expand: false
     icon: 'mdi:cow'
     priority: 50
+    severity: medium
     sufficient: false
   - type: custom:advanced-camera-card-status-bar-image
     enabled: true
@@ -345,5 +353,6 @@ elements:
     expand: false
     image: https://my.site.com/status.png
     priority: 50
+    severity: low
     sufficient: false
 ```

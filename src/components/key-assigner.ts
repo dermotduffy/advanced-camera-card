@@ -21,7 +21,7 @@ export class AdvancedCameraCardKeyAssigner extends LitElement {
   @property({ attribute: false })
   public value?: KeyboardShortcut | null;
 
-  protected _controller = new KeyAssignerController(this);
+  private _controller = new KeyAssignerController(this);
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('value')) {

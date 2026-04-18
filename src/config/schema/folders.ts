@@ -60,14 +60,15 @@ const titleMatcherSchema = z.object({
 });
 export type TitleMatcher = z.infer<typeof titleMatcherSchema>;
 
-type OrMatcher = {
-  type: 'or';
-  matchers: Matcher[];
-};
-const orMatcherSchema: z.ZodSchema<OrMatcher, z.ZodTypeDef> = z.object({
+const orMatcherSchema = z.object({
   type: z.literal('or'),
-  matchers: z.array(z.lazy(() => matcherSchema)),
+
+  get matchers() {
+    // Recursive schema.
+    return z.array(matcherSchema);
+  },
 });
+
 export const matcherSchema = z.union([
   dateMatcherSchema,
   orMatcherSchema,

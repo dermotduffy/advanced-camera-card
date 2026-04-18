@@ -1,11 +1,10 @@
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { DrawerIcons, AdvancedCameraCardDrawer } from './drawer.js';
-
-import './drawer.js';
-
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import surroundBasicStyle from '../scss/surround-basic.scss';
+import { contentsChanged } from '../utils/basic.js';
+import './drawer.js';
+import { AdvancedCameraCardDrawer, DrawerIcons } from './drawer.js';
 
 interface AdvancedCameraCardDrawerOpen {
   drawer: 'left' | 'right';
@@ -13,15 +12,15 @@ interface AdvancedCameraCardDrawerOpen {
 
 @customElement('advanced-camera-card-surround-basic')
 export class AdvancedCameraCardSurroundBasic extends LitElement {
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public drawerIcons?: {
     left?: DrawerIcons;
     right?: DrawerIcons;
   };
 
-  protected _refDrawerLeft: Ref<AdvancedCameraCardDrawer> = createRef();
-  protected _refDrawerRight: Ref<AdvancedCameraCardDrawer> = createRef();
-  protected _boundDrawerHandler = this._drawerHandler.bind(this);
+  private _refDrawerLeft: Ref<AdvancedCameraCardDrawer> = createRef();
+  private _refDrawerRight: Ref<AdvancedCameraCardDrawer> = createRef();
+  private _boundDrawerHandler = this._drawerHandler.bind(this);
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -41,7 +40,7 @@ export class AdvancedCameraCardSurroundBasic extends LitElement {
     super.disconnectedCallback();
   }
 
-  protected _drawerHandler(ev: Event) {
+  private _drawerHandler(ev: Event) {
     const drawer = (ev as CustomEvent<AdvancedCameraCardDrawerOpen>).detail.drawer;
     const open = ev.type.endsWith(':open');
     if (drawer === 'left' && this._refDrawerLeft.value) {

@@ -36,16 +36,9 @@
 .submenu + .option {
   margin-top: 10px;
 }
-div.upgrade {
-  width: auto;
-  border: 1px dotted var(--primary-color);
-  margin: 10px;
+.action-buttons {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-div.upgrade span {
-  padding: 10px;
+  flex-wrap: wrap;
 }
 
 .submenu-header {
@@ -116,4 +109,42 @@ ha-selector {
 
 advanced-camera-card-message::part(icon) {
   color: var(--primary-color);
+}
+
+.doc-link-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 10px 10px 14px;
+
+  border-bottom: 1px solid var(--divider-color);
+
+  text-decoration: none;
+  font-style: italic;
+
+  color: var(--secondary-text-color);
+  cursor: help;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+
+  opacity: 0.7;
+}
+.doc-link-row:hover {
+  background-color: var(--secondary-background-color);
+  color: var(--primary-color);
+  opacity: 1;
+}
+.doc-link-row ha-icon:first-child {
+  margin-right: 15px;
+}
+.doc-link-row div {
+  flex: 1;
+  padding-left: 0;
+  margin-top: 0;
+  pointer-events: none;
+}
+
+ha-button {
+  margin: 10px;
 }

@@ -1,6 +1,6 @@
 import PQueue from 'p-queue';
-import { loadLanguages } from '../localize/localize';
 import { sideLoadHomeAssistantElements } from '../ha/side-load-ha-elements';
+import { loadLanguages } from '../localize/localize';
 import { Initializer } from '../utils/initializer/initializer';
 import { CardInitializerAPI } from './types';
 
@@ -9,6 +9,7 @@ export enum InitializationAspect {
   SIDE_LOAD_ELEMENTS = 'side-load-elements',
   CAMERAS = 'cameras',
   MICROPHONE_CONNECT = 'microphone-connect',
+  PROBLEMS = 'problems',
   VIEW = 'view',
 
   // The initial triggering must happen after both the config is set (and
@@ -27,15 +28,15 @@ export enum InitializationAspect {
 // =========================================================================
 
 export class InitializationManager {
-  protected _api: CardInitializerAPI;
+  private _api: CardInitializerAPI;
 
   // A concurrency limit is placed to ensure that on card load multiple async
   // contexts do not attempt to initialize the card at the same time. This is
   // not strictly necessary, just more efficient, as long as the "Rules for
   // initialization" (above) are followed.
-  protected _initializationQueue = new PQueue({ concurrency: 1 });
-  protected _initializer: Initializer;
-  protected _everInitialized = false;
+  private _initializationQueue = new PQueue({ concurrency: 1 });
+  private _initializer: Initializer;
+  private _everInitialized = false;
 
   constructor(api: CardInitializerAPI, initializer?: Initializer) {
     this._api = api;
@@ -48,6 +49,10 @@ export class InitializationManager {
 
   public isInitialized(aspect: InitializationAspect): boolean {
     return this._initializer.isInitialized(aspect);
+  }
+
+  public isInitializedBackground(): boolean {
+    return this._initializer.isInitialized(InitializationAspect.PROBLEMS);
   }
 
   public isInitializedMandatory(): boolean {
@@ -76,7 +81,7 @@ export class InitializationManager {
     await this._initializationQueue.add(() => this._initializeMandatory());
   }
 
-  protected async _initializeMandatory(): Promise<void> {
+  private async _initializeMandatory(): Promise<void> {
     const hass = this._api.getHASSManager().getHASS();
     if (!hass || this.isInitializedMandatory()) {
       return;
@@ -165,6 +170,25 @@ export class InitializationManager {
     });
 
     this._api.getCardElementManager().update();
+  }
+
+  public async initializeBackground(): Promise<void> {
+    await this._initializationQueue.add(() => this._initializeBackground());
+  }
+
+  private async _initializeBackground(): Promise<void> {
+    const hass = this._api.getHASSManager().getHASS();
+    if (!hass) {
+      return;
+    }
+
+    await this._initializer.initializeIfNecessary(
+      InitializationAspect.PROBLEMS,
+      async () => {
+        await this._api.getProblemManager().detectStatic(hass);
+        return true;
+      },
+    );
   }
 
   public uninitialize(aspect: InitializationAspect): void {

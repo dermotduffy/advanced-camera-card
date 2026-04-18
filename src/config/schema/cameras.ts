@@ -3,7 +3,10 @@ import { capabilityKeys } from '../../types';
 import { mediaLayoutConfigSchema } from './camera/media-layout';
 import { ptzCameraConfigDefaults, ptzCameraConfigSchema } from './camera/ptz';
 import { aspectRatioSchema } from './common/aspect-ratio';
-import { imageBaseConfigSchema, imageConfigDefault } from './common/image';
+import { eventsMediaTypeSchema } from './common/events-media';
+import { imageBaseConfigDefault, imageBaseConfigSchema } from './common/image';
+import { proxyBaseConfigDefault, proxyBaseConfigSchema } from './common/proxy';
+import { severitySchema } from './common/severity';
 
 const CAMERA_TRIGGER_EVENT_TYPES = [
   // An event whether or not it has any media yet associated with it.
@@ -29,14 +32,23 @@ const LIVE_PROVIDERS = [
 ] as const;
 export type LiveProvider = (typeof LIVE_PROVIDERS)[number];
 
+const go2rtcConfigDefault = {
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2313
+  metadata_fetch_timeout_seconds: 2,
+};
+
 const go2rtcConfigSchema = z.object({
   url: z
     .string()
     .transform((input) => input.replace(/\/+$/, ''))
     .optional(),
-  host: z.string().optional(),
   modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array().optional(),
   stream: z.string().optional(),
+  metadata_fetch_timeout_seconds: z
+    .number()
+    .int()
+    .nonnegative()
+    .default(go2rtcConfigDefault.metadata_fetch_timeout_seconds),
 });
 
 const webrtcCardConfigSchema = z
@@ -44,7 +56,7 @@ const webrtcCardConfigSchema = z
     entity: z.string().optional(),
     url: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 const jsmpegConfigSchema = z.object({
   options: z
@@ -167,35 +179,27 @@ export const cameraConfigDefault = {
   triggers: {
     motion: false,
     occupancy: false,
-    events: [...CAMERA_TRIGGER_EVENT_TYPES],
+    events: [],
     entities: [],
+    reviews: {
+      severities: ['high' as const],
+      description: true,
+    },
   },
   proxy: {
-    dynamic: true,
+    ...proxyBaseConfigDefault,
     live: 'auto' as const,
     media: 'auto' as const,
-    ssl_ciphers: 'auto' as const,
-    ssl_verification: 'auto' as const,
   },
   call_mode: callModeConfigDefault,
+  go2rtc: go2rtcConfigDefault,
+  image: imageBaseConfigDefault,
   always_error_if_entity_unavailable: false,
 };
 
-const SSL_CIPHERS = ['default', 'insecure', 'intermediate', 'modern'] as const;
-export type SSLCiphers = (typeof SSL_CIPHERS)[number];
-
-const proxyConfigSchema = z.object({
+const proxyConfigSchema = proxyBaseConfigSchema.extend({
   live: z.boolean().or(z.literal('auto')).default(cameraConfigDefault.proxy.live),
   media: z.boolean().or(z.literal('auto')).default(cameraConfigDefault.proxy.media),
-  dynamic: z.boolean().default(cameraConfigDefault.proxy.dynamic),
-  ssl_verification: z
-    .boolean()
-    .or(z.literal('auto'))
-    .default(cameraConfigDefault.proxy.ssl_verification),
-  ssl_ciphers: z
-    .enum(SSL_CIPHERS)
-    .or(z.literal('auto'))
-    .default(cameraConfigDefault.proxy.ssl_ciphers),
 });
 
 const rotationSchema = z
@@ -217,8 +221,35 @@ const cameraDimensionsSchema = z.object({
 });
 export type CameraDimensionsConfig = z.infer<typeof cameraDimensionsSchema>;
 
+// Camera media configuration for default media type in live/timeline views.
+const CAMERA_MEDIA_TYPES = [
+  'auto',
+  'reviews',
+  'events',
+  'recordings',
+  'folder',
+] as const;
+export type CameraMediaType = (typeof CAMERA_MEDIA_TYPES)[number];
+
+const cameraMediaConfigDefault = {
+  type: 'auto' as CameraMediaType,
+  reviewed: 'unreviewed' as CameraMediaReviewedFilter,
+};
+
+const CAMERA_MEDIA_REVIEWED_FILTERS = ['unreviewed', 'reviewed', 'all'] as const;
+export type CameraMediaReviewedFilter = (typeof CAMERA_MEDIA_REVIEWED_FILTERS)[number];
+
+const cameraMediaConfigSchema = z.object({
+  type: z.enum(CAMERA_MEDIA_TYPES).default(cameraMediaConfigDefault.type),
+  events_type: eventsMediaTypeSchema.optional(),
+  folders: z.array(z.string()).optional(),
+  reviewed: z
+    .enum(CAMERA_MEDIA_REVIEWED_FILTERS)
+    .default(cameraMediaConfigDefault.reviewed),
+});
+
 export const cameraConfigSchema = z
-  .object({
+  .looseObject({
     camera_entity: z.string().optional(),
 
     // Used for presentation in the UI (autodetected from the entity if
@@ -230,6 +261,7 @@ export const cameraConfigSchema = z
       .object({
         disable: z.enum(capabilityKeys).array().optional(),
         disable_except: z.enum(capabilityKeys).array().optional(),
+        force: z.enum(['2-way-audio']).array().optional(),
       })
       .optional(),
 
@@ -253,6 +285,16 @@ export const cameraConfigSchema = z
           .enum(CAMERA_TRIGGER_EVENT_TYPES)
           .array()
           .default(cameraConfigDefault.triggers.events),
+        reviews: z
+          .object({
+            severities: severitySchema
+              .array()
+              .default([...cameraConfigDefault.triggers.reviews.severities]),
+            description: z
+              .boolean()
+              .default(cameraConfigDefault.triggers.reviews.description),
+          })
+          .default(cameraConfigDefault.triggers.reviews),
       })
       .default(cameraConfigDefault.triggers),
 
@@ -307,8 +349,8 @@ export const cameraConfigSchema = z
 
     // Live provider options.
     live_provider: z.enum(LIVE_PROVIDERS).default(cameraConfigDefault.live_provider),
-    go2rtc: go2rtcConfigSchema.optional(),
-    image: imageBaseConfigSchema.optional().default(imageConfigDefault),
+    go2rtc: go2rtcConfigSchema.optional().default(go2rtcConfigDefault),
+    image: imageBaseConfigSchema.optional().default(imageBaseConfigDefault),
     jsmpeg: jsmpegConfigSchema.optional(),
     webrtc_card: webrtcCardConfigSchema.optional(),
 
@@ -320,6 +362,8 @@ export const cameraConfigSchema = z
 
     dimensions: cameraDimensionsSchema.optional(),
 
+    media: cameraMediaConfigSchema.optional(),
+
     proxy: proxyConfigSchema.default(cameraConfigDefault.proxy),
 
     // See: https://github.com/dermotduffy/advanced-camera-card/issues/1650
@@ -330,7 +374,4 @@ export const cameraConfigSchema = z
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
 
-// Avoid using .nonempty() to avoid changing the inferred type
-// (https://github.com/colinhacks/zod#minmaxlength).
-export const camerasConfigSchema = cameraConfigSchema.array().min(1);
-export type CamerasConfig = z.infer<typeof camerasConfigSchema>;
+export const camerasConfigSchema = cameraConfigSchema.array().optional();

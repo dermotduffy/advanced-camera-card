@@ -49,8 +49,8 @@ export class AdvancedCameraCardSelect extends ScopedRegistryHost(LitElement) {
   @property({ attribute: true, type: Boolean })
   public clearable?: boolean = false;
 
-  protected _previouslyReportedValue?: SelectValues;
-  protected _refSelect: Ref<SelectElement> = createRef();
+  private _previouslyReportedValue?: SelectValues;
+  private _refSelect: Ref<SelectElement> = createRef();
 
   static elementDefinitions = {
     ...grSelectElements,
@@ -61,7 +61,7 @@ export class AdvancedCameraCardSelect extends ScopedRegistryHost(LitElement) {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected _valueChangedHandler(_ev: CustomEvent<{ value: unknown }>): void {
+  private _valueChangedHandler(_ev: CustomEvent<{ value: unknown }>): void {
     const value: SelectValues | undefined = this._refSelect.value?.value;
     // The underlying gr-select element is very sensitive and occasionally fires
     // the change event even if the value has not actually changed. Prevent that
@@ -70,10 +70,11 @@ export class AdvancedCameraCardSelect extends ScopedRegistryHost(LitElement) {
       const initialValueSet = this.value === null;
       this.value = value;
 
-      // The underlying gr-select element will call on the first first value set
+      // The underlying gr-select element will call on the first value set
       // (even when the user has not interacted with the control). Do not
-      // dispatch events for this.
-      if (!initialValueSet) {
+      // dispatch events for this UNLESS the value is actually non-empty
+      // (indicating a user selection).
+      if (!initialValueSet || (Array.isArray(value) ? value.length : !!value)) {
         fireAdvancedCameraCardEvent(this, 'select:change', value);
       }
     }

@@ -18,11 +18,18 @@
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "An Advanced Camera Card",
     "folder": "Folder",
-    "live": "Live",
-    "no_folder": "No folder to display",
     "no_media": "No media to display",
-    "recordings": "Recordings",
-    "version": "Version"
+    "set_reviews": {
+      "reviewed": "Mark as reviewed",
+      "unreviewed": "Mark as unreviewed"
+    },
+    "severities": {
+      "high": "High",
+      "low": "Low",
+      "medium": "Medium"
+    },
+    "severity": "Severity",
+    "up": "Up"
   },
   "config": {
     "cameras": {
@@ -38,10 +45,11 @@
         "stream": "Call stream name",
         "allow_regular_mic_button": "Allow regular microphone button to be shown in call mode"
       },
-      "always_error_if_entity_unavailable": "Always treat entity unavailability as error",
+    "always_error_if_entity_unavailable": "Always treat entity unavailability as an error",
       "camera_entity": "Camera Entity",
       "capabilities": {
         "capabilities": {
+          "2-way-audio": "2-way Audio",
           "clips": "Clips",
           "favorite-events": "Favorite Events",
           "favorite-recordings": "Favorite Recordings",
@@ -49,13 +57,17 @@
           "menu": "Menu",
           "ptz": "PTZ",
           "recordings": "Recordings",
+          "remote-control-entity": "Remote Control Entity",
+          "reviews": "Reviews",
           "seek": "Seeking",
           "snapshots": "Snapshots",
-          "substream": "Substream"
+          "substream": "Substream",
+          "trigger": "Trigger"
         },
         "disable": "Disable",
         "disable_except": "Disable except",
-        "editor_label": "Camera capabilities"
+        "editor_label": "Camera capabilities",
+        "force": "Force"
       },
       "cast": {
         "dashboard": {
@@ -106,17 +118,17 @@
         "rotation": "Rotation",
         "rotations": {
           "0": "No rotation",
-          "90": "90 degrees clockwise",
           "180": "180 degrees clockwise",
-          "270": "270 degrees clockwise"
+          "270": "270 degrees clockwise",
+          "90": "90 degrees clockwise"
         }
       },
       "engines": {
         "editor_label": "Camera engine options"
       },
       "frigate": {
-        "camera_name": "Frigate camera name (Autodetected from entity)",
-        "client_id": "Frigate client id (For >1 Frigate server)",
+        "camera_name": "Frigate camera name (autodetected from entity)",
+        "client_id": "Frigate client id (for >1 Frigate server)",
         "editor_label": "Frigate options",
         "labels": "Frigate labels/object filters",
         "url": "Frigate server URL",
@@ -124,6 +136,7 @@
       },
       "go2rtc": {
         "editor_label": "go2rtc Options",
+        "metadata_fetch_timeout_seconds": "Metadata fetch timeout in seconds",
         "modes": {
           "editor_label": "go2rtc Modes",
           "mjpeg": "Motion JPEG (MJPEG)",
@@ -134,11 +147,11 @@
         "stream": "go2rtc stream name",
         "url": "go2rtc URL"
       },
-      "icon": "Icon for this camera (Autodetected from entity)",
+      "icon": "Icon for this camera (autodetected from entity)",
       "id": "Unique ID for this camera in this card",
       "image": {
         "editor_label": "Image Options",
-        "refresh_seconds": "Number of seconds after which to refresh live image (0=never)",
+        "refresh_seconds": "Seconds between live image refreshes (0=never)",
         "url": "Image URL to use instead of camera entity snapshot"
       },
       "live_provider": "Live view provider for this camera",
@@ -153,6 +166,18 @@
         "jsmpeg": "JSMpeg",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
+      "media": {
+        "editor_label": "Default Media",
+        "events_type": "Events media subtype",
+        "folders": "Folder IDs",
+        "reviewed": "Review status filter",
+        "revieweds": {
+          "all": "All (both reviewed and unreviewed)",
+          "reviewed": "Only reviewed",
+          "unreviewed": "Only unreviewed"
+        },
+        "type": "Default media type"
+      },
       "motioneye": {
         "editor_label": "MotionEye options",
         "images": {
@@ -166,29 +191,9 @@
         "url": "MotionEye UI URL"
       },
       "proxy": {
-        "dynamic": "Dynamic proxying",
         "editor_label": "Camera proxying",
         "live": "Live proxying",
-        "media": "Media proxying",
-        "modes": {
-          "auto": "Proxying automatically configured",
-          "false": "Proxying disabled",
-          "true": "Proxying enabled"
-        },
-        "ssl_ciphers": {
-          "auto": "SSL ciphers automatically configured",
-          "default": "Default SSL ciphers",
-          "editor_label": "SSL ciphers",
-          "insecure": "Insecure SSL ciphers",
-          "intermediate": "Intermediate SSL ciphers",
-          "modern": "Modern SSL ciphers"
-        },
-        "ssl_verification": {
-          "auto": "SSL verification automatically configured",
-          "editor_label": "SSL verification",
-          "false": "SSL verification disabled",
-          "true": "SSL verification enabled"
-        }
+        "media": "Media proxying"
       },
       "reolink": {
         "editor_label": "Reolink options",
@@ -199,7 +204,7 @@
         },
         "url": "Reolink UI URL"
       },
-      "title": "Title for this camera (Autodetected from entity)",
+      "title": "Title for this camera (autodetected from entity)",
       "triggers": {
         "editor_label": "Trigger options",
         "entities": "Trigger from other entities",
@@ -210,7 +215,11 @@
           "snapshots": "Events with new snapshots"
         },
         "motion": "Trigger by auto-detecting the motion sensor",
-        "occupancy": "Trigger by auto-detecting the occupancy sensor"
+        "occupancy": "Trigger by auto-detecting the occupancy sensor",
+        "reviews": {
+          "description": "Trigger on description updates",
+          "editor_label": "Review Triggers"
+        }
       },
       "webrtc_card": {
         "editor_label": "WebRTC Card Options",
@@ -243,16 +252,6 @@
         },
         "thumbnails": {
           "editor_label": "Thumbnails",
-          "events_media_type": "Whether to show event thumbnails of clips or snapshots",
-          "events_media_types": {
-            "clips": "Clip thumbnails",
-            "snapshots": "Snapshot thumbnails"
-          },
-          "media_type": "Whether to show thumnails of events or recordings",
-          "media_types": {
-            "events": "Events",
-            "recordings": "Recordings"
-          },
           "mode": "Thumbnails mode",
           "modes": {
             "above": "Thumbnails above",
@@ -264,6 +263,8 @@
           "show_details": "Show details with thumbnails",
           "show_download_control": "Show download control on thumbnails",
           "show_favorite_control": "Show favorite control on thumbnails",
+          "show_info_control": "Show info control on thumbnails",
+          "show_review_control": "Show review control on thumbnails",
           "show_timeline_control": "Show timeline control on thumbnails",
           "size": "Thumbnails size in pixels"
         },
@@ -302,44 +303,74 @@
         "grid_selected_width_factor": "Increase selected media width by this factor",
         "mode": "Mode"
       },
+      "events_media_types": {
+        "all": "All",
+        "clips": "Clips",
+        "snapshots": "Snapshots"
+      },
       "image": {
         "entity": "Entity for use with entity mode",
         "entity_parameters": "Query parameters added to the entity-based picture URLs (e.g. width=1920&height=1080)",
         "mode": "Image mode",
         "modes": {
           "camera": "Home Assistant camera snapshot of camera entity",
+          "default": "Default embedded image",
           "entity": "Entity with entity_picture attribute",
-          "screensaver": "Embedded screensaver image",
+          "screensaver": "Random image",
           "url": "Arbitrary image specified by URL"
         },
-        "refresh_seconds": "Number of seconds after which to refresh (0=never)",
+        "proxy": {
+          "editor_label": "Image proxying"
+        },
+        "refresh_seconds": "Seconds between refreshes (0=never)",
         "url": "Static image URL"
       },
       "media_action_conditions": {
-        "all": "All opportunities",
         "hidden": "On browser/tab hiding",
         "microphone_mute": "On microphone mute",
         "microphone_unmute": "On microphone unmute",
-        "never": "Never",
         "selected": "On selection",
         "unselected": "On unselection",
         "visible": "On browser/tab visibility"
       },
-      "timeline": {
-        "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
-        "events_media_type": "The events media the timeline displays",
-        "events_media_types": {
-          "all": "All event media types",
-          "clips": "Clips",
-          "snapshots": "Snapshots"
+      "media_types": {
+        "auto": "Automatic",
+        "events": "Events",
+        "folder": "Folder",
+        "recordings": "Recordings",
+        "reviews": "Reviews"
+      },
+      "proxy": {
+        "dynamic": "Dynamic proxying",
+        "modes": {
+          "auto": "Proxying automatically configured",
+          "false": "Proxying disabled",
+          "true": "Proxying enabled"
         },
+        "ssl_ciphers": {
+          "auto": "SSL ciphers automatically configured",
+          "default": "Default SSL ciphers",
+          "editor_label": "SSL ciphers",
+          "insecure": "Insecure SSL ciphers",
+          "intermediate": "Intermediate SSL ciphers",
+          "modern": "Modern SSL ciphers"
+        },
+        "ssl_verification": {
+          "auto": "SSL verification automatically configured",
+          "editor_label": "SSL verification",
+          "false": "SSL verification disabled",
+          "true": "SSL verification enabled"
+        }
+      },
+      "timeline": {
+        "clustering_threshold": "Number of events before clustering (0=no clustering)",
         "show_recordings": "Show recordings",
         "style": "Timeline style",
         "styles": {
           "ribbon": "Events on a single ribbon",
           "stack": "Stacked & clustered events"
         },
-        "window_seconds": "The default length of the timeline view in seconds"
+        "window_seconds": "Default timeline window length in seconds"
       }
     },
     "dimensions": {
@@ -377,6 +408,7 @@
           "editor_label": "PTZ",
           "hide_home": "Hide home & preset controls",
           "hide_pan_tilt": "Hide pan & tilt control",
+          "hide_type": "Hide type toggle button",
           "hide_zoom": "Hide zoom control",
           "mode": "Mode",
           "modes": {
@@ -394,6 +426,11 @@
             "bottom-right": "Bottom right",
             "top-left": "Top left",
             "top-right": "Top right"
+          },
+          "type": "Default type",
+          "types": {
+            "buttons": "Buttons",
+            "gestures": "Gestures"
           }
         }
       },
@@ -402,10 +439,9 @@
       "lazy_unload": "Live cameras are lazily unloaded",
       "microphone": {
         "always_connected": "Always keep the microphone connected",
-        "disconnect_seconds": "Seconds after which to disconnect microphone (0=never)",
+        "disconnect_seconds": "Seconds before disconnecting microphone (0=never)",
         "editor_label": "Microphone",
-        "enabled": "Microphone enabled",
-        "mute_after_microphone_mute_seconds": "Seconds after microphone mute to mute inbound audio"
+        "mute_after_microphone_mute_seconds": "Seconds after microphone mute before muting inbound audio"
       },
       "preload": "Preload live view in the background",
       "show_image_during_load": "Show still image while the live stream is loading",
@@ -455,20 +491,26 @@
         "expand": "Expand",
         "folders": "Folders",
         "fullscreen": "Fullscreen",
+        "gallery": "Gallery",
         "icon": "Icon",
         "image": "Image",
+        "info": "Info",
         "iris": "Iris / Default View / Unhide menu",
         "live": "Live",
+        "media": "Media",
         "media_player": "Send to media player",
         "microphone": "Microphone",
         "mute": "Mute / Unmute",
         "permanent": "Show when the menu is hidden",
+        "pip": "Picture in Picture",
         "play": "Play / Pause",
         "priority": "Priority",
         "ptz_controls": "Show PTZ controls",
         "ptz_home": "PTZ Home",
         "recordings": "Recordings",
+        "reviews": "Reviews",
         "screenshot": "Screenshot",
+        "set_review": "Set review status",
         "snapshots": "Snapshots",
         "substreams": "Substream(s)",
         "timeline": "Timeline",
@@ -496,7 +538,7 @@
       }
     },
     "overrides": {
-      "info": "This card configuration has manually specified overrides configured which may override values shown in the visual editor, please consult the code editor to view/modify these overrides"
+      "info": "This card has manually specified overrides that may override values shown in the visual editor. Consult the code editor to view or modify them"
     },
     "performance": {
       "features": {
@@ -512,7 +554,7 @@
         "box_shadow": "Shadows",
         "editor_label": "Style Options"
       },
-      "warning": "This card is in low profile mode so defaults have changed to optimize performance"
+      "warning": "This card is in low profile mode, so defaults have changed to optimize performance"
     },
     "profiles": {
       "casting": "Casting",
@@ -531,11 +573,11 @@
       "items": {
         "enabled": "Item enabled",
         "engine": "Camera engine",
-        "live_provider": "Live provider",
         "priority": "Item priority",
         "resolution": "Resolution",
         "technology": "Technology",
-        "title": "Title"
+        "title": "Title",
+        "upgrade": "Configuration upgrade notification"
       },
       "popup_seconds": "Status bar popup seconds",
       "position": "Status bar position",
@@ -570,7 +612,7 @@
         }
       },
       "dim": "Dim when no interaction",
-      "interaction_seconds": "Seconds after user action to remain interacted with (0=never)",
+      "interaction_seconds": "Seconds of inactivity before interaction state ends (0=never)",
       "keyboard_shortcuts": {
         "editor_label": "Keyboard shortcuts",
         "enabled": "Keyboard shortcuts enabled",
@@ -616,18 +658,24 @@
         "editor_label": "Trigger behavior",
         "filter_selected_camera": "Only trigger on selected camera",
         "show_trigger_status": "Show pulsing border when triggered",
-        "untrigger_seconds": "Seconds after inactive state change to untrigger"
+        "untrigger_delay_seconds": "Seconds delay after trigger state change before untrigger",
+        "untrigger_force_seconds": "Seconds before forced untrigger"
       },
       "views": {
+        "auto": "Automatic",
         "clip": "Most recent clip",
         "clips": "Clips gallery",
         "current": "Current view",
         "folder": "Folder media",
         "folders": "Folders gallery",
+        "gallery": "Default media gallery",
         "image": "Static image",
         "live": "Live view",
+        "media": "Most recent default media item",
         "recording": "Most recent recording",
         "recordings": "Recordings gallery",
+        "review": "Most recent media to review",
+        "reviews": "Reviews gallery",
         "snapshot": "Most recent snapshot",
         "snapshots": "Snapshots gallery",
         "timeline": "Timeline view"
@@ -641,13 +689,13 @@
   "editor": {
     "add_new_camera": "Add new camera",
     "add_new_folder": "Add new folder",
-    "button": "Button",
     "camera": "Camera",
     "cameras": "Cameras",
     "cameras_secondary": "What cameras to render on this card",
     "delete": "Delete",
     "dimensions": "Card dimensions",
     "dimensions_secondary": "Card dimensions & shape options",
+    "docs": "Documentation",
     "folders": "Folders",
     "folders_secondary": "What folders to render on this card",
     "image": "Image",
@@ -674,7 +722,8 @@
     "status_bar_secondary": "Status bar look & feel options",
     "timeline": "Timeline",
     "timeline_secondary": "Event timeline options",
-    "upgrade": "Upgrade",
+    "toggle_diagnostics": "Toggle diagnostics",
+    "upgrade": "Automatic Upgrade",
     "upgrade_available": "An automatic card configuration upgrade is available",
     "view": "View",
     "view_secondary": "What the card should show and how to show it"
@@ -686,14 +735,14 @@
       "left": "Left",
       "presets": "Presets",
       "right": "Right",
+      "type": "PTZ Type",
       "up": "Up",
       "zoom_in": "Zoom In",
       "zoom_out": "Zoom Out"
     }
   },
   "error": {
-    "awaiting_folder": "Waiting for folder to load",
-    "awaiting_live": "Waiting for live stream to load ...",
+    "awaiting_live": "Waiting for live stream to load...",
     "awaiting_media": "Waiting for media to load",
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
@@ -705,7 +754,6 @@
     "call_mode_substream_unsupported": "Call mode cannot be started while a substream override is active",
     "configuration": "Check configuration",
     "could_not_render_elements": "Could not render picture elements",
-    "could_not_resolve": "Could not resolve media URL",
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",
     "download_no_media": "No media to download",
     "download_sign_failed": "Could not sign media URL for download",
@@ -718,7 +766,7 @@
     "failed_retain": "Could not retain event",
     "failed_sign": "Could not sign Home Assistant URL",
     "fetching_diagnostics": "Fetching diagnostics",
-    "image_load_error": "The image could not be loaded",
+    "image_load_error": "Could not load image",
     "invalid_configuration": "Invalid configuration",
     "invalid_configuration_no_hint": "No location hint available (bad or missing type?)",
     "invalid_configuration_override": "Invalid override configuration",
@@ -730,7 +778,7 @@
     "live_camera_unavailable": "Camera unavailable",
     "no_camera_engine": "Could not determine suitable engine for camera",
     "no_camera_entity": "Could not find camera entity",
-    "no_camera_entity_for_triggers": "A camera entity is required in order to autodetect triggers",
+    "no_camera_for_image": "No camera configured for camera image mode",
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
     "no_camera_or_media_for_timeline": "No camera or media available for timeline",
     "no_dashboard_or_view": "Both 'dashboard_path' and 'view_path' parameters are required for the 'dashboard' cast method",
@@ -738,13 +786,11 @@
     "no_supported_camera": "The selected camera or media does not support this view",
     "no_supported_cameras": "No cameras support this view",
     "reconnecting": "Reconnecting",
-    "stream_not_loading": "The video stream has not yet loaded. This is could for any number of reasons. If configured (and by default), there will be an image refreshing every second until the stream loads correctly",
     "too_many_automations": "Too many nested automation calls, please check your configuration for loops",
     "troubleshooting": "Check troubleshooting",
-    "unknown": "Unknown error",
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",
     "webrtc_card_reported_error": "WebRTC Card reported an error",
-    "webrtc_card_waiting": "Waiting for WebRTC Card to load ..."
+    "webrtc_card_waiting": "Waiting for WebRTC Card to load..."
   },
   "key_assigner": {
     "assign": "Assign",
@@ -757,19 +803,23 @@
     "unassign": "Unassign"
   },
   "media_filter": {
-    "all": "All",
     "camera": "Camera",
     "favorite": "Favorite",
     "media_type": "Media Type",
     "media_types": {
       "clips": "Clips",
       "recordings": "Recordings",
+      "reviews": "Reviews",
       "snapshots": "Snapshots"
     },
     "not_favorite": "Not Favorite",
+    "not_reviewed": "Not Reviewed",
+    "reviewed": "Reviewed",
     "select_camera": "Select camera...",
     "select_favorite": "Select favorite...",
     "select_media_type": "Select media type...",
+    "select_reviewed": "Select reviewed...",
+    "select_severity": "Select severity...",
     "select_tag": "Select tag...",
     "select_what": "Select what...",
     "select_when": "Select when...",
@@ -789,21 +839,35 @@
   "media_viewer": {
     "unseekable": "Seek time not found in media"
   },
+  "problems": {
+    "troubleshooting_guide": "Troubleshooting guide",
+    "config_upgrade": {
+      "heading": "Configuration upgrade available",
+      "text": "A configuration upgrade is available. To upgrade, edit this card (Dashboard pencil icon \u2192 Three-dot menu \u2192 Edit) and click the 'Automatic Upgrade' button in the card editor"
+    },
+    "legacy_resource": {
+      "heading": "Legacy dashboard resource detected",
+      "text_both": "The legacy 'frigate-hass-card.js' resource is still registered, please either manually remove it or click the delete icon to automatically remove it. It will be removed in a future release",
+      "text_only_legacy": "The legacy 'frigate-hass-card.js' resource must be replaced with 'advanced-camera-card.js'. It will be removed in a future release",
+      "remove": "Remove legacy resource"
+    },
+    "stream_not_loading": {
+      "heading": "Live stream not loading",
+      "text": "The video stream has not yet loaded. This could be for any number of reasons. If configured (and by default), there will be an image refreshing every second until the stream loads correctly"
+    }
+  },
   "thumbnail": {
     "camera": "Camera",
     "download": "Download media",
     "duration": "Duration",
-    "events": "Events",
     "in_progress": "In Progress",
     "no_thumbnail": "No thumbnail available",
-    "retain_indefinitely": "Media will be indefinitely retained",
-    "score": "Score",
+    "retain_indefinitely": "Retain media indefinitely",
     "seek": "Seek",
     "start": "Start",
     "tag": "Tag",
     "timeline": "See media in timeline",
     "title": "Title",
-    "what": "What",
     "where": "Where"
   },
   "timeline": {

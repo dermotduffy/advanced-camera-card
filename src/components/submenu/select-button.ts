@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
+import { InternalIcon } from '../../config/schema/common/icon.js';
 import { MenuSubmenuSelect } from '../../config/schema/elements/custom/menu/submenu-select.js';
 import { MenuSubmenuItem } from '../../config/schema/elements/custom/menu/submenu.js';
 import { computeDomain } from '../../ha/compute-domain.js';
@@ -17,7 +18,6 @@ import { isHassDifferent } from '../../ha/is-hass-different.js';
 import { EntityRegistryManager } from '../../ha/registry/entity/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import menuButtonStyle from '../../scss/menu-button.scss';
-import { Icon } from '../../types.js';
 import { createSelectOptionAction } from '../../utils/action.js';
 import '../icon.js';
 import './index.js';
@@ -34,10 +34,10 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
   public entityRegistryManager?: EntityRegistryManager;
 
   @state()
-  protected _optionTitles?: Record<string, string>;
+  private _optionTitles?: Record<string, string>;
 
-  protected _generatedSubmenuItems?: MenuSubmenuItem[];
-  protected _generatedIcon?: Icon;
+  private _generatedSubmenuItems?: MenuSubmenuItem[];
+  private _generatedIcon?: InternalIcon;
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     // No need to update the submenu unless the select entity has changed.
@@ -50,7 +50,7 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
     );
   }
 
-  protected async _refreshOptionTitles(): Promise<void> {
+  private async _refreshOptionTitles(): Promise<void> {
     if (!this.hass || !this.submenuSelect) {
       return;
     }

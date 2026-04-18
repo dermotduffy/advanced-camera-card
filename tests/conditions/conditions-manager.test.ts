@@ -29,12 +29,12 @@ describe('ConditionsManager', () => {
       it('should match named view change', () => {
         const stateManager = new ConditionStateManager();
         const manager = new ConditionsManager(
-          [{ condition: 'view' as const, views: ['foo'] }],
+          [{ condition: 'view' as const, views: ['live'] }],
           stateManager,
         );
 
         expect(manager.getEvaluation().result).toBeFalsy();
-        stateManager.setState({ view: 'foo' });
+        stateManager.setState({ view: 'live' });
         expect(manager.getEvaluation().result).toBeTruthy();
       });
 
@@ -1235,13 +1235,13 @@ describe('ConditionsManager', () => {
         camera: { to: 'camera-1' },
       });
 
-      stateManager.setState({ view: 'view-1' });
+      stateManager.setState({ view: 'live' });
       expect(manager.getEvaluation().result).toBeTruthy();
       expect(manager.getEvaluation().triggerData).toEqual({
-        view: { to: 'view-1' },
+        view: { to: 'live' },
       });
 
-      stateManager.setState({ camera: 'camera-2', view: 'view-2' });
+      stateManager.setState({ camera: 'camera-2', view: 'clip' });
       expect(manager.getEvaluation().result).toBeTruthy();
       expect(manager.getEvaluation().triggerData).toEqual({
         camera: { to: 'camera-2', from: 'camera-1' },
@@ -1306,17 +1306,17 @@ describe('ConditionsManager', () => {
       stateManager.setState({ camera: 'camera-1' });
       expect(manager.getEvaluation().result).toBeFalsy();
 
-      stateManager.setState({ view: 'view-1' });
+      stateManager.setState({ view: 'live' });
       expect(manager.getEvaluation().result).toBeFalsy();
 
-      stateManager.setState({ camera: 'camera-2', view: 'view-2' });
+      stateManager.setState({ camera: 'camera-2', view: 'clip' });
       expect(manager.getEvaluation().result).toBeTruthy();
       expect(manager.getEvaluation().triggerData).toEqual({
         camera: { from: 'camera-1', to: 'camera-2' },
-        view: { from: 'view-1', to: 'view-2' },
+        view: { from: 'live', to: 'clip' },
       });
 
-      stateManager.setState({ view: 'view-3' });
+      stateManager.setState({ view: 'snapshot' });
       expect(manager.getEvaluation().result).toBeFalsy();
     });
 
@@ -1341,17 +1341,21 @@ describe('ConditionsManager', () => {
         stateManager,
       );
 
+      // Neither sub-condition is true initially, so `not` passes.
       expect(manager.getEvaluation().result).toBeTruthy();
 
+      // fullscreen becomes true — any sub-condition being true means `not` fails.
       stateManager.setState({ fullscreen: true });
-      expect(manager.getEvaluation().result).toBeTruthy();
+      expect(manager.getEvaluation().result).toBeFalsy();
 
       stateManager.setState({ expand: true });
       expect(manager.getEvaluation().result).toBeFalsy();
 
+      // fullscreen reverts, but expand is still true, so `not` still fails.
       stateManager.setState({ fullscreen: false });
-      expect(manager.getEvaluation().result).toBeTruthy();
+      expect(manager.getEvaluation().result).toBeFalsy();
 
+      // Both sub-conditions are false again, so `not` passes.
       stateManager.setState({ expand: false });
       expect(manager.getEvaluation().result).toBeTruthy();
 
@@ -1424,26 +1428,26 @@ describe('ConditionsManager', () => {
     it('with not call listeners when condition result does not change', () => {
       const stateManager = new ConditionStateManager();
       const manager = new ConditionsManager(
-        [{ condition: 'view' as const, views: ['foo'] }],
+        [{ condition: 'view' as const, views: ['live'] }],
         stateManager,
       );
 
       const listener = vi.fn();
       manager.addListener(listener);
 
-      stateManager.setState({ view: 'foo' });
+      stateManager.setState({ view: 'live' });
       expect(listener).toBeCalledTimes(1);
 
-      stateManager.setState({ view: 'bar' });
+      stateManager.setState({ view: 'clip' });
       expect(listener).toBeCalledTimes(2);
 
-      stateManager.setState({ view: 'bar' });
+      stateManager.setState({ view: 'clip' });
       expect(listener).toBeCalledTimes(2);
 
-      stateManager.setState({ view: 'foo' });
+      stateManager.setState({ view: 'live' });
       expect(listener).toBeCalledTimes(3);
 
-      stateManager.setState({ view: 'foo' });
+      stateManager.setState({ view: 'live' });
       expect(listener).toBeCalledTimes(3);
     });
   });

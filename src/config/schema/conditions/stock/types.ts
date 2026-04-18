@@ -10,4 +10,3 @@ export const stockConditionSchema = z.discriminatedUnion('condition', [
   screenConditionSchema,
   usersConditionSchema,
 ]);
-export type StockCondition = z.infer<typeof stockConditionSchema>;

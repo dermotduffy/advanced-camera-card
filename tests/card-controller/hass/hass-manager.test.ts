@@ -114,6 +114,36 @@ describe('HASSManager', () => {
       expect(api.getMessageManager().resetType).toBeCalled();
     });
 
+    it('reconnected reinitializes cameras and view', () => {
+      const api = createCardAPI();
+      const manager = new HASSManager(api);
+
+      // First establish a connected state.
+      const connectedHASS = createHASS();
+      connectedHASS.connected = true;
+      manager.setHASS(connectedHASS);
+
+      // Simulate disconnection.
+      const disconnectedHASS = createHASS();
+      disconnectedHASS.connected = false;
+      manager.setHASS(disconnectedHASS);
+
+      // Simulate reconnection.
+      const reconnectedHASS = createHASS();
+      reconnectedHASS.connected = true;
+      manager.setHASS(reconnectedHASS);
+
+      // Cameras and view should be uninitialized so they get re-subscribed
+      // to event sources (e.g. Frigate WebSocket events) on the next
+      // render cycle.
+      expect(api.getInitializationManager().uninitialize).toBeCalledWith('cameras');
+      expect(api.getCameraManager().destroy).toBeCalled();
+      expect(api.getInitializationManager().uninitialize).toBeCalledWith('view');
+      expect(api.getInitializationManager().uninitialize).toBeCalledWith(
+        'initial-trigger',
+      );
+    });
+
     it('hass is null', () => {
       const api = createCardAPI();
       const manager = new HASSManager(api);

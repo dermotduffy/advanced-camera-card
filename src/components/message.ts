@@ -32,10 +32,10 @@ export class AdvancedCameraCardMessage extends LitElement {
       return;
     }
 
-    const url = this._controller.getURL(this.message);
+    const link = this._controller.getLink(this.message);
     const messageTemplate = html`
       ${this._controller.getMessageString(this.message)}
-      ${url ? html`. <a href="${url.link}">${url.title}</a>` : ''}
+      ${link ? html`. <a href="${link.url}">${link.title}</a>` : ''}
     `;
 
     const icon = this._controller.getIcon(this.message);

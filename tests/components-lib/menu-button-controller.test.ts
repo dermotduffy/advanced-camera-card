@@ -6,8 +6,10 @@ import { CameraManager } from '../../src/camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../../src/camera-manager/types.js';
 import { CallManager } from '../../src/card-controller/call-manager.js';
 import { FoldersManager } from '../../src/card-controller/folders/manager.js';
+import { FolderQuery } from '../../src/card-controller/folders/types';
 import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager.js';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
+import { PIPManager } from '../../src/card-controller/pip-manager.js';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager.js';
 import { ViewManager } from '../../src/card-controller/view/view-manager.js';
 import {
@@ -19,14 +21,15 @@ import { ViewDisplayMode } from '../../src/config/schema/common/display.js';
 import { MenuItem } from '../../src/config/schema/elements/custom/menu/types.js';
 import { AdvancedCameraCardConfig } from '../../src/config/schema/types.js';
 import { HomeAssistant } from '../../src/ha/types.js';
+import { QuerySource } from '../../src/query-source';
 import { MediaPlayerController, PTZMovementType } from '../../src/types.js';
 import { createGeneralAction, createViewAction } from '../../src/utils/action.js';
 import { ViewMedia, ViewMediaType } from '../../src/view/item.js';
 import { QueryResults } from '../../src/view/query-results.js';
-import { FolderViewQuery } from '../../src/view/query.js';
+import { UnifiedQuery } from '../../src/view/unified-query.js';
 import {
-  getCameraIDsForViewName,
-  isViewSupportedByCamera,
+  getCameraIDsWithCapabilityForView,
+  isViewSupported,
 } from '../../src/view/view-support.js';
 import { View } from '../../src/view/view.js';
 import {
@@ -89,6 +92,7 @@ describe('MenuButtonController', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(isViewSupported).mockReturnValue(true);
     controller = new MenuButtonController();
   });
 
@@ -97,6 +101,8 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller);
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
         icon: 'iris',
         enabled: true,
         permanent: true,
@@ -114,6 +120,8 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
         icon: 'iris',
         enabled: true,
         permanent: true,
@@ -145,6 +153,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { cameraManager: cameraManager });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:video-switch',
         enabled: true,
         priority: 50,
@@ -257,6 +268,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { cameraManager: cameraManager });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:video-input-component',
         style: {},
         title: 'Substream(s)',
@@ -298,6 +312,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:video-input-component',
         style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
         title: 'Substream(s)',
@@ -359,6 +376,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { cameraManager: cameraManager });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:video-input-component',
         title: 'Substream(s)',
         style: {},
@@ -451,6 +471,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:video-input-component',
         title: 'Substream(s)',
         style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
@@ -573,13 +596,16 @@ describe('MenuButtonController', () => {
   describe('should have live menu button', () => {
     it('when in live view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'live' }),
         viewManager: viewManager,
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:cctv',
         enabled: true,
         priority: 50,
@@ -592,13 +618,16 @@ describe('MenuButtonController', () => {
 
     it('when not in live view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'clips' }),
         viewManager: viewManager,
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:cctv',
         enabled: true,
         priority: 50,
@@ -611,7 +640,7 @@ describe('MenuButtonController', () => {
 
     it('when not supported', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(false);
+      vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -627,15 +656,18 @@ describe('MenuButtonController', () => {
   describe('should have clips menu button', () => {
     it('when in clips view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'clips' }),
         viewManager: viewManager,
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:filmstrip',
-        enabled: true,
+        enabled: false,
         priority: 50,
         type: 'custom:advanced-camera-card-menu-icon',
         title: 'Clips gallery',
@@ -647,14 +679,17 @@ describe('MenuButtonController', () => {
 
     it('when not in clips view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:filmstrip',
-        enabled: true,
+        enabled: false,
         priority: 50,
         type: 'custom:advanced-camera-card-menu-icon',
         title: 'Clips gallery',
@@ -666,7 +701,7 @@ describe('MenuButtonController', () => {
 
     it('when not supported', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(false);
+      vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -680,15 +715,18 @@ describe('MenuButtonController', () => {
   describe('should have snapshots menu button', () => {
     it('when in snapshots view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupported).mockImplementation((view) => view !== 'reviews');
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'snapshots' }),
         viewManager: viewManager,
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:camera',
-        enabled: true,
+        enabled: false,
         priority: 50,
         type: 'custom:advanced-camera-card-menu-icon',
         title: 'Snapshots gallery',
@@ -706,14 +744,17 @@ describe('MenuButtonController', () => {
 
     it('when not in snapshots view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:camera',
-        enabled: true,
+        enabled: false,
         priority: 50,
         type: 'custom:advanced-camera-card-menu-icon',
         title: 'Snapshots gallery',
@@ -731,7 +772,7 @@ describe('MenuButtonController', () => {
 
     it('when not supported', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(false);
+      vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -744,16 +785,161 @@ describe('MenuButtonController', () => {
     });
   });
 
+  describe('should have reviews menu button', () => {
+    it('when in reviews view', () => {
+      const viewManager = mock<ViewManager>();
+      vi.mocked(isViewSupported).mockReturnValue(true);
+      const buttons = calculateButtons(controller, {
+        view: createView({ view: 'reviews' }),
+        viewManager: viewManager,
+      });
+
+      expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
+        icon: 'mdi:play-box-edit-outline',
+        enabled: false,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Reviews gallery',
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'reviews',
+        },
+        hold_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'review',
+        },
+      });
+    });
+
+    it('when not in reviews view', () => {
+      const viewManager = mock<ViewManager>();
+      vi.mocked(isViewSupported).mockReturnValue(true);
+      const buttons = calculateButtons(controller, {
+        viewManager: viewManager,
+      });
+
+      expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
+        icon: 'mdi:play-box-edit-outline',
+        enabled: false,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Reviews gallery',
+        style: {},
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'reviews',
+        },
+        hold_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'review',
+        },
+      });
+    });
+
+    it('when not supported', () => {
+      const viewManager = mock<ViewManager>();
+      vi.mocked(isViewSupported).mockReturnValue(false);
+      const buttons = calculateButtons(controller, {
+        viewManager: viewManager,
+      });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ title: 'Reviews gallery' })]),
+      );
+    });
+  });
+
+  describe('should have gallery menu button', () => {
+    it('when in gallery view', () => {
+      const viewManager = mock<ViewManager>();
+      vi.mocked(isViewSupported).mockReturnValue(true);
+      const buttons = calculateButtons(controller, {
+        view: createView({ view: 'gallery' }),
+        viewManager: viewManager,
+      });
+
+      expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
+        icon: 'mdi:play-box-multiple',
+        enabled: true,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Gallery',
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'gallery',
+        },
+        hold_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'media',
+        },
+      });
+    });
+
+    it('when not in gallery view', () => {
+      const viewManager = mock<ViewManager>();
+      vi.mocked(isViewSupported).mockReturnValue(true);
+      const buttons = calculateButtons(controller, {
+        viewManager: viewManager,
+      });
+
+      expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
+        icon: 'mdi:play-box-multiple',
+        enabled: true,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Gallery',
+        style: {},
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'gallery',
+        },
+        hold_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'media',
+        },
+      });
+    });
+
+    it('when not supported', () => {
+      const viewManager = mock<ViewManager>();
+      vi.mocked(isViewSupported).mockReturnValue(false);
+      const buttons = calculateButtons(controller, {
+        viewManager: viewManager,
+      });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ title: 'Gallery' })]),
+      );
+    });
+  });
+
   describe('should have recordings menu button', () => {
     it('when in recordings view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'recordings' }),
         viewManager: viewManager,
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:album',
         enabled: false,
         priority: 50,
@@ -773,12 +959,15 @@ describe('MenuButtonController', () => {
 
     it('when not in recordings view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:album',
         enabled: false,
         priority: 50,
@@ -798,7 +987,7 @@ describe('MenuButtonController', () => {
 
     it('when not supported', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(false);
+      vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -814,7 +1003,7 @@ describe('MenuButtonController', () => {
   describe('should have image menu button', () => {
     it('when in image view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupported).mockReturnValue(true);
 
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'image' }),
@@ -822,6 +1011,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:image',
         enabled: false,
         priority: 50,
@@ -834,7 +1026,7 @@ describe('MenuButtonController', () => {
 
     it('when not in image view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupported).mockReturnValue(true);
 
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'live' }),
@@ -842,6 +1034,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:image',
         enabled: false,
         priority: 50,
@@ -854,7 +1049,7 @@ describe('MenuButtonController', () => {
 
     it('when not supported', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(false);
+      vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
         viewManager: viewManager,
       });
@@ -870,13 +1065,16 @@ describe('MenuButtonController', () => {
   describe('should have timeline button', () => {
     it('when in timeline view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'timeline' }),
         viewManager: viewManager,
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:chart-gantt',
         enabled: true,
         priority: 50,
@@ -892,13 +1090,16 @@ describe('MenuButtonController', () => {
 
     it('when not in timeline view', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(isViewSupported).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'live' }),
         viewManager: viewManager,
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:chart-gantt',
         enabled: true,
         priority: 50,
@@ -914,7 +1115,7 @@ describe('MenuButtonController', () => {
 
     it('when not supported', () => {
       const viewManager = mock<ViewManager>();
-      vi.mocked(isViewSupportedByCamera).mockReturnValue(false);
+      vi.mocked(isViewSupported).mockReturnValue(false);
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'live' }),
         viewManager: viewManager,
@@ -951,6 +1152,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:download',
         enabled: true,
         priority: 50,
@@ -1019,6 +1223,9 @@ describe('MenuButtonController', () => {
     });
 
     expect(buttons).toContainEqual({
+      alignment: 'matching',
+      state_color: true,
+      permanent: false,
       icon: 'mdi:web',
       enabled: true,
       priority: 50,
@@ -1049,6 +1256,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:microphone',
         enabled: false,
         priority: 50,
@@ -1172,6 +1382,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:microphone-message-off',
         enabled: false,
         priority: 50,
@@ -1201,6 +1414,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:microphone-off',
         enabled: false,
         priority: 50,
@@ -1238,6 +1454,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:microphone-message-off',
         enabled: false,
         priority: 50,
@@ -1270,6 +1489,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:microphone-off',
         enabled: false,
         priority: 50,
@@ -1306,6 +1528,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:microphone',
         enabled: false,
         priority: 50,
@@ -1339,6 +1564,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { fullscreenManager });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:fullscreen',
         enabled: true,
         priority: 50,
@@ -1361,6 +1589,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { fullscreenManager });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:fullscreen-exit',
         enabled: true,
         priority: 50,
@@ -1388,11 +1619,83 @@ describe('MenuButtonController', () => {
     });
   });
 
+  describe('should have pip button', () => {
+    it('when not in PIP mode', () => {
+      const pipManager = mock<PIPManager>();
+      vi.mocked(pipManager.isInPIP).mockReturnValue(false);
+      vi.mocked(pipManager.isAvailable).mockReturnValue(true);
+
+      const buttons = calculateButtons(controller, { pipManager });
+
+      expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
+        icon: 'mdi:picture-in-picture-bottom-right',
+        enabled: false,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Picture in Picture',
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'pip',
+        },
+        style: {},
+      });
+    });
+
+    it('when in PIP mode', () => {
+      const pipManager = mock<PIPManager>();
+      vi.mocked(pipManager.isInPIP).mockReturnValue(true);
+      vi.mocked(pipManager.isAvailable).mockReturnValue(true);
+
+      const buttons = calculateButtons(controller, { pipManager });
+
+      expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
+        icon: 'mdi:picture-in-picture-bottom-right-outline',
+        enabled: false,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Picture in Picture',
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'pip',
+        },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+      });
+    });
+
+    it('when not supported', () => {
+      const pipManager = mock<PIPManager>();
+      vi.mocked(pipManager.isAvailable).mockReturnValue(false);
+
+      const buttons = calculateButtons(controller, { pipManager });
+
+      expect(buttons).not.toContainEqual(
+        expect.objectContaining({ title: 'Picture in Picture' }),
+      );
+    });
+
+    it('when no pipManager provided', () => {
+      const buttons = calculateButtons(controller, {});
+
+      expect(buttons).not.toContainEqual(
+        expect.objectContaining({ title: 'Picture in Picture' }),
+      );
+    });
+  });
+
   describe('should have expand button', () => {
     it('when not expanded', () => {
       const buttons = calculateButtons(controller, { inExpandedMode: false });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:arrow-expand-all',
         enabled: false,
         priority: 50,
@@ -1407,6 +1710,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { inExpandedMode: true });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:arrow-collapse-all',
         enabled: false,
         priority: 50,
@@ -1445,6 +1751,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:cast',
         enabled: true,
         priority: 50,
@@ -1498,6 +1807,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:cast',
         enabled: true,
         priority: 50,
@@ -1529,6 +1841,9 @@ describe('MenuButtonController', () => {
     });
 
     expect(buttons).toContainEqual({
+      alignment: 'matching',
+      state_color: true,
+      permanent: false,
       icon: 'mdi:pause',
       enabled: false,
       priority: 50,
@@ -1551,6 +1866,9 @@ describe('MenuButtonController', () => {
     });
 
     expect(buttons).toContainEqual({
+      alignment: 'matching',
+      state_color: true,
+      permanent: false,
       icon: 'mdi:play',
       enabled: false,
       priority: 50,
@@ -1572,6 +1890,9 @@ describe('MenuButtonController', () => {
     });
 
     expect(buttons).toContainEqual({
+      alignment: 'matching',
+      state_color: true,
+      permanent: false,
       icon: 'mdi:volume-high',
       enabled: false,
       priority: 50,
@@ -1594,6 +1915,9 @@ describe('MenuButtonController', () => {
     });
 
     expect(buttons).toContainEqual({
+      alignment: 'matching',
+      state_color: true,
+      permanent: false,
       icon: 'mdi:volume-off',
       enabled: false,
       priority: 50,
@@ -1601,6 +1925,24 @@ describe('MenuButtonController', () => {
       title: 'Mute / Unmute',
       tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'unmute' },
     });
+  });
+
+  it('should not have mute button without audio', () => {
+    const mediaPlayerController = mock<MediaPlayerController>();
+    const buttons = calculateButtons(controller, {
+      currentMediaLoadedInfo: createMediaLoadedInfo({
+        capabilities: {
+          hasAudio: false,
+        },
+        mediaPlayerController,
+      }),
+    });
+
+    expect(buttons).not.toContainEqual(
+      expect.objectContaining({
+        title: 'Mute / Unmute',
+      }),
+    );
   });
 
   it('should have screenshot button', () => {
@@ -1611,6 +1953,9 @@ describe('MenuButtonController', () => {
     });
 
     expect(buttons).toContainEqual({
+      alignment: 'matching',
+      state_color: true,
+      permanent: false,
       icon: 'mdi:monitor-screenshot',
       enabled: false,
       priority: 50,
@@ -1640,13 +1985,16 @@ describe('MenuButtonController', () => {
           ]),
         );
 
-        vi.mocked(getCameraIDsForViewName).mockReturnValue(
+        vi.mocked(getCameraIDsWithCapabilityForView).mockReturnValue(
           new Set(['camera-1', 'camera-2']),
         );
 
         expect(
           calculateButtons(controller, { cameraManager: cameraManager, view: view }),
         ).toContainEqual({
+          alignment: 'matching',
+          state_color: true,
+          permanent: false,
           icon: displayMode === 'single' ? 'mdi:grid' : 'mdi:grid-off',
           enabled: true,
           priority: 50,
@@ -1728,6 +2076,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         enabled: false,
         icon: 'mdi:pan',
         priority: 50,
@@ -1762,6 +2113,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         enabled: false,
         icon: 'mdi:pan',
         priority: 50,
@@ -1794,6 +2148,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         enabled: false,
         icon: 'mdi:pan',
         priority: 50,
@@ -1835,6 +2192,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         enabled: false,
         icon: 'mdi:pan',
         priority: 50,
@@ -1905,6 +2265,9 @@ describe('MenuButtonController', () => {
 
         if (expectedResult) {
           expect(buttons).toContainEqual({
+            alignment: 'matching',
+            state_color: true,
+            permanent: false,
             enabled: false,
             icon: 'mdi:home',
             priority: 50,
@@ -1928,6 +2291,7 @@ describe('MenuButtonController', () => {
   describe('should have folders button', () => {
     it('should have no folders button without folders', () => {
       const foldersManager = mock<FoldersManager>();
+      foldersManager.hasFolders.mockReturnValue(true);
       foldersManager.getFolders.mockReturnValue(new Map().entries());
 
       const buttons = calculateButtons(controller, {
@@ -1945,6 +2309,7 @@ describe('MenuButtonController', () => {
 
     it('should have a folders button for a single folder outside the folder view', () => {
       const foldersManager = mock<FoldersManager>();
+      foldersManager.hasFolders.mockReturnValue(true);
       foldersManager.getFolders.mockReturnValue(
         new Map([['folder-0', createFolder({ id: 'folder-0' })]]).entries(),
       );
@@ -1954,6 +2319,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:folder',
         enabled: true,
         priority: 50,
@@ -1968,19 +2336,28 @@ describe('MenuButtonController', () => {
     it('should have a folders button for a single folder inside the folder view', () => {
       const folder = createFolder({ id: 'folder-0' });
       const foldersManager = mock<FoldersManager>();
+      foldersManager.hasFolders.mockReturnValue(true);
       foldersManager.getFolders.mockReturnValue(
         new Map([['folder-0', folder]]).entries(),
       );
 
+      const folderNode: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: folder,
+        path: [{ ha: { id: 'one' } }],
+      };
       const buttons = calculateButtons(controller, {
         foldersManager,
         view: createView({
           view: 'folder',
-          query: new FolderViewQuery({ folder, path: [{ ha: { id: 'one' } }] }),
+          query: new UnifiedQuery().addNode(folderNode),
         }),
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:folder',
         enabled: true,
         priority: 50,
@@ -2001,14 +2378,17 @@ describe('MenuButtonController', () => {
         ['folder-0', createFolder({ id: 'folder-0' })],
         ['folder-selected', selectedFolder],
       ]);
+      foldersManager.hasFolders.mockReturnValue(true);
       foldersManager.getFolders.mockReturnValue(folders.entries());
 
+      const selectedFolderNode: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: selectedFolder,
+        path: [{ ha: { id: 'id' } }],
+      };
       const view = createView({
         view: 'folder',
-        query: new FolderViewQuery({
-          folder: selectedFolder,
-          path: [{ ha: { id: 'id' } }],
-        }),
+        query: new UnifiedQuery().addNode(selectedFolderNode),
       });
 
       const buttons = calculateButtons(controller, {
@@ -2017,6 +2397,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:folder-multiple',
         enabled: true,
         priority: 50,
@@ -2072,6 +2455,7 @@ describe('MenuButtonController', () => {
         ['folder-0', createFolder({ id: 'folder-0' })],
         ['folder-1', createFolder({ id: 'folder-1' })],
       ]);
+      foldersManager.hasFolders.mockReturnValue(true);
       foldersManager.getFolders.mockReturnValue(folders.entries());
 
       const buttons = calculateButtons(controller, {
@@ -2079,6 +2463,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
         icon: 'mdi:folder-multiple',
         enabled: true,
         priority: 50,
@@ -2195,9 +2582,10 @@ describe('MenuButtonController', () => {
         ...dynamicButton,
         tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'default' },
       };
+      const cameraManager = createCameraManager(createStore([{ cameraID: 'camera-1' }]));
       controller.addDynamicMenuButton(button);
 
-      expect(calculateButtons(controller)).toContainEqual({
+      expect(calculateButtons(controller, { cameraManager })).toContainEqual({
         ...button,
         style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
       });
@@ -2256,5 +2644,95 @@ describe('MenuButtonController', () => {
         style: {},
       });
     });
+  });
+
+  describe('should have set review button', () => {
+    it('when unreviewed', () => {
+      const selectedItem = new TestViewMedia({
+        mediaType: ViewMediaType.Review,
+        reviewed: false,
+      });
+
+      const queryResults = mock<QueryResults>();
+      queryResults.getSelectedResult.mockReturnValue(selectedItem);
+
+      const view = createView({
+        view: 'media',
+        queryResults: queryResults,
+      });
+
+      const buttons = calculateButtons(controller, { view: view });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          icon: 'mdi:check-circle-outline',
+          title: 'Mark as reviewed',
+        }),
+      );
+    });
+
+    it('when already reviewed', () => {
+      const selectedItem = new TestViewMedia({
+        mediaType: ViewMediaType.Review,
+        reviewed: true,
+      });
+
+      const queryResults = mock<QueryResults>();
+      queryResults.getSelectedResult.mockReturnValue(selectedItem);
+
+      const view = createView({
+        view: 'media',
+        queryResults: queryResults,
+      });
+
+      const buttons = calculateButtons(controller, { view: view });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          icon: 'mdi:check-circle',
+          title: 'Mark as unreviewed',
+        }),
+      );
+    });
+
+    it('when isReviewed returns null', () => {
+      const selectedItem = new TestViewMedia({
+        mediaType: ViewMediaType.Review,
+        reviewed: null,
+      });
+
+      const queryResults = mock<QueryResults>();
+      queryResults.getSelectedResult.mockReturnValue(selectedItem);
+
+      const view = createView({
+        view: 'media',
+        queryResults: queryResults,
+      });
+
+      const buttons = calculateButtons(controller, { view: view });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            icon: 'mdi:check-circle',
+          }),
+        ]),
+      );
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            icon: 'mdi:check-circle-outline',
+          }),
+        ]),
+      );
+    });
+  });
+
+  it('should handle view without camera', () => {
+    const buttons = calculateButtons(controller, {
+      view: createView({ camera: null }),
+    });
+
+    expect(buttons).toBeDefined();
   });
 });

@@ -42,7 +42,7 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
   @customElement('advanced-camera-card-ha-web-rtc-player')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   class AdvancedCameraCardHaWebRtcPlayer extends HaWebRtcPlayer implements MediaPlayer {
-    protected _mediaPlayerController = new VideoMediaPlayerController(
+    private _mediaPlayerController = new VideoMediaPlayerController(
       this,
       () => this._videoEl,
       () => this.controls,

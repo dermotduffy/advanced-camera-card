@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash-es';
-import { isConfigUpgradeable } from '../../config/management.js';
+import { copyConfig, isConfigUpgradeable } from '../../config/management.js';
 import { setProfiles } from '../../config/profiles/set-profiles.js';
 import {
   AdvancedCameraCardConfig,
@@ -8,7 +8,7 @@ import {
 } from '../../config/schema/types.js';
 import { RawAdvancedCameraCardConfig } from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
-import { getParseErrorPaths } from '../../utils/zod.js';
+import { getParseError } from '../../utils/zod/parse-errors.js';
 import { InitializationAspect } from '../initialization-manager.js';
 import { CardConfigAPI } from '../types.js';
 import { setAutomationsFromConfig } from './load-automations.js';
@@ -18,19 +18,17 @@ import { setKeyboardShortcutsFromConfig } from './load-keyboard-shortcuts.js';
 import { OverridesManager } from './overrides-manager.js';
 
 export class ConfigManager {
-  protected _api: CardConfigAPI;
+  private _api: CardConfigAPI;
 
   // The main base configuration object. For most usecases use getConfig() to
   // get the correct configuration (which will return overrides as appropriate).
   // This variable must be called `_config` or `config` to be compatible with
   // card-mod.
-  protected _config: AdvancedCameraCardConfig | null = null;
-  protected _overriddenConfig: AdvancedCameraCardConfig | null = null;
-  protected _rawConfig: RawAdvancedCameraCardConfig | null = null;
-  protected _cardWideConfig: CardWideConfig | null = null;
-  protected _overridesManager = new OverridesManager(() =>
-    this._processOverrideConfig(),
-  );
+  private _config: AdvancedCameraCardConfig | null = null;
+  private _overriddenConfig: AdvancedCameraCardConfig | null = null;
+  private _rawConfig: RawAdvancedCameraCardConfig | null = null;
+  private _cardWideConfig: CardWideConfig | null = null;
+  private _overridesManager = new OverridesManager(() => this._processOverrideConfig());
 
   constructor(api: CardConfigAPI) {
     this._api = api;
@@ -62,22 +60,28 @@ export class ConfigManager {
     }
 
     const parseResult = advancedCameraCardConfigSchema.safeParse(inputConfig);
+
     if (!parseResult.success) {
-      const configUpgradeable = isConfigUpgradeable(inputConfig);
-      const hint = getParseErrorPaths(parseResult.error);
+      const hint = getParseError(parseResult.error);
       let upgradeMessage = '';
-      if (configUpgradeable) {
+      if (isConfigUpgradeable(inputConfig)) {
         upgradeMessage = `${localize('error.upgrade_available')}. `;
       }
       throw new Error(
         upgradeMessage +
           `${localize('error.invalid_configuration')}: ` +
-          (hint && hint.size
-            ? JSON.stringify([...hint], null, ' ')
-            : localize('error.invalid_configuration_no_hint')),
+          (hint ?? localize('error.invalid_configuration_no_hint')),
       );
     }
-    const config = setProfiles(inputConfig, parseResult.data, parseResult.data.profiles);
+    // The config is cloned here because Zod 4 returns shared constant
+    // defaults by reference. Since setProfiles() mutates the configuration
+    // in-place, those mutations would "pollute" the global defaults and break
+    // test isolation if we didn't use a fresh clone here.
+    const config = setProfiles(
+      inputConfig,
+      copyConfig(parseResult.data),
+      parseResult.data.profiles,
+    );
 
     this._rawConfig = inputConfig;
     if (isEqual(this._config, config)) {
@@ -113,7 +117,7 @@ export class ConfigManager {
     this._api.getCardElementManager().update();
   }
 
-  protected _processOverrideConfig(): void {
+  private _processOverrideConfig(): void {
     const overriddenConfig = this._getOverriddenConfig();
 
     // Save on Lit re-rendering costs by only updating the configuration if it
@@ -128,37 +132,64 @@ export class ConfigManager {
     setFoldersFromConfig(this._api);
     this._api.getStyleManager().updateFromConfig();
 
-    // Ensure features that register automations or other side-effects from
-    // configuration are updated when overrides change (e.g. remote_control).
-    // Re-run loaders that may add/remove automations based on the current
-    // effective configuration.
-    setKeyboardShortcutsFromConfig(this._api);
-    setRemoteControlEntityFromConfig(this._api);
-    setAutomationsFromConfig(this._api);
+    // Only re-run side-effect callbacks when their relevant config section
+    // changed. As an example of why: Automation loaders delete then recreate
+    // automations, which destroys associated ConditionsManagers. If a condition
+    // transition (e.g. microphone connect) triggers both a user automation and
+    // an unrelated override, an unconditional reload would delete the
+    // automation mid-transition — the freshly created replacement has no prior
+    // state, treats the current condition as its baseline, and never fires the
+    // action.
+    const runIfChanged = <T>(
+      extract: (config: AdvancedCameraCardConfig) => T,
+      callback: () => void,
+      skipFirst?: boolean,
+    ): void => {
+      if (!previousConfig) {
+        if (!skipFirst) {
+          callback();
+        }
+        return;
+      }
+      if (!isEqual(extract(previousConfig), extract(overriddenConfig))) {
+        callback();
+      }
+    };
 
-    if (
-      previousConfig &&
-      (!isEqual(previousConfig?.cameras, this._overriddenConfig?.cameras) ||
-        !isEqual(previousConfig?.cameras_global, this._overriddenConfig?.cameras_global))
-    ) {
-      this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
-      this._api.getCameraManager().destroy();
-    }
-
-    if (
-      previousConfig &&
-      previousConfig?.live.microphone.always_connected !==
-        this._overriddenConfig?.live.microphone.always_connected
-    ) {
-      this._api
-        .getInitializationManager()
-        .uninitialize(InitializationAspect.MICROPHONE_CONNECT);
-    }
+    runIfChanged(
+      (config) => config.view.keyboard_shortcuts,
+      () => setKeyboardShortcutsFromConfig(this._api),
+    );
+    runIfChanged(
+      (config) => config.remote_control,
+      () => setRemoteControlEntityFromConfig(this._api),
+    );
+    runIfChanged(
+      (config) => config.automations,
+      () => setAutomationsFromConfig(this._api),
+    );
+    runIfChanged(
+      (config) => [config.cameras, config.cameras_global],
+      () => {
+        this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
+        this._api.getCameraManager().destroy();
+      },
+      true,
+    );
+    runIfChanged(
+      (config) => config.live.microphone.always_connected,
+      () => {
+        this._api
+          .getInitializationManager()
+          .uninitialize(InitializationAspect.MICROPHONE_CONNECT);
+      },
+      true,
+    );
 
     /* async */ this._initializeBackgroundAndUpdate(previousConfig);
   }
 
-  protected _getOverriddenConfig(): AdvancedCameraCardConfig | null {
+  private _getOverriddenConfig(): AdvancedCameraCardConfig | null {
     /* istanbul ignore if: No (current) way to reach this code -- @preserve */
     if (!this._config) {
       return null;
@@ -176,7 +207,7 @@ export class ConfigManager {
    * Initialize config dependent items in the background. For items that the
    * card hard requires, use InitializationManager instead.
    */
-  protected async _initializeBackgroundAndUpdate(
+  private async _initializeBackgroundAndUpdate(
     previousConfig: AdvancedCameraCardConfig | null,
   ): Promise<void> {
     await this._api.getDefaultManager().initializeIfNecessary(previousConfig);

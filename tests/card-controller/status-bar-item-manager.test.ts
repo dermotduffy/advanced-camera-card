@@ -240,5 +240,213 @@ describe('StatusBarItemManager', () => {
         icon: 'ENGINE_ICON',
       });
     });
+
+    describe('problems', () => {
+      it('should show problem items', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+
+        const items = manager.calculateItems({
+          problems: [
+            {
+              key: 'config_upgrade',
+              problem: {
+                icon: 'mdi:update',
+                severity: 'medium',
+                notification: {
+                  heading: {
+                    text: 'Upgrade available',
+                    icon: 'mdi:update',
+                    severity: 'medium',
+                  },
+                  text: 'Upgrade text',
+                },
+              },
+            },
+          ],
+        });
+
+        expect(items).toContainEqual(
+          expect.objectContaining({
+            type: 'custom:advanced-camera-card-status-bar-icon' as const,
+            icon: 'mdi:update',
+            severity: 'medium',
+            title: 'Upgrade available',
+            actions: expect.objectContaining({
+              tap_action: expect.objectContaining({
+                action: 'fire-dom-event',
+                advanced_camera_card_action: 'notification',
+              }),
+            }),
+          }),
+        );
+      });
+
+      it('should not show problem items when empty', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+
+        const items = manager.calculateItems({
+          problems: [],
+        });
+
+        expect(items).not.toContainEqual(
+          expect.objectContaining({
+            icon: 'mdi:update',
+          }),
+        );
+      });
+
+      it('should not show problem items by default', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+
+        const items = manager.calculateItems();
+
+        expect(items).not.toContainEqual(
+          expect.objectContaining({
+            icon: 'mdi:update',
+          }),
+        );
+      });
+
+      it('should filter out disabled problems', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+
+        const items = manager.calculateItems({
+          statusConfig: {
+            position: 'bottom',
+            style: 'popup',
+            popup_seconds: 3,
+            height: 40,
+            items: {
+              engine: { enabled: true, priority: 50 },
+              resolution: { enabled: true, priority: 50 },
+              severity: { enabled: true, priority: 50 },
+              technology: { enabled: true, priority: 50 },
+              title: { enabled: true, priority: 50 },
+              problem_config_upgrade: { enabled: false, priority: 50 },
+              problem_legacy_resource: { enabled: true, priority: 50 },
+              problem_stream_not_loading: { enabled: true, priority: 50 },
+            },
+          },
+          problems: [
+            {
+              key: 'config_upgrade',
+              problem: {
+                icon: 'mdi:update',
+                severity: 'medium',
+                notification: {
+                  heading: {
+                    text: 'Upgrade available',
+                    icon: 'mdi:update',
+                    severity: 'medium',
+                  },
+                  text: 'Upgrade text',
+                },
+              },
+            },
+          ],
+        });
+
+        expect(items).not.toContainEqual(
+          expect.objectContaining({
+            icon: 'mdi:update',
+          }),
+        );
+      });
+
+      it('should apply config overrides to problem items', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+
+        const items = manager.calculateItems({
+          statusConfig: {
+            position: 'bottom',
+            style: 'popup',
+            popup_seconds: 3,
+            height: 40,
+            items: {
+              engine: { enabled: true, priority: 50 },
+              resolution: { enabled: true, priority: 50 },
+              severity: { enabled: true, priority: 50 },
+              technology: { enabled: true, priority: 50 },
+              title: { enabled: true, priority: 50 },
+              problem_config_upgrade: { enabled: true, priority: 90 },
+              problem_legacy_resource: { enabled: true, priority: 50 },
+              problem_stream_not_loading: { enabled: true, priority: 50 },
+            },
+          },
+          problems: [
+            {
+              key: 'config_upgrade',
+              problem: {
+                icon: 'mdi:update',
+                severity: 'medium',
+                notification: {
+                  heading: {
+                    text: 'Upgrade available',
+                    icon: 'mdi:update',
+                    severity: 'medium',
+                  },
+                  text: 'Upgrade text',
+                },
+              },
+            },
+          ],
+        });
+
+        expect(items).toContainEqual(
+          expect.objectContaining({
+            icon: 'mdi:update',
+            priority: 90,
+          }),
+        );
+      });
+    });
+
+    describe('severity', () => {
+      it('should have severity in a viewer view', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+        const selectedResult = new TestViewMedia({
+          cameraID: 'camera-1',
+        });
+        vi.spyOn(selectedResult, 'getSeverity').mockReturnValue('high');
+
+        const queryResults = new QueryResults({
+          results: [selectedResult],
+          selectedIndex: 0,
+        });
+
+        expect(
+          manager.calculateItems({
+            view: createView({ view: 'media', queryResults: queryResults }),
+          }),
+        ).toContainEqual({
+          type: 'custom:advanced-camera-card-status-bar-icon' as const,
+          icon: 'mdi:circle-medium',
+          severity: 'high',
+        });
+      });
+
+      it('should not have severity in live view', () => {
+        const manager = new StatusBarItemManager(createCardAPI());
+        const selectedResult = new TestViewMedia({
+          cameraID: 'camera-1',
+        });
+        vi.spyOn(selectedResult, 'getSeverity').mockReturnValue('high');
+
+        const queryResults = new QueryResults({
+          results: [selectedResult],
+          selectedIndex: 0,
+        });
+
+        expect(
+          manager.calculateItems({
+            view: createView({ view: 'live', queryResults: queryResults }),
+          }),
+        ).not.toContainEqual(
+          expect.objectContaining({
+            icon: 'mdi:circle-medium',
+          }),
+        );
+      });
+    });
   });
 });

@@ -8,7 +8,6 @@ import { EntityRegistryManagerLive } from '../ha/registry/entity';
 import { EntityCache, EntityRegistryManager } from '../ha/registry/entity/types';
 import { ResolvedMediaCache } from '../ha/resolved-media';
 import { LovelaceCardEditor } from '../ha/types';
-import { EffectsControllerAPI } from '../types';
 import { ActionsManager } from './actions/actions-manager';
 import { AutomationsManager } from './automations-manager';
 import { CameraURLManager } from './camera-url-manager';
@@ -21,6 +20,7 @@ import {
 } from './card-element-manager';
 import { ConfigManager } from './config/config-manager';
 import { DefaultManager } from './default-manager';
+import { EffectsManager } from './effects/effects-manager';
 import { ExpandManager } from './expand-manager';
 import { FoldersManager } from './folders/manager';
 import { FullscreenManager } from './fullscreen/fullscreen-manager';
@@ -32,6 +32,9 @@ import { MediaLoadedInfoManager } from './media-info-manager';
 import { MediaPlayerManager } from './media-player-manager';
 import { MessageManager } from './message-manager';
 import { MicrophoneManager } from './microphone-manager';
+import { NotificationManager } from './notification-manager';
+import { PIPManager } from './pip-manager';
+import { ProblemManager } from './problems/manager';
 import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
@@ -42,6 +45,7 @@ import {
   CardAutomationsAPI,
   CardCameraAPI,
   CardCameraURLAPI,
+  CardCallAPI,
   CardConditionAPI,
   CardConfigAPI,
   CardDefaultManagerAPI,
@@ -57,6 +61,9 @@ import {
   CardMediaPlayerAPI,
   CardMessageAPI,
   CardMicrophoneAPI,
+  CardNotificationAPI,
+  CardPIPAPI,
+  CardProblemAPI,
   CardQueryStringAPI,
   CardStyleAPI,
   CardTriggersAPI,
@@ -64,8 +71,6 @@ import {
 } from './types';
 import { ViewItemManager } from './view/item-manager';
 import { ViewManager } from './view/view-manager';
-
-type EffectsControllerAPICallback = () => EffectsControllerAPI | null;
 
 export class CardController
   implements
@@ -82,6 +87,8 @@ export class CardController
     CardExpandAPI,
     CardFullscreenAPI,
     CardHASSAPI,
+    CardPIPAPI,
+    CardProblemAPI,
     CardInitializerAPI,
     CardInteractionAPI,
     CardKeyboardStateAPI,
@@ -89,53 +96,56 @@ export class CardController
     CardMediaPlayerAPI,
     CardMessageAPI,
     CardMicrophoneAPI,
+    CardNotificationAPI,
     CardQueryStringAPI,
     CardStyleAPI,
     CardTriggersAPI,
     CardViewAPI,
     ReactiveController
 {
-  protected _effectsControllerAPICallback: EffectsControllerAPICallback;
-
-  protected _conditionStateManager = new ConditionStateManager();
+  private _conditionStateManager = new ConditionStateManager();
+  private _effectsManager = new EffectsManager();
 
   // These properties may be used in the construction of 'managers' (and should
   // be created first).
-  protected _deviceRegistryManager = new DeviceRegistryManager(new DeviceCache());
-  protected _entityRegistryManager = new EntityRegistryManagerLive(new EntityCache());
-  protected _resolvedMediaCache = new ResolvedMediaCache();
+  private _deviceRegistryManager = new DeviceRegistryManager(new DeviceCache());
+  private _entityRegistryManager = new EntityRegistryManagerLive(new EntityCache());
+  private _resolvedMediaCache = new ResolvedMediaCache();
 
-  protected _actionsManager = new ActionsManager(this, new TemplateRenderer());
-  protected _automationsManager = new AutomationsManager(this);
-  protected _cameraManager = new CameraManager(this);
-  protected _cameraURLManager = new CameraURLManager(this);
-  protected _callManager = new CallManager(this);
-  protected _cardElementManager: CardElementManager;
-  protected _configManager = new ConfigManager(this);
-  protected _defaultManager = new DefaultManager(this);
-  protected _expandManager = new ExpandManager(this);
-  protected _foldersManager = new FoldersManager(this);
-  protected _fullscreenManager = new FullscreenManager(this);
-  protected _hassManager = new HASSManager(this);
-  protected _initializationManager = new InitializationManager(this);
-  protected _interactionManager = new InteractionManager(this);
-  protected _keyboardStateManager = new KeyboardStateManager(this);
-  protected _mediaLoadedInfoManager = new MediaLoadedInfoManager(this);
-  protected _mediaPlayerManager = new MediaPlayerManager(this);
-  protected _messageManager = new MessageManager(this);
-  protected _microphoneManager = new MicrophoneManager(this);
-  protected _queryStringManager = new QueryStringManager(this);
-  protected _statusBarItemManager = new StatusBarItemManager(this);
-  protected _styleManager = new StyleManager(this);
-  protected _triggersManager = new TriggersManager(this);
-  protected _viewManager = new ViewManager(this);
-  protected _viewItemManager = new ViewItemManager(this);
+  private _actionsManager = new ActionsManager(this, new TemplateRenderer());
+  private _automationsManager = new AutomationsManager(this);
+  private _cameraManager = new CameraManager(this);
+  private _cameraURLManager = new CameraURLManager(this);
+  private _callManager = new CallManager(this);
+  private _cardElementManager: CardElementManager;
+  private _configManager = new ConfigManager(this);
+  private _defaultManager = new DefaultManager(this);
+  private _expandManager = new ExpandManager(this);
+  private _foldersManager = new FoldersManager(this);
+  private _fullscreenManager = new FullscreenManager(this);
+  private _hassManager = new HASSManager(this);
+  private _initializationManager = new InitializationManager(this);
+  private _interactionManager = new InteractionManager(this);
+  private _keyboardStateManager = new KeyboardStateManager(this);
+  private _mediaLoadedInfoManager = new MediaLoadedInfoManager(this);
+
+  private _mediaPlayerManager = new MediaPlayerManager(this);
+  private _messageManager = new MessageManager(this);
+  private _microphoneManager = new MicrophoneManager(this);
+  private _notificationManager = new NotificationManager(this);
+  private _pipManager = new PIPManager(this);
+  private _problemManager = new ProblemManager(this);
+  private _queryStringManager = new QueryStringManager(this);
+  private _statusBarItemManager = new StatusBarItemManager(this);
+  private _styleManager = new StyleManager(this);
+  private _triggersManager = new TriggersManager(this);
+  private _viewManager = new ViewManager(this);
+  private _viewItemManager = new ViewItemManager(this);
 
   constructor(
     host: CardHTMLElement,
     scrollCallback: ScrollCallback,
     menuToggleCallback: MenuToggleCallback,
-    effectsControllerAPICallback: EffectsControllerAPICallback,
   ) {
     host.addController(this);
 
@@ -145,7 +155,6 @@ export class CardController
       scrollCallback,
       menuToggleCallback,
     );
-    this._effectsControllerAPICallback = effectsControllerAPICallback;
   }
 
   // *************************************************************************
@@ -200,8 +209,8 @@ export class CardController
     return this._deviceRegistryManager;
   }
 
-  public getEffectsControllerAPI(): EffectsControllerAPI | null {
-    return this._effectsControllerAPICallback();
+  public getEffectsManager(): EffectsManager {
+    return this._effectsManager;
   }
 
   public getEntityRegistryManager(): EntityRegistryManager {
@@ -253,6 +262,18 @@ export class CardController
   }
   public createMicrophoneManager(): void {
     this._microphoneManager = new MicrophoneManager(this);
+  }
+
+  public getNotificationManager(): NotificationManager {
+    return this._notificationManager;
+  }
+
+  public getPIPManager(): PIPManager {
+    return this._pipManager;
+  }
+
+  public getProblemManager(): ProblemManager {
+    return this._problemManager;
   }
 
   public getQueryStringManager(): QueryStringManager {

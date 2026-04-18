@@ -17,7 +17,7 @@ Formerly known as: `Frigate Card`
 A comprehensive camera card for Home Assistant.
 
 - Live viewing of multiple cameras.
-- Clips and snapshot browsing via mini-gallery.
+- Clips, snapshot and review browsing via mini-gallery.
 - Automatic updating to continually show latest clip / snapshot.
 - Support for filtering events by zone and label.
 - Arbitrary entity access via menu (e.g. motion sensor access).
@@ -25,7 +25,7 @@ A comprehensive camera card for Home Assistant.
 - Grid or carousel/swipeable media, thumbnails and cameras.
 - Direct media downloads.
 - Lovelace visual editing.
-- Full [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/) support.
+- Full [Picture Elements](https://www.home-assistant.io/dashboards/picture-elements/) support.
 - Theme friendly.
 
 See [full documentation](https://dermotduffy.github.io/advanced-camera-card).

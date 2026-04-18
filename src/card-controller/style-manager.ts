@@ -10,7 +10,7 @@ import { View } from '../view/view';
 import { CardStyleAPI } from './types';
 
 export class StyleManager {
-  protected _api: CardStyleAPI;
+  private _api: CardStyleAPI;
 
   constructor(api: CardStyleAPI) {
     this._api = api;
@@ -73,13 +73,13 @@ export class StyleManager {
     }
   }
 
-  protected _getThemeNames(themeConfig: ThemeConfig): ThemeName[] | null {
+  private _getThemeNames(themeConfig: ThemeConfig): ThemeName[] | null {
     return themeConfig.themes.length
       ? themeConfig.themes
       : configDefaults.view.theme.themes;
   }
 
-  protected _setDimmable(): void {
+  private _setDimmable(): void {
     const config = this._api.getConfigManager().getConfig();
     setOrRemoveAttribute(
       this._api.getCardElementManager().getElement(),
@@ -88,7 +88,7 @@ export class StyleManager {
     );
   }
 
-  protected _setMinMaxHeight(): void {
+  private _setMinMaxHeight(): void {
     const config = this._api.getConfigManager().getConfig();
     if (config) {
       const card = this._api.getCardElementManager().getElement();
@@ -96,7 +96,7 @@ export class StyleManager {
     }
   }
 
-  protected _setPerformance(): void {
+  private _setPerformance(): void {
     const STYLE_DISABLE_MAP = {
       box_shadow: {
         cssKey: '--advanced-camera-card-box-shadow-override',
@@ -122,7 +122,7 @@ export class StyleManager {
     }
   }
 
-  protected _isAspectRatioEnforced(
+  private _isAspectRatioEnforced(
     config: AdvancedCameraCardConfig,
     view?: View | null,
   ): boolean {

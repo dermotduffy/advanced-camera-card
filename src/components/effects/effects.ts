@@ -1,31 +1,28 @@
-import { LitElement, unsafeCSS } from 'lit';
-import { customElement } from 'lit/decorators.js';
-import { EffectsController } from '../../components-lib/effects/effects-controller';
-import { EffectOptions } from '../../components-lib/effects/types';
+import { LitElement, PropertyValues, unsafeCSS } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { EffectsManager } from '../../card-controller/effects/effects-manager';
 import effectsStyle from '../../scss/effects.scss';
-import { EffectName, EffectsControllerAPI } from '../../types';
 
 @customElement('advanced-camera-card-effects')
-export class AdvancedCameraCardEffects
-  extends LitElement
-  implements EffectsControllerAPI
-{
-  protected _controller = new EffectsController();
+export class AdvancedCameraCardEffects extends LitElement {
+  @property({ attribute: false })
+  public effectsManager?: EffectsManager;
 
-  public async startEffect(effect: EffectName, options?: EffectOptions): Promise<void> {
-    await this._controller.startEffect(effect, options);
-  }
-
-  public stopEffect(effect: EffectName): void {
-    this._controller.stopEffect(effect);
-  }
-
-  public async toggleEffect(effect: EffectName, options?: EffectOptions): Promise<void> {
-    await this._controller.toggleEffect(effect, options);
+  protected willUpdate(changedProperties: PropertyValues): void {
+    if (changedProperties.has('effectsManager')) {
+      const previousManager: EffectsManager | undefined =
+        changedProperties.get('effectsManager');
+      previousManager?.removeContainer();
+    }
   }
 
   protected updated(): void {
-    this._controller.setContainer(this.renderRoot);
+    this.effectsManager?.setContainer(this.renderRoot);
+  }
+
+  public disconnectedCallback(): void {
+    this.effectsManager?.removeContainer();
+    super.disconnectedCallback();
   }
 
   static get styles() {

@@ -11,7 +11,7 @@ import { ViewItemClassifier } from '../view/item-classifier';
 export const findBestMediaTimeIndex = (
   mediaArray: ViewItem[],
   targetTime: Date,
-  favorCameraID?: string,
+  favorCameraID?: string | null,
 ): number | null => {
   let bestMatch:
     | {

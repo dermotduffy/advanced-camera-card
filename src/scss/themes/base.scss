@@ -1,6 +1,6 @@
-@use 'dark.scss';
-@use 'light.scss';
-@use 'traditional.scss';
+@import 'dark.scss';
+@import 'light.scss';
+@import 'traditional.scss';
 
 :host {
   /*********
@@ -38,6 +38,16 @@
   );
   --advanced-camera-card-control-foreground: var(--app-header-text-color);
 
+  --advanced-camera-card-foreground-severity-high-color: var(
+    --ha-color-fill-danger-loud-resting
+  );
+  --advanced-camera-card-foreground-severity-medium-color: var(
+    --ha-color-fill-warning-loud-resting
+  );
+  --advanced-camera-card-foreground-severity-low-color: var(
+    --ha-color-fill-neutral-loud-resting
+  );
+
   /*********
    * Buttons
    *********/
@@ -51,7 +61,9 @@
   );
 
   // The border radius of buttons.
-  --advanced-camera-card-button-border-radius: 50%;
+  // We use a large viewport-relative value to ensure that rectangular
+  // elements render as pills/capsules rather than ovals.
+  --advanced-camera-card-button-border-radius: 100vmax;
 
   /******
    * Menu
@@ -144,6 +156,16 @@
   --advanced-camera-card-thumbnail-icon-color: var(
     --advanced-camera-card-foreground-primary
   );
+  --advanced-camera-card-thumbnail-icon-severity-high-color: var(
+    --advanced-camera-card-foreground-severity-high-color
+  );
+  --advanced-camera-card-thumbnail-icon-severity-medium-color: var(
+    --advanced-camera-card-foreground-severity-medium-color
+  );
+  --advanced-camera-card-thumbnail-icon-severity-low-color: var(
+    --advanced-camera-card-foreground-severity-low-color
+  );
+
   --advanced-camera-card-thumbnail-border-color: var(
     --advanced-camera-card-foreground-primary
   );
@@ -152,6 +174,9 @@
     in oklab,
     gold,
     transparent 25%
+  );
+  --advanced-camera-card-thumbnail-icon-review-color: var(
+    --advanced-camera-card-thumbnail-icon-color
   );
   --advanced-camera-card-thumbnail-text-color: var(--advanced-camera-card-text-color);
 
@@ -180,6 +205,16 @@
   );
   --advanced-camera-card-timeline-target-bar-color: var(
     --advanced-camera-card-active-color
+  );
+
+  --advanced-camera-card-timeline-item-severity-high-color: var(
+    --advanced-camera-card-foreground-severity-high-color
+  );
+  --advanced-camera-card-timeline-item-severity-medium-color: var(
+    --advanced-camera-card-foreground-severity-medium-color
+  );
+  --advanced-camera-card-timeline-item-severity-low-color: var(
+    --advanced-camera-card-foreground-severity-low-color
   );
 
   /*******************
@@ -245,4 +280,30 @@
     var(--advanced-camera-card-ptz-background),
     transparent var(--advanced-camera-card-control-background-opacity)
   );
+  --advanced-camera-card-ptz-color-selected: color-mix(
+    in oklab,
+    var(--advanced-camera-card-foreground-primary),
+    transparent 20%
+  );
+
+  /**************
+   * Notification
+   **************/
+  --advanced-camera-card-notification-background: linear-gradient(
+    135deg,
+    rgba(35, 35, 35, 0.75) 0%,
+    rgba(15, 15, 15, 0.65) 100%
+  );
+  --advanced-camera-card-notification-backdrop-filter: blur(20px) saturate(180%);
+  --advanced-camera-card-notification-border: 1px solid rgba(255, 255, 255, 0.1);
+  --advanced-camera-card-notification-border-top: 1px solid rgba(255, 255, 255, 0.15);
+  --advanced-camera-card-notification-box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5),
+    0 2px 8px 0 rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+
+  --advanced-camera-card-notification-text-color: #ffffff;
+  --advanced-camera-card-notification-icon-color: var(
+    --advanced-camera-card-foreground-primary
+  );
+  --advanced-camera-card-notification-scrollbar-color: rgba(255, 255, 255, 0.2);
+  --advanced-camera-card-notification-close-color: #ffffff;
 }

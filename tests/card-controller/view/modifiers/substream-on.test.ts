@@ -21,29 +21,27 @@ const createAPIWithSubstreams = (
   config?: RawAdvancedCameraCardConfig,
 ): CardController => {
   const api = createCardAPI();
-  vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
-  vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-    createStore([
-      {
-        cameraID: 'camera.office',
-        capabilities: createCapabilities({
-          live: true,
-          substream: true,
-        }),
-        config: createCameraConfig({
-          dependencies: {
-            all_cameras: true,
-          },
-        }),
-      },
-      {
-        cameraID: 'camera.kitchen',
-        capabilities: createCapabilities({
-          substream: true,
-        }),
-      },
-    ]),
-  );
+  const store = createStore([
+    {
+      cameraID: 'camera.office',
+      capabilities: createCapabilities({
+        live: true,
+        substream: true,
+      }),
+      config: createCameraConfig({
+        dependencies: {
+          all_cameras: true,
+        },
+      }),
+    },
+    {
+      cameraID: 'camera.kitchen',
+      capabilities: createCapabilities({
+        substream: true,
+      }),
+    },
+  ]);
+  vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
   vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig(config));
   return api;
 };
@@ -97,8 +95,22 @@ describe('should turn on substream', () => {
     expect(hasSubstream(view)).toBe(false);
 
     const api = createCardAPI();
-    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    const cameraManager = createCameraManager(createStore([]));
+    vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
 
+    const modifier = new SubstreamOnViewModifier(api);
+    modifier.modify(view);
+
+    expect(hasSubstream(view)).toBe(false);
+  });
+
+  it('without camera', () => {
+    const view = createView({
+      camera: null,
+      view: 'live',
+    });
+
+    const api = createCardAPI();
     const modifier = new SubstreamOnViewModifier(api);
     modifier.modify(view);
 

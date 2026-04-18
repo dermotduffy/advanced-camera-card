@@ -2,8 +2,9 @@ import { merge } from 'lodash-es';
 import { ViewContext } from 'view';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
 import { ViewDisplayMode } from '../config/schema/common/display';
-import { Query } from './query';
+import { ViewMediaType } from '../types';
 import { QueryResults } from './query-results';
+import { UnifiedQuery } from './unified-query';
 
 declare module 'view' {
   interface ViewContext {
@@ -15,8 +16,8 @@ declare module 'view' {
 
 interface ViewEvolveParameters {
   view?: AdvancedCameraCardView;
-  camera?: string;
-  query?: Query | null;
+  camera?: string | null;
+  query?: UnifiedQuery | null;
   queryResults?: QueryResults | null;
   context?: ViewContext | null;
   displayMode?: ViewDisplayMode | null;
@@ -24,7 +25,6 @@ interface ViewEvolveParameters {
 
 export interface ViewParameters extends ViewEvolveParameters {
   view: AdvancedCameraCardView;
-  camera: string;
 }
 
 export const mergeViewContext = (
@@ -36,15 +36,15 @@ export const mergeViewContext = (
 
 export class View {
   public view: AdvancedCameraCardView;
-  public camera: string;
-  public query: Query | null;
+  public camera: string | null;
+  public query: UnifiedQuery | null;
   public queryResults: QueryResults | null;
   public context: ViewContext | null;
   public displayMode: ViewDisplayMode | null;
 
   constructor(params: ViewParameters) {
     this.view = params.view;
-    this.camera = params.camera;
+    this.camera = params.camera ?? null;
     this.query = params.query ?? null;
     this.queryResults = params.queryResults ?? null;
     this.context = params.context ?? null;
@@ -123,10 +123,17 @@ export class View {
   }
 
   /**
-   * Determine if a view is a media gallery.
+   * Determine if a view is a gallery.
    */
-  public isMediaGalleryView(): boolean {
-    return ['clips', 'folders', 'snapshots', 'recordings'].includes(this.view);
+  public isGalleryView(): boolean {
+    return [
+      'clips',
+      'folders',
+      'gallery',
+      'snapshots',
+      'recordings',
+      'reviews',
+    ].includes(this.view);
   }
 
   /**
@@ -145,19 +152,16 @@ export class View {
    * Determine if a view is for the media viewer.
    */
   public isViewerView(): boolean {
-    return ['folder', 'media', 'clip', 'snapshot', 'recording'].includes(this.view);
+    return ['folder', 'media', 'clip', 'snapshot', 'recording', 'review'].includes(
+      this.view,
+    );
   }
 
   public supportsMultipleDisplayModes(): boolean {
     return this.isViewerView() || this.is('live');
   }
 
-  /**
-   * Get the default media type for this view if available.
-   * @returns Whether the default media is `clips`, `snapshots`, `recordings` or unknown
-   * (`null`).
-   */
-  public getDefaultMediaType(): 'clips' | 'snapshots' | 'recordings' | null {
+  public getDefaultMediaType(): ViewMediaType | null {
     if (['clip', 'clips'].includes(this.view)) {
       return 'clips';
     }
@@ -166,6 +170,9 @@ export class View {
     }
     if (['recording', 'recordings'].includes(this.view)) {
       return 'recordings';
+    }
+    if (['review', 'reviews'].includes(this.view)) {
+      return 'reviews';
     }
     return null;
   }

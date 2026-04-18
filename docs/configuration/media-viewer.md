@@ -1,6 +1,6 @@
 # `media_viewer`
 
-The `media_player` section configures viewing all `clip`, `snapshot` or `recording` media, in either a media carousel or grid.
+The `media_viewer` section configures viewing all `clip`, `snapshot`, `recording`, `review`, `folder` or `media` view, in either a media carousel or grid.
 
 ```yaml
 media_viewer:
@@ -9,12 +9,12 @@ media_viewer:
 
 | Option                      | Default                | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | --------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `actions`                   |                        | [Actions](actions/README.md) to use for all views that use the `media_viewer` (e.g. `clip`, `snapshot`).                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `actions`                   |                        | [Actions](actions/README.md) to use for all views that use the `media_viewer` (e.g. `media`, `clip`, `snapshot`, `recording`, `review`, `folder`).                                                                                                                                                                                                                                                                                                                                                                            |
 | `auto_mute`                 | `[unselected, hidden]` | A list of conditions in which media items are muted. `unselected` will automatically mute when a media item is unselected in the carousel or grid. `hidden` will automatically mute when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically mute.                                                                                                                                                                                                                                                |
 | `auto_pause`                | `[unselected, hidden]` | A list of conditions in which media items are automatically paused. `unselected` will automatically pause when a media item is unselected in the carousel or grid. `hidden` will automatically pause when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically pause.                                                                                                                                                                                                                              |
 | `auto_play`                 | `[selected, visible]`  | A list of conditions in which media items are automatically played. `selected` will automatically play when a media item is selected in a carousel or grid. `visible` will automatically play when a media item becomes visible (e.g. browser tab change, or visible in a grid but not selected). Use an empty list (`[]`) to never automatically play.                                                                                                                                                                       |
 | `auto_unmute`               | `[]`                   | A list of conditions in which media items are unmuted. `selected` will automatically unmute when a media item is selected in a carousel or grid. `visible` will automatically unmute when a media item becomes visible (e.g. a browser/tab change, or visible in a grid but not selected). Use an empty list (`[]`) to never automatically unmute. Some browsers will not allow automated unmute until the user has interacted with the page in some way -- if the user has not then the browser may pause the media instead. |
-| `controls`                  |                        | Configuration for the Media viewer controls. See below.                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `controls`                  |                        | Configuration for the Media viewer controls. See [`controls`](#controls).                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `draggable`                 | `true`                 | Whether or not the Media viewer carousel can be dragged left or right, via touch/swipe and mouse dragging.                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `lazy_load`                 | `true`                 | Whether or not to lazily load media in the Media viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load.                                                                                                                                                                                                                                                             |
 | `snapshot_click_plays_clip` | `true`                 | Whether clicking on a snapshot in the media viewer should play a related clip.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
@@ -31,13 +31,13 @@ media_viewer:
     # [...]
 ```
 
-| Option          | Default | Description                                                                             |
-| --------------- | ------- | --------------------------------------------------------------------------------------- |
-| `builtin`       | `true`  | Whether to show the built in (browser) video controls on media viewer videos.           |
-| `next_previous` |         | Configures how the "Next & Previous" controls are shown on the media viewer. See below. |
-| `thumbnails`    |         | Configures how thumbnails are shown on the media viewer. See below.                     |
-| `timeline`      |         | Configures how the mini-timeline is shown on the media viewer. See below.               |
-| `wheel`         | `true`  | Whether to allow mouse wheel to scroll through the carousel.                            |
+| Option          | Default | Description                                                                                                         |
+| --------------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
+| `builtin`       | `true`  | Whether to show the built in (browser) video controls on media viewer videos.                                       |
+| `next_previous` |         | Configures how the "Next & Previous" controls are shown on the media viewer. See [`next_previous`](#next_previous). |
+| `thumbnails`    |         | Configures how thumbnails are shown on the media viewer. See [`thumbnails`](#thumbnails).                           |
+| `timeline`      |         | Configures how the mini-timeline is shown on the media viewer. See [`timeline`](#timeline).                         |
+| `wheel`         | `true`  | Whether to allow mouse wheel to scroll through the carousel.                                                        |
 
 ### `next_previous`
 
@@ -93,9 +93,11 @@ media_viewer:
 | ----------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mode`                  | `none`  | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`). |
 | `show_details`          | `false` | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.                                                        |
-| `show_download_control` | `true`  | Whether to show the download control on each thumbnail.                                                                                                         |
+| `show_download_control` | `false` | Whether to show the download control on each thumbnail.                                                                                                         |
 | `show_favorite_control` | `true`  | Whether to show the favorite ('star') control on each thumbnail.                                                                                                |
-| `show_timeline_control` | `true`  | Whether to show the timeline ('target') control on each thumbnail.                                                                                              |
+| `show_info_control`     | `true`  | Whether to show the info ('i') control on each thumbnail.                                                                                                       |
+| `show_review_control`   | `true`  | Whether to show the review ('check') control on each thumbnail.                                                                                                 |
+| `show_timeline_control` | `false` | Whether to show the timeline ('target') control on each thumbnail.                                                                                              |
 | `size`                  | `100`   | The size of the thumbnails in the thumbnail carousel pixels. Must be &gt;= `75` and &lt;= `300`.                                                                |
 
 ### `timeline`
@@ -112,8 +114,7 @@ media_viewer:
 | Option                 | Default  | Description                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | ---------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `clustering_threshold` | `3`      | The minimum number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. Depending on the timescale/zoom of the timeline, the underlying timeline library may still allow overlaps for low values of this parameter -- for a fully "flat" timeline use the `ribbon` style. `0` disables clustering entirely. Only used in the `stack` style of timeline. |
-| `events_media_type`    | `all`    | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot.                                                                                                                                                                                                                                                     |
-| `format`               |          | Configuration for the timeline time & date format. See below.                                                                                                                                                                                                                                                                                                                                                                   |
+| `format`               |          | Configuration for the timeline time & date format. See [`format`](#format).                                                                                                                                                                                                                                                                                                                                                     |
 | `mode`                 | `none`   | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).                                                                                                                                                                                                                                                                 |
 | `pan_mode`             | `pan`    | See [timeline pan mode](timeline-pan-mode.md).                                                                                                                                                                                                                                                                                                                                                                                  |
 | `show_recordings`      | `true`   | Whether to show recordings on the timeline (specifically: which hours have any recorded content).                                                                                                                                                                                                                                                                                                                               |
@@ -199,15 +200,16 @@ media_viewer:
       size: 100
       mode: none
       show_details: false
-      show_download_control: true
+      show_download_control: false
       show_favorite_control: true
-      show_timeline_control: true
+      show_info_control: true
+      show_review_control: true
+      show_timeline_control: false
     timeline:
       style: ribbon
       mode: none
       pan_mode: pan
       clustering_threshold: 3
-      events_media_type: all
       show_recordings: true
       window_seconds: 3600
       format:

@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { linkSchema } from '../common/link';
+import { severitySchema } from '../common/severity';
 import { statusBarItemBaseSchema } from '../common/status-bar';
 import { advancedCameraCardCustomActionsBaseSchema } from './custom/base';
 import { cameraSelectActionConfigSchema } from './custom/camera-select';
@@ -12,14 +14,32 @@ import { ptzActionConfigSchema } from './custom/ptz';
 import { ptzControlsActionConfigSchema } from './custom/ptz-controls';
 import { ptzDigitalActionConfigSchema } from './custom/ptz-digital';
 import { ptzMultiActionSchema } from './custom/ptz-multi';
+import { setReviewActionConfigSchema } from './custom/set-review';
 import { sleepActionConfigSchema } from './custom/sleep';
 import { substreamSelectActionConfigSchema } from './custom/substream-select';
 import { viewActionConfigSchema } from './custom/view';
 import { stockActionSchema } from './stock/types';
 
-// Provide a manual type definition to avoid the `any` that would be created by
-// the lazy() evaluation below.
+// ============================================================================
+// Notification and Status Bar action schemas are co-located here because their
+// content schemas reference actionConfigSchema (creating a circular dep).
+// Each uses z.lazy + a manual type annotation to break the cycle and preserve
+// correct type inference.
 // See: https://zod.dev/?id=recursive-types
+// ============================================================================
+
+export type NotificationActionConfig = z.infer<
+  typeof advancedCameraCardCustomActionsBaseSchema
+> & {
+  advanced_camera_card_action: 'notification';
+  notification: Notification;
+};
+const notificationActionConfigSchema: z.ZodSchema<NotificationActionConfig> =
+  advancedCameraCardCustomActionsBaseSchema.extend({
+    advanced_camera_card_action: z.literal('notification'),
+    notification: z.lazy(() => notificationSchema),
+  });
+
 export type StatusBarActionConfig = z.infer<
   typeof advancedCameraCardCustomActionsBaseSchema
 > & {
@@ -27,18 +47,15 @@ export type StatusBarActionConfig = z.infer<
   status_bar_action: 'add' | 'remove' | 'reset';
   items?: StatusBarItem[];
 };
-export const statusBarActionConfigSchema: z.ZodSchema<
-  StatusBarActionConfig,
-  z.ZodTypeDef,
-  unknown
-> = advancedCameraCardCustomActionsBaseSchema.extend({
-  advanced_camera_card_action: z.literal('status_bar'),
-  status_bar_action: z.enum(['add', 'remove', 'reset']),
-  items: z
-    .lazy(() => statusBarItemSchema)
-    .array()
-    .optional(),
-});
+export const statusBarActionConfigSchema: z.ZodSchema<StatusBarActionConfig> =
+  advancedCameraCardCustomActionsBaseSchema.extend({
+    advanced_camera_card_action: z.literal('status_bar'),
+    status_bar_action: z.enum(['add', 'remove', 'reset']),
+    items: z
+      .lazy(() => statusBarItemSchema)
+      .array()
+      .optional(),
+  });
 
 const advancedCameraCardCustomActionSchema = z.union([
   cameraSelectActionConfigSchema,
@@ -47,10 +64,12 @@ const advancedCameraCardCustomActionSchema = z.union([
   internalCallbackActionConfigSchema,
   logActionConfigSchema,
   mediaPlayerActionConfigSchema,
+  notificationActionConfigSchema,
   ptzActionConfigSchema,
   ptzControlsActionConfigSchema,
   ptzDigitalActionConfigSchema,
   ptzMultiActionSchema,
+  setReviewActionConfigSchema,
   sleepActionConfigSchema,
   statusBarActionConfigSchema,
   substreamSelectActionConfigSchema,
@@ -78,7 +97,7 @@ export const actionsBaseSchema = z
   // Passthrough to allow (at least) entity/camera_image to go through. This
   // card doesn't need these attributes, but handleAction() in
   // custom_card_helpers may depending on how the action is configured.
-  .passthrough();
+  .loose();
 export type Actions = z.infer<typeof actionsBaseSchema>;
 
 export interface AuxillaryActionConfig {
@@ -90,6 +109,39 @@ export type ActionsConfig = Actions & AuxillaryActionConfig;
 export const actionsSchema = z.object({
   actions: actionsBaseSchema.optional(),
 });
+
+// ============================================================================
+//                         Notification Elements
+//
+// Note: Notification schemas are defined here (after actionsBaseSchema) so
+// controls can directly reference actionsBaseSchema without z.lazy.
+// ============================================================================
+
+const notificationBaseSchema = z.object({
+  icon: z.string().optional(),
+  tooltip: z.string().optional(),
+  severity: severitySchema.optional(),
+});
+
+const notificationDetailSchema = notificationBaseSchema.extend({
+  text: z.string(),
+});
+export type NotificationDetail = z.infer<typeof notificationDetailSchema>;
+
+const notificationControlSchema = notificationBaseSchema.extend({
+  actions: actionsBaseSchema.optional(),
+  dismiss: z.boolean().default(true),
+});
+export type NotificationControl = z.infer<typeof notificationControlSchema>;
+
+const notificationSchema = z.object({
+  heading: notificationDetailSchema.optional(),
+  controls: notificationControlSchema.array().optional(),
+  details: notificationDetailSchema.array().optional(),
+  text: z.string().optional(),
+  link: linkSchema.optional(),
+});
+export type Notification = z.infer<typeof notificationSchema>;
 
 // ============================================================================
 //                         Status Bar Elements
@@ -106,6 +158,8 @@ const statusBarItemElementsBaseSchema = statusBarItemBaseSchema.extend({
   sufficient: z.boolean().default(false).optional(),
   exclusive: z.boolean().default(false).optional(),
   expand: z.boolean().default(false).optional(),
+  severity: severitySchema.optional(),
+  title: z.string().optional(),
   actions: actionsBaseSchema.optional(),
 });
 

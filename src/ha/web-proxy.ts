@@ -1,4 +1,4 @@
-import { CameraProxyConfig } from '../camera-manager/types';
+import { EnabledProxyConfig, ResolvedProxyConfig } from '../config/schema/common/proxy';
 import { Endpoint } from '../types';
 import { HomeAssistant } from './types';
 
@@ -26,22 +26,12 @@ export const getWebProxiedURL = (url: string, options?: ProxiedURLOptions): stri
   );
 };
 
-export const shouldUseWebProxy = (
-  hass: HomeAssistant,
-  proxyConfig: CameraProxyConfig,
-  context: 'media' | 'live' = 'media',
-): boolean => {
-  return hasWebProxyAvailable(hass) && !!proxyConfig[context];
-};
-
 export async function addDynamicProxyURL(
   hass: HomeAssistant,
   url_pattern: string,
   options?: {
-    proxyConfig?: CameraProxyConfig;
+    proxyConfig?: ResolvedProxyConfig;
     urlID?: string;
-    sslVerification?: boolean;
-    sslCiphers?: string;
     openLimit?: number;
     ttl?: number;
     allowUnauthenticated?: boolean;
@@ -51,9 +41,8 @@ export async function addDynamicProxyURL(
     url_pattern: url_pattern,
     ...(options && {
       url_id: options.urlID,
-      ssl_verification:
-        options.sslVerification ?? options?.proxyConfig?.ssl_verification,
-      ssl_ciphers: options.sslCiphers ?? options?.proxyConfig?.ssl_ciphers,
+      ssl_verification: options.proxyConfig?.ssl_verification,
+      ssl_ciphers: options.proxyConfig?.ssl_ciphers,
       open_limit: options.openLimit,
       ttl: options.ttl,
       allow_unauthenticated: options.allowUnauthenticated,
@@ -61,8 +50,7 @@ export async function addDynamicProxyURL(
   });
 }
 
-interface CreateProxiedEndpointOptions {
-  context?: 'live' | 'media';
+export interface CreateProxiedEndpointOptions {
   ttl?: number;
   websocket?: boolean;
   openLimit?: number;
@@ -73,25 +61,31 @@ interface CreateProxiedEndpointOptions {
  * Handles dynamic proxy registration and returns a proxied Endpoint.
  * @param hass Home Assistant instance.
  * @param endpoint The endpoint to potentially proxy.
- * @param proxyConfig The camera proxy configuration. If undefined, returns original endpoint.
+ * @param proxyConfig The proxy configuration. If undefined or not enabled,
+ * returns the original endpoint.
  * @param options Additional options for proxy registration.
- * @returns Proxied Endpoint if proxying needed, original endpoint otherwise.
+ * @returns Proxied Endpoint if proxying needed, original endpoint if proxying
+ * is not enabled, or null if proxying is required but unavailable.
  */
 export const createProxiedEndpointIfNecessary = async (
   hass: HomeAssistant,
   endpoint: Endpoint,
-  proxyConfig?: CameraProxyConfig,
+  proxyConfig?: EnabledProxyConfig,
   options?: CreateProxiedEndpointOptions,
-): Promise<Endpoint> => {
-  const context = options?.context ?? 'media';
-  if (!proxyConfig || !shouldUseWebProxy(hass, proxyConfig, context)) {
+): Promise<Endpoint | null> => {
+  if (!proxyConfig || !proxyConfig.enabled) {
     return endpoint;
   }
+
+  if (!hasWebProxyAvailable(hass)) {
+    return proxyConfig.enforce === true ? null : endpoint;
+  }
+
   if (proxyConfig.dynamic) {
-    // Strip hash fragment for registration - it's client-side only and
-    // not relevant for proxy pattern matching.
-    const registrationUrl = endpoint.endpoint.split(/#/)[0];
-    await addDynamicProxyURL(hass, registrationUrl, {
+    // Strip hash fragment — it's client-side only and not relevant for
+    // proxy pattern matching.
+    const url = endpoint.endpoint.split(/#/)[0];
+    await addDynamicProxyURL(hass, url, {
       proxyConfig,
       ttl: options?.ttl,
       openLimit: options?.openLimit ?? 0,

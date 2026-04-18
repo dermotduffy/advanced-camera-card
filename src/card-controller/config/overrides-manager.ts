@@ -94,7 +94,7 @@ export class OverridesManager {
     if (!parseResult.success) {
       throw new OverrideConfigurationError(
         localize('error.invalid_configuration_override'),
-        [parseResult.error.errors, output],
+        [parseResult.error.issues, output],
       );
     }
     return parseResult.data;

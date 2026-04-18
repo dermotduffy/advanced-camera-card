@@ -313,13 +313,16 @@ describe('setRemoteControlEntityFromConfig', () => {
   });
 
   describe('should select option on entity', () => {
-    it('should select option when camera differs from entity state', () => {
+    it('should select option when camera differs from entity state', async () => {
       const hass = createHASS({
         'input_select.camera': createStateEntity({
           state: 'camera.one',
         }),
       });
       const api = createCardAPI();
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([{ cameraID: 'camera.two' }]),
+      );
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
@@ -349,7 +352,7 @@ describe('setRemoteControlEntityFromConfig', () => {
         INTERNAL_CALLBACK_ACTION,
       );
 
-      cameraSyncAction.callback(api);
+      await cameraSyncAction.callback(api);
       expect(hass.callService).toBeCalledWith(
         'input_select',
         'select_option',
@@ -369,6 +372,9 @@ describe('setRemoteControlEntityFromConfig', () => {
         }),
       });
       const api = createCardAPI();
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([{ cameraID: 'camera.one' }]),
+      );
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
@@ -441,7 +447,47 @@ describe('setRemoteControlEntityFromConfig', () => {
       expect(hass.callService).not.toBeCalled();
     });
 
-    it('should not throw when hass is undefined', () => {
+    it('should not select option when view exists but has no camera', () => {
+      const hass = createHASS({
+        'input_select.camera': createStateEntity({
+          state: 'camera.one',
+        }),
+      });
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          remote_control: {
+            entities: {
+              camera: 'input_select.camera',
+              camera_priority: 'card',
+            },
+          },
+        }),
+      );
+      vi.mocked(api.getViewManager().getView).mockReturnValue(
+        createView({
+          camera: null,
+          view: 'live',
+        }),
+      );
+
+      setRemoteControlEntityFromConfig(api);
+
+      // Test the 'camera' condition callback (automation index 1)
+      const cameraSyncAction = vi.mocked(api.getAutomationsManager().addAutomations).mock
+        .calls[0][0][1].actions?.[0] as InternalCallbackActionConfig;
+      cameraSyncAction.callback(api);
+      expect(hass.callService).not.toBeCalled();
+
+      // Also test the 'initialized' condition callback (automation index 2)
+      const initializedSyncAction = vi.mocked(api.getAutomationsManager().addAutomations)
+        .mock.calls[0][0][2].actions?.[0] as InternalCallbackActionConfig;
+      initializedSyncAction.callback(api);
+      expect(hass.callService).not.toBeCalled();
+    });
+
+    it('should not throw when hass is undefined', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
@@ -472,12 +518,15 @@ describe('setRemoteControlEntityFromConfig', () => {
       );
 
       // Should not throw and obviously not call service (as hass is null)
-      cameraSyncAction.callback(api);
+      await cameraSyncAction.callback(api);
     });
 
-    it('should select option when entity state is undefined', () => {
+    it('should select option when entity state is undefined', async () => {
       const hass = createHASS({});
       const api = createCardAPI();
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([{ cameraID: 'camera.two' }]),
+      );
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
@@ -506,7 +555,7 @@ describe('setRemoteControlEntityFromConfig', () => {
         INTERNAL_CALLBACK_ACTION,
       );
 
-      cameraSyncAction.callback(api);
+      await cameraSyncAction.callback(api);
       expect(hass.callService).toBeCalledWith(
         'input_select',
         'select_option',
@@ -519,13 +568,16 @@ describe('setRemoteControlEntityFromConfig', () => {
       );
     });
 
-    it('should select option on initialization with card priority', () => {
+    it('should select option on initialization with card priority', async () => {
       const hass = createHASS({
         'input_select.camera': createStateEntity({
           state: 'camera.one',
         }),
       });
       const api = createCardAPI();
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([{ cameraID: 'camera.two' }]),
+      );
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
@@ -553,7 +605,7 @@ describe('setRemoteControlEntityFromConfig', () => {
       expect(isAdvancedCameraCardCustomAction(initAction)).toBeTruthy();
       expect(initAction.advanced_camera_card_action).toBe(INTERNAL_CALLBACK_ACTION);
 
-      initAction.callback(api);
+      await initAction.callback(api);
       expect(hass.callService).toBeCalledWith(
         'input_select',
         'select_option',
