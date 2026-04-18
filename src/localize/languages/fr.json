@@ -21,6 +21,7 @@
         "editor_label": "Mode appel",
         "enabled": "Activer le mode appel",
         "end_call_on_view_change": "Terminer l'appel si un changement de vue est tenté",
+        "hide_menu_during_call": "Empêcher l'affichage du menu des boutons pendant un appel",
         "lock_navigation": "Verrouiller la navigation pendant un appel",
         "resume_normal_stream_on_end": "Reprendre le flux normal à la fin de l'appel",
         "show_in_menu": "Afficher le bouton d'appel dans le menu",

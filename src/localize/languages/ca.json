@@ -21,6 +21,7 @@
         "editor_label": "Mode de trucada",
         "enabled": "Activa el mode de trucada",
         "end_call_on_view_change": "Finalitza la trucada si s'intenta canviar de vista",
+        "hide_menu_during_call": "Evita mostrar el menú de botons durant la trucada",
         "lock_navigation": "Bloqueja la navegació durant una trucada",
         "resume_normal_stream_on_end": "Reprèn el flux normal en finalitzar la trucada",
         "show_in_menu": "Mostra el botó de trucada al menú",

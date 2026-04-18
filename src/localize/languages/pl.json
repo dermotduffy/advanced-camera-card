@@ -28,6 +28,7 @@
         "editor_label": "Tryb połączenia",
         "enabled": "Włącz tryb połączenia",
         "end_call_on_view_change": "Zakończ połączenie przy próbie zmiany widoku",
+        "hide_menu_during_call": "Zapobiegaj wyświetlaniu menu przycisków podczas połączenia",
         "lock_navigation": "Zablokuj nawigację podczas połączenia",
         "resume_normal_stream_on_end": "Przywróć normalny strumień po zakończeniu połączenia",
         "show_in_menu": "Pokaż przycisk połączenia w menu",

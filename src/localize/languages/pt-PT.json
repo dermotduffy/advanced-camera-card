@@ -21,6 +21,7 @@
         "editor_label": "Modo de chamada",
         "enabled": "Ativar modo de chamada",
         "end_call_on_view_change": "Terminar a chamada se for tentada uma mudança de vista",
+        "hide_menu_during_call": "Impedir a apresentação do menu de botões durante a chamada",
         "lock_navigation": "Bloquear a navegação durante uma chamada",
         "resume_normal_stream_on_end": "Retomar o fluxo normal ao terminar a chamada",
         "show_in_menu": "Mostrar botão de chamada no menu",

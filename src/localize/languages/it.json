@@ -21,6 +21,7 @@
         "editor_label": "Modalità chiamata",
         "enabled": "Abilita modalità chiamata",
         "end_call_on_view_change": "Termina la chiamata se viene tentato un cambio di vista",
+        "hide_menu_during_call": "Impedisci la visualizzazione del menu dei pulsanti durante una chiamata",
         "lock_navigation": "Blocca la navigazione durante una chiamata",
         "resume_normal_stream_on_end": "Ripristina il flusso normale al termine della chiamata",
         "show_in_menu": "Mostra il pulsante di chiamata nel menu",

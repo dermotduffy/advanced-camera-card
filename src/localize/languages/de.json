@@ -27,6 +27,7 @@
         "editor_label": "Anrufmodus",
         "enabled": "Anrufmodus aktivieren",
         "end_call_on_view_change": "Anruf beenden, wenn ein Ansichtswechsel versucht wird",
+        "hide_menu_during_call": "Anzeige des Schaltflächenmenüs während eines Anrufs verhindern",
         "lock_navigation": "Navigation während eines Anrufs sperren",
         "resume_normal_stream_on_end": "Nach dem Anruf zum normalen Stream zurückkehren",
         "show_in_menu": "Anrufknopf im Menü anzeigen",
