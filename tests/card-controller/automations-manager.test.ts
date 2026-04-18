@@ -1,10 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ActionsExecutionRequest } from '../../src/card-controller/actions/types.js';
 import { AutomationsManager } from '../../src/card-controller/automations-manager.js';
+import { CallSessionState } from '../../src/card-controller/call-manager.js';
 import { ConditionStateManager } from '../../src/conditions/state-manager.js';
 import { createCardAPI } from '../test-utils.js';
 
 describe('AutomationsManager', () => {
+  const createCallState = (state: CallSessionState['state']): CallSessionState => ({
+    state,
+    lockNavigation: false,
+    autoEnableMicrophone: true,
+    autoEnableSpeaker: true,
+    resumeNormalStreamOnEnd: true,
+    endCallOnViewChange: false,
+  });
+
   const actions = [
     {
       action: 'fire-dom-event' as const,
@@ -121,6 +131,56 @@ describe('AutomationsManager', () => {
 
     stateManager.setState({ fullscreen: false });
     expect(api.getActionsManager().executeActions).toBeCalled();
+  });
+
+  it('should execute actions on call_started and call_ended', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+      true,
+    );
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
+    const automationsManager = new AutomationsManager(api);
+    automationsManager.addAutomations([
+      {
+        conditions: [{ condition: 'call_started' as const }],
+        actions,
+      },
+      {
+        conditions: [{ condition: 'call_ended' as const }],
+        actions,
+      },
+    ]);
+
+    stateManager.setState({ call: createCallState('connecting_call') });
+    expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
+
+    stateManager.setState({ call: createCallState('in_call') });
+    expect(api.getActionsManager().executeActions).toHaveBeenNthCalledWith(1, {
+      actions,
+      triggerData: {
+        call: {
+          from: 'connecting_call',
+          to: 'in_call',
+        },
+      },
+    });
+
+    stateManager.setState({ call: createCallState('ending_call') });
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(1);
+
+    stateManager.setState({ call: createCallState('idle') });
+    expect(api.getActionsManager().executeActions).toHaveBeenNthCalledWith(2, {
+      actions,
+      triggerData: {
+        call: {
+          from: 'ending_call',
+          to: 'idle',
+        },
+      },
+    });
   });
 
   it('should prevent automation loops', () => {

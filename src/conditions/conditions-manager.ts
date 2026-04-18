@@ -156,6 +156,40 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
           }),
         };
       }
+      case 'call_started': {
+        const oldCallState = oldState?.call?.state;
+        const newCallState = newState?.call?.state;
+        const started = oldCallState !== 'in_call' && newCallState === 'in_call';
+
+        return {
+          result: started,
+          ...(started && {
+            triggerData: {
+              call: {
+                ...(oldCallState && { from: oldCallState }),
+                to: 'in_call',
+              },
+            },
+          }),
+        };
+      }
+      case 'call_ended': {
+        const oldCallState = oldState?.call?.state;
+        const newCallState = newState?.call?.state;
+        const ended = !!oldCallState && oldCallState !== 'idle' && newCallState === 'idle';
+
+        return {
+          result: ended,
+          ...(ended && {
+            triggerData: {
+              call: {
+                from: oldCallState,
+                to: 'idle',
+              },
+            },
+          }),
+        };
+      }
       case 'view': {
         const oldView = oldState?.view;
         const newView = newState?.view;

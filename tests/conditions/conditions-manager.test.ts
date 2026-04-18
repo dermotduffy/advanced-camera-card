@@ -1,5 +1,6 @@
 import { HassEntities } from 'home-assistant-js-websocket';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { CallSessionState } from '../../src/card-controller/call-manager';
 import { MicrophoneState } from '../../src/card-controller/types';
 import { ConditionsManager } from '../../src/conditions/conditions-manager';
 import { ConditionStateManager } from '../../src/conditions/state-manager';
@@ -24,7 +25,74 @@ describe('ConditionsManager', () => {
     vi.restoreAllMocks();
   });
 
+  const createCallState = (state: CallSessionState['state']): CallSessionState => ({
+    state,
+    lockNavigation: false,
+    autoEnableMicrophone: true,
+    autoEnableSpeaker: true,
+    resumeNormalStreamOnEnd: true,
+    endCallOnViewChange: false,
+  });
+
   describe('should evaluate conditions', () => {
+    describe('with call lifecycle conditions', () => {
+      it('should match call_started when a call becomes active', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager(
+          [{ condition: 'call_started' as const }],
+          stateManager,
+        );
+        const listener = vi.fn();
+        manager.addListener(listener);
+
+        stateManager.setState({ call: createCallState('connecting_call') });
+        expect(listener).not.toHaveBeenCalled();
+
+        stateManager.setState({ call: createCallState('in_call') });
+        expect(listener).toHaveBeenLastCalledWith({
+          result: true,
+          triggerData: {
+            call: {
+              from: 'connecting_call',
+              to: 'in_call',
+            },
+          },
+        });
+
+        stateManager.setState({ call: createCallState('in_call') });
+        expect(listener).toHaveBeenCalledTimes(1);
+      });
+
+      it('should match call_ended when a call returns to idle', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager(
+          [{ condition: 'call_ended' as const }],
+          stateManager,
+        );
+        const listener = vi.fn();
+        manager.addListener(listener);
+
+        stateManager.setState({ call: createCallState('connecting_call') });
+        stateManager.setState({ call: createCallState('in_call') });
+        stateManager.setState({ call: createCallState('ending_call') });
+        expect(listener).not.toHaveBeenCalled();
+
+        stateManager.setState({ call: createCallState('idle') });
+        expect(listener).toHaveBeenLastCalledWith({
+          result: true,
+          triggerData: {
+            call: {
+              from: 'ending_call',
+              to: 'idle',
+            },
+          },
+        });
+
+        stateManager.setState({ call: createCallState('idle') });
+        expect(listener).toHaveBeenCalledTimes(1);
+      });
+    });
+
     describe('with a view condition', () => {
       it('should match named view change', () => {
         const stateManager = new ConditionStateManager();

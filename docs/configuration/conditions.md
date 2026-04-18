@@ -45,6 +45,40 @@ conditions:
 | `condition` | Must be `camera`.                                                                                                                                                                     |
 | `cameras`   | An optional list of camera IDs in which this condition is satisfied. If not specified, any camera change will satisy the condition. See the camera [id](cameras/README.md) parameter. |
 
+## `call_ended`
+
+Matches when a call session returns to `idle`.
+
+```yaml
+conditions:
+  - condition: call_ended
+```
+
+| Parameter   | Description           |
+| ----------- | --------------------- |
+| `condition` | Must be `call_ended`. |
+
+> [!NOTE]
+> This is primarily useful for running [automations](./automations.md) when a
+> call session finishes.
+
+## `call_started`
+
+Matches when a call session becomes active (`in_call`).
+
+```yaml
+conditions:
+  - condition: call_started
+```
+
+| Parameter   | Description             |
+| ----------- | ----------------------- |
+| `condition` | Must be `call_started`. |
+
+> [!NOTE]
+> This is primarily useful for running [automations](./automations.md) when a
+> call session has been established.
+
 ## `config`
 
 Matches when card configuration changes (e.g. on startup, or when [Configuration Overrides](./overrides.md) are applied).
@@ -387,6 +421,8 @@ conditions:
  - condition: camera
    cameras:
      - camera.office
+  - condition: call_ended
+  - condition: call_started
   - condition: config
     paths:
       - "menu.style"

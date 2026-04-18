@@ -1,5 +1,5 @@
 import { KeysState, MicrophoneState } from '../card-controller/types';
-import type { CallSessionState } from '../card-controller/call-manager';
+import type { CallSessionState, CallState } from '../card-controller/call-manager';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
 import { ViewDisplayMode } from '../config/schema/common/display';
 import { AdvancedCameraCardConfig } from '../config/schema/types';
@@ -44,6 +44,11 @@ interface ConditionsTriggerDataFromTo {
   to?: string;
 }
 
+interface ConditionsTriggerDataCall {
+  from?: CallState;
+  to?: CallState;
+}
+
 interface ConditionsTriggerDataState extends ConditionsTriggerDataFromTo {
   entity: string;
 }
@@ -54,6 +59,7 @@ interface ConditionsTriggerDataConfig {
 }
 
 export interface ConditionsTriggerData {
+  call?: ConditionsTriggerDataCall;
   camera?: ConditionsTriggerDataFromTo;
   view?: ConditionsTriggerDataFromTo;
   state?: ConditionsTriggerDataState;
