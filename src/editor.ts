@@ -41,6 +41,7 @@ import {
   CONF_CAMERAS_ARRAY_CALL_MODE_ALLOW_REGULAR_MIC_BUTTON,
   CONF_CAMERAS_ARRAY_CALL_MODE_ENABLED,
   CONF_CAMERAS_ARRAY_CALL_MODE_END_CALL_ON_VIEW_CHANGE,
+  CONF_CAMERAS_ARRAY_CALL_MODE_HIDE_MENU_DURING_CALL,
   CONF_CAMERAS_ARRAY_CALL_MODE_LOCK_NAVIGATION,
   CONF_CAMERAS_ARRAY_CALL_MODE_RESUME_NORMAL_STREAM_ON_END,
   CONF_CAMERAS_ARRAY_CALL_MODE_SHOW_IN_MENU,
@@ -2748,6 +2749,18 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                           {
                             label: localize(
                               'config.cameras.call_mode.resume_normal_stream_on_end',
+                            ),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          getArrayConfigPath(
+                            CONF_CAMERAS_ARRAY_CALL_MODE_HIDE_MENU_DURING_CALL,
+                            cameraIndex,
+                          ),
+                          this._defaults.cameras.call_mode.hide_menu_during_call,
+                          {
+                            label: localize(
+                              'config.cameras.call_mode.hide_menu_during_call',
                             ),
                           },
                         )}

@@ -24,6 +24,10 @@ export class AdvancedCameraCardMenu extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
+  set suppressed(suppressed: boolean) {
+    this._controller.setSuppressed(suppressed);
+  }
+
   set menuConfig(menuConfig: MenuConfig) {
     this._controller.setMenuConfig(menuConfig);
   }
@@ -145,7 +149,7 @@ export class AdvancedCameraCardMenu extends LitElement {
   protected render(): TemplateResult | void {
     const config = this._controller.getMenuConfig();
     const style = config?.style;
-    if (!config || style === 'none') {
+    if (!config || style === 'none' || this._controller.isSuppressed()) {
       return;
     }
     const matchingButtons = this._controller.getButtons('matching');

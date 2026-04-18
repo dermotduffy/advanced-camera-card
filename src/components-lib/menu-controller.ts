@@ -15,6 +15,7 @@ export class MenuController {
   private _config: MenuConfig | null = null;
   private _buttons: MenuItem[] = [];
   private _expanded = false;
+  private _suppressed = false;
 
   constructor(host: LitElement) {
     this._host = host;
@@ -45,6 +46,10 @@ export class MenuController {
     return this._expanded;
   }
 
+  public isSuppressed(): boolean {
+    return this._suppressed;
+  }
+
   public setButtons(buttons: MenuItem[]): void {
     if (isEqual(buttons, this._buttons)) {
       return;
@@ -55,6 +60,10 @@ export class MenuController {
   }
 
   public getButtons(alignment: 'matching' | 'opposing'): MenuItem[] {
+    if (this._suppressed) {
+      return [];
+    }
+
     const aligned = (button: MenuItem): boolean => {
       return (
         button.alignment === alignment || (alignment === 'matching' && !button.alignment)
@@ -80,7 +89,23 @@ export class MenuController {
     this._host.requestUpdate();
   }
 
+  public setSuppressed(suppressed: boolean): void {
+    if (this._suppressed === suppressed) {
+      return;
+    }
+
+    this._suppressed = suppressed;
+    if (suppressed && this._expanded) {
+      this.setExpanded(false);
+      return;
+    }
+    this._host.requestUpdate();
+  }
+
   public toggleExpanded(): void {
+    if (this._suppressed) {
+      return;
+    }
     this.setExpanded(!this._expanded);
   }
 

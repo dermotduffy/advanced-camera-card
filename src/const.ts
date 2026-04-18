@@ -41,6 +41,8 @@ export const CONF_CAMERAS_ARRAY_CALL_MODE_AUTO_ENABLE_SPEAKER =
   `${CONF_CAMERAS}.#.call_mode.auto_enable_speaker` as const;
 export const CONF_CAMERAS_ARRAY_CALL_MODE_ALLOW_REGULAR_MIC_BUTTON =
   `${CONF_CAMERAS}.#.call_mode.allow_regular_mic_button` as const;
+export const CONF_CAMERAS_ARRAY_CALL_MODE_HIDE_MENU_DURING_CALL =
+  `${CONF_CAMERAS}.#.call_mode.hide_menu_during_call` as const;
 export const CONF_CAMERAS_ARRAY_CALL_MODE_LOCK_NAVIGATION =
   `${CONF_CAMERAS}.#.call_mode.lock_navigation` as const;
 export const CONF_CAMERAS_ARRAY_CALL_MODE_SHOW_IN_MENU =

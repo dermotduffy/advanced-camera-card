@@ -21,6 +21,7 @@ cameras:
 | `stream`                      |         | The dedicated `go2rtc` stream name to use while the call is active. This is required when `enabled` is `true`.                                                                                                                                                                 |
 | `auto_enable_microphone`      | `true`  | Whether the microphone should automatically be unmuted when the call stream finishes loading.                                                                                                                                                                                  |
 | `auto_enable_speaker`         | `true`  | Whether inbound audio should automatically be unmuted when the call stream finishes loading.                                                                                                                                                                                   |
+| `hide_menu_during_call`       | `true`  | Whether the regular built-in buttons menu should be suppressed while the call is active. This prevents taps on the live view from expanding the menu during a call session.                                                                                                   |
 | `lock_navigation`             | `true`  | Whether normal navigation should be blocked while the call is active.                                                                                                                                                                                                          |
 | `show_in_menu`                | `true`  | Whether the built-in `call` menu button should be shown for this camera. The button only appears in the live view when `call_mode.enabled` is `true`, no call is already active, and the active live view is not currently using a substream override. See [Menu](../menu.md). |
 | `resume_normal_stream_on_end` | `true`  | Whether ending the call should immediately restore the camera's normal live stream. If `false`, the card stays on the dedicated call stream and only exits the in-call state.                                                                                                  |
@@ -48,6 +49,7 @@ cameras:
       stream: front_door_intercom
       auto_enable_microphone: true
       auto_enable_speaker: true
+      hide_menu_during_call: true
       lock_navigation: true
       show_in_menu: true
       resume_normal_stream_on_end: true

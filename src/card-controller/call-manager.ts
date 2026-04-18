@@ -62,6 +62,17 @@ export class CallManager {
     return this.isActive() && this._state.endCallOnViewChange;
   }
 
+  public shouldHideMenuDuringCall(): boolean {
+    if (!this.isActive() || !this._state.camera) {
+      return false;
+    }
+
+    return !!this._api
+      .getCameraManager()
+      .getStore()
+      .getCameraConfig(this._state.camera)?.call_mode?.hide_menu_during_call;
+  }
+
   public reset(): void {
     this._endOptions = null;
     this._setState({ ...CALL_IDLE_STATE });

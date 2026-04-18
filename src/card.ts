@@ -262,6 +262,7 @@ class AdvancedCameraCard extends LitElement {
         slot=${ifDefined(slot)}
         .hass=${this._hass}
         .menuConfig=${this._config.menu}
+        .suppressed=${this._controller.getCallManager().shouldHideMenuDuringCall()}
         .buttons=${this._menuButtonController.calculateButtons(
           this._hass,
           this._config,

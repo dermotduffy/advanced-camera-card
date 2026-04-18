@@ -39,6 +39,7 @@
         "editor_label": "Call mode",
         "enabled": "Enable call mode",
         "end_call_on_view_change": "End call if a view change is attempted",
+        "hide_menu_during_call": "Prevent buttons menu display during call",
         "lock_navigation": "Lock navigation during a call",
         "resume_normal_stream_on_end": "Resume the normal stream when the call ends",
         "show_in_menu": "Show call button in the menu",

@@ -292,4 +292,60 @@ describe('CallManager', () => {
     );
     expect(manager.getState().state).toBe('idle');
   });
+
+  it('should suppress the regular menu during a call by default', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getViewManager().getView).mockReturnValue(
+      createView({ camera: 'camera-1', view: 'live' }),
+    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({
+            live_provider: 'go2rtc',
+            call_mode: {
+              enabled: true,
+              stream: 'doorbell',
+            },
+          }),
+        },
+      ]),
+    );
+
+    const manager = new CallManager(api);
+
+    expect(manager.shouldHideMenuDuringCall()).toBe(false);
+
+    await manager.startCall();
+
+    expect(manager.shouldHideMenuDuringCall()).toBe(true);
+  });
+
+  it('should allow the regular menu during a call when configured', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getViewManager().getView).mockReturnValue(
+      createView({ camera: 'camera-1', view: 'live' }),
+    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({
+            live_provider: 'go2rtc',
+            call_mode: {
+              enabled: true,
+              stream: 'doorbell',
+              hide_menu_during_call: false,
+            },
+          }),
+        },
+      ]),
+    );
+
+    const manager = new CallManager(api);
+    await manager.startCall();
+
+    expect(manager.shouldHideMenuDuringCall()).toBe(false);
+  });
 });

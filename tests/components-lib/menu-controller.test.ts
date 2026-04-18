@@ -71,6 +71,36 @@ describe('MenuController', () => {
     expect(host.getAttribute('expanded')).toBeNull();
   });
 
+  it('should suppress expansion and button rendering when suppressed', () => {
+    const host = createLitElement();
+    const controller = new MenuController(host);
+
+    controller.setMenuConfig(
+      createMenuConfig({
+        style: 'hidden',
+      }),
+    );
+    controller.setButtons([
+      {
+        type: 'custom:advanced-camera-card-menu-icon',
+        icon: 'iris',
+        permanent: true,
+      },
+    ]);
+
+    controller.setExpanded(true);
+    expect(controller.isExpanded()).toBe(true);
+
+    controller.setSuppressed(true);
+
+    expect(controller.isSuppressed()).toBe(true);
+    expect(controller.isExpanded()).toBe(false);
+    expect(controller.getButtons('matching')).toEqual([]);
+
+    controller.toggleExpanded();
+    expect(controller.isExpanded()).toBe(false);
+  });
+
   describe('should set and sort buttons', () => {
     it('without a hidden menu', () => {
       const controller = new MenuController(createLitElement());
