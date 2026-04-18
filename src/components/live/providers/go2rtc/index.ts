@@ -147,6 +147,15 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     }
   }
 
+  protected updated(): void {
+    // Direct go2rtc websocket URLs are available synchronously from the
+    // SignedURLController and do not trigger its async valueChangeCallback.
+    // Ensure a player is created for those endpoints as well.
+    if (!this._player && this._signedURLController.getValue()) {
+      this._createPlayer();
+    }
+  }
+
   protected render(): TemplateResult | void {
     const error = this._signedURLController.getError();
     if (error) {

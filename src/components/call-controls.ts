@@ -166,7 +166,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
       }
 
       .panel.controls {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
       }
 
       .loading {
@@ -177,12 +177,14 @@ export class AdvancedCameraCardCallControls extends LitElement {
         font-size: 0.95rem;
         font-weight: 600;
         padding-inline-end: 4px;
+        white-space: nowrap;
       }
 
       .buttons {
         display: flex;
         align-items: center;
         gap: 4px;
+        flex-shrink: 0;
       }
 
       ha-icon-button {
