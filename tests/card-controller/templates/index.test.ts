@@ -1,8 +1,40 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TemplateRenderer } from '../../../src/card-controller/templates/index';
 import { createHASS } from '../../test-utils';
 
+const renderTemplate = vi.fn(
+  (_hass: unknown, template: string, context?: Record<string, unknown>) => {
+    return template
+      .replace(/\{\{\s*([^}]+?)\s*\}\}/g, (_match, expression: string) => {
+        const value = expression
+          .split('.')
+          .reduce<unknown>((current, key) => {
+            if (current && typeof current === 'object') {
+              return (current as Record<string, unknown>)[key];
+            }
+            return undefined;
+          }, context);
+
+        return value === undefined || value === null ? '' : String(value);
+      })
+      .trimEnd();
+  },
+);
+
 describe('TemplateRenderer', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubGlobal('window', {
+      haNunjucks: {
+        renderTemplate,
+      },
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   describe('renderRecursively', () => {
     it('should render string templates with camera context', () => {
       const renderer = new TemplateRenderer();
