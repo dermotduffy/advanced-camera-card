@@ -19,7 +19,7 @@ describe('config defaults', () => {
           enabled: false,
           auto_enable_microphone: true,
           auto_enable_speaker: true,
-          allow_regular_microphone_button: false,
+          allow_regular_mic_button: false,
           lock_navigation: true,
           show_in_menu: true,
           resume_normal_stream_on_end: true,

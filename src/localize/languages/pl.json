@@ -27,7 +27,16 @@
   "config": {
     "cameras": {
       "call_mode": {
-        "allow_regular_microphone_button": "Pozwól wyświetlać zwykły przycisk mikrofonu w trybie połączenia"
+        "auto_enable_microphone": "Automatycznie włącz mikrofon po rozpoczęciu połączenia",
+        "auto_enable_speaker": "Automatycznie włącz głośnik po rozpoczęciu połączenia",
+        "editor_label": "Tryb połączenia",
+        "enabled": "Włącz tryb połączenia",
+        "end_call_on_view_change": "Zakończ połączenie przy próbie zmiany widoku",
+        "lock_navigation": "Zablokuj nawigację podczas połączenia",
+        "resume_normal_stream_on_end": "Przywróć normalny strumień po zakończeniu połączenia",
+        "show_in_menu": "Pokaż przycisk połączenia w menu",
+        "stream": "Nazwa strumienia połączenia",
+        "allow_regular_mic_button": "Pozwól wyświetlać zwykły przycisk mikrofonu w trybie połączenia"
       },
       "always_error_if_entity_unavailable": "Zawsze traktuj niedostępność encji jako błąd",
       "camera_entity": "Encja kamery",

@@ -421,7 +421,7 @@ export class MenuButtonController {
     if (
       view.is('live') &&
       cameraConfig?.call_mode?.enabled &&
-      !cameraConfig.call_mode.allow_regular_microphone_button
+      !cameraConfig.call_mode.allow_regular_mic_button
     ) {
       return null;
     }

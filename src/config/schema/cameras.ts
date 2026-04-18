@@ -88,7 +88,7 @@ const castSchema = z.object({
     enabled: false,
     auto_enable_microphone: true,
     auto_enable_speaker: true,
-    allow_regular_microphone_button: false,
+    allow_regular_mic_button: false,
     lock_navigation: true,
     show_in_menu: true,
     resume_normal_stream_on_end: true,
@@ -103,9 +103,9 @@ const castSchema = z.object({
         .boolean()
         .default(callModeConfigDefault.auto_enable_microphone),
       auto_enable_speaker: z.boolean().default(callModeConfigDefault.auto_enable_speaker),
-      allow_regular_microphone_button: z
+      allow_regular_mic_button: z
         .boolean()
-        .default(callModeConfigDefault.allow_regular_microphone_button),
+        .default(callModeConfigDefault.allow_regular_mic_button),
       lock_navigation: z.boolean().default(callModeConfigDefault.lock_navigation),
       show_in_menu: z.boolean().default(callModeConfigDefault.show_in_menu),
       resume_normal_stream_on_end: z

@@ -19,7 +19,16 @@
   "config": {
     "cameras": {
       "call_mode": {
-        "allow_regular_microphone_button": "Permitir mostrar o botão normal do microfone no modo de chamada"
+        "auto_enable_microphone": "Ativar automaticamente o microfone ao iniciar a chamada",
+        "auto_enable_speaker": "Ativar automaticamente o altifalante ao iniciar a chamada",
+        "editor_label": "Modo de chamada",
+        "enabled": "Ativar modo de chamada",
+        "end_call_on_view_change": "Terminar a chamada se for tentada uma mudança de vista",
+        "lock_navigation": "Bloquear a navegação durante uma chamada",
+        "resume_normal_stream_on_end": "Retomar o fluxo normal ao terminar a chamada",
+        "show_in_menu": "Mostrar botão de chamada no menu",
+        "stream": "Nome do fluxo de chamada",
+        "allow_regular_mic_button": "Permitir mostrar o botão normal do microfone no modo de chamada"
       },
       "camera_entity": "Entidade da Câmera",
       "dependencies": {

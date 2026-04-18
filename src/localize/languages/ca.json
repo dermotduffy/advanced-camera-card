@@ -19,7 +19,16 @@
   "config": {
     "cameras": {
       "call_mode": {
-        "allow_regular_microphone_button": "Permet mostrar el botó normal del micròfon en el mode de trucada"
+        "auto_enable_microphone": "Activa automàticament el micròfon en iniciar la trucada",
+        "auto_enable_speaker": "Activa automàticament l'altaveu en iniciar la trucada",
+        "editor_label": "Mode de trucada",
+        "enabled": "Activa el mode de trucada",
+        "end_call_on_view_change": "Finalitza la trucada si s'intenta canviar de vista",
+        "lock_navigation": "Bloqueja la navegació durant una trucada",
+        "resume_normal_stream_on_end": "Reprèn el flux normal en finalitzar la trucada",
+        "show_in_menu": "Mostra el botó de trucada al menú",
+        "stream": "Nom del flux de trucada",
+        "allow_regular_mic_button": "Permet mostrar el botó normal del micròfon en el mode de trucada"
       },
       "camera_entity": "Entitat de càmera",
       "cast": {

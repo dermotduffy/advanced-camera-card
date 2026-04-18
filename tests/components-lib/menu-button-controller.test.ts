@@ -1114,7 +1114,7 @@ describe('MenuButtonController', () => {
               call_mode: {
                 enabled: true,
                 stream: 'doorbell',
-                allow_regular_microphone_button: true,
+                allow_regular_mic_button: true,
               },
             }),
             capabilities: createCapabilities({ '2-way-audio': true }),

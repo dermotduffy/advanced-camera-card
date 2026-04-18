@@ -19,7 +19,16 @@
   "config": {
     "cameras": {
       "call_mode": {
-        "allow_regular_microphone_button": "Consenti di mostrare il normale pulsante del microfono in modalità chiamata"
+        "auto_enable_microphone": "Attiva automaticamente il microfono all'avvio della chiamata",
+        "auto_enable_speaker": "Attiva automaticamente l'altoparlante all'avvio della chiamata",
+        "editor_label": "Modalità chiamata",
+        "enabled": "Abilita modalità chiamata",
+        "end_call_on_view_change": "Termina la chiamata se viene tentato un cambio di vista",
+        "lock_navigation": "Blocca la navigazione durante una chiamata",
+        "resume_normal_stream_on_end": "Ripristina il flusso normale al termine della chiamata",
+        "show_in_menu": "Mostra il pulsante di chiamata nel menu",
+        "stream": "Nome del flusso di chiamata",
+        "allow_regular_mic_button": "Consenti di mostrare il normale pulsante del microfono in modalità chiamata"
       },
       "camera_entity": "Entità della telecamera",
       "dependencies": {

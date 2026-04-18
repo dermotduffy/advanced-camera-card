@@ -23,7 +23,16 @@
   "config": {
     "cameras": {
       "call_mode": {
-        "allow_regular_microphone_button": "Regulären Mikrofonknopf im Anrufmodus anzeigen"
+        "auto_enable_microphone": "Mikrofon beim Start des Anrufs automatisch aktivieren",
+        "auto_enable_speaker": "Lautsprecher beim Start des Anrufs automatisch aktivieren",
+        "editor_label": "Anrufmodus",
+        "enabled": "Anrufmodus aktivieren",
+        "end_call_on_view_change": "Anruf beenden, wenn ein Ansichtswechsel versucht wird",
+        "lock_navigation": "Navigation während eines Anrufs sperren",
+        "resume_normal_stream_on_end": "Nach dem Anruf zum normalen Stream zurückkehren",
+        "show_in_menu": "Anrufknopf im Menü anzeigen",
+        "stream": "Name des Anruf-Streams",
+        "allow_regular_mic_button": "Regulären Mikrofonknopf im Anrufmodus anzeigen"
       },
       "always_error_if_entity_unavailable": "Nicht verfügbare Entität immer als Fehler behandeln",
       "capabilities": {

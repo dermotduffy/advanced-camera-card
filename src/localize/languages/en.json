@@ -27,7 +27,6 @@
   "config": {
     "cameras": {
       "call_mode": {
-        "allow_regular_microphone_button": "Allow regular microphone button to be shown in call mode",
         "auto_enable_microphone": "Auto-enable microphone on call start",
         "auto_enable_speaker": "Auto-enable speaker on call start",
         "editor_label": "Call mode",
@@ -36,7 +35,8 @@
         "lock_navigation": "Lock navigation during a call",
         "resume_normal_stream_on_end": "Resume the normal stream when the call ends",
         "show_in_menu": "Show call button in the menu",
-        "stream": "Call stream name"
+        "stream": "Call stream name",
+        "allow_regular_mic_button": "Allow regular microphone button to be shown in call mode"
       },
       "always_error_if_entity_unavailable": "Always treat entity unavailability as error",
       "camera_entity": "Camera Entity",
