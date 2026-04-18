@@ -480,6 +480,7 @@ class AdvancedCameraCard extends LitElement {
               .configManager=${this._controller.getConfigManager()}
               .hide=${!!this._controller.getMessageManager().hasMessage()}
               .microphoneState=${this._controller.getMicrophoneManager().getState()}
+              .navigationLocked=${this._controller.getCallManager().isNavigationLocked()}
               .conditionStateManager=${this._controller.getConditionStateManager()}
               .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
                 ? this._controller.getTriggersManager().getTriggeredCameraIDs()

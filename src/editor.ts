@@ -38,7 +38,7 @@ import {
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
   CONF_CAMERAS_ARRAY_CALL_MODE_AUTO_ENABLE_MICROPHONE,
   CONF_CAMERAS_ARRAY_CALL_MODE_AUTO_ENABLE_SPEAKER,
-  CONF_CAMERAS_ARRAY_CALL_MODE_allow_regular_mic_button,
+  CONF_CAMERAS_ARRAY_CALL_MODE_ALLOW_REGULAR_MIC_BUTTON,
   CONF_CAMERAS_ARRAY_CALL_MODE_ENABLED,
   CONF_CAMERAS_ARRAY_CALL_MODE_END_CALL_ON_VIEW_CHANGE,
   CONF_CAMERAS_ARRAY_CALL_MODE_LOCK_NAVIGATION,
@@ -2719,18 +2719,6 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                         )}
                         ${this._renderSwitch(
                           getArrayConfigPath(
-                            CONF_CAMERAS_ARRAY_CALL_MODE_allow_regular_mic_button,
-                            cameraIndex,
-                          ),
-                          this._defaults.cameras.call_mode.allow_regular_mic_button,
-                          {
-                            label: localize(
-                              'config.cameras.call_mode.allow_regular_mic_button',
-                            ),
-                          },
-                        )}
-                        ${this._renderSwitch(
-                          getArrayConfigPath(
                             CONF_CAMERAS_ARRAY_CALL_MODE_LOCK_NAVIGATION,
                             cameraIndex,
                           ),
@@ -2772,6 +2760,18 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                           {
                             label: localize(
                               'config.cameras.call_mode.end_call_on_view_change',
+                            ),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          getArrayConfigPath(
+                            CONF_CAMERAS_ARRAY_CALL_MODE_ALLOW_REGULAR_MIC_BUTTON,
+                            cameraIndex,
+                          ),
+                          this._defaults.cameras.call_mode.allow_regular_mic_button,
+                          {
+                            label: localize(
+                              'config.cameras.call_mode.allow_regular_mic_button',
                             ),
                           },
                         )}

@@ -73,6 +73,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   public microphoneState?: MicrophoneState;
 
   @property({ attribute: false })
+  public navigationLocked = false;
+
+  @property({ attribute: false })
   public viewFilterCameraID?: string;
 
   private _refCarousel: Ref<HTMLElement> = createRef();
@@ -174,6 +177,22 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
   private _getPlugins(): EmblaCarouselPlugins {
     return [AutoMediaLoadedInfo()];
+  }
+
+  private _isCarouselDragEnabled(
+    hasMultipleCameras: boolean,
+    gesturesPTZActive: boolean,
+  ): boolean {
+    return (
+      !this.navigationLocked &&
+      hasMultipleCameras &&
+      !!this.liveConfig?.draggable &&
+      !gesturesPTZActive
+    );
+  }
+
+  private _isCarouselWheelScrollingEnabled(): boolean {
+    return !this.navigationLocked && !!this.liveConfig?.controls.wheel;
   }
 
   private _getSlides(): TemplateResult[] {
@@ -359,8 +378,10 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
         ? false
         : view.context?.ptzControls?.enabled;
 
-    const dragEnabled =
-      hasMultipleCameras && this.liveConfig?.draggable && !gesturesPTZActive;
+    const dragEnabled = this._isCarouselDragEnabled(
+      hasMultipleCameras,
+      gesturesPTZActive,
+    );
 
     // Notes on the below:
     // - guard() is used to avoid reseting the carousel unless the
@@ -376,7 +397,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
           this._getPlugins.bind(this),
         )}
         .selected=${this._getSelectedCameraIndex()}
-        .wheelScrolling=${this.liveConfig?.controls.wheel}
+        .wheelScrolling=${this._isCarouselWheelScrollingEnabled()}
         transitionEffect=${this._getTransitionEffect()}
         @advanced-camera-card:carousel:select=${this._setViewHandler.bind(this)}
         @advanced-camera-card:media:loaded=${() => {

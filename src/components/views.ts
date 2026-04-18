@@ -63,6 +63,9 @@ export class AdvancedCameraCardViews extends LitElement {
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
 
+  @property({ attribute: false })
+  public navigationLocked = false;
+
   @property({ attribute: false, hasChanged: contentsChanged })
   public triggeredCameraIDs?: Set<string>;
 
@@ -231,6 +234,7 @@ export class AdvancedCameraCardViews extends LitElement {
                 .cameraManager=${this.cameraManager}
                 .cardWideConfig=${this.cardWideConfig}
                 .microphoneState=${this.microphoneState}
+                .navigationLocked=${this.navigationLocked}
                 .triggeredCameraIDs=${this.triggeredCameraIDs}
                 class="${classMap(liveClasses)}"
               >
