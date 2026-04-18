@@ -18,6 +18,9 @@
   },
   "config": {
     "cameras": {
+      "call_mode": {
+        "allow_regular_microphone_button": "Autoriser l'affichage du bouton microphone standard en mode appel"
+      },
       "always_error_if_entity_unavailable": "Toujours afficher les entités indisponibles comme erreur",
       "camera_entity": "Entité caméra",
       "capabilities": {

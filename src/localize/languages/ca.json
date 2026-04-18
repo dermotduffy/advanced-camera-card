@@ -18,6 +18,9 @@
   },
   "config": {
     "cameras": {
+      "call_mode": {
+        "allow_regular_microphone_button": "Permet mostrar el botó normal del micròfon en el mode de trucada"
+      },
       "camera_entity": "Entitat de càmera",
       "cast": {
         "dashboard": {

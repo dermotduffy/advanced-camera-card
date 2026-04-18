@@ -22,6 +22,9 @@
   },
   "config": {
     "cameras": {
+      "call_mode": {
+        "allow_regular_microphone_button": "Regulären Mikrofonknopf im Anrufmodus anzeigen"
+      },
       "always_error_if_entity_unavailable": "Nicht verfügbare Entität immer als Fehler behandeln",
       "capabilities": {
         "capabilities": {

@@ -26,6 +26,9 @@
   },
   "config": {
     "cameras": {
+      "call_mode": {
+        "allow_regular_microphone_button": "Pozwól wyświetlać zwykły przycisk mikrofonu w trybie połączenia"
+      },
       "always_error_if_entity_unavailable": "Zawsze traktuj niedostępność encji jako błąd",
       "camera_entity": "Encja kamery",
       "capabilities": {

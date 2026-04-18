@@ -1069,6 +1069,72 @@ describe('MenuButtonController', () => {
       });
     });
 
+    it('should hide when call mode is enabled for the active live camera', () => {
+      const microphoneManager = mock<MicrophoneManager>();
+      vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
+      vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
+      vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
+
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            config: createCameraConfig({
+              call_mode: {
+                enabled: true,
+                stream: 'doorbell',
+              },
+            }),
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        microphoneManager,
+        view: createView({ camera: 'camera-1', view: 'live' }),
+      });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ title: 'Microphone' })]),
+      );
+    });
+
+    it('should show when call mode explicitly allows the regular microphone button', () => {
+      const microphoneManager = mock<MicrophoneManager>();
+      vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
+      vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
+      vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
+
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            config: createCameraConfig({
+              call_mode: {
+                enabled: true,
+                stream: 'doorbell',
+                allow_regular_microphone_button: true,
+              },
+            }),
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        microphoneManager,
+        view: createView({ camera: 'camera-1', view: 'live' }),
+      });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          icon: 'mdi:microphone',
+          title: 'Microphone',
+        }),
+      );
+    });
+
     it('when camera does not have 2-way-audio capability', () => {
       const microphoneManager = mock<MicrophoneManager>();
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);

@@ -18,6 +18,9 @@
   },
   "config": {
     "cameras": {
+      "call_mode": {
+        "allow_regular_microphone_button": "Permitir exibir o botão normal do microfone no modo de chamada"
+      },
       "camera_entity": "Entidade da Câmera",
       "dependencies": {
         "all_cameras": "Mostrar eventos para todas as câmeras nesta câmera",

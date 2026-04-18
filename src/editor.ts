@@ -38,6 +38,7 @@ import {
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
   CONF_CAMERAS_ARRAY_CALL_MODE_AUTO_ENABLE_MICROPHONE,
   CONF_CAMERAS_ARRAY_CALL_MODE_AUTO_ENABLE_SPEAKER,
+  CONF_CAMERAS_ARRAY_CALL_MODE_ALLOW_REGULAR_MICROPHONE_BUTTON,
   CONF_CAMERAS_ARRAY_CALL_MODE_ENABLED,
   CONF_CAMERAS_ARRAY_CALL_MODE_END_CALL_ON_VIEW_CHANGE,
   CONF_CAMERAS_ARRAY_CALL_MODE_LOCK_NAVIGATION,
@@ -2446,6 +2447,18 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                           {
                             label: localize(
                               'config.cameras.call_mode.auto_enable_speaker',
+                            ),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          getArrayConfigPath(
+                            CONF_CAMERAS_ARRAY_CALL_MODE_ALLOW_REGULAR_MICROPHONE_BUTTON,
+                            cameraIndex,
+                          ),
+                          this._defaults.cameras.call_mode.allow_regular_microphone_button,
+                          {
+                            label: localize(
+                              'config.cameras.call_mode.allow_regular_microphone_button',
                             ),
                           },
                         )}

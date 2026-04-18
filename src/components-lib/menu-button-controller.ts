@@ -417,6 +417,15 @@ export class MenuButtonController {
       return null;
     }
 
+    const cameraConfig = cameraManager.getStore().getCameraConfig(view.camera);
+    if (
+      view.is('live') &&
+      cameraConfig?.call_mode?.enabled &&
+      !cameraConfig.call_mode.allow_regular_microphone_button
+    ) {
+      return null;
+    }
+
     const capabilities = cameraManager.getCameraCapabilities(getStreamCameraID(view));
 
     if (microphoneManager && capabilities?.has('2-way-audio')) {

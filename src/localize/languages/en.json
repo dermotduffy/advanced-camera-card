@@ -27,6 +27,7 @@
   "config": {
     "cameras": {
       "call_mode": {
+        "allow_regular_microphone_button": "Allow regular microphone button to be shown in call mode",
         "auto_enable_microphone": "Auto-enable microphone on call start",
         "auto_enable_speaker": "Auto-enable speaker on call start",
         "editor_label": "Call mode",
