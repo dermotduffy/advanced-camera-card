@@ -101,6 +101,20 @@ describe('MenuController', () => {
     expect(controller.isExpanded()).toBe(false);
   });
 
+  it('should request an update only when suppression actually changes', () => {
+    const host = createLitElement();
+    const controller = new MenuController(host);
+
+    controller.setSuppressed(true);
+    expect(host.requestUpdate).toBeCalledTimes(1);
+
+    controller.setSuppressed(true);
+    expect(host.requestUpdate).toBeCalledTimes(1);
+
+    controller.setSuppressed(false);
+    expect(host.requestUpdate).toBeCalledTimes(2);
+  });
+
   describe('should set and sort buttons', () => {
     it('without a hidden menu', () => {
       const controller = new MenuController(createLitElement());
