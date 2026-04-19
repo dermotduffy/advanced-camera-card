@@ -2725,9 +2725,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                           ),
                           this._defaults.cameras.call_mode.lock_navigation,
                           {
-                            label: localize(
-                              'config.cameras.call_mode.lock_navigation',
-                            ),
+                            label: localize('config.cameras.call_mode.lock_navigation'),
                           },
                         )}
                         ${this._renderSwitch(
@@ -3229,8 +3227,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                   min: BUTTON_SIZE_MIN,
                 })}
                 ${this._renderMenuButton('iris') /* */}
-                ${this._renderMenuButton('camera_ui')}
-                ${this._renderMenuButton('call')}
+                ${this._renderMenuButton('camera_ui')} ${this._renderMenuButton('call')}
                 ${this._renderMenuButton('cameras') /* */}
                 ${this._renderMenuButton('clips')}
                 ${this._renderMenuButton('display_mode')}

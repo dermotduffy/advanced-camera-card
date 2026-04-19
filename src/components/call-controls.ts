@@ -160,7 +160,11 @@ export class AdvancedCameraCardCallControls extends LitElement {
         min-height: 56px;
         padding: 10px 14px;
         border-radius: 999px;
-        background: color-mix(in srgb, var(--card-background-color, black) 85%, transparent);
+        background: color-mix(
+          in srgb,
+          var(--card-background-color, black) 85%,
+          transparent
+        );
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
         backdrop-filter: blur(10px);
       }

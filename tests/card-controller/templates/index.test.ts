@@ -6,14 +6,12 @@ const renderTemplate = vi.fn(
   (_hass: unknown, template: string, context?: Record<string, unknown>) => {
     return template
       .replace(/\{\{\s*([^}]+?)\s*\}\}/g, (_match, expression: string) => {
-        const value = expression
-          .split('.')
-          .reduce<unknown>((current, key) => {
-            if (current && typeof current === 'object') {
-              return (current as Record<string, unknown>)[key];
-            }
-            return undefined;
-          }, context);
+        const value = expression.split('.').reduce<unknown>((current, key) => {
+          if (current && typeof current === 'object') {
+            return (current as Record<string, unknown>)[key];
+          }
+          return undefined;
+        }, context);
 
         return value === undefined || value === null ? '' : String(value);
       })

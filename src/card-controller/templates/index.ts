@@ -93,13 +93,15 @@ export class TemplateRenderer {
 
   protected _getRenderTemplate(): HANunjucksRenderTemplate | null {
     return (
-      (globalThis as {
-        window?: {
-          haNunjucks?: {
-            renderTemplate?: HANunjucksRenderTemplate;
+      (
+        globalThis as {
+          window?: {
+            haNunjucks?: {
+              renderTemplate?: HANunjucksRenderTemplate;
+            };
           };
-        };
-      }).window?.haNunjucks?.renderTemplate ?? null
+        }
+      ).window?.haNunjucks?.renderTemplate ?? null
     );
   }
 }

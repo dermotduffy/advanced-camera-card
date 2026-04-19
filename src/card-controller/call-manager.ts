@@ -67,10 +67,8 @@ export class CallManager {
       return false;
     }
 
-    return !!this._api
-      .getCameraManager()
-      .getStore()
-      .getCameraConfig(this._state.camera)?.call_mode?.hide_menu_during_call;
+    return !!this._api.getCameraManager().getStore().getCameraConfig(this._state.camera)
+      ?.call_mode?.hide_menu_during_call;
   }
 
   public reset(): void {

@@ -96,52 +96,52 @@ const castSchema = z.object({
     .optional(),
 });
 
-  const callModeConfigDefault = {
-    enabled: false,
-    auto_enable_microphone: true,
-    auto_enable_speaker: true,
-    allow_regular_mic_button: false,
-    hide_menu_during_call: true,
-    lock_navigation: true,
-    show_in_menu: true,
-    resume_normal_stream_on_end: true,
-    end_call_on_view_change: false,
-  };
+const callModeConfigDefault = {
+  enabled: false,
+  auto_enable_microphone: true,
+  auto_enable_speaker: true,
+  allow_regular_mic_button: false,
+  hide_menu_during_call: true,
+  lock_navigation: true,
+  show_in_menu: true,
+  resume_normal_stream_on_end: true,
+  end_call_on_view_change: false,
+};
 
-  const callModeConfigSchema = z
-    .object({
-      enabled: z.boolean().default(callModeConfigDefault.enabled),
-      stream: z.string().optional(),
-      auto_enable_microphone: z
-        .boolean()
-        .default(callModeConfigDefault.auto_enable_microphone),
-      auto_enable_speaker: z.boolean().default(callModeConfigDefault.auto_enable_speaker),
-      allow_regular_mic_button: z
-        .boolean()
-        .default(callModeConfigDefault.allow_regular_mic_button),
-      hide_menu_during_call: z
-        .boolean()
-        .default(callModeConfigDefault.hide_menu_during_call),
-      lock_navigation: z.boolean().default(callModeConfigDefault.lock_navigation),
-      show_in_menu: z.boolean().default(callModeConfigDefault.show_in_menu),
-      resume_normal_stream_on_end: z
-        .boolean()
-        .default(callModeConfigDefault.resume_normal_stream_on_end),
-      end_call_on_view_change: z
-        .boolean()
-        .default(callModeConfigDefault.end_call_on_view_change),
-    })
-    .default(callModeConfigDefault)
-    .superRefine((value, ctx) => {
-      if (value.enabled && !value.stream) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Call mode stream is required when enabled',
-          path: ['stream'],
-        });
-      }
-    });
-  export type CallModeConfig = z.infer<typeof callModeConfigSchema>;
+const callModeConfigSchema = z
+  .object({
+    enabled: z.boolean().default(callModeConfigDefault.enabled),
+    stream: z.string().optional(),
+    auto_enable_microphone: z
+      .boolean()
+      .default(callModeConfigDefault.auto_enable_microphone),
+    auto_enable_speaker: z.boolean().default(callModeConfigDefault.auto_enable_speaker),
+    allow_regular_mic_button: z
+      .boolean()
+      .default(callModeConfigDefault.allow_regular_mic_button),
+    hide_menu_during_call: z
+      .boolean()
+      .default(callModeConfigDefault.hide_menu_during_call),
+    lock_navigation: z.boolean().default(callModeConfigDefault.lock_navigation),
+    show_in_menu: z.boolean().default(callModeConfigDefault.show_in_menu),
+    resume_normal_stream_on_end: z
+      .boolean()
+      .default(callModeConfigDefault.resume_normal_stream_on_end),
+    end_call_on_view_change: z
+      .boolean()
+      .default(callModeConfigDefault.end_call_on_view_change),
+  })
+  .default(callModeConfigDefault)
+  .superRefine((value, ctx) => {
+    if (value.enabled && !value.stream) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Call mode stream is required when enabled',
+        path: ['stream'],
+      });
+    }
+  });
+export type CallModeConfig = z.infer<typeof callModeConfigSchema>;
 
 // *************************************************************************
 //                     Camera Configuration

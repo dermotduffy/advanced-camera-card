@@ -46,7 +46,7 @@
         "stream": "Call stream name",
         "allow_regular_mic_button": "Allow regular microphone button to be shown in call mode"
       },
-    "always_error_if_entity_unavailable": "Always treat entity unavailability as an error",
+      "always_error_if_entity_unavailable": "Always treat entity unavailability as an error",
       "camera_entity": "Camera Entity",
       "capabilities": {
         "capabilities": {

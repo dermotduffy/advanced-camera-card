@@ -156,8 +156,7 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     return (
-      !!options?.ignoreNavigationLock ||
-      !this._api.getCallManager().isNavigationLocked()
+      !!options?.ignoreNavigationLock || !this._api.getCallManager().isNavigationLocked()
     );
   }
 

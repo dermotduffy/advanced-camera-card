@@ -176,7 +176,8 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
       case 'call_ended': {
         const oldCallState = oldState?.call?.state;
         const newCallState = newState?.call?.state;
-        const ended = !!oldCallState && oldCallState !== 'idle' && newCallState === 'idle';
+        const ended =
+          !!oldCallState && oldCallState !== 'idle' && newCallState === 'idle';
 
         return {
           result: ended,

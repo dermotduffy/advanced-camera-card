@@ -275,7 +275,10 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     `;
   }
 
-  private _getCallModeStream(viewCameraID: string, view?: View | null): string | undefined {
+  private _getCallModeStream(
+    viewCameraID: string,
+    view?: View | null,
+  ): string | undefined {
     return view?.camera === viewCameraID
       ? getCallStream(view, viewCameraID) ?? undefined
       : undefined;
