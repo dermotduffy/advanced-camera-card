@@ -48,7 +48,7 @@ describe('createIssueManager', () => {
 
     // Setting view starts the media_load timer (via the condition state
     // listener → evaluate → detectDynamic).
-    stateManager.setState({ view: 'live' });
+    stateManager.setState({ targetID: 'camera-1', view: 'live' });
     expect(manager.getStateManager().getIssuePresence().has('media_load')).toBe(false);
 
     // After the timeout, the changeCallback fires evaluate which

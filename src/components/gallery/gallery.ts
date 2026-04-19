@@ -22,7 +22,6 @@ import {
   navigateToMedia,
   navigateUp,
 } from '../../components-lib/navigation.js';
-import { renderNoMedia } from '../notification/no-media.js';
 import { ConditionStateManagerReadonlyInterface } from '../../conditions/types.js';
 import { MediaGalleryConfig } from '../../config/schema/media-gallery.js';
 import { CardWideConfig } from '../../config/schema/types.js';
@@ -36,6 +35,7 @@ import { UnifiedQueryBuilder } from '../../view/unified-query-builder.js';
 import { UnifiedQueryRunner } from '../../view/unified-query-runner.js';
 import { getReviewedQueryFilterFromQuery } from '../../view/utils/query-filter.js';
 import '../media-filter.js';
+import { renderNoMedia } from '../notification/no-media.js';
 import '../surround-basic.js';
 import '../thumbnail/thumbnail.js';
 import './gallery-core.js';

@@ -174,12 +174,20 @@ export class MediaLoadIssue implements Issue {
   // Media not yet loaded: activate immediately if there is a known provider
   // error for this target, otherwise start a timeout to detect slow loads.
   private _handleMediaNotLoaded(state: ConditionState): void {
+    // No targetID means no provider is actively rendering media (e.g. the
+    // viewer shows "No media to display" instead of showing a player). Don't
+    // start the timeout as there's nothing to wait for.
+    if (!state.targetID) {
+      this._deactivate();
+      return;
+    }
+
     if (this._hasError(state)) {
       this._activate();
       return;
     }
 
-    const targetID = state.targetID ?? null;
+    const targetID = state.targetID;
 
     // When the target changes to one without a known error, clear the active
     // state so the new target gets its own timeout window instead of
@@ -188,18 +196,14 @@ export class MediaLoadIssue implements Issue {
       this._deactivate();
     }
 
-    if (this._issueActive) {
-      return;
-    }
-    // Restart the timer whenever the target changes so each target gets its
-    // own timeout window.
+    // Start (or restart) the timer for this target.
     if (!this._timer.isRunning() || this._timerTargetID !== targetID) {
       this._timerTargetID = targetID;
       this._timer.start(MEDIA_LOADING_TIMEOUT_SECONDS, () => {
         // Record the error on timeout so retry() knows which epoch to bump.
-        if (targetID) {
-          this._erroredTargetIDs.add(targetID);
-        }
+        // targetID is guaranteed non-null here — the null case bails at the
+        // top of _handleMediaNotLoaded.
+        this._erroredTargetIDs.add(targetID);
         this._activate();
         this._onChange?.();
       });
