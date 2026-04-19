@@ -78,4 +78,52 @@ describe('MediaLoadedInfoManager', () => {
     expect(manager.get()).toBe(selectedMedia);
     expect(manager.get('camera-2')).toBeNull();
   });
+
+  it('should clear the selected media when clearing the selected camera', () => {
+    const api = createCardAPI();
+    const manager = new MediaLoadedInfoManager(api);
+    const mediaLoadedInfo = createMediaLoadedInfo();
+
+    manager.set(mediaLoadedInfo, { cameraID: 'camera-1' });
+    manager.clear({ cameraID: 'camera-1' });
+
+    expect(manager.get()).toBeNull();
+    expect(manager.get('camera-1')).toBeNull();
+    expect(manager.getLastKnown('camera-1')).toBe(mediaLoadedInfo);
+    expect(api.getConditionStateManager().setState).toBeCalledWith({
+      mediaLoadedInfo: null,
+    });
+  });
+
+  it('should clear all current media without losing last known media', () => {
+    const api = createCardAPI();
+    const manager = new MediaLoadedInfoManager(api);
+    const selectedMedia = createMediaLoadedInfo();
+    const otherMedia = createMediaLoadedInfo({ width: 300, height: 300 });
+
+    manager.set(selectedMedia, { cameraID: 'camera-1' });
+    manager.set(otherMedia, { cameraID: 'camera-2', selectCurrent: false });
+
+    manager.clear({ all: true });
+
+    expect(manager.get()).toBeNull();
+    expect(manager.get('camera-1')).toBeNull();
+    expect(manager.get('camera-2')).toBeNull();
+    expect(manager.getLastKnown()).toBe(selectedMedia);
+    expect(manager.getLastKnown('camera-2')).toBe(otherMedia);
+    expect(api.getConditionStateManager().setState).toBeCalledWith({
+      mediaLoadedInfo: null,
+    });
+  });
+
+  it('should return null for unknown last-known camera media and ignore clearing unknown cameras', () => {
+    const api = createCardAPI();
+    const manager = new MediaLoadedInfoManager(api);
+
+    expect(manager.getLastKnown('unknown-camera')).toBeNull();
+
+    manager.clear({ cameraID: 'unknown-camera' });
+
+    expect(api.getConditionStateManager().setState).not.toBeCalled();
+  });
 });

@@ -299,6 +299,26 @@ it('setViewByParametersWithNewQuery', async () => {
   expect(manager.getView()?.camera).toBe('camera');
 });
 
+it('setViewByParametersWithNewQuery should respect navigation lock', async () => {
+  const viewFactory = mock<ViewFactory>();
+  viewFactory.getViewByParameters.mockReturnValue(createView());
+
+  const viewQueryExecutor = mock<ViewQueryExecutor>();
+  viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([]);
+
+  const api = createInitializedCardAPI();
+  vi.mocked(api.getCallManager().isNavigationLocked).mockReturnValue(true);
+
+  const manager = new ViewManager(api, {
+    viewFactory: viewFactory,
+    viewQueryExecutor: viewQueryExecutor,
+  });
+  await manager.setViewByParametersWithNewQuery();
+
+  expect(manager.getView()).toBeNull();
+  expect(viewQueryExecutor.getNewQueryModifiers).not.toBeCalled();
+});
+
 it('setViewByParametersWithExistingQuery', async () => {
   const viewFactory = mock<ViewFactory>();
   viewFactory.getViewByParameters.mockReturnValue(createView());
@@ -424,6 +444,40 @@ describe('hasMajorMediaChange', () => {
     expect(
       manager.hasMajorMediaChange(
         createView({ context: { live: { overrides: overrides_2 } } }),
+      ),
+    ).toBeTruthy();
+  });
+
+  it('should consider live call stream change as major in live view', () => {
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(
+      createView({
+        context: {
+          call: {
+            camera: 'camera',
+            stream: 'doorbell',
+            state: 'in_call',
+          },
+        },
+      }),
+    );
+
+    const manager = new ViewManager(createInitializedCardAPI(), {
+      viewFactory: factory,
+    });
+    manager.setViewDefault();
+
+    expect(
+      manager.hasMajorMediaChange(
+        createView({
+          context: {
+            call: {
+              camera: 'camera',
+              stream: 'intercom',
+              state: 'in_call',
+            },
+          },
+        }),
       ),
     ).toBeTruthy();
   });

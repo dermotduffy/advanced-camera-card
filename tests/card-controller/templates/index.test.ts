@@ -178,5 +178,18 @@ describe('TemplateRenderer', () => {
       });
       expect(result).toBe('Value:');
     });
+
+    it('should return the raw string when no template renderer is available', () => {
+      vi.unstubAllGlobals();
+
+      const renderer = new TemplateRenderer();
+      const hass = createHASS();
+
+      const result = renderer.renderRecursively(hass, 'Value: {{ acc.camera }}', {
+        conditionState: { camera: 'camera.office' },
+      });
+
+      expect(result).toBe('Value: {{ acc.camera }}');
+    });
   });
 });

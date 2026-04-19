@@ -3,6 +3,7 @@ import { mock } from 'vitest-mock-extended';
 import { Camera } from '../../src/camera-manager/camera.js';
 import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic.js';
 import { CameraProxyConfig } from '../../src/camera-manager/types.js';
+import { ActionsExecutor } from '../../src/card-controller/actions/types.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { liveProviderSupports2WayAudio } from '../../src/utils/live-provider.js';
 import {
@@ -15,6 +16,22 @@ import {
 } from '../test-utils.js';
 
 vi.mock('../../src/utils/live-provider.js');
+
+const ptzAction = {
+  action: 'perform-action' as const,
+  perform_action: 'action',
+  data: {
+    device: '048123',
+    cmd: 'preset',
+    preset: 'window',
+  },
+};
+
+class UICamera extends Camera {
+  protected _getUIEndpoint() {
+    return { endpoint: 'https://camera-ui.example' };
+  }
+}
 
 describe('Camera', () => {
   it('should get config', async () => {
@@ -694,6 +711,66 @@ describe('Camera', () => {
           endpoint: 'camera.foo',
         },
       });
+    });
+
+    it('should include UI and call mode stream endpoints when available', () => {
+      const camera = new UICamera(
+        createCameraConfig({
+          go2rtc: {
+            url: 'http://go2rtc',
+            stream: 'stream',
+          },
+          camera_entity: 'camera.foo',
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+
+      expect(camera.getEndpoints({ callModeStream: 'doorbell' })).toEqual({
+        ui: {
+          endpoint: 'https://camera-ui.example',
+        },
+        go2rtc: {
+          endpoint: 'http://go2rtc/api/ws?src=doorbell',
+          sign: false,
+        },
+        webrtcCard: {
+          endpoint: 'camera.foo',
+        },
+      });
+    });
+  });
+
+  describe('executePTZAction', () => {
+    it('should execute configured PTZ actions', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          ptz: {
+            actions_left_start: ptzAction,
+          },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+      const executor = mock<ActionsExecutor>();
+
+      await expect(camera.executePTZAction(executor, 'left', { phase: 'start' })).resolves
+        .toBe(true);
+
+      expect(executor.executeActions).toBeCalledWith({ actions: ptzAction });
+    });
+
+    it('should ignore PTZ actions that are not configured', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          ptz: {},
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      );
+      const executor = mock<ActionsExecutor>();
+
+      await expect(camera.executePTZAction(executor, 'left', { phase: 'start' })).resolves
+        .toBe(false);
+
+      expect(executor.executeActions).not.toBeCalled();
     });
   });
 });

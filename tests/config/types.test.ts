@@ -1696,6 +1696,30 @@ it('should strip trailing slashes from go2rtc url', () => {
   expect(config.cameras?.[0].go2rtc.url).toBe('https://my-custom-go2rtc');
 });
 
+it('should require a call mode stream when call mode is enabled', () => {
+  expect(() =>
+    cameraConfigSchema.parse({
+      call_mode: {
+        enabled: true,
+      },
+    }),
+  ).toThrowError('Call mode stream is required when enabled');
+});
+
+it('should allow enabled call mode when a stream is configured', () => {
+  expect(
+    cameraConfigSchema.parse({
+      call_mode: {
+        enabled: true,
+        stream: 'doorbell',
+      },
+    }).call_mode,
+  ).toMatchObject({
+    enabled: true,
+    stream: 'doorbell',
+  });
+});
+
 it('media viewer should not support microphone based conditions', () => {
   expect(() =>
     createConfig({
