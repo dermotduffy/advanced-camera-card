@@ -1,6 +1,5 @@
 import { ViewContext } from 'view';
 import { log } from '../../utils/debug';
-import { createNotificationFromError } from '../../components-lib/notification/factory';
 import { getStreamCameraID } from '../../utils/substream';
 import { View } from '../../view/view';
 import { getViewTargetID } from '../../view/target-id';
@@ -113,15 +112,15 @@ export class ViewManager implements ViewManagerInterface {
         baseView: this._view,
         ...options,
       });
+      // A non-throwing factory call clears any prior view_incompatible state —
+      // ensures a previously-dismissed mid-session popup does not linger
+      // invisibly and re-pop on the next evaluation cycle.
+      this._api.getIssueManager().reset('view_incompatible');
     } catch (e) {
       if (!this._view) {
         view = this._getFailSafeView(viewFactoryFunc);
       }
-      const notification = createNotificationFromError(e);
-      /* istanbul ignore next: catch always provides a non-null error -- @preserve */
-      if (notification) {
-        this._api.getNotificationManager().setNotification(notification);
-      }
+      this._api.getIssueManager().trigger('view_incompatible', { error: e });
     }
     if (view) {
       this._setView(view);
@@ -181,15 +180,12 @@ export class ViewManager implements ViewManagerInterface {
           ...options?.params,
         },
       });
+      this._api.getIssueManager().reset('view_incompatible');
     } catch (e) {
       if (!this._view) {
         initialView = this._getFailSafeView(viewFactoryFunc);
       }
-      const notification = createNotificationFromError(e);
-      /* istanbul ignore next: catch always provides a non-null error -- @preserve */
-      if (notification) {
-        this._api.getNotificationManager().setNotification(notification);
-      }
+      this._api.getIssueManager().trigger('view_incompatible', { error: e });
     }
 
     if (!initialView) {

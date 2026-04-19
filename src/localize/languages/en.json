@@ -757,8 +757,6 @@
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
     "no_camera_or_media_for_timeline": "No camera or media available for timeline",
     "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
-    "no_supported_camera": "The selected camera or media does not support this view",
-    "no_supported_cameras": "No cameras support this view",
     "reconnecting": "Reconnecting",
     "too_many_automations": "Too many nested automation calls, please check your configuration for loops",
     "troubleshooting": "Check troubleshooting",
@@ -850,6 +848,10 @@
     "media_query": {
       "heading": "Media query failed",
       "text": "An error occurred fetching media (e.g. thumbnails) for this view."
+    },
+    "view_incompatible": {
+      "heading": "View not supported",
+      "text": "The selected camera or media does not support this view"
     }
   },
   "thumbnail": {

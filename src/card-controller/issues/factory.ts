@@ -7,6 +7,7 @@ import { InitializationIssue } from './issues/initialization';
 import { LegacyResourceIssue } from './issues/legacy-resource';
 import { MediaLoadIssue } from './issues/media-load';
 import { MediaQueryIssue } from './issues/media-query';
+import { ViewIncompatibleIssue } from './issues/view-incompatible';
 
 export const createIssueManager = (api: CardIssueManagerAPI): IssueManager => {
   const manager = new IssueManager(api);
@@ -18,6 +19,7 @@ export const createIssueManager = (api: CardIssueManagerAPI): IssueManager => {
   // full-card issue. Register broader/more critical issues first.
   manager.addIssue(new ConfigErrorIssue());
   manager.addIssue(new ConfigUpgradeIssue(api));
+  manager.addIssue(new ViewIncompatibleIssue(api));
   manager.addIssue(new ConnectionIssue());
   manager.addIssue(new InitializationIssue(api));
   manager.addIssue(new LegacyResourceIssue(changeCallback));

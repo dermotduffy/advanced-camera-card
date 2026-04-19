@@ -42,6 +42,7 @@ export const statusBarConfigDefault = {
     issue_legacy_resource: statusBarIssueItemDefault,
     issue_media_load: statusBarIssueItemDefault,
     issue_media_query: statusBarIssueItemDefault,
+    issue_view_incompatible: statusBarIssueItemDefault,
   },
   position: 'bottom' as const,
   style: 'popup' as const,
@@ -91,6 +92,9 @@ export const statusBarConfigSchema = z
         ),
         issue_media_query: statusBarItemBaseSchema.default(
           statusBarConfigDefault.items.issue_media_query,
+        ),
+        issue_view_incompatible: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.issue_view_incompatible,
         ),
       })
       .default(statusBarConfigDefault.items),

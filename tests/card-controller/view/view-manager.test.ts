@@ -244,9 +244,10 @@ describe('should handle exceptions', () => {
   it('should retry with failSafe when no existing view in sync calls', () => {
     const viewFactory = mock<ViewFactory>();
     const failSafeView = createView();
+    const error = new Error('message');
     viewFactory.getViewDefault
       .mockImplementationOnce(() => {
-        throw new Error('message');
+        throw error;
       })
       .mockReturnValueOnce(failSafeView);
 
@@ -259,20 +260,20 @@ describe('should handle exceptions', () => {
     expect(viewFactory.getViewDefault).toBeCalledWith(
       expect.objectContaining({ baseView: null, failSafe: true }),
     );
-    expect(api.getNotificationManager().setNotification).toBeCalledWith(
-      expect.objectContaining({
-        body: expect.objectContaining({ text: 'message' }),
-      }),
-    );
+    expect(api.getIssueManager().trigger).toBeCalledWith('view_incompatible', {
+      error,
+    });
+    expect(api.getNotificationManager().setNotification).not.toBeCalled();
   });
 
   it('should not retry with failSafe when existing view in sync calls', () => {
     const viewFactory = mock<ViewFactory>();
     const existingView = createView();
+    const error = new Error('message');
     viewFactory.getViewDefault
       .mockReturnValueOnce(existingView)
       .mockImplementationOnce(() => {
-        throw new Error('message');
+        throw error;
       });
 
     const api = createInitializedCardAPI();
@@ -282,19 +283,18 @@ describe('should handle exceptions', () => {
 
     expect(manager.getView()).toBe(existingView);
     expect(viewFactory.getViewDefault).toBeCalledTimes(2);
-    expect(api.getNotificationManager().setNotification).toBeCalledWith(
-      expect.objectContaining({
-        body: expect.objectContaining({ text: 'message' }),
-      }),
-    );
+    expect(api.getIssueManager().trigger).toBeCalledWith('view_incompatible', {
+      error,
+    });
   });
 
   it('should retry with failSafe when no existing view in async calls', async () => {
     const viewFactory = mock<ViewFactory>();
     const failSafeView = createView();
+    const error = new Error('message');
     viewFactory.getViewDefault
       .mockImplementationOnce(() => {
-        throw new Error('message');
+        throw error;
       })
       .mockReturnValueOnce(failSafeView);
 
@@ -306,20 +306,20 @@ describe('should handle exceptions', () => {
     expect(viewFactory.getViewDefault).toBeCalledWith(
       expect.objectContaining({ baseView: null, failSafe: true }),
     );
-    expect(api.getNotificationManager().setNotification).toBeCalledWith(
-      expect.objectContaining({
-        body: expect.objectContaining({ text: 'message' }),
-      }),
-    );
+    expect(api.getIssueManager().trigger).toBeCalledWith('view_incompatible', {
+      error,
+    });
+    expect(api.getNotificationManager().setNotification).not.toBeCalled();
   });
 
   it('should not retry with failSafe when existing view in async calls', async () => {
     const viewFactory = mock<ViewFactory>();
     const existingView = createView();
+    const error = new Error('message');
     viewFactory.getViewDefault
       .mockReturnValueOnce(existingView)
       .mockImplementationOnce(() => {
-        throw new Error('message');
+        throw error;
       });
 
     const api = createInitializedCardAPI();
@@ -329,11 +329,20 @@ describe('should handle exceptions', () => {
 
     expect(manager.getView()).not.toBeNull();
     expect(viewFactory.getViewDefault).toBeCalledTimes(2);
-    expect(api.getNotificationManager().setNotification).toBeCalledWith(
-      expect.objectContaining({
-        body: expect.objectContaining({ text: 'message' }),
-      }),
-    );
+    expect(api.getIssueManager().trigger).toBeCalledWith('view_incompatible', {
+      error,
+    });
+  });
+
+  it('should reset view_incompatible on successful view set', () => {
+    const viewFactory = mock<ViewFactory>();
+    viewFactory.getViewDefault.mockReturnValue(createView());
+
+    const api = createInitializedCardAPI();
+    const manager = new ViewManager(api, { viewFactory });
+    manager.setViewDefault();
+
+    expect(api.getIssueManager().reset).toBeCalledWith('view_incompatible');
   });
 
   it('should return null when failSafe view factory also throws', () => {

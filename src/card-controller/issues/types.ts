@@ -11,7 +11,8 @@ export type IssueKey =
   | 'initialization'
   | 'legacy_resource'
   | 'media_load'
-  | 'media_query';
+  | 'media_query'
+  | 'view_incompatible';
 
 export interface IssueDescription {
   icon: string;

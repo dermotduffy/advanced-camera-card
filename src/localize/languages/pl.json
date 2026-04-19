@@ -684,8 +684,6 @@
     "no_camera_or_media_for_timeline": "Brak dostępnej kamery lub mediów dla osi czasu",
     "no_dashboard_or_view": "Zarówno 'dashboard_path' jak i 'view_path' są wymagane dla metody cast 'dashboard'",
     "no_live_camera": "Parametr camera_entity musi być ustawiony i prawidłowy dla tego dostawcy",
-    "no_supported_camera": "Wybrana kamera lub media nie obsługują tego widoku",
-    "no_supported_cameras": "Żadna kamera nie obsługuje tego widoku",
     "reconnecting": "Ponowne łączenie",
     "too_many_automations": "Zbyt wiele zagnieżdżonych wywołań automatyzacji, sprawdź konfigurację pod kątem pętli",
     "troubleshooting": "Sprawdź rozwiązywanie problemów",
@@ -696,6 +694,9 @@
   "issues": {
     "media_load": {
       "text": "Strumień wideo jeszcze się nie załadował. Może to wynikać z wielu przyczyn. Domyślnie będzie wyświetlany odświeżany obraz, dopóki strumień nie załaduje się poprawnie"
+    },
+    "view_incompatible": {
+      "text": "Wybrana kamera lub media nie obsługują tego widoku"
     }
   },
   "key_assigner": {

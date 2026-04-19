@@ -30,6 +30,7 @@ import {
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   setControlsOnVideo,
 } from '../../../utils/controls.js';
+import { getContextFromError } from '../../../utils/error-context.js';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
@@ -158,14 +159,13 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
       try {
         webrtcElement = this._createWebRTC();
       } catch (e) {
+        const context = getContextFromError(e);
         this._notification = createNotificationFromText(
           e instanceof AdvancedCameraCardError
             ? e.message
             : localize('error.webrtc_card_reported_error') + ': ' + (e as Error).message,
           {
-            ...(e instanceof AdvancedCameraCardError &&
-              typeof e.context === 'object' &&
-              e.context !== null && { context: e.context }),
+            ...(context && { context }),
           },
         );
         dispatchLiveErrorEvent(this);

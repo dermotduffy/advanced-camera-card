@@ -487,6 +487,11 @@ describe('config defaults', () => {
             permanent: true,
             priority: 50,
           },
+          issue_view_incompatible: {
+            enabled: true,
+            permanent: true,
+            priority: 50,
+          },
         },
         popup_seconds: 3,
         position: 'bottom',

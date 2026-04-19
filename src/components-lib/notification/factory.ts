@@ -1,6 +1,6 @@
 import { Notification, NotificationDetail } from '../../config/schema/actions/types.js';
 import { Link } from '../../config/schema/common/link.js';
-import { AdvancedCameraCardError } from '../../types.js';
+import { getContextFromError } from '../../utils/error-context.js';
 import { dataToContext } from './data-to-context.js';
 
 const DEFAULT_ERROR_ICON = 'mdi:alert';
@@ -48,13 +48,7 @@ export const createNotificationFromError = (
         ? JSON.stringify(error)
         : String(error);
 
-  const context =
-    options?.context ??
-    (error instanceof AdvancedCameraCardError &&
-    typeof error.context === 'object' &&
-    error.context !== null
-      ? error.context
-      : undefined);
+  const context = options?.context ?? getContextFromError(error) ?? undefined;
 
   return createNotificationFromText(text, {
     ...options,

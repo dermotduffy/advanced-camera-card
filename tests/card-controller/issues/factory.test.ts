@@ -32,6 +32,7 @@ describe('createIssueManager', () => {
       'legacy_resource',
       'media_query',
       'media_load',
+      'view_incompatible',
     ] as const;
 
     for (const key of expectedKeys) {

@@ -621,8 +621,6 @@
     "no_camera_id": "Impossible de déterminer l'identifiant de la caméra suivante. Il faudra peut-être définir le paramètre « ID » manuellement",
     "no_dashboard_or_view": "Les paramètres 'dashboard_path' et 'view_path' sont requis pour la méthode de conversion 'dashboard'",
     "no_live_camera": "Le paramètre camera_entity doit être défini et valide pour ce fournisseur en direct",
-    "no_supported_camera": "La caméra sélectionnée ne prend pas en charge cette vue",
-    "no_supported_cameras": "Aucune caméra ne prend en charge cette vue",
     "reconnecting": "Reconnexion",
     "too_many_automations": "Trop d'appels d'automatisation imbriqués, veuillez vérifier votre configuration pour les boucles",
     "troubleshooting": "Vérifier le dépannage",
@@ -633,6 +631,9 @@
   "issues": {
     "media_load": {
       "text": "Le flux vidéo ou le média enregistré n'a pas encore été chargé. Cela peut être du à plusieurs raisons. La carte tentera de recharger automatiquement après un délai d'attente."
+    },
+    "view_incompatible": {
+      "text": "La caméra sélectionnée ne prend pas en charge cette vue"
     }
   },
   "key_assigner": {

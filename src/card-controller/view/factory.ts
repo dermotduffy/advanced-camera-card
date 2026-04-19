@@ -1,7 +1,6 @@
 import { AdvancedCameraCardView } from '../../config/schema/common/const';
 import { ViewDisplayMode } from '../../config/schema/common/display';
 import { AdvancedCameraCardConfig } from '../../config/schema/types';
-import { localize } from '../../localize/localize';
 import { resolveViewName } from '../../view/utils/resolve-default';
 import { View, ViewParameters } from '../../view/view';
 import {
@@ -188,7 +187,7 @@ export class ViewFactory {
         cameraID: this._api.getCameraManager().getStore().getDefaultCameraID(),
       };
     }
-    throw new ViewIncompatible(localize('error.no_supported_cameras'), {
+    throw new ViewIncompatible({
       view: viewName,
       camera: null,
       default_view: defaultViewName,
@@ -221,7 +220,7 @@ export class ViewFactory {
       ?.getCapabilities()
       ?.getRawCapabilities();
 
-    throw new ViewIncompatible(localize('error.no_supported_camera'), {
+    throw new ViewIncompatible({
       view: viewName,
       camera: cameraID,
       default_view: defaultViewName,
