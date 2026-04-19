@@ -14,11 +14,10 @@ import { CardWideConfig } from '../../config/schema/types.js';
 import { ViewerConfig } from '../../config/schema/viewer.js';
 import { ResolvedMediaCache } from '../../ha/resolved-media.js';
 import { HomeAssistant } from '../../ha/types.js';
-import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';
 import viewerStyle from '../../scss/viewer.scss';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
-import { renderNotificationBlockFromText } from '../notification/block.js';
+import { renderNoMedia } from '../notification/no-media.js';
 import './grid';
 
 export interface MediaViewerViewContext {
@@ -81,12 +80,11 @@ export class AdvancedCameraCardViewer extends LitElement {
       // Directly render an error message (instead of dispatching it upwards)
       // to preserve the mini-timeline if the user pans into an area with no
       // media.
-      const loadingMedia =
-        !!this.viewManagerEpoch.manager.getView()?.context?.loading?.query;
-      return renderNotificationBlockFromText(
-        loadingMedia ? localize('error.awaiting_media') : localize('common.no_media'),
-        { icon: 'mdi:multimedia', in_progress: loadingMedia },
-      );
+      return renderNoMedia({
+        cameraID: this.viewManagerEpoch.manager.getView()?.camera ?? null,
+        cameraManager: this.cameraManager ?? null,
+        loading: !!this.viewManagerEpoch.manager.getView()?.context?.loading?.query,
+      });
     }
 
     return html` <advanced-camera-card-viewer-grid
