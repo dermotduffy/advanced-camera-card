@@ -752,8 +752,9 @@ describe('Camera', () => {
       );
       const executor = mock<ActionsExecutor>();
 
-      await expect(camera.executePTZAction(executor, 'left', { phase: 'start' })).resolves
-        .toBe(true);
+      await expect(
+        camera.executePTZAction(executor, 'left', { phase: 'start' }),
+      ).resolves.toBe(true);
 
       expect(executor.executeActions).toBeCalledWith({ actions: ptzAction });
     });
@@ -767,8 +768,9 @@ describe('Camera', () => {
       );
       const executor = mock<ActionsExecutor>();
 
-      await expect(camera.executePTZAction(executor, 'left', { phase: 'start' })).resolves
-        .toBe(false);
+      await expect(
+        camera.executePTZAction(executor, 'left', { phase: 'start' }),
+      ).resolves.toBe(false);
 
       expect(executor.executeActions).not.toBeCalled();
     });

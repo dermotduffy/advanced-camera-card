@@ -136,7 +136,9 @@ describe('CallManager', () => {
     await expect(manager.startCall()).resolves.toBe(false);
 
     expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
-      expect.objectContaining({ message: 'Call mode can only be started from the live view' }),
+      expect.objectContaining({
+        message: 'Call mode can only be started from the live view',
+      }),
     );
   });
 
@@ -220,7 +222,9 @@ describe('CallManager', () => {
     await expect(manager.startCall()).resolves.toBe(false);
 
     expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
-      expect.objectContaining({ message: 'Call mode can only be started from the live view' }),
+      expect.objectContaining({
+        message: 'Call mode can only be started from the live view',
+      }),
     );
   });
 
@@ -247,7 +251,9 @@ describe('CallManager', () => {
     await expect(manager.startCall()).resolves.toBe(false);
 
     expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
-      expect.objectContaining({ message: 'Call mode is not enabled for the selected camera' }),
+      expect.objectContaining({
+        message: 'Call mode is not enabled for the selected camera',
+      }),
     );
   });
 
@@ -433,7 +439,10 @@ describe('CallManager', () => {
     mediaPlayerController.mute.mockClear();
     vi.mocked(api.getMicrophoneManager().mute).mockClear();
 
-    await manager.onMediaLoaded(createMediaLoadedInfo({ mediaPlayerController }), 'camera-1');
+    await manager.onMediaLoaded(
+      createMediaLoadedInfo({ mediaPlayerController }),
+      'camera-1',
+    );
 
     expect(mediaPlayerController.mute).toBeCalled();
     expect(mediaPlayerController.unmute).not.toBeCalled();
