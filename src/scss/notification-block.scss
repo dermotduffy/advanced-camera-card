@@ -100,6 +100,14 @@
     // awkwardly around a centered axis.
     align-self: stretch;
     text-align: left;
+
+    // When the spinner stands in for the body icon (no-heading in_progress
+    // case), size it to match the body icon (20px, set on .detail above) so
+    // the row reads as a single status line.
+    .spinner {
+      width: 20px;
+      height: 20px;
+    }
   }
 }
 

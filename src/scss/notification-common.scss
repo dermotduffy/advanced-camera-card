@@ -3,14 +3,17 @@
 //   --notification-text-color   (text, link, context border)
 //   --notification-control-color (controls, spinner)
 
-.controls .spinner {
+.spinner {
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0.5;
+}
+
+.controls .spinner {
+  width: 24px;
+  height: 24px;
 
   // Only render the divider when the spinner is followed by controls.
   &:not(:last-child) {

@@ -181,9 +181,7 @@ describe('IssueManager', () => {
 
       manager.trigger('view_incompatible', { error: new Error('mismatch') });
 
-      expect(api.getNotificationManager().setNotification).toBeCalledWith(
-        notification,
-      );
+      expect(api.getNotificationManager().setNotification).toBeCalledWith(notification);
     });
 
     it('should not auto-popup full-card issues', () => {

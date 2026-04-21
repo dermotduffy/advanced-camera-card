@@ -42,21 +42,26 @@ export class AdvancedCameraCardNotificationBlock extends LitElement {
     const { heading, in_progress } = this.notification;
     const controls = this.notification.controls ?? [];
 
+    // Anchor the spinner to whichever status element is most prominent: the
+    // heading if present, the body icon otherwise. Never render it orphaned
+    // on its own row (which would float it to the left with no visual tie to
+    // the text).
+    const spinner = in_progress
+      ? html`<div class="spinner" title=${localize('common.in_progress')}>
+          <ha-spinner indeterminate size="tiny"></ha-spinner>
+        </div>`
+      : null;
+    const spinnerInHeadingRow = spinner && (heading || controls.length);
+    const spinnerInBody = spinner && !spinnerInHeadingRow;
+
     return html`
       <div class="content">
-        ${heading || in_progress || controls.length
+        ${heading || spinnerInHeadingRow || controls.length
           ? html`<div class="heading-row">
               ${heading ? renderDetail(heading, 'heading') : ''}
-              ${in_progress || controls.length
+              ${spinnerInHeadingRow || controls.length
                 ? html`<div class="controls">
-                    ${in_progress
-                      ? html`<div
-                          class="spinner"
-                          title=${localize('common.in_progress')}
-                        >
-                          <ha-spinner indeterminate size="tiny"></ha-spinner>
-                        </div>`
-                      : ''}
+                    ${spinnerInHeadingRow ? spinner : ''}
                     ${controls.map((control) =>
                       renderControl(control, (ev, c) =>
                         handleControlAction(ev, c, this),
@@ -66,7 +71,7 @@ export class AdvancedCameraCardNotificationBlock extends LitElement {
                 : ''}
             </div>`
           : ''}
-        ${renderNotificationBody(this.notification)}
+        ${renderNotificationBody(this.notification, spinnerInBody ? spinner : undefined)}
       </div>
     `;
   }

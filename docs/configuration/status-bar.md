@@ -28,21 +28,21 @@ status_bar:
 
 ### Available Items
 
-| Button name             | Description                                                                                                    |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `engine`                | The icon of the camera engine for the relevant camera.                                                         |
-| `issue_config_error`    | An indicator that appears when the card configuration has an error.                                            |
-| `issue_config_upgrade`  | An indicator that appears when a configuration upgrade is available.                                           |
-| `issue_connection`      | An indicator that appears when the Home Assistant connection is lost.                                          |
-| `issue_initialization`  | An indicator that appears when camera initialization fails.                                                    |
-| `issue_legacy_resource` | An indicator that appears when a legacy `frigate-hass-card` resource is still registered.                      |
-| `issue_media_load`      | An indicator that appears when media (live stream, recorded media, or image) has not loaded within 10 seconds. |
-| `issue_media_query`     | An indicator that appears when a media query (e.g. fetching thumbnails or clips) fails.                        |
-| `issue_view_incompatible` | An indicator that appears when the configured view cannot be displayed by the available cameras.             |
-| `resolution`            | The detected media resolution (if any).                                                                        |
-| `severity`              | The media severity indicator (if any) for review severity (e.g. Frigate alerts/detections).                    |
-| `technology`            | The detected media technology (if any).                                                                        |
-| `title`                 | The media title.                                                                                               |
+| Button name               | Description                                                                                                    |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `engine`                  | The icon of the camera engine for the relevant camera.                                                         |
+| `issue_config_error`      | An indicator that appears when the card configuration has an error.                                            |
+| `issue_config_upgrade`    | An indicator that appears when a configuration upgrade is available.                                           |
+| `issue_connection`        | An indicator that appears when the Home Assistant connection is lost.                                          |
+| `issue_initialization`    | An indicator that appears when camera initialization fails.                                                    |
+| `issue_legacy_resource`   | An indicator that appears when a legacy `frigate-hass-card` resource is still registered.                      |
+| `issue_media_load`        | An indicator that appears when media (live stream, recorded media, or image) has not loaded within 10 seconds. |
+| `issue_media_query`       | An indicator that appears when a media query (e.g. fetching thumbnails or clips) fails.                        |
+| `issue_view_incompatible` | An indicator that appears when the configured view cannot be displayed by the available cameras.               |
+| `resolution`              | The detected media resolution (if any).                                                                        |
+| `severity`                | The media severity indicator (if any) for review severity (e.g. Frigate alerts/detections).                    |
+| `technology`              | The detected media technology (if any).                                                                        |
+| `title`                   | The media title.                                                                                               |
 
 ### Options for each item
 

@@ -15,6 +15,7 @@ import '../icon.js';
 export function renderDetail(
   detail: NotificationDetail,
   role: 'heading' | 'body' | 'metadata' = 'metadata',
+  iconOverride?: TemplateResult,
 ): TemplateResult {
   const classes = {
     detail: true,
@@ -24,12 +25,13 @@ export function renderDetail(
   };
   return html`
     <div class="${classMap(classes)}">
-      ${detail.icon
+      ${iconOverride ??
+      (detail.icon
         ? html`<advanced-camera-card-icon
             title=${detail.tooltip ?? ''}
             .icon=${{ icon: detail.icon }}
           ></advanced-camera-card-icon>`
-        : ''}
+        : '')}
       <span title=${detail.text}>${detail.text}</span>
     </div>
   `;
@@ -58,13 +60,16 @@ export function renderControl(
   `;
 }
 
-export function renderNotificationBody(notification: Notification): TemplateResult {
+export function renderNotificationBody(
+  notification: Notification,
+  bodyIconOverride?: TemplateResult,
+): TemplateResult {
   const { body, link } = notification;
   const context = notification.context ?? [];
   const metadata = notification.metadata ?? [];
   return html`
     ${metadata.map((detail) => renderDetail(detail, 'metadata'))}
-    ${body ? renderDetail(body, 'body') : ''}
+    ${body ? renderDetail(body, 'body', bodyIconOverride) : ''}
     ${link
       ? html`<div class="url">
           <a
