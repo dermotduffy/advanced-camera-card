@@ -93,6 +93,13 @@
 
   &.body {
     opacity: 0.85;
+
+    // Stretch to the column width (overriding the parent .content's flex
+    // align-items: center that otherwise shrink-wraps this div) and left-
+    // align so long error messages read naturally instead of wrapping
+    // awkwardly around a centered axis.
+    align-self: stretch;
+    text-align: left;
   }
 }
 

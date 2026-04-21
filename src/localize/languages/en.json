@@ -831,8 +831,7 @@
       }
     },
     "initialization": {
-      "heading": "Initialization failed",
-      "text": "Card initialization failed"
+      "heading": "Initialization failed"
     },
     "legacy_resource": {
       "heading": "Legacy dashboard resource detected",

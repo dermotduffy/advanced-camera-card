@@ -1,5 +1,6 @@
 import type { IssueTriggerContext } from 'issue';
 import { createNotificationFromError } from '../../../components-lib/notification/factory.js';
+import { localize } from '../../../localize/localize.js';
 import { CardIssueManagerAPI } from '../../types';
 import { createRetryControl } from '../retry-control.js';
 import { Issue, IssueDescription } from '../types';
@@ -62,7 +63,9 @@ export class InitializationIssue implements Issue {
       return null;
     }
 
-    const notification = createNotificationFromError(this._error);
+    const notification = createNotificationFromError(this._error, {
+      heading: { text: localize('issues.initialization.heading') },
+    });
     /* istanbul ignore next: this._error is non-null -- @preserve */
     if (!notification) {
       return null;
@@ -72,7 +75,6 @@ export class InitializationIssue implements Issue {
       severity: 'high',
       notification: {
         ...notification,
-        in_progress: true,
         controls: [createRetryControl(this.key)],
       },
     };

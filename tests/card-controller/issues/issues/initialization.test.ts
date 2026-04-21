@@ -46,7 +46,7 @@ describe('InitializationIssue', () => {
         icon: 'mdi:alert',
         severity: 'high',
         notification: expect.objectContaining({
-          in_progress: true,
+          heading: expect.objectContaining({ text: 'Initialization failed' }),
           body: expect.objectContaining({ text: 'init failed' }),
           controls: expect.arrayContaining([
             expect.objectContaining({ icon: 'mdi:refresh', dismiss: true }),
@@ -54,6 +54,7 @@ describe('InitializationIssue', () => {
         }),
       }),
     );
+    expect(result?.notification.in_progress).toBeUndefined();
   });
 
   it('should call manager.retry with the issue key from getIssue retry control callback', async () => {
