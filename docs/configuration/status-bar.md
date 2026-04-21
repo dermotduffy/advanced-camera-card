@@ -28,29 +28,22 @@ status_bar:
 
 ### Available Items
 
-| Button name               | Description                                                                                                    |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `engine`                  | The icon of the camera engine for the relevant camera.                                                         |
-| `issue_config_error`      | An indicator that appears when the card configuration has an error.                                            |
-| `issue_config_upgrade`    | An indicator that appears when a configuration upgrade is available.                                           |
-| `issue_connection`        | An indicator that appears when the Home Assistant connection is lost.                                          |
-| `issue_initialization`    | An indicator that appears when camera initialization fails.                                                    |
-| `issue_legacy_resource`   | An indicator that appears when a legacy `frigate-hass-card` resource is still registered.                      |
-| `issue_media_load`        | An indicator that appears when media (live stream, recorded media, or image) has not loaded within 10 seconds. |
-| `issue_media_query`       | An indicator that appears when a media query (e.g. fetching thumbnails or clips) fails.                        |
-| `issue_view_incompatible` | An indicator that appears when the configured view cannot be displayed by the available cameras.               |
-| `resolution`              | The detected media resolution (if any).                                                                        |
-| `severity`                | The media severity indicator (if any) for review severity (e.g. Frigate alerts/detections).                    |
-| `technology`              | The detected media technology (if any).                                                                        |
-| `title`                   | The media title.                                                                                               |
+| Button name  | Description                                                                                                                                                                                                                                                                                                                  |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `engine`     | The icon of the camera engine for the relevant camera.                                                                                                                                                                                                                                                                       |
+| `issues`     | Indicator icons that appear while any card issue is active — e.g. configuration error, configuration upgrade available, Home Assistant connection lost, camera initialization failed, legacy `frigate-hass-card` resource detected, media (live/recorded/image) not loading, media query failed, or view cannot be resolved. |
+| `resolution` | The detected media resolution (if any).                                                                                                                                                                                                                                                                                      |
+| `severity`   | The media severity indicator (if any) for review severity (e.g. Frigate alerts/detections).                                                                                                                                                                                                                                  |
+| `technology` | The detected media technology (if any).                                                                                                                                                                                                                                                                                      |
+| `title`      | The media title.                                                                                                                                                                                                                                                                                                             |
 
 ### Options for each item
 
-| Option      | Default                              | Description                                                                                                                                                                                                              |
-| ----------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `enabled`   | `true`                               | Whether or not to show the item.                                                                                                                                                                                         |
-| `permanent` | `true` for issues, `false` otherwise | When `true`, the status bar stays visible in `popup` mode as long as this item is present (instead of auto-hiding after `popup_seconds`). All issue items default to `true` so errors remain visible.                    |
-| `priority`  | `50`                                 | The item priority. Higher priority items are ordered closer to the start of the status bar (i.e. an item with priority `70` will order further to the left than an item with priority `60`). Minimum `0`, maximum `100`. |
+| Option      | Default                                | Description                                                                                                                                                                                                              |
+| ----------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `enabled`   | `true`                                 | Whether or not to show the item.                                                                                                                                                                                         |
+| `permanent` | `true` for `issues`, `false` otherwise | When `true`, the status bar stays visible in `popup` mode as long as this item is present (instead of auto-hiding after `popup_seconds`). The `issues` item defaults to `true` so errors remain visible.                 |
+| `priority`  | `50`                                   | The item priority. Higher priority items are ordered closer to the start of the status bar (i.e. an item with priority `70` will order further to the left than an item with priority `60`). Minimum `0`, maximum `100`. |
 
 ## `style`
 
@@ -81,41 +74,26 @@ status_bar:
   items:
     engine:
       enabled: true
+      permanent: false
       priority: 50
-    issue_config_error:
+    issues:
       enabled: true
-      priority: 50
-    issue_config_upgrade:
-      enabled: true
-      priority: 50
-    issue_connection:
-      enabled: true
-      priority: 50
-    issue_initialization:
-      enabled: true
-      priority: 50
-    issue_legacy_resource:
-      enabled: true
-      priority: 50
-    issue_media_load:
-      enabled: true
-      priority: 50
-    issue_media_query:
-      enabled: true
-      priority: 50
-    issue_view_incompatible:
-      enabled: true
+      permanent: true
       priority: 50
     resolution:
       enabled: true
+      permanent: false
       priority: 50
     severity:
       enabled: true
+      permanent: false
       priority: 50
     technology:
       enabled: true
+      permanent: false
       priority: 50
     title:
       enabled: true
+      permanent: false
       priority: 50
 ```

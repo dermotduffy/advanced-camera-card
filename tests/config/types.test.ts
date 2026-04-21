@@ -432,6 +432,11 @@ describe('config defaults', () => {
             permanent: false,
             priority: 50,
           },
+          issues: {
+            enabled: true,
+            permanent: true,
+            priority: 50,
+          },
           resolution: {
             enabled: true,
             permanent: false,
@@ -450,46 +455,6 @@ describe('config defaults', () => {
           title: {
             enabled: true,
             permanent: false,
-            priority: 50,
-          },
-          issue_config_error: {
-            enabled: true,
-            permanent: true,
-            priority: 50,
-          },
-          issue_config_upgrade: {
-            enabled: true,
-            permanent: true,
-            priority: 50,
-          },
-          issue_connection: {
-            enabled: true,
-            permanent: true,
-            priority: 50,
-          },
-          issue_initialization: {
-            enabled: true,
-            permanent: true,
-            priority: 50,
-          },
-          issue_legacy_resource: {
-            enabled: true,
-            permanent: true,
-            priority: 50,
-          },
-          issue_media_load: {
-            enabled: true,
-            permanent: true,
-            priority: 50,
-          },
-          issue_media_query: {
-            enabled: true,
-            permanent: true,
-            priority: 50,
-          },
-          issue_view_incompatible: {
-            enabled: true,
-            permanent: true,
             priority: 50,
           },
         },

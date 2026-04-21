@@ -3157,11 +3157,14 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                   default: this._defaults.status_bar.popup_seconds,
                   label: localize('config.status_bar.popup_seconds'),
                 })}
-                ${this._renderStatusBarItem('title') /* */}
-                ${this._renderStatusBarItem('resolution') /* */}
-                ${this._renderStatusBarItem('technology') /* */}
-                ${this._renderStatusBarItem('engine') /* */}
-                ${this._renderStatusBarItem('upgrade') /* */}
+                ${[
+                  this._renderStatusBarItem('title'),
+                  this._renderStatusBarItem('resolution'),
+                  this._renderStatusBarItem('technology'),
+                  this._renderStatusBarItem('engine'),
+                  this._renderStatusBarItem('severity'),
+                  this._renderStatusBarItem('issues'),
+                ]}
               </div>
             `
           : ''}

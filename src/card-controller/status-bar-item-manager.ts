@@ -5,14 +5,10 @@ import { StatusBarConfig } from '../config/schema/status-bar';
 import { MediaLoadedInfo } from '../types';
 import { createNotificationAction } from '../utils/action';
 import { View } from '../view/view';
-import { KeyedIssueDescription, IssueKey } from './issues/types';
+import { KeyedIssueDescription } from './issues/types';
 import { CardStatusBarAPI } from './types';
 
 const RESOLUTION_TOLERANCE_PCT = 0.01;
-
-const issueKeyToStatusBarKey = (key: IssueKey): keyof StatusBarConfig['items'] => {
-  return `issue_${key}`;
-};
 
 export class StatusBarItemManager {
   private _api: CardStatusBarAPI;
@@ -132,21 +128,18 @@ export class StatusBarItemManager {
           ]
         : []),
 
-      ...(options?.issues ?? [])
-        .filter(
-          ({ key }) =>
-            options?.statusConfig?.items[issueKeyToStatusBarKey(key)]?.enabled !== false,
-        )
-        .map(({ key, issue }) => ({
-          type: 'custom:advanced-camera-card-status-bar-icon' as const,
-          icon: issue.icon,
-          severity: issue.severity,
-          title: issue.notification.heading?.text,
-          actions: {
-            tap_action: createNotificationAction(issue.notification),
-          },
-          ...options?.statusConfig?.items[issueKeyToStatusBarKey(key)],
-        })),
+      ...(options?.statusConfig?.items.issues?.enabled === false
+        ? []
+        : (options?.issues ?? []).map(({ issue }) => ({
+            type: 'custom:advanced-camera-card-status-bar-icon' as const,
+            icon: issue.icon,
+            severity: issue.severity,
+            title: issue.notification.heading?.text,
+            actions: {
+              tap_action: createNotificationAction(issue.notification),
+            },
+            ...options?.statusConfig?.items.issues,
+          }))),
       ...this._dynamicItems,
     ];
   }

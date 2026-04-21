@@ -307,7 +307,7 @@ describe('StatusBarItemManager', () => {
         );
       });
 
-      it('should filter out disabled issues', () => {
+      it('should filter out all issues when disabled', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems({
@@ -318,17 +318,11 @@ describe('StatusBarItemManager', () => {
             height: 40,
             items: {
               engine: { enabled: true, priority: 50 },
+              issues: { enabled: false, priority: 50 },
               resolution: { enabled: true, priority: 50 },
               severity: { enabled: true, priority: 50 },
               technology: { enabled: true, priority: 50 },
               title: { enabled: true, priority: 50 },
-              issue_config_error: { enabled: true, priority: 50 },
-              issue_config_upgrade: { enabled: false, priority: 50 },
-              issue_connection: { enabled: true, priority: 50 },
-              issue_initialization: { enabled: true, priority: 50 },
-              issue_legacy_resource: { enabled: true, priority: 50 },
-              issue_media_load: { enabled: true, priority: 50 },
-              issue_media_query: { enabled: true, priority: 50 },
             },
           },
           issues: [
@@ -368,17 +362,11 @@ describe('StatusBarItemManager', () => {
             height: 40,
             items: {
               engine: { enabled: true, priority: 50 },
+              issues: { enabled: true, priority: 90 },
               resolution: { enabled: true, priority: 50 },
               severity: { enabled: true, priority: 50 },
               technology: { enabled: true, priority: 50 },
               title: { enabled: true, priority: 50 },
-              issue_config_error: { enabled: true, priority: 50 },
-              issue_config_upgrade: { enabled: true, priority: 90 },
-              issue_connection: { enabled: true, priority: 50 },
-              issue_initialization: { enabled: true, priority: 50 },
-              issue_legacy_resource: { enabled: true, priority: 50 },
-              issue_media_load: { enabled: true, priority: 50 },
-              issue_media_query: { enabled: true, priority: 50 },
             },
           },
           issues: [

@@ -19,30 +19,31 @@ const statusBarItemDefault = {
   permanent: false,
 };
 
-const statusBarIssueItemDefault = {
+// Issues share a single status-bar item config so per-issue granularity
+// doesn't leak into the schema/editor surface. Defaults to permanent so the
+// status bar stays visible while any issue is active, even in popup mode.
+const statusBarIssuesItemDefault = {
   ...statusBarItemDefault,
   permanent: true,
 };
+
+// Extend the base schema so the `permanent: true` default survives a user
+// override that touches only one sibling field (e.g. `issues.enabled: true`).
+// With the item-level default alone, zod would reparse with the base schema's
+// field-level `permanent: false` and silently flip the behavior.
+const statusBarIssuesItemSchema = statusBarItemBaseSchema.extend({
+  permanent: z.boolean().default(true).optional(),
+});
 
 export const statusBarConfigDefault = {
   height: 40,
   items: {
     engine: statusBarItemDefault,
+    issues: statusBarIssuesItemDefault,
     resolution: statusBarItemDefault,
     severity: statusBarItemDefault,
     technology: statusBarItemDefault,
     title: statusBarItemDefault,
-
-    // Issues: permanent by default so the status bar stays visible while issues
-    // are active even in popup mode.
-    issue_config_error: statusBarIssueItemDefault,
-    issue_config_upgrade: statusBarIssueItemDefault,
-    issue_connection: statusBarIssueItemDefault,
-    issue_initialization: statusBarIssueItemDefault,
-    issue_legacy_resource: statusBarIssueItemDefault,
-    issue_media_load: statusBarIssueItemDefault,
-    issue_media_query: statusBarIssueItemDefault,
-    issue_view_incompatible: statusBarIssueItemDefault,
   },
   position: 'bottom' as const,
   style: 'popup' as const,
@@ -62,6 +63,7 @@ export const statusBarConfigSchema = z
     items: z
       .object({
         engine: statusBarItemBaseSchema.default(statusBarConfigDefault.items.engine),
+        issues: statusBarIssuesItemSchema.default(statusBarConfigDefault.items.issues),
         resolution: statusBarItemBaseSchema.default(
           statusBarConfigDefault.items.resolution,
         ),
@@ -70,32 +72,6 @@ export const statusBarConfigSchema = z
           statusBarConfigDefault.items.technology,
         ),
         title: statusBarItemBaseSchema.default(statusBarConfigDefault.items.title),
-
-        // Issues.
-        issue_config_error: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.issue_config_error,
-        ),
-        issue_config_upgrade: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.issue_config_upgrade,
-        ),
-        issue_connection: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.issue_connection,
-        ),
-        issue_initialization: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.issue_initialization,
-        ),
-        issue_legacy_resource: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.issue_legacy_resource,
-        ),
-        issue_media_load: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.issue_media_load,
-        ),
-        issue_media_query: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.issue_media_query,
-        ),
-        issue_view_incompatible: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.issue_view_incompatible,
-        ),
       })
       .default(statusBarConfigDefault.items),
   })

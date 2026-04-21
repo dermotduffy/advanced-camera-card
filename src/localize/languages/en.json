@@ -556,11 +556,12 @@
       "items": {
         "enabled": "Item enabled",
         "engine": "Camera engine",
+        "issues": "Issues",
         "priority": "Item priority",
         "resolution": "Resolution",
+        "severity": "Severity",
         "technology": "Technology",
-        "title": "Title",
-        "upgrade": "Configuration upgrade notification"
+        "title": "Title"
       },
       "popup_seconds": "Status bar popup seconds",
       "position": "Status bar position",
