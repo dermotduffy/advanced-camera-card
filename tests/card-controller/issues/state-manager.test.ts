@@ -386,6 +386,43 @@ describe('IssueStateManager', () => {
       spy.mockRestore();
     });
 
+    it('should log on trigger when the issue becomes active', () => {
+      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const result = createIssueDescription({
+        notification: { body: { text: 'Triggered' } },
+      });
+      vi.mocked(mockMediaLoad.getIssue).mockReturnValue(result);
+
+      const manager = createManager();
+      manager.trigger('media_load', { targetID: 'cam1' });
+
+      expect(spy).toBeCalledWith(
+        'Advanced Camera Card [issue=media_load]: Triggered',
+      );
+      spy.mockRestore();
+    });
+
+    it('should not log on trigger when the issue stays inactive', () => {
+      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      vi.mocked(mockMediaLoad.getIssue).mockReturnValue(null);
+
+      const manager = createManager();
+      manager.trigger('media_load', { targetID: 'cam1' });
+
+      expect(spy).not.toBeCalled();
+      spy.mockRestore();
+    });
+
+    it('should not log on trigger for an unknown key', () => {
+      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+
+      const manager = createManager();
+      manager.trigger('unknown' as never, {} as never);
+
+      expect(spy).not.toBeCalled();
+      spy.mockRestore();
+    });
+
     it('should only log once per issue key', async () => {
       const spy = vi.spyOn(console, 'warn').mockReturnValue();
       const result = createIssueDescription({

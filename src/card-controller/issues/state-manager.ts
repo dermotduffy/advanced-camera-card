@@ -40,7 +40,12 @@ export class IssueStateManager {
     key: K,
     context: IssueTriggerContext[K],
   ): void {
-    this._issues.get(key)?.trigger?.(context);
+    const issue = this._issues.get(key);
+    if (!issue) {
+      return;
+    }
+    issue.trigger?.(context);
+    this._logIfNew(issue);
   }
 
   public detectDynamic(context: ConditionState): void {
