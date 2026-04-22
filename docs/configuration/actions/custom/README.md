@@ -367,7 +367,7 @@ advanced_camera_card_action: notification
 | `body`        | An optional body. Uses the same format as [`metadata`](README.md?id=metadata) below.                       |
 | `metadata`    | An optional list of metadata to show with the notification. See [`metadata`](README.md?id=metadata) below. |
 | `context`     | An optional list of preformatted text strings shown as a technical detail block (e.g. YAML).               |
-| `link`        | An optional link displayed below the body. See [`link`](../../common/link.md).                             |
+| `link`        | An optional link displayed below the body. See [`link`](#link) below.                                      |
 | `in_progress` | If `true`, shows a loading indicator.                                                                      |
 | `controls`    | An optional list of controls. See [`controls`](README.md?id=controls) below.                               |
 
@@ -379,6 +379,13 @@ advanced_camera_card_action: notification
 | `icon`     | An optional icon (e.g. `mdi:alert`).                          |
 | `tooltip`  | An optional tooltip string (shown on hover).                  |
 | `severity` | An optional severity level, one of `low`, `medium` or `high`. |
+
+### Link
+
+| Parameter | Description                          |
+| --------- | ------------------------------------ |
+| `url`     | The link URL.                        |
+| `title`   | The link text displayed to the user. |
 
 ### Controls
 
