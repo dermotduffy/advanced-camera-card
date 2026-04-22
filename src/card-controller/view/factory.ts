@@ -181,16 +181,16 @@ export class ViewFactory {
     if (options?.failSafe && !doesViewRequireCamera(defaultViewName)) {
       return { viewName: defaultViewName, cameraID: null };
     }
+    const cameraID = this._api.getCameraManager().getStore().getDefaultCameraID();
     if (options?.failSafe) {
       return {
         viewName: defaultViewName,
-        cameraID: this._api.getCameraManager().getStore().getDefaultCameraID(),
+        cameraID,
       };
     }
     throw new ViewIncompatible({
       view: viewName,
-      camera: null,
-      default_view: defaultViewName,
+      camera: cameraID,
     });
   }
 
@@ -223,7 +223,6 @@ export class ViewFactory {
     throw new ViewIncompatible({
       view: viewName,
       camera: cameraID,
-      default_view: defaultViewName,
       ...(capabilities && { camera_capabilities: capabilities }),
     });
   }
