@@ -396,9 +396,7 @@ describe('IssueStateManager', () => {
       const manager = createManager();
       manager.trigger('media_load', { targetID: 'cam1' });
 
-      expect(spy).toBeCalledWith(
-        'Advanced Camera Card [issue=media_load]: Triggered',
-      );
+      expect(spy).toBeCalledWith('Advanced Camera Card [issue=media_load]: Triggered');
       spy.mockRestore();
     });
 

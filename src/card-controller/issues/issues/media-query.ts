@@ -16,10 +16,6 @@ export class MediaQueryIssue implements Issue {
   public readonly key = 'media_query' as const;
 
   private _api: CardIssueManagerAPI;
-
-  // Either a real non-null error value, or the null sentinel meaning "no
-  // issue". Undefined is not a valid state — an undefined `context.error`
-  // (meaningless as an error) is coalesced to null on trigger.
   private _error: NonNullable<unknown> | null = null;
 
   constructor(api: CardIssueManagerAPI) {

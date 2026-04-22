@@ -162,5 +162,4 @@ describe('createNotificationFromError', () => {
     assert(notification);
     expect(notification.context).toBeUndefined();
   });
-
 });
