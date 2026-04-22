@@ -428,6 +428,63 @@ describe('IssueStateManager', () => {
       expect(spy).not.toBeCalled();
       spy.mockRestore();
     });
+
+    it('should log again after the issue clears and re-activates', async () => {
+      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const first = createIssueDescription({
+        notification: { body: { text: 'First' } },
+      });
+      const second = createIssueDescription({
+        notification: { body: { text: 'Second' } },
+      });
+      vi.mocked(mockLegacyResource.getIssue)
+        .mockReturnValueOnce(first)
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(second);
+
+      const manager = createManager();
+      // Activate → log First.
+      await manager.detectStatic(createHASS());
+      // Clear → drop dedupe entry.
+      await manager.detectStatic(createHASS());
+      // Re-activate with a different payload → log Second.
+      await manager.detectStatic(createHASS());
+
+      expect(spy).toBeCalledTimes(2);
+      expect(spy).toHaveBeenNthCalledWith(
+        1,
+        'Advanced Camera Card [issue=legacy_resource]: First',
+      );
+      expect(spy).toHaveBeenNthCalledWith(
+        2,
+        'Advanced Camera Card [issue=legacy_resource]: Second',
+      );
+      spy.mockRestore();
+    });
+
+    it('should log again after reset and re-activation', () => {
+      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const description = createIssueDescription({
+        notification: { body: { text: 'Repeat' } },
+      });
+      // Active → cleared-by-reset → active again on next eval.
+      vi.mocked(mockMediaLoad.getIssue)
+        .mockReturnValueOnce(description)
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(description);
+
+      const manager = createManager();
+      manager.detectDynamic({ view: 'live' });
+      manager.reset('media_load');
+      // After reset, the issue reports cleared on next detect, releasing the
+      // dedupe.
+      manager.detectDynamic({ view: 'live' });
+      // Then it re-activates (e.g. new trigger arrives).
+      manager.detectDynamic({ view: 'live' });
+
+      expect(spy).toBeCalledTimes(2);
+      spy.mockRestore();
+    });
   });
 
   describe('reset', () => {

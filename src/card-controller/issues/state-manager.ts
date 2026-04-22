@@ -145,11 +145,14 @@ export class IssueStateManager {
   // =========================================================================
 
   private _logIfNew(issue: Issue): void {
-    if (this._loggedKeys.has(issue.key)) {
-      return;
-    }
     const description = issue.getIssue();
     if (!description) {
+      // Issue cleared (explicit reset, or self-clear via detectDynamic).
+      // Release the dedupe so the next activation is logged as a new episode.
+      this._loggedKeys.delete(issue.key);
+      return;
+    }
+    if (this._loggedKeys.has(issue.key)) {
       return;
     }
     this._loggedKeys.add(issue.key);
