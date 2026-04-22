@@ -162,67 +162,22 @@ describe('IssueManager', () => {
       expect(api.getCardElementManager().update).toBeCalled();
     });
 
-    it('should auto-popup non-full-card issues that became active', () => {
+    it('should never auto-popup on trigger — non-full-card issues surface via the status-bar icon; user clicks to open', () => {
       const api = createCardAPI();
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
       const manager = new IssueManager(api);
 
-      const description = createIssueDescription();
-      const notification = { body: { text: 'popup me' } };
       const issue = createIssue('view_incompatible', {
         hasIssue: vi.fn().mockReturnValue(true),
         isFullCardIssue: vi.fn().mockReturnValue(false),
-        getIssue: vi.fn().mockReturnValue(description),
-        getNotification: vi.fn().mockReturnValue(notification),
-        trigger: vi.fn(),
-      });
-      manager.addIssue(issue);
-
-      manager.trigger('view_incompatible', { error: new Error('mismatch') });
-
-      expect(api.getNotificationManager().setNotification).toBeCalledWith(notification);
-    });
-
-    it('should not auto-popup full-card issues', () => {
-      const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
-
-      const manager = new IssueManager(api);
-
-      const issue = createIssue('config_error', {
-        hasIssue: vi.fn().mockReturnValue(true),
-        isFullCardIssue: vi.fn().mockReturnValue(true),
         getIssue: vi.fn().mockReturnValue(createIssueDescription()),
         getNotification: vi.fn().mockReturnValue({ body: { text: 'noop' } }),
         trigger: vi.fn(),
       });
       manager.addIssue(issue);
 
-      manager.trigger('config_error', { error: new Error('cfg') });
-
-      expect(api.getNotificationManager().setNotification).not.toBeCalled();
-    });
-
-    it('should not auto-popup when trigger does not activate the issue', () => {
-      const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
-
-      const manager = new IssueManager(api);
-
-      // Simulates MediaLoadIssue-style triggers: trigger records context but
-      // the issue is not active (activation happens via a timer/detection
-      // loop later).
-      const issue = createIssue('media_load', {
-        hasIssue: vi.fn().mockReturnValue(false),
-        isFullCardIssue: vi.fn().mockReturnValue(false),
-        getIssue: vi.fn().mockReturnValue(null),
-        getNotification: vi.fn().mockReturnValue({ body: { text: 'noop' } }),
-        trigger: vi.fn(),
-      });
-      manager.addIssue(issue);
-
-      manager.trigger('media_load', { targetID: 'cam1' });
+      manager.trigger('view_incompatible', { error: new Error('mismatch') });
 
       expect(api.getNotificationManager().setNotification).not.toBeCalled();
     });

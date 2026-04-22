@@ -59,19 +59,6 @@ export class IssueManager {
   ): void {
     this._stateManager.trigger(key, context);
     this.evaluate();
-
-    // Explicit triggers auto-surface as popups for active non-full-card
-    // issues. Full-card issues are picked up by card.ts via
-    // getFullCardIssue(); detection-loop activations (detectDynamic) stay
-    // silent until the user opens them. Triggers whose trigger() records
-    // context without activating the issue (e.g. MediaLoadIssue, which
-    // activates via a timer) are skipped by the presence check.
-    if (
-      this._stateManager.getIssuePresence().has(key) &&
-      !this._stateManager.isFullCardIssue(key)
-    ) {
-      this.showNotification(key);
-    }
   }
 
   // Evaluate all dynamic issues against current state, then react to any
