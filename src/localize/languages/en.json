@@ -207,11 +207,6 @@
       }
     },
     "common": {
-      "interaction_modes": {
-        "active": "Only when actively interacting",
-        "all": "Always regardless of interaction",
-        "inactive": "Only when not interacting"
-      },
       "controls": {
         "builtin": "Built-in video controls",
         "filter": {
@@ -308,6 +303,11 @@
         },
         "refresh_seconds": "Seconds between refreshes (0=never)",
         "url": "Static image URL"
+      },
+      "interaction_modes": {
+        "active": "Only when actively interacting",
+        "all": "Always regardless of interaction",
+        "inactive": "Only when not interacting"
       },
       "media_action_conditions": {
         "hidden": "On browser/tab hiding",
@@ -765,6 +765,48 @@
     "webrtc_card_reported_error": "WebRTC Card reported an error",
     "webrtc_card_waiting": "Waiting for WebRTC Card to load..."
   },
+  "issues": {
+    "config_error": {
+      "heading": "Configuration error",
+      "text": "An error occurred evaluating the card configuration"
+    },
+    "config_upgrade": {
+      "heading": "Configuration upgrade available",
+      "text": "A configuration upgrade is available. To upgrade, edit this card (Dashboard pencil icon \u2192 Three-dot menu \u2192 Edit) and click the 'Automatic Upgrade' button in the card editor"
+    },
+    "connection": {
+      "lost": {
+        "heading": "Connection lost",
+        "text": "Connection to Home Assistant lost"
+      },
+      "starting": {
+        "heading": "Home Assistant is starting",
+        "text": "Waiting for Home Assistant startup to complete"
+      }
+    },
+    "initialization": {
+      "heading": "Initialization failed"
+    },
+    "legacy_resource": {
+      "heading": "Legacy dashboard resource detected",
+      "remove": "Remove legacy resource",
+      "text_both": "The legacy 'frigate-hass-card.js' resource is still registered, please either manually remove it or click the delete icon to automatically remove it. It will be removed in a future release",
+      "text_only_legacy": "The legacy 'frigate-hass-card.js' resource must be replaced with 'advanced-camera-card.js'. It will be removed in a future release"
+    },
+    "media_load": {
+      "heading": "Media not loading",
+      "text": "The media has not yet loaded. This could be for any number of reasons. For live views and if configured (and by default), there will be an image refreshing every second until the stream loads correctly or the media loading is retried"
+    },
+    "media_query": {
+      "heading": "Media query failed",
+      "text": "An error occurred fetching media (e.g. thumbnails) for this view."
+    },
+    "troubleshooting_guide": "Troubleshooting guide",
+    "view_incompatible": {
+      "heading": "View not supported",
+      "text": "The selected camera or media does not support this view"
+    }
+  },
   "key_assigner": {
     "assign": "Assign",
     "modifiers": {
@@ -811,48 +853,6 @@
   },
   "media_viewer": {
     "unseekable": "Seek time not found in media"
-  },
-  "issues": {
-    "config_error": {
-      "heading": "Configuration error",
-      "text": "An error occurred evaluating the card configuration"
-    },
-    "config_upgrade": {
-      "heading": "Configuration upgrade available",
-      "text": "A configuration upgrade is available. To upgrade, edit this card (Dashboard pencil icon \u2192 Three-dot menu \u2192 Edit) and click the 'Automatic Upgrade' button in the card editor"
-    },
-    "connection": {
-      "lost": {
-        "heading": "Connection lost",
-        "text": "Connection to Home Assistant lost"
-      },
-      "starting": {
-        "heading": "Home Assistant is starting",
-        "text": "Waiting for Home Assistant startup to complete"
-      }
-    },
-    "initialization": {
-      "heading": "Initialization failed"
-    },
-    "legacy_resource": {
-      "heading": "Legacy dashboard resource detected",
-      "remove": "Remove legacy resource",
-      "text_both": "The legacy 'frigate-hass-card.js' resource is still registered, please either manually remove it or click the delete icon to automatically remove it. It will be removed in a future release",
-      "text_only_legacy": "The legacy 'frigate-hass-card.js' resource must be replaced with 'advanced-camera-card.js'. It will be removed in a future release"
-    },
-    "media_load": {
-      "heading": "Media not loading",
-      "text": "The media has not yet loaded. This could be for any number of reasons. For live views and if configured (and by default), there will be an image refreshing every second until the stream loads correctly or the media loading is retried"
-    },
-    "troubleshooting_guide": "Troubleshooting guide",
-    "media_query": {
-      "heading": "Media query failed",
-      "text": "An error occurred fetching media (e.g. thumbnails) for this view."
-    },
-    "view_incompatible": {
-      "heading": "View not supported",
-      "text": "The selected camera or media does not support this view"
-    }
   },
   "thumbnail": {
     "camera": "Camera",
