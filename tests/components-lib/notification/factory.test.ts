@@ -163,11 +163,4 @@ describe('createNotificationFromError', () => {
     expect(notification.context).toBeUndefined();
   });
 
-  it('should return null for null error', () => {
-    expect(createNotificationFromError(null)).toBeNull();
-  });
-
-  it('should return null for undefined error', () => {
-    expect(createNotificationFromError(undefined)).toBeNull();
-  });
 });

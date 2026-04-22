@@ -16,14 +16,18 @@ export class MediaQueryIssue implements Issue {
   public readonly key = 'media_query' as const;
 
   private _api: CardIssueManagerAPI;
-  private _error: unknown = null;
+
+  // Either a real non-null error value, or the null sentinel meaning "no
+  // issue". Undefined is not a valid state — an undefined `context.error`
+  // (meaningless as an error) is coalesced to null on trigger.
+  private _error: NonNullable<unknown> | null = null;
 
   constructor(api: CardIssueManagerAPI) {
     this._api = api;
   }
 
   public trigger(context: IssueTriggerContext['media_query']): void {
-    this._error = context.error;
+    this._error = context.error ?? null;
   }
 
   public hasIssue(): boolean {
@@ -50,15 +54,10 @@ export class MediaQueryIssue implements Issue {
     if (this._error === null) {
       return null;
     }
-    const notification = createNotificationFromError(this._error, {
-      heading: { text: localize('issues.media_query.heading') },
-    });
-    /* istanbul ignore next: this._error is non-null -- @preserve */
-    if (!notification) {
-      return null;
-    }
     return {
-      ...notification,
+      ...createNotificationFromError(this._error, {
+        heading: { text: localize('issues.media_query.heading') },
+      }),
       controls: [createRetryControl(this.key)],
     };
   }

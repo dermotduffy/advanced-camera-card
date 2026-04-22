@@ -15,14 +15,14 @@ export class InitializationIssue implements Issue {
   public readonly key = 'initialization' as const;
 
   private _api: CardIssueManagerAPI;
-  private _error: unknown = null;
+  private _error: NonNullable<unknown> | null = null;
 
   constructor(api: CardIssueManagerAPI) {
     this._api = api;
   }
 
   public trigger(context: IssueTriggerContext['initialization']): void {
-    this._error = context.error;
+    this._error = context.error ?? null;
   }
 
   public detectDynamic(): void {
@@ -66,10 +66,6 @@ export class InitializationIssue implements Issue {
     const notification = createNotificationFromError(this._error, {
       heading: { text: localize('issues.initialization.heading') },
     });
-    /* istanbul ignore next: this._error is non-null -- @preserve */
-    if (!notification) {
-      return null;
-    }
     return {
       icon: 'mdi:alert',
       severity: 'high',

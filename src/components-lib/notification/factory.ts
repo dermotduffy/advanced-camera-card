@@ -34,15 +34,11 @@ export const createNotificationFromText = (
 });
 
 export const createNotificationFromError = (
-  error: unknown,
+  error: NonNullable<unknown>,
   options?: NotificationOptions,
-): Notification | null => {
-  if (error == null) {
-    return null;
-  }
-
+): Notification => {
   const text =
-    error && typeof error === 'object' && 'message' in error
+    typeof error === 'object' && 'message' in error
       ? String(error.message)
       : typeof error === 'object'
         ? JSON.stringify(error)
