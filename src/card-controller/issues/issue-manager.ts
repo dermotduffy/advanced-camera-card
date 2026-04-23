@@ -94,6 +94,12 @@ export class IssueManager {
     }
   }
 
+  // Attempts a retry for the given issue. Pass `force = true` for user-
+  // initiated retries (e.g. clicking the retry button on a notification): it
+  // bypasses the `needsRetry()` gate that scheduled auto-retries must
+  // respect, so even an issue that doesn't currently want a retry will run
+  // its `retry()` method. Also stops the pending auto-retry timer so the
+  // user action resets the backoff schedule.
   public retry(key: IssueKey, force?: boolean): void {
     this._stateManager.retry(key, force);
     this._retryTimer.stop();

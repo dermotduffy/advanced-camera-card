@@ -1,5 +1,5 @@
 import type { IssueTriggerContext } from 'issue';
-import { dataToContext } from '../../../components-lib/notification/data-to-context.js';
+import { createNotificationFromText } from '../../../components-lib/notification/factory.js';
 import { localize } from '../../../localize/localize.js';
 import { getContextFromError } from '../../../utils/error-context.js';
 import { CardIssueManagerAPI } from '../../types.js';
@@ -15,14 +15,14 @@ export class ViewIncompatibleIssue implements Issue {
   public readonly key = 'view_incompatible' as const;
 
   private _api: CardIssueManagerAPI;
-  private _error: unknown = null;
+  private _error: NonNullable<unknown> | null = null;
 
   constructor(api: CardIssueManagerAPI) {
     this._api = api;
   }
 
   public trigger(context: IssueTriggerContext['view_incompatible']): void {
-    this._error = context.error;
+    this._error = context.error ?? null;
   }
 
   public hasIssue(): boolean {
@@ -41,20 +41,20 @@ export class ViewIncompatibleIssue implements Issue {
       return null;
     }
 
-    const context = getContextFromError(this._error);
-
     return {
       icon: 'mdi:video-off',
       severity: 'high',
-      notification: {
-        heading: {
-          text: localize('issues.view_incompatible.heading'),
-          icon: 'mdi:video-off',
-          severity: 'high',
+      notification: createNotificationFromText(
+        localize('issues.view_incompatible.text'),
+        {
+          heading: {
+            text: localize('issues.view_incompatible.heading'),
+            icon: 'mdi:video-off',
+            severity: 'high',
+          },
+          context: getContextFromError(this._error) ?? undefined,
         },
-        body: { text: localize('issues.view_incompatible.text') },
-        ...(context && { context: dataToContext(context) }),
-      },
+      ),
     };
   }
 

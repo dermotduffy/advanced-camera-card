@@ -41,9 +41,13 @@ export function renderControl(
   control: NotificationControl,
   onAction: (ev: CustomEvent<{ action: string }>, control: NotificationControl) => void,
 ): TemplateResult {
+  const classes = {
+    control: true,
+    [`severity-${control.severity}`]: !!control.severity,
+  };
   return html`
     <div
-      class="control ${control.severity ? `severity-${control.severity}` : ''}"
+      class="${classMap(classes)}"
       title=${control.tooltip ?? ''}
       .actionHandler=${actionHandler({
         hasHold: hasAction(control.actions?.hold_action),
