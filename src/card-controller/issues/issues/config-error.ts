@@ -5,7 +5,7 @@ import { Issue, IssueDescription } from '../types.js';
 
 declare module 'issue' {
   interface IssueTriggerContext {
-    config_error: { error: unknown };
+    config_error: { error: NonNullable<unknown> };
   }
 }
 
@@ -15,7 +15,7 @@ export class ConfigErrorIssue implements Issue {
   private _error: NonNullable<unknown> | null = null;
 
   public trigger(context: IssueTriggerContext['config_error']): void {
-    this._error = context.error ?? null;
+    this._error = context.error;
   }
 
   public hasIssue(): boolean {

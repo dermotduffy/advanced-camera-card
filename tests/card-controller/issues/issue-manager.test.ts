@@ -14,7 +14,12 @@ import {
 } from '../../../src/card-controller/issues/types';
 import { ConditionStateManager } from '../../../src/conditions/state-manager';
 import { InteractionMode } from '../../../src/config/schema/view';
-import { createCardAPI, createConfig } from '../../test-utils';
+import {
+  createCardAPI,
+  createConfig,
+  createHASS,
+  flushPromises,
+} from '../../test-utils';
 
 const DEFAULT_RETRY_SECONDS = 1;
 
@@ -114,6 +119,58 @@ describe('IssueManager', () => {
       expect(manager.getStateManager().getIssuePresence().has('config_error')).toBe(
         false,
       );
+    });
+  });
+
+  describe('static detection via condition-state listener', () => {
+    it('should run static detection when mandatory init completes', async () => {
+      const api = createCardAPI();
+      const conditionStateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(conditionStateManager);
+
+      const manager = new IssueManager(api);
+      const detectStatic = vi.fn().mockResolvedValue(undefined);
+      const issue = createIssue('legacy_resource', { detectStatic });
+      manager.addIssue(issue);
+
+      const hass = createHASS();
+      conditionStateManager.setState({ hass });
+      conditionStateManager.setState({ initialized: true });
+      await flushPromises();
+
+      expect(detectStatic).toBeCalledWith(hass);
+    });
+
+    it('should not run static detection when hass is unset', () => {
+      const api = createCardAPI();
+      const conditionStateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(conditionStateManager);
+
+      const manager = new IssueManager(api);
+      const detectStatic = vi.fn().mockResolvedValue(undefined);
+      const issue = createIssue('legacy_resource', { detectStatic });
+      manager.addIssue(issue);
+
+      conditionStateManager.setState({ initialized: true });
+
+      expect(detectStatic).not.toBeCalled();
+    });
+
+    it('should not run static detection on unrelated state changes', () => {
+      const api = createCardAPI();
+      const conditionStateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(conditionStateManager);
+
+      const manager = new IssueManager(api);
+      const detectStatic = vi.fn().mockResolvedValue(undefined);
+      const issue = createIssue('legacy_resource', { detectStatic });
+      manager.addIssue(issue);
+
+      const hass = createHASS();
+      conditionStateManager.setState({ hass });
+      conditionStateManager.setState({ view: 'live' });
+
+      expect(detectStatic).not.toBeCalled();
     });
   });
 

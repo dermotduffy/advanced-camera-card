@@ -7,7 +7,7 @@ import { Issue, IssueDescription } from '../types.js';
 
 declare module 'issue' {
   interface IssueTriggerContext {
-    view_incompatible: { error: unknown };
+    view_incompatible: { error: NonNullable<unknown> };
   }
 }
 
@@ -22,7 +22,7 @@ export class ViewIncompatibleIssue implements Issue {
   }
 
   public trigger(context: IssueTriggerContext['view_incompatible']): void {
-    this._error = context.error ?? null;
+    this._error = context.error;
   }
 
   public hasIssue(): boolean {

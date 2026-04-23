@@ -1,9 +1,10 @@
 import type { IssueTriggerContext } from 'issue';
+import { ConditionStateChange } from '../../conditions/types';
 import { isActionAllowedBasedOnInteractionState } from '../../utils/interaction-mode';
 import { Timer } from '../../utils/timer';
 import { CardIssueManagerAPI } from '../types';
 import { IssueStateManager } from './state-manager';
-import { Issue, IssueKey, IssueTriggerContextKey } from './types';
+import { Issue, IssueKey, IssueReadOnlyState, IssueTriggerContextKey } from './types';
 
 // Exponential backoff schedule for 'auto' retry. The base is set above the
 // per-media retry threshold (~10s) so the issue-level backoff kicks in *after*
@@ -13,10 +14,13 @@ export const RETRY_EXPONENTIAL_MAX_SECONDS = 600;
 const RETRY_EXPONENTIAL_JITTER_MIN = 0.5;
 const RETRY_EXPONENTIAL_JITTER_MAX = 1.0;
 
-// Wraps the passive IssueStateManager with reaction logic: evaluates issues
-// on state changes, schedules retries, and updates the card. Full-card issues
-// are rendered by card.ts via getStateManager().getFullCardIssue(). Non-full-
-// card issue notifications are shown on demand via showNotification().
+// Wraps the passive IssueStateManager with reaction logic. A single
+// condition-state listener drives everything: it runs one-shot static
+// detection when mandatory-init completes (`initialized` transitions to
+// true), then evaluates dynamic issues on every subsequent state change,
+// schedules retries, and updates the card. Full-card issues are rendered by
+// card.ts via getStateManager().getFullCardIssue(). Non-full-card issue
+// notifications are shown on demand via showNotification().
 export class IssueManager {
   private _api: CardIssueManagerAPI;
   private _stateManager = new IssueStateManager();
@@ -32,7 +36,7 @@ export class IssueManager {
 
   constructor(api: CardIssueManagerAPI) {
     this._api = api;
-    api.getConditionStateManager().addListener(() => this.evaluate());
+    api.getConditionStateManager().addListener((change) => this._onStateChange(change));
   }
 
   // =========================================================================
@@ -43,7 +47,7 @@ export class IssueManager {
     this._stateManager.addIssue(issue);
   }
 
-  public getStateManager(): IssueStateManager {
+  public getStateManager(): IssueReadOnlyState {
     return this._stateManager;
   }
 
@@ -150,6 +154,24 @@ export class IssueManager {
   // =========================================================================
   // Private helpers.
   // =========================================================================
+
+  // Drives both one-shot static detection (on mandatory-init completion) and
+  // normal re-evaluation (on any condition-state change).
+  //
+  // `initialized: true` in the change payload means mandatory initialization
+  // just finished — see InitializationManager._initializeMandatory. That's
+  // also the earliest point at which the full HASS object is guaranteed
+  // ready for websocket calls (e.g. LegacyResourceIssue's lovelace/resources
+  // fetch). Because `initialized` is latched (its comment notes it never
+  // changes again), this block fires exactly once per IssueManager life.
+  private _onStateChange(change: ConditionStateChange): void {
+    if (change.change.initialized === true && change.new.hass) {
+      /* async */ this._stateManager
+        .detectStatic(change.new.hass)
+        .then(() => this.evaluate());
+    }
+    this.evaluate();
+  }
 
   private _scheduleRetryIfNeeded(): void {
     if (!this._stateManager.needsRetry()) {

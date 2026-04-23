@@ -32,6 +32,12 @@ export interface KeyedIssueDescription {
 // real value-level diffs to the condition state, triggering re-renders and
 // any user-defined conditions that depend on issue state.
 export type IssuePresence = Map<IssueKey, IssueDescription>;
+export interface IssueReadOnlyState {
+  hasFullCardIssue(): boolean;
+  getFullCardIssue(): IssueDescription | null;
+  getIssueDescriptions(): KeyedIssueDescription[];
+  getIssuePresence(): IssuePresence;
+}
 
 export type IssueTriggerContextKey = keyof IssueTriggerContext;
 export type IssueTriggerEventData = {

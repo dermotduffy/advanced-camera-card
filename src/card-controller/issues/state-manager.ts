@@ -9,11 +9,12 @@ import {
   IssueDescription,
   IssueKey,
   IssuePresence,
+  IssueReadOnlyState,
   IssueTriggerContextKey,
   KeyedIssueDescription,
 } from './types';
 
-export class IssueStateManager {
+export class IssueStateManager implements IssueReadOnlyState {
   private _issues = new Map<IssueKey, Issue>();
   private _loggedKeys = new Set<IssueKey>();
 

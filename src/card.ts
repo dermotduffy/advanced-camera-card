@@ -172,8 +172,6 @@ class AdvancedCameraCard extends LitElement {
 
     if (!this._controller.getInitializationManager().isInitializedMandatory()) {
       /* async */ this._controller.getInitializationManager().initializeMandatory();
-    } else if (!this._controller.getInitializationManager().isInitializedBackground()) {
-      /* async */ this._controller.getInitializationManager().initializeBackground();
     }
     return true;
   }

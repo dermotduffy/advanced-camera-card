@@ -11,7 +11,6 @@ export enum InitializationAspect {
   SIDE_LOAD_ELEMENTS = 'side-load-elements',
   CAMERAS = 'cameras',
   MICROPHONE_CONNECT = 'microphone-connect',
-  ISSUES = 'issues',
   VIEW = 'view',
 
   // The initial triggering must happen after both the config is set (and
@@ -51,10 +50,6 @@ export class InitializationManager {
 
   public isInitialized(aspect: InitializationAspect): boolean {
     return this._initializer.isInitialized(aspect);
-  }
-
-  public isInitializedBackground(): boolean {
-    return this._initializer.isInitialized(InitializationAspect.ISSUES);
   }
 
   public isInitializedMandatory(): boolean {
@@ -212,24 +207,6 @@ export class InitializationManager {
 
   private _setInitializationIssue(error: unknown): void {
     this._api.getIssueManager().trigger('initialization', { error });
-  }
-
-  public async initializeBackground(): Promise<void> {
-    await this._initializationQueue.add(() => this._initializeBackground());
-  }
-
-  private async _initializeBackground(): Promise<void> {
-    const hass = this._api.getHASSManager().getHASS();
-    if (!hass) {
-      return;
-    }
-
-    await this._tryInitialize(() =>
-      this._initializer.initializeIfNecessary(InitializationAspect.ISSUES, async () => {
-        await this._api.getIssueManager().getStateManager().detectStatic(hass);
-        this._api.getIssueManager().evaluate();
-      }),
-    );
   }
 
   public uninitialize(aspect: InitializationAspect): void {

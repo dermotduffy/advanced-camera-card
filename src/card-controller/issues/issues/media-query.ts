@@ -8,7 +8,7 @@ import { Issue, IssueDescription } from '../types.js';
 
 declare module 'issue' {
   interface IssueTriggerContext {
-    media_query: { error: unknown };
+    media_query: { error: NonNullable<unknown> };
   }
 }
 
@@ -23,7 +23,7 @@ export class MediaQueryIssue implements Issue {
   }
 
   public trigger(context: IssueTriggerContext['media_query']): void {
-    this._error = context.error ?? null;
+    this._error = context.error;
   }
 
   public hasIssue(): boolean {
