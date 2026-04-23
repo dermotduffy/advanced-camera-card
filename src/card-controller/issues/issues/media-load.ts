@@ -158,6 +158,17 @@ export class MediaLoadIssue implements Issue {
     this._erroredTargetIDs.clear();
   }
 
+  // Stop the pending-load timer so offscreen time doesn't count toward the
+  // 10s threshold. Preserve _issueActive, _erroredTargetIDs, and
+  // _timerTargetID: already-visible errors remain visible on reattach, and
+  // retaining _timerTargetID lets the existing active/target-mismatch guard
+  // in _handleMediaNotLoaded avoid spuriously deactivating the preserved
+  // issue when the same target is still loading on resume. The timer is
+  // re-armed with a fresh window by the next detectDynamic pass.
+  public suspend(): void {
+    this._timer.stop();
+  }
+
   // =========================================================================
   // Private helpers.
   // =========================================================================

@@ -565,4 +565,59 @@ describe('MediaLoadIssue', () => {
       expect(onChange).not.toBeCalled();
     });
   });
+
+  describe('suspend', () => {
+    it('should stop the pending-load timer so it cannot mature offscreen', () => {
+      const onChange = vi.fn();
+      const issue = new MediaLoadIssue(createAPI(), onChange);
+
+      // Enter loading state. Timer arms but has not yet fired.
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+      vi.advanceTimersByTime(5000);
+      expect(issue.hasIssue()).toBe(false);
+
+      // Card detaches: timer must stop.
+      issue.suspend();
+
+      // Full 10s later (plus margin) the timer has NOT matured — the user
+      // was offscreen and that time does not count against them.
+      vi.advanceTimersByTime(20000);
+      expect(issue.hasIssue()).toBe(false);
+      expect(onChange).not.toBeCalled();
+    });
+
+    it('should preserve an already-active issue across suspend', () => {
+      const issue = new MediaLoadIssue(createAPI());
+
+      // Issue activates (timeout fires).
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+      vi.advanceTimersByTime(10000);
+      expect(issue.hasIssue()).toBe(true);
+
+      // Card detaches — issue must remain visible on reattach.
+      issue.suspend();
+
+      expect(issue.hasIssue()).toBe(true);
+    });
+
+    it('should rearm a fresh timer window on resume via detectDynamic', () => {
+      const onChange = vi.fn();
+      const issue = new MediaLoadIssue(createAPI(), onChange);
+
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+      vi.advanceTimersByTime(5000);
+      issue.suspend();
+
+      // Reattach: the manager's resume() triggers evaluate() → detectDynamic.
+      // The target is still loading, so the timer arms with a fresh 10s
+      // window — not whatever was left when we suspended.
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+
+      vi.advanceTimersByTime(9999);
+      expect(issue.hasIssue()).toBe(false);
+      vi.advanceTimersByTime(1);
+      expect(issue.hasIssue()).toBe(true);
+      expect(onChange).toBeCalled();
+    });
+  });
 });

@@ -554,6 +554,20 @@ describe('IssueStateManager', () => {
     });
   });
 
+  describe('suspend', () => {
+    it('should call suspend on all issues that implement it', () => {
+      const manager = createManager();
+      manager.suspend();
+
+      assert(mockConfigUpgrade.suspend);
+      assert(mockLegacyResource.suspend);
+      assert(mockMediaLoad.suspend);
+      expect(mockConfigUpgrade.suspend).toBeCalled();
+      expect(mockLegacyResource.suspend).toBeCalled();
+      expect(mockMediaLoad.suspend).toBeCalled();
+    });
+  });
+
   describe('destroy', () => {
     it('should destroy all issues and clear', () => {
       const manager = createManager();

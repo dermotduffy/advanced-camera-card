@@ -140,6 +140,12 @@ export class IssueStateManager implements IssueReadOnlyState {
     }
   }
 
+  public suspend(): void {
+    for (const issue of this._issues.values()) {
+      issue.suspend?.();
+    }
+  }
+
   public destroy(): void {
     this.reset();
     this._issues.clear();

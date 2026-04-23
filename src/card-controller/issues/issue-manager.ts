@@ -135,10 +135,13 @@ export class IssueManager {
 
   // Gate evaluation while the card is detached so timers don't arm or mature
   // offscreen. Issue state is preserved (including full-card issues like
-  // config_error). Evaluation resumes on resume().
+  // config_error). Issue-internal timers are stopped via Issue.suspend so
+  // offscreen time doesn't count against age-based thresholds (e.g. media
+  // loading timeout). Evaluation resumes on resume().
   public suspend(): void {
     this._suspended = true;
     this._retryTimer.stop();
+    this._stateManager.suspend();
   }
 
   public resume(): void {

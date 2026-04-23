@@ -836,46 +836,34 @@ describe('IssueManager', () => {
       expect(api.getCardElementManager().update).toBeCalled();
     });
 
-    // Issue-internal timers (e.g. media_load) can still mutate state while
-    // suspended because the gate is on manager evaluation, not on
-    // individual issue callbacks. This is acceptable: on resume, evaluate()
-    // surfaces the stale issue, and a subsequent successful media load
-    // clears it via detectDynamic. This test documents that contract.
-    it('should surface issue that matured during suspension after resume', () => {
+    it('should invoke Issue.suspend on timer-backed issues when suspended', () => {
       const api = createCardAPI();
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
-      vi.mocked(api.getConditionStateManager().setState).mockReturnValue(true);
 
       const manager = new IssueManager(api);
-
-      // Simulate an issue that activates its own state during suspension
-      // (e.g. a timer callback setting _issueActive = true).
-      const issue = createIssue('media_load', {
-        hasIssue: vi.fn().mockReturnValue(false),
-      });
+      const issue = createIssue('media_load', { suspend: vi.fn() });
       manager.addIssue(issue);
 
       manager.suspend();
 
-      // Issue matures while suspended.
-      vi.mocked(issue.hasIssue).mockReturnValue(true);
+      expect(issue.suspend).toBeCalled();
+    });
 
-      // evaluate() is gated — no update.
-      manager.evaluate();
-      expect(api.getCardElementManager().update).not.toBeCalled();
+    it('should tolerate issues without a suspend hook', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
-      // On resume, the matured issue surfaces.
-      manager.resume();
-      expect(api.getCardElementManager().update).toBeCalled();
+      const manager = new IssueManager(api);
+      // Plain Issue implementation — no optional methods installed.
+      const issue: Issue = {
+        key: 'config_error',
+        hasIssue: () => false,
+        getIssue: () => null,
+      };
+      manager.addIssue(issue);
 
-      // A subsequent state change that resolves the issue clears it.
-      vi.mocked(issue.hasIssue).mockReturnValue(false);
-      vi.mocked(api.getConditionStateManager().setState).mockReturnValue(true);
-      manager.evaluate();
-
-      expect(api.getConditionStateManager().setState).toBeCalledWith({
-        issues: new Map(),
-      });
+      // Must not throw.
+      manager.suspend();
     });
   });
 

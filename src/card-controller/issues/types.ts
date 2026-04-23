@@ -83,4 +83,13 @@ export interface Issue {
 
   // Reset internal state (clear errors, stop timers, etc.).
   reset?(): void;
+
+  // Called when the card is detached. Issues with age-based timers (e.g.
+  // loading-timeout timers) must stop them here so that time spent offscreen
+  // doesn't count against the user. Must preserve already-active issue state
+  // — a full-card issue visible at detach should still be visible on
+  // reattach. No `resume` hook: IssueManager.resume() triggers a normal
+  // evaluate(), so any timer that should restart is re-armed via
+  // detectDynamic against the current condition state.
+  suspend?(): void;
 }
