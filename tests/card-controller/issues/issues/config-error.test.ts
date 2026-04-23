@@ -27,6 +27,14 @@ describe('ConfigErrorIssue', () => {
     expect(issue.hasIssue()).toBe(true);
   });
 
+  it('should treat a triggered null/undefined error as no issue', () => {
+    const issue = new ConfigErrorIssue();
+    issue.trigger({ error: undefined });
+
+    expect(issue.hasIssue()).toBe(false);
+    expect(issue.getIssue()).toBeNull();
+  });
+
   it('isFullCardIssue should return true', () => {
     const issue = new ConfigErrorIssue();
     expect(issue.isFullCardIssue()).toBe(true);

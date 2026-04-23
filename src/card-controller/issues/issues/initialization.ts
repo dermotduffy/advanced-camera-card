@@ -7,7 +7,7 @@ import { Issue, IssueDescription } from '../types';
 
 declare module 'issue' {
   interface IssueTriggerContext {
-    initialization: { error: NonNullable<unknown> };
+    initialization: { error: unknown };
   }
 }
 
@@ -22,7 +22,7 @@ export class InitializationIssue implements Issue {
   }
 
   public trigger(context: IssueTriggerContext['initialization']): void {
-    this._error = context.error;
+    this._error = context.error ?? null;
   }
 
   public detectDynamic(): void {

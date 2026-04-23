@@ -37,6 +37,7 @@ export interface IssueReadOnlyState {
   getFullCardIssue(): IssueDescription | null;
   getIssueDescriptions(): KeyedIssueDescription[];
   getIssuePresence(): IssuePresence;
+  getNotification(key: IssueKey): Notification | null;
 }
 
 export type IssueTriggerContextKey = keyof IssueTriggerContext;

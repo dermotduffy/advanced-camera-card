@@ -32,6 +32,15 @@ describe('MediaQueryIssue', () => {
     expect(issue.hasIssue()).toBe(true);
   });
 
+  it('should treat a triggered null/undefined error as no issue', () => {
+    const { issue } = createIssue();
+    issue.trigger({ error: undefined });
+
+    expect(issue.hasIssue()).toBe(false);
+    expect(issue.getIssue()).toBeNull();
+    expect(issue.needsRetry()).toBe(false);
+  });
+
   it('should return expected shape from getIssue when triggered with an error', () => {
     const { issue } = createIssue();
     issue.trigger({ error: new Error('media query failed') });

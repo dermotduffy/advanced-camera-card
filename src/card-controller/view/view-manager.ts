@@ -112,10 +112,13 @@ export class ViewManager implements ViewManagerInterface {
         baseView: this._view,
         ...options,
       });
-      // A non-throwing factory call clears any prior view_incompatible state —
-      // ensures a previously-dismissed mid-session popup does not linger
-      // invisibly and re-pop on the next evaluation cycle.
+      // A non-throwing factory call clears any prior view_incompatible /
+      // media_query state — ensures a previously-dismissed mid-session popup
+      // does not linger invisibly and re-pop on the next evaluation cycle,
+      // and that a stale media_query failure from an abandoned gallery /
+      // viewer doesn't follow the user into an unrelated view.
       this._api.getIssueManager().reset('view_incompatible');
+      this._api.getIssueManager().reset('media_query');
     } catch (e) {
       if (!this._view) {
         view = this._getFailSafeView(viewFactoryFunc);
@@ -181,6 +184,10 @@ export class ViewManager implements ViewManagerInterface {
         },
       });
       this._api.getIssueManager().reset('view_incompatible');
+      // A new query is about to run, so any stale media_query error from a
+      // previous attempt is no longer meaningful. If this new query also
+      // fails, it will re-trigger below.
+      this._api.getIssueManager().reset('media_query');
     } catch (e) {
       if (!this._view) {
         initialView = this._getFailSafeView(viewFactoryFunc);
@@ -235,6 +242,14 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     if (error) {
+      // Clear the loading flag before surfacing the error. Otherwise the
+      // view stays marked in-flight and components (gallery, viewer) keep
+      // rendering "Awaiting media" on top of the error notification.
+      if (this._view?.context?.loading?.query === loadingIndex) {
+        const view = this._view.clone();
+        this._markViewAsNotLoadingQuery(view);
+        this._setView(view);
+      }
       this._api.getIssueManager().trigger('media_query', { error });
       return;
     }

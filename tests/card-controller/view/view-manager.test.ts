@@ -382,6 +382,75 @@ describe('should handle exceptions', () => {
       'media_query',
       expect.objectContaining({ error }),
     );
+
+    // The loading flag must be cleared on error — otherwise gallery/viewer
+    // components render "Awaiting media" indefinitely on top of the error
+    // notification.
+    expect(manager.getView()?.context?.loading?.query).toBeUndefined();
+  });
+
+  it('should reset media_query when navigating via the sync path', () => {
+    const viewFactory = mock<ViewFactory>();
+    viewFactory.getViewByParameters.mockReturnValue(createView({ view: 'live' }));
+
+    const api = createInitializedCardAPI();
+    const manager = new ViewManager(api, { viewFactory });
+    manager.setViewByParameters();
+
+    expect(api.getIssueManager().reset).toBeCalledWith('media_query');
+  });
+
+  it('should tolerate the view being reset during a failing async query', async () => {
+    const error = new Error();
+    const viewFactory = mock<ViewFactory>();
+    viewFactory.getViewDefault.mockReturnValue(createView());
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+
+    const api = createInitializedCardAPI();
+    const manager = new ViewManager(api, {
+      viewFactory: viewFactory,
+      viewQueryExecutor: viewQueryExecutor,
+    });
+
+    // Concurrent reset during the await — clears `_view` before the
+    // rejection is processed. The error path must not crash on the null
+    // view when attempting to clear the loading flag.
+    viewQueryExecutor.getNewQueryModifiers.mockImplementation(async () => {
+      manager.reset();
+      throw error;
+    });
+
+    await manager.setViewDefaultWithNewQuery();
+
+    expect(manager.getView()).toBeNull();
+    expect(api.getIssueManager().trigger).toBeCalledWith(
+      'media_query',
+      expect.objectContaining({ error }),
+    );
+  });
+
+  it('should reset media_query at the start of a new async query', async () => {
+    const viewFactory = mock<ViewFactory>();
+    viewFactory.getViewDefault.mockReturnValue(createView());
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+    viewQueryExecutor.getNewQueryModifiers.mockResolvedValue(null);
+
+    const api = createInitializedCardAPI();
+    const manager = new ViewManager(api, {
+      viewFactory: viewFactory,
+      viewQueryExecutor: viewQueryExecutor,
+    });
+
+    await manager.setViewDefaultWithNewQuery();
+
+    // Reset is called twice: once at dispatch (supersedes any prior error)
+    // and once after success (clears on confirmed success).
+    expect(api.getIssueManager().reset).toBeCalledWith('media_query');
+    expect(
+      vi.mocked(api.getIssueManager().reset).mock.calls.filter(
+        ([key]) => key === 'media_query',
+      ).length,
+    ).toBe(2);
   });
 });
 

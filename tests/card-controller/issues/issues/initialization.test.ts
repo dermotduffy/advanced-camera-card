@@ -31,6 +31,15 @@ describe('InitializationIssue', () => {
     expect(issue.hasIssue()).toBe(true);
   });
 
+  it('should treat a triggered null/undefined error as no issue', () => {
+    const issue = new InitializationIssue(createAPI());
+    issue.trigger({ error: undefined });
+
+    expect(issue.hasIssue()).toBe(false);
+    expect(issue.getIssue()).toBeNull();
+    expect(issue.needsRetry()).toBe(false);
+  });
+
   it('should return true for isFullCardIssue', () => {
     const issue = new InitializationIssue(createAPI());
     expect(issue.isFullCardIssue()).toBe(true);

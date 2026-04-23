@@ -33,6 +33,14 @@ describe('ViewIncompatibleIssue', () => {
     expect(issue.hasIssue()).toBe(true);
   });
 
+  it('should treat a triggered null/undefined error as no issue', () => {
+    const issue = new ViewIncompatibleIssue(createAPI());
+    issue.trigger({ error: undefined });
+
+    expect(issue.hasIssue()).toBe(false);
+    expect(issue.getIssue()).toBeNull();
+  });
+
   describe('isFullCardIssue', () => {
     it('should return true when no view is set', () => {
       const issue = new ViewIncompatibleIssue(createAPI(false));

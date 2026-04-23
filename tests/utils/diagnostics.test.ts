@@ -157,7 +157,16 @@ describe('getDiagnostics', () => {
     const deviceRegistryManager = mock<DeviceRegistryManager>();
     deviceRegistryManager.getMatchingDevices.mockResolvedValue([]);
 
-    const issues = new Set(['config_upgrade'] as const);
+    const issues = new Map([
+      [
+        'config_upgrade' as const,
+        {
+          icon: 'mdi:update',
+          severity: 'medium' as const,
+          notification: { body: { text: 'test' } },
+        },
+      ],
+    ]);
 
     const result = await getDiagnostics(
       hass,
