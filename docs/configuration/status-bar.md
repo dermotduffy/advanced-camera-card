@@ -31,7 +31,7 @@ status_bar:
 | Button name  | Description                                                                                                                                                                                                                                                                                                                  |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `engine`     | The icon of the camera engine for the relevant camera.                                                                                                                                                                                                                                                                       |
-| `issues`     | Indicator icons that appear while any card issue is active — e.g. configuration error, configuration upgrade available, Home Assistant connection lost, camera initialization failed, legacy `frigate-hass-card` resource detected, media (live/recorded/image) not loading, media query failed, or view cannot be resolved. |
+| `issues`     | Indicator icons that appear while any card issue is active — e.g. configuration error, configuration upgrade available, Home Assistant connection lost, camera initialization failed, legacy `frigate-hass-card` resource detected, media (live/recorded/image) not loading, media query failed, or view cannot be resolved. See the warning below about disabling this item. |
 | `resolution` | The detected media resolution (if any).                                                                                                                                                                                                                                                                                      |
 | `severity`   | The media severity indicator (if any) for review severity (e.g. Frigate alerts/detections).                                                                                                                                                                                                                                  |
 | `technology` | The detected media technology (if any).                                                                                                                                                                                                                                                                                      |
@@ -44,6 +44,12 @@ status_bar:
 | `enabled`   | `true`                                 | Whether or not to show the item.                                                                                                                                                                                         |
 | `permanent` | `true` for `issues`, `false` otherwise | When `true`, the status bar stays visible in `popup` mode as long as this item is present (instead of auto-hiding after `popup_seconds`). The `issues` item defaults to `true` so errors remain visible.                 |
 | `priority`  | `50`                                   | The item priority. Higher priority items are ordered closer to the start of the status bar (i.e. an item with priority `70` will order further to the left than an item with priority `60`). Minimum `0`, maximum `100`. |
+
+> [!WARNING]
+> The status bar is the only UI surface for minor issues (i.e. that don't render
+> the card entirely inoperable). If you set `status_bar.style: none` or
+> `status_bar.items.issues.enabled: false`, these issues will not be visible to
+> you, except through card diagnostics.
 
 ## `style`
 
