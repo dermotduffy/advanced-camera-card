@@ -240,6 +240,40 @@ describe('LegacyResourceIssue', () => {
       expect(onChange).not.toBeCalled();
     });
 
+    it('should return false when the verification fetch silently fails after a successful delete', async () => {
+      const onChange = vi.fn();
+      const issue = new LegacyResourceIssue(onChange);
+      const hass = createHASS(undefined, createUser({ is_admin: true }));
+      vi.mocked(hass.hassUrl).mockReturnValue('http://homeassistant.local:8123');
+
+      // Initial detection: finds one legacy resource + one correct resource.
+      vi.mocked(hass.callWS).mockResolvedValueOnce([
+        {
+          id: '1',
+          type: 'module',
+          url: '/hacsfiles/frigate-hass-card/frigate-hass-card.js',
+        },
+        {
+          id: '2',
+          type: 'module',
+          url: '/hacsfiles/advanced-camera-card/advanced-camera-card.js',
+        },
+      ]);
+      await issue.detectStatic(hass);
+
+      // Delete succeeds; verification fetch fails. detectStatic silently
+      // swallows the WS error, so the fix path must not interpret the
+      // absence of a positive signal as success.
+      vi.mocked(hass.callWS)
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('connection lost'));
+
+      const result = await issue.fix(hass);
+
+      expect(result).toBe(false);
+      expect(onChange).not.toBeCalled();
+    });
+
     it('should return false when re-detection still finds legacy resource', async () => {
       const onChange = vi.fn();
       const issue = new LegacyResourceIssue(onChange);

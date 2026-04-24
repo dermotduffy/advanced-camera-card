@@ -152,7 +152,12 @@ export class LegacyResourceIssue implements Issue {
       this._checked = false;
       await this.detectStatic(hass);
 
-      const fixed = !this.hasIssue();
+      // Success requires: detection completed cleanly AND found zero legacy
+      // resources. detectStatic swallows WS / schema failures and leaves
+      // _checked false; treating that as "issue gone" would let a failed
+      // verification fetch masquerade as a successful fix. Demand the
+      // positive signal instead.
+      const fixed = this._checked && this._legacyResourceIDs.length === 0;
       if (fixed) {
         this._changeCallback?.();
       }

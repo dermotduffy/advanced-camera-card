@@ -447,9 +447,9 @@ describe('should handle exceptions', () => {
     // and once after success (clears on confirmed success).
     expect(api.getIssueManager().reset).toBeCalledWith('media_query');
     expect(
-      vi.mocked(api.getIssueManager().reset).mock.calls.filter(
-        ([key]) => key === 'media_query',
-      ).length,
+      vi
+        .mocked(api.getIssueManager().reset)
+        .mock.calls.filter(([key]) => key === 'media_query').length,
     ).toBe(2);
   });
 });
