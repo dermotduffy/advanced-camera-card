@@ -40,6 +40,36 @@ describe('createIssueManager', () => {
     }
   });
 
+  it('should register issues in an order that determines priority', () => {
+    // Lock the registration order. The relative order of these issues
+    // governs full-card display priority (getFullCardIssue returns the
+    // first active full-card issue) and retry-loop priority. Alphabetizing
+    // the list in factory.ts would silently change both. Triggering in a
+    // scrambled order proves getIssueDescriptions reflects registration
+    // order, not trigger order.
+    const api = createCardAPI();
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+    const manager = createIssueManager(api);
+
+    manager.trigger('media_query', { error: new Error('x') });
+    manager.trigger('initialization', { error: new Error('x') });
+    manager.trigger('config_error', { error: new Error('x') });
+    manager.trigger('view_incompatible', { error: new Error('x') });
+
+    const keys = manager
+      .getStateManager()
+      .getIssueDescriptions()
+      .map((d) => d.key);
+
+    expect(keys).toEqual([
+      'config_error',
+      'view_incompatible',
+      'initialization',
+      'media_query',
+    ]);
+  });
+
   it('should wire changeCallback so timer-based issues activate via evaluate', () => {
     const api = createCardAPI();
     const stateManager = new ConditionStateManager();
