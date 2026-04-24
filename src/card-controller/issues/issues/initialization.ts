@@ -40,11 +40,8 @@ export class InitializationIssue extends AbstractErrorIssue {
     this._error = null;
 
     // Reset init state so initializeMandatory() re-attempts on the next
-    // render cycle. destroy() releases the existing CameraManager's held
-    // resources (WebSocket subscriptions, listeners) before the CAMERAS
-    // init aspect replaces the instance via createCameraManager().
+    // render cycle.
     this._api.getInitializationManager().uninitializeMandatory();
-    this._api.getCameraManager().destroy();
     return false;
   }
 

@@ -269,9 +269,10 @@ describe('InitializationManager', () => {
     });
   });
 
-  it('should uninitialize mandatory aspects', () => {
+  it('should uninitialize mandatory aspects and destroy camera manager once', () => {
+    const api = createCardAPI();
     const initializer = mock<Initializer>();
-    const manager = new InitializationManager(createCardAPI(), initializer);
+    const manager = new InitializationManager(api, initializer);
 
     manager.uninitializeMandatory();
 
@@ -283,14 +284,30 @@ describe('InitializationManager', () => {
     expect(initializer.uninitialize).toBeCalledWith(
       InitializationAspect.INITIAL_TRIGGER,
     );
+    // destroy() must be called exactly once (only for CAMERAS, not for the
+    // other three aspects).
+    expect(api.getCameraManager().destroy).toBeCalledTimes(1);
   });
 
-  it('should uninitialize', () => {
+  it('should uninitialize CAMERAS and call destroy', () => {
+    const api = createCardAPI();
     const initializer = mock<Initializer>();
-    const manager = new InitializationManager(createCardAPI(), initializer);
+    const manager = new InitializationManager(api, initializer);
 
     manager.uninitialize(InitializationAspect.CAMERAS);
 
     expect(initializer.uninitialize).toBeCalledWith(InitializationAspect.CAMERAS);
+    expect(api.getCameraManager().destroy).toBeCalled();
+  });
+
+  it('should uninitialize non-CAMERAS aspect without calling destroy', () => {
+    const api = createCardAPI();
+    const initializer = mock<Initializer>();
+    const manager = new InitializationManager(api, initializer);
+
+    manager.uninitialize(InitializationAspect.VIEW);
+
+    expect(initializer.uninitialize).toBeCalledWith(InitializationAspect.VIEW);
+    expect(api.getCameraManager().destroy).not.toBeCalled();
   });
 });

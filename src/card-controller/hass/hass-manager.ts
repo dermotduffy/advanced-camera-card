@@ -46,7 +46,6 @@ export class HASSManager {
       );
 
       this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
-      this._api.getCameraManager().destroy();
       this._api.getInitializationManager().uninitialize(InitializationAspect.VIEW);
       this._api
         .getInitializationManager()

@@ -125,7 +125,7 @@ describe('InitializationIssue', () => {
   });
 
   describe('retry', () => {
-    it('should uninitialize mandatory initialization and destroy camera manager', () => {
+    it('should uninitialize mandatory initialization', () => {
       const api = createAPI();
       const issue = new InitializationIssue(api);
       issue.trigger({ error: new Error('init failed') });
@@ -136,7 +136,6 @@ describe('InitializationIssue', () => {
       expect(issue.hasIssue()).toBe(false);
       expect(issue.needsRetry()).toBe(false);
       expect(api.getInitializationManager().uninitializeMandatory).toBeCalled();
-      expect(api.getCameraManager().destroy).toBeCalled();
     });
   });
 

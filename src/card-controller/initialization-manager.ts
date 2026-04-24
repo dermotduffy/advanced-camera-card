@@ -210,6 +210,14 @@ export class InitializationManager {
   }
 
   public uninitialize(aspect: InitializationAspect): void {
+    // Destroying the camera manager when uninitializing CAMERAS releases held
+    // resources (WebSocket subscriptions via hass.connection.subscribeMessage,
+    // event listeners) before the CAMERAS init aspect replaces the instance
+    // via createCameraManager(). Without this, dropping the reference leaks
+    // those subscriptions.
+    if (aspect === InitializationAspect.CAMERAS) {
+      this._api.getCameraManager().destroy();
+    }
     this._initializer.uninitialize(aspect);
   }
 
@@ -220,7 +228,7 @@ export class InitializationManager {
       InitializationAspect.VIEW,
       InitializationAspect.INITIAL_TRIGGER,
     ]) {
-      this._initializer.uninitialize(aspect);
+      this.uninitialize(aspect);
     }
   }
 }
