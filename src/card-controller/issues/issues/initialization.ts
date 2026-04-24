@@ -1,9 +1,9 @@
-import type { IssueTriggerContext } from 'issue';
 import { createNotificationFromError } from '../../../components-lib/notification/factory.js';
 import { localize } from '../../../localize/localize.js';
 import { CardIssueManagerAPI } from '../../types';
 import { createRetryControl } from '../retry-control.js';
-import { Issue, IssueDescription } from '../types';
+import { IssueDescription } from '../types';
+import { AbstractErrorIssue } from './abstract-error-issue.js';
 
 declare module 'issue' {
   interface IssueTriggerContext {
@@ -11,18 +11,14 @@ declare module 'issue' {
   }
 }
 
-export class InitializationIssue implements Issue {
+export class InitializationIssue extends AbstractErrorIssue {
   public readonly key = 'initialization' as const;
 
   private _api: CardIssueManagerAPI;
-  private _error: NonNullable<unknown> | null = null;
 
   constructor(api: CardIssueManagerAPI) {
+    super();
     this._api = api;
-  }
-
-  public trigger(context: IssueTriggerContext['initialization']): void {
-    this._error = context.error ?? null;
   }
 
   public detectDynamic(): void {
@@ -44,26 +40,20 @@ export class InitializationIssue implements Issue {
     this._error = null;
 
     // Reset init state so initializeMandatory() re-attempts on the next
-    // render cycle.
+    // render cycle. destroy() releases the existing CameraManager's held
+    // resources (WebSocket subscriptions, listeners) before the CAMERAS
+    // init aspect replaces the instance via createCameraManager().
     this._api.getInitializationManager().uninitializeMandatory();
     this._api.getCameraManager().destroy();
     return false;
-  }
-
-  public hasIssue(): boolean {
-    return this._error !== null;
   }
 
   public isFullCardIssue(): boolean {
     return true;
   }
 
-  public getIssue(): IssueDescription | null {
-    if (this._error === null) {
-      return null;
-    }
-
-    const notification = createNotificationFromError(this._error, {
+  protected _buildDescription(error: NonNullable<unknown>): IssueDescription {
+    const notification = createNotificationFromError(error, {
       heading: { text: localize('issues.initialization.heading') },
     });
     return {
@@ -74,9 +64,5 @@ export class InitializationIssue implements Issue {
         controls: [createRetryControl(this.key)],
       },
     };
-  }
-
-  public reset(): void {
-    this._error = null;
   }
 }

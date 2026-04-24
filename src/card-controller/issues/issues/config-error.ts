@@ -1,7 +1,7 @@
-import type { IssueTriggerContext } from 'issue';
 import { createNotificationFromError } from '../../../components-lib/notification/factory.js';
 import { localize } from '../../../localize/localize.js';
-import { Issue, IssueDescription } from '../types.js';
+import { IssueDescription } from '../types.js';
+import { AbstractErrorIssue } from './abstract-error-issue.js';
 
 declare module 'issue' {
   interface IssueTriggerContext {
@@ -9,37 +9,20 @@ declare module 'issue' {
   }
 }
 
-export class ConfigErrorIssue implements Issue {
+export class ConfigErrorIssue extends AbstractErrorIssue {
   public readonly key = 'config_error' as const;
-
-  private _error: NonNullable<unknown> | null = null;
-
-  public trigger(context: IssueTriggerContext['config_error']): void {
-    this._error = context.error ?? null;
-  }
-
-  public hasIssue(): boolean {
-    return this._error !== null;
-  }
 
   public isFullCardIssue(): boolean {
     return true;
   }
 
-  public getIssue(): IssueDescription | null {
-    if (this._error === null) {
-      return null;
-    }
+  protected _buildDescription(error: NonNullable<unknown>): IssueDescription {
     return {
       icon: 'mdi:alert',
       severity: 'high',
-      notification: createNotificationFromError(this._error, {
+      notification: createNotificationFromError(error, {
         heading: { text: localize('issues.config_error.heading') },
       }),
     };
-  }
-
-  public reset(): void {
-    this._error = null;
   }
 }

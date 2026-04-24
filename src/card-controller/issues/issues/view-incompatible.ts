@@ -1,9 +1,9 @@
-import type { IssueTriggerContext } from 'issue';
 import { createNotificationFromText } from '../../../components-lib/notification/factory.js';
 import { localize } from '../../../localize/localize.js';
 import { getContextFromError } from '../../../utils/error-context.js';
 import { CardIssueManagerAPI } from '../../types.js';
-import { Issue, IssueDescription } from '../types.js';
+import { IssueDescription } from '../types.js';
+import { AbstractErrorIssue } from './abstract-error-issue.js';
 
 declare module 'issue' {
   interface IssueTriggerContext {
@@ -11,22 +11,14 @@ declare module 'issue' {
   }
 }
 
-export class ViewIncompatibleIssue implements Issue {
+export class ViewIncompatibleIssue extends AbstractErrorIssue {
   public readonly key = 'view_incompatible' as const;
 
   private _api: CardIssueManagerAPI;
-  private _error: NonNullable<unknown> | null = null;
 
   constructor(api: CardIssueManagerAPI) {
+    super();
     this._api = api;
-  }
-
-  public trigger(context: IssueTriggerContext['view_incompatible']): void {
-    this._error = context.error ?? null;
-  }
-
-  public hasIssue(): boolean {
-    return this._error !== null;
   }
 
   // Full-card when no view is available to anchor a popup to (initial load
@@ -36,11 +28,7 @@ export class ViewIncompatibleIssue implements Issue {
     return !this._api.getViewManager().getView();
   }
 
-  public getIssue(): IssueDescription | null {
-    if (this._error === null) {
-      return null;
-    }
-
+  protected _buildDescription(error: NonNullable<unknown>): IssueDescription {
     return {
       icon: 'mdi:video-off',
       severity: 'high',
@@ -52,13 +40,9 @@ export class ViewIncompatibleIssue implements Issue {
             icon: 'mdi:video-off',
             severity: 'high',
           },
-          context: getContextFromError(this._error) ?? undefined,
+          context: getContextFromError(error) ?? undefined,
         },
       ),
     };
-  }
-
-  public reset(): void {
-    this._error = null;
   }
 }
