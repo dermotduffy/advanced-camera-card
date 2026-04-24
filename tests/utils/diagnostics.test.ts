@@ -104,6 +104,7 @@ describe('getDiagnostics', () => {
       lang: 'en',
       ha_version: '2023.9.0',
       timezone: expect.anything(),
+      issues: [],
     });
   });
 
@@ -148,26 +149,33 @@ describe('getDiagnostics', () => {
       date: now,
       lang: 'en',
       timezone: expect.anything(),
+      issues: [],
     });
   });
 
-  it('should include problems in diagnostics', async () => {
+  it('should include issues in diagnostics', async () => {
     const deviceRegistryManager = mock<DeviceRegistryManager>();
     deviceRegistryManager.getMatchingDevices.mockResolvedValue([]);
 
-    const problems = {
-      config_upgrade: true,
-      legacy_resource: false,
-    };
+    const issues = new Map([
+      [
+        'config_upgrade' as const,
+        {
+          icon: 'mdi:update',
+          severity: 'medium' as const,
+          notification: { body: { text: 'test' } },
+        },
+      ],
+    ]);
 
     const result = await getDiagnostics(
       hass,
       deviceRegistryManager,
       { cameras: [{ camera_entity: 'camera.office' }] },
-      problems,
+      issues,
     );
 
-    expect(result.problems).toEqual(problems);
+    expect(result.issues).toEqual(['config_upgrade']);
   });
 
   it('should fetch diagnostics without device model', async () => {
@@ -194,6 +202,7 @@ describe('getDiagnostics', () => {
       date: now,
       lang: 'en',
       timezone: expect.anything(),
+      issues: [],
     });
   });
 });

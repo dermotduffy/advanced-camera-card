@@ -45,7 +45,8 @@ export class ActionsManager implements ActionsExecutor {
    */
   public getMergedActions(): ActionsConfig {
     const view = this._api.getViewManager().getView();
-    if (this._api.getMessageManager().hasMessage()) {
+    // Don't apply view actions when there are full-card/serious issues.
+    if (this._api.getIssueManager().getStateManager().hasFullCardIssue()) {
       return {};
     }
 

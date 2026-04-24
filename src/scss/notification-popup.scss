@@ -1,0 +1,228 @@
+@use './z-index.scss' as *;
+@use './notification-common.scss';
+
+:host {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 24px;
+  pointer-events: none;
+  z-index: $z-index-notification;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+.notification {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+
+  width: min(92%, 400px);
+  max-height: calc(100% - 48px);
+  padding: 20px 24px;
+  padding-right: 48px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--advanced-camera-card-notification-popup-scrollbar-color)
+    transparent;
+  user-select: text;
+  -webkit-user-select: text;
+
+  // Glassmorphism background
+  background: var(--advanced-camera-card-notification-popup-background);
+  backdrop-filter: var(--advanced-camera-card-notification-popup-backdrop-filter);
+  -webkit-backdrop-filter: var(
+    --advanced-camera-card-notification-popup-backdrop-filter
+  );
+
+  // Borders & Edge highlights
+  border: var(--advanced-camera-card-notification-popup-border);
+  border-top: var(--advanced-camera-card-notification-popup-border-top);
+  border-radius: var(--advanced-camera-card-border-radius-final);
+
+  // Shadows
+  box-shadow: var(
+    --advanced-camera-card-box-shadow-override,
+    var(--advanced-camera-card-notification-popup-box-shadow)
+  );
+
+  --notification-text-color: var(--advanced-camera-card-notification-popup-color);
+  --notification-control-color: var(
+    --advanced-camera-card-notification-popup-close-color
+  );
+
+  pointer-events: auto;
+
+  // Entry animation (auto-plays on render)
+  animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+// Exit animation
+.notification.exiting {
+  animation: slideDown 0.25s ease-out forwards;
+}
+
+@keyframes slideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.02);
+  }
+  80% {
+    transform: translateY(3px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideDown {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  20% {
+    transform: translateY(-4px) scale(1.02);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+}
+
+.controls {
+  position: absolute;
+  top: 8px;
+  right: 48px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--advanced-camera-card-button-border-radius);
+
+  background: color-mix(
+    in srgb,
+    var(--advanced-camera-card-notification-popup-close-color),
+    transparent 92%
+  );
+
+  // When there are no interactive controls (spinner-only case) drop the pill
+  // chrome so the spinner looks like as a status indicator, not a clickable
+  // button.
+  &:not(:has(.control)) {
+    padding: 0;
+    background: none;
+  }
+}
+
+.close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--advanced-camera-card-button-border-radius);
+
+  background: color-mix(
+    in srgb,
+    var(--advanced-camera-card-notification-popup-close-color),
+    transparent 95%
+  );
+  color: color-mix(
+    in srgb,
+    var(--advanced-camera-card-notification-popup-close-color),
+    transparent 40%
+  );
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.close:hover {
+  background: color-mix(
+    in srgb,
+    var(--advanced-camera-card-notification-popup-close-color),
+    transparent 90%
+  );
+  color: var(--advanced-camera-card-notification-popup-close-color);
+}
+
+.close advanced-camera-card-icon {
+  --mdc-icon-size: 18px;
+}
+
+.details {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--advanced-camera-card-notification-popup-color);
+  font-size: 14px;
+  line-height: 1.4;
+
+  advanced-camera-card-icon {
+    flex-shrink: 0;
+    --mdc-icon-size: 18px;
+    opacity: 0.7;
+  }
+
+  span {
+    min-width: 0;
+    word-break: break-word;
+  }
+
+  &.heading {
+    width: 100%;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 4px;
+
+    advanced-camera-card-icon {
+      opacity: 1;
+    }
+  }
+
+  &.body {
+    width: 100%;
+    opacity: 0.85;
+    margin-top: 4px;
+  }
+}
+
+.context {
+  width: 100%;
+  margin-top: 4px;
+
+  pre {
+    margin-top: 4px;
+  }
+}
+
+.url {
+  margin-top: 8px;
+  width: 100%;
+}

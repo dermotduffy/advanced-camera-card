@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
+import { keyed } from 'lit/directives/keyed.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../../camera-manager/types.js';
@@ -220,32 +221,38 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
     const cameraMetadata = this.cameraManager.getCameraMetadata(cameraID);
     const view = this.viewManagerEpoch?.manager.getView();
+    const mediaEpoch = view?.context?.mediaEpoch?.[cameraID] ?? 0;
 
     return html`
       <div class="embla__slide">
-        <advanced-camera-card-live-provider
-          .microphoneState=${view?.camera === cameraID
-            ? this.microphoneState
-            : undefined}
-          .camera=${camera}
-          .cameraEndpoints=${guard(
-            [this.cameraManager, cameraID],
-            () => this.cameraManager?.getCameraEndpoints(cameraID) ?? undefined,
-          )}
-          .label=${cameraMetadata?.title ?? ''}
-          .liveConfig=${this.liveConfig}
-          .hass=${this.hass}
-          .cardWideConfig=${this.cardWideConfig}
-          .zoomSettings=${view?.context?.zoom?.[cameraID]?.requested}
-          .zoom=${!this._isGesturesPTZActive(view, cameraID)}
-          @advanced-camera-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
-            handleZoomSettingsObservedEvent(
-              ev,
-              this.viewManagerEpoch?.manager,
-              cameraID,
+        ${keyed(
+          mediaEpoch,
+          html`<advanced-camera-card-live-provider
+            .microphoneState=${view?.camera === cameraID
+              ? this.microphoneState
+              : undefined}
+            .camera=${camera}
+            .cameraEndpoints=${guard(
+              [this.cameraManager, cameraID],
+              () => this.cameraManager?.getCameraEndpoints(cameraID) ?? undefined,
             )}
-        >
-        </advanced-camera-card-live-provider>
+            .label=${cameraMetadata?.title ?? ''}
+            .liveConfig=${this.liveConfig}
+            .hass=${this.hass}
+            .cardWideConfig=${this.cardWideConfig}
+            .zoomSettings=${view?.context?.zoom?.[cameraID]?.requested}
+            .zoom=${!this._isGesturesPTZActive(view, cameraID)}
+            @advanced-camera-card:zoom:change=${(
+              ev: CustomEvent<ZoomSettingsObserved>,
+            ) =>
+              handleZoomSettingsObservedEvent(
+                ev,
+                this.viewManagerEpoch?.manager,
+                cameraID,
+              )}
+          >
+          </advanced-camera-card-live-provider>`,
+        )}
       </div>
     `;
   }

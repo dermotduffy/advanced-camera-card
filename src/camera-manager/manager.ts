@@ -11,7 +11,6 @@ import {
 } from '../config/schema/actions/custom/ptz.js';
 import { CameraConfig, Rotation } from '../config/schema/cameras.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
-import { localize } from '../localize/localize.js';
 import { Endpoint } from '../types.js';
 import {
   allPromises,
@@ -28,7 +27,11 @@ import { ViewItemCapabilities } from '../view/types.js';
 import { Capabilities } from './capabilities.js';
 import { CameraManagerEngineFactory } from './engine-factory.js';
 import { CameraManagerEngine } from './engine.js';
-import { CameraInitializationError } from './error.js';
+import {
+  CameraDuplicateIDError,
+  CameraNoEngineError,
+  CameraNoIDError,
+} from './error.js';
 import { CameraManagerReadOnlyConfigStore, CameraManagerStore } from './store.js';
 import {
   CameraEndpoints,
@@ -150,12 +153,12 @@ export class CameraManager {
     this._store = options?.store ?? new CameraManagerStore();
   }
 
-  public async initializeCamerasFromConfig(): Promise<boolean> {
+  public async initializeCamerasFromConfig(): Promise<void> {
     const config = this._api.getConfigManager().getConfig();
     const hass = this._api.getHASSManager().getHASS();
 
     if (!config || !hass) {
-      return false;
+      return;
     }
 
     this._requestLimit.concurrency =
@@ -169,15 +172,7 @@ export class CameraManager {
       recursivelyMergeObjectsNotArrays(config?.cameras_global, camera),
     );
 
-    try {
-      await this._initializeCameras(cameras);
-    } catch (e: unknown) {
-      this._api
-        .getMessageManager()
-        .setErrorIfHigherPriority(e, localize('error.camera_initialization'));
-      return false;
-    }
-    return true;
+    await this._initializeCameras(cameras);
   }
 
   public async destroy(): Promise<void> {
@@ -214,12 +209,9 @@ export class CameraManager {
           }))
         : null;
       if (!engine || !engineType) {
-        throw new CameraInitializationError(
-          localize('error.no_camera_engine'),
-          // Camera initialization may modify the configuration. Keep the
-          // original config unchanged.
-          cloneDeep(cameraConfig),
-        );
+        // Camera initialization may modify the configuration. Keep the
+        // original config unchanged.
+        throw new CameraNoEngineError(cloneDeep(cameraConfig));
       }
       engines.set(engineType, engine);
       output.set(cameraConfig, engine);
@@ -272,18 +264,12 @@ export class CameraManager {
 
       if (!cameraID) {
         await destroyCameras();
-        throw new CameraInitializationError(
-          localize('error.no_camera_id'),
-          camera.getConfig(),
-        );
+        throw new CameraNoIDError(camera.getConfig());
       }
 
       if (cameraIDs.has(cameraID)) {
         await destroyCameras();
-        throw new CameraInitializationError(
-          localize('error.duplicate_camera_id'),
-          camera.getConfig(),
-        );
+        throw new CameraDuplicateIDError(camera.getConfig());
       }
 
       // Always ensure the actual ID used in the card is in the configuration itself.

@@ -14,7 +14,7 @@ import { customElement } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
 import { VideoMediaPlayerController } from '../components-lib/media-player/video.js';
-import { renderMessage } from '../components/message.js';
+import { renderNotificationBlockFromText } from '../components/notification/block.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 import { MediaPlayer, MediaPlayerController } from '../types.js';
 import {
@@ -100,12 +100,8 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
     protected render(): TemplateResult | void {
       if (this._error) {
         dispatchLiveErrorEvent(this);
-        return renderMessage({
-          type: 'error',
-          message: this._error,
-          context: {
-            entity_id: this.entityid,
-          },
+        return renderNotificationBlockFromText(this._error, {
+          metadata: [{ text: this.entityid, icon: 'mdi:cctv' }],
         });
       }
       return html`

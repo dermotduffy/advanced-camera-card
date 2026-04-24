@@ -22,6 +22,11 @@ export class InteractionManager {
     this._setInteraction(false);
   }
 
+  public uninitialize(): void {
+    this._timer.stop();
+    this.reportInteraction.cancel();
+  }
+
   public hasInteraction(): boolean {
     return this._interacted;
   }

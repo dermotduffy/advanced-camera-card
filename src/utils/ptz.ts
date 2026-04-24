@@ -1,9 +1,8 @@
 import { CameraManager } from '../camera-manager/manager';
 import { PTZAction } from '../config/schema/actions/custom/ptz';
-import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../const';
 import { PTZCapabilities } from '../types';
 import { View } from '../view/view';
-import { getStreamCameraID } from './substream';
+import { getViewTargetID } from '../view/target-id';
 
 export type PTZType = 'digital' | 'ptz';
 interface PTZTarget {
@@ -18,39 +17,29 @@ export const getPTZTarget = (
     cameraManager?: CameraManager;
   },
 ): PTZTarget | null => {
+  const targetID = getViewTargetID(view);
+  if (!targetID) {
+    return null;
+  }
+
   if (view.isViewerView()) {
-    const targetID = view.queryResults?.getSelectedResult()?.getID() ?? null;
-    return options?.type === 'ptz' || !targetID
-      ? null
-      : {
-          targetID: targetID,
-          type: 'digital',
-        };
-  } else if (view.is('live')) {
-    const substreamAwareCameraID = getStreamCameraID(view);
-    if (!substreamAwareCameraID) {
-      return null;
-    }
+    return options?.type === 'ptz' ? null : { targetID, type: 'digital' };
+  }
+  if (view.is('image')) {
+    return { targetID, type: 'digital' };
+  }
+  if (view.is('live')) {
     let type: PTZType = 'digital';
 
     if (options?.type !== 'digital' && options?.cameraManager) {
-      if (hasCameraTruePTZ(options.cameraManager, substreamAwareCameraID)) {
+      if (hasCameraTruePTZ(options.cameraManager, targetID)) {
         type = 'ptz';
       }
       if (type !== 'ptz' && options?.type === 'ptz') {
         return null;
       }
     }
-
-    return {
-      targetID: substreamAwareCameraID,
-      type: type,
-    };
-  } else if (view.is('image')) {
-    return {
-      targetID: IMAGE_VIEW_ZOOM_TARGET_SENTINEL,
-      type: 'digital',
-    };
+    return { targetID, type };
   }
   return null;
 };

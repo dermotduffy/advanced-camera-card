@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { ClassInfo, classMap } from 'lit/directives/class-map.js';
 import { ref, Ref } from 'lit/directives/ref.js';
 import { CardWideConfig } from '../config/schema/types';
-import messageStyle from '../scss/message.scss';
+import progressIndicatorStyle from '../scss/progress-indicator.scss';
 import './icon.js';
 
 type AdvancedCameraCardProgressIndicatorSize = 'tiny' | 'small' | 'medium' | 'large';
@@ -40,7 +40,7 @@ export class AdvancedCameraCardProgressIndicator extends LitElement {
   public size: AdvancedCameraCardProgressIndicatorSize = 'large';
 
   protected render(): TemplateResult {
-    return html` <div class="message vertical">
+    return html` <div class="indicator">
       ${this.animated
         ? html`<ha-spinner indeterminate size="${this.size}"> </ha-spinner>`
         : html`<advanced-camera-card-icon
@@ -51,7 +51,7 @@ export class AdvancedCameraCardProgressIndicator extends LitElement {
   }
 
   static get styles(): CSSResultGroup {
-    return unsafeCSS(messageStyle);
+    return unsafeCSS(progressIndicatorStyle);
   }
 }
 

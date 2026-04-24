@@ -1,5 +1,6 @@
 {
   "common": {
+    "in_progress": "Em andamento",
     "no_media": "Nenhuma mídia para exibir"
   },
   "config": {
@@ -91,11 +92,6 @@
       }
     },
     "common": {
-      "events_media_types": {
-        "all": "Todos os tipos de mídia",
-        "clips": "Clipes",
-        "snapshots": "Instantâneos"
-      },
       "controls": {
         "filter": {
           "editor_label": "Filtro de Mídia",
@@ -142,6 +138,11 @@
             "none": "Nenhum"
           }
         }
+      },
+      "events_media_types": {
+        "all": "Todos os tipos de mídia",
+        "clips": "Clipes",
+        "snapshots": "Instantâneos"
       },
       "image": {
         "mode": "Modo de visualização de imagem",
@@ -336,7 +337,7 @@
     }
   },
   "error": {
-    "could_not_render_elements": "Não foi possível renderizar os elementos da imagem",
+    "could_not_create_elements": "Não foi possível renderizar os elementos da imagem",
     "diagnostics": "Diagnósticos do cartão. Revise as informações confidenciais antes de compartilhar",
     "download_no_media": "Nenhuma mídia para download",
     "download_sign_failed": "Não foi possível assinar o URL de mídia para download",
@@ -396,7 +397,6 @@
     "camera": "Câmera",
     "download": "Baixar mídia",
     "duration": "Duração",
-    "in_progress": "Em andamento",
     "no_thumbnail": "Nenhuma miniatura disponível",
     "retain_indefinitely": "Evento será retido por tempo indeterminado",
     "seek": "Procurar",

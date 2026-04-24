@@ -1,5 +1,6 @@
 {
   "common": {
+    "in_progress": "En procés",
     "no_media": "No hi ha suport per mostrar"
   },
   "config": {
@@ -106,15 +107,6 @@
       }
     },
     "common": {
-      "media_types": {
-        "events": "Esdeveniments",
-        "recordings": "Enregistraments"
-      },
-      "events_media_types": {
-        "all": "Tots els tipus de mitjans",
-        "clips": "Clips",
-        "snapshots": "Imatges instantànies"
-      },
       "controls": {
         "builtin": "Controls de vídeo integrats",
         "filter": {
@@ -177,6 +169,11 @@
         "grid_selected_width_factor": "Augmenta l'amplada del suport multimèdia seleccionat en aquest factor",
         "mode": "Mode"
       },
+      "events_media_types": {
+        "all": "Tots els tipus de mitjans",
+        "clips": "Clips",
+        "snapshots": "Imatges instantànies"
+      },
       "image": {
         "mode": "Mode de visualització d'imatges",
         "modes": {
@@ -193,6 +190,10 @@
         "selected": "A la selecció",
         "unselected": "En desselecció",
         "visible": "En la visualització del navegador/pestanya"
+      },
+      "media_types": {
+        "events": "Esdeveniments",
+        "recordings": "Enregistraments"
       },
       "timeline": {
         "clustering_threshold": "El recompte d'esdeveniments en què s'agrupen (0=sense agrupació)",
@@ -365,11 +366,6 @@
         "actions": {
           "editor_label": "Activar accions",
           "interaction_mode": "Com gestionar les accions quan la targeta té interacció humana",
-          "interaction_modes": {
-            "active": "Activa només accions quan la targeta té interacció humana",
-            "all": "Activa accions independentment de la interacció humana",
-            "inactive": "Només activa accions quan la targeta no té interacció humana"
-          },
           "trigger": "Activar l'acció",
           "triggers": {
             "default": "Canvia o actualitza la vista predeterminada",
@@ -450,7 +446,7 @@
   },
   "error": {
     "awaiting_live": "S'està esperant que es carregui la transmissió en directe ...",
-    "could_not_render_elements": "No s'han pogut representar els elements de la imatge",
+    "could_not_create_elements": "No s'han pogut representar els elements de la imatge",
     "diagnostics": "Diagnòstic de targetes. Reviseu la informació confidencial abans de compartir-la",
     "download_no_media": "No hi ha contingut multimèdia per descarregar",
     "download_sign_failed": "No s'ha pogut signar l'URL multimèdia per baixar-la",
@@ -516,7 +512,6 @@
     "camera": "Càmera",
     "download": "Descarregar mitjans multimèdia",
     "duration": "Durada",
-    "in_progress": "En procés",
     "no_thumbnail": "No hi ha cap miniatura disponible",
     "retain_indefinitely": "Els mitjans multimèdia es conservaran indefinidament",
     "seek": "Buscar",

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import { ViewFactory } from '../../../src/card-controller/view/factory';
-import { ViewModifier } from '../../../src/card-controller/view/types';
+import { ViewIncompatible, ViewModifier } from '../../../src/card-controller/view/types';
 import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import { ViewDisplayMode } from '../../../src/config/schema/common/display';
 import { View } from '../../../src/view/view';
@@ -47,7 +47,7 @@ describe('getViewDefault', () => {
     );
 
     const factory = new ViewFactory(api);
-    expect(() => factory.getViewDefault()).toThrowError(/No cameras support this view/);
+    expect(() => factory.getViewDefault()).toThrowError(ViewIncompatible);
   });
 
   it('should use folders view as default when folders exist without cameras', () => {
@@ -241,7 +241,7 @@ describe('getViewByParameters', () => {
           view: 'snapshots',
         },
       }),
-    ).toThrowError(/No cameras support this view/);
+    ).toThrowError(ViewIncompatible);
   });
 
   describe('should handle no camera for view with failsafe', () => {
@@ -321,7 +321,7 @@ describe('getViewByParameters', () => {
             view: 'snapshots',
           },
         }),
-      ).toThrowError(/The selected camera or media does not support this view/);
+      ).toThrowError(ViewIncompatible);
     });
 
     it('should choose live view with failsafe', () => {
@@ -369,7 +369,7 @@ describe('getViewByParameters', () => {
             view: 'snapshots',
           },
         }),
-      ).toThrowError(/The selected camera or media does not support this view/);
+      ).toThrowError(ViewIncompatible);
     });
   });
 

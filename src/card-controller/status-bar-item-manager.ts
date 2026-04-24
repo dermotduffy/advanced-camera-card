@@ -5,14 +5,10 @@ import { StatusBarConfig } from '../config/schema/status-bar';
 import { MediaLoadedInfo } from '../types';
 import { createNotificationAction } from '../utils/action';
 import { View } from '../view/view';
-import { KeyedProblemResult, ProblemKey } from './problems/types';
+import { KeyedIssueDescription } from './issues/types';
 import { CardStatusBarAPI } from './types';
 
 const RESOLUTION_TOLERANCE_PCT = 0.01;
-
-const problemKeyToStatusBarKey = (key: ProblemKey): keyof StatusBarConfig['items'] => {
-  return `problem_${key}`;
-};
 
 export class StatusBarItemManager {
   private _api: CardStatusBarAPI;
@@ -48,7 +44,7 @@ export class StatusBarItemManager {
     cameraManager?: CameraManager | null;
     view?: View | null;
     mediaLoadedInfo?: MediaLoadedInfo | null;
-    problems?: KeyedProblemResult[] | null;
+    issues?: KeyedIssueDescription[] | null;
   }): StatusBarItem[] {
     const cameraMetadata = options?.view?.camera
       ? options?.cameraManager?.getCameraMetadata(options.view.camera)
@@ -132,22 +128,18 @@ export class StatusBarItemManager {
           ]
         : []),
 
-      ...(options?.problems ?? [])
-        .filter(
-          ({ key }) =>
-            options?.statusConfig?.items[problemKeyToStatusBarKey(key)]?.enabled !==
-            false,
-        )
-        .map(({ key, problem }) => ({
-          type: 'custom:advanced-camera-card-status-bar-icon' as const,
-          icon: problem.icon,
-          severity: problem.severity,
-          title: problem.notification.heading?.text,
-          actions: {
-            tap_action: createNotificationAction(problem.notification),
-          },
-          ...options?.statusConfig?.items[problemKeyToStatusBarKey(key)],
-        })),
+      ...(options?.statusConfig?.items.issues?.enabled === false
+        ? []
+        : (options?.issues ?? []).map(({ issue }) => ({
+            type: 'custom:advanced-camera-card-status-bar-icon' as const,
+            icon: issue.icon,
+            severity: issue.severity,
+            title: issue.notification.heading?.text,
+            actions: {
+              tap_action: createNotificationAction(issue.notification),
+            },
+            ...options?.statusConfig?.items.issues,
+          }))),
       ...this._dynamicItems,
     ];
   }

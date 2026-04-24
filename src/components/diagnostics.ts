@@ -1,15 +1,14 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
-import { ProblemPresence } from '../card-controller/problems/types';
+import { IssuePresence } from '../card-controller/issues/types';
 import { RawAdvancedCameraCardConfig } from '../config/types';
 import { DeviceRegistryManager } from '../ha/registry/device';
 import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { getDiagnostics } from '../utils/diagnostics';
-import { renderMessage } from './message';
-
+import { renderNotificationBlockFromText } from './notification/block';
 @customElement('advanced-camera-card-diagnostics')
 export class AdvancedCameraCardDiagnostics extends LitElement {
   // Not a reactive property to avoid multiple diagnostics fetches.
@@ -22,18 +21,17 @@ export class AdvancedCameraCardDiagnostics extends LitElement {
   public rawConfig?: RawAdvancedCameraCardConfig;
 
   @property({ attribute: false })
-  public problems?: ProblemPresence;
+  public issues?: IssuePresence;
 
   private async _renderDiagnostics(): Promise<TemplateResult> {
     const diagnostics = await getDiagnostics(
       this.hass,
       this.deviceRegistryManager,
       this.rawConfig,
-      this.problems,
+      this.issues,
     );
 
-    return renderMessage({
-      message: localize('error.diagnostics'),
+    return renderNotificationBlockFromText(localize('error.diagnostics'), {
       icon: 'mdi:cogs',
       context: diagnostics,
     });
@@ -42,10 +40,9 @@ export class AdvancedCameraCardDiagnostics extends LitElement {
   protected render(): TemplateResult | void {
     return html`${until(
       this._renderDiagnostics(),
-      renderMessage({
-        message: localize('error.fetching_diagnostics'),
-        dotdotdot: true,
+      renderNotificationBlockFromText(localize('error.fetching_diagnostics'), {
         icon: 'mdi:cogs',
+        in_progress: true,
       }),
     )}`;
   }

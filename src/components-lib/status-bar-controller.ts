@@ -35,11 +35,25 @@ export class StatusBarController {
     const sufficientBefore = this._getSufficientValues(this._items);
     const sufficientAfter = this._getSufficientValues(newItems);
 
+    const hadPermanent = this._hasPermanentItems(this._items);
     this._items = newItems;
 
-    if (this._config?.style === 'popup' && !isEqual(sufficientBefore, sufficientAfter)) {
-      this._show();
-      this._popupTimer.start(this._config.popup_seconds, () => this._hide());
+    if (this._config?.style === 'popup') {
+      const hasPermanent = this._hasPermanentItems(newItems);
+      const sufficientChanged = !isEqual(sufficientBefore, sufficientAfter);
+
+      if (hasPermanent) {
+        // Permanent items present: show and cancel any running timer.
+        this._show();
+        this._popupTimer.stop();
+      } else if (sufficientChanged) {
+        // Sufficient items changed without permanent items: normal popup.
+        this._show();
+        this._popupTimer.start(this._config.popup_seconds, () => this._hide());
+      } else if (hadPermanent && !hasPermanent) {
+        // Permanent items just removed: start the popup timer to fade out.
+        this._popupTimer.start(this._config.popup_seconds, () => this._hide());
+      }
     }
 
     this._host.requestUpdate();
@@ -55,7 +69,7 @@ export class StatusBarController {
     this._host.setAttribute('data-style', config.style);
     this._host.setAttribute('data-position', config.position);
 
-    if (this._config?.style !== 'popup') {
+    if (this._config?.style !== 'popup' || this._hasPermanentItems(this._items)) {
       this._show();
     }
 
@@ -67,7 +81,9 @@ export class StatusBarController {
   }
 
   public shouldRender(): boolean {
-    return this._items.some((item) => item.enabled !== false && item.sufficient);
+    return this._items.some(
+      (item) => item.enabled !== false && (item.sufficient || item.permanent),
+    );
   }
 
   public actionHandler(
@@ -107,6 +123,10 @@ export class StatusBarController {
     return items
       .filter((item) => item.enabled !== false && item.sufficient)
       .map((item) => this._getSufficientValue(item));
+  }
+
+  private _hasPermanentItems(items: StatusBarItem[]): boolean {
+    return items.some((item) => item.enabled !== false && item.permanent);
   }
 
   private _show(): void {

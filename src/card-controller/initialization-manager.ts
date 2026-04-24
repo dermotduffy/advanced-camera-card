@@ -1,6 +1,8 @@
+import { STATE_RUNNING } from 'home-assistant-js-websocket';
 import PQueue from 'p-queue';
 import { sideLoadHomeAssistantElements } from '../ha/side-load-ha-elements';
 import { loadLanguages } from '../localize/localize';
+import { errorToConsole } from '../utils/basic';
 import { Initializer } from '../utils/initializer/initializer';
 import { CardInitializerAPI } from './types';
 
@@ -9,7 +11,6 @@ export enum InitializationAspect {
   SIDE_LOAD_ELEMENTS = 'side-load-elements',
   CAMERAS = 'cameras',
   MICROPHONE_CONNECT = 'microphone-connect',
-  PROBLEMS = 'problems',
   VIEW = 'view',
 
   // The initial triggering must happen after both the config is set (and
@@ -51,10 +52,6 @@ export class InitializationManager {
     return this._initializer.isInitialized(aspect);
   }
 
-  public isInitializedBackground(): boolean {
-    return this._initializer.isInitialized(InitializationAspect.PROBLEMS);
-  }
-
   public isInitializedMandatory(): boolean {
     const config = this._api.getConfigManager().getConfig();
     if (!config) {
@@ -87,14 +84,28 @@ export class InitializationManager {
       return;
     }
 
+    // Wait until HA has finished loading integrations before attempting init.
+    // Otherwise integration-specific WS calls (e.g. Frigate event
+    // subscriptions) fail with "Unknown command" against a half-loaded HA. The
+    // HASSManager will trigger another init attempt as soon as
+    // hass.config.state transitions to RUNNING.
+    if (hass.config?.state !== STATE_RUNNING) {
+      return;
+    }
+
     if (
-      !(await this._initializer.initializeMultipleIfNecessary({
-        // Caution: Ensure nothing in this set of initializers requires
-        // config or languages since they will not yet have been initialized.
-        [InitializationAspect.LANGUAGES]: async () => await loadLanguages(hass),
-        [InitializationAspect.SIDE_LOAD_ELEMENTS]: async () =>
-          await sideLoadHomeAssistantElements(),
-      }))
+      !(await this._tryInitialize(() =>
+        this._initializer.initializeMultipleIfNecessary({
+          // Caution: Ensure nothing in this set of initializers requires
+          // config or languages since they will not yet have been initialized.
+          [InitializationAspect.LANGUAGES]: async () => {
+            await loadLanguages(hass);
+          },
+          [InitializationAspect.SIDE_LOAD_ELEMENTS]: async () => {
+            await sideLoadHomeAssistantElements();
+          },
+        }),
+      ))
     ) {
       return;
     }
@@ -105,52 +116,56 @@ export class InitializationManager {
     }
 
     if (
-      !(await this._initializer.initializeMultipleIfNecessary({
-        [InitializationAspect.CAMERAS]: async () => {
-          // Recreate the camera manager to guarantee an immediate re-render.
-          // See: https://github.com/dermotduffy/advanced-camera-card/issues/1811
-          // See: https://github.com/dermotduffy/advanced-camera-card/issues/1769
-          this._api.createCameraManager();
-          return await this._api.getCameraManager().initializeCamerasFromConfig();
-        },
-
-        // Connecting the microphone (if configured) is considered mandatory to
-        // avoid issues with some cameras that only allow 2-way audio on the
-        // first stream initialized.
-        // See: https://github.com/dermotduffy/advanced-camera-card/issues/1235
-        ...(this._api.getMicrophoneManager().shouldConnectOnInitialization() && {
-          [InitializationAspect.MICROPHONE_CONNECT]: async () => {
-            // Recreate the microphone manager to guarantee an immediate
-            // re-render.
-            this._api.createMicrophoneManager();
-            return await this._api.getMicrophoneManager().connect();
+      !(await this._tryInitialize(() =>
+        this._initializer.initializeMultipleIfNecessary({
+          [InitializationAspect.CAMERAS]: async () => {
+            // Recreate the camera manager to guarantee an immediate re-render.
+            // See: https://github.com/dermotduffy/advanced-camera-card/issues/1811
+            // See: https://github.com/dermotduffy/advanced-camera-card/issues/1769
+            this._api.createCameraManager();
+            await this._api.getCameraManager().initializeCamerasFromConfig();
           },
-        }),
-      }))
-    ) {
-      return;
-    }
 
-    if (
-      this._api.getMessageManager().hasMessage() ||
-      !(await this._initializer.initializeIfNecessary(
-        InitializationAspect.VIEW,
-        this._api.getViewManager().initialize,
+          // Connecting the microphone (if configured) is considered mandatory to
+          // avoid issues with some cameras that only allow 2-way audio on the
+          // first stream initialized.
+          // See: https://github.com/dermotduffy/advanced-camera-card/issues/1235
+          ...(this._api.getMicrophoneManager().shouldConnectOnInitialization() && {
+            [InitializationAspect.MICROPHONE_CONNECT]: async () => {
+              // Recreate the microphone manager to guarantee an immediate
+              // re-render.
+              this._api.createMicrophoneManager();
+              await this._api.getMicrophoneManager().connect();
+            },
+          }),
+        }),
       ))
     ) {
       return;
     }
 
     if (
-      !(await this._initializer.initializeIfNecessary(
-        InitializationAspect.INITIAL_TRIGGER,
-        async (): Promise<boolean> => {
-          await this._api.getTriggersManager().handleInitialCameraTriggers();
+      !(await this._tryInitialize(() =>
+        this._initializer.initializeIfNecessary(
+          InitializationAspect.VIEW,
+          this._api.getViewManager().initialize,
+        ),
+      ))
+    ) {
+      return;
+    }
 
-          // Force a card update to continue the initialization.
-          this._api.getCardElementManager().update();
-          return true;
-        },
+    if (
+      !(await this._tryInitialize(() =>
+        this._initializer.initializeIfNecessary(
+          InitializationAspect.INITIAL_TRIGGER,
+          async () => {
+            await this._api.getTriggersManager().handleInitialCameraTriggers();
+
+            // Force a card update to continue the initialization.
+            this._api.getCardElementManager().update();
+          },
+        ),
       ))
     ) {
       return;
@@ -172,26 +187,40 @@ export class InitializationManager {
     this._api.getCardElementManager().update();
   }
 
-  public async initializeBackground(): Promise<void> {
-    await this._initializationQueue.add(() => this._initializeBackground());
-  }
-
-  private async _initializeBackground(): Promise<void> {
-    const hass = this._api.getHASSManager().getHASS();
-    if (!hass) {
-      return;
+  private async _tryInitialize(fn: () => Promise<void>): Promise<boolean> {
+    try {
+      await fn();
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        errorToConsole(e);
+      }
+      this._setInitializationIssue(e);
+      return false;
     }
 
-    await this._initializer.initializeIfNecessary(
-      InitializationAspect.PROBLEMS,
-      async () => {
-        await this._api.getProblemManager().detectStatic(hass);
-        return true;
-      },
-    );
+    if (this._api.getIssueManager().getStateManager().hasFullCardIssue()) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private _setInitializationIssue(error: unknown): void {
+    this._api.getIssueManager().trigger('initialization', { error });
   }
 
   public uninitialize(aspect: InitializationAspect): void {
     this._initializer.uninitialize(aspect);
+  }
+
+  public uninitializeMandatory(): void {
+    for (const aspect of [
+      InitializationAspect.CAMERAS,
+      InitializationAspect.MICROPHONE_CONNECT,
+      InitializationAspect.VIEW,
+      InitializationAspect.INITIAL_TRIGGER,
+    ]) {
+      this._initializer.uninitialize(aspect);
+    }
   }
 }

@@ -16,21 +16,34 @@ const STATUS_BAR_POSITIONS = ['top', 'bottom'] as const;
 const statusBarItemDefault = {
   priority: STATUS_BAR_PRIORITY_DEFAULT,
   enabled: true,
+  permanent: false,
 };
+
+// Issues share a single status-bar item config so per-issue granularity
+// doesn't leak into the schema/editor surface. Defaults to permanent so the
+// status bar stays visible while any issue is active, even in popup mode.
+const statusBarIssuesItemDefault = {
+  ...statusBarItemDefault,
+  permanent: true,
+};
+
+// Extend the base schema so the `permanent: true` default survives a user
+// override that touches only one sibling field (e.g. `issues.enabled: true`).
+// With the item-level default alone, zod would reparse with the base schema's
+// field-level `permanent: false` and silently flip the behavior.
+const statusBarIssuesItemSchema = statusBarItemBaseSchema.extend({
+  permanent: z.boolean().default(true).optional(),
+});
 
 export const statusBarConfigDefault = {
   height: 40,
   items: {
     engine: statusBarItemDefault,
+    issues: statusBarIssuesItemDefault,
     resolution: statusBarItemDefault,
     severity: statusBarItemDefault,
     technology: statusBarItemDefault,
     title: statusBarItemDefault,
-
-    // Problems.
-    problem_config_upgrade: statusBarItemDefault,
-    problem_legacy_resource: statusBarItemDefault,
-    problem_stream_not_loading: statusBarItemDefault,
   },
   position: 'bottom' as const,
   style: 'popup' as const,
@@ -50,6 +63,7 @@ export const statusBarConfigSchema = z
     items: z
       .object({
         engine: statusBarItemBaseSchema.default(statusBarConfigDefault.items.engine),
+        issues: statusBarIssuesItemSchema.default(statusBarConfigDefault.items.issues),
         resolution: statusBarItemBaseSchema.default(
           statusBarConfigDefault.items.resolution,
         ),
@@ -58,17 +72,6 @@ export const statusBarConfigSchema = z
           statusBarConfigDefault.items.technology,
         ),
         title: statusBarItemBaseSchema.default(statusBarConfigDefault.items.title),
-
-        // Problems.
-        problem_config_upgrade: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.problem_config_upgrade,
-        ),
-        problem_legacy_resource: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.problem_legacy_resource,
-        ),
-        problem_stream_not_loading: statusBarItemBaseSchema.default(
-          statusBarConfigDefault.items.problem_stream_not_loading,
-        ),
       })
       .default(statusBarConfigDefault.items),
   })

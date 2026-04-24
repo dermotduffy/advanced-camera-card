@@ -1,6 +1,13 @@
-import { errorToConsole } from '../utils/basic';
+import { localize } from '../localize/localize';
+import { AdvancedCameraCardError } from '../types';
 import { Timer } from '../utils/timer';
 import { CardMicrophoneAPI, MicrophoneState } from './types';
+
+export class MicrophoneNotSupportedError extends AdvancedCameraCardError {
+  constructor() {
+    super(localize('error.microphone_not_supported'));
+  }
+}
 
 export class MicrophoneManager {
   private _api: CardMicrophoneAPI;
@@ -46,9 +53,9 @@ export class MicrophoneManager {
     return !!navigator.mediaDevices?.getUserMedia;
   }
 
-  public async connect(): Promise<boolean> {
+  public async connect(): Promise<void> {
     if (!this.isSupported()) {
-      return false;
+      throw new MicrophoneNotSupportedError();
     }
 
     try {
@@ -57,15 +64,12 @@ export class MicrophoneManager {
         video: false,
       });
     } catch (e: unknown) {
-      errorToConsole(e as Error);
-
       this._stream = null;
       this._setState();
-      return false;
+      throw e;
     }
     this._setDesiredMuteOnStream();
     this._setState();
-    return true;
   }
 
   public disconnect(): void {

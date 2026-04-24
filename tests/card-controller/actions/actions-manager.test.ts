@@ -68,12 +68,14 @@ describe('ActionsManager', () => {
       vi.restoreAllMocks();
     });
 
-    it('should get no merged actions with a message', () => {
+    it('should get no merged actions with an issue', () => {
       const api = createCardAPI();
       vi.mocked(api.getViewManager().getView).mockReturnValue(
         createView({ view: 'live' }),
       );
-      vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(true);
+      vi.mocked(
+        api.getIssueManager().getStateManager().hasFullCardIssue,
+      ).mockReturnValue(true);
 
       const manager = new ActionsManager(api);
 

@@ -1,3 +1,4 @@
+import { STATE_RUNNING, STATE_STARTING } from 'home-assistant-js-websocket';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HASSManager } from '../../../src/card-controller/hass/hass-manager';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
@@ -61,77 +62,26 @@ describe('HASSManager', () => {
   });
 
   describe('should handle connection state change when', () => {
-    it('initially disconnected', () => {
+    it('should reinitialize cameras and view on lost → ready transition', () => {
       const api = createCardAPI();
       const manager = new HASSManager(api);
 
-      const disconnectedHASS = createHASS();
-      disconnectedHASS.connected = false;
-
-      manager.setHASS(disconnectedHASS);
-
-      expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
-        expect.objectContaining({
-          message: 'Reconnecting',
-          icon: 'mdi:lan-disconnect',
-          type: 'connection',
-          dotdotdot: true,
-        }),
-      );
-    });
-
-    it('disconnected', () => {
-      const api = createCardAPI();
-      const manager = new HASSManager(api);
-
-      manager.setHASS(createHASS());
-
-      const disconnectedHASS = createHASS();
-      disconnectedHASS.connected = false;
-      manager.setHASS(disconnectedHASS);
-
-      expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
-        expect.objectContaining({
-          message: 'Reconnecting',
-          icon: 'mdi:lan-disconnect',
-          type: 'connection',
-          dotdotdot: true,
-        }),
-      );
-    });
-
-    it('reconnected', () => {
-      const api = createCardAPI();
-      const manager = new HASSManager(api);
-
-      const disconnectedHASS = createHASS();
-      disconnectedHASS.connected = false;
-      manager.setHASS(disconnectedHASS);
-
-      const reconnectedHASS = createHASS();
-      manager.setHASS(reconnectedHASS);
-
-      expect(api.getMessageManager().resetType).toBeCalled();
-    });
-
-    it('reconnected reinitializes cameras and view', () => {
-      const api = createCardAPI();
-      const manager = new HASSManager(api);
-
-      // First establish a connected state.
-      const connectedHASS = createHASS();
-      connectedHASS.connected = true;
-      manager.setHASS(connectedHASS);
+      // First establish a fully-ready state.
+      const readyHASS = createHASS();
+      readyHASS.connected = true;
+      readyHASS.config.state = STATE_RUNNING;
+      manager.setHASS(readyHASS);
 
       // Simulate disconnection.
       const disconnectedHASS = createHASS();
       disconnectedHASS.connected = false;
       manager.setHASS(disconnectedHASS);
 
-      // Simulate reconnection.
-      const reconnectedHASS = createHASS();
-      reconnectedHASS.connected = true;
-      manager.setHASS(reconnectedHASS);
+      // Simulate full recovery (connected AND running).
+      const recoveredHASS = createHASS();
+      recoveredHASS.connected = true;
+      recoveredHASS.config.state = STATE_RUNNING;
+      manager.setHASS(recoveredHASS);
 
       // Cameras and view should be uninitialized so they get re-subscribed
       // to event sources (e.g. Frigate WebSocket events) on the next
@@ -144,7 +94,87 @@ describe('HASSManager', () => {
       );
     });
 
-    it('hass is null', () => {
+    it('should reinitialize on starting → ready transition (integrations finished loading)', () => {
+      const api = createCardAPI();
+      const manager = new HASSManager(api);
+
+      // WebSocket reconnected but HA still booting.
+      const startingHASS = createHASS();
+      startingHASS.connected = true;
+      startingHASS.config.state = STATE_STARTING;
+      manager.setHASS(startingHASS);
+
+      // No reinit yet — HA isn't fully ready.
+      expect(api.getInitializationManager().uninitialize).not.toBeCalled();
+      expect(api.getCameraManager().destroy).not.toBeCalled();
+
+      // HA finishes booting.
+      const readyHASS = createHASS();
+      readyHASS.connected = true;
+      readyHASS.config.state = STATE_RUNNING;
+      manager.setHASS(readyHASS);
+
+      expect(api.getInitializationManager().uninitialize).toBeCalledWith('cameras');
+      expect(api.getCameraManager().destroy).toBeCalled();
+      expect(api.getInitializationManager().uninitialize).toBeCalledWith('view');
+      expect(api.getInitializationManager().uninitialize).toBeCalledWith(
+        'initial-trigger',
+      );
+    });
+
+    it('should not reinitialize on lost → starting transition', () => {
+      const api = createCardAPI();
+      const manager = new HASSManager(api);
+
+      const disconnectedHASS = createHASS();
+      disconnectedHASS.connected = false;
+      manager.setHASS(disconnectedHASS);
+
+      const startingHASS = createHASS();
+      startingHASS.connected = true;
+      startingHASS.config.state = STATE_STARTING;
+      manager.setHASS(startingHASS);
+
+      // WS came back but integrations still loading — wait for RUNNING.
+      expect(api.getInitializationManager().uninitialize).not.toBeCalled();
+      expect(api.getCameraManager().destroy).not.toBeCalled();
+    });
+
+    it('should not reinitialize on first hass set (no previous hass)', () => {
+      const api = createCardAPI();
+      const manager = new HASSManager(api);
+
+      const readyHASS = createHASS();
+      readyHASS.connected = true;
+      readyHASS.config.state = STATE_RUNNING;
+      manager.setHASS(readyHASS);
+
+      // First-ever hass set — there's no "previous not-ready state" to
+      // transition from, so the normal first-load init flow applies and we
+      // must not blow away cameras.
+      expect(api.getInitializationManager().uninitialize).not.toBeCalled();
+      expect(api.getCameraManager().destroy).not.toBeCalled();
+    });
+
+    it('should not reinitialize on ready → ready (no transition)', () => {
+      const api = createCardAPI();
+      const manager = new HASSManager(api);
+
+      const readyHASS = createHASS();
+      readyHASS.connected = true;
+      readyHASS.config.state = STATE_RUNNING;
+      manager.setHASS(readyHASS);
+
+      const anotherReadyHASS = createHASS();
+      anotherReadyHASS.connected = true;
+      anotherReadyHASS.config.state = STATE_RUNNING;
+      manager.setHASS(anotherReadyHASS);
+
+      expect(api.getInitializationManager().uninitialize).not.toBeCalled();
+      expect(api.getCameraManager().destroy).not.toBeCalled();
+    });
+
+    it('should not crash when hass is null', () => {
       const api = createCardAPI();
       const manager = new HASSManager(api);
       const connectedHASS = createHASS();
@@ -152,23 +182,12 @@ describe('HASSManager', () => {
 
       manager.setHASS(connectedHASS);
       manager.setHASS(null);
-
-      expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
-        expect.objectContaining({
-          message: 'Reconnecting',
-          icon: 'mdi:lan-disconnect',
-          type: 'connection',
-          dotdotdot: true,
-        }),
-      );
-
       manager.setHASS(connectedHASS);
-      expect(api.getMessageManager().resetType).toBeCalled();
     });
   });
 
   describe('should not set default view when', () => {
-    it('selected camera is unknown', () => {
+    it('should not set default view when selected camera is unknown', () => {
       const api = createCardAPI();
       vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
       vi.mocked(api.getCameraManager().getStore).mockReturnValue(
@@ -199,7 +218,7 @@ describe('HASSManager', () => {
       expect(api.getViewManager().setViewDefault).not.toBeCalled();
     });
 
-    it('when there is card interaction', () => {
+    it('should not set default view when there is card interaction', () => {
       const api = createCardAPI();
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({

@@ -43,26 +43,27 @@ To upgrade:
 If the automatic upgrade button is not visible, your configuration may already
 be up to date. Try clearing your browser cache and reloading.
 
-### Stream does not load
+### Media does not load
 
-Stream not loading? Permanent "loading circle"?
+Media not loading? Permanent "loading circle"?
 
-A stream not loading is a relatively common error, but can be caused by any
+Media failing to load is a relatively common error, but can be caused by any
 number of issues (e.g. installation problems, networking problems, video/codec
-problems, a Home Assistant bug or card bug).
+problems, a Home Assistant bug or card bug). This applies to live streams,
+recorded media in the viewer, and image views.
 
-During the stream load, the card will show a "loading circle" icon and, for
+During a live stream load, the card will show a "loading circle" icon and, for
 cameras with a `camera_entity` configured, will show images refreshing once per
 second until the stream has fully loaded (unless `live.show_image_during_load`
 is set to false).
 
-Debugging broken streams:
+Debugging steps:
 
 1. If you're using the default `auto` live provider, or explicitly setting the
    `ha` live provider, try opening the `camera_entity` in Home Assistant and
    verifying whether the stream loads there. You can press the `e` key on any
    Home Assistant dashboard, choose the relevant entity, and see if the stream
-   loads. If it does not, you have a upstream installation issue with your
+   loads. If it does not, you have an upstream installation issue with your
    camera / the integration for the camera, and need to resolve that first.
    Your issue is not related to the card itself.
 1. Check whether any URLs specified in your card configuration are accessible
@@ -81,7 +82,7 @@ Debugging broken streams:
    you find any prior relevant discussions.
 
 If you're happy with just using an image stream but want the small circle to go
-away, use the [`image live provider`](./configuration/cameras/live-provider.md?id=image) .
+away, use the [`image live provider`](./configuration/cameras/live-provider.md?id=image).
 
 ### Unknown Command
 

@@ -1,4 +1,4 @@
-import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
+import { HassEntities, HassEntity, STATE_RUNNING } from 'home-assistant-js-websocket';
 import { LitElement } from 'lit';
 import screenfull from 'screenfull';
 import { expect, vi } from 'vitest';
@@ -40,14 +40,14 @@ import { HASSManager } from '../src/card-controller/hass/hass-manager';
 import { StateWatcherSubscriptionInterface } from '../src/card-controller/hass/state-watcher';
 import { InitializationManager } from '../src/card-controller/initialization-manager';
 import { InteractionManager } from '../src/card-controller/interaction-manager';
+import { IssueManager } from '../src/card-controller/issues/issue-manager';
+import { IssueStateManager } from '../src/card-controller/issues/state-manager';
 import { KeyboardStateManager } from '../src/card-controller/keyboard-state-manager';
 import { MediaLoadedInfoManager } from '../src/card-controller/media-info-manager';
 import { MediaPlayerManager } from '../src/card-controller/media-player-manager';
-import { MessageManager } from '../src/card-controller/message-manager';
 import { MicrophoneManager } from '../src/card-controller/microphone-manager';
 import { NotificationManager } from '../src/card-controller/notification-manager';
 import { PIPManager } from '../src/card-controller/pip-manager';
-import { ProblemManager } from '../src/card-controller/problems/manager';
 import { QueryStringManager } from '../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../src/card-controller/style-manager';
@@ -131,6 +131,10 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
     hass.user = user;
   }
   hass.config.components = [];
+
+  // Default to a fully-started HA so existing tests that don't care about
+  // startup state still represent a "ready" instance.
+  hass.config.state = STATE_RUNNING;
   hass.connection.subscribeMessage = vi.fn();
 
   // ha-nunjucks calls sendMessagePromise to fetch label registry; return empty array to prevent crash.
@@ -678,11 +682,14 @@ export const createCardAPI = (): CardController => {
   api.getKeyboardStateManager.mockReturnValue(mock<KeyboardStateManager>());
   api.getMediaLoadedInfoManager.mockReturnValue(mock<MediaLoadedInfoManager>());
   api.getMediaPlayerManager.mockReturnValue(mock<MediaPlayerManager>());
-  api.getMessageManager.mockReturnValue(mock<MessageManager>());
   api.getMicrophoneManager.mockReturnValue(mock<MicrophoneManager>());
   api.getNotificationManager.mockReturnValue(mock<NotificationManager>());
   api.getPIPManager.mockReturnValue(mock<PIPManager>());
-  api.getProblemManager.mockReturnValue(mock<ProblemManager>());
+
+  const issueManager = mock<IssueManager>();
+  issueManager.getStateManager.mockReturnValue(mock<IssueStateManager>());
+  api.getIssueManager.mockReturnValue(issueManager);
+
   api.getQueryStringManager.mockReturnValue(mock<QueryStringManager>());
   api.getStatusBarItemManager.mockReturnValue(mock<StatusBarItemManager>());
   api.getStyleManager.mockReturnValue(mock<StyleManager>());

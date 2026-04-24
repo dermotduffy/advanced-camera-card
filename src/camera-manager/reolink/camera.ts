@@ -7,7 +7,6 @@ import {
 import { DeviceRegistryManager } from '../../ha/registry/device/index';
 import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
-import { localize } from '../../localize/localize';
 import {
   CapabilitiesRaw,
   Endpoint,
@@ -17,7 +16,7 @@ import {
 import { createSelectOptionAction } from '../../utils/action.js';
 import { Camera, CameraInitializationOptions } from '../camera';
 import { EntityCamera } from '../entity-camera';
-import { CameraInitializationError } from '../error';
+import { ReolinkInitializationError } from '../error';
 import { CameraEndpointsContext, CameraProxyConfig } from '../types';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
@@ -43,8 +42,6 @@ interface ReolinkCameraInitializationOptions extends CameraInitializationOptions
   entityRegistryManager: EntityRegistryManager;
   deviceRegistryManager: DeviceRegistryManager;
 }
-
-class ReolinkInitializationError extends CameraInitializationError {}
 
 // Button entities for continuous PTZ movement (press to start, press stop to
 // end). Discovered from button.{name}_ptz_{action} entities. Zoom button
@@ -153,10 +150,7 @@ export class ReolinkCamera extends EntityCamera {
     const channelOrUID = match?.groups?.channel_or_uid ?? null;
 
     if (hostid === null || channelOrUID === null) {
-      throw new ReolinkInitializationError(
-        localize('error.camera_initialization_reolink'),
-        this.getConfig(),
-      );
+      throw new ReolinkInitializationError(this.getConfig());
     }
 
     const channelCandidate = Number(channelOrUID);

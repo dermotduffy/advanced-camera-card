@@ -1,6 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { assert, describe, expect, it, vi } from 'vitest';
 import { OverridesManager } from '../../../src/card-controller/config/overrides-manager';
+import { AdvancedCameraCardConfig } from '../../../src/config/schema/types';
 import { ConditionStateManager } from '../../../src/conditions/state-manager';
+import { AdvancedCameraCardError } from '../../../src/types';
 import { createConfig } from '../../test-utils';
 
 describe('OverridesManager', () => {
@@ -316,30 +318,93 @@ describe('OverridesManager', () => {
     });
   });
 
-  it('should throw on invalid schema', () => {
-    const config = createConfig({
-      overrides: [
-        {
-          conditions: [
-            {
-              condition: 'fullscreen' as const,
-              fullscreen: true,
-            },
-          ],
-        },
-      ],
+  describe('should throw on invalid schema', () => {
+    const runInvalidOverride = (
+      mutate: (config: AdvancedCameraCardConfig) => void,
+    ): AdvancedCameraCardError => {
+      const config = createConfig({
+        overrides: [
+          {
+            conditions: [
+              {
+                condition: 'fullscreen' as const,
+                fullscreen: true,
+              },
+            ],
+          },
+        ],
+      });
+      mutate(config);
+
+      const stateManager = new ConditionStateManager();
+      stateManager.setState({ fullscreen: true });
+
+      const manager = new OverridesManager(vi.fn());
+      manager.set(stateManager, config.overrides);
+
+      let thrown: unknown = null;
+      try {
+        manager.getConfig(config);
+      } catch (e) {
+        thrown = e;
+      }
+      assert(thrown instanceof AdvancedCameraCardError);
+      return thrown;
+    };
+
+    it('with `invalid_type` surfacing the attempted value', () => {
+      const error = runInvalidOverride((config) => {
+        assert(config.overrides);
+        // @ts-expect-error — intentionally invalid runtime value to trigger
+        // Zod's `invalid_type` issue code.
+        config.overrides[0].merge = 6;
+      });
+
+      expect(error.message).toMatch(/Invalid override configuration/);
+      expect(error.context).toMatchObject({
+        failures: expect.arrayContaining([
+          expect.objectContaining({
+            path: expect.any(String),
+            expected: expect.anything(),
+          }),
+        ]),
+      });
     });
-    config.overrides![0].merge = 6 as unknown as Record<string, unknown>;
 
-    const stateManager = new ConditionStateManager();
-    stateManager.setState({ fullscreen: true });
+    it('with `invalid_value` surfacing the allowed enum values', () => {
+      const error = runInvalidOverride((config) => {
+        assert(config.overrides);
+        config.overrides[0].set = { 'view.default': 'not_a_real_view' };
+      });
 
-    const manager = new OverridesManager(vi.fn());
-    manager.set(stateManager, config.overrides);
+      expect(error.context).toMatchObject({
+        failures: expect.arrayContaining([
+          expect.objectContaining({
+            path: 'view.default',
+            received: 'not_a_real_view',
+            expected: expect.arrayContaining(['live']),
+          }),
+        ]),
+      });
+    });
 
-    expect(() => manager.getConfig(config)).toThrowError(
-      /Invalid override configuration/,
-    );
+    it('with a fallback to the issue message for unhandled codes', () => {
+      // Hits the ternary's fallback branch: `too_small` is neither
+      // invalid_value nor invalid_type, so we surface `issue.message`.
+      const error = runInvalidOverride((config) => {
+        assert(config.overrides);
+        config.overrides[0].set = { 'status_bar.height': -1 };
+      });
+
+      expect(error.context).toMatchObject({
+        failures: expect.arrayContaining([
+          expect.objectContaining({
+            path: 'status_bar.height',
+            expected: expect.any(String),
+          }),
+        ]),
+      });
+    });
   });
 
   // See: https://github.com/dermotduffy/advanced-camera-card/issues/1954

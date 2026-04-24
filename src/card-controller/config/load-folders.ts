@@ -7,6 +7,6 @@ export const setFoldersFromConfig = (api: CardConfigLoaderAPI): void => {
       .getFoldersManager()
       .addFolders(api.getConfigManager().getConfig()?.folders ?? []);
   } catch (ev) {
-    api.getMessageManager().setErrorIfHigherPriority(ev);
+    api.getIssueManager().trigger('config_error', { error: ev });
   }
 };

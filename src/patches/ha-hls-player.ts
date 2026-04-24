@@ -14,7 +14,7 @@ import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
 import { VideoMediaPlayerController } from '../components-lib/media-player/video.js';
-import { renderMessage } from '../components/message.js';
+import { renderNotificationBlockFromText } from '../components/notification/block.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 import { MediaPlayer, MediaPlayerController } from '../types.js';
 import { mayHaveAudio } from '../utils/audio.js';
@@ -60,12 +60,8 @@ customElements.whenDefined('ha-hls-player').then(() => {
       if (this._error) {
         if (this._errorIsFatal) {
           dispatchLiveErrorEvent(this);
-          return renderMessage({
-            type: 'error',
-            message: this._error,
-            context: {
-              entity_id: this.entityid,
-            },
+          return renderNotificationBlockFromText(this._error, {
+            metadata: [{ text: this.entityid, icon: 'mdi:cctv' }],
           });
         } else {
           errorToConsole(this._error, console.error);

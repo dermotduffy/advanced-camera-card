@@ -3,6 +3,7 @@ import { STATUS_BAR_PRIORITY_DEFAULT, STATUS_BAR_PRIORITY_MAX } from './const';
 
 export const statusBarItemBaseSchema = z.object({
   enabled: z.boolean().default(true).optional(),
+  permanent: z.boolean().default(false).optional(),
   priority: z
     .number()
     .min(0)

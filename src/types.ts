@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import type { EffectOptions } from './card-controller/effects/types';
-import type { Link } from './config/schema/common/link';
 import type { LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from './ha/types';
 
 // UI-facing media types for galleries and views.
@@ -47,17 +46,6 @@ export interface MediaLoadedInfo {
   // Whether or not this media is a placeholder (temporary image) whilst another
   // media item is being loaded.
   placeholder?: boolean;
-}
-
-export type MessageType = 'info' | 'error' | 'connection' | 'diagnostics';
-
-export interface Message {
-  message: string;
-  type?: MessageType;
-  icon?: string;
-  context?: unknown;
-  dotdotdot?: boolean;
-  link?: Link;
 }
 
 export type WebkitHTMLVideoElement = HTMLVideoElement & {

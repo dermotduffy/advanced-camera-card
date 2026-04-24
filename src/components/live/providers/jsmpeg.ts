@@ -12,13 +12,15 @@ import { until } from 'lit/directives/until.js';
 import { CameraEndpoints } from '../../../camera-manager/types.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import { JSMPEGMediaPlayerController } from '../../../components-lib/media-player/jsmpeg.js';
+import { createNotificationFromText } from '../../../components-lib/notification/factory.js';
+import { Notification } from '../../../config/schema/actions/types.js';
 import { CameraConfig } from '../../../config/schema/cameras.js';
 import { CardWideConfig } from '../../../config/schema/types.js';
 import { homeAssistantGetSignedURLIfNecessary } from '../../../ha/sign-path.js';
 import { HomeAssistant } from '../../../ha/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveJSMPEGStyle from '../../../scss/live-jsmpeg.scss';
-import { MediaPlayer, MediaPlayerController, Message } from '../../../types.js';
+import { MediaPlayer, MediaPlayerController } from '../../../types.js';
 import { convertHTTPAdressToWebsocket, errorToConsole } from '../../../utils/basic.js';
 import {
   dispatchMediaLoadedEvent,
@@ -26,8 +28,8 @@ import {
   dispatchMediaPlayEvent,
 } from '../../../utils/media-info.js';
 import { Timer } from '../../../utils/timer.js';
-import '../../message.js';
-import { renderMessage } from '../../message.js';
+import '../../notification/block.js';
+import { renderNotificationBlock } from '../../notification/block.js';
 import '../../progress-indicator.js';
 import { renderProgressIndicator } from '../../progress-indicator.js';
 
@@ -51,7 +53,7 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
   public cardWideConfig?: CardWideConfig;
 
   @state()
-  private _message: Message | null = null;
+  private _notification: Notification | null = null;
 
   private _jsmpegCanvasElement?: HTMLCanvasElement;
   private _jsmpegVideoPlayer?: JSMpeg.VideoElement;
@@ -71,7 +73,7 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     if (
       ['cameraConfig', 'cameraEndpoints'].some((prop) => changedProperties.has(prop))
     ) {
-      this._message = null;
+      this._notification = null;
     }
   }
 
@@ -133,7 +135,7 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
   }
 
   private _resetPlayer(): void {
-    this._message = null;
+    this._notification = null;
     this._refreshPlayerTimer.stop();
     if (this._jsmpegVideoPlayer) {
       try {
@@ -175,11 +177,10 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
 
     const endpoint = this.cameraEndpoints?.jsmpeg;
     if (!endpoint) {
-      this._message = {
-        message: localize('error.live_camera_no_endpoint'),
-        type: 'error',
-        context: this.cameraConfig,
-      };
+      this._notification = createNotificationFromText(
+        localize('error.live_camera_no_endpoint'),
+        { context: this.cameraConfig },
+      );
       dispatchLiveErrorEvent(this);
       return;
     }
@@ -197,11 +198,9 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     const address = response ? convertHTTPAdressToWebsocket(response) : null;
 
     if (!address) {
-      this._message = {
-        type: 'error',
-        message: localize('error.failed_sign'),
+      this._notification = createNotificationFromText(localize('error.failed_sign'), {
         context: this.cameraConfig,
-      };
+      });
       dispatchLiveErrorEvent(this);
       return;
     }
@@ -214,20 +213,19 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
   }
 
   protected render(): TemplateResult | void {
-    if (this._message) {
-      return renderMessage(this._message);
+    if (this._notification) {
+      return renderNotificationBlock(this._notification);
     }
 
     const _render = async (): Promise<TemplateResult | void> => {
       await this._refreshPlayer();
 
       if (!this._jsmpegVideoPlayer || !this._jsmpegCanvasElement) {
-        if (!this._message) {
-          this._message = {
-            message: localize('error.jsmpeg_no_player'),
-            type: 'error',
-            context: this.cameraConfig,
-          };
+        if (!this._notification) {
+          this._notification = createNotificationFromText(
+            localize('error.jsmpeg_no_player'),
+            { context: this.cameraConfig },
+          );
           dispatchLiveErrorEvent(this);
         }
         return;

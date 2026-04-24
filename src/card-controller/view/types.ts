@@ -75,4 +75,8 @@ export interface ViewManagerInterface {
   hasMajorMediaChange(oldView?: View | null, newView?: View | null): boolean;
 }
 
-export class ViewIncompatible extends AdvancedCameraCardError {}
+export class ViewIncompatible extends AdvancedCameraCardError {
+  constructor(context?: unknown) {
+    super('', context);
+  }
+}

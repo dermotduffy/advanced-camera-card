@@ -56,13 +56,15 @@ describe('AutomationsManager', () => {
       expect(api.getActionsManager().executeActions).not.toBeCalled();
     });
 
-    it('should do nothing with an error message present', () => {
+    it('should do nothing when an issue is present', () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
       vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
         true,
       );
-      vi.mocked(api.getMessageManager().hasErrorMessage).mockReturnValue(true);
+      vi.mocked(
+        api.getIssueManager().getStateManager().hasFullCardIssue,
+      ).mockReturnValue(true);
 
       const stateManager = new ConditionStateManager();
       vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
@@ -159,13 +161,13 @@ describe('AutomationsManager', () => {
 
     stateManager.setState({ fullscreen: fullscreen });
 
-    expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
-      expect.objectContaining({
-        type: 'error',
-        message:
-          'Too many nested automation calls, please check your configuration for loops',
-      }),
-    );
+    expect(api.getNotificationManager().setNotification).toBeCalledWith({
+      heading: {
+        text: 'Too many nested automation calls, please check your configuration for loops',
+        icon: 'mdi:alert',
+        severity: 'high',
+      },
+    });
 
     expect(api.getActionsManager().executeActions).toBeCalledTimes(10);
   });

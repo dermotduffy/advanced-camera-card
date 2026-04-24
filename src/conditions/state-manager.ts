@@ -25,13 +25,10 @@ export class ConditionStateManager implements ConditionStateManagerReadonlyInter
     return this._state;
   }
 
-  public setState(state: ConditionState): void {
-    this._processStateChange(this._calculateTrueChange(state));
-  }
-
-  private _processStateChange(changeState: ConditionState): void {
+  public setState(state: ConditionState): boolean {
+    const changeState = this._calculateTrueChange(state);
     if (!Object.keys(changeState).length) {
-      return;
+      return false;
     }
 
     const oldState = this._state;
@@ -40,6 +37,7 @@ export class ConditionStateManager implements ConditionStateManagerReadonlyInter
       ...changeState,
     };
     this._callListeners({ old: oldState, change: changeState, new: this._state });
+    return true;
   }
 
   private _calculateTrueChange(change: ConditionState): ConditionState {

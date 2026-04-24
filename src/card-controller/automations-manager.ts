@@ -50,7 +50,7 @@ export class AutomationsManager {
       !this._api.getInitializationManager().isInitializedMandatory() ||
       // Never execute automations if there's an error (as our automation loop
       // avoidance -- which shows as an error -- would not work!).
-      this._api.getMessageManager().hasErrorMessage()
+      this._api.getIssueManager().getStateManager().hasFullCardIssue()
     ) {
       return;
     }
@@ -66,9 +66,12 @@ export class AutomationsManager {
       ++this._nestedAutomationExecutions;
 
       if (this._nestedAutomationExecutions > MAX_NESTED_AUTOMATION_EXECUTIONS) {
-        this._api.getMessageManager().setMessageIfHigherPriority({
-          type: 'error',
-          message: localize('error.too_many_automations'),
+        this._api.getNotificationManager().setNotification({
+          heading: {
+            text: localize('error.too_many_automations'),
+            icon: 'mdi:alert',
+            severity: 'high',
+          },
         });
         return;
       }

@@ -4,7 +4,7 @@ import { InteractionManager } from '../../src/card-controller/interaction-manage
 import { createCardAPI, createConfig, createLitElement } from '../test-utils';
 
 vi.mock('lodash-es', () => ({
-  throttle: vi.fn((fn) => fn),
+  throttle: vi.fn((fn) => Object.assign(fn, { cancel: vi.fn() })),
 }));
 
 // @vitest-environment jsdom
@@ -86,5 +86,34 @@ describe('InteractionManager', () => {
     );
     expect(manager.hasInteraction()).toBeFalsy();
     expect(element.getAttribute('interaction')).toBeNull();
+  });
+
+  it('should uninitialize', () => {
+    const api = createCardAPI();
+    const element = createLitElement();
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        view: {
+          interaction_seconds: 10,
+        },
+      }),
+    );
+    const manager = new InteractionManager(api);
+
+    vi.useFakeTimers();
+    vi.setSystemTime(start);
+
+    manager.reportInteraction();
+    expect(manager.hasInteraction()).toBeTruthy();
+
+    manager.uninitialize();
+
+    // Timer should have been stopped: advancing time should not change
+    // interaction state.
+    vi.setSystemTime(add(start, { seconds: 10 }));
+    vi.runOnlyPendingTimers();
+
+    expect(manager.hasInteraction()).toBeTruthy();
   });
 });

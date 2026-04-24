@@ -1,5 +1,9 @@
 @use 'provider.scss';
 
+:host {
+  position: relative;
+}
+
 .hidden {
   display: none;
 }

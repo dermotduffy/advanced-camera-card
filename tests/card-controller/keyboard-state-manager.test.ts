@@ -83,4 +83,30 @@ describe('KeyboardStateManager', () => {
 
     expect(api.getConditionStateManager().setState).not.toBeCalled();
   });
+
+  it('should clear held keys on uninitialize', () => {
+    const api = createCardAPI();
+    const element = createLitElement();
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+    const manager = new KeyboardStateManager(api);
+    manager.initialize();
+
+    element.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+    vi.mocked(api.getConditionStateManager().setState).mockClear();
+
+    manager.uninitialize();
+
+    expect(api.getConditionStateManager().setState).toBeCalledWith({ keys: {} });
+  });
+
+  it('should not set state on uninitialize when no keys held', () => {
+    const api = createCardAPI();
+    const element = createLitElement();
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+    const manager = new KeyboardStateManager(api);
+    manager.initialize();
+    manager.uninitialize();
+
+    expect(api.getConditionStateManager().setState).not.toBeCalled();
+  });
 });

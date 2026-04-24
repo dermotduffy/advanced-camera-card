@@ -36,43 +36,49 @@ describe('ConditionStateManager', () => {
         fullscreen: true,
       };
 
-      manager.setState(state);
+      expect(manager.setState(state)).toBe(true);
       expect(listener).toBeCalledTimes(1);
 
-      manager.setState(state);
+      expect(manager.setState(state)).toBe(false);
       expect(listener).toBeCalledTimes(1);
 
-      manager.setState({ ...state });
+      expect(manager.setState({ ...state })).toBe(false);
       expect(listener).toBeCalledTimes(1);
 
-      manager.setState({
-        hass: createHASS({
-          'binary_sensor.foo': createStateEntity(),
+      expect(
+        manager.setState({
+          hass: createHASS({
+            'binary_sensor.foo': createStateEntity(),
+          }),
         }),
-      });
+      ).toBe(true);
       expect(listener).toBeCalledTimes(2);
 
-      manager.setState({ fullscreen: true });
+      expect(manager.setState({ fullscreen: true })).toBe(false);
       expect(listener).toBeCalledTimes(2);
 
-      manager.setState({
-        hass: createHASS({
-          'binary_sensor.foo': createStateEntity(),
+      expect(
+        manager.setState({
+          hass: createHASS({
+            'binary_sensor.foo': createStateEntity(),
+          }),
         }),
-      });
+      ).toBe(true);
       expect(listener).toBeCalledTimes(3);
 
-      manager.setState({ fullscreen: false });
+      expect(manager.setState({ fullscreen: false })).toBe(true);
       expect(listener).toBeCalledTimes(4);
 
-      manager.setState({ fullscreen: false });
+      expect(manager.setState({ fullscreen: false })).toBe(false);
       expect(listener).toBeCalledTimes(4);
 
-      manager.setState({
-        hass: createHASS({
-          'binary_sensor.foo': createStateEntity({ state: 'off' }),
+      expect(
+        manager.setState({
+          hass: createHASS({
+            'binary_sensor.foo': createStateEntity({ state: 'off' }),
+          }),
         }),
-      });
+      ).toBe(true);
       expect(listener).toBeCalledTimes(5);
     });
   });

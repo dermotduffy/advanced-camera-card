@@ -1,4 +1,4 @@
-import { MediaDetailsController } from '../../../components-lib/media/details-controller';
+import { MediaNotificationController } from '../../../components-lib/media/notification-controller';
 import { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import { CardActionsAPI } from '../../types';
@@ -13,11 +13,11 @@ export class InfoAction extends AdvancedCameraCardAction<GeneralActionConfig> {
       return;
     }
 
-    const controller = new MediaDetailsController();
-    controller.calculate(api.getCameraManager(), item);
+    const notificationController = new MediaNotificationController();
+    notificationController.calculate(api.getCameraManager(), item);
 
     api.getNotificationManager().setNotification(
-      controller.getNotification({
+      notificationController.getNotification({
         hass: api.getHASSManager().getHASS() ?? undefined,
         viewItemManager: api.getViewItemManager(),
         viewManagerEpoch: api.getViewManager().getEpoch(),
