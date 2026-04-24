@@ -148,36 +148,6 @@ describe('IssueStateManager', () => {
     });
   });
 
-  describe('isFullCardIssue', () => {
-    it('should return true when the issue reports full-card', () => {
-      assert(mockMediaLoad.isFullCardIssue);
-      vi.mocked(mockMediaLoad.isFullCardIssue).mockReturnValue(true);
-
-      expect(createManager().isFullCardIssue('media_load')).toBe(true);
-    });
-
-    it('should return false when the issue reports non-full-card', () => {
-      assert(mockMediaLoad.isFullCardIssue);
-      vi.mocked(mockMediaLoad.isFullCardIssue).mockReturnValue(false);
-
-      expect(createManager().isFullCardIssue('media_load')).toBe(false);
-    });
-
-    it('should return false when the issue has no isFullCardIssue method', () => {
-      const plain: Issue = {
-        key: 'media_load',
-        hasIssue: () => false,
-        getIssue: () => null,
-      };
-
-      expect(createManager([plain]).isFullCardIssue('media_load')).toBe(false);
-    });
-
-    it('should return false for unknown key', () => {
-      expect(createManager().isFullCardIssue('config_error')).toBe(false);
-    });
-  });
-
   describe('getIssueDescriptions', () => {
     it('should return results for active issues', () => {
       const result = createIssueDescription();

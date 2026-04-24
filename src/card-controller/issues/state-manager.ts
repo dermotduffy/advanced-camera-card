@@ -73,10 +73,6 @@ export class IssueStateManager implements IssueReadOnlyState {
     return !!this.getFullCardIssue();
   }
 
-  public isFullCardIssue(key: IssueKey): boolean {
-    return !!this._issues.get(key)?.isFullCardIssue?.();
-  }
-
   public getIssueDescriptions(): KeyedIssueDescription[] {
     const descriptions: KeyedIssueDescription[] = [];
     for (const issue of this._issues.values()) {
