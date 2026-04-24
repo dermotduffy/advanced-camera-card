@@ -1,6 +1,6 @@
 import { allPromises } from '../basic';
 
-type InitializationCallback = () => Promise<boolean>;
+type InitializationCallback = () => Promise<void>;
 
 /**
  * Manages initialization state & calling initializers. There is no guarantee
@@ -12,30 +12,24 @@ export class Initializer {
 
   public async initializeMultipleIfNecessary(
     aspects: Record<string, InitializationCallback>,
-  ): Promise<boolean> {
-    const results = await allPromises(
+  ): Promise<void> {
+    await allPromises(
       Object.entries(aspects),
       async ([aspect, options]) => await this.initializeIfNecessary(aspect, options),
     );
-    return results.every(Boolean);
   }
 
   public async initializeIfNecessary(
     aspect: string,
     initializer?: InitializationCallback,
-  ): Promise<boolean> {
+  ): Promise<void> {
     if (this._initialized.has(aspect)) {
-      return true;
+      return;
     }
-    if (!initializer) {
-      this._initialized.add(aspect);
-      return true;
+    if (initializer) {
+      await initializer();
     }
-    if (await initializer()) {
-      this._initialized.add(aspect);
-      return true;
-    }
-    return false;
+    this._initialized.add(aspect);
   }
 
   public uninitialize(aspect: string): void {

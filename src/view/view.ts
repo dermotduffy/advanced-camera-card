@@ -8,6 +8,12 @@ import { UnifiedQuery } from './unified-query';
 
 declare module 'view' {
   interface ViewContext {
+    // Per-target media retry epoch. Keyed by the universal target ID returned
+    // by `getViewTargetID` (camera ID / media ID / image sentinel). When bumped
+    // for a target, consumers rendering that target tear down and recreate
+    // their media element to retry loading.
+    mediaEpoch?: Record<string, number>;
+
     loading?: {
       query?: unknown;
     };
@@ -33,6 +39,38 @@ export const mergeViewContext = (
 ): ViewContext => {
   return merge({}, a, b);
 };
+
+const VIEWER_VIEW_NAMES: readonly AdvancedCameraCardView[] = [
+  'folder',
+  'media',
+  'clip',
+  'snapshot',
+  'recording',
+  'review',
+];
+
+const GALLERY_VIEW_NAMES: readonly AdvancedCameraCardView[] = [
+  'clips',
+  'folders',
+  'gallery',
+  'snapshots',
+  'recordings',
+  'reviews',
+];
+
+const FOLDER_VIEW_NAMES: readonly AdvancedCameraCardView[] = ['folder', 'folders'];
+
+const isViewerViewName = (view?: AdvancedCameraCardView): boolean =>
+  !!view && VIEWER_VIEW_NAMES.includes(view);
+
+const isGalleryViewName = (view?: AdvancedCameraCardView): boolean =>
+  !!view && GALLERY_VIEW_NAMES.includes(view);
+
+const isAnyFolderViewName = (view?: AdvancedCameraCardView): boolean =>
+  !!view && FOLDER_VIEW_NAMES.includes(view);
+
+export const isAnyMediaViewName = (view?: AdvancedCameraCardView): boolean =>
+  isViewerViewName(view) || view === 'live' || view === 'image';
 
 export class View {
   public view: AdvancedCameraCardView;
@@ -126,14 +164,7 @@ export class View {
    * Determine if a view is a gallery.
    */
   public isGalleryView(): boolean {
-    return [
-      'clips',
-      'folders',
-      'gallery',
-      'snapshots',
-      'recordings',
-      'reviews',
-    ].includes(this.view);
+    return isGalleryViewName(this.view);
   }
 
   /**
@@ -141,20 +172,18 @@ export class View {
    * live view, image view -- anything that can create a MediaLoadedInfo event).
    */
   public isAnyMediaView(): boolean {
-    return this.isViewerView() || this.is('live') || this.is('image');
+    return isAnyMediaViewName(this.view);
   }
 
   public isAnyFolderView(): boolean {
-    return ['folder', 'folders'].includes(this.view);
+    return isAnyFolderViewName(this.view);
   }
 
   /**
    * Determine if a view is for the media viewer.
    */
   public isViewerView(): boolean {
-    return ['folder', 'media', 'clip', 'snapshot', 'recording', 'review'].includes(
-      this.view,
-    );
+    return isViewerViewName(this.view);
   }
 
   public supportsMultipleDisplayModes(): boolean {

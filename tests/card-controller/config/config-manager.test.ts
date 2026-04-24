@@ -75,12 +75,12 @@ describe('ConfigManager', () => {
   });
 
   describe('should handle error when', () => {
-    it('no input', () => {
+    it('should handle no input', () => {
       const manager = new ConfigManager(createCardAPI());
       expect(() => manager.setConfig()).toThrowError(/Invalid configuration/);
     });
 
-    it('invalid configuration', () => {
+    it('should handle invalid configuration', () => {
       const schemaForMock: z.ZodType = advancedCameraCardConfigSchema;
       const spy = vi
         .spyOn(schemaForMock, 'safeParse')
@@ -94,14 +94,14 @@ describe('ConfigManager', () => {
       spy.mockRestore();
     });
 
-    it('invalid configuration with hint', () => {
+    it('should handle invalid configuration with hint', () => {
       const manager = new ConfigManager(createCardAPI());
       expect(() => manager.setConfig({})).toThrowError(
         'Invalid configuration: [\n "type"\n]',
       );
     });
 
-    it('upgradeable', () => {
+    it('should handle upgradeable config', () => {
       const manager = new ConfigManager(createCardAPI());
       expect(() =>
         manager.setConfig({
@@ -150,9 +150,9 @@ describe('ConfigManager', () => {
       displayMode: undefined,
       camera: undefined,
     });
+    expect(api.getIssueManager().reset).toBeCalledWith('config_error');
     expect(api.getMediaLoadedInfoManager().clear).toBeCalled();
     expect(api.getViewManager().reset).toBeCalled();
-    expect(api.getMessageManager().reset).toBeCalled();
     expect(api.getAutomationsManager().addAutomations).toBeCalled();
     expect(api.getStyleManager().updateFromConfig).toBeCalled();
     expect(api.getCardElementManager().update).toBeCalled();
@@ -327,13 +327,14 @@ describe('ConfigManager', () => {
 
       stateManager.setState({ fullscreen: true });
       expect(manager.getConfig()).not.toBeNull();
-      expect(api.getMessageManager().setErrorIfHigherPriority).toBeCalledWith(
-        expect.objectContaining({ message: 'Invalid override configuration' }),
+      expect(api.getIssueManager().trigger).toBeCalledWith(
+        'config_error',
+        expect.objectContaining({ error: expect.any(Error) }),
       );
     });
 
     describe('should uninitialize on override', () => {
-      it('cameras', () => {
+      it('should uninitialize cameras', () => {
         const api = createCardAPI();
         const stateManager = new ConditionStateManager();
         vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
@@ -365,7 +366,7 @@ describe('ConfigManager', () => {
         );
       });
 
-      it('cameras_global', () => {
+      it('should uninitialize cameras_global', () => {
         const api = createCardAPI();
         const stateManager = new ConditionStateManager();
         vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
@@ -397,7 +398,7 @@ describe('ConfigManager', () => {
         );
       });
 
-      it('live.microphone.always_connected', () => {
+      it('should uninitialize live.microphone.always_connected', () => {
         const api = createCardAPI();
         const stateManager = new ConditionStateManager();
         vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);

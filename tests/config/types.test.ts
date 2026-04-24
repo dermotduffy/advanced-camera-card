@@ -429,34 +429,32 @@ describe('config defaults', () => {
         items: {
           engine: {
             enabled: true,
+            permanent: false,
+            priority: 50,
+          },
+          issues: {
+            enabled: true,
+            permanent: true,
             priority: 50,
           },
           resolution: {
             enabled: true,
+            permanent: false,
             priority: 50,
           },
           severity: {
             enabled: true,
+            permanent: false,
             priority: 50,
           },
           technology: {
             enabled: true,
+            permanent: false,
             priority: 50,
           },
           title: {
             enabled: true,
-            priority: 50,
-          },
-          problem_config_upgrade: {
-            enabled: true,
-            priority: 50,
-          },
-          problem_legacy_resource: {
-            enabled: true,
-            priority: 50,
-          },
-          problem_stream_not_loading: {
-            enabled: true,
+            permanent: false,
             priority: 50,
           },
         },
@@ -536,6 +534,10 @@ describe('config defaults', () => {
           show_trigger_status: false,
           untrigger_delay_seconds: 0,
           untrigger_force_seconds: 0,
+        },
+        issues: {
+          interaction_mode: 'all',
+          retry_seconds: 'auto',
         },
       },
     });
@@ -828,6 +830,7 @@ describe('config defaults', () => {
         enabled: true,
         exclusive: false,
         expand: false,
+        permanent: false,
         string: 'Intruder alert!',
         priority: 50,
         sufficient: false,
@@ -838,6 +841,7 @@ describe('config defaults', () => {
         exclusive: false,
         expand: false,
         icon: 'mdi:cow',
+        permanent: false,
         priority: 50,
         sufficient: false,
       },
@@ -847,6 +851,7 @@ describe('config defaults', () => {
         exclusive: false,
         expand: false,
         image: 'https://my.site.com/status.png',
+        permanent: false,
         priority: 50,
         sufficient: false,
       },
@@ -1093,8 +1098,8 @@ describe('config defaults', () => {
             icon: 'mdi:alert',
             severity: 'high',
           },
-          text: 'Something happened.',
-          details: [{ text: 'Detail 1', icon: 'mdi:info' }],
+          body: { text: 'Something happened.' },
+          metadata: [{ text: 'Detail 1', icon: 'mdi:info' }],
           controls: [
             {
               icon: 'mdi:check',
@@ -1191,6 +1196,7 @@ describe('config defaults', () => {
             enabled: true,
             exclusive: false,
             expand: false,
+            permanent: false,
             string: 'Intruder alert!',
             priority: 50,
             sufficient: false,
@@ -1201,6 +1207,7 @@ describe('config defaults', () => {
             exclusive: false,
             expand: false,
             icon: 'mdi:cow',
+            permanent: false,
             priority: 50,
             sufficient: false,
           },
@@ -1210,6 +1217,7 @@ describe('config defaults', () => {
             exclusive: false,
             expand: false,
             image: 'https://my.site.com/status.png',
+            permanent: false,
             priority: 50,
             sufficient: false,
           },
@@ -1225,6 +1233,7 @@ describe('config defaults', () => {
             enabled: true,
             exclusive: false,
             expand: false,
+            permanent: false,
             string: 'Intruder alert!',
             priority: 50,
             sufficient: false,
@@ -1235,6 +1244,7 @@ describe('config defaults', () => {
             exclusive: false,
             expand: false,
             icon: 'mdi:cow',
+            permanent: false,
             priority: 50,
             sufficient: false,
           },
@@ -1244,6 +1254,7 @@ describe('config defaults', () => {
             exclusive: false,
             expand: false,
             image: 'https://my.site.com/status.png',
+            permanent: false,
             priority: 50,
             sufficient: false,
           },
@@ -1413,7 +1424,7 @@ describe('should convert webrtc card PTZ to Advanced Camera Card PTZ', () => {
     });
   });
 
-  it('presets via presets sub-object', () => {
+  it('should parse presets via presets sub-object', () => {
     expect(
       cameraConfigSchema.parse({
         ptz: {
@@ -1457,7 +1468,7 @@ describe('should convert webrtc card PTZ to Advanced Camera Card PTZ', () => {
     );
   });
 
-  it('actions_left takes priority over data_left', () => {
+  it('should prioritize actions_left over data_left', () => {
     const result = cameraConfigSchema.parse({
       ptz: {
         service: 'foo',
@@ -1482,7 +1493,7 @@ describe('should convert webrtc card PTZ to Advanced Camera Card PTZ', () => {
     );
   });
 
-  it('data_home creates a home preset', () => {
+  it('should create a home preset from data_home', () => {
     expect(
       cameraConfigSchema.parse({
         ptz: {
@@ -1511,7 +1522,7 @@ describe('should convert webrtc card PTZ to Advanced Camera Card PTZ', () => {
     );
   });
 
-  it('data_home does not overwrite existing home preset', () => {
+  it('should not overwrite existing home preset from data_home', () => {
     expect(
       cameraConfigSchema.parse({
         ptz: {
@@ -1546,7 +1557,7 @@ describe('should convert webrtc card PTZ to Advanced Camera Card PTZ', () => {
 });
 
 describe('should lazy evaluate schemas', () => {
-  it('conditional picture element', () => {
+  it('should parse conditional picture element', () => {
     expect(
       conditionalSchema.parse({
         type: 'conditional',
@@ -1594,7 +1605,7 @@ describe('should lazy evaluate schemas', () => {
     });
   });
 
-  it('status bar actions', () => {
+  it('should parse status bar actions', () => {
     const input = {
       action: 'fire-dom-event',
       advanced_camera_card_action: 'status_bar',
@@ -1604,6 +1615,7 @@ describe('should lazy evaluate schemas', () => {
           enabled: true,
           exclusive: false,
           expand: false,
+          permanent: false,
           priority: 50,
           sufficient: false,
           type: 'custom:advanced-camera-card-status-bar-string',
@@ -1688,7 +1700,7 @@ it('media viewer should not support microphone based conditions', () => {
 });
 
 describe('automations should require at least one action', () => {
-  it('no action', () => {
+  it('should handle no action', () => {
     expect(() =>
       createConfig({
         cameras: [{}],
@@ -1697,7 +1709,7 @@ describe('automations should require at least one action', () => {
     ).toThrowError(/Automations must include at least one action/);
   });
 
-  it('empty actions', () => {
+  it('should handle empty actions', () => {
     expect(() =>
       createConfig({
         cameras: [{}],
@@ -1706,7 +1718,7 @@ describe('automations should require at least one action', () => {
     ).toThrowError(/Automations must include at least one action/);
   });
 
-  it('at least one action', () => {
+  it('should handle at least one action', () => {
     expect(() =>
       createConfig({
         cameras: [{}],

@@ -94,9 +94,15 @@ describe('ViewItemManager', () => {
       vi.mocked(homeAssistantGetSignedURLIfNecessary).mockRejectedValue(signError);
 
       expect(await manager.download(item)).toBe(false);
-      expect(api.getMessageManager().setErrorIfHigherPriority).toHaveBeenCalledWith(
+      expect(api.getNotificationManager().setNotification).toBeCalledWith(
         expect.objectContaining({
-          message: 'Could not sign media URL for download',
+          heading: expect.objectContaining({
+            text: 'Download failed',
+            icon: 'mdi:download-off',
+          }),
+          body: expect.objectContaining({
+            text: 'Could not sign media URL for download',
+          }),
         }),
       );
       expect(consoleSpy).toHaveBeenCalledWith('sign-error');
@@ -169,9 +175,15 @@ describe('ViewItemManager', () => {
       const item = new TestViewMedia({ cameraID: null, folder: null });
 
       expect(await manager.download(item)).toBe(false);
-      expect(api.getMessageManager().setErrorIfHigherPriority).toHaveBeenCalledWith(
+      expect(api.getNotificationManager().setNotification).toBeCalledWith(
         expect.objectContaining({
-          message: 'No media to download',
+          heading: expect.objectContaining({
+            text: 'Download failed',
+            icon: 'mdi:download-off',
+          }),
+          body: expect.objectContaining({
+            text: 'No media to download',
+          }),
         }),
       );
     });

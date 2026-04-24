@@ -86,15 +86,29 @@ const castConfigDefault = {
   method: 'standard' as const,
 };
 
-const castSchema = z.object({
-  method: z.enum(['standard', 'dashboard']).default(castConfigDefault.method).optional(),
-  dashboard: z
-    .object({
-      dashboard_path: z.string().optional(),
-      view_path: z.string().optional(),
-    })
-    .optional(),
-});
+const castSchema = z
+  .object({
+    method: z
+      .enum(['standard', 'dashboard'])
+      .default(castConfigDefault.method)
+      .optional(),
+    dashboard: z
+      .object({
+        dashboard_path: z.string().optional(),
+        view_path: z.string().optional(),
+      })
+      .optional(),
+  })
+  .refine(
+    (cast) =>
+      cast.method !== 'dashboard' ||
+      (cast.dashboard?.dashboard_path && cast.dashboard?.view_path),
+    {
+      message:
+        'dashboard_path and view_path are required when cast method is "dashboard"',
+      path: ['dashboard'],
+    },
+  );
 
 // *************************************************************************
 //                     Camera Configuration

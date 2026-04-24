@@ -1,4 +1,4 @@
-import { merge } from 'lodash-es';
+import { get, merge } from 'lodash-es';
 import { ConditionsManager } from '../../conditions/conditions-manager';
 import { ConditionStateManagerReadonlyInterface } from '../../conditions/types';
 import {
@@ -92,9 +92,24 @@ export class OverridesManager {
 
     const parseResult = advancedCameraCardConfigSchema.safeParse(output);
     if (!parseResult.success) {
+      // Surface one co-located failure object per Zod issue — path, the value
+      // the user actually wrote, and the most informative "expected" field for
+      // this issue code. Avoids dumping the full merged config (which is
+      // mostly schema defaults the user never wrote) and keeps the reader from
+      // cross-referencing two parallel arrays.
+      const failures = parseResult.error.issues.map((issue) => ({
+        path: issue.path.map(String).join('.'),
+        received: get(output, issue.path),
+        expected:
+          issue.code === 'invalid_value'
+            ? issue.values
+            : issue.code === 'invalid_type'
+              ? issue.expected
+              : issue.message,
+      }));
       throw new OverrideConfigurationError(
         localize('error.invalid_configuration_override'),
-        [parseResult.error.issues, output],
+        { failures },
       );
     }
     return parseResult.data;

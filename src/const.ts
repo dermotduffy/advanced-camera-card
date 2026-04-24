@@ -5,10 +5,8 @@ export const TROUBLESHOOTING_CONFIG_UPGRADE_URL =
   `${TROUBLESHOOTING_URL}?id=configuration-upgrade-available` as const;
 export const TROUBLESHOOTING_LEGACY_RESOURCE_URL =
   `${TROUBLESHOOTING_URL}?id=legacy-dashboard-resource-detected` as const;
-export const TROUBLESHOOTING_STREAM_URL =
-  `${TROUBLESHOOTING_URL}?id=stream-does-not-load` as const;
-const CONFIGURATION_URL = `${DOCS_URL}/#/configuration`;
-export const FOLDERS_CONFIGURATION_URL = `${CONFIGURATION_URL}/folders`;
+export const TROUBLESHOOTING_MEDIA_URL =
+  `${TROUBLESHOOTING_URL}?id=media-does-not-load` as const;
 
 export const CONF_AUTOMATIONS = 'automations' as const;
 
@@ -154,6 +152,11 @@ export const CONF_VIEW_CAMERA_SELECT = `${CONF_VIEW}.camera_select` as const;
 export const CONF_VIEW_DEFAULT = `${CONF_VIEW}.default` as const;
 export const CONF_VIEW_DIM = `${CONF_VIEW}.dim` as const;
 export const CONF_VIEW_INTERACTION_SECONDS = `${CONF_VIEW}.interaction_seconds` as const;
+export const CONF_VIEW_ISSUES = `${CONF_VIEW}.issues` as const;
+export const CONF_VIEW_ISSUES_INTERACTION_MODE =
+  `${CONF_VIEW_ISSUES}.interaction_mode` as const;
+export const CONF_VIEW_ISSUES_RETRY_SECONDS =
+  `${CONF_VIEW_ISSUES}.retry_seconds` as const;
 export const CONF_VIEW_KEYBOARD_SHORTCUTS = `${CONF_VIEW}.keyboard_shortcuts` as const;
 export const CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED =
   `${CONF_VIEW}.keyboard_shortcuts.enabled` as const;
@@ -453,5 +456,3 @@ export const MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA = 131072;
 // improved rendering performance.
 export const MEDIA_CHUNK_SIZE_DEFAULT = 50;
 export const MEDIA_CHUNK_SIZE_MAX = 1000;
-
-export const IMAGE_VIEW_ZOOM_TARGET_SENTINEL = '__IMAGE_VIEW_ZOOM__';

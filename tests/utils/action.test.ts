@@ -360,7 +360,7 @@ describe('createSetReviewAction', () => {
 
 describe('createNotificationAction', () => {
   it('should create notification action', () => {
-    const notification = { text: 'test' };
+    const notification = { body: { text: 'test' } };
     expect(createNotificationAction(notification)).toEqual({
       action: 'fire-dom-event',
       advanced_camera_card_action: 'notification',
@@ -369,7 +369,7 @@ describe('createNotificationAction', () => {
   });
 
   it('should create notification action with cardID', () => {
-    const notification = { text: 'test' };
+    const notification = { body: { text: 'test' } };
     expect(createNotificationAction(notification, { cardID: 'card_id' })).toEqual({
       action: 'fire-dom-event',
       advanced_camera_card_action: 'notification',

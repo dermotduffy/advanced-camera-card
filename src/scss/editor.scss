@@ -43,6 +43,7 @@
 
 .submenu-header {
   display: flex;
+  align-items: center;
   padding: 10px;
 
   cursor: pointer;
@@ -105,10 +106,6 @@ span.info {
 ha-selector {
   padding: 10px;
   border: 1px solid var(--divider-color);
-}
-
-advanced-camera-card-message::part(icon) {
-  color: var(--primary-color);
 }
 
 .doc-link-row {

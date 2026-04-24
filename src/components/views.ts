@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { FoldersManager } from '../card-controller/folders/manager.js';
-import { ProblemPresence } from '../card-controller/problems/types.js';
+import { IssuePresence } from '../card-controller/issues/types.js';
 import { MicrophoneState } from '../card-controller/types.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
@@ -70,7 +70,7 @@ export class AdvancedCameraCardViews extends LitElement {
   public deviceRegistryManager?: DeviceRegistryManager;
 
   @property({ attribute: false })
-  public problems?: ProblemPresence;
+  public issues?: IssuePresence;
 
   @property({ attribute: false })
   public conditionStateManager?: ConditionStateManagerReadonlyInterface;
@@ -215,7 +215,7 @@ export class AdvancedCameraCardViews extends LitElement {
             .hass=${this.hass}
             .rawConfig=${this.rawConfig}
             .deviceRegistryManager=${this.deviceRegistryManager}
-            .problems=${this.problems}
+            .issues=${this.issues}
           >
           </advanced-camera-card-diagnostics>`
         : ``}

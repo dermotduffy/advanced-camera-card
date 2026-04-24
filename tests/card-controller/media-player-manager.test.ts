@@ -69,7 +69,7 @@ describe('MediaPlayerManager', () => {
   });
 
   describe('should initialize', () => {
-    it('correctly', async () => {
+    it('should initialize correctly', async () => {
       const entityRegistryManager = new EntityRegistryManagerMock([
         createRegistryEntity({
           entity_id: 'media_player.ok1',
@@ -108,7 +108,7 @@ describe('MediaPlayerManager', () => {
       expect(manager.hasMediaPlayers()).toBeTruthy();
     });
 
-    it('without hass', async () => {
+    it('should handle without hass', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
       const manager = new MediaPlayerManager(api);
@@ -119,7 +119,7 @@ describe('MediaPlayerManager', () => {
       expect(manager.hasMediaPlayers()).toBeFalsy();
     });
 
-    it('even if entity registry call fails', async () => {
+    it('should handle entity registry call failure', async () => {
       const spy = vi.spyOn(global.console, 'warn').mockImplementation(() => true);
 
       const entityRegistryManager = mock<EntityRegistryManager>();
@@ -273,7 +273,7 @@ describe('MediaPlayerManager', () => {
 
   describe('should play', () => {
     describe('live', () => {
-      it('without camera config', async () => {
+      it('should handle without camera config', async () => {
         const api = createCardAPI();
         vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
@@ -285,7 +285,7 @@ describe('MediaPlayerManager', () => {
       });
 
       describe('using standard method', () => {
-        it('successfully', async () => {
+        it('should succeed', async () => {
           const api = createCardAPI();
           vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
           vi.mocked(api.getCameraManager().getStore).mockReturnValue(
@@ -330,7 +330,7 @@ describe('MediaPlayerManager', () => {
           );
         });
 
-        it('without camera_entity', async () => {
+        it('should handle without camera_entity', async () => {
           const api = createCardAPI();
           vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
 
@@ -350,7 +350,7 @@ describe('MediaPlayerManager', () => {
           expect(api.getHASSManager().getHASS()?.callService).not.toBeCalled();
         });
 
-        it('without title and thumbnail', async () => {
+        it('should handle without title and thumbnail', async () => {
           const api = createCardAPI();
           vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
           vi.mocked(api.getCameraManager().getStore).mockReturnValue(
@@ -382,7 +382,7 @@ describe('MediaPlayerManager', () => {
       });
 
       describe('using dashboard method', () => {
-        it('successfully', async () => {
+        it('should succeed', async () => {
           const api = createCardAPI();
           vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
           vi.mocked(api.getCameraManager().getStore).mockReturnValue(
@@ -418,7 +418,7 @@ describe('MediaPlayerManager', () => {
           );
         });
 
-        it('without hass', async () => {
+        it('should handle without hass', async () => {
           const api = createCardAPI();
           vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
           vi.mocked(api.getCameraManager().getStore).mockReturnValue(
@@ -446,38 +446,36 @@ describe('MediaPlayerManager', () => {
           // No actual test can be performed here as nothing observable happens.
           // This test serves only as code-coverage long-tail.
         });
-      });
 
-      it('without required configuration', async () => {
-        const api = createCardAPI();
-        vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
-        vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-          createStore([
-            {
-              cameraID: 'camera.foo',
-              config: createCameraConfig({
-                camera_entity: 'camera.foo',
-                cast: {
-                  method: 'dashboard',
-                },
-              }),
-            },
-          ]),
-        );
-        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+        it('should handle without dashboard_path or view_path', async () => {
+          const api = createCardAPI();
+          vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
 
-        const manager = new MediaPlayerManager(api);
+          // Bypass schema validation — the code has a runtime guard (TypeScript
+          // narrowing) for the case where dashboard config is present but
+          // dashboard_path / view_path are missing.
+          const configWithNoDashboardPaths = createCameraConfig({
+            camera_entity: 'camera.foo',
+          });
+          (configWithNoDashboardPaths as Record<string, unknown>).cast = {
+            method: 'dashboard',
+            dashboard: { dashboard_path: undefined, view_path: undefined },
+          };
 
-        await manager.playLive('media_player.foo', 'camera.foo');
+          vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+            createStore([
+              {
+                cameraID: 'camera.foo',
+                config: configWithNoDashboardPaths,
+              },
+            ]),
+          );
+          vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+          const manager = new MediaPlayerManager(api);
 
-        expect(
-          vi.mocked(api.getMessageManager().setMessageIfHigherPriority),
-        ).toBeCalledWith({
-          type: 'error',
-          icon: 'mdi:cast',
-          message:
-            "Both 'dashboard_path' and 'view_path' parameters are required " +
-            "for the 'dashboard' cast method",
+          await manager.playLive('media_player.foo', 'camera.foo');
+
+          expect(api.getHASSManager().getHASS()?.callService).not.toBeCalled();
         });
       });
     });
@@ -516,7 +514,7 @@ describe('MediaPlayerManager', () => {
         });
       });
 
-      it('without hass', async () => {
+      it('should handle without hass', async () => {
         const api = createCardAPI();
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
         const manager = new MediaPlayerManager(api);

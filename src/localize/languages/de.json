@@ -301,12 +301,7 @@
         "after_interaction": "Zurücksetzen auf Standardansicht nach Ende der Benutzerinteraktion",
         "editor_label": "Verhalten Zurücksetzen auf Standardansicht",
         "entities": "Nach Zustandsänderung der Entität Zurücksetzen auf Standardansicht",
-        "interaction_mode": "Wie der Standard-Reset bei Benutzerinteraktion verhalten soll",
-        "interaction_modes": {
-          "active": "Zeige nur wenn Karte Nutzerinteraktion erfährt",
-          "all": "Zurücksetzen unabhängig von Benutzerinteraktion",
-          "inactive": "Nur zurücksetzen wenn keine Nutzerinteraktion"
-        }
+        "interaction_mode": "Wie der Standard-Reset bei Benutzerinteraktion verhalten soll"
       },
       "dim": "Abdimmen wenn keine Interaktion",
       "interaction_seconds": "Sekunden nach der Interaktion aktiv bleiben (0=niemals)",
@@ -334,11 +329,6 @@
         "actions": {
           "editor_label": "Auslöseaktion",
           "interaction_mode": "Wie Aktion verarbeiten, wenn Karte Nutzerinteraktion hat",
-          "interaction_modes": {
-            "active": "Nur auslösen, wenn Karte Nutzerinteraktion hat",
-            "all": "Auslösen unabhängig von Nutzerinteraktion",
-            "inactive": "Nur auslösen wenn Karte keine Nutzerinteraktion hat"
-          },
           "trigger": "Auslöseaktion",
           "triggers": {
             "default": "Wechseln in oder Anpassen der Standardansicht",
@@ -399,10 +389,15 @@
     "invalid_configuration_override": "Ungültige Konfiguration für Ersetzung",
     "no_camera_or_media_for_timeline": "Keine Kamera oder Medium für Zeitleiste",
     "no_dashboard_or_view": "Beide Prameter 'dashboard_path' und 'view_path' sind für die Sende-Methode 'dashboard' erforderlich",
-    "no_supported_camera": "Die ausgewählte Kamera unterstützt diese Ansicht nicht",
-    "no_supported_cameras": "Keine Kameras unterstützen diese Ansicht",
-    "stream_not_loading": "Der Videostream wurde nicht geladen. Dafür kann es verschiedene Gründe geben. Wenn konfiguriert (Standard), wird ein Bild jede Sekunde angezeigt, bis der Steam richtig lädt",
     "too_many_automations": "Zu viele automatisierte Anfragen, bitte prüfe deine Konfiguration auf etwaige Schleifen"
+  },
+  "issues": {
+    "media_load": {
+      "text": "Der Videostream wurde nicht geladen. Dafür kann es verschiedene Gründe geben. Wenn konfiguriert (Standard), wird ein Bild jede Sekunde angezeigt, bis der Steam richtig lädt"
+    },
+    "view_incompatible": {
+      "text": "Die ausgewählte Kamera unterstützt diese Ansicht nicht"
+    }
   },
   "key_assigner": {
     "assign": "Zuweisen",

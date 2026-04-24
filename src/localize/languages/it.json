@@ -1,5 +1,6 @@
 {
   "common": {
+    "in_progress": "In corso",
     "no_media": "Nessun contenuto multimediale da visualizzare"
   },
   "config": {
@@ -91,11 +92,6 @@
       }
     },
     "common": {
-      "events_media_types": {
-        "all": "Tutti i tipi di media",
-        "clips": "Clip",
-        "snapshots": "Istantanee"
-      },
       "controls": {
         "filter": {
           "editor_label": "Filtro multimediale",
@@ -142,6 +138,11 @@
             "none": "sessuna"
           }
         }
+      },
+      "events_media_types": {
+        "all": "Tutti i tipi di media",
+        "clips": "Clip",
+        "snapshots": "Istantanee"
       },
       "image": {
         "mode": "Modalità Visualizza immagine",
@@ -329,7 +330,7 @@
     }
   },
   "error": {
-    "could_not_render_elements": "Impossibile renderizzare gli elementi dell'immagine",
+    "could_not_create_elements": "Impossibile renderizzare gli elementi dell'immagine",
     "diagnostics": "Diagnostica delle carte.Si prega di rivedere per informazioni riservate prima di condividere",
     "download_no_media": "Nessun media da scaricare",
     "download_sign_failed": "Impossibile firmare URL multimediale per il download",
@@ -387,7 +388,6 @@
   "thumbnail": {
     "camera": "Camera",
     "duration": "Durata",
-    "in_progress": "In corso",
     "no_thumbnail": "Nessuna miniatura disponibile",
     "retain_indefinitely": "L'evento sarà mantenuto indefinitamente",
     "seek": "Cercare",

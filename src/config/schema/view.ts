@@ -74,6 +74,10 @@ export const viewConfigDefault = {
     untrigger_force_seconds: 0,
   },
   keyboard_shortcuts: keyboardShortcutsDefault,
+  issues: {
+    interaction_mode: 'all' as const,
+    retry_seconds: 'auto' as const,
+  },
 };
 
 const interactionModeSchema = z
@@ -146,6 +150,16 @@ export const viewConfigSchema = z
     keyboard_shortcuts: keyboardShortcutsSchema.default(
       viewConfigDefault.keyboard_shortcuts,
     ),
+
+    // See: https://github.com/dermotduffy/advanced-camera-card/issues/2099
+    issues: z
+      .object({
+        interaction_mode: interactionModeSchema,
+        retry_seconds: z
+          .union([z.literal('auto'), z.number().min(0)])
+          .default(viewConfigDefault.issues.retry_seconds),
+      })
+      .default(viewConfigDefault.issues),
   })
   .extend(actionsSchema.shape)
   .default(viewConfigDefault);

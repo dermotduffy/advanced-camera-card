@@ -64,7 +64,7 @@ export class TriggersManager {
     const hass = this._api.getHASSManager().getHASS();
     let triggered = false;
     let startupActionEvent: CameraEvent | null = null;
-    this._states.clear();
+    this.reset();
 
     for (const [cameraID, camera] of this._api
       .getCameraManager()
@@ -393,6 +393,20 @@ export class TriggersManager {
       state.untriggerForceTimer.stop();
       delete state.untriggerForceTimer;
     }
+  }
+
+  private _stopAllTimers(): void {
+    for (const [cameraID] of this._states) {
+      this._deleteUntriggerDelayTimer(cameraID);
+      this._deleteForceUntriggerTimer(cameraID);
+    }
+  }
+
+  public reset(): void {
+    this._throttledTriggerAction.cancel();
+    this._stopAllTimers();
+    this._states.clear();
+    this._setConditionStateIfNecessary();
   }
 
   private _isStateTriggered(state: CameraTriggerState): boolean {

@@ -12,6 +12,8 @@ import { CameraEndpoints } from '../../../camera-manager/types.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get-technology-for-video-rtc.js';
 import { VideoMediaPlayerController } from '../../../components-lib/media-player/video.js';
+import { createNotificationFromText } from '../../../components-lib/notification/factory.js';
+import { Notification } from '../../../config/schema/actions/types.js';
 import { CameraConfig } from '../../../config/schema/cameras.js';
 import { CardWideConfig } from '../../../config/schema/types.js';
 import { HomeAssistant } from '../../../ha/types.js';
@@ -21,7 +23,6 @@ import {
   AdvancedCameraCardError,
   MediaPlayer,
   MediaPlayerController,
-  Message,
 } from '../../../types.js';
 import { mayHaveAudio } from '../../../utils/audio.js';
 import {
@@ -29,6 +30,7 @@ import {
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   setControlsOnVideo,
 } from '../../../utils/controls.js';
+import { getContextFromError } from '../../../utils/error-context.js';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
@@ -36,8 +38,8 @@ import {
   dispatchMediaVolumeChangeEvent,
 } from '../../../utils/media-info.js';
 import { renderTask } from '../../../utils/task.js';
-import '../../message.js';
-import { renderMessage } from '../../message.js';
+import '../../notification/block.js';
+import { renderNotificationBlock } from '../../notification/block.js';
 import '../../progress-indicator.js';
 import { renderProgressIndicator } from '../../progress-indicator.js';
 import { VideoRTC } from './go2rtc/video-rtc.js';
@@ -59,7 +61,7 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
   public controls = false;
 
   @state()
-  private _message: Message | null = null;
+  private _notification: Notification | null = null;
 
   private hass?: HomeAssistant;
 
@@ -88,7 +90,7 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
 
   disconnectedCallback(): void {
     this._videoRTC = null;
-    this._message = null;
+    this._notification = null;
     super.disconnectedCallback();
   }
 
@@ -96,7 +98,7 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
     if (
       ['cameraConfig', 'cameraEndpoints'].some((prop) => changedProperties.has(prop))
     ) {
-      this._message = null;
+      this._notification = null;
     }
   }
 
@@ -148,8 +150,8 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
   }
 
   protected render(): TemplateResult | void {
-    if (this._message) {
-      return renderMessage(this._message);
+    if (this._notification) {
+      return renderNotificationBlock(this._notification);
     }
 
     const render = (): TemplateResult | void => {
@@ -157,16 +159,15 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
       try {
         webrtcElement = this._createWebRTC();
       } catch (e) {
-        this._message = {
-          type: 'error',
-          message:
-            e instanceof AdvancedCameraCardError
-              ? e.message
-              : localize('error.webrtc_card_reported_error') +
-                ': ' +
-                (e as Error).message,
-          context: (e as AdvancedCameraCardError).context,
-        };
+        const context = getContextFromError(e);
+        this._notification = createNotificationFromText(
+          e instanceof AdvancedCameraCardError
+            ? e.message
+            : localize('error.webrtc_card_reported_error') + ': ' + (e as Error).message,
+          {
+            ...(context && { context }),
+          },
+        );
         dispatchLiveErrorEvent(this);
         return;
       }

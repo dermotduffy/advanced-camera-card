@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { createNotificationFromError } from '../../components-lib/notification/factory';
 import { homeAssistantGetSignedURLIfNecessary } from '../../ha/sign-path';
 import { localize } from '../../localize/localize';
 import { AdvancedCameraCardError } from '../../types';
@@ -37,7 +38,15 @@ export class ViewItemManager {
     try {
       await this._download(item);
     } catch (error: unknown) {
-      this._api.getMessageManager().setErrorIfHigherPriority(error);
+      /* istanbul ignore if: catch always provides a non-null error -- @preserve */
+      if (error == null) {
+        return false;
+      }
+      this._api.getNotificationManager().setNotification(
+        createNotificationFromError(error, {
+          heading: { text: localize('error.download_failed'), icon: 'mdi:download-off' },
+        }),
+      );
       return false;
     }
     return true;

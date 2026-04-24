@@ -3,7 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import './components/icon.js';
 import './components/key-assigner.js';
-import { renderMessage } from './components/message.js';
+import { renderNotificationBlock } from './components/notification/block.js';
 import {
   copyConfig,
   deleteConfigValue,
@@ -246,6 +246,9 @@ import {
   CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
   CONF_VIEW_DIM,
   CONF_VIEW_INTERACTION_SECONDS,
+  CONF_VIEW_ISSUES,
+  CONF_VIEW_ISSUES_INTERACTION_MODE,
+  CONF_VIEW_ISSUES_RETRY_SECONDS,
   CONF_VIEW_KEYBOARD_SHORTCUTS,
   CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED,
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_DOWN,
@@ -266,7 +269,6 @@ import {
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_FORCE_SECONDS,
   DOCS_URL,
-  FOLDERS_CONFIGURATION_URL,
   MEDIA_CHUNK_SIZE_MAX,
 } from './const.js';
 import { fireHASSEvent } from './ha/fire-hass-event.js';
@@ -329,6 +331,7 @@ const MENU_STATUS_BAR_ITEMS = 'status_bar.items';
 const MENU_TIMELINE_FORMAT = 'timeline.format';
 const MENU_TIMELINE_CONTROLS_THUMBNAILS = 'timeline.controls.thumbnails';
 const MENU_VIEW_DEFAULT_RESET = 'view.default_reset';
+const MENU_VIEW_ISSUES = 'view.issues';
 const MENU_VIEW_KEYBOARD_SHORTCUTS = 'view.keyboard_shortcuts';
 const MENU_VIEW_TRIGGERS = 'view.triggers';
 const MENU_VIEW_TRIGGERS_ACTIONS = 'view.triggers.actions';
@@ -352,6 +355,7 @@ const SECTION_DOC_LINKS: Record<string, string> = {
 
 const SUBMENU_DOC_LINKS: Record<string, string> = {
   [MENU_VIEW_DEFAULT_RESET]: 'configuration/view?id=default_reset',
+  [MENU_VIEW_ISSUES]: 'configuration/view?id=issues',
   [MENU_VIEW_TRIGGERS]: 'configuration/view?id=triggers',
   [MENU_VIEW_TRIGGERS_ACTIONS]: 'configuration/view?id=trigger-action-configuration',
   [MENU_VIEW_KEYBOARD_SHORTCUTS]: 'configuration/view?id=keyboard_shortcuts',
@@ -904,19 +908,19 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  private _triggersActionsInteractionModes: EditorSelectOption[] = [
+  private _interactionModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'all',
-      label: localize('config.view.triggers.actions.interaction_modes.all'),
+      label: localize('config.common.interaction_modes.all'),
     },
     {
       value: 'inactive',
-      label: localize('config.view.triggers.actions.interaction_modes.inactive'),
+      label: localize('config.common.interaction_modes.inactive'),
     },
     {
       value: 'active',
-      label: localize('config.view.triggers.actions.interaction_modes.active'),
+      label: localize('config.common.interaction_modes.active'),
     },
   ];
 
@@ -1043,22 +1047,6 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  private _defaultResetInteractionModes: EditorSelectOption[] = [
-    { value: '', label: '' },
-    {
-      value: 'all',
-      label: localize('config.view.default_reset.interaction_modes.all'),
-    },
-    {
-      value: 'inactive',
-      label: localize('config.view.default_reset.interaction_modes.inactive'),
-    },
-    {
-      value: 'active',
-      label: localize('config.view.default_reset.interaction_modes.active'),
-    },
-  ];
-
   private _proxyModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
@@ -1180,10 +1168,8 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
 
   protected willUpdate(): void {
     if (!this._initialized) {
-      sideLoadHomeAssistantElements().then((success) => {
-        if (success) {
-          this._initialized = true;
-        }
+      sideLoadHomeAssistantElements().then(() => {
+        this._initialized = true;
       });
     }
   }
@@ -1467,7 +1453,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._renderNumberInput(CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS)}
         ${this._renderOptionSelector(
           CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
-          this._defaultResetInteractionModes,
+          this._interactionModes,
           {
             label: localize('config.view.default_reset.interaction_mode'),
           },
@@ -1479,6 +1465,25 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
             multiple: true,
           },
         )}
+      `,
+    );
+  }
+
+  private _renderViewIssuesMenu(): TemplateResult {
+    return this._putInSubmenu(
+      MENU_VIEW_ISSUES,
+      true,
+      `config.${CONF_VIEW_ISSUES}.editor_label`,
+      'mdi:alert-circle-outline',
+      html`
+        ${this._renderOptionSelector(
+          CONF_VIEW_ISSUES_INTERACTION_MODE,
+          this._interactionModes,
+          {
+            label: localize('config.view.issues.interaction_mode'),
+          },
+        )}
+        ${this._renderNumberInput(CONF_VIEW_ISSUES_RETRY_SECONDS, { min: 0 })}
       `,
     );
   }
@@ -1531,7 +1536,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
           )}
           ${this._renderOptionSelector(
             CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE,
-            this._triggersActionsInteractionModes,
+            this._interactionModes,
             {
               label: localize('config.view.triggers.actions.interaction_mode'),
             },
@@ -2346,12 +2351,10 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${this._renderStringInput(
                   getArrayConfigPath(CONF_FOLDERS_ARRAY_HA_URL, folderIndex),
                 )}
-                ${renderMessage({
-                  message: localize('config.folders.ha.path_info'),
-                  icon: 'mdi:information-outline',
-                  link: {
-                    url: FOLDERS_CONFIGURATION_URL,
-                    title: localize('error.configuration'),
+                ${renderNotificationBlock({
+                  body: {
+                    text: localize('config.folders.ha.path_info'),
+                    icon: 'mdi:information-outline',
                   },
                 })}
               `,
@@ -3064,8 +3067,12 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                   CONF_VIEW_DEFAULT_CYCLE_CAMERA,
                   this._defaults.view.default_cycle_camera,
                 )}
-                ${this._renderViewDefaultResetMenu()} ${this._renderViewTriggersMenu()}
-                ${this._renderViewKeyboardShortcutMenu()}
+                ${[
+                  this._renderViewDefaultResetMenu(),
+                  this._renderViewIssuesMenu(),
+                  this._renderViewTriggersMenu(),
+                  this._renderViewKeyboardShortcutMenu(),
+                ]}
                 ${this._renderOptionSelector(CONF_VIEW_THEME_THEMES, this._themes, {
                   label: localize('config.view.theme.themes.editor_label'),
                   multiple: true,
@@ -3086,40 +3093,42 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE, {
                   min: BUTTON_SIZE_MIN,
                 })}
-                ${this._renderMenuButton('iris') /* */}
-                ${this._renderMenuButton('camera_ui')}
-                ${this._renderMenuButton('cameras') /* */}
-                ${this._renderMenuButton('clips')}
-                ${this._renderMenuButton('display_mode')}
-                ${this._renderMenuButton('download') /* */}
-                ${this._renderMenuButton('expand') /* */}
-                ${this._renderMenuButton('folders')}
-                ${this._renderMenuButton('fullscreen')}
-                ${this._renderMenuButton('gallery')}
-                ${this._renderMenuButton('image') /* */}
-                ${this._renderMenuButton('info') /*  */}
-                ${this._renderMenuButton('live')}
-                ${this._renderMenuButton('media_player')}
-                ${this._renderMenuButton(
-                  'microphone',
-                  html`${this._renderOptionSelector(
-                    `${CONF_MENU_BUTTONS}.microphone.type`,
-                    this._microphoneButtonTypes,
-                    { label: localize('config.menu.buttons.type') },
-                  )}`,
-                )}
-                ${this._renderMenuButton('mute') /*  */}
-                ${this._renderMenuButton('pip') /*   */}
-                ${this._renderMenuButton('play')}
-                ${this._renderMenuButton('ptz_controls')}
-                ${this._renderMenuButton('ptz_home')}
-                ${this._renderMenuButton('recordings')}
-                ${this._renderMenuButton('reviews')}
-                ${this._renderMenuButton('screenshot')}
-                ${this._renderMenuButton('set_review')}
-                ${this._renderMenuButton('snapshots')}
-                ${this._renderMenuButton('substreams')}
-                ${this._renderMenuButton('timeline')}
+                ${[
+                  this._renderMenuButton('iris'),
+                  this._renderMenuButton('camera_ui'),
+                  this._renderMenuButton('cameras'),
+                  this._renderMenuButton('clips'),
+                  this._renderMenuButton('display_mode'),
+                  this._renderMenuButton('download'),
+                  this._renderMenuButton('expand'),
+                  this._renderMenuButton('folders'),
+                  this._renderMenuButton('fullscreen'),
+                  this._renderMenuButton('gallery'),
+                  this._renderMenuButton('image'),
+                  this._renderMenuButton('info'),
+                  this._renderMenuButton('live'),
+                  this._renderMenuButton('media_player'),
+                  this._renderMenuButton(
+                    'microphone',
+                    html`${this._renderOptionSelector(
+                      `${CONF_MENU_BUTTONS}.microphone.type`,
+                      this._microphoneButtonTypes,
+                      { label: localize('config.menu.buttons.type') },
+                    )}`,
+                  ),
+                  this._renderMenuButton('mute'),
+                  this._renderMenuButton('pip'),
+                  this._renderMenuButton('play'),
+                  this._renderMenuButton('ptz_controls'),
+                  this._renderMenuButton('ptz_home'),
+                  this._renderMenuButton('recordings'),
+                  this._renderMenuButton('reviews'),
+                  this._renderMenuButton('screenshot'),
+                  this._renderMenuButton('set_review'),
+                  this._renderMenuButton('snapshots'),
+                  this._renderMenuButton('substreams'),
+                  this._renderMenuButton('timeline'),
+                ]}
               </div>
             `
           : ''}
@@ -3148,11 +3157,14 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                   default: this._defaults.status_bar.popup_seconds,
                   label: localize('config.status_bar.popup_seconds'),
                 })}
-                ${this._renderStatusBarItem('title') /* */}
-                ${this._renderStatusBarItem('resolution') /* */}
-                ${this._renderStatusBarItem('technology') /* */}
-                ${this._renderStatusBarItem('engine') /* */}
-                ${this._renderStatusBarItem('upgrade') /* */}
+                ${[
+                  this._renderStatusBarItem('title'),
+                  this._renderStatusBarItem('resolution'),
+                  this._renderStatusBarItem('technology'),
+                  this._renderStatusBarItem('engine'),
+                  this._renderStatusBarItem('severity'),
+                  this._renderStatusBarItem('issues'),
+                ]}
               </div>
             `
           : ''}

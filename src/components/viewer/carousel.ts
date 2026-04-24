@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
+import { keyed } from 'lit/directives/keyed.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { RemoveContextPropertyViewModifier } from '../../card-controller/view/modifiers/remove-context-property.js';
@@ -32,8 +33,8 @@ import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { ViewMedia } from '../../view/item.js';
 import '../carousel';
 import type { EmblaCarouselPlugins } from '../carousel.js';
-import { renderMessage } from '../message.js';
 import '../next-prev-control.js';
+import { renderNoMedia } from '../notification/no-media.js';
 import '../ptz.js';
 import './provider.js';
 
@@ -314,15 +315,12 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
   protected render(): TemplateResult | void {
     const mediaCount = this._media?.length ?? 0;
     if (!this._media || !mediaCount) {
-      return renderMessage({
-        message: localize('common.no_media'),
-        type: 'info',
-        icon: 'mdi:multimedia',
-        ...(this.viewFilterCameraID && {
-          context: {
-            camera_id: this.viewFilterCameraID,
-          },
-        }),
+      return renderNoMedia({
+        cameraID:
+          this.viewFilterCameraID ??
+          this.viewManagerEpoch?.manager.getView()?.camera ??
+          null,
+        cameraManager: this.cameraManager ?? null,
       });
     }
 
@@ -464,16 +462,22 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       return null;
     }
 
+    const mediaID = media.getID();
+    const mediaEpoch = mediaID ? view.context?.mediaEpoch?.[mediaID] ?? 0 : 0;
+
     return html` <div class="embla__slide">
-      <advanced-camera-card-viewer-provider
-        .hass=${this.hass}
-        .viewManagerEpoch=${this.viewManagerEpoch}
-        .media=${media}
-        .viewerConfig=${this.viewerConfig}
-        .resolvedMediaCache=${this.resolvedMediaCache}
-        .cameraManager=${this.cameraManager}
-        .cardWideConfig=${this.cardWideConfig}
-      ></advanced-camera-card-viewer-provider>
+      ${keyed(
+        mediaEpoch,
+        html`<advanced-camera-card-viewer-provider
+          .hass=${this.hass}
+          .viewManagerEpoch=${this.viewManagerEpoch}
+          .media=${media}
+          .viewerConfig=${this.viewerConfig}
+          .resolvedMediaCache=${this.resolvedMediaCache}
+          .cameraManager=${this.cameraManager}
+          .cardWideConfig=${this.cardWideConfig}
+        ></advanced-camera-card-viewer-provider>`,
+      )}
     </div>`;
   }
 

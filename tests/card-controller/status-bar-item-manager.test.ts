@@ -48,7 +48,7 @@ describe('StatusBarItemManager', () => {
   describe('should have standard status bar items', () => {
     describe('should have title', () => {
       describe('live', () => {
-        it('with metadata', () => {
+        it('should show with metadata', () => {
           const manager = new StatusBarItemManager(createCardAPI());
           const store = createStore([
             {
@@ -74,7 +74,7 @@ describe('StatusBarItemManager', () => {
           });
         });
 
-        it('without metadata', () => {
+        it('should handle without metadata', () => {
           const manager = new StatusBarItemManager(createCardAPI());
           const cameraManager = createCameraManager();
           expect(
@@ -87,7 +87,7 @@ describe('StatusBarItemManager', () => {
       });
 
       describe('media', () => {
-        it('with a title', () => {
+        it('should show with a title', () => {
           const manager = new StatusBarItemManager(createCardAPI());
           const cameraManager = createCameraManager();
 
@@ -114,7 +114,7 @@ describe('StatusBarItemManager', () => {
           });
         });
 
-        it('without a title', () => {
+        it('should handle without a title', () => {
           const manager = new StatusBarItemManager(createCardAPI());
           const cameraManager = createCameraManager();
 
@@ -187,7 +187,7 @@ describe('StatusBarItemManager', () => {
     });
 
     describe('should have technology', () => {
-      it('webrtc', () => {
+      it('should show webrtc icon', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         expect(
@@ -200,7 +200,7 @@ describe('StatusBarItemManager', () => {
         });
       });
 
-      it('non-webrtc', () => {
+      it('should show non-webrtc string', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         expect(
@@ -241,15 +241,15 @@ describe('StatusBarItemManager', () => {
       });
     });
 
-    describe('problems', () => {
-      it('should show problem items', () => {
+    describe('issues', () => {
+      it('should show issue items', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems({
-          problems: [
+          issues: [
             {
               key: 'config_upgrade',
-              problem: {
+              issue: {
                 icon: 'mdi:update',
                 severity: 'medium',
                 notification: {
@@ -258,7 +258,7 @@ describe('StatusBarItemManager', () => {
                     icon: 'mdi:update',
                     severity: 'medium',
                   },
-                  text: 'Upgrade text',
+                  body: { text: 'Upgrade text' },
                 },
               },
             },
@@ -281,11 +281,11 @@ describe('StatusBarItemManager', () => {
         );
       });
 
-      it('should not show problem items when empty', () => {
+      it('should not show issue items when empty', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems({
-          problems: [],
+          issues: [],
         });
 
         expect(items).not.toContainEqual(
@@ -295,7 +295,7 @@ describe('StatusBarItemManager', () => {
         );
       });
 
-      it('should not show problem items by default', () => {
+      it('should not show issue items by default', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems();
@@ -307,7 +307,7 @@ describe('StatusBarItemManager', () => {
         );
       });
 
-      it('should filter out disabled problems', () => {
+      it('should filter out all issues when disabled', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems({
@@ -318,19 +318,17 @@ describe('StatusBarItemManager', () => {
             height: 40,
             items: {
               engine: { enabled: true, priority: 50 },
+              issues: { enabled: false, priority: 50 },
               resolution: { enabled: true, priority: 50 },
               severity: { enabled: true, priority: 50 },
               technology: { enabled: true, priority: 50 },
               title: { enabled: true, priority: 50 },
-              problem_config_upgrade: { enabled: false, priority: 50 },
-              problem_legacy_resource: { enabled: true, priority: 50 },
-              problem_stream_not_loading: { enabled: true, priority: 50 },
             },
           },
-          problems: [
+          issues: [
             {
               key: 'config_upgrade',
-              problem: {
+              issue: {
                 icon: 'mdi:update',
                 severity: 'medium',
                 notification: {
@@ -339,7 +337,7 @@ describe('StatusBarItemManager', () => {
                     icon: 'mdi:update',
                     severity: 'medium',
                   },
-                  text: 'Upgrade text',
+                  body: { text: 'Upgrade text' },
                 },
               },
             },
@@ -353,7 +351,7 @@ describe('StatusBarItemManager', () => {
         );
       });
 
-      it('should apply config overrides to problem items', () => {
+      it('should apply config overrides to issue items', () => {
         const manager = new StatusBarItemManager(createCardAPI());
 
         const items = manager.calculateItems({
@@ -364,19 +362,17 @@ describe('StatusBarItemManager', () => {
             height: 40,
             items: {
               engine: { enabled: true, priority: 50 },
+              issues: { enabled: true, priority: 90 },
               resolution: { enabled: true, priority: 50 },
               severity: { enabled: true, priority: 50 },
               technology: { enabled: true, priority: 50 },
               title: { enabled: true, priority: 50 },
-              problem_config_upgrade: { enabled: true, priority: 90 },
-              problem_legacy_resource: { enabled: true, priority: 50 },
-              problem_stream_not_loading: { enabled: true, priority: 50 },
             },
           },
-          problems: [
+          issues: [
             {
               key: 'config_upgrade',
-              problem: {
+              issue: {
                 icon: 'mdi:update',
                 severity: 'medium',
                 notification: {
@@ -385,7 +381,7 @@ describe('StatusBarItemManager', () => {
                     icon: 'mdi:update',
                     severity: 'medium',
                   },
-                  text: 'Upgrade text',
+                  body: { text: 'Upgrade text' },
                 },
               },
             },

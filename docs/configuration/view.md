@@ -15,6 +15,7 @@ view:
 | `default`              | `auto`                                                    | The view to show in the card by default. If `auto`, the card will choose `live` when cameras are configured, `folders` when folders are configured, or `image` otherwise (default embedded image). The default camera is the first one listed. See [Supported Views](view.md?id=supported-views).                                                                                               |
 | `default_reset`        |                                                           | The circumstances and behavior that cause the card to reset to the default view. See [`default_reset`](#default_reset).                                                                                                                                                                                                                                                                         |
 | `interaction_seconds`  | `300`                                                     | After a mouse/touch interaction with the card, it will be considered "interacted with" until this number of seconds elapses without further interaction. May be used as part of an [interaction condition](conditions.md?id=interaction) or with `default_reset.after_interaction` to reset the view after the interaction is complete.                                                         |
+| `issues`               |                                                           | How the card handles issues and retries. See [`issues`](#issues).                                                                                                                                                                                                                                                                                                                               |
 | `keyboard_shortcuts`   | See [usage](../usage/keyboard-shortcuts.md) for defaults. | Configure keyboard shortcuts. See [`keyboard_shortcuts`](#keyboard_shortcuts).                                                                                                                                                                                                                                                                                                                  |
 | `render_entities`      |                                                           | **YAML only**: A list of entity ids that should cause the card to re-render 'in-place'. The view/camera is not changed. This should **very** rarely be needed, but could be useful if the card is both setting and changing HA state of the same object as could be the case for some complex `card_mod` scenarios ([example](https://github.com/dermotduffy/advanced-camera-card/issues/343)). |
 | `theme`                |                                                           | How the card is themed. See [`theme`](#theme-🎨).                                                                                                                                                                                                                                                                                                                                               |
@@ -36,6 +37,23 @@ view:
 | `entities`          |            | A list of entities that should cause the view to reset to the default (if the entity only pertains to a particular camera use [`triggers`](cameras/README.md?id=triggers) for the selected camera instead).                                                                                                                                                                                                                                                                                                           |
 | `interaction_mode`  | `inactive` | Whether the default reset should happen when the card is being interacted with. If `all`, the reset will always happen regardless. If `inactive` the reset will only be taken if the card has _not_ had human interaction recently (as defined by `view.interaction_seconds`). If `active` the reset will only be happen if the card _has_ had human interaction recently. This controls resets triggered by `entities` and `every_seconds`, but not `after_interaction` which by definition requires no interaction. |
 | `every_seconds`     | `0`        | A number of seconds after which to automatically reset to the default view. `0` disables this functionality.                                                                                                                                                                                                                                                                                                                                                                                                          |
+
+## `issues`
+
+Configure how the card handles errors/issues and automatic retries.
+
+All configuration is under:
+
+```yaml
+view:
+  issues:
+    # [...]
+```
+
+| Option             | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `interaction_mode` | `all`   | Whether scheduled retries should happen when the card is being interacted with. If `all`, retries will always happen regardless. If `inactive` retries will only happen if the card has _not_ had human interaction recently (as defined by `view.interaction_seconds`). If `active` retries will only happen if the card _has_ had human interaction recently. User-initiated retries are always allowed.                                                |
+| `retry_seconds`    | `auto`  | Controls automatic retry attempts when an issue is detected (e.g. media not loading, query error). When `auto`, the card uses an exponential backoff schedule starting at ~30 seconds and capped at 10 minutes, with jitter to avoid multiple cards retrying in lockstep. A positive number sets a fixed retry interval in seconds. `0` disables automatic retries entirely. User-initiated retries (e.g. clicking a notification) always run regardless. |
 
 ## `keyboard_shortcuts`
 
@@ -193,6 +211,9 @@ view:
     interaction_mode: inactive
   render_entities:
     - switch.render_card
+  issues:
+    interaction_mode: all
+    retry_seconds: auto
   dim: false
   triggers:
     show_trigger_status: false

@@ -1,7 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Capabilities } from '../../src/camera-manager/capabilities';
 import { AdvancedCameraCardView } from '../../src/config/schema/common/const';
-import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../../src/const';
 import { PTZMovementType } from '../../src/types';
 import {
   getPTZTarget,
@@ -9,6 +8,8 @@ import {
   ptzActionToCapabilityKey,
 } from '../../src/utils/ptz';
 import { QueryResults } from '../../src/view/query-results';
+import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../src/view/target-id';
+import * as targetId from '../../src/view/target-id';
 import {
   TestViewMedia,
   createCameraManager,
@@ -18,7 +19,7 @@ import {
 
 describe('getPTZTarget', () => {
   describe('in a viewer view', () => {
-    it('with media', () => {
+    it('should return target with media', () => {
       const media = [new TestViewMedia({ id: 'media-id' })];
       const view = createView({
         view: 'media',
@@ -30,14 +31,14 @@ describe('getPTZTarget', () => {
       });
     });
 
-    it('without media', () => {
+    it('should return null without media', () => {
       const view = createView({
         view: 'media',
       });
       expect(getPTZTarget(view, { cameraManager: createCameraManager() })).toBeNull();
     });
 
-    it('with true PTZ restriction', () => {
+    it('should return null with true PTZ restriction', () => {
       const media = [new TestViewMedia({ id: 'media-id' })];
       const view = createView({
         view: 'media',
@@ -49,15 +50,15 @@ describe('getPTZTarget', () => {
     });
   });
 
-  it('in image view', () => {
+  it('should return target in image view', () => {
     expect(getPTZTarget(createView({ view: 'image' }))).toEqual({
-      targetID: IMAGE_VIEW_ZOOM_TARGET_SENTINEL,
+      targetID: IMAGE_VIEW_TARGET_ID_SENTINEL,
       type: 'digital',
     });
   });
 
   describe('in live view', () => {
-    it('without restriction with true PTZ capability', () => {
+    it('should return PTZ target without restriction with true PTZ capability', () => {
       const view = createView({
         view: 'live',
         camera: 'camera-1',
@@ -75,7 +76,7 @@ describe('getPTZTarget', () => {
       });
     });
 
-    it('without restriction without true PTZ capability', () => {
+    it('should return digital target without restriction without true PTZ capability', () => {
       const view = createView({
         view: 'live',
         camera: 'camera-1',
@@ -87,7 +88,7 @@ describe('getPTZTarget', () => {
       });
     });
 
-    it('with truePTZ restriction without true PTZ capability', () => {
+    it('should return null with truePTZ restriction without true PTZ capability', () => {
       const view = createView({
         view: 'live',
         camera: 'camera-1',
@@ -98,7 +99,7 @@ describe('getPTZTarget', () => {
       ).toBeNull();
     });
 
-    it('with digitalPTZ restriction with true PTZ capability', () => {
+    it('should return digital target with digitalPTZ restriction with true PTZ capability', () => {
       const view = createView({
         view: 'live',
         camera: 'camera-1',
@@ -121,7 +122,7 @@ describe('getPTZTarget', () => {
       });
     });
 
-    it('without cameraID', () => {
+    it('should return null without cameraID', () => {
       const view = createView({
         view: 'live',
         camera: null,
@@ -141,10 +142,22 @@ describe('getPTZTarget', () => {
       },
     );
   });
+
+  it('should return null for a view with a targetID that is not viewer, image, or live', () => {
+    // Force getViewTargetID to return a non-null value so that the early-return
+    // guard passes, then present a view that is none of viewer/image/live to
+    // exercise the final return null branch at the end of getPTZTarget.
+    vi.spyOn(targetId, 'getViewTargetID').mockReturnValue('some-target');
+    const view = createView({ view: 'timeline' });
+
+    expect(getPTZTarget(view)).toBeNull();
+
+    vi.restoreAllMocks();
+  });
 });
 
 describe('hasCameraTruePTZ', () => {
-  it('with true PTZ', () => {
+  it('should return true with true PTZ', () => {
     const store = createStore([
       {
         cameraID: 'camera-1',
@@ -155,12 +168,12 @@ describe('hasCameraTruePTZ', () => {
     expect(hasCameraTruePTZ(createCameraManager(store), 'camera-1')).toBeTruthy();
   });
 
-  it('without true PTZ', () => {
+  it('should return false without true PTZ', () => {
     expect(hasCameraTruePTZ(createCameraManager(createStore()), 'camera-1')).toBeFalsy();
   });
 });
 
-it('ptzActionToCapabilityKey', () => {
+it('should map ptzActionToCapabilityKey correctly', () => {
   expect(ptzActionToCapabilityKey('left')).toBe('left');
   expect(ptzActionToCapabilityKey('right')).toBe('right');
   expect(ptzActionToCapabilityKey('up')).toBe('up');

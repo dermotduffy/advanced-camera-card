@@ -27,7 +27,6 @@ import { MediaGalleryConfig } from '../../config/schema/media-gallery.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const.js';
 import { HomeAssistant } from '../../ha/types.js';
-import { localize } from '../../localize/localize.js';
 import galleryStyle from '../../scss/gallery.scss';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
@@ -36,8 +35,7 @@ import { UnifiedQueryBuilder } from '../../view/unified-query-builder.js';
 import { UnifiedQueryRunner } from '../../view/unified-query-runner.js';
 import { getReviewedQueryFilterFromQuery } from '../../view/utils/query-filter.js';
 import '../media-filter.js';
-import '../message.js';
-import { renderMessage } from '../message.js';
+import { renderNoMedia } from '../notification/no-media.js';
 import '../surround-basic.js';
 import '../thumbnail/thumbnail.js';
 import './gallery-core.js';
@@ -216,13 +214,10 @@ export class AdvancedCameraCardGallery extends LitElement {
             </advanced-camera-card-media-filter>`
           : ''}
         ${!hasItems
-          ? renderMessage({
-              type: 'info',
-              message: isLoading
-                ? localize('error.awaiting_media')
-                : localize('common.no_media'),
-              icon: 'mdi:multimedia',
-              dotdotdot: isLoading,
+          ? renderNoMedia({
+              cameraID: this.viewManagerEpoch?.manager.getView()?.camera ?? null,
+              cameraManager: this.cameraManager ?? null,
+              loading: isLoading,
             })
           : html`<advanced-camera-card-gallery-core
               .hass=${this.hass}

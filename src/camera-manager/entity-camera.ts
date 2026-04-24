@@ -1,7 +1,6 @@
 import { Entity, EntityRegistryManager } from '../ha/registry/entity/types';
-import { localize } from '../localize/localize';
 import { Camera, CameraInitializationOptions } from './camera';
-import { CameraInitializationError } from './error';
+import { CameraNoEntityError } from './error';
 import { getCameraEntityFromConfig } from './utils/camera-entity-from-config';
 
 export interface EntityCameraInitializationOptions extends CameraInitializationOptions {
@@ -19,7 +18,7 @@ export class EntityCamera extends Camera {
       : null;
 
     if (!entity || !cameraEntityID) {
-      throw new CameraInitializationError(localize('error.no_camera_entity'), config);
+      throw new CameraNoEntityError(config);
     }
     this._entity = entity;
     return await super.initialize(options);

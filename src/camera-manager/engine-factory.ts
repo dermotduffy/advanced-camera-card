@@ -5,10 +5,9 @@ import { DeviceRegistryManager } from '../ha/registry/device';
 import { EntityRegistryManager } from '../ha/registry/entity/types';
 import { ResolvedMediaCache } from '../ha/resolved-media';
 import { HomeAssistant } from '../ha/types';
-import { localize } from '../localize/localize';
 import { RecordingSegmentsCache } from './cache';
 import { CameraManagerEngine } from './engine';
-import { CameraInitializationError } from './error';
+import { CameraNoEntityError } from './error';
 import { CameraEventCallback, CameraManagerRequestCache, Engine } from './types';
 import { getCameraEntityFromConfig } from './utils/camera-entity-from-config';
 
@@ -117,10 +116,7 @@ export class CameraManagerEngineFactory {
             return Engine.Generic;
           }
           // Otherwise, it's probably a typo so throw an exception.
-          throw new CameraInitializationError(
-            localize('error.no_camera_entity'),
-            cameraConfig,
-          );
+          throw new CameraNoEntityError(cameraConfig);
         }
 
         switch (entity?.platform) {

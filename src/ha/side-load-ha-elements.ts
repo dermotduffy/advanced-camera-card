@@ -1,12 +1,19 @@
+import { localize } from '../localize/localize';
+import { AdvancedCameraCardError } from '../types';
 import { CardHelpers, LovelaceCardWithEditor } from '../types';
+
+class HomeAssistantElementsLoadError extends AdvancedCameraCardError {
+  constructor() {
+    super(localize('error.home_assistant_elements_load_failed'));
+  }
+}
 
 /**
  * Side loads the HA elements this card needs. This trickery is unfortunate
  * necessary, see:
  *  - https://github.com/thomasloven/hass-config/wiki/PreLoading-Lovelace-Elements
- * @returns `true` if the load is successful, `false` otherwise.
  */
-export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
+export const sideLoadHomeAssistantElements = async (): Promise<void> => {
   const neededElements = [
     'ha-button',
     'ha-camera-stream',
@@ -27,7 +34,7 @@ export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
   ];
 
   if (neededElements.every((element) => customElements.get(element))) {
-    return true;
+    return;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -49,12 +56,10 @@ export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
   await customElements.whenDefined('hui-picture-glance-card');
   const pgcConstructor = customElements.get('hui-picture-glance-card');
   if (!pgcConstructor) {
-    return false;
+    throw new HomeAssistantElementsLoadError();
   }
 
   const pgc = new pgcConstructor() as LovelaceCardWithEditor;
 
   await pgc.constructor.getConfigElement();
-
-  return true;
 };

@@ -1,0 +1,129 @@
+@use './z-index.scss' as *;
+@use './notification-common.scss';
+
+:host {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+
+  background: var(--advanced-camera-card-notification-block-background);
+  color: var(--advanced-camera-card-notification-block-color);
+
+  --notification-text-color: var(--advanced-camera-card-notification-block-color);
+  --notification-control-color: var(--advanced-camera-card-notification-block-color);
+
+  // Ensure error messages are selectable.
+  user-select: text;
+  // Safari only has prefixed support.
+  -webkit-user-select: text;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  max-width: min(92%, 500px);
+  max-height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  text-align: center;
+}
+
+.heading-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+
+  .detail.heading {
+    flex: 1;
+  }
+
+  .controls {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: var(--advanced-camera-card-button-border-radius);
+    background: color-mix(in srgb, var(--notification-control-color), transparent 92%);
+
+    // When there are no interactive controls (spinner-only case, e.g.
+    // Connection / Starting full-card notifications) drop the pill chrome so
+    // the spinner looks like a status indicator, not a clickable button.
+    &:not(:has(.control)) {
+      padding: 0;
+      background: none;
+    }
+  }
+}
+
+.metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  justify-content: center;
+}
+
+.detail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+
+  advanced-camera-card-icon {
+    flex-shrink: 0;
+    --mdc-icon-size: 20px;
+  }
+
+  &.heading {
+    font-weight: 600;
+    font-size: 16px;
+
+    advanced-camera-card-icon {
+      --mdc-icon-size: 28px;
+    }
+  }
+
+  &.body {
+    opacity: 0.85;
+
+    // Stretch to the column width (overriding the parent .content's flex
+    // align-items: center that otherwise shrink-wraps this div) and left-
+    // align so long error messages read naturally instead of wrapping
+    // awkwardly around a centered axis.
+    align-self: stretch;
+    text-align: left;
+
+    // When the spinner stands in for the body icon (no-heading in_progress
+    // case), size it to match the body icon (20px, set on .detail above) so
+    // the row reads as a single status line.
+    .spinner {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+.description {
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.85;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.context {
+  width: 100%;
+  text-align: left;
+
+  pre {
+    margin-top: 8px;
+  }
+}
