@@ -1,6 +1,6 @@
 # `media_viewer`
 
-The `media_player` section configures viewing all `clip`, `snapshot` or `recording` media, in either a media carousel or grid.
+The `media_viewer` section configures viewing all `clip`, `snapshot` or `recording` media, in either a media carousel or grid.
 
 ```yaml
 media_viewer:
