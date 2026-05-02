@@ -43,7 +43,7 @@ describe('should act correctly when view is set', () => {
 
     expect(manager.getView()).toBe(view);
     expect(manager.hasView()).toBeTruthy();
-    expect(api.getMediaLoadedInfoManager().clear).toBeCalled();
+    expect(api.getMediaLoadedInfoManager().setSelected).toBeCalledWith('camera');
     expect(api.getCardElementManager().scrollReset).toBeCalled();
     expect(api.getStyleManager().setExpandedMode).toBeCalled();
     expect(api.getConditionStateManager()?.setState).toBeCalledWith({
@@ -55,7 +55,7 @@ describe('should act correctly when view is set', () => {
     expect(api.getCardElementManager().update).toBeCalled();
   });
 
-  it('should set view with minor changes without media clearing or scroll', () => {
+  it('should set view with minor changes without scroll', () => {
     const view_1 = createView({
       view: 'live',
       camera: 'camera',
@@ -68,7 +68,6 @@ describe('should act correctly when view is set', () => {
 
     manager.setViewDefault();
 
-    vi.mocked(api.getMediaLoadedInfoManager().clear).mockClear();
     vi.mocked(api.getCardElementManager().scrollReset).mockClear();
 
     const view_2 = createView({
@@ -82,9 +81,7 @@ describe('should act correctly when view is set', () => {
 
     expect(manager.getView()).toBe(view_2);
 
-    // The new view is neither a major media change, nor a different view name,
-    // so media clearing and scrolling should not happen.
-    expect(api.getMediaLoadedInfoManager().clear).not.toBeCalled();
+    // Same view name, so scrolling should not happen.
     expect(api.getCardElementManager().scrollReset).not.toBeCalled();
   });
 });

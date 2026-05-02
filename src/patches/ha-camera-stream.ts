@@ -10,12 +10,18 @@
 // ====================================================================
 
 import { css, CSSResultGroup, html, nothing, PropertyValues, unsafeCSS } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
+import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import '../components/image-player.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
-import { MediaLoadedInfo, MediaPlayer, MediaPlayerController } from '../types.js';
-import { dispatchExistingMediaLoadedInfoAsEvent } from '../utils/media-info.js';
+import {
+  MediaLoadedInfo,
+  MediaLoadedInfoEventDetail,
+  MediaPlayer,
+  MediaPlayerController,
+} from '../types.js';
+import { onAbort } from '../utils/abort-signal.js';
 import './ha-hls-player.js';
 import './ha-web-rtc-player.js';
 
@@ -45,8 +51,21 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     @query('.player:not(.hidden)')
     protected _player: MediaPlayer;
 
+    @property({ attribute: false })
+    public targetID?: string;
+
+    // ha-camera-stream renders up to three inner players (MJPEG / HLS /
+    // WebRTC), only one visible. Inner leaves all fire `media:loaded`
+    // independently — we suppress those at this boundary (`stopPropagation` in
+    // `_captureInnerLoad`), cache the latest per type, and republish the
+    // visible one's info via our own source controller in `updated()`.
     private _mediaLoadedInfoPerStream: Record<StreamType, MediaLoadedInfo> = {};
-    private _mediaLoadedInfoDispatched: MediaLoadedInfo | null = null;
+    private _mediaLoadedInfoSourceController = new MediaLoadedInfoSourceController(
+      this,
+      {
+        getTargetID: () => this.targetID ?? null,
+      },
+    );
 
     // ========================================================================================
     // Minor modifications from:
@@ -58,16 +77,20 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       return (await this._player?.getMediaPlayerController()) ?? null;
     }
 
-    private _storeMediaLoadedInfoHandler(
+    private _captureInnerLoad(
       stream: StreamType,
-      ev: CustomEvent<MediaLoadedInfo>,
+      ev: CustomEvent<MediaLoadedInfoEventDetail>,
     ) {
-      this._storeMediaLoadedInfo(stream, ev.detail);
+      // Stop the inner-leaf event at the aggregator boundary; the visible
+      // stream's info is republished via this aggregator's own source
+      // controller in updated().
       ev.stopPropagation();
-    }
-
-    private _storeMediaLoadedInfo(stream: StreamType, mediaLoadedInfo: MediaLoadedInfo) {
-      this._mediaLoadedInfoPerStream[stream] = mediaLoadedInfo;
+      this._mediaLoadedInfoPerStream[stream] = ev.detail.info;
+      onAbort(ev.detail.signal, () => {
+        if (this._mediaLoadedInfoPerStream[stream] === ev.detail.info) {
+          delete this._mediaLoadedInfoPerStream[stream];
+        }
+      });
       this.requestUpdate();
     }
 
@@ -78,10 +101,10 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       if (stream.type === STREAM_TYPE_MJPEG) {
         return html`
           <advanced-camera-card-image-player
-            @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
-              this._storeMediaLoadedInfo(STREAM_TYPE_MJPEG, ev.detail);
-              ev.stopPropagation();
-            }}
+            .targetID=${this.targetID}
+            @advanced-camera-card:media:loaded=${(
+              ev: CustomEvent<MediaLoadedInfoEventDetail>,
+            ) => this._captureInnerLoad(STREAM_TYPE_MJPEG, ev)}
             src=${typeof this._connected == 'undefined' || this._connected
               ? computeMJPEGStreamUrl(this.stateObj)
               : this._posterUrl || ''}
@@ -101,10 +124,10 @@ customElements.whenDefined('ha-camera-stream').then(() => {
           .hass=${this.hass}
           .entityid=${this.stateObj.entity_id}
           .posterUrl=${this._posterUrl}
-          @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
-            this._storeMediaLoadedInfoHandler(STREAM_TYPE_HLS, ev);
-            ev.stopPropagation();
-          }}
+          .targetID=${this.targetID}
+          @advanced-camera-card:media:loaded=${(
+            ev: CustomEvent<MediaLoadedInfoEventDetail>,
+          ) => this._captureInnerLoad(STREAM_TYPE_HLS, ev)}
           @streams=${this._handleHlsStreams}
           class="player ${stream.visible ? '' : 'hidden'}"
         ></advanced-camera-card-ha-hls-player>`;
@@ -119,10 +142,10 @@ customElements.whenDefined('ha-camera-stream').then(() => {
           .hass=${this.hass}
           .entityid=${this.stateObj.entity_id}
           .posterUrl=${this._posterUrl}
-          @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
-            this._storeMediaLoadedInfoHandler(STREAM_TYPE_WEB_RTC, ev);
-            ev.stopPropagation();
-          }}
+          .targetID=${this.targetID}
+          @advanced-camera-card:media:loaded=${(
+            ev: CustomEvent<MediaLoadedInfoEventDetail>,
+          ) => this._captureInnerLoad(STREAM_TYPE_WEB_RTC, ev)}
           @streams=${this._handleWebRtcStreams}
           class="player ${stream.visible ? '' : 'hidden'}"
         ></advanced-camera-card-ha-web-rtc-player>`;
@@ -141,13 +164,13 @@ customElements.whenDefined('ha-camera-stream').then(() => {
         this.muted,
       );
 
+      // Republish the visible stream's cached info as our own.
       const visibleStream = streams.find((stream) => stream.visible) ?? null;
-      if (visibleStream) {
-        const mediaLoadedInfo = this._mediaLoadedInfoPerStream[visibleStream.type];
-        if (mediaLoadedInfo && mediaLoadedInfo !== this._mediaLoadedInfoDispatched) {
-          this._mediaLoadedInfoDispatched = mediaLoadedInfo;
-          dispatchExistingMediaLoadedInfoAsEvent(this, mediaLoadedInfo);
-        }
+      const mediaLoadedInfo = visibleStream
+        ? this._mediaLoadedInfoPerStream[visibleStream.type]
+        : null;
+      if (mediaLoadedInfo) {
+        this._mediaLoadedInfoSourceController.set(mediaLoadedInfo);
       }
     }
 

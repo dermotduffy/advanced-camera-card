@@ -344,9 +344,9 @@ export class ViewManager implements ViewManagerInterface {
     this._view = view;
     this._epoch = this._createEpoch(oldView);
 
-    if (this.hasMajorMediaChange(oldView)) {
-      this._api.getMediaLoadedInfoManager().clear();
-    }
+    this._api
+      .getMediaLoadedInfoManager()
+      .setSelected(view ? getViewTargetID(view) : null);
 
     if (oldView?.view !== view?.view) {
       this._api.getCardElementManager().scrollReset();

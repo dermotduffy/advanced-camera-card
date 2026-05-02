@@ -127,6 +127,7 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
             .view=${view}
             .imageConfig=${this.imageConfig}
             .cameraConfig=${this.cameraConfig}
+            .targetID=${IMAGE_VIEW_TARGET_ID_SENTINEL}
             .proxyConfig=${this._resolveProxyConfig(this.imageConfig?.proxy) ??
             undefined}
           >

@@ -1,7 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
-import { CameraConfig } from '../../../config/schema/cameras';
+import { Camera } from '../../../camera-manager/camera.js';
 import { HomeAssistant } from '../../../ha/types';
 import '../../../patches/ha-camera-stream';
 import '../../../patches/ha-hls-player.js';
@@ -19,7 +19,11 @@ export class AdvancedCameraCardLiveHA extends LitElement implements MediaPlayer 
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public cameraConfig?: CameraConfig;
+  public camera?: Camera;
+
+  // The BASE camera ID (camera property may be a substream)
+  @property({ attribute: false })
+  public targetID?: string;
 
   @property({ attribute: true, type: Boolean })
   public controls = false;
@@ -36,14 +40,14 @@ export class AdvancedCameraCardLiveHA extends LitElement implements MediaPlayer 
       return;
     }
 
+    const cameraEntity = this.camera?.getConfig()?.camera_entity;
     return html` <advanced-camera-card-ha-camera-stream
       ${ref(this._playerRef)}
       .hass=${this.hass}
-      .stateObj=${this.cameraConfig?.camera_entity
-        ? this.hass.states[this.cameraConfig.camera_entity]
-        : undefined}
+      .stateObj=${cameraEntity ? this.hass.states[cameraEntity] : undefined}
       .controls=${this.controls}
       .muted=${true}
+      .targetID=${this.targetID}
     >
     </advanced-camera-card-ha-camera-stream>`;
   }

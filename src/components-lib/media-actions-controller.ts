@@ -6,7 +6,6 @@ import {
   AutoUnmuteCondition,
 } from '../config/schema/common/media-actions.js';
 import { MediaPlayerElement } from '../types.js';
-import { AdvancedCameraCardMediaLoadedEventTarget } from '../utils/media-info.js';
 import { Timer } from '../utils/timer.js';
 
 export interface MediaActionsControllerOptions {
@@ -21,7 +20,7 @@ export interface MediaActionsControllerOptions {
   microphoneMuteSeconds?: number;
 }
 
-type RenderRoot = HTMLElement & AdvancedCameraCardMediaLoadedEventTarget;
+type RenderRoot = HTMLElement;
 
 /**
  * General note: Always unmute before playing, since Chrome may pause a piece of

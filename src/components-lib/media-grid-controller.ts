@@ -1,7 +1,6 @@
 import { isEqual, throttle } from 'lodash-es';
 import Masonry from 'masonry-layout';
 import { ViewDisplayConfig } from '../config/schema/common/display';
-import { MediaLoadedInfo } from '../types';
 import {
   forceReflow,
   getChildrenFromElement,
@@ -9,11 +8,6 @@ import {
   setOrRemoveStyleProperty,
 } from '../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
-import {
-  AdvancedCameraCardMediaLoadedEventTarget,
-  dispatchExistingMediaLoadedInfoAsEvent,
-  dispatchMediaUnloadedEvent,
-} from '../utils/media-info';
 
 // The default minimum cell width: if the columns are not specified this value
 // is used to compute the number of columns, always trying to keep each cell as
@@ -25,7 +19,7 @@ const MEDIA_GRID_DEFAULT_SELECTED_WIDTH_FACTOR = 2.0;
 const MEDIA_GRID_HORIZONTAL_GUTTER_WIDTH = 1;
 
 type GridID = string;
-type MediaGridChild = HTMLElement & AdvancedCameraCardMediaLoadedEventTarget;
+type MediaGridChild = HTMLElement;
 type MediaGridContents = Map<GridID, MediaGridChild>;
 
 export interface MediaGridSelected {
@@ -51,7 +45,6 @@ export class MediaGridController {
   private _host: HTMLElement;
 
   private _selected: GridID | null;
-  private _mediaLoadedInfoMap: Map<GridID, MediaLoadedInfo> = new Map();
   private _gridContents: MediaGridContents = new Map();
   private _masonry: ExtendedMasonry | null = null;
   private _displayConfig: ViewDisplayConfig | null = null;
@@ -111,7 +104,6 @@ export class MediaGridController {
       this._host.removeEventListener('slotchange', this._calculateGridContentsFromHost);
     }
 
-    this._mediaLoadedInfoMap.clear();
     this._masonry?.destroy?.();
     this._masonry = null;
 
@@ -176,11 +168,6 @@ export class MediaGridController {
     this._selected = id;
     fireAdvancedCameraCardEvent(this._host, 'media-grid:selected', { selected: id });
 
-    const mediaLoadedInfo = this._mediaLoadedInfoMap.get(id);
-    if (mediaLoadedInfo) {
-      dispatchExistingMediaLoadedInfoAsEvent(this._host, mediaLoadedInfo);
-    }
-
     this._sortItemsInGrid();
     this._updateSelectedStylesOnElements();
 
@@ -189,7 +176,6 @@ export class MediaGridController {
 
   public unselectAll() {
     if (this._selected !== null) {
-      dispatchMediaUnloadedEvent(this._host);
       fireAdvancedCameraCardEvent(this._host, 'media-grid:unselected');
     }
     this._selected = null;
@@ -223,14 +209,6 @@ export class MediaGridController {
   private _setGridContents(gridContents: MediaGridContents): void {
     this._gridContents = gridContents;
 
-    // Remove media loaded info objects that belong to objects no longer in the
-    // grid.
-    for (const key of this._mediaLoadedInfoMap.keys()) {
-      if (!gridContents.has(key)) {
-        this._mediaLoadedInfoMap.delete(key);
-      }
-    }
-
     if (this._selected !== null && !this._gridContents.has(this._selected)) {
       this.unselectAll();
     }
@@ -260,21 +238,6 @@ export class MediaGridController {
     this._setColumnSizeStyles();
   }
 
-  private _handleMediaLoadedInfoEvent = (ev: CustomEvent<MediaLoadedInfo>): void => {
-    const eventPath = ev.composedPath();
-
-    for (const [id, element] of this._gridContents.entries()) {
-      /* istanbul ignore else: the else path cannot be reached -- @preserve */
-      if (eventPath.includes(element)) {
-        this._mediaLoadedInfoMap.set(id, ev.detail);
-        if (id !== this._selected) {
-          ev.stopPropagation();
-        }
-        break;
-      }
-    }
-  };
-
   private _hostResizeHandler(): void {
     const dimensions = this._host.getBoundingClientRect();
 
@@ -303,22 +266,12 @@ export class MediaGridController {
     child.addEventListener('click', this._handleSelectGridCellEvent, {
       capture: true,
     });
-
-    child.addEventListener(
-      'advanced-camera-card:media:loaded',
-      this._handleMediaLoadedInfoEvent,
-    );
   }
 
   private _removeChildEventListeners(child: MediaGridChild): void {
     child.removeEventListener('click', this._handleSelectGridCellEvent, {
       capture: true,
     });
-
-    child.removeEventListener(
-      'advanced-camera-card:media:loaded',
-      this._handleMediaLoadedInfoEvent,
-    );
   }
 
   private _createMasonry(): void {

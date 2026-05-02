@@ -10,10 +10,10 @@ import {
 import { customElement, property, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import { isEqual } from 'lodash-es';
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
 import { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
+import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { UpdatingImageMediaPlayerController } from '../components-lib/media-player/updating-image.js';
 import { dataToContext } from '../components-lib/notification/data-to-context.js';
 import { SignedURLController } from '../components-lib/signed-url-controller.js';
@@ -27,16 +27,14 @@ import { HomeAssistant } from '../ha/types.js';
 import defaultImage from '../images/iris-screensaver.jpg';
 import { localize } from '../localize/localize.js';
 import imageUpdatingPlayerStyle from '../scss/image-updating-player.scss';
-import { MediaLoadedInfo, MediaPlayer, MediaPlayerController } from '../types.js';
+import { MediaPlayer, MediaPlayerController } from '../types.js';
 import { contentsChanged } from '../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 import {
   createMediaLoadedInfo,
-  dispatchExistingMediaLoadedInfoAsEvent,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
 } from '../utils/media-info.js';
-import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../view/target-id.js';
 import { View } from '../view/view.js';
 import { renderNotificationBlock } from './notification/block.js';
 
@@ -89,6 +87,9 @@ export class AdvancedCameraCardImageUpdatingPlayer
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
+
+  @property({ attribute: false })
+  public targetID?: string;
 
   @property({ attribute: false, hasChanged: contentsChanged })
   public proxyConfig?: EnabledProxyConfig;
@@ -143,13 +144,15 @@ export class AdvancedCameraCardImageUpdatingPlayer
 
   private _boundVisibilityHandler = this._visibilityHandler.bind(this);
 
-  private _mediaLoadedInfo: MediaLoadedInfo | null = null;
-
   private _mediaPlayerController = new UpdatingImageMediaPlayerController(
     this,
     () => this._refImage.value ?? null,
     () => this._cachedValueController,
   );
+
+  private _mediaLoadedInfoSourceController = new MediaLoadedInfoSourceController(this, {
+    getTargetID: () => this.targetID ?? null,
+  });
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     return this._mediaPlayerController;
@@ -452,11 +455,8 @@ export class AdvancedCameraCardImageUpdatingPlayer
                   supportsPause: !!this._getEffectiveRefreshSeconds(),
                 },
               });
-              // Avoid the media being reported as repeatedly loading unless the
-              // media info changes.
-              if (mediaLoadedInfo && !isEqual(this._mediaLoadedInfo, mediaLoadedInfo)) {
-                this._mediaLoadedInfo = mediaLoadedInfo;
-                dispatchExistingMediaLoadedInfoAsEvent(this, mediaLoadedInfo);
+              if (mediaLoadedInfo) {
+                this._mediaLoadedInfoSourceController.set(mediaLoadedInfo);
               }
             }}
             @error=${() => {
@@ -469,10 +469,16 @@ export class AdvancedCameraCardImageUpdatingPlayer
               } else if (mode === 'url') {
                 this._imageLoadError = true;
               }
-              fireAdvancedCameraCardEvent<IssueTriggerEventData>(this, 'issue:trigger', {
-                key: 'media_load',
-                targetID: IMAGE_VIEW_TARGET_ID_SENTINEL,
-              });
+              if (this.targetID) {
+                fireAdvancedCameraCardEvent<IssueTriggerEventData>(
+                  this,
+                  'issue:trigger',
+                  {
+                    key: 'media_load',
+                    targetID: this.targetID,
+                  },
+                );
+              }
             }}
           />
         `

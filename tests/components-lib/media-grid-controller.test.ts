@@ -6,8 +6,6 @@ import {
   MediaGridConstructorOptions,
   MediaGridController,
 } from '../../src/components-lib/media-grid-controller';
-import { MediaLoadedInfo } from '../../src/types';
-import { dispatchExistingMediaLoadedInfoAsEvent } from '../../src/utils/media-info';
 import {
   MutationObserverMock,
   ResizeObserverMock,
@@ -82,11 +80,6 @@ const triggerResizeObserver = (hostOrCell: 'cell' | 'host'): void => {
 
 // @vitest-environment jsdom
 describe('MediaGridController', () => {
-  const mediaLoadedInfo: MediaLoadedInfo = {
-    width: 10,
-    height: 20,
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('MutationObserver', MutationObserverMock);
@@ -175,59 +168,6 @@ describe('MediaGridController', () => {
     expect(controller.getSelected()).toBe('0');
   });
 
-  it('should dispatch media loaded info on selection', () => {
-    const children = createChildren();
-    const slot = createSlot();
-    const host = createSlotHost({ slot: slot, children: children });
-    const controller = createController(slot);
-
-    const mediaLoadedInfoHandler = vi.fn();
-    host.addEventListener('advanced-camera-card:media:loaded', mediaLoadedInfoHandler);
-    dispatchExistingMediaLoadedInfoAsEvent(children[0], mediaLoadedInfo);
-
-    controller.selectCell('0');
-    expect(mediaLoadedInfoHandler).toBeCalledWith(
-      expect.objectContaining({
-        detail: mediaLoadedInfo,
-      }),
-    );
-  });
-
-  it('should dispatch media loaded info when cell is selected', () => {
-    const children = createChildren();
-    const slot = createSlot();
-    const host = createSlotHost({ slot: slot, children: children });
-    const controller = createController(slot);
-
-    controller.selectCell('0');
-
-    const mediaLoadedInfoHandler = vi.fn();
-    host.addEventListener('advanced-camera-card:media:loaded', mediaLoadedInfoHandler);
-    dispatchExistingMediaLoadedInfoAsEvent(children[0], mediaLoadedInfo);
-
-    expect(mediaLoadedInfoHandler).toBeCalledWith(
-      expect.objectContaining({
-        detail: mediaLoadedInfo,
-      }),
-    );
-  });
-
-  it('should not dispatch media loaded info when cell is not selected', () => {
-    const children = createChildren();
-    const slot = createSlot();
-    const host = createSlotHost({ slot: slot, children: children });
-    const controller = createController(host);
-
-    controller.selectCell('1');
-
-    const mediaLoadedInfoHandler = vi.fn();
-    host.addEventListener('advanced-camera-card:media:loaded', mediaLoadedInfoHandler);
-    dispatchExistingMediaLoadedInfoAsEvent(children[0], mediaLoadedInfo);
-
-    // Another element is selected, so the event should not have propagated.
-    expect(mediaLoadedInfoHandler).not.toBeCalled();
-  });
-
   it('should unselect', () => {
     const children = createChildren();
     const slot = createSlot();
@@ -235,12 +175,10 @@ describe('MediaGridController', () => {
     const controller = createController(host);
 
     const unselectedHandler = vi.fn();
-    const unloadMediaHandler = vi.fn();
     host.addEventListener(
       'advanced-camera-card:media-grid:unselected',
       unselectedHandler,
     );
-    host.addEventListener('advanced-camera-card:media:unloaded', unloadMediaHandler);
 
     controller.selectCell('0');
     expect(controller.getSelected()).toBe('0');
@@ -257,15 +195,13 @@ describe('MediaGridController', () => {
       expect(child.getAttribute('unselected')).toEqual('');
     }
 
-    // Expect handlers to have been called.
+    // The grid signals its own state change via media-grid:unselected.
     expect(unselectedHandler).toBeCalledTimes(1);
-    expect(unloadMediaHandler).toBeCalledTimes(1);
 
     // Unselecting a second time should do nothing.
     controller.unselectAll();
 
     expect(unselectedHandler).toBeCalledTimes(1);
-    expect(unloadMediaHandler).toBeCalledTimes(1);
   });
 
   it('should select in constructor', () => {
@@ -315,7 +251,6 @@ describe('MediaGridController', () => {
     const children = createChildren();
     const parent = createParent({ children: children });
     const controller = createController(parent, { selected: '1' });
-    dispatchExistingMediaLoadedInfoAsEvent(children[0], mediaLoadedInfo);
 
     expect(controller.getSelected()).toBe('1');
     expect(controller.getGridSize()).toBe(3);

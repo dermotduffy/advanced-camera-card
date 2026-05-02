@@ -10,9 +10,10 @@
 // ====================================================================
 
 import { css, CSSResultGroup, html, TemplateResult, unsafeCSS } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
+import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../components-lib/media-player/video.js';
 import { renderNotificationBlockFromText } from '../components/notification/block.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
@@ -24,7 +25,7 @@ import {
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
 } from '../utils/controls.js';
 import {
-  dispatchMediaLoadedEvent,
+  createMediaLoadedInfo,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
@@ -42,10 +43,20 @@ customElements.whenDefined('ha-hls-player').then(() => {
     @query('#video')
     protected _video: HTMLVideoElement;
 
+    @property({ attribute: false })
+    public targetID?: string;
+
     private _mediaPlayerController = new VideoMediaPlayerController(
       this,
       () => this._video,
       () => this.controls,
+    );
+
+    private _mediaLoadedInfoSourceController = new MediaLoadedInfoSourceController(
+      this,
+      {
+        getTargetID: () => this.targetID ?? null,
+      },
     );
 
     public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
@@ -93,7 +104,7 @@ customElements.whenDefined('ha-hls-player').then(() => {
 
     private _loadedDataHandler(ev: Event) {
       super._loadedData();
-      dispatchMediaLoadedEvent(this, ev, {
+      const info = createMediaLoadedInfo(ev, {
         mediaPlayerController: this._mediaPlayerController,
         capabilities: {
           supportsPause: true,
@@ -101,6 +112,9 @@ customElements.whenDefined('ha-hls-player').then(() => {
         },
         technology: ['hls'],
       });
+      if (info) {
+        this._mediaLoadedInfoSourceController.set(info);
+      }
     }
 
     static get styles(): CSSResultGroup {

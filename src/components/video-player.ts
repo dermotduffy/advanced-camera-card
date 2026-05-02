@@ -2,6 +2,7 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../components-lib/media-player/video';
 import videoPlayerStyle from '../scss/video-player.scss';
 import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../types';
@@ -11,7 +12,7 @@ import {
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
 } from '../utils/controls';
 import {
-  dispatchMediaLoadedEvent,
+  createMediaLoadedInfo,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
@@ -22,6 +23,9 @@ export class AdvancedCameraCardVideoPlayer extends LitElement implements MediaPl
   @property()
   public url?: string;
 
+  @property()
+  public targetID?: string;
+
   @property({ type: Boolean })
   public controls = false;
 
@@ -31,6 +35,10 @@ export class AdvancedCameraCardVideoPlayer extends LitElement implements MediaPl
     () => this._refVideo.value ?? null,
     () => this.controls,
   );
+
+  private _mediaLoadedInfoSourceController = new MediaLoadedInfoSourceController(this, {
+    getTargetID: () => this.targetID ?? null,
+  });
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     return this._mediaPlayerController;
@@ -54,7 +62,7 @@ export class AdvancedCameraCardVideoPlayer extends LitElement implements MediaPl
           }
         }}
         @loadeddata="${(ev: Event) => {
-          dispatchMediaLoadedEvent(this, ev, {
+          const info = createMediaLoadedInfo(ev, {
             ...(this._mediaPlayerController && {
               mediaPlayerController: this._mediaPlayerController,
             }),
@@ -64,6 +72,9 @@ export class AdvancedCameraCardVideoPlayer extends LitElement implements MediaPl
             },
             technology: ['mp4'],
           });
+          if (info) {
+            this._mediaLoadedInfoSourceController.set(info);
+          }
         }}"
         @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
         @play=${() => dispatchMediaPlayEvent(this)}

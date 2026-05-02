@@ -251,6 +251,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
 
     // Note: crossorigin="anonymous" is required on <video> below in order to
     // allow screenshot of motionEye videos which currently go cross-origin.
+    const mediaID = this.media.getID() ?? undefined;
     return this._renderContainer(html`
       ${ViewItemClassifier.isVideo(this.media)
         ? this.media.getVideoContentType() === VideoContentType.HLS
@@ -265,6 +266,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
               title="${this.media.getTitle() ?? ''}"
               url=${url}
               .hass=${this.hass}
+              .targetID=${mediaID}
               ?controls=${this.viewerConfig.controls.builtin}
             >
             </advanced-camera-card-ha-hls-player>`
@@ -274,6 +276,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
                 url=${url}
                 aria-label="${this.media.getTitle() ?? ''}"
                 title="${this.media.getTitle() ?? ''}"
+                .targetID=${mediaID}
                 ?controls=${this.viewerConfig.controls.builtin}
               >
               </advanced-camera-card-video-player>
@@ -283,6 +286,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
             url="${url}"
             aria-label="${this.media.getTitle() ?? ''}"
             title="${this.media.getTitle() ?? ''}"
+            .targetID=${mediaID}
             @click=${() => {
               if (this.viewerConfig?.snapshot_click_plays_clip) {
                 this._switchToRelatedClipView();
