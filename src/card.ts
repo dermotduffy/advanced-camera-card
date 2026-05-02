@@ -33,7 +33,7 @@ import { REPO_URL } from './const.js';
 import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
-import { MediaLoadedInfo } from './types.js';
+import { MediaLoadedInfoEventDetail } from './types.js';
 import { hasAction } from './utils/action.js';
 import { getReleaseVersion } from './utils/diagnostics';
 
@@ -375,17 +375,15 @@ class AdvancedCameraCard extends LitElement {
             hasDoubleClick: hasAction(actions.double_tap_action),
           })}
           style="${styleMap(this._controller.getStyleManager().getAspectRatioStyle())}"
-          @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
-            this._controller.getMediaLoadedInfoManager().set(ev.detail);
-          }}
-          @advanced-camera-card:media:unloaded=${() =>
-            this._controller.getMediaLoadedInfoManager().clear()}
           @advanced-camera-card:issue:notify=${(ev: CustomEvent<IssueKey>) =>
             this._controller.getIssueManager().showNotification(ev.detail)}
           @advanced-camera-card:issue:trigger=${({
             detail: { key, ...context },
           }: CustomEvent<IssueTriggerEventData>) =>
             this._controller.getIssueManager().trigger(key, context)}
+          @advanced-camera-card:media:loaded=${(
+            ev: CustomEvent<MediaLoadedInfoEventDetail>,
+          ) => this._controller.getMediaLoadedInfoManager().handleLoadEvent(ev)}
           @advanced-camera-card:media:volumechange=${
             () => this.requestUpdate() /* Refresh mute menu button */
           }

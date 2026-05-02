@@ -9,12 +9,12 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
-import { CameraEndpoints } from '../../../camera-manager/types.js';
+import { Camera } from '../../../camera-manager/camera.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
+import { MediaLoadedInfoSourceController } from '../../../components-lib/media-loaded-info-source-controller.js';
 import { JSMPEGMediaPlayerController } from '../../../components-lib/media-player/jsmpeg.js';
 import { createNotificationFromText } from '../../../components-lib/notification/factory.js';
 import { Notification } from '../../../config/schema/actions/types.js';
-import { CameraConfig } from '../../../config/schema/cameras.js';
 import { CardWideConfig } from '../../../config/schema/types.js';
 import { homeAssistantGetSignedURLIfNecessary } from '../../../ha/sign-path.js';
 import { HomeAssistant } from '../../../ha/types.js';
@@ -23,7 +23,7 @@ import liveJSMPEGStyle from '../../../scss/live-jsmpeg.scss';
 import { MediaPlayer, MediaPlayerController } from '../../../types.js';
 import { convertHTTPAdressToWebsocket, errorToConsole } from '../../../utils/basic.js';
 import {
-  dispatchMediaLoadedEvent,
+  createMediaLoadedInfo,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
 } from '../../../utils/media-info.js';
@@ -44,10 +44,11 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
   private hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public cameraConfig?: CameraConfig;
+  public camera?: Camera;
 
+  // The BASE camera ID (camera property may be a substream)
   @property({ attribute: false })
-  public cameraEndpoints?: CameraEndpoints;
+  public targetID?: string;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -65,14 +66,16 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     () => this._jsmpegCanvasElement ?? null,
   );
 
+  private _mediaLoadedInfoSourceController = new MediaLoadedInfoSourceController(this, {
+    getTargetID: () => this.targetID ?? null,
+  });
+
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     return this._mediaPlayerController;
   }
 
   protected willUpdate(changedProperties: PropertyValues): void {
-    if (
-      ['cameraConfig', 'cameraEndpoints'].some((prop) => changedProperties.has(prop))
-    ) {
+    if (changedProperties.has('camera')) {
       this._notification = null;
     }
   }
@@ -99,7 +102,7 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
           preserveDrawingBuffer: true,
 
           // Override with user-specified options.
-          ...this.cameraConfig?.jsmpeg?.options,
+          ...this.camera?.getConfig()?.jsmpeg?.options,
 
           // Don't allow the player to internally reconnect, as it may re-use a
           // URL with a (newly) invalid signature, e.g. during a Home Assistant
@@ -120,17 +123,20 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
       );
     });
 
-    // The media loaded event must be dispatched after the player is assigned to
-    // `this._jsmpegVideoPlayer`, since the load call may (will!) result in
-    // calls back to the player to check for pause status for menu buttons.
+    // The media-loaded info must be reported after the player is assigned to
+    // `this._jsmpegVideoPlayer`, since the registration may result in calls
+    // back to the player to check for pause status for menu buttons.
     if (this._jsmpegCanvasElement) {
-      dispatchMediaLoadedEvent(this, this._jsmpegCanvasElement, {
+      const info = createMediaLoadedInfo(this._jsmpegCanvasElement, {
         mediaPlayerController: this._mediaPlayerController,
         capabilities: {
           supportsPause: true,
         },
         technology: ['jsmpeg'],
       });
+      if (info) {
+        this._mediaLoadedInfoSourceController.set(info);
+      }
     }
   }
 
@@ -175,11 +181,11 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     this._jsmpegCanvasElement = document.createElement('canvas');
     this._jsmpegCanvasElement.className = 'media';
 
-    const endpoint = this.cameraEndpoints?.jsmpeg;
+    const endpoint = this.camera?.getEndpoints()?.jsmpeg;
     if (!endpoint) {
       this._notification = createNotificationFromText(
         localize('error.live_camera_no_endpoint'),
-        { context: this.cameraConfig },
+        { context: this.camera?.getConfig() },
       );
       dispatchLiveErrorEvent(this);
       return;
@@ -199,7 +205,7 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
 
     if (!address) {
       this._notification = createNotificationFromText(localize('error.failed_sign'), {
-        context: this.cameraConfig,
+        context: this.camera?.getConfig(),
       });
       dispatchLiveErrorEvent(this);
       return;
@@ -224,7 +230,7 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
         if (!this._notification) {
           this._notification = createNotificationFromText(
             localize('error.jsmpeg_no_player'),
-            { context: this.cameraConfig },
+            { context: this.camera?.getConfig() },
           );
           dispatchLiveErrorEvent(this);
         }

@@ -5,6 +5,7 @@ import { MediaLoadedInfo } from '../../src/types';
 import {
   callResizeHandler,
   createLitElement,
+  createMediaLoadedInfoEvent,
   getResizeObserver,
   ResizeObserverMock,
 } from '../test-utils';
@@ -676,9 +677,7 @@ describe('MediaDimensionsContainerController', () => {
         height: 160,
       };
       innerContainer.dispatchEvent(
-        new CustomEvent<MediaLoadedInfo>('advanced-camera-card:media:loaded', {
-          detail: mediaLoadedInfo,
-        }),
+        createMediaLoadedInfoEvent({ info: mediaLoadedInfo }),
       );
 
       expect(host.hasAttribute('rotated')).toBeTruthy();
@@ -713,18 +712,14 @@ describe('MediaDimensionsContainerController', () => {
         height: 160,
       };
       innerContainer.dispatchEvent(
-        new CustomEvent<MediaLoadedInfo>('advanced-camera-card:media:loaded', {
-          detail: mediaLoadedInfo,
-        }),
+        createMediaLoadedInfoEvent({ info: mediaLoadedInfo }),
       );
 
       expect(host.hasAttribute('rotated')).toBeTruthy();
       host.removeAttribute('rotated');
 
       innerContainer.dispatchEvent(
-        new CustomEvent<MediaLoadedInfo>('advanced-camera-card:media:loaded', {
-          detail: mediaLoadedInfo,
-        }),
+        createMediaLoadedInfoEvent({ info: mediaLoadedInfo }),
       );
 
       expect(host.hasAttribute('rotated')).toBeFalsy();

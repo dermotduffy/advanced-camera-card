@@ -1,24 +1,7 @@
 import { EmblaCarouselType, EmblaEventType } from 'embla-carousel';
 import { EngineType } from 'embla-carousel/components/Engine';
-import { LooseOptionsType } from 'embla-carousel/components/Options';
-import { OptionsHandlerType } from 'embla-carousel/components/OptionsHandler';
-import { merge } from 'lodash-es';
 import { vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-
-export const createTestEmblaOptionHandler = (): OptionsHandlerType => ({
-  mergeOptions: <TypeA extends LooseOptionsType, TypeB extends LooseOptionsType>(
-    optionsA: TypeA,
-    optionsB?: TypeB,
-  ): TypeA => {
-    return merge({}, optionsA, optionsB);
-  },
-  optionsAtMedia: <Type extends LooseOptionsType>(options: Type): Type => {
-    return options;
-  },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  optionsMediaQueries: (_optionsList: LooseOptionsType[]): MediaQueryList[] => [],
-});
 
 export const callEmblaHandler = (
   emblaApi: EmblaCarouselType | null,

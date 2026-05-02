@@ -10,9 +10,10 @@
 // ====================================================================
 
 import { css, CSSResultGroup, html, TemplateResult, unsafeCSS } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
+import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../components-lib/media-player/video.js';
 import { renderNotificationBlockFromText } from '../components/notification/block.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
@@ -27,7 +28,7 @@ import {
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
 } from '../utils/controls.js';
 import {
-  dispatchMediaLoadedEvent,
+  createMediaLoadedInfo,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
@@ -42,10 +43,20 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
   @customElement('advanced-camera-card-ha-web-rtc-player')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   class AdvancedCameraCardHaWebRtcPlayer extends HaWebRtcPlayer implements MediaPlayer {
+    @property({ attribute: false })
+    public targetID?: string;
+
     private _mediaPlayerController = new VideoMediaPlayerController(
       this,
       () => this._videoEl,
       () => this.controls,
+    );
+
+    private _mediaLoadedInfoSourceController = new MediaLoadedInfoSourceController(
+      this,
+      {
+        getTargetID: () => this.targetID ?? null,
+      },
     );
 
     protected _audioTracksMuteStateCleanup: AudioTracksMuteStateCleanup = null;
@@ -130,7 +141,7 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
 
     private _loadedDataHandler(ev: Event) {
       super._loadedData();
-      dispatchMediaLoadedEvent(this, ev, {
+      const info = createMediaLoadedInfo(ev, {
         mediaPlayerController: this._mediaPlayerController,
         capabilities: {
           supportsPause: true,
@@ -138,13 +149,17 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
         },
         technology: ['webrtc'],
       });
+      if (info) {
+        this._mediaLoadedInfoSourceController.set(info);
+      }
 
-      // Listen for audio track mute/unmute changes and re-dispatch
+      // Re-report on audio track mute/unmute changes so the parent's
+      // capabilities reflect the current state.
       this._audioTracksMuteStateCleanup?.();
       this._audioTracksMuteStateCleanup = addAudioTracksMuteStateListener(
         this._peerConnection,
         () => {
-          dispatchMediaLoadedEvent(this, this._videoEl, {
+          const info = createMediaLoadedInfo(this._videoEl, {
             mediaPlayerController: this._mediaPlayerController,
             capabilities: {
               supportsPause: true,
@@ -152,6 +167,9 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
             },
             technology: ['webrtc'],
           });
+          if (info) {
+            this._mediaLoadedInfoSourceController.set(info);
+          }
         },
       );
     }

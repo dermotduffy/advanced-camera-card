@@ -1,8 +1,9 @@
 import { CameraManager } from '../camera-manager/manager';
 import { PTZAction } from '../config/schema/actions/custom/ptz';
 import { PTZCapabilities } from '../types';
-import { View } from '../view/view';
 import { getViewTargetID } from '../view/target-id';
+import { View } from '../view/view';
+import { getStreamCameraID } from './substream';
 
 export type PTZType = 'digital' | 'ptz';
 interface PTZTarget {
@@ -17,7 +18,12 @@ export const getPTZTarget = (
     cameraManager?: CameraManager;
   },
 ): PTZTarget | null => {
-  const targetID = getViewTargetID(view);
+  // PTZ is a playback-layer concern: for live, commands target the *actual*
+  // streaming camera (substream-aware), and capability checks must consult
+  // the substream too (a base camera with no native PTZ may still expose
+  // PTZ via its substream). For viewer/image, the logical view target is
+  // already correct.
+  const targetID = view.is('live') ? getStreamCameraID(view) : getViewTargetID(view);
   if (!targetID) {
     return null;
   }
@@ -30,7 +36,6 @@ export const getPTZTarget = (
   }
   if (view.is('live')) {
     let type: PTZType = 'digital';
-
     if (options?.type !== 'digital' && options?.cameraManager) {
       if (hasCameraTruePTZ(options.cameraManager, targetID)) {
         type = 'ptz';

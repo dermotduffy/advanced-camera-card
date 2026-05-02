@@ -9,7 +9,7 @@ import {
   setControlsOnVideo,
 } from '../../../../utils/controls.js';
 import {
-  dispatchMediaLoadedEvent,
+  createMediaLoadedInfo,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
@@ -172,6 +172,20 @@ export class VideoRTC extends HTMLElement {
     this.mediaPlayerController = null;
 
     /**
+     * Identifies which camera the loaded media belongs to.
+     * @type {string | null}
+     */
+    this.targetID = null;
+
+    /**
+     * Cancellation token for the current load registration. Aborted on
+     * disconnect to fire all cleanup listeners that recipients attached to
+     * its signal.
+     * @type {AbortController | null}
+     */
+    this._abortController = null;
+
+    /**
      * Whether to show or hide video controls for videos created *in future*.
      * @type {boolean}}
      */
@@ -188,7 +202,7 @@ export class VideoRTC extends HTMLElement {
    * Dispatch a media loaded event with current capabilities.
    */
   _dispatchMediaLoadedEvent() {
-    dispatchMediaLoadedEvent(this, this.video, {
+    const info = createMediaLoadedInfo(this.video, {
       ...(this.mediaPlayerController && {
         mediaPlayerController: this.mediaPlayerController,
       }),
@@ -199,6 +213,27 @@ export class VideoRTC extends HTMLElement {
       },
       technology: getTechnologyForVideoRTC(this),
     });
+    if (info) {
+      this._dispatchMediaLoadedInfo(info);
+    }
+  }
+
+  _dispatchMediaLoadedInfo(info) {
+    if (!this.targetID) {
+      return;
+    }
+    this._abortController = new AbortController();
+    this.dispatchEvent(
+      new CustomEvent('advanced-camera-card:media:loaded', {
+        bubbles: true,
+        composed: true,
+        cancelable: false,
+        detail: {
+          info: { ...info, targetID: this.targetID },
+          signal: this._abortController.signal,
+        },
+      }),
+    );
   }
 
   /**
@@ -298,6 +333,12 @@ export class VideoRTC extends HTMLElement {
    * document's DOM.
    */
   disconnectedCallback() {
+    // Synchronous manager-side cleanup by aborting the load's signal. The
+    // signal's abort listeners — registered by the card-root listener and
+    // any sinks in the bubble path — fire even though `parentNode` is
+    // already null, because abort is plain JS, not DOM-event-bound.
+    this._abortController?.abort();
+    this._abortController = null;
     if (this.background || this.disconnectTID) return;
     if (this.wsState === WebSocket.CLOSED && this.pcState === WebSocket.CLOSED) return;
 
@@ -767,12 +808,15 @@ export class VideoRTC extends HTMLElement {
 
       if (!receivedFirstFrame) {
         receivedFirstFrame = true;
-        dispatchMediaLoadedEvent(this, this.video, {
+        const info = createMediaLoadedInfo(this.video, {
           ...(this.mediaPlayerController && {
             mediaPlayerController: this.mediaPlayerController,
           }),
           technology: ['mjpeg'],
         });
+        if (info) {
+          this._dispatchMediaLoadedInfo(info);
+        }
       }
     };
 
@@ -814,12 +858,15 @@ export class VideoRTC extends HTMLElement {
         canvas.height = video2.videoHeight;
         context = canvas.getContext('2d');
 
-        dispatchMediaLoadedEvent(this, video2, {
+        const info = createMediaLoadedInfo(video2, {
           ...(this.mediaPlayerController && {
             mediaPlayerController: this.mediaPlayerController,
           }),
           technology: ['mp4'],
         });
+        if (info) {
+          this._dispatchMediaLoadedInfo(info);
+        }
       }
 
       context.drawImage(video2, 0, 0, canvas.width, canvas.height);

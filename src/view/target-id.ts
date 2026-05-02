@@ -1,4 +1,3 @@
-import { getStreamCameraID } from '../utils/substream';
 import { View } from './view';
 
 // Synthetic target ID used for the image view. The image view has no natural
@@ -9,16 +8,16 @@ export const IMAGE_VIEW_TARGET_ID_SENTINEL = '__IMAGE_VIEW__';
 
 // Returns a universal target identifier for the current view — the single key
 // used by PTZ/zoom state and media retry epochs to identify "what is currently
-// being displayed." Distinct from a raw camera ID because it accounts for
-// substreams (live) and the image view sentinel. Media IDs, camera IDs, and
-// the image sentinel inhabit distinct namespaces so there are no collisions
-// across view types.
+// being displayed." For live, this is the *base* camera ID (substream is an
+// implementation detail of how to play camera X, not a separate logical
+// identity — see `getStreamCameraID` for the substream-aware variant used
+// only inside the playback chain).
 export const getViewTargetID = (view: View): string | null => {
   if (view.isViewerView()) {
     return view.queryResults?.getSelectedResult()?.getID() ?? null;
   }
   if (view.is('live')) {
-    return getStreamCameraID(view);
+    return view.camera;
   }
   if (view.is('image')) {
     return IMAGE_VIEW_TARGET_ID_SENTINEL;

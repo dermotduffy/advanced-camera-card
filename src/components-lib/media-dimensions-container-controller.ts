@@ -1,13 +1,12 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
 import { debounce } from 'lodash-es';
 import { CameraDimensionsConfig } from '../config/schema/cameras';
-import { MediaLoadedInfo } from '../types';
+import { MediaLoadedInfoEventDetail } from '../types';
 import {
   aspectRatioToString,
   setOrRemoveAttribute,
   setOrRemoveStyleProperty,
 } from '../utils/basic';
-import { AdvancedCameraCardMediaLoadedEventTarget } from '../utils/media-info';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout';
 
 const ROTATED_ATTRIBUTE = 'rotated';
@@ -33,9 +32,7 @@ export class MediaDimensionsContainerController implements ReactiveController {
 
   private _dimensionsConfig: CameraDimensionsConfig | null = null;
 
-  private _innerContainer:
-    | (HTMLElement & AdvancedCameraCardMediaLoadedEventTarget)
-    | null = null;
+  private _innerContainer: HTMLElement | null = null;
   private _outerContainer: HTMLElement | null = null;
 
   public resize = debounce(this._resize.bind(this), 100, { trailing: true });
@@ -81,19 +78,20 @@ export class MediaDimensionsContainerController implements ReactiveController {
     );
   }
 
-  private _mediaLoadedHandler = (ev: CustomEvent<MediaLoadedInfo>): void => {
+  private _mediaLoadedHandler = (ev: CustomEvent<MediaLoadedInfoEventDetail>): void => {
+    const info = ev.detail.info;
     // Only resize if the media dimensions have changed (otherwise the loading
     // image whilst waiting for the stream, will trigger aresize every second).
     if (
-      this._mediaDimensions?.width === ev.detail.width &&
-      this._mediaDimensions.height === ev.detail.height
+      this._mediaDimensions?.width === info.width &&
+      this._mediaDimensions.height === info.height
     ) {
       return;
     }
 
     this._mediaDimensions = {
-      width: ev.detail.width,
-      height: ev.detail.height,
+      width: info.width,
+      height: info.height,
     };
     this.resize();
   };

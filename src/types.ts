@@ -43,9 +43,28 @@ export interface MediaLoadedInfo {
   mediaPlayerController?: MediaPlayerController;
   capabilities?: MediaLoadedCapabilities;
 
-  // Whether or not this media is a placeholder (temporary image) whilst another
-  // media item is being loaded.
-  placeholder?: boolean;
+  // Universal key identifying "what this media belongs to" — a camera ID for
+  // live, a media ID for the viewer, or a sentinel for the image view.
+  targetID?: string;
+}
+
+export type UntargetedMediaLoadedInfo = Omit<MediaLoadedInfo, 'targetID'>;
+
+// Opaque token used to tag the source of a MediaLoadedInfo entry. The
+// dispatching element from the source controller's bubble path is always an
+// HTMLElement, and reference equality is the only operation we perform on it.
+export type MediaLoadedInfoOwner = HTMLElement;
+
+export interface MediaLoadedInfoEventDetail {
+  info: MediaLoadedInfo;
+
+  // Aborts when the source retires this media. The source aborts on host
+  // disconnect, and when a subsequent `set()` arrives under a different
+  // `targetID` (replacing this dispatch). Independent of DOM connectedness, so
+  // cleanup works after `parentNode` becomes null. Recipients along the bubble
+  // path register cleanup synchronously while handling the load event with
+  // `signal.addEventListener('abort', callback)`.
+  signal: AbortSignal;
 }
 
 export type WebkitHTMLVideoElement = HTMLVideoElement & {
@@ -178,4 +197,14 @@ export interface EffectsManagerInterface {
 
   setContainer(container: EffectsContainer): void;
   removeContainer(): void;
+}
+
+// Type the cus-tom `media:loaded` event globally so `addEventListener` and
+// `removeEventListener` accept a properly-typed handler on any HTMLElement
+// without an `as` cast. Standard TS pattern via module augmentation of the
+// platform's event-map interfaces.
+declare global {
+  interface HTMLElementEventMap {
+    'advanced-camera-card:media:loaded': CustomEvent<MediaLoadedInfoEventDetail>;
+  }
 }

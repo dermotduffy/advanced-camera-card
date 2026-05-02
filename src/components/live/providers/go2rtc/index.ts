@@ -8,7 +8,6 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Camera } from '../../../../camera-manager/camera.js';
-import { CameraEndpoints } from '../../../../camera-manager/types.js';
 import { MicrophoneState } from '../../../../card-controller/types.js';
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
 import { VideoMediaPlayerController } from '../../../../components-lib/media-player/video.js';
@@ -31,8 +30,9 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   @property({ attribute: false })
   public camera?: Camera;
 
+  // The BASE camera ID (camera property may be a substream)
   @property({ attribute: false })
-  public cameraEndpoints?: CameraEndpoints;
+  public targetID?: string;
 
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
@@ -55,7 +55,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   private _signedURLController = new SignedURLController(
     this,
     () => {
-      const endpoint = this.cameraEndpoints?.go2rtc;
+      const endpoint = this.camera?.getEndpoints()?.go2rtc;
       if (!this.hass || !endpoint) {
         return {};
       }
@@ -93,6 +93,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     }
 
     this._player = new VideoRTC();
+    this._player.targetID = this.targetID ?? null;
     this._player.mediaPlayerController = this._mediaPlayerController;
     this._player.microphoneStream = this.microphoneState?.stream ?? null;
     this._player.src = src;
@@ -108,17 +109,17 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('cameraEndpoints')) {
+    if (changedProps.has('camera')) {
       // Clear old player; the new one is created by the
       // SignedURLController's valueChangeCallback once the URL resolves.
       this._player = undefined;
     }
 
-    // Only treat a missing go2rtc endpoint as an error after cameraEndpoints
-    // has been explicitly set (not undefined / still loading).
+    // Only treat a missing go2rtc endpoint as an error after the camera's
+    // endpoints have been explicitly set (not undefined / still loading).
+    const endpoints = this.camera?.getEndpoints();
     const hasError =
-      !!this._signedURLController.getError() ||
-      (!!this.cameraEndpoints && !this.cameraEndpoints.go2rtc);
+      !!this._signedURLController.getError() || (!!endpoints && !endpoints.go2rtc);
     if (hasError && !this._hasLiveError) {
       dispatchLiveErrorEvent(this);
     }
@@ -149,7 +150,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
         { context: this.camera?.getConfig() },
       );
     }
-    if (!this.cameraEndpoints?.go2rtc) {
+    if (!this.camera?.getEndpoints()?.go2rtc) {
       return renderNotificationBlockFromText(localize('error.live_camera_no_endpoint'), {
         context: this.camera?.getConfig(),
       });

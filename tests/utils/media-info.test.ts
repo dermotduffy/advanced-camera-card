@@ -3,11 +3,8 @@ import { mock } from 'vitest-mock-extended';
 import { MediaLoadedCapabilities, MediaPlayer } from '../../src/types';
 import {
   createMediaLoadedInfo,
-  dispatchExistingMediaLoadedInfoAsEvent,
-  dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
-  dispatchMediaUnloadedEvent,
   dispatchMediaVolumeChangeEvent,
   isValidMediaLoadedInfo,
 } from '../../src/utils/media-info';
@@ -80,74 +77,6 @@ describe('createMediaLoadedInfo', () => {
       height: 80,
       ...options,
     });
-  });
-});
-
-// @vitest-environment jsdom
-describe('dispatchMediaLoadedEvent', () => {
-  const options = {
-    player: mock<MediaPlayer>(),
-    capabilities: mock<MediaLoadedCapabilities>(),
-  };
-
-  it('should dispatch', () => {
-    const handler = vi.fn();
-    const div = document.createElement('div');
-    div.addEventListener('advanced-camera-card:media:loaded', handler);
-
-    // Need to write readonly properties.
-    const img = document.createElement('img');
-    Object.defineProperty(img, 'naturalWidth', { value: 10 });
-    Object.defineProperty(img, 'naturalHeight', { value: 20 });
-
-    dispatchMediaLoadedEvent(div, img, options);
-    expect(handler).toBeCalledWith(
-      expect.objectContaining({
-        detail: {
-          width: 10,
-          height: 20,
-          ...options,
-        },
-      }),
-    );
-  });
-
-  it('should not dispatch', () => {
-    const handler = vi.fn();
-    const div = document.createElement('div');
-    div.addEventListener('advanced-camera-card:media:loaded', handler);
-
-    dispatchMediaLoadedEvent(div, div, options);
-    expect(handler).not.toBeCalled();
-  });
-});
-
-// @vitest-environment jsdom
-describe('dispatchExistingMediaLoadedInfoAsEvent', () => {
-  it('should dispatch', () => {
-    const handler = vi.fn();
-    const div = document.createElement('div');
-    div.addEventListener('advanced-camera-card:media:loaded', handler);
-    const info = createTestMediaLoadedInfo();
-
-    dispatchExistingMediaLoadedInfoAsEvent(div, info);
-    expect(handler).toBeCalledWith(
-      expect.objectContaining({
-        detail: info,
-      }),
-    );
-  });
-});
-
-// @vitest-environment jsdom
-describe('dispatchMediaUnloadedEvent', () => {
-  it('should dispatch', () => {
-    const handler = vi.fn();
-    const div = document.createElement('div');
-    div.addEventListener('advanced-camera-card:media:unloaded', handler);
-
-    dispatchMediaUnloadedEvent(div);
-    expect(handler).toBeCalled();
   });
 });
 
