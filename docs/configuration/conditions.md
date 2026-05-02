@@ -181,6 +181,12 @@ conditions:
 | `condition`    | Must be `media_loaded`.                                                                                                                                                                                                                        |
 | `media_loaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. |
 
+> [!NOTE]
+> Toggling a substream on or off does not cause this condition to transition.
+> Substream is treated as a playback-layer detail of the same logical camera, so
+> the condition remains satisfied while any stream of the camera continues to
+> render.
+
 ## `microphone`
 
 Matches based on microphone state.

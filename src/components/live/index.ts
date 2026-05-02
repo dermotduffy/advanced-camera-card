@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
-import { LiveController } from '../../components-lib/live/live-controller.js';
+import '../../components-lib/live/types.js';
 import { LiveConfig } from '../../config/schema/live.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { HomeAssistant } from '../../ha/types.js';
@@ -34,8 +34,6 @@ export class AdvancedCameraCardLive extends LitElement {
   @property({ attribute: false, hasChanged: contentsChanged })
   public triggeredCameraIDs?: Set<string>;
 
-  private _controller = new LiveController(this);
-
   protected render(): TemplateResult | void {
     if (!this.hass || !this.cameraManager) {
       return;
@@ -46,7 +44,6 @@ export class AdvancedCameraCardLive extends LitElement {
         .hass=${this.hass}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .liveConfig=${this.liveConfig}
-        .inBackground=${this._controller.isInBackground()}
         .cardWideConfig=${this.cardWideConfig}
         .cameraManager=${this.cameraManager}
         .microphoneState=${this.microphoneState}

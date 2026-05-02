@@ -8,13 +8,13 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { CameraEndpoints } from '../../../camera-manager/types.js';
+import { Camera } from '../../../camera-manager/camera.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get-technology-for-video-rtc.js';
+import { MediaLoadedInfoSourceController } from '../../../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../../../components-lib/media-player/video.js';
 import { createNotificationFromText } from '../../../components-lib/notification/factory.js';
 import { Notification } from '../../../config/schema/actions/types.js';
-import { CameraConfig } from '../../../config/schema/cameras.js';
 import { CardWideConfig } from '../../../config/schema/types.js';
 import { HomeAssistant } from '../../../ha/types.js';
 import { localize } from '../../../localize/localize.js';
@@ -32,7 +32,7 @@ import {
 } from '../../../utils/controls.js';
 import { getContextFromError } from '../../../utils/error-context.js';
 import {
-  dispatchMediaLoadedEvent,
+  createMediaLoadedInfo,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
@@ -49,10 +49,11 @@ import { VideoRTC } from './go2rtc/video-rtc.js';
 @customElement('advanced-camera-card-live-webrtc-card')
 export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements MediaPlayer {
   @property({ attribute: false })
-  public cameraConfig?: CameraConfig;
+  public camera?: Camera;
 
+  // The BASE camera ID (camera property may be a substream)
   @property({ attribute: false })
-  public cameraEndpoints?: CameraEndpoints;
+  public targetID?: string;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -72,6 +73,10 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
     () => this._getVideo(),
     () => this.controls,
   );
+
+  private _mediaLoadedInfoSourceController = new MediaLoadedInfoSourceController(this, {
+    getTargetID: () => this.targetID ?? null,
+  });
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     return this._mediaPlayerController;
@@ -95,9 +100,7 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
   }
 
   protected willUpdate(changedProperties: PropertyValues): void {
-    if (
-      ['cameraConfig', 'cameraEndpoints'].some((prop) => changedProperties.has(prop))
-    ) {
+    if (changedProperties.has('camera')) {
       this._notification = null;
     }
   }
@@ -120,7 +123,8 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
    */
   private _createWebRTC(): HTMLElement | null {
     const webrtcElement = this._webrtcTask.value;
-    if (webrtcElement && this.hass && this.cameraConfig) {
+    const cameraConfig = this.camera?.getConfig();
+    if (webrtcElement && this.hass && cameraConfig) {
       const webrtc = new webrtcElement() as HTMLElement & {
         hass: HomeAssistant;
         setConfig: (config: Record<string, unknown>) => void;
@@ -137,10 +141,11 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
         // See: https://github.com/dermotduffy/advanced-camera-card/issues/1654
         muted: true,
 
-        ...this.cameraConfig.webrtc_card,
+        ...cameraConfig.webrtc_card,
       };
-      if (!config.url && !config.entity && this.cameraEndpoints?.webrtcCard) {
-        config.entity = this.cameraEndpoints.webrtcCard.endpoint;
+      const webrtcCardEndpoint = this.camera?.getEndpoints()?.webrtcCard;
+      if (!config.url && !config.entity && webrtcCardEndpoint) {
+        config.entity = webrtcCardEndpoint.endpoint;
       }
       webrtc.setConfig(config);
       webrtc.hass = this.hass;
@@ -204,7 +209,7 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
           if (this.controls) {
             hideMediaControlsTemporarily(video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
           }
-          dispatchMediaLoadedEvent(this, video, {
+          const info = createMediaLoadedInfo(video, {
             mediaPlayerController: this._mediaPlayerController,
             capabilities: {
               supportsPause: true,
@@ -214,6 +219,9 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
               technology: getTechnologyForVideoRTC(this._videoRTC),
             }),
           });
+          if (info) {
+            this._mediaLoadedInfoSourceController.set(info);
+          }
         };
         video.onplay = () => dispatchMediaPlayEvent(this);
         video.onpause = () => dispatchMediaPauseEvent(this);

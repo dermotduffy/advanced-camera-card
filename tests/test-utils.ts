@@ -77,7 +77,12 @@ import { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
 import { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
 import { QuerySource } from '../src/query-source';
 import { Severity } from '../src/severity';
-import { CapabilitiesRaw, Interaction, MediaLoadedInfo } from '../src/types';
+import {
+  CapabilitiesRaw,
+  Interaction,
+  MediaLoadedInfo,
+  MediaLoadedInfoEventDetail,
+} from '../src/types';
 import {
   EventViewMedia,
   ReviewViewMedia,
@@ -328,18 +333,35 @@ export const createMediaLoadedInfo = (
   return {
     width: 100,
     height: 100,
+    targetID: 'target-1',
     ...options,
   };
 };
 
-export const createMediaLoadedInfoEvent = (
-  mediaLoadedInfo?: MediaLoadedInfo,
-): CustomEvent<MediaLoadedInfo> => {
-  return new CustomEvent('advanced-camera-card:media:loaded', {
-    detail: mediaLoadedInfo ?? createMediaLoadedInfo(),
-    composed: true,
-    bubbles: true,
-  });
+export const createMediaLoadedInfoEvent = (options?: {
+  info?: MediaLoadedInfo;
+  signal?: AbortSignal;
+  // When set, overrides `composedPath()` to return `[source]`. Use this for
+  // tests that hand the event directly to a handler (e.g. `handleLoadEvent`)
+  // instead of dispatching it; jsdom only populates `composedPath` on real
+  // dispatch.
+  source?: HTMLElement;
+}): CustomEvent<MediaLoadedInfoEventDetail> => {
+  const ev = new CustomEvent<MediaLoadedInfoEventDetail>(
+    'advanced-camera-card:media:loaded',
+    {
+      bubbles: true,
+      composed: true,
+      detail: {
+        info: options?.info ?? createMediaLoadedInfo(),
+        signal: options?.signal ?? new AbortController().signal,
+      },
+    },
+  );
+  if (options?.source) {
+    Object.defineProperty(ev, 'composedPath', { value: () => [options.source] });
+  }
+  return ev;
 };
 
 export const createPerformanceConfig = (config: unknown): PerformanceConfig => {

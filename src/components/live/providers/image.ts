@@ -1,8 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import { CameraConfig } from '../../../config/schema/cameras';
-import { EnabledProxyConfig } from '../../../config/schema/common/proxy';
+import { Camera } from '../../../camera-manager/camera.js';
 import { HomeAssistant } from '../../../ha/types';
 import basicBlockStyle from '../../../scss/basic-block.scss';
 import {
@@ -18,10 +17,11 @@ export class AdvancedCameraCardLiveImage extends LitElement implements MediaPlay
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public cameraConfig?: CameraConfig;
+  public camera?: Camera;
 
+  // The BASE camera ID (camera property may be a substream)
   @property({ attribute: false })
-  public proxyConfig?: EnabledProxyConfig;
+  public targetID?: string;
 
   private _refImage: Ref<MediaPlayerElement> = createRef();
 
@@ -31,7 +31,8 @@ export class AdvancedCameraCardLiveImage extends LitElement implements MediaPlay
   }
 
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.cameraConfig) {
+    const cameraConfig = this.camera?.getConfig();
+    if (!this.hass || !cameraConfig) {
       return;
     }
 
@@ -39,9 +40,10 @@ export class AdvancedCameraCardLiveImage extends LitElement implements MediaPlay
       <advanced-camera-card-image-updating-player
         ${ref(this._refImage)}
         .hass=${this.hass}
-        .imageConfig=${this.cameraConfig.image}
-        .cameraConfig=${this.cameraConfig}
-        .proxyConfig=${this.proxyConfig}
+        .imageConfig=${cameraConfig.image}
+        .cameraConfig=${cameraConfig}
+        .targetID=${this.targetID}
+        .proxyConfig=${this.camera?.getLiveProxyConfig()}
       >
       </advanced-camera-card-image-updating-player>
     `;

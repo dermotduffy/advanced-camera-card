@@ -1,7 +1,6 @@
 import EmblaCarousel, { EmblaCarouselType } from 'embla-carousel';
 import { MockedObject, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CarouselController } from '../../../src/utils/embla/carousel-controller';
-import AutoMediaLoadedInfo from '../../../src/utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info';
 import {
   MutationObserverMock,
   callMutationHandler,
@@ -111,41 +110,23 @@ describe('CarouselController', () => {
     const children = createTestSlideNodes();
     const parent = createParent({ children: children });
 
-    const forceSelectListener = vi.fn();
-    parent.addEventListener(
-      'advanced-camera-card:carousel:force-select',
-      forceSelectListener,
-    );
-
     const carousel = new CarouselController(createRoot(), parent);
 
     carousel.selectSlide(4);
 
     expect(getEmblaApi()?.scrollTo).toBeCalledWith(4, false);
-    expect(forceSelectListener).toBeCalledWith(
-      expect.objectContaining({
-        detail: { index: 4, element: children[4] },
-      }),
-    );
   });
 
   it('should not select non-existent slide', () => {
     const children = createTestSlideNodes({ n: 10 });
     const parent = createParent({ children: children });
 
-    const forceSelectListener = vi.fn();
-    parent.addEventListener(
-      'advanced-camera-card:carousel:force-select',
-      forceSelectListener,
-    );
-
     const carousel = new CarouselController(createRoot(), parent);
 
     carousel.selectSlide(11);
 
-    // Should not call scrollTo or fire event because index is out of bounds
+    // Should not call scrollTo because index is out of bounds.
     expect(getEmblaApi()?.scrollTo).not.toBeCalled();
-    expect(forceSelectListener).not.toBeCalled();
   });
 
   it('should dispatch select event', () => {
@@ -191,7 +172,6 @@ describe('CarouselController', () => {
     const children = createTestSlideNodes({ n: 1 });
     const root = createRoot();
     const parent = createParent({ children: children });
-    const plugins = [AutoMediaLoadedInfo()];
 
     new CarouselController(root, parent, {
       direction: 'vertical',
@@ -200,7 +180,6 @@ describe('CarouselController', () => {
       dragFree: true,
       loop: true,
       dragEnabled: false,
-      plugins: plugins,
       textDirection: 'rtl',
     });
 
@@ -219,7 +198,7 @@ describe('CarouselController', () => {
         watchDrag: false,
         direction: 'rtl',
       },
-      plugins,
+      [],
     );
   });
 

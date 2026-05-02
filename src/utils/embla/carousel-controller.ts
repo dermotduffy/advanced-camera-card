@@ -99,26 +99,6 @@ export class CarouselController {
       return;
     }
     this._carousel.scrollTo(index, this._transitionEffect === 'none');
-
-    // This event exists to allow the caller to know the difference between
-    // programatically force slide selections and user-driven slide selections
-    // (e.g. carousel drags). See the note in auto-media-loaded-info.ts on how
-    // this is used.
-    const newSlide = this.getSlide(index);
-
-    /* istanbul ignore if: defensive guard for getSlide returning null which can
-    only happen with an index out of bounds, which is guarded against above --
-    @preserve */
-    if (newSlide) {
-      fireAdvancedCameraCardEvent<CarouselSelected>(
-        this._parent,
-        'carousel:force-select',
-        {
-          index: index,
-          element: newSlide,
-        },
-      );
-    }
   }
 
   private _refreshCarouselContents = (): void => {

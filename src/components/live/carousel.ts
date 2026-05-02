@@ -6,8 +6,7 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { guard } from 'lit/directives/guard.js';
+import { customElement, property } from 'lit/decorators.js';
 import { keyed } from 'lit/directives/keyed.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
@@ -16,6 +15,7 @@ import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import { MediaHeightController } from '../../components-lib/media-height-controller.js';
+import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
 import { PTZDragController } from '../../components-lib/ptz/drag-controller.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
@@ -30,12 +30,10 @@ import { HomeAssistant } from '../../ha/types.js';
 import liveCarouselStyle from '../../scss/live-carousel.scss';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
-import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
 import { getStreamCameraID } from '../../utils/substream.js';
 import { getTextDirection } from '../../utils/text-direction.js';
 import { View } from '../../view/view.js';
 import '../carousel';
-import { EmblaCarouselPlugins } from '../carousel.js';
 import '../next-prev-control.js';
 import '../ptz.js';
 import './provider.js';
@@ -82,8 +80,13 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
   private _ptzDragController = new PTZDragController(this);
 
-  @state()
-  private _mediaHasLoaded = false;
+  private _mediaLoadedInfoSinkController = new MediaLoadedInfoSinkController(this, {
+    getTargetID: () =>
+      this.viewFilterCameraID ??
+      this.viewManagerEpoch?.manager.getView()?.camera ??
+      null,
+    callback: () => this._mediaHeightController.recalculate(),
+  });
 
   public connectedCallback(): void {
     super.connectedCallback();
@@ -172,23 +175,18 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     }
   }
 
-  private _getPlugins(): EmblaCarouselPlugins {
-    return [AutoMediaLoadedInfo()];
-  }
-
   private _getSlides(): TemplateResult[] {
     if (!this.cameraManager) {
       return [];
     }
 
-    const view = this.viewManagerEpoch?.manager.getView();
     const cameraIDs = this.viewFilterCameraID
       ? new Set([this.viewFilterCameraID])
       : this.cameraManager?.getStore().getCameraIDsWithCapability('live');
 
     const slides: TemplateResult[] = [];
     for (const cameraID of cameraIDs ?? []) {
-      const slide = this._renderLive(this._getSubstreamCameraID(cameraID, view));
+      const slide = this._renderLive(cameraID);
       if (slide) {
         slides.push(slide);
       }
@@ -214,13 +212,20 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   }
 
   private _renderLive(cameraID: string): TemplateResult | void {
-    const camera = this.cameraManager?.getStore().getCamera(cameraID);
-    if (!this.liveConfig || !this.hass || !this.cameraManager || !camera) {
+    const view = this.viewManagerEpoch?.manager.getView();
+
+    // Resolve substream INTERNALLY: the substream is a playback-layer concern
+    // (which `Camera` to actually stream), invisible above the provider. The
+    // base `cameraID` flows up as the targetID; the substream `Camera` flows
+    // down for playback.
+    const resolvedCamera = this.cameraManager
+      ?.getStore()
+      .getCamera(this._getSubstreamCameraID(cameraID, view));
+    if (!this.liveConfig || !this.hass || !this.cameraManager || !resolvedCamera) {
       return;
     }
 
     const cameraMetadata = this.cameraManager.getCameraMetadata(cameraID);
-    const view = this.viewManagerEpoch?.manager.getView();
     const mediaEpoch = view?.context?.mediaEpoch?.[cameraID] ?? 0;
 
     return html`
@@ -231,11 +236,8 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
             .microphoneState=${view?.camera === cameraID
               ? this.microphoneState
               : undefined}
-            .camera=${camera}
-            .cameraEndpoints=${guard(
-              [this.cameraManager, cameraID],
-              () => this.cameraManager?.getCameraEndpoints(cameraID) ?? undefined,
-            )}
+            .camera=${resolvedCamera}
+            .targetID=${cameraID}
             .label=${cameraMetadata?.title ?? ''}
             .liveConfig=${this.liveConfig}
             .hass=${this.hass}
@@ -348,7 +350,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     const gesturesPTZActive = this._isGesturesPTZActive(view, streamAwareCameraID);
 
     const forcePTZVisibility =
-      !this._mediaHasLoaded ||
+      !this._mediaLoadedInfoSinkController.has() ||
       (!!this.viewFilterCameraID && this.viewFilterCameraID !== view.camera) ||
       view.context?.ptzControls?.enabled === false
         ? false
@@ -357,30 +359,15 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     const dragEnabled =
       hasMultipleCameras && this.liveConfig?.draggable && !gesturesPTZActive;
 
-    // Notes on the below:
-    // - guard() is used to avoid reseting the carousel unless the
-    //   options/plugins actually change.
-
     return html`
       <advanced-camera-card-carousel
         ${ref(this._refCarousel)}
         .loop=${hasMultipleCameras}
         .dragEnabled=${dragEnabled}
-        .plugins=${guard(
-          [this.cameraManager, this.liveConfig],
-          this._getPlugins.bind(this),
-        )}
         .selected=${this._getSelectedCameraIndex()}
         .wheelScrolling=${this.liveConfig?.controls.wheel}
         transitionEffect=${this._getTransitionEffect()}
         @advanced-camera-card:carousel:select=${this._setViewHandler.bind(this)}
-        @advanced-camera-card:media:loaded=${() => {
-          this._mediaHasLoaded = true;
-          this._mediaHeightController.recalculate();
-        }}
-        @advanced-camera-card:media:unloaded=${() => {
-          this._mediaHasLoaded = false;
-        }}
       >
         ${this._renderNextPrevious('left', neighbors)}
         <!-- -->

@@ -11,25 +11,19 @@ import { classMap } from 'lit/directives/class-map.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { Camera } from '../../camera-manager/camera.js';
-import { CameraEndpoints } from '../../camera-manager/types.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
+import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
 import { PartialZoomSettings } from '../../components-lib/zoom/types.js';
 import { LiveConfig } from '../../config/schema/live.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import liveProviderStyle from '../../scss/live-provider.scss';
-import {
-  MediaLoadedInfo,
-  MediaPlayer,
-  MediaPlayerController,
-  MediaPlayerElement,
-} from '../../types.js';
+import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../../types.js';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event.js';
 import { getResolvedLiveProvider } from '../../utils/live-provider.js';
-import { dispatchMediaUnloadedEvent } from '../../utils/media-info.js';
 import '../icon.js';
 import { renderNotificationBlockFromText } from '../notification/block.js';
 import './../media-dimensions-container';
@@ -42,8 +36,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   @property({ attribute: false })
   public camera?: Camera;
 
+  // The BASE camera ID (camera property may be a substream)
   @property({ attribute: false })
-  public cameraEndpoints?: CameraEndpoints;
+  public targetID?: string;
 
   @property({ attribute: false })
   public liveConfig?: LiveConfig;
@@ -64,8 +59,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   @property({ attribute: false })
   public zoom = true;
 
-  @state()
-  private _isVideoMediaLoaded = false;
+  private _mediaLoadedInfoSinkController = new MediaLoadedInfoSinkController(this, {
+    getTargetID: () => this.targetID ?? null,
+  });
 
   @state()
   private _zoomed = false;
@@ -95,16 +91,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   // the background. These calls fail without waiting for loading here.
   private _importPromises: Promise<unknown>[] = [];
 
-  constructor() {
-    super();
-    this._lazyLoadController.addListener((loaded: boolean) => {
-      if (!loaded) {
-        this._isVideoMediaLoaded = false;
-        dispatchMediaUnloadedEvent(this);
-      }
-    });
-  }
-
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     await this.updateComplete;
     return (await this._refProvider.value?.getMediaPlayerController()) ?? null;
@@ -117,7 +103,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
    */
   private _shouldShowImageDuringLoading(): boolean {
     return (
-      !this._isVideoMediaLoaded &&
+      !this._mediaLoadedInfoSinkController.has() &&
       !!this.camera?.getConfig()?.camera_entity &&
       !!this.hass &&
       !!this.liveConfig?.show_image_during_load &&
@@ -126,25 +112,18 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   }
 
   public disconnectedCallback(): void {
-    this._isVideoMediaLoaded = false;
     this._entityHasBeenAvailable = false;
     super.disconnectedCallback();
-  }
-
-  private _videoMediaShowHandler(): void {
-    this._isVideoMediaLoaded = true;
   }
 
   private _providerErrorHandler(ev: Event): void {
     ev.stopPropagation();
     this._hasProviderError = true;
 
-    // this.camera is already substream-aware (resolved by the carousel layer).
-    const targetID = this.camera?.getID();
-    if (targetID) {
+    if (this.targetID) {
       fireAdvancedCameraCardEvent(this, 'issue:trigger', {
         key: 'media_load' as const,
-        targetID,
+        targetID: this.targetID,
       });
     }
   }
@@ -170,7 +149,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     }
 
     if (changedProps.has('camera')) {
-      this._isVideoMediaLoaded = false;
       this._hasProviderError = false;
       this._entityHasBeenAvailable = false;
 
@@ -212,13 +190,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     const config = this.camera?.getConfig();
     const intermediateTemplate = html` <advanced-camera-card-media-dimensions-container
       .dimensionsConfig=${config?.dimensions}
-      @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
-        if (ev.detail.placeholder) {
-          ev.stopPropagation();
-        } else {
-          this._videoMediaShowHandler();
-        }
-      }}
     >
       ${template}
     </advanced-camera-card-media-dimensions-container>`;
@@ -289,7 +260,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
           cameraConfig.always_error_if_entity_unavailable
         ) {
           dispatchLiveErrorEvent(this);
-          dispatchMediaUnloadedEvent(this);
           return renderNotificationBlockFromText(
             `${localize('error.live_camera_unavailable')}${
               this.label ? `: ${this.label}` : ''
@@ -303,7 +273,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     }
 
     const showImageDuringLoading = this._shouldShowImageDuringLoading();
-    const showLoadingIcon = !this._isVideoMediaLoaded;
+    const showLoadingIcon = !this._mediaLoadedInfoSinkController.has();
 
     const classes = {
       hidden: showImageDuringLoading,
@@ -314,8 +284,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
         ? html` <advanced-camera-card-live-image
             ${ref(this._refProvider)}
             .hass=${this.hass}
-            .cameraConfig=${cameraConfig}
-            .proxyConfig=${this.camera.getLiveProxyConfig()}
+            .camera=${this.camera}
+            .targetID=${this.targetID}
             class=${classMap({
               ...classes,
               // The image provider is providing the temporary loading image,
@@ -324,8 +294,15 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
             })}
             @advanced-camera-card:live:error=${(ev: Event) =>
               this._providerErrorHandler(ev)}
-            @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
-              ev.detail.placeholder = provider !== 'image';
+            @advanced-camera-card:media:loaded=${(ev: Event) => {
+              // When the image is rendered as a placeholder behind another
+              // provider, suppress its load event so it doesn't reach the
+              // card-root listener and clobber the real provider's
+              // registration. The real provider's load event will arrive
+              // afterwards.
+              if (provider !== 'image') {
+                ev.stopPropagation();
+              }
             }}
           >
           </advanced-camera-card-live-image>`
@@ -335,7 +312,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
             ${ref(this._refProvider)}
             class=${classMap(classes)}
             .hass=${this.hass}
-            .cameraConfig=${cameraConfig}
+            .camera=${this.camera}
+            .targetID=${this.targetID}
             ?controls=${this._getEffectiveBuiltinControls()}
             @advanced-camera-card:live:error=${(ev: Event) =>
               this._providerErrorHandler(ev)}
@@ -347,7 +325,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               class=${classMap(classes)}
               .hass=${this.hass}
               .camera=${this.camera}
-              .cameraEndpoints=${this.cameraEndpoints}
+              .targetID=${this.targetID}
               .microphoneState=${this.microphoneState}
               .microphoneConfig=${this.liveConfig.microphone}
               ?controls=${this._getEffectiveBuiltinControls()}
@@ -360,8 +338,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                 ${ref(this._refProvider)}
                 class=${classMap(classes)}
                 .hass=${this.hass}
-                .cameraConfig=${cameraConfig}
-                .cameraEndpoints=${this.cameraEndpoints}
+                .camera=${this.camera}
+                .targetID=${this.targetID}
                 .cardWideConfig=${this.cardWideConfig}
                 ?controls=${this._getEffectiveBuiltinControls()}
                 @advanced-camera-card:live:error=${(ev: Event) =>
@@ -373,8 +351,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                   ${ref(this._refProvider)}
                   class=${classMap(classes)}
                   .hass=${this.hass}
-                  .cameraConfig=${cameraConfig}
-                  .cameraEndpoints=${this.cameraEndpoints}
+                  .camera=${this.camera}
+                  .targetID=${this.targetID}
                   .cardWideConfig=${this.cardWideConfig}
                   @advanced-camera-card:live:error=${(ev: Event) =>
                     this._providerErrorHandler(ev)}

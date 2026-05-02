@@ -15,6 +15,7 @@ import { RemoveContextPropertyViewModifier } from '../../card-controller/view/mo
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import { MediaHeightController } from '../../components-lib/media-height-controller.js';
+import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
 import { TransitionEffect } from '../../config/schema/common/transition-effect.js';
 import { CardWideConfig, configDefaults } from '../../config/schema/types.js';
 import { ViewerConfig } from '../../config/schema/viewer.js';
@@ -23,16 +24,13 @@ import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';
 import viewerCarouselStyle from '../../scss/viewer-carousel.scss';
-import { MediaLoadedInfo, MediaPlayerController } from '../../types.js';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { contentsChanged, setOrRemoveAttribute } from '../../utils/basic.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
-import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
 import { getTextDirection } from '../../utils/text-direction.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { ViewMedia } from '../../view/item.js';
 import '../carousel';
-import type { EmblaCarouselPlugins } from '../carousel.js';
 import '../next-prev-control.js';
 import { renderNoMedia } from '../notification/no-media.js';
 import '../ptz.js';
@@ -87,8 +85,16 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
   private _media: ViewMedia[] | null = null;
   private _mediaActionsController = new MediaActionsController();
   private _mediaHeightController = new MediaHeightController(this, '.embla__slide');
-  private _loadedMediaPlayerController: MediaPlayerController | null = null;
   private _refCarousel: Ref<HTMLElement> = createRef();
+
+  private _mediaLoadedInfoSinkController = new MediaLoadedInfoSinkController(this, {
+    getTargetID: () =>
+      (this._selected !== null && this._media?.[this._selected]?.getID()) || null,
+    callback: () => {
+      this._mediaHeightController.recalculate();
+      this._seekHandler();
+    },
+  });
 
   public connectedCallback(): void {
     super.connectedCallback();
@@ -114,14 +120,6 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       this.viewerConfig?.transition_effect ??
       configDefaults.media_viewer.transition_effect
     );
-  }
-
-  /**
-   * Get the Embla plugins to use.
-   * @returns A list of EmblaOptionsTypes.
-   */
-  private _getPlugins(): EmblaCarouselPlugins {
-    return [AutoMediaLoadedInfo()];
   }
 
   /**
@@ -335,20 +333,11 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       <advanced-camera-card-carousel
         ${ref(this._refCarousel)}
         .dragEnabled=${this.viewerConfig?.draggable ?? true}
-        .plugins=${guard([this.viewerConfig, this._media], this._getPlugins.bind(this))}
         .selected=${this._selected}
         .wheelScrolling=${this.viewerConfig?.controls.wheel}
         transitionEffect=${this._getTransitionEffect()}
         @advanced-camera-card:carousel:select=${(ev: CustomEvent<CarouselSelected>) => {
           this._setViewSelectedIndex(ev.detail.index);
-        }}
-        @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
-          this._loadedMediaPlayerController = ev.detail.mediaPlayerController ?? null;
-          this._mediaHeightController.recalculate();
-          this._seekHandler();
-        }}
-        @advanced-camera-card:media:unloaded=${() => {
-          this._loadedMediaPlayerController = null;
         }}
       >
         ${this.showControls ? this._renderNextPrevious('left', neighbors) : ''}
@@ -420,10 +409,12 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
    * Fire a media show event when a slide is selected.
    */
   private async _seekHandler(): Promise<void> {
+    const mediaPlayerController =
+      this._mediaLoadedInfoSinkController.get()?.mediaPlayerController ?? null;
     if (
       !this.hass ||
       !this._media ||
-      !this._loadedMediaPlayerController ||
+      !mediaPlayerController ||
       this._selected === null
     ) {
       return;
@@ -442,17 +433,17 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
 
     const seekTimeInMedia = selectedMedia.includesTime(seek);
     setOrRemoveAttribute(this, !seekTimeInMedia, 'unseekable');
-    if (!seekTimeInMedia && !this._loadedMediaPlayerController.isPaused()) {
-      this._loadedMediaPlayerController.pause();
-    } else if (seekTimeInMedia && this._loadedMediaPlayerController.isPaused()) {
-      this._loadedMediaPlayerController.play();
+    if (!seekTimeInMedia && !mediaPlayerController.isPaused()) {
+      mediaPlayerController.pause();
+    } else if (seekTimeInMedia && mediaPlayerController.isPaused()) {
+      mediaPlayerController.play();
     }
 
     const seekTime =
       (await this.cameraManager?.getMediaSeekTime(selectedMedia, seek)) ?? null;
 
     if (seekTime !== null) {
-      this._loadedMediaPlayerController.seek(seekTime);
+      mediaPlayerController.seek(seekTime);
     }
   }
 
