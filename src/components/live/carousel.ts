@@ -228,6 +228,8 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     const cameraMetadata = this.cameraManager.getCameraMetadata(cameraID);
     const mediaEpoch = view?.context?.mediaEpoch?.[cameraID] ?? 0;
 
+    const isSelectedSlide = !!view?.camera && cameraID === view.camera;
+
     return html`
       <div class="embla__slide">
         ${keyed(
@@ -244,6 +246,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
             .cardWideConfig=${this.cardWideConfig}
             .zoomSettings=${view?.context?.zoom?.[cameraID]?.requested}
             .zoom=${!this._isGesturesPTZActive(view, cameraID)}
+            .forceSelected=${isSelectedSlide}
             @advanced-camera-card:zoom:change=${(
               ev: CustomEvent<ZoomSettingsObserved>,
             ) =>

@@ -59,6 +59,13 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   @property({ attribute: false })
   public zoom = true;
 
+  // Whether to force this slide to behave as if it is selected and
+  // intersecting. Set by the carousel on its currently-selected slide so
+  // `live.preload` actually warms up the active stream. See
+  // `LazyLoadConfiguration.forceSelected`.
+  @property({ attribute: false })
+  public forceSelected = false;
+
   private _mediaLoadedInfoSinkController = new MediaLoadedInfoSinkController(this, {
     getTargetID: () => this.targetID ?? null,
   });
@@ -129,14 +136,12 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (
-      changedProps.has('liveConfig') ||
-      (!this._lazyLoadController && this.liveConfig)
-    ) {
-      this._lazyLoadController.setConfiguration(
-        this.liveConfig?.lazy_load,
-        this.liveConfig?.lazy_unload,
-      );
+    if (changedProps.has('liveConfig') || changedProps.has('forceSelected')) {
+      this._lazyLoadController.setConfiguration({
+        lazyLoad: this.liveConfig?.lazy_load,
+        lazyUnloadConditions: this.liveConfig?.lazy_unload,
+        forceSelected: this.forceSelected,
+      });
     }
 
     if (changedProps.has('liveConfig')) {
