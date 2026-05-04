@@ -3,12 +3,26 @@ import { LazyUnloadCondition } from '../config/schema/common/media-actions';
 
 type LazyLoadListener = (loaded: boolean) => void;
 
+interface LazyLoadConfiguration {
+  // Whether to wait for the host to intersect (and the document to be visible)
+  // before loading. `false` loads eagerly on first call.
+  lazyLoad?: boolean;
+
+  // Conditions under which an already-loaded host should unload.
+  lazyUnloadConditions?: LazyUnloadCondition[];
+
+  // Treat the host as the selected/visible item, regardless of what
+  // IntersectionObserver reports.
+  forceSelected?: boolean;
+}
+
 export class LazyLoadController implements ReactiveController {
   private _host: ReactiveControllerHost & HTMLElement;
   private _documentVisible = true;
   private _intersects = false;
+  private _forceSelected = false;
   private _loaded = false;
-  private _unloadConditions: LazyUnloadCondition[] | null = null;
+  private _unloadConditions: LazyUnloadCondition[] = [];
   private _intersectionObserver = new IntersectionObserver(
     this._intersectionHandler.bind(this),
   );
@@ -19,14 +33,18 @@ export class LazyLoadController implements ReactiveController {
     this._host.addController(this);
   }
 
-  public setConfiguration(
-    lazyLoad?: boolean,
-    lazyUnloadConditions?: LazyUnloadCondition[],
-  ) {
-    if (!lazyLoad && !this._loaded) {
+  public setConfiguration(configuration: LazyLoadConfiguration): void {
+    this._unloadConditions = configuration.lazyUnloadConditions ?? [];
+    this._forceSelected = configuration.forceSelected ?? false;
+
+    // Eager-load fast path: skip re-evaluation so an immediately-applied
+    // `unselected` unload condition can't undo the eager load before the
+    // intersection observer has had a chance to fire.
+    if (configuration.lazyLoad === false && !this._loaded) {
       this._setLoaded(true);
+      return;
     }
-    this._unloadConditions = lazyUnloadConditions ?? null;
+    this._lazyLoadOrUnloadIfNecessary();
   }
 
   public destroy(): void {
@@ -51,6 +69,11 @@ export class LazyLoadController implements ReactiveController {
   }
 
   public hostConnected(): void {
+    // Capture the document's actual visibility state on connection. The
+    // `visibilitychange` listener only fires on transitions, so without this
+    // sync read a host that connects while the tab is already hidden would
+    // incorrectly believe the document is visible until the next transition.
+    this._documentVisible = document.visibilityState === 'visible';
     this._addEventHandlers();
   }
 
@@ -70,11 +93,13 @@ export class LazyLoadController implements ReactiveController {
   }
 
   private _lazyLoadOrUnloadIfNecessary(): void {
-    const shouldBeLoaded = !this._loaded && this._documentVisible && this._intersects;
+    const effectivelyIntersects = this._intersects || this._forceSelected;
+    const shouldBeLoaded =
+      !this._loaded && this._documentVisible && effectivelyIntersects;
     const shouldBeUnloaded =
       this._loaded &&
-      ((this._unloadConditions?.includes('hidden') && !this._documentVisible) ||
-        (this._unloadConditions?.includes('unselected') && !this._intersects));
+      ((this._unloadConditions.includes('hidden') && !this._documentVisible) ||
+        (this._unloadConditions.includes('unselected') && !effectivelyIntersects));
 
     if (shouldBeLoaded) {
       this._setLoaded(true);

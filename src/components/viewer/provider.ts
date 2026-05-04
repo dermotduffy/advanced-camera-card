@@ -145,11 +145,10 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (
-      changedProps.has('viewerConfig') ||
-      (!this._lazyLoadController && this.viewerConfig)
-    ) {
-      this._lazyLoadController.setConfiguration(this.viewerConfig?.lazy_load);
+    if (changedProps.has('viewerConfig')) {
+      this._lazyLoadController.setConfiguration({
+        lazyLoad: this.viewerConfig?.lazy_load,
+      });
     }
 
     if (
