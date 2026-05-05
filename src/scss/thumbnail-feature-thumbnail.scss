@@ -31,6 +31,12 @@ img {
   object-fit: cover;
 }
 
+// Placeholder images (brand logos, folder icons) are not previews of content,
+// so they should be shown in full rather than cropped to fill a square.
+:host(.placeholder) img {
+  object-fit: contain;
+}
+
 advanced-camera-card-icon {
   display: flex;
   width: 50%;

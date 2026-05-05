@@ -45,12 +45,29 @@ advanced-camera-card-thumbnail-feature-thumbnail:not(.placeholder) {
   left: 0;
 }
 
-// Placeholder icons/thumbnails: centered, 90% of container height
+// Placeholder icons/thumbnails: nearly fill the .media container so wide logos
+// can use the full width. Per-image fit (contain vs cover) is handled inside
+// the inner thumbnail/icon.
+//
+// The two size rules look inverted (95% with text, 60% without) because the
+// percentages are relative to .media, which itself differs by case:
+//   .has-text       → .media is 100% × 50% of tile, so 95% ≈ 47% of tile height
+//   :not(.has-text) → .media is 100% × 100% of tile, so 60% = 60% of tile height
+// Both cases land at roughly half-tile visible; without the no-text shrink the
+// placeholder would fill the entire tile and stop reading as an icon.
 advanced-camera-card-thumbnail-feature-thumbnail.placeholder,
 advanced-camera-card-icon.placeholder {
-  height: 90%;
-  aspect-ratio: 1 / 1;
   --mdc-icon-size: 100%;
+}
+.media.has-text > advanced-camera-card-thumbnail-feature-thumbnail.placeholder,
+.media.has-text > advanced-camera-card-icon.placeholder {
+  width: 95%;
+  height: 95%;
+}
+.media:not(.has-text) > advanced-camera-card-thumbnail-feature-thumbnail.placeholder,
+.media:not(.has-text) > advanced-camera-card-icon.placeholder {
+  width: 60%;
+  height: 60%;
 }
 
 advanced-camera-card-icon.background {

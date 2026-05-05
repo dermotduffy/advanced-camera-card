@@ -76,7 +76,15 @@ export class ThumbnailFeatureController {
     if (thumbnail) {
       this._thumbnail = thumbnail;
       this._icon = null;
-      this._thumbnailClass = isBrandUrl(thumbnail) ? 'placeholder' : null;
+      // Treat as a placeholder (centered, contain-fit) when either the URL
+      // looks brand-like, or the item is a folder. The folder check is
+      // necessary because HA's media browser often returns folder thumbnails
+      // as local/proxy URLs that don't match isBrandUrl, even though they
+      // visually represent integration logos.
+      this._thumbnailClass =
+        isBrandUrl(thumbnail) || ViewItemClassifier.isFolder(item)
+          ? 'placeholder'
+          : null;
     } else {
       this._thumbnail = null;
       this._thumbnailClass = null;
