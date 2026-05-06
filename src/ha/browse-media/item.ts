@@ -5,7 +5,6 @@ import { FolderConfig } from '../../config/schema/folders';
 import { formatDateAndTime } from '../../utils/basic';
 import {
   EventViewMedia,
-  VideoContentType,
   ViewFolder,
   ViewMedia,
   ViewMediaSourceOptions,
@@ -77,9 +76,6 @@ export class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMed
   }
   public getEndTime(): Date | null {
     return this._browseMedia._metadata?.endDate ?? null;
-  }
-  public getVideoContentType(): VideoContentType | null {
-    return this._mediaType === ViewMediaType.Clip ? VideoContentType.MP4 : null;
   }
   public getID(): string {
     return this._id;
