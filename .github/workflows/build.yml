@@ -38,7 +38,7 @@ jobs:
         run: yarn run build
 
       - name: HACS build validation
-        uses: 'hacs/action@21.12.1'
+        uses: 'hacs/action@22.5.0'
         with:
           category: 'plugin'
 
