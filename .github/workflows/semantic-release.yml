@@ -21,7 +21,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: volta-cli/action@v4
+      - uses: volta-cli/action@v5
       - run: yarn install --immutable
       - run: npx semantic-release --dry-run
         id: get-next-version
@@ -41,7 +41,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: volta-cli/action@v4
+      - uses: volta-cli/action@v5
       - run: yarn install --immutable
       - run: yarn run build
         env:
