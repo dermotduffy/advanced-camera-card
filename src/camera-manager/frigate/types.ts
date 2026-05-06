@@ -155,6 +155,11 @@ export type FrigateReviewSeverity =
 // Review data schema (only fields we need for display)
 const frigateReviewDataSchema = z.object({
   objects: z.string().array().optional(),
+
+  // Frigate adds sub_labels for non-attribute identifications (e.g. Frigate+
+  // species name for a bird). Note: The matching `objects` entry carries a
+  // `-verified` suffix in that case.
+  sub_labels: z.string().array().optional(),
   zones: z.string().array().optional(),
   metadata: z
     .object({
