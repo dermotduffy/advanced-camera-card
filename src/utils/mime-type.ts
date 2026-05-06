@@ -1,4 +1,4 @@
-export interface MimeTypeClassification {
+interface MimeTypeClassification {
   isHLS: boolean;
   isVideo: boolean;
 }
