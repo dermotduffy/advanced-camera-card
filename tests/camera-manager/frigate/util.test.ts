@@ -195,6 +195,43 @@ describe('getReviewTitle', () => {
     ).toBe('Person, Dog');
   });
 
+  it('should append sub_labels as tags after objects', () => {
+    expect(
+      getReviewTitle(
+        createFrigateReview({
+          data: {
+            objects: ['bird-verified'],
+            sub_labels: ['Mourning Dove'],
+          },
+        }),
+      ),
+    ).toBe('Bird: Mourning Dove');
+  });
+
+  it('should strip -verified suffix from objects', () => {
+    expect(
+      getReviewTitle(
+        createFrigateReview({
+          data: {
+            objects: ['bird-verified', 'person'],
+          },
+        }),
+      ),
+    ).toBe('Bird, Person');
+  });
+
+  it('should fall back to sub_labels when objects are absent', () => {
+    expect(
+      getReviewTitle(
+        createFrigateReview({
+          data: {
+            sub_labels: ['John'],
+          },
+        }),
+      ),
+    ).toBe('John');
+  });
+
   it('should get in-progress review title', () => {
     vi.useFakeTimers();
     vi.setSystemTime(add(start, { seconds: 60 }));

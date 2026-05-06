@@ -105,12 +105,24 @@ export const getRecordingID = (
  * @param review The Frigate review item.
  */
 export const getReviewTitle = (review: FrigateReview): string => {
+  // Frigate flags Frigate+ verified detections by suffixing the object label
+  // with `-verified`. The user-meaningful identification (e.g. species) lives
+  // in `sub_labels` instead, so strip the suffix and surface sub_labels as a
+  // tag separated by ': ' (matching event title formatting).
   const objects = review.data.objects?.length
-    ? review.data.objects.map((o) => prettifyTitle(o)).join(', ')
+    ? review.data.objects
+        .map((o) => prettifyTitle(o.replace(/-verified$/, '')))
+        .join(', ')
+    : '';
+  const subLabels = review.data.sub_labels?.length
+    ? review.data.sub_labels.map((s) => prettifyTitle(s)).join(', ')
     : '';
 
-  if (objects) {
-    return objects;
+  if (objects && subLabels) {
+    return `${objects}: ${subLabels}`;
+  }
+  if (objects || subLabels) {
+    return objects || subLabels;
   }
 
   const durationSeconds = Math.round(
@@ -121,7 +133,7 @@ export const getReviewTitle = (review: FrigateReview): string => {
 
   return `${formatDateAndTime(
     new Date(review.start_time * 1000),
-  )} [${durationSeconds}s${objects}]`;
+  )} [${durationSeconds}s]`;
 };
 
 /**
