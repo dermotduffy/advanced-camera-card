@@ -29,7 +29,7 @@ jobs:
           filename: advanced-camera-card.zip
 
       - name: Upload JS files to release
-        uses: svenstaro/upload-release-action@2.9.0
+        uses: svenstaro/upload-release-action@2.11.5
 
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -39,7 +39,7 @@ jobs:
           overwrite: true
 
       - name: Upload Zip file to release
-        uses: svenstaro/upload-release-action@2.9.0
+        uses: svenstaro/upload-release-action@2.11.5
 
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
