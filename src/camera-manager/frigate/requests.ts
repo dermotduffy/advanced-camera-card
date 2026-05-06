@@ -115,6 +115,7 @@ export interface NativeFrigateEventQuery {
   instance_id?: string;
   cameras?: string[];
   labels?: string[];
+  sub_labels?: string[];
   zones?: string[];
   after?: number;
   before?: number;
