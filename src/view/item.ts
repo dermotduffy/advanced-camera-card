@@ -10,11 +10,6 @@ export enum ViewMediaType {
   Review = 'review',
 }
 
-export enum VideoContentType {
-  MP4 = 'mp4',
-  HLS = 'hls',
-}
-
 export interface ViewMediaSourceOptions {
   cameraID?: string;
   folder?: FolderConfig;
@@ -39,9 +34,6 @@ export class ViewMedia {
   }
   public getMediaType(): ViewMediaType {
     return this._mediaType;
-  }
-  public getVideoContentType(): VideoContentType | null {
-    return null;
   }
   public getID(): string | null {
     return null;

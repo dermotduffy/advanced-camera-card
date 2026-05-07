@@ -74,17 +74,6 @@ describe('FrigateEventViewMedia', () => {
     expect(media.inProgress()).toBe(false);
   });
 
-  it('should get video content type as HLS', () => {
-    const media = new FrigateEventViewMedia(
-      ViewMediaType.Clip,
-      'camera',
-      createFrigateEvent(),
-      'content_id',
-      'thumbnail',
-    );
-    expect(media.getVideoContentType()).toBe('hls');
-  });
-
   it('should get ID', () => {
     const event = createFrigateEvent({
       id: 'test-event-id',
@@ -384,18 +373,6 @@ describe('FrigateRecordingViewMedia', () => {
     expect(media.inProgress()).toBe(false);
   });
 
-  it('should get video content type as HLS', () => {
-    const media = new FrigateRecordingViewMedia(
-      ViewMediaType.Recording,
-      'camera',
-      createFrigateRecording(),
-      'id',
-      'content_id',
-      'title',
-    );
-    expect(media.getVideoContentType()).toBe('hls');
-  });
-
   it('should get content ID', () => {
     const media = new FrigateRecordingViewMedia(
       ViewMediaType.Recording,
@@ -474,16 +451,6 @@ describe('FrigateReviewViewMedia', () => {
     });
     const media = new FrigateReviewViewMedia('camera', review, 'content_id', 'thumb');
     expect(media.inProgress()).toBe(false);
-  });
-
-  it('should get video content type as HLS', () => {
-    const media = new FrigateReviewViewMedia(
-      'camera',
-      createFrigateReview(),
-      'content_id',
-      'thumb',
-    );
-    expect(media.getVideoContentType()).toBe('hls');
   });
 
   it('should get content ID', () => {

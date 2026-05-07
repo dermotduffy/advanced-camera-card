@@ -5,7 +5,7 @@ import {
   BrowseMediaViewFolder,
 } from '../../../src/ha/browse-media/item';
 import { formatDateAndTime } from '../../../src/utils/basic';
-import { VideoContentType, ViewMediaType } from '../../../src/view/item';
+import { ViewMediaType } from '../../../src/view/item';
 import {
   createBrowseMedia,
   createFolder,
@@ -100,23 +100,6 @@ describe('BrowseMediaEventViewMedia', () => {
       const viewMedia = new BrowseMediaEventViewMedia(ViewMediaType.Clip, browseMedia);
       expect(viewMedia.getStartTime()).toBeNull();
       expect(viewMedia.getEndTime()).toBeNull();
-    });
-  });
-
-  describe('should get video content type', () => {
-    it('should get video content type for clip', () => {
-      const browseMedia = createRichBrowseMedia();
-      const viewMedia = new BrowseMediaEventViewMedia(ViewMediaType.Clip, browseMedia);
-      expect(viewMedia.getVideoContentType()).toBe(VideoContentType.MP4);
-    });
-
-    it('should get null for snapshot', () => {
-      const browseMedia = createBrowseMedia();
-      const viewMedia = new BrowseMediaEventViewMedia(
-        ViewMediaType.Snapshot,
-        browseMedia,
-      );
-      expect(viewMedia.getVideoContentType()).toBeNull();
     });
   });
 

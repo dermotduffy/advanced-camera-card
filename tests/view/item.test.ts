@@ -1,20 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  VideoContentType,
-  ViewFolder,
-  ViewMedia,
-  ViewMediaType,
-} from '../../src/view/item';
+import { ViewFolder, ViewMedia, ViewMediaType } from '../../src/view/item';
 import { createFolder, TestViewMedia } from '../test-utils';
-
-describe('VideoContentType', () => {
-  it('MP4', () => {
-    expect(VideoContentType.MP4).toBe('mp4');
-  });
-  it('HLS', () => {
-    expect(VideoContentType.HLS).toBe('hls');
-  });
-});
 
 describe('ViewMedia', () => {
   beforeEach(() => {
@@ -27,7 +13,6 @@ describe('ViewMedia', () => {
     });
     expect(media.getCameraID()).toBe('camera');
     expect(media.getMediaType()).toBe('clip');
-    expect(media.getVideoContentType()).toBeNull();
     expect(media.getID()).toBeNull();
     expect(media.getStartTime()).toBeNull();
     expect(media.getEndTime()).toBeNull();

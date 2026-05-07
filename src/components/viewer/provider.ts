@@ -22,13 +22,14 @@ import { ViewerConfig } from '../../config/schema/viewer.js';
 import { canonicalizeHAURL } from '../../ha/canonical-url.js';
 import { isHARelativeURL } from '../../ha/is-ha-relative-url.js';
 import { ResolvedMediaCache, resolveMedia } from '../../ha/resolved-media.js';
-import { HomeAssistant } from '../../ha/types.js';
+import { HomeAssistant, ResolvedMedia } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';
 import viewerProviderStyle from '../../scss/viewer-provider.scss';
 import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../../types.js';
+import { classifyMimeType } from '../../utils/mime-type.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
-import { VideoContentType, ViewMedia } from '../../view/item.js';
+import { ViewMedia } from '../../view/item.js';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer.js';
 import '../image-player.js';
 import { renderNotificationBlockFromText } from '../notification/block.js';
@@ -62,23 +63,23 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   private _refProvider: Ref<MediaPlayerElement> = createRef();
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
-  private _resolvedMediaURL: string | null = null;
+  private _resolvedMedia: ResolvedMedia | null = null;
 
   private _signedURLController = new SignedURLController(this, () => {
-    if (!this.hass || !this._resolvedMediaURL) {
+    if (!this.hass || !this._resolvedMedia) {
       return {};
     }
     // HA-relative URLs need no proxying or signing.
-    if (isHARelativeURL(this._resolvedMediaURL)) {
+    if (isHARelativeURL(this._resolvedMedia.url)) {
       return {
-        endpoint: { endpoint: canonicalizeHAURL(this.hass, this._resolvedMediaURL) },
+        endpoint: { endpoint: canonicalizeHAURL(this.hass, this._resolvedMedia.url) },
       };
     }
     const cameraID = this.media?.getCameraID();
     const camera = cameraID ? this.cameraManager?.getStore().getCamera(cameraID) : null;
     return {
       hass: this.hass,
-      endpoint: { endpoint: this._resolvedMediaURL },
+      endpoint: { endpoint: this._resolvedMedia.url },
       proxyConfig: camera?.getMediaProxyConfig(),
     };
   });
@@ -128,19 +129,18 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   private async _resolveURL(): Promise<void> {
     const contentID = this.media?.getContentID();
     if (!contentID || !this.hass || !this._lazyLoadController?.isLoaded()) {
-      this._resolvedMediaURL = null;
+      this._resolvedMedia = null;
       return;
     }
 
     // Clear immediately so the SignedURLController doesn't see a stale URL
     // from the previous media item during the async gap.
-    this._resolvedMediaURL = null;
+    this._resolvedMedia = null;
 
-    const resolved =
+    this._resolvedMedia =
       this.resolvedMediaCache?.get(contentID) ??
-      (await resolveMedia(this.hass, contentID, this.resolvedMediaCache));
-
-    this._resolvedMediaURL = resolved?.url ?? null;
+      (await resolveMedia(this.hass, contentID, this.resolvedMediaCache)) ??
+      null;
     this.requestUpdate();
   }
 
@@ -251,9 +251,11 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     // Note: crossorigin="anonymous" is required on <video> below in order to
     // allow screenshot of motionEye videos which currently go cross-origin.
     const mediaID = this.media.getID() ?? undefined;
+    const { isHLS, isVideo } = classifyMimeType(this._resolvedMedia?.mime_type);
+
     return this._renderContainer(html`
-      ${ViewItemClassifier.isVideo(this.media)
-        ? this.media.getVideoContentType() === VideoContentType.HLS
+      ${isVideo
+        ? isHLS
           ? html`<advanced-camera-card-ha-hls-player
               ${ref(this._refProvider)}
               allow-exoplayer
