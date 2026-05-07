@@ -6,7 +6,6 @@ import {
   EventViewMedia,
   RecordingViewMedia,
   ReviewViewMedia,
-  VideoContentType,
   ViewMedia,
   ViewMediaType,
 } from '../../view/item';
@@ -59,9 +58,6 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
     // In Frigate, events/recordings always have end times unless they are in
     // progress.
     return !this.getEndTime();
-  }
-  public getVideoContentType(): VideoContentType | null {
-    return VideoContentType.HLS;
   }
   public getID(): string {
     return this._event.id;
@@ -141,9 +137,6 @@ export class FrigateRecordingViewMedia extends ViewMedia implements RecordingVie
     // progress.
     return !this.getEndTime();
   }
-  public getVideoContentType(): VideoContentType | null {
-    return VideoContentType.HLS;
-  }
   public getContentID(): string | null {
     return this._contentID;
   }
@@ -185,9 +178,6 @@ export class FrigateReviewViewMedia extends ViewMedia implements ReviewViewMedia
   }
   public inProgress(): boolean | null {
     return !this.getEndTime();
-  }
-  public getVideoContentType(): VideoContentType | null {
-    return VideoContentType.HLS;
   }
   public getContentID(): string | null {
     return this._contentID;

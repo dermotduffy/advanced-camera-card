@@ -1017,7 +1017,6 @@ describe('ReolinkCameraManagerEngine', () => {
       expect(media?.[0].getCameraID()).toBe('office');
       expect(media?.[0].getStartTime()).toEqual(new Date('2024-11-04T21:00:00'));
       expect(media?.[0].getEndTime()).toEqual(new Date('2024-11-04T22:00:00'));
-      expect(media?.[0].getVideoContentType()).toBe('mp4');
       expect(media?.[0].getID()).toBe('office/2024-11-04 21:00:00');
       expect(media?.[0].getContentID()).toBe(
         'media-source://reolink/FILE|01J8XHYTNH77WE3C654K03KX1F|0|sub|Rec_20241105_052353_211_S.mp4',
