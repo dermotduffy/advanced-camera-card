@@ -1,33 +1,63 @@
-import { expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { getConfigValue } from '../../../src/config/management';
 import { CASTING_PROFILE } from '../../../src/config/profiles/casting';
 import { setProfiles } from '../../../src/config/profiles/set-profiles';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
 import { createRawConfig } from '../../test-utils';
 
-it('should contain expected defaults', () => {
-  expect(CASTING_PROFILE).toEqual({
-    'cameras_global.image.refresh_seconds': 1,
-    'dimensions.aspect_ratio_mode': 'static',
-    'dimensions.aspect_ratio': '16:9',
-    'live.auto_unmute': ['selected', 'visible'],
-    'live.controls.builtin': false,
-    'live.show_image_during_load': true,
-    'media_viewer.controls.builtin': false,
-    'menu.buttons.fullscreen.enabled': false,
-    'menu.buttons.media_player.enabled': false,
-    'menu.buttons.mute.enabled': true,
-    'menu.buttons.play.enabled': true,
-    'menu.style': 'none',
+describe('CASTING_PROFILE', () => {
+  it('should contain expected defaults', () => {
+    expect(CASTING_PROFILE).toEqual({
+      'cameras_global.image.refresh_seconds': 1,
+      'dimensions.aspect_ratio_mode': 'static',
+      'dimensions.aspect_ratio': '16:9',
+      'live.auto_unmute': ['selected', 'visible'],
+      'live.controls.builtin': false,
+      'live.show_image_during_load': true,
+      'media_viewer.controls.builtin': false,
+      'menu.buttons.fullscreen.enabled': false,
+      'menu.buttons.media_player.enabled': false,
+      'menu.buttons.mute.enabled': true,
+      'menu.buttons.play.enabled': true,
+      'menu.style': 'none',
+    });
   });
-});
 
-it('should be parseable after application', () => {
-  const rawInputConfig = createRawConfig();
-  const parsedConfig = advancedCameraCardConfigSchema.parse(rawInputConfig);
+  it('should apply each profile value to the merged config', () => {
+    const rawInputConfig = createRawConfig();
+    const parsedConfig = advancedCameraCardConfigSchema.parse(rawInputConfig);
 
-  setProfiles(rawInputConfig, parsedConfig, ['casting']);
+    setProfiles(rawInputConfig, parsedConfig, ['casting']);
 
-  // Reparse the config to ensure the profile did not introduce errors.
-  const parseResult = advancedCameraCardConfigSchema.safeParse(parsedConfig);
-  expect(parseResult.success, parseResult.error?.toString()).toBeTruthy();
+    for (const [path, expected] of Object.entries(CASTING_PROFILE)) {
+      expect(getConfigValue(parsedConfig, path), path).toEqual(expected);
+    }
+  });
+
+  it('should preserve user-specified values over profile values', () => {
+    const rawInputConfig = createRawConfig({
+      menu: { style: 'hover' },
+      live: { auto_unmute: [] },
+    });
+    const parsedConfig = advancedCameraCardConfigSchema.parse(rawInputConfig);
+
+    setProfiles(rawInputConfig, parsedConfig, ['casting']);
+
+    expect(parsedConfig.menu.style).toBe('hover');
+    expect(parsedConfig.live.auto_unmute).toEqual([]);
+
+    // Non-overridden profile values should still be applied.
+    expect(parsedConfig.live.controls.builtin).toBe(false);
+    expect(parsedConfig.dimensions.aspect_ratio_mode).toBe('static');
+  });
+
+  it('should be parseable after application', () => {
+    const rawInputConfig = createRawConfig();
+    const parsedConfig = advancedCameraCardConfigSchema.parse(rawInputConfig);
+
+    setProfiles(rawInputConfig, parsedConfig, ['casting']);
+
+    const parseResult = advancedCameraCardConfigSchema.safeParse(parsedConfig);
+    expect(parseResult.success, parseResult.error?.toString()).toBeTruthy();
+  });
 });
