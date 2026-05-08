@@ -237,6 +237,29 @@ export class VideoRTC extends HTMLElement {
   }
 
   /**
+   * Synchronously tear down the stream: clear pending disconnect/reconnect
+   * timers, abort any in-flight load registration, and close the WebSocket
+   * and peer connection immediately. Used when intentionally destroying the
+   * player (e.g. swapping cameras) to avoid the DISCONNECT_TIMEOUT defer
+   * that would otherwise keep backchannel-enabled streams connected.
+   */
+  reset() {
+    if (this.disconnectTID) {
+      clearTimeout(this.disconnectTID);
+      this.disconnectTID = 0;
+    }
+    if (this.reconnectTID) {
+      clearTimeout(this.reconnectTID);
+      this.reconnectTID = 0;
+    }
+    this._abortController?.abort();
+    this._abortController = null;
+    if (this.wsState !== WebSocket.CLOSED || this.pcState !== WebSocket.CLOSED) {
+      this.ondisconnect();
+    }
+  }
+
+  /**
    * Reconnect the stream.
    */
   reconnect() {
@@ -714,12 +737,37 @@ export class VideoRTC extends HTMLElement {
       }
     };
 
-    this.createOffer(pc).then((offer) => {
-      this.send({ type: 'webrtc/offer', value: offer.sdp });
-    });
+    this.negotiateOffer(pc);
 
     this.pcState = WebSocket.CONNECTING;
     this.pc = pc;
+  }
+
+  /**
+   * Build and send the WebRTC offer, guarding against the peer connection being
+   * torn down or replaced while `createOffer` is in flight (e.g. by `reset()`
+   * during a stream swap, or by a `webrtc/offer` error message closing `pc`
+   * without resetting `this.pc`/`this.pcState`). Without these guards a stale
+   * offer would be sent and `createOffer` rejections from mid-await
+   * `pc.close()` would surface as unhandled promise rejections.
+   * @param pc {RTCPeerConnection}
+   */
+  async negotiateOffer(pc) {
+    try {
+      const offer = await this.createOffer(pc);
+      if (
+        this.pc !== pc ||
+        this.pcState === WebSocket.CLOSED ||
+        pc.signalingState === 'closed'
+      ) {
+        return;
+      }
+      this.send({ type: 'webrtc/offer', value: offer.sdp });
+    } catch (er) {
+      if (this.pc === pc && this.pcState !== WebSocket.CLOSED) {
+        console.warn(er);
+      }
+    }
   }
 
   /**
