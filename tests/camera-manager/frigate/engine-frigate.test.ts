@@ -113,6 +113,7 @@ const createFrigateCameraConfig = (
   return createCameraConfig({
     frigate: {
       camera_name: 'camera-1',
+      client_id: 'frigate',
     },
     camera_entity: 'camera.office',
     ...config,

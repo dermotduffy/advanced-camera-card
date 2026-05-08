@@ -342,7 +342,10 @@ export class FrigateCameraManagerEngine
     media: ViewMedia,
     favorite: boolean,
   ): Promise<void> {
-    if (!FrigateViewMediaClassifier.isFrigateEvent(media)) {
+    if (
+      !FrigateViewMediaClassifier.isFrigateEvent(media) ||
+      !cameraConfig.frigate.client_id
+    ) {
       return;
     }
 
@@ -356,7 +359,10 @@ export class FrigateCameraManagerEngine
     media: ViewMedia,
     reviewed: boolean,
   ): Promise<void> {
-    if (!FrigateViewMediaClassifier.isFrigateReview(media)) {
+    if (
+      !FrigateViewMediaClassifier.isFrigateReview(media) ||
+      !cameraConfig.frigate.client_id
+    ) {
       return;
     }
 
@@ -590,7 +596,11 @@ export class FrigateCameraManagerEngine
       }
 
       const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
-      if (!cameraConfig || !cameraConfig.frigate.camera_name) {
+      if (
+        !cameraConfig ||
+        !cameraConfig.frigate.camera_name ||
+        !cameraConfig.frigate.client_id
+      ) {
         return;
       }
 
@@ -669,7 +679,11 @@ export class FrigateCameraManagerEngine
     ): Promise<void> => {
       const query = { ...baseQuery, cameraIDs: new Set([cameraID]) };
       const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
-      if (!cameraConfig || !cameraConfig.frigate.camera_name) {
+      if (
+        !cameraConfig ||
+        !cameraConfig.frigate.camera_name ||
+        !cameraConfig.frigate.client_id
+      ) {
         return;
       }
 

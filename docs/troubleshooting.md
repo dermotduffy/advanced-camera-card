@@ -214,8 +214,9 @@ between clicking the download button and the download starting.
 ### `Forbidden media source identifier`
 
 - If you are using a custom `client_id` setting in your `frigate.yml` file (the
-  configuration file for the Frigate backend itself), you must tell the card
-  about it. See [Frigate engine
+  configuration file for the Frigate backend itself), the card will auto-detect
+  it from the camera entity. If auto-detection fails (e.g. no `camera_entity`
+  is configured), set it manually — see [Frigate engine
   configuration](configuration/cameras/engine.md?id=frigate).
 - You must have the `Enable the media browser` option enabled for the Frigate
   integration, in order for media fetches to work for the card. Media fetches
@@ -358,9 +359,10 @@ entity provided by HACS. The entity is usually called
 
 e.g. `API error whilst subscribing to events for unknown Frigate instance frigate`
 
-If you are using a custom `client_id` setting in your `frigate.yml` file (the
-configuration file for the Frigate backend itself), you must tell the card about
-it via the `client_id` parameter:
+The card auto-detects a custom `client_id` from the camera entity, so this
+error usually means auto-detection couldn't run (no `camera_entity` configured)
+or the entity doesn't expose a `client_id` attribute. Set it manually via the
+`client_id` parameter:
 
 ```yaml
 cameras:
@@ -373,7 +375,7 @@ See [Frigate engine configuration](configuration/cameras/engine.md?id=frigate)
 for more details.
 
 If you're not using a custom `client_id`, your Frigate integration is likely not
-installed correct.
+installed correctly.
 
 ### `webrtc_card` unloads in the background
 
