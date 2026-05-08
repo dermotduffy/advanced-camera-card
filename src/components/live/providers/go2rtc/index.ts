@@ -74,7 +74,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   }
 
   disconnectedCallback(): void {
-    this._player = undefined;
+    this._destroyPlayer();
     super.disconnectedCallback();
   }
 
@@ -84,6 +84,14 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     // Reset the player when reconnected to the DOM.
     // https://github.com/dermotduffy/advanced-camera-card/issues/996
     this.requestUpdate();
+  }
+
+  private _destroyPlayer(): void {
+    // Tear down synchronously so backchannel-enabled streams (e.g. doorbell
+    // 2-way audio) release immediately rather than waiting out
+    // DISCONNECT_TIMEOUT.
+    this._player?.reset();
+    this._player = undefined;
   }
 
   private _createPlayer(): void {
@@ -112,7 +120,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     if (changedProps.has('camera')) {
       // Clear old player; the new one is created by the
       // SignedURLController's valueChangeCallback once the URL resolves.
-      this._player = undefined;
+      this._destroyPlayer();
     }
 
     // Only treat a missing go2rtc endpoint as an error after the camera's

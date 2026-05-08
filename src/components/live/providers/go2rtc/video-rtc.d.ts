@@ -35,5 +35,6 @@ export class VideoRTC extends HTMLElement {
   microphoneStream: MediaStream | null;
   targetID: string | null;
   reconnect();
+  reset(): void;
   setControls(controls: boolean): void;
 }
