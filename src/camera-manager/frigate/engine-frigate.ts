@@ -188,6 +188,9 @@ export class FrigateCameraManagerEngine
     cameraConfig: CameraConfig,
     media: ViewMedia,
   ): Promise<Endpoint | null> {
+    if (!cameraConfig.frigate.client_id) {
+      return null;
+    }
     if (FrigateViewMediaClassifier.isFrigateEvent(media)) {
       return {
         endpoint:

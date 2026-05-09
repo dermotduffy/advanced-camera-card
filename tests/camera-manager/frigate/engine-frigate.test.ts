@@ -356,6 +356,17 @@ describe('FrigateCameraManagerEngine', () => {
       );
       expect(endpoint).toBeNull();
     });
+
+    it('should get no path when client_id is unresolved', async () => {
+      const endpoint = await createEngine().getMediaDownloadPath(
+        createHASS(),
+        createFrigateCameraConfig({
+          frigate: { camera_name: 'camera-1' },
+        }),
+        createClipMedia(),
+      );
+      expect(endpoint).toBeNull();
+    });
   });
 
   describe('generateDefaultEventQuery', () => {

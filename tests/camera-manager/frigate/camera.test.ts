@@ -260,6 +260,30 @@ describe('FrigateCamera', () => {
         });
         expect(camera.getConfig().frigate.client_id).toBe('remote_x');
       });
+
+      it('leaves client_id untouched when the camera entity is unavailable', async () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            camera_entity: 'camera.front_door',
+            frigate: { camera_name: 'front_door' },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        await camera.initialize({
+          hass: createHASS({
+            'camera.front_door': createStateEntity({
+              entity_id: 'camera.front_door',
+              state: 'unavailable',
+              attributes: {},
+            }),
+          }),
+          entityRegistryManager: mock<EntityRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+          frigateReviewWatcher: mock<FrigateReviewWatcher>(),
+        });
+        expect(camera.getConfig().frigate.client_id).toBeUndefined();
+      });
     });
   });
 

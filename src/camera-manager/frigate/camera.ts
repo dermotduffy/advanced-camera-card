@@ -134,11 +134,13 @@ export class FrigateCamera extends Camera {
     }
 
     if (!this._config.frigate.client_id) {
-      const state = cameraEntity
-        ? hass.states[cameraEntity]?.attributes?.client_id
-        : undefined;
-      this._config.frigate.client_id =
-        typeof state === 'string' && state ? state : 'frigate';
+      const stateEntity = cameraEntity ? hass.states[cameraEntity] : undefined;
+      const clientID = stateEntity?.attributes?.client_id;
+      if (typeof clientID === 'string' && clientID) {
+        this._config.frigate.client_id = clientID;
+      } else if (stateEntity?.state !== 'unavailable') {
+        this._config.frigate.client_id = 'frigate';
+      }
     }
 
     if (hasAutoTriggers) {
@@ -235,7 +237,12 @@ export class FrigateCamera extends Camera {
     const stream = this._config.go2rtc?.stream ?? this._config.frigate.camera_name;
     const url =
       this._config.go2rtc?.url ??
-      `/api/frigate/${this._config.frigate.client_id}/go2rtc`;
+      (this._config.frigate.client_id
+        ? `/api/frigate/${this._config.frigate.client_id}/go2rtc`
+        : null);
+    if (!url) {
+      return null;
+    }
     return getGo2RTCMetadataEndpoint(this._config, { url, stream });
   }
 
@@ -244,8 +251,12 @@ export class FrigateCamera extends Camera {
     const url =
       this._config.go2rtc?.url ??
       // go2rtc is exposed by the Frigate integration under the 'mse' path.
-      `/api/frigate/${this._config.frigate.client_id}/mse`;
-
+      (this._config.frigate.client_id
+        ? `/api/frigate/${this._config.frigate.client_id}/mse`
+        : null);
+    if (!url) {
+      return null;
+    }
     return getGo2RTCStreamEndpoint(this._config, {
       url,
       stream,
@@ -253,7 +264,7 @@ export class FrigateCamera extends Camera {
   }
 
   private _getJSMPEGEndpoint(): Endpoint | null {
-    if (!this._config.frigate.camera_name) {
+    if (!this._config.frigate.camera_name || !this._config.frigate.client_id) {
       return null;
     }
     return {
