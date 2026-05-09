@@ -20,9 +20,7 @@ describe('config defaults', () => {
           cameras: [],
         },
         engine: 'auto',
-        frigate: {
-          client_id: 'frigate',
-        },
+        frigate: {},
         go2rtc: {
           metadata_fetch_timeout_seconds: 2,
         },

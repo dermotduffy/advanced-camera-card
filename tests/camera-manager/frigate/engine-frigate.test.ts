@@ -113,6 +113,7 @@ const createFrigateCameraConfig = (
   return createCameraConfig({
     frigate: {
       camera_name: 'camera-1',
+      client_id: 'frigate',
     },
     camera_entity: 'camera.office',
     ...config,
@@ -352,6 +353,17 @@ describe('FrigateCameraManagerEngine', () => {
         new ViewMedia(ViewMediaType.Clip, {
           cameraID: 'camera-1',
         }),
+      );
+      expect(endpoint).toBeNull();
+    });
+
+    it('should get no path when client_id is unresolved', async () => {
+      const endpoint = await createEngine().getMediaDownloadPath(
+        createHASS(),
+        createFrigateCameraConfig({
+          frigate: { camera_name: 'camera-1' },
+        }),
+        createClipMedia(),
       );
       expect(endpoint).toBeNull();
     });
