@@ -143,6 +143,30 @@ describe('CardElementManager', () => {
     expect(api.getExpandManager().initialize).toBeCalled();
     expect(api.getMediaLoadedInfoManager().initialize).toBeCalled();
     expect(api.getMicrophoneManager().initialize).toBeCalled();
+
+    expect(api.getConditionStateManager()?.setState).toBeCalledWith(
+      expect.objectContaining({ casting: false }),
+    );
+  });
+
+  it('should set casting condition state when card is being cast', () => {
+    vi.stubGlobal('navigator', { userAgent: 'CrKey/1.0' });
+
+    const element = createCardHTMLElement();
+    const api = createCardAPI();
+    const manager = new CardElementManager(
+      api,
+      element,
+      () => undefined,
+      () => undefined,
+    );
+
+    manager.elementConnected();
+
+    expect(element.getAttribute('casted')).not.toBeNull();
+    expect(api.getConditionStateManager()?.setState).toBeCalledWith(
+      expect.objectContaining({ casting: true }),
+    );
   });
 
   it('should disconnect', () => {

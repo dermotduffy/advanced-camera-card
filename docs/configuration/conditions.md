@@ -45,6 +45,21 @@ conditions:
 | `condition` | Must be `camera`.                                                                                                                                                                     |
 | `cameras`   | An optional list of camera IDs in which this condition is satisfied. If not specified, any camera change will satisy the condition. See the camera [id](cameras/README.md) parameter. |
 
+## `casting`
+
+Matches based on whether the card is being cast to a Chromecast / TV device.
+
+```yaml
+conditions:
+  - condition: casting
+    # [...]
+```
+
+| Parameter   | Description                                                                                                                              |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` | Must be `casting`.                                                                                                                       |
+| `casting`   | If `true` the condition is satisfied if the card is being cast. If `false` the condition is satisfied if the card is **NOT** being cast. |
+
 ## `config`
 
 Matches when card configuration changes (e.g. on startup, or when [Configuration Overrides](./overrides.md) are applied).

@@ -176,6 +176,11 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
           }),
         };
       }
+      case 'casting':
+        return {
+          result:
+            newState?.casting !== undefined && condition.casting === newState.casting,
+        };
       case 'fullscreen':
         return {
           result:

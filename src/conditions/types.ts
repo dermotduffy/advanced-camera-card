@@ -8,6 +8,7 @@ import { MediaLoadedInfo } from '../types';
 
 export interface ConditionState {
   camera?: string;
+  casting?: boolean;
   config?: AdvancedCameraCardConfig;
   displayMode?: ViewDisplayMode;
   expand?: boolean;
