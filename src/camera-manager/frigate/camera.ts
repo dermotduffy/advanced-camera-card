@@ -133,6 +133,16 @@ export class FrigateCamera extends Camera {
       }
     }
 
+    if (!this._config.frigate.client_id) {
+      const stateEntity = cameraEntity ? hass.states[cameraEntity] : undefined;
+      const clientID = stateEntity?.attributes?.client_id;
+      if (typeof clientID === 'string' && clientID) {
+        this._config.frigate.client_id = clientID;
+      } else if (stateEntity?.state !== 'unavailable') {
+        this._config.frigate.client_id = 'frigate';
+      }
+    }
+
     if (hasAutoTriggers) {
       // Try to find the correct entities for the motion & occupancy sensors.
       // We know they are binary_sensors, and that they'll have the same
@@ -227,7 +237,12 @@ export class FrigateCamera extends Camera {
     const stream = this._config.go2rtc?.stream ?? this._config.frigate.camera_name;
     const url =
       this._config.go2rtc?.url ??
-      `/api/frigate/${this._config.frigate.client_id}/go2rtc`;
+      (this._config.frigate.client_id
+        ? `/api/frigate/${this._config.frigate.client_id}/go2rtc`
+        : null);
+    if (!url) {
+      return null;
+    }
     return getGo2RTCMetadataEndpoint(this._config, { url, stream });
   }
 
@@ -236,8 +251,12 @@ export class FrigateCamera extends Camera {
     const url =
       this._config.go2rtc?.url ??
       // go2rtc is exposed by the Frigate integration under the 'mse' path.
-      `/api/frigate/${this._config.frigate.client_id}/mse`;
-
+      (this._config.frigate.client_id
+        ? `/api/frigate/${this._config.frigate.client_id}/mse`
+        : null);
+    if (!url) {
+      return null;
+    }
     return getGo2RTCStreamEndpoint(this._config, {
       url,
       stream,
@@ -245,7 +264,7 @@ export class FrigateCamera extends Camera {
   }
 
   private _getJSMPEGEndpoint(): Endpoint | null {
-    if (!this._config.frigate.camera_name) {
+    if (!this._config.frigate.camera_name || !this._config.frigate.client_id) {
       return null;
     }
     return {
@@ -305,7 +324,11 @@ export class FrigateCamera extends Camera {
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
   ): Promise<PTZCapabilities | null> {
-    if (!cameraConfig.frigate.camera_name || isBirdseye(cameraConfig)) {
+    if (
+      !cameraConfig.frigate.camera_name ||
+      !cameraConfig.frigate.client_id ||
+      isBirdseye(cameraConfig)
+    ) {
       return null;
     }
 
@@ -424,7 +447,11 @@ export class FrigateCamera extends Camera {
     frigateEventWatcher: FrigateWatcherSubscriptionInterface<FrigateEventChange>,
   ): Promise<void> {
     const config = this.getConfig();
-    if (!config.triggers.events.length || !config.frigate.camera_name) {
+    if (
+      !config.triggers.events.length ||
+      !config.frigate.camera_name ||
+      !config.frigate.client_id
+    ) {
       return;
     }
 
@@ -495,7 +522,11 @@ export class FrigateCamera extends Camera {
     const reviewConfig = config.triggers.reviews;
 
     // Must have at least one severity configured and a camera name to subscribe
-    if (!reviewConfig.severities.length || !config.frigate.camera_name) {
+    if (
+      !reviewConfig.severities.length ||
+      !config.frigate.camera_name ||
+      !config.frigate.client_id
+    ) {
       return;
     }
 

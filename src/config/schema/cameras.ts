@@ -129,9 +129,7 @@ export const cameraConfigDefault = {
     cameras: [],
   },
   engine: 'auto' as const,
-  frigate: {
-    client_id: 'frigate' as const,
-  },
+  frigate: {},
   live_provider: 'auto' as const,
   motioneye: {
     images: {
@@ -273,7 +271,7 @@ export const cameraConfigSchema = z
     frigate: z
       .object({
         url: z.string().optional(),
-        client_id: z.string().default(cameraConfigDefault.frigate.client_id),
+        client_id: z.string().optional(),
         camera_name: z.string().optional(),
         labels: z.string().array().optional(),
         zones: z.string().array().optional(),
