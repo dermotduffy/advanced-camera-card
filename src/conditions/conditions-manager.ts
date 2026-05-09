@@ -1,6 +1,7 @@
 import { TemplateRenderer } from '../card-controller/templates';
 import { getConfigValue } from '../config/management';
 import { AdvancedCameraCardCondition } from '../config/schema/conditions/types';
+import { isBeingCasted } from '../utils/casting';
 import { isCompanionApp } from '../utils/companion';
 import {
   ConditionsEvaluationResult,
@@ -176,11 +177,6 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
           }),
         };
       }
-      case 'casting':
-        return {
-          result:
-            newState?.casting !== undefined && condition.casting === newState.casting,
-        };
       case 'fullscreen':
         return {
           result:
@@ -280,6 +276,8 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
           result:
             !!newState?.userAgent &&
             (!condition.user_agent || condition.user_agent === newState.userAgent) &&
+            (condition.casting === undefined ||
+              condition.casting === isBeingCasted(newState.userAgent)) &&
             (condition.companion === undefined ||
               condition.companion === isCompanionApp(newState.userAgent)) &&
             (condition.user_agent_re === undefined ||

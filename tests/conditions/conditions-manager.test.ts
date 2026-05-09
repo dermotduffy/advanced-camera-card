@@ -84,20 +84,6 @@ describe('ConditionsManager', () => {
       });
     });
 
-    it('with casting condition', () => {
-      const stateManager = new ConditionStateManager();
-      const manager = new ConditionsManager(
-        [{ condition: 'casting' as const, casting: true }],
-        stateManager,
-      );
-
-      expect(manager.getEvaluation().result).toBeFalsy();
-      stateManager.setState({ casting: true });
-      expect(manager.getEvaluation().result).toBeTruthy();
-      stateManager.setState({ casting: false });
-      expect(manager.getEvaluation().result).toBeFalsy();
-    });
-
     it('with fullscreen condition', () => {
       const stateManager = new ConditionStateManager();
       const manager = new ConditionsManager(
@@ -962,6 +948,24 @@ describe('ConditionsManager', () => {
         expect(manager.getEvaluation().result).toBeTruthy();
         stateManager.setState({
           userAgent: 'Something else',
+        });
+        expect(manager.getEvaluation().result).toBeFalsy();
+      });
+
+      it('should match casting', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager(
+          [{ condition: 'user_agent' as const, casting: true }],
+          stateManager,
+        );
+
+        expect(manager.getEvaluation().result).toBeFalsy();
+        stateManager.setState({
+          userAgent: 'CrKey/1.0',
+        });
+        expect(manager.getEvaluation().result).toBeTruthy();
+        stateManager.setState({
+          userAgent: userAgent,
         });
         expect(manager.getEvaluation().result).toBeFalsy();
       });

@@ -151,7 +151,6 @@ export class CardElementManager {
     );
 
     this._api.getConditionStateManager()?.setState({
-      casting: isBeingCasted(),
       userAgent: navigator.userAgent,
     });
 
