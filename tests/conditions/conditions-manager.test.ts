@@ -952,6 +952,24 @@ describe('ConditionsManager', () => {
         expect(manager.getEvaluation().result).toBeFalsy();
       });
 
+      it('should match casting', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager(
+          [{ condition: 'user_agent' as const, casting: true }],
+          stateManager,
+        );
+
+        expect(manager.getEvaluation().result).toBeFalsy();
+        stateManager.setState({
+          userAgent: 'CrKey/1.0',
+        });
+        expect(manager.getEvaluation().result).toBeTruthy();
+        stateManager.setState({
+          userAgent: userAgent,
+        });
+        expect(manager.getEvaluation().result).toBeFalsy();
+      });
+
       it('should match companion app', () => {
         const stateManager = new ConditionStateManager();
         const manager = new ConditionsManager(

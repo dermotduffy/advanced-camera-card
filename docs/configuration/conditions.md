@@ -356,6 +356,7 @@ conditions:
 | `condition`     | Must be `user_agent`.                                                                                                                                    |
 | `user_agent`    | Exactly matches a user-agent, e.g. `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36`               |
 | `user_agent_re` | Matches a user-agent based on a regular expression, e.g. `Chrome/`.                                                                                      |
+| `casting`       | If `true` matches if the card is being cast to a Chromecast / TV device, if `false` matches if the card is _NOT_ being cast.                             |
 | `companion`     | If `true` matches if the user-agent is the Home Assistant companion app, if `false` matches if the user-agent is _NOT_ the Home Assistant companion app. |
 
 When multiple parameters are specified they must all match for the condition to
@@ -436,6 +437,7 @@ conditions:
   - condition: user_agent
     user_agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
     user_agent_re: "Chrome/"
+    casting: true
     companion: true
   - condition: view
     views:
