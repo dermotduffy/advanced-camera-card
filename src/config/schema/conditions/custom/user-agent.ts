@@ -5,5 +5,6 @@ export const userAgentConditionSchema = z.object({
   condition: z.literal('user_agent'),
   user_agent: z.string().optional(),
   user_agent_re: regexSchema.optional(),
+  casting: z.boolean().optional(),
   companion: z.boolean().optional(),
 });
