@@ -53,6 +53,15 @@ describe('MediaActionsController', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Reset document.visibilityState so each test starts with the tab visible
+    // and is not affected by leftover state from a prior
+    // `callVisibilityHandler(false)`.
+    Object.defineProperty(document, 'visibilityState', {
+      value: 'visible',
+      writable: true,
+      configurable: true,
+    });
   });
 
   describe('should set root', () => {
@@ -451,14 +460,16 @@ describe('MediaActionsController', () => {
         controller.setRoot(createParent({ children: children }));
         await controller.setTarget(0, true);
 
-        // Not configured to take action on selection.
-        expect(
-          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
-        ).not.toBeCalled();
+        // The 'visible' rule fires when the element is both intersecting and
+        // the tab is visible. Set up element-intersecting + tab-hidden first so
+        // that the next callVisibilityHandler(true) is a real hidden->visible
+        // transition. The hidden transition itself only fires pause/mute (not
+        // play/unmute), so it does not affect the call count of `func` here.
+        await callIntersectionHandler(true);
+        await callVisibilityHandler(false);
 
         await callVisibilityHandler(true);
 
-        // Not configured to take action on selection.
         expect(
           (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
         ).toBeCalledTimes(called ? 1 : 0);
@@ -494,14 +505,13 @@ describe('MediaActionsController', () => {
         controller.setRoot(createParent({ children: children }));
         await controller.setTarget(0, true);
 
-        // Not configured to take action on selection.
-        expect(
-          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
-        ).not.toBeCalled();
+        // The 'hidden' rule fires on a transition from visible to hidden.
+        // Establish element-intersecting + tab-visible first so that
+        // callVisibilityHandler(false) is a real visible->hidden transition.
+        await callIntersectionHandler(true);
 
         await callVisibilityHandler(false);
 
-        // Not configured to take action on selection.
         expect(
           (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
         ).toBeCalledTimes(called ? 1 : 0);
