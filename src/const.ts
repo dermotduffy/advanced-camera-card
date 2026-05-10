@@ -355,12 +355,16 @@ export const CONF_LIVE_PRELOAD = `${CONF_LIVE}.preload` as const;
 export const CONF_LIVE_TRANSITION_EFFECT = `${CONF_LIVE}.transition_effect` as const;
 export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD =
   `${CONF_LIVE}.show_image_during_load` as const;
+export const CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED =
+  `${CONF_LIVE}.microphone.always_connected` as const;
+export const CONF_LIVE_MICROPHONE_AUTO_MUTE =
+  `${CONF_LIVE}.microphone.auto_mute` as const;
+export const CONF_LIVE_MICROPHONE_AUTO_UNMUTE =
+  `${CONF_LIVE}.microphone.auto_unmute` as const;
 export const CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS =
   `${CONF_LIVE}.microphone.disconnect_seconds` as const;
 export const CONF_LIVE_MICROPHONE_MUTE_AFTER_MICROPHONE_MUTE_SECONDS =
   `${CONF_LIVE}.microphone.mute_after_microphone_mute_seconds` as const;
-export const CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED =
-  `${CONF_LIVE}.microphone.always_connected` as const;
 export const CONF_LIVE_ZOOMABLE = `${CONF_LIVE}.zoomable` as const;
 
 const CONF_IMAGE = 'image' as const;
