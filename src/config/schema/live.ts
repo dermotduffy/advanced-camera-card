@@ -16,11 +16,15 @@ import {
   MEDIA_ACTION_POSITIVE_CONDITIONS,
   MEDIA_MUTE_CONDITIONS,
   MEDIA_UNMUTE_CONDITIONS,
+  MICROPHONE_MUTE_CONDITIONS,
+  MICROPHONE_UNMUTE_CONDITIONS,
 } from './common/media-actions';
 import { transitionEffectConfigSchema } from './common/transition-effect';
 
 const microphoneConfigDefault = {
   always_connected: false,
+  auto_mute: [],
+  auto_unmute: [],
   disconnect_seconds: 90,
   mute_after_microphone_mute_seconds: 60,
 };
@@ -28,6 +32,8 @@ const microphoneConfigDefault = {
 const microphoneConfigSchema = z
   .object({
     always_connected: z.boolean().default(microphoneConfigDefault.always_connected),
+    auto_mute: z.enum(MICROPHONE_MUTE_CONDITIONS).array().default([]),
+    auto_unmute: z.enum(MICROPHONE_UNMUTE_CONDITIONS).array().default([]),
     disconnect_seconds: z
       .number()
       .min(0)

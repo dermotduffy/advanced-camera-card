@@ -11,6 +11,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { FoldersManager } from '../card-controller/folders/manager.js';
 import { IssuePresence } from '../card-controller/issues/types.js';
+import { MicrophoneManager } from '../card-controller/microphone-manager.js';
 import { MicrophoneState } from '../card-controller/types.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
@@ -59,6 +60,9 @@ export class AdvancedCameraCardViews extends LitElement {
 
   @property({ attribute: false })
   public hide?: boolean;
+
+  @property({ attribute: false })
+  public microphoneManager?: MicrophoneManager;
 
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
@@ -230,6 +234,7 @@ export class AdvancedCameraCardViews extends LitElement {
                 .liveConfig=${this.config.live}
                 .cameraManager=${this.cameraManager}
                 .cardWideConfig=${this.cardWideConfig}
+                .microphoneManager=${this.microphoneManager}
                 .microphoneState=${this.microphoneState}
                 .triggeredCameraIDs=${this.triggeredCameraIDs}
                 class="${classMap(liveClasses)}"

@@ -7,6 +7,7 @@ import {
 } from '../config/schema/common/media-actions.js';
 import { MediaPlayerElement } from '../types.js';
 import { Timer } from '../utils/timer.js';
+import { VisibilityObserver } from './visibility-observer.js';
 
 export interface MediaActionsControllerOptions {
   playerSelector: string;
@@ -36,7 +37,6 @@ type MediaActionsTarget = {
 
 export class MediaActionsController {
   private _options: MediaActionsControllerOptions | null = null;
-  private _viewportIntersecting: boolean | null = null;
   private _microphoneMuteTimer = new Timer();
   private _root: RenderRoot | null = null;
 
@@ -44,12 +44,12 @@ export class MediaActionsController {
   private _children: MediaPlayerElement[] = [];
   private _target: MediaActionsTarget | null = null;
   private _mutationObserver = new MutationObserver(this._mutationHandler.bind(this));
-  private _intersectionObserver = new IntersectionObserver(
-    this._intersectionHandler.bind(this),
-  );
+  private _visibilityObserver: VisibilityObserver;
 
   constructor() {
-    document.addEventListener('visibilitychange', this._visibilityHandler);
+    this._visibilityObserver = new VisibilityObserver((visible) =>
+      this._changeVisibility(visible),
+    );
   }
 
   public setOptions(options: MediaActionsControllerOptions): void {
@@ -68,15 +68,13 @@ export class MediaActionsController {
   }
 
   public destroy(): void {
-    this._viewportIntersecting = null;
     this._microphoneMuteTimer.stop();
     this._root = null;
     this._removeChildHandlers();
     this._children = [];
     this._target = null;
     this._mutationObserver.disconnect();
-    this._intersectionObserver.disconnect();
-    document.removeEventListener('visibilitychange', this._visibilityHandler);
+    this._visibilityObserver.destroy();
   }
 
   public async setTarget(index: number, selected: boolean): Promise<void> {
@@ -185,8 +183,14 @@ export class MediaActionsController {
     if (this._target?.index !== index) {
       return;
     }
-    await this._unmuteTargetIfConfigured(this._target.selected ? 'selected' : 'visible');
-    await this._playTargetIfConfigured(this._target.selected ? 'selected' : 'visible');
+    // Re-assert audio mute/play here because the media element may not have
+    // been ready when setTarget originally fired. The microphone manager has
+    // no such constraint, so it is intentionally not re-asserted here -- doing
+    // so would clobber any manual user mute made between target selection and
+    // media load.
+    const condition = this._target.selected ? 'selected' : 'visible';
+    await this._unmuteTargetIfConfigured(condition);
+    await this._playTargetIfConfigured(condition);
   };
 
   private _removeChildHandlers(): void {
@@ -205,8 +209,7 @@ export class MediaActionsController {
     this._root = root;
     this._initializeRoot();
 
-    this._intersectionObserver.disconnect();
-    this._intersectionObserver.observe(this._root);
+    this._visibilityObserver.setRoot(this._root);
 
     this._mutationObserver.disconnect();
     this._mutationObserver.observe(this._root, { childList: true, subtree: true });
@@ -230,24 +233,6 @@ export class MediaActionsController {
       child.addEventListener('advanced-camera-card:media:loaded', eventListener);
     }
   }
-
-  private async _intersectionHandler(
-    entries: IntersectionObserverEntry[],
-  ): Promise<void> {
-    const wasIntersecting = this._viewportIntersecting;
-    this._viewportIntersecting = entries.some((entry) => entry.isIntersecting);
-
-    if (wasIntersecting !== null && wasIntersecting !== this._viewportIntersecting) {
-      // If the live view is preloaded (i.e. in the background) we may need to
-      // take media actions, e.g. muting a live stream that is now running in
-      // the background, so we act even if the new state is hidden.
-      await this._changeVisibility(this._viewportIntersecting);
-    }
-  }
-
-  private _visibilityHandler = async (): Promise<void> => {
-    await this._changeVisibility(document.visibilityState === 'visible');
-  };
 
   private _changeVisibility = async (visible: boolean): Promise<void> => {
     if (visible) {
