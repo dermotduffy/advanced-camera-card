@@ -166,6 +166,15 @@ export class VideoRTC extends HTMLElement {
     this.microphoneStream = null;
 
     /**
+     * The outbound audio transceiver pre-armed during createOffer. Holds a
+     * reference so `setMicrophoneStream` can swap the track via
+     * `replaceTrack` without renegotiating the SDP. Cleared on disconnect
+     * because transceivers belong to the closed peer connection.
+     * @type {RTCRtpTransceiver | null}
+     */
+    this._microphoneTransceiver = null;
+
+    /**
      * A reference to a MediaPlayerController for this video
      * @type {MediaPlayerController | null}
      */
@@ -256,6 +265,50 @@ export class VideoRTC extends HTMLElement {
     this._abortController = null;
     if (this.wsState !== WebSocket.CLOSED || this.pcState !== WebSocket.CLOSED) {
       this.ondisconnect();
+    }
+  }
+
+  /**
+   * Owns the microphone stream transition end-to-end: updates the property,
+   * extracts the outbound audio track, and swaps it onto the pre-armed audio
+   * transceiver via `replaceTrack` — no SDP renegotiation, no visible reload.
+   *
+   * Falls back to a full reconnect if `replaceTrack` rejects, but only when
+   * the rejection still describes the current desired state. The transceiver
+   * and the requested stream are captured before awaiting so a late rejection
+   * from a stale operation (e.g. after `reset()` cleared the connection, or
+   * after a newer `setMicrophoneStream` superseded this one) cannot bring the
+   * player back online or overwrite a fresher request.
+   *
+   * @param {MediaStream | null} stream
+   */
+  async setMicrophoneStream(stream) {
+    if (this.microphoneStream === stream) {
+      return;
+    }
+    this.microphoneStream = stream;
+
+    const transceiver = this._microphoneTransceiver;
+    if (!transceiver) {
+      // No live peer connection yet (or createOffer hasn't run). The next
+      // createOffer will read `this.microphoneStream` and pre-arm the
+      // transceiver with the current track, so no separate fix-up is needed.
+      return;
+    }
+
+    const desiredTrack = stream?.getAudioTracks()[0] ?? null;
+    try {
+      await transceiver.sender.replaceTrack(desiredTrack);
+    } catch (er) {
+      const stillCurrent =
+        transceiver === this._microphoneTransceiver &&
+        this.microphoneStream === stream &&
+        this.pc !== null;
+      if (!stillCurrent) {
+        return;
+      }
+      console.warn(er);
+      this.reconnect();
     }
   }
 
@@ -495,6 +548,8 @@ export class VideoRTC extends HTMLElement {
       this.pc.close();
       this.pc = null;
     }
+    // Transceivers belong to the now-closed peer connection.
+    this._microphoneTransceiver = null;
 
     this.video.src = '';
     this.video.srcObject = null;
@@ -775,21 +830,25 @@ export class VideoRTC extends HTMLElement {
    * @return {Promise<RTCSessionDescriptionInit>}
    */
   async createOffer(pc) {
-    // Must add microphone tracks prior to making the offer.
-    this.microphoneStream?.getTracks().forEach((track) => {
-      pc.addTransceiver(track, { direction: 'sendonly' });
+    // Always pre-arm a single outbound audio transceiver so the SDP advertises
+    // the slot from the start. With the slot in place, the mic track can be
+    // attached/detached later via `setMicrophoneStream` (replaceTrack) without
+    // renegotiating — avoiding a visible reload of this cell each time grid
+    // selection moves the mic between cameras.
+    //
+    // Pure SDP allocation: the kind-only `addTransceiver('audio', ...)` form
+    // never calls `getUserMedia`, so users who don't grant mic access see no
+    // browser permission prompt from this path.
+    //
+    // The upstream `media.includes('microphone')` branch (which would have
+    // performed its own `getUserMedia` and added a second outbound audio
+    // transceiver) is intentionally omitted: the card drives mic acquisition
+    // through `MicrophoneManager`, and a second sender would race the one
+    // owned by `setMicrophoneStream`.
+    const micTrack = this.microphoneStream?.getAudioTracks()[0] ?? null;
+    this._microphoneTransceiver = pc.addTransceiver(micTrack ?? 'audio', {
+      direction: 'sendonly',
     });
-
-    try {
-      if (this.media.indexOf('microphone') >= 0) {
-        const media = await navigator.mediaDevices.getUserMedia({ audio: true });
-        media.getTracks().forEach((track) => {
-          pc.addTransceiver(track, { direction: 'sendonly' });
-        });
-      }
-    } catch (e) {
-      console.warn(e);
-    }
 
     for (const kind of ['video', 'audio']) {
       if (this.media.indexOf(kind) >= 0) {

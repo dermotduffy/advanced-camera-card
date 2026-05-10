@@ -137,16 +137,11 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
       this._player.setControls(this.controls);
     }
 
-    if (
-      this._player &&
-      changedProps.has('microphoneState') &&
-      this._player.microphoneStream !== (this.microphoneState?.stream ?? null)
-    ) {
-      this._player.microphoneStream = this.microphoneState?.stream ?? null;
-
-      // Need to force a reconnect if the microphone stream changes since
-      // WebRTC cannot introduce a new stream after the offer is already made.
-      this._player.reconnect();
+    if (this._player && changedProps.has('microphoneState')) {
+      // VideoRTC owns the transition: it updates microphoneStream, swaps the
+      // track on the pre-armed transceiver, and validates against stale async
+      // completions before any reconnect fallback. Fire-and-forget is fine.
+      /* async */ this._player.setMicrophoneStream(this.microphoneState?.stream ?? null);
     }
   }
 
