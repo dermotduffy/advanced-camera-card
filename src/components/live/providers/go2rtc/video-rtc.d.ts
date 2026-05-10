@@ -37,4 +37,5 @@ export class VideoRTC extends HTMLElement {
   reconnect();
   reset(): void;
   setControls(controls: boolean): void;
+  setMicrophoneStream(stream: MediaStream | null): Promise<void>;
 }
