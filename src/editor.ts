@@ -159,6 +159,7 @@ import {
   CONF_LIVE_MICROPHONE_AUTO_MUTE,
   CONF_LIVE_MICROPHONE_AUTO_UNMUTE,
   CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS,
+  CONF_LIVE_MICROPHONE_LOCK,
   CONF_LIVE_MICROPHONE_MUTE_AFTER_MICROPHONE_MUTE_SECONDS,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
@@ -3351,6 +3352,10 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                     ${this._renderSwitch(
                       CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
                       this._defaults.live.microphone.always_connected,
+                    )}
+                    ${this._renderSwitch(
+                      CONF_LIVE_MICROPHONE_LOCK,
+                      this._defaults.live.microphone.lock,
                     )}
                     ${this._renderOptionSelector(
                       CONF_LIVE_MICROPHONE_AUTO_MUTE,

@@ -1,6 +1,7 @@
 @use 'vis-timeline/dist/vis-timeline-graph2d.css';
 @use 'drawer';
 @use 'const.scss';
+@use 'locked.scss';
 
 :host {
   width: 100%;

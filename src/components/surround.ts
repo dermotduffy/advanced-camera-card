@@ -51,6 +51,9 @@ export class AdvancedCameraCardSurround extends LitElement {
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
+  @property({ attribute: false })
+  public locked?: boolean;
+
   /**
    * Determine if a drawer is being used.
    */
@@ -102,6 +105,7 @@ export class AdvancedCameraCardSurround extends LitElement {
             .foldersManager=${this.foldersManager}
             .selected=${view.queryResults?.getSelectedIndex() ?? undefined}
             .cardWideConfig=${this.cardWideConfig}
+            .locked=${this.locked}
           >
           </advanced-camera-card-thumbnail-carousel>`
         : ''}
@@ -123,6 +127,7 @@ export class AdvancedCameraCardSurround extends LitElement {
             .conditionStateManager=${this.conditionStateManager}
             .viewItemManager=${this.viewItemManager}
             .cardWideConfig=${this.cardWideConfig}
+            .locked=${this.locked}
           >
           </advanced-camera-card-timeline-core>`
         : ''}

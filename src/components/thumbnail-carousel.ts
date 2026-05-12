@@ -65,6 +65,9 @@ export class AdvancedCameraCardThumbnailCarousel extends LitElement {
   @property({ attribute: false })
   public fadeThumbnails = false;
 
+  @property({ type: Boolean, reflect: true })
+  public locked?: boolean;
+
   private _thumbnails: TemplateResult[] = [];
   private _builder: UnifiedQueryBuilder | null = null;
 

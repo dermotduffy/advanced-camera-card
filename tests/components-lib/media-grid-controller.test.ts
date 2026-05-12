@@ -386,7 +386,7 @@ describe('MediaGridController', () => {
     ).toBe('3');
   });
 
-  it('should select cell when interacted with', () => {
+  it('should dispatch a selection request when interacted with', () => {
     const children = createChildren();
     const parent = createParent({ children: children, width: 2000 });
     const controller = createController(parent);
@@ -396,11 +396,18 @@ describe('MediaGridController', () => {
     const clickHandler = vi.fn();
     parent.addEventListener('click', clickHandler);
 
+    const selectedHandler = vi.fn();
+    parent.addEventListener('advanced-camera-card:media-grid:selected', selectedHandler);
+
     children[1].click();
 
-    // Click will not be allowed through.
+    // Click is consumed; the controller dispatches the selection request but
+    // does NOT mutate local state. The authoritative selection is applied by
+    // the parent via `selectCell` once it propagates back.
     expect(clickHandler).not.toBeCalled();
-    expect(controller.getSelected()).toBe('1');
+    expect(selectedHandler).toBeCalledTimes(1);
+    expect(selectedHandler.mock.calls[0][0].detail).toEqual({ selected: '1' });
+    expect(controller.getSelected()).toBeNull();
   });
 
   it('should ignore interaction events on already selected cell', () => {

@@ -66,6 +66,12 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   @property({ attribute: false })
   public forceSelected = false;
 
+  // When true the UI lock is active and the native video controls must be
+  // suppressed: those controls expose pause/play/cast/etc. directly on the
+  // media element.
+  @property({ attribute: false })
+  public locked?: boolean;
+
   private _mediaLoadedInfoSinkController = new MediaLoadedInfoSinkController(this, {
     getTargetID: () => this.targetID ?? null,
   });
@@ -181,14 +187,17 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     return result;
   }
 
-  // Builtin (native) video controls require all three conditions:
+  // Builtin (native) video controls require all four conditions:
   // - controls.builtin: user config enables native controls.
   // - zoom: Whether digital zoom/panning is allowed (this will be false when a
   //   'gesture' type PTZ control is active).
   // - !_zoomed: the user has not actually digital zoomed in (when zoomed, we
   //   want to hide the controls).
+  // - !locked: the UI lock is not active.
   private _getEffectiveBuiltinControls(): boolean {
-    return !!this.liveConfig?.controls.builtin && this.zoom && !this._zoomed;
+    return (
+      !!this.liveConfig?.controls.builtin && this.zoom && !this._zoomed && !this.locked
+    );
   }
 
   private _renderContainer(template: TemplateResult): TemplateResult {

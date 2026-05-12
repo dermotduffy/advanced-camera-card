@@ -26,6 +26,7 @@ const microphoneConfigDefault = {
   auto_mute: [],
   auto_unmute: [],
   disconnect_seconds: 90,
+  lock: true,
   mute_after_microphone_mute_seconds: 60,
 };
 
@@ -38,6 +39,7 @@ const microphoneConfigSchema = z
       .number()
       .min(0)
       .default(microphoneConfigDefault.disconnect_seconds),
+    lock: z.boolean().default(microphoneConfigDefault.lock),
     mute_after_microphone_mute_seconds: z
       .number()
       .min(0)

@@ -183,6 +183,7 @@ live:
 | `auto_mute`                          | `[]`    | A list of conditions in which the microphone is muted. `unselected` will automatically mute the microphone when a camera is unselected in the carousel or grid. `hidden` will automatically mute the microphone when the card becomes hidden (e.g. browser/tab change). Use an empty list (`[]`, the default) to never automatically mute the microphone via these conditions.                                                                                                       |
 | `auto_unmute`                        | `[]`    | A list of conditions in which the microphone is unmuted. `selected` will automatically unmute the microphone when a camera is selected in the carousel or grid (useful for an always-hot mic on the currently selected camera). `visible` will automatically unmute when the card becomes visible. Use an empty list (`[]`, the default) to never automatically unmute the microphone via these conditions. The browser will still prompt for microphone permission on first unmute. |
 | `disconnect_seconds`                 | `90`    | The number of seconds after microphone usage to disconnect the microphone from the stream. `0` implies never. Not relevant if `always_connected` is `true`.                                                                                                                                                                                                                                                                                                                          |
+| `lock`                               | `true`  | Whether to lock disruptive actions (view/camera/substream changes, pause, reload, casting) while the microphone is unmuted. Prevents an accidental tap, swipe, or button press from cutting off the session mid-sentence during 2-way audio. Set to `false` to allow all actions regardless of microphone state.                                                                                                                                                                     |
 | `mute_after_microphone_mute_seconds` | `60`    | The number of seconds after the microphone mutes to automatically mute the inbound audio when `live.auto_mute` includes `microphone`.                                                                                                                                                                                                                                                                                                                                                |
 
 See [Using 2-way audio](../usage/2-way-audio.md) for more information about the very particular requirements that must be followed for 2-way audio to work.
@@ -249,6 +250,7 @@ live:
     auto_mute: []
     auto_unmute: []
     disconnect_seconds: 90
+    lock: true
     mute_after_microphone_mute_seconds: 60
   display:
     mode: single

@@ -1,0 +1,8 @@
+// Shared styling for components that reflect a `locked` host attribute (set by
+// Lit when the consumer-facing `locked` property is true). Dims the host and
+// disables pointer interaction without removing it from layout, so the element
+// stays in place during mic mute/unmute transitions.
+:host([locked]) {
+  opacity: 0.4;
+  pointer-events: none;
+}

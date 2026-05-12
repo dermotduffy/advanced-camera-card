@@ -137,6 +137,9 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
   @property({ attribute: false })
   public itemClickAction?: TimelineItemClickAction;
 
+  @property({ type: Boolean, reflect: true })
+  public locked?: boolean;
+
   private _refDatePicker: Ref<AdvancedCameraCardDatePicker> = createRef();
   private _refTimeline: Ref<HTMLElement> = createRef();
   private _controller: TimelineController = new TimelineController(this);

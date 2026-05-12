@@ -147,7 +147,12 @@ export class ActionsManager implements ActionsExecutor {
           }) as ActionConfig | ActionConfig[])
         : request.actions;
 
-    const actionSet = new ActionSet(this._actionContext, renderedAction, {
+    const allowedActions = this._api.getLockManager().getAllowedActions(renderedAction);
+    if (!allowedActions.length) {
+      return;
+    }
+
+    const actionSet = new ActionSet(this._actionContext, allowedActions, {
       config: request.config,
       cardID: this._api.getConfigManager().getConfig()?.card_id,
     });

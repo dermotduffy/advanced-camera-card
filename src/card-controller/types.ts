@@ -19,6 +19,7 @@ import type { InitializationManager } from './initialization-manager';
 import type { InteractionManager } from './interaction-manager';
 import type { IssueManager } from './issues/issue-manager';
 import type { KeyboardStateManager } from './keyboard-state-manager';
+import type { LockManager } from './lock/manager';
 import type { MediaLoadedInfoManager } from './media-info-manager';
 import type { MediaPlayerManager } from './media-player-manager';
 import type { MicrophoneManager } from './microphone-manager';
@@ -50,6 +51,7 @@ export interface CardActionsAPI {
   getFoldersManager(): FoldersManager;
   getFullscreenManager(): FullscreenManager;
   getHASSManager(): HASSManager;
+  getLockManager(): LockManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMediaPlayerManager(): MediaPlayerManager;
   getMicrophoneManager(): MicrophoneManager;
@@ -234,6 +236,10 @@ export interface CardKeyboardStateAPI {
   getConfigManager(): ConfigManager;
 }
 
+export interface CardLockAPI {
+  getMicrophoneManager(): MicrophoneManager;
+}
+
 export interface CardMediaLoadedAPI {
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
@@ -311,6 +317,7 @@ export interface CardViewAPI {
   getFoldersManager(): FoldersManager;
   getHASSManager(): HASSManager;
   getInitializationManager(): InitializationManager;
+  getLockManager(): LockManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getNotificationManager(): NotificationManager;
   getIssueManager(): IssueManager;

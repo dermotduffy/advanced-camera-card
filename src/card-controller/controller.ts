@@ -27,6 +27,7 @@ import { HASSManager } from './hass/hass-manager';
 import { InitializationManager } from './initialization-manager';
 import { InteractionManager } from './interaction-manager';
 import { KeyboardStateManager } from './keyboard-state-manager';
+import { LockManager } from './lock/manager';
 import { MediaLoadedInfoManager } from './media-info-manager';
 import { MediaPlayerManager } from './media-player-manager';
 import { MicrophoneManager } from './microphone-manager';
@@ -55,6 +56,7 @@ import {
   CardInitializerAPI,
   CardInteractionAPI,
   CardKeyboardStateAPI,
+  CardLockAPI,
   CardMediaLoadedAPI,
   CardMediaPlayerAPI,
   CardMicrophoneAPI,
@@ -88,6 +90,7 @@ export class CardController
     CardInitializerAPI,
     CardInteractionAPI,
     CardKeyboardStateAPI,
+    CardLockAPI,
     CardMediaLoadedAPI,
     CardMediaPlayerAPI,
     CardMicrophoneAPI,
@@ -121,6 +124,7 @@ export class CardController
   private _initializationManager = new InitializationManager(this);
   private _interactionManager = new InteractionManager(this);
   private _keyboardStateManager = new KeyboardStateManager(this);
+  private _lockManager = new LockManager(this);
   private _mediaLoadedInfoManager = new MediaLoadedInfoManager(this);
 
   private _mediaPlayerManager = new MediaPlayerManager(this);
@@ -232,6 +236,10 @@ export class CardController
 
   public getKeyboardStateManager(): KeyboardStateManager {
     return this._keyboardStateManager;
+  }
+
+  public getLockManager(): LockManager {
+    return this._lockManager;
   }
 
   public getMediaLoadedInfoManager(): MediaLoadedInfoManager {
