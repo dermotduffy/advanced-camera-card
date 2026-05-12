@@ -8,17 +8,19 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { InternalIcon } from '../../config/schema/common/icon.js';
-import { MenuSubmenuSelect } from '../../config/schema/elements/custom/menu/submenu-select.js';
-import { MenuSubmenuItem } from '../../config/schema/elements/custom/menu/submenu.js';
+import { actionHandler } from '../../action-handler-directive.js';
+import type { LockManagerEpoch } from '../../card-controller/lock/types';
+import type { InternalIcon } from '../../config/schema/common/icon.js';
+import type { MenuSubmenuSelect } from '../../config/schema/elements/custom/menu/submenu-select.js';
+import type { MenuSubmenuItem } from '../../config/schema/elements/custom/menu/submenu.js';
 import { computeDomain } from '../../ha/compute-domain.js';
 import { getEntityStateTranslation } from '../../ha/entity-state-translation.js';
 import { getEntityTitle } from '../../ha/get-entity-title.js';
 import { isHassDifferent } from '../../ha/is-hass-different.js';
-import { EntityRegistryManager } from '../../ha/registry/entity/types.js';
-import { HomeAssistant } from '../../ha/types.js';
+import type { EntityRegistryManager } from '../../ha/registry/entity/types.js';
+import type { HomeAssistant } from '../../ha/types.js';
 import menuButtonStyle from '../../scss/menu-button.scss';
-import { createSelectOptionAction } from '../../utils/action.js';
+import { createSelectOptionAction, hasAction } from '../../utils/action.js';
 import '../icon.js';
 import './index.js';
 
@@ -32,6 +34,9 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
 
   @property({ attribute: false })
   public entityRegistryManager?: EntityRegistryManager;
+
+  @property({ attribute: false })
+  public lockManagerEpoch?: LockManagerEpoch;
 
   @state()
   private _optionTitles?: Record<string, string>;
@@ -129,6 +134,7 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
     return html` <advanced-camera-card-submenu
       .hass=${this.hass}
       .items=${this._generatedSubmenuItems}
+      .lockManagerEpoch=${this.lockManagerEpoch}
     >
       <ha-icon-button style="${style}" .label=${title || ''}>
         <advanced-camera-card-icon
@@ -137,6 +143,11 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
           title=${title || ''}
           .hass=${this.hass}
           .icon=${this._generatedIcon}
+          .actionHandler=${actionHandler({
+            allowPropagation: true,
+            hasHold: hasAction(this.submenuSelect.hold_action),
+            hasDoubleClick: hasAction(this.submenuSelect.double_tap_action),
+          })}
         ></advanced-camera-card-icon>
       </ha-icon-button>
     </advanced-camera-card-submenu>`;

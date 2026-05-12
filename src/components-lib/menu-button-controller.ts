@@ -78,7 +78,7 @@ export class MenuButtonController {
     foldersManager: FoldersManager,
     options?: MenuButtonControllerOptions,
   ): MenuItem[] {
-    return [
+    const buttons: MenuItem[] = [
       this._getIrisButton(config),
       this._getCamerasButton(config, cameraManager, options?.view),
       this._getSubstreamsButton(config, cameraManager, options?.view),
@@ -129,6 +129,8 @@ export class MenuButtonController {
         ...button,
       })),
     ].filter(isTruthy);
+
+    return buttons;
   }
 
   private _getIrisButton(config: AdvancedCameraCardConfig): MenuItem {

@@ -102,7 +102,7 @@ export class ViewManager implements ViewManagerInterface {
     viewFactoryFunc: (options?: ViewFactoryOptions) => View | null,
     options?: ViewFactoryOptions,
   ): void {
-    if (!this._isAllowedToSetView()) {
+    if (!this._isAllowedToProposeView()) {
       return;
     }
 
@@ -124,6 +124,9 @@ export class ViewManager implements ViewManagerInterface {
         view = this._getFailSafeView(viewFactoryFunc);
       }
       this._api.getIssueManager().trigger('view_incompatible', { error: e });
+    }
+    if (view && !this._isAllowedToSetView(view, options)) {
+      return;
     }
     if (view) {
       this._setView(view);
@@ -147,7 +150,10 @@ export class ViewManager implements ViewManagerInterface {
     view.removeContextProperty('loading', 'query');
   }
 
-  private _isAllowedToSetView(): boolean {
+  // Pre-computation gate: whether we should even attempt to build a candidate
+  // view. Skipped here for race conditions that would otherwise generate a
+  // spurious `view_incompatible` issue.
+  private _isAllowedToProposeView(): boolean {
     // It is possible to have a race condition where the view is being set at
     // the same time as the cameras being initialized. Test case: Open
     // folder-based media in the media viewer carousel, then attempt to edit the
@@ -160,6 +166,20 @@ export class ViewManager implements ViewManagerInterface {
       .isInitialized(InitializationAspect.CAMERAS);
   }
 
+  // Post-computation gate: given a freshly proposed view, whether we should
+  // actually commit it. Respects the lock state by potentially rejecting
+  // changes that would disrupt the active session (camera, view name, or
+  // substream).
+  private _isAllowedToSetView(
+    proposedView: View,
+    options?: ViewFactoryOptions,
+  ): boolean {
+    if (options?.force || !this._api.getLockManager().isLocked()) {
+      return true;
+    }
+    return !this.hasMajorMediaChange(this._view, proposedView);
+  }
+
   private async _setViewThenModifyAsync(
     viewFactoryFunc: (options?: ViewFactoryOptions) => View | null,
     viewModifiersFunc: (
@@ -168,7 +188,7 @@ export class ViewManager implements ViewManagerInterface {
     ) => Promise<ViewModifier[] | null>,
     options?: ViewFactoryOptions,
   ): Promise<void> {
-    if (!this._isAllowedToSetView()) {
+    if (!this._isAllowedToProposeView()) {
       return;
     }
 
@@ -195,7 +215,7 @@ export class ViewManager implements ViewManagerInterface {
       this._api.getIssueManager().trigger('view_incompatible', { error: e });
     }
 
-    if (!initialView) {
+    if (!initialView || !this._isAllowedToSetView(initialView, options)) {
       return;
     }
 

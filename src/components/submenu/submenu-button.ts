@@ -2,8 +2,9 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../../action-handler-directive.js';
-import { MenuSubmenu } from '../../config/schema/elements/custom/menu/submenu.js';
-import { HomeAssistant } from '../../ha/types.js';
+import type { LockManagerEpoch } from '../../card-controller/lock/types';
+import type { MenuSubmenu } from '../../config/schema/elements/custom/menu/submenu.js';
+import type { HomeAssistant } from '../../ha/types.js';
 import menuButtonStyle from '../../scss/menu-button.scss';
 import { hasAction } from '../../utils/action.js';
 import '../icon.js';
@@ -17,6 +18,9 @@ export class AdvancedCameraCardSubmenuButton extends LitElement {
   @property({ attribute: false })
   public submenu?: MenuSubmenu;
 
+  @property({ attribute: false })
+  public lockManagerEpoch?: LockManagerEpoch;
+
   protected render(): TemplateResult {
     if (!this.submenu) {
       return html``;
@@ -26,6 +30,7 @@ export class AdvancedCameraCardSubmenuButton extends LitElement {
     return html` <advanced-camera-card-submenu
       .hass=${this.hass}
       .items=${this.submenu?.items}
+      .lockManagerEpoch=${this.lockManagerEpoch}
     >
       <ha-icon-button style="${style}" .label=${this.submenu.title || ''}>
         <advanced-camera-card-icon

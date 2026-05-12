@@ -163,6 +163,74 @@ describe('should not set view without cameras being initialized', () => {
   });
 });
 
+describe('should respect microphone navigation lock', () => {
+  it('should ignore generic view changes when microphone is locking navigation', () => {
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(createView());
+
+    const api = createInitializedCardAPI();
+    vi.mocked(api.getLockManager().isLocked).mockReturnValue(true);
+
+    const manager = new ViewManager(api, { viewFactory: factory });
+    manager.setViewDefault();
+
+    expect(manager.getView()).toBeNull();
+  });
+
+  it('should ignore async view changes when microphone is locking navigation', async () => {
+    const viewFactory = mock<ViewFactory>();
+    viewFactory.getViewDefault.mockReturnValue(createView());
+
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+    viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([]);
+
+    const api = createInitializedCardAPI();
+    vi.mocked(api.getLockManager().isLocked).mockReturnValue(true);
+
+    const manager = new ViewManager(api, {
+      viewFactory: viewFactory,
+      viewQueryExecutor: viewQueryExecutor,
+    });
+    await manager.setViewDefaultWithNewQuery();
+
+    expect(manager.getView()).toBeNull();
+  });
+
+  it('should allow generic view changes when force is set', () => {
+    const view = createView();
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(view);
+
+    const api = createInitializedCardAPI();
+    vi.mocked(api.getLockManager().isLocked).mockReturnValue(true);
+
+    const manager = new ViewManager(api, { viewFactory: factory });
+    manager.setViewDefault({ force: true });
+
+    expect(manager.getView()).toBe(view);
+  });
+
+  it('should allow async view changes when force is set', async () => {
+    const viewFactory = mock<ViewFactory>();
+    viewFactory.getViewDefault.mockReturnValue(createView());
+
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+    viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([]);
+
+    const api = createInitializedCardAPI();
+    vi.mocked(api.getLockManager().isLocked).mockReturnValue(true);
+
+    const manager = new ViewManager(api, {
+      viewFactory: viewFactory,
+      viewQueryExecutor: viewQueryExecutor,
+    });
+    await manager.setViewDefaultWithNewQuery({ force: true });
+
+    expect(manager.getView()?.view).toBe('live');
+    expect(manager.getView()?.camera).toBe('camera');
+  });
+});
+
 it('should set view default', () => {
   const factory = mock<ViewFactory>();
   factory.getViewDefault.mockReturnValue(createView());

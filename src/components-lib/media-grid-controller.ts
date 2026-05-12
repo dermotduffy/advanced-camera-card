@@ -161,12 +161,16 @@ export class MediaGridController {
   }
 
   public selectCell(id: GridID) {
+    // Applies a selection to the grid. Does NOT fire `media-grid:selected` --
+    // that event signals a user-initiated request to navigate; it is fired
+    // from the click handler. Calling here would either double-fire (when
+    // selectCell is invoked in response to an accepted navigation) or be a
+    // lie (when invoked imperatively by code).
     if (this._selected === id) {
       return;
     }
 
     this._selected = id;
-    fireAdvancedCameraCardEvent(this._host, 'media-grid:selected', { selected: id });
 
     this._sortItemsInGrid();
     this._updateSelectedStylesOnElements();
@@ -301,7 +305,14 @@ export class MediaGridController {
       /* istanbul ignore else: the else path cannot be reached -- @preserve */
       if (eventPath.includes(element)) {
         if (this._selected !== id) {
-          this.selectCell(id);
+          // Fire the request but do not mutate local state. The authoritative
+          // selection lives upstream (ViewManager via the `selected` prop). On
+          // acceptance, the new `selected` prop arrives and drives
+          // `selectCell`. On rejection (e.g. navigation locked), the prop is
+          // unchanged and the grid stays put.
+          fireAdvancedCameraCardEvent(this._host, 'media-grid:selected', {
+            selected: id,
+          });
           ev.stopPropagation();
         }
         break;

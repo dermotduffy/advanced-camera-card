@@ -1,4 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
+import type { LockManager } from '../../src/card-controller/lock/manager';
+import type { LockManagerEpoch } from '../../src/card-controller/lock/types';
 import { MenuController } from '../../src/components-lib/menu-controller.js';
 import { SubmenuItem } from '../../src/components/submenu/types.js';
 import { MenuConfig, menuConfigSchema } from '../../src/config/schema/menu.js';
@@ -10,6 +13,12 @@ import {
 
 const createMenuConfig = (config: unknown): MenuConfig => {
   return menuConfigSchema.parse(config);
+};
+
+const createLock = (locked: boolean, actionsBlocked: boolean): LockManagerEpoch => {
+  const lockManager = mock<LockManager>();
+  lockManager.areAllActionsBlocked.mockReturnValue(actionsBlocked);
+  return { manager: lockManager, locked };
 };
 
 // @vitest-environment jsdom
@@ -69,6 +78,137 @@ describe('MenuController', () => {
     controller.setExpanded(false);
     expect(controller.isExpanded()).toBeFalsy();
     expect(host.getAttribute('expanded')).toBeNull();
+  });
+
+  describe('setLockManagerEpoch', () => {
+    it('should trigger update on first lock change', () => {
+      const host = createLitElement();
+      const controller = new MenuController(host);
+      vi.mocked(host.requestUpdate).mockClear();
+
+      controller.setLockManagerEpoch(createLock(true, true));
+      expect(host.requestUpdate).toBeCalledTimes(1);
+    });
+
+    it('should not trigger update when lock epoch is unchanged', () => {
+      const host = createLitElement();
+      const controller = new MenuController(host);
+      const lock = createLock(false, true);
+      controller.setLockManagerEpoch(lock);
+      vi.mocked(host.requestUpdate).mockClear();
+
+      controller.setLockManagerEpoch({ manager: lock.manager, locked: lock.locked });
+      expect(host.requestUpdate).not.toBeCalled();
+    });
+
+    it('should reflect lock state in shouldButtonBeInert', () => {
+      const controller = new MenuController(createLitElement());
+      controller.setLockManagerEpoch(createLock(false, true));
+      const button = {
+        type: 'custom:advanced-camera-card-menu-icon' as const,
+        icon: 'mdi:cow',
+        tap_action: {
+          action: 'fire-dom-event' as const,
+          advanced_camera_card_action: 'camera_select' as const,
+          camera: 'cam-1',
+        },
+      };
+
+      expect(controller.shouldButtonBeInert(button)).toBeFalsy();
+      controller.setLockManagerEpoch(createLock(true, true));
+      expect(controller.shouldButtonBeInert(button)).toBeTruthy();
+      controller.setLockManagerEpoch(createLock(false, true));
+      expect(controller.shouldButtonBeInert(button)).toBeFalsy();
+    });
+  });
+
+  describe('shouldButtonBeInert', () => {
+    const blockedAction = {
+      action: 'fire-dom-event' as const,
+      advanced_camera_card_action: 'camera_select' as const,
+      camera: 'cam-1',
+    };
+    const unblockedAction = {
+      action: 'fire-dom-event' as const,
+      advanced_camera_card_action: 'fullscreen' as const,
+    };
+
+    it('should always return true when user explicitly set `inert: true`', () => {
+      const controller = new MenuController(createLitElement());
+      const button = {
+        type: 'custom:advanced-camera-card-menu-icon' as const,
+        icon: 'mdi:cow',
+        inert: true,
+        tap_action: unblockedAction,
+      };
+
+      // Without the lock active.
+      expect(controller.shouldButtonBeInert(button)).toBeTruthy();
+      // With the lock active.
+      controller.setLockManagerEpoch(createLock(true, false));
+      expect(controller.shouldButtonBeInert(button)).toBeTruthy();
+    });
+
+    it('should return false when lock is inactive and button is not user-inert', () => {
+      const controller = new MenuController(createLitElement());
+      expect(
+        controller.shouldButtonBeInert({
+          type: 'custom:advanced-camera-card-menu-icon',
+          icon: 'mdi:cow',
+          tap_action: blockedAction,
+        }),
+      ).toBeFalsy();
+    });
+
+    it('should never mark submenu containers inert (even when all actions are blocked)', () => {
+      const controller = new MenuController(createLitElement());
+      controller.setLockManagerEpoch(createLock(true, true));
+
+      expect(
+        controller.shouldButtonBeInert({
+          type: 'custom:advanced-camera-card-menu-submenu',
+          icon: 'mdi:menu',
+          items: [],
+          tap_action: blockedAction,
+        }),
+      ).toBeFalsy();
+      expect(
+        controller.shouldButtonBeInert({
+          type: 'custom:advanced-camera-card-menu-submenu-select',
+          icon: 'mdi:menu',
+          entity: 'select.foo',
+          state_color: true,
+          tap_action: blockedAction,
+        }),
+      ).toBeFalsy();
+    });
+
+    it('should mark icon buttons inert when locked and all actions are blocked', () => {
+      const controller = new MenuController(createLitElement());
+      controller.setLockManagerEpoch(createLock(true, true));
+
+      expect(
+        controller.shouldButtonBeInert({
+          type: 'custom:advanced-camera-card-menu-icon',
+          icon: 'mdi:cow',
+          tap_action: blockedAction,
+        }),
+      ).toBeTruthy();
+    });
+
+    it('should NOT mark icon buttons inert when locked and not all actions are blocked', () => {
+      const controller = new MenuController(createLitElement());
+      controller.setLockManagerEpoch(createLock(true, false));
+
+      expect(
+        controller.shouldButtonBeInert({
+          type: 'custom:advanced-camera-card-menu-icon',
+          icon: 'mdi:cow',
+          tap_action: blockedAction,
+          hold_action: unblockedAction,
+        }),
+      ).toBeFalsy();
+    });
   });
 
   describe('should set and sort buttons', () => {

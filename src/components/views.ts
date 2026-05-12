@@ -67,6 +67,9 @@ export class AdvancedCameraCardViews extends LitElement {
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
 
+  @property({ attribute: false })
+  public locked?: boolean;
+
   @property({ attribute: false, hasChanged: contentsChanged })
   public triggeredCameraIDs?: Set<string>;
 
@@ -163,6 +166,7 @@ export class AdvancedCameraCardViews extends LitElement {
       .conditionStateManager=${this.conditionStateManager}
       .viewItemManager=${this.viewItemManager}
       .cardWideConfig=${this.cardWideConfig}
+      .locked=${this.locked}
     >
       ${!this.hide && view?.is('image')
         ? html` <advanced-camera-card-image
@@ -236,6 +240,7 @@ export class AdvancedCameraCardViews extends LitElement {
                 .cardWideConfig=${this.cardWideConfig}
                 .microphoneManager=${this.microphoneManager}
                 .microphoneState=${this.microphoneState}
+                .locked=${this.locked}
                 .triggeredCameraIDs=${this.triggeredCameraIDs}
                 class="${classMap(liveClasses)}"
               >

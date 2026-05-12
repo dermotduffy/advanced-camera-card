@@ -1,12 +1,13 @@
 import { LitElement } from 'lit';
 import { isEqual, orderBy } from 'lodash-es';
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
-import { SubmenuInteraction } from '../components/submenu/types.js';
-import { ActionConfig, ActionsConfig } from '../config/schema/actions/types.js';
+import type { LockManagerEpoch } from '../card-controller/lock/types';
+import type { SubmenuInteraction } from '../components/submenu/types.js';
+import type { ActionConfig, ActionsConfig } from '../config/schema/actions/types.js';
 import { MENU_PRIORITY_MAX } from '../config/schema/common/const.js';
-import { MenuItem } from '../config/schema/elements/custom/menu/types.js';
-import { MenuConfig } from '../config/schema/menu.js';
-import { Interaction } from '../types.js';
+import type { MenuItem } from '../config/schema/elements/custom/menu/types.js';
+import type { MenuConfig } from '../config/schema/menu.js';
+import type { Interaction } from '../types.js';
 import { getActionConfigGivenAction } from '../utils/action';
 import { arrayify, isTruthy, setOrRemoveAttribute } from '../utils/basic.js';
 
@@ -15,9 +16,41 @@ export class MenuController {
   private _config: MenuConfig | null = null;
   private _buttons: MenuItem[] = [];
   private _expanded = false;
+  private _lockManagerEpoch?: LockManagerEpoch;
 
   constructor(host: LitElement) {
     this._host = host;
+  }
+
+  public setLockManagerEpoch(lockManagerEpoch?: LockManagerEpoch): void {
+    if (isEqual(this._lockManagerEpoch, lockManagerEpoch)) {
+      return;
+    }
+    this._lockManagerEpoch = lockManagerEpoch;
+    this._host.requestUpdate();
+  }
+
+  /**
+   * Whether a menu button should be rendered inert. True if the user explicitly
+   * set `inert: true`, OR the active lock policies would block all of the
+   * button's configured actions. Submenu containers always stay interactive
+   * (tapping one opens the dropdown, which is non-disruptive). Items inside
+   * submenus are gated separately by the submenu renderer.
+   */
+  public shouldButtonBeInert(button: MenuItem): boolean {
+    if (button.inert) {
+      return true;
+    }
+    if (!this._lockManagerEpoch?.locked) {
+      return false;
+    }
+    if (
+      button.type === 'custom:advanced-camera-card-menu-submenu' ||
+      button.type === 'custom:advanced-camera-card-menu-submenu-select'
+    ) {
+      return false;
+    }
+    return this._lockManagerEpoch.manager.areAllActionsBlocked(button);
   }
 
   public setMenuConfig(config: MenuConfig): void {
@@ -92,8 +125,13 @@ export class MenuController {
     // upstream has the user-provided configuration.
     ev.stopPropagation();
 
-    // If the action is from a submenu, use the attached action config.
-    const config: ActionsConfig | null = buttonConfig ?? ev.detail.item ?? null;
+    // Resolve which config the action belongs to. When a click bubbles up from
+    // inside a submenu dropdown, the inner submenu component attaches the
+    // clicked item on `ev.detail.item` -- prefer that, since it identifies the
+    // specific item pressed (not the submenu container). Container clicks and
+    // plain top-level icon clicks have no item attached and fall through to
+    // `buttonConfig`, which the caller passes in.
+    const config: ActionsConfig | null = ev.detail.item ?? buttonConfig ?? null;
     if (!config) {
       return;
     }

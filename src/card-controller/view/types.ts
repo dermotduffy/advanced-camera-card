@@ -45,6 +45,11 @@ export interface ViewFactoryOptions {
   // `live` view if the configured default view is not supported.
   failSafe?: boolean;
 
+  // When force is true the view change bypasses internal gates such as the
+  // navigation lock. Reserved for internal callers that must override
+  // user-facing locks (e.g. an active call ending).
+  force?: boolean;
+
   // Options for the query executor that control how a query is executed and the
   // result selected.
   queryExecutorOptions?: QueryExecutorOptions;
