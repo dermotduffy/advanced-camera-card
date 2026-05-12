@@ -18,6 +18,7 @@ import { InitializationManager } from '../../src/card-controller/initialization-
 import { InteractionManager } from '../../src/card-controller/interaction-manager';
 import { IssueManager } from '../../src/card-controller/issues/issue-manager';
 import { KeyboardStateManager } from '../../src/card-controller/keyboard-state-manager';
+import { LockManager } from '../../src/card-controller/lock/manager';
 import { MediaLoadedInfoManager } from '../../src/card-controller/media-info-manager';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager';
@@ -50,6 +51,7 @@ vi.mock('../../src/card-controller/hass/hass-manager');
 vi.mock('../../src/card-controller/initialization-manager');
 vi.mock('../../src/card-controller/interaction-manager');
 vi.mock('../../src/card-controller/keyboard-state-manager');
+vi.mock('../../src/card-controller/lock/manager');
 vi.mock('../../src/card-controller/media-info-manager');
 vi.mock('../../src/card-controller/media-player-manager');
 vi.mock('../../src/card-controller/microphone-manager');
@@ -206,6 +208,12 @@ describe('CardController', () => {
     it('should return getKeyboardStateManager', () => {
       expect(createController().getKeyboardStateManager()).toBe(
         vi.mocked(KeyboardStateManager).mock.instances[0],
+      );
+    });
+
+    it('should return getLockManager', () => {
+      expect(createController().getLockManager()).toBe(
+        vi.mocked(LockManager).mock.instances[0],
       );
     });
 

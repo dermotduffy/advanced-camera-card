@@ -253,6 +253,7 @@ class AdvancedCameraCard extends LitElement {
         ${ref(this._refMenu)}
         slot=${ifDefined(slot)}
         .hass=${this._hass}
+        .lockManagerEpoch=${this._controller.getLockManager().getEpoch()}
         .menuConfig=${this._config.menu}
         .buttons=${this._menuButtonController.calculateButtons(
           this._hass,
@@ -426,6 +427,7 @@ class AdvancedCameraCard extends LitElement {
               .hide=${!!fullCardIssue}
               .microphoneManager=${this._controller.getMicrophoneManager()}
               .microphoneState=${this._controller.getMicrophoneManager().getState()}
+              .locked=${this._controller.getLockManager().isLocked()}
               .conditionStateManager=${this._controller.getConditionStateManager()}
               .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
                 ? this._controller.getTriggersManager().getTriggeredCameraIDs()

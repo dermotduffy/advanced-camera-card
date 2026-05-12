@@ -14,10 +14,20 @@ import {
   Interaction,
   InteractionName,
 } from '../../../src/card-controller/actions/actions-manager';
+import type { CardController } from '../../../src/card-controller/controller';
 import { TemplateRenderer } from '../../../src/card-controller/templates';
 import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
-import { createLogAction } from '../../../src/utils/action';
+import { createGeneralAction, createLogAction } from '../../../src/utils/action';
+import { arrayify } from '../../../src/utils/basic';
 import { createCardAPI, createConfig, createHASS, createView } from '../../test-utils';
+
+const createAPI = (): CardController => {
+  const api = createCardAPI();
+  vi.mocked(api.getLockManager().getAllowedActions).mockImplementation((actions) =>
+    arrayify(actions),
+  );
+  return api;
+};
 
 describe('ActionsManager', () => {
   describe('getMergedActions', () => {
@@ -69,7 +79,7 @@ describe('ActionsManager', () => {
     });
 
     it('should get no merged actions with an issue', () => {
-      const api = createCardAPI();
+      const api = createAPI();
       vi.mocked(api.getViewManager().getView).mockReturnValue(
         createView({ view: 'live' }),
       );
@@ -142,7 +152,7 @@ describe('ActionsManager', () => {
         ],
         ['timeline' as const, {}],
       ])('%s', (viewName: AdvancedCameraCardView, result: Record<string, unknown>) => {
-        const api = createCardAPI();
+        const api = createAPI();
         vi.mocked(api.getViewManager().getView).mockReturnValue(
           createView({ view: viewName }),
         );
@@ -162,9 +172,12 @@ describe('ActionsManager', () => {
     beforeEach(() => {
       vi.restoreAllMocks();
     });
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
 
     it('should handle interaction', async () => {
-      const api = createCardAPI();
+      const api = createAPI();
       const element = document.createElement('div');
       vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
       vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
@@ -193,7 +206,7 @@ describe('ActionsManager', () => {
       it.each([['malformed_type_of_tap' as const], ['double_tap' as const]])(
         '%s',
         (interaction: string) => {
-          const api = createCardAPI();
+          const api = createAPI();
           const element = document.createElement('div');
           vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
           vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
@@ -227,6 +240,9 @@ describe('ActionsManager', () => {
     beforeEach(() => {
       vi.restoreAllMocks();
     });
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
 
     it('should handle advanced camera card event', async () => {
       const action = createLogAction('Hello, world!');
@@ -234,7 +250,7 @@ describe('ActionsManager', () => {
         detail: action,
       });
 
-      const api = createCardAPI();
+      const api = createAPI();
       const manager = new ActionsManager(api);
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
@@ -254,7 +270,7 @@ describe('ActionsManager', () => {
       const handler = vi.fn();
       card.addEventListener('ll-custom', handler);
 
-      const api = createCardAPI();
+      const api = createAPI();
       vi.mocked(api.getCardElementManager().getElement).mockReturnValue(card);
       const manager = new ActionsManager(api);
 
@@ -264,7 +280,7 @@ describe('ActionsManager', () => {
     });
 
     it('should not handle event without detail', async () => {
-      const manager = new ActionsManager(createCardAPI());
+      const manager = new ActionsManager(createAPI());
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
       await manager.handleCustomActionEvent(new Event('ll-custom'));
@@ -273,8 +289,12 @@ describe('ActionsManager', () => {
   });
 
   describe('handleActionExecutionRequestEvent', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it('should execute actions', async () => {
-      const api = createCardAPI();
+      const api = createAPI();
       const manager = new ActionsManager(api);
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
@@ -288,8 +308,12 @@ describe('ActionsManager', () => {
   });
 
   describe('executeAction', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it('should execute actions', async () => {
-      const api = createCardAPI();
+      const api = createAPI();
       const manager = new ActionsManager(api);
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
@@ -298,7 +322,7 @@ describe('ActionsManager', () => {
     });
 
     it('should execute actions', async () => {
-      const api = createCardAPI();
+      const api = createAPI();
       const manager = new ActionsManager(api);
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
@@ -312,7 +336,7 @@ describe('ActionsManager', () => {
       const templateRenderer = mock<TemplateRenderer>();
       templateRenderer.renderRecursively.mockReturnValue(action);
 
-      const api = createCardAPI();
+      const api = createAPI();
       const hass = createHASS();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
@@ -324,6 +348,7 @@ describe('ActionsManager', () => {
       const manager = new ActionsManager(api, templateRenderer);
       const config = { entity: 'light.office' };
       const triggerData = { view: { from: 'previous-view', to: 'view' } };
+      vi.spyOn(global.console, 'info').mockReturnValue(undefined);
 
       await manager.executeActions({ actions: action, config, triggerData });
 
@@ -331,6 +356,40 @@ describe('ActionsManager', () => {
         conditionState,
         triggerData,
       });
+    });
+
+    it('should filter rendered actions through the lock manager', async () => {
+      const renderedAction = createGeneralAction('reload');
+      const allowedAction = createLogAction('Allowed');
+
+      const templateRenderer = mock<TemplateRenderer>();
+      templateRenderer.renderRecursively.mockReturnValue(renderedAction);
+
+      const api = createAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getLockManager().getAllowedActions).mockReturnValue([allowedAction]);
+
+      const manager = new ActionsManager(api, templateRenderer);
+      const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
+
+      await manager.executeActions({
+        actions: createLogAction('{{ action }}'),
+      });
+
+      expect(api.getLockManager().getAllowedActions).toBeCalledWith(renderedAction);
+      expect(consoleSpy).toBeCalledWith('Allowed');
+    });
+
+    it('should not execute actions when the lock manager rejects them', async () => {
+      const api = createAPI();
+      vi.mocked(api.getLockManager().getAllowedActions).mockReturnValue([]);
+
+      const manager = new ActionsManager(api);
+      const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
+
+      await manager.executeActions({ actions: createLogAction('Blocked') });
+
+      expect(consoleSpy).not.toBeCalled();
     });
 
     describe('should forward haptics', () => {
@@ -343,7 +402,7 @@ describe('ActionsManager', () => {
         const handler = vi.fn();
         window.addEventListener('haptic', handler);
 
-        const api = createCardAPI();
+        const api = createAPI();
         const manager = new ActionsManager(api);
 
         await manager.executeActions({ actions: { action: 'none' } });
@@ -357,7 +416,7 @@ describe('ActionsManager', () => {
         const handler = vi.fn();
         window.addEventListener('haptic', handler);
 
-        const api = createCardAPI();
+        const api = createAPI();
         const manager = new ActionsManager(api);
 
         vi.stubGlobal('confirm', vi.fn().mockReturnValue(false));
@@ -375,12 +434,15 @@ describe('ActionsManager', () => {
     beforeAll(() => {
       vi.useFakeTimers();
     });
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
     afterAll(() => {
       vi.useRealTimers();
     });
 
     it('should stop actions', async () => {
-      const api = createCardAPI();
+      const api = createAPI();
       const manager = new ActionsManager(api);
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);

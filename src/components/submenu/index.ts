@@ -2,8 +2,9 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../../action-handler-directive.js';
+import type { LockManagerEpoch } from '../../card-controller/lock/types';
 import { getEntityTitle } from '../../ha/get-entity-title.js';
-import { HomeAssistant } from '../../ha/types.js';
+import type { HomeAssistant } from '../../ha/types.js';
 import submenuStyle from '../../scss/submenu.scss';
 import {
   hasAction,
@@ -11,7 +12,7 @@ import {
 } from '../../utils/action.js';
 import { contentsChanged } from '../../utils/basic.js';
 import '../icon.js';
-import { SubmenuInteraction, SubmenuItem } from './types.js';
+import type { SubmenuInteraction, SubmenuItem } from './types.js';
 
 @customElement('advanced-camera-card-submenu')
 export class AdvancedCameraCardSubmenu extends LitElement {
@@ -21,6 +22,9 @@ export class AdvancedCameraCardSubmenu extends LitElement {
   @property({ attribute: false, hasChanged: contentsChanged })
   public items?: SubmenuItem[];
 
+  @property({ attribute: false })
+  public lockManagerEpoch?: LockManagerEpoch;
+
   private _renderItem(item: SubmenuItem): TemplateResult | void {
     if (!this.hass) {
       return;
@@ -28,7 +32,10 @@ export class AdvancedCameraCardSubmenu extends LitElement {
 
     const title = item.title ?? getEntityTitle(this.hass, item.entity);
     const style = styleMap(item.style || {});
-    const disabled = item.enabled === false;
+    const inert =
+      !!this.lockManagerEpoch?.locked &&
+      this.lockManagerEpoch.manager.areAllActionsBlocked(item);
+    const disabled = item.enabled === false || inert;
 
     return html`
       <ha-dropdown-item

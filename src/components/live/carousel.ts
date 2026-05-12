@@ -71,6 +71,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   public microphoneState?: MicrophoneState;
 
   @property({ attribute: false })
+  public locked?: boolean;
+
+  @property({ attribute: false })
   public viewFilterCameraID?: string;
 
   private _refCarousel: Ref<HTMLElement> = createRef();
@@ -247,6 +250,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
             .zoomSettings=${view?.context?.zoom?.[cameraID]?.requested}
             .zoom=${!this._isGesturesPTZActive(view, cameraID)}
             .forceSelected=${isSelectedSlide}
+            .locked=${this.locked}
             @advanced-camera-card:zoom:change=${(
               ev: CustomEvent<ZoomSettingsObserved>,
             ) =>
@@ -327,6 +331,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       .label=${neighbor?.metadata?.title ?? ''}
       .icon=${neighbor?.metadata?.icon}
       ?disabled=${!neighbor}
+      ?locked=${!!this.locked}
       @click=${(ev) => {
         this._setViewCameraID(neighbor?.id);
         stopEventFromActivatingCardWideActions(ev);
@@ -360,7 +365,10 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
         : view.context?.ptzControls?.enabled;
 
     const dragEnabled =
-      hasMultipleCameras && this.liveConfig?.draggable && !gesturesPTZActive;
+      hasMultipleCameras &&
+      this.liveConfig?.draggable &&
+      !gesturesPTZActive &&
+      !this.locked;
 
     return html`
       <advanced-camera-card-carousel

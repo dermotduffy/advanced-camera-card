@@ -244,6 +244,82 @@ describe('MicrophoneManager', () => {
     expect(api.getCardElementManager().update).toBeCalledTimes(1);
   });
 
+  describe('isLocking', () => {
+    it('should not lock when muted', () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          live: {
+            microphone: {
+              lock: true,
+            },
+          },
+        }),
+      );
+
+      expect(manager.isMuted()).toBeTruthy();
+      expect(manager.isLocking()).toBeFalsy();
+    });
+
+    it('should lock when unmuted and lock is enabled', async () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          live: {
+            microphone: {
+              lock: true,
+            },
+          },
+        }),
+      );
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+        createMockStream(),
+      );
+
+      await manager.unmute();
+
+      expect(manager.isMuted()).toBeFalsy();
+      expect(manager.isLocking()).toBeTruthy();
+    });
+
+    it('should not lock when unmuted but lock is disabled', async () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          live: {
+            microphone: {
+              lock: false,
+            },
+          },
+        }),
+      );
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+        createMockStream(),
+      );
+
+      await manager.unmute();
+
+      expect(manager.isMuted()).toBeFalsy();
+      expect(manager.isLocking()).toBeFalsy();
+    });
+
+    it('should not lock when config is unavailable', async () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+        createMockStream(),
+      );
+
+      await manager.unmute();
+
+      expect(manager.isMuted()).toBeFalsy();
+      expect(manager.isLocking()).toBeFalsy();
+    });
+  });
+
   describe('should require initialization', async () => {
     it('should require when configured and supported', async () => {
       const api = createCardAPI();

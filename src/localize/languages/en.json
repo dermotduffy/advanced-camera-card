@@ -427,6 +427,7 @@
         "auto_unmute": "Automatically unmute the microphone",
         "disconnect_seconds": "Seconds before disconnecting microphone (0=never)",
         "editor_label": "Microphone",
+        "lock": "Lock the UI while the microphone is unmuted",
         "mute_after_microphone_mute_seconds": "Seconds after microphone mute before muting inbound audio"
       },
       "preload": "Preload live view in the background",

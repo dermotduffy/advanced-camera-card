@@ -2,12 +2,13 @@ import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
+import type { LockManagerEpoch } from '../card-controller/lock/types';
 import { MenuController } from '../components-lib/menu-controller.js';
-import { MenuItem } from '../config/schema/elements/custom/menu/types.js';
-import { MenuConfig } from '../config/schema/menu.js';
+import type { MenuItem } from '../config/schema/elements/custom/menu/types.js';
+import type { MenuConfig } from '../config/schema/menu.js';
 import { getEntityTitle } from '../ha/get-entity-title.js';
-import { EntityRegistryManager } from '../ha/registry/entity/types.js';
-import { HomeAssistant } from '../ha/types.js';
+import type { EntityRegistryManager } from '../ha/registry/entity/types.js';
+import type { HomeAssistant } from '../ha/types.js';
 import menuStyle from '../scss/menu.scss';
 import { hasAction } from '../utils/action.js';
 import './icon.js';
@@ -24,6 +25,9 @@ export class AdvancedCameraCardMenu extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
+  @property({ attribute: false })
+  public lockManagerEpoch?: LockManagerEpoch;
+
   set menuConfig(menuConfig: MenuConfig) {
     this._controller.setMenuConfig(menuConfig);
   }
@@ -34,6 +38,12 @@ export class AdvancedCameraCardMenu extends LitElement {
 
   set expanded(expanded: boolean) {
     this._controller.setExpanded(expanded);
+  }
+
+  protected willUpdate(changedProps: Map<string, unknown>): void {
+    if (changedProps.has('lockManagerEpoch')) {
+      this._controller.setLockManagerEpoch(this.lockManagerEpoch);
+    }
   }
 
   public toggleMenu(): void {
@@ -49,7 +59,8 @@ export class AdvancedCameraCardMenu extends LitElement {
       return html` <advanced-camera-card-submenu-button
         .hass=${this.hass}
         .submenu=${button}
-        @action=${(ev) => this._controller.handleAction(ev)}
+        .lockManagerEpoch=${this.lockManagerEpoch}
+        @action=${(ev) => this._controller.handleAction(ev, button)}
       >
       </advanced-camera-card-submenu-button>`;
     } else if (button.type === 'custom:advanced-camera-card-menu-submenu-select') {
@@ -57,7 +68,8 @@ export class AdvancedCameraCardMenu extends LitElement {
         .hass=${this.hass}
         .submenuSelect=${button}
         .entityRegistryManager=${this.entityRegistryManager}
-        @action=${(ev) => this._controller.handleAction(ev)}
+        .lockManagerEpoch=${this.lockManagerEpoch}
+        @action=${(ev) => this._controller.handleAction(ev, button)}
       >
       </advanced-camera-card-submenu-select-button>`;
     }
@@ -75,6 +87,7 @@ export class AdvancedCameraCardMenu extends LitElement {
         hasDoubleClick: hasAction(button.double_tap_action),
       })}
       .label=${title ?? ''}
+      ?disabled=${this._controller.shouldButtonBeInert(button)}
       @action=${(ev) => this._controller.handleAction(ev, button)}
     >
       <advanced-camera-card-icon

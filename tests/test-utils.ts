@@ -43,6 +43,7 @@ import { InteractionManager } from '../src/card-controller/interaction-manager';
 import { IssueManager } from '../src/card-controller/issues/issue-manager';
 import { IssueStateManager } from '../src/card-controller/issues/state-manager';
 import { KeyboardStateManager } from '../src/card-controller/keyboard-state-manager';
+import { LockManager } from '../src/card-controller/lock/manager';
 import { MediaLoadedInfoManager } from '../src/card-controller/media-info-manager';
 import { MediaPlayerManager } from '../src/card-controller/media-player-manager';
 import { MicrophoneManager } from '../src/card-controller/microphone-manager';
@@ -702,6 +703,7 @@ export const createCardAPI = (): CardController => {
   api.getInitializationManager.mockReturnValue(mock<InitializationManager>());
   api.getInteractionManager.mockReturnValue(mock<InteractionManager>());
   api.getKeyboardStateManager.mockReturnValue(mock<KeyboardStateManager>());
+  api.getLockManager.mockReturnValue(mock<LockManager>());
   api.getMediaLoadedInfoManager.mockReturnValue(mock<MediaLoadedInfoManager>());
   api.getMediaPlayerManager.mockReturnValue(mock<MediaPlayerManager>());
   api.getMicrophoneManager.mockReturnValue(mock<MicrophoneManager>());
