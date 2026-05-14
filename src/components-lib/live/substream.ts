@@ -61,9 +61,7 @@ export class SubstreamOnViewModifier implements ViewModifier {
       return;
     }
     const dependencies = [
-      ...this._cameraManager
-        .getStore()
-        .getAllDependentCameras(view.camera, 'substream'),
+      ...this._cameraManager.getStore().getAllDependentCameras(view.camera, 'substream'),
     ];
     if (dependencies.length <= 1) {
       return;

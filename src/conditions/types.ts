@@ -7,6 +7,7 @@ import { HomeAssistant } from '../ha/types';
 import { MediaLoadedInfo } from '../types';
 
 export interface ConditionState {
+  call?: boolean;
   camera?: string;
   config?: AdvancedCameraCardConfig;
   displayMode?: ViewDisplayMode;

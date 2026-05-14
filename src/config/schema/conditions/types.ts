@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { callConditionSchema } from './custom/call';
 import { cameraConditionSchema } from './custom/camera';
 import { configConditionSchema } from './custom/config';
 import { displayModeConditionSchema } from './custom/display-mode';
@@ -69,6 +70,7 @@ export const advancedCameraCardConditionSchema = z.union([
   templateConditionSchema,
 
   // Custom conditions:
+  callConditionSchema,
   cameraConditionSchema,
   configConditionSchema,
   displayModeConditionSchema,

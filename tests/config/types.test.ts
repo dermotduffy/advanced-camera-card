@@ -868,6 +868,7 @@ describe('config defaults', () => {
   it('should include all conditions', () => {
     const conditions = [
       { condition: 'and', conditions: [{ condition: 'initialized' }] },
+      { condition: 'call', call: true },
       { condition: 'camera', cameras: ['camera.office'] },
       { condition: 'config', paths: ['menu.style'] },
       { condition: 'display_mode', display_mode: 'single' },
@@ -885,7 +886,7 @@ describe('config defaults', () => {
         state: 'down',
       },
       { condition: 'media_loaded', media_loaded: true },
-      { condition: 'microphone', connected: true, muted: true },
+      { condition: 'microphone', muted: true },
       { condition: 'not', conditions: [{ condition: 'initialized' }] },
       {
         condition: 'numeric_state',
