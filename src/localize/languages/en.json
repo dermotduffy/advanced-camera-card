@@ -726,6 +726,10 @@
   "error": {
     "awaiting_live": "Waiting for live stream to load...",
     "awaiting_media": "Waiting for media to load",
+    "call_unavailable_heading": "Two-way audio unavailable",
+    "call_microphone_forbidden": "Microphone access has been denied for this page. Update your browser permissions and try again.",
+    "call_microphone_unsupported": "Microphone access is not available in this browser (e.g. requires HTTPS).",
+    "call_no_two_way_audio": "This camera does not support two-way audio.",
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
     "configuration": "Check configuration",

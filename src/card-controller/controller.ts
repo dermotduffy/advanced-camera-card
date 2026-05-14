@@ -10,6 +10,7 @@ import { ResolvedMediaCache } from '../ha/resolved-media';
 import { LovelaceCardEditor } from '../ha/types';
 import { ActionsManager } from './actions/actions-manager';
 import { AutomationsManager } from './automations-manager';
+import { CallManager } from './call-manager';
 import { CameraURLManager } from './camera-url-manager';
 import {
   CardElementManager,
@@ -26,6 +27,8 @@ import { FullscreenManager } from './fullscreen/fullscreen-manager';
 import { HASSManager } from './hass/hass-manager';
 import { InitializationManager } from './initialization-manager';
 import { InteractionManager } from './interaction-manager';
+import { createIssueManager } from './issues/factory';
+import { IssueManager } from './issues/issue-manager';
 import { KeyboardStateManager } from './keyboard-state-manager';
 import { LockManager } from './lock/manager';
 import { MediaLoadedInfoManager } from './media-info-manager';
@@ -33,8 +36,6 @@ import { MediaPlayerManager } from './media-player-manager';
 import { MicrophoneManager } from './microphone-manager';
 import { NotificationManager } from './notification-manager';
 import { PIPManager } from './pip-manager';
-import { createIssueManager } from './issues/factory';
-import { IssueManager } from './issues/issue-manager';
 import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
@@ -55,6 +56,7 @@ import {
   CardHASSAPI,
   CardInitializerAPI,
   CardInteractionAPI,
+  CardIssueManagerAPI,
   CardKeyboardStateAPI,
   CardLockAPI,
   CardMediaLoadedAPI,
@@ -62,7 +64,6 @@ import {
   CardMicrophoneAPI,
   CardNotificationAPI,
   CardPIPAPI,
-  CardIssueManagerAPI,
   CardQueryStringAPI,
   CardStyleAPI,
   CardTriggersAPI,
@@ -112,6 +113,7 @@ export class CardController
 
   private _actionsManager = new ActionsManager(this, new TemplateRenderer());
   private _automationsManager = new AutomationsManager(this);
+  private _callManager = new CallManager(this);
   private _cameraManager = new CameraManager(this);
   private _cameraURLManager = new CameraURLManager(this);
   private _cardElementManager: CardElementManager;
@@ -164,6 +166,10 @@ export class CardController
 
   public getAutomationsManager(): AutomationsManager {
     return this._automationsManager;
+  }
+
+  public getCallManager(): CallManager {
+    return this._callManager;
   }
 
   public getCameraManager(): CameraManager {

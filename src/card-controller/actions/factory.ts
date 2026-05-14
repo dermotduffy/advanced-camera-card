@@ -2,7 +2,9 @@ import { ActionContext } from 'action';
 import { INTERNAL_CALLBACK_ACTION } from '../../config/schema/actions/custom/internal';
 import { ActionConfig, AuxillaryActionConfig } from '../../config/schema/actions/types';
 import { isAdvancedCameraCardCustomAction } from '../../utils/action';
+import { CallEndAction } from './actions/call-end';
 import { CallServiceAction } from './actions/call-service';
+import { CallStartAction } from './actions/call-start';
 import { CameraSelectAction } from './actions/camera-select';
 import { CameraUIAction } from './actions/camera-ui';
 import { CustomAction } from './actions/custom';
@@ -122,6 +124,10 @@ export class ActionFactory {
         return new InfoAction(context, action, options?.config);
       case 'menu_toggle':
         return new MenuToggleAction(context, action, options?.config);
+      case 'call_start':
+        return new CallStartAction(context, action, options?.config);
+      case 'call_end':
+        return new CallEndAction(context, action, options?.config);
       case 'camera_select':
         return new CameraSelectAction(context, action, options?.config);
       case 'live_substream_select':

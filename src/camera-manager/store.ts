@@ -180,11 +180,20 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
   }
 
   /**
-   * Get all cameras that depend on a given camera.
-   * @param cameraManager The camera manager.
+   * Get all cameras that depend on a given camera, optionally filtered by
+   * capability.
+   *
+   * Iteration order (guaranteed by Set insertion order): if `cameraID` itself
+   * passes the capability filter (or no filter is supplied), it is the first
+   * element of the returned set; the dependency chain follows in traversal
+   * order. Callers may rely on this ordering to pick a sensible default
+   * (e.g. "prefer the parent when eligible, otherwise the first matching
+   * dependency").
+   *
    * @param cameraID ID of the target camera.
-   * @returns A set of dependent cameraIDs or null (since JS sets guarantee order,
-   * the first item in the set is guaranteed to be the cameraID itself).
+   * @param capabilitySearchKeys Optional capability filter.
+   * @param options Optional search options.
+   * @returns A set of dependent cameraIDs.
    */
   public getAllDependentCameras(
     cameraID: string,
