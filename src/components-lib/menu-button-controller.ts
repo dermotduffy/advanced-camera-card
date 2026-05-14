@@ -30,7 +30,6 @@ import {
 import { arrayify, isTruthy } from '../utils/basic';
 import { isBeingCasted } from '../utils/casting';
 import { getPTZTarget } from '../utils/ptz';
-import { getStreamCameraID, hasSubstream } from '../utils/substream';
 import { ViewItemClassifier } from '../view/item-classifier';
 import { resolveViewName } from '../view/utils/resolve-default';
 import { View } from '../view/view';
@@ -38,6 +37,7 @@ import {
   getCameraIDsWithCapabilityForView,
   isViewSupported,
 } from '../view/view-support';
+import { getStreamCameraID, hasSubstream } from './live/substream';
 
 export interface MenuButtonControllerOptions {
   currentMediaLoadedInfo?: MediaLoadedInfo | null;

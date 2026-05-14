@@ -1,9 +1,9 @@
 import { CameraManager } from '../camera-manager/manager';
+import { getStreamCameraID } from '../components-lib/live/substream';
 import { PTZAction } from '../config/schema/actions/custom/ptz';
 import { PTZCapabilities } from '../types';
 import { getViewTargetID } from '../view/target-id';
 import { View } from '../view/view';
-import { getStreamCameraID } from './substream';
 
 export type PTZType = 'digital' | 'ptz';
 interface PTZTarget {

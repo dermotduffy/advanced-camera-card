@@ -1,6 +1,6 @@
+import { SubstreamSelectViewModifier } from '../../../components-lib/live/substream';
 import { SubstreamSelectActionConfig } from '../../../config/schema/actions/custom/substream-select';
 import { CardActionsAPI } from '../../types';
-import { SubstreamSelectViewModifier } from '../../view/modifiers/substream-select';
 import { AdvancedCameraCardAction } from './base';
 
 export class SubstreamSelectAction extends AdvancedCameraCardAction<SubstreamSelectActionConfig> {
