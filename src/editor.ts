@@ -121,6 +121,7 @@ import {
   CONF_LIVE_AUTO_PLAY,
   CONF_LIVE_AUTO_UNMUTE,
   CONF_LIVE_CONTROLS_BUILTIN,
+  CONF_LIVE_CONTROLS_CALL_LOCK,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_LIVE_CONTROLS_PTZ_HIDE_HOME,
@@ -159,7 +160,6 @@ import {
   CONF_LIVE_MICROPHONE_AUTO_MUTE,
   CONF_LIVE_MICROPHONE_AUTO_UNMUTE,
   CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS,
-  CONF_LIVE_MICROPHONE_LOCK,
   CONF_LIVE_MICROPHONE_MUTE_AFTER_MICROPHONE_MUTE_SECONDS,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
@@ -308,6 +308,7 @@ const MENU_CAMERAS_MEDIA = 'cameras.media';
 const MENU_FOLDERS = 'folders';
 const MENU_FOLDERS_HA = 'folders.ha';
 const MENU_LIVE_CONTROLS = 'live.controls';
+const MENU_LIVE_CONTROLS_CALL = 'live.controls.call';
 const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
 const MENU_LIVE_CONTROLS_PTZ = 'live.controls.ptz';
 const MENU_LIVE_CONTROLS_THUMBNAILS = 'live.controls.thumbnails';
@@ -384,6 +385,7 @@ const SUBMENU_DOC_LINKS: Record<string, string> = {
   [MENU_FOLDERS]: 'configuration/folders',
   [MENU_FOLDERS_HA]: 'configuration/folders?id=ha',
   [MENU_LIVE_CONTROLS]: 'configuration/live?id=controls',
+  [MENU_LIVE_CONTROLS_CALL]: 'configuration/live?id=call',
   [MENU_LIVE_CONTROLS_NEXT_PREVIOUS]: 'configuration/live?id=next_previous',
   [MENU_LIVE_CONTROLS_PTZ]: 'configuration/live?id=ptz',
   [MENU_LIVE_CONTROLS_THUMBNAILS]: 'configuration/live?id=thumbnails',
@@ -3253,6 +3255,18 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                         label: localize('config.common.controls.wheel'),
                       },
                     )}
+                    ${this._putInSubmenu(
+                      MENU_LIVE_CONTROLS_CALL,
+                      true,
+                      'config.live.controls.call.editor_label',
+                      'mdi:phone',
+                      html`
+                        ${this._renderSwitch(
+                          CONF_LIVE_CONTROLS_CALL_LOCK,
+                          this._defaults.live.controls.call.lock,
+                        )}
+                      `,
+                    )}
                     ${this._renderNextPreviousControls(
                       MENU_LIVE_CONTROLS_NEXT_PREVIOUS,
                       CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
@@ -3352,10 +3366,6 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                     ${this._renderSwitch(
                       CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
                       this._defaults.live.microphone.always_connected,
-                    )}
-                    ${this._renderSwitch(
-                      CONF_LIVE_MICROPHONE_LOCK,
-                      this._defaults.live.microphone.lock,
                     )}
                     ${this._renderOptionSelector(
                       CONF_LIVE_MICROPHONE_AUTO_MUTE,

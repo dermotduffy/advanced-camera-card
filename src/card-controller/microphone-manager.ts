@@ -119,13 +119,6 @@ export class MicrophoneManager {
     return !this._stream || this._stream.getTracks().every((track) => !track.enabled);
   }
 
-  public isLocking(): boolean {
-    // The user-facing rationale: while the microphone is hot (e.g. mid 2-way
-    // audio), prevent accidental swipes, pauses, view changes.
-    const microphoneConfig = this._api.getConfigManager().getConfig()?.live.microphone;
-    return !!microphoneConfig?.lock && !this.isMuted();
-  }
-
   private _setDesiredMuteOnStream(): void {
     this._stream?.getTracks().forEach((track) => {
       track.enabled = !this._desireMute;

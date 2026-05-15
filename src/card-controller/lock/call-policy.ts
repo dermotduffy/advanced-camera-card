@@ -4,12 +4,16 @@ import { isAdvancedCameraCardCustomAction } from '../../utils/action';
 import { CardLockAPI } from '../types';
 import type { LockPolicy } from './types';
 
-// Action that disrupt a hot-microphone session. Covers two categories:
+// Actions that would disrupt an active call. Two categories:
 //   - Major media changes (see `ViewManager.hasMajorMediaChange`): view,
 //     camera, and substream changes.
 //   - Stream-stopping / re-init actions: pause, reload, and casting (which
 //     rehosts the stream to a media player).
-const MICROPHONE_SESSION_DISRUPTIVE_ACTIONS: ReadonlySet<string> = new Set([
+//
+// `call_start` is intentionally absent — it's the entry into the lock.
+// `call_end` is also absent — it dispatches via `setViewByParameters({ force:
+// true })` to bypass the lock, so listing it here would be redundant.
+const CALL_DISRUPTIVE_ACTIONS: ReadonlySet<string> = new Set([
   // View / camera / substream changes.
   ...VIEWS_USER_SPECIFIED,
   'camera_select',
@@ -31,7 +35,7 @@ const MICROPHONE_SESSION_DISRUPTIVE_ACTIONS: ReadonlySet<string> = new Set([
   'media_player',
 ]);
 
-export class MicrophoneLockPolicy implements LockPolicy {
+export class CallLockPolicy implements LockPolicy {
   private _api: CardLockAPI;
 
   constructor(api: CardLockAPI) {
@@ -39,17 +43,16 @@ export class MicrophoneLockPolicy implements LockPolicy {
   }
 
   public isActive(): boolean {
-    return this._api.getMicrophoneManager().isLocking();
+    if (!this._api.getConfigManager().getConfig()?.live.controls.call.lock) {
+      return false;
+    }
+    return this._api.getCallManager().isActive(this._api.getViewManager().getView());
   }
 
   public shouldBlockAction(action: ActionConfig): boolean {
-    return this._isMicrophoneSessionDisruptiveAction(action);
-  }
-
-  private _isMicrophoneSessionDisruptiveAction(action: ActionConfig): boolean {
     return (
       isAdvancedCameraCardCustomAction(action) &&
-      MICROPHONE_SESSION_DISRUPTIVE_ACTIONS.has(action.advanced_camera_card_action)
+      CALL_DISRUPTIVE_ACTIONS.has(action.advanced_camera_card_action)
     );
   }
 }

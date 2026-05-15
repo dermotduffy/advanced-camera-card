@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { LockManager } from '../../../src/card-controller/lock/manager';
+import { CardController } from '../../../src/card-controller/controller';
 import {
   createCameraAction,
   createDisplayModeAction,
@@ -8,33 +9,50 @@ import {
   createMediaPlayerAction,
   createViewAction,
 } from '../../../src/utils/action';
-import { createCardAPI } from '../../test-utils';
+import { createCardAPI, createConfig } from '../../test-utils';
+
+const setCallLock = (api: CardController, lock: boolean): void => {
+  vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+    createConfig({ live: { controls: { call: { lock } } } }),
+  );
+};
 
 describe('LockManager', () => {
   it('should report unlocked when no lock source is active', () => {
     const api = createCardAPI();
-    vi.mocked(api.getMicrophoneManager().isLocking).mockReturnValue(false);
+    setCallLock(api, true);
+    vi.mocked(api.getCallManager().isActive).mockReturnValue(false);
 
     expect(new LockManager(api).isLocked()).toBeFalsy();
   });
 
-  it('should report locked when the microphone is locking', () => {
+  it('should report locked when a call is active', () => {
     const api = createCardAPI();
-    vi.mocked(api.getMicrophoneManager().isLocking).mockReturnValue(true);
+    setCallLock(api, true);
+    vi.mocked(api.getCallManager().isActive).mockReturnValue(true);
 
     expect(new LockManager(api).isLocked()).toBeTruthy();
   });
 
+  it('should report unlocked when a call is active but the lock is disabled', () => {
+    const api = createCardAPI();
+    setCallLock(api, false);
+    vi.mocked(api.getCallManager().isActive).mockReturnValue(true);
+
+    expect(new LockManager(api).isLocked()).toBeFalsy();
+  });
+
   it('should reuse lock manager epoch until the lock state changes', () => {
     const api = createCardAPI();
-    vi.mocked(api.getMicrophoneManager().isLocking).mockReturnValue(false);
+    setCallLock(api, true);
+    vi.mocked(api.getCallManager().isActive).mockReturnValue(false);
     const manager = new LockManager(api);
 
     const unlockedEpoch = manager.getEpoch();
     expect(manager.getEpoch()).toBe(unlockedEpoch);
     expect(unlockedEpoch.locked).toBeFalsy();
 
-    vi.mocked(api.getMicrophoneManager().isLocking).mockReturnValue(true);
+    vi.mocked(api.getCallManager().isActive).mockReturnValue(true);
     const lockedEpoch = manager.getEpoch();
     expect(lockedEpoch).not.toBe(unlockedEpoch);
     expect(lockedEpoch.locked).toBeTruthy();
@@ -43,16 +61,18 @@ describe('LockManager', () => {
 
   it('should not filter actions when unlocked', () => {
     const api = createCardAPI();
-    vi.mocked(api.getMicrophoneManager().isLocking).mockReturnValue(false);
+    setCallLock(api, true);
+    vi.mocked(api.getCallManager().isActive).mockReturnValue(false);
 
     const actions = [createGeneralAction('reload'), createLogAction('Allowed')];
 
     expect(new LockManager(api).getAllowedActions(actions)).toBe(actions);
   });
 
-  it('should reject microphone-session-disruptive actions when locked', () => {
+  it('should reject call-disruptive actions when locked', () => {
     const api = createCardAPI();
-    vi.mocked(api.getMicrophoneManager().isLocking).mockReturnValue(true);
+    setCallLock(api, true);
+    vi.mocked(api.getCallManager().isActive).mockReturnValue(true);
     const manager = new LockManager(api);
 
     for (const action of [
@@ -72,7 +92,8 @@ describe('LockManager', () => {
 
   it('should preserve non-disruptive actions when locked', () => {
     const api = createCardAPI();
-    vi.mocked(api.getMicrophoneManager().isLocking).mockReturnValue(true);
+    setCallLock(api, true);
+    vi.mocked(api.getCallManager().isActive).mockReturnValue(true);
     const manager = new LockManager(api);
 
     for (const action of [
@@ -93,7 +114,8 @@ describe('LockManager', () => {
 
   it('should preserve non-disruptive actions from a mixed action list when locked', () => {
     const api = createCardAPI();
-    vi.mocked(api.getMicrophoneManager().isLocking).mockReturnValue(true);
+    setCallLock(api, true);
+    vi.mocked(api.getCallManager().isActive).mockReturnValue(true);
 
     const manager = new LockManager(api);
     const allowedAction = createLogAction('Allowed');
@@ -105,7 +127,8 @@ describe('LockManager', () => {
 
   it('should report whether all configured actions are blocked', () => {
     const api = createCardAPI();
-    vi.mocked(api.getMicrophoneManager().isLocking).mockReturnValue(true);
+    setCallLock(api, true);
+    vi.mocked(api.getCallManager().isActive).mockReturnValue(true);
 
     const manager = new LockManager(api);
 
@@ -126,7 +149,8 @@ describe('LockManager', () => {
 
   it('should never report all-actions-blocked when unlocked', () => {
     const api = createCardAPI();
-    vi.mocked(api.getMicrophoneManager().isLocking).mockReturnValue(false);
+    setCallLock(api, true);
+    vi.mocked(api.getCallManager().isActive).mockReturnValue(false);
 
     const manager = new LockManager(api);
 

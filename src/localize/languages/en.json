@@ -387,6 +387,10 @@
       "auto_play": "Automatically play live cameras",
       "auto_unmute": "Automatically unmute live cameras",
       "controls": {
+        "call": {
+          "editor_label": "Two-way audio call",
+          "lock": "Lock the UI during an active two-way audio call"
+        },
         "editor_label": "Live Controls",
         "ptz": {
           "editor_label": "PTZ",
@@ -427,7 +431,6 @@
         "auto_unmute": "Automatically unmute the microphone",
         "disconnect_seconds": "Seconds before disconnecting microphone (0=never)",
         "editor_label": "Microphone",
-        "lock": "Lock the UI while the microphone is unmuted",
         "mute_after_microphone_mute_seconds": "Seconds after microphone mute before muting inbound audio"
       },
       "preload": "Preload live view in the background",

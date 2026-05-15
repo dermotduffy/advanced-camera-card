@@ -247,7 +247,9 @@ export interface CardKeyboardStateAPI {
 }
 
 export interface CardLockAPI {
-  getMicrophoneManager(): MicrophoneManager;
+  getCallManager(): CallManager;
+  getConfigManager(): ConfigManager;
+  getViewManager(): ViewManager;
 }
 
 export interface CardMediaLoadedAPI {

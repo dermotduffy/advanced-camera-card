@@ -185,10 +185,9 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
    *
    * Iteration order (guaranteed by Set insertion order): if `cameraID` itself
    * passes the capability filter (or no filter is supplied), it is the first
-   * element of the returned set; the dependency chain follows in traversal
-   * order. Callers may rely on this ordering to pick a sensible default
-   * (e.g. "prefer the parent when eligible, otherwise the first matching
-   * dependency").
+   * element of the returned set. Callers may rely on this ordering to pick a
+   * sensible default (e.g. "prefer the parent when eligible, otherwise the
+   * first matching dependency").
    *
    * @param cameraID ID of the target camera.
    * @param capabilitySearchKeys Optional capability filter.

@@ -91,6 +91,9 @@ describe('config defaults', () => {
         auto_unmute: ['microphone'],
         controls: {
           builtin: true,
+          call: {
+            lock: true,
+          },
           next_previous: {
             size: 48,
             style: 'chevrons',
@@ -136,7 +139,6 @@ describe('config defaults', () => {
           auto_mute: [],
           auto_unmute: [],
           disconnect_seconds: 90,
-          lock: true,
           mute_after_microphone_mute_seconds: 60,
         },
         preload: false,
