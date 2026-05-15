@@ -85,10 +85,10 @@ describe('config defaults', () => {
         zoomable: true,
       },
       live: {
-        auto_mute: ['unselected', 'hidden', 'microphone'],
+        auto_mute: ['unselected', 'hidden', 'microphone', 'call'],
         auto_pause: [],
         auto_play: ['selected', 'visible'],
-        auto_unmute: ['microphone'],
+        auto_unmute: ['microphone', 'call'],
         controls: {
           builtin: true,
           call: {
@@ -136,7 +136,7 @@ describe('config defaults', () => {
         lazy_unload: [],
         microphone: {
           always_connected: false,
-          auto_mute: [],
+          auto_mute: ['call'],
           auto_unmute: [],
           disconnect_seconds: 90,
           mute_after_microphone_mute_seconds: 60,

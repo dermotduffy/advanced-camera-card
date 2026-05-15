@@ -155,7 +155,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('microphoneState') || changedProps.has('liveConfig')) {
+    if (changedProps.has('liveConfig')) {
       this._mediaActionsController.setOptions({
         playerSelector: ADVANCED_CAMERA_CARD_LIVE_PROVIDER,
         ...(this.liveConfig?.auto_play && {
@@ -170,12 +170,19 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
         ...(this.liveConfig?.auto_unmute && {
           autoUnmuteConditions: this.liveConfig.auto_unmute,
         }),
-        ...((this.liveConfig?.auto_unmute || this.liveConfig?.auto_mute) && {
-          microphoneState: this.microphoneState,
+        ...(this.liveConfig && {
           microphoneMuteSeconds:
             this.liveConfig.microphone.mute_after_microphone_mute_seconds,
         }),
       });
+    }
+    if (changedProps.has('microphoneState') && this.microphoneState) {
+      this._mediaActionsController.setMicrophoneState(this.microphoneState);
+    }
+    if (changedProps.has('viewManagerEpoch')) {
+      this._mediaActionsController.setCallActive(
+        isCallActive(this.viewManagerEpoch?.manager.getView() ?? null),
+      );
     }
   }
 

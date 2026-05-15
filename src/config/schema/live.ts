@@ -23,7 +23,7 @@ import { transitionEffectConfigSchema } from './common/transition-effect';
 
 const microphoneConfigDefault = {
   always_connected: false,
-  auto_mute: [],
+  auto_mute: ['call' as const],
   auto_unmute: [],
   disconnect_seconds: 90,
   mute_after_microphone_mute_seconds: 60,
@@ -40,8 +40,14 @@ const callConfigSchema = z.object({
 const microphoneConfigSchema = z
   .object({
     always_connected: z.boolean().default(microphoneConfigDefault.always_connected),
-    auto_mute: z.enum(MICROPHONE_MUTE_CONDITIONS).array().default([]),
-    auto_unmute: z.enum(MICROPHONE_UNMUTE_CONDITIONS).array().default([]),
+    auto_mute: z
+      .enum(MICROPHONE_MUTE_CONDITIONS)
+      .array()
+      .default(microphoneConfigDefault.auto_mute),
+    auto_unmute: z
+      .enum(MICROPHONE_UNMUTE_CONDITIONS)
+      .array()
+      .default(microphoneConfigDefault.auto_unmute),
     disconnect_seconds: z
       .number()
       .min(0)
@@ -58,7 +64,7 @@ export const liveConfigDefault = {
   auto_play: [...MEDIA_ACTION_POSITIVE_CONDITIONS],
   auto_pause: [],
   auto_mute: [...MEDIA_MUTE_CONDITIONS],
-  auto_unmute: ['microphone' as const],
+  auto_unmute: ['microphone' as const, 'call' as const],
   preload: false,
   lazy_load: true,
   lazy_unload: [],

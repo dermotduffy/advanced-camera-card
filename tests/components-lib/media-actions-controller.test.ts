@@ -631,19 +631,15 @@ describe('MediaActionsController', () => {
       controller.setOptions({
         autoUnmuteConditions: ['microphone' as const],
         playerSelector: 'video',
-        microphoneState: createMicrophoneState({ muted: true }),
       });
+      controller.setMicrophoneState(createMicrophoneState({ muted: true }));
 
       const children = createPlayerSlideNodes();
       controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
 
-      controller.setOptions({
-        autoUnmuteConditions: ['microphone' as const],
-        playerSelector: 'video',
-        microphoneState: createMicrophoneState({ muted: false }),
-      });
+      controller.setMicrophoneState(createMicrophoneState({ muted: false }));
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
@@ -656,19 +652,15 @@ describe('MediaActionsController', () => {
       controller.setOptions({
         autoMuteConditions: ['microphone' as const],
         playerSelector: 'video',
-        microphoneState: createMicrophoneState({ muted: false }),
       });
+      controller.setMicrophoneState(createMicrophoneState({ muted: false }));
 
       const children = createPlayerSlideNodes();
       controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
 
-      controller.setOptions({
-        autoMuteConditions: ['microphone' as const],
-        playerSelector: 'video',
-        microphoneState: createMicrophoneState({ muted: true }),
-      });
+      controller.setMicrophoneState(createMicrophoneState({ muted: true }));
 
       vi.runOnlyPendingTimers();
 
@@ -683,24 +675,123 @@ describe('MediaActionsController', () => {
       controller.setOptions({
         autoMuteConditions: [],
         playerSelector: 'video',
-        microphoneState: createMicrophoneState({ muted: false }),
       });
+      controller.setMicrophoneState(createMicrophoneState({ muted: false }));
 
       const children = createPlayerSlideNodes();
       controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
 
-      controller.setOptions({
-        autoMuteConditions: ['microphone' as const],
-        playerSelector: 'video',
-        microphoneState: createMicrophoneState({ muted: true }),
-      });
+      controller.setMicrophoneState(createMicrophoneState({ muted: true }));
 
       vi.runOnlyPendingTimers();
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
+      ).not.toBeCalled();
+    });
+
+    it('should not act on the initial microphone state', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoUnmuteConditions: ['microphone' as const],
+        playerSelector: 'video',
+      });
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+      await controller.setTarget(0, true);
+
+      controller.setMicrophoneState(createMicrophoneState({ muted: false }));
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).not.toBeCalled();
+    });
+  });
+
+  describe('should take action on call state changes', () => {
+    it('should unmute the target on call start', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoUnmuteConditions: ['call' as const],
+        playerSelector: 'video',
+      });
+      controller.setCallActive(false);
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+
+      await controller.setTarget(0, true);
+
+      controller.setCallActive(true);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).toBeCalled();
+    });
+
+    it('should mute the target on call end', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoMuteConditions: ['call' as const],
+        playerSelector: 'video',
+      });
+      controller.setCallActive(true);
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+
+      await controller.setTarget(0, true);
+
+      controller.setCallActive(false);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
+      ).toBeCalled();
+    });
+
+    it('should not act on the initial call state', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoMuteConditions: ['call' as const],
+        autoUnmuteConditions: ['call' as const],
+        playerSelector: 'video',
+      });
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+      await controller.setTarget(0, true);
+
+      controller.setCallActive(false);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
+      ).not.toBeCalled();
+    });
+
+    it('should not act when call is not a configured condition', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoUnmuteConditions: [],
+        playerSelector: 'video',
+      });
+      controller.setCallActive(false);
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+      await controller.setTarget(0, true);
+
+      controller.setCallActive(true);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
       ).not.toBeCalled();
     });
   });

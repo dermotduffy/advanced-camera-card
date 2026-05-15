@@ -11,6 +11,7 @@ import { CameraManager } from '../../camera-manager/manager.js';
 import { MicrophoneManager } from '../../card-controller/microphone-manager.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import { isCallActive } from '../../components-lib/live/call.js';
 import { MicrophoneActionsController } from '../../components-lib/live/microphone-actions-controller.js';
 import '../../components-lib/live/types.js';
 import { LiveConfig } from '../../config/schema/live.js';
@@ -80,6 +81,7 @@ export class AdvancedCameraCardLive extends LitElement {
       this._microphoneActionsController.setSelectedCamera(
         view?.is('live') ? view.camera ?? null : null,
       );
+      this._microphoneActionsController.setCallActive(isCallActive(view ?? null));
     }
   }
 

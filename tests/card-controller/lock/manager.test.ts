@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { LockManager } from '../../../src/card-controller/lock/manager';
 import { CardController } from '../../../src/card-controller/controller';
+import { LockManager } from '../../../src/card-controller/lock/manager';
 import {
   createCameraAction,
   createDisplayModeAction,

@@ -6,6 +6,7 @@ import {
   AutoUnmuteCondition,
 } from '../config/schema/common/media-actions.js';
 import { MediaPlayerElement } from '../types.js';
+import { EdgeDetector } from '../utils/edge-detector.js';
 import { Timer } from '../utils/timer.js';
 import { VisibilityObserver } from './visibility-observer.js';
 
@@ -17,7 +18,6 @@ export interface MediaActionsControllerOptions {
   autoPauseConditions?: readonly AutoPauseCondition[];
   autoMuteConditions?: readonly AutoMuteCondition[];
 
-  microphoneState?: MicrophoneState;
   microphoneMuteSeconds?: number;
 }
 
@@ -40,6 +40,11 @@ export class MediaActionsController {
   private _microphoneMuteTimer = new Timer();
   private _root: RenderRoot | null = null;
 
+  // Audio-related state fed in via dedicated setters (not `setOptions`, which
+  // is pure configuration).
+  private _microphoneState?: MicrophoneState;
+  private _callEdge = new EdgeDetector();
+
   private _eventListeners = new Map<HTMLElement, () => void>();
   private _children: MediaPlayerElement[] = [];
   private _target: MediaActionsTarget | null = null;
@@ -53,14 +58,27 @@ export class MediaActionsController {
   }
 
   public setOptions(options: MediaActionsControllerOptions): void {
-    if (this._options?.microphoneState !== options.microphoneState) {
-      this._microphoneStateChangeHandler(
-        this._options?.microphoneState,
-        options.microphoneState,
-      );
-    }
-
     this._options = options;
+  }
+
+  public setMicrophoneState(state: MicrophoneState): void {
+    const previous = this._microphoneState;
+    this._microphoneState = state;
+    this._microphoneStateChangeHandler(previous, state);
+  }
+
+  // Audio-out auto-mute/unmute driven by the call lifecycle: unmute on call
+  // start (hear the caller), mute on call end. Acts only on a genuine
+  // transition (see `EdgeDetector`).
+  public setCallActive(active: boolean): void {
+    switch (this._callEdge.update(active)) {
+      case 'rising':
+        void this._unmuteTargetIfConfigured('call');
+        break;
+      case 'falling':
+        void this._muteTargetIfConfigured('call');
+        break;
+    }
   }
 
   public hasRoot(): boolean {

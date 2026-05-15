@@ -3,6 +3,7 @@ import {
   MicrophoneAutoMuteCondition,
   MicrophoneAutoUnmuteCondition,
 } from '../../config/schema/common/media-actions.js';
+import { EdgeDetector } from '../../utils/edge-detector.js';
 import { VisibilityObserver } from '../visibility-observer.js';
 
 interface MicrophoneActionsControllerOptions {
@@ -26,6 +27,7 @@ interface MicrophoneActionsControllerOptions {
 export class MicrophoneActionsController {
   private _options: MicrophoneActionsControllerOptions | null = null;
   private _selectedCamera: string | null = null;
+  private _callEdge = new EdgeDetector();
   private _visibilityObserver: VisibilityObserver;
 
   constructor() {
@@ -36,6 +38,24 @@ export class MicrophoneActionsController {
 
   public setOptions(options: MicrophoneActionsControllerOptions): void {
     this._options = options;
+  }
+
+  /**
+   * Notifies the controller of the current call-active state. Acts only on a
+   * genuine transition (see `EdgeDetector`): on call start, unmuting is a
+   * no-op by default (microphone.auto_unmute is empty — push-to-talk) and
+   * fires only if the user opted into `['call']`; on call end, the microphone
+   * is muted by default (cleanup).
+   */
+  public setCallActive(active: boolean): void {
+    switch (this._callEdge.update(active)) {
+      case 'rising':
+        this._unmuteIfConfigured('call');
+        break;
+      case 'falling':
+        this._muteIfConfigured('call');
+        break;
+    }
   }
 
   public setRoot(root: HTMLElement): void {
