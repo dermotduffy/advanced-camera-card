@@ -13,6 +13,7 @@ import { CameraManager } from '../../camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../../camera-manager/types.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import { isCallActive } from '../../components-lib/live/call.js';
 import { getStreamCameraID } from '../../components-lib/live/substream.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import { MediaHeightController } from '../../components-lib/media-height-controller.js';
@@ -233,14 +234,20 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
     const isSelectedSlide = !!view?.camera && cameraID === view.camera;
 
+    // The microphone stream is only handed to the provider — and thus only
+    // transmitted on the backchannel — while a call is active, and only for
+    // the selected slide.
+    const microphoneStream =
+      isSelectedSlide && isCallActive(view)
+        ? this.microphoneState?.stream ?? null
+        : null;
+
     return html`
       <div class="embla__slide">
         ${keyed(
           mediaEpoch,
           html`<advanced-camera-card-live-provider
-            .microphoneState=${view?.camera === cameraID
-              ? this.microphoneState
-              : undefined}
+            .microphoneStream=${microphoneStream}
             .camera=${resolvedCamera}
             .targetID=${cameraID}
             .label=${cameraMetadata?.title ?? ''}

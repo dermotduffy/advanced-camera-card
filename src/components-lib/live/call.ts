@@ -38,6 +38,9 @@ declare module 'view' {
   }
 }
 
+// A call is in progress iff the view carries a `call` context entry.
+export const isCallActive = (view: View | null): boolean => !!view?.context?.call;
+
 export class CallSetViewModifier implements ViewModifier {
   private _context: CallViewContext;
 

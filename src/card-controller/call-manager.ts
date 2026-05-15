@@ -2,6 +2,7 @@ import {
   CallClearViewModifier,
   CallSetViewModifier,
   CallViewContext,
+  isCallActive,
 } from '../components-lib/live/call';
 import { getStreamCameraID } from '../components-lib/live/substream';
 import { createNotificationFromText } from '../components-lib/notification/factory';
@@ -21,7 +22,7 @@ export class CallManager {
   // =========================================================================
 
   public isActive(view: View | null): boolean {
-    return !!view?.context?.call;
+    return isCallActive(view);
   }
 
   // =========================================================================
