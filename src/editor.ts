@@ -3100,6 +3100,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 })}
                 ${[
                   this._renderMenuButton('iris'),
+                  this._renderMenuButton('call'),
                   this._renderMenuButton('camera_ui'),
                   this._renderMenuButton('cameras'),
                   this._renderMenuButton('clips'),

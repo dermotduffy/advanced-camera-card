@@ -1167,6 +1167,154 @@ describe('MenuButtonController', () => {
     });
   });
 
+  describe('should have call button', () => {
+    it('with no view', () => {
+      const buttons = calculateButtons(controller, {
+        cameraManager: createCameraManager(),
+        view: null,
+      });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ title: 'Two-way audio' })]),
+      );
+    });
+
+    it('with a non-live view', () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        view: createView({ camera: 'camera-1', view: 'clips' }),
+      });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ title: 'Two-way audio' })]),
+      );
+    });
+
+    it('when no camera supports 2-way audio', () => {
+      const cameraManager = createCameraManager(
+        createStore([{ cameraID: 'camera-1', capabilities: createCapabilities() }]),
+      );
+      const buttons = calculateButtons(controller, { cameraManager });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ title: 'Two-way audio' })]),
+      );
+    });
+
+    it('with a single 2-way-audio target', () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+      const buttons = calculateButtons(controller, { cameraManager });
+
+      expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
+        icon: 'mdi:phone',
+        enabled: true,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Two-way audio',
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'call_start',
+        },
+      });
+    });
+
+    it('with multiple 2-way-audio targets', () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+            config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
+          },
+          {
+            cameraID: 'camera-2',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+      const buttons = calculateButtons(controller, { cameraManager });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          icon: 'mdi:phone',
+          title: 'Two-way audio',
+          type: 'custom:advanced-camera-card-menu-submenu',
+          items: [
+            expect.objectContaining({
+              tap_action: {
+                action: 'fire-dom-event',
+                advanced_camera_card_action: 'call_start',
+                camera: 'camera-1',
+              },
+            }),
+            expect.objectContaining({
+              tap_action: {
+                action: 'fire-dom-event',
+                advanced_camera_card_action: 'call_start',
+                camera: 'camera-2',
+              },
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('when a call is active', () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        view: createView({
+          camera: 'camera-1',
+          context: { call: { cameraID: 'camera-1', callCameraID: 'camera-1' } },
+        }),
+      });
+
+      expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
+        icon: 'mdi:phone-hangup',
+        enabled: true,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Two-way audio',
+        style: {
+          animation: 'pulse 3s infinite',
+          color: 'var(--advanced-camera-card-menu-button-critical-color)',
+        },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'call_end',
+        },
+      });
+    });
+  });
+
   describe('should have microphone button', () => {
     it('when camera has 2-way-audio capability', () => {
       const microphoneManager = mock<MicrophoneManager>();

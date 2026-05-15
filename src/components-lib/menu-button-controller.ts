@@ -17,6 +17,8 @@ import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize.js';
 import { MediaLoadedInfo } from '../types';
 import {
+  createCallEndAction,
+  createCallStartAction,
   createCameraAction,
   createDisplayModeAction,
   createGeneralAction,
@@ -37,6 +39,7 @@ import {
   getCameraIDsWithCapabilityForView,
   isViewSupported,
 } from '../view/view-support';
+import { isCallActive } from './live/call';
 import { getStreamCameraID, hasSubstream } from './live/substream';
 
 export interface MenuButtonControllerOptions {
@@ -94,6 +97,7 @@ export class MenuButtonController {
       this._getInfoButton(config, cameraManager, options?.view),
       this._getSetReviewButton(config, options?.view),
       this._getCameraUIButton(config, options?.showCameraUIButton),
+      this._getCallButton(config, cameraManager, options?.view),
       this._getMicrophoneButton(
         config,
         cameraManager,
@@ -478,6 +482,69 @@ export class MenuButtonController {
           tap_action: createGeneralAction('camera_ui'),
         }
       : null;
+  }
+
+  private _getCallButton(
+    config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
+    view?: View | null,
+  ): MenuItem | null {
+    if (!view?.camera || !view.is('live')) {
+      return null;
+    }
+
+    // The call targets: the selected camera and/or any 2-way-audio-capable
+    // dependency.
+    const targets = [
+      ...cameraManager.getStore().getAllDependentCameras(view.camera, '2-way-audio'),
+    ];
+    if (!targets.length) {
+      return null;
+    }
+
+    // In a call: a single hang-up button, regardless of target count.
+    if (isCallActive(view)) {
+      return {
+        icon: 'mdi:phone-hangup',
+        title: localize('config.menu.buttons.call'),
+        style: this._getEmphasizedStyle(true),
+        ...config.menu.buttons.call,
+        type: 'custom:advanced-camera-card-menu-icon',
+        tap_action: createCallEndAction(),
+      };
+    }
+
+    // Idle, single target: a plain button (`call_start` resolves the default).
+    if (targets.length === 1) {
+      return {
+        icon: 'mdi:phone',
+        title: localize('config.menu.buttons.call'),
+        ...config.menu.buttons.call,
+        type: 'custom:advanced-camera-card-menu-icon',
+        tap_action: createCallStartAction(),
+      };
+    }
+
+    // Idle, multiple targets: a submenu, one entry per camera.
+    const menuItems = targets.map((cameraID) => {
+      const metadata = cameraManager.getCameraMetadata(cameraID) ?? undefined;
+      return {
+        enabled: true,
+        icon: metadata?.icon.icon,
+        entity: metadata?.icon.entity,
+        state_color: true,
+        title: metadata?.title,
+        tap_action: createCallStartAction(cameraID),
+      };
+    });
+
+    return {
+      icon: 'mdi:phone',
+      title: localize('config.menu.buttons.call'),
+      ...config.menu.buttons.call,
+      type: 'custom:advanced-camera-card-menu-submenu',
+      items: menuItems,
+    };
   }
 
   private _getMicrophoneButton(

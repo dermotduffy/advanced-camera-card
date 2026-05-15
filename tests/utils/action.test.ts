@@ -3,6 +3,8 @@ import { mock } from 'vitest-mock-extended';
 import { INTERNAL_CALLBACK_ACTION } from '../../src/config/schema/actions/custom/internal.js';
 import { ActionConfig } from '../../src/config/schema/actions/types.js';
 import {
+  createCallEndAction,
+  createCallStartAction,
   createCameraAction,
   createDisplayModeAction,
   createEffectAction,
@@ -354,6 +356,41 @@ describe('createSetReviewAction', () => {
       action: 'fire-dom-event',
       advanced_camera_card_action: 'set_review',
       reviewed: undefined,
+    });
+  });
+});
+
+describe('createCallStartAction', () => {
+  it('should create call start action without a camera', () => {
+    expect(createCallStartAction()).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'call_start',
+    });
+  });
+
+  it('should create call start action with a camera and cardID', () => {
+    expect(createCallStartAction('camera.front', { cardID: 'card_id' })).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'call_start',
+      camera: 'camera.front',
+      card_id: 'card_id',
+    });
+  });
+});
+
+describe('createCallEndAction', () => {
+  it('should create call end action', () => {
+    expect(createCallEndAction()).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'call_end',
+    });
+  });
+
+  it('should create call end action with a cardID', () => {
+    expect(createCallEndAction({ cardID: 'card_id' })).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'call_end',
+      card_id: 'card_id',
     });
   });
 });

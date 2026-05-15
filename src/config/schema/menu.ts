@@ -36,6 +36,7 @@ export const menuConfigDefault = {
   buttons: {
     // Clone per key so each button has its own default object. This avoids
     // shared nested default references between keys.
+    call: { ...visibleButtonDefault },
     camera_ui: { ...visibleButtonDefault },
     cameras: { ...visibleButtonDefault },
     clips: { ...hiddenButtonDefault },
@@ -88,6 +89,7 @@ export const menuConfigSchema = z
     alignment: z.enum(MENU_ALIGNMENTS).default(menuConfigDefault.alignment),
     buttons: z
       .object({
+        call: visibleButtonSchema.default(menuConfigDefault.buttons.call),
         camera_ui: visibleButtonSchema.default(menuConfigDefault.buttons.camera_ui),
         cameras: visibleButtonSchema.default(menuConfigDefault.buttons.cameras),
         clips: hiddenButtonSchema.default(menuConfigDefault.buttons.clips),

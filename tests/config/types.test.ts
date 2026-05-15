@@ -216,6 +216,13 @@ describe('config defaults', () => {
         alignment: 'left',
         button_size: 40,
         buttons: {
+          call: {
+            alignment: 'matching',
+            enabled: true,
+            permanent: false,
+            priority: 50,
+            state_color: true,
+          },
           camera_ui: {
             alignment: 'matching',
             enabled: true,

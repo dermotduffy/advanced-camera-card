@@ -1,5 +1,7 @@
 import { CardActionsAPI } from '../card-controller/types.js';
 import { ZoomSettingsBase } from '../components-lib/zoom/types.js';
+import { CallEndActionConfig } from '../config/schema/actions/custom/call-end.js';
+import { CallStartActionConfig } from '../config/schema/actions/custom/call-start.js';
 import { CameraSelectActionConfig } from '../config/schema/actions/custom/camera-select.js';
 import { DisplayModeActionConfig } from '../config/schema/actions/custom/display-mode.js';
 import {
@@ -269,6 +271,28 @@ export function createSetReviewAction(reviewed?: boolean): SetReviewActionConfig
     action: 'fire-dom-event',
     advanced_camera_card_action: 'set_review',
     reviewed,
+  };
+}
+
+export function createCallStartAction(
+  camera?: string,
+  options?: {
+    cardID?: string;
+  },
+): CallStartActionConfig {
+  return {
+    action: 'fire-dom-event',
+    advanced_camera_card_action: 'call_start',
+    ...(camera && { camera }),
+    ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
+export function createCallEndAction(options?: { cardID?: string }): CallEndActionConfig {
+  return {
+    action: 'fire-dom-event',
+    advanced_camera_card_action: 'call_end',
+    ...(options?.cardID && { card_id: options.cardID }),
   };
 }
 
