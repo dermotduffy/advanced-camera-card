@@ -45,6 +45,21 @@ conditions:
 | `condition` | Must be `camera`.                                                                                                                                                                     |
 | `cameras`   | An optional list of camera IDs in which this condition is satisfied. If not specified, any camera change will satisy the condition. See the camera [id](cameras/README.md) parameter. |
 
+## `call`
+
+Matches based on whether a [two-way audio](../usage/2-way-audio.md) call is in progress.
+
+```yaml
+conditions:
+  - condition: call
+    # [...]
+```
+
+| Parameter   | Description                                                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` | Must be `call`.                                                                                                                 |
+| `call`      | If `true` (the default) or `false`, the condition is satisfied when a two-way audio call is or is not in progress respectively. |
+
 ## `config`
 
 Matches when card configuration changes (e.g. on startup, or when [Configuration Overrides](./overrides.md) are applied).
@@ -197,11 +212,10 @@ conditions:
     # [...]
 ```
 
-| Parameter   | Description                                                                                                            |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `condition` | Must be `microphone`.                                                                                                  |
-| `connected` | Optional: If `true` or `false` the condition is satisfied if the microphone is connected or disconnected respectively. |
-| `muted`     | Optional: If `true` or `false` the condition is satisfied if the microphone is muted or unmuted respectively.          |
+| Parameter   | Description                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------------- |
+| `condition` | Must be `microphone`.                                                                                         |
+| `muted`     | Optional: If `true` or `false` the condition is satisfied if the microphone is muted or unmuted respectively. |
 
 When multiple parameters are specified they must all match for the condition to
 match.
@@ -394,6 +408,8 @@ conditions:
  - condition: camera
    cameras:
      - camera.office
+  - condition: call
+    call: true
   - condition: config
     paths:
       - "menu.style"
@@ -416,7 +432,6 @@ conditions:
   - condition: media_loaded
     media_loaded: true
   - condition: microphone
-    connected: true
     muted: true
   - condition: numeric_state
     entity: sensor.office_temperature

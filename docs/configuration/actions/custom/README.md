@@ -12,6 +12,33 @@ action: custom:advanced-camera-card-action
 | `action`                      | Must be `custom:advanced-camera-card-action`.                      |
 | `advanced_camera_card_action` | A supported Advanced Camera Card action. One of the below actions. |
 
+## `call_end`
+
+End the [two-way audio](../../../usage/2-way-audio.md) call in progress. Has no effect if no call is active.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: call_end
+```
+
+## `call_start`
+
+Start a [two-way audio](../../../usage/2-way-audio.md) call.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: call_start
+# [...]
+```
+
+| Parameter                     | Description                                                                                                                                                                                                                                                     |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                                                                                                                                                                                                                   |
+| `advanced_camera_card_action` | Must be `call_start`.                                                                                                                                                                                                                                           |
+| `camera`                      | An optional [camera ID](../../cameras/README.md?id=cameras) of the camera to call. If omitted, the selected camera is used when it supports 2-way audio, otherwise the first 2-way-audio-capable [dependency](../../cameras/README.md?id=dependencies) is used. |
+
+The call starts only if a 2-way-audio-capable camera can be resolved and the browser grants microphone access; otherwise a notification explains why. While the call is in progress an on-screen overlay is shown and (by default) disruptive actions are locked -- see [`live.controls.call`](../../live.md?id=call).
+
 ## `camera_select`
 
 Select a given camera.
@@ -683,6 +710,19 @@ advanced_camera_card_action: unmute
 
 ```yaml
 elements:
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:phone
+    title: Start a two-way audio call
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: call_start
+      camera: camera.front_door
+  - type: custom:advanced-camera-card-menu-icon
+    icon: mdi:phone-hangup
+    title: End a two-way audio call
+    tap_action:
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: call_end
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-a-circle
     title: Select Front Door
