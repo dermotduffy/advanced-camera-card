@@ -8,7 +8,6 @@
   pointer-events: none;
   z-index: $z-index-call-controls;
 
-  // The button size; overridden on the host from the configured value.
   --advanced-camera-card-call-controls-button-size: 40px;
   --ha-icon-button-size: var(--advanced-camera-card-call-controls-button-size);
   --mdc-icon-size: calc(var(--ha-icon-button-size) / 2);
