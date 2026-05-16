@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CardController } from '../../src/card-controller/controller';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
-import { SubstreamSelectViewModifier } from '../../src/components-lib/live/substream';
+import { SubstreamViewModifier } from '../../src/components-lib/live/substream';
 import { createCardAPI, createConfig } from '../test-utils';
 
 const setQueryString = (qs: string): void => {
@@ -154,7 +154,7 @@ describe('QueryStringManager', () => {
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
 
     expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
-      modifiers: [expect.any(SubstreamSelectViewModifier)],
+      modifiers: [expect.any(SubstreamViewModifier)],
       params: {},
     });
 
@@ -250,7 +250,7 @@ describe('QueryStringManager', () => {
         params: {
           camera: 'camera.kitchen',
         },
-        modifiers: [expect.any(SubstreamSelectViewModifier)],
+        modifiers: [expect.any(SubstreamViewModifier)],
       });
       expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
     });

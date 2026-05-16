@@ -11,6 +11,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import { CallSession } from '../../card-controller/call/types.js';
 import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
 import { LiveConfig } from '../../config/schema/live.js';
 import { CardWideConfig } from '../../config/schema/types.js';
@@ -40,6 +41,9 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
   public microphoneState?: MicrophoneState;
 
   @property({ attribute: false })
+  public call?: CallSession;
+
+  @property({ attribute: false })
   public locked?: boolean;
 
   @property({ attribute: false, hasChanged: contentsChanged })
@@ -66,6 +70,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
         .cardWideConfig=${this.cardWideConfig}
         .cameraManager=${this.cameraManager}
         .microphoneState=${this.microphoneState}
+        .call=${this.call}
         .locked=${this.locked}
         ?triggered=${triggeredCameraID &&
         !!this.triggeredCameraIDs?.has(triggeredCameraID)}

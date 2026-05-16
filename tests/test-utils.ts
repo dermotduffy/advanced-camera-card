@@ -23,7 +23,7 @@ import {
 } from '../src/camera-manager/types';
 import { ActionsManager } from '../src/card-controller/actions/actions-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
-import { CallManager } from '../src/card-controller/call-manager';
+import { CallManager } from '../src/card-controller/call/manager';
 import { CameraURLManager } from '../src/card-controller/camera-url-manager';
 import {
   CardElementManager,

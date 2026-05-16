@@ -1,5 +1,6 @@
 import { StyleInfo } from 'lit/directives/style-map';
 import { CameraManager } from '../camera-manager/manager';
+import { CallManager } from '../card-controller/call/manager';
 import { FoldersManager } from '../card-controller/folders/manager';
 import { FullscreenManager } from '../card-controller/fullscreen/fullscreen-manager';
 import { MediaPlayerManager } from '../card-controller/media-player-manager';
@@ -39,10 +40,10 @@ import {
   getCameraIDsWithCapabilityForView,
   isViewSupported,
 } from '../view/view-support';
-import { isCallActive } from './live/call';
 import { getStreamCameraID, hasSubstream } from './live/substream';
 
 export interface MenuButtonControllerOptions {
+  callManager?: CallManager | null;
   currentMediaLoadedInfo?: MediaLoadedInfo | null;
   showCameraUIButton?: boolean;
   fullscreenManager?: FullscreenManager | null;
@@ -97,7 +98,7 @@ export class MenuButtonController {
       this._getInfoButton(config, cameraManager, options?.view),
       this._getSetReviewButton(config, options?.view),
       this._getCameraUIButton(config, options?.showCameraUIButton),
-      this._getCallButton(config, cameraManager, options?.view),
+      this._getCallButton(config, cameraManager, options?.callManager, options?.view),
       this._getMicrophoneButton(
         config,
         cameraManager,
@@ -487,6 +488,7 @@ export class MenuButtonController {
   private _getCallButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
+    callManager?: CallManager | null,
     view?: View | null,
   ): MenuItem | null {
     if (!view?.camera || !view.is('live')) {
@@ -503,7 +505,7 @@ export class MenuButtonController {
     }
 
     // In a call: a single hang-up button, regardless of target count.
-    if (isCallActive(view)) {
+    if (callManager?.isActive()) {
       return {
         icon: 'mdi:phone-hangup',
         title: localize('config.menu.buttons.call'),

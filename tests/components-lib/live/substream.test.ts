@@ -2,18 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   getStreamCameraID,
   hasSubstream,
-  SubstreamOffViewModifier,
-  SubstreamOnViewModifier,
-  SubstreamSelectViewModifier,
+  SubstreamViewModifier,
 } from '../../../src/components-lib/live/substream';
-import { View } from '../../../src/view/view';
-import {
-  createCameraConfig,
-  createCameraManager,
-  createCapabilities,
-  createStore,
-  createView,
-} from '../../test-utils';
+import { createView } from '../../test-utils';
 
 describe('getStreamCameraID / hasSubstream', () => {
   it('should report a substream override', () => {
@@ -78,119 +69,53 @@ describe('getStreamCameraID / hasSubstream', () => {
   });
 });
 
-describe('SubstreamSelectViewModifier', () => {
-  it('should write the override', () => {
-    const view = createView({ camera: 'camera1' });
-    new SubstreamSelectViewModifier('substream1').modify(view);
-    expect(view.context?.live?.overrides?.get('camera1')).toBe('substream1');
+describe('SubstreamViewModifier', () => {
+  it('should write the override for the selected camera', () => {
+    const view = createView({ camera: 'camera' });
+
+    new SubstreamViewModifier('substream').modify(view);
+
+    expect(view.context?.live?.overrides?.get('camera')).toBe('substream');
+  });
+
+  it('should clear the selected camera override when no substream is given', () => {
+    const view = createView({
+      camera: 'camera',
+      context: { live: { overrides: new Map([['camera', 'substream']]) } },
+    });
+
+    new SubstreamViewModifier().modify(view);
+
+    expect(view.context?.live?.overrides?.get('camera')).toBeUndefined();
+  });
+
+  it('should write the override for an explicit camera', () => {
+    const view = createView({
+      camera: 'camera',
+      context: { live: { overrides: new Map([['camera', 'substream']]) } },
+    });
+
+    new SubstreamViewModifier('other-substream', 'other-camera').modify(view);
+
+    expect(view.context?.live?.overrides?.get('other-camera')).toBe('other-substream');
+    expect(view.context?.live?.overrides?.get('camera')).toBe('substream');
+  });
+
+  it('should clear the override for an explicit camera', () => {
+    const view = createView({
+      camera: 'camera',
+      context: { live: { overrides: new Map([['other-camera', 'other-substream']]) } },
+    });
+
+    new SubstreamViewModifier(undefined, 'other-camera').modify(view);
+
+    expect(view.context?.live?.overrides?.get('other-camera')).toBeUndefined();
   });
 
   it('should no-op for a view without a camera', () => {
     const view = createView({ camera: null });
-    new SubstreamSelectViewModifier('substream1').modify(view);
-    expect(view.context).toBeNull();
-  });
-});
 
-describe('SubstreamOffViewModifier', () => {
-  it('should clear an active override', () => {
-    const view = new View({
-      view: 'live',
-      camera: 'camera',
-      context: { live: { overrides: new Map([['camera', 'camera2']]) } },
-    });
-    new SubstreamOffViewModifier().modify(view);
-    expect(view.context).toEqual({ live: { overrides: new Map() } });
-  });
-
-  it('should leave unrelated overrides untouched', () => {
-    const view = new View({
-      view: 'live',
-      camera: 'camera-without-override',
-      context: { live: { overrides: new Map([['other-camera', 'override']]) } },
-    });
-    new SubstreamOffViewModifier().modify(view);
-    expect(view.context).toEqual({
-      live: { overrides: new Map([['other-camera', 'override']]) },
-    });
-  });
-
-  it('should no-op when the view has no camera', () => {
-    const view = createView({ camera: null });
-    new SubstreamOffViewModifier().modify(view);
-    expect(view.context).toBeNull();
-  });
-});
-
-describe('SubstreamOnViewModifier', () => {
-  const createCameraManagerWithSubstreams = () => {
-    const store = createStore([
-      {
-        cameraID: 'camera.office',
-        capabilities: createCapabilities({ live: true, substream: true }),
-        config: createCameraConfig({ dependencies: { all_cameras: true } }),
-      },
-      {
-        cameraID: 'camera.kitchen',
-        capabilities: createCapabilities({ substream: true }),
-      },
-    ]);
-    return createCameraManager(store);
-  };
-
-  it('should advance to the next dependency', () => {
-    const cameraManager = createCameraManagerWithSubstreams();
-    const view = createView({ view: 'live', camera: 'camera.office' });
-
-    new SubstreamOnViewModifier(cameraManager).modify(view);
-
-    expect(getStreamCameraID(view)).toBe('camera.kitchen');
-  });
-
-  it('should wrap back to the parent camera', () => {
-    const cameraManager = createCameraManagerWithSubstreams();
-    const view = createView({
-      view: 'live',
-      camera: 'camera.office',
-      context: {
-        live: { overrides: new Map([['camera.office', 'camera.kitchen']]) },
-      },
-    });
-
-    new SubstreamOnViewModifier(cameraManager).modify(view);
-
-    expect(getStreamCameraID(view)).toBe('camera.office');
-  });
-
-  it('should treat a malformed override as the start of the cycle', () => {
-    const cameraManager = createCameraManagerWithSubstreams();
-    const view = createView({
-      view: 'live',
-      camera: 'camera.office',
-      context: {
-        live: { overrides: new Map([['camera.office', 'NOT_A_REAL_CAMERA']]) },
-      },
-    });
-
-    new SubstreamOnViewModifier(cameraManager).modify(view);
-
-    expect(getStreamCameraID(view)).toBe('camera.office');
-  });
-
-  it('should no-op when there are no usable dependencies', () => {
-    const cameraManager = createCameraManager(createStore());
-    const view = createView({ view: 'live', camera: 'camera.office' });
-
-    new SubstreamOnViewModifier(cameraManager).modify(view);
-
-    expect(hasSubstream(view)).toBeFalsy();
-  });
-
-  it('should no-op when the view has no camera', () => {
-    const cameraManager = createCameraManagerWithSubstreams();
-    const view = createView({ view: 'live', camera: null });
-
-    new SubstreamOnViewModifier(cameraManager).modify(view);
+    new SubstreamViewModifier('substream').modify(view);
 
     expect(view.context).toBeNull();
   });

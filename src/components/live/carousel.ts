@@ -11,9 +11,9 @@ import { keyed } from 'lit/directives/keyed.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../../camera-manager/types.js';
+import { CallSession } from '../../card-controller/call/types.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
-import { isCallActive } from '../../components-lib/live/call.js';
 import { getStreamCameraID } from '../../components-lib/live/substream.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import { MediaHeightController } from '../../components-lib/media-height-controller.js';
@@ -71,6 +71,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
+
+  @property({ attribute: false })
+  public call?: CallSession;
 
   @property({ attribute: false })
   public locked?: boolean;
@@ -180,10 +183,8 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     if (changedProps.has('microphoneState') && this.microphoneState) {
       this._mediaActionsController.setMicrophoneState(this.microphoneState);
     }
-    if (changedProps.has('viewManagerEpoch')) {
-      this._mediaActionsController.setCallActive(
-        isCallActive(this.viewManagerEpoch?.manager.getView() ?? null),
-      );
+    if (changedProps.has('call')) {
+      this._mediaActionsController.setCallActive(!!this.call);
     }
   }
 
@@ -241,14 +242,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     const mediaEpoch = view?.context?.mediaEpoch?.[cameraID] ?? 0;
 
     const isSelectedSlide = !!view?.camera && cameraID === view.camera;
-
-    // The microphone stream is only handed to the provider — and thus only
-    // transmitted on the backchannel — while a call is active, and only for
-    // the selected slide.
-    const microphoneStream =
-      isSelectedSlide && isCallActive(view)
-        ? this.microphoneState?.stream ?? null
-        : null;
+    const microphoneStream = this._getRelevantMicrophoneStream(cameraID, view);
 
     return html`
       <div class="embla__slide">
@@ -283,6 +277,22 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
   private _getSubstreamCameraID(cameraID: string, view?: View | null): string {
     return view?.context?.live?.overrides?.get(cameraID) ?? cameraID;
+  }
+
+  // Return a microphone stream only for the camera the call is anchored on, and
+  // only while that camera's engaged stream is still the call's audio source.
+  // Keying off the call session (not the selected slide) keeps the microphone
+  // routed to the call's camera, and stops transmission if the substream has
+  // since changed.
+  private _getRelevantMicrophoneStream(
+    cameraID: string,
+    view?: View | null,
+  ): MediaStream | null {
+    const isRelevant =
+      this.call?.cameraID === cameraID &&
+      this._getSubstreamCameraID(cameraID, view) ===
+        (this.call.callCameraID ?? cameraID);
+    return isRelevant ? this.microphoneState?.stream ?? null : null;
   }
 
   private _toggleMute(): void {
@@ -396,7 +406,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       !gesturesPTZActive &&
       !this.locked;
 
-    const showCallControls = view.context?.call?.cameraID === carouselCameraID;
+    const showCallControls = this.call?.cameraID === carouselCameraID;
     const callMediaPlayerController =
       this._mediaLoadedInfoSinkController.get()?.mediaPlayerController ?? null;
 

@@ -1,4 +1,4 @@
-import { SubstreamSelectViewModifier } from '../components-lib/live/substream';
+import { SubstreamViewModifier } from '../components-lib/live/substream';
 import { ViewActionConfig } from '../config/schema/actions/custom/view';
 import { AdvancedCameraCardCustomActionConfig } from '../config/schema/actions/types';
 import {
@@ -50,7 +50,7 @@ export class QueryStringManager {
             camera: intent.view.camera,
           },
           ...(intent.view.substream && {
-            modifiers: [new SubstreamSelectViewModifier(intent.view.substream)],
+            modifiers: [new SubstreamViewModifier(intent.view.substream)],
           }),
         });
       } else {
@@ -60,7 +60,7 @@ export class QueryStringManager {
             ...(intent.view.camera && { camera: intent.view.camera }),
           },
           ...(intent.view.substream && {
-            modifiers: [new SubstreamSelectViewModifier(intent.view.substream)],
+            modifiers: [new SubstreamViewModifier(intent.view.substream)],
           }),
         });
       }

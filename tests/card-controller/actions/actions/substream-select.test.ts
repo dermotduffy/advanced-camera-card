@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { SubstreamSelectAction } from '../../../../src/card-controller/actions/actions/substream-select';
-import { SubstreamSelectViewModifier } from '../../../../src/components-lib/live/substream';
+import { SubstreamViewModifier } from '../../../../src/components-lib/live/substream';
 import { createCardAPI } from '../../../test-utils';
 
 it('should handle live_substream_select action', async () => {
@@ -17,6 +17,6 @@ it('should handle live_substream_select action', async () => {
   await action.execute(api);
 
   expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-    modifiers: [expect.any(SubstreamSelectViewModifier)],
+    modifiers: [expect.any(SubstreamViewModifier)],
   });
 });

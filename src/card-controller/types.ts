@@ -7,7 +7,7 @@ import type { ResolvedMediaCache } from '../ha/resolved-media';
 import type { EffectsManagerInterface } from '../types';
 import type { ActionsManager } from './actions/actions-manager';
 import type { AutomationsManager } from './automations-manager';
-import type { CallManager } from './call-manager';
+import type { CallManager } from './call/manager';
 import type { CameraURLManager } from './camera-url-manager';
 import type { CardElementManager } from './card-element-manager';
 import type { ConfigManager } from './config/config-manager';

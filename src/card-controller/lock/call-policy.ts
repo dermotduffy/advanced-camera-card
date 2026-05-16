@@ -46,7 +46,7 @@ export class CallLockPolicy implements LockPolicy {
     if (!this._api.getConfigManager().getConfig()?.live.controls.call.lock) {
       return false;
     }
-    return this._api.getCallManager().isActive(this._api.getViewManager().getView());
+    return this._api.getCallManager().isActive();
   }
 
   public shouldBlockAction(action: ActionConfig): boolean {

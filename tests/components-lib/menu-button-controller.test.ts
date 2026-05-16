@@ -4,12 +4,13 @@ import { mock } from 'vitest-mock-extended';
 import { Capabilities } from '../../src/camera-manager/capabilities.js';
 import { CameraManager } from '../../src/camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../../src/camera-manager/types.js';
+import { CallManager } from '../../src/card-controller/call/manager.js';
 import { FoldersManager } from '../../src/card-controller/folders/manager.js';
 import { FolderQuery } from '../../src/card-controller/folders/types';
 import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager.js';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
-import { PIPManager } from '../../src/card-controller/pip-manager.js';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager.js';
+import { PIPManager } from '../../src/card-controller/pip-manager.js';
 import { ViewManager } from '../../src/card-controller/view/view-manager.js';
 import {
   MenuButtonController,
@@ -1286,12 +1287,12 @@ describe('MenuButtonController', () => {
           },
         ]),
       );
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       const buttons = calculateButtons(controller, {
         cameraManager,
-        view: createView({
-          camera: 'camera-1',
-          context: { call: { cameraID: 'camera-1', callCameraID: 'camera-1' } },
-        }),
+        callManager,
+        view: createView({ camera: 'camera-1' }),
       });
 
       expect(buttons).toContainEqual({

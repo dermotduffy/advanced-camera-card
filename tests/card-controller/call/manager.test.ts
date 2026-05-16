@@ -1,12 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
-import { CameraManagerStore } from '../../src/camera-manager/store';
-import { CallManager } from '../../src/card-controller/call-manager';
-import { CardController } from '../../src/card-controller/controller';
-import {
-  CallClearViewModifier,
-  CallSetViewModifier,
-} from '../../src/components-lib/live/call';
-import { View } from '../../src/view/view';
+import { assert, describe, expect, it, vi } from 'vitest';
+import { CameraManagerStore } from '../../../src/camera-manager/store';
+import { CallManager } from '../../../src/card-controller/call/manager';
+import { CardController } from '../../../src/card-controller/controller';
+import { SubstreamViewModifier } from '../../../src/components-lib/live/substream';
+import { ConditionStateChange } from '../../../src/conditions/types';
+import { View } from '../../../src/view/view';
 import {
   createCameraConfig,
   createCameraManager,
@@ -14,7 +12,7 @@ import {
   createCardAPI,
   createStore,
   createView,
-} from '../test-utils';
+} from '../../test-utils';
 
 // A store with a single 2-way-audio-capable camera.
 const createCallableStore = (cameraID = 'camera.office'): CameraManagerStore =>
@@ -49,17 +47,31 @@ const createAPI = (options?: {
   return api;
 };
 
+// The condition-state listener a CallManager registers in its constructor.
+const getConditionStateListener = (
+  api: CardController,
+): ((change: ConditionStateChange) => void) => {
+  const listener = vi.mocked(api.getConditionStateManager().addListener).mock
+    .calls[0]?.[0];
+  assert(listener);
+  return listener;
+};
+
 describe('isActive', () => {
-  it('should report inactive without a call context', () => {
-    expect(new CallManager(createCardAPI()).isActive(createView())).toBe(false);
+  it('should report inactive before a call starts', () => {
+    expect(new CallManager(createCardAPI()).isActive()).toBe(false);
   });
 
-  it('should report active with a call context', () => {
-    const view = createView({
-      camera: 'camera.office',
-      context: { call: { cameraID: 'camera.office', callCameraID: 'camera.office' } },
-    });
-    expect(new CallManager(createCardAPI()).isActive(view)).toBe(true);
+  it('should report active during a call', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+
+    await manager.start();
+
+    expect(manager.isActive()).toBe(true);
+    // The call runs on the parent camera's own stream, so callCameraID is
+    // absent.
+    expect(manager.getCall()).toEqual({ cameraID: 'camera.office' });
   });
 });
 
@@ -73,14 +85,12 @@ describe('start', () => {
   });
 
   it('should do nothing when already active for the camera', async () => {
-    const api = createAPI({
-      view: createView({
-        camera: 'camera.office',
-        context: { call: { cameraID: 'camera.office', callCameraID: 'camera.office' } },
-      }),
-    });
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
 
-    await new CallManager(api).start();
+    await manager.start();
+    vi.mocked(api.getViewManager().setViewByParameters).mockClear();
+    await manager.start();
 
     expect(api.getViewManager().setViewByParameters).not.toBeCalled();
   });
@@ -91,7 +101,7 @@ describe('start', () => {
     await new CallManager(api).start();
 
     expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-      modifiers: [expect.any(CallSetViewModifier)],
+      modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
     expect(api.getConditionStateManager().setState).toBeCalledWith({ call: true });
@@ -106,7 +116,7 @@ describe('start', () => {
     await new CallManager(api).start('camera.doorbell');
 
     expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-      modifiers: [expect.any(CallSetViewModifier)],
+      modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
   });
@@ -156,13 +166,16 @@ describe('start', () => {
         },
       ]),
     });
+    const manager = new CallManager(api);
 
-    await new CallManager(api).start();
+    await manager.start();
 
     expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-      modifiers: [expect.any(CallSetViewModifier)],
+      modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
+    // The pre-call substream is captured so it can be restored on call end.
+    expect(manager.getCall()?.previousStream).toBe('camera.sub');
   });
 
   it('should fall back to a call-capable dependency when the parent lacks audio', async () => {
@@ -184,7 +197,7 @@ describe('start', () => {
     await new CallManager(api).start();
 
     expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-      modifiers: [expect.any(CallSetViewModifier)],
+      modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
   });
@@ -249,20 +262,67 @@ describe('end', () => {
     expect(api.getViewManager().setViewByParameters).not.toBeCalled();
   });
 
-  it('should end an active call', () => {
-    const api = createAPI({
-      view: createView({
-        camera: 'camera.office',
-        context: { call: { cameraID: 'camera.office', callCameraID: 'camera.office' } },
-      }),
-    });
+  it('should end an active call', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    await manager.start();
+    vi.mocked(api.getViewManager().setViewByParameters).mockClear();
 
-    new CallManager(api).end();
+    manager.end();
 
+    expect(manager.isActive()).toBe(false);
     expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-      modifiers: [expect.any(CallClearViewModifier)],
+      modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
     expect(api.getConditionStateManager().setState).toBeCalledWith({ call: false });
+  });
+});
+
+describe('condition state changes', () => {
+  it('should end the call when the selected camera changes away', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    await manager.start();
+    vi.mocked(api.getViewManager().setViewByParameters).mockClear();
+
+    getConditionStateListener(api)({
+      old: { camera: 'camera.office' },
+      change: { camera: 'camera.other' },
+      new: { camera: 'camera.other' },
+    });
+
+    expect(manager.isActive()).toBe(false);
+    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+      modifiers: [expect.any(SubstreamViewModifier)],
+      force: true,
+    });
+  });
+
+  it('should keep the call when the selected camera is unchanged', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    await manager.start();
+
+    getConditionStateListener(api)({
+      old: { camera: 'camera.office' },
+      change: { view: 'live' },
+      new: { camera: 'camera.office', view: 'live' },
+    });
+
+    expect(manager.isActive()).toBe(true);
+  });
+
+  it('should no-op when no call is active', () => {
+    const api = createAPI();
+    new CallManager(api);
+
+    getConditionStateListener(api)({
+      old: {},
+      change: { camera: 'camera.other' },
+      new: { camera: 'camera.other' },
+    });
+
+    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
   });
 });

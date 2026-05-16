@@ -1,4 +1,4 @@
-import { SubstreamOffViewModifier } from '../../../components-lib/live/substream';
+import { SubstreamViewModifier } from '../../../components-lib/live/substream';
 import { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
@@ -8,7 +8,7 @@ export class SubstreamOffAction extends AdvancedCameraCardAction<GeneralActionCo
     await super.execute(api);
 
     api.getViewManager().setViewByParameters({
-      modifiers: [new SubstreamOffViewModifier()],
+      modifiers: [new SubstreamViewModifier()],
     });
   }
 }

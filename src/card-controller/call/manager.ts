@@ -1,28 +1,36 @@
 import {
-  CallClearViewModifier,
-  CallSetViewModifier,
-  CallViewContext,
-  isCallActive,
-} from '../components-lib/live/call';
-import { getStreamCameraID } from '../components-lib/live/substream';
-import { createNotificationFromText } from '../components-lib/notification/factory';
-import { localize } from '../localize/localize';
-import { View } from '../view/view';
-import { CardCallAPI } from './types';
+  getStreamCameraID,
+  SubstreamViewModifier,
+} from '../../components-lib/live/substream';
+import { createNotificationFromText } from '../../components-lib/notification/factory';
+import { ConditionStateChange } from '../../conditions/types';
+import { localize } from '../../localize/localize';
+import { View } from '../../view/view';
+import { CardCallAPI } from '../types';
+import { CallSession } from './types';
 
 export class CallManager {
   private _api: CardCallAPI;
+  private _call: CallSession | null = null;
 
   constructor(api: CardCallAPI) {
     this._api = api;
+
+    // A call is anchored to a camera. Observe the condition state so the call
+    // can be ended if the view moves off its camera.
+    this._api.getConditionStateManager().addListener(this._handleConditionStateChange);
   }
 
   // =========================================================================
   // Readers
   // =========================================================================
 
-  public isActive(view: View | null): boolean {
-    return isCallActive(view);
+  public isActive(): boolean {
+    return !!this._call;
+  }
+
+  public getCall(): CallSession | null {
+    return this._call;
   }
 
   // =========================================================================
@@ -36,15 +44,15 @@ export class CallManager {
     }
     const parentID = view.camera;
 
-    if (view.context?.call?.cameraID === parentID) {
-      // Already active for this parent.
+    if (this._call?.cameraID === parentID) {
+      // Already active for this camera.
       return;
     }
 
-    const target = cameraID
+    const targetID = cameraID
       ? this._validateExplicitTarget(cameraID)
       : this._pickDefaultTarget(view, parentID);
-    if (!target) {
+    if (!targetID) {
       return;
     }
 
@@ -56,28 +64,52 @@ export class CallManager {
       return;
     }
 
+    // `callCameraID` is the substream carrying the call audio -- absent when
+    // the call runs on the parent camera itself. `previousStream` captures any
+    // override active before the call so it can be restored on end-call
+    // (`getStreamCameraID` returns the parent when no override is active,
+    // which is not an override to remember).
+    const callCameraID = targetID === parentID ? undefined : targetID;
+    const previousStream = getStreamCameraID(view, parentID);
+    this._call = {
+      cameraID: parentID,
+      ...(callCameraID && { callCameraID }),
+      ...(previousStream && previousStream !== parentID && { previousStream }),
+    };
+
     this._api.getViewManager().setViewByParameters({
-      modifiers: [
-        new CallSetViewModifier(this._buildCallViewContext(view, parentID, target)),
-      ],
+      modifiers: [new SubstreamViewModifier(callCameraID, parentID)],
       force: true,
     });
     this._api.getConditionStateManager().setState({ call: true });
   }
 
   public end(): void {
-    const view = this._api.getViewManager().getView();
-    if (!this.isActive(view)) {
+    if (!this._call) {
       return;
     }
+    const call = this._call;
+
+    // Clear the session first: ending the call dispatches a view change, and
+    // the resulting condition-state change must not see this (now-ending) call
+    // and recurse.
+    this._call = null;
 
     this._api.getViewManager().setViewByParameters({
-      modifiers: [new CallClearViewModifier()],
+      modifiers: [new SubstreamViewModifier(call.previousStream, call.cameraID)],
       force: true,
     });
-
     this._api.getConditionStateManager().setState({ call: false });
   }
+
+  // End the call if the selected camera has changed away from the call's camera
+  // (e.g. a navigation while `live.controls.call.lock` is disabled, or a forced
+  // view change).
+  private _handleConditionStateChange = (stateChange: ConditionStateChange): void => {
+    if (this._call && stateChange.new.camera !== this._call.cameraID) {
+      this.end();
+    }
+  };
 
   // =========================================================================
   // Helpers
@@ -159,22 +191,5 @@ export class CallManager {
       return null;
     }
     return candidates[0];
-  }
-
-  private _buildCallViewContext(
-    view: View,
-    parentID: string,
-    target: string,
-  ): CallViewContext {
-    const currentStream = getStreamCameraID(view, parentID);
-    return {
-      cameraID: parentID,
-      callCameraID: target,
-      // Capture any pre-call substream override so it can be restored on
-      // end-call. `getStreamCameraID` returns the parent when no override is
-      // active, which is not an override to remember.
-      ...(currentStream &&
-        currentStream !== parentID && { preCallSubstream: currentStream }),
-    };
   }
 }

@@ -10,7 +10,7 @@ import { ResolvedMediaCache } from '../ha/resolved-media';
 import { LovelaceCardEditor } from '../ha/types';
 import { ActionsManager } from './actions/actions-manager';
 import { AutomationsManager } from './automations-manager';
-import { CallManager } from './call-manager';
+import { CallManager } from './call/manager';
 import { CameraURLManager } from './camera-url-manager';
 import {
   CardElementManager,

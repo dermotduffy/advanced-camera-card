@@ -261,6 +261,7 @@ class AdvancedCameraCard extends LitElement {
           this._controller.getCameraManager(),
           this._controller.getFoldersManager(),
           {
+            callManager: this._controller.getCallManager(),
             currentMediaLoadedInfo: this._controller.getMediaLoadedInfoManager().get(),
             fullscreenManager: this._controller.getFullscreenManager(),
             inExpandedMode: this._controller.getExpandManager().isExpanded(),
@@ -427,6 +428,7 @@ class AdvancedCameraCard extends LitElement {
               .hide=${!!fullCardIssue}
               .microphoneManager=${this._controller.getMicrophoneManager()}
               .microphoneState=${this._controller.getMicrophoneManager().getState()}
+              .call=${this._controller.getCallManager().getCall() ?? undefined}
               .locked=${this._controller.getLockManager().isLocked()}
               .conditionStateManager=${this._controller.getConditionStateManager()}
               .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
