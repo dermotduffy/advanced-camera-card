@@ -92,6 +92,7 @@ describe('config defaults', () => {
         controls: {
           builtin: true,
           call: {
+            button_size: 40,
             lock: true,
           },
           next_previous: {

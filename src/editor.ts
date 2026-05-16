@@ -121,6 +121,7 @@ import {
   CONF_LIVE_AUTO_PLAY,
   CONF_LIVE_AUTO_UNMUTE,
   CONF_LIVE_CONTROLS_BUILTIN,
+  CONF_LIVE_CONTROLS_CALL_BUTTON_SIZE,
   CONF_LIVE_CONTROLS_CALL_LOCK,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
@@ -3266,6 +3267,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                           CONF_LIVE_CONTROLS_CALL_LOCK,
                           this._defaults.live.controls.call.lock,
                         )}
+                        ${this._renderNumberInput(CONF_LIVE_CONTROLS_CALL_BUTTON_SIZE, {
+                          min: BUTTON_SIZE_MIN,
+                        })}
                       `,
                     )}
                     ${this._renderNextPreviousControls(

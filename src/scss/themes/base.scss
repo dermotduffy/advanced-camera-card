@@ -65,6 +65,20 @@
   // elements render as pills/capsules rather than ovals.
   --advanced-camera-card-button-border-radius: 100vmax;
 
+  /***************
+   * Call controls
+   ***************/
+
+  // The background of the call controls.
+  --advanced-camera-card-call-controls-background: var(
+    --advanced-camera-card-control-background-transparent
+  );
+
+  // The color of the call controls end-call (critical) button.
+  --advanced-camera-card-call-controls-critical-color: var(
+    --advanced-camera-card-warning-color
+  );
+
   /******
    * Menu
    ******/

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { actionsSchema } from './actions/types';
+import { BUTTON_SIZE_MIN } from './common/const';
 import { nextPreviousControlConfigSchema } from './common/controls/next-previous';
 import { ptzControlsConfigSchema, ptzControlsDefaults } from './common/controls/ptz';
 import {
@@ -30,10 +31,12 @@ const microphoneConfigDefault = {
 };
 
 const callConfigDefault = {
+  button_size: 40,
   lock: true,
 };
 
 const callConfigSchema = z.object({
+  button_size: z.number().min(BUTTON_SIZE_MIN).default(callConfigDefault.button_size),
   lock: z.boolean().default(callConfigDefault.lock),
 });
 

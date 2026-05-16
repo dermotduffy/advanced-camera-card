@@ -289,6 +289,8 @@ export const CONF_LIVE_AUTO_PAUSE = `${CONF_LIVE}.auto_pause` as const;
 export const CONF_LIVE_AUTO_MUTE = `${CONF_LIVE}.auto_mute` as const;
 export const CONF_LIVE_AUTO_UNMUTE = `${CONF_LIVE}.auto_unmute` as const;
 export const CONF_LIVE_CONTROLS_BUILTIN = `${CONF_LIVE}.controls.builtin` as const;
+export const CONF_LIVE_CONTROLS_CALL_BUTTON_SIZE =
+  `${CONF_LIVE}.controls.call.button_size` as const;
 export const CONF_LIVE_CONTROLS_CALL_LOCK = `${CONF_LIVE}.controls.call.lock` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_LIVE}.controls.next_previous.style` as const;

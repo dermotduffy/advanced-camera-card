@@ -18,3 +18,7 @@ $z-index-menu: 4;
 $z-index-notification: 4;
 $z-index-drawer: 3;
 $z-index-status-bar: 2;
+
+// The call controls overlay sits above the live media (a peer of the status
+// bar) but below the menu, drawer and other card chrome.
+$z-index-call-controls: 2;

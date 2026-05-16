@@ -34,6 +34,7 @@ import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { getTextDirection } from '../../utils/text-direction.js';
 import { View } from '../../view/view.js';
+import '../call-controls.js';
 import '../carousel';
 import '../next-prev-control.js';
 import '../ptz.js';
@@ -284,6 +285,16 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     return view?.context?.live?.overrides?.get(cameraID) ?? cameraID;
   }
 
+  private _toggleMute(): void {
+    const controller = this._mediaLoadedInfoSinkController.get()?.mediaPlayerController;
+    // Fire-and-forget; the `volumechange` event drives the re-render.
+    if (controller?.isMuted()) {
+      controller.unmute();
+    } else {
+      controller?.mute();
+    }
+  }
+
   private _getCameraNeighbors(): CameraNeighbors | null {
     const cameraIDs = this.cameraManager
       ? [...this.cameraManager?.getStore().getCameraIDsWithCapability('live')]
@@ -368,12 +379,13 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     const hasMultipleCameras = slides.length > 1;
     const neighbors = this._getCameraNeighbors();
 
+    const carouselCameraID = this.viewFilterCameraID ?? view.camera;
     const streamAwareCameraID = getStreamCameraID(view, this.viewFilterCameraID);
     const gesturesPTZActive = this._isGesturesPTZActive(view, streamAwareCameraID);
 
     const forcePTZVisibility =
       !this._mediaLoadedInfoSinkController.has() ||
-      (!!this.viewFilterCameraID && this.viewFilterCameraID !== view.camera) ||
+      carouselCameraID !== view.camera ||
       view.context?.ptzControls?.enabled === false
         ? false
         : view.context?.ptzControls?.enabled;
@@ -384,6 +396,10 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       !gesturesPTZActive &&
       !this.locked;
 
+    const showCallControls = view.context?.call?.cameraID === carouselCameraID;
+    const callMediaPlayerController =
+      this._mediaLoadedInfoSinkController.get()?.mediaPlayerController ?? null;
+
     return html`
       <advanced-camera-card-carousel
         ${ref(this._refCarousel)}
@@ -393,6 +409,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
         .wheelScrolling=${this.liveConfig?.controls.wheel}
         transitionEffect=${this._getTransitionEffect()}
         @advanced-camera-card:carousel:select=${this._setViewHandler.bind(this)}
+        @advanced-camera-card:media:volumechange=${() =>
+          // Re-render so the call-controls are updated.
+          this.requestUpdate()}
       >
         ${this._renderNextPrevious('left', neighbors)}
         <!-- -->
@@ -409,6 +428,15 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
         .type=${this._getDisplayPTZType(streamAwareCameraID)}
       >
       </advanced-camera-card-ptz>
+      ${showCallControls
+        ? html`<advanced-camera-card-call-controls
+            .microphoneState=${this.microphoneState}
+            .muted=${callMediaPlayerController?.isMuted()}
+            .buttonSize=${this.liveConfig.controls.call.button_size}
+            @advanced-camera-card:call:mute-toggle=${() => this._toggleMute()}
+          >
+          </advanced-camera-card-call-controls>`
+        : ''}
     `;
   }
 

@@ -1,4 +1,4 @@
-export type Edge = 'rising' | 'falling';
+type Edge = 'rising' | 'falling';
 
 /**
  * Reports the rising / falling edges of a boolean fed in over time.
