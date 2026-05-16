@@ -248,6 +248,13 @@
   --advanced-camera-card-trigger-border-color: var(--advanced-camera-card-warning-color);
   --advanced-camera-card-trigger-border-color-base: unset;
 
+  /**************
+  * Transmitting
+  **************/
+  --advanced-camera-card-transmitting-border-color: var(
+    --advanced-camera-card-warning-color
+  );
+
   /*****
   * Grid
   ******/

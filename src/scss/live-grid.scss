@@ -2,13 +2,13 @@
 
 @keyframes warning-pulse {
   0% {
-    border: solid 2px var(--trigger-border-color-base);
+    border-color: var(--trigger-border-color-base);
   }
   50% {
-    border: solid 2px var(--trigger-border-color);
+    border-color: var(--trigger-border-color);
   }
   100% {
-    border: solid 2px var(--trigger-border-color-base);
+    border-color: var(--trigger-border-color-base);
   }
 }
 
@@ -18,10 +18,28 @@ advanced-camera-card-live-carousel {
     --advanced-camera-card-trigger-border-color-base,
     black
   );
+
+  transition: border-color 0.3s ease-out;
+}
+
+// `:host >` matches the carousel only in single display mode (in grid mode it
+// is nested inside `media-grid`). The single-mode carousel has no border of its
+// own, so reserve a transparent one so border changes (e.g. trigger) only
+// recolour. In grid mode the border is supplied (already width-reserved) by
+// `media-grid`.
+:host > advanced-camera-card-live-carousel {
+  box-sizing: border-box;
+  border: solid 2px transparent;
 }
 
 advanced-camera-card-live-carousel[triggered] {
   animation: warning-pulse 5s infinite;
+}
+advanced-camera-card-live-carousel[transmitting] {
+  // `animation: none` cancels any concurrent trigger pulse to ensure
+  // transmitting takes precedence.
+  animation: none;
+  border-color: var(--advanced-camera-card-transmitting-border-color);
 }
 advanced-camera-card-live-carousel[selected] {
   --trigger-border-color-base: var(

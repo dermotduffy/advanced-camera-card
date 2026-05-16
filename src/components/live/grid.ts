@@ -51,7 +51,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
 
   private _renderCarousel(cameraID?: string): TemplateResult {
     const view = this.viewManagerEpoch?.manager.getView();
-    const triggeredCameraID = cameraID ?? view?.camera;
+    const carouselCameraID = cameraID ?? view?.camera;
 
     // Get the camera's grid width factor from its dimensions config.
     const gridWidthFactor = cameraID
@@ -72,8 +72,11 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
         .microphoneState=${this.microphoneState}
         .call=${this.call}
         .locked=${this.locked}
-        ?triggered=${triggeredCameraID &&
-        !!this.triggeredCameraIDs?.has(triggeredCameraID)}
+        ?triggered=${carouselCameraID &&
+        !!this.triggeredCameraIDs?.has(carouselCameraID)}
+        ?transmitting=${this.microphoneState?.muted === false &&
+        !!this.call &&
+        this.call.cameraID === carouselCameraID}
       >
       </advanced-camera-card-live-carousel>
     `;

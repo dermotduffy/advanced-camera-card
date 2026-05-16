@@ -65,6 +65,7 @@ export class AdvancedCameraCardCallControls extends LitElement {
             ? localize('config.live.controls.call.unmute_microphone')
             : localize('config.live.controls.call.mute_microphone'),
           {
+            emphasis: microphoneMuted ? undefined : 'critical',
             action: createGeneralAction(
               microphoneMuted ? 'microphone_unmute' : 'microphone_mute',
             ),
