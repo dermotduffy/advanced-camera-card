@@ -14,8 +14,9 @@ export class CallManager {
   constructor(api: CardCallAPI) {
     this._api = api;
 
-    // A call is anchored to a camera. Observe the condition state so the call
-    // can be ended if the view moves off its camera.
+    // A call is anchored to the live view of a specific camera. Observe the
+    // condition state so the call can be ended if the view, camera or engaged
+    // substream moves off what the call started on.
     this._api.getConditionStateManager().addListener(this._handleConditionStateChange);
   }
 
@@ -100,14 +101,17 @@ export class CallManager {
     this._api.getConditionStateManager().setState({ call: false });
   }
 
-  // End the call if the selected camera -- or the engaged substream on that
-  // camera -- has changed away from what the call is anchored to (e.g. a
-  // navigation or `live_substream_*` action while `live.controls.call.lock` is
-  // disabled, or a forced view change).
+  // End the call once it can no longer be conducted from where it started: the
+  // view leaves `live` (the call overlay exists only there, so the call would
+  // otherwise be stranded with no controls), the selected camera changes, or
+  // the engaged substream moves off the call's audio source. Covers navigation
+  // and `live_substream_*` actions taken while `live.controls.call.lock` is
+  // disabled, as well as any forced view change.
   private _handleConditionStateChange = (stateChange: ConditionStateChange): void => {
     if (
       this._call &&
-      (stateChange.new.camera !== this._call.cameraID ||
+      (stateChange.new.view !== 'live' ||
+        stateChange.new.camera !== this._call.cameraID ||
         stateChange.new.substreamID !== this._call.callCameraID)
     ) {
       this.end();

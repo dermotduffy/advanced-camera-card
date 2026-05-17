@@ -287,9 +287,28 @@ describe('condition state changes', () => {
     vi.mocked(api.getViewManager().setViewByParameters).mockClear();
 
     getConditionStateListener(api)({
-      old: { camera: 'camera.office' },
+      old: { camera: 'camera.office', view: 'live' },
       change: { camera: 'camera.other' },
-      new: { camera: 'camera.other' },
+      new: { camera: 'camera.other', view: 'live' },
+    });
+
+    expect(manager.isActive()).toBe(false);
+    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+      modifiers: [expect.any(SubstreamViewModifier)],
+      force: true,
+    });
+  });
+
+  it('should end the call when the view leaves live', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    await manager.start();
+    vi.mocked(api.getViewManager().setViewByParameters).mockClear();
+
+    getConditionStateListener(api)({
+      old: { camera: 'camera.office', view: 'live' },
+      change: { view: 'clips' },
+      new: { camera: 'camera.office', view: 'clips' },
     });
 
     expect(manager.isActive()).toBe(false);
@@ -332,9 +351,9 @@ describe('condition state changes', () => {
     await manager.start();
 
     getConditionStateListener(api)({
-      old: { camera: 'camera.office' },
+      old: { camera: 'camera.office', view: 'live' },
       change: { substreamID: 'camera.sub' },
-      new: { camera: 'camera.office', substreamID: 'camera.sub' },
+      new: { camera: 'camera.office', substreamID: 'camera.sub', view: 'live' },
     });
 
     expect(manager.isActive()).toBe(false);
