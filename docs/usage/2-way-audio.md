@@ -76,6 +76,12 @@ for example, from an [automation](../configuration/automations.md) that fires
 when a doorbell sensor triggers. The [`call` condition](../configuration/conditions.md?id=call)
 can be used to show or hide elements while a call is in progress.
 
+### Call lifecycle
+
+The diagram below traces a call from start to finish:
+
+![Call lifecycle sequence diagram](../images/call-sequence.svg ':size=600')
+
 ## Talking with a single tap
 
 By default, two taps are needed to speak: the call button starts the call (so

@@ -185,6 +185,7 @@
     "docs-check-links": "docker run --init --rm -v \"$(pwd):/input\" -w /input lycheeverse/lychee --config lychee.toml \"./docs/\"",
     "docs-update-images": "./scripts/docs-update-images.sh",
     "docs-update-dependencies": "./scripts/docs-update-dependencies.sh",
+    "docs-update-uml": "docker run --init --rm -u \"$(id -u):$(id -g)\" -e HOME=/tmp -e JAVA_TOOL_OPTIONS=-Duser.home=/tmp -v \"$(pwd):/data\" -w /data plantuml/plantuml -tsvg docs/uml/call-sequence.puml -o /data/docs/images",
     "lint": "eslint '{src,tests}/**/*.ts'",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
