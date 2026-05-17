@@ -12,7 +12,11 @@ import { MicrophoneState } from '../card-controller/types.js';
 import { ActionConfig } from '../config/schema/actions/types.js';
 import { localize } from '../localize/localize.js';
 import callControlsStyle from '../scss/call-controls.scss';
-import { createCallEndAction, createGeneralAction } from '../utils/action.js';
+import {
+  createCallEndAction,
+  createGeneralAction,
+  stopEventFromActivatingCardWideActions,
+} from '../utils/action.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 
 /**
@@ -50,7 +54,10 @@ export class AdvancedCameraCardCallControls extends LitElement {
     const audioMuted = this.muted ?? true;
 
     return html`<div class="overlay">
-      <div class="panel">
+      <div
+        class="panel"
+        @click=${(ev: Event) => stopEventFromActivatingCardWideActions(ev)}
+      >
         ${this._renderButton(
           'mdi:phone-hangup',
           localize('config.live.controls.call.end'),
