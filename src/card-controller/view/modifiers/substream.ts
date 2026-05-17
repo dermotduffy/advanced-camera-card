@@ -1,28 +1,10 @@
-import { ViewModifier } from '../../card-controller/view/types';
-import { View } from '../../view/view';
-
-export const getStreamCameraID = (
-  view: View,
-  cameraID?: string | null,
-): string | null => {
-  const baseCameraID = cameraID ?? view.camera;
-  if (!baseCameraID) {
-    return null;
-  }
-  return view.context?.live?.overrides?.get(baseCameraID) ?? baseCameraID;
-};
-
-export const hasSubstream = (view: View): boolean => {
-  if (!view.camera) {
-    return false;
-  }
-  return getStreamCameraID(view) !== view.camera;
-};
+import { View } from '../../../view/view';
+import { ViewModifier } from '../types';
 
 // The single write path for the camera-keyed `live.overrides` map (the read
-// path being `getStreamCameraID`): sets a camera's substream override, or
-// clears it when `substreamID` is absent so the camera's own stream is used.
-// `cameraID` defaults to the selected camera.
+// path being `getStreamCameraID` in `view/substream`): sets a camera's
+// substream override, or clears it when `substreamID` is absent so the
+// camera's own stream is used. `cameraID` defaults to the selected camera.
 export class SubstreamViewModifier implements ViewModifier {
   private _substreamID?: string;
   private _cameraID?: string;

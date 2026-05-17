@@ -1,5 +1,5 @@
 import { CameraManager } from '../../../camera-manager/manager';
-import { SubstreamViewModifier } from '../../../components-lib/live/substream';
+import { SubstreamViewModifier } from '../../view/modifiers/substream';
 import { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
 import { View } from '../../../view/view';
 import { CardActionsAPI } from '../../types';

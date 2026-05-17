@@ -1,4 +1,3 @@
-import { SubstreamViewModifier } from '../components-lib/live/substream';
 import { ViewActionConfig } from '../config/schema/actions/custom/view';
 import { AdvancedCameraCardCustomActionConfig } from '../config/schema/actions/types';
 import {
@@ -7,6 +6,7 @@ import {
   createViewAction,
 } from '../utils/action.js';
 import { CardQueryStringAPI } from './types';
+import { SubstreamViewModifier } from './view/modifiers/substream';
 import { ViewParametersUserSpecified } from './view/types.js';
 
 interface QueryStringViewIntent {

@@ -1,12 +1,10 @@
-import {
-  getStreamCameraID,
-  SubstreamViewModifier,
-} from '../../components-lib/live/substream';
 import { createNotificationFromText } from '../../components-lib/notification/factory';
 import { ConditionStateChange } from '../../conditions/types';
 import { localize } from '../../localize/localize';
+import { getStreamCameraID } from '../../view/substream';
 import { View } from '../../view/view';
 import { CardCallAPI } from '../types';
+import { SubstreamViewModifier } from '../view/modifiers/substream';
 import { CallSession } from './types';
 
 export class CallManager {

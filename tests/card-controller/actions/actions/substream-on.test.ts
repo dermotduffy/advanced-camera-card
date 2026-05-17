@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { CameraManagerStore } from '../../../../src/camera-manager/store';
 import { SubstreamOnAction } from '../../../../src/card-controller/actions/actions/substream-on';
 import { applyViewModifiers } from '../../../../src/card-controller/view/modifiers';
-import { getStreamCameraID } from '../../../../src/components-lib/live/substream';
+import { getStreamCameraID } from '../../../../src/view/substream';
 import { View } from '../../../../src/view/view';
 import {
   createCameraConfig,

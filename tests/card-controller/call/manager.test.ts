@@ -2,7 +2,7 @@ import { assert, describe, expect, it, vi } from 'vitest';
 import { CameraManagerStore } from '../../../src/camera-manager/store';
 import { CallManager } from '../../../src/card-controller/call/manager';
 import { CardController } from '../../../src/card-controller/controller';
-import { SubstreamViewModifier } from '../../../src/components-lib/live/substream';
+import { SubstreamViewModifier } from '../../../src/card-controller/view/modifiers/substream';
 import { ConditionStateChange } from '../../../src/conditions/types';
 import { View } from '../../../src/view/view';
 import {

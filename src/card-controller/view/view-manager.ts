@@ -1,6 +1,6 @@
 import { ViewContext } from 'view';
-import { getStreamCameraID } from '../../components-lib/live/substream';
 import { log } from '../../utils/debug';
+import { getStreamCameraID } from '../../view/substream';
 import { getViewTargetID } from '../../view/target-id';
 import { View } from '../../view/view';
 import { InitializationAspect } from '../initialization-manager';

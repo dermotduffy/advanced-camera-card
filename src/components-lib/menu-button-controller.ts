@@ -34,13 +34,13 @@ import { arrayify, isTruthy } from '../utils/basic';
 import { isBeingCasted } from '../utils/casting';
 import { getPTZTarget } from '../utils/ptz';
 import { ViewItemClassifier } from '../view/item-classifier';
+import { getStreamCameraID, hasSubstream } from '../view/substream';
 import { resolveViewName } from '../view/utils/resolve-default';
 import { View } from '../view/view';
 import {
   getCameraIDsWithCapabilityForView,
   isViewSupported,
 } from '../view/view-support';
-import { getStreamCameraID, hasSubstream } from './live/substream';
 
 export interface MenuButtonControllerOptions {
   callManager?: CallManager | null;

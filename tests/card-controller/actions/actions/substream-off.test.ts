@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { SubstreamOffAction } from '../../../../src/card-controller/actions/actions/substream-off';
-import { SubstreamViewModifier } from '../../../../src/components-lib/live/substream';
+import { SubstreamViewModifier } from '../../../../src/card-controller/view/modifiers/substream';
 import { createCardAPI } from '../../../test-utils';
 
 it('should handle live_substream_off action', async () => {
