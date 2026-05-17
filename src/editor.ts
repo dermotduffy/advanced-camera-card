@@ -123,6 +123,7 @@ import {
   CONF_LIVE_CONTROLS_BUILTIN,
   CONF_LIVE_CONTROLS_CALL_BUTTON_SIZE,
   CONF_LIVE_CONTROLS_CALL_LOCK,
+  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_LIVE_CONTROLS_PTZ_HIDE_HOME,
@@ -179,6 +180,7 @@ import {
   CONF_MEDIA_VIEWER_AUTO_PLAY,
   CONF_MEDIA_VIEWER_AUTO_UNMUTE,
   CONF_MEDIA_VIEWER_CONTROLS_BUILTIN,
+  CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE,
   CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
@@ -786,6 +788,18 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     {
       value: 'microphone',
       label: localize('config.common.media_action_conditions.microphone_mute'),
+    },
+  ];
+
+  private _autoHideConditions: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'call',
+      label: localize('config.common.controls.next_previous.auto_hides.call'),
+    },
+    {
+      value: 'casting',
+      label: localize('config.common.controls.next_previous.auto_hides.casting'),
     },
   ];
 
@@ -1976,9 +1990,11 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     domain: string,
     configPathStyle: string,
     configPathSize: string,
+    configPathAutoHide: string,
     options?: {
       allowIcons?: boolean;
       allowThumbnails?: boolean;
+      allowCall?: boolean;
     },
   ): TemplateResult | void {
     return this._putInSubmenu(
@@ -2002,6 +2018,16 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
           min: BUTTON_SIZE_MIN,
           label: localize('config.common.controls.next_previous.size'),
         })}
+        ${this._renderOptionSelector(
+          configPathAutoHide,
+          this._autoHideConditions.filter(
+            (item) => !!options?.allowCall || item.value !== 'call',
+          ),
+          {
+            multiple: true,
+            label: localize('config.common.controls.next_previous.auto_hide'),
+          },
+        )}
       `,
     );
   }
@@ -3276,8 +3302,10 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                       MENU_LIVE_CONTROLS_NEXT_PREVIOUS,
                       CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
                       CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
+                      CONF_LIVE_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE,
                       {
                         allowIcons: true,
+                        allowCall: true,
                       },
                     )}
                     ${this._renderThumbnailsControls(
@@ -3513,6 +3541,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                     MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS,
                     CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
                     CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
+                    CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE,
                     {
                       allowThumbnails: true,
                     },

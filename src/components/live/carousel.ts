@@ -14,6 +14,7 @@ import { CameraManagerCameraMetadata } from '../../camera-manager/types.js';
 import { CallSession } from '../../card-controller/call/types.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import { resolveAutoHideState } from '../../components-lib/auto-hide.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import { MediaHeightController } from '../../components-lib/media-height-controller.js';
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
@@ -365,6 +366,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       .controlConfig=${this.liveConfig?.controls.next_previous}
       .label=${neighbor?.metadata?.title ?? ''}
       .icon=${neighbor?.metadata?.icon}
+      .autoHideState=${resolveAutoHideState(!!this.call)}
       ?disabled=${!neighbor}
       ?locked=${!!this.locked}
       @click=${(ev) => {

@@ -1,10 +1,12 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { AutoHideState, isAutoHidden } from '../components-lib/auto-hide.js';
 import { NextPreviousControlConfig } from '../config/schema/common/controls/next-previous.js';
 import { Icon } from '../config/schema/common/icon.js';
 import { HomeAssistant } from '../ha/types.js';
 import controlStyle from '../scss/next-previous-control.scss';
+import { contentsChanged } from '../utils/basic.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 
@@ -38,6 +40,9 @@ export class AdvancedCameraCardNextPreviousControl extends LitElement {
   @property({ attribute: true, type: Boolean })
   public disabled = false;
 
+  @property({ attribute: false, hasChanged: contentsChanged })
+  public autoHideState?: AutoHideState;
+
   // Label that is used for ARIA support and as tooltip.
   @property() label = '';
 
@@ -48,7 +53,13 @@ export class AdvancedCameraCardNextPreviousControl extends LitElement {
   );
 
   protected render(): TemplateResult {
-    if (this.disabled || !this._controlConfig || this._controlConfig.style == 'none') {
+    if (
+      this.disabled ||
+      !this._controlConfig ||
+      this._controlConfig.style == 'none' ||
+      (this.autoHideState &&
+        isAutoHidden(this._controlConfig.auto_hide, this.autoHideState))
+    ) {
       return html``;
     }
 

@@ -96,6 +96,7 @@ describe('config defaults', () => {
             lock: true,
           },
           next_previous: {
+            auto_hide: ['call', 'casting'],
             size: 48,
             style: 'chevrons',
           },
@@ -171,6 +172,7 @@ describe('config defaults', () => {
         controls: {
           builtin: true,
           next_previous: {
+            auto_hide: ['casting'],
             size: 48,
             style: 'thumbnails',
           },

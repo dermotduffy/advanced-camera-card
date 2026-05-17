@@ -244,6 +244,8 @@ export const CONF_MEDIA_VIEWER_TRANSITION_EFFECT =
   `${CONF_MEDIA_VIEWER}.transition_effect` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_BUILTIN =
   `${CONF_MEDIA_VIEWER}.controls.builtin` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE =
+  `${CONF_MEDIA_VIEWER}.controls.next_previous.auto_hide` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_MEDIA_VIEWER}.controls.next_previous.style` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE =
@@ -292,6 +294,8 @@ export const CONF_LIVE_CONTROLS_BUILTIN = `${CONF_LIVE}.controls.builtin` as con
 export const CONF_LIVE_CONTROLS_CALL_BUTTON_SIZE =
   `${CONF_LIVE}.controls.call.button_size` as const;
 export const CONF_LIVE_CONTROLS_CALL_LOCK = `${CONF_LIVE}.controls.call.lock` as const;
+export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE =
+  `${CONF_LIVE}.controls.next_previous.auto_hide` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_LIVE}.controls.next_previous.style` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE =

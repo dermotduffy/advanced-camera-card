@@ -50,10 +50,11 @@ media_viewer:
       # [...]
 ```
 
-| Option  | Default      | Description                                                                                                                                      |
-| ------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `size`  | `48`         | The size of the next/previous controls in pixels. Must be &gt;= `20`.                                                                            |
-| `style` | `thumbnails` | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
+| Option      | Default      | Description                                                                                                                                        |
+| ----------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auto_hide` | `[casting]`  | The conditions under which the next/previous controls auto-hide. The only condition is `casting` (the card is being cast). Set to `[]` to disable. |
+| `size`      | `48`         | The size of the next/previous controls in pixels. Must be &gt;= `20`.                                                                              |
+| `style`     | `thumbnails` | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` .   |
 
 ### `ptz`
 
@@ -183,6 +184,8 @@ media_viewer:
   controls:
     builtin: true
     next_previous:
+      auto_hide:
+        - casting
       size: 48
       style: thumbnails
     wheel: true

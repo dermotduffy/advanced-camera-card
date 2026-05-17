@@ -71,10 +71,11 @@ live:
       # [...]
 ```
 
-| Option  | Default    | Description                                                                                                                                    |
-| ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `size`  | `48`       | The size of the next/previous controls in pixels. Must be &gt;= `20`.                                                                          |
-| `style` | `chevrons` | When viewing live cameras, what kind of controls to show to move to the previous/next camera. Acceptable values: `chevrons`, `icons`, `none` . |
+| Option      | Default           | Description                                                                                                                                                                                                                   |
+| ----------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auto_hide` | `[call, casting]` | The conditions under which the next/previous controls auto-hide: a list of zero or more of `call` (a [two-way audio](../usage/2-way-audio.md) call is active) and `casting` (the card is being cast). Set to `[]` to disable. |
+| `size`      | `48`              | The size of the next/previous controls in pixels. Must be &gt;= `20`.                                                                                                                                                         |
+| `style`     | `chevrons`        | When viewing live cameras, what kind of controls to show to move to the previous/next camera. Acceptable values: `chevrons`, `icons`, `none` .                                                                                |
 
 ### `ptz`
 
@@ -234,6 +235,9 @@ live:
       button_size: 40
       lock: true
     next_previous:
+      auto_hide:
+        - call
+        - casting
       style: chevrons
       size: 48
     wheel: true

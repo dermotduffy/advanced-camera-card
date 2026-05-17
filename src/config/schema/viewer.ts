@@ -30,6 +30,7 @@ export const viewerConfigDefault = {
   controls: {
     builtin: true,
     next_previous: {
+      auto_hide: ['casting' as const],
       size: 48,
       style: 'thumbnails' as const,
     },
@@ -44,6 +45,12 @@ export const viewerConfigDefault = {
 };
 
 const viewerNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.extend({
+  // Calls only occur in the live view, so `call` is dropped from the common
+  // enum.
+  auto_hide: z
+    .enum(['casting'])
+    .array()
+    .default(viewerConfigDefault.controls.next_previous.auto_hide),
   style: z
     .enum(['none', 'thumbnails', 'chevrons'])
     .default(viewerConfigDefault.controls.next_previous.style),

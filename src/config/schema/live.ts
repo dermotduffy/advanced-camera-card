@@ -79,6 +79,7 @@ export const liveConfigDefault = {
     builtin: true,
     call: { ...callConfigDefault },
     next_previous: {
+      auto_hide: ['call' as const, 'casting' as const],
       size: 48,
       style: 'chevrons' as const,
     },
@@ -116,6 +117,9 @@ export const liveConfigSchema = z
         call: callConfigSchema.default(liveConfigDefault.controls.call),
         next_previous: nextPreviousControlConfigSchema
           .extend({
+            auto_hide: nextPreviousControlConfigSchema.shape.auto_hide.default(
+              liveConfigDefault.controls.next_previous.auto_hide,
+            ),
             // Live cannot show thumbnails, remove that option.
             style: z
               .enum(['none', 'chevrons', 'icons'])

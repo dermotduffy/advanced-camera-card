@@ -219,6 +219,11 @@
           }
         },
         "next_previous": {
+          "auto_hide": "Automatically hide next & previous controls",
+          "auto_hides": {
+            "call": "During a two-way audio call",
+            "casting": "While casting"
+          },
           "editor_label": "Next & Previous",
           "size": "Next & previous control size in pixels",
           "style": "Next & previous control style",

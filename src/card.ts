@@ -8,7 +8,7 @@ import 'web-dialog';
 import { actionHandler } from './action-handler-directive.js';
 import { CardController } from './card-controller/controller';
 import type { IssueKey, IssueTriggerEventData } from './card-controller/issues/types.js';
-import type { AutoHideState } from './components-lib/auto-hide.js';
+import { resolveAutoHideState, type AutoHideState } from './components-lib/auto-hide.js';
 import { MenuButtonController } from './components-lib/menu-button-controller';
 import './components/effects/effects';
 import './components/elements.js';
@@ -36,7 +36,6 @@ import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
 import { MediaLoadedInfoEventDetail } from './types.js';
 import { hasAction } from './utils/action.js';
-import { isBeingCasted } from './utils/casting.js';
 import { getReleaseVersion } from './utils/diagnostics';
 
 // ***************************************************************************
@@ -246,10 +245,7 @@ class AdvancedCameraCard extends LitElement {
   }
 
   protected _getAutoHideState(): AutoHideState {
-    return {
-      call: this._controller.getCallManager().isActive(),
-      casting: isBeingCasted(),
-    };
+    return resolveAutoHideState(this._controller.getCallManager().isActive());
   }
 
   protected _renderMenu(slot?: string): TemplateResult | void {
