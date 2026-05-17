@@ -215,6 +215,7 @@ describe('config defaults', () => {
       },
       menu: {
         alignment: 'left',
+        auto_hide: ['call', 'casting'],
         button_size: 40,
         buttons: {
           call: {
@@ -436,6 +437,7 @@ describe('config defaults', () => {
         },
       },
       status_bar: {
+        auto_hide: ['call', 'casting'],
         height: 40,
         items: {
           engine: {

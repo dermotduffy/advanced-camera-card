@@ -429,4 +429,35 @@ describe('StatusBarController', () => {
       );
     });
   });
+
+  describe('auto-hide', () => {
+    const sufficientItem = {
+      type: 'custom:advanced-camera-card-status-bar-string' as const,
+      string: 'Item',
+      sufficient: true,
+    };
+
+    it('should render with a config and no auto-hide state', () => {
+      const controller = new StatusBarController(createLitElement());
+      controller.setConfig(createConfig({ auto_hide: ['call'] }));
+      controller.setItems([sufficientItem]);
+      expect(controller.shouldRender()).toBe(true);
+    });
+
+    it('should render when no auto-hide condition is active', () => {
+      const controller = new StatusBarController(createLitElement());
+      controller.setConfig(createConfig({ auto_hide: ['call'] }));
+      controller.setItems([sufficientItem]);
+      controller.setAutoHideState({ call: false, casting: true });
+      expect(controller.shouldRender()).toBe(true);
+    });
+
+    it('should not render when a configured auto-hide condition is active', () => {
+      const controller = new StatusBarController(createLitElement());
+      controller.setConfig(createConfig({ auto_hide: ['call'] }));
+      controller.setItems([sufficientItem]);
+      controller.setAutoHideState({ call: true, casting: false });
+      expect(controller.shouldRender()).toBe(false);
+    });
+  });
 });

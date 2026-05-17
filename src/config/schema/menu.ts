@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AUTO_HIDE_CONDITIONS } from './common/auto-hide';
 import { BUTTON_SIZE_MIN, MENU_PRIORITY_DEFAULT } from './common/const';
 import { menuBaseSchema } from './elements/custom/menu/base';
 
@@ -32,6 +33,7 @@ const hiddenButtonDefault = {
 
 export const menuConfigDefault = {
   alignment: 'left' as const,
+  auto_hide: ['call' as const, 'casting' as const],
   button_size: 40,
   buttons: {
     // Clone per key so each button has its own default object. This avoids
@@ -87,6 +89,7 @@ export const menuConfigSchema = z
     style: z.enum(MENU_STYLES).default(menuConfigDefault.style),
     position: z.enum(MENU_POSITIONS).default(menuConfigDefault.position),
     alignment: z.enum(MENU_ALIGNMENTS).default(menuConfigDefault.alignment),
+    auto_hide: z.enum(AUTO_HIDE_CONDITIONS).array().default(menuConfigDefault.auto_hide),
     buttons: z
       .object({
         call: visibleButtonSchema.default(menuConfigDefault.buttons.call),

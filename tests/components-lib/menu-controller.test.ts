@@ -681,4 +681,37 @@ describe('MenuController', () => {
       });
     });
   });
+
+  describe('auto-hide', () => {
+    it('should not render before a config is set', () => {
+      const controller = new MenuController(createLitElement());
+      expect(controller.shouldRender()).toBe(false);
+    });
+
+    it('should not render when the style is none', () => {
+      const controller = new MenuController(createLitElement());
+      controller.setMenuConfig(createMenuConfig({ style: 'none' }));
+      expect(controller.shouldRender()).toBe(false);
+    });
+
+    it('should render with a config and no auto-hide state', () => {
+      const controller = new MenuController(createLitElement());
+      controller.setMenuConfig(createMenuConfig({ auto_hide: ['call'] }));
+      expect(controller.shouldRender()).toBe(true);
+    });
+
+    it('should render when no auto-hide condition is active', () => {
+      const controller = new MenuController(createLitElement());
+      controller.setMenuConfig(createMenuConfig({ auto_hide: ['call'] }));
+      controller.setAutoHideState({ call: false, casting: true });
+      expect(controller.shouldRender()).toBe(true);
+    });
+
+    it('should not render when a configured auto-hide condition is active', () => {
+      const controller = new MenuController(createLitElement());
+      controller.setMenuConfig(createMenuConfig({ auto_hide: ['call'] }));
+      controller.setAutoHideState({ call: true, casting: false });
+      expect(controller.shouldRender()).toBe(false);
+    });
+  });
 });

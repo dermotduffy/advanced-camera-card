@@ -17,7 +17,6 @@ it('should contain expected defaults', () => {
     'menu.buttons.media_player.enabled': false,
     'menu.buttons.mute.enabled': true,
     'menu.buttons.play.enabled': true,
-    'menu.style': 'none',
   });
 });
 

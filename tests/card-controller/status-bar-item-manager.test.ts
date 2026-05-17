@@ -312,6 +312,7 @@ describe('StatusBarItemManager', () => {
 
         const items = manager.calculateItems({
           statusConfig: {
+            auto_hide: [],
             position: 'bottom',
             style: 'popup',
             popup_seconds: 3,
@@ -356,6 +357,7 @@ describe('StatusBarItemManager', () => {
 
         const items = manager.calculateItems({
           statusConfig: {
+            auto_hide: [],
             position: 'bottom',
             style: 'popup',
             popup_seconds: 3,

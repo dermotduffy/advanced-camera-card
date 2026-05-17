@@ -10,18 +10,16 @@ import {
   CONF_MENU_BUTTONS_MEDIA_PLAYER,
   CONF_MENU_BUTTONS_MUTE,
   CONF_MENU_BUTTONS_PLAY,
-  CONF_MENU_STYLE,
 } from '../../const.js';
 
 export const CASTING_PROFILE = {
   [CONF_LIVE_CONTROLS_BUILTIN]: false,
   [CONF_MEDIA_VIEWER_CONTROLS_BUILTIN]: false,
 
-  // TVs are generally not touch-enabled, so we don't want to show the menu
-  [CONF_MENU_STYLE]: 'none',
-
-  // But in case the user enables the menu, let's make sure to enable the
-  // buttons that make sense and disable the ones that don't
+  // TVs are generally not touch-enabled, so the menu auto-hides while casting
+  // (the `casting` default in `menu.auto_hide`). Should it nonetheless be
+  // shown, make sure the buttons that make sense are enabled and the ones that
+  // don't are disabled.
   [`${CONF_MENU_BUTTONS_PLAY}.enabled`]: true,
   [`${CONF_MENU_BUTTONS_MUTE}.enabled`]: true,
   [`${CONF_MENU_BUTTONS_FULLSCREEN}.enabled`]: false,

@@ -3,6 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
 import type { LockManagerEpoch } from '../card-controller/lock/types';
+import type { AutoHideState } from '../components-lib/auto-hide.js';
 import { MenuController } from '../components-lib/menu-controller.js';
 import type { MenuItem } from '../config/schema/elements/custom/menu/types.js';
 import type { MenuConfig } from '../config/schema/menu.js';
@@ -11,6 +12,7 @@ import type { EntityRegistryManager } from '../ha/registry/entity/types.js';
 import type { HomeAssistant } from '../ha/types.js';
 import menuStyle from '../scss/menu.scss';
 import { hasAction } from '../utils/action.js';
+import { contentsChanged } from '../utils/basic.js';
 import './icon.js';
 import './submenu/select-button.js';
 import './submenu/submenu-button';
@@ -28,6 +30,9 @@ export class AdvancedCameraCardMenu extends LitElement {
   @property({ attribute: false })
   public lockManagerEpoch?: LockManagerEpoch;
 
+  @property({ attribute: false, hasChanged: contentsChanged })
+  public autoHideState?: AutoHideState;
+
   set menuConfig(menuConfig: MenuConfig) {
     this._controller.setMenuConfig(menuConfig);
   }
@@ -43,6 +48,9 @@ export class AdvancedCameraCardMenu extends LitElement {
   protected willUpdate(changedProps: Map<string, unknown>): void {
     if (changedProps.has('lockManagerEpoch')) {
       this._controller.setLockManagerEpoch(this.lockManagerEpoch);
+    }
+    if (changedProps.has('autoHideState') && this.autoHideState) {
+      this._controller.setAutoHideState(this.autoHideState);
     }
   }
 
@@ -156,9 +164,7 @@ export class AdvancedCameraCardMenu extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    const config = this._controller.getMenuConfig();
-    const style = config?.style;
-    if (!config || style === 'none') {
+    if (!this._controller.shouldRender()) {
       return;
     }
     const matchingButtons = this._controller.getButtons('matching');

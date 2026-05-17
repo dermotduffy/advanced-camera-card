@@ -7,13 +7,14 @@ menu:
   # [...]
 ```
 
-| Option        | Default  | Description                                                                                                                                                                                                                                                  |
-| ------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `alignment`   | `left`   | Whether to align the menu buttons to the `left`, `right`, `top` or `bottom` of the menu. Some selections may have no effect depending on the value of `position` (e.g. it doesn't make sense to `left` align icons on a menu with `position` to the `left`). |
-| `button_size` | `40`     | The size of the menu buttons in pixels. Must be &gt;= `20`.                                                                                                                                                                                                  |
-| `buttons`     |          | Whether to show or hide built-in buttons. See [`buttons`](#buttons).                                                                                                                                                                                         |
-| `position`    | `top`    | Whether to show the menu on the `left`, `right`, `top` or `bottom` side of the card. Note that for the `outside` style only the `top` and `bottom` positions have an effect.                                                                                 |
-| `style`       | `hidden` | The menu style to show by default, one of `none`, `hidden`, `hover`, `hover-card`, `overlay`, or `outside`. See [`style`](#style).                                                                                                                           |
+| Option        | Default           | Description                                                                                                                                                                                                                                                  |
+| ------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `alignment`   | `left`            | Whether to align the menu buttons to the `left`, `right`, `top` or `bottom` of the menu. Some selections may have no effect depending on the value of `position` (e.g. it doesn't make sense to `left` align icons on a menu with `position` to the `left`). |
+| `auto_hide`   | `[call, casting]` | The conditions under which the menu auto-hides. A list of zero or more of `call` (a [two-way audio](../usage/2-way-audio.md) call is active) and `casting` (the card is being cast, e.g. to a Chromecast). Set to `[]` to disable.                           |
+| `button_size` | `40`              | The size of the menu buttons in pixels. Must be &gt;= `20`.                                                                                                                                                                                                  |
+| `buttons`     |                   | Whether to show or hide built-in buttons. See [`buttons`](#buttons).                                                                                                                                                                                         |
+| `position`    | `top`             | Whether to show the menu on the `left`, `right`, `top` or `bottom` side of the card. Note that for the `outside` style only the `top` and `bottom` positions have an effect.                                                                                 |
+| `style`       | `hidden`          | The menu style to show by default, one of `none`, `hidden`, `hover`, `hover-card`, `overlay`, or `outside`. See [`style`](#style).                                                                                                                           |
 
 ## `buttons`
 
@@ -101,6 +102,9 @@ This card supports several menu styles.
 ```yaml
 menu:
   alignment: left
+  auto_hide:
+    - call
+    - casting
   buttons:
     call:
       priority: 50
