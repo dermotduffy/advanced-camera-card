@@ -107,6 +107,36 @@ describe('start', () => {
     expect(api.getConditionStateManager().setState).toBeCalledWith({ call: true });
   });
 
+  it('should navigate to the live view when started from elsewhere', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office', view: 'clips' }),
+    });
+
+    await new CallManager(api).start();
+
+    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+      params: { view: 'live', camera: 'camera.office' },
+      modifiers: [expect.any(SubstreamViewModifier)],
+      force: true,
+    });
+  });
+
+  it('should evolve the current view without params when already in live', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office', view: 'live' }),
+    });
+
+    await new CallManager(api).start();
+
+    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+      modifiers: [expect.any(SubstreamViewModifier)],
+      force: true,
+    });
+    expect(api.getViewManager().setViewByParameters).not.toBeCalledWith(
+      expect.objectContaining({ params: expect.anything() }),
+    );
+  });
+
   it('should start a call on an explicit 2-way-audio camera', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),

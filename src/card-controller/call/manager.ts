@@ -77,6 +77,10 @@ export class CallManager {
     };
 
     this._api.getViewManager().setViewByParameters({
+      // A call lives in the live view; navigate there if `call_start` was
+      // dispatched from elsewhere (e.g. an automation). When already in live
+      // this is omitted so the existing view is evolved rather than rebuilt.
+      ...(!view.is('live') && { params: { view: 'live', camera: parentID } }),
       modifiers: [new SubstreamViewModifier(callCameraID, parentID)],
       force: true,
     });
