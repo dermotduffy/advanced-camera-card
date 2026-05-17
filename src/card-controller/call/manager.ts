@@ -100,11 +100,16 @@ export class CallManager {
     this._api.getConditionStateManager().setState({ call: false });
   }
 
-  // End the call if the selected camera has changed away from the call's camera
-  // (e.g. a navigation while `live.controls.call.lock` is disabled, or a forced
-  // view change).
+  // End the call if the selected camera -- or the engaged substream on that
+  // camera -- has changed away from what the call is anchored to (e.g. a
+  // navigation or `live_substream_*` action while `live.controls.call.lock` is
+  // disabled, or a forced view change).
   private _handleConditionStateChange = (stateChange: ConditionStateChange): void => {
-    if (this._call && stateChange.new.camera !== this._call.cameraID) {
+    if (
+      this._call &&
+      (stateChange.new.camera !== this._call.cameraID ||
+        stateChange.new.substreamID !== this._call.callCameraID)
+    ) {
       this.end();
     }
   };

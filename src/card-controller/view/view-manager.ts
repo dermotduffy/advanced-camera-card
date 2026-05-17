@@ -374,11 +374,13 @@ export class ViewManager implements ViewManagerInterface {
 
     this._api.getStyleManager().setExpandedMode();
 
+    const stream = view ? getStreamCameraID(view) : null;
     this._api.getConditionStateManager()?.setState({
       view: view?.view,
       camera: view?.camera ?? undefined,
       displayMode: view?.displayMode ?? undefined,
       targetID: view ? getViewTargetID(view) ?? undefined : undefined,
+      substreamID: stream && stream !== view?.camera ? stream : undefined,
     });
 
     this._api.getCardElementManager().update();

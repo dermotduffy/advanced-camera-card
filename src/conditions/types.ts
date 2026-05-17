@@ -9,6 +9,9 @@ import { MediaLoadedInfo } from '../types';
 export interface ConditionState {
   call?: boolean;
   camera?: string;
+  // The engaged substream for the selected camera (absent when the camera's own
+  // stream is used).
+  substreamID?: string;
   config?: AdvancedCameraCardConfig;
   displayMode?: ViewDisplayMode;
   expand?: boolean;

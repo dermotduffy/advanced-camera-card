@@ -325,4 +325,47 @@ describe('condition state changes', () => {
 
     expect(api.getViewManager().setViewByParameters).not.toBeCalled();
   });
+
+  it('should end the call when the substream changes away', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    await manager.start();
+
+    getConditionStateListener(api)({
+      old: { camera: 'camera.office' },
+      change: { substreamID: 'camera.sub' },
+      new: { camera: 'camera.office', substreamID: 'camera.sub' },
+    });
+
+    expect(manager.isActive()).toBe(false);
+  });
+
+  it('should keep the call when the substream is unchanged', async () => {
+    const api = createAPI({
+      view: createView({
+        camera: 'camera.office',
+        context: { live: { overrides: new Map([['camera.office', 'camera.sub']]) } },
+      }),
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.sub',
+          capabilities: createCapabilities({ '2-way-audio': true }),
+        },
+      ]),
+    });
+    const manager = new CallManager(api);
+    await manager.start();
+
+    getConditionStateListener(api)({
+      old: { camera: 'camera.office', substreamID: 'camera.sub' },
+      change: { view: 'live' },
+      new: { camera: 'camera.office', substreamID: 'camera.sub', view: 'live' },
+    });
+
+    expect(manager.isActive()).toBe(true);
+  });
 });

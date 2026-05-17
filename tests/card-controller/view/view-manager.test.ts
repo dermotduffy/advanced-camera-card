@@ -51,8 +51,27 @@ describe('should act correctly when view is set', () => {
       camera: 'camera',
       displayMode: 'grid',
       targetID: 'camera',
+      substreamID: undefined,
     });
     expect(api.getCardElementManager().update).toBeCalled();
+  });
+
+  it('should set the engaged substream in condition state', () => {
+    const view = createView({
+      view: 'live',
+      camera: 'camera',
+      context: { live: { overrides: new Map([['camera', 'substream']]) } },
+    });
+
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(view);
+
+    const api = createInitializedCardAPI();
+    new ViewManager(api, { viewFactory: factory }).setViewDefault();
+
+    expect(api.getConditionStateManager()?.setState).toBeCalledWith(
+      expect.objectContaining({ substreamID: 'substream' }),
+    );
   });
 
   it('should set view with minor changes without scroll', () => {
