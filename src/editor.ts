@@ -210,6 +210,7 @@ import {
   CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
   CONF_MEDIA_VIEWER_ZOOMABLE,
   CONF_MENU_ALIGNMENT,
+  CONF_MENU_AUTO_HIDE,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_BUTTONS,
   CONF_MENU_POSITION,
@@ -224,6 +225,7 @@ import {
   CONF_PERFORMANCE_STYLE_BOX_SHADOW,
   CONF_PROFILES,
   CONF_REMOTE_CONTROL_ENTITIES_CAMERA,
+  CONF_STATUS_BAR_AUTO_HIDE,
   CONF_STATUS_BAR_HEIGHT,
   CONF_STATUS_BAR_ITEMS,
   CONF_STATUS_BAR_POPUP_SECONDS,
@@ -775,12 +777,33 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
+  private _callMuteCondition: EditorSelectOption = {
+    value: 'call',
+    label: localize('config.common.media_action_conditions.call_mute'),
+  };
+
+  private _callUnmuteCondition: EditorSelectOption = {
+    value: 'call',
+    label: localize('config.common.media_action_conditions.call_unmute'),
+  };
+
+  private _microphoneMuteConditions: EditorSelectOption[] = [
+    ...this._mediaActionNegativeConditions,
+    this._callMuteCondition,
+  ];
+
+  private _microphoneUnmuteConditions: EditorSelectOption[] = [
+    ...this._mediaActionPositiveConditions,
+    this._callUnmuteCondition,
+  ];
+
   private _mediaLiveUnmuteConditions: EditorSelectOption[] = [
     ...this._mediaActionPositiveConditions,
     {
       value: 'microphone',
       label: localize('config.common.media_action_conditions.microphone_unmute'),
     },
+    this._callUnmuteCondition,
   ];
 
   private _mediaLiveMuteConditions: EditorSelectOption[] = [
@@ -789,17 +812,15 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
       value: 'microphone',
       label: localize('config.common.media_action_conditions.microphone_mute'),
     },
+    this._callMuteCondition,
   ];
 
   private _autoHideConditions: EditorSelectOption[] = [
     { value: '', label: '' },
-    {
-      value: 'call',
-      label: localize('config.common.controls.next_previous.auto_hides.call'),
-    },
+    { value: 'call', label: localize('config.common.auto_hide_conditions.call') },
     {
       value: 'casting',
-      label: localize('config.common.controls.next_previous.auto_hides.casting'),
+      label: localize('config.common.auto_hide_conditions.casting'),
     },
   ];
 
@@ -3122,6 +3143,14 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${this._renderOptionSelector(CONF_MENU_STYLE, this._menuStyles)}
                 ${this._renderOptionSelector(CONF_MENU_POSITION, this._menuPositions)}
                 ${this._renderOptionSelector(CONF_MENU_ALIGNMENT, this._menuAlignments)}
+                ${this._renderOptionSelector(
+                  CONF_MENU_AUTO_HIDE,
+                  this._autoHideConditions,
+                  {
+                    multiple: true,
+                    label: localize('config.menu.auto_hide'),
+                  },
+                )}
                 ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE, {
                   min: BUTTON_SIZE_MIN,
                 })}
@@ -3179,6 +3208,14 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${this._renderOptionSelector(
                   CONF_STATUS_BAR_POSITION,
                   this._statusBarPositions,
+                )}
+                ${this._renderOptionSelector(
+                  CONF_STATUS_BAR_AUTO_HIDE,
+                  this._autoHideConditions,
+                  {
+                    multiple: true,
+                    label: localize('config.status_bar.auto_hide'),
+                  },
                 )}
                 ${this._renderNumberInput(CONF_STATUS_BAR_HEIGHT, {
                   min: STATUS_BAR_HEIGHT_MIN,
@@ -3402,14 +3439,14 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                     )}
                     ${this._renderOptionSelector(
                       CONF_LIVE_MICROPHONE_AUTO_MUTE,
-                      this._mediaActionNegativeConditions,
+                      this._microphoneMuteConditions,
                       {
                         multiple: true,
                       },
                     )}
                     ${this._renderOptionSelector(
                       CONF_LIVE_MICROPHONE_AUTO_UNMUTE,
-                      this._mediaActionPositiveConditions,
+                      this._microphoneUnmuteConditions,
                       {
                         multiple: true,
                       },

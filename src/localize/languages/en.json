@@ -207,6 +207,10 @@
       }
     },
     "common": {
+      "auto_hide_conditions": {
+        "call": "During a two-way audio call",
+        "casting": "While casting"
+      },
       "controls": {
         "builtin": "Built-in video controls",
         "filter": {
@@ -220,10 +224,6 @@
         },
         "next_previous": {
           "auto_hide": "Automatically hide next & previous controls",
-          "auto_hides": {
-            "call": "During a two-way audio call",
-            "casting": "While casting"
-          },
           "editor_label": "Next & Previous",
           "size": "Next & previous control size in pixels",
           "style": "Next & previous control style",
@@ -315,6 +315,8 @@
         "inactive": "Only when not interacting"
       },
       "media_action_conditions": {
+        "call_mute": "On call end",
+        "call_unmute": "On call start",
         "hidden": "On browser/tab hiding",
         "microphone_mute": "On microphone mute",
         "microphone_unmute": "On microphone unmute",
@@ -475,6 +477,7 @@
         "right": "Aligned to the right",
         "top": "Aligned to the top"
       },
+      "auto_hide": "Conditions under which the menu auto-hides",
       "button_size": "Menu button size in pixels",
       "buttons": {
         "alignment": "Button alignment",
@@ -570,6 +573,7 @@
       }
     },
     "status_bar": {
+      "auto_hide": "Conditions under which the status bar auto-hides",
       "height": "Status bar height in pixels",
       "items": {
         "enabled": "Item enabled",

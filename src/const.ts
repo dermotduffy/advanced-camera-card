@@ -412,6 +412,7 @@ export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_INFO_CONTROL =
 
 const CONF_MENU = 'menu' as const;
 export const CONF_MENU_ALIGNMENT = `${CONF_MENU}.alignment` as const;
+export const CONF_MENU_AUTO_HIDE = `${CONF_MENU}.auto_hide` as const;
 export const CONF_MENU_POSITION = `${CONF_MENU}.position` as const;
 export const CONF_MENU_STYLE = `${CONF_MENU}.style` as const;
 export const CONF_MENU_BUTTON_SIZE = `${CONF_MENU}.button_size` as const;
@@ -426,6 +427,7 @@ export const CONF_MENU_BUTTONS_MEDIA_PLAYER =
 export const CONF_MENU_BUTTONS_TIMELINE = `${CONF_MENU_BUTTONS}.timeline` as const;
 
 export const CONF_STATUS_BAR = 'status_bar' as const;
+export const CONF_STATUS_BAR_AUTO_HIDE = `${CONF_STATUS_BAR}.auto_hide` as const;
 export const CONF_STATUS_BAR_POSITION = `${CONF_STATUS_BAR}.position` as const;
 export const CONF_STATUS_BAR_STYLE = `${CONF_STATUS_BAR}.style` as const;
 export const CONF_STATUS_BAR_POPUP_SECONDS = `${CONF_STATUS_BAR}.popup_seconds` as const;

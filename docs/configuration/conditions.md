@@ -29,6 +29,21 @@ conditions:
 | `condition`  | Must be `and`.                                                                                                 |
 | `conditions` | A list of other conditions _all_ of which must evaluate `true` in order for this condition to evaluate `true`. |
 
+## `call`
+
+Matches based on whether a [two-way audio](../usage/2-way-audio.md) call is in progress.
+
+```yaml
+conditions:
+  - condition: call
+    # [...]
+```
+
+| Parameter   | Description                                                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` | Must be `call`.                                                                                                                 |
+| `call`      | If `true` (the default) or `false`, the condition is satisfied when a two-way audio call is or is not in progress respectively. |
+
 ## `camera`
 
 Matches based on the selected camera. Does not match other cameras (whether
@@ -44,21 +59,6 @@ conditions:
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `condition` | Must be `camera`.                                                                                                                                                                     |
 | `cameras`   | An optional list of camera IDs in which this condition is satisfied. If not specified, any camera change will satisy the condition. See the camera [id](cameras/README.md) parameter. |
-
-## `call`
-
-Matches based on whether a [two-way audio](../usage/2-way-audio.md) call is in progress.
-
-```yaml
-conditions:
-  - condition: call
-    # [...]
-```
-
-| Parameter   | Description                                                                                                                     |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `condition` | Must be `call`.                                                                                                                 |
-| `call`      | If `true` (the default) or `false`, the condition is satisfied when a two-way audio call is or is not in progress respectively. |
 
 ## `config`
 
@@ -212,13 +212,10 @@ conditions:
     # [...]
 ```
 
-| Parameter   | Description                                                                                                   |
-| ----------- | ------------------------------------------------------------------------------------------------------------- |
-| `condition` | Must be `microphone`.                                                                                         |
-| `muted`     | Optional: If `true` or `false` the condition is satisfied if the microphone is muted or unmuted respectively. |
-
-When multiple parameters are specified they must all match for the condition to
-match.
+| Parameter   | Description                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
+| `condition` | Must be `microphone`.                                                                                  |
+| `muted`     | If `true` or `false`, the condition is satisfied when the microphone is muted or unmuted respectively. |
 
 ## `not`
 
@@ -405,11 +402,11 @@ conditions:
 
 ```yaml
 conditions:
- - condition: camera
-   cameras:
-     - camera.office
   - condition: call
     call: true
+  - condition: camera
+    cameras:
+      - camera.office
   - condition: config
     paths:
       - "menu.style"
