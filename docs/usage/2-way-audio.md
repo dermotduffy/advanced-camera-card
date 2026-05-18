@@ -87,7 +87,7 @@ The diagram below traces a call from start to finish:
 By default, two taps are needed to speak: the call button starts the call (so
 you can hear), then the microphone button in the call overlay unmutes your
 microphone (so you can be heard). This push-to-talk default keeps the microphone
-closed until you explicitly choose to speak.
+muted until you explicitly choose to speak.
 
 To collapse that to a single tap, unmute the microphone automatically when a
 call starts:

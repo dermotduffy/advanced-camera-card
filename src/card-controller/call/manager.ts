@@ -14,7 +14,7 @@ export class CallManager {
   constructor(api: CardCallAPI) {
     this._api = api;
 
-    // A call is anchored to the live view of a specific camera. Observe the
+    // A call runs on the live view of a specific camera. Observe the
     // condition state so the call can be ended if the view, camera or engaged
     // substream moves off what the call started on.
     this._api.getConditionStateManager().addListener(this._handleConditionStateChange);
@@ -72,7 +72,7 @@ export class CallManager {
       existingCall.cameraID === parentID &&
       existingCall.callCameraID === callCameraID
     ) {
-      // This exact call (same anchor and stream) is already running; a repeat
+      // This exact call (same parent camera and stream) is already running; a repeat
       // request must not disrupt it.
       return;
     }
@@ -86,12 +86,13 @@ export class CallManager {
     }
 
     // `previousStream` is the substream to restore when this call ends. When
-    // superseding a call already on this parentID, use that call's own
+    // superseding a call already on this parent camera, use that call's own
     // `previousStream` -- the stream the view currently shows is the one it
-    // engaged, not the pre-call one. Otherwise the parentID is not itself on a
-    // call, so its currently-engaged stream is the genuine pre-call stream.
-    // `getStreamCameraID` returns the parentID itself when no substream is
-    // engaged, which the assignment below drops -- there is nothing to restore.
+    // engaged, not the pre-call one. Otherwise the parent camera is not itself
+    // on a call, so its currently-engaged stream is the genuine pre-call
+    // stream. `getStreamCameraID` returns the parent camera itself when no
+    // substream is engaged, which the assignment below drops -- there is
+    // nothing to restore.
     const previousStream =
       existingCall && existingCall.cameraID === parentID
         ? existingCall.previousStream

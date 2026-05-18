@@ -154,7 +154,7 @@ describe('start', () => {
     });
   });
 
-  it('should anchor the call on an explicit camera and navigate there', async () => {
+  it('should start the call on an explicit camera and navigate there', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
       store: createStore([
@@ -180,7 +180,7 @@ describe('start', () => {
     });
   });
 
-  it('should start a call on an explicit stream of the anchor camera', async () => {
+  it('should start a call on an explicit stream of the parent camera', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
       store: createStore([
@@ -216,7 +216,7 @@ describe('start', () => {
     expect(api.getNotificationManager().setNotification).toBeCalled();
   });
 
-  it('should abort when the requested stream is not 2-way audio of the anchor', async () => {
+  it('should abort when the requested stream is not 2-way audio of the parent camera', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
       store: createStore([

@@ -292,7 +292,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     return view?.context?.live?.overrides?.get(cameraID) ?? cameraID;
   }
 
-  // Return a microphone stream only for the camera the call is anchored on, and
+  // Return a microphone stream only for the camera the call runs on, and
   // only while that camera's engaged stream is still the call's audio source.
   // Keying off the call session (not the selected slide) keeps the microphone
   // routed to the call's camera, and stops transmission if the substream has
