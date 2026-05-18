@@ -368,11 +368,16 @@ describe('createCallStartAction', () => {
     });
   });
 
-  it('should create call start action with a camera and cardID', () => {
-    expect(createCallStartAction('camera.front', { cardID: 'card_id' })).toEqual({
+  it('should create call start action with a camera, stream and cardID', () => {
+    expect(
+      createCallStartAction('camera.front', 'camera.front_doorbell', {
+        cardID: 'card_id',
+      }),
+    ).toEqual({
       action: 'fire-dom-event',
       advanced_camera_card_action: 'call_start',
       camera: 'camera.front',
+      stream: 'camera.front_doorbell',
       card_id: 'card_id',
     });
   });

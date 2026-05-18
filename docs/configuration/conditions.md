@@ -409,7 +409,7 @@ conditions:
       - camera.office
   - condition: config
     paths:
-      - "menu.style"
+      - 'menu.style'
   - condition: display_mode
     display_mode: single
   - condition: expand
@@ -447,8 +447,8 @@ conditions:
     users:
       - 581fca7fdc014b8b894519cc531f9a04
   - condition: user_agent
-    user_agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
-    user_agent_re: "Chrome/"
+    user_agent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+    user_agent_re: 'Chrome/'
     casting: true
     companion: true
   - condition: view

@@ -137,39 +137,182 @@ describe('start', () => {
     );
   });
 
-  it('should start a call on an explicit 2-way-audio camera', async () => {
+  it('should start a call from a non-camera view when a camera is explicit', async () => {
     const api = createAPI({
-      view: createView({ camera: 'camera.office' }),
-      store: createCallableStore('camera.doorbell'),
+      view: createView({ camera: null, view: 'folder' }),
+      store: createCallableStore('camera.office'),
     });
+    const manager = new CallManager(api);
 
-    await new CallManager(api).start('camera.doorbell');
+    await manager.start('camera.office');
 
+    expect(manager.getCall()).toEqual({ cameraID: 'camera.office' });
     expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+      params: { view: 'live', camera: 'camera.office' },
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
   });
 
-  it('should abort when an explicit camera lacks 2-way audio', async () => {
+  it('should anchor the call on an explicit camera and navigate there', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
       store: createStore([
-        { cameraID: 'camera.office', capabilities: createCapabilities() },
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.garage',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
       ]),
     });
+    const manager = new CallManager(api);
 
-    await new CallManager(api).start('camera.office');
+    await manager.start('camera.garage');
+
+    expect(manager.getCall()).toEqual({ cameraID: 'camera.garage' });
+    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+      params: { view: 'live', camera: 'camera.garage' },
+      modifiers: [expect.any(SubstreamViewModifier)],
+      force: true,
+    });
+  });
+
+  it('should start a call on an explicit stream of the anchor camera', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          config: createCameraConfig({
+            dependencies: { cameras: ['camera.doorbell'] },
+          }),
+          capabilities: createCapabilities({ live: true }),
+        },
+        {
+          cameraID: 'camera.doorbell',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+      ]),
+    });
+    const manager = new CallManager(api);
+
+    await manager.start('camera.office', 'camera.doorbell');
+
+    expect(manager.getCall()).toEqual({
+      cameraID: 'camera.office',
+      callCameraID: 'camera.doorbell',
+    });
+  });
+
+  it('should abort when the requested camera is not a live camera', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+
+    await new CallManager(api).start('camera.unknown');
 
     expect(api.getViewManager().setViewByParameters).not.toBeCalled();
     expect(api.getNotificationManager().setNotification).toBeCalled();
   });
 
-  it('should abort when no camera supports 2-way audio', async () => {
+  it('should abort when the requested stream is not 2-way audio of the anchor', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
       store: createStore([
-        { cameraID: 'camera.office', capabilities: createCapabilities() },
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.unrelated',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+      ]),
+    });
+
+    await new CallManager(api).start('camera.office', 'camera.unrelated');
+
+    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getNotificationManager().setNotification).toBeCalled();
+  });
+
+  it('should supersede an active call on a different camera', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.garage',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+      ]),
+    });
+    const manager = new CallManager(api);
+
+    await manager.start();
+    await manager.start('camera.garage');
+
+    expect(manager.getCall()).toEqual({ cameraID: 'camera.garage' });
+    expect(api.getConditionStateManager().setState).toBeCalledWith({ call: false });
+    expect(api.getConditionStateManager().setState).toBeCalledWith({ call: true });
+  });
+
+  it('should restart on the same camera with a different stream', async () => {
+    const api = createAPI({
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          config: createCameraConfig({
+            dependencies: { cameras: ['camera.doorbell', 'camera.intercom'] },
+          }),
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.doorbell',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.intercom',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+      ]),
+    });
+
+    // The first call engages `camera.doorbell`; the view then reflects that
+    // substream, as it would at runtime when the second call_start arrives.
+    vi.mocked(api.getViewManager().getView)
+      .mockReturnValueOnce(createView({ camera: 'camera.office' }))
+      .mockReturnValue(
+        createView({
+          camera: 'camera.office',
+          context: {
+            live: { overrides: new Map([['camera.office', 'camera.doorbell']]) },
+          },
+        }),
+      );
+    const manager = new CallManager(api);
+
+    await manager.start('camera.office', 'camera.doorbell');
+    await manager.start('camera.office', 'camera.intercom');
+
+    // The restarted call carries the new stream; `previousStream` stays the
+    // genuine pre-call stream (the camera itself), not the superseded call's
+    // engaged `camera.doorbell`.
+    expect(manager.getCall()).toEqual({
+      cameraID: 'camera.office',
+      callCameraID: 'camera.intercom',
+    });
+  });
+
+  it('should abort when no stream supports 2-way audio', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      store: createStore([
+        { cameraID: 'camera.office', capabilities: createCapabilities({ live: true }) },
       ]),
     });
 
@@ -188,7 +331,7 @@ describe('start', () => {
       store: createStore([
         {
           cameraID: 'camera.office',
-          capabilities: createCapabilities({ '2-way-audio': true }),
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
         },
         {
           cameraID: 'camera.sub',
@@ -398,7 +541,7 @@ describe('condition state changes', () => {
       store: createStore([
         {
           cameraID: 'camera.office',
-          capabilities: createCapabilities({ '2-way-audio': true }),
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
         },
         {
           cameraID: 'camera.sub',

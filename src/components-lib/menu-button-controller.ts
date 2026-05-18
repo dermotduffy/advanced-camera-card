@@ -494,11 +494,12 @@ export class MenuButtonController {
     if (!view?.camera || !view.is('live')) {
       return null;
     }
+    const cameraID = view.camera;
 
     // The call targets: the selected camera and/or any 2-way-audio-capable
     // dependency.
     const targets = [
-      ...cameraManager.getStore().getAllDependentCameras(view.camera, '2-way-audio'),
+      ...cameraManager.getStore().getAllDependentCameras(cameraID, '2-way-audio'),
     ];
     if (!targets.length) {
       return null;
@@ -527,16 +528,19 @@ export class MenuButtonController {
       };
     }
 
-    // Idle, multiple targets: a submenu, one entry per camera.
-    const menuItems = targets.map((cameraID) => {
-      const metadata = cameraManager.getCameraMetadata(cameraID) ?? undefined;
+    // Idle, multiple targets: a submenu, one entry per stream.
+    const menuItems = targets.map((streamID) => {
+      const metadata = cameraManager.getCameraMetadata(streamID) ?? undefined;
       return {
         enabled: true,
         icon: metadata?.icon.icon,
         entity: metadata?.icon.entity,
         state_color: true,
         title: metadata?.title,
-        tap_action: createCallStartAction(cameraID),
+        tap_action: createCallStartAction(
+          cameraID,
+          streamID === cameraID ? undefined : streamID,
+        ),
       };
     });
 

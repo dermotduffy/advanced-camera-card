@@ -1270,7 +1270,8 @@ describe('MenuButtonController', () => {
               tap_action: {
                 action: 'fire-dom-event',
                 advanced_camera_card_action: 'call_start',
-                camera: 'camera-2',
+                camera: 'camera-1',
+                stream: 'camera-2',
               },
             }),
           ],

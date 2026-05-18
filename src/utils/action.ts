@@ -276,6 +276,7 @@ export function createSetReviewAction(reviewed?: boolean): SetReviewActionConfig
 
 export function createCallStartAction(
   camera?: string,
+  stream?: string,
   options?: {
     cardID?: string;
   },
@@ -284,6 +285,7 @@ export function createCallStartAction(
     action: 'fire-dom-event',
     advanced_camera_card_action: 'call_start',
     ...(camera && { camera }),
+    ...(stream && { stream }),
     ...(options?.cardID && { card_id: options.cardID }),
   };
 }

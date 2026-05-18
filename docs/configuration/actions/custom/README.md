@@ -31,13 +31,14 @@ advanced_camera_card_action: call_start
 # [...]
 ```
 
-| Parameter                     | Description                                                                                                                                                                                                                                                     |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `action`                      | Must be `custom:advanced-camera-card-action`.                                                                                                                                                                                                                   |
-| `advanced_camera_card_action` | Must be `call_start`.                                                                                                                                                                                                                                           |
-| `camera`                      | An optional [camera ID](../../cameras/README.md?id=cameras) of the camera to call. If omitted, the selected camera is used when it supports 2-way audio, otherwise the first 2-way-audio-capable [dependency](../../cameras/README.md?id=dependencies) is used. |
+| Parameter                     | Description                                                                                                                                                                                    |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                                                                                                                                                  |
+| `advanced_camera_card_action` | Must be `call_start`.                                                                                                                                                                          |
+| `camera`                      | An optional [camera ID](../../cameras/README.md?id=cameras) to make the call from. If omitted, the selected camera is used.                                                                    |
+| `stream`                      | An optional [camera ID](../../cameras/README.md?id=cameras) of a 2-way-audio [dependency](../../cameras/README.md?id=dependencies) of `camera`. If omitted, the first eligible stream is used. |
 
-The call starts only if a 2-way-audio-capable camera can be resolved and the browser grants microphone access; otherwise a notification explains why. While the call is in progress an on-screen overlay is shown and (by default) disruptive actions are locked -- see [`live.controls.call`](../../live.md?id=call).
+The call starts only if a 2-way-audio-capable stream can be resolved and the browser grants microphone access; otherwise a notification explains why. While the call is in progress an on-screen overlay is shown and (by default) disruptive actions are locked -- see [`live.controls.call`](../../live.md?id=call).
 
 ## `camera_select`
 

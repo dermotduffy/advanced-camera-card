@@ -36,22 +36,44 @@ export class CallManager {
   // Lifecycle
   // =========================================================================
 
-  public async start(cameraID?: string): Promise<void> {
+  public async start(cameraID?: string, streamID?: string): Promise<void> {
     const view = this._api.getViewManager().getView();
-    if (!view?.camera) {
-      return;
-    }
-    const parentID = view.camera;
 
-    if (this._call?.cameraID === parentID) {
-      // Already active for this camera.
+    const parentID = cameraID ?? view?.camera;
+    if (!view || !parentID) {
       return;
     }
 
-    const targetID = cameraID
-      ? this._validateExplicitTarget(cameraID)
+    if (
+      !this._api
+        .getCameraManager()
+        .getStore()
+        .getCameraIDsWithCapability('live')
+        .has(parentID)
+    ) {
+      this._notifyError('error.call_invalid_target');
+      return;
+    }
+
+    const targetID = streamID
+      ? this._validateStream(parentID, streamID)
       : this._pickDefaultTarget(view, parentID);
     if (!targetID) {
+      return;
+    }
+
+    // `callCameraID` is the substream carrying the call audio -- absent when
+    // the call runs on the parent camera itself.
+    const callCameraID = targetID === parentID ? undefined : targetID;
+
+    const existingCall = this._call;
+    if (
+      existingCall &&
+      existingCall.cameraID === parentID &&
+      existingCall.callCameraID === callCameraID
+    ) {
+      // This exact call (same anchor and stream) is already running; a repeat
+      // request must not disrupt it.
       return;
     }
 
@@ -63,13 +85,25 @@ export class CallManager {
       return;
     }
 
-    // `callCameraID` is the substream carrying the call audio -- absent when
-    // the call runs on the parent camera itself. `previousStream` captures any
-    // override active before the call so it can be restored on end-call
-    // (`getStreamCameraID` returns the parent when no override is active,
-    // which is not an override to remember).
-    const callCameraID = targetID === parentID ? undefined : targetID;
-    const previousStream = getStreamCameraID(view, parentID);
+    // `previousStream` is the substream to restore when this call ends. When
+    // superseding a call already on this parentID, use that call's own
+    // `previousStream` -- the stream the view currently shows is the one it
+    // engaged, not the pre-call one. Otherwise the parentID is not itself on a
+    // call, so its currently-engaged stream is the genuine pre-call stream.
+    // `getStreamCameraID` returns the parentID itself when no substream is
+    // engaged, which the assignment below drops -- there is nothing to restore.
+    const previousStream =
+      existingCall && existingCall.cameraID === parentID
+        ? existingCall.previousStream
+        : getStreamCameraID(view, parentID);
+
+    // Any other call in progress is superseded. Ended here -- after the
+    // preflight passes -- so a failed preflight leaves the existing call
+    // intact.
+    if (existingCall) {
+      this.end();
+    }
+
     this._call = {
       cameraID: parentID,
       ...(callCameraID && { callCameraID }),
@@ -77,10 +111,9 @@ export class CallManager {
     };
 
     this._api.getViewManager().setViewByParameters({
-      // A call lives in the live view; navigate there if `call_start` was
-      // dispatched from elsewhere (e.g. an automation). When already in live
-      // this is omitted so the existing view is evolved rather than rebuilt.
-      ...(!view.is('live') && { params: { view: 'live', camera: parentID } }),
+      ...((!view.is('live') || view.camera !== parentID) && {
+        params: { view: 'live', camera: parentID },
+      }),
       modifiers: [new SubstreamViewModifier(callCameraID, parentID)],
       force: true,
     });
@@ -173,12 +206,18 @@ export class CallManager {
       ?.has('2-way-audio');
   }
 
-  private _validateExplicitTarget(cameraID: string): string | null {
-    if (!this._hasCallCapability(cameraID)) {
-      this._notifyError('error.call_no_two_way_audio');
+  // Validate an explicitly-requested call stream: it must be `cameraID` itself
+  // or one of its 2-way-audio dependencies.
+  private _validateStream(cameraID: string, streamID: string): string | null {
+    const eligibleCameraIDs = this._api
+      .getCameraManager()
+      .getStore()
+      .getAllDependentCameras(cameraID, '2-way-audio');
+    if (!eligibleCameraIDs.has(streamID)) {
+      this._notifyError('error.call_invalid_target');
       return null;
     }
-    return cameraID;
+    return streamID;
   }
 
   // Pick the default call target. Prefer the currently-engaged stream when
