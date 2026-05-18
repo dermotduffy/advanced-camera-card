@@ -309,6 +309,22 @@ describe('MicrophoneActionsController', () => {
       expect(microphoneManager.unmute).toBeCalledTimes(1);
     });
 
+    it('should unmute when the call is already active on first notification', () => {
+      const microphoneManager = createMicrophoneManager();
+      const controller = new MicrophoneActionsController();
+      controller.setOptions({
+        microphoneManager,
+        autoUnmuteConditions: ['call' as const],
+      });
+
+      // `setCallActive(true)` is the first call-state signal, with no preceding
+      // `false` -- as for a live view that mounts while a call is already
+      // active. The initial state must not be swallowed as a baseline.
+      controller.setCallActive(true);
+
+      expect(microphoneManager.unmute).toBeCalledTimes(1);
+    });
+
     it('should mute on call end when call is a configured mute condition', () => {
       const microphoneManager = createMicrophoneManager();
       const controller = new MicrophoneActionsController();

@@ -794,5 +794,89 @@ describe('MediaActionsController', () => {
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
       ).not.toBeCalled();
     });
+
+    it('should apply the call-start unmute when the target arrives after the call', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoUnmuteConditions: ['call' as const],
+        playerSelector: 'video',
+      });
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+
+      // The call becomes active before any target is selected: with no
+      // target, the unmute cannot be applied yet.
+      controller.setCallActive(true);
+      await flushPromises();
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).not.toBeCalled();
+
+      await controller.setTarget(0, true);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).toBeCalled();
+    });
+
+    it('should unmute when the call is already active on the first call-state signal', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoUnmuteConditions: ['call' as const],
+        playerSelector: 'video',
+      });
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+      await controller.setTarget(0, true);
+
+      // `setCallActive(true)` is the first call-state signal, with no preceding
+      // `false` -- as for a carousel that loads while a call is already
+      // active. The initial state must not be swallowed as a baseline.
+      controller.setCallActive(true);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).toBeCalled();
+    });
+
+    it('should defer the call-start unmute until the media player is ready', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoUnmuteConditions: ['call' as const],
+        playerSelector: 'video',
+      });
+      controller.setCallActive(false);
+
+      // A player whose media player controller is not ready on first request.
+      const mediaPlayerController = mock<MediaPlayerController>();
+      const player = document.createElement('video');
+      player['getMediaPlayerController'] = vi
+        .fn()
+        .mockResolvedValueOnce(null)
+        .mockResolvedValue(mediaPlayerController);
+      const child = createTestSlideNodes({ n: 1 })[0];
+      child.appendChild(player as unknown as MediaPlayerElement);
+
+      controller.setRoot(createParent({ children: [child] }));
+      await controller.setTarget(0, true);
+
+      // The call starts while the player is still not ready: no unmute yet.
+      controller.setCallActive(true);
+      await flushPromises();
+      expect(mediaPlayerController.unmute).not.toBeCalled();
+
+      // Once the media loads the deferred unmute is applied -- exactly once,
+      // so a later reload cannot clobber a manual mute made during the call.
+      player.dispatchEvent(new Event('advanced-camera-card:media:loaded'));
+      await flushPromises();
+      player.dispatchEvent(new Event('advanced-camera-card:media:loaded'));
+      await flushPromises();
+      expect(mediaPlayerController.unmute).toBeCalledTimes(1);
+    });
   });
 });

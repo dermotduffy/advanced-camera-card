@@ -184,8 +184,20 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     if (changedProps.has('microphoneState') && this.microphoneState) {
       this._mediaActionsController.setMicrophoneState(this.microphoneState);
     }
-    if (changedProps.has('call')) {
-      this._mediaActionsController.setCallActive(!!this.call);
+    if (
+      changedProps.has('call') ||
+      changedProps.has('viewManagerEpoch') ||
+      changedProps.has('viewFilterCameraID')
+    ) {
+      // Scope the call-active signal to the carousel that owns the call: in
+      // grid mode every carousel receives `.call`, but only the call camera's
+      // audio should be acted on. Mirrors the `showCallControls` scoping in
+      // `render()`.
+      const carouselCameraID =
+        this.viewFilterCameraID ?? this.viewManagerEpoch?.manager.getView()?.camera;
+      this._mediaActionsController.setCallActive(
+        !!this.call && this.call.cameraID === carouselCameraID,
+      );
     }
   }
 
