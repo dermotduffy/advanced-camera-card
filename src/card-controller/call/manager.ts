@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash-es';
 import { createNotificationFromText } from '../../components-lib/notification/factory';
 import { ConditionStateChange } from '../../conditions/types';
 import { localize } from '../../localize/localize';
@@ -85,34 +86,32 @@ export class CallManager {
       return;
     }
 
-    // `previousStream` is the substream to restore when this call ends. When
-    // superseding a call already on this parent camera, use that call's own
-    // `previousStream` -- the stream the view currently shows is the one it
-    // engaged, not the pre-call one. Otherwise the parent camera is not itself
-    // on a call, so its currently-engaged stream is the genuine pre-call
-    // stream. `getStreamCameraID` returns the parent camera itself when no
-    // substream is engaged, which the assignment below drops -- there is
-    // nothing to restore.
-    const previousStream =
-      existingCall && existingCall.cameraID === parentID
-        ? existingCall.previousStream
-        : getStreamCameraID(view, parentID);
+    // Store the previous view so it can be restored later. A call superseding
+    // another inherits the earlier call's previous view -- the user never left
+    // the call. `queryResults` are dropped (re-fetched fresh on restore);
+    // `context` is deep-cloned so the call engaging its own substream below
+    // cannot mutate the snapshot.
+    const previousView = existingCall
+      ? existingCall.previousView
+      : view.evolve({ queryResults: null, context: cloneDeep(view.context) });
+
+    const needsNavigation = !view.is('live') || view.camera !== parentID;
 
     // Any other call in progress is superseded. Ended here -- after the
     // preflight passes -- so a failed preflight leaves the existing call
     // intact.
     if (existingCall) {
-      this.end();
+      this._end(false);
     }
 
     this._call = {
       cameraID: parentID,
       ...(callCameraID && { callCameraID }),
-      ...(previousStream && previousStream !== parentID && { previousStream }),
+      previousView,
     };
 
     this._api.getViewManager().setViewByParameters({
-      ...((!view.is('live') || view.camera !== parentID) && {
+      ...(needsNavigation && {
         params: { view: 'live', camera: parentID },
       }),
       modifiers: [new SubstreamViewModifier(callCameraID, parentID)],
@@ -121,21 +120,59 @@ export class CallManager {
     this._api.getConditionStateManager().setState({ call: true });
   }
 
+  // Ends the call and returns to the view that was showing before
+  // `call_start` -- the user-facing `call_end`.
   public end(): void {
+    this._end(true);
+  }
+
+  // `restoreView` navigates back to the pre-call view -- the symmetric
+  // counterpart of `call_start`'s navigation -- for an explicit `call_end`. It
+  // is `false` for auto-ends (navigating away, camera/substream change), where
+  // the user has already chosen a destination and the pre-call view is
+  // deliberately not reinstated; only the manager's own auto-end paths pass it.
+  private _end(restoreView: boolean): void {
     if (!this._call) {
       return;
     }
     const call = this._call;
+    const previousView = call.previousView;
 
     // Clear the session first: ending the call dispatches a view change, and
     // the resulting condition-state change must not see this (now-ending) call
     // and recurse.
     this._call = null;
 
-    this._api.getViewManager().setViewByParameters({
-      modifiers: [new SubstreamViewModifier(call.previousStream, call.cameraID)],
-      force: true,
-    });
+    const viewManager = this._api.getViewManager();
+
+    // Navigate back only on an explicit end, and only when the call actually
+    // moved away from where the user was (a call started from its own live
+    // view has nowhere to return). The previous view's query is re-executed
+    // so results are fresh.
+    if (
+      restoreView &&
+      (previousView.view !== 'live' || previousView.camera !== call.cameraID)
+    ) {
+      viewManager.setViewByParametersWithExistingQuery({
+        baseView: previousView,
+        force: true,
+      });
+    } else {
+      // Otherwise stay where we are and just undo the call's substream change
+      // on its own camera, reading the pre-call value.
+      const previousStream = getStreamCameraID(previousView, call.cameraID);
+      viewManager.setViewByParameters({
+        modifiers: [
+          new SubstreamViewModifier(
+            previousStream && previousStream !== call.cameraID
+              ? previousStream
+              : undefined,
+            call.cameraID,
+          ),
+        ],
+        force: true,
+      });
+    }
     this._api.getConditionStateManager().setState({ call: false });
   }
 
@@ -152,7 +189,7 @@ export class CallManager {
         stateChange.new.camera !== this._call.cameraID ||
         stateChange.new.substreamID !== this._call.callCameraID)
     ) {
-      this.end();
+      this._end(false);
     }
   };
 

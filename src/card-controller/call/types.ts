@@ -1,3 +1,5 @@
+import { View } from '../../view/view';
+
 export interface CallSession {
   // The camera that owns the call.
   cameraID: string;
@@ -7,7 +9,7 @@ export interface CallSession {
   // `cameraID`'s own stream.
   callCameraID?: string;
 
-  // An optional substream override that was active on `cameraID` before the
-  // call started, restored when the call ends.
-  previousStream?: string;
+  // The view from before the call started: a clone with `queryResults` dropped.
+  // Used to undo the call when it ends.
+  previousView: View;
 }

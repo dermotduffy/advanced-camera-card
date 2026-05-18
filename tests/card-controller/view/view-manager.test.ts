@@ -324,6 +324,48 @@ it('should set view by parameters with existing query', async () => {
   expect(manager.getView()?.camera).toBe('camera');
 });
 
+it('should set view by parameters with an explicitly provided existing query', async () => {
+  const viewFactory = mock<ViewFactory>();
+  viewFactory.getViewByParameters.mockReturnValue(createView());
+
+  const viewQueryExecutor = mock<ViewQueryExecutor>();
+  viewQueryExecutor.getExistingQueryModifiers.mockResolvedValue([]);
+
+  const manager = new ViewManager(createInitializedCardAPI(), {
+    viewFactory: viewFactory,
+    viewQueryExecutor: viewQueryExecutor,
+  });
+
+  const query = new UnifiedQuery();
+  await manager.setViewByParametersWithExistingQuery({ params: { query } });
+
+  // An explicitly-passed query is used as-is rather than the base view's.
+  expect(viewFactory.getViewByParameters).toBeCalledWith(
+    expect.objectContaining({ params: expect.objectContaining({ query }) }),
+  );
+});
+
+it('should clear the query when an explicit null query is passed', async () => {
+  const viewFactory = mock<ViewFactory>();
+  viewFactory.getViewByParameters.mockReturnValue(createView());
+
+  const viewQueryExecutor = mock<ViewQueryExecutor>();
+  viewQueryExecutor.getExistingQueryModifiers.mockResolvedValue([]);
+
+  const manager = new ViewManager(createInitializedCardAPI(), {
+    viewFactory: viewFactory,
+    viewQueryExecutor: viewQueryExecutor,
+  });
+
+  await manager.setViewByParametersWithExistingQuery({ params: { query: null } });
+
+  // An explicit `null` is respected (clears the query), not overridden by the
+  // base view's query.
+  expect(viewFactory.getViewByParameters).toBeCalledWith(
+    expect.objectContaining({ params: expect.objectContaining({ query: null }) }),
+  );
+});
+
 describe('should handle exceptions', () => {
   it('should retry with failSafe when no existing view in sync calls', () => {
     const viewFactory = mock<ViewFactory>();

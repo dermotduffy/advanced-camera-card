@@ -71,7 +71,11 @@ describe('isActive', () => {
     expect(manager.isActive()).toBe(true);
     // The call runs on the parent camera's own stream, so callCameraID is
     // absent.
-    expect(manager.getCall()).toEqual({ cameraID: 'camera.office' });
+    expect(manager.getCall()).toEqual({
+      cameraID: 'camera.office',
+      previousView: expect.any(View),
+    });
+    expect(manager.getCall()?.previousView?.view).toBe('live');
   });
 });
 
@@ -137,6 +141,59 @@ describe('start', () => {
     );
   });
 
+  it('should record the view present when the call started', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office', view: 'clips' }),
+    });
+    const manager = new CallManager(api);
+
+    await manager.start();
+
+    const call = manager.getCall();
+    expect(call?.previousView?.view).toBe('clips');
+    expect(call?.previousView?.camera).toBe('camera.office');
+    // Query results are dropped so they are re-fetched fresh on restore.
+    expect(call?.previousView?.queryResults).toBeNull();
+  });
+
+  it('should record the live view when the call starts from live', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office', view: 'live' }),
+    });
+    const manager = new CallManager(api);
+
+    await manager.start();
+
+    const call = manager.getCall();
+    expect(call?.previousView?.view).toBe('live');
+    expect(call?.previousView?.camera).toBe('camera.office');
+  });
+
+  it('should keep the original pre-call view when a call supersedes another', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office', view: 'clips' }),
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.garage',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+      ]),
+    });
+    const manager = new CallManager(api);
+
+    await manager.start();
+    await manager.start('camera.garage');
+
+    const call = manager.getCall();
+    expect(call?.cameraID).toBe('camera.garage');
+    expect(call?.previousView?.view).toBe('clips');
+    expect(call?.previousView?.camera).toBe('camera.office');
+  });
+
   it('should start a call from a non-camera view when a camera is explicit', async () => {
     const api = createAPI({
       view: createView({ camera: null, view: 'folder' }),
@@ -146,7 +203,10 @@ describe('start', () => {
 
     await manager.start('camera.office');
 
-    expect(manager.getCall()).toEqual({ cameraID: 'camera.office' });
+    const call = manager.getCall();
+    expect(call?.cameraID).toBe('camera.office');
+    expect(call?.previousView?.view).toBe('folder');
+    expect(call?.previousView?.camera).toBeNull();
     expect(api.getViewManager().setViewByParameters).toBeCalledWith({
       params: { view: 'live', camera: 'camera.office' },
       modifiers: [expect.any(SubstreamViewModifier)],
@@ -172,7 +232,10 @@ describe('start', () => {
 
     await manager.start('camera.garage');
 
-    expect(manager.getCall()).toEqual({ cameraID: 'camera.garage' });
+    const call = manager.getCall();
+    expect(call?.cameraID).toBe('camera.garage');
+    expect(call?.previousView?.view).toBe('live');
+    expect(call?.previousView?.camera).toBe('camera.office');
     expect(api.getViewManager().setViewByParameters).toBeCalledWith({
       params: { view: 'live', camera: 'camera.garage' },
       modifiers: [expect.any(SubstreamViewModifier)],
@@ -201,10 +264,10 @@ describe('start', () => {
 
     await manager.start('camera.office', 'camera.doorbell');
 
-    expect(manager.getCall()).toEqual({
-      cameraID: 'camera.office',
-      callCameraID: 'camera.doorbell',
-    });
+    const call = manager.getCall();
+    expect(call?.cameraID).toBe('camera.office');
+    expect(call?.callCameraID).toBe('camera.doorbell');
+    expect(call?.previousView?.view).toBe('live');
   });
 
   it('should abort when the requested camera is not a live camera', async () => {
@@ -256,7 +319,10 @@ describe('start', () => {
     await manager.start();
     await manager.start('camera.garage');
 
-    expect(manager.getCall()).toEqual({ cameraID: 'camera.garage' });
+    const call = manager.getCall();
+    expect(call?.cameraID).toBe('camera.garage');
+    expect(call?.previousView?.view).toBe('live');
+    expect(call?.previousView?.camera).toBe('camera.office');
     expect(api.getConditionStateManager().setState).toBeCalledWith({ call: false });
     expect(api.getConditionStateManager().setState).toBeCalledWith({ call: true });
   });
@@ -299,13 +365,15 @@ describe('start', () => {
     await manager.start('camera.office', 'camera.doorbell');
     await manager.start('camera.office', 'camera.intercom');
 
-    // The restarted call carries the new stream; `previousStream` stays the
-    // genuine pre-call stream (the camera itself), not the superseded call's
-    // engaged `camera.doorbell`.
-    expect(manager.getCall()).toEqual({
-      cameraID: 'camera.office',
-      callCameraID: 'camera.intercom',
-    });
+    // The restarted call carries the new stream; the recorded pre-call view
+    // keeps the genuine pre-call substream (none -- the camera's own stream), not the
+    // superseded call's engaged `camera.doorbell`.
+    const call = manager.getCall();
+    expect(call?.cameraID).toBe('camera.office');
+    expect(call?.callCameraID).toBe('camera.intercom');
+    expect(
+      call?.previousView?.context?.live?.overrides?.get('camera.office'),
+    ).toBeUndefined();
   });
 
   it('should abort when no stream supports 2-way audio', async () => {
@@ -347,8 +415,11 @@ describe('start', () => {
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
-    // The pre-call substream is captured so it can be restored on call end.
-    expect(manager.getCall()?.previousStream).toBe('camera.sub');
+    // The pre-call substream is captured in the recorded view's context so it
+    // can be restored on call end.
+    expect(
+      manager.getCall()?.previousView?.context?.live?.overrides?.get('camera.office'),
+    ).toBe('camera.sub');
   });
 
   it('should fall back to a call-capable dependency when the parent lacks audio', async () => {
@@ -450,6 +521,89 @@ describe('end', () => {
     });
     expect(api.getConditionStateManager().setState).toBeCalledWith({ call: false });
   });
+
+  it('should restore the pre-call substream when ending', async () => {
+    const api = createAPI({
+      view: createView({
+        camera: 'camera.office',
+        context: { live: { overrides: new Map([['camera.office', 'camera.sub']]) } },
+      }),
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.sub',
+          capabilities: createCapabilities({ '2-way-audio': true }),
+        },
+      ]),
+    });
+    const manager = new CallManager(api);
+    await manager.start();
+    vi.mocked(api.getViewManager().setViewByParameters).mockClear();
+
+    manager.end();
+
+    // The recorded pre-call substream (`camera.sub`) is reinstated.
+    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+      modifiers: [expect.any(SubstreamViewModifier)],
+      force: true,
+    });
+  });
+
+  it('should return to the pre-call view on an explicit end', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office', view: 'clips' }),
+    });
+    const manager = new CallManager(api);
+    await manager.start();
+
+    manager.end();
+
+    expect(api.getViewManager().setViewByParametersWithExistingQuery).toBeCalledWith({
+      baseView: expect.any(View),
+      force: true,
+    });
+    const restored = vi.mocked(api.getViewManager().setViewByParametersWithExistingQuery)
+      .mock.calls[0]?.[0];
+    expect(restored?.baseView?.view).toBe('clips');
+    expect(restored?.baseView?.camera).toBe('camera.office');
+  });
+
+  it('should not navigate on an explicit end when the call started from live', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office', view: 'live' }),
+    });
+    const manager = new CallManager(api);
+    await manager.start();
+    vi.mocked(api.getViewManager().setViewByParameters).mockClear();
+
+    manager.end();
+
+    // No navigation: only the substream is undone.
+    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+      modifiers: [expect.any(SubstreamViewModifier)],
+      force: true,
+    });
+    expect(api.getViewManager().setViewByParametersWithExistingQuery).not.toBeCalled();
+  });
+
+  it('should return to a camera-less pre-call view on an explicit end', async () => {
+    const api = createAPI({
+      view: createView({ camera: null, view: 'folder' }),
+      store: createCallableStore('camera.office'),
+    });
+    const manager = new CallManager(api);
+    await manager.start('camera.office');
+
+    manager.end();
+
+    const restored = vi.mocked(api.getViewManager().setViewByParametersWithExistingQuery)
+      .mock.calls[0]?.[0];
+    expect(restored?.baseView?.view).toBe('folder');
+    expect(restored?.baseView?.camera).toBeNull();
+  });
 });
 
 describe('condition state changes', () => {
@@ -470,6 +624,24 @@ describe('condition state changes', () => {
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
+  });
+
+  it('should not restore the pre-call view when the call auto-ends', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office', view: 'clips' }),
+    });
+    const manager = new CallManager(api);
+    await manager.start();
+    vi.mocked(api.getViewManager().setViewByParameters).mockClear();
+
+    getConditionStateListener(api)({
+      old: { camera: 'camera.office', view: 'live' },
+      change: { camera: 'camera.other' },
+      new: { camera: 'camera.other', view: 'live' },
+    });
+
+    expect(manager.isActive()).toBe(false);
+    expect(api.getViewManager().setViewByParametersWithExistingQuery).not.toBeCalled();
   });
 
   it('should end the call when the view leaves live', async () => {
