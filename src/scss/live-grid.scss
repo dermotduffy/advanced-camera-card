@@ -35,7 +35,12 @@ advanced-camera-card-live-carousel {
 advanced-camera-card-live-carousel[triggered] {
   animation: warning-pulse 5s infinite;
 }
-advanced-camera-card-live-carousel[transmitting] {
+// The `:host` prefix raises specificity to (0,2,1), above `media-grid`'s
+// `::slotted([selected])` border (0,1,1). In grid mode that rule lives in an
+// inner shadow tree and would otherwise win the cross-tree cascade tie,
+// leaving the transmitting border the wrong colour. `[triggered]` needs no
+// such treatment — animated values always beat the regular cascade.
+:host advanced-camera-card-live-carousel[transmitting] {
   // `animation: none` cancels any concurrent trigger pulse to ensure
   // transmitting takes precedence.
   animation: none;
