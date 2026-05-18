@@ -72,8 +72,8 @@ export class CallManager {
       existingCall.cameraID === parentID &&
       existingCall.callCameraID === callCameraID
     ) {
-      // This exact call (same parent camera and stream) is already running; a repeat
-      // request must not disrupt it.
+      // This exact call (same parent camera and stream) is already running; a
+      // repeat request must not disrupt it.
       return;
     }
 

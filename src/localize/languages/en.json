@@ -397,10 +397,11 @@
         "call": {
           "button_size": "Call control button size",
           "editor_label": "Two-way audio call",
-          "end": "End call",
-          "lock": "Lock the UI during an active call",
+          "end": "End 2-way audio call",
+          "lock": "Lock UI during an active call",
           "mute_audio": "Mute audio",
           "mute_microphone": "Mute microphone",
+          "start": "Start 2-way audio call",
           "unmute_audio": "Unmute audio",
           "unmute_microphone": "Unmute microphone"
         },

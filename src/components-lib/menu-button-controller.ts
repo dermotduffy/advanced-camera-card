@@ -509,7 +509,7 @@ export class MenuButtonController {
     if (callManager?.isActive()) {
       return {
         icon: 'mdi:phone-hangup',
-        title: localize('config.menu.buttons.call'),
+        title: localize('config.live.controls.call.end'),
         style: this._getEmphasizedStyle(true),
         ...config.menu.buttons.call,
         type: 'custom:advanced-camera-card-menu-icon',
@@ -521,7 +521,7 @@ export class MenuButtonController {
     if (targets.length === 1) {
       return {
         icon: 'mdi:phone',
-        title: localize('config.menu.buttons.call'),
+        title: localize('config.live.controls.call.start'),
         ...config.menu.buttons.call,
         type: 'custom:advanced-camera-card-menu-icon',
         tap_action: createCallStartAction(),
@@ -546,7 +546,7 @@ export class MenuButtonController {
 
     return {
       icon: 'mdi:phone',
-      title: localize('config.menu.buttons.call'),
+      title: localize('config.live.controls.call.start'),
       ...config.menu.buttons.call,
       type: 'custom:advanced-camera-card-menu-submenu',
       items: menuItems,

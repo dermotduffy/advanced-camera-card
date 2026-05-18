@@ -1176,7 +1176,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).not.toEqual(
-        expect.arrayContaining([expect.objectContaining({ title: 'Two-way audio' })]),
+        expect.arrayContaining([
+          expect.objectContaining({ title: 'Start 2-way audio call' }),
+        ]),
       );
     });
 
@@ -1195,7 +1197,9 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).not.toEqual(
-        expect.arrayContaining([expect.objectContaining({ title: 'Two-way audio' })]),
+        expect.arrayContaining([
+          expect.objectContaining({ title: 'Start 2-way audio call' }),
+        ]),
       );
     });
 
@@ -1206,7 +1210,9 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, { cameraManager });
 
       expect(buttons).not.toEqual(
-        expect.arrayContaining([expect.objectContaining({ title: 'Two-way audio' })]),
+        expect.arrayContaining([
+          expect.objectContaining({ title: 'Start 2-way audio call' }),
+        ]),
       );
     });
 
@@ -1229,7 +1235,7 @@ describe('MenuButtonController', () => {
         enabled: true,
         priority: 50,
         type: 'custom:advanced-camera-card-menu-icon',
-        title: 'Two-way audio',
+        title: 'Start 2-way audio call',
         tap_action: {
           action: 'fire-dom-event',
           advanced_camera_card_action: 'call_start',
@@ -1256,7 +1262,7 @@ describe('MenuButtonController', () => {
       expect(buttons).toContainEqual(
         expect.objectContaining({
           icon: 'mdi:phone',
-          title: 'Two-way audio',
+          title: 'Start 2-way audio call',
           type: 'custom:advanced-camera-card-menu-submenu',
           items: [
             expect.objectContaining({
@@ -1304,7 +1310,7 @@ describe('MenuButtonController', () => {
         enabled: true,
         priority: 50,
         type: 'custom:advanced-camera-card-menu-icon',
-        title: 'Two-way audio',
+        title: 'End 2-way audio call',
         style: {
           animation: 'pulse 3s infinite',
           color: 'var(--advanced-camera-card-menu-button-critical-color)',
