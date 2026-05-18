@@ -4,8 +4,13 @@
   box-sizing: border-box;
   gap: 2px;
 
-  // Ensure control icons are relative to the thumbnail.
+  // Position control icons relative to the thumbnail, and `isolation: isolate`
+  // to keep their `z-index` scoped here. Without a stacking context an
+  // unhovered gallery tile (which has no `transform`) lets its feature icons'
+  // z-index leak into the card's stacking context and paint over the `elements`
+  // overlay.
   position: relative;
+  isolation: isolate;
   overflow: hidden;
 
   transition: transform 0.2s linear;

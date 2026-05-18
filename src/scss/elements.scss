@@ -1,6 +1,12 @@
+@use './z-index.scss' as *;
+
 :host {
   position: absolute;
   inset: 0;
+
+  // Picture elements always render above view content (media, gallery,
+  // thumbnails) regardless of any z-index those surfaces use internally.
+  z-index: $z-index-elements;
 
   // Don't let elements overflow.
   overflow: hidden;
