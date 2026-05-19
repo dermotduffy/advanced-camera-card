@@ -145,9 +145,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   // the carousel is scoped to one, otherwise the camera of the active view.
   private _getCarouselCameraID(): string | null {
     return (
-      this.viewFilterCameraID ??
-      this.viewManagerEpoch?.manager.getView()?.camera ??
-      null
+      this.viewFilterCameraID ?? this.viewManagerEpoch?.manager.getView()?.camera ?? null
     );
   }
 

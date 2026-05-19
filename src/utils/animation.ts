@@ -14,7 +14,5 @@ export function hasPopOutAnimationEnded(
   // tests pass a plain object instead of mocking the event.
   ev: Pick<AnimationEvent, 'target' | 'currentTarget' | 'animationName'>,
 ): boolean {
-  return (
-    ev.target === ev.currentTarget && ev.animationName === POP_OUT_ANIMATION_NAME
-  );
+  return ev.target === ev.currentTarget && ev.animationName === POP_OUT_ANIMATION_NAME;
 }
