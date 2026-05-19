@@ -35,3 +35,82 @@
 
   flex: 0 0 100%;
 }
+
+// Triggered and transmitting cameras are highlighted with a soft inset glow,
+// drawn by an overlay stacked above the camera feed. The overlays come before
+// the carousel controls in source order, so they stack above the feed but
+// below the controls; `pointer-events: none` keeps them inert. The glow is an
+// interior effect, so it coexists with the grid selection border (see
+// media-grid.scss) without competing for the `border` property.
+//
+// The two states differ by colour and rhythm: triggered is an amber glow that
+// pulses fully out and back (a "something happened" beacon), transmitting is a
+// red glow that breathes gently without ever fully fading ("you are live").
+// Transmitting wins: while it is active the trigger overlay is faded out.
+
+// Triggered: pulse from nothing to a full amber glow and back.
+@keyframes trigger-vignette-pulse {
+  0%,
+  100% {
+    box-shadow: inset 0 0 var(--advanced-camera-card-trigger-glow-size) transparent;
+  }
+  50% {
+    box-shadow: inset 0 0 var(--advanced-camera-card-trigger-glow-size)
+      var(--advanced-camera-card-trigger-glow-color);
+  }
+}
+
+// Transmitting: breathe between a softer and a fuller glow — never fully fades,
+// so the camera always reads as live.
+@keyframes transmitting-vignette-pulse {
+  0%,
+  100% {
+    box-shadow: inset 0 0 calc(var(--advanced-camera-card-transmitting-glow-size) * 0.55)
+      var(--advanced-camera-card-transmitting-glow-color);
+  }
+  50% {
+    box-shadow: inset 0 0 var(--advanced-camera-card-transmitting-glow-size)
+      var(--advanced-camera-card-transmitting-glow-color);
+  }
+}
+
+.status-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  // Hidden by default; activation/deactivation is a plain opacity fade. Each
+  // overlay carries its own static box-shadow (not scoped to the
+  // `[triggered]`/`[transmitting]` selectors) so the glow stays painted in its
+  // own colour throughout the fade-out, after its animation has been removed.
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.status-glow--trigger {
+  box-shadow: inset 0 0 var(--advanced-camera-card-trigger-glow-size)
+    var(--advanced-camera-card-trigger-glow-color);
+}
+
+.status-glow--transmitting {
+  box-shadow: inset 0 0 var(--advanced-camera-card-transmitting-glow-size)
+    var(--advanced-camera-card-transmitting-glow-color);
+}
+
+:host([triggered]) .status-glow--trigger {
+  opacity: 1;
+  animation: trigger-vignette-pulse 5s infinite;
+}
+
+// Transmitting takes precedence: while it is active the trigger overlay is
+// faded out. This rule follows the `[triggered]` rule with equal specificity,
+// so it wins the cascade.
+:host([transmitting]) .status-glow--trigger {
+  opacity: 0;
+  animation: none;
+}
+
+:host([transmitting]) .status-glow--transmitting {
+  opacity: 1;
+  animation: transmitting-vignette-pulse 4s ease-in-out infinite;
+}

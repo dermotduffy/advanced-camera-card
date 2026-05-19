@@ -245,15 +245,16 @@
   /*********
   * Trigger
   *********/
-  --advanced-camera-card-trigger-border-color: var(--advanced-camera-card-warning-color);
-  --advanced-camera-card-trigger-border-color-base: unset;
+  --advanced-camera-card-trigger-glow-color: var(--advanced-camera-card-active-color);
+  --advanced-camera-card-trigger-glow-size: 16px;
 
   /**************
   * Transmitting
   **************/
-  --advanced-camera-card-transmitting-border-color: var(
+  --advanced-camera-card-transmitting-glow-color: var(
     --advanced-camera-card-warning-color
   );
+  --advanced-camera-card-transmitting-glow-size: 28px;
 
   /*****
   * Grid
