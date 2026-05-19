@@ -49,6 +49,16 @@ export class AdvancedCameraCardCallControls extends LitElement {
   @state()
   private _exiting = false;
 
+  public connectedCallback(): void {
+    super.connectedCallback();
+    window.addEventListener('keydown', this._handleKeyDown);
+  }
+
+  public disconnectedCallback(): void {
+    window.removeEventListener('keydown', this._handleKeyDown);
+    super.disconnectedCallback();
+  }
+
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('buttonSize') && this.buttonSize) {
       this.style.setProperty(
@@ -112,6 +122,14 @@ export class AdvancedCameraCardCallControls extends LitElement {
       </div>
     </div>`;
   }
+
+  private _handleKeyDown = (ev: KeyboardEvent): void => {
+    if (this.active && ev.key === 'Escape') {
+      dispatchActionExecutionRequest(this, { actions: createCallEndAction() });
+      ev.stopPropagation();
+      ev.preventDefault();
+    }
+  };
 
   private _handleAnimationEnd = (ev: AnimationEvent): void => {
     if (hasPopOutAnimationEnded(ev)) {
