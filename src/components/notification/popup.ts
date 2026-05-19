@@ -24,13 +24,17 @@ export class AdvancedCameraCardNotification extends LitElement {
     super.connectedCallback();
     window.addEventListener('click', this._handleOutsideInteraction);
     window.addEventListener('focusin', this._handleOutsideInteraction);
-    window.addEventListener('keydown', this._handleKeyDown);
+
+    // Escape is claimed in the capture phase: the popup is a modal surface and
+    // must consume Escape before non-modal background controls (e.g. the call
+    // controls) that also listen on `window`.
+    window.addEventListener('keydown', this._handleKeyDown, { capture: true });
   }
 
   public disconnectedCallback(): void {
     window.removeEventListener('click', this._handleOutsideInteraction);
     window.removeEventListener('focusin', this._handleOutsideInteraction);
-    window.removeEventListener('keydown', this._handleKeyDown);
+    window.removeEventListener('keydown', this._handleKeyDown, { capture: true });
     super.disconnectedCallback();
   }
 
@@ -95,7 +99,11 @@ export class AdvancedCameraCardNotification extends LitElement {
   private _handleKeyDown = (ev: KeyboardEvent): void => {
     if (ev.key === 'Escape') {
       this._dismiss();
-      ev.stopPropagation();
+
+      // `stopImmediatePropagation()` (not `stopPropagation()`) is required to
+      // block sibling `window` listeners -- `stopPropagation()` only stops
+      // propagation to other targets, not other listeners on `window` itself.
+      ev.stopImmediatePropagation();
       ev.preventDefault();
     }
   };
