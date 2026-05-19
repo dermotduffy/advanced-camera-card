@@ -90,10 +90,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   private _ptzDragController = new PTZDragController(this);
 
   private _mediaLoadedInfoSinkController = new MediaLoadedInfoSinkController(this, {
-    getTargetID: () =>
-      this.viewFilterCameraID ??
-      this.viewManagerEpoch?.manager.getView()?.camera ??
-      null,
+    getTargetID: () => this._getCarouselCameraID(),
     callback: () => this._mediaHeightController.recalculate(),
   });
 
@@ -144,6 +141,16 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   private _getTransitionEffect = (): TransitionEffect =>
     this.liveConfig?.transition_effect ?? configDefaults.live.transition_effect;
 
+  // The cameraID this carousel currently represents: the filtered camera when
+  // the carousel is scoped to one, otherwise the camera of the active view.
+  private _getCarouselCameraID(): string | null {
+    return (
+      this.viewFilterCameraID ??
+      this.viewManagerEpoch?.manager.getView()?.camera ??
+      null
+    );
+  }
+
   private _getSelectedCameraIndex(): number {
     if (this.viewFilterCameraID) {
       // If the carousel is limited to a single cameraID, the first (only)
@@ -191,12 +198,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     ) {
       // Scope the call-active signal to the carousel that owns the call: in
       // grid mode every carousel receives `.call`, but only the call camera's
-      // audio should be acted on. Mirrors the `showCallControls` scoping in
-      // `render()`.
-      const carouselCameraID =
-        this.viewFilterCameraID ?? this.viewManagerEpoch?.manager.getView()?.camera;
+      // audio should be acted on.
       this._mediaActionsController.setCallActive(
-        !!this.call && this.call.cameraID === carouselCameraID,
+        this.call?.cameraID === this._getCarouselCameraID(),
       );
     }
   }
@@ -403,7 +407,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     const hasMultipleCameras = slides.length > 1;
     const neighbors = this._getCameraNeighbors();
 
-    const carouselCameraID = this.viewFilterCameraID ?? view.camera;
+    const carouselCameraID = this._getCarouselCameraID();
     const streamAwareCameraID = getStreamCameraID(view, this.viewFilterCameraID);
     const gesturesPTZActive = this._isGesturesPTZActive(view, streamAwareCameraID);
 
@@ -420,7 +424,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       !gesturesPTZActive &&
       !this.locked;
 
-    const showCallControls = this.call?.cameraID === carouselCameraID;
+    const isCallActive = this.call?.cameraID === carouselCameraID;
     const callMediaPlayerController =
       this._mediaLoadedInfoSinkController.get()?.mediaPlayerController ?? null;
 
@@ -452,15 +456,14 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
         .type=${this._getDisplayPTZType(streamAwareCameraID)}
       >
       </advanced-camera-card-ptz>
-      ${showCallControls
-        ? html`<advanced-camera-card-call-controls
-            .microphoneState=${this.microphoneState}
-            .muted=${callMediaPlayerController?.isMuted()}
-            .buttonSize=${this.liveConfig.controls.call.button_size}
-            @advanced-camera-card:call:mute-toggle=${() => this._toggleMute()}
-          >
-          </advanced-camera-card-call-controls>`
-        : ''}
+      <advanced-camera-card-call-controls
+        .active=${isCallActive}
+        .microphoneState=${this.microphoneState}
+        .muted=${callMediaPlayerController?.isMuted()}
+        .buttonSize=${this.liveConfig.controls.call.button_size}
+        @advanced-camera-card:call:mute-toggle=${() => this._toggleMute()}
+      >
+      </advanced-camera-card-call-controls>
     `;
   }
 

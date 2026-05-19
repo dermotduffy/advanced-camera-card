@@ -469,3 +469,6 @@ export const MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA = 131072;
 // improved rendering performance.
 export const MEDIA_CHUNK_SIZE_DEFAULT = 50;
 export const MEDIA_CHUNK_SIZE_MAX = 1000;
+
+// The name of the exit keyframe defined in `scss/pop-animation.scss`.
+export const POP_OUT_ANIMATION_NAME = 'pop-out';

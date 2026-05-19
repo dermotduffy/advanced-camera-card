@@ -1,4 +1,5 @@
 @use './z-index.scss' as *;
+@use './pop-animation.scss' as *;
 
 :host {
   position: absolute;
@@ -32,6 +33,16 @@
     0 10px 30px rgba(0, 0, 0, 0.25)
   );
   backdrop-filter: blur(10px);
+
+  @include pop-in;
+}
+
+.panel.exiting {
+  @include pop-out;
+
+  // The pill lingers in the DOM for the exit animation; stop it taking clicks
+  // so a stale hangup/mute can't fire after the call has already ended.
+  pointer-events: none;
 }
 
 ha-icon-button {

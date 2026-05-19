@@ -6,7 +6,8 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
 import { MicrophoneState } from '../card-controller/types.js';
 import { ActionConfig } from '../config/schema/actions/types.js';
@@ -17,6 +18,7 @@ import {
   createGeneralAction,
   stopEventFromActivatingCardWideActions,
 } from '../utils/action.js';
+import { hasPopOutAnimationEnded } from '../utils/animation.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 
 /**
@@ -29,6 +31,10 @@ import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-
  */
 @customElement('advanced-camera-card-call-controls')
 export class AdvancedCameraCardCallControls extends LitElement {
+  // Whether a call is in progress.
+  @property({ attribute: false })
+  public active = false;
+
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
 
@@ -39,6 +45,10 @@ export class AdvancedCameraCardCallControls extends LitElement {
   @property({ attribute: false })
   public buttonSize?: number;
 
+  // True while the exit animation plays after `active` turns false.
+  @state()
+  private _exiting = false;
+
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('buttonSize') && this.buttonSize) {
       this.style.setProperty(
@@ -46,17 +56,28 @@ export class AdvancedCameraCardCallControls extends LitElement {
         `${this.buttonSize}px`,
       );
     }
+
+    if (changedProps.has('active')) {
+      // Keep the pill visible through its exit animation when a call ends; a
+      // call (re)starting cancels any in-progress exit.
+      this._exiting = !this.active && !!changedProps.get('active');
+    }
   }
 
-  protected render(): TemplateResult {
+  protected render(): TemplateResult | void {
+    if (!this.active && !this._exiting) {
+      return;
+    }
+
     const microphoneMuted = this.microphoneState?.muted ?? true;
     const audioAvailable = this.muted !== undefined;
     const audioMuted = this.muted ?? true;
 
     return html`<div class="overlay">
       <div
-        class="panel"
+        class=${classMap({ panel: true, exiting: this._exiting })}
         @click=${(ev: Event) => stopEventFromActivatingCardWideActions(ev)}
+        @animationend=${this._handleAnimationEnd}
       >
         ${this._renderButton(
           'mdi:phone-hangup',
@@ -91,6 +112,12 @@ export class AdvancedCameraCardCallControls extends LitElement {
       </div>
     </div>`;
   }
+
+  private _handleAnimationEnd = (ev: AnimationEvent): void => {
+    if (hasPopOutAnimationEnded(ev)) {
+      this._exiting = false;
+    }
+  };
 
   private _renderButton(
     icon: string,

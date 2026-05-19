@@ -5,6 +5,7 @@ import { handleControlAction } from '../../components-lib/notification/action.js
 import { Notification } from '../../config/schema/actions/types.js';
 import { localize } from '../../localize/localize.js';
 import notificationPopupStyle from '../../scss/notification-popup.scss';
+import { hasPopOutAnimationEnded } from '../../utils/animation.js';
 import { dispatchDismissNotificationEvent } from '../../utils/notification.js';
 import {
   renderControl,
@@ -80,7 +81,7 @@ export class AdvancedCameraCardNotification extends LitElement {
   };
 
   private _handleAnimationEnd = (ev: AnimationEvent): void => {
-    if (ev.animationName === 'slideDown') {
+    if (hasPopOutAnimationEnded(ev)) {
       dispatchDismissNotificationEvent(this);
     }
   };
