@@ -43,7 +43,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
   @property({ attribute: false })
   public call?: CallSession;
 
-  @property({ attribute: false })
+  @property({ type: Boolean, reflect: true })
   public locked?: boolean;
 
   @property({ attribute: false, hasChanged: contentsChanged })
