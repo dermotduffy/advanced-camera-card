@@ -10,6 +10,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { actionHandler } from '../action-handler-directive.js';
+import type { AutoHideState } from '../components-lib/auto-hide.js';
 import { StatusBarController } from '../components-lib/status-bar-controller';
 import { StatusBarItem } from '../config/schema/actions/types.js';
 import { StatusBarConfig } from '../config/schema/status-bar.js';
@@ -28,6 +29,9 @@ export class AdvancedCameraCardStatusBar extends LitElement {
   @property({ attribute: false })
   public config?: StatusBarConfig;
 
+  @property({ attribute: false, hasChanged: contentsChanged })
+  public autoHideState?: AutoHideState;
+
   protected willUpdate(changedProperties: PropertyValues): void {
     // Always set config before items.
     if (changedProperties.has('config') && this.config) {
@@ -36,6 +40,10 @@ export class AdvancedCameraCardStatusBar extends LitElement {
 
     if (changedProperties.has('items')) {
       this._controller.setItems(this.items ?? []);
+    }
+
+    if (changedProperties.has('autoHideState') && this.autoHideState) {
+      this._controller.setAutoHideState(this.autoHideState);
     }
   }
 

@@ -13,6 +13,7 @@ import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { RemoveContextPropertyViewModifier } from '../../card-controller/view/modifiers/remove-context-property.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import { resolveAutoHideState } from '../../components-lib/auto-hide.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import { MediaHeightController } from '../../components-lib/media-height-controller.js';
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
@@ -302,6 +303,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       .controlConfig=${this.viewerConfig?.controls.next_previous}
       .thumbnail=${neighbors?.[scrollDirection]?.media.getThumbnail() ?? undefined}
       .label=${neighbors?.[scrollDirection]?.media.getTitle() ?? ''}
+      .autoHideState=${resolveAutoHideState()}
       ?disabled=${!neighbors?.[scrollDirection]}
       @click=${(ev: Event) => {
         scroll(scrollDirection);

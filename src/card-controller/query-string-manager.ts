@@ -6,7 +6,7 @@ import {
   createViewAction,
 } from '../utils/action.js';
 import { CardQueryStringAPI } from './types';
-import { SubstreamSelectViewModifier } from './view/modifiers/substream-select';
+import { SubstreamViewModifier } from './view/modifiers/substream';
 import { ViewParametersUserSpecified } from './view/types.js';
 
 interface QueryStringViewIntent {
@@ -50,7 +50,7 @@ export class QueryStringManager {
             camera: intent.view.camera,
           },
           ...(intent.view.substream && {
-            modifiers: [new SubstreamSelectViewModifier(intent.view.substream)],
+            modifiers: [new SubstreamViewModifier(intent.view.substream)],
           }),
         });
       } else {
@@ -60,7 +60,7 @@ export class QueryStringManager {
             ...(intent.view.camera && { camera: intent.view.camera }),
           },
           ...(intent.view.substream && {
-            modifiers: [new SubstreamSelectViewModifier(intent.view.substream)],
+            modifiers: [new SubstreamViewModifier(intent.view.substream)],
           }),
         });
       }

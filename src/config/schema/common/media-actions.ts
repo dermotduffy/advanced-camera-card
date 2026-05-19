@@ -4,15 +4,24 @@ export const MEDIA_ACTION_NEGATIVE_CONDITIONS = ['unselected', 'hidden'] as cons
 export const MEDIA_MUTE_CONDITIONS = [
   ...MEDIA_ACTION_NEGATIVE_CONDITIONS,
   'microphone',
+  'call',
 ] as const;
 
 export const MEDIA_UNMUTE_CONDITIONS = [
   ...MEDIA_ACTION_POSITIVE_CONDITIONS,
   'microphone',
+  'call',
 ] as const;
 
-export const MICROPHONE_MUTE_CONDITIONS = MEDIA_ACTION_NEGATIVE_CONDITIONS;
-export const MICROPHONE_UNMUTE_CONDITIONS = MEDIA_ACTION_POSITIVE_CONDITIONS;
+export const MICROPHONE_MUTE_CONDITIONS = [
+  ...MEDIA_ACTION_NEGATIVE_CONDITIONS,
+  'call',
+] as const;
+
+export const MICROPHONE_UNMUTE_CONDITIONS = [
+  ...MEDIA_ACTION_POSITIVE_CONDITIONS,
+  'call',
+] as const;
 
 export type AutoPlayCondition = (typeof MEDIA_ACTION_POSITIVE_CONDITIONS)[number];
 export type AutoPauseCondition = (typeof MEDIA_ACTION_NEGATIVE_CONDITIONS)[number];

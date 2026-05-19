@@ -631,19 +631,15 @@ describe('MediaActionsController', () => {
       controller.setOptions({
         autoUnmuteConditions: ['microphone' as const],
         playerSelector: 'video',
-        microphoneState: createMicrophoneState({ muted: true }),
       });
+      controller.setMicrophoneState(createMicrophoneState({ muted: true }));
 
       const children = createPlayerSlideNodes();
       controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
 
-      controller.setOptions({
-        autoUnmuteConditions: ['microphone' as const],
-        playerSelector: 'video',
-        microphoneState: createMicrophoneState({ muted: false }),
-      });
+      controller.setMicrophoneState(createMicrophoneState({ muted: false }));
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
@@ -656,19 +652,15 @@ describe('MediaActionsController', () => {
       controller.setOptions({
         autoMuteConditions: ['microphone' as const],
         playerSelector: 'video',
-        microphoneState: createMicrophoneState({ muted: false }),
       });
+      controller.setMicrophoneState(createMicrophoneState({ muted: false }));
 
       const children = createPlayerSlideNodes();
       controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
 
-      controller.setOptions({
-        autoMuteConditions: ['microphone' as const],
-        playerSelector: 'video',
-        microphoneState: createMicrophoneState({ muted: true }),
-      });
+      controller.setMicrophoneState(createMicrophoneState({ muted: true }));
 
       vi.runOnlyPendingTimers();
 
@@ -683,25 +675,208 @@ describe('MediaActionsController', () => {
       controller.setOptions({
         autoMuteConditions: [],
         playerSelector: 'video',
-        microphoneState: createMicrophoneState({ muted: false }),
       });
+      controller.setMicrophoneState(createMicrophoneState({ muted: false }));
 
       const children = createPlayerSlideNodes();
       controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
 
-      controller.setOptions({
-        autoMuteConditions: ['microphone' as const],
-        playerSelector: 'video',
-        microphoneState: createMicrophoneState({ muted: true }),
-      });
+      controller.setMicrophoneState(createMicrophoneState({ muted: true }));
 
       vi.runOnlyPendingTimers();
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
       ).not.toBeCalled();
+    });
+
+    it('should not act on the initial microphone state', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoUnmuteConditions: ['microphone' as const],
+        playerSelector: 'video',
+      });
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+      await controller.setTarget(0, true);
+
+      controller.setMicrophoneState(createMicrophoneState({ muted: false }));
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).not.toBeCalled();
+    });
+  });
+
+  describe('should take action on call state changes', () => {
+    it('should unmute the target on call start', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoUnmuteConditions: ['call' as const],
+        playerSelector: 'video',
+      });
+      controller.setCallActive(false);
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+
+      await controller.setTarget(0, true);
+
+      controller.setCallActive(true);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).toBeCalled();
+    });
+
+    it('should mute the target on call end', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoMuteConditions: ['call' as const],
+        playerSelector: 'video',
+      });
+      controller.setCallActive(true);
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+
+      await controller.setTarget(0, true);
+
+      controller.setCallActive(false);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
+      ).toBeCalled();
+    });
+
+    it('should not act on the initial call state', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoMuteConditions: ['call' as const],
+        autoUnmuteConditions: ['call' as const],
+        playerSelector: 'video',
+      });
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+      await controller.setTarget(0, true);
+
+      controller.setCallActive(false);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
+      ).not.toBeCalled();
+    });
+
+    it('should not act when call is not a configured condition', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoUnmuteConditions: [],
+        playerSelector: 'video',
+      });
+      controller.setCallActive(false);
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+      await controller.setTarget(0, true);
+
+      controller.setCallActive(true);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).not.toBeCalled();
+    });
+
+    it('should apply the call-start unmute when the target arrives after the call', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoUnmuteConditions: ['call' as const],
+        playerSelector: 'video',
+      });
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+
+      // The call becomes active before any target is selected: with no
+      // target, the unmute cannot be applied yet.
+      controller.setCallActive(true);
+      await flushPromises();
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).not.toBeCalled();
+
+      await controller.setTarget(0, true);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).toBeCalled();
+    });
+
+    it('should unmute when the call is already active on the first call-state signal', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoUnmuteConditions: ['call' as const],
+        playerSelector: 'video',
+      });
+
+      const children = createPlayerSlideNodes();
+      controller.setRoot(createParent({ children: children }));
+      await controller.setTarget(0, true);
+
+      // `setCallActive(true)` is the first call-state signal, with no preceding
+      // `false` -- as for a carousel that loads while a call is already
+      // active. The initial state must not be swallowed as a baseline.
+      controller.setCallActive(true);
+
+      expect(
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
+      ).toBeCalled();
+    });
+
+    it('should defer the call-start unmute until the media player is ready', async () => {
+      const controller = new MediaActionsController();
+
+      controller.setOptions({
+        autoUnmuteConditions: ['call' as const],
+        playerSelector: 'video',
+      });
+      controller.setCallActive(false);
+
+      // A player whose media player controller is not ready on first request.
+      const mediaPlayerController = mock<MediaPlayerController>();
+      const player = document.createElement('video');
+      player['getMediaPlayerController'] = vi
+        .fn()
+        .mockResolvedValueOnce(null)
+        .mockResolvedValue(mediaPlayerController);
+      const child = createTestSlideNodes({ n: 1 })[0];
+      child.appendChild(player as unknown as MediaPlayerElement);
+
+      controller.setRoot(createParent({ children: [child] }));
+      await controller.setTarget(0, true);
+
+      // The call starts while the player is still not ready: no unmute yet.
+      controller.setCallActive(true);
+      await flushPromises();
+      expect(mediaPlayerController.unmute).not.toBeCalled();
+
+      // Once the media loads the deferred unmute is applied -- exactly once,
+      // so a later reload cannot clobber a manual mute made during the call.
+      player.dispatchEvent(new Event('advanced-camera-card:media:loaded'));
+      await flushPromises();
+      player.dispatchEvent(new Event('advanced-camera-card:media:loaded'));
+      await flushPromises();
+      expect(mediaPlayerController.unmute).toBeCalledTimes(1);
     });
   });
 });

@@ -1,0 +1,46 @@
+// Shared "pop" enter/exit animation for overlays.
+//
+// `@include pop-in` auto-plays an entrance on render. `@include pop-out` —
+// typically guarded by an `.exiting` class — plays the matching exit; it is
+// named `pop-out` so an `animationend` handler can detect exit completion and
+// unmount the element.
+
+@mixin pop-in {
+  animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@mixin pop-out {
+  animation: pop-out 0.25s ease-out forwards;
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.02);
+  }
+  80% {
+    transform: translateY(3px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pop-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  20% {
+    transform: translateY(-4px) scale(1.02);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+}

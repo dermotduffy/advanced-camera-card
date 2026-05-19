@@ -294,6 +294,81 @@ describe('MicrophoneActionsController', () => {
     });
   });
 
+  describe('on call state change', () => {
+    it('should unmute on call start when call is a configured unmute condition', () => {
+      const microphoneManager = createMicrophoneManager();
+      const controller = new MicrophoneActionsController();
+      controller.setOptions({
+        microphoneManager,
+        autoUnmuteConditions: ['call' as const],
+      });
+
+      controller.setCallActive(false);
+      controller.setCallActive(true);
+
+      expect(microphoneManager.unmute).toBeCalledTimes(1);
+    });
+
+    it('should unmute when the call is already active on first notification', () => {
+      const microphoneManager = createMicrophoneManager();
+      const controller = new MicrophoneActionsController();
+      controller.setOptions({
+        microphoneManager,
+        autoUnmuteConditions: ['call' as const],
+      });
+
+      // `setCallActive(true)` is the first call-state signal, with no preceding
+      // `false` -- as for a live view that mounts while a call is already
+      // active. The initial state must not be swallowed as a baseline.
+      controller.setCallActive(true);
+
+      expect(microphoneManager.unmute).toBeCalledTimes(1);
+    });
+
+    it('should mute on call end when call is a configured mute condition', () => {
+      const microphoneManager = createMicrophoneManager();
+      const controller = new MicrophoneActionsController();
+      controller.setOptions({
+        microphoneManager,
+        autoMuteConditions: ['call' as const],
+      });
+
+      controller.setCallActive(true);
+      controller.setCallActive(false);
+
+      expect(microphoneManager.mute).toBeCalledTimes(1);
+    });
+
+    it('should not act on the initial call state', () => {
+      const microphoneManager = createMicrophoneManager();
+      const controller = new MicrophoneActionsController();
+      controller.setOptions({
+        microphoneManager,
+        autoMuteConditions: ['call' as const],
+        autoUnmuteConditions: ['call' as const],
+      });
+
+      controller.setCallActive(false);
+
+      expect(microphoneManager.mute).not.toBeCalled();
+      expect(microphoneManager.unmute).not.toBeCalled();
+    });
+
+    it('should not act on call start when call is not a configured condition', () => {
+      const microphoneManager = createMicrophoneManager();
+      const controller = new MicrophoneActionsController();
+      controller.setOptions({
+        microphoneManager,
+        autoUnmuteConditions: [],
+      });
+
+      controller.setCallActive(false);
+      controller.setCallActive(true);
+
+      expect(microphoneManager.unmute).not.toBeCalled();
+    });
+  });
+
   describe('lifecycle', () => {
     it('should be idempotent on setRoot for the same element', () => {
       const controller = new MicrophoneActionsController();

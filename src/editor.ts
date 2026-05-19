@@ -121,6 +121,9 @@ import {
   CONF_LIVE_AUTO_PLAY,
   CONF_LIVE_AUTO_UNMUTE,
   CONF_LIVE_CONTROLS_BUILTIN,
+  CONF_LIVE_CONTROLS_CALL_BUTTON_SIZE,
+  CONF_LIVE_CONTROLS_CALL_LOCK,
+  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_LIVE_CONTROLS_PTZ_HIDE_HOME,
@@ -159,7 +162,6 @@ import {
   CONF_LIVE_MICROPHONE_AUTO_MUTE,
   CONF_LIVE_MICROPHONE_AUTO_UNMUTE,
   CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS,
-  CONF_LIVE_MICROPHONE_LOCK,
   CONF_LIVE_MICROPHONE_MUTE_AFTER_MICROPHONE_MUTE_SECONDS,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
@@ -178,6 +180,7 @@ import {
   CONF_MEDIA_VIEWER_AUTO_PLAY,
   CONF_MEDIA_VIEWER_AUTO_UNMUTE,
   CONF_MEDIA_VIEWER_CONTROLS_BUILTIN,
+  CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE,
   CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
@@ -207,6 +210,7 @@ import {
   CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
   CONF_MEDIA_VIEWER_ZOOMABLE,
   CONF_MENU_ALIGNMENT,
+  CONF_MENU_AUTO_HIDE,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_BUTTONS,
   CONF_MENU_POSITION,
@@ -221,6 +225,7 @@ import {
   CONF_PERFORMANCE_STYLE_BOX_SHADOW,
   CONF_PROFILES,
   CONF_REMOTE_CONTROL_ENTITIES_CAMERA,
+  CONF_STATUS_BAR_AUTO_HIDE,
   CONF_STATUS_BAR_HEIGHT,
   CONF_STATUS_BAR_ITEMS,
   CONF_STATUS_BAR_POPUP_SECONDS,
@@ -308,6 +313,7 @@ const MENU_CAMERAS_MEDIA = 'cameras.media';
 const MENU_FOLDERS = 'folders';
 const MENU_FOLDERS_HA = 'folders.ha';
 const MENU_LIVE_CONTROLS = 'live.controls';
+const MENU_LIVE_CONTROLS_CALL = 'live.controls.call';
 const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
 const MENU_LIVE_CONTROLS_PTZ = 'live.controls.ptz';
 const MENU_LIVE_CONTROLS_THUMBNAILS = 'live.controls.thumbnails';
@@ -384,6 +390,7 @@ const SUBMENU_DOC_LINKS: Record<string, string> = {
   [MENU_FOLDERS]: 'configuration/folders',
   [MENU_FOLDERS_HA]: 'configuration/folders?id=ha',
   [MENU_LIVE_CONTROLS]: 'configuration/live?id=controls',
+  [MENU_LIVE_CONTROLS_CALL]: 'configuration/live?id=call',
   [MENU_LIVE_CONTROLS_NEXT_PREVIOUS]: 'configuration/live?id=next_previous',
   [MENU_LIVE_CONTROLS_PTZ]: 'configuration/live?id=ptz',
   [MENU_LIVE_CONTROLS_THUMBNAILS]: 'configuration/live?id=thumbnails',
@@ -770,12 +777,33 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
+  private _callMuteCondition: EditorSelectOption = {
+    value: 'call',
+    label: localize('config.common.media_action_conditions.call_mute'),
+  };
+
+  private _callUnmuteCondition: EditorSelectOption = {
+    value: 'call',
+    label: localize('config.common.media_action_conditions.call_unmute'),
+  };
+
+  private _microphoneMuteConditions: EditorSelectOption[] = [
+    ...this._mediaActionNegativeConditions,
+    this._callMuteCondition,
+  ];
+
+  private _microphoneUnmuteConditions: EditorSelectOption[] = [
+    ...this._mediaActionPositiveConditions,
+    this._callUnmuteCondition,
+  ];
+
   private _mediaLiveUnmuteConditions: EditorSelectOption[] = [
     ...this._mediaActionPositiveConditions,
     {
       value: 'microphone',
       label: localize('config.common.media_action_conditions.microphone_unmute'),
     },
+    this._callUnmuteCondition,
   ];
 
   private _mediaLiveMuteConditions: EditorSelectOption[] = [
@@ -783,6 +811,16 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     {
       value: 'microphone',
       label: localize('config.common.media_action_conditions.microphone_mute'),
+    },
+    this._callMuteCondition,
+  ];
+
+  private _autoHideConditions: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'call', label: localize('config.common.auto_hide_conditions.call') },
+    {
+      value: 'casting',
+      label: localize('config.common.auto_hide_conditions.casting'),
     },
   ];
 
@@ -1973,9 +2011,11 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     domain: string,
     configPathStyle: string,
     configPathSize: string,
+    configPathAutoHide: string,
     options?: {
       allowIcons?: boolean;
       allowThumbnails?: boolean;
+      allowCall?: boolean;
     },
   ): TemplateResult | void {
     return this._putInSubmenu(
@@ -1999,6 +2039,16 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
           min: BUTTON_SIZE_MIN,
           label: localize('config.common.controls.next_previous.size'),
         })}
+        ${this._renderOptionSelector(
+          configPathAutoHide,
+          this._autoHideConditions.filter(
+            (item) => !!options?.allowCall || item.value !== 'call',
+          ),
+          {
+            multiple: true,
+            label: localize('config.common.controls.next_previous.auto_hide'),
+          },
+        )}
       `,
     );
   }
@@ -3093,11 +3143,20 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${this._renderOptionSelector(CONF_MENU_STYLE, this._menuStyles)}
                 ${this._renderOptionSelector(CONF_MENU_POSITION, this._menuPositions)}
                 ${this._renderOptionSelector(CONF_MENU_ALIGNMENT, this._menuAlignments)}
+                ${this._renderOptionSelector(
+                  CONF_MENU_AUTO_HIDE,
+                  this._autoHideConditions,
+                  {
+                    multiple: true,
+                    label: localize('config.menu.auto_hide'),
+                  },
+                )}
                 ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE, {
                   min: BUTTON_SIZE_MIN,
                 })}
                 ${[
                   this._renderMenuButton('iris'),
+                  this._renderMenuButton('call'),
                   this._renderMenuButton('camera_ui'),
                   this._renderMenuButton('cameras'),
                   this._renderMenuButton('clips'),
@@ -3149,6 +3208,14 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                 ${this._renderOptionSelector(
                   CONF_STATUS_BAR_POSITION,
                   this._statusBarPositions,
+                )}
+                ${this._renderOptionSelector(
+                  CONF_STATUS_BAR_AUTO_HIDE,
+                  this._autoHideConditions,
+                  {
+                    multiple: true,
+                    label: localize('config.status_bar.auto_hide'),
+                  },
                 )}
                 ${this._renderNumberInput(CONF_STATUS_BAR_HEIGHT, {
                   min: STATUS_BAR_HEIGHT_MIN,
@@ -3253,12 +3320,29 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                         label: localize('config.common.controls.wheel'),
                       },
                     )}
+                    ${this._putInSubmenu(
+                      MENU_LIVE_CONTROLS_CALL,
+                      true,
+                      'config.live.controls.call.editor_label',
+                      'mdi:phone',
+                      html`
+                        ${this._renderSwitch(
+                          CONF_LIVE_CONTROLS_CALL_LOCK,
+                          this._defaults.live.controls.call.lock,
+                        )}
+                        ${this._renderNumberInput(CONF_LIVE_CONTROLS_CALL_BUTTON_SIZE, {
+                          min: BUTTON_SIZE_MIN,
+                        })}
+                      `,
+                    )}
                     ${this._renderNextPreviousControls(
                       MENU_LIVE_CONTROLS_NEXT_PREVIOUS,
                       CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
                       CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
+                      CONF_LIVE_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE,
                       {
                         allowIcons: true,
+                        allowCall: true,
                       },
                     )}
                     ${this._renderThumbnailsControls(
@@ -3353,20 +3437,16 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                       CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
                       this._defaults.live.microphone.always_connected,
                     )}
-                    ${this._renderSwitch(
-                      CONF_LIVE_MICROPHONE_LOCK,
-                      this._defaults.live.microphone.lock,
-                    )}
                     ${this._renderOptionSelector(
                       CONF_LIVE_MICROPHONE_AUTO_MUTE,
-                      this._mediaActionNegativeConditions,
+                      this._microphoneMuteConditions,
                       {
                         multiple: true,
                       },
                     )}
                     ${this._renderOptionSelector(
                       CONF_LIVE_MICROPHONE_AUTO_UNMUTE,
-                      this._mediaActionPositiveConditions,
+                      this._microphoneUnmuteConditions,
                       {
                         multiple: true,
                       },
@@ -3498,6 +3578,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                     MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS,
                     CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
                     CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
+                    CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE,
                     {
                       allowThumbnails: true,
                     },

@@ -17,7 +17,6 @@ export interface MediaActionsControllerOptions {
   autoPauseConditions?: readonly AutoPauseCondition[];
   autoMuteConditions?: readonly AutoMuteCondition[];
 
-  microphoneState?: MicrophoneState;
   microphoneMuteSeconds?: number;
 }
 
@@ -40,6 +39,16 @@ export class MediaActionsController {
   private _microphoneMuteTimer = new Timer();
   private _root: RenderRoot | null = null;
 
+  // Audio-related state fed in via dedicated setters (not `setOptions`, which
+  // is pure configuration).
+  private _microphoneState?: MicrophoneState;
+  private _callActive = false;
+
+  // Deferred because the media player is not always ready when a call starts:
+  // the call may start from another view, or engage a substream that is still
+  // loading. Applied by `_applyPendingCallStartAction`.
+  private _pendingCallStartAction = false;
+
   private _eventListeners = new Map<HTMLElement, () => void>();
   private _children: MediaPlayerElement[] = [];
   private _target: MediaActionsTarget | null = null;
@@ -53,14 +62,32 @@ export class MediaActionsController {
   }
 
   public setOptions(options: MediaActionsControllerOptions): void {
-    if (this._options?.microphoneState !== options.microphoneState) {
-      this._microphoneStateChangeHandler(
-        this._options?.microphoneState,
-        options.microphoneState,
-      );
-    }
-
     this._options = options;
+  }
+
+  public setMicrophoneState(state: MicrophoneState): void {
+    const previous = this._microphoneState;
+    this._microphoneState = state;
+    this._microphoneStateChangeHandler(previous, state);
+  }
+
+  // Audio-out auto-mute/unmute driven by the call lifecycle: unmute on call
+  // start (hear the caller), mute on call end. Acts only on a genuine
+  // transition. The first-ever `true` counts as a transition: a carousel that
+  // loads while a call is already active (e.g. `call_start` dispatched from a
+  // non-live view) must still unmute.
+  public setCallActive(active: boolean): void {
+    if (active === this._callActive) {
+      return;
+    }
+    this._callActive = active;
+    if (active) {
+      this._pendingCallStartAction = true;
+      this._applyPendingCallStartAction();
+    } else {
+      this._pendingCallStartAction = false;
+      this._muteTargetIfConfigured('call');
+    }
   }
 
   public hasRoot(): boolean {
@@ -93,6 +120,9 @@ export class MediaActionsController {
       selected,
       index,
     };
+
+    // A call may have started before this target existed; honor it now.
+    await this._applyPendingCallStartAction();
 
     if (selected) {
       await this._unmuteTargetIfConfigured('selected');
@@ -130,6 +160,30 @@ export class MediaActionsController {
   }
   private async _unmute(index: number): Promise<void> {
     await (await this._children[index]?.getMediaPlayerController())?.unmute();
+  }
+
+  // The call-start action is currently a single unmute (hear the caller),
+  // applied once the media player is ready. The call-end mute is not deferred
+  // here: a mute that misses a not-yet-ready element is harmless, since
+  // elements start muted.
+  private async _applyPendingCallStartAction(): Promise<void> {
+    if (
+      !this._pendingCallStartAction ||
+      this._target === null ||
+      !this._options?.autoUnmuteConditions?.includes('call')
+    ) {
+      return;
+    }
+
+    const controller =
+      await this._children[this._target.index]?.getMediaPlayerController();
+    if (!controller) {
+      // Media not ready yet -- retried from `setTarget` / `_mediaLoadedHandler`.
+      return;
+    }
+
+    this._pendingCallStartAction = false;
+    await controller.unmute();
   }
 
   private async _pauseAllIfConfigured(condition: AutoPauseCondition): Promise<void> {
@@ -190,6 +244,10 @@ export class MediaActionsController {
     // media load.
     const condition = this._target.selected ? 'selected' : 'visible';
     await this._unmuteTargetIfConfigured(condition);
+
+    // The media element is ready now; apply any call-start action that was
+    // deferred because it was not.
+    await this._applyPendingCallStartAction();
     await this._playTargetIfConfigured(condition);
   };
 

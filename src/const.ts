@@ -244,6 +244,8 @@ export const CONF_MEDIA_VIEWER_TRANSITION_EFFECT =
   `${CONF_MEDIA_VIEWER}.transition_effect` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_BUILTIN =
   `${CONF_MEDIA_VIEWER}.controls.builtin` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE =
+  `${CONF_MEDIA_VIEWER}.controls.next_previous.auto_hide` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_MEDIA_VIEWER}.controls.next_previous.style` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE =
@@ -289,6 +291,11 @@ export const CONF_LIVE_AUTO_PAUSE = `${CONF_LIVE}.auto_pause` as const;
 export const CONF_LIVE_AUTO_MUTE = `${CONF_LIVE}.auto_mute` as const;
 export const CONF_LIVE_AUTO_UNMUTE = `${CONF_LIVE}.auto_unmute` as const;
 export const CONF_LIVE_CONTROLS_BUILTIN = `${CONF_LIVE}.controls.builtin` as const;
+export const CONF_LIVE_CONTROLS_CALL_BUTTON_SIZE =
+  `${CONF_LIVE}.controls.call.button_size` as const;
+export const CONF_LIVE_CONTROLS_CALL_LOCK = `${CONF_LIVE}.controls.call.lock` as const;
+export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE =
+  `${CONF_LIVE}.controls.next_previous.auto_hide` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_LIVE}.controls.next_previous.style` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE =
@@ -363,7 +370,6 @@ export const CONF_LIVE_MICROPHONE_AUTO_UNMUTE =
   `${CONF_LIVE}.microphone.auto_unmute` as const;
 export const CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS =
   `${CONF_LIVE}.microphone.disconnect_seconds` as const;
-export const CONF_LIVE_MICROPHONE_LOCK = `${CONF_LIVE}.microphone.lock` as const;
 export const CONF_LIVE_MICROPHONE_MUTE_AFTER_MICROPHONE_MUTE_SECONDS =
   `${CONF_LIVE}.microphone.mute_after_microphone_mute_seconds` as const;
 export const CONF_LIVE_ZOOMABLE = `${CONF_LIVE}.zoomable` as const;
@@ -406,6 +412,7 @@ export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_INFO_CONTROL =
 
 const CONF_MENU = 'menu' as const;
 export const CONF_MENU_ALIGNMENT = `${CONF_MENU}.alignment` as const;
+export const CONF_MENU_AUTO_HIDE = `${CONF_MENU}.auto_hide` as const;
 export const CONF_MENU_POSITION = `${CONF_MENU}.position` as const;
 export const CONF_MENU_STYLE = `${CONF_MENU}.style` as const;
 export const CONF_MENU_BUTTON_SIZE = `${CONF_MENU}.button_size` as const;
@@ -420,6 +427,7 @@ export const CONF_MENU_BUTTONS_MEDIA_PLAYER =
 export const CONF_MENU_BUTTONS_TIMELINE = `${CONF_MENU_BUTTONS}.timeline` as const;
 
 export const CONF_STATUS_BAR = 'status_bar' as const;
+export const CONF_STATUS_BAR_AUTO_HIDE = `${CONF_STATUS_BAR}.auto_hide` as const;
 export const CONF_STATUS_BAR_POSITION = `${CONF_STATUS_BAR}.position` as const;
 export const CONF_STATUS_BAR_STYLE = `${CONF_STATUS_BAR}.style` as const;
 export const CONF_STATUS_BAR_POPUP_SECONDS = `${CONF_STATUS_BAR}.popup_seconds` as const;
@@ -461,3 +469,6 @@ export const MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA = 131072;
 // improved rendering performance.
 export const MEDIA_CHUNK_SIZE_DEFAULT = 50;
 export const MEDIA_CHUNK_SIZE_MAX = 1000;
+
+// The name of the exit keyframe defined in `scss/pop-animation.scss`.
+export const POP_OUT_ANIMATION_NAME = 'pop-out';

@@ -1,5 +1,4 @@
 @use './button.scss';
-@use 'locked.scss';
 
 :host {
   --advanced-camera-card-next-prev-size: 48px;
@@ -22,6 +21,17 @@
 }
 .controls.right {
   right: var(--advanced-camera-card-right-position);
+}
+
+// Dim while locked. Deliberately applied to `.controls` rather than `:host`
+// (as the shared `locked.scss` does): `opacity` on the host would create a
+// stacking context that traps `.controls`'s `z-index`, dropping the control
+// behind the media whenever it is DOM-ordered before it (the left control).
+// `.controls` is already positioned and z-indexed, so dimming it here leaves
+// its stacking context intact.
+:host([locked]) .controls {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .controls.icons {

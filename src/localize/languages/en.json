@@ -207,6 +207,10 @@
       }
     },
     "common": {
+      "auto_hide_conditions": {
+        "call": "During a two-way audio call",
+        "casting": "While casting"
+      },
       "controls": {
         "builtin": "Built-in video controls",
         "filter": {
@@ -219,6 +223,7 @@
           }
         },
         "next_previous": {
+          "auto_hide": "Automatically hide next & previous controls",
           "editor_label": "Next & Previous",
           "size": "Next & previous control size in pixels",
           "style": "Next & previous control style",
@@ -310,6 +315,8 @@
         "inactive": "Only when not interacting"
       },
       "media_action_conditions": {
+        "call_mute": "On call end",
+        "call_unmute": "On call start",
         "hidden": "On browser/tab hiding",
         "microphone_mute": "On microphone mute",
         "microphone_unmute": "On microphone unmute",
@@ -387,6 +394,17 @@
       "auto_play": "Automatically play live cameras",
       "auto_unmute": "Automatically unmute live cameras",
       "controls": {
+        "call": {
+          "button_size": "Call control button size",
+          "editor_label": "Two-way audio call",
+          "end": "End 2-way audio call",
+          "lock": "Lock UI during an active call",
+          "mute_audio": "Mute audio",
+          "mute_microphone": "Mute microphone",
+          "start": "Start 2-way audio call",
+          "unmute_audio": "Unmute audio",
+          "unmute_microphone": "Unmute microphone"
+        },
         "editor_label": "Live Controls",
         "ptz": {
           "editor_label": "PTZ",
@@ -427,7 +445,6 @@
         "auto_unmute": "Automatically unmute the microphone",
         "disconnect_seconds": "Seconds before disconnecting microphone (0=never)",
         "editor_label": "Microphone",
-        "lock": "Lock the UI while the microphone is unmuted",
         "mute_after_microphone_mute_seconds": "Seconds after microphone mute before muting inbound audio"
       },
       "preload": "Preload live view in the background",
@@ -461,6 +478,7 @@
         "right": "Aligned to the right",
         "top": "Aligned to the top"
       },
+      "auto_hide": "Conditions under which the menu auto-hides",
       "button_size": "Menu button size in pixels",
       "buttons": {
         "alignment": "Button alignment",
@@ -468,6 +486,7 @@
           "matching": "Matching the menu alignment",
           "opposing": "Opposing the menu alignment"
         },
+        "call": "Call / Two-way audio",
         "camera_ui": "Camera user interface",
         "cameras": "Cameras",
         "clips": "Clips",
@@ -555,6 +574,7 @@
       }
     },
     "status_bar": {
+      "auto_hide": "Conditions under which the status bar auto-hides",
       "height": "Status bar height in pixels",
       "items": {
         "enabled": "Item enabled",
@@ -726,6 +746,11 @@
   "error": {
     "awaiting_live": "Waiting for live stream to load...",
     "awaiting_media": "Waiting for media to load",
+    "call_unavailable_heading": "Two-way audio unavailable",
+    "call_invalid_target": "The requested camera or stream is not available to call.",
+    "call_microphone_forbidden": "Microphone access has been denied for this page. Update your browser permissions and try again.",
+    "call_microphone_unsupported": "Microphone access is not available in this browser (e.g. requires HTTPS).",
+    "call_no_two_way_audio": "This camera does not support two-way audio.",
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
     "configuration": "Check configuration",

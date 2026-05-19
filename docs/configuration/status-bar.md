@@ -7,13 +7,14 @@ status_bar:
   # [...]
 ```
 
-| Option          | Default  | Description                                                                                                                            |
-| --------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `position`      | `bottom` | Whether to place the status bar at the `top` or `bottom` of the card.                                                                  |
-| `popup_seconds` | `3`      | The number of seconds to display the status bar when using the `popup` style.                                                          |
-| `height`        | `40`     | The height of the status bar in pixels.                                                                                                |
-| `items`         |          | Whether to show or hide built-in status bar items. See [`items`](#items).                                                              |
-| `style`         | `popup`  | The status bar style to show by default, one of `none`, `hover`, `hover-card`, `overlay`, `outside` or `popup`. See [`style`](#style). |
+| Option          | Default           | Description                                                                                                                                                                                                                              |
+| --------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auto_hide`     | `[call, casting]` | The conditions under which the status bar auto-hides. A list of zero or more of `call` (a [two-way audio](../usage/2-way-audio.md) call is active) and `casting` (the card is being cast, e.g. to a Chromecast). Set to `[]` to disable. |
+| `position`      | `bottom`          | Whether to place the status bar at the `top` or `bottom` of the card.                                                                                                                                                                    |
+| `popup_seconds` | `3`               | The number of seconds to display the status bar when using the `popup` style.                                                                                                                                                            |
+| `height`        | `40`              | The height of the status bar in pixels.                                                                                                                                                                                                  |
+| `items`         |                   | Whether to show or hide built-in status bar items. See [`items`](#items).                                                                                                                                                                |
+| `style`         | `popup`           | The status bar style to show by default, one of `none`, `hover`, `hover-card`, `overlay`, `outside` or `popup`. See [`style`](#style).                                                                                                   |
 
 ## `items`
 
@@ -73,6 +74,9 @@ This card supports several menu styles.
 
 ```yaml
 status_bar:
+  auto_hide:
+    - call
+    - casting
   position: bottom
   popup_seconds: 3
   height: 40
