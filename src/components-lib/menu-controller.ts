@@ -10,6 +10,7 @@ import type { MenuConfig } from '../config/schema/menu.js';
 import type { Interaction } from '../types.js';
 import { getActionConfigGivenAction } from '../utils/action';
 import { arrayify, isTruthy, setOrRemoveAttribute } from '../utils/basic.js';
+import { AutoHideState, isAutoHidden as evaluateAutoHidden } from './auto-hide.js';
 
 export class MenuController {
   private _host: LitElement;
@@ -17,6 +18,7 @@ export class MenuController {
   private _buttons: MenuItem[] = [];
   private _expanded = false;
   private _lockManagerEpoch?: LockManagerEpoch;
+  private _autoHideState: AutoHideState | null = null;
 
   constructor(host: LitElement) {
     this._host = host;
@@ -72,6 +74,21 @@ export class MenuController {
 
   public getMenuConfig(): MenuConfig | null {
     return this._config;
+  }
+
+  public setAutoHideState(state: AutoHideState): void {
+    this._autoHideState = state;
+    this._host.requestUpdate();
+  }
+
+  public shouldRender(): boolean {
+    if (!this._config || this._config.style === 'none') {
+      return false;
+    }
+    return !(
+      this._autoHideState &&
+      evaluateAutoHidden(this._config.auto_hide, this._autoHideState)
+    );
   }
 
   public isExpanded(): boolean {

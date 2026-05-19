@@ -1,7 +1,7 @@
 import { ActionConfig, Actions } from '../../config/schema/actions/types';
 import { arrayify } from '../../utils/basic';
 import { CardLockAPI } from '../types';
-import { MicrophoneLockPolicy } from './microphone-policy';
+import { CallLockPolicy } from './call-policy';
 import type { LockManagerEpoch, LockPolicy } from './types';
 
 export class LockManager {
@@ -9,7 +9,7 @@ export class LockManager {
   private _epoch: LockManagerEpoch | null = null;
 
   constructor(api: CardLockAPI) {
-    this._policies = [new MicrophoneLockPolicy(api)];
+    this._policies = [new CallLockPolicy(api)];
   }
 
   public isLocked(): boolean {

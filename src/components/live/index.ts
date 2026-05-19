@@ -11,6 +11,7 @@ import { CameraManager } from '../../camera-manager/manager.js';
 import { MicrophoneManager } from '../../card-controller/microphone-manager.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import { CallSession } from '../../card-controller/call/types.js';
 import { MicrophoneActionsController } from '../../components-lib/live/microphone-actions-controller.js';
 import '../../components-lib/live/types.js';
 import { LiveConfig } from '../../config/schema/live.js';
@@ -42,6 +43,9 @@ export class AdvancedCameraCardLive extends LitElement {
 
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
+
+  @property({ attribute: false })
+  public call?: CallSession;
 
   @property({ attribute: false })
   public locked?: boolean;
@@ -81,6 +85,9 @@ export class AdvancedCameraCardLive extends LitElement {
         view?.is('live') ? view.camera ?? null : null,
       );
     }
+    if (changedProps.has('call')) {
+      this._microphoneActionsController.setCallActive(!!this.call);
+    }
   }
 
   protected render(): TemplateResult | void {
@@ -96,6 +103,7 @@ export class AdvancedCameraCardLive extends LitElement {
         .cardWideConfig=${this.cardWideConfig}
         .cameraManager=${this.cameraManager}
         .microphoneState=${this.microphoneState}
+        .call=${this.call}
         .locked=${this.locked}
         .triggeredCameraIDs=${this.triggeredCameraIDs}
       >

@@ -26,6 +26,7 @@ interface MicrophoneActionsControllerOptions {
 export class MicrophoneActionsController {
   private _options: MicrophoneActionsControllerOptions | null = null;
   private _selectedCamera: string | null = null;
+  private _callActive = false;
   private _visibilityObserver: VisibilityObserver;
 
   constructor() {
@@ -36,6 +37,27 @@ export class MicrophoneActionsController {
 
   public setOptions(options: MicrophoneActionsControllerOptions): void {
     this._options = options;
+  }
+
+  /**
+   * Notifies the controller of the call-active state, acting only on a genuine
+   * transition. The initial state is treated as inactive, so a first-ever
+   * `true` counts -- the call rules apply even when the live view first
+   * appears during an active call.
+   *
+   * Call start unmutes the microphone only if the user opted into
+   * `microphone.auto_unmute: ['call']`.
+   */
+  public setCallActive(active: boolean): void {
+    if (active === this._callActive) {
+      return;
+    }
+    this._callActive = active;
+    if (active) {
+      this._unmuteIfConfigured('call');
+    } else {
+      this._muteIfConfigured('call');
+    }
   }
 
   public setRoot(root: HTMLElement): void {

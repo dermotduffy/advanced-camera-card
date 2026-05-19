@@ -29,6 +29,21 @@ conditions:
 | `condition`  | Must be `and`.                                                                                                 |
 | `conditions` | A list of other conditions _all_ of which must evaluate `true` in order for this condition to evaluate `true`. |
 
+## `call`
+
+Matches based on whether a [two-way audio](../usage/2-way-audio.md) call is in progress.
+
+```yaml
+conditions:
+  - condition: call
+    # [...]
+```
+
+| Parameter   | Description                                                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` | Must be `call`.                                                                                                                 |
+| `call`      | If `true` (the default) or `false`, the condition is satisfied when a two-way audio call is or is not in progress respectively. |
+
 ## `camera`
 
 Matches based on the selected camera. Does not match other cameras (whether
@@ -197,14 +212,10 @@ conditions:
     # [...]
 ```
 
-| Parameter   | Description                                                                                                            |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `condition` | Must be `microphone`.                                                                                                  |
-| `connected` | Optional: If `true` or `false` the condition is satisfied if the microphone is connected or disconnected respectively. |
-| `muted`     | Optional: If `true` or `false` the condition is satisfied if the microphone is muted or unmuted respectively.          |
-
-When multiple parameters are specified they must all match for the condition to
-match.
+| Parameter   | Description                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
+| `condition` | Must be `microphone`.                                                                                  |
+| `muted`     | If `true` or `false`, the condition is satisfied when the microphone is muted or unmuted respectively. |
 
 ## `not`
 
@@ -391,12 +402,14 @@ conditions:
 
 ```yaml
 conditions:
- - condition: camera
-   cameras:
-     - camera.office
+  - condition: call
+    call: true
+  - condition: camera
+    cameras:
+      - camera.office
   - condition: config
     paths:
-      - "menu.style"
+      - 'menu.style'
   - condition: display_mode
     display_mode: single
   - condition: expand
@@ -416,7 +429,6 @@ conditions:
   - condition: media_loaded
     media_loaded: true
   - condition: microphone
-    connected: true
     muted: true
   - condition: numeric_state
     entity: sensor.office_temperature
@@ -435,8 +447,8 @@ conditions:
     users:
       - 581fca7fdc014b8b894519cc531f9a04
   - condition: user_agent
-    user_agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
-    user_agent_re: "Chrome/"
+    user_agent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+    user_agent_re: 'Chrome/'
     casting: true
     companion: true
   - condition: view

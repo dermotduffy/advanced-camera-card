@@ -3846,5 +3846,210 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
     });
+
+    describe('microphone.connected → call condition', () => {
+      it('rewrites connected:true to call:true in an automation', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'microphone', connected: true }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'live',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].conditions).toEqual([
+          { condition: 'call', call: true },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('rewrites connected:false to call:false', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'microphone', connected: false }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'live',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].conditions).toEqual([
+          { condition: 'call', call: false },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('leaves a microphone.muted only condition untouched', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'microphone', muted: true }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'live',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.automations[0].conditions).toEqual([
+          { condition: 'microphone', muted: true },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('splits a condition with both connected and muted into an AND condition', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'microphone', connected: true, muted: false }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'live',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].conditions).toEqual([
+          {
+            condition: 'and',
+            conditions: [
+              { condition: 'call', call: true },
+              { condition: 'microphone', muted: false },
+            ],
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('migrates a microphone.connected nested under or/and/not', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                {
+                  condition: 'or',
+                  conditions: [
+                    {
+                      condition: 'and',
+                      conditions: [
+                        {
+                          condition: 'not',
+                          conditions: [{ condition: 'microphone', connected: true }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'live',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].conditions).toEqual([
+          {
+            condition: 'or',
+            conditions: [
+              {
+                condition: 'and',
+                conditions: [
+                  {
+                    condition: 'not',
+                    conditions: [{ condition: 'call', call: true }],
+                  },
+                ],
+              },
+            ],
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('migrates conditions on elements and overrides', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-conditional',
+              conditions: [{ condition: 'microphone', connected: true }],
+              elements: [{ type: 'icon', icon: 'mdi:phone' }],
+            },
+          ],
+          overrides: [
+            {
+              conditions: [{ condition: 'microphone', connected: false }],
+              merge: {},
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.elements[0].conditions).toEqual([
+          { condition: 'call', call: true },
+        ]);
+        expect(config.overrides[0].conditions).toEqual([
+          { condition: 'call', call: false },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('is idempotent', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'microphone', connected: true }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'live',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        // Running upgradeConfig again should not change anything.
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.automations[0].conditions).toEqual([
+          { condition: 'call', call: true },
+        ]);
+        postUpgradeChecks(config);
+      });
+    });
   });
 });

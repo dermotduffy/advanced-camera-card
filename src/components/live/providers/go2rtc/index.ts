@@ -8,7 +8,6 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Camera } from '../../../../camera-manager/camera.js';
-import { MicrophoneState } from '../../../../card-controller/types.js';
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
 import { VideoMediaPlayerController } from '../../../../components-lib/media-player/video.js';
 import { SignedURLController } from '../../../../components-lib/signed-url-controller.js';
@@ -35,7 +34,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   public targetID?: string;
 
   @property({ attribute: false })
-  public microphoneState?: MicrophoneState;
+  public microphoneStream?: MediaStream | null;
 
   @property({ attribute: false })
   public microphoneConfig?: MicrophoneConfig;
@@ -103,7 +102,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     this._player = new VideoRTC();
     this._player.targetID = this.targetID ?? null;
     this._player.mediaPlayerController = this._mediaPlayerController;
-    this._player.microphoneStream = this.microphoneState?.stream ?? null;
+    this._player.microphoneStream = this.microphoneStream ?? null;
     this._player.src = src;
     this._player.visibilityCheck = false;
     this._player.setControls(this.controls);
@@ -137,11 +136,11 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
       this._player.setControls(this.controls);
     }
 
-    if (this._player && changedProps.has('microphoneState')) {
+    if (this._player && changedProps.has('microphoneStream')) {
       // VideoRTC owns the transition: it updates microphoneStream, swaps the
       // track on the pre-armed transceiver, and validates against stale async
       // completions before any reconnect fallback. Fire-and-forget is fine.
-      /* async */ this._player.setMicrophoneStream(this.microphoneState?.stream ?? null);
+      /* async */ this._player.setMicrophoneStream(this.microphoneStream ?? null);
     }
   }
 

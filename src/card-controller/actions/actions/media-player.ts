@@ -1,6 +1,6 @@
 import { MediaPlayerActionConfig } from '../../../config/schema/actions/custom/media-player';
-import { getStreamCameraID } from '../../../utils/substream';
 import { ViewItemClassifier } from '../../../view/item-classifier';
+import { getStreamCameraID } from '../../../view/substream';
 import { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 

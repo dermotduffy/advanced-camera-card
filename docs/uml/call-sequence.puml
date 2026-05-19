@@ -1,0 +1,59 @@
+@startuml
+skinparam backgroundColor white
+
+actor User
+participant "Call" as Card
+participant Microphone as Mic
+actor Guest
+
+opt <color:#43a047>**""live.microphone.always_connected""**</color> is enabled
+  Card -> Mic : Microphone connection attempted (muted)
+  note over Mic : Connected at card load, before (and independent of) any call
+  Mic --> User : Microphone access granted
+end
+
+User -> Card : Start a call
+note over User, Card
+  Via Call menu button or <color:#43a047>**""call_start""**</color> action.
+  Needs a camera that supports 2-way audio
+end note
+
+opt <color:#43a047>**""live.microphone.always_connected""**</color> not enabled
+  Card -> Mic : Microphone connection attempted (muted)
+  note over Mic : Stays muted by default (<color:#43a047>**""live.microphone.auto_unmute""**</color>)
+  Mic --> User : Microphone access granted
+end
+
+note over User, Mic
+  The microphone must connect for the call to proceed —
+  if access is denied or unsupported, the call does not start
+end note
+
+Card --> User : You hear the caller
+note over Card
+  Inbound audio unmutes if configured (<color:#43a047>**""live.auto_unmute""**</color>)
+  Menu, status bar & next/previous hide (<color:#43a047>**""auto_hide""**</color>)
+  Camera navigation is locked (<color:#43a047>**""live.controls.call.lock""**</color>)
+end note
+
+User -> Mic : Unmute to talk
+note over Mic : List 'call' in <color:#43a047>**""live.microphone.auto_unmute""**</color> to unmute automatically
+
+loop Until the call ends
+  User -[#red]> Guest : Talking
+  Guest -[#red]-> User : Responding
+end
+
+User -> Card : End the call
+note over User, Card
+  Via Hang-up button, <color:#43a047>**""call_end""**</color> action, or — when
+  <color:#43a047>**""live.controls.call.lock""**</color> is disabled — navigating away
+end note
+
+Card --> User : Inbound audio mutes (<color:#43a047>**""live.auto_mute""**</color>)
+Card -> Mic : Microphone mutes (<color:#43a047>**""live.microphone.auto_mute""**</color>)
+note over Mic
+  Disconnects after <color:#43a047>**""live.microphone.disconnect_seconds""**</color>
+  unless <color:#43a047>**""live.microphone.always_connected""**</color>
+end note
+@enduml

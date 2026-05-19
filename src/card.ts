@@ -8,6 +8,7 @@ import 'web-dialog';
 import { actionHandler } from './action-handler-directive.js';
 import { CardController } from './card-controller/controller';
 import type { IssueKey, IssueTriggerEventData } from './card-controller/issues/types.js';
+import { resolveAutoHideState, type AutoHideState } from './components-lib/auto-hide.js';
 import { MenuButtonController } from './components-lib/menu-button-controller';
 import './components/effects/effects';
 import './components/elements.js';
@@ -243,6 +244,10 @@ class AdvancedCameraCard extends LitElement {
     `;
   }
 
+  protected _getAutoHideState(): AutoHideState {
+    return resolveAutoHideState(this._controller.getCallManager().isActive());
+  }
+
   protected _renderMenu(slot?: string): TemplateResult | void {
     const view = this._controller.getViewManager().getView();
     if (!this._hass || !this._config) {
@@ -261,6 +266,7 @@ class AdvancedCameraCard extends LitElement {
           this._controller.getCameraManager(),
           this._controller.getFoldersManager(),
           {
+            callManager: this._controller.getCallManager(),
             currentMediaLoadedInfo: this._controller.getMediaLoadedInfoManager().get(),
             fullscreenManager: this._controller.getFullscreenManager(),
             inExpandedMode: this._controller.getExpandManager().isExpanded(),
@@ -273,6 +279,7 @@ class AdvancedCameraCard extends LitElement {
           },
         )}
         .entityRegistryManager=${this._controller.getEntityRegistryManager()}
+        .autoHideState=${this._getAutoHideState()}
       ></advanced-camera-card-menu>
     `;
   }
@@ -305,6 +312,7 @@ class AdvancedCameraCard extends LitElement {
             .getIssueDescriptions(),
         })}
         .config=${this._config.status_bar}
+        .autoHideState=${this._getAutoHideState()}
       ></advanced-camera-card-status-bar>
     `;
   }
@@ -427,6 +435,7 @@ class AdvancedCameraCard extends LitElement {
               .hide=${!!fullCardIssue}
               .microphoneManager=${this._controller.getMicrophoneManager()}
               .microphoneState=${this._controller.getMicrophoneManager().getState()}
+              .call=${this._controller.getCallManager().getCall() ?? undefined}
               .locked=${this._controller.getLockManager().isLocked()}
               .conditionStateManager=${this._controller.getConditionStateManager()}
               .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status

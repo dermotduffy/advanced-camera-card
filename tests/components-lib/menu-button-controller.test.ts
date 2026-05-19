@@ -4,12 +4,13 @@ import { mock } from 'vitest-mock-extended';
 import { Capabilities } from '../../src/camera-manager/capabilities.js';
 import { CameraManager } from '../../src/camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../../src/camera-manager/types.js';
+import { CallManager } from '../../src/card-controller/call/manager.js';
 import { FoldersManager } from '../../src/card-controller/folders/manager.js';
 import { FolderQuery } from '../../src/card-controller/folders/types';
 import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager.js';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
-import { PIPManager } from '../../src/card-controller/pip-manager.js';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager.js';
+import { PIPManager } from '../../src/card-controller/pip-manager.js';
 import { ViewManager } from '../../src/card-controller/view/view-manager.js';
 import {
   MenuButtonController,
@@ -1167,9 +1168,166 @@ describe('MenuButtonController', () => {
     });
   });
 
+  describe('should have call button', () => {
+    it('with no view', () => {
+      const buttons = calculateButtons(controller, {
+        cameraManager: createCameraManager(),
+        view: null,
+      });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ title: 'Start 2-way audio call' }),
+        ]),
+      );
+    });
+
+    it('with a non-live view', () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        view: createView({ camera: 'camera-1', view: 'clips' }),
+      });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ title: 'Start 2-way audio call' }),
+        ]),
+      );
+    });
+
+    it('when no camera supports 2-way audio', () => {
+      const cameraManager = createCameraManager(
+        createStore([{ cameraID: 'camera-1', capabilities: createCapabilities() }]),
+      );
+      const buttons = calculateButtons(controller, { cameraManager });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ title: 'Start 2-way audio call' }),
+        ]),
+      );
+    });
+
+    it('with a single 2-way-audio target', () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+      const buttons = calculateButtons(controller, { cameraManager });
+
+      expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
+        icon: 'mdi:phone',
+        enabled: true,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Start 2-way audio call',
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'call_start',
+        },
+      });
+    });
+
+    it('with multiple 2-way-audio targets', () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+            config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
+          },
+          {
+            cameraID: 'camera-2',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+      const buttons = calculateButtons(controller, { cameraManager });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          icon: 'mdi:phone',
+          title: 'Start 2-way audio call',
+          type: 'custom:advanced-camera-card-menu-submenu',
+          items: [
+            expect.objectContaining({
+              tap_action: {
+                action: 'fire-dom-event',
+                advanced_camera_card_action: 'call_start',
+                camera: 'camera-1',
+              },
+            }),
+            expect.objectContaining({
+              tap_action: {
+                action: 'fire-dom-event',
+                advanced_camera_card_action: 'call_start',
+                camera: 'camera-1',
+                stream: 'camera-2',
+              },
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('when a call is active', () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        callManager,
+        view: createView({ camera: 'camera-1' }),
+      });
+
+      expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
+        icon: 'mdi:phone-hangup',
+        enabled: true,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'End 2-way audio call',
+        style: {
+          animation: 'pulse 3s infinite',
+          color: 'var(--advanced-camera-card-menu-button-critical-color)',
+        },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'call_end',
+        },
+      });
+    });
+  });
+
   describe('should have microphone button', () => {
     it('when camera has 2-way-audio capability', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
@@ -1185,6 +1343,7 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
       });
 
       expect(buttons).toContainEqual({
@@ -1213,6 +1372,8 @@ describe('MenuButtonController', () => {
 
     it('when camera does not have 2-way-audio capability', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
@@ -1223,6 +1384,34 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
+      });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ title: 'Microphone' })]),
+      );
+    });
+
+    it('is not shown without an active call', () => {
+      const microphoneManager = mock<MicrophoneManager>();
+      vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
+      vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
+      vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(false);
+
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        microphoneManager,
+        callManager,
       });
 
       expect(buttons).not.toEqual(
@@ -1232,6 +1421,8 @@ describe('MenuButtonController', () => {
 
     it('with forbidden microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(true);
 
       const cameraManager = createCameraManager(
@@ -1245,6 +1436,7 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
       });
 
       expect(buttons).toContainEqual({
@@ -1262,6 +1454,8 @@ describe('MenuButtonController', () => {
 
     it('with muted microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(true);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
@@ -1277,6 +1471,7 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
       });
 
       expect(buttons).toContainEqual({
@@ -1302,6 +1497,8 @@ describe('MenuButtonController', () => {
 
     it('with unsupported microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(true);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(false);
@@ -1317,6 +1514,7 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
       });
 
       expect(buttons).toContainEqual({
@@ -1334,6 +1532,8 @@ describe('MenuButtonController', () => {
 
     it('with muted toggle type microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(true);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
@@ -1349,6 +1549,7 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
         config: createConfig({
           menu: { buttons: { microphone: { type: 'toggle' } } },
         }),
@@ -1373,6 +1574,8 @@ describe('MenuButtonController', () => {
 
     it('with unmuted toggle type microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
@@ -1388,6 +1591,7 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
         config: createConfig({
           menu: { buttons: { microphone: { type: 'toggle' } } },
         }),

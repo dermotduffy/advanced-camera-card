@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AUTO_HIDE_CONDITIONS } from './common/auto-hide';
 import { BUTTON_SIZE_MIN, STATUS_BAR_PRIORITY_DEFAULT } from './common/const';
 import { statusBarItemBaseSchema } from './common/status-bar';
 
@@ -36,6 +37,7 @@ const statusBarIssuesItemSchema = statusBarItemBaseSchema.extend({
 });
 
 export const statusBarConfigDefault = {
+  auto_hide: ['call' as const, 'casting' as const],
   height: 40,
   items: {
     engine: statusBarItemDefault,
@@ -52,6 +54,10 @@ export const statusBarConfigDefault = {
 
 export const statusBarConfigSchema = z
   .object({
+    auto_hide: z
+      .enum(AUTO_HIDE_CONDITIONS)
+      .array()
+      .default(statusBarConfigDefault.auto_hide),
     position: z.enum(STATUS_BAR_POSITIONS).default(statusBarConfigDefault.position),
     style: z.enum(STATUS_BAR_STYLES).default(statusBarConfigDefault.style),
     popup_seconds: z

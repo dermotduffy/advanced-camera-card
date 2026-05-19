@@ -15,6 +15,7 @@ import { MicrophoneManager } from '../card-controller/microphone-manager.js';
 import { MicrophoneState } from '../card-controller/types.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
+import { CallSession } from '../card-controller/call/types.js';
 import { ConditionStateManagerReadonlyInterface } from '../conditions/types.js';
 import { AdvancedCameraCardConfig, CardWideConfig } from '../config/schema/types.js';
 import { RawAdvancedCameraCardConfig } from '../config/types.js';
@@ -66,6 +67,9 @@ export class AdvancedCameraCardViews extends LitElement {
 
   @property({ attribute: false })
   public microphoneState?: MicrophoneState;
+
+  @property({ attribute: false })
+  public call?: CallSession;
 
   @property({ attribute: false })
   public locked?: boolean;
@@ -240,6 +244,7 @@ export class AdvancedCameraCardViews extends LitElement {
                 .cardWideConfig=${this.cardWideConfig}
                 .microphoneManager=${this.microphoneManager}
                 .microphoneState=${this.microphoneState}
+                .call=${this.call}
                 .locked=${this.locked}
                 .triggeredCameraIDs=${this.triggeredCameraIDs}
                 class="${classMap(liveClasses)}"

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { actionsSchema } from './actions/types';
+import { BUTTON_SIZE_MIN } from './common/const';
 import { nextPreviousControlConfigSchema } from './common/controls/next-previous';
 import { ptzControlsConfigSchema, ptzControlsDefaults } from './common/controls/ptz';
 import {
@@ -23,23 +24,37 @@ import { transitionEffectConfigSchema } from './common/transition-effect';
 
 const microphoneConfigDefault = {
   always_connected: false,
-  auto_mute: [],
+  auto_mute: ['call' as const],
   auto_unmute: [],
   disconnect_seconds: 90,
-  lock: true,
   mute_after_microphone_mute_seconds: 60,
 };
+
+const callConfigDefault = {
+  button_size: 40,
+  lock: true,
+};
+
+const callConfigSchema = z.object({
+  button_size: z.number().min(BUTTON_SIZE_MIN).default(callConfigDefault.button_size),
+  lock: z.boolean().default(callConfigDefault.lock),
+});
 
 const microphoneConfigSchema = z
   .object({
     always_connected: z.boolean().default(microphoneConfigDefault.always_connected),
-    auto_mute: z.enum(MICROPHONE_MUTE_CONDITIONS).array().default([]),
-    auto_unmute: z.enum(MICROPHONE_UNMUTE_CONDITIONS).array().default([]),
+    auto_mute: z
+      .enum(MICROPHONE_MUTE_CONDITIONS)
+      .array()
+      .default(microphoneConfigDefault.auto_mute),
+    auto_unmute: z
+      .enum(MICROPHONE_UNMUTE_CONDITIONS)
+      .array()
+      .default(microphoneConfigDefault.auto_unmute),
     disconnect_seconds: z
       .number()
       .min(0)
       .default(microphoneConfigDefault.disconnect_seconds),
-    lock: z.boolean().default(microphoneConfigDefault.lock),
     mute_after_microphone_mute_seconds: z
       .number()
       .min(0)
@@ -52,7 +67,7 @@ export const liveConfigDefault = {
   auto_play: [...MEDIA_ACTION_POSITIVE_CONDITIONS],
   auto_pause: [],
   auto_mute: [...MEDIA_MUTE_CONDITIONS],
-  auto_unmute: ['microphone' as const],
+  auto_unmute: ['microphone' as const, 'call' as const],
   preload: false,
   lazy_load: true,
   lazy_unload: [],
@@ -62,7 +77,9 @@ export const liveConfigDefault = {
   show_image_during_load: true,
   controls: {
     builtin: true,
+    call: { ...callConfigDefault },
     next_previous: {
+      auto_hide: ['call' as const, 'casting' as const],
       size: 48,
       style: 'chevrons' as const,
     },
@@ -97,8 +114,12 @@ export const liveConfigSchema = z
     controls: z
       .object({
         builtin: z.boolean().default(liveConfigDefault.controls.builtin),
+        call: callConfigSchema.default(liveConfigDefault.controls.call),
         next_previous: nextPreviousControlConfigSchema
           .extend({
+            auto_hide: nextPreviousControlConfigSchema.shape.auto_hide.default(
+              liveConfigDefault.controls.next_previous.auto_hide,
+            ),
             // Live cannot show thumbnails, remove that option.
             style: z
               .enum(['none', 'chevrons', 'icons'])

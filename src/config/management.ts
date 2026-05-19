@@ -791,6 +791,42 @@ const frigateCardToAdvancedCameraCardTransform = (
   return modified;
 };
 
+/**
+ * Migrate a `condition: microphone` condition with the (removed) `connected`
+ * field into a `condition: call` node. Operates on a single condition object in
+ * place. When both `connected` and `muted` are present, splits into a
+ * two-condition `and` (the only way to preserve both semantics now that
+ * `connected` no longer lives on `microphone`).
+ *
+ * @returns `true` if the node was modified.
+ */
+const microphoneConnectedToCallTransform = (data: unknown): boolean => {
+  if (typeof data !== 'object' || !data || data['condition'] !== 'microphone') {
+    return false;
+  }
+  const connected = data['connected'];
+  if (typeof connected !== 'boolean') {
+    return false;
+  }
+  const muted = data['muted'];
+
+  for (const key of Object.keys(data)) {
+    delete data[key];
+  }
+
+  if (typeof muted === 'boolean') {
+    data['condition'] = 'and';
+    data['conditions'] = [
+      { condition: 'call', call: connected },
+      { condition: 'microphone', muted: muted },
+    ];
+  } else {
+    data['condition'] = 'call';
+    data['call'] = connected;
+  }
+  return true;
+};
+
 const frigateCardToAdvancedCameraCardStyleTransform = (data: unknown): unknown => {
   if (typeof data !== 'object' || !data || Array.isArray(data)) {
     return data;
@@ -999,4 +1035,20 @@ const UPGRADES = [
     CONF_CAMERAS,
     upgradeWithOverrides('ptz', ptzIncorrectDataToWebRTCDataTransform),
   ),
+
+  // microphone.connected → call condition migration. Conditions live under
+  // overrides, elements, and automations.
+  upgradeArrayOfObjects(CONF_OVERRIDES, (override) =>
+    upgradeObjectRecursively(microphoneConnectedToCallTransform)(override),
+  ),
+  (data: unknown): boolean => {
+    return upgradeObjectRecursively(microphoneConnectedToCallTransform)(
+      typeof data === 'object' && data ? data[CONF_ELEMENTS] : {},
+    );
+  },
+  (data: unknown): boolean => {
+    return upgradeObjectRecursively(microphoneConnectedToCallTransform)(
+      typeof data === 'object' && data ? data[CONF_AUTOMATIONS] : {},
+    );
+  },
 ];

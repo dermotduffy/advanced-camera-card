@@ -11,7 +11,6 @@ import { classMap } from 'lit/directives/class-map.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { Camera } from '../../camera-manager/camera.js';
-import { MicrophoneState } from '../../card-controller/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
@@ -51,7 +50,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   public cardWideConfig?: CardWideConfig;
 
   @property({ attribute: false })
-  public microphoneState?: MicrophoneState;
+  public microphoneStream?: MediaStream | null;
 
   @property({ attribute: false })
   public zoomSettings?: PartialZoomSettings | null;
@@ -340,7 +339,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               .hass=${this.hass}
               .camera=${this.camera}
               .targetID=${this.targetID}
-              .microphoneState=${this.microphoneState}
+              .microphoneStream=${this.microphoneStream}
               .microphoneConfig=${this.liveConfig.microphone}
               ?controls=${this._getEffectiveBuiltinControls()}
               @advanced-camera-card:live:error=${(ev: Event) =>

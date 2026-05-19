@@ -740,63 +740,6 @@ describe('ConditionsManager', () => {
           ...state,
         };
       };
-      it('empty', () => {
-        const stateManager = new ConditionStateManager();
-        const manager = new ConditionsManager(
-          [{ condition: 'microphone' as const }],
-          stateManager,
-        );
-
-        expect(manager.getEvaluation().result).toBeTruthy();
-        stateManager.setState({
-          microphone: createMicrophoneState({ connected: true }),
-        });
-        expect(manager.getEvaluation().result).toBeTruthy();
-        stateManager.setState({
-          microphone: createMicrophoneState({ connected: false }),
-        });
-        expect(manager.getEvaluation().result).toBeTruthy();
-        stateManager.setState({ microphone: createMicrophoneState({ muted: true }) });
-        expect(manager.getEvaluation().result).toBeTruthy();
-        stateManager.setState({ microphone: createMicrophoneState({ muted: false }) });
-        expect(manager.getEvaluation().result).toBeTruthy();
-      });
-
-      it('connected is true', () => {
-        const stateManager = new ConditionStateManager();
-        const manager = new ConditionsManager(
-          [{ condition: 'microphone' as const, connected: true }],
-          stateManager,
-        );
-
-        expect(manager.getEvaluation().result).toBeFalsy();
-        stateManager.setState({
-          microphone: createMicrophoneState({ connected: true }),
-        });
-        expect(manager.getEvaluation().result).toBeTruthy();
-        stateManager.setState({
-          microphone: createMicrophoneState({ connected: false }),
-        });
-        expect(manager.getEvaluation().result).toBeFalsy();
-      });
-
-      it('connected is false', () => {
-        const stateManager = new ConditionStateManager();
-        const manager = new ConditionsManager(
-          [{ condition: 'microphone' as const, connected: false }],
-          stateManager,
-        );
-
-        expect(manager.getEvaluation().result).toBeFalsy();
-        stateManager.setState({
-          microphone: createMicrophoneState({ connected: true }),
-        });
-        expect(manager.getEvaluation().result).toBeFalsy();
-        stateManager.setState({
-          microphone: createMicrophoneState({ connected: false }),
-        });
-        expect(manager.getEvaluation().result).toBeTruthy();
-      });
 
       it('muted is true', () => {
         const stateManager = new ConditionStateManager();
@@ -825,26 +768,50 @@ describe('ConditionsManager', () => {
         stateManager.setState({ microphone: createMicrophoneState({ muted: false }) });
         expect(manager.getEvaluation().result).toBeTruthy();
       });
+    });
 
-      it('connected and muted', () => {
+    describe('with call condition', () => {
+      it('bare form defaults to call:true', () => {
         const stateManager = new ConditionStateManager();
         const manager = new ConditionsManager(
-          [{ condition: 'microphone' as const, muted: false, connected: true }],
+          [{ condition: 'call' as const }],
           stateManager,
         );
 
         expect(manager.getEvaluation().result).toBeFalsy();
-        stateManager.setState({ microphone: createMicrophoneState({ muted: true }) });
+        stateManager.setState({ call: true });
+        expect(manager.getEvaluation().result).toBeTruthy();
+        stateManager.setState({ call: false });
         expect(manager.getEvaluation().result).toBeFalsy();
-        stateManager.setState({ microphone: createMicrophoneState({ muted: false }) });
+      });
+
+      it('call is true', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager(
+          [{ condition: 'call' as const, call: true }],
+          stateManager,
+        );
+
         expect(manager.getEvaluation().result).toBeFalsy();
-        stateManager.setState({
-          microphone: createMicrophoneState({ connected: false, muted: false }),
-        });
+        stateManager.setState({ call: true });
+        expect(manager.getEvaluation().result).toBeTruthy();
+        stateManager.setState({ call: false });
         expect(manager.getEvaluation().result).toBeFalsy();
-        stateManager.setState({
-          microphone: createMicrophoneState({ connected: true, muted: false }),
-        });
+      });
+
+      it('call is false', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager(
+          [{ condition: 'call' as const, call: false }],
+          stateManager,
+        );
+
+        // With no state.call published, the bare condition matches `false`,
+        // so `call: false` is satisfied initially.
+        expect(manager.getEvaluation().result).toBeTruthy();
+        stateManager.setState({ call: true });
+        expect(manager.getEvaluation().result).toBeFalsy();
+        stateManager.setState({ call: false });
         expect(manager.getEvaluation().result).toBeTruthy();
       });
     });

@@ -1,5 +1,6 @@
 import { StyleInfo } from 'lit/directives/style-map';
 import { CameraManager } from '../camera-manager/manager';
+import { CallManager } from '../card-controller/call/manager';
 import { FoldersManager } from '../card-controller/folders/manager';
 import { FullscreenManager } from '../card-controller/fullscreen/fullscreen-manager';
 import { MediaPlayerManager } from '../card-controller/media-player-manager';
@@ -17,6 +18,8 @@ import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize.js';
 import { MediaLoadedInfo } from '../types';
 import {
+  createCallEndAction,
+  createCallStartAction,
   createCameraAction,
   createDisplayModeAction,
   createGeneralAction,
@@ -30,8 +33,8 @@ import {
 import { arrayify, isTruthy } from '../utils/basic';
 import { isBeingCasted } from '../utils/casting';
 import { getPTZTarget } from '../utils/ptz';
-import { getStreamCameraID, hasSubstream } from '../utils/substream';
 import { ViewItemClassifier } from '../view/item-classifier';
+import { getStreamCameraID, hasSubstream } from '../view/substream';
 import { resolveViewName } from '../view/utils/resolve-default';
 import { View } from '../view/view';
 import {
@@ -40,6 +43,7 @@ import {
 } from '../view/view-support';
 
 export interface MenuButtonControllerOptions {
+  callManager?: CallManager | null;
   currentMediaLoadedInfo?: MediaLoadedInfo | null;
   showCameraUIButton?: boolean;
   fullscreenManager?: FullscreenManager | null;
@@ -94,11 +98,13 @@ export class MenuButtonController {
       this._getInfoButton(config, cameraManager, options?.view),
       this._getSetReviewButton(config, options?.view),
       this._getCameraUIButton(config, options?.showCameraUIButton),
+      this._getCallButton(config, cameraManager, options?.callManager, options?.view),
       this._getMicrophoneButton(
         config,
         cameraManager,
         options?.view,
         options?.microphoneManager,
+        options?.callManager,
       ),
       this._getExpandButton(config, options?.inExpandedMode),
       this._getFullscreenButton(config, options?.fullscreenManager),
@@ -480,14 +486,88 @@ export class MenuButtonController {
       : null;
   }
 
+  private _getCallButton(
+    config: AdvancedCameraCardConfig,
+    cameraManager: CameraManager,
+    callManager?: CallManager | null,
+    view?: View | null,
+  ): MenuItem | null {
+    if (!view?.camera || !view.is('live')) {
+      return null;
+    }
+    const cameraID = view.camera;
+
+    // The call targets: the selected camera and/or any 2-way-audio-capable
+    // dependency.
+    const targets = [
+      ...cameraManager.getStore().getAllDependentCameras(cameraID, '2-way-audio'),
+    ];
+    if (!targets.length) {
+      return null;
+    }
+
+    // In a call: a single hang-up button, regardless of target count.
+    if (callManager?.isActive()) {
+      return {
+        icon: 'mdi:phone-hangup',
+        title: localize('config.live.controls.call.end'),
+        style: this._getEmphasizedStyle(true),
+        ...config.menu.buttons.call,
+        type: 'custom:advanced-camera-card-menu-icon',
+        tap_action: createCallEndAction(),
+      };
+    }
+
+    // Idle, single target: a plain button (`call_start` resolves the default).
+    if (targets.length === 1) {
+      return {
+        icon: 'mdi:phone',
+        title: localize('config.live.controls.call.start'),
+        ...config.menu.buttons.call,
+        type: 'custom:advanced-camera-card-menu-icon',
+        tap_action: createCallStartAction(),
+      };
+    }
+
+    // Idle, multiple targets: a submenu, one entry per stream.
+    const menuItems = targets.map((streamID) => {
+      const metadata = cameraManager.getCameraMetadata(streamID) ?? undefined;
+      return {
+        enabled: true,
+        icon: metadata?.icon.icon,
+        entity: metadata?.icon.entity,
+        state_color: true,
+        title: metadata?.title,
+        tap_action: createCallStartAction(
+          cameraID,
+          streamID === cameraID ? undefined : streamID,
+        ),
+      };
+    });
+
+    return {
+      icon: 'mdi:phone',
+      title: localize('config.live.controls.call.start'),
+      ...config.menu.buttons.call,
+      type: 'custom:advanced-camera-card-menu-submenu',
+      items: menuItems,
+    };
+  }
+
   private _getMicrophoneButton(
     config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
     microphoneManager?: MicrophoneManager | null,
+    callManager?: CallManager | null,
   ): MenuItem | null {
     const streamCameraID = view ? getStreamCameraID(view) : null;
     if (!streamCameraID) {
+      return null;
+    }
+
+    // The microphone only transmits during an active call.
+    if (!callManager?.isActive()) {
       return null;
     }
 

@@ -7,6 +7,7 @@ import { StatusBarConfig } from '../config/schema/status-bar';
 import { getActionConfigGivenAction } from '../utils/action';
 import { arrayify, setOrRemoveAttribute } from '../utils/basic';
 import { Timer } from '../utils/timer';
+import { AutoHideState, isAutoHidden as evaluateAutoHidden } from './auto-hide';
 
 export class StatusBarController {
   private _host: LitElement;
@@ -14,6 +15,7 @@ export class StatusBarController {
 
   private _popupTimer = new Timer();
   private _items: StatusBarItem[] = [];
+  private _autoHideState: AutoHideState | null = null;
 
   constructor(host: LitElement) {
     this._host = host;
@@ -80,7 +82,19 @@ export class StatusBarController {
     return this._config;
   }
 
+  public setAutoHideState(state: AutoHideState): void {
+    this._autoHideState = state;
+    this._host.requestUpdate();
+  }
+
   public shouldRender(): boolean {
+    if (
+      this._config &&
+      this._autoHideState &&
+      evaluateAutoHidden(this._config.auto_hide, this._autoHideState)
+    ) {
+      return false;
+    }
     return this._items.some(
       (item) => item.enabled !== false && (item.sufficient || item.permanent),
     );

@@ -85,13 +85,18 @@ describe('config defaults', () => {
         zoomable: true,
       },
       live: {
-        auto_mute: ['unselected', 'hidden', 'microphone'],
+        auto_mute: ['unselected', 'hidden', 'microphone', 'call'],
         auto_pause: [],
         auto_play: ['selected', 'visible'],
-        auto_unmute: ['microphone'],
+        auto_unmute: ['microphone', 'call'],
         controls: {
           builtin: true,
+          call: {
+            button_size: 40,
+            lock: true,
+          },
           next_previous: {
+            auto_hide: ['call', 'casting'],
             size: 48,
             style: 'chevrons',
           },
@@ -133,10 +138,9 @@ describe('config defaults', () => {
         lazy_unload: [],
         microphone: {
           always_connected: false,
-          auto_mute: [],
+          auto_mute: ['call'],
           auto_unmute: [],
           disconnect_seconds: 90,
-          lock: true,
           mute_after_microphone_mute_seconds: 60,
         },
         preload: false,
@@ -168,6 +172,7 @@ describe('config defaults', () => {
         controls: {
           builtin: true,
           next_previous: {
+            auto_hide: ['casting'],
             size: 48,
             style: 'thumbnails',
           },
@@ -212,8 +217,16 @@ describe('config defaults', () => {
       },
       menu: {
         alignment: 'left',
+        auto_hide: ['call', 'casting'],
         button_size: 40,
         buttons: {
+          call: {
+            alignment: 'matching',
+            enabled: true,
+            permanent: false,
+            priority: 50,
+            state_color: true,
+          },
           camera_ui: {
             alignment: 'matching',
             enabled: true,
@@ -426,6 +439,7 @@ describe('config defaults', () => {
         },
       },
       status_bar: {
+        auto_hide: ['call', 'casting'],
         height: 40,
         items: {
           engine: {
@@ -868,6 +882,7 @@ describe('config defaults', () => {
   it('should include all conditions', () => {
     const conditions = [
       { condition: 'and', conditions: [{ condition: 'initialized' }] },
+      { condition: 'call', call: true },
       { condition: 'camera', cameras: ['camera.office'] },
       { condition: 'config', paths: ['menu.style'] },
       { condition: 'display_mode', display_mode: 'single' },
@@ -885,7 +900,7 @@ describe('config defaults', () => {
         state: 'down',
       },
       { condition: 'media_loaded', media_loaded: true },
-      { condition: 'microphone', connected: true, muted: true },
+      { condition: 'microphone', muted: true },
       { condition: 'not', conditions: [{ condition: 'initialized' }] },
       {
         condition: 'numeric_state',

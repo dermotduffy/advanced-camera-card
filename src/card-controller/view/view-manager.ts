@@ -1,8 +1,8 @@
 import { ViewContext } from 'view';
 import { log } from '../../utils/debug';
-import { getStreamCameraID } from '../../utils/substream';
-import { View } from '../../view/view';
+import { getStreamCameraID } from '../../view/substream';
 import { getViewTargetID } from '../../view/target-id';
+import { View } from '../../view/view';
 import { InitializationAspect } from '../initialization-manager';
 import { CardViewAPI } from '../types';
 import { ViewFactory } from './factory';
@@ -91,12 +91,25 @@ export class ViewManager implements ViewManagerInterface {
 
   setViewByParametersWithExistingQuery = async (
     options?: ViewFactoryOptions,
-  ): Promise<void> =>
+  ): Promise<void> => {
+    // Default the query to the base view's own, so a bare `baseView`
+    // re-executes its query (`_setViewThenModifyAsync` otherwise nulls it).
+    // Only an omitted query falls back; an explicit query -- including `null`
+    // to clear it -- is left as the caller specified.
+    const baseView = options?.baseView ?? this._view;
+    const explicitQuery = options?.params?.query;
     await this._setViewThenModifyAsync(
       this._viewFactory.getViewByParameters.bind(this._viewFactory),
       this._viewQueryExecutor.getExistingQueryModifiers.bind(this._viewQueryExecutor),
-      options,
+      {
+        ...options,
+        params: {
+          ...options?.params,
+          query: explicitQuery !== undefined ? explicitQuery : baseView?.query ?? null,
+        },
+      },
     );
+  };
 
   private _setViewGeneric(
     viewFactoryFunc: (options?: ViewFactoryOptions) => View | null,
@@ -374,11 +387,13 @@ export class ViewManager implements ViewManagerInterface {
 
     this._api.getStyleManager().setExpandedMode();
 
+    const stream = view ? getStreamCameraID(view) : null;
     this._api.getConditionStateManager()?.setState({
       view: view?.view,
       camera: view?.camera ?? undefined,
       displayMode: view?.displayMode ?? undefined,
       targetID: view ? getViewTargetID(view) ?? undefined : undefined,
+      substreamID: stream && stream !== view?.camera ? stream : undefined,
     });
 
     this._api.getCardElementManager().update();
