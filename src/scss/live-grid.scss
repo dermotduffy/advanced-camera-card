@@ -1,4 +1,5 @@
 @use 'basic-block.scss';
+@use 'locked.scss';
 
 @keyframes warning-pulse {
   0% {
@@ -46,6 +47,12 @@ advanced-camera-card-live-carousel[triggered] {
   animation: none;
   border-color: var(--advanced-camera-card-transmitting-border-color);
 }
+// While locked, dim and disable interaction on the non-selected cameras in the
+// grid so input stays on the selected camera (e.g. during a call).
+:host([locked]) advanced-camera-card-live-carousel[unselected] {
+  @include locked.style;
+}
+
 advanced-camera-card-live-carousel[selected] {
   --trigger-border-color-base: var(
     --advanced-camera-card-trigger-border-color-base,
