@@ -114,6 +114,8 @@ Allows overriding of any CSS value, can be used to tweak theming parameters.
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
 | Any CSS key. Overriding the [Advanced Camera Card](https://github.com/dermotduffy/advanced-camera-card/blob/main/src/scss/themes/base.scss) CSS variables allows changing individual theming parameters, e.g. `--advanced-camera-card-menu-override-background` | Any CSS value, e.g. `red` or `rgba(10, 11, 12, 0.64)`. |
 
+> [!WARNING] Changes to CSS keys are not considered breaking changes and may not have an associated [major version change](../developing.md?id=release-philosophy).
+
 ## `triggers`
 
 The `triggers` block controls how the card reacts when a camera is triggered
