@@ -36,6 +36,9 @@ export class AdvancedCameraCardDrawer extends LitElement {
   @property({ type: Boolean, reflect: true, attribute: true })
   public open = false;
 
+  @property({ type: Boolean, reflect: true, attribute: true })
+  public locked?: boolean;
+
   @property({ attribute: false, hasChanged: contentsChanged })
   public icons?: DrawerIcons;
 
@@ -66,6 +69,12 @@ export class AdvancedCameraCardDrawer extends LitElement {
     const style = document.createElement('style');
     style.innerHTML = drawerInjectStyle;
     this._refDrawer.value?.shadowRoot?.appendChild(style);
+  }
+
+  protected willUpdate(): void {
+    if (this.locked && this.open) {
+      this.open = false;
+    }
   }
 
   private _slotChanged(): void {
@@ -113,6 +122,13 @@ export class AdvancedCameraCardDrawer extends LitElement {
               <div
                 class="control-surround"
                 @click=${(ev: Event) => {
+                  // While locked the drawer must not open. Return before
+                  // `stopEventFromActivatingCardWideActions` so a click on the
+                  // padded control wrapper is not swallowed and can still fall
+                  // through to card-wide actions.
+                  if (this.locked) {
+                    return;
+                  }
                   stopEventFromActivatingCardWideActions(ev);
                   this.open = !this.open;
                 }}

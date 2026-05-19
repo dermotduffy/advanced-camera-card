@@ -1,6 +1,10 @@
 @use 'const.scss';
 @use 'locked.scss';
 
+:host([locked]) {
+  @include locked.style;
+}
+
 :host {
   display: block;
   width: 100%;

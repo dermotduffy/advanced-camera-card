@@ -1,3 +1,5 @@
+@use 'locked.scss';
+
 $drawer-icon-size: 20px;
 $drawer-padding-extend: 20px;
 
@@ -45,6 +47,12 @@ advanced-camera-card-icon.control {
   padding-bottom: $drawer-padding-extend;
 
   transition: opacity 0.5s ease;
+}
+
+// While locked, the control is dimmed and non-interactive. Applied to the
+// control rather than `:host` so the drawer's slotted content is unaffected.
+:host([locked]) advanced-camera-card-icon.control {
+  @include locked.style;
 }
 
 :host([location='left']) advanced-camera-card-icon.control {

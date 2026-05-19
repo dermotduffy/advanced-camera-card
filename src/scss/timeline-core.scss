@@ -3,6 +3,10 @@
 @use 'const.scss';
 @use 'locked.scss';
 
+:host([locked]) {
+  @include locked.style;
+}
+
 :host {
   width: 100%;
   // Share the screen space with thumbnails that may be above/below.

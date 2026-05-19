@@ -18,6 +18,9 @@ export class AdvancedCameraCardSurroundBasic extends LitElement {
     right?: DrawerIcons;
   };
 
+  @property({ attribute: false })
+  public locked?: boolean;
+
   private _refDrawerLeft: Ref<AdvancedCameraCardDrawer> = createRef();
   private _refDrawerRight: Ref<AdvancedCameraCardDrawer> = createRef();
   private _boundDrawerHandler = this._drawerHandler.bind(this);
@@ -57,6 +60,7 @@ export class AdvancedCameraCardSurroundBasic extends LitElement {
         ${ref(this._refDrawerLeft)}
         location="left"
         .icons=${this.drawerIcons?.left}
+        .locked=${this.locked}
       >
         <slot name="left"></slot>
       </advanced-camera-card-drawer>
@@ -64,6 +68,7 @@ export class AdvancedCameraCardSurroundBasic extends LitElement {
         ${ref(this._refDrawerRight)}
         location="right"
         .icons=${this.drawerIcons?.right}
+        .locked=${this.locked}
       >
         <slot name="right"></slot>
       </advanced-camera-card-drawer>
