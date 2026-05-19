@@ -1326,6 +1326,8 @@ describe('MenuButtonController', () => {
   describe('should have microphone button', () => {
     it('when camera has 2-way-audio capability', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
@@ -1341,6 +1343,7 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
       });
 
       expect(buttons).toContainEqual({
@@ -1369,6 +1372,8 @@ describe('MenuButtonController', () => {
 
     it('when camera does not have 2-way-audio capability', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
@@ -1379,6 +1384,34 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
+      });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ title: 'Microphone' })]),
+      );
+    });
+
+    it('is not shown without an active call', () => {
+      const microphoneManager = mock<MicrophoneManager>();
+      vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
+      vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
+      vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(false);
+
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        microphoneManager,
+        callManager,
       });
 
       expect(buttons).not.toEqual(
@@ -1388,6 +1421,8 @@ describe('MenuButtonController', () => {
 
     it('with forbidden microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(true);
 
       const cameraManager = createCameraManager(
@@ -1401,6 +1436,7 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
       });
 
       expect(buttons).toContainEqual({
@@ -1418,6 +1454,8 @@ describe('MenuButtonController', () => {
 
     it('with muted microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(true);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
@@ -1433,6 +1471,7 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
       });
 
       expect(buttons).toContainEqual({
@@ -1458,6 +1497,8 @@ describe('MenuButtonController', () => {
 
     it('with unsupported microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(true);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(false);
@@ -1473,6 +1514,7 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
       });
 
       expect(buttons).toContainEqual({
@@ -1490,6 +1532,8 @@ describe('MenuButtonController', () => {
 
     it('with muted toggle type microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(true);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
@@ -1505,6 +1549,7 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
         config: createConfig({
           menu: { buttons: { microphone: { type: 'toggle' } } },
         }),
@@ -1529,6 +1574,8 @@ describe('MenuButtonController', () => {
 
     it('with unmuted toggle type microphone', () => {
       const microphoneManager = mock<MicrophoneManager>();
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.isActive).mockReturnValue(true);
       vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
       vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
       vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
@@ -1544,6 +1591,7 @@ describe('MenuButtonController', () => {
       const buttons = calculateButtons(controller, {
         cameraManager,
         microphoneManager: microphoneManager,
+        callManager,
         config: createConfig({
           menu: { buttons: { microphone: { type: 'toggle' } } },
         }),

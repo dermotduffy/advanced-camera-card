@@ -104,6 +104,7 @@ export class MenuButtonController {
         cameraManager,
         options?.view,
         options?.microphoneManager,
+        options?.callManager,
       ),
       this._getExpandButton(config, options?.inExpandedMode),
       this._getFullscreenButton(config, options?.fullscreenManager),
@@ -558,9 +559,15 @@ export class MenuButtonController {
     cameraManager: CameraManager,
     view?: View | null,
     microphoneManager?: MicrophoneManager | null,
+    callManager?: CallManager | null,
   ): MenuItem | null {
     const streamCameraID = view ? getStreamCameraID(view) : null;
     if (!streamCameraID) {
+      return null;
+    }
+
+    // The microphone only transmits during an active call.
+    if (!callManager?.isActive()) {
       return null;
     }
 
