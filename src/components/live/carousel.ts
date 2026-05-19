@@ -445,6 +445,8 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
         <!-- -->
         ${this._renderNextPrevious('right', neighbors)}
       </advanced-camera-card-carousel>
+      <div class="status-glow status-glow--trigger"></div>
+      <div class="status-glow status-glow--transmitting"></div>
       <advanced-camera-card-ptz
         .hass=${this.hass}
         .config=${this.liveConfig.controls.ptz}
