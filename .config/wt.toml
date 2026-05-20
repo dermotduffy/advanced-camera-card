@@ -1,0 +1,3 @@
+# Worktrunk project configuration. See https://worktrunk.dev/config/.
+# Install Node deps when a new worktree is created.
+pre-start.yarn-install = "yarn install --immutable"
