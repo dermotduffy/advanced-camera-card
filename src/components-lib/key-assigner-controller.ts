@@ -1,7 +1,6 @@
 import { LitElement, ReactiveController } from 'lit';
 import { isEqual } from 'lodash-es';
 import { KeyboardShortcut } from '../config/schema/view';
-import { setOrRemoveAttribute } from '../utils/basic';
 
 export class KeyAssignerController implements ReactiveController {
   private _host: LitElement;
@@ -42,7 +41,7 @@ export class KeyAssignerController implements ReactiveController {
   }
   private _setAssigning(assigning: boolean): void {
     this._assigning = assigning;
-    setOrRemoveAttribute(this._host, this._assigning, 'assigning');
+    this._host.toggleAttribute('assigning', this._assigning);
 
     if (this._assigning) {
       this._host.addEventListener('keydown', this._keydownEventHandler);

@@ -4,7 +4,6 @@ import { ViewDisplayConfig } from '../config/schema/common/display';
 import {
   forceReflow,
   getChildrenFromElement,
-  setOrRemoveAttribute,
   setOrRemoveStyleProperty,
 } from '../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
@@ -322,12 +321,12 @@ export class MediaGridController {
 
   private _updateSelectedStylesOnElements(): void {
     for (const [id, element] of this._gridContents.entries()) {
-      setOrRemoveAttribute(element, id === this._selected, 'selected');
+      element.toggleAttribute('selected', id === this._selected);
 
       // Explicitly use an 'unselected' attribute vs a :not(selected) such that
       // a carousel with neither selected nor unselected will behave normally.
       // This matches a css selector in viewer-carousel.scss .
-      setOrRemoveAttribute(element, id !== this._selected, 'unselected');
+      element.toggleAttribute('unselected', id !== this._selected);
     }
   }
 

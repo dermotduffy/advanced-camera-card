@@ -81,11 +81,10 @@ export class StyleManager {
 
   private _setDimmable(): void {
     const config = this._api.getConfigManager().getConfig();
-    setOrRemoveAttribute(
-      this._api.getCardElementManager().getElement(),
-      !!config?.view.dim,
-      'dimmable',
-    );
+    this._api
+      .getCardElementManager()
+      .getElement()
+      .toggleAttribute('dimmable', !!config?.view.dim);
   }
 
   private _setMinMaxHeight(): void {

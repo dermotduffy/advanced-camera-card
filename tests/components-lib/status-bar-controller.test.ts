@@ -4,7 +4,6 @@ import {
   StatusBarConfig,
   statusBarConfigSchema,
 } from '../../src/config/schema/status-bar';
-import { setOrRemoveAttribute } from '../../src/utils/basic';
 import { createInteractionActionEvent, createLitElement } from '../test-utils';
 
 const createConfig = (config?: unknown): StatusBarConfig => {
@@ -35,7 +34,7 @@ describe('StatusBarController', () => {
 
     it('should not hide when not in popup style', () => {
       const host = createLitElement();
-      setOrRemoveAttribute(host, true, 'hide');
+      host.toggleAttribute('hide', true);
 
       const controller = new StatusBarController(host);
 
@@ -52,7 +51,7 @@ describe('StatusBarController', () => {
 
     it('should not show when in popup style', () => {
       const host = createLitElement();
-      setOrRemoveAttribute(host, true, 'hide');
+      host.toggleAttribute('hide', true);
 
       const controller = new StatusBarController(host);
 
@@ -181,7 +180,7 @@ describe('StatusBarController', () => {
     describe('should deal with popup styles correctly', () => {
       it('should show from empty to sufficient', () => {
         const host = createLitElement();
-        setOrRemoveAttribute(host, true, 'hide');
+        host.toggleAttribute('hide', true);
 
         const controller = new StatusBarController(host);
         controller.setConfig(
@@ -203,7 +202,7 @@ describe('StatusBarController', () => {
 
       it('should not show from empty to insufficient', () => {
         const host = createLitElement();
-        setOrRemoveAttribute(host, true, 'hide');
+        host.toggleAttribute('hide', true);
 
         const controller = new StatusBarController(host);
         controller.setConfig(
@@ -255,13 +254,13 @@ describe('StatusBarController', () => {
         controller.setItems([sufficientString]);
 
         // Emulate the popup being hidden.
-        setOrRemoveAttribute(host, true, 'hide');
+        host.toggleAttribute('hide', true);
         controller.setItems([sufficientIcon]);
 
         expect(host.getAttribute('hide')).toBe(null);
 
         // Emulate the popup being hidden.
-        setOrRemoveAttribute(host, true, 'hide');
+        host.toggleAttribute('hide', true);
         controller.setItems([sufficientImage]);
 
         expect(host.getAttribute('hide')).toBe(null);
@@ -269,7 +268,7 @@ describe('StatusBarController', () => {
 
       it('should not start popup timer when permanent items are present', () => {
         const host = createLitElement();
-        setOrRemoveAttribute(host, true, 'hide');
+        host.toggleAttribute('hide', true);
 
         const controller = new StatusBarController(host);
         controller.setConfig(

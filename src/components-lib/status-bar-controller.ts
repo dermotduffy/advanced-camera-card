@@ -5,7 +5,7 @@ import { ActionsConfig, StatusBarItem } from '../config/schema/actions/types';
 import { STATUS_BAR_PRIORITY_DEFAULT } from '../config/schema/common/const';
 import { StatusBarConfig } from '../config/schema/status-bar';
 import { getActionConfigGivenAction } from '../utils/action';
-import { arrayify, setOrRemoveAttribute } from '../utils/basic';
+import { arrayify } from '../utils/basic';
 import { Timer } from '../utils/timer';
 import { AutoHideState, isAutoHidden as evaluateAutoHidden } from './auto-hide';
 
@@ -144,10 +144,10 @@ export class StatusBarController {
   }
 
   private _show(): void {
-    setOrRemoveAttribute(this._host, false, 'hide');
+    this._host.toggleAttribute('hide', false);
   }
 
   private _hide(): void {
-    setOrRemoveAttribute(this._host, true, 'hide');
+    this._host.toggleAttribute('hide', true);
   }
 }

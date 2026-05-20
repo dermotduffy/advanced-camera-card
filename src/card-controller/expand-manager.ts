@@ -1,4 +1,3 @@
-import { setOrRemoveAttribute } from '../utils/basic';
 import { CardExpandAPI } from './types';
 
 export class ExpandManager {
@@ -29,11 +28,7 @@ export class ExpandManager {
 
     this._expanded = expanded;
     this._setConditionState();
-    setOrRemoveAttribute(
-      this._api.getCardElementManager().getElement(),
-      expanded,
-      'expanded',
-    );
+    this._api.getCardElementManager().getElement().toggleAttribute('expanded', expanded);
     this._api.getCardElementManager().update();
   }
 

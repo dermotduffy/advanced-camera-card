@@ -2,7 +2,6 @@ import { LitElement, ReactiveControllerHost } from 'lit';
 import { ActionEventTarget } from '../action-handler-directive';
 import { isCardInPanel } from '../ha/panel';
 import { LovelaceCard } from '../ha/types';
-import { setOrRemoveAttribute } from '../utils/basic';
 import { isBeingCasted } from '../utils/casting';
 import { isAncestorInEventPath } from '../utils/event-ancestor';
 import { CardMediaReviewEventTarget } from '../utils/review';
@@ -90,8 +89,8 @@ export class CardElementManager {
       ]);
 
     // Whether or not the card is in panel mode on the dashboard.
-    setOrRemoveAttribute(this._element, isCardInPanel(this._element), 'panel');
-    setOrRemoveAttribute(this._element, isBeingCasted(), 'casted');
+    this._element.toggleAttribute('panel', isCardInPanel(this._element));
+    this._element.toggleAttribute('casted', isBeingCasted());
 
     this._api.getFullscreenManager().connect();
 
@@ -165,9 +164,9 @@ export class CardElementManager {
   }
 
   public elementDisconnected(): void {
-    setOrRemoveAttribute(this._element, false, 'panel');
-    setOrRemoveAttribute(this._element, false, 'tabindex');
-    setOrRemoveAttribute(this._element, false, 'casted');
+    this._element.toggleAttribute('panel', false);
+    this._element.toggleAttribute('tabindex', false);
+    this._element.toggleAttribute('casted', false);
 
     // Suspend issue evaluation so state changes below (e.g. clearing
     // mediaLoadedInfo) don't arm timers while the card is detached. Issue state

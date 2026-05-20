@@ -26,7 +26,7 @@ import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';
 import viewerCarouselStyle from '../../scss/viewer-carousel.scss';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
-import { contentsChanged, setOrRemoveAttribute } from '../../utils/basic.js';
+import { contentsChanged } from '../../utils/basic.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { getTextDirection } from '../../utils/text-direction.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
@@ -235,7 +235,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       const newView = this.viewManagerEpoch?.manager.getView();
 
       if (!newView?.context?.mediaViewer?.seek) {
-        setOrRemoveAttribute(this, false, 'unseekable');
+        this.toggleAttribute('unseekable', false);
       }
 
       const oldView = this.viewManagerEpoch?.oldView;
@@ -436,7 +436,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     }
 
     const seekTimeInMedia = selectedMedia.includesTime(seek);
-    setOrRemoveAttribute(this, !seekTimeInMedia, 'unseekable');
+    this.toggleAttribute('unseekable', !seekTimeInMedia);
     if (!seekTimeInMedia && !mediaPlayerController.isPaused()) {
       mediaPlayerController.pause();
     } else if (seekTimeInMedia && mediaPlayerController.isPaused()) {
