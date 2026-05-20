@@ -180,6 +180,7 @@
   },
   "scripts": {
     "start": "rollup -c --watch",
+    "deployment-update": "./scripts/deployment-update-symlink.sh",
     "build": "yarn run lint && yarn run rollup",
     "docs": "docsify serve ./docs",
     "docs-check-links": "docker run --init --rm -v \"$(pwd):/input\" -w /input lycheeverse/lychee --config lychee.toml \"./docs/\"",
