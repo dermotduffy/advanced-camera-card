@@ -30,12 +30,7 @@ import {
 import { configDefaults } from '../../config/schema/types';
 import { HomeAssistant } from '../../ha/types';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action';
-import {
-  formatDateAndTime,
-  isHoverableDevice,
-  isTruthy,
-  setOrRemoveAttribute,
-} from '../../utils/basic';
+import { formatDateAndTime, isHoverableDevice, isTruthy } from '../../utils/basic';
 import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import { ViewMedia } from '../../view/item';
@@ -195,17 +190,9 @@ export class TimelineController {
     if (this._timelineConfig !== (options.timelineConfig ?? null)) {
       this._timelineConfig = options?.timelineConfig ?? null;
 
-      setOrRemoveAttribute(
-        this._host,
-        !!this._timelineConfig?.show_recordings,
-        'recordings',
-      );
-      setOrRemoveAttribute(
-        this._host,
-        this._timelineConfig?.style === 'ribbon',
-        'ribbon',
-      );
-      setOrRemoveAttribute(this._host, this._timelineConfig?.style === 'stack', 'stack');
+      this._host.toggleAttribute('recordings', !!this._timelineConfig?.show_recordings);
+      this._host.toggleAttribute('ribbon', this._timelineConfig?.style === 'ribbon');
+      this._host.toggleAttribute('stack', this._timelineConfig?.style === 'stack');
     }
 
     this._thumbnailConfig = options?.thumbnailConfig ?? null;
@@ -215,7 +202,7 @@ export class TimelineController {
     this._timelineConfig = options?.timelineConfig ?? null;
     this._mini = options?.mini ?? false;
 
-    setOrRemoveAttribute(this._host, this._shouldShowGroups(), 'groups');
+    this._host.toggleAttribute('groups', this._shouldShowGroups());
   }
 
   public async setView(viewManagerEpoch: ViewManagerEpoch | null): Promise<void> {

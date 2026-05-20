@@ -1,5 +1,4 @@
 import { throttle } from 'lodash-es';
-import { setOrRemoveAttribute } from '../utils/basic';
 import { Timer } from '../utils/timer';
 import { CardInteractionAPI } from './types';
 
@@ -33,11 +32,7 @@ export class InteractionManager {
 
   private _setInteraction(val: boolean): void {
     this._interacted = val;
-    setOrRemoveAttribute(
-      this._api.getCardElementManager().getElement(),
-      val,
-      'interaction',
-    );
+    this._api.getCardElementManager().getElement().toggleAttribute('interaction', val);
     this._api.getConditionStateManager().setState({ interaction: val });
   }
 

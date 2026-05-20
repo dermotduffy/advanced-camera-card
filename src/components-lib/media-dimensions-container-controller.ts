@@ -2,11 +2,7 @@ import { ReactiveController, ReactiveControllerHost } from 'lit';
 import { debounce } from 'lodash-es';
 import { CameraDimensionsConfig } from '../config/schema/cameras';
 import { MediaLoadedInfoEventDetail } from '../types';
-import {
-  aspectRatioToString,
-  setOrRemoveAttribute,
-  setOrRemoveStyleProperty,
-} from '../utils/basic';
+import { aspectRatioToString, setOrRemoveStyleProperty } from '../utils/basic';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout';
 
 const ROTATED_ATTRIBUTE = 'rotated';
@@ -215,7 +211,7 @@ export class MediaDimensionsContainerController implements ReactiveController {
   }
 
   private _setRotation(element: HTMLElement, rotate: boolean): void {
-    setOrRemoveAttribute(element, rotate, ROTATED_ATTRIBUTE);
+    element.toggleAttribute(ROTATED_ATTRIBUTE, rotate);
   }
 
   private _resize(): void {
