@@ -8,7 +8,6 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { ZoomController } from '../components-lib/zoom/zoom-controller.js';
-import { setOrRemoveAttribute } from '../utils/basic.js';
 import { PartialZoomSettings } from '../components-lib/zoom/types.js';
 
 @customElement('advanced-camera-card-zoomer')
@@ -48,7 +47,7 @@ export class AdvancedCameraCardZoomer extends LitElement {
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('_zoomed')) {
-      setOrRemoveAttribute(this, this._zoomed, 'zoomed');
+      this.toggleAttribute('zoomed', this._zoomed);
     }
 
     if (changedProps.has('zoom')) {

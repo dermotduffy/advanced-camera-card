@@ -9,7 +9,7 @@ import type { MenuItem } from '../config/schema/elements/custom/menu/types.js';
 import type { MenuConfig } from '../config/schema/menu.js';
 import type { Interaction } from '../types.js';
 import { getActionConfigGivenAction } from '../utils/action';
-import { arrayify, isTruthy, setOrRemoveAttribute } from '../utils/basic.js';
+import { arrayify, isTruthy } from '../utils/basic.js';
 import { AutoHideState, isAutoHidden as evaluateAutoHidden } from './auto-hide.js';
 
 export class MenuController {
@@ -126,7 +126,7 @@ export class MenuController {
 
   public setExpanded(expanded: boolean): void {
     this._expanded = expanded;
-    setOrRemoveAttribute(this._host, expanded, 'expanded');
+    this._host.toggleAttribute('expanded', expanded);
     this._host.requestUpdate();
   }
 
