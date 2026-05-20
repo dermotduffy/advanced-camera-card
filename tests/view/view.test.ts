@@ -87,13 +87,32 @@ describe('View Basics', () => {
 
     expect(evolved.view).toBe(view.view);
     expect(evolved.camera).toBe(view.camera);
-    expect(evolved.context).toBe(view.context);
+
+    // Context is deep-cloned if not set, so the evolved view owns it.
+    expect(evolved.context).not.toBe(view.context);
+    expect(evolved.context).toEqual(view.context);
 
     // Query and QueryResults are cloned if not set.
     expect(evolved.query).not.toBe(view.query);
     expect(evolved.query).toEqual(view.query);
     expect(evolved.queryResults).not.toBe(view.queryResults);
     expect(evolved.queryResults).toEqual(view.queryResults);
+  });
+
+  it('should isolate inherited context from mutation on clone and evolve', () => {
+    const view = createView({
+      view: 'live',
+      camera: 'camera-1',
+      context: { live: { overrides: new Map([['camera-1', 'sub-1']]) } },
+    });
+
+    const cloned = view.clone();
+    const evolved = view.evolve({});
+
+    cloned.context?.live?.overrides?.set('camera-1', 'mutated-clone');
+    evolved.context?.live?.overrides?.delete('camera-1');
+
+    expect(view.context?.live?.overrides?.get('camera-1')).toBe('sub-1');
   });
 
   it('should not clone query and queryResults with nothing set', () => {

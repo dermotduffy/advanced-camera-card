@@ -1,4 +1,4 @@
-import { merge } from 'lodash-es';
+import { cloneDeep, merge } from 'lodash-es';
 import { ViewContext } from 'view';
 import { AdvancedCameraCardView } from '../config/schema/common/const';
 import { ViewDisplayMode } from '../config/schema/common/display';
@@ -95,7 +95,7 @@ export class View {
       camera: this.camera,
       query: this.query?.clone() ?? null,
       queryResults: this.queryResults?.clone() ?? null,
-      context: this.context,
+      context: cloneDeep(this.context),
       displayMode: this.displayMode,
     });
   }
@@ -114,7 +114,7 @@ export class View {
         params.queryResults !== undefined
           ? params.queryResults
           : this.queryResults?.clone() ?? null,
-      context: params.context !== undefined ? params.context : this.context,
+      context: params.context !== undefined ? params.context : cloneDeep(this.context),
       displayMode:
         params.displayMode !== undefined ? params.displayMode : this.displayMode,
     });
