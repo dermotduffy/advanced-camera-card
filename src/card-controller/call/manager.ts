@@ -1,4 +1,3 @@
-import { cloneDeep } from 'lodash-es';
 import { createNotificationFromText } from '../../components-lib/notification/factory';
 import { ConditionStateChange } from '../../conditions/types';
 import { localize } from '../../localize/localize';
@@ -88,12 +87,10 @@ export class CallManager {
 
     // Store the previous view so it can be restored later. A call superseding
     // another inherits the earlier call's previous view -- the user never left
-    // the call. `queryResults` are dropped (re-fetched fresh on restore);
-    // `context` is deep-cloned so the call engaging its own substream below
-    // cannot mutate the snapshot.
+    // the call. `queryResults` are dropped (re-fetched fresh on restore).
     const previousView = existingCall
       ? existingCall.previousView
-      : view.evolve({ queryResults: null, context: cloneDeep(view.context) });
+      : view.evolve({ queryResults: null });
 
     const needsNavigation = !view.is('live') || view.camera !== parentID;
 

@@ -383,8 +383,10 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       // on media load, since the media may or may not have been loaded at
       // this point).
       if (
-        this.viewManagerEpoch?.manager.getView()?.context?.mediaViewer !==
-        this.viewManagerEpoch?.oldView?.context?.mediaViewer
+        this.viewManagerEpoch?.manager
+          .getView()
+          ?.context?.mediaViewer?.seek?.getTime() !==
+        this.viewManagerEpoch?.oldView?.context?.mediaViewer?.seek?.getTime()
       ) {
         this._seekHandler();
       }
