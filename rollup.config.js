@@ -14,6 +14,10 @@ import { visualizer } from 'rollup-plugin-visualizer';
 const watch = process.env.ROLLUP_WATCH === 'true' || process.env.ROLLUP_WATCH === '1';
 const dev = watch || process.env.DEV === 'true' || process.env.DEV === '1';
 
+// Opt-in dev server: `rollup -c --watch --environment SERVE`. Off by default
+// for deployments that read output from the filesystem.
+const serveEnabled = process.env.SERVE === 'true' || process.env.SERVE === '1';
+
 /**
  * @type {import('rollup-plugin-serve').ServeOptions}
  */
@@ -64,7 +68,7 @@ const plugins = [
         process.env.RELEASE_VERSION ?? (dev ? 'dev' : 'pkg'),
     },
   }),
-  watch && serve(serveopts),
+  serveEnabled && serve(serveopts),
   !dev && terser(),
   visualizer({
     filename: 'visualizations/treemap.html',
