@@ -4,8 +4,8 @@
     {
       "label": "Rollup",
       "type": "shell",
-      "command": "${workspaceFolder}/.vscode/run-once.sh",
-      "args": ["/tmp/advanced-camera-card-rollup.pid", "10001", "yarn", "start"],
+      "command": "yarn",
+      "args": ["start"],
       "problemMatcher": {
         "pattern": [
           {
