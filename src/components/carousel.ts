@@ -78,7 +78,6 @@ export class AdvancedCameraCardCarousel extends LitElement {
 
     const destroyProperties = [
       'direction',
-      'dragEnabled',
       'dragFree',
       'loop',
       'plugins',
@@ -87,6 +86,8 @@ export class AdvancedCameraCardCarousel extends LitElement {
     if (destroyProperties.some((prop) => changedProps.has(prop))) {
       this._carousel?.destroy();
       this._carousel = null;
+    } else if (changedProps.has('dragEnabled') && this._carousel) {
+      this._carousel.setDragEnabled(this.dragEnabled);
     }
   }
 

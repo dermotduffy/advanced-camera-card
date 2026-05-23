@@ -90,10 +90,10 @@ export const triggersSchema = z.object({
     .object({
       interaction_mode: interactionModeSchema,
       trigger: z
-        .enum(['default', 'live', 'media', 'none', 'update'])
+        .enum(['call', 'default', 'live', 'media', 'none', 'update'])
         .default(viewConfigDefault.triggers.actions.trigger),
       untrigger: z
-        .enum(['default', 'none'])
+        .enum(['call', 'default', 'none'])
         .default(viewConfigDefault.triggers.actions.untrigger),
     })
     .default(viewConfigDefault.triggers.actions),

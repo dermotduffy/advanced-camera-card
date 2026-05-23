@@ -123,6 +123,10 @@ import {
   CONF_LIVE_CONTROLS_BUILTIN,
   CONF_LIVE_CONTROLS_CALL_BUTTON_SIZE,
   CONF_LIVE_CONTROLS_CALL_LOCK,
+  CONF_LIVE_CONTROLS_CALL_RINGTONE_REPEAT,
+  CONF_LIVE_CONTROLS_CALL_RINGTONE_TYPE,
+  CONF_LIVE_CONTROLS_CALL_RINGTONE_URL,
+  CONF_LIVE_CONTROLS_CALL_UNANSWERED_TIMEOUT_SECONDS,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
@@ -968,6 +972,10 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
   private _triggersActionsTrigger: EditorSelectOption[] = [
     { value: '', label: '' },
     {
+      value: 'call',
+      label: localize('config.view.triggers.actions.triggers.call'),
+    },
+    {
       value: 'default',
       label: localize('config.view.triggers.actions.triggers.default'),
     },
@@ -988,12 +996,44 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
   private _triggersActionsUntrigger: EditorSelectOption[] = [
     { value: '', label: '' },
     {
+      value: 'call',
+      label: localize('config.view.triggers.actions.untriggers.call'),
+    },
+    {
       value: 'default',
       label: localize('config.view.triggers.actions.untriggers.default'),
     },
     {
       value: 'none',
       label: localize('config.view.triggers.actions.untriggers.none'),
+    },
+  ];
+
+  private _callRingtoneTypes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'none',
+      label: localize('config.live.controls.call.ringtone.types.none'),
+    },
+    {
+      value: 'chime',
+      label: localize('config.live.controls.call.ringtone.types.chime'),
+    },
+    {
+      value: 'westminster',
+      label: localize('config.live.controls.call.ringtone.types.westminster'),
+    },
+    {
+      value: 'arpeggio',
+      label: localize('config.live.controls.call.ringtone.types.arpeggio'),
+    },
+    {
+      value: 'melody',
+      label: localize('config.live.controls.call.ringtone.types.melody'),
+    },
+    {
+      value: 'custom',
+      label: localize('config.live.controls.call.ringtone.types.custom'),
     },
   ];
 
@@ -3329,6 +3369,32 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                         ${this._renderSwitch(
                           CONF_LIVE_CONTROLS_CALL_LOCK,
                           this._defaults.live.controls.call.lock,
+                        )}
+                        ${this._renderOptionSelector(
+                          CONF_LIVE_CONTROLS_CALL_RINGTONE_TYPE,
+                          this._callRingtoneTypes,
+                          {
+                            label: localize('config.live.controls.call.ringtone.type'),
+                          },
+                        )}
+                        ${this._renderStringInput(CONF_LIVE_CONTROLS_CALL_RINGTONE_URL, {
+                          label: localize('config.live.controls.call.ringtone.url'),
+                        })}
+                        ${this._renderNumberInput(
+                          CONF_LIVE_CONTROLS_CALL_RINGTONE_REPEAT,
+                          {
+                            min: 0,
+                            default: this._defaults.live.controls.call.ringtone.repeat,
+                          },
+                        )}
+                        ${this._renderNumberInput(
+                          CONF_LIVE_CONTROLS_CALL_UNANSWERED_TIMEOUT_SECONDS,
+                          {
+                            min: 0,
+                            default:
+                              this._defaults.live.controls.call
+                                .unanswered_timeout_seconds,
+                          },
                         )}
                         ${this._renderNumberInput(CONF_LIVE_CONTROLS_CALL_BUTTON_SIZE, {
                           min: BUTTON_SIZE_MIN,

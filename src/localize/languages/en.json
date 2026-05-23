@@ -401,7 +401,21 @@
           "lock": "Lock UI during an active call",
           "mute_audio": "Mute audio",
           "mute_microphone": "Mute microphone",
+          "ringtone": {
+            "repeat": "Ringtone repeats per inbound call (0=indefinite)",
+            "type": "Ringtone for inbound calls",
+            "types": {
+              "arpeggio": "Arpeggio",
+              "chime": "Chime",
+              "custom": "Custom audio URL",
+              "melody": "Melody",
+              "none": "None",
+              "westminster": "Westminster"
+            },
+            "url": "Custom ringtone URL"
+          },
           "start": "Start 2-way audio call",
+          "unanswered_timeout_seconds": "Seconds before ending unanswered inbound calls (0=never)",
           "unmute_audio": "Unmute audio",
           "unmute_microphone": "Unmute microphone"
         },
@@ -646,6 +660,7 @@
           "interaction_mode": "How to handle actions when the card has human interaction",
           "trigger": "Trigger action",
           "triggers": {
+            "call": "Start a 2-way audio call",
             "default": "Change to or update default view",
             "live": "Change to or update live view",
             "media": "Change to the relevant media view for new media",
@@ -653,6 +668,7 @@
           },
           "untrigger": "Untrigger action",
           "untriggers": {
+            "call": "End a 2-way audio call",
             "default": "Change to default view/camera",
             "none": "No action"
           }

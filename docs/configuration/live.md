@@ -55,10 +55,36 @@ live:
       # [...]
 ```
 
-| Option        | Default | Description                                                                                                                                                                                             |
-| ------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `button_size` | `40`    | The size of the call control buttons in pixels. Must be &gt;= `20`.                                                                                                                                     |
-| `lock`        | `true`  | Whether to lock the rest of the card controls/actions while a call is in progress. Prevents an accidental tap, swipe or action mid-call. Set to `false` to allow interactions regardless of call state. |
+| Option                       | Default | Description                                                                                                                                                                                                                                                                                                    |
+| ---------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `button_size`                | `40`    | The size of the call control buttons in pixels. Must be &gt;= `20`.                                                                                                                                                                                                                                            |
+| `lock`                       | `true`  | Whether to lock the rest of the card controls/actions while a call is in progress. Prevents an accidental tap, swipe or action mid-call. Set to `false` to allow interactions regardless of call state.                                                                                                        |
+| `ringtone`                   |         | The audible chime played while an inbound call (e.g. one started by [`view.triggers.actions.trigger: call`](./view.md?id=trigger-action-configuration)) is ringing. Stops as soon as the microphone is un-muted (the "answer" gesture) or the call ends. Manual calls never ring. See [`ringtone`](#ringtone). |
+| `unanswered_timeout_seconds` | `60`    | The number of seconds an inbound call may ring unanswered before it is automatically ended. The timer is cancelled the moment the microphone is un-muted. Set to `0` to disable the timeout.                                                                                                                   |
+
+> [!NOTE] Browser autoplay restrictions may prevent the ringtone from playing
+> until the page has received a user gesture (e.g. a tap or click). When that
+> happens no sound is produced and no error is shown. The underlying behavior is
+> documented in [MDN's Autoplay
+> guide](https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide).
+
+#### `ringtone`
+
+Configures the chime played while an inbound call is ringing.
+
+```yaml
+live:
+  controls:
+    call:
+      ringtone:
+        # [...]
+```
+
+| Option   | Default | Description                                                                                                                                                                                                                                                                                                                                                                                               |
+| -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`   | `chime` | Which ringtone to play. `chime` is the default two-note doorbell. `westminster` plays the four-note Westminster Quarters phrase. `arpeggio` plays three quick descending plucks. `melody` plays a I-V-I chord cadence. `custom` plays an audio file at `url` (e.g. an `.mp3` or any browser-supported URL). `none` disables the ringtone entirely (equivalent to leaving the call silent until answered). |
+| `url`    |         | Path to an audio file to use as the ringtone. Only honored when `type` is `custom`; ignored otherwise. If `type` is `custom` but no `url` is provided, no ringtone plays.                                                                                                                                                                                                                                 |
+| `repeat` | `0`     | Number of times the ringtone is played per inbound call. `0` loops indefinitely until the call is answered or ended.                                                                                                                                                                                                                                                                                      |
 
 ### `next_previous`
 
@@ -234,6 +260,10 @@ live:
     call:
       button_size: 40
       lock: true
+      ringtone:
+        type: chime
+        repeat: 0
+      unanswered_timeout_seconds: 60
     next_previous:
       auto_hide:
         - call

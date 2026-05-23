@@ -196,12 +196,12 @@ export const CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS =
 export const CONF_VIEW_TRIGGERS_UNTRIGGER_FORCE_SECONDS =
   `${CONF_VIEW_TRIGGERS}.untrigger_force_seconds` as const;
 export const CONF_VIEW_TRIGGERS_ACTIONS = `${CONF_VIEW_TRIGGERS}.actions` as const;
+export const CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE =
+  `${CONF_VIEW_TRIGGERS_ACTIONS}.interaction_mode` as const;
 export const CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER =
   `${CONF_VIEW_TRIGGERS_ACTIONS}.trigger` as const;
 export const CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER =
   `${CONF_VIEW_TRIGGERS_ACTIONS}.untrigger` as const;
-export const CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE =
-  `${CONF_VIEW_TRIGGERS_ACTIONS}.interaction_mode` as const;
 
 const CONF_MEDIA_GALLERY = 'media_gallery' as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_FILTER_MODE =
@@ -294,6 +294,14 @@ export const CONF_LIVE_CONTROLS_BUILTIN = `${CONF_LIVE}.controls.builtin` as con
 export const CONF_LIVE_CONTROLS_CALL_BUTTON_SIZE =
   `${CONF_LIVE}.controls.call.button_size` as const;
 export const CONF_LIVE_CONTROLS_CALL_LOCK = `${CONF_LIVE}.controls.call.lock` as const;
+export const CONF_LIVE_CONTROLS_CALL_RINGTONE_REPEAT =
+  `${CONF_LIVE}.controls.call.ringtone.repeat` as const;
+export const CONF_LIVE_CONTROLS_CALL_RINGTONE_TYPE =
+  `${CONF_LIVE}.controls.call.ringtone.type` as const;
+export const CONF_LIVE_CONTROLS_CALL_RINGTONE_URL =
+  `${CONF_LIVE}.controls.call.ringtone.url` as const;
+export const CONF_LIVE_CONTROLS_CALL_UNANSWERED_TIMEOUT_SECONDS =
+  `${CONF_LIVE}.controls.call.unanswered_timeout_seconds` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_AUTO_HIDE =
   `${CONF_LIVE}.controls.next_previous.auto_hide` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE =
