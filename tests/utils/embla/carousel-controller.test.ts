@@ -195,11 +195,45 @@ describe('CarouselController', () => {
         containScroll: 'trimSnaps',
         watchSlides: false,
         watchResize: true,
-        watchDrag: false,
+        watchDrag: expect.any(Function),
         direction: 'rtl',
       },
       [],
     );
+  });
+
+  it('should pass a watchDrag predicate reflecting the current drag state', () => {
+    const children = createTestSlideNodes();
+    const root = createRoot();
+    const parent = createParent({ children: children });
+
+    const carousel = new CarouselController(root, parent, { dragEnabled: true });
+
+    const emblaOptions = vi.mocked(EmblaCarousel).mock.calls[0][1] as {
+      watchDrag: () => boolean;
+    };
+    expect(emblaOptions.watchDrag()).toBe(true);
+
+    carousel.setDragEnabled(false);
+    expect(emblaOptions.watchDrag()).toBe(false);
+
+    carousel.setDragEnabled(true);
+    expect(emblaOptions.watchDrag()).toBe(true);
+  });
+
+  it('should toggle drag without rebuilding the carousel', () => {
+    const children = createTestSlideNodes();
+    const parent = createParent({ children: children });
+    const carousel = new CarouselController(createRoot(), parent, {
+      dragEnabled: true,
+    });
+
+    const emblaApi = getEmblaApi();
+    expect(emblaApi).toBeTruthy();
+
+    carousel.setDragEnabled(false);
+    expect(emblaApi?.reInit).not.toBeCalled();
+    expect(emblaApi?.destroy).not.toBeCalled();
   });
 
   it('should include wheel plugin when slides > 1', () => {

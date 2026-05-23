@@ -94,6 +94,8 @@ describe('config defaults', () => {
           call: {
             button_size: 40,
             lock: true,
+            ringtone: { type: 'chime', repeat: 0 },
+            unanswered_timeout_seconds: 60,
           },
           next_previous: {
             auto_hide: ['call', 'casting'],

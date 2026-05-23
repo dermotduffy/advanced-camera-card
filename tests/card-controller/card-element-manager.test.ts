@@ -143,6 +143,7 @@ describe('CardElementManager', () => {
     expect(api.getExpandManager().initialize).toBeCalled();
     expect(api.getMediaLoadedInfoManager().initialize).toBeCalled();
     expect(api.getMicrophoneManager().initialize).toBeCalled();
+    expect(api.getCallManager().initialize).toBeCalled();
   });
 
   it('should disconnect', () => {
@@ -209,6 +210,7 @@ describe('CardElementManager', () => {
     expect(api.getFullscreenManager().disconnect).toBeCalled();
     expect(api.getKeyboardStateManager().uninitialize).toBeCalled();
     expect(api.getActionsManager().uninitialize).toBeCalled();
+    expect(api.getCallManager().uninitialize).toBeCalled();
     expect(api.getInitializationManager().uninitialize).toBeCalledWith('cameras');
   });
 

@@ -30,14 +30,40 @@ const microphoneConfigDefault = {
   mute_after_microphone_mute_seconds: 60,
 };
 
+const ringtoneConfigDefault = {
+  type: 'chime' as const,
+  repeat: 0,
+};
+
+const ringtoneConfigSchema = z.object({
+  type: z
+    .enum(['none', 'chime', 'westminster', 'arpeggio', 'melody', 'custom'])
+    .default(ringtoneConfigDefault.type),
+  // For `type` is `custom`, path to an audio file.
+  url: z.string().optional(),
+
+  // Number of times the ringtone plays per inbound call. `0` is indefinitely.
+  repeat: z.number().int().min(0).default(ringtoneConfigDefault.repeat),
+});
+export type RingtoneConfig = z.infer<typeof ringtoneConfigSchema>;
+
 const callConfigDefault = {
   button_size: 40,
   lock: true,
+  ringtone: { ...ringtoneConfigDefault },
+  unanswered_timeout_seconds: 60,
 };
 
 const callConfigSchema = z.object({
   button_size: z.number().min(BUTTON_SIZE_MIN).default(callConfigDefault.button_size),
   lock: z.boolean().default(callConfigDefault.lock),
+  ringtone: ringtoneConfigSchema.default(callConfigDefault.ringtone),
+
+  // Seconds an inbound call may ring unanswered before it is auto-ended.
+  unanswered_timeout_seconds: z
+    .number()
+    .min(0)
+    .default(callConfigDefault.unanswered_timeout_seconds),
 });
 
 const microphoneConfigSchema = z

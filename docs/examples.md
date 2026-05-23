@@ -359,6 +359,46 @@ elements:
 
 ![Doorbell example](images/doorbell-example.gif 'Doorbell example :size=400')
 
+### Inbound call on doorbell press
+
+This example uses [`view.triggers.actions.trigger: call`](configuration/view.md?id=triggers) to turn an dashboard into a phone-like ringer when somebody presses the doorbell. The intended deployment is a wall-mounted tablet sitting on the dashboard.
+
+The Frigate camera's stock event triggers (`occupancy`, `motion`, `events`) are explicitly turned off so casual motion doesn't make the card ring — only an actual doorbell press does.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.front_door
+    live_provider: go2rtc
+    go2rtc:
+      modes:
+        - webrtc
+    triggers:
+      occupancy: false
+      motion: false
+      events: []
+      entities:
+        - switch.door_bell
+view:
+  default: live
+  triggers:
+    show_trigger_status: true
+    # Keeps the trigger "active" this long after the switch goes off.
+    # A doorbell button typically gives a brief ON pulse, so the chime
+    # would stop almost immediately if this were small -- this value
+    # is effectively how long the chime keeps ringing after the press.
+    untrigger_delay_seconds: 30
+    actions:
+      # Call when triggered.
+      trigger: call
+      # On release (after the untrigger_delay): end the call if it is
+      # still ringing. An answered call survives this and must be ended
+      # manually.
+      untrigger: call
+      # Ring even when somebody is actively using the card.
+      interaction_mode: all
+```
+
 ## Events from other cameras
 
 `dependencies.cameras` allows events/recordings for other cameras to be shown
