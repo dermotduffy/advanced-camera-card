@@ -77,10 +77,10 @@ automations:
         fullscreen: true
     actions:
       - action: custom:advanced-camera-card-action
-        advanced_camera_card_action: live_substream_on
+        advanced_camera_card_action: substream_on
     actions_not:
       - action: custom:advanced-camera-card-action
-        advanced_camera_card_action: live_substream_off
+        advanced_camera_card_action: substream_off
 ```
 
 ### Fullscreen with display mode and substream switching
@@ -117,7 +117,7 @@ elements:
         advanced_camera_card_action: display_mode_select
         display_mode: single
       - action: custom:advanced-camera-card-action
-        advanced_camera_card_action: live_substream_on
+        advanced_camera_card_action: substream_on
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: fullscreen
 automations:
@@ -126,7 +126,7 @@ automations:
         fullscreen: false
     actions:
       - action: custom:advanced-camera-card-action
-        advanced_camera_card_action: live_substream_off
+        advanced_camera_card_action: substream_off
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: display_mode_select
         display_mode: grid
@@ -637,10 +637,10 @@ cameras:
 automations:
   - actions:
       - action: custom:advanced-camera-card-action
-        advanced_camera_card_action: live_substream_on
+        advanced_camera_card_action: substream_on
     actions_not:
       - action: custom:advanced-camera-card-action
-        advanced_camera_card_action: live_substream_off
+        advanced_camera_card_action: substream_off
     conditions:
       - condition: interaction
         interaction: true

@@ -228,50 +228,6 @@ action: custom:advanced-camera-card-action
 advanced_camera_card_action: live
 ```
 
-## `live_substream_off`
-
-Turn off the substream (if on).
-
-```yaml
-action: custom:advanced-camera-card-action
-advanced_camera_card_action: live_substream_off
-```
-
-| Parameter                     | Description                                   |
-| ----------------------------- | --------------------------------------------- |
-| `action`                      | Must be `custom:advanced-camera-card-action`. |
-| `advanced_camera_card_action` | Must be `live_substream_off`.                 |
-
-## `live_substream_on`
-
-Turn on the first available substream. Use [Camera dependency configuration](../../cameras/README.md?id=dependencies) to configure substreams.
-
-```yaml
-action: custom:advanced-camera-card-action
-advanced_camera_card_action: live_substream_on
-```
-
-| Parameter                     | Description                                   |
-| ----------------------------- | --------------------------------------------- |
-| `action`                      | Must be `custom:advanced-camera-card-action`. |
-| `advanced_camera_card_action` | Must be `live_substream_on`.                  |
-
-## `live_substream_select`
-
-Select a substream. Use [Camera dependency configuration](../../cameras/README.md?id=dependencies) to configure substreams.
-
-```yaml
-action: custom:advanced-camera-card-action
-advanced_camera_card_action: live_substream_select
-# [...]
-```
-
-| Parameter                     | Description                                                                     |
-| ----------------------------- | ------------------------------------------------------------------------------- |
-| `action`                      | Must be `custom:advanced-camera-card-action`.                                   |
-| `advanced_camera_card_action` | Must be `live_substream_select`.                                                |
-| `camera`                      | The [camera ID](../../cameras/README.md?id=cameras) of the substream to select. |
-
 ## `media`
 
 Change to the `media` view.
@@ -687,6 +643,43 @@ advanced_camera_card_action: status_bar
 
 The items parameter is a list of items to `add` or `remove`. See [`custom:advanced-camera-card-status-bar-icon`](../../elements/custom/README.md?id=status-bar-icon), [`custom:advanced-camera-card-status-bar-image`](../../elements/custom/README.md?id=status-bar-image), [`custom:advanced-camera-card-status-bar-string`](../../elements/custom/README.md?id=status-bar-string) for the allowable items and their parameters. See the [fully expanded reference](./README.md?fully-expanded-reference) below for a complete example.
 
+## `substream_off`
+
+Turn off a camera's substream.
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: substream_off
+# [...]
+```
+
+| Parameter                     | Description                                                                                                                             |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                                                                                           |
+| `advanced_camera_card_action` | Must be `substream_off`.                                                                                                                |
+| `camera`                      | An optional [camera ID](../../cameras/README.md?id=cameras) whose substream override to clear. If omitted, the selected camera is used. |
+
+## `substream_on`
+
+Turn on a substream. Use [Camera dependency
+configuration](../../cameras/README.md?id=dependencies) to configure substreams.
+When `stream` is set, the action engages that named stream. When omitted, each
+call advances through the camera's `substream` dependencies in order, wrapping
+back to the camera itself (no substream engaged).
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: substream_on
+# [...]
+```
+
+| Parameter                     | Description                                                                                                                                                                                                 |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                                                                                                                                                               |
+| `advanced_camera_card_action` | Must be `substream_on`.                                                                                                                                                                                     |
+| `camera`                      | An optional [camera ID](../../cameras/README.md?id=cameras) whose substream to engage. If omitted, the selected camera is used.                                                                             |
+| `stream`                      | An optional [camera ID](../../cameras/README.md?id=cameras) of a `substream` [dependency](../../cameras/README.md?id=dependencies) of `camera`. If omitted, the next stream in `camera`'s cycle is engaged. |
+
 ## `timeline`
 
 Change to the `timeline` view.
@@ -865,20 +858,20 @@ elements:
     title: Turn off substream
     tap_action:
       action: custom:advanced-camera-card-action
-      advanced_camera_card_action: live_substream_off
+      advanced_camera_card_action: substream_off
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-o-circle
-    title: Turn on substream
+    title: Cycle substream
     tap_action:
       action: custom:advanced-camera-card-action
-      advanced_camera_card_action: live_substream_on
+      advanced_camera_card_action: substream_on
   - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-n-circle
     title: Select HD substream
     tap_action:
       action: custom:advanced-camera-card-action
-      advanced_camera_card_action: live_substream_select
-      camera: camera.front_door_hd
+      advanced_camera_card_action: substream_on
+      stream: camera.front_door_hd
   - type: custom:advanced-camera-card-menu-icon
       icon: mdi:alpha-o-circle
       title: Log to console

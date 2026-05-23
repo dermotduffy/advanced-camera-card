@@ -7,6 +7,8 @@ import {
   createGeneralAction,
   createLogAction,
   createMediaPlayerAction,
+  createSubstreamOffAction,
+  createSubstreamOnAction,
   createViewAction,
 } from '../../../src/utils/action';
 import { createCardAPI, createConfig } from '../../test-utils';
@@ -77,10 +79,10 @@ describe('LockManager', () => {
 
     for (const action of [
       createViewAction('clips'),
-      createCameraAction('camera_select', 'cam-1'),
-      createCameraAction('live_substream_select', 'cam-1'),
-      createGeneralAction('live_substream_on'),
-      createGeneralAction('live_substream_off'),
+      createCameraAction('cam-1'),
+      createSubstreamOnAction({ stream: 'cam-1' }),
+      createSubstreamOnAction(),
+      createSubstreamOffAction(),
       createGeneralAction('default'),
       createGeneralAction('pause'),
       createGeneralAction('reload'),

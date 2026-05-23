@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { CameraManagerStore } from '../../../../src/camera-manager/store';
 import { SubstreamOnAction } from '../../../../src/card-controller/actions/actions/substream-on';
 import { applyViewModifiers } from '../../../../src/card-controller/view/modifiers';
+import { createSubstreamOnAction } from '../../../../src/utils/action';
 import { getStreamCameraID } from '../../../../src/view/substream';
 import { View } from '../../../../src/view/view';
 import {
@@ -12,15 +13,6 @@ import {
   createStore,
   createView,
 } from '../../../test-utils';
-
-const createAction = (): SubstreamOnAction =>
-  new SubstreamOnAction(
-    {},
-    {
-      action: 'fire-dom-event',
-      advanced_camera_card_action: 'live_substream_on',
-    },
-  );
 
 // A store where `camera.office` has one substream dependency, `camera.kitchen`.
 const createStoreWithSubstreams = (): CameraManagerStore =>
@@ -37,64 +29,148 @@ const createStoreWithSubstreams = (): CameraManagerStore =>
   ]);
 
 // Runs the on-action for `view`, applies the modifier it produces (via the real
-// `applyViewModifiers`), and returns the resulting engaged stream.
-const getStreamAfterSubstreamOn = async (
+// `applyViewModifiers`), and returns the engaged stream for the override key
+// the modifier wrote (`camera` if set, otherwise the selected camera).
+const applySubstreamOn = async (
   view: View,
-  store: CameraManagerStore = createStoreWithSubstreams(),
+  options?: {
+    store?: CameraManagerStore;
+    camera?: string;
+    stream?: string;
+  },
 ): Promise<string | null> => {
   const api = createCardAPI();
   vi.mocked(api.getViewManager().getView).mockReturnValue(view);
-  vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
+  vi.mocked(api.getCameraManager).mockReturnValue(
+    createCameraManager(options?.store ?? createStoreWithSubstreams()),
+  );
 
-  await createAction().execute(api);
+  await new SubstreamOnAction(
+    {},
+    createSubstreamOnAction({
+      camera: options?.camera,
+      stream: options?.stream,
+    }),
+  ).execute(api);
 
   const params = vi.mocked(api.getViewManager().setViewByParameters).mock.calls[0]?.[0];
   applyViewModifiers(view, params?.modifiers);
-  return getStreamCameraID(view);
+  return getStreamCameraID(view, options?.camera);
 };
 
 describe('SubstreamOnAction', () => {
-  it('should advance to the next dependency', async () => {
-    expect(
-      await getStreamAfterSubstreamOn(
-        createView({ view: 'live', camera: 'camera.office' }),
-      ),
-    ).toBe('camera.kitchen');
-  });
-
-  it('should wrap back to the parent camera', async () => {
-    const view = createView({
-      view: 'live',
-      camera: 'camera.office',
-      context: {
-        live: { overrides: new Map([['camera.office', 'camera.kitchen']]) },
-      },
+  describe('cycling (no `stream` parameter)', () => {
+    it('should advance to the next dependency', async () => {
+      expect(
+        await applySubstreamOn(createView({ view: 'live', camera: 'camera.office' })),
+      ).toBe('camera.kitchen');
     });
 
-    expect(await getStreamAfterSubstreamOn(view)).toBe('camera.office');
-  });
+    it('should wrap back to the parent camera', async () => {
+      const view = createView({
+        view: 'live',
+        camera: 'camera.office',
+        context: {
+          live: { overrides: new Map([['camera.office', 'camera.kitchen']]) },
+        },
+      });
 
-  it('should treat a malformed override as the start of the cycle', async () => {
-    const view = createView({
-      view: 'live',
-      camera: 'camera.office',
-      context: {
-        live: { overrides: new Map([['camera.office', 'NOT_A_REAL_CAMERA']]) },
-      },
+      expect(await applySubstreamOn(view)).toBe('camera.office');
     });
 
-    expect(await getStreamAfterSubstreamOn(view)).toBe('camera.office');
+    it('should treat a malformed override as the start of the cycle', async () => {
+      const view = createView({
+        view: 'live',
+        camera: 'camera.office',
+        context: {
+          live: { overrides: new Map([['camera.office', 'NOT_A_REAL_CAMERA']]) },
+        },
+      });
+
+      expect(await applySubstreamOn(view)).toBe('camera.office');
+    });
+
+    it('should engage no substream when there are no usable dependencies', async () => {
+      const view = createView({ view: 'live', camera: 'camera.office' });
+
+      expect(await applySubstreamOn(view, { store: createStore() })).toBe(
+        'camera.office',
+      );
+    });
   });
 
-  it('should engage no substream when there are no usable dependencies', async () => {
-    const view = createView({ view: 'live', camera: 'camera.office' });
+  describe('with an explicit `stream`', () => {
+    it('should engage that stream on the selected camera', async () => {
+      expect(
+        await applySubstreamOn(createView({ view: 'live', camera: 'camera.office' }), {
+          stream: 'camera.kitchen',
+        }),
+      ).toBe('camera.kitchen');
+    });
 
-    expect(await getStreamAfterSubstreamOn(view, createStore())).toBe('camera.office');
+    it('should treat `stream` equal to the camera as no substream', async () => {
+      // Already cycled to a substream; passing the parent camera as `stream`
+      // should be equivalent to off.
+      const view = createView({
+        view: 'live',
+        camera: 'camera.office',
+        context: {
+          live: { overrides: new Map([['camera.office', 'camera.kitchen']]) },
+        },
+      });
+
+      expect(await applySubstreamOn(view, { stream: 'camera.office' })).toBe(
+        'camera.office',
+      );
+    });
   });
 
-  it('should engage no substream when the view has no camera', async () => {
+  describe('with an explicit `camera`', () => {
+    it('should target that camera instead of the selected one', async () => {
+      const view = createView({ view: 'live', camera: 'camera.driveway' });
+
+      expect(
+        await applySubstreamOn(view, {
+          camera: 'camera.office',
+          stream: 'camera.kitchen',
+        }),
+      ).toBe('camera.kitchen');
+    });
+
+    it('should cycle dependencies of the explicit camera', async () => {
+      const view = createView({ view: 'live', camera: 'camera.driveway' });
+
+      expect(await applySubstreamOn(view, { camera: 'camera.office' })).toBe(
+        'camera.kitchen',
+      );
+    });
+
+    it('should engage no substream when the explicit camera has no dependencies', async () => {
+      const view = createView({
+        view: 'live',
+        camera: 'camera.driveway',
+        context: {
+          live: { overrides: new Map([['camera.no_deps', 'camera.stale']]) },
+        },
+      });
+
+      expect(
+        await applySubstreamOn(view, {
+          camera: 'camera.no_deps',
+          store: createStore([
+            {
+              cameraID: 'camera.no_deps',
+              capabilities: createCapabilities({ substream: true }),
+            },
+          ]),
+        }),
+      ).toBe('camera.no_deps');
+    });
+  });
+
+  it('should engage no substream when the view has no camera and the action has no camera', async () => {
     expect(
-      await getStreamAfterSubstreamOn(createView({ view: 'live', camera: null })),
+      await applySubstreamOn(createView({ view: 'live', camera: null })),
     ).toBeNull();
   });
 
@@ -102,7 +178,7 @@ describe('SubstreamOnAction', () => {
     const api = createCardAPI();
     vi.mocked(api.getViewManager().getView).mockReturnValue(null);
 
-    await createAction().execute(api);
+    await new SubstreamOnAction({}, createSubstreamOnAction()).execute(api);
 
     expect(api.getViewManager().setViewByParameters).not.toBeCalled();
   });

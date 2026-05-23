@@ -6,7 +6,7 @@ describe('SubstreamViewModifier', () => {
   it('should write the override for the selected camera', () => {
     const view = createView({ camera: 'camera' });
 
-    new SubstreamViewModifier('substream').modify(view);
+    new SubstreamViewModifier({ stream: 'substream' }).modify(view);
 
     expect(view.context?.live?.overrides?.get('camera')).toBe('substream');
   });
@@ -28,7 +28,10 @@ describe('SubstreamViewModifier', () => {
       context: { live: { overrides: new Map([['camera', 'substream']]) } },
     });
 
-    new SubstreamViewModifier('other-substream', 'other-camera').modify(view);
+    new SubstreamViewModifier({
+      stream: 'other-substream',
+      camera: 'other-camera',
+    }).modify(view);
 
     expect(view.context?.live?.overrides?.get('other-camera')).toBe('other-substream');
     expect(view.context?.live?.overrides?.get('camera')).toBe('substream');
@@ -40,15 +43,26 @@ describe('SubstreamViewModifier', () => {
       context: { live: { overrides: new Map([['other-camera', 'other-substream']]) } },
     });
 
-    new SubstreamViewModifier(undefined, 'other-camera').modify(view);
+    new SubstreamViewModifier({ camera: 'other-camera' }).modify(view);
 
     expect(view.context?.live?.overrides?.get('other-camera')).toBeUndefined();
+  });
+
+  it('should clear the override when the stream equals the camera itself', () => {
+    const view = createView({
+      camera: 'camera',
+      context: { live: { overrides: new Map([['camera', 'substream']]) } },
+    });
+
+    new SubstreamViewModifier({ stream: 'camera' }).modify(view);
+
+    expect(view.context?.live?.overrides?.get('camera')).toBeUndefined();
   });
 
   it('should no-op for a view without a camera', () => {
     const view = createView({ camera: null });
 
-    new SubstreamViewModifier('substream').modify(view);
+    new SubstreamViewModifier({ stream: 'substream' }).modify(view);
 
     expect(view.context).toBeNull();
   });

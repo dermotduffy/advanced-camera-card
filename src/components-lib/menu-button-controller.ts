@@ -27,6 +27,8 @@ import {
   createPTZControlsAction,
   createPTZMultiAction,
   createSetReviewAction,
+  createSubstreamOffAction,
+  createSubstreamOnAction,
   createViewAction,
   isAdvancedCameraCardCustomAction,
 } from '../utils/action';
@@ -166,7 +168,6 @@ export class MenuButtonController {
     const menuCameraIDs = cameraManager.getStore().getCameraIDsWithCapability('menu');
     if (menuCameraIDs.size > 1) {
       const submenuItems = Array.from(menuCameraIDs, (cameraID) => {
-        const action = createCameraAction('camera_select', cameraID);
         const metadata = cameraManager.getCameraMetadata(cameraID);
 
         return {
@@ -176,7 +177,7 @@ export class MenuButtonController {
           state_color: true,
           title: metadata?.title,
           selected: view?.camera === cameraID,
-          ...(action && { tap_action: action }),
+          tap_action: createCameraAction(cameraID),
         };
       });
 
@@ -221,13 +222,12 @@ export class MenuButtonController {
           title: localize('config.menu.buttons.substreams'),
           ...config.menu.buttons.substreams,
           type: 'custom:advanced-camera-card-menu-icon',
-          tap_action: createGeneralAction(
-            hasSubstream(view) ? 'live_substream_off' : 'live_substream_on',
-          ),
+          tap_action: hasSubstream(view)
+            ? createSubstreamOffAction()
+            : createSubstreamOnAction(),
         };
       } else if (streams.length > 2) {
         const menuItems = Array.from(streams, (streamID) => {
-          const action = createCameraAction('live_substream_select', streamID);
           const metadata = cameraManager.getCameraMetadata(streamID) ?? undefined;
           return {
             enabled: true,
@@ -236,7 +236,7 @@ export class MenuButtonController {
             state_color: true,
             title: metadata?.title,
             selected: substreamAwareCameraID === streamID,
-            ...(action && { tap_action: action }),
+            tap_action: createSubstreamOnAction({ stream: streamID }),
           };
         });
 
@@ -538,10 +538,10 @@ export class MenuButtonController {
         entity: metadata?.icon.entity,
         state_color: true,
         title: metadata?.title,
-        tap_action: createCallStartAction(
-          cameraID,
-          streamID === cameraID ? undefined : streamID,
-        ),
+        tap_action: createCallStartAction({
+          camera: cameraID,
+          ...(streamID !== cameraID && { stream: streamID }),
+        }),
       };
     });
 
@@ -676,8 +676,6 @@ export class MenuButtonController {
         .map((playerEntityID) => {
           const title = getEntityTitle(hass, playerEntityID) || playerEntityID;
           const state = hass.states[playerEntityID];
-          const playAction = createMediaPlayerAction(playerEntityID, 'play');
-          const stopAction = createMediaPlayerAction(playerEntityID, 'stop');
           const disabled = !state || state.state === 'unavailable';
 
           return {
@@ -687,8 +685,10 @@ export class MenuButtonController {
             state_color: false,
             title: title,
             disabled: disabled,
-            ...(!disabled && playAction && { tap_action: playAction }),
-            ...(!disabled && stopAction && { hold_action: stopAction }),
+            ...(!disabled && {
+              tap_action: createMediaPlayerAction(playerEntityID, 'play'),
+              hold_action: createMediaPlayerAction(playerEntityID, 'stop'),
+            }),
           };
         });
 

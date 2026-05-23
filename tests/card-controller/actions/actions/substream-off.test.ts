@@ -1,21 +1,58 @@
-import { expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { SubstreamOffAction } from '../../../../src/card-controller/actions/actions/substream-off';
-import { SubstreamViewModifier } from '../../../../src/card-controller/view/modifiers/substream';
-import { createCardAPI } from '../../../test-utils';
+import { applyViewModifiers } from '../../../../src/card-controller/view/modifiers';
+import { createSubstreamOffAction } from '../../../../src/utils/action';
+import { View } from '../../../../src/view/view';
+import { createCardAPI, createView } from '../../../test-utils';
 
-it('should handle live_substream_off action', async () => {
+// Runs the off-action for `view` and applies the modifier it produces.
+const applySubstreamOff = async (
+  view: View,
+  options?: { camera?: string },
+): Promise<void> => {
   const api = createCardAPI();
-  const action = new SubstreamOffAction(
-    {},
-    {
-      action: 'fire-dom-event',
-      advanced_camera_card_action: 'live_substream_off',
-    },
-  );
+  vi.mocked(api.getViewManager().getView).mockReturnValue(view);
 
-  await action.execute(api);
+  await new SubstreamOffAction({}, createSubstreamOffAction(options)).execute(api);
 
-  expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-    modifiers: [expect.any(SubstreamViewModifier)],
+  const params = vi.mocked(api.getViewManager().setViewByParameters).mock.calls[0]?.[0];
+  applyViewModifiers(view, params?.modifiers);
+};
+
+describe('SubstreamOffAction', () => {
+  it('should clear the selected camera override', async () => {
+    const view = createView({
+      view: 'live',
+      camera: 'camera.office',
+      context: {
+        live: { overrides: new Map([['camera.office', 'camera.kitchen']]) },
+      },
+    });
+
+    await applySubstreamOff(view);
+
+    expect(view.context?.live?.overrides?.get('camera.office')).toBeUndefined();
+  });
+
+  it('should clear an explicit camera override', async () => {
+    const view = createView({
+      view: 'live',
+      camera: 'camera.driveway',
+      context: {
+        live: {
+          overrides: new Map([
+            ['camera.office', 'camera.kitchen'],
+            ['camera.driveway', 'camera.driveway_hd'],
+          ]),
+        },
+      },
+    });
+
+    await applySubstreamOff(view, { camera: 'camera.office' });
+
+    expect(view.context?.live?.overrides?.get('camera.office')).toBeUndefined();
+    expect(view.context?.live?.overrides?.get('camera.driveway')).toBe(
+      'camera.driveway_hd',
+    );
   });
 });
