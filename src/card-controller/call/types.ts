@@ -12,4 +12,11 @@ export interface CallSession {
   // The view from before the call started: a clone with `queryResults` dropped.
   // Used to undo the call when it ends.
   previousView: View;
+
+  // Marks the session as inbound (auto-started, typically by a trigger) rather
+  // than the result of an explicit user gesture.
+  inbound: boolean;
+
+  // Whether the use has "answered" an inbound call.
+  answered: boolean;
 }

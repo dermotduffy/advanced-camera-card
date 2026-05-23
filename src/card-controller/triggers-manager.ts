@@ -181,28 +181,26 @@ export class TriggersManager {
 
   private async _triggerAction(ev: CameraEvent): Promise<void> {
     const config = this._api.getConfigManager().getConfig();
-    const triggerAction = config?.view?.triggers.actions.trigger;
+    const triggersConfig = config?.view?.triggers;
+    const triggerAction = triggersConfig?.actions.trigger;
     const defaultView = config?.view?.default;
 
-    // Early exit guard: If this is a high-fidelity event where we are certain
-    // about new media, don't take action unless it's to change to live (Frigate
-    // engine may pump out events where there's no new media to show). Other
-    // trigger actions (e.g. media, update) do not make sense without having
-    // some new media.
-    if (
+    // Skip the trigger action for a high-fidelity "no new media" event when
+    // the configured action would change to a non-live view (Frigate may pump
+    // out such events). `live`, `call`, and default-with-live remain valid
+    // since they don't depend on media being available.
+    const skipViewAction =
       ev.fidelity === 'high' &&
       !ev.snapshot &&
       !ev.clip &&
       !ev.review &&
       !(
+        triggerAction === 'call' ||
         triggerAction === 'live' ||
         (triggerAction === 'default' && defaultView === 'live')
-      )
-    ) {
-      return;
-    }
+      );
 
-    if (this._hasAllowableInteractionStateForAction()) {
+    if (this._hasAllowableInteractionStateForAction() && !skipViewAction) {
       if (triggerAction === 'update') {
         await this._api.getViewManager().setViewByParametersWithNewQuery({
           queryExecutorOptions: { useCache: false },
@@ -220,6 +218,10 @@ export class TriggersManager {
             camera: ev.cameraID,
           },
         });
+      } else if (triggerAction === 'call') {
+        // Auto-call the triggered camera. `start()` itself handles the
+        // navigation to live -- it is idempotent if the view already matches.
+        await this._api.getCallManager().start({ cameraID: ev.cameraID, inbound: true });
       } else if (ev.fidelity === 'high' && triggerAction === 'media') {
         // Choose the most appropriate media view based on what's available.
         // Priority: review > clip > snapshot
@@ -229,10 +231,10 @@ export class TriggersManager {
             ? 'clip'
             : ev.snapshot
               ? 'snapshot'
-              : /* istanbul ignore next: unreachable due to early exit guard above -- @preserve */
+              : /* istanbul ignore next: unreachable due to `skipViewAction` above -- @preserve */
                 null;
 
-        /* istanbul ignore next: unreachable due to early exit guard above -- @preserve */
+        /* istanbul ignore next: unreachable due to `skipViewAction` above -- @preserve */
         if (view) {
           await this._api.getViewManager().setViewByParametersWithNewQuery({
             params: {
@@ -255,7 +257,7 @@ export class TriggersManager {
     });
   }
 
-  private async _executeUntriggerAction(): Promise<boolean> {
+  private async _executeUntriggerAction(cameraID: string): Promise<boolean> {
     const action = this._api.getConfigManager().getConfig()?.view?.triggers
       .actions.untrigger;
 
@@ -263,8 +265,19 @@ export class TriggersManager {
       return true;
     }
 
-    if (this._hasAllowableInteractionStateForAction()) {
-      await this._api.getViewManager().setViewDefaultWithNewQuery();
+    if (!this._hasAllowableInteractionStateForAction()) {
+      return true;
+    }
+
+    switch (action) {
+      case 'default':
+        await this._api.getViewManager().setViewDefaultWithNewQuery();
+        break;
+      case 'call':
+        // Triggers only end a call if the call is owned by this cameraID, if it
+        // was an inbound call and was not yet answered.
+        this._api.getCallManager().endIf({ cameraID, inbound: true, answered: false });
+        break;
     }
     return true;
   }
@@ -273,7 +286,7 @@ export class TriggersManager {
     this._deleteUntriggerDelayTimer(cameraID);
     this._deleteForceUntriggerTimer(cameraID);
 
-    await this._executeUntriggerAction();
+    await this._executeUntriggerAction(cameraID);
     this._deleteStateIfIdle(cameraID);
 
     this._setConditionStateIfNecessary();

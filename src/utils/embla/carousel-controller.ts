@@ -23,7 +23,12 @@ export class CarouselController {
   private _startIndex: number;
   private _transitionEffect: TransitionEffect;
   private _loop: boolean;
+
+  // Whether a drag releases into free-scroll momentum (`true`) or snaps to the
+  // nearest scroll snap (`false`).
   private _dragFree: boolean;
+
+  // Whether drag input is honored at all`.
   private _draggable: boolean;
   private _textDirection: TextDirection;
   private _wheelScrolling: boolean;
@@ -101,6 +106,13 @@ export class CarouselController {
     this._carousel.scrollTo(index, this._transitionEffect === 'none');
   }
 
+  // Toggle drag handling live, without rebuilding Embla (e.g. to avoid visual
+  // "resetting" when a call is received). See the matching function call to
+  // watchDrag.
+  public setDragEnabled(enabled: boolean): void {
+    this._draggable = enabled;
+  }
+
   private _refreshCarouselContents = (): void => {
     const slides = getChildrenFromElement(this._parent);
     const slidesChanged = !isEqual(this._carousel.slideNodes(), slides);
@@ -127,7 +139,10 @@ export class CarouselController {
         // assignments, which the stock watcher does not handle).
         watchSlides: false,
         watchResize: true,
-        watchDrag: this._draggable,
+
+        // Function form so Embla re-evaluates per pointerdown -- lets us flip
+        // drag enablement at runtime without a `reInit` (see `setDragEnabled`).
+        watchDrag: () => this._draggable,
 
         direction: this._textDirection,
       },

@@ -291,6 +291,55 @@ describe('TriggersManager', () => {
       expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
       expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
     });
+
+    it('should handle trigger action set to call', async () => {
+      const api = createTriggerAPI({
+        config: {
+          actions: { trigger: 'call' },
+        },
+      });
+
+      const manager = new TriggersManager(api);
+
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'event-1',
+        type: 'new',
+      });
+
+      expect(manager.isTriggered()).toBeTruthy();
+      // `start()` is called with the triggered camera and the inbound flag --
+      // view navigation is delegated to CallManager itself.
+      expect(api.getCallManager().start).toBeCalledWith({
+        cameraID: 'camera_1',
+        inbound: true,
+      });
+      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    });
+
+    it('should start a call on a high-fidelity event with no media', async () => {
+      // The high-fidelity-no-media skip-guard intentionally lets `call`
+      // through -- calls don't depend on a new media item being available.
+      const api = createTriggerAPI({
+        config: {
+          actions: { trigger: 'call' },
+        },
+      });
+
+      const manager = new TriggersManager(api);
+
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'event-1',
+        type: 'new',
+        fidelity: 'high',
+      });
+
+      expect(api.getCallManager().start).toBeCalledWith({
+        cameraID: 'camera_1',
+        inbound: true,
+      });
+    });
   });
 
   describe('untrigger actions', () => {
@@ -359,6 +408,38 @@ describe('TriggersManager', () => {
       expect(manager.isTriggered()).toBeFalsy();
 
       expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+    });
+
+    it('should handle untrigger action set to call', async () => {
+      const api = createTriggerAPI({
+        config: {
+          actions: { trigger: 'none', untrigger: 'call' },
+        },
+      });
+
+      const manager = new TriggersManager(api);
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'event-1',
+        type: 'new',
+      });
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'event-1',
+        type: 'end',
+      });
+
+      vi.setSystemTime(add(start, { seconds: 10 }));
+      vi.runOnlyPendingTimers();
+      await flushPromises();
+
+      expect(manager.isTriggered()).toBeFalsy();
+      expect(api.getCallManager().endIf).toBeCalledWith({
+        cameraID: 'camera_1',
+        inbound: true,
+        answered: false,
+      });
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
     });
 
     it('should handle untrigger call with no state', async () => {

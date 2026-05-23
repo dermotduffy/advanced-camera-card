@@ -80,6 +80,7 @@ export interface CardAutomationsAPI {
 export interface CardCallAPI {
   getCameraManager(): CameraManager;
   getConditionStateManager(): ConditionStateManager;
+  getConfigManager(): ConfigManager;
   getMicrophoneManager(): MicrophoneManager;
   getNotificationManager(): NotificationManager;
   getViewManager(): ViewManager;
@@ -151,6 +152,7 @@ export interface CardDownloadAPI {
 
 export interface CardElementAPI {
   getActionsManager(): ActionsManager;
+  getCallManager(): CallManager;
   getCameraManager(): CameraManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
@@ -312,6 +314,7 @@ export interface CardStyleAPI {
 }
 
 export interface CardTriggersAPI {
+  getCallManager(): CallManager;
   getCameraManager(): CameraManager;
   getConditionStateManager(): ConditionStateManager;
   getCardElementManager(): CardElementManager;
