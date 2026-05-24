@@ -22,8 +22,7 @@ export class CallManager {
   public initialize(): void {
     // A call runs on the live view of a specific camera. The listener watches
     // condition state so the call can be ended when the view, camera, or
-    // engaged substream moves off what the call started on -- and so an inbound
-    // call can register the user's "answer" (microphone un-mute).
+    // engaged substream moves off what the call started on.
     this._api.getConditionStateManager().addListener(this._handleConditionStateChange);
   }
 
@@ -119,8 +118,9 @@ export class CallManager {
       this._end(false);
     }
 
-    // An already-unmuted mic is treated as "answered" for an inbound call.
-    const answered = inbound && !this._api.getMicrophoneManager().isMuted();
+    // Outbound calls are answered by construction (the user initiated them);
+    // inbound calls start unanswered and wait for an explicit Answer.
+    const answered = !inbound;
 
     this._call = {
       cameraID: parentID,
@@ -171,6 +171,24 @@ export class CallManager {
   // actually ended (false when there's no active call).
   public end(): boolean {
     return this._end(true);
+  }
+
+  // Marks an inbound ringing call as answered: stops the ringtone, cancels
+  // the unanswered timer, and lets the normal call controls take over.
+  // No-op (returns false) if there is no call or it's already answered;
+  // rejecting a ringing call uses `end()` (same teardown).
+  public answer(): boolean {
+    if (!this._call || this._call.answered) {
+      return false;
+    }
+    this._ringtone.stop();
+    this._unansweredTimer.stop();
+    // Replace (don't mutate) so Lit identity checks downstream pick up the
+    // change. The `update()` below forces card.ts to re-render and re-read
+    // `getCall()`, propagating the new session to the carousel.
+    this._call = { ...this._call, answered: true };
+    this._api.getCardElementManager().update();
+    return true;
   }
 
   // Ends the active call iff every supplied predicate matches the session.
@@ -268,32 +286,13 @@ export class CallManager {
     return true;
   }
 
-  // Watches condition state for two transitions during an active call:
-  //
-  // 1. End the call once it can no longer be conducted from where it started
-  //    (e.g. view change). Only react to changes in view/camera/substream
-  //    themselves -- not to unrelated state updates (e.g. `mediaLoadedInfo`)
-  //    that may arrive before the view-manager's own state update.
-  //
-  // 2. Register an inbound call as "answered" the first time the microphone
-  //    un-mutes during the call -- a muted->unmuted transition. Idempotent:
-  //    once answered we never flip back, so re-muting later does not undo it.
-  //    Answering also silences the ringtone.
+  // Ends the call once it can no longer be conducted from where it started
+  // (e.g. view change). Only reacts to changes in view/camera/substream
+  // themselves -- not to unrelated state updates (e.g. `mediaLoadedInfo`)
+  // that may arrive before the view-manager's own state update.
   private _handleConditionStateChange = (stateChange: ConditionStateChange): void => {
     if (!this._call) {
       return;
-    }
-
-    if (
-      this._call.inbound &&
-      !this._call.answered &&
-      stateChange.change.microphone &&
-      stateChange.new.microphone?.muted === false &&
-      stateChange.old.microphone?.muted !== false
-    ) {
-      this._call.answered = true;
-      this._ringtone.stop();
-      this._unansweredTimer.stop();
     }
 
     const viewRelevantChange =

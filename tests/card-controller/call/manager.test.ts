@@ -104,12 +104,12 @@ describe('isActive', () => {
 
     expect(manager.isActive()).toBe(true);
     // The call runs on the parent camera's own stream, so callCameraID is
-    // absent.
+    // absent. Outbound calls are answered by construction.
     expect(manager.getCall()).toEqual({
       cameraID: 'camera.office',
       previousView: expect.any(View),
       inbound: false,
-      answered: false,
+      answered: true,
     });
     expect(manager.getCall()?.previousView?.view).toBe('live');
   });
@@ -569,20 +569,7 @@ describe('inbound supersede policy', () => {
     manager.initialize();
     expect(await manager.start({ inbound: true })).toBe(true);
 
-    // Answer the call.
-    getConditionStateListener(api)({
-      old: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: true, forbidden: false },
-      },
-      change: { microphone: { connected: true, muted: false, forbidden: false } },
-      new: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: false, forbidden: false },
-      },
-    });
+    expect(manager.answer()).toBe(true);
     expect(manager.getCall()?.answered).toBe(true);
 
     expect(await manager.start({ cameraID: 'camera.garage', inbound: true })).toBe(
@@ -637,19 +624,7 @@ describe('inbound supersede policy', () => {
     const manager = new CallManager(api);
     manager.initialize();
     expect(await manager.start({ inbound: true })).toBe(true);
-    getConditionStateListener(api)({
-      old: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: true, forbidden: false },
-      },
-      change: { microphone: { connected: true, muted: false, forbidden: false } },
-      new: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: false, forbidden: false },
-      },
-    });
+    expect(manager.answer()).toBe(true);
 
     expect(await manager.start({ cameraID: 'camera.garage' })).toBe(true);
 
@@ -862,19 +837,7 @@ describe('endIf', () => {
       const manager = new CallManager(api);
       manager.initialize();
       expect(await manager.start({ inbound: true })).toBe(true);
-      getConditionStateListener(api)({
-        old: {
-          camera: 'camera.office',
-          view: 'live',
-          microphone: { connected: true, muted: true, forbidden: false },
-        },
-        change: { microphone: { connected: true, muted: false, forbidden: false } },
-        new: {
-          camera: 'camera.office',
-          view: 'live',
-          microphone: { connected: true, muted: false, forbidden: false },
-        },
-      });
+      expect(manager.answer()).toBe(true);
       expect(manager.getCall()?.answered).toBe(true);
 
       expect(manager.endIf({ answered: false })).toBe(false);
@@ -1242,15 +1205,12 @@ describe('inbound option', () => {
   });
 });
 
-// Answered tracking: the first muted->unmuted microphone transition during an
-// inbound call flips `answered` to true (once; later mute/unmute cycles do not
-// flip it back) and stops the ringtone / cancels the unanswered timer.
-describe('answered tracking', () => {
+describe('answer', () => {
   const inboundConfig = {
     live: { controls: { call: { ringtone: { type: 'chime' as const } } } },
   };
 
-  it('should not be answered immediately after an inbound start', async () => {
+  it('should default to unanswered for an inbound start', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
       config: inboundConfig,
@@ -1263,7 +1223,40 @@ describe('answered tracking', () => {
     expect(manager.getCall()?.answered).toBe(false);
   });
 
-  it('should mark answered on a muted->unmuted microphone transition', async () => {
+  it('should default to answered for an outbound start', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    expect(await manager.start()).toBe(true);
+
+    // Outbound calls are answered by construction -- the user initiated them.
+    expect(manager.getCall()?.answered).toBe(true);
+  });
+
+  it('should default to unanswered for inbound even if the mic is already un-muted', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneMuted: false,
+      config: inboundConfig,
+    });
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    expect(await manager.start({ inbound: true })).toBe(true);
+
+    expect(manager.getCall()?.answered).toBe(false);
+    expect(getRingtone().start).toBeCalled();
+  });
+
+  it('should no-op when no call is active', () => {
+    const api = createAPI();
+    const manager = new CallManager(api);
+
+    expect(manager.answer()).toBe(false);
+  });
+
+  it('should no-op when the call is already answered', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
       config: inboundConfig,
@@ -1271,25 +1264,100 @@ describe('answered tracking', () => {
     const manager = new CallManager(api);
     manager.initialize();
     expect(await manager.start({ inbound: true })).toBe(true);
+    expect(manager.answer()).toBe(true);
+    vi.mocked(getRingtone().stop).mockClear();
+    vi.mocked(api.getCardElementManager().update).mockClear();
 
-    getConditionStateListener(api)({
-      old: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: true, forbidden: false },
-      },
-      change: { microphone: { connected: true, muted: false, forbidden: false } },
-      new: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: false, forbidden: false },
-      },
+    expect(manager.answer()).toBe(false);
+
+    expect(getRingtone().stop).not.toBeCalled();
+    expect(api.getCardElementManager().update).not.toBeCalled();
+  });
+
+  it('should mark answered and replace the session immutably', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      config: inboundConfig,
     });
+    const manager = new CallManager(api);
+    manager.initialize();
+    expect(await manager.start({ inbound: true })).toBe(true);
+    const before = manager.getCall();
 
+    expect(manager.answer()).toBe(true);
+
+    const after = manager.getCall();
+    expect(after?.answered).toBe(true);
+    // New object identity so Lit consumers re-render on the prop change.
+    expect(after).not.toBe(before);
+    expect(after?.cameraID).toBe(before?.cameraID);
+    expect(after?.inbound).toBe(before?.inbound);
+  });
+
+  it('should stop the ringtone and unanswered timer on answer', async () => {
+    vi.useFakeTimers();
+    try {
+      const api = createAPI({
+        view: createView({ camera: 'camera.office' }),
+        config: {
+          live: {
+            controls: {
+              call: {
+                ringtone: { type: 'chime' as const },
+                unanswered_timeout_seconds: 60,
+              },
+            },
+          },
+        },
+      });
+      const manager = new CallManager(api);
+      manager.initialize();
+      expect(await manager.start({ inbound: true })).toBe(true);
+      vi.mocked(getRingtone().stop).mockClear();
+
+      expect(manager.answer()).toBe(true);
+
+      expect(getRingtone().stop).toBeCalled();
+
+      // Timer was armed and should now be cancelled: advancing past the
+      // timeout must not end the (now-answered) call.
+      vi.advanceTimersByTime(60_000);
+      expect(manager.isActive()).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('should force a card re-render on answer', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      config: inboundConfig,
+    });
+    const manager = new CallManager(api);
+    manager.initialize();
+    expect(await manager.start({ inbound: true })).toBe(true);
+    vi.mocked(api.getCardElementManager().update).mockClear();
+
+    expect(manager.answer()).toBe(true);
+
+    // The card subtree depends on `getCall().answered`, which the manager
+    // mutates outside the view-manager epoch -- so `update()` is what drives
+    // the re-render through to the call-controls overlay.
+    expect(api.getCardElementManager().update).toBeCalled();
+  });
+
+  it('should not mark non-inbound (outbound) calls via answer (already answered)', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    manager.initialize();
+    expect(await manager.start()).toBe(true);
+
+    // Outbound starts answered, so `answer()` is a no-op.
+    expect(manager.answer()).toBe(false);
     expect(manager.getCall()?.answered).toBe(true);
   });
 
-  it('should not flip answered back when the user re-mutes after answering', async () => {
+  it('should not flip answered on mic mute/unmute transitions', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
       config: inboundConfig,
@@ -1299,6 +1367,7 @@ describe('answered tracking', () => {
     expect(await manager.start({ inbound: true })).toBe(true);
     const listener = getConditionStateListener(api);
 
+    // Mic mute -> unmute during the pre-answer ring: must NOT auto-answer.
     listener({
       old: {
         camera: 'camera.office',
@@ -1312,124 +1381,7 @@ describe('answered tracking', () => {
         microphone: { connected: true, muted: false, forbidden: false },
       },
     });
-    expect(manager.getCall()?.answered).toBe(true);
 
-    listener({
-      old: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: false, forbidden: false },
-      },
-      change: { microphone: { connected: true, muted: true, forbidden: false } },
-      new: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: true, forbidden: false },
-      },
-    });
-
-    expect(manager.getCall()?.answered).toBe(true);
-  });
-
-  it('should not mark non-inbound calls answered on un-mute', async () => {
-    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
-    const manager = new CallManager(api);
-    manager.initialize();
-    expect(await manager.start()).toBe(true);
-
-    getConditionStateListener(api)({
-      old: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: true, forbidden: false },
-      },
-      change: { microphone: { connected: true, muted: false, forbidden: false } },
-      new: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: false, forbidden: false },
-      },
-    });
-
-    expect(manager.getCall()?.answered).toBe(false);
-  });
-
-  it('should stop the ringtone on answer', async () => {
-    const api = createAPI({
-      view: createView({ camera: 'camera.office' }),
-      config: inboundConfig,
-    });
-    const manager = new CallManager(api);
-    manager.initialize();
-    expect(await manager.start({ inbound: true })).toBe(true);
-    vi.mocked(getRingtone().stop).mockClear();
-
-    getConditionStateListener(api)({
-      old: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: true, forbidden: false },
-      },
-      change: { microphone: { connected: true, muted: false, forbidden: false } },
-      new: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: false, forbidden: false },
-      },
-    });
-
-    expect(getRingtone().stop).toBeCalled();
-  });
-
-  it('should treat an inbound call as already-answered when the mic is already un-muted', async () => {
-    const api = createAPI({
-      view: createView({ camera: 'camera.office' }),
-      microphoneMuted: false,
-      config: inboundConfig,
-    });
-    const manager = new CallManager(api);
-    manager.initialize();
-
-    expect(await manager.start({ inbound: true })).toBe(true);
-
-    expect(manager.getCall()?.answered).toBe(true);
-    expect(getRingtone().start).not.toBeCalled();
-  });
-
-  it('should not arm the unanswered timer when the mic is already un-muted', async () => {
-    vi.useFakeTimers();
-    try {
-      const api = createAPI({
-        view: createView({ camera: 'camera.office' }),
-        microphoneMuted: false,
-        config: {
-          live: { controls: { call: { unanswered_timeout_seconds: 60 } } },
-        },
-      });
-      const manager = new CallManager(api);
-      manager.initialize();
-      expect(await manager.start({ inbound: true })).toBe(true);
-
-      vi.advanceTimersByTime(60_000);
-
-      expect(manager.isActive()).toBe(true);
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it('should not mark a manual (non-inbound) call as answered even if the mic is un-muted', async () => {
-    const api = createAPI({
-      view: createView({ camera: 'camera.office' }),
-      microphoneMuted: false,
-    });
-    const manager = new CallManager(api);
-    manager.initialize();
-
-    expect(await manager.start()).toBe(true);
-
-    // `answered` only carries meaning alongside `inbound`, so for manual
-    // calls it stays at its default to make the intent explicit.
     expect(manager.getCall()?.answered).toBe(false);
   });
 });
@@ -1572,19 +1524,7 @@ describe('unanswered timeout', () => {
     manager.initialize();
     expect(await manager.start({ inbound: true })).toBe(true);
 
-    getConditionStateListener(api)({
-      old: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: true, forbidden: false },
-      },
-      change: { microphone: { connected: true, muted: false, forbidden: false } },
-      new: {
-        camera: 'camera.office',
-        view: 'live',
-        microphone: { connected: true, muted: false, forbidden: false },
-      },
-    });
+    expect(manager.answer()).toBe(true);
     vi.advanceTimersByTime(60_000);
 
     expect(manager.isActive()).toBe(true);

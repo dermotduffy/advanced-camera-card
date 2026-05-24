@@ -14,6 +14,7 @@
 
   --advanced-camera-card-active-color: var(--accent-color, orange);
   --advanced-camera-card-warning-color: var(--error-color, red);
+  --advanced-camera-card-success-color: var(--success-color, #43a047);
 
   --advanced-camera-card-text-color: var(--primary-text-color);
   --advanced-camera-card-divider-color: var(--divider-color);
@@ -74,9 +75,14 @@
     --advanced-camera-card-control-background-transparent
   );
 
-  // The color of the call controls end-call (critical) button.
-  --advanced-camera-card-call-controls-critical-color: var(
+  // The color of the call controls negative button (end / reject).
+  --advanced-camera-card-call-controls-negative-color: var(
     --advanced-camera-card-warning-color
+  );
+
+  // The color of the call controls positive button (answer).
+  --advanced-camera-card-call-controls-positive-color: var(
+    --advanced-camera-card-success-color
   );
 
   /******
