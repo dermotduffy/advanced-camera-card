@@ -3,6 +3,7 @@ import { mock } from 'vitest-mock-extended';
 import { INTERNAL_CALLBACK_ACTION } from '../../src/config/schema/actions/custom/internal.js';
 import { ActionConfig } from '../../src/config/schema/actions/types.js';
 import {
+  createCallAnswerAction,
   createCallEndAction,
   createCallStartAction,
   createCameraAction,
@@ -425,6 +426,23 @@ describe('createSubstreamOffAction', () => {
       action: 'fire-dom-event',
       advanced_camera_card_action: 'substream_off',
       camera: 'camera.front',
+      card_id: 'card_id',
+    });
+  });
+});
+
+describe('createCallAnswerAction', () => {
+  it('should create call answer action', () => {
+    expect(createCallAnswerAction()).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'call_answer',
+    });
+  });
+
+  it('should create call answer action with a cardID', () => {
+    expect(createCallAnswerAction({ cardID: 'card_id' })).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'call_answer',
       card_id: 'card_id',
     });
   });

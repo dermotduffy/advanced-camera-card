@@ -75,7 +75,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
         ?triggered=${carouselCameraID &&
         !!this.triggeredCameraIDs?.has(carouselCameraID)}
         ?transmitting=${this.microphoneState?.muted === false &&
-        !!this.call &&
+        !!this.call?.answered &&
         this.call.cameraID === carouselCameraID}
       >
       </advanced-camera-card-live-carousel>

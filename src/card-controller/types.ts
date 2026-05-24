@@ -79,6 +79,7 @@ export interface CardAutomationsAPI {
 
 export interface CardCallAPI {
   getCameraManager(): CameraManager;
+  getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getMicrophoneManager(): MicrophoneManager;

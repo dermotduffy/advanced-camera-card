@@ -3,6 +3,7 @@ import { linkSchema } from '../common/link';
 import { severitySchema } from '../common/severity';
 import { statusBarItemBaseSchema } from '../common/status-bar';
 import { advancedCameraCardCustomActionsBaseSchema } from './custom/base';
+import { callAnswerActionConfigSchema } from './custom/call-answer';
 import { callEndActionConfigSchema } from './custom/call-end';
 import { callStartActionConfigSchema } from './custom/call-start';
 import { cameraSelectActionConfigSchema } from './custom/camera-select';
@@ -61,6 +62,7 @@ export const statusBarActionConfigSchema: z.ZodSchema<StatusBarActionConfig> =
   });
 
 const advancedCameraCardCustomActionSchema = z.union([
+  callAnswerActionConfigSchema,
   callEndActionConfigSchema,
   callStartActionConfigSchema,
   cameraSelectActionConfigSchema,
