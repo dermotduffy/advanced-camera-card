@@ -808,6 +808,82 @@ describe('TriggersManager', () => {
       expect(manager.isTriggered()).toBeFalsy();
       expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledTimes(1);
     });
+
+    it('should auto-untrigger after the delay on a signal event', async () => {
+      const api = createTriggerAPI({
+        config: {
+          actions: { trigger: 'none', untrigger: 'default' },
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'event.doorbell',
+        type: 'signal',
+      });
+
+      expect(manager.isTriggered()).toBeTruthy();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+
+      vi.setSystemTime(add(start, { seconds: 10 }));
+      vi.runOnlyPendingTimers();
+      await flushPromises();
+
+      expect(manager.isTriggered()).toBeFalsy();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+    });
+
+    it('should auto-untrigger immediately on a signal when delay is 0', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_delay_seconds: 0,
+          actions: { trigger: 'none', untrigger: 'default' },
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'event.doorbell',
+        type: 'signal',
+      });
+      await flushPromises();
+
+      expect(manager.isTriggered()).toBeFalsy();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+    });
+
+    it('should not auto-untrigger from a signal while a continuous source remains active', async () => {
+      const api = createTriggerAPI({
+        config: {
+          actions: { trigger: 'none', untrigger: 'default' },
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      // Continuous source comes on first.
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'binary_sensor.motion',
+        type: 'new',
+      });
+
+      // Signal fires while motion is still on.
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'event.doorbell',
+        type: 'signal',
+      });
+
+      vi.setSystemTime(add(start, { seconds: 10 }));
+      vi.runOnlyPendingTimers();
+      await flushPromises();
+
+      // Continuous source keeps the trigger alive.
+      expect(manager.isTriggered()).toBeTruthy();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+    });
   });
 
   describe('condition state management', () => {
@@ -1163,6 +1239,56 @@ describe('TriggersManager', () => {
         type: 'new',
       });
       expect(manager.isTriggered()).toBeTruthy();
+    });
+
+    it('should not reset the untrigger timer when a filtered-out signal arrives', async () => {
+      // Guards the `if (handled)` branch on the signal synthesis: a
+      // filter-rejected signal must not call the internal 'end', which would
+      // otherwise reset an already-running untrigger-delay timer.
+      const api = createTriggerAPI({
+        config: {
+          filter_selected_camera: true,
+          actions: { trigger: 'none', untrigger: 'default' },
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      // Trigger camera_1 normally, then end it -- starts the delay timer.
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'binary_sensor.motion',
+        type: 'new',
+      });
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'binary_sensor.motion',
+        type: 'end',
+      });
+      expect(manager.isTriggered()).toBeTruthy();
+
+      // 5s in, switch the view to an unrelated camera so the filter
+      // will reject events for camera_1.
+      vi.setSystemTime(add(start, { seconds: 5 }));
+      vi.mocked(api.getViewManager().getView).mockReturnValue(
+        createView({ camera: 'camera_OTHER' as const }),
+      );
+
+      // Signal for camera_1 -- rejected by the filter.
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'event.doorbell',
+        type: 'signal',
+      });
+
+      // At t=10 (the original delay's deadline), the timer should fire.
+      // If the guard were missing, the internal 'end' would have restarted
+      // the timer at t=5, so it'd still be triggered here.
+      vi.setSystemTime(add(start, { seconds: 10 }));
+      vi.runOnlyPendingTimers();
+      await flushPromises();
+
+      expect(manager.isTriggered()).toBeFalsy();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
     });
   });
 

@@ -148,17 +148,24 @@ human interaction with the card; this behavior can be configured via the
 > action is taken immediately. If multiple cameras are triggered at startup, they
 > are all marked as triggered, but the action is only taken for the first one.
 
-| Option                    | Default | Description                                                                                                                                                                                        |
-| ------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `actions`                 |         | The actions to take when a camera is triggered. See [Trigger action configuration](#trigger-action-configuration).                                                                                 |
-| `filter_selected_camera`  | `true`  | If set to `true` will only trigger on the currently selected camera.                                                                                                                               |
-| `show_trigger_status`     | `false` | Whether or not the `live` view should show a visual indication that it is triggered (a pulsing border around the camera edge).                                                                     |
-| `untrigger_delay_seconds` | `0`     | The number of seconds to continue to consider the camera triggered after the entity/event/state has reset, before considering the camera untriggered and taking the configured `untrigger` action. |
-| `untrigger_force_seconds` | `0`     | The number of seconds after a camera first triggers before force untriggering that camera. Set to `0` to disable.                                                                                  |
+| Option                    | Default | Description                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `actions`                 |         | The actions to take when a camera is triggered. See [Trigger action configuration](#trigger-action-configuration).                                                                                                                                                                                                                                                         |
+| `filter_selected_camera`  | `true`  | If set to `true` will only trigger on the currently selected camera.                                                                                                                                                                                                                                                                                                       |
+| `show_trigger_status`     | `false` | Whether or not the `live` view should show a visual indication that it is triggered (a pulsing border around the camera edge).                                                                                                                                                                                                                                             |
+| `untrigger_delay_seconds` | `0`     | The number of seconds to continue to consider the camera triggered after the source ends, before taking the configured `untrigger` action. For instantaneous trigger sources (e.g. HA `event.*` entities, or a doorbell button that only briefly pulses on) this is effectively the entire visible "active" duration — the source itself provides no on-period of its own. |
+| `untrigger_force_seconds` | `0`     | The number of seconds after a camera first triggers before force untriggering that camera. Set to `0` to disable.                                                                                                                                                                                                                                                          |
 
 > [!WARNING] If `untrigger_force_seconds` is used to untrigger a camera, the
 > state will need to 'reset' (e.g. an entity would need to change state to
 > `off`) before it will trigger again.
+
+> [!TIP] When pairing `trigger: call` with `untrigger: call` (the
+> "ring-then-end-if-unanswered" pattern), the ring lasts until the source ends
+> plus `untrigger_delay_seconds`. With an instantaneous trigger source (event
+> entity, brief switch pulse) and the default of `0`, the call would start and
+> end in the same tick. In these cases, set a positive value (e.g. `30`) for a
+> meaningful ring duration.
 
 ### Trigger action configuration
 
