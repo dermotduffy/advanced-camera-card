@@ -2,6 +2,10 @@ exclude_path = [
   "node_modules",
   "vscode://"
 ]
+exclude = [
+  # npmjs.com returns 403 to lychee's user-agent.
+  "^https://www\\.npmjs\\.com/"
+]
 timeout = 20
 max_retries = 3
 accept = [200, 204]
