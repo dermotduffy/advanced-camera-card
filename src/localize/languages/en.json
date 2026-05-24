@@ -316,7 +316,7 @@
       },
       "media_action_conditions": {
         "call_mute": "On call end",
-        "call_unmute": "On call start",
+        "call_unmute": "On call answer",
         "hidden": "On browser/tab hiding",
         "microphone_mute": "On microphone mute",
         "microphone_unmute": "On microphone unmute",
@@ -395,12 +395,14 @@
       "auto_unmute": "Automatically unmute live cameras",
       "controls": {
         "call": {
+          "answer": "Answer call",
           "button_size": "Call control button size",
           "editor_label": "Two-way audio call",
           "end": "End 2-way audio call",
           "lock": "Lock UI during an active call",
           "mute_audio": "Mute audio",
           "mute_microphone": "Mute microphone",
+          "reject": "Reject call",
           "ringtone": {
             "repeat": "Ringtone repeats per inbound call (0=indefinite)",
             "type": "Ringtone for inbound calls",

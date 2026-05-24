@@ -45,12 +45,28 @@
   pointer-events: none;
 }
 
+// Wrapper around each button group. The pre/post-answer ternary swaps which
+// `.buttons` element is in the DOM, so the pop-animation swap fires when the
+// user accepts (or, more generally, whenever the answered state flips
+// mid-call).
+.buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  @include pop-swap;
+}
+
 ha-icon-button {
   color: var(--advanced-camera-card-button-color);
   background: var(--advanced-camera-card-button-background);
   border-radius: var(--advanced-camera-card-button-border-radius);
 
-  &.critical {
-    color: var(--advanced-camera-card-call-controls-critical-color);
+  &.negative {
+    color: var(--advanced-camera-card-call-controls-negative-color);
+  }
+
+  &.positive {
+    color: var(--advanced-camera-card-call-controls-positive-color);
   }
 }

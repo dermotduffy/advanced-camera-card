@@ -194,11 +194,13 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       changedProps.has('viewManagerEpoch') ||
       changedProps.has('viewFilterCameraID')
     ) {
-      // Scope the call-active signal to the carousel that owns the call: in
+      // Scope the call-answered signal to the carousel that owns the call: in
       // grid mode every carousel receives `.call`, but only the call camera's
-      // audio should be acted on.
-      this._mediaActionsController.setCallActive(
-        this.call?.cameraID === this._getCarouselCameraID(),
+      // audio should be acted on. Gating on `answered` (not mere presence)
+      // keeps `live.auto_unmute: ['call']` from unmuting the camera's audio
+      // during the pre-answer ringing state.
+      this._mediaActionsController.setCallAnswered(
+        this.call?.cameraID === this._getCarouselCameraID() && !!this.call?.answered,
       );
     }
   }
@@ -294,17 +296,20 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     return view?.context?.live?.overrides?.get(cameraID) ?? cameraID;
   }
 
-  // Return a microphone stream only for the camera the call runs on, and
-  // only while that camera's engaged stream is still the call's audio source.
-  // Keying off the call session (not the selected slide) keeps the microphone
-  // routed to the call's camera, and stops transmission if the substream has
-  // since changed.
+  // Return a microphone stream only for the camera the call runs on, only
+  // while the call has been answered, and only while that camera's engaged
+  // stream is still the call's audio source. The `answered` gate is a
+  // privacy guarantee: an inbound call that's still ringing must not
+  // transmit audio even if the mic happens to be un-muted (e.g. left open
+  // by `auto_unmute: ['selected']` or a prior call). The substream gate
+  // stops transmission if the substream has since changed.
   private _getRelevantMicrophoneStream(
     cameraID: string,
     view?: View | null,
   ): MediaStream | null {
     const isRelevant =
-      this.call?.cameraID === cameraID &&
+      !!this.call?.answered &&
+      this.call.cameraID === cameraID &&
       this._getSubstreamCameraID(cameraID, view) ===
         (this.call.callCameraID ?? cameraID);
     return isRelevant ? this.microphoneState?.stream ?? null : null;
@@ -458,6 +463,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       </advanced-camera-card-ptz>
       <advanced-camera-card-call-controls
         .active=${isCallActive}
+        .answered=${this.call?.answered ?? true}
         .microphoneState=${this.microphoneState}
         .muted=${callMediaPlayerController?.isMuted()}
         .buttonSize=${this.liveConfig.controls.call.button_size}

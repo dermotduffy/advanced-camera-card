@@ -26,7 +26,7 @@ interface MicrophoneActionsControllerOptions {
 export class MicrophoneActionsController {
   private _options: MicrophoneActionsControllerOptions | null = null;
   private _selectedCamera: string | null = null;
-  private _callActive = false;
+  private _callAnswered = false;
   private _visibilityObserver: VisibilityObserver;
 
   constructor() {
@@ -40,20 +40,22 @@ export class MicrophoneActionsController {
   }
 
   /**
-   * Notifies the controller of the call-active state, acting only on a genuine
-   * transition. The initial state is treated as inactive, so a first-ever
-   * `true` counts -- the call rules apply even when the live view first
-   * appears during an active call.
+   * Notifies the controller of the call-answered state (outbound calls are
+   * answered at start; inbound calls only become answered when the user
+   * accepts). Acts only on a genuine transition. The initial state is treated
+   * as unanswered, so a first-ever `true` counts -- the call rules apply even
+   * when the live view first appears during an answered call.
    *
-   * Call start unmutes the microphone only if the user opted into
-   * `microphone.auto_unmute: ['call']`.
+   * Call answer unmutes the microphone only if the user opted into
+   * `microphone.auto_unmute: ['call']`; the symmetric mute fires on the
+   * answered-to-unanswered transition (call end after answer).
    */
-  public setCallActive(active: boolean): void {
-    if (active === this._callActive) {
+  public setCallAnswered(answered: boolean): void {
+    if (answered === this._callAnswered) {
       return;
     }
-    this._callActive = active;
-    if (active) {
+    this._callAnswered = answered;
+    if (answered) {
       this._unmuteIfConfigured('call');
     } else {
       this._muteIfConfigured('call');

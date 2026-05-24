@@ -45,15 +45,20 @@ enabled by default and appears in the `live` view whenever the selected camera
 -- or one of its [dependencies](../configuration/cameras/README.md?id=dependencies)
 -- supports 2-way audio.
 
-- Tap the call button to start a call. An on-screen overlay appears with
-  controls to mute/unmute the microphone, mute/unmute the inbound audio, and end
-  the call. When more than one 2-way-audio camera is available the button
-  becomes a submenu with one entry per camera.
-- When a call starts the inbound audio is unmuted automatically, so the caller
-  can be heard immediately. The microphone stays muted by default
-  (push-to-talk) -- tap the microphone button in the overlay to speak. This is
-  configurable via [`live.microphone.auto_unmute`](../configuration/live.md?id=microphone)
-  and [`live.auto_unmute`](../configuration/live.md).
+- Tap the call button to start an **outbound** call. An on-screen overlay
+  appears with controls to mute/unmute the microphone, mute/unmute the inbound
+  audio, and end the call. When more than one 2-way-audio camera is available
+  the button becomes a submenu with one entry per camera.
+- **Inbound** calls (started by a
+  [`view.triggers.actions.trigger: call`](../configuration/view.md?id=trigger-action-configuration)
+  trigger -- e.g. a doorbell) open the overlay in a ringing state with only
+  two buttons: a red **Reject** and a green **Answer**.
+- When a call is answered (outbound calls are answered by definition) the
+  inbound audio is unmuted automatically, so the caller can be heard. The
+  microphone stays muted by default (push-to-talk) -- tap the microphone button
+  in the overlay to speak. Both behaviors are configurable via
+  [`live.microphone.auto_unmute`](../configuration/live.md?id=microphone) and
+  [`live.auto_unmute`](../configuration/live.md).
 - The camera will always load _without_ the microphone connected, unless the
   [`always_connected`](../configuration/live.md?id=microphone) microphone option
   is set to `true`. On the first call there may be a brief `webrtc` connection
@@ -69,8 +74,9 @@ enabled by default and appears in the `live` view whenever the selected camera
   seconds specified by [`disconnect_seconds`](../configuration/live.md?id=microphone)
   have elapsed since the call ended.
 
-Calls can also be started and ended programmatically with the
-[`call_start`](../configuration/actions/custom/README.md?id=call_start) and
+Calls can also be controlled programmatically with the
+[`call_start`](../configuration/actions/custom/README.md?id=call_start),
+[`call_answer`](../configuration/actions/custom/README.md?id=call_answer), and
 [`call_end`](../configuration/actions/custom/README.md?id=call_end) actions --
 for example, from an [automation](../configuration/automations.md) that fires
 when a doorbell sensor triggers. The [`call` condition](../configuration/conditions.md?id=call)
@@ -84,13 +90,13 @@ The diagram below traces a call from start to finish:
 
 ## Talking with a single tap
 
-By default, two taps are needed to speak: the call button starts the call (so
-you can hear), then the microphone button in the call overlay unmutes your
-microphone (so you can be heard). This push-to-talk default keeps the microphone
-muted until you explicitly choose to speak.
+By default, two taps are needed to speak: start (or answer) the call so you can
+hear, then unmute the microphone via the in-call overlay so you can be heard.
+This push-to-talk default keeps the microphone muted until you explicitly choose
+to speak.
 
 To collapse that to a single tap, unmute the microphone automatically when a
-call starts:
+call is answered:
 
 ```yaml
 live:
@@ -98,9 +104,7 @@ live:
     auto_unmute: ['call']
 ```
 
-The call button then behaves as a toggle -- one tap starts the call and opens
-the microphone, a second tap ends the call and closes it again. Note this also
-opens the microphone for calls started by an
-[automation](../configuration/automations.md); leave
+For outbound calls the microphone opens the moment the call starts; for inbound
+calls it opens the moment you press the green answer button. Leave
 [`auto_unmute`](../configuration/live.md?id=microphone) empty (the default) to
-always start muted.
+always start muted regardless.

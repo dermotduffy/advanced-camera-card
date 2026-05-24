@@ -12,9 +12,18 @@ action: custom:advanced-camera-card-action
 | `action`                      | Must be `custom:advanced-camera-card-action`.                      |
 | `advanced_camera_card_action` | A supported Advanced Camera Card action. One of the below actions. |
 
+## `call_answer`
+
+Answer an inbound [two-way audio](../../../usage/2-way-audio.md) call that is currently ringing -- the same effect as pressing the green answer button on the in-call overlay. Has no effect if there is no inbound call or it has already been answered. To reject a ringing call instead, use [`call_end`](#call_end).
+
+```yaml
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: call_answer
+```
+
 ## `call_end`
 
-End the [two-way audio](../../../usage/2-way-audio.md) call in progress. Has no effect if no call is active.
+End the [two-way audio](../../../usage/2-way-audio.md) call in progress or rejects a ringing inbound call. Has no effect if no call is active.
 
 ```yaml
 action: custom:advanced-camera-card-action

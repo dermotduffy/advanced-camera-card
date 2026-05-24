@@ -712,22 +712,22 @@ describe('MediaActionsController', () => {
     });
   });
 
-  describe('should take action on call state changes', () => {
-    it('should unmute the target on call start', async () => {
+  describe('should take action on call answered state changes', () => {
+    it('should unmute the target on call answer', async () => {
       const controller = new MediaActionsController();
 
       controller.setOptions({
         autoUnmuteConditions: ['call' as const],
         playerSelector: 'video',
       });
-      controller.setCallActive(false);
+      controller.setCallAnswered(false);
 
       const children = createPlayerSlideNodes();
       controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
 
-      controller.setCallActive(true);
+      controller.setCallAnswered(true);
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
@@ -741,14 +741,14 @@ describe('MediaActionsController', () => {
         autoMuteConditions: ['call' as const],
         playerSelector: 'video',
       });
-      controller.setCallActive(true);
+      controller.setCallAnswered(true);
 
       const children = createPlayerSlideNodes();
       controller.setRoot(createParent({ children: children }));
 
       await controller.setTarget(0, true);
 
-      controller.setCallActive(false);
+      controller.setCallAnswered(false);
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
@@ -768,7 +768,7 @@ describe('MediaActionsController', () => {
       controller.setRoot(createParent({ children: children }));
       await controller.setTarget(0, true);
 
-      controller.setCallActive(false);
+      controller.setCallAnswered(false);
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
@@ -782,20 +782,20 @@ describe('MediaActionsController', () => {
         autoUnmuteConditions: [],
         playerSelector: 'video',
       });
-      controller.setCallActive(false);
+      controller.setCallAnswered(false);
 
       const children = createPlayerSlideNodes();
       controller.setRoot(createParent({ children: children }));
       await controller.setTarget(0, true);
 
-      controller.setCallActive(true);
+      controller.setCallAnswered(true);
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
       ).not.toBeCalled();
     });
 
-    it('should apply the call-start unmute when the target arrives after the call', async () => {
+    it('should apply the call-answer unmute when the target arrives after the call', async () => {
       const controller = new MediaActionsController();
 
       controller.setOptions({
@@ -806,9 +806,9 @@ describe('MediaActionsController', () => {
       const children = createPlayerSlideNodes();
       controller.setRoot(createParent({ children: children }));
 
-      // The call becomes active before any target is selected: with no
-      // target, the unmute cannot be applied yet.
-      controller.setCallActive(true);
+      // The call is answered before any target is selected: with no target,
+      // the unmute cannot be applied yet.
+      controller.setCallAnswered(true);
       await flushPromises();
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
@@ -821,7 +821,7 @@ describe('MediaActionsController', () => {
       ).toBeCalled();
     });
 
-    it('should unmute when the call is already active on the first call-state signal', async () => {
+    it('should unmute when the call is already answered on the first call-state signal', async () => {
       const controller = new MediaActionsController();
 
       controller.setOptions({
@@ -833,24 +833,25 @@ describe('MediaActionsController', () => {
       controller.setRoot(createParent({ children: children }));
       await controller.setTarget(0, true);
 
-      // `setCallActive(true)` is the first call-state signal, with no preceding
-      // `false` -- as for a carousel that loads while a call is already
-      // active. The initial state must not be swallowed as a baseline.
-      controller.setCallActive(true);
+      // `setCallAnswered(true)` is the first call-state signal, with no
+      // preceding `false` -- as for a carousel that loads while an answered
+      // call is already active. The initial state must not be swallowed as
+      // a baseline.
+      controller.setCallAnswered(true);
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
       ).toBeCalled();
     });
 
-    it('should defer the call-start unmute until the media player is ready', async () => {
+    it('should defer the call-answer unmute until the media player is ready', async () => {
       const controller = new MediaActionsController();
 
       controller.setOptions({
         autoUnmuteConditions: ['call' as const],
         playerSelector: 'video',
       });
-      controller.setCallActive(false);
+      controller.setCallAnswered(false);
 
       // A player whose media player controller is not ready on first request.
       const mediaPlayerController = mock<MediaPlayerController>();
@@ -865,8 +866,8 @@ describe('MediaActionsController', () => {
       controller.setRoot(createParent({ children: [child] }));
       await controller.setTarget(0, true);
 
-      // The call starts while the player is still not ready: no unmute yet.
-      controller.setCallActive(true);
+      // The call is answered while the player is still not ready: no unmute yet.
+      controller.setCallAnswered(true);
       await flushPromises();
       expect(mediaPlayerController.unmute).not.toBeCalled();
 

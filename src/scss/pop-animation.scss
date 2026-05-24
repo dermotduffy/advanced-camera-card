@@ -13,6 +13,14 @@
   animation: pop-out 0.25s ease-out forwards;
 }
 
+// Lighter "swap" pop: a subtle in-place fade/scale used when an overlay's
+// contents change without the overlay itself entering or leaving the DOM.
+// Quieter than `pop-in` so it can sit inside an already-popped panel without
+// fighting the parent animation.
+@mixin pop-swap {
+  animation: pop-swap 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.5) forwards;
+}
+
 @keyframes pop-in {
   0% {
     opacity: 0;
@@ -42,5 +50,20 @@
   100% {
     opacity: 0;
     transform: translateY(20px) scale(0.95);
+  }
+}
+
+@keyframes pop-swap {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }

@@ -86,7 +86,11 @@ export class AdvancedCameraCardLive extends LitElement {
       );
     }
     if (changedProps.has('call')) {
-      this._microphoneActionsController.setCallActive(!!this.call);
+      // Gate on `answered`, not mere presence, so `microphone.auto_unmute:
+      // ['call']` doesn't transmit audio during the pre-answer ringing state.
+      // Outbound calls are answered at construction; inbound calls only after
+      // the user accepts.
+      this._microphoneActionsController.setCallAnswered(!!this.call?.answered);
     }
   }
 

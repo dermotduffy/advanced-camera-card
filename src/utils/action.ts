@@ -1,5 +1,6 @@
 import { CardActionsAPI } from '../card-controller/types.js';
 import { ZoomSettingsBase } from '../components-lib/zoom/types.js';
+import { CallAnswerActionConfig } from '../config/schema/actions/custom/call-answer.js';
 import { CallEndActionConfig } from '../config/schema/actions/custom/call-end.js';
 import { CallStartActionConfig } from '../config/schema/actions/custom/call-start.js';
 import { CameraSelectActionConfig } from '../config/schema/actions/custom/camera-select.js';
@@ -310,6 +311,16 @@ export function createCallStartAction(options?: {
     advanced_camera_card_action: 'call_start',
     ...(options?.camera && { camera: options.camera }),
     ...(options?.stream && { stream: options.stream }),
+    ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
+export function createCallAnswerAction(options?: {
+  cardID?: string;
+}): CallAnswerActionConfig {
+  return {
+    action: 'fire-dom-event',
+    advanced_camera_card_action: 'call_answer',
     ...(options?.cardID && { card_id: options.cardID }),
   };
 }

@@ -42,7 +42,7 @@ export class MediaActionsController {
   // Audio-related state fed in via dedicated setters (not `setOptions`, which
   // is pure configuration).
   private _microphoneState?: MicrophoneState;
-  private _callActive = false;
+  private _callAnswered = false;
 
   // Deferred because the media player is not always ready when a call starts:
   // the call may start from another view, or engage a substream that is still
@@ -71,17 +71,19 @@ export class MediaActionsController {
     this._microphoneStateChangeHandler(previous, state);
   }
 
-  // Audio-out auto-mute/unmute driven by the call lifecycle: unmute on call
-  // start (hear the caller), mute on call end. Acts only on a genuine
-  // transition. The first-ever `true` counts as a transition: a carousel that
-  // loads while a call is already active (e.g. `call_start` dispatched from a
-  // non-live view) must still unmute.
-  public setCallActive(active: boolean): void {
-    if (active === this._callActive) {
+  // Audio-out auto-mute/unmute driven by call answer: unmute when the call
+  // is answered (hear the caller), mute when an answered call ends. Acts only
+  // on a genuine transition. The first-ever `true` counts as a transition: a
+  // carousel that loads while an answered call is already active must still
+  // unmute. An inbound call that's rejected pre-answer never sees a `true`,
+  // so neither side fires -- the camera audio is never auto-disturbed by a
+  // call the user didn't accept.
+  public setCallAnswered(answered: boolean): void {
+    if (answered === this._callAnswered) {
       return;
     }
-    this._callActive = active;
-    if (active) {
+    this._callAnswered = answered;
+    if (answered) {
       this._pendingCallStartAction = true;
       this._applyPendingCallStartAction();
     } else {
