@@ -1,5 +1,15 @@
 {
   "permissions": {
-    "allow": ["Bash(yarn run *)", "Bash(yarn why:*)"]
+    "allow": [
+      "Bash(yarn run *)",
+      "Bash(yarn why:*)",
+      "Bash(npx vitest *)",
+      "Bash(yarn vitest run *)",
+      "Bash(yarn prettier *)",
+      "Bash(npx tsc --noEmit *)",
+      "Bash(npx eslint *)",
+      "Bash(npx rollup -c *)",
+      "Read(~/.claude/projects/**)"
+    ]
   }
 }
