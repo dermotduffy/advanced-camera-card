@@ -66,7 +66,7 @@ live:
 > until the page has received a user gesture (e.g. a tap or click). When that
 > happens no sound is produced and no error is shown. The underlying behavior is
 > documented in [MDN's Autoplay
-> guide](https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide).
+> guide](https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Autoplay).
 
 #### `ringtone`
 
