@@ -827,6 +827,36 @@ const microphoneConnectedToCallTransform = (data: unknown): boolean => {
   return true;
 };
 
+// Unify the legacy trio `live_substream_{on,off,select}` into the new
+// `substream_{on,off}` pair. `live_substream_select` carried the substream ID
+// in its `camera` field; that field becomes `stream` on `substream_on`.
+const substreamActionsUnifyTransform = (data: RawAdvancedCameraCardConfig): boolean => {
+  if (
+    data['action'] !== 'fire-dom-event' &&
+    data['action'] !== 'custom:advanced-camera-card-action'
+  ) {
+    return false;
+  }
+  const action = data['advanced_camera_card_action'];
+  if (action === 'live_substream_on') {
+    data['advanced_camera_card_action'] = 'substream_on';
+    return true;
+  }
+  if (action === 'live_substream_off') {
+    data['advanced_camera_card_action'] = 'substream_off';
+    return true;
+  }
+  if (action === 'live_substream_select') {
+    data['advanced_camera_card_action'] = 'substream_on';
+    if ('camera' in data) {
+      data['stream'] = data['camera'];
+      delete data['camera'];
+    }
+    return true;
+  }
+  return false;
+};
+
 const frigateCardToAdvancedCameraCardStyleTransform = (data: unknown): unknown => {
   if (typeof data !== 'object' || !data || Array.isArray(data)) {
     return data;
@@ -1049,6 +1079,15 @@ const UPGRADES = [
   (data: unknown): boolean => {
     return upgradeObjectRecursively(microphoneConnectedToCallTransform)(
       typeof data === 'object' && data ? data[CONF_AUTOMATIONS] : {},
+    );
+  },
+
+  // Unify `live_substream_{on,off,select}` actions. Walked over the entire
+  // tree because card actions can appear anywhere (menu buttons, elements,
+  // automations, view-action handlers, etc.).
+  (data: unknown): boolean => {
+    return upgradeObjectRecursively(substreamActionsUnifyTransform)(
+      typeof data === 'object' && data ? (data as RawAdvancedCameraCardConfig) : {},
     );
   },
 ];

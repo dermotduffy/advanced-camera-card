@@ -20,6 +20,8 @@ import {
   createPTZMultiAction,
   createSelectOptionAction,
   createSetReviewAction,
+  createSubstreamOffAction,
+  createSubstreamOnAction,
   createViewAction,
   getActionConfigGivenAction,
   hasAction,
@@ -70,14 +72,12 @@ describe('createViewAction', () => {
 
 describe('createCameraAction', () => {
   it('should create camera_select action', () => {
-    expect(createCameraAction('camera_select', 'camera', { cardID: 'card_id' })).toEqual(
-      {
-        action: 'fire-dom-event',
-        camera: 'camera',
-        advanced_camera_card_action: 'camera_select',
-        card_id: 'card_id',
-      },
-    );
+    expect(createCameraAction('camera', { cardID: 'card_id' })).toEqual({
+      action: 'fire-dom-event',
+      camera: 'camera',
+      advanced_camera_card_action: 'camera_select',
+      card_id: 'card_id',
+    });
   });
 });
 
@@ -370,7 +370,9 @@ describe('createCallStartAction', () => {
 
   it('should create call start action with a camera, stream and cardID', () => {
     expect(
-      createCallStartAction('camera.front', 'camera.front_doorbell', {
+      createCallStartAction({
+        camera: 'camera.front',
+        stream: 'camera.front_doorbell',
         cardID: 'card_id',
       }),
     ).toEqual({
@@ -378,6 +380,51 @@ describe('createCallStartAction', () => {
       advanced_camera_card_action: 'call_start',
       camera: 'camera.front',
       stream: 'camera.front_doorbell',
+      card_id: 'card_id',
+    });
+  });
+});
+
+describe('createSubstreamOnAction', () => {
+  it('should create substream_on action without options', () => {
+    expect(createSubstreamOnAction()).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'substream_on',
+    });
+  });
+
+  it('should create substream_on action with camera, stream, and cardID', () => {
+    expect(
+      createSubstreamOnAction({
+        camera: 'camera.front',
+        stream: 'camera.front_hd',
+        cardID: 'card_id',
+      }),
+    ).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'substream_on',
+      camera: 'camera.front',
+      stream: 'camera.front_hd',
+      card_id: 'card_id',
+    });
+  });
+});
+
+describe('createSubstreamOffAction', () => {
+  it('should create substream_off action without options', () => {
+    expect(createSubstreamOffAction()).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'substream_off',
+    });
+  });
+
+  it('should create substream_off action with camera and cardID', () => {
+    expect(
+      createSubstreamOffAction({ camera: 'camera.front', cardID: 'card_id' }),
+    ).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'substream_off',
+      camera: 'camera.front',
       card_id: 'card_id',
     });
   });

@@ -71,10 +71,7 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
       actions: [
         cameraPriority === 'entity'
           ? // Set the currently selected camera to the state of the entity.
-            createCameraAction(
-              'camera_select',
-              `{{ hass.states["${cameraControlEntity}"].state }}`,
-            )
+            createCameraAction(`{{ hass.states["${cameraControlEntity}"].state }}`)
           : // Set the selected option in the entity to the current camera ID.
             createInternalCallbackAction(async (api: CardActionsAPI) => {
               const camera = api.getViewManager().getView()?.camera ?? undefined;
@@ -92,10 +89,7 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
       ],
       actions: [
         // When the entity state changes, updated the selected option.
-        createCameraAction(
-          'camera_select',
-          '{{ advanced_camera_card.trigger.state.to }}',
-        ),
+        createCameraAction('{{ advanced_camera_card.trigger.state.to }}'),
       ],
       tag: automationTag,
     },

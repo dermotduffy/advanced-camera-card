@@ -43,7 +43,6 @@ import { SleepAction } from './actions/sleep';
 import { StatusBarAction } from './actions/status-bar';
 import { SubstreamOffAction } from './actions/substream-off';
 import { SubstreamOnAction } from './actions/substream-on';
-import { SubstreamSelectAction } from './actions/substream-select';
 import { ToggleAction } from './actions/toggle';
 import { UnmuteAction } from './actions/unmute';
 import { URLAction } from './actions/url';
@@ -130,11 +129,9 @@ export class ActionFactory {
         return new CallEndAction(context, action, options?.config);
       case 'camera_select':
         return new CameraSelectAction(context, action, options?.config);
-      case 'live_substream_select':
-        return new SubstreamSelectAction(context, action, options?.config);
-      case 'live_substream_off':
+      case 'substream_off':
         return new SubstreamOffAction(context, action, options?.config);
-      case 'live_substream_on':
+      case 'substream_on':
         return new SubstreamOnAction(context, action, options?.config);
       case 'media_player':
         return new MediaPlayerAction(context, action, options?.config);

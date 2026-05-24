@@ -1897,7 +1897,7 @@ describe('should handle version specific upgrades', () => {
                 actions: [
                   {
                     action: 'custom:advanced-camera-card-action' as const,
-                    advanced_camera_card_action: 'live_substream_on' as const,
+                    advanced_camera_card_action: 'substream_on' as const,
                   },
                 ],
               },
@@ -1919,7 +1919,7 @@ describe('should handle version specific upgrades', () => {
                 actions: [
                   {
                     action: 'custom:advanced-camera-card-action' as const,
-                    advanced_camera_card_action: 'live_substream_on' as const,
+                    advanced_camera_card_action: 'substream_on' as const,
                   },
                 ],
               },
@@ -2023,7 +2023,7 @@ describe('should handle version specific upgrades', () => {
                 actions: [
                   {
                     action: 'custom:advanced-camera-card-action' as const,
-                    advanced_camera_card_action: 'live_substream_on' as const,
+                    advanced_camera_card_action: 'substream_on' as const,
                   },
                 ],
               },
@@ -2045,7 +2045,7 @@ describe('should handle version specific upgrades', () => {
                 actions: [
                   {
                     action: 'custom:advanced-camera-card-action' as const,
-                    advanced_camera_card_action: 'live_substream_on' as const,
+                    advanced_camera_card_action: 'substream_on' as const,
                   },
                 ],
               },
@@ -2154,7 +2154,7 @@ describe('should handle version specific upgrades', () => {
                   actions: [
                     {
                       action: 'custom:advanced-camera-card-action' as const,
-                      advanced_camera_card_action: 'live_substream_on' as const,
+                      advanced_camera_card_action: 'substream_on' as const,
                     },
                   ],
                 },
@@ -2176,7 +2176,7 @@ describe('should handle version specific upgrades', () => {
                   actions: [
                     {
                       action: 'custom:advanced-camera-card-action' as const,
-                      advanced_camera_card_action: 'live_substream_on' as const,
+                      advanced_camera_card_action: 'substream_on' as const,
                     },
                   ],
                 },
@@ -2323,7 +2323,7 @@ describe('should handle version specific upgrades', () => {
                 actions: [
                   {
                     action: 'custom:advanced-camera-card-action' as const,
-                    advanced_camera_card_action: 'live_substream_on' as const,
+                    advanced_camera_card_action: 'substream_on' as const,
                   },
                 ],
               },
@@ -2351,7 +2351,7 @@ describe('should handle version specific upgrades', () => {
                 actions: [
                   {
                     action: 'custom:advanced-camera-card-action' as const,
-                    advanced_camera_card_action: 'live_substream_on' as const,
+                    advanced_camera_card_action: 'substream_on' as const,
                   },
                 ],
               },
@@ -2455,7 +2455,7 @@ describe('should handle version specific upgrades', () => {
                 actions: [
                   {
                     action: 'custom:advanced-camera-card-action' as const,
-                    advanced_camera_card_action: 'live_substream_on' as const,
+                    advanced_camera_card_action: 'substream_on' as const,
                   },
                 ],
               },
@@ -2477,7 +2477,7 @@ describe('should handle version specific upgrades', () => {
                 actions: [
                   {
                     action: 'custom:advanced-camera-card-action' as const,
-                    advanced_camera_card_action: 'live_substream_on' as const,
+                    advanced_camera_card_action: 'substream_on' as const,
                   },
                 ],
               },
@@ -4047,6 +4047,225 @@ describe('should handle version specific upgrades', () => {
         expect(upgradeConfig(config)).toBeFalsy();
         expect(config.automations[0].conditions).toEqual([
           { condition: 'call', call: true },
+        ]);
+        postUpgradeChecks(config);
+      });
+    });
+
+    describe('live_substream_{on,off,select} → substream_{on,off}', () => {
+      it('rewrites live_substream_on to substream_on in an automation', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'initialized' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'live_substream_on',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].actions).toEqual([
+          {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'substream_on',
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('rewrites live_substream_off to substream_off in an automation', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'initialized' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'live_substream_off',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].actions).toEqual([
+          {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'substream_off',
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('rewrites live_substream_select to substream_on with camera → stream', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'initialized' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'live_substream_select',
+                  camera: 'camera.office_hd',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].actions).toEqual([
+          {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'substream_on',
+            stream: 'camera.office_hd',
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('rewrites a malformed live_substream_select with no camera field', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'initialized' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'live_substream_select',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].actions).toEqual([
+          {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'substream_on',
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('migrates actions on elements and overrides', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-icon',
+              icon: 'mdi:video-input-component',
+              tap_action: {
+                action: 'fire-dom-event',
+                advanced_camera_card_action: 'live_substream_select',
+                camera: 'camera.office_hd',
+              },
+            },
+          ],
+          overrides: [
+            {
+              conditions: [{ condition: 'fullscreen', fullscreen: true }],
+              merge: {
+                menu: {
+                  buttons: {
+                    substreams: {
+                      tap_action: {
+                        action: 'fire-dom-event',
+                        advanced_camera_card_action: 'live_substream_on',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.elements[0].tap_action).toEqual({
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'substream_on',
+          stream: 'camera.office_hd',
+        });
+        expect(config.overrides[0].merge.menu.buttons.substreams.tap_action).toEqual({
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'substream_on',
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('leaves opaque user payloads alone', () => {
+        // A perform-action service payload that happens to mention the legacy
+        // action string in its `data` block must not be rewritten — `data` is
+        // opaque, not an action.
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'initialized' }],
+              actions: [
+                {
+                  action: 'perform-action',
+                  perform_action: 'script.bogus',
+                  data: {
+                    advanced_camera_card_action: 'live_substream_select',
+                    camera: 'camera.office_hd',
+                  },
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.automations[0].actions[0]).toEqual({
+          action: 'perform-action',
+          perform_action: 'script.bogus',
+          data: {
+            advanced_camera_card_action: 'live_substream_select',
+            camera: 'camera.office_hd',
+          },
+        });
+      });
+
+      it('is idempotent', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'initialized' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'live_substream_select',
+                  camera: 'camera.office_hd',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+
+        // Running upgradeConfig again should not change anything.
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.automations[0].actions).toEqual([
+          {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: 'substream_on',
+            stream: 'camera.office_hd',
+          },
         ]);
         postUpgradeChecks(config);
       });

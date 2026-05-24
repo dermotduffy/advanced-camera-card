@@ -134,7 +134,7 @@ export class CallManager {
       ...(needsNavigation && {
         params: { view: 'live', camera: parentID },
       }),
-      modifiers: [new SubstreamViewModifier(callCameraID, parentID)],
+      modifiers: [new SubstreamViewModifier({ stream: callCameraID, camera: parentID })],
       force: true,
     });
     this._api.getConditionStateManager().setState({ call: true });
@@ -255,12 +255,11 @@ export class CallManager {
       const previousStream = getStreamCameraID(previousView, call.cameraID);
       viewManager.setViewByParameters({
         modifiers: [
-          new SubstreamViewModifier(
-            previousStream && previousStream !== call.cameraID
-              ? previousStream
-              : undefined,
-            call.cameraID,
-          ),
+          new SubstreamViewModifier({
+            ...(previousStream &&
+              previousStream !== call.cameraID && { stream: previousStream }),
+            camera: call.cameraID,
+          }),
         ],
         force: true,
       });

@@ -278,7 +278,7 @@ describe('MenuButtonController', () => {
         type: 'custom:advanced-camera-card-menu-icon',
         tap_action: {
           action: 'fire-dom-event',
-          advanced_camera_card_action: 'live_substream_on',
+          advanced_camera_card_action: 'substream_on',
         },
       });
     });
@@ -322,7 +322,7 @@ describe('MenuButtonController', () => {
         type: 'custom:advanced-camera-card-menu-icon',
         tap_action: {
           action: 'fire-dom-event',
-          advanced_camera_card_action: 'live_substream_off',
+          advanced_camera_card_action: 'substream_off',
         },
       });
     });
@@ -394,8 +394,8 @@ describe('MenuButtonController', () => {
             selected: true,
             tap_action: {
               action: 'fire-dom-event',
-              advanced_camera_card_action: 'live_substream_select',
-              camera: 'camera-1',
+              advanced_camera_card_action: 'substream_on',
+              stream: 'camera-1',
             },
           },
           {
@@ -407,8 +407,8 @@ describe('MenuButtonController', () => {
             selected: false,
             tap_action: {
               action: 'fire-dom-event',
-              advanced_camera_card_action: 'live_substream_select',
-              camera: 'camera-2',
+              advanced_camera_card_action: 'substream_on',
+              stream: 'camera-2',
             },
           },
           {
@@ -420,8 +420,8 @@ describe('MenuButtonController', () => {
             selected: false,
             tap_action: {
               action: 'fire-dom-event',
-              advanced_camera_card_action: 'live_substream_select',
-              camera: 'camera-3',
+              advanced_camera_card_action: 'substream_on',
+              stream: 'camera-3',
             },
           },
         ],
@@ -489,8 +489,8 @@ describe('MenuButtonController', () => {
             selected: false,
             tap_action: {
               action: 'fire-dom-event',
-              advanced_camera_card_action: 'live_substream_select',
-              camera: 'camera-1',
+              advanced_camera_card_action: 'substream_on',
+              stream: 'camera-1',
             },
           },
           {
@@ -504,8 +504,8 @@ describe('MenuButtonController', () => {
             selected: true,
             tap_action: {
               action: 'fire-dom-event',
-              advanced_camera_card_action: 'live_substream_select',
-              camera: 'camera-2',
+              advanced_camera_card_action: 'substream_on',
+              stream: 'camera-2',
             },
           },
           {
@@ -517,8 +517,8 @@ describe('MenuButtonController', () => {
             selected: false,
             tap_action: {
               action: 'fire-dom-event',
-              advanced_camera_card_action: 'live_substream_select',
-              camera: 'camera-3',
+              advanced_camera_card_action: 'substream_on',
+              stream: 'camera-3',
             },
           },
         ],

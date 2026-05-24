@@ -3,6 +3,8 @@ import { AdvancedCameraCardCustomActionConfig } from '../config/schema/actions/t
 import {
   createCameraAction,
   createGeneralAction,
+  createSubstreamOffAction,
+  createSubstreamOnAction,
   createViewAction,
 } from '../utils/action.js';
 import { CardQueryStringAPI } from './types';
@@ -12,7 +14,12 @@ import { ViewParametersUserSpecified } from './view/types.js';
 interface QueryStringViewIntent {
   view?: ViewParametersUserSpecified & {
     default?: boolean;
-    substream?: string;
+
+    // The substream change to apply alongside the view. Tri-state:
+    //   - `undefined`: no substream URL action present, no modifier issued.
+    //   - `string`:    `substream_on=X` — engage stream X.
+    //   - `null`:      `substream_off` — explicitly clear the override.
+    stream?: string | null;
   };
   other?: AdvancedCameraCardCustomActionConfig[];
 }
@@ -44,14 +51,20 @@ export class QueryStringManager {
 
   private async _executeViewRelated(intent: QueryStringViewIntent): Promise<void> {
     if (intent.view) {
+      const modifiers =
+        intent.view.stream !== undefined
+          ? [
+              new SubstreamViewModifier(
+                intent.view.stream === null ? {} : { stream: intent.view.stream },
+              ),
+            ]
+          : undefined;
       if (intent.view.default) {
         await this._api.getViewManager().setViewDefaultWithNewQuery({
           params: {
             camera: intent.view.camera,
           },
-          ...(intent.view.substream && {
-            modifiers: [new SubstreamViewModifier(intent.view.substream)],
-          }),
+          ...(modifiers && { modifiers }),
         });
       } else {
         await this._api.getViewManager().setViewByParametersWithNewQuery({
@@ -59,9 +72,7 @@ export class QueryStringManager {
             ...(intent.view.view && { view: intent.view.view }),
             ...(intent.view.camera && { camera: intent.view.camera }),
           },
-          ...(intent.view.substream && {
-            modifiers: [new SubstreamViewModifier(intent.view.substream)],
-          }),
+          ...(modifiers && { modifiers }),
         });
       }
     }
@@ -84,8 +95,13 @@ export class QueryStringManager {
         (result.view ??= {}).view = undefined;
       } else if (action.advanced_camera_card_action === 'camera_select') {
         (result.view ??= {}).camera = action.camera;
-      } else if (action.advanced_camera_card_action === 'live_substream_select') {
-        (result.view ??= {}).substream = action.camera;
+      } else if (
+        action.advanced_camera_card_action === 'substream_on' &&
+        action.stream !== undefined
+      ) {
+        (result.view ??= {}).stream = action.stream;
+      } else if (action.advanced_camera_card_action === 'substream_off') {
+        (result.view ??= {}).stream = null;
       } else {
         (result.other ??= []).push(action);
       }
@@ -116,10 +132,18 @@ export class QueryStringManager {
       let action: AdvancedCameraCardCustomActionConfig | null = null;
       switch (actionName) {
         case 'camera_select':
-        case 'live_substream_select':
           if (value) {
-            action = createCameraAction(actionName, value, { cardID });
+            action = createCameraAction(value, { cardID });
           }
+          break;
+        case 'substream_on':
+          action = createSubstreamOnAction({
+            ...(value && { stream: value }),
+            cardID,
+          });
+          break;
+        case 'substream_off':
+          action = createSubstreamOffAction({ cardID });
           break;
         case 'camera_ui':
         case 'default':

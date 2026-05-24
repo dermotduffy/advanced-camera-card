@@ -32,8 +32,8 @@ automations:
         fullscreen: true
     actions:
       - action: custom:advanced-camera-card-action
-        advanced_camera_card_action: live_substream_on
+        advanced_camera_card_action: substream_on
     actions_not:
       - action: custom:advanced-camera-card-action
-        advanced_camera_card_action: live_substream_off
+        advanced_camera_card_action: substream_off
 ```

@@ -40,7 +40,6 @@ import { SleepAction } from '../../../src/card-controller/actions/actions/sleep'
 import { StatusBarAction } from '../../../src/card-controller/actions/actions/status-bar';
 import { SubstreamOffAction } from '../../../src/card-controller/actions/actions/substream-off';
 import { SubstreamOnAction } from '../../../src/card-controller/actions/actions/substream-on';
-import { SubstreamSelectAction } from '../../../src/card-controller/actions/actions/substream-select';
 import { ToggleAction } from '../../../src/card-controller/actions/actions/toggle';
 import { UnmuteAction } from '../../../src/card-controller/actions/actions/unmute';
 import { URLAction } from '../../../src/card-controller/actions/actions/url';
@@ -111,18 +110,8 @@ describe('ActionFactory', () => {
       [{ advanced_camera_card_action: 'fullscreen' as const }, FullscreenAction],
       [{ advanced_camera_card_action: 'info' as const }, InfoAction],
       [{ advanced_camera_card_action: 'image' as const }, ViewAction],
-      [
-        { advanced_camera_card_action: 'live_substream_off' as const },
-        SubstreamOffAction,
-      ],
-      [{ advanced_camera_card_action: 'live_substream_on' as const }, SubstreamOnAction],
-      [
-        {
-          advanced_camera_card_action: 'live_substream_select' as const,
-          camera: 'camera.office',
-        },
-        SubstreamSelectAction,
-      ],
+      [{ advanced_camera_card_action: 'substream_off' as const }, SubstreamOffAction],
+      [{ advanced_camera_card_action: 'substream_on' as const }, SubstreamOnAction],
       [{ advanced_camera_card_action: 'live' as const }, ViewAction],
       [
         {

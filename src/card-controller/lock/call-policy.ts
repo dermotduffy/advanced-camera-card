@@ -22,9 +22,8 @@ const CALL_DISRUPTIVE_ACTIONS: ReadonlySet<string> = new Set([
   'default',
 
   // Substreams.
-  'live_substream_select',
-  'live_substream_on',
-  'live_substream_off',
+  'substream_on',
+  'substream_off',
 
   // Stream-disrupting actions. `play` is intentionally NOT here: it's the
   // recovery path from a paused state.
