@@ -84,8 +84,7 @@ console.info(
 // Expose currently-connected card instances on `window.advancedCameraCards` for
 // console-based debugging and user support. `??=` so a double-loaded card
 // shares one array (same pattern as `customCards` above).
-const advancedCameraCards: AdvancedCameraCard[] =
-  (window.advancedCameraCards ??= []);
+const advancedCameraCards: AdvancedCameraCard[] = (window.advancedCameraCards ??= []);
 
 // ***************************************************************************
 //                    Main AdvancedCameraCard WebComponent
