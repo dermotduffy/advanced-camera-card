@@ -81,6 +81,12 @@ console.info(
   documentationURL: REPO_URL,
 });
 
+// Expose currently-connected card instances on `window.advancedCameraCards` for
+// console-based debugging and user support. `??=` so a double-loaded card
+// shares one array (same pattern as `customCards` above).
+const advancedCameraCards: AdvancedCameraCard[] =
+  (window.advancedCameraCards ??= []);
+
 // ***************************************************************************
 //                    Main AdvancedCameraCard WebComponent
 //
@@ -155,6 +161,19 @@ class AdvancedCameraCard extends LitElement {
 
   public setConfig(config: RawAdvancedCameraCardConfig): void {
     this._controller.getConfigManager().setConfig(config);
+  }
+
+  public connectedCallback(): void {
+    super.connectedCallback();
+    advancedCameraCards.push(this);
+  }
+
+  public disconnectedCallback(): void {
+    const i = advancedCameraCards.indexOf(this);
+    if (i >= 0) {
+      advancedCameraCards.splice(i, 1);
+    }
+    super.disconnectedCallback();
   }
 
   protected shouldUpdate(): boolean {
@@ -524,5 +543,8 @@ declare global {
   interface HTMLElementTagNameMap {
     'advanced-camera-card': AdvancedCameraCard;
     'frigate-card': FrigateCard;
+  }
+  interface Window {
+    advancedCameraCards?: AdvancedCameraCard[];
   }
 }
