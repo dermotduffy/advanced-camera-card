@@ -1,11 +1,11 @@
 import { CameraManager } from '../../../camera-manager/manager';
-import { SubstreamViewModifier } from '../../view/modifiers/substream';
-import { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
+import { SubstreamOnActionConfig } from '../../../config/schema/actions/custom/substream-on';
 import { View } from '../../../view/view';
 import { CardActionsAPI } from '../../types';
+import { SubstreamViewModifier } from '../../view/modifiers/substream';
 import { AdvancedCameraCardAction } from './base';
 
-export class SubstreamOnAction extends AdvancedCameraCardAction<GeneralActionConfig> {
+export class SubstreamOnAction extends AdvancedCameraCardAction<SubstreamOnActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
@@ -14,35 +14,38 @@ export class SubstreamOnAction extends AdvancedCameraCardAction<GeneralActionCon
       return;
     }
 
+    const cameraID = this._action.camera ?? view.camera;
+    if (!cameraID) {
+      return;
+    }
+
+    const stream =
+      this._action.stream ??
+      this._getCycledSubstreamID(view, cameraID, api.getCameraManager());
+
     api.getViewManager().setViewByParameters({
-      modifiers: [
-        new SubstreamViewModifier(
-          this._getCycledSubstreamID(view, api.getCameraManager()),
-        ),
-      ],
+      modifiers: [new SubstreamViewModifier({ stream, camera: cameraID })],
     });
   }
 
-  // The next substream in the selected camera's cycle: its `substream`
-  // dependencies in order, wrapping back round. `undefined` means the camera's
-  // own stream (no substream).
+  // The next substream in the camera's cycle: its `substream` dependencies in
+  // order, wrapping back round. `undefined` means the camera's own stream (no
+  // substream).
   private _getCycledSubstreamID(
     view: View,
+    cameraID: string,
     cameraManager: CameraManager,
   ): string | undefined {
-    if (!view.camera) {
-      return undefined;
-    }
     const dependencies = [
-      ...cameraManager.getStore().getAllDependentCameras(view.camera, 'substream'),
+      ...cameraManager.getStore().getAllDependentCameras(cameraID, 'substream'),
     ];
     if (dependencies.length <= 1) {
       return undefined;
     }
-    const current = view.context?.live?.overrides?.get(view.camera) ?? view.camera;
+    const current = view.context?.live?.overrides?.get(cameraID) ?? cameraID;
     const currentIndex = dependencies.indexOf(current);
     const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % dependencies.length;
     // Index 0 is the camera itself, i.e. no substream.
-    return dependencies[nextIndex] === view.camera ? undefined : dependencies[nextIndex];
+    return dependencies[nextIndex] === cameraID ? undefined : dependencies[nextIndex];
   }
 }

@@ -1054,16 +1054,13 @@ describe('config defaults', () => {
       },
       {
         action: 'custom:advanced-camera-card-action',
-        advanced_camera_card_action: 'live_substream_off',
+        advanced_camera_card_action: 'substream_off',
       },
       {
         action: 'custom:advanced-camera-card-action',
-        advanced_camera_card_action: 'live_substream_on',
-      },
-      {
-        action: 'custom:advanced-camera-card-action',
-        advanced_camera_card_action: 'live_substream_select',
-        camera: 'camera.front_door_hd',
+        advanced_camera_card_action: 'substream_on',
+        camera: 'camera.front_door',
+        stream: 'camera.front_door_hd',
       },
       {
         action: 'custom:advanced-camera-card-action',

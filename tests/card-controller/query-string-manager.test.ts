@@ -140,10 +140,8 @@ describe('QueryStringManager', () => {
     expect(api.getViewManager().setViewDefault).not.toBeCalled();
   });
 
-  it('should execute live_substream_select action', async () => {
-    setQueryString(
-      '?advanced-camera-card-action.id.live_substream_select=camera.office_hd',
-    );
+  it('should execute substream_on with a stream value as a view modifier', async () => {
+    setQueryString('?advanced-camera-card-action.id.substream_on=camera.office_hd');
     const api = createCardAPI();
     setCardID(api, 'id');
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
@@ -154,7 +152,7 @@ describe('QueryStringManager', () => {
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
 
     expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
-      modifiers: [expect.any(SubstreamViewModifier)],
+      modifiers: [new SubstreamViewModifier({ stream: 'camera.office_hd' })],
       params: {},
     });
 
@@ -162,24 +160,77 @@ describe('QueryStringManager', () => {
     expect(api.getViewManager().setViewDefault).not.toBeCalled();
   });
 
-  describe('should ignore action without value', () => {
-    it.each([['camera_select' as const], ['live_substream_select' as const]])(
-      '%s',
-      async (action: string) => {
-        setQueryString(`?advanced-camera-card-action.id.${action}=`);
-        const api = createCardAPI();
-        setCardID(api, 'id');
-        vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
-        const manager = new QueryStringManager(api);
+  it('should dispatch substream_on without a value as a non-view action', async () => {
+    setQueryString('?advanced-camera-card-action.id.substream_on=');
+    const api = createCardAPI();
+    setCardID(api, 'id');
+    vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
+    const manager = new QueryStringManager(api);
 
-        expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
-        await manager.executeIfNecessary();
+    expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
+    await manager.executeIfNecessary();
 
-        expect(api.getActionsManager().executeActions).not.toBeCalled();
-        expect(api.getViewManager().setViewDefault).not.toBeCalled();
-        expect(api.getViewManager().setViewByParameters).not.toBeCalled();
-      },
+    expect(api.getActionsManager().executeActions).toBeCalledWith({
+      actions: [
+        {
+          action: 'fire-dom-event',
+          card_id: 'id',
+          advanced_camera_card_action: 'substream_on',
+        },
+      ],
+    });
+  });
+
+  it('should execute substream_off as a view modifier that clears the override', async () => {
+    setQueryString('?advanced-camera-card-action.id.substream_off=');
+    const api = createCardAPI();
+    setCardID(api, 'id');
+    vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
+    const manager = new QueryStringManager(api);
+
+    expect(manager.hasViewRelatedActionsToRun()).toBeTruthy();
+    await manager.executeIfNecessary();
+    expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
+
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      modifiers: [new SubstreamViewModifier()],
+      params: {},
+    });
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
+  });
+
+  it('should warn on the legacy live_substream_select URL form', async () => {
+    const consoleSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+
+    setQueryString(
+      '?advanced-camera-card-action.id.live_substream_select=camera.office_hd',
     );
+    const api = createCardAPI();
+    setCardID(api, 'id');
+    vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
+    const manager = new QueryStringManager(api);
+
+    expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
+    await manager.executeIfNecessary();
+
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    expect(consoleSpy).toBeCalledWith(expect.stringContaining('live_substream_select'));
+  });
+
+  it('should ignore camera_select without a value', async () => {
+    setQueryString('?advanced-camera-card-action.id.camera_select=');
+    const api = createCardAPI();
+    setCardID(api, 'id');
+    vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
+    const manager = new QueryStringManager(api);
+
+    expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
+    await manager.executeIfNecessary();
+
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
+    expect(api.getViewManager().setViewDefault).not.toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
   });
 
   it('should handle unknown action', async () => {
@@ -235,7 +286,7 @@ describe('QueryStringManager', () => {
     it('should handle view and default with camera and substream specified', async () => {
       setQueryString(
         '?advanced-camera-card-action.id.clips=' +
-          '&advanced-camera-card-action.id.live_substream_select=camera.kitchen_hd' +
+          '&advanced-camera-card-action.id.substream_on=camera.kitchen_hd' +
           '&advanced-camera-card-action.id.default=' +
           '&advanced-camera-card-action.id.camera_select=camera.kitchen',
       );
@@ -250,7 +301,7 @@ describe('QueryStringManager', () => {
         params: {
           camera: 'camera.kitchen',
         },
-        modifiers: [expect.any(SubstreamViewModifier)],
+        modifiers: [new SubstreamViewModifier({ stream: 'camera.kitchen_hd' })],
       });
       expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
     });
@@ -276,9 +327,7 @@ describe('QueryStringManager', () => {
   });
 
   it('should only execute when needed', async () => {
-    setQueryString(
-      '?advanced-camera-card-action.id.live_substream_select=camera.office_hd',
-    );
+    setQueryString('?advanced-camera-card-action.id.substream_on=camera.office_hd');
     const api = createCardAPI();
     setCardID(api, 'id');
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);

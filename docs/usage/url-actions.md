@@ -32,11 +32,11 @@ To send an action to a specific named Advanced Camera Card:
 > [!NOTE]
 > For backwards compatibility, the card will also respond to `frigate-card-action` as a query-parameter with the same syntax.
 
-| Parameter | Description                                                                                            |
-| --------- | ------------------------------------------------------------------------------------------------------ |
-| `ACTION`  | One of the supported Advanced Camera Card custom actions. See [Supported Actions](#supported-actions). |
-| `CARD_ID` | When specified only cards that have a [`card_id`](../configuration/README.md) parameter will act.      |
-| `VALUE`   | An optional value to use with the `camera_select` and `live_substream_select` actions.                 |
+| Parameter | Description                                                                                                                                           |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ACTION`  | One of the supported Advanced Camera Card custom actions. See [Supported Actions](#supported-actions).                                                |
+| `CARD_ID` | When specified only cards that have a [`card_id`](../configuration/README.md) parameter will act.                                                     |
+| `VALUE`   | A value for actions that accept one: required by `camera_select`; optional for `substream_on` (interpreted as the `stream` to engage; omit to cycle). |
 
 > [!TIP]
 > Both `.` and `:` may be used as the delimiter. If you use `:` some
@@ -51,38 +51,39 @@ To send an action to a specific named Advanced Camera Card:
 
 Only a subset of all [actions](../configuration/actions/README.md) are supported in URL form.
 
-| Action                                                                                | Supported in URL         | Explanation                                                                                                         |
-| ------------------------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `camera_select`                                                                       | :white_check_mark:       |                                                                                                                     |
-| `camera_ui`                                                                           | :white_check_mark:       |                                                                                                                     |
-| `clip`                                                                                | :white_check_mark:       |                                                                                                                     |
-| `clips`                                                                               | :white_check_mark:       |                                                                                                                     |
-| `default`                                                                             | :white_check_mark:       |                                                                                                                     |
-| `diagnostics`                                                                         | :white_check_mark:       |                                                                                                                     |
-| `download`                                                                            | :heavy_multiplication_x: | Latest media information is not available on initial render.                                                        |
-| `expand`                                                                              | :white_check_mark:       |                                                                                                                     |
-| `folder`                                                                              | :white_check_mark:       |                                                                                                                     |
-| `folders`                                                                             | :white_check_mark:       |                                                                                                                     |
-| `fullscreen`                                                                          | :heavy_multiplication_x: | Javascript does not support activating fullscreen without direct human interaction. Use `expand` as an alternative. |
-| `gallery`                                                                             | :white_check_mark:       |                                                                                                                     |
-| `image`                                                                               | :white_check_mark:       |                                                                                                                     |
-| `live_substream_select`                                                               | :white_check_mark:       |                                                                                                                     |
-| `live`                                                                                | :white_check_mark:       |                                                                                                                     |
-| `media`                                                                               | :white_check_mark:       |                                                                                                                     |
-| `media_player`                                                                        | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/advanced-camera-card/issues) if you need this.                      |
-| `menu_toggle`                                                                         | :white_check_mark:       |                                                                                                                     |
-| `microphone_connect`, `microphone_disconnect`, `microphone_mute`, `microphone_unmute` | :heavy_multiplication_x: |                                                                                                                     |
-| `mute`, `unmute`                                                                      | :heavy_multiplication_x: |                                                                                                                     |
-| `play`, `pause`                                                                       | :heavy_multiplication_x: |                                                                                                                     |
-| `ptz`                                                                                 | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/advanced-camera-card/issues) if you need this.                      |
-| `recording`                                                                           | :white_check_mark:       |                                                                                                                     |
-| `recordings`                                                                          | :white_check_mark:       |                                                                                                                     |
-| `review`                                                                              | :white_check_mark:       |                                                                                                                     |
-| `reviews`                                                                             | :white_check_mark:       |                                                                                                                     |
-| `screenshot`                                                                          | :heavy_multiplication_x: | Latest media information is not available on initial render.                                                        |
-| `ptz_controls`                                                                        | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/advanced-camera-card/issues) if you need this.                      |
-| `snapshot`                                                                            | :white_check_mark:       |                                                                                                                     |
-| `snapshots`                                                                           | :white_check_mark:       |                                                                                                                     |
+| Action                                                                                | Supported in URL         | Explanation                                                                                                                      |
+| ------------------------------------------------------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `camera_select`                                                                       | :white_check_mark:       |                                                                                                                                  |
+| `camera_ui`                                                                           | :white_check_mark:       |                                                                                                                                  |
+| `clip`                                                                                | :white_check_mark:       |                                                                                                                                  |
+| `clips`                                                                               | :white_check_mark:       |                                                                                                                                  |
+| `default`                                                                             | :white_check_mark:       |                                                                                                                                  |
+| `diagnostics`                                                                         | :white_check_mark:       |                                                                                                                                  |
+| `download`                                                                            | :heavy_multiplication_x: | Latest media information is not available on initial render.                                                                     |
+| `expand`                                                                              | :white_check_mark:       |                                                                                                                                  |
+| `folder`                                                                              | :white_check_mark:       |                                                                                                                                  |
+| `folders`                                                                             | :white_check_mark:       |                                                                                                                                  |
+| `fullscreen`                                                                          | :heavy_multiplication_x: | Javascript does not support activating fullscreen without direct human interaction. Use `expand` as an alternative.              |
+| `gallery`                                                                             | :white_check_mark:       |                                                                                                                                  |
+| `image`                                                                               | :white_check_mark:       |                                                                                                                                  |
+| `live`                                                                                | :white_check_mark:       |                                                                                                                                  |
+| `media`                                                                               | :white_check_mark:       |                                                                                                                                  |
+| `media_player`                                                                        | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/advanced-camera-card/issues) if you need this.                                   |
+| `menu_toggle`                                                                         | :white_check_mark:       |                                                                                                                                  |
+| `microphone_connect`, `microphone_disconnect`, `microphone_mute`, `microphone_unmute` | :heavy_multiplication_x: |                                                                                                                                  |
+| `mute`, `unmute`                                                                      | :heavy_multiplication_x: |                                                                                                                                  |
+| `play`, `pause`                                                                       | :heavy_multiplication_x: |                                                                                                                                  |
+| `ptz`                                                                                 | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/advanced-camera-card/issues) if you need this.                                   |
+| `recording`                                                                           | :white_check_mark:       |                                                                                                                                  |
+| `recordings`                                                                          | :white_check_mark:       |                                                                                                                                  |
+| `review`                                                                              | :white_check_mark:       |                                                                                                                                  |
+| `reviews`                                                                             | :white_check_mark:       |                                                                                                                                  |
+| `screenshot`                                                                          | :heavy_multiplication_x: | Latest media information is not available on initial render.                                                                     |
+| `ptz_controls`                                                                        | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/advanced-camera-card/issues) if you need this.                                   |
+| `snapshot`                                                                            | :white_check_mark:       |                                                                                                                                  |
+| `snapshots`                                                                           | :white_check_mark:       |                                                                                                                                  |
+| `substream_off`                                                                       | :white_check_mark:       | The `camera` field is not exposed via URL; the selected camera is used. Use the action config directly to target another camera. |
+| `substream_on`                                                                        | :white_check_mark:       | Pass the substream camera ID as the URL value to engage it directly; omit the value to cycle.                                    |
 
 ## Examples
 

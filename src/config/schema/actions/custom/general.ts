@@ -8,8 +8,6 @@ const GENERAL_ACTIONS = [
   'expand',
   'fullscreen',
   'info',
-  'live_substream_off',
-  'live_substream_on',
   'menu_toggle',
   'microphone_connect',
   'microphone_disconnect',

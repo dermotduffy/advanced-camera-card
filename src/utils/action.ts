@@ -27,7 +27,8 @@ import {
   PTZActionPhase,
 } from '../config/schema/actions/custom/ptz.js';
 import { SetReviewActionConfig } from '../config/schema/actions/custom/set-review.js';
-import { SubstreamSelectActionConfig } from '../config/schema/actions/custom/substream-select.js';
+import { SubstreamOffActionConfig } from '../config/schema/actions/custom/substream-off.js';
+import { SubstreamOnActionConfig } from '../config/schema/actions/custom/substream-on.js';
 import { ViewActionConfig } from '../config/schema/actions/custom/view.js';
 import { PerformActionActionConfig } from '../config/schema/actions/stock/perform-action.js';
 import type { Notification } from '../config/schema/actions/types.js';
@@ -72,16 +73,41 @@ export function createViewAction(
 }
 
 export function createCameraAction(
-  action: 'camera_select' | 'live_substream_select',
   camera: string,
   options?: {
     cardID?: string;
   },
-): CameraSelectActionConfig | SubstreamSelectActionConfig {
+): CameraSelectActionConfig {
   return {
     action: 'fire-dom-event',
-    advanced_camera_card_action: action,
+    advanced_camera_card_action: 'camera_select',
     camera: camera,
+    ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
+export function createSubstreamOnAction(options?: {
+  stream?: string;
+  camera?: string;
+  cardID?: string;
+}): SubstreamOnActionConfig {
+  return {
+    action: 'fire-dom-event',
+    advanced_camera_card_action: 'substream_on',
+    ...(options?.stream && { stream: options.stream }),
+    ...(options?.camera && { camera: options.camera }),
+    ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
+export function createSubstreamOffAction(options?: {
+  camera?: string;
+  cardID?: string;
+}): SubstreamOffActionConfig {
+  return {
+    action: 'fire-dom-event',
+    advanced_camera_card_action: 'substream_off',
+    ...(options?.camera && { camera: options.camera }),
     ...(options?.cardID && { card_id: options.cardID }),
   };
 }
@@ -274,18 +300,16 @@ export function createSetReviewAction(reviewed?: boolean): SetReviewActionConfig
   };
 }
 
-export function createCallStartAction(
-  camera?: string,
-  stream?: string,
-  options?: {
-    cardID?: string;
-  },
-): CallStartActionConfig {
+export function createCallStartAction(options?: {
+  camera?: string;
+  stream?: string;
+  cardID?: string;
+}): CallStartActionConfig {
   return {
     action: 'fire-dom-event',
     advanced_camera_card_action: 'call_start',
-    ...(camera && { camera }),
-    ...(stream && { stream }),
+    ...(options?.camera && { camera: options.camera }),
+    ...(options?.stream && { stream: options.stream }),
     ...(options?.cardID && { card_id: options.cardID }),
   };
 }
