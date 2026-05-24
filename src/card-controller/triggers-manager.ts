@@ -110,6 +110,17 @@ export class TriggersManager {
       return this._handleEndEvent(ev);
     }
 
+    if (ev.type === 'signal') {
+      // A signal is momentary -- handled as a matched new+end so the existing
+      // untrigger_delay_seconds machinery gives it visible duration, and so
+      // concurrent continuous sources still gate untriggering correctly.
+      const handled = await this.handleCameraEvent({ ...ev, type: 'new' }, options);
+      if (handled) {
+        await this.handleCameraEvent({ ...ev, type: 'end' });
+      }
+      return handled;
+    }
+
     // Ignore stale updates for force-untriggered IDs before doing any further
     // processing to avoid re-activating muted IDs.
     if (this._isIgnoredUpdateEvent(ev)) {

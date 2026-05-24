@@ -157,7 +157,8 @@ export interface CameraEvent {
     | 'new' // A new event has started.
     | 'update' // An update for an event is available (except GenAI).
     | 'end' // An event has ended.
-    | 'genai'; // An AI based update is available.
+    | 'genai' // An AI based update is available.
+    | 'signal'; // A momentary signal (no start/end, just an instant).
 
   // When fidelity is `high`, the engine is assumed to provide exact details of
   // what new media is available. Otherwise all media types are assumed to be
