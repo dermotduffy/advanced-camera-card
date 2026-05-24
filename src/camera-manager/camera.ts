@@ -3,7 +3,7 @@ import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state
 import { PTZAction, PTZActionPhase } from '../config/schema/actions/custom/ptz';
 import { CameraConfig } from '../config/schema/cameras';
 import { EnabledProxyConfig, resolveProxyConfig } from '../config/schema/common/proxy';
-import { isTriggeredState } from '../ha/is-triggered-state';
+import { getTriggerEventType } from '../ha/get-trigger-event-type';
 import { HassStateDifference, HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import { CapabilitiesRaw, CapabilityKey, Endpoint } from '../types';
@@ -262,10 +262,14 @@ export class Camera {
   }
 
   protected _stateChangeHandler = (difference: HassStateDifference): void => {
+    const type = getTriggerEventType(difference);
+    if (type === null) {
+      return;
+    }
     this._eventCallback?.({
       cameraID: this.getID(),
       id: difference.entityID,
-      type: isTriggeredState(difference.newState.state) ? 'new' : 'end',
+      type,
     });
   };
 

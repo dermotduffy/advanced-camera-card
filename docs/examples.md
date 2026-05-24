@@ -361,7 +361,9 @@ elements:
 
 ### Inbound call on doorbell press
 
-This example uses [`view.triggers.actions.trigger: call`](configuration/view.md?id=triggers) to turn an dashboard into a phone-like ringer when somebody presses the doorbell. The intended deployment is a wall-mounted tablet sitting on the dashboard.
+This example uses [`view.triggers.actions.trigger: call`](configuration/view.md?id=triggers) to turn a dashboard into a phone-like ringer when somebody presses the doorbell. The intended deployment is a wall-mounted tablet sitting on the dashboard.
+
+The trigger entity is an [HA `event.*` entity](https://www.home-assistant.io/integrations/event/#device-class) with `device_class: doorbell` — the officially supported way modern integrations (ONVIF, UniFi Protect, Reolink, MQTT, etc.) expose a doorbell press. A press fires the entity instantaneously; the card treats it as a momentary signal and rings for `untrigger_delay_seconds`. A `switch.*` or `binary_sensor.*` entity that goes on/off with each press works will also work fine.
 
 The Frigate camera's stock event triggers (`occupancy`, `motion`, `events`) are explicitly turned off so casual motion doesn't make the card ring — only an actual doorbell press does.
 
@@ -378,22 +380,21 @@ cameras:
       motion: false
       events: []
       entities:
-        - switch.door_bell
+        - event.front_door_doorbell
 view:
   default: live
   triggers:
     show_trigger_status: true
-    # Keeps the trigger "active" this long after the switch goes off.
-    # A doorbell button typically gives a brief ON pulse, so the chime
-    # would stop almost immediately if this were small -- this value
-    # is effectively how long the chime keeps ringing after the press.
+    # How long the chime keeps ringing after a press before the call is
+    # auto-ended (if still unanswered). A doorbell press is instantaneous,
+    # so this value is effectively the ring duration.
     untrigger_delay_seconds: 30
     actions:
       # Call when triggered.
       trigger: call
-      # On release (after the untrigger_delay): end the call if it is
-      # still ringing. An answered call survives this and must be ended
-      # manually.
+      # When the trigger naturally ends (after untrigger_delay_seconds): end
+      # the call if it's still ringing. An answered call survives this and
+      # must be ended manually.
       untrigger: call
       # Ring even when somebody is actively using the card.
       interaction_mode: all

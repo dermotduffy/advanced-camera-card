@@ -474,6 +474,77 @@ describe('Camera', () => {
       },
     );
 
+    it('should not dispatch when the helper returns null', async () => {
+      vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+
+      const eventCallback = vi.fn();
+      const camera = new Camera(
+        createCameraConfig({
+          id: 'camera_1',
+          triggers: {
+            entities: ['event.front_door_doorbell'],
+          },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        {
+          eventCallback: eventCallback,
+        },
+      );
+
+      const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: stateWatcher,
+        capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
+      });
+
+      callStateWatcherCallback(stateWatcher, {
+        entityID: 'event.front_door_doorbell',
+        oldState: createStateEntity({ state: 'unavailable' }),
+        newState: createStateEntity({ state: '2026-05-24T12:00:05.123+00:00' }),
+      });
+
+      expect(eventCallback).not.toBeCalled();
+    });
+
+    it('should dispatch a signal for an event entity fire', async () => {
+      vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+
+      const eventCallback = vi.fn();
+      const camera = new Camera(
+        createCameraConfig({
+          id: 'camera_1',
+          triggers: {
+            entities: ['event.front_door_doorbell'],
+          },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        {
+          eventCallback: eventCallback,
+        },
+      );
+
+      const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: stateWatcher,
+        capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
+      });
+
+      callStateWatcherCallback(stateWatcher, {
+        entityID: 'event.front_door_doorbell',
+        oldState: createStateEntity({ state: '2026-05-24T12:00:00.000+00:00' }),
+        newState: createStateEntity({ state: '2026-05-24T12:00:05.123+00:00' }),
+      });
+
+      expect(eventCallback).toBeCalledTimes(1);
+      expect(eventCallback).toBeCalledWith({
+        cameraID: 'camera_1',
+        id: 'event.front_door_doorbell',
+        type: 'signal',
+      });
+    });
+
     it('should not trigger without trigger capability', async () => {
       const eventCallback = vi.fn();
       const camera = new Camera(
