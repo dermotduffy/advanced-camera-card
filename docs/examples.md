@@ -361,45 +361,25 @@ elements:
 
 ### Inbound call on doorbell press
 
-This example uses [`view.triggers.actions.trigger: call`](configuration/view.md?id=triggers) to turn a dashboard into a phone-like ringer when somebody presses the doorbell. The intended deployment is a wall-mounted tablet sitting on the dashboard.
-
-Setting `triggers.doorbell: true` opts the camera into auto-discovery of [HA
-`event.*`
-entities](https://www.home-assistant.io/integrations/event/#device-class) with
-`device_class: doorbell` on the camera's device — the officially supported way
-modern integrations (Ring, UniFi Protect, Nest, DoorBird, Reolink, etc.) expose
-a doorbell press -- no need to list the entity explicitly under
-`triggers.entities`. If your doorbell exposes a `binary_sensor.*` or `switch.*`
-instead, list it under `triggers.entities` manually.
+The [`doorbell` profile](configuration/profiles.md?id=doorbell) turns a dashboard into a phone-like ringer when somebody presses the doorbell, by setting [`view.triggers.actions.trigger: call`](configuration/view.md?id=triggers) and auto-discovering [HA `event.*` entities](https://www.home-assistant.io/integrations/event/#device-class) with `device_class: doorbell` on the camera's device (Ring, UniFi Protect, Nest, DoorBird, Reolink, etc.). The intended deployment is a wall-mounted tablet sitting on the dashboard.
 
 A doorbell press is instantaneous, so the card synthesises a ring window from [`view.triggers.signal_hold_seconds`](configuration/view.md?id=triggers) (default `30`s) — long enough for a typical phone-style answer window. `untrigger_delay_seconds` then lingers past that, same as for any stateful trigger.
-
-`triggers.motion`, `triggers.occupancy`, and `triggers.events` are off by default — only the explicit doorbell press triggers the call, so casual motion won't make the card ring.
 
 ```yaml
 type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.front_door
+    # `go2rtc` + `webrtc` is needed for two-way audio.
     live_provider: go2rtc
     go2rtc:
       modes:
         - webrtc
-    triggers:
-      doorbell: true
-view:
-  default: live
-  triggers:
-    show_trigger_status: true
-    actions:
-      # Call when triggered.
-      trigger: call
-      # When the trigger naturally ends (after signal_hold_seconds): end
-      # the call if it's still ringing. An answered call survives this and
-      # must be ended manually.
-      untrigger: call
-      # Ring even when somebody is actively using the card.
-      interaction_mode: all
+profiles:
+  - doorbell
 ```
+
+> [!TIP]
+> If your doorbell exposes a `binary_sensor.*` or `switch.*` instead of an `event.*` entity, list it under [`triggers.entities`](configuration/cameras/README.md?id=triggers) on the camera manually. Auto-discovery only covers `event.*` based doorbell entities.
 
 ## Events from other cameras
 

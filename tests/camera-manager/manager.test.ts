@@ -440,7 +440,11 @@ describe('CameraManager', () => {
     });
 
     describe('should fetch entity list when required', () => {
-      it('should fetch with entity based trigger', async () => {
+      it.each([
+        ['occupancy' as const],
+        ['motion' as const],
+        ['doorbell' as const],
+      ])('should fetch with %s trigger', async (triggerKey) => {
         const api = createCardAPI();
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
@@ -449,7 +453,7 @@ describe('CameraManager', () => {
             config: createCameraConfig({
               ...baseCameraConfig,
               triggers: {
-                occupancy: true,
+                [triggerKey]: true,
               },
             }),
           },

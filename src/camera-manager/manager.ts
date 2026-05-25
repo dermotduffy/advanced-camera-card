@@ -229,7 +229,11 @@ export class CameraManager {
     }
 
     const hasAutoTriggers = (config: CameraConfig): boolean => {
-      return config.triggers.motion || config.triggers.occupancy;
+      return (
+        config.triggers.motion ||
+        config.triggers.occupancy ||
+        config.triggers.doorbell
+      );
     };
 
     if (

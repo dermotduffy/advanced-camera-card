@@ -580,6 +580,7 @@
     },
     "profiles": {
       "casting": "Casting",
+      "doorbell": "Doorbell",
       "editor_label": "Configuration profiles",
       "low-performance": "Low performance",
       "scrubbing": "Video scrubbing"

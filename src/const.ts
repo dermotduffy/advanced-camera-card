@@ -132,8 +132,8 @@ export const CONF_CAMERAS_ARRAY_MEDIA_FOLDERS =
 const CONF_CAMERAS_GLOBAL = 'cameras_global' as const;
 export const CONF_CAMERAS_GLOBAL_LIVE_PROVIDER =
   `${CONF_CAMERAS_GLOBAL}.live_provider` as const;
-export const CONF_CAMERAS_GLOBAL_TRIGGERS_OCCUPANCY =
-  `${CONF_CAMERAS_GLOBAL}.triggers.occupancy` as const;
+export const CONF_CAMERAS_GLOBAL_TRIGGERS_DOORBELL =
+  `${CONF_CAMERAS_GLOBAL}.triggers.doorbell` as const;
 export const CONF_CAMERAS_GLOBAL_IMAGE_REFRESH_SECONDS =
   `${CONF_CAMERAS_GLOBAL}.image.refresh_seconds` as const;
 export const CONF_CAMERAS_GLOBAL_DIMENSIONS_LAYOUT =

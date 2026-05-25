@@ -4,11 +4,13 @@ import { ProfileType } from '../schema/profiles.js';
 import { advancedCameraCardConfigSchema } from '../schema/types.js';
 import { RawAdvancedCameraCardConfig } from '../types.js';
 import { CASTING_PROFILE } from './casting.js';
+import { DOORBELL_PROFILE } from './doorbell.js';
 import { LOW_PERFORMANCE_PROFILE } from './low-performance.js';
 import { SCRUBBING_PROFILE } from './scrubbing.js';
 
 const PROFILES = {
   casting: CASTING_PROFILE,
+  doorbell: DOORBELL_PROFILE,
   'low-performance': LOW_PERFORMANCE_PROFILE,
   scrubbing: SCRUBBING_PROFILE,
 };
