@@ -1,9 +1,12 @@
+import { uniq } from 'lodash-es';
 import { ActionsExecutor } from '../card-controller/actions/types';
 import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
 import { PTZAction, PTZActionPhase } from '../config/schema/actions/custom/ptz';
 import { CameraConfig } from '../config/schema/cameras';
 import { EnabledProxyConfig, resolveProxyConfig } from '../config/schema/common/proxy';
+import { computeDomain } from '../ha/compute-domain';
 import { getTriggerEventType } from '../ha/get-trigger-event-type';
+import { Entity, EntityRegistryManager } from '../ha/registry/entity/types';
 import { HassStateDifference, HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import { CapabilitiesRaw, CapabilityKey, Endpoint } from '../types';
@@ -17,6 +20,7 @@ import {
   CameraEventCallback,
   CameraProxyConfig,
 } from './types';
+import { getCameraEntityFromConfig } from './utils/camera-entity-from-config';
 import {
   getGo2RTCMetadataEndpoint,
   getGo2RTCStreamEndpoint,
@@ -37,6 +41,7 @@ export interface CameraInitializationOptions {
   hass: HomeAssistant;
   stateWatcher: StateWatcherSubscriptionInterface;
   capabilityOptions?: CapabilityOptions;
+  entityRegistryManager?: EntityRegistryManager;
 }
 
 type DestroyCallback = () => void | Promise<void>;
@@ -47,6 +52,7 @@ export class Camera {
   protected _capabilities?: Capabilities;
   protected _eventCallback?: CameraEventCallback;
   protected _destroyCallbacks: DestroyCallback[] = [];
+  protected _entity: Entity | null = null;
 
   constructor(
     config: CameraConfig,
@@ -62,15 +68,84 @@ export class Camera {
     this._capabilities = options?.capabilities;
   }
 
+  public getEntity(): Entity | null {
+    return this._entity;
+  }
+
   async initialize(options: CameraInitializationOptions): Promise<Camera> {
+    this._entity = await this._resolveEntity(options);
     await this._initialize(options);
+
     this._capabilities =
       options.capabilityOptions?.capabilities ??
       this._capabilities ??
       (await this._buildCapabilities(options));
-    this._subscribeBasedOnCapabilities(options.stateWatcher);
-    this._onDestroy(() => options.stateWatcher.unsubscribe(this._stateChangeHandler));
+
+    if (this._capabilities.has('trigger')) {
+      await this._getTriggerEntities(options);
+      this._config.triggers.entities = uniq(this._config.triggers.entities);
+
+      options.stateWatcher.subscribe(
+        this._stateChangeHandler,
+        this._config.triggers.entities,
+      );
+      this._onDestroy(() => options.stateWatcher.unsubscribe(this._stateChangeHandler));
+    }
+
     return this;
+  }
+
+  private async _resolveEntity(
+    options: CameraInitializationOptions,
+  ): Promise<Entity | null> {
+    const cameraEntityID = getCameraEntityFromConfig(this._config);
+    if (!cameraEntityID || !options.entityRegistryManager) {
+      return null;
+    }
+    return await options.entityRegistryManager.getEntity(options.hass, cameraEntityID);
+  }
+
+  /**
+   * Get trigger entities (specified or auto-detected). Subclasses may override
+   * to add engine-specific discovery; call `super` to keep the base discoveries.
+   */
+  protected async _getTriggerEntities(
+    options: CameraInitializationOptions,
+  ): Promise<void> {
+    await this._getDoorbellEntities(options);
+  }
+
+  private async _getDoorbellEntities(
+    options: CameraInitializationOptions,
+  ): Promise<void> {
+    if (
+      !this._config.triggers.doorbell ||
+      !this._entity?.device_id ||
+      !options.entityRegistryManager
+    ) {
+      return;
+    }
+    const deviceID = this._entity.device_id;
+
+    // `device_class` lives on state attributes (not the registry entry), so
+    // narrow by `device_id` + domain first and filter by device_class against
+    // `hass.states` second.
+    const candidates = await options.entityRegistryManager.getMatchingEntities(
+      options.hass,
+      (ent) =>
+        ent.device_id === deviceID &&
+        !ent.disabled_by &&
+        computeDomain(ent.entity_id) === 'event',
+    );
+
+    const doorbells = candidates
+      .filter(
+        (ent) =>
+          options.hass.states[ent.entity_id]?.attributes?.device_class === 'doorbell',
+      )
+      .map((ent) => ent.entity_id);
+
+    this._config.triggers.entities.push(...doorbells);
   }
 
   /**
@@ -275,13 +350,5 @@ export class Camera {
 
   protected _onDestroy(callback: DestroyCallback): void {
     this._destroyCallbacks.push(callback);
-  }
-
-  private _subscribeBasedOnCapabilities(
-    stateWatcher: StateWatcherSubscriptionInterface,
-  ): void {
-    if (this._capabilities?.has('trigger')) {
-      stateWatcher.subscribe(this._stateChangeHandler, this._config.triggers.entities);
-    }
   }
 }

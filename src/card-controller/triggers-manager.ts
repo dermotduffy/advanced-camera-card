@@ -111,12 +111,14 @@ export class TriggersManager {
     }
 
     if (ev.type === 'signal') {
-      // A signal is momentary -- handled as a matched new+end so the existing
-      // untrigger_delay_seconds machinery gives it visible duration, and so
-      // concurrent continuous sources still gate untriggering correctly.
       const handled = await this.handleCameraEvent({ ...ev, type: 'new' }, options);
       if (handled) {
-        await this.handleCameraEvent({ ...ev, type: 'end' });
+        // A signal is momentary -- handled as a matched new+end so concurrent
+        // continuous sources still gate untriggering correctly. The end leg is
+        // tagged `{ signal: true }` so `_startUntrigger` adds the synthesized
+        // signal on-period (`signal_hold_seconds`) on top of the usual
+        // post-source-end linger (`untrigger_delay_seconds`).
+        await this._handleEndEvent(ev, { signal: true });
       }
       return handled;
     }
@@ -160,13 +162,16 @@ export class TriggersManager {
     return true;
   }
 
-  private async _handleEndEvent(ev: CameraEvent): Promise<boolean> {
+  private async _handleEndEvent(
+    ev: CameraEvent,
+    options?: { signal?: boolean },
+  ): Promise<boolean> {
     this._deleteIgnoredEventID(ev.cameraID, ev.id);
 
     const state = this._states.get(ev.cameraID);
     state?.sources.delete(ev.id);
     if (!state?.sources.size) {
-      await this._startUntrigger(ev.cameraID);
+      await this._startUntrigger(ev.cameraID, options);
     }
     return true;
   }
@@ -306,7 +311,10 @@ export class TriggersManager {
     this._api.getCardElementManager().update();
   }
 
-  private async _startUntrigger(cameraID: string): Promise<void> {
+  private async _startUntrigger(
+    cameraID: string,
+    options?: { signal?: boolean },
+  ): Promise<void> {
     this._deleteUntriggerDelayTimer(cameraID);
     this._deleteForceUntriggerTimer(cameraID);
 
@@ -315,12 +323,18 @@ export class TriggersManager {
       return;
     }
 
-    const config = this._api.getConfigManager().getConfig();
-    const untriggerDelaySeconds = config?.view?.triggers.untrigger_delay_seconds ?? 0;
+    const triggersConfig = this._api.getConfigManager().getConfig()?.view?.triggers;
+    const untriggerDelaySeconds = triggersConfig?.untrigger_delay_seconds ?? 0;
+    // For signals, add the synthesized on-period (signals have no native
+    // on/off, so hold them visible for `signal_hold_seconds` before the usual
+    // post-source-end linger kicks in).
+    const signalHoldSeconds = triggersConfig?.signal_hold_seconds ?? 0;
+    const effectiveDelaySeconds =
+      untriggerDelaySeconds + (options?.signal ? signalHoldSeconds : 0);
 
-    if (untriggerDelaySeconds > 0) {
+    if (effectiveDelaySeconds > 0) {
       state.untriggerDelayTimer = new Timer();
-      state.untriggerDelayTimer.start(untriggerDelaySeconds, async () => {
+      state.untriggerDelayTimer.start(effectiveDelaySeconds, async () => {
         await this._untriggerAction(cameraID);
       });
     } else {

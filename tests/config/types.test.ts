@@ -54,6 +54,7 @@ describe('config defaults', () => {
           media_resolution: 'low',
         },
         triggers: {
+          doorbell: false,
           entities: [],
           events: [],
           motion: false,
@@ -549,6 +550,7 @@ describe('config defaults', () => {
           },
           filter_selected_camera: true,
           show_trigger_status: false,
+          signal_hold_seconds: 30,
           untrigger_delay_seconds: 0,
           untrigger_force_seconds: 0,
         },

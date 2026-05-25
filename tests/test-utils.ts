@@ -282,6 +282,7 @@ export const createStore = (
       cameraProps.engine ??
         new GenericCameraManagerEngine(
           mock<StateWatcherSubscriptionInterface>(),
+          mock<EntityRegistryManager>(),
           eventCallback,
         ),
       { eventCallback, capabilities },

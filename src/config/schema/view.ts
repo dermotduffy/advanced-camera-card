@@ -72,6 +72,7 @@ export const viewConfigDefault = {
     },
     untrigger_delay_seconds: 0,
     untrigger_force_seconds: 0,
+    signal_hold_seconds: 30,
   },
   keyboard_shortcuts: keyboardShortcutsDefault,
   issues: {
@@ -109,6 +110,9 @@ export const triggersSchema = z.object({
   untrigger_force_seconds: z
     .number()
     .default(viewConfigDefault.triggers.untrigger_force_seconds),
+  signal_hold_seconds: z
+    .number()
+    .default(viewConfigDefault.triggers.signal_hold_seconds),
 });
 export type TriggersOptions = z.infer<typeof triggersSchema>;
 

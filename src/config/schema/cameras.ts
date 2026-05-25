@@ -148,6 +148,7 @@ export const cameraConfigDefault = {
   triggers: {
     motion: false,
     occupancy: false,
+    doorbell: false,
     events: [],
     entities: [],
     reviews: {
@@ -248,6 +249,7 @@ export const cameraConfigSchema = z
       .object({
         motion: z.boolean().default(cameraConfigDefault.triggers.motion),
         occupancy: z.boolean().default(cameraConfigDefault.triggers.occupancy),
+        doorbell: z.boolean().default(cameraConfigDefault.triggers.doorbell),
         entities: z.string().array().default(cameraConfigDefault.triggers.entities),
         events: z
           .enum(CAMERA_TRIGGER_EVENT_TYPES)

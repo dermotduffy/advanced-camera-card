@@ -174,6 +174,7 @@ export class ReolinkCamera extends EntityCamera {
   protected async _initialize(
     options: ReolinkCameraInitializationOptions,
   ): Promise<void> {
+    await super._initialize(options);
     await this._initializeChannel(options.hass, options.deviceRegistryManager);
     this._ptzEntities = await this._getPTZEntities(
       options.hass,
