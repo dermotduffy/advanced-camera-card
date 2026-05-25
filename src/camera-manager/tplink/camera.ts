@@ -3,10 +3,13 @@ import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/pt
 import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
 import { CapabilitiesRaw, PTZCapabilities, PTZMovementType } from '../../types';
-import { EntityCamera, EntityCameraInitializationOptions } from '../entity-camera';
+import { CameraInitializationOptions } from '../camera';
+import { EntityCamera } from '../entity-camera';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
-type TPLinkCameraInitializationOptions = EntityCameraInitializationOptions;
+interface TPLinkCameraInitializationOptions extends CameraInitializationOptions {
+  entityRegistryManager: EntityRegistryManager;
+}
 
 interface PTZEntities {
   left?: string;
@@ -22,6 +25,7 @@ export class TPLinkCamera extends EntityCamera {
   protected async _initialize(
     options: TPLinkCameraInitializationOptions,
   ): Promise<void> {
+    await super._initialize(options);
     this._ptzEntities = await this._getPTZEntities(
       options.hass,
       options.entityRegistryManager,

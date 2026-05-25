@@ -363,9 +363,18 @@ elements:
 
 This example uses [`view.triggers.actions.trigger: call`](configuration/view.md?id=triggers) to turn a dashboard into a phone-like ringer when somebody presses the doorbell. The intended deployment is a wall-mounted tablet sitting on the dashboard.
 
-The trigger entity is an [HA `event.*` entity](https://www.home-assistant.io/integrations/event/#device-class) with `device_class: doorbell` — the officially supported way modern integrations (ONVIF, UniFi Protect, Reolink, MQTT, etc.) expose a doorbell press. A press fires the entity instantaneously; the card treats it as a momentary signal and rings for `untrigger_delay_seconds`. A `switch.*` or `binary_sensor.*` entity that goes on/off with each press works will also work fine.
+Setting `triggers.doorbell: true` opts the camera into auto-discovery of [HA
+`event.*`
+entities](https://www.home-assistant.io/integrations/event/#device-class) with
+`device_class: doorbell` on the camera's device — the officially supported way
+modern integrations (Ring, UniFi Protect, Nest, DoorBird, Reolink, etc.) expose
+a doorbell press -- no need to list the entity explicitly under
+`triggers.entities`. If your doorbell exposes a `binary_sensor.*` or `switch.*`
+instead, list it under `triggers.entities` manually.
 
-The Frigate camera's stock event triggers (`occupancy`, `motion`, `events`) are explicitly turned off so casual motion doesn't make the card ring — only an actual doorbell press does.
+A doorbell press is instantaneous, so the card synthesises a ring window from [`view.triggers.signal_hold_seconds`](configuration/view.md?id=triggers) (default `30`s) — long enough for a typical phone-style answer window. `untrigger_delay_seconds` then lingers past that, same as for any stateful trigger.
+
+`triggers.motion`, `triggers.occupancy`, and `triggers.events` are off by default — only the explicit doorbell press triggers the call, so casual motion won't make the card ring.
 
 ```yaml
 type: custom:advanced-camera-card
@@ -376,23 +385,15 @@ cameras:
       modes:
         - webrtc
     triggers:
-      occupancy: false
-      motion: false
-      events: []
-      entities:
-        - event.front_door_doorbell
+      doorbell: true
 view:
   default: live
   triggers:
     show_trigger_status: true
-    # How long the chime keeps ringing after a press before the call is
-    # auto-ended (if still unanswered). A doorbell press is instantaneous,
-    # so this value is effectively the ring duration.
-    untrigger_delay_seconds: 30
     actions:
       # Call when triggered.
       trigger: call
-      # When the trigger naturally ends (after untrigger_delay_seconds): end
+      # When the trigger naturally ends (after signal_hold_seconds): end
       # the call if it's still ringing. An answered call survives this and
       # must be ended manually.
       untrigger: call

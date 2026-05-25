@@ -42,7 +42,7 @@ export class BrowseMediaCameraManagerEngine
     requestCache: CameraManagerRequestCache,
     eventCallback?: CameraEventCallback,
   ) {
-    super(stateWatcher, eventCallback);
+    super(stateWatcher, entityRegistryManager, eventCallback);
     this._entityRegistryManager = entityRegistryManager;
     this._browseMediaWalker = browseMediaManager;
     this._resolvedMediaCache = resolvedMediaCache;

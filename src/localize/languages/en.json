@@ -193,6 +193,7 @@
           "events": "All events",
           "snapshots": "Events with new snapshots"
         },
+        "doorbell": "Trigger by auto-detecting doorbell event entities",
         "motion": "Trigger by auto-detecting the motion sensor",
         "occupancy": "Trigger by auto-detecting the occupancy sensor",
         "reviews": {
@@ -678,6 +679,7 @@
         "editor_label": "Trigger behavior",
         "filter_selected_camera": "Only trigger on selected camera",
         "show_trigger_status": "Show pulsing border when triggered",
+        "signal_hold_seconds": "Seconds to hold a momentary (signal) trigger visible (e.g. a doorbell press) before the post-end untrigger delay",
         "untrigger_delay_seconds": "Seconds delay after trigger state change before untrigger",
         "untrigger_force_seconds": "Seconds before forced untrigger"
       },

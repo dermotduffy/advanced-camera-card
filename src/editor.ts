@@ -90,6 +90,7 @@ import {
   CONF_CAMERAS_ARRAY_REOLINK_MEDIA_RESOLUTION,
   CONF_CAMERAS_ARRAY_REOLINK_URL,
   CONF_CAMERAS_ARRAY_TITLE,
+  CONF_CAMERAS_ARRAY_TRIGGERS_DOORBELL,
   CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES,
   CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS,
   CONF_CAMERAS_ARRAY_TRIGGERS_MOTION,
@@ -278,6 +279,7 @@ import {
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
+  CONF_VIEW_TRIGGERS_SIGNAL_HOLD_SECONDS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_FORCE_SECONDS,
   DOCS_URL,
@@ -1596,6 +1598,9 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._renderNumberInput(CONF_VIEW_TRIGGERS_UNTRIGGER_FORCE_SECONDS, {
           default: this._defaults.view.triggers.untrigger_force_seconds,
         })}
+        ${this._renderNumberInput(CONF_VIEW_TRIGGERS_SIGNAL_HOLD_SECONDS, {
+          default: this._defaults.view.triggers.signal_hold_seconds,
+        })}
         ${this._putInSubmenu(
           MENU_VIEW_TRIGGERS_ACTIONS,
           true,
@@ -2785,6 +2790,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                   ${this._renderSwitch(
                     getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_MOTION, cameraIndex),
                     this._defaults.cameras.triggers.motion,
+                  )}
+                  ${this._renderSwitch(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_TRIGGERS_DOORBELL,
+                      cameraIndex,
+                    ),
+                    this._defaults.cameras.triggers.doorbell,
                   )}
                   ${this._renderOptionSelector(
                     getArrayConfigPath(

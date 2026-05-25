@@ -5,12 +5,14 @@ import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/eng
 import { CameraProxyConfig } from '../../src/camera-manager/types.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { liveProviderSupports2WayAudio } from '../../src/utils/live-provider.js';
+import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {
   callStateWatcherCallback,
   createCameraConfig,
   createCapabilities,
   createHASS,
   createInitializedCamera,
+  createRegistryEntity,
   createStateEntity,
 } from '../test-utils.js';
 
@@ -420,6 +422,203 @@ describe('Camera', () => {
 
       expect(liveProviderSupports2WayAudio).toHaveBeenCalled();
       expect(camera.getCapabilities()?.has('2-way-audio')).toBe(true);
+    });
+
+    describe('entity resolution', () => {
+      it('should resolve entity when camera_entity and registry manager are provided', async () => {
+        const cameraEntity = createRegistryEntity({
+          entity_id: 'camera.front_door',
+          device_id: 'device_1',
+        });
+        const camera = new Camera(
+          createCameraConfig({ camera_entity: 'camera.front_door' }),
+          new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        );
+
+        await camera.initialize({
+          hass: createHASS(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
+        });
+
+        expect(camera.getEntity()).toEqual(cameraEntity);
+      });
+
+      it('should leave entity null when camera_entity is unset', async () => {
+        const camera = new Camera(
+          createCameraConfig(),
+          new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        );
+
+        await camera.initialize({
+          hass: createHASS(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          entityRegistryManager: new EntityRegistryManagerMock(),
+        });
+
+        expect(camera.getEntity()).toBeNull();
+      });
+
+      it('should leave entity null when entityRegistryManager is not provided', async () => {
+        const camera = new Camera(
+          createCameraConfig({ camera_entity: 'camera.front_door' }),
+          new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        );
+
+        await camera.initialize({
+          hass: createHASS(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        });
+
+        expect(camera.getEntity()).toBeNull();
+      });
+    });
+
+    describe('trigger discovery', () => {
+      describe('doorbell', () => {
+        const initializeDoorbellCamera = async (options?: {
+          doorbell?: boolean;
+          deviceID?: string | null;
+          triggerCapability?: boolean;
+          userEntities?: string[];
+          omitRegistryManager?: boolean;
+          registryEntities?: ReturnType<typeof createRegistryEntity>[];
+          stateEntities?: Parameters<typeof createHASS>[0];
+        }): Promise<{
+          camera: Camera;
+          stateWatcher: StateWatcherSubscriptionInterface;
+        }> => {
+          const cameraEntity = createRegistryEntity({
+            entity_id: 'camera.front_door',
+            device_id: options?.deviceID === undefined ? 'device_1' : options.deviceID,
+          });
+          const doorbellEntity = createRegistryEntity({
+            entity_id: 'event.front_door_doorbell',
+            device_id: 'device_1',
+          });
+          const camera = new Camera(
+            createCameraConfig({
+              camera_entity: 'camera.front_door',
+              triggers: {
+                doorbell: options?.doorbell ?? true,
+                ...(options?.userEntities && { entities: options.userEntities }),
+              },
+            }),
+            new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+          );
+          const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+          const hass = createHASS(
+            options?.stateEntities ?? {
+              'event.front_door_doorbell': createStateEntity({
+                entity_id: 'event.front_door_doorbell',
+                attributes: { device_class: 'doorbell' },
+              }),
+            },
+          );
+          await camera.initialize({
+            hass,
+            stateWatcher,
+            ...(!options?.omitRegistryManager && {
+              entityRegistryManager: new EntityRegistryManagerMock(
+                options?.registryEntities ?? [cameraEntity, doorbellEntity],
+              ),
+            }),
+            capabilityOptions: {
+              capabilities: createCapabilities({
+                trigger: options?.triggerCapability ?? true,
+              }),
+            },
+          });
+          return { camera, stateWatcher };
+        };
+
+        it('should auto-include doorbell event entity from camera device', async () => {
+          const { camera } = await initializeDoorbellCamera();
+          expect(camera.getConfig().triggers.entities).toEqual([
+            'event.front_door_doorbell',
+          ]);
+        });
+
+        it('should skip discovery when triggers.doorbell is false', async () => {
+          const { camera } = await initializeDoorbellCamera({ doorbell: false });
+          expect(camera.getConfig().triggers.entities).toEqual([]);
+        });
+
+        it('should skip discovery when camera entity has no device_id', async () => {
+          const { camera } = await initializeDoorbellCamera({ deviceID: null });
+          expect(camera.getConfig().triggers.entities).toEqual([]);
+        });
+
+        it('should skip discovery when trigger capability is disabled', async () => {
+          const { camera } = await initializeDoorbellCamera({
+            triggerCapability: false,
+          });
+          expect(camera.getConfig().triggers.entities).toEqual([]);
+        });
+
+        it('should skip discovery when entityRegistryManager is not provided', async () => {
+          const { camera } = await initializeDoorbellCamera({
+            omitRegistryManager: true,
+          });
+          expect(camera.getConfig().triggers.entities).toEqual([]);
+        });
+
+        it('should de-duplicate against user-supplied entities', async () => {
+          const { camera } = await initializeDoorbellCamera({
+            userEntities: ['event.front_door_doorbell', 'binary_sensor.driveway'],
+          });
+          expect(camera.getConfig().triggers.entities).toEqual([
+            'event.front_door_doorbell',
+            'binary_sensor.driveway',
+          ]);
+        });
+
+        it('should skip disabled event entities', async () => {
+          const { camera } = await initializeDoorbellCamera({
+            registryEntities: [
+              createRegistryEntity({
+                entity_id: 'camera.front_door',
+                device_id: 'device_1',
+              }),
+              createRegistryEntity({
+                entity_id: 'event.front_door_doorbell',
+                device_id: 'device_1',
+                disabled_by: 'user',
+              }),
+            ],
+          });
+          expect(camera.getConfig().triggers.entities).toEqual([]);
+        });
+
+        it('should ignore non-doorbell event entities on the device', async () => {
+          const { camera } = await initializeDoorbellCamera({
+            registryEntities: [
+              createRegistryEntity({
+                entity_id: 'camera.front_door',
+                device_id: 'device_1',
+              }),
+              createRegistryEntity({
+                entity_id: 'event.front_door_button',
+                device_id: 'device_1',
+              }),
+            ],
+            stateEntities: {
+              'event.front_door_button': createStateEntity({
+                entity_id: 'event.front_door_button',
+                attributes: { device_class: 'button' },
+              }),
+            },
+          });
+          expect(camera.getConfig().triggers.entities).toEqual([]);
+        });
+
+        it('should subscribe to discovered doorbell entities for state changes', async () => {
+          const { stateWatcher } = await initializeDoorbellCamera();
+          expect(stateWatcher.subscribe).toBeCalledWith(expect.any(Function), [
+            'event.front_door_doorbell',
+          ]);
+        });
+      });
     });
   });
 

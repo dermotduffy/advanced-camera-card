@@ -8,14 +8,12 @@ import { CameraEventCallback, CameraManagerCameraMetadata, Engine } from '../typ
 import { TPLinkCamera } from './camera';
 
 export class TPLinkCameraManagerEngine extends GenericCameraManagerEngine {
-  private _entityRegistryManager: EntityRegistryManager;
-
   constructor(
     entityRegistryManager: EntityRegistryManager,
     stateWatcher: StateWatcherSubscriptionInterface,
     eventCallback?: CameraEventCallback,
   ) {
-    super(stateWatcher, eventCallback);
+    super(stateWatcher, entityRegistryManager, eventCallback);
     this._entityRegistryManager = entityRegistryManager;
   }
 

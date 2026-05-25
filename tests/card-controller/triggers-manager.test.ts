@@ -25,6 +25,7 @@ vi.mock('lodash-es', async () => ({
 const baseTriggersConfig: TriggersOptions = {
   untrigger_delay_seconds: 10,
   untrigger_force_seconds: 0,
+  signal_hold_seconds: 0,
   filter_selected_camera: false,
   show_trigger_status: false,
   actions: {
@@ -883,6 +884,69 @@ describe('TriggersManager', () => {
       // Continuous source keeps the trigger alive.
       expect(manager.isTriggered()).toBeTruthy();
       expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+    });
+
+    it('should add signal_hold_seconds on top of untrigger_delay_seconds for signals', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_delay_seconds: 5,
+          signal_hold_seconds: 30,
+          actions: { trigger: 'none', untrigger: 'default' },
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'event.doorbell',
+        type: 'signal',
+      });
+
+      // At 34s the additive 35s window is still active.
+      vi.setSystemTime(add(start, { seconds: 34 }));
+      vi.advanceTimersByTime(34_000);
+      await flushPromises();
+      expect(manager.isTriggered()).toBeTruthy();
+
+      // At 35s the window expires and untrigger fires.
+      vi.setSystemTime(add(start, { seconds: 35 }));
+      vi.advanceTimersByTime(1_000);
+      await flushPromises();
+      expect(manager.isTriggered()).toBeFalsy();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+    });
+
+    it('should not apply signal_hold_seconds to non-signal events', async () => {
+      const api = createTriggerAPI({
+        config: {
+          untrigger_delay_seconds: 5,
+          signal_hold_seconds: 30,
+          actions: { trigger: 'none', untrigger: 'default' },
+        },
+      });
+      const manager = new TriggersManager(api);
+
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'binary_sensor.motion',
+        type: 'new',
+      });
+      await manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        id: 'binary_sensor.motion',
+        type: 'end',
+      });
+
+      // Only untrigger_delay_seconds (5s) applies to a stateful end event.
+      vi.setSystemTime(add(start, { seconds: 4 }));
+      vi.advanceTimersByTime(4_000);
+      await flushPromises();
+      expect(manager.isTriggered()).toBeTruthy();
+
+      vi.setSystemTime(add(start, { seconds: 5 }));
+      vi.advanceTimersByTime(1_000);
+      await flushPromises();
+      expect(manager.isTriggered()).toBeFalsy();
     });
   });
 
