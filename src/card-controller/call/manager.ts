@@ -15,6 +15,15 @@ export class CallManager {
   private _ringtone = new Ringtone();
   private _unansweredTimer = new Timer();
 
+  // Identifies the current init/uninit cycle so an in-flight `start()`
+  // resuming from its microphone-connect await can detect that its CallManager
+  // was torn down -- or torn down and re-initialized -- while it was suspended
+  // and bail before installing a session or ringtone. Without this guard the
+  // resumed tail leaks audio onto the shared lock from an instance the user
+  // can no longer see or control, and may install state into a fresh
+  // lifecycle from a request that belongs to the previous one.
+  private _initEpoch = 0;
+
   constructor(api: CardCallAPI) {
     this._api = api;
   }
@@ -94,7 +103,19 @@ export class CallManager {
       return false;
     }
 
-    if (!(await this._connectMicrophone(inbound))) {
+    const initEpoch = this._initEpoch;
+    const microphoneConnected = await this._connectMicrophone();
+    // If the init/uninit lifecycle advanced while the microphone connect was
+    // in flight, this request belongs to a previous lifecycle -- the view we
+    // captured may be stale, the triggering context is gone, and there is no
+    // clean teardown path for state we'd install here. Bail before touching
+    // `_call`, the ringtone lock, or surfacing a notification onto a torn-down
+    // NotificationManager.
+    if (initEpoch !== this._initEpoch) {
+      return false;
+    }
+    if (!microphoneConnected) {
+      this._notifyError('error.call_microphone_forbidden', inbound);
       return false;
     }
 
@@ -220,6 +241,7 @@ export class CallManager {
   //
   // Safe to re-initialize afterwards via `initialize()`.
   public uninitialize(): void {
+    this._initEpoch++;
     this._ringtone.stop();
     this._unansweredTimer.stop();
     if (this._call) {
@@ -343,7 +365,7 @@ export class CallManager {
     return true;
   }
 
-  private async _connectMicrophone(inbound: boolean): Promise<boolean> {
+  private async _connectMicrophone(): Promise<boolean> {
     const microphoneManager = this._api.getMicrophoneManager();
     if (microphoneManager.isConnected()) {
       return true;
@@ -352,7 +374,6 @@ export class CallManager {
       await microphoneManager.connect();
       return true;
     } catch {
-      this._notifyError('error.call_microphone_forbidden', inbound);
       return false;
     }
   }
