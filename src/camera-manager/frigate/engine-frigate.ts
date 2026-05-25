@@ -120,7 +120,7 @@ export class FrigateCameraManagerEngine
   extends GenericCameraManagerEngine
   implements CameraManagerEngine
 {
-  private _entityRegistryManager: EntityRegistryManager;
+  protected override _entityRegistryManager: EntityRegistryManager;
   private _frigateEventWatcher: FrigateEventWatcher;
   private _frigateReviewWatcher: FrigateReviewWatcher;
   private _recordingSegmentsCache: RecordingSegmentsCache;
@@ -140,7 +140,7 @@ export class FrigateCameraManagerEngine
     requestCache: CameraManagerRequestCache,
     eventCallback?: CameraEventCallback,
   ) {
-    super(stateWatcher, eventCallback);
+    super(stateWatcher, entityRegistryManager, eventCallback);
     this._entityRegistryManager = entityRegistryManager;
     this._frigateEventWatcher = new FrigateEventWatcher();
     this._frigateReviewWatcher = new FrigateReviewWatcher();

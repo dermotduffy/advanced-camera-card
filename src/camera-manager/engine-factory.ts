@@ -39,6 +39,7 @@ export class CameraManagerEngineFactory {
         const { GenericCameraManagerEngine } = await import('./generic/engine-generic');
         cameraManagerEngine = new GenericCameraManagerEngine(
           options.stateWatcher,
+          this._entityRegistryManager,
           options.eventCallback,
         );
         break;

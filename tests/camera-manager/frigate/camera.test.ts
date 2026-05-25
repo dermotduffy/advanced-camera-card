@@ -2012,6 +2012,30 @@ describe('FrigateCamera', () => {
 
         expect(camera.getConfig().triggers.entities).toEqual([]);
       });
+
+      it('should throw when camera_entity is configured but registry has no match', async () => {
+        const camera = new FrigateCamera(
+          createCameraConfig({
+            camera_entity: 'camera.front_door',
+            frigate: {
+              camera_name: 'front_door',
+            },
+            triggers: {
+              motion: true,
+            },
+          }),
+          mock<CameraManagerEngine>(),
+        );
+        await expect(
+          camera.initialize({
+            hass: createHASS(),
+            entityRegistryManager: new EntityRegistryManagerMock(),
+            stateWatcher: mock<StateWatcher>(),
+            frigateEventWatcher: mock<FrigateEventWatcher>(),
+            frigateReviewWatcher: mock<FrigateReviewWatcher>(),
+          }),
+        ).rejects.toThrowError(/Could not find camera entity/);
+      });
     });
 
     describe('should detect occupancy sensor', () => {

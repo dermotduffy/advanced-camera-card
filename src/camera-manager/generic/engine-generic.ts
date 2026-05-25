@@ -3,6 +3,7 @@
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { CameraConfig } from '../../config/schema/cameras';
 import { getEntityTitle } from '../../ha/get-entity-title';
+import { EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
 import { Endpoint } from '../../types';
 import { ViewMedia } from '../../view/item';
@@ -40,12 +41,15 @@ import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 export class GenericCameraManagerEngine implements CameraManagerEngine {
   protected _eventCallback?: CameraEventCallback;
   protected _stateWatcher: StateWatcherSubscriptionInterface;
+  protected _entityRegistryManager?: EntityRegistryManager;
 
   constructor(
     stateWatcher: StateWatcherSubscriptionInterface,
+    entityRegistryManager?: EntityRegistryManager,
     eventCallback?: CameraEventCallback,
   ) {
     this._stateWatcher = stateWatcher;
+    this._entityRegistryManager = entityRegistryManager;
     this._eventCallback = eventCallback;
   }
 
@@ -62,6 +66,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     }).initialize({
       hass,
       stateWatcher: this._stateWatcher,
+      entityRegistryManager: this._entityRegistryManager,
       capabilityOptions: {
         raw: {
           ptz: getPTZCapabilitiesFromCameraConfig(cameraConfig) ?? undefined,

@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import { uniq } from 'lodash-es';
 import { ActionsExecutor } from '../../card-controller/actions/types';
 import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
 import { CameraConfig } from '../../config/schema/cameras';
@@ -45,7 +44,6 @@ export const isBirdseye = (cameraConfig: CameraConfig): boolean => {
 
 export class FrigateCamera extends Camera {
   public async initialize(options: FrigateCameraInitializationOptions): Promise<Camera> {
-    await this._initializeConfig(options.hass, options.entityRegistryManager);
     await super.initialize(options);
 
     if (this._capabilities?.has('trigger')) {
@@ -106,35 +104,29 @@ export class FrigateCamera extends Camera {
     return true;
   }
 
-  private async _initializeConfig(
-    hass: HomeAssistant,
-    entityRegistryManager: EntityRegistryManager,
+  protected override async _initialize(
+    options: FrigateCameraInitializationOptions,
   ): Promise<void> {
     const config = this.getConfig();
     const hasCameraName = !!config.frigate?.camera_name;
-    const hasAutoTriggers = config.triggers.motion || config.triggers.occupancy;
-
-    let entity: Entity | null = null;
     const cameraEntity = getCameraEntityFromConfig(config);
 
-    // Entity information is required if the Frigate camera name is missing, or
-    // if the entity requires automatic resolution of motion/occupancy sensors.
-    if (cameraEntity && (!hasCameraName || hasAutoTriggers)) {
-      entity = await entityRegistryManager.getEntity(hass, cameraEntity);
-      if (!entity) {
-        throw new CameraNoEntityError(config);
-      }
+    // Frigate needs the entity to derive `camera_name` when one isn't set. The
+    // entity is resolved by base Camera; throw here only when its absence
+    // breaks Frigate setup.
+    if (cameraEntity && !hasCameraName && !this._entity) {
+      throw new CameraNoEntityError(config);
     }
 
-    if (entity && !hasCameraName) {
-      const resolvedName = this._getFrigateCameraNameFromEntity(entity);
+    if (this._entity && !hasCameraName) {
+      const resolvedName = this._getFrigateCameraNameFromEntity(this._entity);
       if (resolvedName) {
         this._config.frigate.camera_name = resolvedName;
       }
     }
 
     if (!this._config.frigate.client_id) {
-      const stateEntity = cameraEntity ? hass.states[cameraEntity] : undefined;
+      const stateEntity = cameraEntity ? options.hass.states[cameraEntity] : undefined;
       const clientID = stateEntity?.attributes?.client_id;
       if (typeof clientID === 'string' && clientID) {
         this._config.frigate.client_id = clientID;
@@ -142,40 +134,57 @@ export class FrigateCamera extends Camera {
         this._config.frigate.client_id = 'frigate';
       }
     }
+  }
 
-    if (hasAutoTriggers) {
-      // Try to find the correct entities for the motion & occupancy sensors.
-      // We know they are binary_sensors, and that they'll have the same
-      // config entry ID as the camera. Searching via unique_id ensures this
-      // search still works if the user renames the entity_id.
-      const binarySensorEntities = await entityRegistryManager.getMatchingEntities(
-        hass,
-        (ent) =>
-          ent.config_entry_id === entity?.config_entry_id &&
-          !ent.disabled_by &&
-          ent.entity_id.startsWith('binary_sensor.'),
-      );
+  protected override async _getTriggerEntities(
+    options: FrigateCameraInitializationOptions,
+  ): Promise<void> {
+    await this._getFrigateMotionAndOccupancyEntities(options);
+    await super._getTriggerEntities(options);
+  }
 
-      if (config.triggers.motion) {
-        const motionEntity = this._getMotionSensor(config, [
-          ...binarySensorEntities.values(),
-        ]);
-        if (motionEntity) {
-          config.triggers.entities.push(motionEntity);
-        }
+  private async _getFrigateMotionAndOccupancyEntities(
+    options: FrigateCameraInitializationOptions,
+  ): Promise<void> {
+    const config = this.getConfig();
+    if (!config.triggers.motion && !config.triggers.occupancy) {
+      return;
+    }
+
+    // Motion/occupancy auto-discovery requires the camera entity to derive
+    // the matching binary_sensor unique_ids.
+    if (getCameraEntityFromConfig(config) && !this._entity) {
+      throw new CameraNoEntityError(config);
+    }
+
+    // Find the correct entities for the motion & occupancy sensors. They
+    // are binary_sensors with the same config entry ID as the camera;
+    // searching via unique_id ensures this still works if the user renames
+    // the entity_id.
+    const binarySensorEntities = await options.entityRegistryManager.getMatchingEntities(
+      options.hass,
+      (ent) =>
+        ent.config_entry_id === this._entity?.config_entry_id &&
+        !ent.disabled_by &&
+        ent.entity_id.startsWith('binary_sensor.'),
+    );
+
+    if (config.triggers.motion) {
+      const motionEntity = this._getMotionSensor(config, [
+        ...binarySensorEntities.values(),
+      ]);
+      if (motionEntity) {
+        config.triggers.entities.push(motionEntity);
       }
+    }
 
-      if (config.triggers.occupancy) {
-        const occupancyEntities = this._getOccupancySensor(config, [
-          ...binarySensorEntities.values(),
-        ]);
-        if (occupancyEntities) {
-          config.triggers.entities.push(...occupancyEntities);
-        }
+    if (config.triggers.occupancy) {
+      const occupancyEntities = this._getOccupancySensor(config, [
+        ...binarySensorEntities.values(),
+      ]);
+      if (occupancyEntities) {
+        config.triggers.entities.push(...occupancyEntities);
       }
-
-      // De-duplicate triggering entities.
-      config.triggers.entities = uniq(config.triggers.entities);
     }
   }
 

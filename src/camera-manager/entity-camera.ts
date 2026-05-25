@@ -1,30 +1,19 @@
-import { Entity, EntityRegistryManager } from '../ha/registry/entity/types';
 import { Camera, CameraInitializationOptions } from './camera';
 import { CameraNoEntityError } from './error';
-import { getCameraEntityFromConfig } from './utils/camera-entity-from-config';
 
-export interface EntityCameraInitializationOptions extends CameraInitializationOptions {
-  entityRegistryManager: EntityRegistryManager;
-}
-
+/**
+ * Camera variant that requires a `camera_entity` to be present in the HA
+ * entity registry. Base `Camera` resolves `_entity` opportunistically; this
+ * subclass turns absence into an error for engines that cannot function
+ * without it (motionEye, Reolink, TPLink).
+ */
 export class EntityCamera extends Camera {
-  protected _entity: Entity | null = null;
-
-  public async initialize(options: EntityCameraInitializationOptions): Promise<Camera> {
-    const config = this.getConfig();
-    const cameraEntityID = getCameraEntityFromConfig(config);
-    const entity = cameraEntityID
-      ? await options.entityRegistryManager.getEntity(options.hass, cameraEntityID)
-      : null;
-
-    if (!entity || !cameraEntityID) {
-      throw new CameraNoEntityError(config);
+  protected override async _initialize(
+    options: CameraInitializationOptions,
+  ): Promise<void> {
+    if (!this._entity) {
+      throw new CameraNoEntityError(this.getConfig());
     }
-    this._entity = entity;
-    return await super.initialize(options);
-  }
-
-  public getEntity(): Entity | null {
-    return this._entity;
+    await super._initialize(options);
   }
 }
