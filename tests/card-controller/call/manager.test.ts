@@ -1609,3 +1609,76 @@ describe('session end during setState', () => {
     expect(manager.isActive()).toBe(false);
   });
 });
+
+describe('uninitialize during in-flight start', () => {
+  it('should not install a session or ring when uninitialized mid-await', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+      config: { live: { controls: { call: { ringtone: { type: 'chime' } } } } },
+    });
+    let resolveConnect: () => void = () => {};
+    vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveConnect = resolve;
+      }),
+    );
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    const startPromise = manager.start({ inbound: true });
+    manager.uninitialize();
+    resolveConnect();
+
+    expect(await startPromise).toBe(false);
+    expect(getRingtone().start).not.toBeCalled();
+    expect(manager.isActive()).toBe(false);
+  });
+
+  it('should not install a session or ring when uninitialized and re-initialized mid-await', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+      config: { live: { controls: { call: { ringtone: { type: 'chime' } } } } },
+    });
+    let resolveConnect: () => void = () => {};
+    vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveConnect = resolve;
+      }),
+    );
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    const startPromise = manager.start({ inbound: true });
+    manager.uninitialize();
+    manager.initialize();
+    resolveConnect();
+
+    expect(await startPromise).toBe(false);
+    expect(getRingtone().start).not.toBeCalled();
+    expect(manager.isActive()).toBe(false);
+  });
+
+  it('should suppress the microphone-failure notification when uninitialized mid-await', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+    });
+    let rejectConnect: (reason: unknown) => void = () => {};
+    vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
+      new Promise<void>((_, reject) => {
+        rejectConnect = reject;
+      }),
+    );
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    const startPromise = manager.start();
+    manager.uninitialize();
+    rejectConnect(new Error('denied'));
+
+    expect(await startPromise).toBe(false);
+    expect(api.getNotificationManager().setNotification).not.toBeCalled();
+  });
+});
