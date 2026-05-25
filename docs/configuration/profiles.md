@@ -16,11 +16,12 @@ profiles:
 > [!NOTE]
 > Profiles are applied top to bottom. If multiple profiles change a configuration default, then the last one "wins"
 
-| Profile name      | Purpose                                        |
-| ----------------- | ---------------------------------------------- |
-| `casting`         | Configure the card to be casted.               |
-| `low-performance` | Configure the card for lower end devices.      |
-| `scrubbing`       | Configure the card to allow "video scrubbing". |
+| Profile name      | Purpose                                                      |
+| ----------------- | ------------------------------------------------------------ |
+| `casting`         | Configure the card to be casted.                             |
+| `doorbell`        | Configure the card to ring like a phone on a doorbell press. |
+| `low-performance` | Configure the card for lower end devices.                    |
+| `scrubbing`       | Configure the card to allow "video scrubbing".               |
 
 ## `casting`
 
@@ -31,6 +32,27 @@ profiles:
   - low-performance
   - casting
 ```
+
+## `doorbell`
+
+Turns the card into a phone-style ringer that answers a [two-way audio
+call](../usage/2-way-audio.md) when somebody presses a doorbell. Intended for a
+wall-mounted tablet sitting on a dashboard with a doorbell camera.
+
+Minimal configuration — just point it at a doorbell-capable camera:
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.front_door
+profiles:
+  - doorbell
+```
+
+> [!NOTE]
+> For inbound audio to actually work the camera still needs a live provider that supports two-way audio (e.g. `go2rtc` with `webrtc` mode). The profile does not change `live_provider` since that's setup-specific.
+
+See the [source code](https://github.com/dermotduffy/advanced-camera-card/blob/main/src/config/profiles/doorbell.ts) for an exhaustive list of options set by this profile.
 
 ## `low-performance`
 
@@ -56,6 +78,7 @@ See the [source code](https://github.com/dermotduffy/advanced-camera-card/blob/m
 ```yaml
 profiles:
   - casting
+  - doorbell
   - low-performance
   - scrubbing
 ```
