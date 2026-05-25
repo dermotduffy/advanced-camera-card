@@ -850,6 +850,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
   private _profiles: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'casting', label: localize('config.profiles.casting') },
+    { value: 'doorbell', label: localize('config.profiles.doorbell') },
     { value: 'low-performance', label: localize('config.profiles.low-performance') },
     { value: 'scrubbing', label: localize('config.profiles.scrubbing') },
   ];

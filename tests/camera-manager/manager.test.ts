@@ -440,24 +440,27 @@ describe('CameraManager', () => {
     });
 
     describe('should fetch entity list when required', () => {
-      it('should fetch with entity based trigger', async () => {
-        const api = createCardAPI();
-        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      it.each([['occupancy' as const], ['motion' as const], ['doorbell' as const]])(
+        'should fetch with %s trigger',
+        async (triggerKey) => {
+          const api = createCardAPI();
+          vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
-        const manager = createCameraManager(api, mock<CameraManagerEngine>(), [
-          {
-            config: createCameraConfig({
-              ...baseCameraConfig,
-              triggers: {
-                occupancy: true,
-              },
-            }),
-          },
-        ]);
+          const manager = createCameraManager(api, mock<CameraManagerEngine>(), [
+            {
+              config: createCameraConfig({
+                ...baseCameraConfig,
+                triggers: {
+                  [triggerKey]: true,
+                },
+              }),
+            },
+          ]);
 
-        await manager.initializeCamerasFromConfig();
-        expect(api.getEntityRegistryManager().fetchEntityList).toBeCalled();
-      });
+          await manager.initializeCamerasFromConfig();
+          expect(api.getEntityRegistryManager().fetchEntityList).toBeCalled();
+        },
+      );
 
       it('should skip without entity based trigger', async () => {
         const api = createCardAPI();

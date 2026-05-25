@@ -30,9 +30,6 @@ export const CASTING_PROFILE = {
   [CONF_DIMENSIONS_ASPECT_RATIO_MODE]: 'static',
   [CONF_DIMENSIONS_ASPECT_RATIO]: '16:9',
 
-  // These values are defaults anyway unless another profile (e.g.
-  // low-performance) is also selected, but at pretty important to a good
-  // experience so are reset here.
   [CONF_CAMERAS_GLOBAL_IMAGE_REFRESH_SECONDS]: 1,
   [CONF_LIVE_SHOW_IMAGE_DURING_LOAD]: true,
 };
