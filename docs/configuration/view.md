@@ -153,7 +153,7 @@ human interaction with the card; this behavior can be configured via the
 | `actions`                 |         | The actions to take when a camera is triggered. See [Trigger action configuration](#trigger-action-configuration).                                                                                                                                                                                                                                                                                         |
 | `filter_selected_camera`  | `true`  | If set to `true` will only trigger on the currently selected camera.                                                                                                                                                                                                                                                                                                                                       |
 | `show_trigger_status`     | `false` | Whether or not the `live` view should show a visual indication that it is triggered (a pulsing border around the camera edge).                                                                                                                                                                                                                                                                             |
-| `signal_hold_seconds`     | `30`    | The synthesized on-period for momentary trigger sources that have no native on/off state (e.g. HA `event.*` entities or anything that fires as a single signal). For a doorbell press paired with `trigger: call`, this is effectively the ring window during which the call can be answered. Added _on top of_ `untrigger_delay_seconds`. Ignored for stateful sources (`binary_sensor`, `switch`, etc.). |
+| `event_hold_seconds`      | `30`    | The synthesized on-period for momentary trigger sources that have no native on/off state (e.g. HA `event.*` entities or anything that fires as a single signal). For a doorbell press paired with `trigger: call`, this is effectively the ring window during which the call can be answered. Added _on top of_ `untrigger_delay_seconds`. Ignored for stateful sources (`binary_sensor`, `switch`, etc.). |
 | `untrigger_delay_seconds` | `0`     | The number of seconds to continue to consider the camera triggered after the source ends, before taking the configured `untrigger` action.                                                                                                                                                                                                                                                                 |
 | `untrigger_force_seconds` | `0`     | The number of seconds after a camera first triggers before force untriggering that camera. Set to `0` to disable.                                                                                                                                                                                                                                                                                          |
 
@@ -165,7 +165,8 @@ human interaction with the card; this behavior can be configured via the
 > "ring-then-end-if-unanswered" pattern), the ring lasts until the source ends
 > plus `untrigger_delay_seconds`. For momentary sources (HA `event.*` entities,
 > a doorbell press), the source ends instantly so the ring window is
-> `signal_hold_seconds` (default `30`s) plus `untrigger_delay_seconds`.
+> `event_hold_seconds` (default `30`s) plus `untrigger_delay_seconds` (default
+> `0`s).
 
 ### Trigger action configuration
 

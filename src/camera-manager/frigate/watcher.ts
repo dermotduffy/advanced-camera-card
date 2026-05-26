@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { HomeAssistant } from '../../ha/types';
+import { HomeAssistant, SubscriptionUnsubscribe } from '../../ha/types';
 import {
   FrigateEventChange,
   FrigateReviewChange,
@@ -19,8 +19,6 @@ export interface FrigateWatcherSubscriptionInterface<T> {
   subscribe(hass: HomeAssistant, request: FrigateWatcherRequest<T>): Promise<void>;
   unsubscribe(request: FrigateWatcherRequest<T>): void;
 }
-
-type SubscriptionUnsubscribe = () => Promise<void>;
 
 /**
  * Base class for Frigate WebSocket watchers.

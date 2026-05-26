@@ -1,3 +1,4 @@
+import { EventWatcherSubscriptionInterface } from '../../card-controller/hass/event-watcher';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { CameraConfig } from '../../config/schema/cameras';
 import { BROWSE_MEDIA_CACHE_SECONDS } from '../../ha/browse-media/types';
@@ -37,12 +38,13 @@ export class BrowseMediaCameraManagerEngine
   public constructor(
     entityRegistryManager: EntityRegistryManager,
     stateWatcher: StateWatcherSubscriptionInterface,
+    eventWatcher: EventWatcherSubscriptionInterface,
     browseMediaManager: BrowseMediaWalker,
     resolvedMediaCache: ResolvedMediaCache,
     requestCache: CameraManagerRequestCache,
     eventCallback?: CameraEventCallback,
   ) {
-    super(stateWatcher, entityRegistryManager, eventCallback);
+    super(stateWatcher, eventWatcher, entityRegistryManager, eventCallback);
     this._entityRegistryManager = entityRegistryManager;
     this._browseMediaWalker = browseMediaManager;
     this._resolvedMediaCache = resolvedMediaCache;

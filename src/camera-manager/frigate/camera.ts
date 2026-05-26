@@ -457,7 +457,7 @@ export class FrigateCamera extends Camera {
   ): Promise<void> {
     const config = this.getConfig();
     if (
-      !config.triggers.events.length ||
+      !config.triggers.media_events.length ||
       !config.frigate.camera_name ||
       !config.frigate.client_id
     ) {
@@ -500,12 +500,12 @@ export class FrigateCamera extends Camera {
       return;
     }
 
-    const eventsToTriggerOn = config.triggers.events;
+    const mediaEventsToTriggerOn = config.triggers.media_events;
     if (
       !(
-        eventsToTriggerOn.includes('events') ||
-        (eventsToTriggerOn.includes('snapshots') && snapshotChange) ||
-        (eventsToTriggerOn.includes('clips') && clipChange)
+        mediaEventsToTriggerOn.includes('events') ||
+        (mediaEventsToTriggerOn.includes('snapshots') && snapshotChange) ||
+        (mediaEventsToTriggerOn.includes('clips') && clipChange)
       )
     ) {
       return;
@@ -518,8 +518,8 @@ export class FrigateCamera extends Camera {
       type: ev.type,
       // In cases where there are both clip and snapshot media, ensure to only
       // trigger on the media type that is allowed by the configuration.
-      clip: clipChange && eventsToTriggerOn.includes('clips'),
-      snapshot: snapshotChange && eventsToTriggerOn.includes('snapshots'),
+      clip: clipChange && mediaEventsToTriggerOn.includes('clips'),
+      snapshot: snapshotChange && mediaEventsToTriggerOn.includes('snapshots'),
     });
   };
 

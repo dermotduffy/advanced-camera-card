@@ -3,12 +3,14 @@ import { HomeAssistant } from '../../ha/types';
 import { log } from '../../utils/debug';
 import { InitializationAspect } from '../initialization-manager';
 import { CardHASSAPI } from '../types';
+import { EventWatcher, EventWatcherSubscriptionInterface } from './event-watcher';
 import { StateWatcher, StateWatcherSubscriptionInterface } from './state-watcher';
 
 export class HASSManager {
   private _hass: HomeAssistant | null = null;
   private _api: CardHASSAPI;
   private _stateWatcher: StateWatcher = new StateWatcher();
+  private _eventWatcher: EventWatcher = new EventWatcher();
 
   constructor(api: CardHASSAPI) {
     this._api = api;
@@ -24,6 +26,10 @@ export class HASSManager {
 
   public getStateWatcher(): StateWatcherSubscriptionInterface {
     return this._stateWatcher;
+  }
+
+  public getEventWatcher(): EventWatcherSubscriptionInterface {
+    return this._eventWatcher;
   }
 
   public setHASS(hass?: HomeAssistant | null): void {

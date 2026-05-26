@@ -6,6 +6,7 @@
   "common": {
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "An Advanced Camera Card",
+    "event": "Event",
     "folder": "Folder",
     "in_progress": "In progress...",
     "no_media": "No media to display",
@@ -188,12 +189,18 @@
         "editor_label": "Trigger options",
         "entities": "Trigger from other entities",
         "events": {
+          "add_new_event": "Add new event trigger",
+          "editor_label": "Home Assistant Events",
+          "event_data": "Event data filter",
+          "event_type": "Event type"
+        },
+        "doorbell": "Trigger by auto-detecting doorbell event entities",
+        "media_events": {
           "clips": "Events with new clips",
-          "editor_label": "Trigger Events",
+          "editor_label": "Trigger Media Events",
           "events": "All events",
           "snapshots": "Events with new snapshots"
         },
-        "doorbell": "Trigger by auto-detecting doorbell event entities",
         "motion": "Trigger by auto-detecting the motion sensor",
         "occupancy": "Trigger by auto-detecting the occupancy sensor",
         "reviews": {
@@ -680,7 +687,7 @@
         "editor_label": "Trigger behavior",
         "filter_selected_camera": "Only trigger on selected camera",
         "show_trigger_status": "Show pulsing border when triggered",
-        "signal_hold_seconds": "Seconds to hold a momentary (signal) trigger visible (e.g. a doorbell press) before the post-end untrigger delay",
+        "event_hold_seconds": "Seconds to hold a momentary trigger (e.g. a doorbell press, an HA bus event) visible before the post-end untrigger delay",
         "untrigger_delay_seconds": "Seconds delay after trigger state change before untrigger",
         "untrigger_force_seconds": "Seconds before forced untrigger"
       },

@@ -78,6 +78,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
       entityRegistryManager: this._entityRegistryManager,
       hass,
       stateWatcher: this._stateWatcher,
+      eventWatcher: this._eventWatcher,
     });
   }
 

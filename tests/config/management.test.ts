@@ -4052,6 +4052,156 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
+    describe('cameras[].triggers.events string[] → triggers.media_events', () => {
+      it('migrates a legacy string array to media_events', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [
+            {
+              camera_entity: 'camera.office',
+              triggers: { events: ['events', 'clips'] },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.cameras[0].triggers).toEqual({
+          media_events: ['events', 'clips'],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('migrates an empty legacy array', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office', triggers: { events: [] } }],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.cameras[0].triggers).toEqual({ media_events: [] });
+        postUpgradeChecks(config);
+      });
+
+      it('leaves the new object-array shape untouched', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [
+            {
+              camera_entity: 'camera.office',
+              triggers: { events: [{ event_type: 'zha_event' }] },
+            },
+          ],
+        };
+        // The new shape might still trigger OTHER upgrades to fire on the
+        // config, so we don't assert the overall upgrade result -- only that
+        // this specific field is not touched.
+        upgradeConfig(config);
+        expect(config.cameras[0].triggers).toEqual({
+          events: [{ event_type: 'zha_event' }],
+        });
+      });
+
+      it('drops legacy events but keeps an existing media_events untouched', () => {
+        // Both fields present is implausible in real user configs, but if it
+        // happens we still must remove the legacy `events: string[]` because
+        // the new schema would reject it; the explicit `media_events` wins.
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [
+            {
+              camera_entity: 'camera.office',
+              triggers: {
+                events: ['snapshots'],
+                media_events: ['clips'],
+              },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.cameras[0].triggers).toEqual({
+          media_events: ['clips'],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('is idempotent across repeated runs', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [
+            {
+              camera_entity: 'camera.office',
+              triggers: { events: ['events'] },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.cameras[0].triggers).toEqual({ media_events: ['events'] });
+      });
+
+      it('migrates per camera independently', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [
+            { camera_entity: 'camera.a', triggers: { events: ['clips'] } },
+            {
+              camera_entity: 'camera.b',
+              triggers: { events: [{ event_type: 'zha_event' }] },
+            },
+            { camera_entity: 'camera.c' },
+          ],
+        };
+        upgradeConfig(config);
+        expect(config.cameras[0].triggers).toEqual({ media_events: ['clips'] });
+        expect(config.cameras[1].triggers).toEqual({
+          events: [{ event_type: 'zha_event' }],
+        });
+        expect(config.cameras[2].triggers).toBeUndefined();
+      });
+
+      it('migrates a legacy cameras_global.triggers.events string array', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          cameras_global: {
+            triggers: {
+              events: ['clips', 'snapshots'],
+            },
+          },
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.cameras_global.triggers).toEqual({
+          media_events: ['clips', 'snapshots'],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('leaves cameras_global new-shape events untouched', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          cameras_global: {
+            triggers: {
+              events: [{ event_type: 'zha_event' }],
+            },
+          },
+        };
+        upgradeConfig(config);
+        expect(config.cameras_global.triggers).toEqual({
+          events: [{ event_type: 'zha_event' }],
+        });
+      });
+
+      it('is a no-op when triggers is not an object (malformed user config)', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [
+            { camera_entity: 'camera.office', triggers: 'not-an-object' },
+          ],
+        };
+        upgradeConfig(config);
+        expect(config.cameras[0].triggers).toBe('not-an-object');
+      });
+    });
+
     describe('live_substream_{on,off,select} → substream_{on,off}', () => {
       it('rewrites live_substream_on to substream_on in an automation', () => {
         const config = {

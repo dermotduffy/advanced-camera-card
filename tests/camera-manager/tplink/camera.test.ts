@@ -3,7 +3,8 @@ import { mock } from 'vitest-mock-extended';
 import { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { TPLinkCamera } from '../../../src/camera-manager/tplink/camera';
 import { ActionsExecutor } from '../../../src/card-controller/actions/types';
-import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
+import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
+import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import { createCameraConfig, createHASS, createRegistryEntity } from '../../test-utils';
 
@@ -78,7 +79,8 @@ describe('TPLinkCamera', () => {
           await camera.initialize({
             hass: createHASS(),
             entityRegistryManager: new EntityRegistryManagerMock(),
-            stateWatcher: mock<StateWatcher>(),
+            stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+            eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           }),
       ).rejects.toThrowError('Could not find camera entity');
     });
@@ -94,7 +96,8 @@ describe('TPLinkCamera', () => {
           await camera.initialize({
             hass: createHASS(),
             entityRegistryManager: new EntityRegistryManagerMock(),
-            stateWatcher: mock<StateWatcher>(),
+            stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+            eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           }),
       ).rejects.toThrowError('Could not find camera entity');
     });
@@ -112,7 +115,8 @@ describe('TPLinkCamera', () => {
       await camera.initialize({
         hass: createHASS(),
         entityRegistryManager,
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       expect(camera.getEntity()).toBe(cameraEntity);
@@ -129,7 +133,8 @@ describe('TPLinkCamera', () => {
       await camera.initialize({
         hass: createHASS(),
         entityRegistryManager,
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       expect(camera.getEntity()).toBe(cameraEntity);
@@ -146,7 +151,8 @@ describe('TPLinkCamera', () => {
         await camera.initialize({
           hass: createHASS(),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
@@ -175,7 +181,8 @@ describe('TPLinkCamera', () => {
         await camera.initialize({
           hass: createHASS(),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
@@ -198,7 +205,8 @@ describe('TPLinkCamera', () => {
       await camera.initialize({
         hass: createHASS(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
       const executor = mock<ActionsExecutor>();
 
@@ -219,7 +227,8 @@ describe('TPLinkCamera', () => {
       await camera.initialize({
         hass: createHASS(),
         entityRegistryManager: ptzPopulatedEntityRegistryManager,
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
       const executor = mock<ActionsExecutor>();
 
@@ -242,7 +251,8 @@ describe('TPLinkCamera', () => {
       await camera.initialize({
         hass: createHASS(),
         entityRegistryManager: ptzPopulatedEntityRegistryManager,
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
       const executor = mock<ActionsExecutor>();
 
@@ -262,7 +272,8 @@ describe('TPLinkCamera', () => {
       await camera.initialize({
         hass: createHASS(),
         entityRegistryManager: ptzPopulatedEntityRegistryManager,
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
       const executor = mock<ActionsExecutor>();
 
@@ -290,7 +301,8 @@ describe('TPLinkCamera', () => {
         await camera.initialize({
           hass: createHASS(),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         const executor = mock<ActionsExecutor>();
 
@@ -318,7 +330,8 @@ describe('TPLinkCamera', () => {
       await camera.initialize({
         hass: createHASS(),
         entityRegistryManager: ptzPopulatedEntityRegistryManager,
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
       const executor = mock<ActionsExecutor>();
 
@@ -357,7 +370,8 @@ describe('TPLinkCamera', () => {
           cameraEntity,
           buttonEntityPanLeft,
         ]),
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
       const executor = mock<ActionsExecutor>();
       await camera.executePTZAction(executor, 'left', { phase: 'start' });
@@ -395,7 +409,8 @@ describe('TPLinkCamera', () => {
           cameraWithDifferentUniqueId,
           buttonEntityPanLeft,
         ]),
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       // Should not find PTZ entities since unique_id doesn't end with _live_view
@@ -420,7 +435,8 @@ describe('TPLinkCamera', () => {
           cameraWithoutUniqueId,
           buttonEntityPanLeft,
         ]),
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       // Should not find PTZ entities since camera has no unique_id
@@ -442,7 +458,8 @@ describe('TPLinkCamera', () => {
           cameraEntity,
           buttonEntityPanLeft, // Only left button available
         ]),
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
       const executor = mock<ActionsExecutor>();
 

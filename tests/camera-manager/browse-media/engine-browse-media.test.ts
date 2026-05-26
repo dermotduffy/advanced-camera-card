@@ -1,25 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { BrowseMediaCameraManagerEngine } from '../../../src/camera-manager/browse-media/engine-browse-media';
+import { CameraManagerReadOnlyConfigStore } from '../../../src/camera-manager/store';
 import {
   CameraManagerRequestCache,
   CameraQuery,
   QueryType,
 } from '../../../src/camera-manager/types';
-import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
+import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
+import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { BROWSE_MEDIA_CACHE_SECONDS } from '../../../src/ha/browse-media/types';
 import { BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { QuerySource } from '../../../src/query-source';
 import { ViewMedia } from '../../../src/view/item';
-import { CameraManagerReadOnlyConfigStore } from '../../../src/camera-manager/store';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import { createCameraConfig, createHASS } from '../../test-utils';
 
 const createEngine = (): BrowseMediaCameraManagerEngine => {
   return new BrowseMediaCameraManagerEngine(
     new EntityRegistryManagerMock(),
-    mock<StateWatcher>(),
+    mock<StateWatcherSubscriptionInterface>(),
+    mock<EventWatcherSubscriptionInterface>(),
     new BrowseMediaWalker(),
     new ResolvedMediaCache(),
     new CameraManagerRequestCache(),

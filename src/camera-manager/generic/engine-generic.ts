@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+import { EventWatcherSubscriptionInterface } from '../../card-controller/hass/event-watcher';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { CameraConfig } from '../../config/schema/cameras';
 import { getEntityTitle } from '../../ha/get-entity-title';
@@ -41,14 +42,17 @@ import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 export class GenericCameraManagerEngine implements CameraManagerEngine {
   protected _eventCallback?: CameraEventCallback;
   protected _stateWatcher: StateWatcherSubscriptionInterface;
+  protected _eventWatcher: EventWatcherSubscriptionInterface;
   protected _entityRegistryManager?: EntityRegistryManager;
 
   constructor(
     stateWatcher: StateWatcherSubscriptionInterface,
+    eventWatcher: EventWatcherSubscriptionInterface,
     entityRegistryManager?: EntityRegistryManager,
     eventCallback?: CameraEventCallback,
   ) {
     this._stateWatcher = stateWatcher;
+    this._eventWatcher = eventWatcher;
     this._entityRegistryManager = entityRegistryManager;
     this._eventCallback = eventCallback;
   }
@@ -66,6 +70,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     }).initialize({
       hass,
       stateWatcher: this._stateWatcher,
+      eventWatcher: this._eventWatcher,
       entityRegistryManager: this._entityRegistryManager,
       capabilityOptions: {
         raw: {

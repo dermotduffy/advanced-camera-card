@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { TPLinkCameraManagerEngine } from '../../../src/camera-manager/tplink/engine-tplink';
 import { Engine } from '../../../src/camera-manager/types';
-import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
+import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
+import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import { createCameraConfig, createHASS, createRegistryEntity } from '../../test-utils';
 
@@ -11,7 +12,8 @@ const createEngine = (options?: {
 }): TPLinkCameraManagerEngine => {
   return new TPLinkCameraManagerEngine(
     options?.entityRegistryManager ?? new EntityRegistryManagerMock(),
-    mock<StateWatcher>(),
+    mock<StateWatcherSubscriptionInterface>(),
+    mock<EventWatcherSubscriptionInterface>(),
   );
 };
 
