@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { FrigateCamera } from '../../../src/camera-manager/frigate/camera';
@@ -27,6 +27,7 @@ import { ViewMediaType } from '../../../src/view/item';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
   createCameraConfig,
+  createCapabilities,
   createHASS,
   createRegistryEntity,
   createStateEntity,
@@ -963,6 +964,61 @@ describe('FrigateCamera', () => {
 
       await camera.destroy();
       expect(eventWatcher.unsubscribe).toBeCalled();
+    });
+
+    it('should unsubscribe on destroy while event subscription is pending', async () => {
+      const camera = new FrigateCamera(
+        createCameraConfig({
+          frigate: { client_id: 'CLIENT_ID', camera_name: 'front_door' },
+          triggers: {
+            media_events: ['events'],
+            reviews: { severities: ['high'] },
+          },
+        }),
+        mock<CameraManagerEngine>(),
+      );
+      const hass = createHASS();
+      let resolveSubscribe: () => void = () => {};
+      const eventWatcher = mock<FrigateEventWatcher>();
+      const reviewWatcher = mock<FrigateReviewWatcher>();
+      vi.mocked(eventWatcher.subscribe).mockReturnValue(
+        new Promise<void>((resolve) => {
+          resolveSubscribe = resolve;
+        }),
+      );
+
+      const initializePromise = camera.initialize({
+        hass: hass,
+        entityRegistryManager: mock<EntityRegistryManager>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
+        frigateEventWatcher: eventWatcher,
+        frigateReviewWatcher: reviewWatcher,
+
+        // Pre-built so `_buildCapabilities` (which calls the un-mocked
+        // `liveProviderSupports2WayAudio`) is skipped and init reaches the
+        // pending Frigate event subscribe.
+        capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
+      });
+      await vi.waitFor(() => expect(eventWatcher.subscribe).toBeCalled());
+
+      await camera.destroy();
+
+      // Destroy iterated `_destroyCallbacks` and called the unsubscribe that
+      // was registered before the (still pending) event subscribe.
+      const subscribeCall = vi.mocked(eventWatcher.subscribe).mock.calls[0];
+      assert(subscribeCall);
+      expect(eventWatcher.unsubscribe).toBeCalledWith(subscribeCall[1]);
+
+      resolveSubscribe();
+      await initializePromise;
+
+      // The subsequent `_subscribeToReviews` short-circuited on `_destroyed`,
+      // so the review watcher was never subscribed (and so never needs an
+      // unsubscribe -- which would otherwise be ordered before the subscribe
+      // in the per-key PQueue and leak the resulting subscription).
+      expect(reviewWatcher.subscribe).not.toBeCalled();
+      expect(reviewWatcher.unsubscribe).not.toBeCalled();
     });
 
     describe('should call handler correctly', () => {

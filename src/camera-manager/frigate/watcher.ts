@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { HomeAssistant, SubscriptionUnsubscribe } from '../../ha/types';
+import { HomeAssistant } from '../../ha/types';
+import { KeyedSubscriptionManager } from '../../utils/keyed-subscription-manager';
 import {
   FrigateEventChange,
   FrigateReviewChange,
@@ -17,53 +18,39 @@ export interface FrigateWatcherRequest<T> {
 // Generic subscription interface
 export interface FrigateWatcherSubscriptionInterface<T> {
   subscribe(hass: HomeAssistant, request: FrigateWatcherRequest<T>): Promise<void>;
-  unsubscribe(request: FrigateWatcherRequest<T>): void;
+  unsubscribe(request: FrigateWatcherRequest<T>): Promise<void>;
 }
 
 /**
- * Base class for Frigate WebSocket watchers.
- * Handles subscription management and message routing to callbacks.
+ * Base class for Frigate WebSocket watchers. Counted per `instanceID`: the
+ * first subscriber for an instance opens the WS subscription, the last to
+ * unsubscribe tears it down. Each message is parsed, schema-validated, and
+ * fanned out to every registered request whose `instanceID` matches and whose
+ * `matcher` accepts the payload.
  */
 abstract class FrigateWatcher<T> implements FrigateWatcherSubscriptionInterface<T> {
   protected abstract _type: string;
   protected abstract _schema: z.ZodType<T>;
 
-  protected _requests: FrigateWatcherRequest<T>[] = [];
-  protected _unsubscribeCallback: Record<string, SubscriptionUnsubscribe> = {};
+  private _subscriptions = new KeyedSubscriptionManager<
+    string,
+    FrigateWatcherRequest<T>
+  >((request) => request.instanceID);
 
   public async subscribe(
     hass: HomeAssistant,
     request: FrigateWatcherRequest<T>,
   ): Promise<void> {
-    const shouldSubscribe = !this._hasSubscribers(request.instanceID);
-    this._requests.push(request);
-    if (shouldSubscribe) {
-      this._unsubscribeCallback[request.instanceID] =
-        await hass.connection.subscribeMessage<string>(
-          (data) => this._receiveHandler(request.instanceID, data),
-          { type: this._type, instance_id: request.instanceID },
-        );
-    }
+    await this._subscriptions.subscribe(request, () =>
+      hass.connection.subscribeMessage<string>(
+        (data) => this._receiveHandler(request.instanceID, data),
+        { type: this._type, instance_id: request.instanceID },
+      ),
+    );
   }
 
   public async unsubscribe(request: FrigateWatcherRequest<T>): Promise<void> {
-    this._requests = this._requests.filter(
-      (existingRequest) => existingRequest !== request,
-    );
-
-    if (!this._hasSubscribers(request.instanceID)) {
-      const callback = this._unsubscribeCallback[request.instanceID];
-      delete this._unsubscribeCallback[request.instanceID];
-
-      // Callback may be undefined if unsubscribe is called while subscribe is
-      // still awaiting the Home Assistant connection.
-      await callback?.();
-    }
-  }
-
-  protected _hasSubscribers(instanceID: string): boolean {
-    return !!this._requests.filter((request) => request.instanceID === instanceID)
-      .length;
+    await this._subscriptions.unsubscribe(request);
   }
 
   protected _receiveHandler(instanceID: string, data: string): void {
@@ -82,11 +69,8 @@ abstract class FrigateWatcher<T> implements FrigateWatcherSubscriptionInterface<
       return;
     }
 
-    for (const request of this._requests) {
-      if (
-        request.instanceID === instanceID &&
-        (!request.matcher || request.matcher(parseResult.data))
-      ) {
+    for (const request of this._subscriptions.getRequestsForKey(instanceID)) {
+      if (!request.matcher || request.matcher(parseResult.data)) {
         request.callback(parseResult.data);
       }
     }
