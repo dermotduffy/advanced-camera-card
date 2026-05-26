@@ -4193,9 +4193,7 @@ describe('should handle version specific upgrades', () => {
       it('is a no-op when triggers is not an object (malformed user config)', () => {
         const config = {
           type: 'custom:advanced-camera-card',
-          cameras: [
-            { camera_entity: 'camera.office', triggers: 'not-an-object' },
-          ],
+          cameras: [{ camera_entity: 'camera.office', triggers: 'not-an-object' }],
         };
         upgradeConfig(config);
         expect(config.cameras[0].triggers).toBe('not-an-object');
