@@ -27,6 +27,7 @@ import {
   QueryType,
 } from '../../src/camera-manager/types.js';
 import { CardController } from '../../src/card-controller/controller.js';
+import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { sortItems } from '../../src/card-controller/view/sort.js';
 import { CameraConfig } from '../../src/config/schema/cameras.js';
 import { advancedCameraCardConfigSchema } from '../../src/config/schema/types.js';
@@ -274,6 +275,7 @@ describe('CameraManager', () => {
       config?: CameraConfig;
       engineType?: Engine | null;
       capabilties?: Capabilities;
+      stateWatcher?: StateWatcherSubscriptionInterface;
     }[] = [{}],
     factory?: CameraManagerEngineFactory,
   ): CameraManager => {
@@ -300,6 +302,7 @@ describe('CameraManager', () => {
               cameraConfig,
               mockEngine,
               camera.capabilties ?? createCapabilities(),
+              camera.stateWatcher,
             ),
         );
       }
@@ -397,6 +400,48 @@ describe('CameraManager', () => {
       await expect(manager.initializeCamerasFromConfig()).rejects.toThrow(
         CameraDuplicateIDError,
       );
+    });
+
+    it('should await camera destruction before throwing on duplicate id', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+      const cameraConfig = createCameraConfig({
+        id: 'DUPLICATE',
+        engine: 'generic',
+      });
+
+      // Camera.destroy() awaits its _destroyCallbacks, one of which is the
+      // trigger-path unsubscribe. By returning a deferred Promise from each
+      // camera's stateWatcher.unsubscribe, we make destroy completion
+      // externally observable without spying on any Camera method.
+      const order: string[] = [];
+      const buildStateWatcher = (): StateWatcherSubscriptionInterface => {
+        const watcher = mock<StateWatcherSubscriptionInterface>();
+        vi.mocked(watcher.unsubscribe).mockImplementation(
+          () =>
+            new Promise<void>((resolve) =>
+              setTimeout(() => {
+                order.push('destroy-done');
+                resolve();
+              }, 0),
+            ),
+        );
+        return watcher;
+      };
+
+      const cameraEntry = {
+        config: cameraConfig,
+        capabilties: createCapabilities({ trigger: true }),
+      };
+      const manager = createCameraManager(api, mock<CameraManagerEngine>(), [
+        { ...cameraEntry, stateWatcher: buildStateWatcher() },
+        { ...cameraEntry, stateWatcher: buildStateWatcher() },
+      ]);
+
+      await manager.initializeCamerasFromConfig().catch(() => order.push('throw'));
+
+      expect(order).toEqual(['destroy-done', 'destroy-done', 'throw']);
     });
 
     it('should reject missing engine', async () => {

@@ -473,8 +473,10 @@ export class FrigateCamera extends Camera {
         event.after.camera === config.frigate.camera_name,
     };
 
-    await frigateEventWatcher.subscribe(hass, request);
-    this._onDestroy(() => frigateEventWatcher.unsubscribe(request));
+    await this._setupSubscription(
+      () => frigateEventWatcher.subscribe(hass, request),
+      () => frigateEventWatcher.unsubscribe(request),
+    );
   }
 
   private _frigateEventHandler = (ev: FrigateEventChange): void => {
@@ -548,8 +550,10 @@ export class FrigateCamera extends Camera {
         review.after.camera === config.frigate.camera_name,
     };
 
-    await frigateReviewWatcher.subscribe(hass, request);
-    this._onDestroy(() => frigateReviewWatcher.unsubscribe(request));
+    await this._setupSubscription(
+      () => frigateReviewWatcher.subscribe(hass, request),
+      () => frigateReviewWatcher.unsubscribe(request),
+    );
   }
 
   private _frigateReviewHandler = (review: FrigateReviewChange): void => {

@@ -138,12 +138,19 @@ describe('FrigateEventWatcher', () => {
     const subscribePromise = stateWatcher.subscribe(hass, request);
 
     // Unsubscribe while subscription is still pending.
-    await stateWatcher.unsubscribe(request);
+    const unsubscribePromise = stateWatcher.unsubscribe(request);
 
-    // Complete the subscription.
+    // Complete the subscription: both subscribe and unsubscribe await the same
+    // pending promise, and unsubscribe then invokes the resolved unsub.
+    const unsubscribeCallback = vi.fn();
     assert(resolveSubscription);
-    resolveSubscription(vi.fn());
+    resolveSubscription(unsubscribeCallback);
     await subscribePromise;
+    await unsubscribePromise;
+
+    expect(unsubscribeCallback).toBeCalledTimes(1);
+    callHASubscribeMessageCallback(hass, JSON.stringify(createEventChange()));
+    expect(request.callback).not.toBeCalled();
   });
 
   describe('should call handler', () => {

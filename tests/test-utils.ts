@@ -120,11 +120,12 @@ export const createInitializedCamera = async (
   config: CameraConfig,
   engine: CameraManagerEngine,
   capabilities?: Capabilities,
+  stateWatcher?: StateWatcherSubscriptionInterface,
 ): Promise<Camera> => {
   const camera = new Camera(config, engine);
   await camera.initialize({
     hass: createHASS(),
-    stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+    stateWatcher: stateWatcher ?? mock<StateWatcherSubscriptionInterface>(),
     eventWatcher: mock<EventWatcherSubscriptionInterface>(),
     ...(capabilities ? { capabilityOptions: { capabilities } } : {}),
   });

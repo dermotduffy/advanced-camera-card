@@ -12,9 +12,10 @@ import { WestminsterTone } from './tones/westminster';
 // card placed twice), all of which may independently react to the same trigger
 // state change -- with no lock, every instance would start its own AudioContext
 // and the audio would layer. First-to-start wins; subsequent `start()` calls
-// from other holders are no-ops until the active one releases via `stop()`. The
-// lock auto-recovers from a holder that forgot to release (e.g. a controller
-// GC'd without disconnect cleanup) via the `isPlaying()` sweep below.
+// from other holders are no-ops until the active one releases via `stop()`.
+// The `isPlaying()` sweep below is defensive against a future code path that
+// clears `_tone` without removing from the lock -- today every such path keeps
+// them in sync, but the sweep prevents a regression from wedging the lock.
 const sharedLock = new Set<Ringtone>();
 
 export class Ringtone {

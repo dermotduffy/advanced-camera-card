@@ -256,7 +256,7 @@ export class CameraManager {
     );
 
     const destroyCameras = async () => {
-      cameras.forEach((camera) => camera.destroy());
+      await allPromises(cameras, (camera) => camera.destroy());
     };
     const cameraIDs: Set<string> = new Set();
 
