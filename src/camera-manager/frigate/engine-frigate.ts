@@ -1,5 +1,6 @@
 import { add, endOfHour, fromUnixTime, startOfHour } from 'date-fns';
 import { isEqual, orderBy, throttle, uniqWith } from 'lodash-es';
+import { EventWatcherSubscriptionInterface } from '../../card-controller/hass/event-watcher';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { CameraConfig } from '../../config/schema/cameras';
 import { getEntityTitle } from '../../ha/get-entity-title';
@@ -136,11 +137,12 @@ export class FrigateCameraManagerEngine
   constructor(
     entityRegistryManager: EntityRegistryManager,
     stateWatcher: StateWatcherSubscriptionInterface,
+    eventWatcher: EventWatcherSubscriptionInterface,
     recordingSegmentsCache: RecordingSegmentsCache,
     requestCache: CameraManagerRequestCache,
     eventCallback?: CameraEventCallback,
   ) {
-    super(stateWatcher, entityRegistryManager, eventCallback);
+    super(stateWatcher, eventWatcher, entityRegistryManager, eventCallback);
     this._entityRegistryManager = entityRegistryManager;
     this._frigateEventWatcher = new FrigateEventWatcher();
     this._frigateReviewWatcher = new FrigateReviewWatcher();
@@ -163,6 +165,7 @@ export class FrigateCameraManagerEngine
       hass,
       entityRegistryManager: this._entityRegistryManager,
       stateWatcher: this._stateWatcher,
+      eventWatcher: this._eventWatcher,
       frigateEventWatcher: this._frigateEventWatcher,
       frigateReviewWatcher: this._frigateReviewWatcher,
     });

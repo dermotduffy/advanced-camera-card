@@ -117,6 +117,8 @@ export const CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES =
   `${CONF_CAMERAS}.#.triggers.entities` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS =
   `${CONF_CAMERAS}.#.triggers.events` as const;
+export const CONF_CAMERAS_ARRAY_TRIGGERS_MEDIA_EVENTS =
+  `${CONF_CAMERAS}.#.triggers.media_events` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_REVIEWS_SEVERITIES =
   `${CONF_CAMERAS}.#.triggers.reviews.severities` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_REVIEWS_DESCRIPTION =
@@ -197,8 +199,8 @@ export const CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS =
   `${CONF_VIEW_TRIGGERS}.untrigger_delay_seconds` as const;
 export const CONF_VIEW_TRIGGERS_UNTRIGGER_FORCE_SECONDS =
   `${CONF_VIEW_TRIGGERS}.untrigger_force_seconds` as const;
-export const CONF_VIEW_TRIGGERS_SIGNAL_HOLD_SECONDS =
-  `${CONF_VIEW_TRIGGERS}.signal_hold_seconds` as const;
+export const CONF_VIEW_TRIGGERS_EVENT_HOLD_SECONDS =
+  `${CONF_VIEW_TRIGGERS}.event_hold_seconds` as const;
 export const CONF_VIEW_TRIGGERS_ACTIONS = `${CONF_VIEW_TRIGGERS}.actions` as const;
 export const CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE =
   `${CONF_VIEW_TRIGGERS_ACTIONS}.interaction_mode` as const;

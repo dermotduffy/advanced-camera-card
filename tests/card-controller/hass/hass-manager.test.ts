@@ -1,5 +1,6 @@
 import { STATE_RUNNING, STATE_STARTING } from 'home-assistant-js-websocket';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { EventWatcher } from '../../../src/card-controller/hass/event-watcher';
 import { HASSManager } from '../../../src/card-controller/hass/hass-manager';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import {
@@ -27,6 +28,11 @@ describe('HASSManager', () => {
   it('should get state watcher', () => {
     const manager = new HASSManager(createCardAPI());
     expect(manager.getStateWatcher()).toEqual(expect.any(StateWatcher));
+  });
+
+  it('should get event watcher', () => {
+    const manager = new HASSManager(createCardAPI());
+    expect(manager.getEventWatcher()).toEqual(expect.any(EventWatcher));
   });
 
   it('should get hass after set', () => {

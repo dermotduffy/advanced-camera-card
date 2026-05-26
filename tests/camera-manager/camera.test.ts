@@ -3,10 +3,12 @@ import { mock } from 'vitest-mock-extended';
 import { Camera } from '../../src/camera-manager/camera.js';
 import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic.js';
 import { CameraProxyConfig } from '../../src/camera-manager/types.js';
+import { EventWatcherSubscriptionInterface } from '../../src/card-controller/hass/event-watcher.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { liveProviderSupports2WayAudio } from '../../src/utils/live-provider.js';
 import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {
+  callEventWatcherCallback,
   callStateWatcherCallback,
   createCameraConfig,
   createCapabilities,
@@ -23,7 +25,10 @@ describe('Camera', () => {
     const config = createCameraConfig();
     const camera = new Camera(
       config,
-      new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      new GenericCameraManagerEngine(
+        mock<StateWatcherSubscriptionInterface>(),
+        mock<EventWatcherSubscriptionInterface>(),
+      ),
     );
     expect(camera.getConfig()).toBe(config);
   });
@@ -33,7 +38,10 @@ describe('Camera', () => {
       const capabilities = createCapabilities();
       const camera = await createInitializedCamera(
         createCameraConfig(),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
         capabilities,
       );
       expect(camera.getCapabilities()).toBe(capabilities);
@@ -42,7 +50,10 @@ describe('Camera', () => {
     it('when unpopulated', async () => {
       const camera = new Camera(
         createCameraConfig(),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
       expect(camera.getCapabilities()).toBeNull();
     });
@@ -51,6 +62,7 @@ describe('Camera', () => {
   it('should get engine', async () => {
     const engine = new GenericCameraManagerEngine(
       mock<StateWatcherSubscriptionInterface>(),
+      mock<EventWatcherSubscriptionInterface>(),
     );
     const camera = new Camera(createCameraConfig(), engine);
     expect(camera.getEngine()).toBe(engine);
@@ -59,7 +71,10 @@ describe('Camera', () => {
   it('should set and get id', async () => {
     const camera = new Camera(
       createCameraConfig(),
-      new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      new GenericCameraManagerEngine(
+        mock<StateWatcherSubscriptionInterface>(),
+        mock<EventWatcherSubscriptionInterface>(),
+      ),
     );
     camera.setID('foo');
     expect(camera.getID()).toBe('foo');
@@ -69,7 +84,10 @@ describe('Camera', () => {
   it('should throw without id', async () => {
     const camera = new Camera(
       createCameraConfig(),
-      new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      new GenericCameraManagerEngine(
+        mock<StateWatcherSubscriptionInterface>(),
+        mock<EventWatcherSubscriptionInterface>(),
+      ),
     );
     expect(() => camera.getID()).toThrowError(
       'Could not determine camera id for the following ' +
@@ -89,13 +107,17 @@ describe('Camera', () => {
             entities: ['camera.foo'],
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
 
       const stateWatcher = mock<StateWatcherSubscriptionInterface>();
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: stateWatcher,
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
       });
 
@@ -116,7 +138,10 @@ describe('Camera', () => {
             stream: 'stream',
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
 
       vi.mocked(liveProviderSupports2WayAudio).mockResolvedValue(true);
@@ -124,6 +149,7 @@ describe('Camera', () => {
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       expect(liveProviderSupports2WayAudio).toHaveBeenCalledWith(
@@ -154,7 +180,10 @@ describe('Camera', () => {
             stream: 'stream',
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
 
       vi.mocked(liveProviderSupports2WayAudio).mockResolvedValue(false);
@@ -162,6 +191,7 @@ describe('Camera', () => {
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       expect(camera.getCapabilities()?.has('2-way-audio')).toBe(false);
@@ -176,7 +206,10 @@ describe('Camera', () => {
             metadata_fetch_timeout_seconds: 20,
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
 
       vi.mocked(liveProviderSupports2WayAudio).mockResolvedValue(true);
@@ -184,6 +217,7 @@ describe('Camera', () => {
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       expect(liveProviderSupports2WayAudio).toHaveBeenCalledWith(
@@ -206,7 +240,10 @@ describe('Camera', () => {
             live: true,
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
 
       vi.mocked(liveProviderSupports2WayAudio).mockResolvedValue(true);
@@ -217,6 +254,7 @@ describe('Camera', () => {
       await camera.initialize({
         hass,
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       expect(liveProviderSupports2WayAudio).toHaveBeenCalledWith(
@@ -243,7 +281,10 @@ describe('Camera', () => {
         createCameraConfig({
           proxy: { live: true },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
       expect(camera.getLiveProxyConfig()).toEqual(
         expect.objectContaining({ enabled: true, enforce: true }),
@@ -255,7 +296,10 @@ describe('Camera', () => {
         createCameraConfig({
           proxy: { media: true },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
       expect(camera.getMediaProxyConfig()).toEqual(
         expect.objectContaining({ enabled: true, enforce: true }),
@@ -268,7 +312,10 @@ describe('Camera', () => {
           live_provider: 'go2rtc',
           go2rtc: { url: 'http://go2rtc' },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
       expect(camera.getLiveProxyConfig()).toEqual(
         expect.objectContaining({ enabled: true, enforce: false }),
@@ -280,7 +327,10 @@ describe('Camera', () => {
         createCameraConfig({
           proxy: { media: 'auto' },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
       expect(camera.getMediaProxyConfig()).toEqual(
         expect.objectContaining({ enabled: false, enforce: false }),
@@ -294,12 +344,16 @@ describe('Camera', () => {
             force: ['2-way-audio'],
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
 
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       expect(liveProviderSupports2WayAudio).not.toHaveBeenCalled();
@@ -314,12 +368,16 @@ describe('Camera', () => {
             force: ['2-way-audio'],
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
 
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       expect(liveProviderSupports2WayAudio).not.toHaveBeenCalled();
@@ -334,12 +392,16 @@ describe('Camera', () => {
             force: ['2-way-audio'],
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
 
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       expect(liveProviderSupports2WayAudio).not.toHaveBeenCalled();
@@ -353,12 +415,16 @@ describe('Camera', () => {
             disable: ['2-way-audio'],
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
 
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       expect(liveProviderSupports2WayAudio).not.toHaveBeenCalled();
@@ -372,12 +438,16 @@ describe('Camera', () => {
             disable_except: ['substream'],
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
 
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       expect(liveProviderSupports2WayAudio).not.toHaveBeenCalled();
@@ -391,13 +461,17 @@ describe('Camera', () => {
             disable_except: ['substream', '2-way-audio'],
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
       vi.mocked(liveProviderSupports2WayAudio).mockResolvedValue(true);
 
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       expect(liveProviderSupports2WayAudio).toHaveBeenCalled();
@@ -411,13 +485,17 @@ describe('Camera', () => {
             disable_except: [],
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
       vi.mocked(liveProviderSupports2WayAudio).mockResolvedValue(true);
 
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       expect(liveProviderSupports2WayAudio).toHaveBeenCalled();
@@ -432,12 +510,16 @@ describe('Camera', () => {
         });
         const camera = new Camera(
           createCameraConfig({ camera_entity: 'camera.front_door' }),
-          new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+          new GenericCameraManagerEngine(
+            mock<StateWatcherSubscriptionInterface>(),
+            mock<EventWatcherSubscriptionInterface>(),
+          ),
         );
 
         await camera.initialize({
           hass: createHASS(),
           stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
         });
 
@@ -447,12 +529,16 @@ describe('Camera', () => {
       it('should leave entity null when camera_entity is unset', async () => {
         const camera = new Camera(
           createCameraConfig(),
-          new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+          new GenericCameraManagerEngine(
+            mock<StateWatcherSubscriptionInterface>(),
+            mock<EventWatcherSubscriptionInterface>(),
+          ),
         );
 
         await camera.initialize({
           hass: createHASS(),
           stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           entityRegistryManager: new EntityRegistryManagerMock(),
         });
 
@@ -462,12 +548,16 @@ describe('Camera', () => {
       it('should leave entity null when entityRegistryManager is not provided', async () => {
         const camera = new Camera(
           createCameraConfig({ camera_entity: 'camera.front_door' }),
-          new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+          new GenericCameraManagerEngine(
+            mock<StateWatcherSubscriptionInterface>(),
+            mock<EventWatcherSubscriptionInterface>(),
+          ),
         );
 
         await camera.initialize({
           hass: createHASS(),
           stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getEntity()).toBeNull();
@@ -504,7 +594,10 @@ describe('Camera', () => {
                 ...(options?.userEntities && { entities: options.userEntities }),
               },
             }),
-            new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+            new GenericCameraManagerEngine(
+              mock<StateWatcherSubscriptionInterface>(),
+              mock<EventWatcherSubscriptionInterface>(),
+            ),
           );
           const stateWatcher = mock<StateWatcherSubscriptionInterface>();
           const hass = createHASS(
@@ -518,6 +611,7 @@ describe('Camera', () => {
           await camera.initialize({
             hass,
             stateWatcher,
+            eventWatcher: mock<EventWatcherSubscriptionInterface>(),
             ...(!options?.omitRegistryManager && {
               entityRegistryManager: new EntityRegistryManagerMock(
                 options?.registryEntities ?? [cameraEntity, doorbellEntity],
@@ -643,7 +737,10 @@ describe('Camera', () => {
               entities: ['binary_sensor.foo'],
             },
           }),
-          new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+          new GenericCameraManagerEngine(
+            mock<StateWatcherSubscriptionInterface>(),
+            mock<EventWatcherSubscriptionInterface>(),
+          ),
           {
             eventCallback: eventCallback,
           },
@@ -653,6 +750,7 @@ describe('Camera', () => {
         await camera.initialize({
           hass: createHASS(),
           stateWatcher: stateWatcher,
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
         });
 
@@ -673,6 +771,100 @@ describe('Camera', () => {
       },
     );
 
+    it('should subscribe to configured triggers.events and dispatch momentary events', async () => {
+      const eventCallback = vi.fn();
+      const camera = new Camera(
+        createCameraConfig({
+          id: 'camera_1',
+          triggers: {
+            events: [{ event_type: 'zha_event' }],
+          },
+        }),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
+        { eventCallback },
+      );
+
+      const eventWatcher = mock<EventWatcherSubscriptionInterface>();
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher,
+        capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
+      });
+
+      expect(eventWatcher.subscribe).toBeCalledTimes(1);
+      const request = vi.mocked(eventWatcher.subscribe).mock.calls[0][1];
+      expect(request.event_type).toBe('zha_event');
+      expect(request.matcher).toBeUndefined();
+
+      callEventWatcherCallback(eventWatcher, { command: 'press' });
+
+      expect(eventCallback).toBeCalledWith({
+        cameraID: 'camera_1',
+        id: 'event:zha_event',
+        type: 'momentary',
+      });
+
+      await camera.destroy();
+      expect(eventWatcher.unsubscribe).toBeCalled();
+    });
+
+    it('should attach a matcher when triggers.events entry has data filter', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          id: 'camera_1',
+          triggers: {
+            events: [{ event_type: 'zha_event', event_data: { command: 'press' } }],
+          },
+        }),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
+      );
+
+      const eventWatcher = mock<EventWatcherSubscriptionInterface>();
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher,
+        capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
+      });
+
+      const matcher = vi.mocked(eventWatcher.subscribe).mock.calls[0][1].matcher;
+      expect(matcher).toBeDefined();
+      expect(matcher?.({ command: 'press', extra: 1 })).toBe(true);
+      expect(matcher?.({ command: 'release' })).toBe(false);
+    });
+
+    it('should not subscribe to events when trigger capability is disabled', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          id: 'camera_1',
+          triggers: {
+            events: [{ event_type: 'zha_event' }],
+          },
+        }),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
+      );
+
+      const eventWatcher = mock<EventWatcherSubscriptionInterface>();
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher,
+        capabilityOptions: { capabilities: createCapabilities({ trigger: false }) },
+      });
+
+      expect(eventWatcher.subscribe).not.toBeCalled();
+    });
+
     it('should not dispatch when the helper returns null', async () => {
       vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
 
@@ -684,7 +876,10 @@ describe('Camera', () => {
             entities: ['event.front_door_doorbell'],
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
         {
           eventCallback: eventCallback,
         },
@@ -694,6 +889,7 @@ describe('Camera', () => {
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: stateWatcher,
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
       });
 
@@ -706,7 +902,7 @@ describe('Camera', () => {
       expect(eventCallback).not.toBeCalled();
     });
 
-    it('should dispatch a signal for an event entity fire', async () => {
+    it('should dispatch a momentary event for an event entity fire', async () => {
       vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
 
       const eventCallback = vi.fn();
@@ -717,7 +913,10 @@ describe('Camera', () => {
             entities: ['event.front_door_doorbell'],
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
         {
           eventCallback: eventCallback,
         },
@@ -727,6 +926,7 @@ describe('Camera', () => {
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: stateWatcher,
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
       });
 
@@ -740,7 +940,7 @@ describe('Camera', () => {
       expect(eventCallback).toBeCalledWith({
         cameraID: 'camera_1',
         id: 'event.front_door_doorbell',
-        type: 'signal',
+        type: 'momentary',
       });
     });
 
@@ -753,7 +953,10 @@ describe('Camera', () => {
             entities: ['binary_sensor.foo'],
           },
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
         {
           eventCallback: eventCallback,
         },
@@ -763,6 +966,7 @@ describe('Camera', () => {
       await camera.initialize({
         hass: createHASS(),
         stateWatcher: stateWatcher,
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         capabilityOptions: { capabilities: createCapabilities({ trigger: false }) },
       });
 
@@ -924,7 +1128,10 @@ describe('Camera', () => {
       (_name: string, cameraConfig: unknown, expectedResult: CameraProxyConfig) => {
         const camera = new Camera(
           createCameraConfig(cameraConfig),
-          new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+          new GenericCameraManagerEngine(
+            mock<StateWatcherSubscriptionInterface>(),
+            mock<EventWatcherSubscriptionInterface>(),
+          ),
         );
         expect(camera.getProxyConfig()).toEqual(expectedResult);
       },
@@ -938,7 +1145,10 @@ describe('Camera', () => {
           go2rtc: { stream: '' },
           camera_entity: '',
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
       expect(camera.getEndpoints()).toBeNull();
     });
@@ -952,7 +1162,10 @@ describe('Camera', () => {
           },
           camera_entity: 'camera.foo',
         }),
-        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
       );
 
       expect(camera.getEndpoints()).toEqual({

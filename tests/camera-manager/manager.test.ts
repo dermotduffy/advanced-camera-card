@@ -574,15 +574,15 @@ describe('CameraManager', () => {
           config: createCameraConfig({
             ...baseCameraConfig,
             triggers: {
-              events: ['snapshots'],
+              media_events: ['snapshots'],
             },
           }),
         },
       ]);
       await manager.initializeCamerasFromConfig();
-      expect(manager.getStore().getCamera('id')?.getConfig().triggers.events).toEqual([
-        'snapshots',
-      ]);
+      expect(
+        manager.getStore().getCamera('id')?.getConfig().triggers.media_events,
+      ).toEqual(['snapshots']);
     });
   });
 

@@ -1,5 +1,6 @@
 import { add, endOfDay, parse, startOfDay } from 'date-fns';
 import { orderBy } from 'lodash-es';
+import { EventWatcherSubscriptionInterface } from '../../card-controller/hass/event-watcher';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { CameraConfig } from '../../config/schema/cameras';
 import { getViewMediaFromBrowseMediaArray } from '../../ha/browse-media/browse-media-to-view-media';
@@ -61,6 +62,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     entityRegistryManager: EntityRegistryManager,
     deviceRegistryManager: DeviceRegistryManager,
     stateWatcher: StateWatcherSubscriptionInterface,
+    eventWatcher: EventWatcherSubscriptionInterface,
     browseMediaManager: BrowseMediaWalker,
     resolvedMediaCache: ResolvedMediaCache,
     requestCache: CameraManagerRequestCache,
@@ -69,6 +71,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     super(
       entityRegistryManager,
       stateWatcher,
+      eventWatcher,
       browseMediaManager,
       resolvedMediaCache,
       requestCache,
@@ -176,6 +179,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       deviceRegistryManager: this._deviceRegistryManager,
       hass,
       stateWatcher: this._stateWatcher,
+      eventWatcher: this._eventWatcher,
     });
   }
 

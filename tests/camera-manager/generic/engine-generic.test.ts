@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { GenericCameraManagerEngine } from '../../../src/camera-manager/generic/engine-generic';
 import { Engine, QueryResultsType, QueryType } from '../../../src/camera-manager/types';
-import { QuerySource } from '../../../src/query-source';
+import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
 import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { CameraConfig } from '../../../src/config/schema/cameras';
 import { RawAdvancedCameraCardConfig } from '../../../src/config/types';
+import { QuerySource } from '../../../src/query-source';
 import {
   TestViewMedia,
   createCameraConfig,
@@ -15,7 +16,10 @@ import {
 } from '../../test-utils';
 
 const createEngine = (): GenericCameraManagerEngine => {
-  return new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>());
+  return new GenericCameraManagerEngine(
+    mock<StateWatcherSubscriptionInterface>(),
+    mock<EventWatcherSubscriptionInterface>(),
+  );
 };
 
 const createGenericCameraConfig = (

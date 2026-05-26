@@ -243,6 +243,8 @@ export interface HassStateDifference {
   newState: HassEntity;
 }
 
+export type SubscriptionUnsubscribe = () => Promise<void>;
+
 // *************************************************************************
 //                     Home Assistant API types.
 // *************************************************************************

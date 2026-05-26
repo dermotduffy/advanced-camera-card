@@ -877,6 +877,29 @@ const frigateCardToAdvancedCameraCardStyleTransform = (data: unknown): unknown =
   return newStyleOverrides;
 };
 
+// Legacy `triggers.events: string[]` (Frigate engine media-availability filter)
+// was renamed to `triggers.media_events` to free up `triggers.events` for the
+// new HA-bus-event trigger list (object shape). Distinguish old from new by
+// element type: an all-string array is legacy; any non-string element marks
+// the new shape and must not be touched. If `media_events` already exists we
+// refuse to overwrite it -- but we still drop the legacy `events` (otherwise
+// it would fail the new schema, which expects objects).
+const triggersEventsToMediaEventsTransform = (triggers: unknown): unknown => {
+  if (typeof triggers !== 'object' || !triggers) {
+    return undefined;
+  }
+  const events = triggers['events'];
+  if (!Array.isArray(events) || events.some((x) => typeof x !== 'string')) {
+    return undefined;
+  }
+  const result = { ...triggers };
+  delete result['events'];
+  if (!('media_events' in result)) {
+    result['media_events'] = events;
+  }
+  return result;
+};
+
 const UPGRADES = [
   // v5.2.0 -> v6.0.0
   (data: unknown): boolean => {
@@ -1090,4 +1113,13 @@ const UPGRADES = [
       typeof data === 'object' && data ? (data as RawAdvancedCameraCardConfig) : {},
     );
   },
+
+  // Legacy `triggers.events: string[]` → `triggers.media_events`. Targets the
+  // two known places a camera config lives: `cameras_global` and `cameras[]`.
+  // Mirrors the PTZ rename migration above.
+  upgradeWithOverrides('cameras_global.triggers', triggersEventsToMediaEventsTransform),
+  upgradeArrayOfObjects(
+    CONF_CAMERAS,
+    upgradeWithOverrides('triggers', triggersEventsToMediaEventsTransform),
+  ),
 ];

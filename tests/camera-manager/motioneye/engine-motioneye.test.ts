@@ -14,7 +14,8 @@ import {
   QueryResultsType,
   QueryType,
 } from '../../../src/camera-manager/types';
-import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
+import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
+import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { BrowseMediaMetadata } from '../../../src/ha/browse-media/types';
 import { BrowseMediaStep, BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
 import { Entity } from '../../../src/ha/registry/entity/types';
@@ -50,7 +51,8 @@ const createEngine = (options?: {
 }): MotionEyeCameraManagerEngine => {
   return new MotionEyeCameraManagerEngine(
     new EntityRegistryManagerMock(options?.entities ?? [createEntity()]),
-    mock<StateWatcher>(),
+    mock<StateWatcherSubscriptionInterface>(),
+    mock<EventWatcherSubscriptionInterface>(),
     options?.walker ?? new BrowseMediaWalker(),
     new ResolvedMediaCache(),
     options?.requestCache ?? new CameraManagerRequestCache(),
@@ -73,7 +75,8 @@ const createMotionEyeStore = async (
   await camera.initialize({
     hass: createHASS(),
     entityRegistryManager: new EntityRegistryManagerMock([entity]),
-    stateWatcher: mock<StateWatcher>(),
+    stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+    eventWatcher: mock<EventWatcherSubscriptionInterface>(),
   });
   camera.setID(options?.cameraID ?? 'camera-1');
   const store = new CameraManagerStore();
@@ -497,7 +500,8 @@ describe('MotionEyeCameraManagerEngine', () => {
         await camera.initialize({
           hass: createHASS(),
           entityRegistryManager: new EntityRegistryManagerMock([createEntity()]),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         camera.setID('camera-1');
         const store = new CameraManagerStore();
@@ -545,7 +549,8 @@ describe('MotionEyeCameraManagerEngine', () => {
         await camera.initialize({
           hass: createHASS(),
           entityRegistryManager: new EntityRegistryManagerMock([createEntity()]),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         camera.setID('camera-1');
         const store = new CameraManagerStore();
@@ -599,7 +604,8 @@ describe('MotionEyeCameraManagerEngine', () => {
         await camera.initialize({
           hass: createHASS(),
           entityRegistryManager: new EntityRegistryManagerMock([createEntity()]),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         camera.setID('camera-1');
         const store = new CameraManagerStore();

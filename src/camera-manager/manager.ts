@@ -205,6 +205,7 @@ export class CameraManager {
           (await this._engineFactory.createEngine(engineType, {
             eventCallback: (ev) => this._api.getTriggersManager().handleCameraEvent(ev),
             stateWatcher: this._api.getHASSManager().getStateWatcher(),
+            eventWatcher: this._api.getHASSManager().getEventWatcher(),
             resolvedMediaCache: this._api.getResolvedMediaCache(),
           }))
         : null;

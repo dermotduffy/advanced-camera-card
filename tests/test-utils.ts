@@ -38,6 +38,7 @@ import { FoldersManager } from '../src/card-controller/folders/manager';
 import { FolderQuery } from '../src/card-controller/folders/types';
 import { FullscreenManager } from '../src/card-controller/fullscreen/fullscreen-manager';
 import { HASSManager } from '../src/card-controller/hass/hass-manager';
+import { EventWatcherSubscriptionInterface } from '../src/card-controller/hass/event-watcher';
 import { StateWatcherSubscriptionInterface } from '../src/card-controller/hass/state-watcher';
 import { InitializationManager } from '../src/card-controller/initialization-manager';
 import { InteractionManager } from '../src/card-controller/interaction-manager';
@@ -124,6 +125,7 @@ export const createInitializedCamera = async (
   await camera.initialize({
     hass: createHASS(),
     stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+    eventWatcher: mock<EventWatcherSubscriptionInterface>(),
     ...(capabilities ? { capabilityOptions: { capabilities } } : {}),
   });
   return camera;
@@ -143,6 +145,7 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
   // startup state still represent a "ready" instance.
   hass.config.state = STATE_RUNNING;
   hass.connection.subscribeMessage = vi.fn();
+  hass.connection.subscribeEvents = vi.fn();
 
   // ha-nunjucks calls sendMessagePromise to fetch label registry; return empty array to prevent crash.
   hass.connection.sendMessagePromise = vi.fn().mockResolvedValue([]);
@@ -282,6 +285,7 @@ export const createStore = (
       cameraProps.engine ??
         new GenericCameraManagerEngine(
           mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
           mock<EntityRegistryManager>(),
           eventCallback,
         ),
@@ -735,6 +739,16 @@ export const callStateWatcherCallback = (
   const mock = vi.mocked(stateWatcher.subscribe).mock;
   expect(mock.calls.length).greaterThan(n);
   mock.calls[n][0](diff);
+};
+
+export const callEventWatcherCallback = (
+  eventWatcher: EventWatcherSubscriptionInterface,
+  data: unknown,
+  n = 0,
+): void => {
+  const mock = vi.mocked(eventWatcher.subscribe).mock;
+  expect(mock.calls.length).greaterThan(n);
+  mock.calls[n][1].callback(data);
 };
 
 /**

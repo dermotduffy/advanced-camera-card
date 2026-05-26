@@ -7,10 +7,11 @@ import { MotionEyeCameraManagerEngine } from '../../src/camera-manager/motioneye
 import { ReolinkCameraManagerEngine } from '../../src/camera-manager/reolink/engine-reolink.js';
 import { TPLinkCameraManagerEngine } from '../../src/camera-manager/tplink/engine-tplink.js';
 import { Engine } from '../../src/camera-manager/types.js';
+import { EventWatcherSubscriptionInterface } from '../../src/card-controller/hass/event-watcher.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { CardWideConfig } from '../../src/config/schema/types.js';
-import { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
 import { DeviceRegistryManager } from '../../src/ha/registry/device';
+import { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
 import { ResolvedMediaCache } from '../../src/ha/resolved-media.js';
 import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {
@@ -232,6 +233,7 @@ describe('createEngine()', () => {
     expect(
       await createFactory().createEngine(Engine.Generic, {
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         resolvedMediaCache: mock<ResolvedMediaCache>(),
       }),
     ).toBeInstanceOf(GenericCameraManagerEngine);
@@ -240,6 +242,7 @@ describe('createEngine()', () => {
     expect(
       await createFactory().createEngine(Engine.Frigate, {
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         resolvedMediaCache: mock<ResolvedMediaCache>(),
       }),
     ).toBeInstanceOf(FrigateCameraManagerEngine);
@@ -248,6 +251,7 @@ describe('createEngine()', () => {
     expect(
       await createFactory().createEngine(Engine.MotionEye, {
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         resolvedMediaCache: mock<ResolvedMediaCache>(),
       }),
     ).toBeInstanceOf(MotionEyeCameraManagerEngine);
@@ -256,6 +260,7 @@ describe('createEngine()', () => {
     expect(
       await createFactory().createEngine(Engine.Reolink, {
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         resolvedMediaCache: mock<ResolvedMediaCache>(),
       }),
     ).toBeInstanceOf(ReolinkCameraManagerEngine);
@@ -264,6 +269,7 @@ describe('createEngine()', () => {
     expect(
       await createFactory().createEngine(Engine.TPLink, {
         stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         resolvedMediaCache: mock<ResolvedMediaCache>(),
       }),
     ).toBeInstanceOf(TPLinkCameraManagerEngine);

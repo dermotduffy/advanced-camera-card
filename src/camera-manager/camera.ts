@@ -1,10 +1,15 @@
 import { uniq } from 'lodash-es';
 import { ActionsExecutor } from '../card-controller/actions/types';
+import {
+  EventSubscriptionRequest,
+  EventWatcherSubscriptionInterface,
+} from '../card-controller/hass/event-watcher';
 import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
 import { PTZAction, PTZActionPhase } from '../config/schema/actions/custom/ptz';
-import { CameraConfig } from '../config/schema/cameras';
+import { CameraConfig, TriggerEvent } from '../config/schema/cameras';
 import { EnabledProxyConfig, resolveProxyConfig } from '../config/schema/common/proxy';
 import { computeDomain } from '../ha/compute-domain';
+import { matchesEventData } from '../ha/event-data-match';
 import { getTriggerEventType } from '../ha/get-trigger-event-type';
 import { Entity, EntityRegistryManager } from '../ha/registry/entity/types';
 import { HassStateDifference, HomeAssistant } from '../ha/types';
@@ -40,6 +45,7 @@ interface CapabilityOptions {
 export interface CameraInitializationOptions {
   hass: HomeAssistant;
   stateWatcher: StateWatcherSubscriptionInterface;
+  eventWatcher: EventWatcherSubscriptionInterface;
   capabilityOptions?: CapabilityOptions;
   entityRegistryManager?: EntityRegistryManager;
 }
@@ -85,14 +91,39 @@ export class Camera {
       await this._getTriggerEntities(options);
       this._config.triggers.entities = uniq(this._config.triggers.entities);
 
+      // Subscribe to state based triggers.
       options.stateWatcher.subscribe(
         this._stateChangeHandler,
         this._config.triggers.entities,
       );
       this._onDestroy(() => options.stateWatcher.unsubscribe(this._stateChangeHandler));
+
+      // Subscribe to event based triggers.
+      for (const event of this._config.triggers.events) {
+        const request = this._buildEventSubscriptionRequest(event);
+        await options.eventWatcher.subscribe(options.hass, request);
+        this._onDestroy(() => options.eventWatcher.unsubscribe(request));
+      }
     }
 
     return this;
+  }
+
+  private _buildEventSubscriptionRequest(event: TriggerEvent): EventSubscriptionRequest {
+    const filter = event.event_data;
+    return {
+      event_type: event.event_type,
+      ...(filter && { matcher: (data) => matchesEventData(filter, data) }),
+      callback: () => this._momentaryEventHandler(event.event_type),
+    };
+  }
+
+  private _momentaryEventHandler(eventType: string): void {
+    this._eventCallback?.({
+      cameraID: this.getID(),
+      id: `event:${eventType}`,
+      type: 'momentary',
+    });
   }
 
   private async _resolveEntity(

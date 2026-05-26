@@ -21,7 +21,7 @@ const isUsableOldState = (state: string | undefined): boolean =>
  * produce a single `'new'` or `'end'`.
  *
  * HA `event.*` entities are different: each fire just updates `state` to a new
- * ISO timestamp, with no continuous on/off. Those map to `signal` -- the
+ * ISO timestamp, with no continuous on/off. Those map to `momentary` -- the
  * instantaneous-event discriminator. Transitions are skipped when the old state
  * is undefined (entity not previously observed) or `unavailable` (entity
  * reconnecting -- new state could be restored, not fresh), or when the new
@@ -29,11 +29,11 @@ const isUsableOldState = (state: string | undefined): boolean =>
  */
 export const getTriggerEventType = (
   difference: HassStateDifference,
-): 'new' | 'end' | 'signal' | null => {
+): 'new' | 'end' | 'momentary' | null => {
   if (computeDomain(difference.entityID) === 'event') {
     return isUsableOldState(difference.oldState?.state) &&
       isUsableNewState(difference.newState.state)
-      ? 'signal'
+      ? 'momentary'
       : null;
   }
   return isTriggeredState(difference.newState.state) ? 'new' : 'end';

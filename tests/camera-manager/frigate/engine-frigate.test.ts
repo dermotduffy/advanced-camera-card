@@ -1,4 +1,5 @@
 import { afterEach, assert, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 import { RecordingSegmentsCache } from '../../../src/camera-manager/cache';
 import { Camera } from '../../../src/camera-manager/camera';
 import {
@@ -32,6 +33,7 @@ import {
   QueryResultsType,
   QueryType,
 } from '../../../src/camera-manager/types';
+import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { CameraConfig } from '../../../src/config/schema/cameras';
 import { RawAdvancedCameraCardConfig } from '../../../src/config/types';
@@ -58,6 +60,7 @@ const createEngine = (options?: {
   return new FrigateCameraManagerEngine(
     new EntityRegistryManagerMock(),
     new StateWatcher(),
+    mock<EventWatcherSubscriptionInterface>(),
     options?.cache ?? new RecordingSegmentsCache(),
     options?.requestCache ?? new CameraManagerRequestCache(),
   );

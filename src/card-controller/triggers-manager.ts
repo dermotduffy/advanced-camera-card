@@ -110,15 +110,15 @@ export class TriggersManager {
       return this._handleEndEvent(ev);
     }
 
-    if (ev.type === 'signal') {
+    if (ev.type === 'momentary') {
       const handled = await this.handleCameraEvent({ ...ev, type: 'new' }, options);
       if (handled) {
-        // A signal is momentary -- handled as a matched new+end so concurrent
-        // continuous sources still gate untriggering correctly. The end leg is
-        // tagged `{ signal: true }` so `_startUntrigger` adds the synthesized
-        // signal on-period (`signal_hold_seconds`) on top of the usual
+        // A momentary event has no start/end -- handled as a matched new+end so
+        // concurrent continuous sources still gate untriggering correctly. The
+        // end leg is tagged `{ momentary: true }` so `_startUntrigger` adds the
+        // synthesized on-period (`event_hold_seconds`) on top of the usual
         // post-source-end linger (`untrigger_delay_seconds`).
-        await this._handleEndEvent(ev, { signal: true });
+        await this._handleEndEvent(ev, { momentary: true });
       }
       return handled;
     }
@@ -164,7 +164,7 @@ export class TriggersManager {
 
   private async _handleEndEvent(
     ev: CameraEvent,
-    options?: { signal?: boolean },
+    options?: { momentary?: boolean },
   ): Promise<boolean> {
     this._deleteIgnoredEventID(ev.cameraID, ev.id);
 
@@ -313,7 +313,7 @@ export class TriggersManager {
 
   private async _startUntrigger(
     cameraID: string,
-    options?: { signal?: boolean },
+    options?: { momentary?: boolean },
   ): Promise<void> {
     this._deleteUntriggerDelayTimer(cameraID);
     this._deleteForceUntriggerTimer(cameraID);
@@ -325,12 +325,14 @@ export class TriggersManager {
 
     const triggersConfig = this._api.getConfigManager().getConfig()?.view?.triggers;
     const untriggerDelaySeconds = triggersConfig?.untrigger_delay_seconds ?? 0;
-    // For signals, add the synthesized on-period (signals have no native
-    // on/off, so hold them visible for `signal_hold_seconds` before the usual
-    // post-source-end linger kicks in).
-    const signalHoldSeconds = triggersConfig?.signal_hold_seconds ?? 0;
+    // For momentary events, add the synthesized on-period (they have no
+    // native on/off, so hold them visible before the usual post-source-end
+    // linger kicks in). The user-facing field is `event_hold_seconds` because
+    // HA events are the common case; internally this is the hold for any
+    // momentary source.
+    const momentaryHoldSeconds = triggersConfig?.event_hold_seconds ?? 0;
     const effectiveDelaySeconds =
-      untriggerDelaySeconds + (options?.signal ? signalHoldSeconds : 0);
+      untriggerDelaySeconds + (options?.momentary ? momentaryHoldSeconds : 0);
 
     if (effectiveDelaySeconds > 0) {
       state.untriggerDelayTimer = new Timer();

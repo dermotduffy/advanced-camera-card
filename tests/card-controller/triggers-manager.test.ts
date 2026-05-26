@@ -25,7 +25,7 @@ vi.mock('lodash-es', async () => ({
 const baseTriggersConfig: TriggersOptions = {
   untrigger_delay_seconds: 10,
   untrigger_force_seconds: 0,
-  signal_hold_seconds: 0,
+  event_hold_seconds: 0,
   filter_selected_camera: false,
   show_trigger_status: false,
   actions: {
@@ -810,7 +810,7 @@ describe('TriggersManager', () => {
       expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledTimes(1);
     });
 
-    it('should auto-untrigger after the delay on a signal event', async () => {
+    it('should auto-untrigger after the delay on a momentary event', async () => {
       const api = createTriggerAPI({
         config: {
           actions: { trigger: 'none', untrigger: 'default' },
@@ -821,7 +821,7 @@ describe('TriggersManager', () => {
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
         id: 'event.doorbell',
-        type: 'signal',
+        type: 'momentary',
       });
 
       expect(manager.isTriggered()).toBeTruthy();
@@ -835,7 +835,7 @@ describe('TriggersManager', () => {
       expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
     });
 
-    it('should auto-untrigger immediately on a signal when delay is 0', async () => {
+    it('should auto-untrigger immediately on a momentary event when delay is 0', async () => {
       const api = createTriggerAPI({
         config: {
           untrigger_delay_seconds: 0,
@@ -847,7 +847,7 @@ describe('TriggersManager', () => {
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
         id: 'event.doorbell',
-        type: 'signal',
+        type: 'momentary',
       });
       await flushPromises();
 
@@ -855,7 +855,7 @@ describe('TriggersManager', () => {
       expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
     });
 
-    it('should not auto-untrigger from a signal while a continuous source remains active', async () => {
+    it('should not auto-untrigger from a momentary event while a continuous source remains active', async () => {
       const api = createTriggerAPI({
         config: {
           actions: { trigger: 'none', untrigger: 'default' },
@@ -874,7 +874,7 @@ describe('TriggersManager', () => {
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
         id: 'event.doorbell',
-        type: 'signal',
+        type: 'momentary',
       });
 
       vi.setSystemTime(add(start, { seconds: 10 }));
@@ -886,11 +886,11 @@ describe('TriggersManager', () => {
       expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
     });
 
-    it('should add signal_hold_seconds on top of untrigger_delay_seconds for signals', async () => {
+    it('should add event_hold_seconds on top of untrigger_delay_seconds for momentary events', async () => {
       const api = createTriggerAPI({
         config: {
           untrigger_delay_seconds: 5,
-          signal_hold_seconds: 30,
+          event_hold_seconds: 30,
           actions: { trigger: 'none', untrigger: 'default' },
         },
       });
@@ -899,7 +899,7 @@ describe('TriggersManager', () => {
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
         id: 'event.doorbell',
-        type: 'signal',
+        type: 'momentary',
       });
 
       // At 34s the additive 35s window is still active.
@@ -916,11 +916,11 @@ describe('TriggersManager', () => {
       expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
     });
 
-    it('should not apply signal_hold_seconds to non-signal events', async () => {
+    it('should not apply event_hold_seconds to non-momentary events', async () => {
       const api = createTriggerAPI({
         config: {
           untrigger_delay_seconds: 5,
-          signal_hold_seconds: 30,
+          event_hold_seconds: 30,
           actions: { trigger: 'none', untrigger: 'default' },
         },
       });
@@ -1305,9 +1305,9 @@ describe('TriggersManager', () => {
       expect(manager.isTriggered()).toBeTruthy();
     });
 
-    it('should not reset the untrigger timer when a filtered-out signal arrives', async () => {
-      // Guards the `if (handled)` branch on the signal synthesis: a
-      // filter-rejected signal must not call the internal 'end', which would
+    it('should not reset the untrigger timer when a filtered-out momentary event arrives', async () => {
+      // Guards the `if (handled)` branch on the momentary-event synthesis: a
+      // filter-rejected momentary event must not call the internal 'end', which would
       // otherwise reset an already-running untrigger-delay timer.
       const api = createTriggerAPI({
         config: {
@@ -1341,7 +1341,7 @@ describe('TriggersManager', () => {
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
         id: 'event.doorbell',
-        type: 'signal',
+        type: 'momentary',
       });
 
       // At t=10 (the original delay's deadline), the timer should fire.
