@@ -58,6 +58,7 @@ export class Camera {
   protected _capabilities?: Capabilities;
   protected _eventCallback?: CameraEventCallback;
   protected _destroyCallbacks: DestroyCallback[] = [];
+  protected _destroyed = false;
   protected _entity: Entity | null = null;
 
   constructor(
@@ -91,7 +92,7 @@ export class Camera {
       await this._getTriggerEntities(options);
       this._config.triggers.entities = uniq(this._config.triggers.entities);
 
-      // Subscribe to state based triggers.
+      // Subscribe to state based triggers (sync; no race with destroy).
       options.stateWatcher.subscribe(
         this._stateChangeHandler,
         this._config.triggers.entities,
@@ -101,12 +102,32 @@ export class Camera {
       // Subscribe to event based triggers.
       for (const event of this._config.triggers.events) {
         const request = this._buildEventSubscriptionRequest(event);
-        await options.eventWatcher.subscribe(options.hass, request);
-        this._onDestroy(() => options.eventWatcher.unsubscribe(request));
+        await this._setupSubscription(
+          () => options.eventWatcher.subscribe(options.hass, request),
+          () => options.eventWatcher.unsubscribe(request),
+        );
       }
     }
 
     return this;
+  }
+
+  /**
+   * Wire up an async subscription with its teardown. Registers the unsubscribe
+   * callback synchronously before awaiting subscribe, so a destroy during the
+   * await reliably triggers cleanup; short-circuits if destroy has already
+   * run, so the cleanup callback can't fire (and enqueue an unsubscribe)
+   * before the subscribe runs.
+   */
+  protected async _setupSubscription(
+    subscribe: () => Promise<void>,
+    unsubscribe: () => void | Promise<void>,
+  ): Promise<void> {
+    if (this._destroyed) {
+      return;
+    }
+    this._onDestroy(unsubscribe);
+    await subscribe();
   }
 
   private _buildEventSubscriptionRequest(event: TriggerEvent): EventSubscriptionRequest {
@@ -246,7 +267,10 @@ export class Camera {
   }
 
   public async destroy(): Promise<void> {
-    await Promise.all(this._destroyCallbacks.map((callback) => callback()));
+    this._destroyed = true;
+    const callbacks = this._destroyCallbacks;
+    this._destroyCallbacks = [];
+    await Promise.all(callbacks.map((callback) => callback()));
   }
 
   public getConfig(): CameraConfig {

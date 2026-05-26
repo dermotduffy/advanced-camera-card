@@ -1,5 +1,6 @@
 import { HassEvent } from 'home-assistant-js-websocket';
-import { HomeAssistant, SubscriptionUnsubscribe } from '../../ha/types';
+import { HomeAssistant } from '../../ha/types';
+import { KeyedSubscriptionManager } from '../../utils/keyed-subscription-manager';
 
 export interface EventSubscriptionRequest {
   event_type: string;
@@ -23,50 +24,30 @@ export interface EventWatcherSubscriptionInterface {
  * payload.
  */
 export class EventWatcher implements EventWatcherSubscriptionInterface {
-  private _requests: EventSubscriptionRequest[] = [];
-
-  // Stored as a promise so an unsubscribe that races against an in-flight
-  // subscribe can await completion before tearing down -- otherwise the unsub
-  // func is unavailable and the subscription would leak (via hass.connection's
-  // internal subscription map).
-  private _unsubscribers = new Map<string, Promise<SubscriptionUnsubscribe>>();
+  private _subscriptions = new KeyedSubscriptionManager<
+    string,
+    EventSubscriptionRequest
+  >((request) => request.event_type);
 
   public async subscribe(
     hass: HomeAssistant,
     request: EventSubscriptionRequest,
   ): Promise<void> {
-    const isFirst = !this._hasSubscribers(request.event_type);
-    this._requests.push(request);
-    if (isFirst) {
-      const pendingSubscription = hass.connection.subscribeEvents<HassEvent>(
+    await this._subscriptions.subscribe(request, () =>
+      hass.connection.subscribeEvents<HassEvent>(
         (event) => this._receiveEvent(event),
         request.event_type,
-      );
-      this._unsubscribers.set(request.event_type, pendingSubscription);
-      await pendingSubscription;
-    }
+      ),
+    );
   }
 
   public async unsubscribe(request: EventSubscriptionRequest): Promise<void> {
-    this._requests = this._requests.filter((r) => r !== request);
-    if (!this._hasSubscribers(request.event_type)) {
-      const pendingSubscription = this._unsubscribers.get(request.event_type);
-      this._unsubscribers.delete(request.event_type);
-      const unsubscribeCallback = await pendingSubscription;
-      await unsubscribeCallback?.();
-    }
-  }
-
-  private _hasSubscribers(eventType: string): boolean {
-    return this._requests.some((r) => r.event_type === eventType);
+    await this._subscriptions.unsubscribe(request);
   }
 
   private _receiveEvent(event: HassEvent): void {
-    for (const request of this._requests) {
-      if (
-        request.event_type === event.event_type &&
-        (!request.matcher || request.matcher(event.data))
-      ) {
+    for (const request of this._subscriptions.getRequestsForKey(event.event_type)) {
+      if (!request.matcher || request.matcher(event.data)) {
         request.callback(event.data);
       }
     }
