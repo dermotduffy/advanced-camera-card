@@ -4,7 +4,8 @@ import { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { ReolinkCamera } from '../../../src/camera-manager/reolink/camera';
 import { CameraProxyConfig } from '../../../src/camera-manager/types';
 import { ActionsExecutor } from '../../../src/card-controller/actions/types';
-import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
+import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
+import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { DeviceRegistryManager } from '../../../src/ha/registry/device';
 import { EntityRegistryManagerLive } from '../../../src/ha/registry/entity';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
@@ -105,7 +106,8 @@ describe('ReolinkCamera', () => {
               hass: createHASS(),
               entityRegistryManager: mock<EntityRegistryManagerLive>(),
               deviceRegistryManager: mock<DeviceRegistryManager>(),
-              stateWatcher: mock<StateWatcher>(),
+              stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+              eventWatcher: mock<EventWatcherSubscriptionInterface>(),
             }),
         ).rejects.toThrowError('Could not find camera entity');
       });
@@ -129,7 +131,8 @@ describe('ReolinkCamera', () => {
               hass: createHASS(),
               entityRegistryManager,
               deviceRegistryManager: mock<DeviceRegistryManager>(),
-              stateWatcher: mock<StateWatcher>(),
+              stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+              eventWatcher: mock<EventWatcherSubscriptionInterface>(),
             }),
         ).rejects.toThrowError('Could not initialize Reolink camera');
       });
@@ -153,7 +156,8 @@ describe('ReolinkCamera', () => {
               hass: createHASS(),
               entityRegistryManager,
               deviceRegistryManager: mock<DeviceRegistryManager>(),
-              stateWatcher: mock<StateWatcher>(),
+              stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+              eventWatcher: mock<EventWatcherSubscriptionInterface>(),
             }),
         ).rejects.toThrowError('Could not initialize Reolink camera');
       });
@@ -169,7 +173,8 @@ describe('ReolinkCamera', () => {
           hass: createHASS(),
           entityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getChannel()).toBe(0);
@@ -201,7 +206,8 @@ describe('ReolinkCamera', () => {
           hass: createHASS(),
           entityRegistryManager,
           deviceRegistryManager,
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getChannel()).toBe(3);
@@ -224,7 +230,8 @@ describe('ReolinkCamera', () => {
           hass: createHASS(),
           entityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getChannel()).toBe(7);
@@ -247,7 +254,8 @@ describe('ReolinkCamera', () => {
           hass: createHASS(),
           entityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getChannel()).toBe(0);
@@ -270,7 +278,8 @@ describe('ReolinkCamera', () => {
           hass: createHASS(),
           entityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getChannel()).toBe(7);
@@ -295,7 +304,8 @@ describe('ReolinkCamera', () => {
             hass: createHASS(),
             entityRegistryManager,
             deviceRegistryManager: mock<DeviceRegistryManager>(),
-            stateWatcher: mock<StateWatcher>(),
+            stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+            eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           });
 
           expect(camera.getChannel()).toBe(0);
@@ -327,7 +337,8 @@ describe('ReolinkCamera', () => {
             hass: createHASS(),
             entityRegistryManager,
             deviceRegistryManager,
-            stateWatcher: mock<StateWatcher>(),
+            stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+            eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           });
 
           expect(camera.getChannel()).toBe(0);
@@ -359,7 +370,8 @@ describe('ReolinkCamera', () => {
             hass: createHASS(),
             entityRegistryManager,
             deviceRegistryManager,
-            stateWatcher: mock<StateWatcher>(),
+            stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+            eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           });
 
           expect(camera.getChannel()).toBe(0);
@@ -391,7 +403,8 @@ describe('ReolinkCamera', () => {
             hass: createHASS(),
             entityRegistryManager,
             deviceRegistryManager,
-            stateWatcher: mock<StateWatcher>(),
+            stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+            eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           });
 
           expect(camera.getChannel()).toBe(0);
@@ -410,7 +423,8 @@ describe('ReolinkCamera', () => {
           hass: createHASS(),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
@@ -449,7 +463,8 @@ describe('ReolinkCamera', () => {
             }),
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
@@ -475,7 +490,8 @@ describe('ReolinkCamera', () => {
           }),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
@@ -508,7 +524,8 @@ describe('ReolinkCamera', () => {
           hass: createHASS(),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
@@ -695,7 +712,8 @@ describe('ReolinkCamera', () => {
         hass: createHASS(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
         deviceRegistryManager: mock<DeviceRegistryManager>(),
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
       const executor = mock<ActionsExecutor>();
 
@@ -727,7 +745,8 @@ describe('ReolinkCamera', () => {
           buttonEntityPTZLeft,
         ]),
         deviceRegistryManager: mock<DeviceRegistryManager>(),
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
       const executor = mock<ActionsExecutor>();
       await camera.executePTZAction(executor, 'left', { phase: 'start' });
@@ -754,7 +773,8 @@ describe('ReolinkCamera', () => {
         hass: createHASS(),
         entityRegistryManager: ptzPopulatedEntityRegistryManager,
         deviceRegistryManager: mock<DeviceRegistryManager>(),
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
       const executor = mock<ActionsExecutor>();
 
@@ -795,7 +815,8 @@ describe('ReolinkCamera', () => {
         hass: createHASS(),
         entityRegistryManager: ptzPopulatedEntityRegistryManager,
         deviceRegistryManager: mock<DeviceRegistryManager>(),
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
       const executor = mock<ActionsExecutor>();
 
@@ -821,7 +842,8 @@ describe('ReolinkCamera', () => {
           }),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         const executor = mock<ActionsExecutor>();
 
@@ -852,7 +874,8 @@ describe('ReolinkCamera', () => {
           hass: createHASS(),
           entityRegistryManager: ptzPopulatedEntityRegistryManager,
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         const executor = mock<ActionsExecutor>();
 
@@ -875,7 +898,8 @@ describe('ReolinkCamera', () => {
             numberEntityZoom,
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
@@ -902,7 +926,8 @@ describe('ReolinkCamera', () => {
             }),
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toBeNull();
@@ -924,7 +949,8 @@ describe('ReolinkCamera', () => {
             numberEntityZoom,
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
 
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
@@ -946,7 +972,8 @@ describe('ReolinkCamera', () => {
             numberEntityZoom,
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         const executor = mock<ActionsExecutor>();
 
@@ -984,7 +1011,8 @@ describe('ReolinkCamera', () => {
             numberEntityZoom,
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         const executor = mock<ActionsExecutor>();
 
@@ -1022,7 +1050,8 @@ describe('ReolinkCamera', () => {
             numberEntityZoom,
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         const executor = mock<ActionsExecutor>();
 
@@ -1060,7 +1089,8 @@ describe('ReolinkCamera', () => {
             numberEntityZoom,
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         const executor = mock<ActionsExecutor>();
 
@@ -1098,7 +1128,8 @@ describe('ReolinkCamera', () => {
             numberEntityZoom,
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         const executor = mock<ActionsExecutor>();
 
@@ -1127,7 +1158,8 @@ describe('ReolinkCamera', () => {
             numberEntityZoom,
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         const executor = mock<ActionsExecutor>();
 
@@ -1155,7 +1187,8 @@ describe('ReolinkCamera', () => {
             numberEntityZoom,
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         const executor = mock<ActionsExecutor>();
 
@@ -1180,7 +1213,8 @@ describe('ReolinkCamera', () => {
             numberEntityZoom,
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         const executor = mock<ActionsExecutor>();
 
@@ -1211,7 +1245,8 @@ describe('ReolinkCamera', () => {
             buttonEntityPTZStop,
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         const executor = mock<ActionsExecutor>();
 
@@ -1233,7 +1268,8 @@ describe('ReolinkCamera', () => {
             numberEntityZoom,
           ]),
           deviceRegistryManager: mock<DeviceRegistryManager>(),
-          stateWatcher: mock<StateWatcher>(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         });
         const executor = mock<ActionsExecutor>();
 

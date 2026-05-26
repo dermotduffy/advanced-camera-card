@@ -1,3 +1,4 @@
+import { EventWatcherSubscriptionInterface } from '../card-controller/hass/event-watcher';
 import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
 import { CameraConfig } from '../config/schema/cameras';
 import { BrowseMediaWalker } from '../ha/browse-media/walker';
@@ -13,6 +14,7 @@ import { getCameraEntityFromConfig } from './utils/camera-entity-from-config';
 
 interface CameraManagerEngineFactoryOptions {
   stateWatcher: StateWatcherSubscriptionInterface;
+  eventWatcher: EventWatcherSubscriptionInterface;
   resolvedMediaCache: ResolvedMediaCache;
   eventCallback?: CameraEventCallback;
 }
@@ -39,6 +41,7 @@ export class CameraManagerEngineFactory {
         const { GenericCameraManagerEngine } = await import('./generic/engine-generic');
         cameraManagerEngine = new GenericCameraManagerEngine(
           options.stateWatcher,
+          options.eventWatcher,
           this._entityRegistryManager,
           options.eventCallback,
         );
@@ -48,6 +51,7 @@ export class CameraManagerEngineFactory {
         cameraManagerEngine = new FrigateCameraManagerEngine(
           this._entityRegistryManager,
           options.stateWatcher,
+          options.eventWatcher,
           new RecordingSegmentsCache(),
           new CameraManagerRequestCache(),
           options.eventCallback,
@@ -60,6 +64,7 @@ export class CameraManagerEngineFactory {
         cameraManagerEngine = new MotionEyeCameraManagerEngine(
           this._entityRegistryManager,
           options.stateWatcher,
+          options.eventWatcher,
           new BrowseMediaWalker(),
           options.resolvedMediaCache,
           new CameraManagerRequestCache(),
@@ -72,6 +77,7 @@ export class CameraManagerEngineFactory {
           this._entityRegistryManager,
           this._deviceRegistryManager,
           options.stateWatcher,
+          options.eventWatcher,
           new BrowseMediaWalker(),
           options.resolvedMediaCache,
           new CameraManagerRequestCache(),
@@ -83,6 +89,7 @@ export class CameraManagerEngineFactory {
         cameraManagerEngine = new TPLinkCameraManagerEngine(
           this._entityRegistryManager,
           options.stateWatcher,
+          options.eventWatcher,
           options.eventCallback,
         );
         break;

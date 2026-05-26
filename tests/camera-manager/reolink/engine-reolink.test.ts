@@ -23,19 +23,20 @@ import {
   QueryReturnType,
   QueryType,
 } from '../../../src/camera-manager/types';
-import { QuerySource } from '../../../src/query-source';
-import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
+import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
+import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { BrowseMedia, browseMediaSchema } from '../../../src/ha/browse-media/types';
 import { BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
 import { DeviceRegistryManager } from '../../../src/ha/registry/device';
 import { EntityRegistryManager } from '../../../src/ha/registry/entity/types';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { homeAssistantWSRequest } from '../../../src/ha/ws-request';
+import { QuerySource } from '../../../src/query-source';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
-  createInitializedCamera,
   createCameraConfig,
   createHASS,
+  createInitializedCamera,
   createRegistryEntity,
   createStore,
 } from '../../test-utils';
@@ -186,7 +187,8 @@ const createEngine = (options?: {
   return new ReolinkCameraManagerEngine(
     options?.entityRegistryManager ?? new EntityRegistryManagerMock(),
     mock<DeviceRegistryManager>(),
-    mock<StateWatcher>(),
+    mock<StateWatcherSubscriptionInterface>(),
+    mock<EventWatcherSubscriptionInterface>(),
     options?.browseMediaManager ?? new BrowseMediaWalker(),
     new ResolvedMediaCache(),
     new CameraManagerRequestCache(),

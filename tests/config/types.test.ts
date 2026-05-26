@@ -57,6 +57,7 @@ describe('config defaults', () => {
           doorbell: false,
           entities: [],
           events: [],
+          media_events: [],
           motion: false,
           occupancy: false,
           reviews: {
@@ -550,7 +551,7 @@ describe('config defaults', () => {
           },
           filter_selected_camera: true,
           show_trigger_status: false,
-          signal_hold_seconds: 30,
+          event_hold_seconds: 30,
           untrigger_delay_seconds: 0,
           untrigger_force_seconds: 0,
         },

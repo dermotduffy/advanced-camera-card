@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { MotionEyeCamera } from '../../../src/camera-manager/motioneye/camera';
-import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
+import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
+import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import { createCameraConfig, createHASS, createRegistryEntity } from '../../test-utils';
 
@@ -48,7 +49,8 @@ describe('MotionEyeCamera', () => {
       await camera.initialize({
         hass: createHASS(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       const endpoints = camera.getEndpoints();
@@ -65,7 +67,8 @@ describe('MotionEyeCamera', () => {
       await camera.initialize({
         hass: createHASS(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       const endpoints = camera.getEndpoints();
@@ -82,7 +85,8 @@ describe('MotionEyeCamera', () => {
       await camera.initialize({
         hass: createHASS(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       const capabilities = camera.getCapabilities();
@@ -107,7 +111,8 @@ describe('MotionEyeCamera', () => {
       await camera.initialize({
         hass: createHASS(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
-        stateWatcher: mock<StateWatcher>(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       const capabilities = camera.getCapabilities();

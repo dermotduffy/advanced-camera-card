@@ -93,6 +93,7 @@ import {
   CONF_CAMERAS_ARRAY_TRIGGERS_DOORBELL,
   CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES,
   CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS,
+  CONF_CAMERAS_ARRAY_TRIGGERS_MEDIA_EVENTS,
   CONF_CAMERAS_ARRAY_TRIGGERS_MOTION,
   CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
   CONF_CAMERAS_ARRAY_TRIGGERS_REVIEWS_DESCRIPTION,
@@ -279,7 +280,7 @@ import {
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
-  CONF_VIEW_TRIGGERS_SIGNAL_HOLD_SECONDS,
+  CONF_VIEW_TRIGGERS_EVENT_HOLD_SECONDS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_FORCE_SECONDS,
   DOCS_URL,
@@ -313,6 +314,8 @@ const MENU_CAMERAS_MOTIONEYE = 'cameras.motioneye';
 const MENU_CAMERAS_PROXY = 'cameras.proxy';
 const MENU_CAMERAS_REOLINK = 'cameras.reolink';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
+const MENU_CAMERAS_TRIGGERS_EVENT = 'cameras.triggers.event';
+const MENU_CAMERAS_TRIGGERS_EVENTS = 'cameras.triggers.events';
 const MENU_CAMERAS_TRIGGERS_REVIEWS = 'cameras.triggers.reviews';
 const MENU_CAMERAS_WEBRTC_CARD = 'cameras.webrtc_card';
 const MENU_CAMERAS_MEDIA = 'cameras.media';
@@ -1040,19 +1043,19 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     },
   ];
 
-  private _triggersEvents: EditorSelectOption[] = [
+  private _triggersMediaEvents: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'events',
-      label: localize('config.cameras.triggers.events.events'),
+      label: localize('config.cameras.triggers.media_events.events'),
     },
     {
       value: 'clips',
-      label: localize('config.cameras.triggers.events.clips'),
+      label: localize('config.cameras.triggers.media_events.clips'),
     },
     {
       value: 'snapshots',
-      label: localize('config.cameras.triggers.events.snapshots'),
+      label: localize('config.cameras.triggers.media_events.snapshots'),
     },
   ];
 
@@ -1523,6 +1526,16 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
     );
   }
 
+  private _getEditorTriggerEventTitle(
+    eventIndex: number,
+    eventConfig: RawAdvancedCameraCardConfig,
+  ): string {
+    return (
+      (typeof eventConfig?.event_type === 'string' && eventConfig.event_type) ||
+      localize('common.event') + ' #' + eventIndex
+    );
+  }
+
   private _renderViewDefaultResetMenu(): TemplateResult {
     return this._putInSubmenu(
       MENU_VIEW_DEFAULT_RESET,
@@ -1599,8 +1612,8 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         ${this._renderNumberInput(CONF_VIEW_TRIGGERS_UNTRIGGER_FORCE_SECONDS, {
           default: this._defaults.view.triggers.untrigger_force_seconds,
         })}
-        ${this._renderNumberInput(CONF_VIEW_TRIGGERS_SIGNAL_HOLD_SECONDS, {
-          default: this._defaults.view.triggers.signal_hold_seconds,
+        ${this._renderNumberInput(CONF_VIEW_TRIGGERS_EVENT_HOLD_SECONDS, {
+          default: this._defaults.view.triggers.event_hold_seconds,
         })}
         ${this._putInSubmenu(
           MENU_VIEW_TRIGGERS_ACTIONS,
@@ -2340,8 +2353,8 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
           .label=${localize('editor.move_down')}
           .disabled=${add ||
           !this._config ||
-          !Array.isArray(this._config.cameras) ||
-          index >= this._config.cameras.length - 1}
+          !Array.isArray(array) ||
+          index >= array.length - 1}
           @click=${() =>
             !add &&
             this._modifyConfig((config: RawAdvancedCameraCardConfig): boolean => {
@@ -2360,7 +2373,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         </ha-icon-button>
         <ha-icon-button
           .label=${localize('editor.delete')}
-          .disabled=${add}
+          .disabled=${!!add}
           @click=${() => {
             this._modifyConfig((config: RawAdvancedCameraCardConfig): boolean => {
               const array = getConfigValue(config, configPathArray);
@@ -2461,6 +2474,83 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
           </div>`
         : ''}
     </div>`;
+  }
+
+  private _renderTriggerEvent(
+    cameraIndex: number,
+    events: RawAdvancedCameraCardConfigArray,
+    eventIndex: number,
+    addNewEvent?: boolean,
+  ): TemplateResult | void {
+    const eventsPath = getArrayConfigPath(
+      CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS,
+      cameraIndex,
+    );
+
+    const submenuClasses = {
+      submenu: true,
+      selected: this._expandedMenus[MENU_CAMERAS_TRIGGERS_EVENT] === eventIndex,
+    };
+    const title = this._getEditorTriggerEventTitle(eventIndex, events[eventIndex] ?? {});
+    const eventTypePath = `${eventsPath}.[${eventIndex}].event_type`;
+
+    return html` <div class="${classMap(submenuClasses)}">
+      <div
+        class="submenu-header"
+        @click=${this._toggleMenu}
+        .domain=${MENU_CAMERAS_TRIGGERS_EVENT}
+        .key=${eventIndex}
+      >
+        <advanced-camera-card-icon
+          .icon=${{ icon: addNewEvent ? 'mdi:plus' : 'mdi:flash' }}
+        ></advanced-camera-card-icon>
+        <span>
+          ${addNewEvent
+            ? html` <span class="new">
+                [${localize('config.cameras.triggers.events.add_new_event')}...]
+              </span>`
+            : html`<span>${title}</span>`}
+        </span>
+      </div>
+      ${this._expandedMenus[MENU_CAMERAS_TRIGGERS_EVENT] === eventIndex
+        ? html` <div class="values">
+            ${this._renderArrayManagementControls(
+              eventsPath,
+              eventIndex,
+              MENU_CAMERAS_TRIGGERS_EVENT,
+              addNewEvent,
+            )}
+            ${this._renderStringInput(eventTypePath, {
+              label: localize('config.cameras.triggers.events.event_type'),
+            })}
+            ${this._renderObjectSelector(`${eventsPath}.[${eventIndex}].event_data`, {
+              label: localize('config.cameras.triggers.events.event_data'),
+            })}
+          </div>`
+        : ''}
+    </div>`;
+  }
+
+  private _renderTriggerEvents(cameraIndex: number): TemplateResult | void {
+    if (!this._config) {
+      return;
+    }
+    const events =
+      (getConfigValue(
+        this._config,
+        getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS, cameraIndex),
+      ) as RawAdvancedCameraCardConfigArray | undefined) ?? [];
+
+    return this._putInSubmenu(
+      MENU_CAMERAS_TRIGGERS_EVENTS,
+      cameraIndex,
+      'config.cameras.triggers.events.editor_label',
+      'mdi:home-assistant',
+      html`
+        ${events.map((_, index) => this._renderTriggerEvent(cameraIndex, events, index))}
+        ${this._renderTriggerEvent(cameraIndex, events, events.length, true)}
+      `,
+    );
   }
 
   /**
@@ -2810,11 +2900,16 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                     },
                   )}
                   ${this._renderOptionSelector(
-                    getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS, cameraIndex),
-                    this._triggersEvents,
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_TRIGGERS_MEDIA_EVENTS,
+                      cameraIndex,
+                    ),
+                    this._triggersMediaEvents,
                     {
                       multiple: true,
-                      label: localize('config.cameras.triggers.events.editor_label'),
+                      label: localize(
+                        'config.cameras.triggers.media_events.editor_label',
+                      ),
                     },
                   )}
                   ${this._putInSubmenu(
@@ -2843,6 +2938,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                       )}
                     `,
                   )}
+                  ${this._renderTriggerEvents(cameraIndex)}
                 `,
               )}
               ${this._putInSubmenu(
@@ -3076,6 +3172,29 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         .selector=${{ text: { type: params?.type || 'text' } }}
         .label=${params?.label ?? this._getLabel(configPath)}
         .value=${getConfigValue(this._config, configPath, '')}
+        .required=${false}
+        @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
+      >
+      </ha-selector>
+    `;
+  }
+
+  private _renderObjectSelector(
+    configPath: string,
+    params?: {
+      label?: string;
+    },
+  ): TemplateResult | void {
+    if (!this._config) {
+      return;
+    }
+
+    return html`
+      <ha-selector
+        .hass=${this.hass}
+        .selector=${{ object: {} }}
+        .label=${params?.label ?? this._getLabel(configPath)}
+        .value=${getConfigValue(this._config, configPath)}
         .required=${false}
         @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
       >

@@ -36,14 +36,14 @@ describe('getTriggerEventType', () => {
   });
 
   describe('for event entities', () => {
-    it('returns "signal" for a transition between two real timestamps', () => {
+    it('returns "momentary" for a transition between two real timestamps', () => {
       expect(
         getTriggerEventType({
           entityID: 'event.front_door_doorbell',
           oldState: createStateEntity({ state: '2026-05-24T12:00:00.000+00:00' }),
           newState: createStateEntity({ state: '2026-05-24T12:00:05.123+00:00' }),
         }),
-      ).toBe('signal');
+      ).toBe('momentary');
     });
 
     it('returns null when there is no old state', () => {
@@ -65,14 +65,14 @@ describe('getTriggerEventType', () => {
       ).toBeNull();
     });
 
-    it('returns "signal" when the old state is unknown (first fire after startup)', () => {
+    it('returns "momentary" when the old state is unknown (first fire after startup)', () => {
       expect(
         getTriggerEventType({
           entityID: 'event.front_door_doorbell',
           oldState: createStateEntity({ state: 'unknown' }),
           newState: createStateEntity({ state: '2026-05-24T12:00:05.123+00:00' }),
         }),
-      ).toBe('signal');
+      ).toBe('momentary');
     });
 
     it.each([['unavailable'], ['unknown']])(

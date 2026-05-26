@@ -1,3 +1,4 @@
+import { EventWatcherSubscriptionInterface } from '../../card-controller/hass/event-watcher';
 import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { CameraConfig } from '../../config/schema/cameras';
 import { EntityRegistryManager } from '../../ha/registry/entity/types';
@@ -11,9 +12,10 @@ export class TPLinkCameraManagerEngine extends GenericCameraManagerEngine {
   constructor(
     entityRegistryManager: EntityRegistryManager,
     stateWatcher: StateWatcherSubscriptionInterface,
+    eventWatcher: EventWatcherSubscriptionInterface,
     eventCallback?: CameraEventCallback,
   ) {
-    super(stateWatcher, entityRegistryManager, eventCallback);
+    super(stateWatcher, eventWatcher, entityRegistryManager, eventCallback);
     this._entityRegistryManager = entityRegistryManager;
   }
 
@@ -32,6 +34,7 @@ export class TPLinkCameraManagerEngine extends GenericCameraManagerEngine {
       entityRegistryManager: this._entityRegistryManager,
       hass,
       stateWatcher: this._stateWatcher,
+      eventWatcher: this._eventWatcher,
     });
   }
 
