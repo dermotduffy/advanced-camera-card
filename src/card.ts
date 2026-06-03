@@ -87,6 +87,21 @@ console.info(
   'padding: 3px; color: black; background: white;',
 );
 
+const getEntitySuggestion = (
+  hass: HomeAssistant,
+  entityId: string,
+): { config: RawAdvancedCameraCardConfig } | null => {
+  if (entityId.split('.')[0] !== 'camera' || !hass.states[entityId]) {
+    return null;
+  }
+  return {
+    config: {
+      type: 'custom:advanced-camera-card',
+      cameras: [{ camera_entity: entityId }],
+    },
+  };
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).customCards = (window as any).customCards || [];
 
@@ -97,6 +112,7 @@ console.info(
   description: localize('common.advanced_camera_card_description'),
   preview: true,
   documentationURL: REPO_URL,
+  getEntitySuggestion,
 });
 
 // Expose currently-connected card instances on `window.advancedCameraCards` for
