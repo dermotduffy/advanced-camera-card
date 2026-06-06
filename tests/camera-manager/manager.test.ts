@@ -481,7 +481,7 @@ describe('CameraManager', () => {
         type: 'new',
       };
       eventCallback?.(cameraEvent);
-      expect(api.getTriggersManager().handleCameraEvent).toBeCalledWith(cameraEvent);
+      expect(api.getCameraTriggersManager().handleCameraEvent).toBeCalledWith(cameraEvent);
     });
 
     describe('should fetch entity list when required', () => {

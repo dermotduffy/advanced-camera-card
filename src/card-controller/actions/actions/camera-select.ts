@@ -9,7 +9,7 @@ export class CameraSelectAction extends AdvancedCameraCardAction<CameraSelectAct
     const selectCameraID =
       this._action.camera ??
       (this._action.triggered
-        ? api.getTriggersManager().getMostRecentlyTriggeredCameraID()
+        ? api.getCameraTriggersManager().getMostRecentlyTriggeredCameraID()
         : null);
     const view = api.getViewManager().getView();
     const config = api.getConfigManager().getConfig();

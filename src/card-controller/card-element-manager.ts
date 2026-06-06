@@ -188,7 +188,7 @@ export class CardElementManager {
     // reconnection, to ensure the state subscription/unsubscription works
     // correctly and triggers that changed while detached are picked up.
     // Reset trigger state first to stop stale timers and clear condition state.
-    this._api.getTriggersManager().reset();
+    this._api.getCameraTriggersManager().reset();
 
     this._api.getCallManager().uninitialize();
     this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);

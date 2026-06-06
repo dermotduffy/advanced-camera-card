@@ -2,7 +2,7 @@ import { maxBy, throttle } from 'lodash-es';
 import { CameraEvent } from '../camera-manager/types';
 import { isTriggeredState } from '../ha/is-triggered-state';
 import { Timer } from '../utils/timer';
-import { CardTriggersAPI } from './types';
+import { CardCameraTriggersAPI } from './types';
 
 interface CameraTriggerState {
   // The time of the most recent trigger event. Used to determine the most
@@ -26,15 +26,15 @@ interface CameraTriggerState {
   untriggerForceTimer?: Timer;
 }
 
-export class TriggersManager {
-  private _api: CardTriggersAPI;
+export class CameraTriggersManager {
+  private _api: CardCameraTriggersAPI;
   private _states: Map<string, CameraTriggerState> = new Map();
 
   private _throttledTriggerAction = throttle(this._triggerAction.bind(this), 1000, {
     trailing: true,
   });
 
-  constructor(api: CardTriggersAPI) {
+  constructor(api: CardCameraTriggersAPI) {
     this._api = api;
   }
 

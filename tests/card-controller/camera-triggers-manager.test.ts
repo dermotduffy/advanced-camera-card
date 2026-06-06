@@ -2,7 +2,7 @@ import { add } from 'date-fns';
 import { PartialDeep } from 'type-fest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CardController } from '../../src/card-controller/controller';
-import { TriggersManager } from '../../src/card-controller/triggers-manager';
+import { CameraTriggersManager } from '../../src/card-controller/camera-triggers-manager';
 import { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import { TriggersOptions, triggersSchema } from '../../src/config/schema/view';
 import {
@@ -85,7 +85,7 @@ const createTriggerAPI = (options?: {
 };
 
 // @vitest-environment jsdom
-describe('TriggersManager', () => {
+describe('CameraTriggersManager', () => {
   const start = new Date('2023-10-01T17:14');
 
   beforeEach(() => {
@@ -94,7 +94,7 @@ describe('TriggersManager', () => {
   });
 
   it('should not be triggered by default', () => {
-    const manager = new TriggersManager(createCardAPI());
+    const manager = new CameraTriggersManager(createCardAPI());
     expect(manager.isTriggered()).toBeFalsy();
   });
 
@@ -106,7 +106,7 @@ describe('TriggersManager', () => {
         },
       },
     });
-    const manager = new TriggersManager(api);
+    const manager = new CameraTriggersManager(api);
 
     await manager.handleCameraEvent({
       cameraID: 'camera_1',
@@ -122,7 +122,7 @@ describe('TriggersManager', () => {
     const api = createTriggerAPI();
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(null);
 
-    const manager = new TriggersManager(api);
+    const manager = new CameraTriggersManager(api);
 
     await manager.handleCameraEvent({
       cameraID: 'camera_1',
@@ -145,7 +145,7 @@ describe('TriggersManager', () => {
         },
       });
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -170,7 +170,7 @@ describe('TriggersManager', () => {
         },
       });
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -197,7 +197,7 @@ describe('TriggersManager', () => {
         },
       });
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -240,7 +240,7 @@ describe('TriggersManager', () => {
               },
             },
           });
-          const manager = new TriggersManager(api);
+          const manager = new CameraTriggersManager(api);
 
           await manager.handleCameraEvent({
             cameraID: 'camera_1',
@@ -280,7 +280,7 @@ describe('TriggersManager', () => {
         },
       });
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -300,7 +300,7 @@ describe('TriggersManager', () => {
         },
       });
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -327,7 +327,7 @@ describe('TriggersManager', () => {
         },
       });
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -356,7 +356,7 @@ describe('TriggersManager', () => {
         },
       });
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
         id: 'event-1',
@@ -390,7 +390,7 @@ describe('TriggersManager', () => {
         },
       });
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
         id: 'event-1',
@@ -418,7 +418,7 @@ describe('TriggersManager', () => {
         },
       });
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
         id: 'event-1',
@@ -445,7 +445,7 @@ describe('TriggersManager', () => {
 
     it('should handle untrigger call with no state', async () => {
       const api = createTriggerAPI();
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -458,7 +458,7 @@ describe('TriggersManager', () => {
 
     it('should not untrigger if other sources are still active', async () => {
       const api = createTriggerAPI();
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -501,7 +501,7 @@ describe('TriggersManager', () => {
 
     it('should cancel untrigger timer if a new trigger starts', async () => {
       const api = createTriggerAPI();
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -551,7 +551,7 @@ describe('TriggersManager', () => {
         ]),
       );
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -604,7 +604,7 @@ describe('TriggersManager', () => {
           untrigger_delay_seconds: 10,
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       // 1. Trigger the camera.
       await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
@@ -630,7 +630,7 @@ describe('TriggersManager', () => {
           untrigger_delay_seconds: 10,
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       // Trigger then end to start the untrigger delay timer.
       await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
@@ -656,7 +656,7 @@ describe('TriggersManager', () => {
           untrigger_force_seconds: 10,
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       // Trigger to start the force untrigger timer.
       await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
@@ -680,7 +680,7 @@ describe('TriggersManager', () => {
           untrigger_delay_seconds: 0,
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
         id: 'event-1',
@@ -704,7 +704,7 @@ describe('TriggersManager', () => {
           untrigger_force_seconds: 5,
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -726,7 +726,7 @@ describe('TriggersManager', () => {
           untrigger_force_seconds: 10,
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -758,7 +758,7 @@ describe('TriggersManager', () => {
           untrigger_force_seconds: 5,
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -785,7 +785,7 @@ describe('TriggersManager', () => {
           untrigger_force_seconds: 10,
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -816,7 +816,7 @@ describe('TriggersManager', () => {
           actions: { trigger: 'none', untrigger: 'default' },
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -842,7 +842,7 @@ describe('TriggersManager', () => {
           actions: { trigger: 'none', untrigger: 'default' },
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -861,7 +861,7 @@ describe('TriggersManager', () => {
           actions: { trigger: 'none', untrigger: 'default' },
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       // Continuous source comes on first.
       await manager.handleCameraEvent({
@@ -894,7 +894,7 @@ describe('TriggersManager', () => {
           actions: { trigger: 'none', untrigger: 'default' },
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -924,7 +924,7 @@ describe('TriggersManager', () => {
           actions: { trigger: 'none', untrigger: 'default' },
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -963,7 +963,7 @@ describe('TriggersManager', () => {
         },
       });
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -1007,7 +1007,7 @@ describe('TriggersManager', () => {
         default: 'live',
       });
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -1032,7 +1032,7 @@ describe('TriggersManager', () => {
         default: 'clips',
       });
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       await manager.handleCameraEvent({
         cameraID: 'camera_1',
@@ -1051,7 +1051,7 @@ describe('TriggersManager', () => {
       // Interaction present.
       interaction: true,
     });
-    const manager = new TriggersManager(api);
+    const manager = new CameraTriggersManager(api);
 
     await manager.handleCameraEvent({
       cameraID: 'camera_1',
@@ -1089,7 +1089,7 @@ describe('TriggersManager', () => {
         },
       },
     });
-    const manager = new TriggersManager(api);
+    const manager = new CameraTriggersManager(api);
     await manager.handleCameraEvent({
       cameraID: 'camera_1',
       id: 'event-1',
@@ -1126,7 +1126,7 @@ describe('TriggersManager', () => {
         },
       },
     });
-    const manager = new TriggersManager(api);
+    const manager = new CameraTriggersManager(api);
     await manager.handleCameraEvent({
       cameraID: 'camera_1',
       id: 'event-1',
@@ -1179,7 +1179,7 @@ describe('TriggersManager', () => {
       ]),
     );
 
-    const manager = new TriggersManager(api);
+    const manager = new CameraTriggersManager(api);
 
     expect(manager.isTriggered()).toBeFalsy();
     expect(manager.getMostRecentlyTriggeredCameraID()).toBeNull();
@@ -1228,7 +1228,7 @@ describe('TriggersManager', () => {
           filter_selected_camera: true,
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
       expect(manager.isTriggered()).toBeFalsy();
 
       const otherCameraSelected = createView({
@@ -1288,7 +1288,7 @@ describe('TriggersManager', () => {
         ]),
       );
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       const primaryCameraView = createView({
         camera: 'camera_primary' as const,
@@ -1315,7 +1315,7 @@ describe('TriggersManager', () => {
           actions: { trigger: 'none', untrigger: 'default' },
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       // Trigger camera_1 normally, then end it -- starts the delay timer.
       await manager.handleCameraEvent({
@@ -1372,7 +1372,7 @@ describe('TriggersManager', () => {
         ]),
       );
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
       const result = await manager.handleInitialCameraTriggers();
 
       expect(result).toBeFalsy();
@@ -1404,7 +1404,7 @@ describe('TriggersManager', () => {
       });
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
       const result = await manager.handleInitialCameraTriggers();
 
       expect(result).toBeFalsy();
@@ -1436,7 +1436,7 @@ describe('TriggersManager', () => {
       });
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
       const result = await manager.handleInitialCameraTriggers();
 
       expect(result).toBeTruthy();
@@ -1468,7 +1468,7 @@ describe('TriggersManager', () => {
       });
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
       const result = await manager.handleInitialCameraTriggers();
 
       expect(result).toBeTruthy();
@@ -1515,7 +1515,7 @@ describe('TriggersManager', () => {
       });
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
       const result = await manager.handleInitialCameraTriggers();
 
       expect(result).toBeTruthy();
@@ -1555,7 +1555,7 @@ describe('TriggersManager', () => {
       });
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
       const result = await manager.handleInitialCameraTriggers();
 
       // A trigger entity was active...
@@ -1580,7 +1580,7 @@ describe('TriggersManager', () => {
         },
       },
     });
-    const manager = new TriggersManager(api);
+    const manager = new CameraTriggersManager(api);
     await manager.handleCameraEvent({
       cameraID: 'camera_1',
       id: 'event-1',
@@ -1620,7 +1620,7 @@ describe('TriggersManager', () => {
         },
       },
     });
-    const manager = new TriggersManager(api);
+    const manager = new CameraTriggersManager(api);
 
     await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
     await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'end' });
@@ -1642,7 +1642,7 @@ describe('TriggersManager', () => {
         untrigger_delay_seconds: 0,
       },
     });
-    const manager = new TriggersManager(api);
+    const manager = new CameraTriggersManager(api);
 
     // Trigger then end, but don't await the end event so we can check
     // triggered IDs while the camera is in the map but no longer triggered.
@@ -1660,7 +1660,7 @@ describe('TriggersManager', () => {
 
   it('should handle newly missing configuration', async () => {
     const api = createTriggerAPI();
-    const manager = new TriggersManager(api);
+    const manager = new CameraTriggersManager(api);
 
     // 1. Trigger the camera with valid config.
     await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
@@ -1688,7 +1688,7 @@ describe('TriggersManager', () => {
           untrigger_force_seconds: 10,
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       // 1. Initial trigger.
       await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
@@ -1717,7 +1717,7 @@ describe('TriggersManager', () => {
           untrigger_force_seconds: 10,
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       // 1. Trigger and force untrigger.
       await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
@@ -1747,7 +1747,7 @@ describe('TriggersManager', () => {
           },
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       // Simulate an update for a brand new ID (e.g. from an engine we just switched to).
       // Even without a 'new' event, if it's not in our ignore list, it should be processed.
@@ -1768,7 +1768,7 @@ describe('TriggersManager', () => {
           untrigger_force_seconds: 10,
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       // Force-ignore e1 on camera_1.
       await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
@@ -1794,7 +1794,7 @@ describe('TriggersManager', () => {
           untrigger_force_seconds: 10,
         },
       });
-      const manager = new TriggersManager(api);
+      const manager = new CameraTriggersManager(api);
 
       // Force-ignore e1 and e2 on camera_1.
       await manager.handleCameraEvent({ cameraID: 'camera_1', id: 'e1', type: 'new' });
@@ -1825,7 +1825,7 @@ describe('TriggersManager', () => {
         untrigger_delay_seconds: 0,
       },
     });
-    const manager = new TriggersManager(api);
+    const manager = new CameraTriggersManager(api);
 
     // Call handleCameraEvent with an unknown camera ID to ensure guard behavior.
     const result = await manager.handleCameraEvent({

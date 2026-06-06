@@ -160,7 +160,7 @@ export class InitializationManager {
         this._initializer.initializeIfNecessary(
           InitializationAspect.INITIAL_TRIGGER,
           async () => {
-            await this._api.getTriggersManager().handleInitialCameraTriggers();
+            await this._api.getCameraTriggersManager().handleInitialCameraTriggers();
 
             // Force a card update to continue the initialization.
             this._api.getCardElementManager().update();

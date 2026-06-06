@@ -8,6 +8,7 @@ import type { EffectsManagerInterface } from '../types';
 import type { ActionsManager } from './actions/actions-manager';
 import type { AutomationsManager } from './automations-manager';
 import type { CallManager } from './call/manager';
+import type { CameraTriggersManager } from './camera-triggers-manager';
 import type { CameraURLManager } from './camera-url-manager';
 import type { CardElementManager } from './card-element-manager';
 import type { ConfigManager } from './config/config-manager';
@@ -29,7 +30,6 @@ import type { PIPManager } from './pip-manager';
 import type { QueryStringManager } from './query-string-manager';
 import type { StatusBarItemManager } from './status-bar-item-manager';
 import type { StyleManager } from './style-manager';
-import type { TriggersManager } from './triggers-manager';
 import type { ViewItemManager } from './view/item-manager';
 import type { ViewManager } from './view/view-manager';
 
@@ -61,7 +61,7 @@ export interface CardActionsAPI {
   getPIPManager(): PIPManager;
   getIssueManager(): IssueManager;
   getStatusBarItemManager(): StatusBarItemManager;
-  getTriggersManager(): TriggersManager;
+  getCameraTriggersManager(): CameraTriggersManager;
   getViewItemManager(): ViewItemManager;
   getViewManager(): ViewManager;
 }
@@ -94,7 +94,7 @@ export interface CardCameraAPI {
   getEntityRegistryManager(): EntityRegistryManager;
   getHASSManager(): HASSManager;
   getResolvedMediaCache(): ResolvedMediaCache;
-  getTriggersManager(): TriggersManager;
+  getCameraTriggersManager(): CameraTriggersManager;
 }
 
 export interface CardCameraURLAPI {
@@ -139,7 +139,7 @@ export interface CardDefaultManagerAPI {
   getConfigManager(): ConfigManager;
   getHASSManager(): HASSManager;
   getInteractionManager(): InteractionManager;
-  getTriggersManager(): TriggersManager;
+  getCameraTriggersManager(): CameraTriggersManager;
   getViewManager(): ViewManager;
 }
 
@@ -170,7 +170,7 @@ export interface CardElementAPI {
   getPIPManager(): PIPManager;
   getIssueManager(): IssueManager;
   getQueryStringManager(): QueryStringManager;
-  getTriggersManager(): TriggersManager;
+  getCameraTriggersManager(): CameraTriggersManager;
   getViewManager(): ViewManager;
 }
 
@@ -209,7 +209,7 @@ export interface CardHASSAPI {
   getInteractionManager(): InteractionManager;
   getMediaPlayerManager(): MediaPlayerManager;
   getStyleManager(): StyleManager;
-  getTriggersManager(): TriggersManager;
+  getCameraTriggersManager(): CameraTriggersManager;
   getViewManager(): ViewManager;
 }
 
@@ -230,7 +230,7 @@ export interface CardInitializerAPI {
   getIssueManager(): IssueManager;
   getQueryStringManager(): QueryStringManager;
   getResolvedMediaCache(): ResolvedMediaCache;
-  getTriggersManager(): TriggersManager;
+  getCameraTriggersManager(): CameraTriggersManager;
   getViewManager(): ViewManager;
 }
 
@@ -239,7 +239,7 @@ export interface CardInteractionAPI {
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getStyleManager(): StyleManager;
-  getTriggersManager(): TriggersManager;
+  getCameraTriggersManager(): CameraTriggersManager;
   getViewManager(): ViewManager;
 }
 
@@ -314,7 +314,7 @@ export interface CardStyleAPI {
   getViewManager(): ViewManager;
 }
 
-export interface CardTriggersAPI {
+export interface CardCameraTriggersAPI {
   getCallManager(): CallManager;
   getCameraManager(): CameraManager;
   getConditionStateManager(): ConditionStateManager;
@@ -339,7 +339,7 @@ export interface CardViewAPI {
   getIssueManager(): IssueManager;
   getQueryStringManager(): QueryStringManager;
   getStyleManager(): StyleManager;
-  getTriggersManager(): TriggersManager;
+  getCameraTriggersManager(): CameraTriggersManager;
 }
 
 // *************************************************************************

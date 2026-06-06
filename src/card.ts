@@ -457,7 +457,7 @@ class AdvancedCameraCard extends LitElement {
               .locked=${this._controller.getLockManager().isLocked()}
               .conditionStateManager=${this._controller.getConditionStateManager()}
               .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
-                ? this._controller.getTriggersManager().getTriggeredCameraIDs()
+                ? this._controller.getCameraTriggersManager().getTriggeredCameraIDs()
                 : undefined}
               .deviceRegistryManager=${this._controller.getDeviceRegistryManager()}
               .issues=${this._controller

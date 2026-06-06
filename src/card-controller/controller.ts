@@ -40,7 +40,7 @@ import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
 import { TemplateRenderer } from './templates';
-import { TriggersManager } from './triggers-manager';
+import { CameraTriggersManager } from './camera-triggers-manager';
 import {
   CardActionsManagerAPI,
   CardAutomationsAPI,
@@ -66,7 +66,7 @@ import {
   CardPIPAPI,
   CardQueryStringAPI,
   CardStyleAPI,
-  CardTriggersAPI,
+  CardCameraTriggersAPI,
   CardViewAPI,
 } from './types';
 import { ViewItemManager } from './view/item-manager';
@@ -98,7 +98,7 @@ export class CardController
     CardNotificationAPI,
     CardQueryStringAPI,
     CardStyleAPI,
-    CardTriggersAPI,
+    CardCameraTriggersAPI,
     CardViewAPI,
     ReactiveController
 {
@@ -137,7 +137,7 @@ export class CardController
   private _queryStringManager = new QueryStringManager(this);
   private _statusBarItemManager = new StatusBarItemManager(this);
   private _styleManager = new StyleManager(this);
-  private _triggersManager = new TriggersManager(this);
+  private _cameraTriggersManager = new CameraTriggersManager(this);
   private _viewManager = new ViewManager(this);
   private _viewItemManager = new ViewItemManager(this);
 
@@ -305,8 +305,8 @@ export class CardController
     return this._styleManager;
   }
 
-  public getTriggersManager(): TriggersManager {
-    return this._triggersManager;
+  public getCameraTriggersManager(): CameraTriggersManager {
+    return this._cameraTriggersManager;
   }
 
   public getViewManager(): ViewManager {

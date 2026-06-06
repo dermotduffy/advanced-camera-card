@@ -123,7 +123,7 @@ describe('should handle camera_select action', () => {
   it('with triggered camera', async () => {
     const api = createCardAPI();
     vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
-    vi.mocked(api.getTriggersManager().getMostRecentlyTriggeredCameraID).mockReturnValue(
+    vi.mocked(api.getCameraTriggersManager().getMostRecentlyTriggeredCameraID).mockReturnValue(
       'camera.office',
     );
 
@@ -152,7 +152,7 @@ describe('should handle camera_select action', () => {
   it('without camera or triggered camera', async () => {
     const api = createCardAPI();
     vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
-    vi.mocked(api.getTriggersManager().getMostRecentlyTriggeredCameraID).mockReturnValue(
+    vi.mocked(api.getCameraTriggersManager().getMostRecentlyTriggeredCameraID).mockReturnValue(
       'camera.office',
     );
 
