@@ -11,7 +11,8 @@ export class UserConditionEvaluator implements ConditionEvaluator {
   public evaluate(newState?: ConditionState): ConditionsEvaluationResult {
     return {
       result:
-        !!newState?.hass?.user && this._condition.users.includes(newState.hass.user.id),
+        !!newState?.hass?.user &&
+        !!this._condition.users?.includes(newState.hass.user.id),
     };
   }
 }

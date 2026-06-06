@@ -84,7 +84,7 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
       conditions: [
         {
           condition: 'state' as const,
-          entity: cameraControlEntity,
+          entity_id: cameraControlEntity,
         },
       ],
       actions: [

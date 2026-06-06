@@ -5,7 +5,7 @@ import {
   statusBarStringItemSchema,
 } from '../actions/types';
 import { stockConditionSchema } from '../conditions/stock/types';
-import { advancedCameraCardConditionSchema } from '../conditions/types';
+import { conditionSchema } from '../conditions/types';
 import { menuIconSchema } from './custom/menu/icon';
 import { menuStateIconSchema } from './custom/menu/state-icon';
 import { menuSubmenuSchema } from './custom/menu/submenu';
@@ -36,7 +36,7 @@ export const conditionalSchema = z.object({
 
 const advancedCameraCardConditionalSchema = z.object({
   type: z.literal('custom:advanced-camera-card-conditional'),
-  conditions: advancedCameraCardConditionSchema.array(),
+  conditions: conditionSchema.array(),
 
   get elements() {
     // Recursive schema.

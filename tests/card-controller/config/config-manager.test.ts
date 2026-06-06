@@ -7,7 +7,7 @@ import { setKeyboardShortcutsFromConfig } from '../../../src/card-controller/con
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
 import { ConditionStateManager } from '../../../src/conditions/state-manager';
 import { Automation } from '../../../src/config/schema/automations';
-import { AdvancedCameraCardCondition } from '../../../src/config/schema/conditions/types';
+import { Condition } from '../../../src/config/schema/conditions/types';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
 import { createGeneralAction } from '../../../src/utils/action';
 import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
@@ -531,8 +531,7 @@ describe('ConfigManager', () => {
         const hasKeyboardShortcut = addCalls.some((call) =>
           call[0].some((automation: Automation) =>
             automation.conditions?.some(
-              (cond: AdvancedCameraCardCondition) =>
-                cond.condition === 'key' && cond.key === 'h',
+              (cond: Condition) => cond.condition === 'key' && cond.key === 'h',
             ),
           ),
         );
@@ -753,7 +752,7 @@ describe('ConfigManager', () => {
         const hasRemoteControl = addCalls.some((call) =>
           call[0].some((automation: Automation) =>
             automation.conditions?.some(
-              (cond: AdvancedCameraCardCondition) =>
+              (cond: Condition) =>
                 cond.condition === 'config' &&
                 cond.paths?.includes('remote_control.entities.camera'),
             ),

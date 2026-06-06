@@ -20,4 +20,15 @@ describe('user condition', () => {
         .result,
     ).toBeFalsy();
   });
+
+  it('should not match when no users are set', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'user' as const },
+      createEvaluatorContext(),
+    );
+
+    expect(
+      evaluator.evaluate({ hass: createHASS({}, createUser({ id: 'user_1' })) }).result,
+    ).toBeFalsy();
+  });
 });

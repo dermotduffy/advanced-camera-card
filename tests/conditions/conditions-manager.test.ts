@@ -39,8 +39,8 @@ describe('ConditionsManager', () => {
     const stateManager = new ConditionStateManager();
     const manager = new ConditionsManager(
       [
-        { condition: 'state' as const, entity: 'switch.one' },
-        { condition: 'state' as const, entity: 'switch.two' },
+        { condition: 'state' as const, entity_id: 'switch.one' },
+        { condition: 'state' as const, entity_id: 'switch.two' },
       ],
       stateManager,
     );

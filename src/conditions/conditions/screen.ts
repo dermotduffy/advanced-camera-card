@@ -16,10 +16,17 @@ export class ScreenConditionEvaluator implements ConditionEvaluator {
   }
 
   public evaluate(): ConditionsEvaluationResult {
-    return { result: window.matchMedia(this._condition.media_query).matches };
+    return {
+      result: this._condition.media_query
+        ? window.matchMedia(this._condition.media_query).matches
+        : false,
+    };
   }
 
   public subscribe(onChange: ConditionEvaluatorSubscriptionCallback): void {
+    if (!this._condition.media_query) {
+      return;
+    }
     this._onChange = onChange;
     this._mediaQuery = window.matchMedia(this._condition.media_query);
     this._mediaQuery.addEventListener('change', this._handler);

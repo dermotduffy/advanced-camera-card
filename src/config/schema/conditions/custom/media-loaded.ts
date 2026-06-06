@@ -1,6 +1,6 @@
 import { z } from 'zod';
+import { mediaLoadedBaseSchema } from '../../common/condition-trigger/media-loaded';
 
-export const mediaLoadedConditionSchema = z.object({
+export const mediaLoadedConditionSchema = mediaLoadedBaseSchema.extend({
   condition: z.literal('media_loaded'),
-  media_loaded: z.boolean(),
 });

@@ -1,5 +1,5 @@
 import { TemplateRenderer } from '../../card-controller/templates';
-import { AdvancedCameraCardCondition } from '../../config/schema/conditions/types';
+import { Condition } from '../../config/schema/conditions/types';
 import { ConditionsEvaluationResult, ConditionState } from '../types';
 
 export type ConditionEvaluatorSubscriptionCallback = () => void;
@@ -26,7 +26,4 @@ export interface EvaluatorContext {
 }
 
 // The condition union member(s) carrying a given discriminator literal.
-export type ConditionOfType<T extends string> = Extract<
-  AdvancedCameraCardCondition,
-  { condition?: T }
->;
+export type ConditionOfType<T extends string> = Extract<Condition, { condition?: T }>;

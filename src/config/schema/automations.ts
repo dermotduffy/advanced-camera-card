@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import { actionConfigSchema } from './actions/types';
-import { advancedCameraCardConditionSchema } from './conditions/types';
+import { conditionSchema } from './conditions/types';
 
 const automationActionsSchema = actionConfigSchema.array();
 export type AutomationActions = z.infer<typeof automationActionsSchema>;
 
 const automationSchema = z
   .object({
-    conditions: advancedCameraCardConditionSchema.array(),
+    conditions: conditionSchema.array(),
     actions: automationActionsSchema.optional(),
     actions_not: automationActionsSchema.optional(),
   })

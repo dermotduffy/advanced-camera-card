@@ -1,11 +1,6 @@
 import { z } from 'zod';
+import { keyBaseSchema } from '../../common/condition-trigger/key';
 
-export const keyConditionSchema = z.object({
+export const keyConditionSchema = keyBaseSchema.extend({
   condition: z.literal('key'),
-  key: z.string(),
-  state: z.enum(['down', 'up']).optional(),
-  ctrl: z.boolean().optional(),
-  shift: z.boolean().optional(),
-  alt: z.boolean().optional(),
-  meta: z.boolean().optional(),
 });

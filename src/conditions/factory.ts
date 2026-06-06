@@ -1,4 +1,4 @@
-import { AdvancedCameraCardCondition } from '../config/schema/conditions/types';
+import { Condition } from '../config/schema/conditions/types';
 import { AndConditionEvaluator } from './conditions/and';
 import { CallConditionEvaluator } from './conditions/call';
 import { CameraConditionEvaluator } from './conditions/camera';
@@ -24,7 +24,7 @@ import { UserAgentConditionEvaluator } from './conditions/user-agent';
 import { ViewConditionEvaluator } from './conditions/view';
 
 export const createConditionEvaluator = (
-  condition: AdvancedCameraCardCondition,
+  condition: Condition,
   context: EvaluatorContext,
 ): ConditionEvaluator => {
   switch (condition.condition) {
@@ -40,7 +40,7 @@ export const createConditionEvaluator = (
     case 'camera':
       return new CameraConditionEvaluator(condition);
     case 'numeric_state':
-      return new NumericStateConditionEvaluator(condition);
+      return new NumericStateConditionEvaluator(condition, context);
     case 'user':
       return new UserConditionEvaluator(condition);
     case 'media_loaded':

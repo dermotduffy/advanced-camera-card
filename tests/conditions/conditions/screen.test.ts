@@ -20,6 +20,18 @@ describe('screen condition', () => {
     expect(evaluator.evaluate().result).toBeTruthy();
   });
 
+  it('should not match and not subscribe without a media query', () => {
+    const matchMedia = vi.spyOn(window, 'matchMedia');
+    const evaluator = createConditionEvaluator(
+      { condition: 'screen' as const },
+      createEvaluatorContext(),
+    );
+
+    expect(evaluator.evaluate().result).toBeFalsy();
+    evaluator.subscribe?.(vi.fn());
+    expect(matchMedia).not.toHaveBeenCalled();
+  });
+
   it('should register and invoke a media-query listener on subscribe', () => {
     const addEventListener = vi.fn();
     vi.spyOn(window, 'matchMedia').mockReturnValue({

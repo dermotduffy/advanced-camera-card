@@ -1,6 +1,6 @@
 import { z } from 'zod';
+import { triggeredBaseSchema } from '../../common/condition-trigger/triggered';
 
-export const triggeredConditionSchema = z.object({
+export const triggeredConditionSchema = triggeredBaseSchema.extend({
   condition: z.literal('triggered'),
-  triggered: z.string().array(),
 });

@@ -1,5 +1,5 @@
 import { TemplateRenderer } from '../card-controller/templates';
-import { AdvancedCameraCardCondition } from '../config/schema/conditions/types';
+import { Condition } from '../config/schema/conditions/types';
 import { ConditionEvaluator } from './conditions/types';
 import { createConditionEvaluator } from './factory';
 import {
@@ -24,7 +24,7 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
   private _evaluation: ConditionsEvaluationResult = { result: false };
 
   constructor(
-    conditions: AdvancedCameraCardCondition[],
+    conditions: Condition[],
     stateManager?: ConditionStateManagerReadonlyInterface | null,
   ) {
     const context = { templateRenderer: new TemplateRenderer() };

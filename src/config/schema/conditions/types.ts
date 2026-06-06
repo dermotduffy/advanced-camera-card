@@ -13,57 +13,54 @@ import { microphoneConditionSchema } from './custom/microphone';
 import { triggeredConditionSchema } from './custom/triggered';
 import { userAgentConditionSchema } from './custom/user-agent';
 import { viewConditionSchema } from './custom/view';
-import { numericStateConditionSchema } from './stock/numeric';
+import { numericStateConditionSchema } from './stock/numeric-state';
 import { screenConditionSchema } from './stock/screen';
 import { stateConditionSchema } from './stock/state';
 import { templateConditionSchema } from './stock/template';
-import { usersConditionSchema } from './stock/users';
+import { userConditionSchema } from './stock/user';
 
 // https://www.home-assistant.io/docs/scripts/conditions/#or-condition
 type OrCondition = {
   condition: 'or';
-  conditions: AdvancedCameraCardCondition[];
+  conditions: Condition[];
 };
 const orConditionSchema: z.ZodSchema<OrCondition> = z.object({
   condition: z.literal('or'),
-  conditions: z
-    .lazy(() => advancedCameraCardConditionSchema)
-    .array()
-    .min(1),
+
+  // HA requires the `conditions` key but allows an empty list.
+  conditions: z.lazy(() => conditionSchema).array(),
 });
 
 // https://www.home-assistant.io/docs/scripts/conditions/#and-condition
 type AndCondition = {
   condition: 'and';
-  conditions: AdvancedCameraCardCondition[];
+  conditions: Condition[];
 };
 const andConditionSchema: z.ZodSchema<AndCondition> = z.object({
   condition: z.literal('and'),
-  conditions: z
-    .lazy(() => advancedCameraCardConditionSchema)
-    .array()
-    .min(1),
+
+  // HA requires the `conditions` key but allows an empty list.
+  conditions: z.lazy(() => conditionSchema).array(),
 });
 
 // https://www.home-assistant.io/docs/scripts/conditions/#not-condition
 type NotCondition = {
   condition: 'not';
-  conditions: AdvancedCameraCardCondition[];
+  conditions: Condition[];
 };
 const notConditionSchema: z.ZodSchema<NotCondition> = z.object({
   condition: z.literal('not'),
-  conditions: z
-    .lazy(() => advancedCameraCardConditionSchema)
-    .array()
-    .min(1),
+
+  // HA requires the `conditions` key but allows an empty list.
+  conditions: z.lazy(() => conditionSchema).array(),
 });
 
-export const advancedCameraCardConditionSchema = z.union([
+export const conditionSchema = z.union([
   // Stock conditions:
   numericStateConditionSchema,
   screenConditionSchema,
   stateConditionSchema,
-  usersConditionSchema,
+  userConditionSchema,
   orConditionSchema,
   andConditionSchema,
   notConditionSchema,
@@ -85,6 +82,4 @@ export const advancedCameraCardConditionSchema = z.union([
   userAgentConditionSchema,
   viewConditionSchema,
 ]);
-export type AdvancedCameraCardCondition = z.infer<
-  typeof advancedCameraCardConditionSchema
->;
+export type Condition = z.infer<typeof conditionSchema>;

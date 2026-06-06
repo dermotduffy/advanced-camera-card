@@ -1,6 +1,6 @@
 import { z } from 'zod';
+import { fullscreenBaseSchema } from '../../common/condition-trigger/fullscreen';
 
-export const fullscreenConditionSchema = z.object({
+export const fullscreenConditionSchema = fullscreenBaseSchema.extend({
   condition: z.literal('fullscreen'),
-  fullscreen: z.boolean(),
 });

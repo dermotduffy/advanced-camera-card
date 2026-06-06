@@ -1,6 +1,6 @@
 import { z } from 'zod';
+import { configBaseSchema } from '../../common/condition-trigger/config';
 
-export const configConditionSchema = z.object({
+export const configConditionSchema = configBaseSchema.extend({
   condition: z.literal('config'),
-  paths: z.string().array().optional(),
 });

@@ -1,10 +1,6 @@
 import { z } from 'zod';
-import { regexSchema } from '../../common/regex';
+import { userAgentBaseSchema } from '../../common/condition-trigger/user-agent';
 
-export const userAgentConditionSchema = z.object({
+export const userAgentConditionSchema = userAgentBaseSchema.extend({
   condition: z.literal('user_agent'),
-  user_agent: z.string().optional(),
-  user_agent_re: regexSchema.optional(),
-  casting: z.boolean().optional(),
-  companion: z.boolean().optional(),
 });

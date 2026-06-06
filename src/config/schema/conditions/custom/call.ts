@@ -1,6 +1,6 @@
 import { z } from 'zod';
+import { callBaseSchema } from '../../common/condition-trigger/call';
 
-export const callConditionSchema = z.object({
+export const callConditionSchema = callBaseSchema.extend({
   condition: z.literal('call'),
-  call: z.boolean().optional(),
 });

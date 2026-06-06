@@ -2225,12 +2225,12 @@ describe('should handle version specific upgrades', () => {
                 conditions: [
                   {
                     condition: 'state' as const,
-                    entity: 'binary_sensor.first',
+                    entity_id: 'binary_sensor.first',
                     state: 'on',
                   },
                   {
                     condition: 'state' as const,
-                    entity: 'binary_sensor.second',
+                    entity_id: 'binary_sensor.second',
                     state_not: 'off',
                   },
                 ],
@@ -2281,12 +2281,12 @@ describe('should handle version specific upgrades', () => {
                 conditions: [
                   {
                     condition: 'state' as const,
-                    entity: 'binary_sensor.first',
+                    entity_id: 'binary_sensor.first',
                     state: 'on',
                   },
                   {
                     condition: 'state' as const,
-                    entity: 'binary_sensor.second',
+                    entity_id: 'binary_sensor.second',
                     state_not: 'off',
                   },
                 ],
@@ -2339,12 +2339,12 @@ describe('should handle version specific upgrades', () => {
                 conditions: [
                   {
                     condition: 'state' as const,
-                    entity: 'binary_sensor.first',
+                    entity_id: 'binary_sensor.first',
                     state: 'on',
                   },
                   {
                     condition: 'state' as const,
-                    entity: 'binary_sensor.second',
+                    entity_id: 'binary_sensor.second',
                     state_not: 'off',
                   },
                 ],

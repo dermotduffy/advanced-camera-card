@@ -1,6 +1,6 @@
 import { z } from 'zod';
+import { expandBaseSchema } from '../../common/condition-trigger/expand';
 
-export const expandConditionSchema = z.object({
+export const expandConditionSchema = expandBaseSchema.extend({
   condition: z.literal('expand'),
-  expand: z.boolean(),
 });

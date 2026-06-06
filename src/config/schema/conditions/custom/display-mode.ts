@@ -1,7 +1,6 @@
 import { z } from 'zod';
-import { viewDisplayModeSchema } from '../../common/display';
+import { displayModeBaseSchema } from '../../common/condition-trigger/display-mode';
 
-export const displayModeConditionSchema = z.object({
+export const displayModeConditionSchema = displayModeBaseSchema.extend({
   condition: z.literal('display_mode'),
-  display_mode: viewDisplayModeSchema,
 });

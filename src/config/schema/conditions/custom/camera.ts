@@ -1,6 +1,6 @@
 import { z } from 'zod';
+import { cameraBaseSchema } from '../../common/condition-trigger/camera';
 
-export const cameraConditionSchema = z.object({
+export const cameraConditionSchema = cameraBaseSchema.extend({
   condition: z.literal('camera'),
-  cameras: z.string().array().optional(),
 });

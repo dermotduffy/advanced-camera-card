@@ -22,7 +22,7 @@ import {
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
 } from '../const';
 import { arrayify } from '../utils/basic';
-import { AdvancedCameraCardCondition } from './schema/conditions/types';
+import { Condition } from './schema/conditions/types';
 import { RawAdvancedCameraCardConfig, RawAdvancedCameraCardConfigArray } from './types';
 
 // *************************************************************************
@@ -362,7 +362,7 @@ const conditionToConditionsTransform = (data: unknown): boolean => {
   }
 
   const oldConditions = data['conditions'];
-  const newConditions: AdvancedCameraCardCondition[] = [];
+  const newConditions: Condition[] = [];
 
   if (oldConditions['view'] !== undefined) {
     newConditions.push({
@@ -412,7 +412,7 @@ const conditionToConditionsTransform = (data: unknown): boolean => {
             state_not: stateCondition['state_not'],
           }),
           ...(stateCondition['entity'] && {
-            entity: stateCondition['entity'],
+            entity_id: stateCondition['entity'],
           }),
         });
       }

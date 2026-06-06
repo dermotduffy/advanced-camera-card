@@ -97,7 +97,7 @@ describe('setRemoteControlEntityFromConfig', () => {
         conditions: [
           {
             condition: 'state',
-            entity: 'input_select.camera',
+            entity_id: 'input_select.camera',
           },
         ],
         tag: setRemoteControlEntityFromConfig,
@@ -179,7 +179,7 @@ describe('setRemoteControlEntityFromConfig', () => {
         conditions: [
           {
             condition: 'state',
-            entity: 'input_select.camera',
+            entity_id: 'input_select.camera',
           },
         ],
         tag: setRemoteControlEntityFromConfig,

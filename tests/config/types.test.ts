@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { advancedCameraCardCustomActionsBaseSchema } from '../../src/config/schema/actions/custom/base';
 import { statusBarActionConfigSchema } from '../../src/config/schema/actions/types';
 import { cameraConfigSchema } from '../../src/config/schema/cameras';
-import { advancedCameraCardConditionSchema } from '../../src/config/schema/conditions/types';
+import { conditionSchema } from '../../src/config/schema/conditions/types';
 import { dimensionsConfigSchema } from '../../src/config/schema/dimensions';
 import { customSchema } from '../../src/config/schema/elements/stock/custom';
 import { conditionalSchema } from '../../src/config/schema/elements/types';
@@ -692,7 +692,7 @@ describe('config defaults', () => {
         conditions: [
           {
             condition: 'state',
-            entity: 'light.office_main_lights',
+            entity_id: 'light.office_main_lights',
             state: 'on',
             state_not: 'off',
           },
@@ -909,7 +909,7 @@ describe('config defaults', () => {
       { condition: 'not', conditions: [{ condition: 'initialized' }] },
       {
         condition: 'numeric_state',
-        entity: 'sensor.office_temperature',
+        entity_id: 'sensor.office_temperature',
         above: 10,
         below: 20,
       },
@@ -917,7 +917,7 @@ describe('config defaults', () => {
       { condition: 'screen', media_query: '(orientation: landscape)' },
       {
         condition: 'state',
-        entity: 'climate.office',
+        entity_id: 'climate.office',
         state: 'heat',
         state_not: 'off',
       },
@@ -1323,7 +1323,7 @@ it('should transform dimensions.aspect_ratio', () => {
 describe('should refine user_agent_re conditions', () => {
   it('should successfully parse valid user_agent_re condition', () => {
     expect(
-      advancedCameraCardConditionSchema.parse({
+      conditionSchema.parse({
         condition: 'user_agent',
         user_agent_re: 'Chrome/',
       }),
@@ -1335,7 +1335,7 @@ describe('should refine user_agent_re conditions', () => {
 
   it('should reject invalid user_agent_re conditions', () => {
     expect(() =>
-      advancedCameraCardConditionSchema.parse({
+      conditionSchema.parse({
         condition: 'user_agent',
         user_agent_re: '[',
       }),
@@ -1582,7 +1582,7 @@ describe('should lazy evaluate schemas', () => {
         conditions: [
           {
             condition: 'state',
-            entity: 'light.office_main_lights',
+            entity_id: 'light.office_main_lights',
             state: 'on',
             state_not: 'off',
           },
@@ -1603,7 +1603,7 @@ describe('should lazy evaluate schemas', () => {
       conditions: [
         {
           condition: 'state',
-          entity: 'light.office_main_lights',
+          entity_id: 'light.office_main_lights',
           state: 'on',
           state_not: 'off',
         },
