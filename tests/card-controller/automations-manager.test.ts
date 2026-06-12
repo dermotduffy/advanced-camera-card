@@ -11,14 +11,16 @@ describe('AutomationsManager', () => {
       advanced_camera_card_action: 'clips',
     },
   ];
-  const conditions = [{ condition: 'fullscreen' as const, fullscreen: true }];
+  const actionsNot = [
+    {
+      action: 'fire-dom-event' as const,
+      advanced_camera_card_action: 'clip',
+    },
+  ];
+  const triggers = [{ trigger: 'fullscreen' as const, fullscreen: true }];
   const automation = {
-    conditions: conditions,
+    triggers: triggers,
     actions: actions,
-  };
-  const not_automation = {
-    conditions: conditions,
-    actions_not: actions,
   };
 
   afterEach(() => {
@@ -78,7 +80,7 @@ describe('AutomationsManager', () => {
     });
   });
 
-  it('should execute actions', () => {
+  it('should execute actions when a trigger fires', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
     vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
@@ -94,8 +96,7 @@ describe('AutomationsManager', () => {
 
     expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
 
-    // Automation will not re-fire when condition continues to evaluate the
-    // same.
+    // The trigger does not re-fire while its source stays in the same state.
     stateManager.setState({ fullscreen: true });
     expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
 
@@ -106,7 +107,7 @@ describe('AutomationsManager', () => {
     expect(api.getActionsManager().executeActions).toBeCalledTimes(2);
   });
 
-  it('should execute actions_not', () => {
+  it('should run actions when the ongoing conditions hold', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
     vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
@@ -116,13 +117,73 @@ describe('AutomationsManager', () => {
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
     const automationsManager = new AutomationsManager(api);
-    automationsManager.addAutomations([not_automation]);
+    automationsManager.addAutomations([
+      {
+        triggers: triggers,
+        conditions: [{ condition: 'expand' as const, expand: true }],
+        actions: actions,
+        actions_not: actionsNot,
+      },
+    ]);
 
+    // The ongoing condition holds when the trigger fires, so `actions` run.
+    stateManager.setState({ expand: true });
     stateManager.setState({ fullscreen: true });
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
 
-    stateManager.setState({ fullscreen: false });
-    expect(api.getActionsManager().executeActions).toBeCalled();
+    expect(api.getActionsManager().executeActions).toBeCalledWith({ actions: actions });
+  });
+
+  it('should run actions_not when the ongoing conditions do not hold', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+      true,
+    );
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
+    const automationsManager = new AutomationsManager(api);
+    automationsManager.addAutomations([
+      {
+        triggers: triggers,
+        conditions: [{ condition: 'expand' as const, expand: true }],
+        actions: actions,
+        actions_not: actionsNot,
+      },
+    ]);
+
+    // The ongoing condition does not hold when the trigger fires, so
+    // `actions_not` runs instead.
+    stateManager.setState({ fullscreen: true });
+
+    expect(api.getActionsManager().executeActions).toBeCalledWith({
+      actions: actionsNot,
+    });
+  });
+
+  it('should do nothing when the selected action branch is empty', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+      true,
+    );
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
+    const automationsManager = new AutomationsManager(api);
+    automationsManager.addAutomations([
+      {
+        triggers: triggers,
+        conditions: [{ condition: 'expand' as const, expand: true }],
+        actions: actions,
+      },
+    ]);
+
+    // The trigger fires but the ongoing condition does not hold, and there is no
+    // `actions_not` branch to run.
+    stateManager.setState({ fullscreen: true });
+
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
   });
 
   it('should prevent automation loops', () => {
@@ -137,29 +198,27 @@ describe('AutomationsManager', () => {
     const automationsManager = new AutomationsManager(api);
     automationsManager.addAutomations([
       {
-        conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
+        triggers: [{ trigger: 'camera' as const }],
         actions: actions,
-      },
-      {
-        conditions: [{ condition: 'fullscreen' as const, fullscreen: false }],
-        actions_not: actions,
       },
     ]);
 
-    // Create a setup where one automation action causes another...
-    let fullscreen = true;
+    // Create a setup where the automation's action re-fires its own trigger: the
+    // camera trigger fires on every camera change, and the action changes the
+    // camera, looping until the nested-execution guard trips.
+    let camera = 'one';
 
     vi.mocked(api.getActionsManager().executeActions).mockImplementation(
       async (
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _request: ActionsExecutionRequest,
       ): Promise<void> => {
-        fullscreen = !fullscreen;
-        stateManager.setState({ fullscreen: fullscreen });
+        camera = camera === 'one' ? 'two' : 'one';
+        stateManager.setState({ camera: camera });
       },
     );
 
-    stateManager.setState({ fullscreen: fullscreen });
+    stateManager.setState({ camera: camera });
 
     expect(api.getNotificationManager().setNotification).toBeCalledWith({
       heading: {
@@ -184,11 +243,11 @@ describe('AutomationsManager', () => {
     const automationsManager = new AutomationsManager(api);
     automationsManager.addAutomations([
       {
-        conditions: [{ condition: 'expand' as const, expand: true }],
+        triggers: [{ trigger: 'expand' as const, expand: true }],
         actions: actions,
       },
       {
-        conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
+        triggers: [{ trigger: 'fullscreen' as const, fullscreen: true }],
         actions: actions,
         tag: 'fullscreen',
       },
@@ -210,8 +269,8 @@ describe('AutomationsManager', () => {
     // Delete all automations.
     automationsManager.deleteAutomations();
 
-    stateManager.setState({ fullscreen: false });
-    stateManager.setState({ fullscreen: true });
+    stateManager.setState({ expand: false });
+    stateManager.setState({ expand: true });
     expect(api.getActionsManager().executeActions).toBeCalledTimes(2);
   });
 });

@@ -99,7 +99,7 @@ describe('ConditionStateManager', () => {
       // Reentrantly flip the value the originating change just set, capturing
       // what is observable mid-dispatch so it can be asserted outside the
       // callback (where a failure cannot be swallowed).
-      if (!reentrantReturn === undefined) {
+      if (reentrantReturn === undefined) {
         reentrantReturn = manager.setState({ fullscreen: false });
         stateDuringDispatch = manager.getState();
       }

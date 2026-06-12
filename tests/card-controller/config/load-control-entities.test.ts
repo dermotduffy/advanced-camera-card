@@ -48,9 +48,9 @@ describe('setRemoteControlEntityFromConfig', () => {
             callback: expect.any(Function),
           },
         ],
-        conditions: [
+        triggers: [
           {
-            condition: 'config',
+            trigger: 'config',
             paths: ['cameras', 'remote_control.entities.camera'],
           },
         ],
@@ -64,9 +64,9 @@ describe('setRemoteControlEntityFromConfig', () => {
             callback: expect.any(Function),
           },
         ],
-        conditions: [
+        triggers: [
           {
-            condition: 'camera',
+            trigger: 'camera',
           },
         ],
         tag: setRemoteControlEntityFromConfig,
@@ -79,9 +79,9 @@ describe('setRemoteControlEntityFromConfig', () => {
             callback: expect.any(Function),
           },
         ],
-        conditions: [
+        triggers: [
           {
-            condition: 'initialized',
+            trigger: 'initialized',
           },
         ],
         tag: setRemoteControlEntityFromConfig,
@@ -94,9 +94,9 @@ describe('setRemoteControlEntityFromConfig', () => {
             camera: '{{ advanced_camera_card.trigger.state.to }}',
           },
         ],
-        conditions: [
+        triggers: [
           {
-            condition: 'state',
+            trigger: 'state',
             entity_id: 'input_select.camera',
           },
         ],
@@ -130,9 +130,9 @@ describe('setRemoteControlEntityFromConfig', () => {
             callback: expect.any(Function),
           },
         ],
-        conditions: [
+        triggers: [
           {
-            condition: 'config',
+            trigger: 'config',
             paths: ['cameras', 'remote_control.entities.camera'],
           },
         ],
@@ -146,9 +146,9 @@ describe('setRemoteControlEntityFromConfig', () => {
             callback: expect.any(Function),
           },
         ],
-        conditions: [
+        triggers: [
           {
-            condition: 'camera',
+            trigger: 'camera',
           },
         ],
         tag: setRemoteControlEntityFromConfig,
@@ -161,9 +161,9 @@ describe('setRemoteControlEntityFromConfig', () => {
             camera: '{{ hass.states["input_select.camera"].state }}',
           },
         ],
-        conditions: [
+        triggers: [
           {
-            condition: 'initialized',
+            trigger: 'initialized',
           },
         ],
         tag: setRemoteControlEntityFromConfig,
@@ -176,9 +176,9 @@ describe('setRemoteControlEntityFromConfig', () => {
             camera: '{{ advanced_camera_card.trigger.state.to }}',
           },
         ],
-        conditions: [
+        triggers: [
           {
-            condition: 'state',
+            trigger: 'state',
             entity_id: 'input_select.camera',
           },
         ],

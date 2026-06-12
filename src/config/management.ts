@@ -438,6 +438,82 @@ const conditionToConditionsTransform = (data: unknown): boolean => {
   return false;
 };
 
+const isCompositeCondition = (condition: unknown): boolean => {
+  if (typeof condition !== 'object' || !condition) {
+    return false;
+  }
+  const kind = condition['condition'];
+  return typeof kind === 'string' && ['or', 'and', 'not'].includes(kind);
+};
+
+// Triggers are a flat OR list with no composites, so a composite condition is
+// reduced to its leaf conditions for the trigger list (the composite itself is
+// retained on the `conditions:` side).
+const flattenConditionLeaves = (condition: unknown): unknown[] => {
+  if (!isCompositeCondition(condition) || typeof condition !== 'object' || !condition) {
+    return [condition];
+  }
+  const inner = condition['conditions'];
+  return Array.isArray(inner) ? inner.flatMap(flattenConditionLeaves) : [];
+};
+
+const rewriteConditionAsTrigger = (condition: unknown): unknown => {
+  if (typeof condition !== 'object' || !condition) {
+    return condition;
+  }
+  const kind = condition['condition'];
+
+  // A `state` condition maps onto the HA state trigger (`state` -> `to`,
+  // `state_not` -> `not_to`). A discriminator-less condition is the bare
+  // picture-element state form -- the only condition that may omit `condition`.
+  if (kind === 'state' || kind === undefined) {
+    const entityId = condition['entity_id'] ?? condition['entity'];
+    return {
+      trigger: 'state',
+      ...(entityId !== undefined && { entity_id: entityId }),
+      ...(condition['state'] !== undefined && { to: condition['state'] }),
+      ...(condition['state_not'] !== undefined && { not_to: condition['state_not'] }),
+    };
+  }
+
+  // Every other condition -- the stock `numeric_state`/`template` and all the
+  // card-specific kinds -- shares its field names with the matching trigger
+  // (only `state` involves internal field renames), so promoting is just a
+  // discriminator swap.
+  const rest = { ...condition };
+  delete rest['condition'];
+  return { trigger: kind, ...rest };
+};
+
+/**
+ * Promote an automation's `conditions:` into HA-native `triggers:`.
+ *
+ * A single simple condition becomes one trigger and the `conditions:` block is
+ * dropped. Multiple conditions (or a composite) become one trigger per leaf,
+ * while the original `conditions:` are retained as an ongoing predicate
+ * (dual-list). Idempotent: an automation that already has `triggers:` is left
+ * untouched.
+ */
+const promoteConditionsToTriggersTransform = (data: unknown): boolean => {
+  if (typeof data !== 'object' || !data || 'triggers' in data) {
+    return false;
+  }
+  const conditions = data['conditions'];
+  if (!Array.isArray(conditions) || !conditions.length) {
+    return false;
+  }
+
+  if (conditions.length === 1 && !isCompositeCondition(conditions[0])) {
+    data['triggers'] = [rewriteConditionAsTrigger(conditions[0])];
+    delete data['conditions'];
+  } else {
+    data['triggers'] = conditions
+      .flatMap(flattenConditionLeaves)
+      .map(rewriteConditionAsTrigger);
+  }
+  return true;
+};
+
 const callServiceToPerformActionTransform = (data: unknown): boolean => {
   if (
     typeof data !== 'object' ||
@@ -1089,7 +1165,7 @@ const UPGRADES = [
     upgradeWithOverrides('ptz', ptzIncorrectDataToWebRTCDataTransform),
   ),
 
-  // microphone.connected → call condition migration. Conditions live under
+  // microphone.connected -> call condition migration. Conditions live under
   // overrides, elements, and automations.
   upgradeArrayOfObjects(CONF_OVERRIDES, (override) =>
     upgradeObjectRecursively(microphoneConnectedToCallTransform)(override),
@@ -1114,7 +1190,7 @@ const UPGRADES = [
     );
   },
 
-  // Legacy `triggers.events: string[]` → `triggers.media_events`. Targets the
+  // Legacy `triggers.events: string[]` -> `triggers.media_events`. Targets the
   // two known places a camera config lives: `cameras_global` and `cameras[]`.
   // Mirrors the PTZ rename migration above.
   upgradeWithOverrides('cameras_global.triggers', triggersEventsToMediaEventsTransform),
@@ -1122,4 +1198,8 @@ const UPGRADES = [
     CONF_CAMERAS,
     upgradeWithOverrides('triggers', triggersEventsToMediaEventsTransform),
   ),
+
+  // Promote automation `conditions:` into HA-native `triggers:`. Runs last so it
+  // sees conditions in their final, fully-migrated form.
+  upgradeArrayOfObjects(CONF_AUTOMATIONS, promoteConditionsToTriggersTransform),
 ];

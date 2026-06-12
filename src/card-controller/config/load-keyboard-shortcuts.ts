@@ -64,9 +64,9 @@ const convertKeyboardShortcutsToAutomations = (
     }
 
     automations.push({
-      conditions: [
+      triggers: [
         {
-          condition: 'key' as const,
+          trigger: 'key' as const,
           key: shortcut.key,
           state: 'down',
           shift: shortcut.shift,
@@ -85,9 +85,9 @@ const convertKeyboardShortcutsToAutomations = (
     });
 
     automations.push({
-      conditions: [
+      triggers: [
         {
-          condition: 'key' as const,
+          trigger: 'key' as const,
           key: shortcut.key,
           state: 'up',
         },
@@ -105,9 +105,9 @@ const convertKeyboardShortcutsToAutomations = (
   const homeShortcut = shortcuts.ptz_home;
   if (homeShortcut) {
     automations.push({
-      conditions: [
+      triggers: [
         {
-          condition: 'key' as const,
+          trigger: 'key' as const,
           key: homeShortcut.key,
           state: 'down',
           shift: homeShortcut.shift,

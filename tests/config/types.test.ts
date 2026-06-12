@@ -1722,7 +1722,7 @@ describe('automations should require at least one action', () => {
     expect(() =>
       createConfig({
         cameras: [{}],
-        automations: [{ conditions: [] }],
+        automations: [{ triggers: [{ trigger: 'initialized' }], conditions: [] }],
       }),
     ).toThrowError(/Automations must include at least one action/);
   });
@@ -1731,7 +1731,14 @@ describe('automations should require at least one action', () => {
     expect(() =>
       createConfig({
         cameras: [{}],
-        automations: [{ conditions: [], actions: [], actions_not: [] }],
+        automations: [
+          {
+            triggers: [{ trigger: 'initialized' }],
+            conditions: [],
+            actions: [],
+            actions_not: [],
+          },
+        ],
       }),
     ).toThrowError(/Automations must include at least one action/);
   });
@@ -1742,6 +1749,7 @@ describe('automations should require at least one action', () => {
         cameras: [{}],
         automations: [
           {
+            triggers: [{ trigger: 'initialized' }],
             conditions: [],
             actions: [
               {
