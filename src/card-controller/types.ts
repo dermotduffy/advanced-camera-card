@@ -1,5 +1,5 @@
 import type { CameraManager } from '../camera-manager/manager';
-import type { ConditionStateManager } from '../conditions/state-manager';
+import type { ConditionStateManager } from '../condition-trigger/conditions/state-manager';
 import type { Automation } from '../config/schema/automations';
 import type { DeviceRegistryManager } from '../ha/registry/device';
 import type { EntityRegistryManager } from '../ha/registry/entity/types';

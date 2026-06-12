@@ -1,5 +1,5 @@
-import { ConditionsManager } from '../conditions/conditions-manager.js';
-import { ConditionsEvaluationResult } from '../conditions/types.js';
+import { ConditionsManager } from '../condition-trigger/conditions/conditions-manager.js';
+import { ConditionsEvaluationResult } from '../condition-trigger/conditions/types.js';
 import { Automation, AutomationActions } from '../config/schema/automations.js';
 import { localize } from '../localize/localize.js';
 import { CardAutomationsAPI, TaggedAutomation } from './types.js';

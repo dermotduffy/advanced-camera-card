@@ -19,7 +19,7 @@ import {
   ThumbnailDataRequestEvent,
   TimelineItemClickAction,
 } from '../components-lib/timeline/types';
-import { ConditionStateManagerReadonlyInterface } from '../conditions/types';
+import { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types';
 import { ThumbnailsControlBaseConfig } from '../config/schema/common/controls/thumbnails';
 import { TimelineCoreConfig } from '../config/schema/common/controls/timeline';
 import { CardWideConfig } from '../config/schema/types';

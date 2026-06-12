@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { conditionSchema } from './conditions/types';
+import { conditionSchema } from './condition-trigger/conditions/types';
 
 const overrideSchema = z.object({
   conditions: conditionSchema.array(),

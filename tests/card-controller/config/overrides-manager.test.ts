@@ -1,7 +1,7 @@
 import { assert, describe, expect, it, vi } from 'vitest';
 import { OverridesManager } from '../../../src/card-controller/config/overrides-manager';
+import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { AdvancedCameraCardConfig } from '../../../src/config/schema/types';
-import { ConditionStateManager } from '../../../src/conditions/state-manager';
 import { AdvancedCameraCardError } from '../../../src/types';
 import { createConfig } from '../../test-utils';
 

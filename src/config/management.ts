@@ -22,7 +22,7 @@ import {
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
 } from '../const';
 import { arrayify } from '../utils/basic';
-import { Condition } from './schema/conditions/types';
+import { Condition } from './schema/condition-trigger/conditions/types';
 import { RawAdvancedCameraCardConfig, RawAdvancedCameraCardConfigArray } from './types';
 
 // *************************************************************************

@@ -58,7 +58,7 @@ import { StyleManager } from '../src/card-controller/style-manager';
 import { ViewItemManager } from '../src/card-controller/view/item-manager';
 import { ViewManager } from '../src/card-controller/view/view-manager';
 import { SubmenuInteraction, SubmenuItem } from '../src/components/submenu/types';
-import { ConditionStateManager } from '../src/conditions/state-manager';
+import { ConditionStateManager } from '../src/condition-trigger/conditions/state-manager';
 import { CameraConfig, cameraConfigSchema } from '../src/config/schema/cameras';
 import { FolderConfig } from '../src/config/schema/folders';
 import {

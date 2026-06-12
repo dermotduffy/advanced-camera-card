@@ -1,6 +1,6 @@
 import type { IssueTriggerContext } from 'issue';
 import { summarizeNotification } from '../../components-lib/notification/summarize';
-import { ConditionState } from '../../conditions/types';
+import { ConditionState } from '../../condition-trigger/conditions/types';
 import { Notification } from '../../config/schema/actions/types';
 import { HomeAssistant } from '../../ha/types';
 import { isTruthy } from '../../utils/basic';

@@ -1,5 +1,5 @@
 import { HASS, renderTemplate } from 'ha-nunjucks/dist';
-import { ConditionState, ConditionsTriggerData } from '../../conditions/types';
+import { ConditionState, ConditionsTriggerData } from '../../condition-trigger/conditions/types';
 import { HomeAssistant } from '../../ha/types';
 
 interface TemplateMediaData {

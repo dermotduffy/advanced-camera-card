@@ -1,6 +1,6 @@
 import { get, merge } from 'lodash-es';
-import { ConditionsManager } from '../../conditions/conditions-manager';
-import { ConditionStateManagerReadonlyInterface } from '../../conditions/types';
+import { ConditionsManager } from '../../condition-trigger/conditions/conditions-manager';
+import { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
 import {
   copyConfig,
   deleteConfigValue,

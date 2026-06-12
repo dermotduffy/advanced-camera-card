@@ -5,9 +5,9 @@ import { ConfigManager } from '../../../src/card-controller/config/config-manage
 import { setRemoteControlEntityFromConfig } from '../../../src/card-controller/config/load-control-entities';
 import { setKeyboardShortcutsFromConfig } from '../../../src/card-controller/config/load-keyboard-shortcuts';
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
-import { ConditionStateManager } from '../../../src/conditions/state-manager';
+import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { Automation } from '../../../src/config/schema/automations';
-import { Condition } from '../../../src/config/schema/conditions/types';
+import { Condition } from '../../../src/config/schema/condition-trigger/conditions/types';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
 import { createGeneralAction } from '../../../src/utils/action';
 import { createCardAPI, createConfig, flushPromises } from '../../test-utils';

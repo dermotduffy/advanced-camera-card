@@ -25,7 +25,7 @@ import './components/status-bar';
 import './components/thumbnail-carousel.js';
 import './components/views.js';
 import { AdvancedCameraCardViews } from './components/views.js';
-import { ConditionStateManagerGetEvent } from './conditions/state-manager-via-event.js';
+import { ConditionStateManagerGetEvent } from './condition-trigger/conditions/state-manager-via-event.js';
 import { StatusBarItem } from './config/schema/actions/types.js';
 import { MenuItem } from './config/schema/elements/custom/menu/types.js';
 import { AdvancedCameraCardConfig } from './config/schema/types.js';

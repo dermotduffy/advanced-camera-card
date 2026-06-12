@@ -1,6 +1,6 @@
 import { CameraManager } from '../camera-manager/manager';
 import { FoldersManager } from '../card-controller/folders/manager';
-import { ConditionStateManagerReadonlyInterface } from '../conditions/types';
+import { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types';
 import { ViewItem } from '../view/item';
 import { UnifiedQuery } from '../view/unified-query';
 

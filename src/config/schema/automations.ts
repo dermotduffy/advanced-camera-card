@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { actionConfigSchema } from './actions/types';
-import { conditionSchema } from './conditions/types';
+import { conditionSchema } from './condition-trigger/conditions/types';
 
 const automationActionsSchema = actionConfigSchema.array();
 export type AutomationActions = z.infer<typeof automationActionsSchema>;

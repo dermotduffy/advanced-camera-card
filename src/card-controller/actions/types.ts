@@ -1,4 +1,4 @@
-import { ConditionsTriggerData } from '../../conditions/types.js';
+import { ConditionsTriggerData } from '../../condition-trigger/conditions/types.js';
 import {
   ActionConfig,
   AuxillaryActionConfig,

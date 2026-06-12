@@ -1,6 +1,6 @@
 import { ReactiveController } from 'lit';
 import { CameraManager } from '../camera-manager/manager';
-import { ConditionStateManager } from '../conditions/state-manager';
+import { ConditionStateManager } from '../condition-trigger/conditions/state-manager';
 import { AdvancedCameraCardConfig } from '../config/schema/types';
 import { DeviceRegistryManager } from '../ha/registry/device';
 import { DeviceCache } from '../ha/registry/device/types';
@@ -11,6 +11,7 @@ import { LovelaceCardEditor } from '../ha/types';
 import { ActionsManager } from './actions/actions-manager';
 import { AutomationsManager } from './automations-manager';
 import { CallManager } from './call/manager';
+import { CameraTriggersManager } from './camera-triggers-manager';
 import { CameraURLManager } from './camera-url-manager';
 import {
   CardElementManager,
@@ -40,11 +41,11 @@ import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
 import { TemplateRenderer } from './templates';
-import { CameraTriggersManager } from './camera-triggers-manager';
 import {
   CardActionsManagerAPI,
   CardAutomationsAPI,
   CardCameraAPI,
+  CardCameraTriggersAPI,
   CardCameraURLAPI,
   CardConditionAPI,
   CardConfigAPI,
@@ -66,7 +67,6 @@ import {
   CardPIPAPI,
   CardQueryStringAPI,
   CardStyleAPI,
-  CardCameraTriggersAPI,
   CardViewAPI,
 } from './types';
 import { ViewItemManager } from './view/item-manager';

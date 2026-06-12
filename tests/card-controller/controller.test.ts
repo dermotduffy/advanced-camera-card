@@ -31,7 +31,7 @@ import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-
 import { StyleManager } from '../../src/card-controller/style-manager';
 import { ViewItemManager } from '../../src/card-controller/view/item-manager';
 import { ViewManager } from '../../src/card-controller/view/view-manager';
-import { ConditionStateManager } from '../../src/conditions/state-manager';
+import { ConditionStateManager } from '../../src/condition-trigger/conditions/state-manager';
 import { AdvancedCameraCardEditor } from '../../src/editor';
 import { DeviceRegistryManager } from '../../src/ha/registry/device';
 import { EntityRegistryManagerLive } from '../../src/ha/registry/entity';
@@ -67,7 +67,7 @@ vi.mock('../../src/card-controller/style-manager');
 vi.mock('../../src/card-controller/camera-triggers-manager');
 vi.mock('../../src/card-controller/view/item-manager');
 vi.mock('../../src/card-controller/view/view-manager');
-vi.mock('../../src/conditions/state-manager');
+vi.mock('../../src/condition-trigger/conditions/state-manager');
 vi.mock('../../src/ha/registry/device');
 vi.mock('../../src/ha/registry/entity');
 vi.mock('../../src/ha/resolved-media');

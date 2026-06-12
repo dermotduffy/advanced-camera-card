@@ -1,5 +1,5 @@
 import { createNotificationFromText } from '../../components-lib/notification/factory';
-import { ConditionStateChange } from '../../conditions/types';
+import { ConditionStateChange } from '../../condition-trigger/conditions/types';
 import { localize } from '../../localize/localize';
 import { Timer } from '../../utils/timer';
 import { getStreamCameraID } from '../../view/substream';

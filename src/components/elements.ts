@@ -10,9 +10,9 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { isEqual } from 'lodash-es';
 import { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { TemplateRenderer } from '../card-controller/templates/index.js';
-import { ConditionsManager } from '../conditions/conditions-manager.js';
-import { getConditionStateManagerViaEvent } from '../conditions/state-manager-via-event.js';
-import { ConditionStateManager } from '../conditions/state-manager.js';
+import { ConditionsManager } from '../condition-trigger/conditions/conditions-manager.js';
+import { getConditionStateManagerViaEvent } from '../condition-trigger/conditions/state-manager-via-event.js';
+import { ConditionStateManager } from '../condition-trigger/conditions/state-manager.js';
 import {
   StatusBarIcon,
   StatusBarImage,

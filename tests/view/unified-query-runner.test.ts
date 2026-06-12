@@ -2,7 +2,7 @@ import { assert, describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManager } from '../../src/camera-manager/manager';
 import { FoldersManager } from '../../src/card-controller/folders/manager';
-import { ConditionStateManagerReadonlyInterface } from '../../src/conditions/types';
+import { ConditionStateManagerReadonlyInterface } from '../../src/condition-trigger/conditions/types';
 import { QuerySource } from '../../src/query-source';
 import { ViewMedia } from '../../src/view/item';
 import { UnifiedQuery } from '../../src/view/unified-query';

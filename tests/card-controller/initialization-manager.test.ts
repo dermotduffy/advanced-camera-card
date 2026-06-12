@@ -5,7 +5,7 @@ import {
   InitializationAspect,
   InitializationManager,
 } from '../../src/card-controller/initialization-manager';
-import { ConditionStateManager } from '../../src/conditions/state-manager';
+import { ConditionStateManager } from '../../src/condition-trigger/conditions/state-manager';
 import { sideLoadHomeAssistantElements } from '../../src/ha/side-load-ha-elements.js';
 import { loadLanguages } from '../../src/localize/localize';
 import { Initializer } from '../../src/utils/initializer/initializer';

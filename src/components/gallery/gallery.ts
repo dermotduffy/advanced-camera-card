@@ -22,7 +22,7 @@ import {
   navigateToMedia,
   navigateUp,
 } from '../../components-lib/navigation.js';
-import { ConditionStateManagerReadonlyInterface } from '../../conditions/types.js';
+import { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types.js';
 import { MediaGalleryConfig } from '../../config/schema/media-gallery.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const.js';

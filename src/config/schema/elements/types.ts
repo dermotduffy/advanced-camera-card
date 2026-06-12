@@ -4,8 +4,8 @@ import {
   statusBarImageItemSchema,
   statusBarStringItemSchema,
 } from '../actions/types';
-import { stockConditionSchema } from '../conditions/stock/types';
-import { conditionSchema } from '../conditions/types';
+import { stockConditionSchema } from '../condition-trigger/conditions/stock/types';
+import { conditionSchema } from '../condition-trigger/conditions/types';
 import { menuIconSchema } from './custom/menu/icon';
 import { menuStateIconSchema } from './custom/menu/state-icon';
 import { menuSubmenuSchema } from './custom/menu/submenu';

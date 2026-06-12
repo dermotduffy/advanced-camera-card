@@ -11,7 +11,7 @@ import { RecordingSegment } from '../../camera-manager/types';
 import { capEndDate } from '../../camera-manager/utils/cap-end-date';
 import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/range-to-cache-friendly';
 import { FoldersManager } from '../../card-controller/folders/manager';
-import { ConditionStateManagerReadonlyInterface } from '../../conditions/types';
+import { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
 import { FolderConfig } from '../../config/schema/folders';
 import { errorToConsole } from '../../utils/basic.js';
 import { ViewItem, ViewMedia } from '../../view/item';

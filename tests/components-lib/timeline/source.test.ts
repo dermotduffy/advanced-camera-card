@@ -33,7 +33,7 @@ import {
   AdvancedCameraCardTimelineItem,
   TimelineDataSource,
 } from '../../../src/components-lib/timeline/source';
-import { ConditionStateManagerReadonlyInterface } from '../../../src/conditions/types';
+import { ConditionStateManagerReadonlyInterface } from '../../../src/condition-trigger/conditions/types';
 import { QuerySource } from '../../../src/query-source';
 import { ViewMediaType } from '../../../src/view/item';
 import { QueryNode, UnifiedQuery } from '../../../src/view/unified-query';

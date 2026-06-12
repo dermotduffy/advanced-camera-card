@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { advancedCameraCardCustomActionsBaseSchema } from '../../src/config/schema/actions/custom/base';
 import { statusBarActionConfigSchema } from '../../src/config/schema/actions/types';
 import { cameraConfigSchema } from '../../src/config/schema/cameras';
-import { conditionSchema } from '../../src/config/schema/conditions/types';
+import { conditionSchema } from '../../src/config/schema/condition-trigger/conditions/types';
 import { dimensionsConfigSchema } from '../../src/config/schema/dimensions';
 import { customSchema } from '../../src/config/schema/elements/stock/custom';
 import { conditionalSchema } from '../../src/config/schema/elements/types';
