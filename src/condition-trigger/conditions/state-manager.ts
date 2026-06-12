@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash-es';
+import { SerialRunner } from '../../utils/concurrency/serial-runner';
 import {
   ConditionState,
   ConditionStateChange,
@@ -13,6 +14,11 @@ export class ConditionStateManager implements ConditionStateManagerReadonlyInter
   private _listeners: ConditionStateListener[] = [];
   private _state: ConditionState = {};
 
+  // Serializes application so a change made from within a listener (e.g. an
+  // action that updates the card state) is applied after the in-flight change,
+  // never nested inside it (which would alter the state mid-dispatch).
+  private _runner = new SerialRunner();
+
   public addListener(listener: ConditionStateListener): void {
     this._listeners.push(listener);
   }
@@ -25,7 +31,14 @@ export class ConditionStateManager implements ConditionStateManagerReadonlyInter
     return this._state;
   }
 
-  public setState(state: ConditionState): boolean {
+  // Returns whether the state changed, or `null` if the change was deferred
+  // (made reentrantly from within a listener) and so its outcome is not yet
+  // known.
+  public setState(state: ConditionState): boolean | null {
+    return this._runner.run(() => this._applyChange(state));
+  }
+
+  private _applyChange(state: ConditionState): boolean {
     const changeState = this._calculateTrueChange(state);
     if (!Object.keys(changeState).length) {
       return false;

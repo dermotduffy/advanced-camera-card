@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { KeyedSubscriptionManager } from '../../src/utils/keyed-subscription-manager';
+import { KeyedSubscriptionManager } from '../../../src/utils/concurrency/keyed-subscription-manager';
 
 interface TestRequest {
   key: string;

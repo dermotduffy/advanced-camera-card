@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
+import {
+  ConditionState,
+  ConditionStateChange,
+} from '../../../src/condition-trigger/conditions/types';
 import { createHASS, createStateEntity } from '../../test-utils';
 
 describe('ConditionStateManager', () => {
@@ -81,6 +85,46 @@ describe('ConditionStateManager', () => {
       ).toBe(true);
       expect(listener).toBeCalledTimes(5);
     });
+  });
+
+  it('should serialize a state change made from within a listener', () => {
+    const manager = new ConditionStateManager();
+    const seen: ConditionStateChange[] = [];
+    let reentrantReturn: boolean | null | undefined = undefined;
+    let stateDuringDispatch: ConditionState | undefined;
+
+    manager.addListener((change) => {
+      seen.push(change);
+
+      // Reentrantly flip the value the originating change just set, capturing
+      // what is observable mid-dispatch so it can be asserted outside the
+      // callback (where a failure cannot be swallowed).
+      if (!reentrantReturn === undefined) {
+        reentrantReturn = manager.setState({ fullscreen: false });
+        stateDuringDispatch = manager.getState();
+      }
+    });
+
+    expect(manager.setState({ fullscreen: true })).toBe(true);
+
+    // The reentrant change is deferred: it returns null and, crucially, is NOT
+    // applied while the originating dispatch is still in flight -- fullscreen is
+    // still true despite the reentrant call to set it false.
+    expect(reentrantReturn).toBeNull();
+    expect(stateDuringDispatch).toEqual({ fullscreen: true });
+
+    // It is dispatched only after the originating change, seeing that change's
+    // result as its own `old`: a coherent edge, not a torn state. Only now does
+    // fullscreen become false.
+    expect(seen).toEqual([
+      { old: {}, change: { fullscreen: true }, new: { fullscreen: true } },
+      {
+        old: { fullscreen: true },
+        change: { fullscreen: false },
+        new: { fullscreen: false },
+      },
+    ]);
+    expect(manager.getState()).toEqual({ fullscreen: false });
   });
 
   it('should add listener', () => {
