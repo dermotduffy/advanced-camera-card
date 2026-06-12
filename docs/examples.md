@@ -601,6 +601,68 @@ folders:
               regexp: 'Person.*'
 ```
 
+### Show a folder as a camera's default media
+
+By default a camera shows its own events / recordings. Setting [`media.type:
+folder`](./configuration/cameras/README.md?id=media) instead makes a configured
+folder the camera's default media, so its contents drive the timeline and
+gallery. This is useful when the camera's interesting media (e.g. detection
+clips) only lives in a Home Assistant media folder rather than being exposed as
+native events.
+
+The camera references the folder by its `id`. Parsing a `startdate` from each
+item lets the timeline place the media in time.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.reolink_doorbell
+    media:
+      type: folder
+      folders:
+        - reolink-detections
+folders:
+  - id: reolink-detections
+    type: ha
+    ha:
+      # Open HA -> Media, navigate into the desired folder and copy its URL here.
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Freolink/playlist%2Cmedia-source%3A%2F%2Freolink%2FCAM%7C01J8XAATNH77WE5D654K07KY1F%7C0
+      path:
+        # Match every item in the folder and parse its start time.
+        - parsers:
+            - type: startdate
+```
+
+### Show only matching items as a camera's default media
+
+The card can only point at folders the Home Assistant Media browser actually
+exposes. If your integration surfaces a single flat list of recordings rather
+than a dedicated folder per event type, you can add a [`title`
+matcher](./configuration/folders.md?id=matchers) to keep only the items you care
+about (in this example clips whose title mentions `Person` or `Vehicle`).
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.reolink_doorbell
+    media:
+      type: folder
+      folders:
+        - reolink-detections
+folders:
+  - id: reolink-detections
+    type: ha
+    ha:
+      url: https://my-ha-instance.local/media-browser/browser/app%2Cmedia-source%3A%2F%2Freolink/playlist%2Cmedia-source%3A%2F%2Freolink%2FCAM%7C01J8XAATNH77WE5D654K07KY1F%7C0
+      path:
+        - matchers:
+            # Keep only clips whose title mentions a person or vehicle detection.
+            - type: title
+              regexp: Person|Vehicle
+          parsers:
+            - type: startdate
+```
+
 ## `go2rtc`
 
 This example will use a custom `go2rtc` server, automatically proxying the video
