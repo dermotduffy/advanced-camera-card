@@ -78,7 +78,13 @@ export interface ConditionsEvaluationResult {
   triggerData?: ConditionsTriggerData;
 }
 
-export type ConditionsListener = (result: ConditionsEvaluationResult) => void;
+// The `stateChange` that prompted the evaluation is forwarded so a trigger can
+// build its payload from the raw before/after state; condition consumers
+// (elements, overrides) simply ignore it.
+export type ConditionsListener = (
+  result: ConditionsEvaluationResult,
+  stateChange?: ConditionStateChange,
+) => void;
 
 export interface ConditionsManagerReadonlyInterface {
   addListener(listener: ConditionsListener): void;

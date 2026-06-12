@@ -105,7 +105,8 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
       this._evaluation = evaluation;
       if (options?.callListeners ?? true) {
         this._listeners.forEach(
-          (listener) => this._evaluation && listener(this._evaluation),
+          (listener) =>
+            this._evaluation && listener(this._evaluation, options?.stateChange),
         );
       }
     }

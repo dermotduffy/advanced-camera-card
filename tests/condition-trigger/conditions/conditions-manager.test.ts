@@ -54,16 +54,19 @@ describe('ConditionsManager', () => {
         'switch.two': createStateEntity({ state: 'off' }),
       }),
     });
-    expect(listener).toHaveBeenLastCalledWith({
-      result: true,
-      triggerData: {
-        // Only the last matching condition's data is retained.
-        state: {
-          entity: 'switch.two',
-          to: 'off',
+    expect(listener).toHaveBeenLastCalledWith(
+      {
+        result: true,
+        triggerData: {
+          // Only the last matching condition's data is retained.
+          state: {
+            entity: 'switch.two',
+            to: 'off',
+          },
         },
       },
-    });
+      expect.anything(),
+    );
 
     // The result stays true but the trigger data changes, so listeners are
     // still notified.
@@ -73,18 +76,41 @@ describe('ConditionsManager', () => {
         'switch.two': createStateEntity({ state: 'on' }),
       }),
     });
-    expect(listener).toHaveBeenLastCalledWith({
-      result: true,
-      triggerData: {
-        state: {
-          entity: 'switch.two',
-          from: 'off',
-          to: 'on',
+    expect(listener).toHaveBeenLastCalledWith(
+      {
+        result: true,
+        triggerData: {
+          state: {
+            entity: 'switch.two',
+            from: 'off',
+            to: 'on',
+          },
         },
       },
-    });
+      expect.anything(),
+    );
 
     expect(listener).toBeCalledTimes(2);
+  });
+
+  it('should forward the triggering state change to listeners', () => {
+    const stateManager = new ConditionStateManager();
+    const manager = new ConditionsManager(
+      [{ condition: 'fullscreen' as const, fullscreen: true }],
+      stateManager,
+    );
+
+    const listener = vi.fn();
+    manager.addListener(listener);
+
+    stateManager.setState({ fullscreen: true });
+
+    // The change that prompted the evaluation is passed through verbatim.
+    expect(listener).toHaveBeenLastCalledWith(expect.anything(), {
+      old: {},
+      change: { fullscreen: true },
+      new: { fullscreen: true },
+    });
   });
 
   it('should re-evaluate and notify when a subscribed condition source changes', () => {
@@ -111,7 +137,7 @@ describe('ConditionsManager', () => {
 
     // Fire the media-query change; the manager re-evaluates and notifies.
     addEventListener.mock.calls[0][1]();
-    expect(listener).toBeCalledWith({ result: true, triggerData: {} });
+    expect(listener).toBeCalledWith({ result: true, triggerData: {} }, undefined);
 
     // Destroy tears the subscription down via the evaluator.
     manager.destroy();
@@ -131,11 +157,14 @@ describe('ConditionsManager', () => {
 
       stateManager.setState({ fullscreen: true });
 
-      expect(listener).toBeCalledWith({ result: true, triggerData: {} });
+      expect(listener).toBeCalledWith(
+        { result: true, triggerData: {} },
+        expect.anything(),
+      );
       expect(listener).toBeCalledTimes(1);
 
       stateManager.setState({ fullscreen: false });
-      expect(listener).toBeCalledWith({ result: false });
+      expect(listener).toBeCalledWith({ result: false }, expect.anything());
       expect(listener).toBeCalledTimes(2);
 
       // Re-add the same listener (will still only be called once).
@@ -143,7 +172,10 @@ describe('ConditionsManager', () => {
 
       stateManager.setState({ fullscreen: true });
 
-      expect(listener).toBeCalledWith({ result: true, triggerData: {} });
+      expect(listener).toBeCalledWith(
+        { result: true, triggerData: {} },
+        expect.anything(),
+      );
       expect(listener).toBeCalledTimes(3);
     });
 

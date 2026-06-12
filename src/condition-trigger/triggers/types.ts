@@ -3,7 +3,7 @@ import { AdvancedCameraCardConfig } from '../../config/schema/types';
 
 // The card's trigger-relevant state. The single shape shared by the ambient
 // `acc.*` template namespace (current state) and the `trigger.from_acc`/
-// `trigger.to_acc` before/after snapshots -- the card analogue of HA's full
+// `trigger.to_acc` before/after trigger data -- the card analogue of HA's full
 // `trigger.from_state`/`to_state` State objects.
 // TODO: Don't forget to move this to the templates directory.
 export interface AdvancedCameraCardState {
@@ -26,7 +26,7 @@ export interface TriggerData {
   from_state?: HassEntity;
   to_state?: HassEntity;
 
-  // Card (`acc` platform) fields -- full before/after card-state snapshots:
+  // Card (`acc` platform) fields -- full before/after card-state trigger data:
   from_acc?: AdvancedCameraCardState;
   to_acc?: AdvancedCameraCardState;
 }
