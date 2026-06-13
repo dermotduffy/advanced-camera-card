@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { conditionBaseSchema } from './base';
 import { callConditionSchema } from './custom/call';
 import { cameraConditionSchema } from './custom/camera';
 import { configConditionSchema } from './custom/config';
@@ -19,12 +20,13 @@ import { stateConditionSchema } from './stock/state';
 import { templateConditionSchema } from './stock/template';
 import { userConditionSchema } from './stock/user';
 
-// https://www.home-assistant.io/docs/scripts/conditions/#or-condition
-type OrCondition = {
-  condition: 'or';
+type CompositeCondition = z.infer<typeof conditionBaseSchema> & {
   conditions: Condition[];
 };
-const orConditionSchema: z.ZodSchema<OrCondition> = z.object({
+
+// https://www.home-assistant.io/docs/scripts/conditions/#or-condition
+type OrCondition = CompositeCondition & { condition: 'or' };
+const orConditionSchema: z.ZodSchema<OrCondition> = conditionBaseSchema.extend({
   condition: z.literal('or'),
 
   // HA requires the `conditions` key but allows an empty list.
@@ -32,11 +34,8 @@ const orConditionSchema: z.ZodSchema<OrCondition> = z.object({
 });
 
 // https://www.home-assistant.io/docs/scripts/conditions/#and-condition
-type AndCondition = {
-  condition: 'and';
-  conditions: Condition[];
-};
-const andConditionSchema: z.ZodSchema<AndCondition> = z.object({
+type AndCondition = CompositeCondition & { condition: 'and' };
+const andConditionSchema: z.ZodSchema<AndCondition> = conditionBaseSchema.extend({
   condition: z.literal('and'),
 
   // HA requires the `conditions` key but allows an empty list.
@@ -44,11 +43,8 @@ const andConditionSchema: z.ZodSchema<AndCondition> = z.object({
 });
 
 // https://www.home-assistant.io/docs/scripts/conditions/#not-condition
-type NotCondition = {
-  condition: 'not';
-  conditions: Condition[];
-};
-const notConditionSchema: z.ZodSchema<NotCondition> = z.object({
+type NotCondition = CompositeCondition & { condition: 'not' };
+const notConditionSchema: z.ZodSchema<NotCondition> = conditionBaseSchema.extend({
   condition: z.literal('not'),
 
   // HA requires the `conditions` key but allows an empty list.

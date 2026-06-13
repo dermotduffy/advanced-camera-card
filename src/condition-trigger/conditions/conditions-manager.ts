@@ -1,5 +1,6 @@
 import { TemplateRenderer } from '../../card-controller/templates';
 import { Condition } from '../../config/schema/condition-trigger/conditions/types';
+import { isEnabled } from '../common/is-enabled';
 import { ConditionEvaluator } from './conditions/types';
 import { createConditionEvaluator } from './factory';
 import {
@@ -11,6 +12,13 @@ import {
   ConditionsTriggerData,
 } from './types';
 
+// A condition evaluator paired with its config, so `enabled` can be re-checked
+// against the config each time conditions are evaluated.
+interface ManagedCondition {
+  config: Condition;
+  evaluator: ConditionEvaluator;
+}
+
 /**
  * A class to evaluate an array of conditions, and notify listeners when the
  * evaluation changes (a change is either the result changing, or the data
@@ -18,7 +26,8 @@ import {
  */
 export class ConditionsManager implements ConditionsManagerReadonlyInterface {
   private _stateManager: ConditionStateManagerReadonlyInterface | null;
-  private _evaluators: ConditionEvaluator[];
+  private _templateRenderer = new TemplateRenderer();
+  private _conditions: ManagedCondition[];
 
   private _listeners: ConditionsListener[] = [];
   private _evaluation: ConditionsEvaluationResult = { result: false };
@@ -27,16 +36,17 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
     conditions: Condition[],
     stateManager?: ConditionStateManagerReadonlyInterface | null,
   ) {
-    const context = { templateRenderer: new TemplateRenderer() };
-    this._evaluators = conditions.map((condition) =>
-      createConditionEvaluator(condition, context),
-    );
+    const context = { templateRenderer: this._templateRenderer };
+    this._conditions = conditions.map((config) => ({
+      config,
+      evaluator: createConditionEvaluator(config, context),
+    }));
 
     this._stateManager = stateManager ?? null;
 
     // Subscribe evaluators that have external change sources (currently
     // `screen`), including nested evaluators inside composites.
-    this._evaluators.forEach((evaluator) =>
+    this._conditions.forEach(({ evaluator }) =>
       evaluator.subscribe?.(() => this._evaluate()),
     );
 
@@ -51,8 +61,8 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
 
     this._listeners.forEach((l) => this.removeListener(l));
 
-    this._evaluators.forEach((evaluator) => evaluator.destroy?.());
-    this._evaluators = [];
+    this._conditions.forEach(({ evaluator }) => evaluator.destroy?.());
+    this._conditions = [];
   }
 
   public addListener(listener: ConditionsListener): void {
@@ -82,7 +92,10 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
     let result = true;
     let triggerData: ConditionsTriggerData = {};
 
-    for (const evaluator of this._evaluators) {
+    for (const { config, evaluator } of this._conditions) {
+      if (!isEnabled(this._templateRenderer, config.enabled, state)) {
+        continue;
+      }
       const evaluation = evaluator.evaluate(state, options?.stateChange?.old);
       if (!evaluation.result) {
         result = false;

@@ -1,10 +1,12 @@
 import { z } from 'zod';
 import { stateBaseSchema } from '../../common/state';
 import { stringOrArray } from '../../../common/string-or-array';
+import { conditionBaseSchema } from '../base';
 import { entityConditionBaseSchema } from './entity-base';
 
 // https://www.home-assistant.io/dashboards/conditional/#state
 export const stateConditionSchema = entityConditionBaseSchema
+  .extend(conditionBaseSchema.shape)
   .extend(stateBaseSchema.shape)
   .extend({
     // If `condition` is omitted a state condition is assumed (picture-elements form).

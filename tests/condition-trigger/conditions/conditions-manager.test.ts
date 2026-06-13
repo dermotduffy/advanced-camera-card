@@ -237,4 +237,123 @@ describe('ConditionsManager', () => {
       expect(listener).toBeCalledTimes(3);
     });
   });
+
+  describe('enabled', () => {
+    const ENABLED_TEMPLATE = '{{ is_state("binary_sensor.flag", "on") }}';
+
+    it('should ignore a disabled condition', () => {
+      const stateManager = new ConditionStateManager();
+      const manager = new ConditionsManager(
+        [{ condition: 'fullscreen' as const, fullscreen: true, enabled: false }],
+        stateManager,
+      );
+
+      // The disabled condition is ignored, so with no remaining conditions the
+      // result is true even though fullscreen does not match.
+      stateManager.setState({ fullscreen: false });
+
+      expect(manager.getEvaluation()).toEqual({ result: true, triggerData: {} });
+    });
+
+    it('should evaluate an enabled condition normally', () => {
+      const stateManager = new ConditionStateManager();
+      const manager = new ConditionsManager(
+        [{ condition: 'fullscreen' as const, fullscreen: true, enabled: true }],
+        stateManager,
+      );
+
+      stateManager.setState({ fullscreen: false });
+      expect(manager.getEvaluation()).toEqual({ result: false });
+
+      stateManager.setState({ fullscreen: true });
+      expect(manager.getEvaluation()).toEqual({ result: true, triggerData: {} });
+    });
+
+    it('should drop a condition whose enabled template does not render true', () => {
+      const stateManager = new ConditionStateManager();
+      stateManager.setState({
+        hass: createHASS({ 'binary_sensor.flag': createStateEntity({ state: 'off' }) }),
+      });
+      const manager = new ConditionsManager(
+        [
+          {
+            condition: 'fullscreen' as const,
+            fullscreen: true,
+            enabled: ENABLED_TEMPLATE,
+          },
+        ],
+        stateManager,
+      );
+
+      stateManager.setState({ fullscreen: false });
+
+      expect(manager.getEvaluation()).toEqual({ result: true, triggerData: {} });
+    });
+
+    it('should evaluate a condition whose enabled template renders true', () => {
+      const stateManager = new ConditionStateManager();
+      stateManager.setState({
+        hass: createHASS({ 'binary_sensor.flag': createStateEntity({ state: 'on' }) }),
+      });
+      const manager = new ConditionsManager(
+        [
+          {
+            condition: 'fullscreen' as const,
+            fullscreen: true,
+            enabled: ENABLED_TEMPLATE,
+          },
+        ],
+        stateManager,
+      );
+
+      stateManager.setState({ fullscreen: false });
+
+      expect(manager.getEvaluation()).toEqual({ result: false });
+    });
+
+    it('should evaluate a condition with an enabled template when hass is absent', () => {
+      const stateManager = new ConditionStateManager();
+      const manager = new ConditionsManager(
+        [
+          {
+            condition: 'fullscreen' as const,
+            fullscreen: true,
+            enabled: ENABLED_TEMPLATE,
+          },
+        ],
+        stateManager,
+      );
+
+      stateManager.setState({ fullscreen: false });
+
+      expect(manager.getEvaluation()).toEqual({ result: false });
+    });
+
+    it('should re-evaluate the enabled template on each evaluation', () => {
+      const stateManager = new ConditionStateManager();
+      stateManager.setState({
+        hass: createHASS({ 'binary_sensor.flag': createStateEntity({ state: 'off' }) }),
+        fullscreen: false,
+      });
+      const manager = new ConditionsManager(
+        [
+          {
+            condition: 'fullscreen' as const,
+            fullscreen: true,
+            enabled: ENABLED_TEMPLATE,
+          },
+        ],
+        stateManager,
+      );
+
+      // Flag off: the condition is disabled and ignored, so the result is true.
+      expect(manager.getEvaluation()).toEqual({ result: true, triggerData: {} });
+
+      // Flag on: the condition is now active and fullscreen does not match.
+      stateManager.setState({
+        hass: createHASS({ 'binary_sensor.flag': createStateEntity({ state: 'on' }) }),
+      });
+      expect(manager.getEvaluation()).toEqual({ result: false });
+    });
+  });
 });

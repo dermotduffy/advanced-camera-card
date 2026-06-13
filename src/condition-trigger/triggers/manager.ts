@@ -1,5 +1,6 @@
 import { TemplateRenderer } from '../../card-controller/templates';
 import { Trigger } from '../../config/schema/condition-trigger/triggers/types';
+import { isEnabled } from '../common/is-enabled';
 import { ConditionStateManagerReadonlyInterface } from '../conditions/types';
 import { createTriggerEvaluator } from './factory';
 import {
@@ -41,27 +42,16 @@ export class TriggersManager {
     // triggering.
     this._triggers.forEach(({ config, evaluator }) =>
       evaluator.subscribe((data) => {
-        if (this._isEnabled(config)) {
+        if (
+          isEnabled(
+            this._context.templateRenderer,
+            config.enabled,
+            this._context.stateManager.getState(),
+          )
+        ) {
           this._fire(data);
         }
       }),
-    );
-  }
-
-  private _isEnabled(trigger: Trigger): boolean {
-    const enabled = trigger.enabled;
-    if (enabled === undefined) {
-      return true;
-    }
-    if (typeof enabled === 'boolean') {
-      return enabled;
-    }
-    const state = this._context.stateManager.getState();
-    return (
-      !state.hass ||
-      this._context.templateRenderer.renderRecursively(state.hass, enabled, {
-        conditionState: state,
-      }) === true
     );
   }
 
