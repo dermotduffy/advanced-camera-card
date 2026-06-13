@@ -2,6 +2,7 @@ import { describe, expect, it, Mock, vi } from 'vitest';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { TriggersManager } from '../../../src/condition-trigger/triggers/manager';
 import { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
+import { createHASS, createStateEntity } from '../../test-utils';
 
 // @vitest-environment jsdom
 describe('TriggersManager', () => {
@@ -86,5 +87,100 @@ describe('TriggersManager', () => {
     stateManager.setState({ camera: 'front' });
 
     expect(listener).not.toHaveBeenCalled();
+  });
+
+  describe('enabled', () => {
+    const ENABLED_TEMPLATE = '{{ is_state("binary_sensor.flag", "on") }}';
+
+    const createWithFlag = (
+      enabled: string,
+      state: string | null,
+    ): { stateManager: ConditionStateManager; listener: Mock } => {
+      const stateManager = new ConditionStateManager();
+      if (state !== null) {
+        stateManager.setState({
+          hass: createHASS({
+            'binary_sensor.flag': createStateEntity({ state }),
+          }),
+        });
+      }
+      const manager = new TriggersManager(
+        [{ trigger: 'camera', cameras: ['front'], enabled }],
+        stateManager,
+      );
+      const listener = vi.fn();
+      manager.addListener(listener);
+      return { stateManager, listener };
+    };
+
+    it('should not fire a disabled trigger', () => {
+      const { manager, stateManager, listener } = create([
+        { trigger: 'camera', cameras: ['front'], enabled: false },
+      ]);
+      manager.addListener(listener);
+
+      stateManager.setState({ camera: 'front' });
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('should fire an explicitly enabled trigger', () => {
+      const { manager, stateManager, listener } = create([
+        { trigger: 'camera', cameras: ['front'], enabled: true },
+      ]);
+      manager.addListener(listener);
+
+      stateManager.setState({ camera: 'front' });
+
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not fire a trigger whose enabled template does not render true', () => {
+      const { stateManager, listener } = createWithFlag(ENABLED_TEMPLATE, 'off');
+
+      stateManager.setState({ camera: 'front' });
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('should fire a trigger whose enabled template renders true', () => {
+      const { stateManager, listener } = createWithFlag(ENABLED_TEMPLATE, 'on');
+
+      stateManager.setState({ camera: 'front' });
+
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('should fire a trigger with an enabled template when hass is absent', () => {
+      const { stateManager, listener } = createWithFlag(ENABLED_TEMPLATE, null);
+
+      stateManager.setState({ camera: 'front' });
+
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('should re-evaluate the enabled template on each fire', () => {
+      const stateManager = new ConditionStateManager();
+      stateManager.setState({
+        hass: createHASS({ 'binary_sensor.flag': createStateEntity({ state: 'off' }) }),
+      });
+      const manager = new TriggersManager(
+        [{ trigger: 'camera', cameras: ['front', 'back'], enabled: ENABLED_TEMPLATE }],
+        stateManager,
+      );
+      const listener = vi.fn();
+      manager.addListener(listener);
+
+      // Flag off: the trigger fires but is gated out.
+      stateManager.setState({ camera: 'front' });
+      expect(listener).not.toHaveBeenCalled();
+
+      // Flag flips on: a subsequent fire is now allowed through.
+      stateManager.setState({
+        hass: createHASS({ 'binary_sensor.flag': createStateEntity({ state: 'on' }) }),
+      });
+      stateManager.setState({ camera: 'back' });
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
   });
 });
