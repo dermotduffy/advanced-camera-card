@@ -35,7 +35,7 @@ describe('ConditionsManager', () => {
     expect(listener).not.toBeCalled();
   });
 
-  it('should notify on each change and merge trigger data across multiple conditions', () => {
+  it('should re-notify each time a watched value moves while still matching', () => {
     const stateManager = new ConditionStateManager();
     const manager = new ConditionsManager(
       [
@@ -54,41 +54,17 @@ describe('ConditionsManager', () => {
         'switch.two': createStateEntity({ state: 'off' }),
       }),
     });
-    expect(listener).toHaveBeenLastCalledWith(
-      {
-        result: true,
-        triggerData: {
-          // Only the last matching condition's data is retained.
-          state: {
-            entity: 'switch.two',
-            to: 'off',
-          },
-        },
-      },
-      expect.anything(),
-    );
+    expect(listener).toHaveBeenLastCalledWith({ result: true }, expect.anything());
 
-    // The result stays true but the trigger data changes, so listeners are
-    // still notified.
+    // The result stays true but watched values moved, so listeners are notified
+    // again (the lateral edge a card trigger fires on).
     stateManager.setState({
       hass: createHASS({
         'switch.one': createStateEntity({ state: 'off' }),
         'switch.two': createStateEntity({ state: 'on' }),
       }),
     });
-    expect(listener).toHaveBeenLastCalledWith(
-      {
-        result: true,
-        triggerData: {
-          state: {
-            entity: 'switch.two',
-            from: 'off',
-            to: 'on',
-          },
-        },
-      },
-      expect.anything(),
-    );
+    expect(listener).toHaveBeenLastCalledWith({ result: true }, expect.anything());
 
     expect(listener).toBeCalledTimes(2);
   });
@@ -137,7 +113,7 @@ describe('ConditionsManager', () => {
 
     // Fire the media-query change; the manager re-evaluates and notifies.
     addEventListener.mock.calls[0][1]();
-    expect(listener).toBeCalledWith({ result: true, triggerData: {} }, undefined);
+    expect(listener).toBeCalledWith({ result: true }, undefined);
 
     // Destroy tears the subscription down via the evaluator.
     manager.destroy();
@@ -157,10 +133,7 @@ describe('ConditionsManager', () => {
 
       stateManager.setState({ fullscreen: true });
 
-      expect(listener).toBeCalledWith(
-        { result: true, triggerData: {} },
-        expect.anything(),
-      );
+      expect(listener).toBeCalledWith({ result: true }, expect.anything());
       expect(listener).toBeCalledTimes(1);
 
       stateManager.setState({ fullscreen: false });
@@ -172,10 +145,7 @@ describe('ConditionsManager', () => {
 
       stateManager.setState({ fullscreen: true });
 
-      expect(listener).toBeCalledWith(
-        { result: true, triggerData: {} },
-        expect.anything(),
-      );
+      expect(listener).toBeCalledWith({ result: true }, expect.anything());
       expect(listener).toBeCalledTimes(3);
     });
 
@@ -252,7 +222,7 @@ describe('ConditionsManager', () => {
       // result is true even though fullscreen does not match.
       stateManager.setState({ fullscreen: false });
 
-      expect(manager.getEvaluation()).toEqual({ result: true, triggerData: {} });
+      expect(manager.getEvaluation()).toEqual({ result: true });
     });
 
     it('should evaluate an enabled condition normally', () => {
@@ -266,7 +236,7 @@ describe('ConditionsManager', () => {
       expect(manager.getEvaluation()).toEqual({ result: false });
 
       stateManager.setState({ fullscreen: true });
-      expect(manager.getEvaluation()).toEqual({ result: true, triggerData: {} });
+      expect(manager.getEvaluation()).toEqual({ result: true });
     });
 
     it('should drop a condition whose enabled template does not render true', () => {
@@ -287,7 +257,7 @@ describe('ConditionsManager', () => {
 
       stateManager.setState({ fullscreen: false });
 
-      expect(manager.getEvaluation()).toEqual({ result: true, triggerData: {} });
+      expect(manager.getEvaluation()).toEqual({ result: true });
     });
 
     it('should evaluate a condition whose enabled template renders true', () => {
@@ -347,7 +317,7 @@ describe('ConditionsManager', () => {
       );
 
       // Flag off: the condition is disabled and ignored, so the result is true.
-      expect(manager.getEvaluation()).toEqual({ result: true, triggerData: {} });
+      expect(manager.getEvaluation()).toEqual({ result: true });
 
       // Flag on: the condition is now active and fullscreen does not match.
       stateManager.setState({

@@ -26,9 +26,7 @@ describe('or condition', () => {
     expect(evaluator.evaluate({ fullscreen: false, expand: false }).result).toBeFalsy();
   });
 
-  it('should report trigger data for the first matching sub-condition', () => {
-    // Not a terribly realistic example, but chosen so that trigger data for
-    // both camera and view could be returned.
+  it('should forward the first matching sub-condition evaluation', () => {
     const evaluator = createConditionEvaluator(
       {
         condition: 'or' as const,
@@ -41,21 +39,21 @@ describe('or condition', () => {
 
     expect(evaluator.evaluate({ camera: 'camera-1' }, {})).toEqual({
       result: true,
-      triggerData: { camera: { to: 'camera-1' } },
+      changed: true,
     });
 
     expect(evaluator.evaluate({ view: 'live' }, {})).toEqual({
       result: true,
-      triggerData: { view: { to: 'live' } },
+      changed: true,
     });
 
-    // When both change, the camera sub-condition matches first, so only its
-    // trigger data is returned.
+    // The first matching sub-condition (camera) is returned, so its change edge
+    // propagates.
     expect(
       evaluator.evaluate({ camera: 'camera-2', view: 'clip' }, { camera: 'camera-1' }),
     ).toEqual({
       result: true,
-      triggerData: { camera: { from: 'camera-1', to: 'camera-2' } },
+      changed: true,
     });
   });
 
@@ -68,7 +66,7 @@ describe('or condition', () => {
     } as unknown as MediaQueryList);
 
     // The `screen` child supports subscribe/destroy; the `fullscreen` child does
-    // not — forwarding must handle both.
+    // not -- forwarding must handle both.
     const evaluator = createConditionEvaluator(
       {
         condition: 'or' as const,

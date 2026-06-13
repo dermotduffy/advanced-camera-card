@@ -5,7 +5,7 @@ import { createEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
 describe('state condition', () => {
-  it('should report trigger data for any change when neither state nor state_not is set', () => {
+  it('should report a change for any transition when neither state nor state_not is set', () => {
     const evaluator = createConditionEvaluator(
       { condition: 'state' as const, entity_id: 'binary_sensor.foo' },
       createEvaluatorContext(),
@@ -20,12 +20,7 @@ describe('state condition', () => {
       ),
     ).toEqual({
       result: true,
-      triggerData: {
-        state: {
-          entity: 'binary_sensor.foo',
-          to: 'on',
-        },
-      },
+      changed: true,
     });
 
     expect(
@@ -39,13 +34,7 @@ describe('state condition', () => {
       ),
     ).toEqual({
       result: true,
-      triggerData: {
-        state: {
-          entity: 'binary_sensor.foo',
-          from: 'on',
-          to: 'off',
-        },
-      },
+      changed: true,
     });
   });
 
@@ -176,7 +165,7 @@ describe('state condition', () => {
       hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'on' }) }),
     });
     expect(result.result).toBeFalsy();
-    expect(result.triggerData).toBeUndefined();
+    expect(result.changed).toBeUndefined();
   });
 
   it('should accept the entity field', () => {
@@ -266,7 +255,7 @@ describe('state condition', () => {
     ).toBeFalsy();
   });
 
-  it('should not report trigger data for a list of entities', () => {
+  it('should report a change when any watched entity in a list transitions', () => {
     const evaluator = createConditionEvaluator(
       {
         condition: 'state' as const,
@@ -275,14 +264,25 @@ describe('state condition', () => {
       createEvaluatorContext(),
     );
 
-    const result = evaluator.evaluate({
+    const at = (foo: string, bar: string) => ({
       hass: createHASS({
-        'binary_sensor.foo': createStateEntity({ state: 'on' }),
-        'binary_sensor.bar': createStateEntity({ state: 'on' }),
+        'binary_sensor.foo': createStateEntity({ state: foo }),
+        'binary_sensor.bar': createStateEntity({ state: bar }),
       }),
     });
-    expect(result.result).toBeTruthy();
-    expect(result.triggerData).toBeUndefined();
+
+    // Only `binary_sensor.bar` moves: a single watched entity transitioning is
+    // enough to report the change edge.
+    expect(evaluator.evaluate(at('on', 'on'), at('on', 'off'))).toEqual({
+      result: false,
+      changed: true,
+    });
+
+    // No watched entity moves: no change edge.
+    expect(evaluator.evaluate(at('on', 'on'), at('on', 'on'))).toEqual({
+      result: false,
+      changed: false,
+    });
   });
 
   it('should match against an attribute instead of the state', () => {

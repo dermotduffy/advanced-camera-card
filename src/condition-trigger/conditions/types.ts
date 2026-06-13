@@ -46,36 +46,12 @@ export interface ConditionStateManagerReadonlyInterface {
   getState(): ConditionState;
 }
 
-interface ConditionsTriggerDataFromTo {
-  from?: string;
-  to?: string;
-}
-
-interface ConditionsTriggerDataState extends ConditionsTriggerDataFromTo {
-  entity: string;
-}
-
-interface ConditionsTriggerDataConfig {
-  from?: AdvancedCameraCardConfig;
-  to?: AdvancedCameraCardConfig;
-}
-
-export interface ConditionsTriggerData {
-  camera?: ConditionsTriggerDataFromTo;
-  view?: ConditionsTriggerDataFromTo;
-  state?: ConditionsTriggerDataState;
-  config?: ConditionsTriggerDataConfig;
-}
 export interface ConditionsEvaluationResult {
   result: boolean;
 
-  // Trigger data is only provided if there was a real change of state (For
-  // example: if a state condition that matches 'on' previously evaluated to
-  // true, and a call from the state manager arrives for an unrelated hass state
-  // update, the condition will still evaluate true, but there won't be any
-  // trigger data provided since the state relevant to the condition did not
-  // change).
-  triggerData?: ConditionsTriggerData;
+  // Whether the condition's watched input transitioned during this evaluation
+  // (an edge), even when `result` is unchanged.
+  changed?: boolean;
 }
 
 // The `stateChange` that prompted the evaluation is forwarded so a trigger can

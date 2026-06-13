@@ -15,27 +15,19 @@ export class ConfigConditionEvaluator implements ConditionEvaluator {
   ): ConditionsEvaluationResult {
     const newConfig = newState?.config;
     const oldConfig = oldState?.config;
+    const changed = newConfig !== oldConfig;
 
     return {
       result:
         !!newConfig &&
-        newConfig !== oldConfig &&
+        changed &&
         (!this._condition.paths?.length ||
           this._condition.paths.some(
             (key) =>
               getConfigValue(newConfig, key) !==
               (oldConfig ? getConfigValue(oldConfig, key) : undefined),
           )),
-      ...(newConfig !== oldConfig && {
-        triggerData: {
-          config: {
-            ...((oldState?.config || newState?.config) && {
-              ...(oldState?.config && { from: oldState?.config }),
-              ...(newState?.config && { to: newState?.config }),
-            }),
-          },
-        },
-      }),
+      changed,
     };
   }
 }

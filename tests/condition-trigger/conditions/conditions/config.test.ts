@@ -31,7 +31,7 @@ describe('config condition', () => {
     },
   });
 
-  it('should report trigger data for any config change', () => {
+  it('should report a change for any config change', () => {
     const evaluator = createConditionEvaluator(
       { condition: 'config' as const },
       createEvaluatorContext(),
@@ -39,21 +39,12 @@ describe('config condition', () => {
 
     expect(evaluator.evaluate({ config: config_1 }, {})).toEqual({
       result: true,
-      triggerData: {
-        config: {
-          to: config_1,
-        },
-      },
+      changed: true,
     });
 
     expect(evaluator.evaluate({ config: config_2 }, { config: config_1 })).toEqual({
       result: true,
-      triggerData: {
-        config: {
-          from: config_1,
-          to: config_2,
-        },
-      },
+      changed: true,
     });
   });
 

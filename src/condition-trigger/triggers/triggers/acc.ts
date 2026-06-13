@@ -1,3 +1,4 @@
+import { TemplateAdvancedCameraCardState } from '../../../card-controller/templates/types';
 import { Condition } from '../../../config/schema/condition-trigger/conditions/types';
 import { Trigger } from '../../../config/schema/condition-trigger/triggers/types';
 import { ConditionsManager } from '../../conditions/conditions-manager';
@@ -6,7 +7,7 @@ import {
   ConditionState,
   ConditionStateChange,
 } from '../../conditions/types';
-import { AdvancedCameraCardState, TriggerData } from '../types';
+import { TriggerData } from '../types';
 import { TriggerEvaluator, TriggerEvaluatorContext, TriggerFireCallback } from './types';
 
 // The single card-specific trigger path, serving every non-stock trigger
@@ -104,11 +105,10 @@ export class ACCTrigger implements TriggerEvaluator {
     };
   }
 
-  private _toCardState(state: ConditionState): AdvancedCameraCardState {
+  private _toCardState(state: ConditionState): TemplateAdvancedCameraCardState {
     return {
       ...(state.camera !== undefined && { camera: state.camera }),
       ...(state.view !== undefined && { view: state.view }),
-      ...(state.config !== undefined && { config: state.config }),
     };
   }
 }

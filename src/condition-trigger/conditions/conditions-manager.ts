@@ -9,7 +9,6 @@ import {
   ConditionsManagerReadonlyInterface,
   ConditionStateChange,
   ConditionStateManagerReadonlyInterface,
-  ConditionsTriggerData,
 } from './types';
 
 // A condition evaluator paired with its config, so `enabled` can be re-checked
@@ -90,36 +89,31 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
     const state = options?.stateChange?.new ?? this._stateManager?.getState();
 
     let result = true;
-    let triggerData: ConditionsTriggerData = {};
+    let changed = false;
 
     for (const { config, evaluator } of this._conditions) {
       if (!isEnabled(this._templateRenderer, config.enabled, state)) {
         continue;
       }
       const evaluation = evaluator.evaluate(state, options?.stateChange?.old);
+      if (evaluation.changed) {
+        changed = true;
+      }
       if (!evaluation.result) {
         result = false;
         break;
       }
-      triggerData = {
-        ...triggerData,
-        ...evaluation.triggerData,
-      };
     }
 
-    const evaluation: ConditionsEvaluationResult = result
-      ? { result, triggerData }
-      : { result };
+    const evaluation: ConditionsEvaluationResult = { result };
 
-    if (
-      evaluation.result !== this._evaluation.result ||
-      (evaluation.triggerData && Object.keys(evaluation.triggerData).length)
-    ) {
+    // Notify on a result transition, or while still matching when a watched input
+    // moved (the lateral edge a card trigger fires on).
+    if (result !== this._evaluation.result || (result && changed)) {
       this._evaluation = evaluation;
       if (options?.callListeners ?? true) {
-        this._listeners.forEach(
-          (listener) =>
-            this._evaluation && listener(this._evaluation, options?.stateChange),
+        this._listeners.forEach((listener) =>
+          listener(this._evaluation, options?.stateChange),
         );
       }
     }

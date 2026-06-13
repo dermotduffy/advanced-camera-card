@@ -14,21 +14,13 @@ export class ViewConditionEvaluator implements ConditionEvaluator {
   ): ConditionsEvaluationResult {
     const oldView = oldState?.view;
     const newView = newState?.view;
+    const changed = oldView !== newView;
 
     return {
       result:
         (!!newView && this._condition.views?.includes(newView)) ||
-        (newView !== oldView && !this._condition.views?.length),
-      ...(oldView !== newView && {
-        triggerData: {
-          ...((oldState?.view || newState?.view) && {
-            view: {
-              ...(oldState?.view && { from: oldState.view }),
-              ...(newState?.view && { to: newState.view }),
-            },
-          }),
-        },
-      }),
+        (changed && !this._condition.views?.length),
+      changed,
     };
   }
 }

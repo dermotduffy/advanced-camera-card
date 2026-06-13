@@ -347,7 +347,12 @@ describe('ActionsManager', () => {
 
       const manager = new ActionsManager(api, templateRenderer);
       const config = { entity: 'light.office' };
-      const triggerData = { view: { from: 'previous-view', to: 'view' } };
+      const triggerData = {
+        platform: 'acc',
+        type: 'view',
+        from_acc: { view: 'previous-view' },
+        to_acc: { view: 'view' },
+      };
       vi.spyOn(global.console, 'info').mockReturnValue(undefined);
 
       await manager.executeActions({ actions: action, config, triggerData });

@@ -1,4 +1,4 @@
-import { ConditionsTriggerData } from '../../condition-trigger/conditions/types.js';
+import { TriggerData } from '../../condition-trigger/triggers/types.js';
 import {
   ActionConfig,
   AuxillaryActionConfig,
@@ -14,7 +14,7 @@ export interface Action {
 export interface ActionsExecutionRequest {
   actions: ActionConfig[] | ActionConfig;
   config?: AuxillaryActionConfig;
-  triggerData?: ConditionsTriggerData;
+  triggerData?: TriggerData;
 }
 
 export interface ActionsExecutor {

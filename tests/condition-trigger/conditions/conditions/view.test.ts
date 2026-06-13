@@ -15,7 +15,7 @@ describe('view condition', () => {
     expect(evaluator.evaluate({ view: 'clips' }).result).toBeFalsy();
   });
 
-  it('should report trigger data for any view change', () => {
+  it('should report a change for any view change', () => {
     const evaluator = createConditionEvaluator(
       { condition: 'view' as const },
       createEvaluatorContext(),
@@ -23,21 +23,12 @@ describe('view condition', () => {
 
     expect(evaluator.evaluate({ view: 'clips' }, {})).toEqual({
       result: true,
-      triggerData: {
-        view: {
-          to: 'clips',
-        },
-      },
+      changed: true,
     });
 
     expect(evaluator.evaluate({ view: 'timeline' }, { view: 'clips' })).toEqual({
       result: true,
-      triggerData: {
-        view: {
-          from: 'clips',
-          to: 'timeline',
-        },
-      },
+      changed: true,
     });
   });
 });

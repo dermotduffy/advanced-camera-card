@@ -15,7 +15,7 @@ describe('camera condition', () => {
     expect(evaluator.evaluate({ camera: 'will-not-match' }).result).toBeFalsy();
   });
 
-  it('should report trigger data for any camera change', () => {
+  it('should report a change for any camera change', () => {
     const evaluator = createConditionEvaluator(
       { condition: 'camera' as const },
       createEvaluatorContext(),
@@ -23,21 +23,12 @@ describe('camera condition', () => {
 
     expect(evaluator.evaluate({ camera: 'bar' }, {})).toEqual({
       result: true,
-      triggerData: {
-        camera: {
-          to: 'bar',
-        },
-      },
+      changed: true,
     });
 
     expect(evaluator.evaluate({ camera: 'foo' }, { camera: 'bar' })).toEqual({
       result: true,
-      triggerData: {
-        camera: {
-          from: 'bar',
-          to: 'foo',
-        },
-      },
+      changed: true,
     });
   });
 });

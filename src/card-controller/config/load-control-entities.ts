@@ -89,7 +89,7 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
       ],
       actions: [
         // When the entity state changes, updated the selected option.
-        createCameraAction('{{ advanced_camera_card.trigger.state.to }}'),
+        createCameraAction('{{ trigger.to_state.state }}'),
       ],
       tag: automationTag,
     },

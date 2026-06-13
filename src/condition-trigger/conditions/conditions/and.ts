@@ -1,8 +1,4 @@
-import {
-  ConditionsEvaluationResult,
-  ConditionState,
-  ConditionsTriggerData,
-} from '../types';
+import { ConditionsEvaluationResult, ConditionState } from '../types';
 import { CompositeConditionEvaluator } from './composite';
 
 export class AndConditionEvaluator extends CompositeConditionEvaluator {
@@ -10,17 +6,14 @@ export class AndConditionEvaluator extends CompositeConditionEvaluator {
     newState?: ConditionState,
     oldState?: ConditionState,
   ): ConditionsEvaluationResult {
-    let triggerData: ConditionsTriggerData = {};
+    let changed = false;
     for (const child of this._children) {
       const evaluation = child.evaluate(newState, oldState);
       if (!evaluation.result) {
         return { result: false };
       }
-      triggerData = {
-        ...triggerData,
-        ...evaluation.triggerData,
-      };
+      changed = changed || !!evaluation.changed;
     }
-    return { result: true, triggerData };
+    return { result: true, changed };
   }
 }

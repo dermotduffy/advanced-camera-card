@@ -130,7 +130,10 @@ describe('AutomationsManager', () => {
     stateManager.setState({ expand: true });
     stateManager.setState({ fullscreen: true });
 
-    expect(api.getActionsManager().executeActions).toBeCalledWith({ actions: actions });
+    expect(api.getActionsManager().executeActions).toBeCalledWith({
+      actions: actions,
+      triggerData: { platform: 'acc', type: 'fullscreen' },
+    });
   });
 
   it('should run actions_not when the ongoing conditions do not hold', () => {
@@ -158,6 +161,7 @@ describe('AutomationsManager', () => {
 
     expect(api.getActionsManager().executeActions).toBeCalledWith({
       actions: actionsNot,
+      triggerData: { platform: 'acc', type: 'fullscreen' },
     });
   });
 

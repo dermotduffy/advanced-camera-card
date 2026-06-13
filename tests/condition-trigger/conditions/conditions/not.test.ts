@@ -20,16 +20,33 @@ describe('not condition', () => {
       createEvaluatorContext(),
     );
 
-    // Neither sub-condition is true, so `not` passes — and reports no trigger
-    // data (nothing is "triggering").
-    expect(evaluator.evaluate({})).toEqual({ result: true });
+    // Neither sub-condition is true, so `not` passes; these children have no
+    // change edge, so none is reported.
+    expect(evaluator.evaluate({})).toEqual({ result: true, changed: false });
 
     // Any sub-condition being true means `not` fails.
     expect(evaluator.evaluate({ fullscreen: true }).result).toBeFalsy();
     expect(evaluator.evaluate({ expand: true }).result).toBeFalsy();
 
-    // Both sub-conditions false again — `not` passes.
+    // Both sub-conditions false again -- `not` passes.
     expect(evaluator.evaluate({ fullscreen: false, expand: false }).result).toBeTruthy();
+  });
+
+  it('should report a change when a child input transitions', () => {
+    const evaluator = createConditionEvaluator(
+      {
+        condition: 'not' as const,
+        conditions: [{ condition: 'camera' as const, cameras: ['front'] }],
+      },
+      createEvaluatorContext(),
+    );
+
+    // The camera moves between two non-listed cameras: `not [camera in front]`
+    // stays true, and the child's transition surfaces as a change edge.
+    expect(evaluator.evaluate({ camera: 'side' }, { camera: 'back' })).toEqual({
+      result: true,
+      changed: true,
+    });
   });
 
   it('should forward subscribe and destroy to its children', () => {
@@ -41,7 +58,7 @@ describe('not condition', () => {
     } as unknown as MediaQueryList);
 
     // The `screen` child supports subscribe/destroy; the `fullscreen` child does
-    // not — forwarding must handle both.
+    // not -- forwarding must handle both.
     const evaluator = createConditionEvaluator(
       {
         condition: 'not' as const,

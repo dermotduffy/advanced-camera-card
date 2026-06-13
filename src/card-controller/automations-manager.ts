@@ -1,6 +1,7 @@
 import { ConditionEvaluator } from '../condition-trigger/conditions/conditions/types.js';
 import { createConditionEvaluator } from '../condition-trigger/conditions/factory.js';
 import { TriggersManager } from '../condition-trigger/triggers/manager.js';
+import { TriggerData } from '../condition-trigger/triggers/types.js';
 import { Automation, AutomationActions } from '../config/schema/automations.js';
 import { localize } from '../localize/localize.js';
 import { TemplateRenderer } from './templates/index.js';
@@ -44,12 +45,16 @@ export class AutomationsManager {
       const conditions = (automation.conditions ?? []).map((condition) =>
         createConditionEvaluator(condition, context),
       );
-      triggers.addListener(() => this._execute(automation, conditions));
+      triggers.addListener((data) => this._execute(automation, conditions, data));
       this._automations.set(automation, triggers);
     }
   }
 
-  private _execute(automation: Automation, conditions: ConditionEvaluator[]): void {
+  private _execute(
+    automation: Automation,
+    conditions: ConditionEvaluator[],
+    triggerData: TriggerData,
+  ): void {
     if (
       !this._api.getHASSManager().hasHASS() ||
       // Never execute automations if the card hasn't finished initializing, as
@@ -91,7 +96,7 @@ export class AutomationsManager {
         return;
       }
 
-      await this._api.getActionsManager().executeActions({ actions });
+      await this._api.getActionsManager().executeActions({ actions, triggerData });
 
       --this._nestedAutomationExecutions;
     };

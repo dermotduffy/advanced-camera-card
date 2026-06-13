@@ -76,26 +76,11 @@ export class StateConditionEvaluator implements ConditionEvaluator {
         ? entityIDs.some(matchesEntity)
         : entityIDs.every(matchesEntity);
 
-    // Trigger data describes a single entity's transition, so it is only
-    // meaningful (and emitted) when exactly one entity is watched.
-    if (entityIDs.length === 1) {
-      const entityID = entityIDs[0];
-      const fromValue = readValue(entityID, oldState);
-      const toValue = readValue(entityID, newState);
-      if (fromValue !== toValue) {
-        return {
-          result,
-          triggerData: {
-            state: {
-              entity: entityID,
-              ...(fromValue && { from: fromValue }),
-              ...(toValue && { to: toValue }),
-            },
-          },
-        };
-      }
-    }
+    // A change edge is reported when any watched entity's value transitions.
+    const changed = entityIDs.some(
+      (entityID) => readValue(entityID, oldState) !== readValue(entityID, newState),
+    );
 
-    return { result };
+    return { result, changed };
   }
 }

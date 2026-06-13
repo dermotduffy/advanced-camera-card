@@ -1,5 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { assert, describe, expect, it, vi } from 'vitest';
+import { AutomationsManager } from '../../../src/card-controller/automations-manager';
 import { setRemoteControlEntityFromConfig } from '../../../src/card-controller/config/load-control-entities';
+import { TemplateRenderer } from '../../../src/card-controller/templates/index';
+import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import {
   INTERNAL_CALLBACK_ACTION,
   InternalCallbackActionConfig,
@@ -91,7 +94,7 @@ describe('setRemoteControlEntityFromConfig', () => {
           {
             action: 'fire-dom-event',
             advanced_camera_card_action: 'camera_select',
-            camera: '{{ advanced_camera_card.trigger.state.to }}',
+            camera: '{{ trigger.to_state.state }}',
           },
         ],
         triggers: [
@@ -173,7 +176,7 @@ describe('setRemoteControlEntityFromConfig', () => {
           {
             action: 'fire-dom-event',
             advanced_camera_card_action: 'camera_select',
-            camera: '{{ advanced_camera_card.trigger.state.to }}',
+            camera: '{{ trigger.to_state.state }}',
           },
         ],
         triggers: [
@@ -616,6 +619,66 @@ describe('setRemoteControlEntityFromConfig', () => {
           entity_id: 'input_select.camera',
         },
       );
+    });
+  });
+
+  describe('should render the firing trigger into the camera action', () => {
+    it('should resolve the new entity state through the trigger template', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          remote_control: {
+            entities: {
+              camera: 'input_select.camera',
+              camera_priority: 'card',
+            },
+          },
+        }),
+      );
+
+      // Capture the automations the loader registers, then drive them through a
+      // real AutomationsManager so the state trigger actually fires and its
+      // `{{ trigger.to_state.state }}` template is rendered end to end (the
+      // other tests only string-match the literal, so a context mis-wire would
+      // silently break remote control).
+      setRemoteControlEntityFromConfig(api);
+      const automations = vi.mocked(api.getAutomationsManager().addAutomations).mock
+        .calls[0][0];
+
+      vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+      vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+        true,
+      );
+      const stateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
+      new AutomationsManager(api).addAutomations(automations);
+
+      stateManager.setState({
+        hass: createHASS({
+          'input_select.camera': createStateEntity({ state: 'camera.one' }),
+        }),
+      });
+      const hass = createHASS({
+        'input_select.camera': createStateEntity({ state: 'camera.two' }),
+      });
+      stateManager.setState({ hass });
+
+      const captured = vi
+        .mocked(api.getActionsManager().executeActions)
+        .mock.calls.at(-1)?.[0];
+      assert(captured);
+
+      const rendered = new TemplateRenderer().renderRecursively(hass, captured.actions, {
+        triggerData: captured.triggerData,
+      });
+      expect(rendered).toEqual([
+        {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'camera_select',
+          camera: 'camera.two',
+        },
+      ]);
     });
   });
 });

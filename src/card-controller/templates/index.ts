@@ -1,31 +1,22 @@
 import { HASS, renderTemplate } from 'ha-nunjucks/dist';
-import {
-  ConditionState,
-  ConditionsTriggerData,
-} from '../../condition-trigger/conditions/types';
+import { ConditionState } from '../../condition-trigger/conditions/types';
+import { TriggerData } from '../../condition-trigger/triggers/types';
 import { HomeAssistant } from '../../ha/types';
-
-interface TemplateMediaData {
-  title: string;
-  is_folder: boolean;
-}
-interface TemplateContextInternal {
-  camera?: string;
-  view?: string;
-  trigger?: ConditionsTriggerData;
-  media?: TemplateMediaData;
-}
+import { TemplateACCNamespace, TemplateMediaData } from './types';
 
 interface TemplateContext {
-  advanced_camera_card: TemplateContextInternal;
+  advanced_camera_card: TemplateACCNamespace;
 
   // Convenient alias.
-  acc: TemplateContextInternal;
+  acc: TemplateACCNamespace;
+
+  // The HA-native top-level `trigger`, set only when a trigger fired.
+  trigger?: TriggerData;
 }
 
 interface TemplateRenderOptions {
   conditionState?: ConditionState;
-  triggerData?: ConditionsTriggerData;
+  triggerData?: TriggerData;
   mediaData?: TemplateMediaData;
 }
 
@@ -54,16 +45,16 @@ export class TemplateRenderer {
       return;
     }
 
-    const advancedCameraCardContext: TemplateContextInternal = {
+    const advancedCameraCardContext: TemplateACCNamespace = {
       ...(options?.conditionState?.camera && { camera: options.conditionState.camera }),
       ...(options?.conditionState?.view && { view: options.conditionState.view }),
-      ...(options?.triggerData && { trigger: options.triggerData }),
       ...(options?.mediaData && { media: options.mediaData }),
     };
 
     return {
       acc: advancedCameraCardContext,
       advanced_camera_card: advancedCameraCardContext,
+      ...(options?.triggerData && { trigger: options.triggerData }),
     };
   }
 

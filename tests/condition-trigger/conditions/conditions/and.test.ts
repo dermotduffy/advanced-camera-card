@@ -26,9 +26,7 @@ describe('and condition', () => {
     expect(evaluator.evaluate({ fullscreen: false, expand: true }).result).toBeFalsy();
   });
 
-  it('should report combined trigger data for an and condition', () => {
-    // Not a terribly realistic example, but chosen so that trigger data for
-    // both camera and view should be returned.
+  it('should report a change when any child input transitions', () => {
     const evaluator = createConditionEvaluator(
       {
         condition: 'and' as const,
@@ -47,10 +45,7 @@ describe('and condition', () => {
       ),
     ).toEqual({
       result: true,
-      triggerData: {
-        camera: { from: 'camera-1', to: 'camera-2' },
-        view: { from: 'live', to: 'clip' },
-      },
+      changed: true,
     });
   });
 
@@ -63,7 +58,7 @@ describe('and condition', () => {
     } as unknown as MediaQueryList);
 
     // The `screen` child supports subscribe/destroy; the `fullscreen` child does
-    // not — forwarding must handle both.
+    // not -- forwarding must handle both.
     const evaluator = createConditionEvaluator(
       {
         condition: 'and' as const,
