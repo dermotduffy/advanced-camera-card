@@ -39,6 +39,7 @@ export class TemplateRenderer {
     if (
       !options?.conditionState?.camera &&
       !options?.conditionState?.view &&
+      !options?.conditionState?.config &&
       !options?.triggerData &&
       !options?.mediaData
     ) {
@@ -48,6 +49,7 @@ export class TemplateRenderer {
     const advancedCameraCardContext: TemplateACCNamespace = {
       ...(options?.conditionState?.camera && { camera: options.conditionState.camera }),
       ...(options?.conditionState?.view && { view: options.conditionState.view }),
+      ...(options?.conditionState?.config && { config: options.conditionState.config }),
       ...(options?.mediaData && { media: options.mediaData }),
     };
 

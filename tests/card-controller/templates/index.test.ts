@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TemplateRenderer } from '../../../src/card-controller/templates/index';
-import { createHASS, createStateEntity } from '../../test-utils';
+import { createConfig, createHASS, createStateEntity } from '../../test-utils';
 
 describe('TemplateRenderer', () => {
   describe('renderRecursively', () => {
@@ -117,6 +117,16 @@ describe('TemplateRenderer', () => {
         },
       });
       expect(result).toBe('camera.backyard');
+    });
+
+    it('should render with config context', () => {
+      const renderer = new TemplateRenderer();
+      const hass = createHASS();
+
+      const result = renderer.renderRecursively(hass, '{{ acc.config.view.default }}', {
+        conditionState: { config: createConfig({ view: { default: 'clips' } }) },
+      });
+      expect(result).toBe('clips');
     });
 
     it('should render with mediaData context', () => {

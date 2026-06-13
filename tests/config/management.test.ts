@@ -4227,6 +4227,185 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
+    describe('trigger template paths -> top-level trigger.*', () => {
+      it('should rewrite every legacy trigger path in an automation action', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'log',
+                  message:
+                    '{{ acc.trigger.state.entity }} {{ acc.trigger.state.from }} ' +
+                    '{{ acc.trigger.state.to }} {{ acc.trigger.camera.from }} ' +
+                    '{{ acc.trigger.camera.to }} {{ acc.trigger.view.from }} ' +
+                    '{{ acc.trigger.view.to }} {{ acc.trigger.config.from }} ' +
+                    '{{ acc.trigger.config.to }}',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].actions[0].message).toBe(
+          '{{ trigger.entity_id }} {{ trigger.from_state.state }} ' +
+            '{{ trigger.to_state.state }} {{ trigger.from_acc.camera }} ' +
+            '{{ trigger.to_acc.camera }} {{ trigger.from_acc.view }} ' +
+            '{{ trigger.to_acc.view }} {{ trigger.from_acc.config }} ' +
+            '{{ trigger.to_acc.config }}',
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('should also migrate the long advanced_camera_card prefix', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'log',
+                  message: '{{ advanced_camera_card.trigger.state.to }}',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].actions[0].message).toBe(
+          '{{ trigger.to_state.state }}',
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('should rewrite paths in a non-automation menu action', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-icon',
+              icon: 'mdi:cctv',
+              tap_action: {
+                action: 'fire-dom-event',
+                advanced_camera_card_action: 'camera_select',
+                camera: '{{ acc.trigger.camera.to }}',
+              },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.elements[0].tap_action.camera).toBe('{{ trigger.to_acc.camera }}');
+        postUpgradeChecks(config);
+      });
+
+      it('should not rewrite a string without a template marker', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'log',
+                  // No `{{` or `{%`, so it is opaque text, not a template, and is
+                  // left alone.
+                  message: 'see acc.trigger.state.to for details',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.automations[0].actions[0].message).toBe(
+          'see acc.trigger.state.to for details',
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('should migrate a path inside a statement-only template', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'log',
+                  // A `{% %}` statement with no `{{` is still a template.
+                  message: "{% if acc.trigger.state.to == 'on' %}on{% endif %}",
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].actions[0].message).toBe(
+          "{% if trigger.to_state.state == 'on' %}on{% endif %}",
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('should migrate the config trigger path', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              triggers: [{ trigger: 'config' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'log',
+                  message: '{{ acc.trigger.config.to }}',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].actions[0].message).toBe(
+          '{{ trigger.to_acc.config }}',
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('should be idempotent', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'log',
+                  message: '{{ acc.trigger.state.to }}',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.automations[0].actions[0].message).toBe(
+          '{{ trigger.to_state.state }}',
+        );
+      });
+    });
+
     describe('cameras[].triggers.events string[] -> triggers.media_events', () => {
       it('should migrate a legacy string array to media_events', () => {
         const config = {
@@ -4530,7 +4709,7 @@ describe('should handle version specific upgrades', () => {
 
       it('should leave opaque user payloads alone', () => {
         // A perform-action service payload that happens to mention the legacy
-        // action string in its `data` block must not be rewritten — `data` is
+        // action string in its `data` block must not be rewritten -- `data` is
         // opaque, not an action.
         const config = {
           type: 'custom:advanced-camera-card',

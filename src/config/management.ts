@@ -514,6 +514,59 @@ const promoteConditionsToTriggersTransform = (data: unknown): boolean => {
   return true;
 };
 
+// Legacy nested trigger template paths -> the HA-native top-level `trigger.*`.
+const TRIGGER_TEMPLATE_PATH_REWRITES: { suffix: string; modern: string }[] = [
+  { suffix: 'trigger.state.entity', modern: 'trigger.entity_id' },
+  { suffix: 'trigger.state.from', modern: 'trigger.from_state.state' },
+  { suffix: 'trigger.state.to', modern: 'trigger.to_state.state' },
+  { suffix: 'trigger.camera.from', modern: 'trigger.from_acc.camera' },
+  { suffix: 'trigger.camera.to', modern: 'trigger.to_acc.camera' },
+  { suffix: 'trigger.view.from', modern: 'trigger.from_acc.view' },
+  { suffix: 'trigger.view.to', modern: 'trigger.to_acc.view' },
+  { suffix: 'trigger.config.from', modern: 'trigger.from_acc.config' },
+  { suffix: 'trigger.config.to', modern: 'trigger.to_acc.config' },
+];
+
+// Both the released `acc` alias and the full `advanced_camera_card` namespace are
+// migrated.
+const TRIGGER_TEMPLATE_PREFIXES = ['acc.', 'advanced_camera_card.'];
+
+const rewriteTriggerTemplatePaths = (value: string): string => {
+  let result = value;
+  for (const prefix of TRIGGER_TEMPLATE_PREFIXES) {
+    for (const { suffix, modern } of TRIGGER_TEMPLATE_PATH_REWRITES) {
+      result = result.replaceAll(prefix + suffix, modern);
+    }
+  }
+  return result;
+};
+
+/**
+ * Rewrite the legacy nested `acc.trigger.*` / `advanced_camera_card.trigger.*`
+ * template paths to the top-level `trigger.*` surface, in place on a single
+ * object's string values. Gated on a nunjucks delimiter (`{{` expression or
+ * `{%` statement) so it only touches template strings. Idempotent (a migrated
+ * path matches no legacy pattern).
+ *
+ * @returns `true` if any value was rewritten.
+ */
+const migrateTriggerTemplatePathsTransform = (
+  data: RawAdvancedCameraCardConfig,
+): boolean => {
+  let modified = false;
+  for (const key of Object.keys(data)) {
+    const value = data[key];
+    if (typeof value === 'string' && (value.includes('{{') || value.includes('{%'))) {
+      const rewritten = rewriteTriggerTemplatePaths(value);
+      if (rewritten !== value) {
+        data[key] = rewritten;
+        modified = true;
+      }
+    }
+  }
+  return modified;
+};
+
 const callServiceToPerformActionTransform = (data: unknown): boolean => {
   if (
     typeof data !== 'object' ||
@@ -1202,4 +1255,11 @@ const UPGRADES = [
   // Promote automation `conditions:` into HA-native `triggers:`. Runs last so it
   // sees conditions in their final, fully-migrated form.
   upgradeArrayOfObjects(CONF_AUTOMATIONS, promoteConditionsToTriggersTransform),
+
+  // Rewrite legacy nested trigger template paths to the top-level `trigger.*`.
+  (data: unknown): boolean => {
+    return upgradeObjectRecursively(migrateTriggerTemplatePathsTransform)(
+      typeof data === 'object' && data ? (data as RawAdvancedCameraCardConfig) : {},
+    );
+  },
 ];

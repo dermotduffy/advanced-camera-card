@@ -109,6 +109,7 @@ export class ACCTrigger implements TriggerEvaluator {
     return {
       ...(state.camera !== undefined && { camera: state.camera }),
       ...(state.view !== undefined && { view: state.view }),
+      ...(state.config !== undefined && { config: state.config }),
     };
   }
 }

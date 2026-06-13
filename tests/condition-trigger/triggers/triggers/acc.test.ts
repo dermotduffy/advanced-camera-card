@@ -3,6 +3,7 @@ import { TemplateRenderer } from '../../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { ACCTrigger } from '../../../../src/condition-trigger/triggers/triggers/acc';
 import { Trigger } from '../../../../src/config/schema/condition-trigger/triggers/types';
+import { createConfig } from '../../../test-utils';
 
 // @vitest-environment jsdom
 describe('ACCTrigger', () => {
@@ -113,7 +114,7 @@ describe('ACCTrigger', () => {
     });
   });
 
-  it('should fire without before/after trigger data when the change has no camera or view', () => {
+  it('should fire without before/after trigger data when the change has no camera, view or config', () => {
     const { acc, stateManager, onFire } = create({
       trigger: 'fullscreen',
       fullscreen: true,
@@ -125,20 +126,21 @@ describe('ACCTrigger', () => {
     expect(onFire).toHaveBeenCalledWith({ platform: 'acc', type: 'fullscreen' });
   });
 
-  it('should include camera and view in the trigger data', () => {
+  it('should include camera, view and config in the trigger data', () => {
+    const config = createConfig();
     const { acc, stateManager, onFire } = create({
       trigger: 'camera',
       cameras: ['front'],
     });
     acc.subscribe(onFire);
 
-    stateManager.setState({ camera: 'side', view: 'live' });
+    stateManager.setState({ camera: 'side', view: 'live', config });
     stateManager.setState({ camera: 'front' });
     expect(onFire).toHaveBeenLastCalledWith({
       platform: 'acc',
       type: 'camera',
-      from_acc: { camera: 'side', view: 'live' },
-      to_acc: { camera: 'front', view: 'live' },
+      from_acc: { camera: 'side', view: 'live', config },
+      to_acc: { camera: 'front', view: 'live', config },
     });
   });
 
