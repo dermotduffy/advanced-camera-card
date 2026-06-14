@@ -7,9 +7,8 @@ export class OrConditionEvaluator extends CompositeConditionEvaluator {
     oldState?: ConditionState,
   ): ConditionsEvaluationResult {
     for (const child of this._children) {
-      const evaluation = child.evaluate(newState, oldState);
-      if (evaluation.result) {
-        return evaluation;
+      if (child.evaluate(newState, oldState).result) {
+        return { result: true };
       }
     }
     return { result: false };

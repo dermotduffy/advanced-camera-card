@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
-import { createHASS, createStateEntity } from '../../../test-utils';
 import { createEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
@@ -21,9 +20,8 @@ describe('not condition', () => {
       createEvaluatorContext(),
     );
 
-    // Neither sub-condition is true, so `not` passes; these children have no
-    // change edge, so none is reported.
-    expect(evaluator.evaluate({})).toEqual({ result: true, changed: false });
+    // Neither sub-condition is true, so `not` passes.
+    expect(evaluator.evaluate({})).toEqual({ result: true });
 
     // Any sub-condition being true means `not` fails.
     expect(evaluator.evaluate({ fullscreen: true }).result).toBeFalsy();
@@ -31,32 +29,6 @@ describe('not condition', () => {
 
     // Both sub-conditions false again -- `not` passes.
     expect(evaluator.evaluate({ fullscreen: false, expand: false }).result).toBeTruthy();
-  });
-
-  it('should report a change when a child input transitions', () => {
-    const evaluator = createConditionEvaluator(
-      {
-        condition: 'not' as const,
-        conditions: [
-          { condition: 'state' as const, entity_id: 'switch.one', state: 'on' },
-        ],
-      },
-      createEvaluatorContext(),
-    );
-
-    const off = {
-      hass: createHASS({ 'switch.one': createStateEntity({ state: 'off' }) }),
-    };
-    const unavailable = {
-      hass: createHASS({ 'switch.one': createStateEntity({ state: 'unavailable' }) }),
-    };
-
-    // The entity moves between two non-`on` states: `not [state on]` stays true,
-    // and the child's transition surfaces as a change edge.
-    expect(evaluator.evaluate(unavailable, off)).toEqual({
-      result: true,
-      changed: true,
-    });
   });
 
   it('should forward subscribe and destroy to its children', () => {

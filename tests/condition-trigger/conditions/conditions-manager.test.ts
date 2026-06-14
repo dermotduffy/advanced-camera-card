@@ -35,40 +35,6 @@ describe('ConditionsManager', () => {
     expect(listener).not.toBeCalled();
   });
 
-  it('should re-notify each time a watched value moves while still matching', () => {
-    const stateManager = new ConditionStateManager();
-    const manager = new ConditionsManager(
-      [
-        { condition: 'state' as const, entity_id: 'switch.one' },
-        { condition: 'state' as const, entity_id: 'switch.two' },
-      ],
-      stateManager,
-    );
-
-    const listener = vi.fn();
-    manager.addListener(listener);
-
-    stateManager.setState({
-      hass: createHASS({
-        'switch.one': createStateEntity({ state: 'on' }),
-        'switch.two': createStateEntity({ state: 'off' }),
-      }),
-    });
-    expect(listener).toHaveBeenLastCalledWith({ result: true }, expect.anything());
-
-    // The result stays true but watched values moved, so listeners are notified
-    // again (the lateral edge a card trigger fires on).
-    stateManager.setState({
-      hass: createHASS({
-        'switch.one': createStateEntity({ state: 'off' }),
-        'switch.two': createStateEntity({ state: 'on' }),
-      }),
-    });
-    expect(listener).toHaveBeenLastCalledWith({ result: true }, expect.anything());
-
-    expect(listener).toBeCalledTimes(2);
-  });
-
   it('should forward the triggering state change to listeners', () => {
     const stateManager = new ConditionStateManager();
     const manager = new ConditionsManager(

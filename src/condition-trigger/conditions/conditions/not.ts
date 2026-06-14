@@ -2,19 +2,16 @@ import { ConditionsEvaluationResult, ConditionState } from '../types';
 import { CompositeConditionEvaluator } from './composite';
 
 export class NotConditionEvaluator extends CompositeConditionEvaluator {
-  // "Not" is an inverted `or` (NOR): true when no child matches, reporting a
-  // change edge when any child's watched input moved (as `and`/`or` do).
+  // "Not" is an inverted `or` (NOR): true when no child matches.
   public evaluate(
     newState?: ConditionState,
     oldState?: ConditionState,
   ): ConditionsEvaluationResult {
-    let matched = false;
-    let changed = false;
     for (const child of this._children) {
-      const evaluation = child.evaluate(newState, oldState);
-      matched = matched || evaluation.result;
-      changed = changed || !!evaluation.changed;
+      if (child.evaluate(newState, oldState).result) {
+        return { result: false };
+      }
     }
-    return { result: !matched, changed };
+    return { result: true };
   }
 }

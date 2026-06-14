@@ -48,10 +48,6 @@ export interface ConditionStateManagerReadonlyInterface {
 
 export interface ConditionsEvaluationResult {
   result: boolean;
-
-  // Whether the condition's watched input transitioned during this evaluation
-  // (an edge), even when `result` is unchanged.
-  changed?: boolean;
 }
 
 // The `stateChange` that prompted the evaluation is forwarded so a trigger can

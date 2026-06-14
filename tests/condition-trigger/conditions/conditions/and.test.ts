@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
-import { createHASS, createStateEntity } from '../../../test-utils';
 import { createEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
@@ -25,38 +24,6 @@ describe('and condition', () => {
     expect(evaluator.evaluate({ fullscreen: true }).result).toBeFalsy();
     expect(evaluator.evaluate({ fullscreen: true, expand: true }).result).toBeTruthy();
     expect(evaluator.evaluate({ fullscreen: false, expand: true }).result).toBeFalsy();
-  });
-
-  it('should report a change when any child input transitions', () => {
-    const evaluator = createConditionEvaluator(
-      {
-        condition: 'and' as const,
-        conditions: [
-          { condition: 'state' as const, entity_id: 'switch.one', state: 'on' },
-          { condition: 'state' as const, entity_id: 'switch.two', state: 'on' },
-        ],
-      },
-      createEvaluatorContext(),
-    );
-
-    const off = {
-      hass: createHASS({
-        'switch.one': createStateEntity({ state: 'off' }),
-        'switch.two': createStateEntity({ state: 'off' }),
-      }),
-    };
-    const on = {
-      hass: createHASS({
-        'switch.one': createStateEntity({ state: 'on' }),
-        'switch.two': createStateEntity({ state: 'on' }),
-      }),
-    };
-
-    // Both children are `off`, so neither matches `on`.
-    expect(evaluator.evaluate(off, off).result).toBeFalsy();
-
-    // Both children transition to `on`: `and` holds and surfaces the change edge.
-    expect(evaluator.evaluate(on, off)).toEqual({ result: true, changed: true });
   });
 
   it('should forward subscribe and destroy to its children', () => {

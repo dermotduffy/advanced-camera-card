@@ -6,14 +6,11 @@ export class AndConditionEvaluator extends CompositeConditionEvaluator {
     newState?: ConditionState,
     oldState?: ConditionState,
   ): ConditionsEvaluationResult {
-    let changed = false;
     for (const child of this._children) {
-      const evaluation = child.evaluate(newState, oldState);
-      if (!evaluation.result) {
+      if (!child.evaluate(newState, oldState).result) {
         return { result: false };
       }
-      changed = changed || !!evaluation.changed;
     }
-    return { result: true, changed };
+    return { result: true };
   }
 }

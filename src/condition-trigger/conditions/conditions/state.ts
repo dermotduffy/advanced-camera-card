@@ -76,11 +76,6 @@ export class StateConditionEvaluator implements ConditionEvaluator {
         ? entityIDs.some(matchesEntity)
         : entityIDs.every(matchesEntity);
 
-    // A change edge is reported when any watched entity's value transitions.
-    const changed = entityIDs.some(
-      (entityID) => readValue(entityID, oldState) !== readValue(entityID, newState),
-    );
-
-    return { result, changed };
+    return { result };
   }
 }

@@ -20,8 +20,7 @@ interface ManagedCondition {
 
 /**
  * A class to evaluate an array of conditions, and notify listeners when the
- * evaluation changes (a change is either the result changing, or the data
- * associated with a result).
+ * evaluation result changes.
  */
 export class ConditionsManager implements ConditionsManagerReadonlyInterface {
   private _stateManager: ConditionStateManagerReadonlyInterface | null;
@@ -89,17 +88,12 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
     const state = options?.stateChange?.new ?? this._stateManager?.getState();
 
     let result = true;
-    let changed = false;
 
     for (const { config, evaluator } of this._conditions) {
       if (!isEnabled(this._templateRenderer, config.enabled, state)) {
         continue;
       }
-      const evaluation = evaluator.evaluate(state, options?.stateChange?.old);
-      if (evaluation.changed) {
-        changed = true;
-      }
-      if (!evaluation.result) {
+      if (!evaluator.evaluate(state, options?.stateChange?.old).result) {
         result = false;
         break;
       }
@@ -107,9 +101,7 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
 
     const evaluation: ConditionsEvaluationResult = { result };
 
-    // Notify on a result transition, or while still matching when a watched input
-    // moved (the lateral edge a card trigger fires on).
-    if (result !== this._evaluation.result || (result && changed)) {
+    if (result !== this._evaluation.result) {
       this._evaluation = evaluation;
       if (options?.callListeners ?? true) {
         this._listeners.forEach((listener) =>

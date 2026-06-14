@@ -5,7 +5,7 @@ import { createEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
 describe('state condition', () => {
-  it('should report a change for any transition when neither state nor state_not is set', () => {
+  it('should match any transition when neither state nor state_not is set', () => {
     const evaluator = createConditionEvaluator(
       { condition: 'state' as const, entity_id: 'binary_sensor.foo' },
       createEvaluatorContext(),
@@ -18,10 +18,7 @@ describe('state condition', () => {
         },
         {},
       ),
-    ).toEqual({
-      result: true,
-      changed: true,
-    });
+    ).toEqual({ result: true });
 
     expect(
       evaluator.evaluate(
@@ -32,10 +29,7 @@ describe('state condition', () => {
           hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'on' }) }),
         },
       ),
-    ).toEqual({
-      result: true,
-      changed: true,
-    });
+    ).toEqual({ result: true });
   });
 
   it('should match a single positive state', () => {
@@ -165,7 +159,6 @@ describe('state condition', () => {
       hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'on' }) }),
     });
     expect(result.result).toBeFalsy();
-    expect(result.changed).toBeUndefined();
   });
 
   it('should accept the entity field', () => {
@@ -253,36 +246,6 @@ describe('state condition', () => {
         }),
       }).result,
     ).toBeFalsy();
-  });
-
-  it('should report a change when any watched entity in a list transitions', () => {
-    const evaluator = createConditionEvaluator(
-      {
-        condition: 'state' as const,
-        entity_id: ['binary_sensor.foo', 'binary_sensor.bar'],
-      },
-      createEvaluatorContext(),
-    );
-
-    const at = (foo: string, bar: string) => ({
-      hass: createHASS({
-        'binary_sensor.foo': createStateEntity({ state: foo }),
-        'binary_sensor.bar': createStateEntity({ state: bar }),
-      }),
-    });
-
-    // Only `binary_sensor.bar` moves: a single watched entity transitioning is
-    // enough to report the change edge.
-    expect(evaluator.evaluate(at('on', 'on'), at('on', 'off'))).toEqual({
-      result: false,
-      changed: true,
-    });
-
-    // No watched entity moves: no change edge.
-    expect(evaluator.evaluate(at('on', 'on'), at('on', 'on'))).toEqual({
-      result: false,
-      changed: false,
-    });
   });
 
   it('should match against an attribute instead of the state', () => {
