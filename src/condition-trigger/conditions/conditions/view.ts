@@ -8,19 +8,10 @@ export class ViewConditionEvaluator implements ConditionEvaluator {
     this._condition = condition;
   }
 
-  public evaluate(
-    newState?: ConditionState,
-    oldState?: ConditionState,
-  ): ConditionsEvaluationResult {
-    const oldView = oldState?.view;
-    const newView = newState?.view;
-    const changed = oldView !== newView;
-
+  public evaluate(newState?: ConditionState): ConditionsEvaluationResult {
+    const view = newState?.view;
     return {
-      result:
-        (!!newView && this._condition.views?.includes(newView)) ||
-        (changed && !this._condition.views?.length),
-      changed,
+      result: !!view && this._condition.views.includes(view),
     };
   }
 }

@@ -15,20 +15,34 @@ describe('camera condition', () => {
     expect(evaluator.evaluate({ camera: 'will-not-match' }).result).toBeFalsy();
   });
 
-  it('should report a change for any camera change', () => {
+  it('should match any of several named cameras', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'camera' as const, cameras: ['foo', 'bar'] },
+      createEvaluatorContext(),
+    );
+
+    expect(evaluator.evaluate({ camera: 'bar' }).result).toBeTruthy();
+    expect(evaluator.evaluate({ camera: 'foo' }).result).toBeTruthy();
+    expect(evaluator.evaluate({ camera: 'baz' }).result).toBeFalsy();
+  });
+
+  it('should match a selected camera when cameras is omitted', () => {
     const evaluator = createConditionEvaluator(
       { condition: 'camera' as const },
       createEvaluatorContext(),
     );
 
-    expect(evaluator.evaluate({ camera: 'bar' }, {})).toEqual({
-      result: true,
-      changed: true,
-    });
+    expect(evaluator.evaluate({ camera: 'bar' }).result).toBeTruthy();
+    expect(evaluator.evaluate({}).result).toBeFalsy();
+  });
 
-    expect(evaluator.evaluate({ camera: 'foo' }, { camera: 'bar' })).toEqual({
-      result: true,
-      changed: true,
-    });
+  it('should match no selected camera for an empty list', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'camera' as const, cameras: [] },
+      createEvaluatorContext(),
+    );
+
+    expect(evaluator.evaluate({}).result).toBeTruthy();
+    expect(evaluator.evaluate({ camera: 'bar' }).result).toBeFalsy();
   });
 });

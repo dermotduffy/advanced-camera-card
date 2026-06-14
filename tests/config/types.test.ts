@@ -889,7 +889,6 @@ describe('config defaults', () => {
       { condition: 'and', conditions: [{ condition: 'initialized' }] },
       { condition: 'call', call: true },
       { condition: 'camera', cameras: ['camera.office'] },
-      { condition: 'config', paths: ['menu.style'] },
       { condition: 'display_mode', display_mode: 'single' },
       { condition: 'expand', expand: true },
       { condition: 'fullscreen', fullscreen: true },

@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { conditionBaseSchema } from './base';
 import { callConditionSchema } from './custom/call';
 import { cameraConditionSchema } from './custom/camera';
-import { configConditionSchema } from './custom/config';
 import { displayModeConditionSchema } from './custom/display-mode';
 import { expandConditionSchema } from './custom/expand';
 import { fullscreenConditionSchema } from './custom/fullscreen';
@@ -65,7 +64,6 @@ export const conditionSchema = z.union([
   // Custom conditions:
   callConditionSchema,
   cameraConditionSchema,
-  configConditionSchema,
   displayModeConditionSchema,
   expandConditionSchema,
   fullscreenConditionSchema,

@@ -4225,6 +4225,317 @@ describe('should handle version specific upgrades', () => {
         });
         postUpgradeChecks(config);
       });
+
+      it('should drop a trigger-only condition from the retained conditions', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                { condition: 'camera' },
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+          ],
+          triggers: [
+            { trigger: 'camera' },
+            { trigger: 'state', entity_id: 'binary_sensor.door', to: 'on' },
+          ],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should drop the conditions block when all are trigger-only', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'camera' }, { condition: 'view' }],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'camera' }, { trigger: 'view' }],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should prune trigger-only leaves from a retained composite', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                {
+                  condition: 'or',
+                  conditions: [
+                    { condition: 'camera' },
+                    { condition: 'view', views: ['live'] },
+                  ],
+                },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [
+            { condition: 'or', conditions: [{ condition: 'view', views: ['live'] }] },
+          ],
+          triggers: [{ trigger: 'camera' }, { trigger: 'view', views: ['live'] }],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should drop a composite whose leaves are all trigger-only', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                { condition: 'or', conditions: [{ condition: 'camera' }] },
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+          ],
+          triggers: [
+            { trigger: 'camera' },
+            { trigger: 'state', entity_id: 'binary_sensor.door', to: 'on' },
+          ],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should promote a config condition to a config trigger', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                { condition: 'config', paths: ['menu.style'] },
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+          ],
+          triggers: [
+            { trigger: 'config', paths: ['menu.style'] },
+            { trigger: 'state', entity_id: 'binary_sensor.door', to: 'on' },
+          ],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+    });
+
+    describe('trigger-only conditions in overrides and elements', () => {
+      it('should drop an override gated only on a config condition', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: [
+            {
+              conditions: [{ condition: 'config', paths: ['menu.style'] }],
+              merge: { menu: { style: 'none' } },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.overrides).toEqual([]);
+        postUpgradeChecks(config);
+      });
+
+      it('should strip a config condition from an override with other conditions', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: [
+            {
+              conditions: [
+                { condition: 'config', paths: ['menu.style'] },
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+              merge: { menu: { style: 'none' } },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.overrides).toEqual([
+          {
+            conditions: [
+              { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+            ],
+            merge: { menu: { style: 'none' } },
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should drop an override gated only on a valueless camera condition', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: [
+            {
+              conditions: [{ condition: 'camera' }],
+              merge: { menu: { style: 'none' } },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.overrides).toEqual([]);
+        postUpgradeChecks(config);
+      });
+
+      it('should drop a conditional element gated only on a config condition', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-conditional',
+              conditions: [{ condition: 'config', paths: ['menu.style'] }],
+              elements: [{ type: 'icon', icon: 'mdi:cow' }],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.elements).toBeUndefined();
+        postUpgradeChecks(config);
+      });
+
+      it('should strip a config condition from a conditional element with other conditions', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-conditional',
+              conditions: [
+                { condition: 'config', paths: ['menu.style'] },
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+              elements: [{ type: 'icon', icon: 'mdi:cow' }],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.elements).toEqual([
+          {
+            type: 'custom:advanced-camera-card-conditional',
+            conditions: [
+              { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+            ],
+            elements: [{ type: 'icon', icon: 'mdi:cow' }],
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should recurse into nested conditional elements, keeping siblings', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-conditional',
+              conditions: [
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+              elements: [
+                { type: 'icon', icon: 'mdi:cow' },
+                {
+                  type: 'custom:advanced-camera-card-conditional',
+                  conditions: [{ condition: 'config', paths: ['menu.style'] }],
+                  elements: [{ type: 'icon', icon: 'mdi:pig' }],
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.elements).toEqual([
+          {
+            type: 'custom:advanced-camera-card-conditional',
+            conditions: [
+              { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+            ],
+            elements: [{ type: 'icon', icon: 'mdi:cow' }],
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should leave malformed gated entries (no conditions / no elements) untouched', () => {
+        // These shapes are schema-invalid, so the transform must not crash on
+        // them (a non-object override, a gate without a `conditions` array, a
+        // conditional without an `elements` array); it simply leaves them as-is.
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: ['malformed', { merge: {} }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-conditional',
+              conditions: [
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+            },
+          ],
+        };
+        upgradeConfig(config);
+        expect(config.overrides).toEqual(['malformed', { merge: {} }]);
+        expect(config.elements).toEqual([
+          {
+            type: 'custom:advanced-camera-card-conditional',
+            conditions: [
+              { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+            ],
+          },
+        ]);
+      });
     });
 
     describe('trigger template paths -> top-level trigger.*', () => {

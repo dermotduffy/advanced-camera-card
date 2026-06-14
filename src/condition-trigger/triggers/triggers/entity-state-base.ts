@@ -5,29 +5,29 @@ import { arrayify } from '../../../utils/basic';
 import { Timer } from '../../../utils/timer';
 import { ConditionStateChange } from '../../conditions/types';
 import {
+  TriggerCallback,
   TriggerEvaluator,
   TriggerEvaluatorContext,
-  TriggerFireCallback,
   TriggerOfType,
 } from './types';
 
 // Shared scaffolding for the stock entity triggers (`state` and
 // `numeric_state`): per-`entity`/`entity_id` fan-out, the `for:` hold (one
-// Timer per entity), and the HA-faithful fire payload. Subclasses implement
+// Timer per entity), and the HA-faithful trigger payload. Subclasses implement
 // only the per-entity decision (`_processEntity`) and their `platform`.
-export abstract class EntityStateTrigger<
+export abstract class EntityStateTriggerBase<
   T extends TriggerOfType<'state'> | TriggerOfType<'numeric_state'>,
 > implements TriggerEvaluator
 {
   protected _trigger: T;
   protected _context: TriggerEvaluatorContext;
 
-  private _fireCallback: TriggerFireCallback | null = null;
+  private _callback: TriggerCallback | null = null;
 
   // A `for:` hold per entity: a list can be holding several independently.
   private _forTimers = new Map<string, Timer>();
 
-  // The `trigger.platform` value reported in the fire payload.
+  // The `trigger.platform` value reported in the trigger payload.
   protected abstract readonly _platform: string;
 
   constructor(trigger: T, context: TriggerEvaluatorContext) {
@@ -35,8 +35,8 @@ export abstract class EntityStateTrigger<
     this._context = context;
   }
 
-  public subscribe(fireCallback: TriggerFireCallback): void {
-    this._fireCallback = fireCallback;
+  public subscribe(callback: TriggerCallback): void {
+    this._callback = callback;
     this._onSubscribe();
     this._context.stateManager.addListener(this._stateChangehandler);
   }
@@ -46,7 +46,7 @@ export abstract class EntityStateTrigger<
     this._forTimers.forEach((timer) => timer.stop());
     this._forTimers.clear();
     this._onDestroy();
-    this._fireCallback = null;
+    this._callback = null;
   }
 
   protected abstract _processEntityChange(
@@ -67,21 +67,21 @@ export abstract class EntityStateTrigger<
     this._forTimers.get(entityID)?.stop();
   }
 
-  // Fire immediately, or arm the `for:` hold so the fire lands only after the
+  // Trigger immediately, or arm the `for:` hold so it triggers only after the
   // condition has held for the configured duration.
-  protected _fireOrHold(
+  protected _callTriggerOrHold(
     entityID: string,
     oldStateObj?: HassEntity,
     newStateObj?: HassEntity,
   ): void {
     if (!this._trigger.for) {
-      this._fire(entityID, oldStateObj, newStateObj);
+      this._callTrigger(entityID, oldStateObj, newStateObj);
       return;
     }
     const seconds = parseTimePeriodToSeconds(this._trigger.for);
     if (seconds !== null) {
       this._getForTimer(entityID).start(seconds, () =>
-        this._fire(entityID, oldStateObj, newStateObj),
+        this._callTrigger(entityID, oldStateObj, newStateObj),
       );
     }
   }
@@ -108,12 +108,12 @@ export abstract class EntityStateTrigger<
     return timer;
   }
 
-  private _fire(
+  private _callTrigger(
     entityID: string,
     oldStateObj?: HassEntity,
     newStateObj?: HassEntity,
   ): void {
-    this._fireCallback?.({
+    this._callback?.({
       platform: this._platform,
       entity_id: entityID,
       entity: entityID,

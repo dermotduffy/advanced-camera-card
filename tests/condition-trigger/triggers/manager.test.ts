@@ -19,7 +19,7 @@ describe('TriggersManager', () => {
     return { manager, stateManager, listener };
   };
 
-  it('should notify a listener when any of its triggers fires', () => {
+  it('should notify a listener when any of its trigger evaluators triggers', () => {
     const { manager, stateManager, listener } = create([
       { trigger: 'camera', cameras: ['front'] },
       { trigger: 'view', views: ['live'] },
@@ -77,7 +77,7 @@ describe('TriggersManager', () => {
     expect(listener).not.toHaveBeenCalled();
   });
 
-  it('should stop firing after destroy', () => {
+  it('should stop triggering after destroy', () => {
     const { manager, stateManager, listener } = create([
       { trigger: 'camera', cameras: ['front'] },
     ]);
@@ -113,7 +113,7 @@ describe('TriggersManager', () => {
       return { stateManager, listener };
     };
 
-    it('should not fire a disabled trigger', () => {
+    it('should not trigger a disabled trigger', () => {
       const { manager, stateManager, listener } = create([
         { trigger: 'camera', cameras: ['front'], enabled: false },
       ]);
@@ -124,7 +124,7 @@ describe('TriggersManager', () => {
       expect(listener).not.toHaveBeenCalled();
     });
 
-    it('should fire an explicitly enabled trigger', () => {
+    it('should trigger an explicitly enabled trigger', () => {
       const { manager, stateManager, listener } = create([
         { trigger: 'camera', cameras: ['front'], enabled: true },
       ]);
@@ -135,7 +135,7 @@ describe('TriggersManager', () => {
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
-    it('should not fire a trigger whose enabled template does not render true', () => {
+    it('should not trigger a trigger whose enabled template does not render true', () => {
       const { stateManager, listener } = createWithFlag(ENABLED_TEMPLATE, 'off');
 
       stateManager.setState({ camera: 'front' });
@@ -143,7 +143,7 @@ describe('TriggersManager', () => {
       expect(listener).not.toHaveBeenCalled();
     });
 
-    it('should fire a trigger whose enabled template renders true', () => {
+    it('should trigger a trigger whose enabled template renders true', () => {
       const { stateManager, listener } = createWithFlag(ENABLED_TEMPLATE, 'on');
 
       stateManager.setState({ camera: 'front' });
@@ -151,7 +151,7 @@ describe('TriggersManager', () => {
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
-    it('should fire a trigger with an enabled template when hass is absent', () => {
+    it('should trigger a trigger with an enabled template when hass is absent', () => {
       const { stateManager, listener } = createWithFlag(ENABLED_TEMPLATE, null);
 
       stateManager.setState({ camera: 'front' });
@@ -159,7 +159,7 @@ describe('TriggersManager', () => {
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
-    it('should re-evaluate the enabled template on each fire', () => {
+    it('should re-evaluate the enabled template on each trigger', () => {
       const stateManager = new ConditionStateManager();
       stateManager.setState({
         hass: createHASS({ 'binary_sensor.flag': createStateEntity({ state: 'off' }) }),
@@ -171,11 +171,12 @@ describe('TriggersManager', () => {
       const listener = vi.fn();
       manager.addListener(listener);
 
-      // Flag off: the trigger fires but is gated out.
+      // Flag off: the enabled template renders false, so the camera change is
+      // suppressed and the listener is not notified.
       stateManager.setState({ camera: 'front' });
       expect(listener).not.toHaveBeenCalled();
 
-      // Flag flips on: a subsequent fire is now allowed through.
+      // Flag flips on: a subsequent trigger is now allowed through.
       stateManager.setState({
         hass: createHASS({ 'binary_sensor.flag': createStateEntity({ state: 'on' }) }),
       });

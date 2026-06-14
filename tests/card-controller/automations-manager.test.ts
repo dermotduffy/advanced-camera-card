@@ -80,7 +80,7 @@ describe('AutomationsManager', () => {
     });
   });
 
-  it('should execute actions when a trigger fires', () => {
+  it('should execute actions when triggered', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
     vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
@@ -96,7 +96,7 @@ describe('AutomationsManager', () => {
 
     expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
 
-    // The trigger does not re-fire while its source stays in the same state.
+    // It does not re-trigger while its source stays in the same state.
     stateManager.setState({ fullscreen: true });
     expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
 
@@ -126,7 +126,7 @@ describe('AutomationsManager', () => {
       },
     ]);
 
-    // The ongoing condition holds when the trigger fires, so `actions` run.
+    // The ongoing condition holds when triggered, so `actions` run.
     stateManager.setState({ expand: true });
     stateManager.setState({ fullscreen: true });
 
@@ -155,8 +155,8 @@ describe('AutomationsManager', () => {
       },
     ]);
 
-    // The ongoing condition does not hold when the trigger fires, so
-    // `actions_not` runs instead.
+    // The ongoing condition does not hold when triggered, so `actions_not` runs
+    // instead.
     stateManager.setState({ fullscreen: true });
 
     expect(api.getActionsManager().executeActions).toBeCalledWith({
@@ -183,8 +183,8 @@ describe('AutomationsManager', () => {
       },
     ]);
 
-    // The trigger fires but the ongoing condition does not hold, and there is no
-    // `actions_not` branch to run.
+    // The automation is triggered but the ongoing condition does not hold, and
+    // there is no `actions_not` branch to run.
     stateManager.setState({ fullscreen: true });
 
     expect(api.getActionsManager().executeActions).not.toBeCalled();
@@ -207,9 +207,9 @@ describe('AutomationsManager', () => {
       },
     ]);
 
-    // Create a setup where the automation's action re-fires its own trigger: the
-    // camera trigger fires on every camera change, and the action changes the
-    // camera, looping until the nested-execution guard trips.
+    // Create a setup where the automation's action re-triggers itself: the camera
+    // trigger responds to every camera change, and the action changes the camera,
+    // looping until the nested-execution guard trips.
     let camera = 'one';
 
     vi.mocked(api.getActionsManager().executeActions).mockImplementation(

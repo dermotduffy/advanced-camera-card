@@ -39,9 +39,10 @@ export class AutomationsManager {
         this._api.getConditionStateManager(),
       );
 
-      // The ongoing `conditions:` block is pull-evaluated at fire time, so its
-      // evaluators are never subscribed and hold no resources to tear down. They
-      // live in the fire callback and are released when `triggers` is destroyed.
+      // The ongoing `conditions:` block is pull-evaluated at trigger time, so
+      // its evaluators are never subscribed and hold no resources to tear down.
+      // They live in the trigger callback and are released when `triggers` is
+      // destroyed.
       const conditions = (automation.conditions ?? []).map((condition) =>
         createConditionEvaluator(condition, context),
       );
@@ -69,8 +70,9 @@ export class AutomationsManager {
     }
 
     // Evaluate the ongoing conditions against the current state at the instant
-    // the trigger fired. The state manager updates its stored state before
-    // dispatching to listeners, so this already reflects the triggering change.
+    // the automation is triggered. The state manager updates its stored state
+    // before dispatching to listeners, so this already reflects the triggering
+    // change.
     const state = this._api.getConditionStateManager().getState();
     const ongoingConditionsHold = conditions.every(
       (evaluator) => evaluator.evaluate(state).result,

@@ -1,16 +1,33 @@
 import { describe, expect, it } from 'vitest';
 import { stateConditionSchema } from '../../../../../../src/config/schema/condition-trigger/conditions/stock/state';
 
-// Covers the card's own refinement (zod pass-through is trusted): `for` requires
-// `state` (or its accepted `state_not` alias).
 describe('stateConditionSchema', () => {
-  it('should reject for without state or state_not', () => {
+  it('should reject a state condition without state or state_not', () => {
     expect(() =>
       stateConditionSchema.parse({
         condition: 'state',
         entity_id: 'binary_sensor.door',
-        for: '00:00:05',
       }),
     ).toThrow();
+  });
+
+  it('should accept a state condition with state', () => {
+    expect(
+      stateConditionSchema.parse({
+        condition: 'state',
+        entity_id: 'binary_sensor.door',
+        state: 'on',
+      }),
+    ).toEqual({ condition: 'state', entity_id: 'binary_sensor.door', state: 'on' });
+  });
+
+  it('should accept a state condition with state_not', () => {
+    expect(
+      stateConditionSchema.parse({
+        condition: 'state',
+        entity_id: 'binary_sensor.door',
+        state_not: 'on',
+      }),
+    ).toEqual({ condition: 'state', entity_id: 'binary_sensor.door', state_not: 'on' });
   });
 });

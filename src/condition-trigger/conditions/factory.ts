@@ -2,7 +2,6 @@ import { Condition } from '../../config/schema/condition-trigger/conditions/type
 import { AndConditionEvaluator } from './conditions/and';
 import { CallConditionEvaluator } from './conditions/call';
 import { CameraConditionEvaluator } from './conditions/camera';
-import { ConfigConditionEvaluator } from './conditions/config';
 import { DisplayModeConditionEvaluator } from './conditions/display-mode';
 import { ExpandConditionEvaluator } from './conditions/expand';
 import { FullscreenConditionEvaluator } from './conditions/fullscreen';
@@ -61,8 +60,6 @@ export const createConditionEvaluator = (
       return new KeyConditionEvaluator(condition);
     case 'user_agent':
       return new UserAgentConditionEvaluator(condition);
-    case 'config':
-      return new ConfigConditionEvaluator(condition);
     case 'initialized':
       return new InitializedConditionEvaluator();
     case 'template':

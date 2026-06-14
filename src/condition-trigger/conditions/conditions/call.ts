@@ -10,7 +10,7 @@ export class CallConditionEvaluator implements ConditionEvaluator {
 
   public evaluate(newState?: ConditionState): ConditionsEvaluationResult {
     return {
-      result: (this._condition.call ?? true) === (newState?.call ?? false),
+      result: this._condition.call === (newState?.call ?? false),
     };
   }
 }

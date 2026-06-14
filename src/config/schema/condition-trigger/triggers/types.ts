@@ -12,8 +12,6 @@ import { mediaLoadedTriggerSchema } from './custom/media-loaded';
 import { microphoneTriggerSchema } from './custom/microphone';
 import { screenTriggerSchema } from './custom/screen';
 import { triggeredTriggerSchema } from './custom/triggered';
-import { userTriggerSchema } from './custom/user';
-import { userAgentTriggerSchema } from './custom/user-agent';
 import { viewTriggerSchema } from './custom/view';
 import { numericStateTriggerSchema } from './stock/numeric-state';
 import { stateTriggerSchema } from './stock/state';
@@ -25,8 +23,9 @@ export const triggerSchema = z.union([
   stateTriggerSchema,
   templateTriggerSchema,
 
-  // Custom triggers (Note: `screen`/`user` are HA picture elements conditions
-  // but have no HA trigger equivalent):
+  // Custom triggers. Note: `screen` is an HA picture-elements condition with no
+  // HA trigger, but it genuinely can change (e.g. orientation/resize) -- so it
+  // is offered as a trigger.
   callTriggerSchema,
   cameraTriggerSchema,
   configTriggerSchema,
@@ -40,8 +39,6 @@ export const triggerSchema = z.union([
   microphoneTriggerSchema,
   screenTriggerSchema,
   triggeredTriggerSchema,
-  userTriggerSchema,
-  userAgentTriggerSchema,
   viewTriggerSchema,
 ]);
 export type Trigger = z.infer<typeof triggerSchema>;

@@ -9,10 +9,21 @@ export class TriggeredConditionEvaluator implements ConditionEvaluator {
   }
 
   public evaluate(newState?: ConditionState): ConditionsEvaluationResult {
-    return {
-      result: this._condition.triggered.some((triggeredCameraID) =>
-        newState?.triggered?.has(triggeredCameraID),
-      ),
-    };
+    const active = newState?.triggered;
+    const cameraIDs = this._condition.triggered;
+    const count = active?.size ?? 0;
+
+    let result: boolean;
+    if (cameraIDs === undefined) {
+      // Omitted: any camera is triggered.
+      result = count > 0;
+    } else if (cameraIDs.length === 0) {
+      // `[]`: no camera is triggered.
+      result = count === 0;
+    } else {
+      // A list: one of the named cameras is among those triggered.
+      result = !!active && cameraIDs.some((cameraID) => active.has(cameraID));
+    }
+    return { result };
   }
 }

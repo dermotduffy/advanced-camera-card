@@ -15,20 +15,14 @@ describe('view condition', () => {
     expect(evaluator.evaluate({ view: 'clips' }).result).toBeFalsy();
   });
 
-  it('should report a change for any view change', () => {
+  it('should match any of several named views', () => {
     const evaluator = createConditionEvaluator(
-      { condition: 'view' as const },
+      { condition: 'view' as const, views: ['live', 'clips'] },
       createEvaluatorContext(),
     );
 
-    expect(evaluator.evaluate({ view: 'clips' }, {})).toEqual({
-      result: true,
-      changed: true,
-    });
-
-    expect(evaluator.evaluate({ view: 'timeline' }, { view: 'clips' })).toEqual({
-      result: true,
-      changed: true,
-    });
+    expect(evaluator.evaluate({ view: 'live' }).result).toBeTruthy();
+    expect(evaluator.evaluate({ view: 'clips' }).result).toBeTruthy();
+    expect(evaluator.evaluate({ view: 'timeline' }).result).toBeFalsy();
   });
 });

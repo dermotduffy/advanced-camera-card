@@ -457,6 +457,56 @@ const flattenConditionLeaves = (condition: unknown): unknown[] => {
   return Array.isArray(inner) ? inner.flatMap(flattenConditionLeaves) : [];
 };
 
+// A condition that fired on a *change* rather than describing an ongoing state
+// was really a trigger (the legacy "conditions-as-triggers" model). Migration
+// promotes it to a trigger and drops it from the retained `conditions:`.
+//
+// Note: `config` is no longer a condition; and although the current schema
+// reads a valueless `camera` as "any camera selected", a *legacy* valueless
+// `camera` meant the change, so it is still trigger-only here).
+const isTriggerOnlyCondition = (condition: unknown): boolean => {
+  if (typeof condition !== 'object' || !condition) {
+    return false;
+  }
+  const kind = condition['condition'];
+  if (kind === 'config') {
+    // `config` is no longer a condition at all.
+    return true;
+  }
+  if (kind === 'camera') {
+    return !(Array.isArray(condition['cameras']) && condition['cameras'].length);
+  }
+  if (kind === 'view') {
+    return !(Array.isArray(condition['views']) && condition['views'].length);
+  }
+  if (kind === 'state' || kind === undefined) {
+    return condition['state'] === undefined && condition['state_not'] === undefined;
+  }
+  return false;
+};
+
+// Drop trigger-only conditions from a retained `conditions:` list, recursing
+// into composites and discarding any that become empty.
+const dropTriggerOnlyConditions = (conditions: unknown[]): unknown[] => {
+  const kept: unknown[] = [];
+  for (const condition of conditions) {
+    if (
+      isCompositeCondition(condition) &&
+      typeof condition === 'object' &&
+      condition &&
+      Array.isArray(condition['conditions'])
+    ) {
+      const inner = dropTriggerOnlyConditions(condition['conditions']);
+      if (inner.length) {
+        kept.push({ ...condition, conditions: inner });
+      }
+    } else if (!isTriggerOnlyCondition(condition)) {
+      kept.push(condition);
+    }
+  }
+  return kept;
+};
+
 const rewriteConditionAsTrigger = (condition: unknown): unknown => {
   if (typeof condition !== 'object' || !condition) {
     return condition;
@@ -491,7 +541,8 @@ const rewriteConditionAsTrigger = (condition: unknown): unknown => {
  * A single simple condition becomes one trigger and the `conditions:` block is
  * dropped. Multiple conditions (or a composite) become one trigger per leaf,
  * while the original `conditions:` are retained as an ongoing predicate
- * (dual-list). Idempotent: an automation that already has `triggers:` is left
+ * (dual-list) -- minus any trigger-only forms, which would no longer be valid
+ * conditions. Idempotent: an automation that already has `triggers:` is left
  * untouched.
  */
 const promoteConditionsToTriggersTransform = (data: unknown): boolean => {
@@ -510,8 +561,126 @@ const promoteConditionsToTriggersTransform = (data: unknown): boolean => {
     data['triggers'] = conditions
       .flatMap(flattenConditionLeaves)
       .map(rewriteConditionAsTrigger);
+    const ongoing = dropTriggerOnlyConditions(conditions);
+    if (ongoing.length) {
+      data['conditions'] = ongoing;
+    } else {
+      delete data['conditions'];
+    }
   }
   return true;
+};
+
+// Picture-element conditional wrapper types (shared with upgradePTZElementsToLive).
+const CONDITIONAL_ELEMENT_TYPES = [
+  'conditional',
+  'custom:advanced-camera-card-conditional',
+];
+
+const isConditionalElementType = (type: unknown): boolean =>
+  typeof type === 'string' && CONDITIONAL_ELEMENT_TYPES.includes(type);
+
+// Strip the trigger-only conditions from a single gate-holder's `conditions:`,
+// in place. `keep` is false when stripping emptied a non-empty gate, meaning the
+// holder has no meaningful gate left and the caller should drop it; an already-
+// empty `conditions:` (or a holder with none) is the user's and left untouched.
+const stripGateConditions = (
+  holder: RawAdvancedCameraCardConfig,
+): { keep: boolean; modified: boolean } => {
+  const original = holder['conditions'];
+  if (!Array.isArray(original)) {
+    return { keep: true, modified: false };
+  }
+  const stripped = dropTriggerOnlyConditions(original);
+  if (original.length && !stripped.length) {
+    return { keep: false, modified: true };
+  }
+  if (!isEqual(stripped, original)) {
+    holder['conditions'] = stripped;
+    return { keep: true, modified: true };
+  }
+  return { keep: true, modified: false };
+};
+
+// Strip trigger-only conditions from the conditional elements in a picture-
+// element tree, recursing into the kept conditionals. Conditional elements
+// nest, so this is recursive; overrides are a flat list handled inline by the
+// parent transform.
+const stripTriggerOnlyConditionsFromElements = (
+  elements: RawAdvancedCameraCardConfigArray,
+): { elements: RawAdvancedCameraCardConfigArray; modified: boolean } => {
+  let modified = false;
+  const kept: RawAdvancedCameraCardConfigArray = [];
+  for (const element of elements) {
+    if (
+      typeof element === 'object' &&
+      element &&
+      isConditionalElementType(element['type'])
+    ) {
+      const { keep, modified: gateModified } = stripGateConditions(element);
+      modified = gateModified || modified;
+      if (!keep) {
+        continue;
+      }
+      if (Array.isArray(element['elements'])) {
+        const inner = stripTriggerOnlyConditionsFromElements(element['elements']);
+        modified = inner.modified || modified;
+        element['elements'] = inner.elements;
+      }
+    }
+    kept.push(element);
+  }
+  return { elements: kept, modified };
+};
+
+/**
+ * Drop the now-invalid trigger-only conditions (including the removed `config`
+ * condition) from the gating `conditions:` of overrides and conditional
+ * elements. An entry whose conditions become empty has no meaningful gate left,
+ * so it is dropped entirely. Automations are handled by the promote transform.
+ */
+const stripTriggerOnlyConditionsFromOverridesElementsTransform = (
+  data: unknown,
+): boolean => {
+  if (typeof data !== 'object' || !data) {
+    return false;
+  }
+  let modified = false;
+
+  const overrides = data[CONF_OVERRIDES];
+  if (Array.isArray(overrides)) {
+    let overridesModified = false;
+    const kept: RawAdvancedCameraCardConfigArray = [];
+    for (const override of overrides) {
+      if (typeof override === 'object' && override) {
+        const { keep, modified: gateModified } = stripGateConditions(override);
+        overridesModified = gateModified || overridesModified;
+        if (!keep) {
+          continue;
+        }
+      }
+      kept.push(override);
+    }
+    if (overridesModified) {
+      data[CONF_OVERRIDES] = kept;
+      modified = true;
+    }
+  }
+
+  const elements = data[CONF_ELEMENTS];
+  if (Array.isArray(elements)) {
+    const result = stripTriggerOnlyConditionsFromElements(elements);
+    if (result.modified) {
+      modified = true;
+      if (result.elements.length) {
+        data[CONF_ELEMENTS] = result.elements;
+      } else {
+        delete data[CONF_ELEMENTS];
+      }
+    }
+  }
+
+  return modified;
 };
 
 // Legacy nested trigger template paths -> the HA-native top-level `trigger.*`.
@@ -640,8 +809,7 @@ const upgradePTZElementsToLive = function (): (data: unknown) => boolean {
         if (element['type'] === 'custom:advanced-camera-card-ptz') {
           movePTZ(element);
         } else if (
-          (element['type'] === 'conditional' ||
-            element['type'] === 'custom:advanced-camera-card-conditional') &&
+          isConditionalElementType(element['type']) &&
           Array.isArray(element['elements'])
         ) {
           const newConditionalElements = processElements(element['elements']);
@@ -1255,6 +1423,10 @@ const UPGRADES = [
   // Promote automation `conditions:` into HA-native `triggers:`. Runs last so it
   // sees conditions in their final, fully-migrated form.
   upgradeArrayOfObjects(CONF_AUTOMATIONS, promoteConditionsToTriggersTransform),
+
+  // Drop the now-invalid trigger-only conditions (incl. the removed `config`
+  // condition) from overrides/elements, dropping any entry left ungated.
+  stripTriggerOnlyConditionsFromOverridesElementsTransform,
 
   // Rewrite legacy nested trigger template paths to the top-level `trigger.*`.
   (data: unknown): boolean => {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
+import { mediaLoadedConditionSchema } from '../../../../src/config/schema/condition-trigger/conditions/custom/media-loaded';
 import { createMediaLoadedInfo } from '../../../test-utils';
 import { createEvaluatorContext } from './test-utils';
 
@@ -12,6 +13,18 @@ describe('media loaded condition', () => {
     );
 
     expect(evaluator.evaluate({}).result).toBeFalsy();
+    expect(
+      evaluator.evaluate({ mediaLoadedInfo: createMediaLoadedInfo() }).result,
+    ).toBeTruthy();
+    expect(evaluator.evaluate({ mediaLoadedInfo: null }).result).toBeFalsy();
+  });
+
+  it('should default to matching loaded media when omitted', () => {
+    const evaluator = createConditionEvaluator(
+      mediaLoadedConditionSchema.parse({ condition: 'media_loaded' }),
+      createEvaluatorContext(),
+    );
+
     expect(
       evaluator.evaluate({ mediaLoadedInfo: createMediaLoadedInfo() }).result,
     ).toBeTruthy();

@@ -2,20 +2,20 @@ import { parseTimePeriodToSeconds } from '../../../ha/parse-time-period';
 import { Timer } from '../../../utils/timer';
 import { ConditionState, ConditionStateChange } from '../../conditions/types';
 import {
+  TriggerCallback,
   TriggerEvaluator,
   TriggerEvaluatorContext,
-  TriggerFireCallback,
   TriggerOfType,
 } from './types';
 
 // https://www.home-assistant.io/docs/automation/trigger/#template-trigger
-// Fires when `value_template` renders true having previously been non-true (the
-// rising edge); `for:` requires it to stay true for the duration before firing.
+// Triggers when `value_template` renders true having previously been non-true
+// (the rising edge); `for:` requires it to stay true for the duration first.
 export class TemplateTrigger implements TriggerEvaluator {
   private _trigger: TriggerOfType<'template'>;
   private _context: TriggerEvaluatorContext;
 
-  private _fireCallback: TriggerFireCallback | null = null;
+  private _callback: TriggerCallback | null = null;
   private _forTimer = new Timer();
 
   private _lastResult = false;
@@ -25,11 +25,11 @@ export class TemplateTrigger implements TriggerEvaluator {
     this._context = context;
   }
 
-  public subscribe(fireCallback: TriggerFireCallback): void {
-    this._fireCallback = fireCallback;
+  public subscribe(callback: TriggerCallback): void {
+    this._callback = callback;
 
-    // Establish the baseline without firing: a template already true at subscribe
-    // must not fire (HA fires only on a transition to true).
+    // Establish the baseline without triggering: a template already true at
+    // subscribe must not trigger (HA triggers only on a transition to true).
     this._lastResult = this._render(this._context.stateManager.getState());
     this._context.stateManager.addListener(this._handler);
   }
@@ -37,7 +37,7 @@ export class TemplateTrigger implements TriggerEvaluator {
   public destroy(): void {
     this._context.stateManager.removeListener(this._handler);
     this._forTimer.stop();
-    this._fireCallback = null;
+    this._callback = null;
   }
 
   private _handler = (change: ConditionStateChange): void => {
@@ -48,15 +48,15 @@ export class TemplateTrigger implements TriggerEvaluator {
     if (rising) {
       const forPeriod = this._trigger.for;
       if (!forPeriod) {
-        this._fire();
+        this._callTrigger();
         return;
       }
       const seconds = parseTimePeriodToSeconds(forPeriod);
       if (seconds !== null) {
-        this._forTimer.start(seconds, () => this._fire());
+        this._forTimer.start(seconds, () => this._callTrigger());
       }
     } else if (!result) {
-      // No longer holds -- cancel any pending `for:` fire.
+      // No longer holds -- cancel any pending `for:` trigger.
       this._forTimer.stop();
     }
   };
@@ -72,7 +72,7 @@ export class TemplateTrigger implements TriggerEvaluator {
     );
   }
 
-  private _fire(): void {
-    this._fireCallback?.({ platform: 'template' });
+  private _callTrigger(): void {
+    this._callback?.({ platform: 'template' });
   }
 }

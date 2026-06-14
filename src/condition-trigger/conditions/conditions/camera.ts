@@ -8,19 +8,18 @@ export class CameraConditionEvaluator implements ConditionEvaluator {
     this._condition = condition;
   }
 
-  public evaluate(
-    newState?: ConditionState,
-    oldState?: ConditionState,
-  ): ConditionsEvaluationResult {
-    const oldCamera = oldState?.camera;
-    const newCamera = newState?.camera;
-    const changed = newCamera !== oldCamera;
-
-    return {
-      result:
-        (!!newCamera && !!this._condition.cameras?.includes(newCamera)) ||
-        (changed && !this._condition.cameras?.length),
-      changed,
-    };
+  public evaluate(newState?: ConditionState): ConditionsEvaluationResult {
+    const camera = newState?.camera;
+    const cameras = this._condition.cameras;
+    if (cameras === undefined) {
+      // Omitted: a camera is selected.
+      return { result: !!camera };
+    }
+    if (cameras.length === 0) {
+      // `[]`: no camera is selected.
+      return { result: !camera };
+    }
+    // A list: the selected camera is one of these.
+    return { result: !!camera && cameras.includes(camera) };
   }
 }

@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { stateBaseSchema } from '../../common/state';
 import { stringOrArray } from '../../../common/string-or-array';
+import { stateBaseSchema } from '../../common/state';
 import { conditionBaseSchema } from '../base';
 import { entityConditionBaseSchema } from './entity-base';
 
@@ -25,10 +25,9 @@ export const stateConditionSchema = entityConditionBaseSchema
     // https://www.home-assistant.io/docs/scripts/conditions/#state-condition
     match: z.enum(['all', 'any']).optional(),
   })
-  // HA requires `state` when `for` is set (key_dependency); `for` has no meaning
-  // without a state to hold. The card also accepts `state_not` as that state.
+  // A state condition is not useful without either `state` or `state_not` to
+  // test against.
   .refine(
-    (data) =>
-      data.for === undefined || data.state !== undefined || data.state_not !== undefined,
-    '`for` requires `state` or `state_not`',
+    (data) => data.state !== undefined || data.state_not !== undefined,
+    'A `state` condition requires `state` or `state_not`',
   );

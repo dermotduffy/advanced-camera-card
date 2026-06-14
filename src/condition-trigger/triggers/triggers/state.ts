@@ -1,23 +1,24 @@
 import { HassEntity } from 'home-assistant-js-websocket';
 import { arrayify } from '../../../utils/basic';
-import { EntityStateTrigger } from './entity-state';
+import { EntityStateTriggerBase } from './entity-state-base';
 import { TriggerOfType } from './types';
 
 // https://www.home-assistant.io/docs/automation/trigger/#state-trigger Faithful
 // to HA's state trigger
 // (homeassistant/components/homeassistant/triggers/state.py):
 // per-`entity`/`entity_id`, `from`/`to`/`not_from`/`not_to` matchers (absent or
-// `null` matches anything), the `match_all` attribute-firing rule, `attribute`,
-// and a per-entity `for:`.
-export class StateTrigger extends EntityStateTrigger<TriggerOfType<'state'>> {
+// `null` matches anything), the `match_all` attribute-triggering rule,
+// `attribute`, and a per-entity `for:`.
+export class StateTrigger extends EntityStateTriggerBase<TriggerOfType<'state'>> {
   protected readonly _platform = 'state';
 
   // True when any of `from`/`to`/`not_from`/`not_to` is set. A `null` config value
   // (e.g. `to: null`) still counts as set: it matches any state value (see
-  // `_matches`), but its mere presence is what restricts firing to *real state
-  // changes*. This is the whole significance of `to: null` vs omitting `to`: both
-  // match any value, but `to: null` will NOT fire on attribute-only changes (a
-  // constraint exists), whereas omitting all four fires on those too.
+  // `_matches`), but its mere presence is what restricts triggering to *real
+  // state changes*. This is the whole significance of `to: null` vs omitting
+  // `to`: both match any value, but `to: null` will NOT trigger on attribute-only
+  // changes (a constraint exists), whereas omitting all four triggers on those
+  // too.
   private _hasStateConstraint(): boolean {
     const trigger = this._trigger;
     return (
@@ -78,7 +79,7 @@ export class StateTrigger extends EntityStateTrigger<TriggerOfType<'state'>> {
       this._matches(newValue, trigger.to, trigger.not_to) &&
       // from/to test the values but not that they *differ*, so an attribute-only
       // event (value unchanged) can still satisfy them. Require a genuine change
-      // when a constraint is set; with none, fire on those too.
+      // when a constraint is set; with none, trigger on those too.
       !(hasStateConstraint && oldValue === newValue);
 
     if (!matches) {
@@ -91,6 +92,6 @@ export class StateTrigger extends EntityStateTrigger<TriggerOfType<'state'>> {
       return;
     }
 
-    this._fireOrHold(entityID, oldStateObj, newStateObj);
+    this._callTriggerOrHold(entityID, oldStateObj, newStateObj);
   }
 }

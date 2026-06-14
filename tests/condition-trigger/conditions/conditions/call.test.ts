@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
+import { callConditionSchema } from '../../../../src/config/schema/condition-trigger/conditions/custom/call';
 import { createEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
 describe('call condition', () => {
   it('should default to call true in its bare form', () => {
     const evaluator = createConditionEvaluator(
-      { condition: 'call' as const },
+      callConditionSchema.parse({ condition: 'call' }),
       createEvaluatorContext(),
     );
 
