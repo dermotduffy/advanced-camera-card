@@ -1,5 +1,5 @@
-import { parseTimePeriodToSeconds } from '../../../ha/parse-time-period';
 import { Timer } from '../../../utils/timer';
+import { renderTimePeriodToSeconds } from '../../common/time-period';
 import { ConditionState, ConditionStateChange } from '../../conditions/types';
 import {
   TriggerCallback,
@@ -51,7 +51,11 @@ export class TemplateTrigger implements TriggerEvaluator {
         this._callTrigger();
         return;
       }
-      const seconds = parseTimePeriodToSeconds(forPeriod);
+      const seconds = renderTimePeriodToSeconds(
+        this._context.templateRenderer,
+        forPeriod,
+        change.new,
+      );
       if (seconds !== null) {
         this._forTimer.start(seconds, () => this._callTrigger());
       }

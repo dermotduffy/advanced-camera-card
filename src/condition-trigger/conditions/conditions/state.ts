@@ -1,13 +1,15 @@
-import { parseTimePeriodToSeconds } from '../../../ha/parse-time-period';
 import { arrayify } from '../../../utils/basic';
+import { renderTimePeriodToSeconds } from '../../common/time-period';
 import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ConditionOfType } from './types';
+import { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './types';
 
 export class StateConditionEvaluator implements ConditionEvaluator {
   private _condition: ConditionOfType<'state'>;
+  private _context: EvaluatorContext;
 
-  constructor(condition: ConditionOfType<'state'>) {
+  constructor(condition: ConditionOfType<'state'>, context: EvaluatorContext) {
     this._condition = condition;
+    this._context = context;
   }
 
   public evaluate(
@@ -57,7 +59,11 @@ export class StateConditionEvaluator implements ConditionEvaluator {
       // Evaluated against `last_changed` at evaluation time (correct for the
       // point-in-time / ongoing-condition use).
       if (result && condition.for !== undefined) {
-        const forSeconds = parseTimePeriodToSeconds(condition.for);
+        const forSeconds = renderTimePeriodToSeconds(
+          this._context.templateRenderer,
+          condition.for,
+          newState,
+        );
         const lastChanged = newState?.hass?.states?.[entityID]?.last_changed;
         if (forSeconds === null || !lastChanged) {
           result = false;

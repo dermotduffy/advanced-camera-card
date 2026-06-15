@@ -21,7 +21,7 @@ import {
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
 } from '../const';
-import { arrayify } from '../utils/basic';
+import { arrayify, isRecord } from '../utils/basic';
 import { Condition } from './schema/condition-trigger/conditions/types';
 import { RawAdvancedCameraCardConfig, RawAdvancedCameraCardConfigArray } from './types';
 
@@ -439,7 +439,7 @@ const conditionToConditionsTransform = (data: unknown): boolean => {
 };
 
 const isCompositeCondition = (condition: unknown): boolean => {
-  if (typeof condition !== 'object' || !condition) {
+  if (!isRecord(condition)) {
     return false;
   }
   const kind = condition['condition'];
@@ -450,7 +450,7 @@ const isCompositeCondition = (condition: unknown): boolean => {
 // reduced to its leaf conditions for the trigger list (the composite itself is
 // retained on the `conditions:` side).
 const flattenConditionLeaves = (condition: unknown): unknown[] => {
-  if (!isCompositeCondition(condition) || typeof condition !== 'object' || !condition) {
+  if (!isCompositeCondition(condition) || !isRecord(condition)) {
     return [condition];
   }
   const inner = condition['conditions'];
@@ -465,7 +465,7 @@ const flattenConditionLeaves = (condition: unknown): unknown[] => {
 // reads a valueless `camera` as "any camera selected", a *legacy* valueless
 // `camera` meant the change, so it is still trigger-only here).
 const isTriggerOnlyCondition = (condition: unknown): boolean => {
-  if (typeof condition !== 'object' || !condition) {
+  if (!isRecord(condition)) {
     return false;
   }
   const kind = condition['condition'];
@@ -508,7 +508,7 @@ const dropTriggerOnlyConditions = (conditions: unknown[]): unknown[] => {
 };
 
 const rewriteConditionAsTrigger = (condition: unknown): unknown => {
-  if (typeof condition !== 'object' || !condition) {
+  if (!isRecord(condition)) {
     return condition;
   }
   const kind = condition['condition'];
@@ -546,7 +546,7 @@ const rewriteConditionAsTrigger = (condition: unknown): unknown => {
  * untouched.
  */
 const promoteConditionsToTriggersTransform = (data: unknown): boolean => {
-  if (typeof data !== 'object' || !data || 'triggers' in data) {
+  if (!isRecord(data) || 'triggers' in data) {
     return false;
   }
   const conditions = data['conditions'];
@@ -642,7 +642,7 @@ const stripTriggerOnlyConditionsFromElements = (
 const stripTriggerOnlyConditionsFromOverridesElementsTransform = (
   data: unknown,
 ): boolean => {
-  if (typeof data !== 'object' || !data) {
+  if (!isRecord(data)) {
     return false;
   }
   let modified = false;
@@ -738,8 +738,7 @@ const migrateTriggerTemplatePathsTransform = (
 
 const callServiceToPerformActionTransform = (data: unknown): boolean => {
   if (
-    typeof data !== 'object' ||
-    !data ||
+    !isRecord(data) ||
     data['action'] !== 'call-service' ||
     typeof data['service'] !== 'string'
   ) {
@@ -781,8 +780,7 @@ const serviceDataToDataTransform = (data: unknown): boolean => {
 const upgradePTZElementsToLive = function (): (data: unknown) => boolean {
   return function (data: unknown): boolean {
     if (
-      typeof data !== 'object' ||
-      !data ||
+      !isRecord(data) ||
       !(CONF_ELEMENTS in data) ||
       !Array.isArray(data[CONF_ELEMENTS])
     ) {
@@ -844,7 +842,7 @@ const upgradePTZElementsToLive = function (): (data: unknown) => boolean {
 // See: https://github.com/dermotduffy/advanced-camera-card/issues/2385
 // See: https://github.com/AlexxIT/WebRTC/blob/master/custom_components/webrtc/www/webrtc-camera.js
 const ptzIncorrectDataToWebRTCDataTransform = (data: unknown): unknown => {
-  if (typeof data !== 'object' || !data) {
+  if (!isRecord(data)) {
     return undefined;
   }
   let modified = false;
@@ -946,7 +944,7 @@ const ptzActionsToCamerasGlobalTransform = (data: unknown): unknown => {
 };
 
 const ptzControlSettingsTransform = (data: unknown): unknown => {
-  if (typeof data !== 'object' || !data) {
+  if (!isRecord(data)) {
     return data;
   }
 
@@ -977,7 +975,7 @@ const ptzControlSettingsTransform = (data: unknown): unknown => {
 };
 
 const titleControlTransform = (data: unknown): unknown => {
-  if (typeof data !== 'object' || !data || typeof data['mode'] !== 'string') {
+  if (!isRecord(data) || typeof data['mode'] !== 'string') {
     return null;
   }
   if (data['mode'] === 'none') {
@@ -1098,7 +1096,7 @@ const frigateCardToAdvancedCameraCardTransform = (
  * @returns `true` if the node was modified.
  */
 const microphoneConnectedToCallTransform = (data: unknown): boolean => {
-  if (typeof data !== 'object' || !data || data['condition'] !== 'microphone') {
+  if (!isRecord(data) || data['condition'] !== 'microphone') {
     return false;
   }
   const connected = data['connected'];
@@ -1155,7 +1153,7 @@ const substreamActionsUnifyTransform = (data: RawAdvancedCameraCardConfig): bool
 };
 
 const frigateCardToAdvancedCameraCardStyleTransform = (data: unknown): unknown => {
-  if (typeof data !== 'object' || !data || Array.isArray(data)) {
+  if (!isRecord(data) || Array.isArray(data)) {
     return data;
   }
 
@@ -1182,7 +1180,7 @@ const frigateCardToAdvancedCameraCardStyleTransform = (data: unknown): unknown =
 // refuse to overwrite it -- but we still drop the legacy `events` (otherwise
 // it would fail the new schema, which expects objects).
 const triggersEventsToMediaEventsTransform = (triggers: unknown): unknown => {
-  if (typeof triggers !== 'object' || !triggers) {
+  if (!isRecord(triggers)) {
     return undefined;
   }
   const events = triggers['events'];
@@ -1201,7 +1199,7 @@ const UPGRADES = [
   // v5.2.0 -> v6.0.0
   (data: unknown): boolean => {
     return upgradeObjectRecursively(serviceDataToDataTransform)(
-      typeof data === 'object' && data ? <RawAdvancedCameraCardConfig>data : {},
+      isRecord(data) ? data : {},
     );
   },
   upgradePTZElementsToLive(),
@@ -1335,7 +1333,7 @@ const UPGRADES = [
   // different.
   (data: unknown): boolean => {
     return upgradeObjectRecursively(callServiceToPerformActionTransform)(
-      typeof data === 'object' && data ? (data as RawAdvancedCameraCardConfig) : {},
+      isRecord(data) ? data : {},
     );
   },
   upgradeMoveToWithOverrides('dimensions.max_height', CONF_DIMENSIONS_HEIGHT),
@@ -1349,7 +1347,7 @@ const UPGRADES = [
   // v7.0.0+
   (data: unknown): boolean => {
     return upgradeObjectRecursively(frigateCardToAdvancedCameraCardTransform)(
-      typeof data === 'object' && data ? (data as RawAdvancedCameraCardConfig) : {},
+      isRecord(data) ? data : {},
     );
   },
   upgradeWithOverrides(
@@ -1407,7 +1405,7 @@ const UPGRADES = [
   // automations, view-action handlers, etc.).
   (data: unknown): boolean => {
     return upgradeObjectRecursively(substreamActionsUnifyTransform)(
-      typeof data === 'object' && data ? (data as RawAdvancedCameraCardConfig) : {},
+      isRecord(data) ? data : {},
     );
   },
 
@@ -1431,7 +1429,7 @@ const UPGRADES = [
   // Rewrite legacy nested trigger template paths to the top-level `trigger.*`.
   (data: unknown): boolean => {
     return upgradeObjectRecursively(migrateTriggerTemplatePathsTransform)(
-      typeof data === 'object' && data ? (data as RawAdvancedCameraCardConfig) : {},
+      isRecord(data) ? data : {},
     );
   },
 ];

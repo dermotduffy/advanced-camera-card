@@ -334,6 +334,33 @@ describe('state condition', () => {
       ).toBeTruthy();
     });
 
+    it('should render a templated "for" before comparing', () => {
+      const evaluator = createConditionEvaluator(
+        {
+          condition: 'state' as const,
+          entity_id: 'binary_sensor.foo',
+          state: 'on',
+          for: "{{ states('input_number.delay') }}",
+        },
+        createEvaluatorContext(),
+      );
+
+      const evaluateHeldSince = (lastChanged: string): boolean =>
+        !!evaluator.evaluate({
+          hass: createHASS({
+            'binary_sensor.foo': createStateEntity({
+              state: 'on',
+              last_changed: lastChanged,
+            }),
+            'input_number.delay': createStateEntity({ state: '5' }),
+          }),
+        }).result;
+
+      // `for` renders to 5s: held 2s -> no match, held 8s -> match.
+      expect(evaluateHeldSince('2026-06-05T22:56:54Z')).toBe(false);
+      expect(evaluateHeldSince('2026-06-05T22:56:48Z')).toBe(true);
+    });
+
     it('should not match when last_changed is unavailable', () => {
       const evaluator = createConditionEvaluator(
         {

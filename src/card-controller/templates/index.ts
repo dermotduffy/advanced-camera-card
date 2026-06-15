@@ -2,6 +2,7 @@ import { HASS, renderTemplate } from 'ha-nunjucks/dist';
 import { ConditionState } from '../../condition-trigger/conditions/types';
 import { TriggerData } from '../../condition-trigger/triggers/types';
 import { HomeAssistant } from '../../ha/types';
+import { isRecord } from '../../utils/basic';
 import { TemplateACCNamespace, TemplateMediaData } from './types';
 
 interface TemplateContext {
@@ -77,7 +78,7 @@ export class TemplateRenderer {
       return data.map((item) =>
         this._renderTemplateRecursively(hass, item, templateContext),
       );
-    } else if (typeof data === 'object' && data !== null) {
+    } else if (isRecord(data)) {
       const result = {};
       for (const key in data) {
         result[key] = this._renderTemplateRecursively(hass, data[key], templateContext);

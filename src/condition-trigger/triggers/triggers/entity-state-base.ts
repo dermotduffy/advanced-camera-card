@@ -1,8 +1,8 @@
 import { HassEntity } from 'home-assistant-js-websocket';
 import { isEqual } from 'lodash-es';
-import { parseTimePeriodToSeconds } from '../../../ha/parse-time-period';
 import { arrayify } from '../../../utils/basic';
 import { Timer } from '../../../utils/timer';
+import { renderTimePeriodToSeconds } from '../../common/time-period';
 import { ConditionStateChange } from '../../conditions/types';
 import {
   TriggerCallback,
@@ -78,7 +78,11 @@ export abstract class EntityStateTriggerBase<
       this._callTrigger(entityID, oldStateObj, newStateObj);
       return;
     }
-    const seconds = parseTimePeriodToSeconds(this._trigger.for);
+    const seconds = renderTimePeriodToSeconds(
+      this._context.templateRenderer,
+      this._trigger.for,
+      this._context.stateManager.getState(),
+    );
     if (seconds !== null) {
       this._getForTimer(entityID).start(seconds, () =>
         this._callTrigger(entityID, oldStateObj, newStateObj),

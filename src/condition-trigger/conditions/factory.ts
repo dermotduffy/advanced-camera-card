@@ -29,7 +29,7 @@ export const createConditionEvaluator = (
   switch (condition.condition) {
     case undefined:
     case 'state':
-      return new StateConditionEvaluator(condition);
+      return new StateConditionEvaluator(condition, context);
     case 'view':
       return new ViewConditionEvaluator(condition);
     case 'fullscreen':
