@@ -47,7 +47,7 @@ fullscreen mode.
 > When fullscreen is entered via a video player's built-in controls (rather than
 > the card's fullscreen menu button), automation actions that replace _that_ video
 > element (e.g. switching substreams from one video to another) will immediately exit fullscreen (as the browser sees the video the user clicked on be destroyed). See the
-> [fullscreen condition](configuration/conditions.md?id=fullscreen) for details.
+> [fullscreen condition](configuration/conditions-triggers.md?id=fullscreen) for details.
 
 ```yaml
 type: custom:advanced-camera-card
@@ -72,13 +72,18 @@ cameras:
         # Optionally allow PTZ controls on the substream.
         - ptz
 automations:
-  - conditions:
-      - condition: fullscreen
+  # Entering fullscreen: turn the substream on.
+  - triggers:
+      - trigger: fullscreen
         fullscreen: true
     actions:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: substream_on
-    actions_not:
+  # Exiting fullscreen: turn it off again.
+  - triggers:
+      - trigger: fullscreen
+        fullscreen: false
+    actions:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: substream_off
 ```
@@ -121,8 +126,8 @@ elements:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: fullscreen
 automations:
-  - conditions:
-      - condition: fullscreen
+  - triggers:
+      - trigger: fullscreen
         fullscreen: false
     actions:
       - action: custom:advanced-camera-card-action
@@ -134,7 +139,7 @@ automations:
 
 ### Responding to key input
 
-In addition to a handful of reconfigurable [built-in keyboard shortcuts](./usage/keyboard-shortcuts.md), `automations` can be used to take any action based on any keyboard input. These examples use [`key` conditions](./configuration/conditions.md?id=key) to assess keyboard state before taking action.
+In addition to a handful of reconfigurable [built-in keyboard shortcuts](./usage/keyboard-shortcuts.md), `automations` can be used to take any action based on any keyboard input. These examples use [`key` conditions](./configuration/conditions-triggers.md?id=key) to assess keyboard state before taking action.
 
 #### Change to `live` temporarily
 
@@ -142,8 +147,8 @@ In this example, the view will change to `live`, when `Alt+Z` is pressed, and ch
 
 ```yaml
 automations:
-  - conditions:
-      - condition: key
+  - triggers:
+      - trigger: key
         key: z
         alt: true
     actions:
@@ -163,14 +168,22 @@ In this example, the view will change to `live`, when `Alt+Z` is _held_ down, an
 
 ```yaml
 automations:
-  - conditions:
-      - condition: key
+  # Held down: switch to live.
+  - triggers:
+      - trigger: key
         key: z
         alt: true
+        state: down
     actions:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: live
-    actions_not:
+  # Released: switch back to clips.
+  - triggers:
+      - trigger: key
+        key: z
+        alt: true
+        state: up
+    actions:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: clips
 ```
@@ -646,15 +659,20 @@ cameras:
         # Also allow PTZ controls on the substream.
         - ptz
 automations:
-  - actions:
+  # On interaction: turn the HD substream on.
+  - triggers:
+      - trigger: interaction
+        interaction: true
+    actions:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: substream_on
-    actions_not:
+  # Once the interaction lapses: turn it off again.
+  - triggers:
+      - trigger: interaction
+        interaction: false
+    actions:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: substream_off
-    conditions:
-      - condition: interaction
-        interaction: true
 ```
 
 ## Media layout
@@ -818,7 +836,7 @@ elements:
 
 ## Overriding configuration
 
-You can override card configuration when certain [conditions](configuration/conditions.md) are met.
+You can override card configuration when certain [conditions](configuration/conditions-triggers.md) are met.
 
 ### Change menu position based on HA state
 
@@ -1103,8 +1121,9 @@ type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 automations:
-  - conditions:
-      - condition: triggered
+  # Camera triggered: show the alert.
+  - triggers:
+      - trigger: triggered
         triggered:
           - camera.office
     actions:
@@ -1120,7 +1139,11 @@ automations:
             expand: true
             exclusive: true
             sufficient: true
-    actions_not:
+  # No longer triggered: reset the status bar.
+  - triggers:
+      - trigger: triggered
+        triggered: []
+    actions:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: status_bar
         status_bar_action: reset
@@ -1319,14 +1342,14 @@ and values associated with the triggering are included in the action.
 
 ```yaml
 automations:
-  - conditions:
-      - condition: camera
+  - triggers:
+      - trigger: camera
     actions:
       - action: perform-action
         perform_action: homeassistant.service
         data:
-          from_camera: '{{ acc.trigger.camera.from }}'
-          to_camera: '{{ acc.trigger.camera.to }}'
+          from_camera: '{{ trigger.from_acc.camera }}'
+          to_camera: '{{ trigger.to_acc.camera }}'
 ```
 
 See [Trigger Templates](./configuration/templates.md?id=triggers).
@@ -1623,10 +1646,11 @@ cameras:
 debug:
   logging: true
 automations:
-  - conditions:
-      - condition: state
-        entity: binary_sensor.door_contact
-        state: 'on'
+  # Door opens: zoom in.
+  - triggers:
+      - trigger: state
+        entity_id: binary_sensor.door_contact
+        to: 'on'
     actions:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: ptz_digital
@@ -1636,7 +1660,12 @@ automations:
           pan:
             x: 38
             y: 20
-    actions_not:
+  # Door closes: zoom back out.
+  - triggers:
+      - trigger: state
+        entity_id: binary_sensor.door_contact
+        to: 'off'
+    actions:
       - action: custom:advanced-camera-card-action
         advanced_camera_card_action: ptz_digital
         target_id: camera.living_room

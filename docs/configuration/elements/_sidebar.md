@@ -3,7 +3,7 @@
   - [`actions`](../actions/README.md)
   - [`automations`](../automations.md)
   - [`cameras`](../cameras/README.md)
-  - [`conditions`](../conditions.md)
+  - [`conditions` / `triggers`](../conditions-triggers.md)
   - [`dimensions`](../dimensions.md)
   - [`elements`](README.md)
     - [Custom Elements](./custom/README.md)

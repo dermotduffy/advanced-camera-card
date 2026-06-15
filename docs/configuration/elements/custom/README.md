@@ -2,7 +2,7 @@
 
 ## `conditional`
 
-Restrict a set of elements to only render when the card is matches a set of [conditions](../../conditions.md). This is analogous to the stock [`conditional`](../stock/README.md?id=conditional) element except supporting a rich set of Advanced Camera Card [conditions](../../conditions.md).
+Restrict a set of elements to only render when the card is matches a set of [conditions](../../conditions-triggers.md). This is analogous to the stock [`conditional`](../stock/README.md?id=conditional) element except supporting a rich set of Advanced Camera Card [conditions](../../conditions-triggers.md).
 
 ```yaml
 elements:
@@ -12,11 +12,11 @@ elements:
 
 Parameters for the `custom:advanced-camera-card-conditional` element:
 
-| Parameter    | Description                                                                                                      |
-| ------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `type`       | Must be `custom:advanced-camera-card-conditional`.                                                               |
-| `conditions` | A list of [conditions](../../conditions.md) that must evaluate to true in order for the elements to be rendered. |
-| `elements`   | The elements to render. Can be any supported element.                                                            |
+| Parameter    | Description                                                                                                               |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `type`       | Must be `custom:advanced-camera-card-conditional`.                                                                        |
+| `conditions` | A list of [conditions](../../conditions-triggers.md) that must evaluate to true in order for the elements to be rendered. |
+| `elements`   | The elements to render. Can be any supported element.                                                                     |
 
 See the [conditional elements example](../../../examples.md?id=conditional-elements).
 

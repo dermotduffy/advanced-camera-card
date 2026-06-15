@@ -1,6 +1,6 @@
 # `overrides`
 
-The card configuration may [conditionally](conditions.md) be overridden (e.g. to
+The card configuration may [conditionally](conditions-triggers.md) be overridden (e.g. to
 hide the menu in fullscreen mode).
 
 ```yaml
@@ -16,12 +16,12 @@ overrides:
 The top-level `overrides` configuration block expects a list, with each list
 item containing `conditions` and at least one of `merge`, `delete` or `set` specified.
 
-| Option       | Default | Description                                                                                                  |
-| ------------ | ------- | ------------------------------------------------------------------------------------------------------------ |
-| `conditions` |         | A list of [conditions](conditions.md) that must evaluate to `true` in order for the overrides to be applied. |
-| `delete`     |         | An array of configuration paths to delete. See [`delete`](#delete).                                          |
-| `merge`      |         | A dictionary of configuration paths to merge. See [`merge`](#merge).                                         |
-| `set`        |         | A dictionary of configuration paths to set. See [`set`](#set).                                               |
+| Option       | Default | Description                                                                                                           |
+| ------------ | ------- | --------------------------------------------------------------------------------------------------------------------- |
+| `conditions` |         | A list of [conditions](conditions-triggers.md) that must evaluate to `true` in order for the overrides to be applied. |
+| `delete`     |         | An array of configuration paths to delete. See [`delete`](#delete).                                                   |
+| `merge`      |         | A dictionary of configuration paths to merge. See [`merge`](#merge).                                                  |
+| `set`        |         | A dictionary of configuration paths to set. See [`set`](#set).                                                        |
 
 ## Configuration Paths
 

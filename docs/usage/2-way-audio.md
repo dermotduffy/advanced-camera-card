@@ -79,7 +79,7 @@ Calls can also be controlled programmatically with the
 [`call_answer`](../configuration/actions/custom/README.md?id=call_answer), and
 [`call_end`](../configuration/actions/custom/README.md?id=call_end) actions --
 for example, from an [automation](../configuration/automations.md) that fires
-when a doorbell sensor triggers. The [`call` condition](../configuration/conditions.md?id=call)
+when a doorbell sensor triggers. The [`call` condition](../configuration/conditions-triggers.md?id=call)
 can be used to show or hide elements while a call is in progress.
 
 ### Call lifecycle
