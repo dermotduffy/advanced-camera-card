@@ -4717,6 +4717,52 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
+    describe('ambient advanced_camera_card.* -> acc.*', () => {
+      it('should rewrite the ambient namespace in a template', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-icon',
+              icon: 'mdi:cctv',
+              tap_action: {
+                action: 'fire-dom-event',
+                advanced_camera_card_action: 'log',
+                message:
+                  '{{ advanced_camera_card.camera }} / {{ advanced_camera_card.view }}',
+              },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.elements[0].tap_action.message).toBe(
+          '{{ acc.camera }} / {{ acc.view }}',
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('should leave the short acc spelling untouched', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-icon',
+              icon: 'mdi:cctv',
+              tap_action: {
+                action: 'fire-dom-event',
+                advanced_camera_card_action: 'log',
+                message: '{{ acc.camera }}',
+              },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.elements[0].tap_action.message).toBe('{{ acc.camera }}');
+      });
+    });
+
     describe('cameras[].triggers.events string[] -> triggers.media_events', () => {
       it('should migrate a legacy string array to media_events', () => {
         const config = {

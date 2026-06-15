@@ -710,23 +710,18 @@ const rewriteTriggerTemplatePaths = (value: string): string => {
   return result;
 };
 
-/**
- * Rewrite the legacy nested `acc.trigger.*` / `advanced_camera_card.trigger.*`
- * template paths to the top-level `trigger.*` surface, in place on a single
- * object's string values. Gated on a nunjucks delimiter (`{{` expression or
- * `{%` statement) so it only touches template strings. Idempotent (a migrated
- * path matches no legacy pattern).
- *
- * @returns `true` if any value was rewritten.
- */
-const migrateTriggerTemplatePathsTransform = (
+// Apply a string rewrite to every template-string value of a single object, in
+// place. Gated on a nunjucks delimiter (`{{` expression or `{%` statement) so
+// it only touches template strings.
+const rewriteTemplateStrings = (
   data: RawAdvancedCameraCardConfig,
+  rewrite: (value: string) => string,
 ): boolean => {
   let modified = false;
   for (const key of Object.keys(data)) {
     const value = data[key];
     if (typeof value === 'string' && (value.includes('{{') || value.includes('{%'))) {
-      const rewritten = rewriteTriggerTemplatePaths(value);
+      const rewritten = rewrite(value);
       if (rewritten !== value) {
         data[key] = rewritten;
         modified = true;
@@ -735,6 +730,32 @@ const migrateTriggerTemplatePathsTransform = (
   }
   return modified;
 };
+
+/**
+ * Rewrite the legacy nested `acc.trigger.*` / `advanced_camera_card.trigger.*`
+ * template paths to the top-level `trigger.*` surface, in place on a single
+ * object's string values. Idempotent (a migrated path matches no legacy
+ * pattern).
+ *
+ * @returns `true` if any value was rewritten.
+ */
+const migrateTriggerTemplatePathsTransform = (
+  data: RawAdvancedCameraCardConfig,
+): boolean => rewriteTemplateStrings(data, rewriteTriggerTemplatePaths);
+
+/**
+ * Retire the ambient `advanced_camera_card.*` template namespace in favour of its
+ * shorter `acc` alias (the only spelling the trigger surface uses), rewriting the
+ * prefix in a single object's string values. Idempotent.
+ *
+ * @returns `true` if any value was rewritten.
+ */
+const migrateAmbientTemplateNamespaceTransform = (
+  data: RawAdvancedCameraCardConfig,
+): boolean =>
+  rewriteTemplateStrings(data, (value) =>
+    value.replaceAll('advanced_camera_card.', 'acc.'),
+  );
 
 const callServiceToPerformActionTransform = (data: unknown): boolean => {
   if (
@@ -1429,6 +1450,13 @@ const UPGRADES = [
   // Rewrite legacy nested trigger template paths to the top-level `trigger.*`.
   (data: unknown): boolean => {
     return upgradeObjectRecursively(migrateTriggerTemplatePathsTransform)(
+      isRecord(data) ? data : {},
+    );
+  },
+
+  // Rewrite the retired ambient `advanced_camera_card.*` namespace to `acc.*`.
+  (data: unknown): boolean => {
+    return upgradeObjectRecursively(migrateAmbientTemplateNamespaceTransform)(
       isRecord(data) ? data : {},
     );
   },

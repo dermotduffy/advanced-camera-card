@@ -24,13 +24,13 @@ describe('TemplateRenderer', () => {
       expect(result).toBe('View: live');
     });
 
-    it('should render string templates with full advanced_camera_card context', () => {
+    it('should render string templates with the acc context', () => {
       const renderer = new TemplateRenderer();
       const hass = createHASS();
 
       const result = renderer.renderRecursively(
         hass,
-        '{{ advanced_camera_card.camera }} - {{ advanced_camera_card.view }}',
+        '{{ acc.camera }} - {{ acc.view }}',
         {
           conditionState: { camera: 'camera.front', view: 'clips' },
         },

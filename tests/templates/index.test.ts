@@ -73,10 +73,6 @@ describe('TemplateRenderer', () => {
         camera: 'camera',
         view: 'live',
       },
-      advanced_camera_card: {
-        camera: 'camera',
-        view: 'live',
-      },
       trigger: {
         platform: 'acc',
         type: 'camera',

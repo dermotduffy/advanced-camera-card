@@ -600,10 +600,9 @@ triggers:
 
 ## Unsupported Home Assistant conditions
 
-Home Assistant's `time`, `zone` and `sun` conditions are **not** supported. This
-is a deliberate omission (a camera card rarely needs time-of-day, geolocation or
-sun-elevation logic), not a behavioural difference. If you need one of them,
-please [open an issue](https://github.com/dermotduffy/advanced-camera-card/issues).
+Home Assistant's `time`, `zone`, `sun` and `location` conditions are **not**
+currently supported. If you need one of them, please [open an
+issue](https://github.com/dermotduffy/advanced-camera-card/issues).
 
 ## Fully expanded reference
 

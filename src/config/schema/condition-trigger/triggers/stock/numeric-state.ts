@@ -1,6 +1,10 @@
 import { z } from 'zod';
-import { hasAboveOrBelow, numericStateBaseSchema } from '../../common/numeric-state';
 import { timePeriodSchema } from '../../../common/time-period';
+import {
+  aboveNotGreaterThanBelow,
+  hasAboveOrBelow,
+  numericStateBaseSchema,
+} from '../../common/numeric-state';
 import { triggerBaseSchema } from '../base';
 import { entityTriggerBaseSchema } from './entity-base';
 
@@ -15,4 +19,8 @@ export const numericStateTriggerSchema = entityTriggerBaseSchema
   .refine(
     hasAboveOrBelow,
     'A numeric_state trigger requires at least one of `above`/`below`',
+  )
+  .refine(
+    aboveNotGreaterThanBelow,
+    'A numeric_state trigger cannot have `above` greater than `below`',
   );

@@ -6,9 +6,6 @@ import { isRecord } from '../../utils/basic';
 import { TemplateACCNamespace, TemplateMediaData } from './types';
 
 interface TemplateContext {
-  advanced_camera_card: TemplateACCNamespace;
-
-  // Convenient alias.
   acc: TemplateACCNamespace;
 
   // The HA-native top-level `trigger`, set only when a trigger fired.
@@ -47,7 +44,7 @@ export class TemplateRenderer {
       return;
     }
 
-    const advancedCameraCardContext: TemplateACCNamespace = {
+    const acc: TemplateACCNamespace = {
       ...(options?.conditionState?.camera && { camera: options.conditionState.camera }),
       ...(options?.conditionState?.view && { view: options.conditionState.view }),
       ...(options?.conditionState?.config && { config: options.conditionState.config }),
@@ -55,8 +52,7 @@ export class TemplateRenderer {
     };
 
     return {
-      acc: advancedCameraCardContext,
-      advanced_camera_card: advancedCameraCardContext,
+      acc,
       ...(options?.triggerData && { trigger: options.triggerData }),
     };
   }

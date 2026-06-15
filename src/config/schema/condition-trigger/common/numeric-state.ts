@@ -28,3 +28,11 @@ export type NumericStateBase = z.infer<typeof numericStateBaseSchema>;
 // each schema) drops refinements, so the rule is re-applied by each consumer.
 export const hasAboveOrBelow = (data: NumericStateBase): boolean =>
   data.above !== undefined || data.below !== undefined;
+
+// HA's numeric_state TRIGGER rejects an impossible band where a literal `above`
+// exceeds a literal `below`: the value can never be both, so the trigger could
+// never fire (HA `validate_above_below`).
+export const aboveNotGreaterThanBelow = (data: NumericStateBase): boolean =>
+  typeof data.above !== 'number' ||
+  typeof data.below !== 'number' ||
+  data.above <= data.below;

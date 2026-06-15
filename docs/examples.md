@@ -1329,8 +1329,8 @@ tap_action:
   action: perform-action
   perform_action: homeassistant.service
   data:
-    camera: '{{ advanced_camera_card.camera }}'
-    view: '{{ advanced_camera_card.view }}'
+    camera: '{{ acc.camera }}'
+    view: '{{ acc.view }}'
 ```
 
 See [Custom Templates](./configuration/templates.md?id=custom-templates).

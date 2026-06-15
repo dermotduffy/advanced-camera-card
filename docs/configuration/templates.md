@@ -19,8 +19,7 @@ accesses Home Assistant state.
 
 ## Custom Templates
 
-Custom template values must be proceeded by `advanced_camera_card` (or `acc` for
-short).
+Custom template values must be prefixed with `acc`.
 
 | Template | Replaced with                                     |
 | -------- | ------------------------------------------------- |
@@ -36,8 +35,7 @@ accesses Advanced Camera Card state.
 If templates are used for [Folder Media Matching](./folders.md?id=matchers) an
 additional `media` variable is available with these properties:
 
-Media template values must be proceeded by `advanced_camera_card.media` (or
-`acc.media` for short).
+Media template values must be prefixed with `acc.media`.
 
 | Template    | Replaced with                                                                     |
 | ----------- | --------------------------------------------------------------------------------- |
