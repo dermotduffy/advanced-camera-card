@@ -25,7 +25,9 @@ import {
   createSubstreamOnAction,
   createViewAction,
   getActionConfigGivenAction,
+  getActionName,
   hasAction,
+  isIfAction,
   stopEventFromActivatingCardWideActions,
 } from '../../src/utils/action.js';
 
@@ -562,6 +564,34 @@ describe('hasAction', () => {
 
   it('should return false with an array of actions none real', () => {
     expect(hasAction([noneAction, noneAction, noneAction])).toBeFalsy();
+  });
+
+  it('should return true for an if action', () => {
+    expect(hasAction({ if: [], then: [] })).toBeTruthy();
+  });
+});
+
+describe('isIfAction', () => {
+  it('should return true for an if action', () => {
+    expect(isIfAction({ if: [], then: [] })).toBeTruthy();
+  });
+
+  it('should return false for a stock action', () => {
+    expect(isIfAction({ action: 'none' })).toBeFalsy();
+  });
+});
+
+describe('getActionName', () => {
+  it('should name an if action', () => {
+    expect(getActionName({ if: [], then: [] })).toBe('if');
+  });
+
+  it('should name a custom action', () => {
+    expect(getActionName(createViewAction('clips'))).toBe('clips');
+  });
+
+  it('should name a stock action', () => {
+    expect(getActionName({ action: 'more-info' })).toBe('more-info');
   });
 });
 

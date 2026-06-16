@@ -4,7 +4,7 @@ import {
   AuxillaryActionConfig,
 } from '../../../config/schema/actions/types.js';
 import { localize } from '../../../localize/localize.js';
-import { isAdvancedCameraCardCustomAction } from '../../../utils/action';
+import { getActionName } from '../../../utils/action';
 import { CardActionsAPI } from '../../types';
 import { Action, ActionAbortError } from '../types';
 
@@ -34,13 +34,9 @@ export class BaseAction<T extends ActionConfig> implements Action {
   public async execute(api: CardActionsAPI): Promise<void> {
     if (this._shouldSeekConfirmation(api)) {
       const action: ActionConfig = this._action;
-      const baseAction = action.action;
-      const actionName = isAdvancedCameraCardCustomAction(action)
-        ? action.advanced_camera_card_action
-        : baseAction;
       const text =
         (typeof action.confirmation === 'object' ? action.confirmation.text : null) ??
-        `${localize('actions.confirmation')}: ${actionName}`;
+        `${localize('actions.confirmation')}: ${getActionName(action)}`;
       if (!confirm(text)) {
         throw new ActionAbortError(localize('actions.abort'));
       }

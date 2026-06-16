@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { advancedCameraCardCustomActionsBaseSchema } from '../../src/config/schema/actions/custom/base';
-import { statusBarActionConfigSchema } from '../../src/config/schema/actions/types';
+import {
+  actionConfigSchema,
+  statusBarActionConfigSchema,
+} from '../../src/config/schema/actions/types';
 import { cameraConfigSchema } from '../../src/config/schema/cameras';
 import { conditionSchema } from '../../src/config/schema/condition-trigger/conditions/types';
 import { dimensionsConfigSchema } from '../../src/config/schema/dimensions';
@@ -1641,6 +1644,37 @@ describe('should lazy evaluate schemas', () => {
       ],
     };
     expect(statusBarActionConfigSchema.parse(input)).toEqual(input);
+  });
+
+  it('should recursively validate if action then/else sequences', () => {
+    const input = {
+      if: [
+        {
+          condition: 'state',
+          entity_id: 'light.office_main_lights',
+          state: 'on',
+        },
+      ],
+      then: [
+        {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'live_substream_on',
+        },
+      ],
+      else: [
+        {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'live_substream_off',
+        },
+      ],
+    };
+    expect(actionConfigSchema.parse(input)).toEqual(input);
+
+    // The then/else sequences are validated as actions (not accepted verbatim).
+    expect(
+      actionConfigSchema.safeParse({ ...input, then: [{ action: 'not-an-action' }] })
+        .success,
+    ).toBeFalsy();
   });
 });
 
