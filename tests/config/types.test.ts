@@ -1750,48 +1750,13 @@ it('media viewer should not support microphone based conditions', () => {
   ).toThrowError();
 });
 
-describe('automations should require at least one action', () => {
-  it('should handle no action', () => {
+describe('automations should require actions', () => {
+  it('should reject a missing actions key', () => {
     expect(() =>
       createConfig({
         cameras: [{}],
         automations: [{ triggers: [{ trigger: 'initialized' }], conditions: [] }],
       }),
-    ).toThrowError(/Automations must include at least one action/);
-  });
-
-  it('should handle empty actions', () => {
-    expect(() =>
-      createConfig({
-        cameras: [{}],
-        automations: [
-          {
-            triggers: [{ trigger: 'initialized' }],
-            conditions: [],
-            actions: [],
-            actions_not: [],
-          },
-        ],
-      }),
-    ).toThrowError(/Automations must include at least one action/);
-  });
-
-  it('should handle at least one action', () => {
-    expect(() =>
-      createConfig({
-        cameras: [{}],
-        automations: [
-          {
-            triggers: [{ trigger: 'initialized' }],
-            conditions: [],
-            actions: [
-              {
-                action: 'fire-dom-event',
-              },
-            ],
-          },
-        ],
-      }),
-    ).not.toThrowError();
+    ).toThrowError();
   });
 });

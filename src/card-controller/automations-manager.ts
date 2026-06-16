@@ -78,9 +78,7 @@ export class AutomationsManager {
       (evaluator) => evaluator.evaluate(state).result,
     );
 
-    const actions = ongoingConditionsHold ? automation.actions : automation.actions_not;
-
-    if (!actions?.length) {
+    if (!ongoingConditionsHold || !automation.actions.length) {
       return;
     }
 
@@ -102,6 +100,6 @@ export class AutomationsManager {
 
       --this._nestedAutomationExecutions;
     };
-    runActions(actions);
+    runActions(automation.actions);
   }
 }

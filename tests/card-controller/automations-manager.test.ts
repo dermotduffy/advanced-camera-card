@@ -11,12 +11,6 @@ describe('AutomationsManager', () => {
       advanced_camera_card_action: 'clips',
     },
   ];
-  const actionsNot = [
-    {
-      action: 'fire-dom-event' as const,
-      advanced_camera_card_action: 'clip',
-    },
-  ];
   const triggers = [{ trigger: 'fullscreen' as const, fullscreen: true }];
   const automation = {
     triggers: triggers,
@@ -122,7 +116,6 @@ describe('AutomationsManager', () => {
         triggers: triggers,
         conditions: [{ condition: 'expand' as const, expand: true }],
         actions: actions,
-        actions_not: actionsNot,
       },
     ]);
 
@@ -136,7 +129,7 @@ describe('AutomationsManager', () => {
     });
   });
 
-  it('should run actions_not when the ongoing conditions do not hold', () => {
+  it('should do nothing when the ongoing conditions do not hold', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
     vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
@@ -151,21 +144,17 @@ describe('AutomationsManager', () => {
         triggers: triggers,
         conditions: [{ condition: 'expand' as const, expand: true }],
         actions: actions,
-        actions_not: actionsNot,
       },
     ]);
 
-    // The ongoing condition does not hold when triggered, so `actions_not` runs
-    // instead.
+    // The automation is triggered but the ongoing condition does not hold, so
+    // nothing runs.
     stateManager.setState({ fullscreen: true });
 
-    expect(api.getActionsManager().executeActions).toBeCalledWith({
-      actions: actionsNot,
-      triggerData: { platform: 'acc', type: 'fullscreen' },
-    });
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
   });
 
-  it('should do nothing when the selected action branch is empty', () => {
+  it('should do nothing when the actions are empty', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
     vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
@@ -178,13 +167,10 @@ describe('AutomationsManager', () => {
     automationsManager.addAutomations([
       {
         triggers: triggers,
-        conditions: [{ condition: 'expand' as const, expand: true }],
-        actions: actions,
+        actions: [],
       },
     ]);
 
-    // The automation is triggered but the ongoing condition does not hold, and
-    // there is no `actions_not` branch to run.
     stateManager.setState({ fullscreen: true });
 
     expect(api.getActionsManager().executeActions).not.toBeCalled();
