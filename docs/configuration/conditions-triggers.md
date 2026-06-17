@@ -59,8 +59,9 @@ Assistant.
 > An `enabled` template can turn a condition or trigger on or off at runtime:
 > point it at an `input_boolean` (or any live value) and the change takes effect
 > immediately, because the card re-evaluates `enabled` every time the condition
-> is evaluated or trigger fires (this matches Home Assistant behavior for
-> conditions, and is an intentional extension for triggers).
+> is evaluated or trigger fires. This is an intentional extension: Home Assistant
+> fixes `enabled` once when the automation loads, for both conditions and
+> triggers.
 
 ## `and`
 
