@@ -571,6 +571,197 @@ const promoteConditionsToTriggersTransform = (data: unknown): boolean => {
   return true;
 };
 
+// Automations the upgrade could not faithfully convert are parked here, intact,
+// for manual migration.
+const CONF_UNMIGRATED_AUTOMATIONS = '__UNMIGRATED_AUTOMATIONS__';
+
+// `template`/`screen` conditions have no "any change" trigger -- their only
+// trigger fires on the rising edge alone (HA's own template/numeric_state
+// triggers behave identically, and HA has no `screen` trigger at all). A gate
+// resting on one cannot re-fire when it stops matching, so its migrated `else`
+// will not run on that falling edge.
+const RISING_EDGE_ONLY_CONDITIONS = ['template', 'screen'];
+
+// Build the "fire on any change" trigger that drives a migrated `if`/`then`/
+// `else` for a single condition leaf, plus whether that trigger only sees the
+// rising edge. Returns a null trigger for conditions that cannot change at
+// runtime (`user`/`user_agent`), which therefore contribute none.
+const synthesizeAnyChangeTrigger = (
+  leaf: unknown,
+): { trigger: RawAdvancedCameraCardConfig | null; risingEdgeOnly: boolean } => {
+  if (!isRecord(leaf)) {
+    return { trigger: null, risingEdgeOnly: false };
+  }
+  const kind = leaf['condition'] ?? 'state';
+
+  // Static within a session: no runtime change, so no trigger.
+  if (kind === 'user' || kind === 'user_agent') {
+    return { trigger: null, risingEdgeOnly: false };
+  }
+
+  // Entity-backed: a plain `state` watch (no `to`) fires on every change of the
+  // entity, so the wrapped `if(state)`/`if(numeric_state)` re-evaluates on both
+  // edges -- the same trigger a user would hand-write in Home Assistant.
+  if (kind === 'state' || kind === 'numeric_state') {
+    const entityId = leaf['entity_id'] ?? leaf['entity'];
+    if (entityId !== undefined) {
+      return {
+        trigger: { trigger: 'state', entity_id: entityId },
+        risingEdgeOnly: false,
+      };
+    }
+  }
+
+  // `config` is trigger-only; its `paths` scope a config-change watch (still any
+  // change), so they are preserved rather than dropped like a match value.
+  if (kind === 'config') {
+    const paths = leaf['paths'];
+    return {
+      trigger: { trigger: 'config', ...(paths !== undefined && { paths }) },
+      risingEdgeOnly: false,
+    };
+  }
+
+  // Rising-edge-only kinds (and a `numeric_state` with only a `value_template`,
+  // which has no entity to watch): best-effort reuse of their own trigger.
+  if (
+    (typeof kind === 'string' && RISING_EDGE_ONLY_CONDITIONS.includes(kind)) ||
+    kind === 'numeric_state'
+  ) {
+    const rest = { ...leaf };
+    delete rest['condition'];
+    return { trigger: { trigger: kind, ...rest }, risingEdgeOnly: true };
+  }
+
+  // Card-state kinds: the valueless trigger fires on any change.
+  return { trigger: { trigger: kind }, risingEdgeOnly: false };
+};
+
+// Synthesize the deduplicated set of "any change" triggers for a gate's leaves.
+// An all-static gate never changes after startup, so a single `initialized`
+// evaluation is faithful.
+const synthesizeAnyChangeTriggers = (
+  conditions: unknown[],
+): RawAdvancedCameraCardConfig[] => {
+  const triggers: RawAdvancedCameraCardConfig[] = [];
+  for (const leaf of conditions.flatMap(flattenConditionLeaves)) {
+    const { trigger } = synthesizeAnyChangeTrigger(leaf);
+    if (trigger && !triggers.some((existing) => isEqual(existing, trigger))) {
+      triggers.push(trigger);
+    }
+  }
+  if (!triggers.length) {
+    triggers.push({ trigger: 'initialized' });
+  }
+  return triggers;
+};
+
+// A gate leaf whose only trigger fires on the rising edge (`template`/`screen`,
+// or a `numeric_state` with no entity to watch) cannot drive the `else` branch
+// when it stops matching, so such an automation cannot be faithfully converted.
+const gateHasRisingEdgeOnlyLeaf = (conditions: unknown[]): boolean =>
+  conditions
+    .flatMap(flattenConditionLeaves)
+    .some((leaf) => synthesizeAnyChangeTrigger(leaf).risingEdgeOnly);
+
+/**
+ * Convert one legacy `actions_not` automation in place to an HA-native
+ * `if`/`then`/`else` action, or report that it must be parked.
+ *
+ * `{ conditions: C, actions: A, actions_not: B }` becomes `{ triggers:
+ * <any-change for each leaf of C>, actions: [{ if: C, then: A, else: B }] }`:
+ * the `if` retains both branches and the synthesized triggers re-evaluate it on
+ * every change of the gate. When `C` has no ongoing predicate for the `if` to
+ * test -- it is absent, or holds only trigger-only conditions (legacy
+ * change-detectors such as a bare `camera` or a `config` condition) -- the
+ * `else` branch could never run, so `actions_not` is dropped rather than
+ * wrapped. A gate with a rising-edge-only leaf is returned as `'park'`,
+ * untouched, because its `else` cannot be reproduced faithfully. Idempotent: a
+ * converted automation has no `actions_not` left to reconvert.
+ */
+const convertActionsNotAutomation = (
+  automation: RawAdvancedCameraCardConfig,
+): 'converted' | 'park' => {
+  const conditions = automation['conditions'];
+
+  if (!Array.isArray(conditions) || !conditions.length) {
+    // No gate -- `actions_not` could never have run; it is simply dropped.
+    delete automation['actions_not'];
+    return 'converted';
+  }
+
+  if (gateHasRisingEdgeOnlyLeaf(conditions)) {
+    return 'park';
+  }
+
+  const actionsNot = automation['actions_not'];
+  const actions = Array.isArray(automation['actions']) ? automation['actions'] : [];
+
+  automation['triggers'] = synthesizeAnyChangeTriggers(conditions);
+  delete automation['actions_not'];
+
+  // `conditions` move *into* the `if` below; they must not also remain as a
+  // top-level ongoing gate, which would block the automation (and so the `else`
+  // branch) whenever they fail -- exactly the case `else` exists to handle.
+  delete automation['conditions'];
+
+  // The `if` tests only the ongoing predicates; dropping the trigger-only
+  // conditions can leave nothing, in which case `else` could never run.
+  const gate = dropTriggerOnlyConditions(conditions);
+  if (!gate.length) {
+    automation['actions'] = actions;
+    return 'converted';
+  }
+
+  automation['actions'] = [
+    {
+      if: gate,
+      then: actions,
+      ...(Array.isArray(actionsNot) && { else: actionsNot }),
+    },
+  ];
+  return 'converted';
+};
+
+/**
+ * Migrate every legacy `actions_not` automation: convert the faithful ones in
+ * place to `if`/`then`/`else`, and park the rest -- a rising-edge-only gate
+ * whose `else` cannot be reproduced -- untouched under
+ * `__UNMIGRATED_AUTOMATIONS__` for the user to migrate by hand. Runs before the
+ * conditions->triggers promotion, which then skips the converted ones (they now
+ * have `triggers:`) and never sees the parked ones.
+ */
+const migrateActionsNotTransform = (data: unknown): boolean => {
+  if (!isRecord(data) || !Array.isArray(data[CONF_AUTOMATIONS])) {
+    return false;
+  }
+  const kept: unknown[] = [];
+  const parked: unknown[] = [];
+  let modified = false;
+  for (const automation of data[CONF_AUTOMATIONS]) {
+    if (isRecord(automation) && 'actions_not' in automation) {
+      modified = true;
+      if (convertActionsNotAutomation(automation) === 'park') {
+        parked.push(automation);
+        continue;
+      }
+    }
+    kept.push(automation);
+  }
+  if (!modified) {
+    return false;
+  }
+  data[CONF_AUTOMATIONS] = kept;
+  if (parked.length) {
+    const existing = data[CONF_UNMIGRATED_AUTOMATIONS];
+    data[CONF_UNMIGRATED_AUTOMATIONS] = [
+      ...(Array.isArray(existing) ? existing : []),
+      ...parked,
+    ];
+  }
+  return true;
+};
+
 // Picture-element conditional wrapper types (shared with upgradePTZElementsToLive).
 const CONDITIONAL_ELEMENT_TYPES = [
   'conditional',
@@ -1438,6 +1629,11 @@ const UPGRADES = [
     CONF_CAMERAS,
     upgradeWithOverrides('triggers', triggersEventsToMediaEventsTransform),
   ),
+
+  // Convert `actions_not` automations to an `if`/`then`/`else` action (or park
+  // the unfaithful ones). Runs before the promotion below, which then skips the
+  // converted ones (they gain `triggers:`).
+  migrateActionsNotTransform,
 
   // Promote automation `conditions:` into HA-native `triggers:`. Runs last so it
   // sees conditions in their final, fully-migrated form.

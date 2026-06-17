@@ -4370,6 +4370,411 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
+    describe('automation actions_not -> if/then/else', () => {
+      const automate = (
+        ...automations: Record<string, unknown>[]
+      ): {
+        type: string;
+        cameras: unknown[];
+        automations: Record<string, unknown>[];
+        __UNMIGRATED_AUTOMATIONS__?: unknown[];
+      } => ({
+        type: 'custom:advanced-camera-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        automations,
+      });
+
+      const then = [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }];
+      const elseActions = [
+        { action: 'fire-dom-event', advanced_camera_card_action: 'clips' },
+      ];
+
+      it('should migrate a self-gating state toggle to an if/then/else action', () => {
+        const config = automate({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: [
+            {
+              if: [{ condition: 'state', entity_id: 'binary_sensor.x', state: 'on' }],
+              then,
+              else: elseActions,
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should default then to an empty list when there are no then actions', () => {
+        const config = automate({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+          ],
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: [
+            {
+              if: [{ condition: 'state', entity_id: 'binary_sensor.x', state: 'on' }],
+              then: [],
+              else: elseActions,
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should synthesize a valueless trigger for a card-state gate', () => {
+        const config = automate({
+          conditions: [{ condition: 'fullscreen', fullscreen: true }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'fullscreen' }],
+          actions: [
+            {
+              if: [{ condition: 'fullscreen', fullscreen: true }],
+              then,
+              else: elseActions,
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should watch the entity for a numeric_state gate', () => {
+        const config = automate({
+          conditions: [{ condition: 'numeric_state', entity_id: 'sensor.t', above: 25 }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]['triggers']).toEqual([
+          { trigger: 'state', entity_id: 'sensor.t' },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should preserve config paths in a synthesized config trigger', () => {
+        const config = automate({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+            // `config` is trigger-only: it is dropped from the `if` predicate but
+            // still contributes a trigger (with its `paths` preserved).
+            { condition: 'config', paths: ['menu.style'] },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]['triggers']).toEqual([
+          { trigger: 'state', entity_id: 'binary_sensor.x' },
+          { trigger: 'config', paths: ['menu.style'] },
+        ]);
+        expect(config.automations[0]['actions']).toEqual([
+          {
+            if: [{ condition: 'state', entity_id: 'binary_sensor.x', state: 'on' }],
+            then,
+            else: elseActions,
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should deduplicate identical synthesized triggers', () => {
+        const config = automate({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+            { condition: 'state', entity_id: 'binary_sensor.x', state_not: 'off' },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]['triggers']).toEqual([
+          { trigger: 'state', entity_id: 'binary_sensor.x' },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should park a template gate untouched for manual migration', () => {
+        const parkable = {
+          conditions: [{ condition: 'template', value_template: '{{ true }}' }],
+          actions: then,
+          actions_not: elseActions,
+        };
+        const config = automate({ ...parkable });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations).toEqual([]);
+        expect(config['__UNMIGRATED_AUTOMATIONS__']).toEqual([parkable]);
+        postUpgradeChecks(config);
+      });
+
+      it('should park a screen gate untouched for manual migration', () => {
+        const parkable = {
+          conditions: [{ condition: 'screen', media_query: '(orientation: landscape)' }],
+          actions: then,
+          actions_not: elseActions,
+        };
+        const config = automate({ ...parkable });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations).toEqual([]);
+        expect(config['__UNMIGRATED_AUTOMATIONS__']).toEqual([parkable]);
+        postUpgradeChecks(config);
+      });
+
+      it('should park a numeric_state gate with no entity to watch', () => {
+        const parkable = {
+          conditions: [
+            { condition: 'numeric_state', above: 25, value_template: '{{ 5 }}' },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        };
+        const config = automate({ ...parkable });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations).toEqual([]);
+        expect(config['__UNMIGRATED_AUTOMATIONS__']).toEqual([parkable]);
+        postUpgradeChecks(config);
+      });
+
+      it('should park a mixed gate when any leaf is rising-edge-only', () => {
+        const parkable = {
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+            { condition: 'template', value_template: '{{ true }}' },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        };
+        const config = automate({ ...parkable });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations).toEqual([]);
+        expect(config['__UNMIGRATED_AUTOMATIONS__']).toEqual([parkable]);
+        postUpgradeChecks(config);
+      });
+
+      it('should convert one automation and park another in the same config', () => {
+        const parkable = {
+          conditions: [{ condition: 'screen', media_query: '(orientation: landscape)' }],
+          actions: then,
+          actions_not: elseActions,
+        };
+        const config = automate(
+          {
+            conditions: [
+              { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+            ],
+            actions: then,
+            actions_not: elseActions,
+          },
+          { ...parkable },
+        );
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations).toEqual([
+          {
+            triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+            actions: [
+              {
+                if: [{ condition: 'state', entity_id: 'binary_sensor.x', state: 'on' }],
+                then,
+                else: elseActions,
+              },
+            ],
+          },
+        ]);
+        expect(config['__UNMIGRATED_AUTOMATIONS__']).toEqual([parkable]);
+        postUpgradeChecks(config);
+      });
+
+      it('should append to an existing __UNMIGRATED_AUTOMATIONS__ list', () => {
+        const existing = { some: 'earlier parked automation' };
+        const parkable = {
+          conditions: [{ condition: 'screen', media_query: '(orientation: landscape)' }],
+          actions: then,
+          actions_not: elseActions,
+        };
+        const config = automate({ ...parkable });
+        config['__UNMIGRATED_AUTOMATIONS__'] = [existing];
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config['__UNMIGRATED_AUTOMATIONS__']).toEqual([existing, parkable]);
+        postUpgradeChecks(config);
+      });
+
+      it('should fall back to an initialized trigger for an all-static gate', () => {
+        const config = automate({
+          conditions: [{ condition: 'user', users: ['abc'] }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'initialized' }],
+          actions: [
+            {
+              if: [{ condition: 'user', users: ['abc'] }],
+              then,
+              else: elseActions,
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should not synthesize a trigger for a user condition that cannot change at runtime', () => {
+        const config = automate({
+          conditions: [
+            { condition: 'user', users: ['abc'] },
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]['triggers']).toEqual([
+          { trigger: 'state', entity_id: 'binary_sensor.x' },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should drop actions_not when there are no conditions', () => {
+        const config = automate({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: then,
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should keep only the then actions when the gate is entirely trigger-only', () => {
+        const config = automate({
+          conditions: [{ condition: 'config', paths: ['menu.style'] }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'config', paths: ['menu.style'] }],
+          actions: then,
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should synthesize a valueless config trigger when no paths are given', () => {
+        const config = automate({
+          conditions: [{ condition: 'config' }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'config' }],
+          actions: then,
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should map a discriminator-less state gate to a state trigger', () => {
+        const config = automate({
+          conditions: [{ entity: 'binary_sensor.x', state: 'on' }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: [
+            {
+              if: [{ entity: 'binary_sensor.x', state: 'on' }],
+              then,
+              else: elseActions,
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should omit else when actions_not is not a list', () => {
+        const config = automate({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+          ],
+          actions: then,
+          actions_not: 'not-a-list',
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: [
+            {
+              if: [{ condition: 'state', entity_id: 'binary_sensor.x', state: 'on' }],
+              then,
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should contribute no trigger for a non-object gate leaf', () => {
+        const config = automate({
+          conditions: [
+            'not-a-condition',
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]['triggers']).toEqual([
+          { trigger: 'state', entity_id: 'binary_sensor.x' },
+        ]);
+      });
+
+      it('should leave a non-object automation entry untouched', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            'not-an-automation',
+            {
+              conditions: [
+                { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+              ],
+              actions: then,
+              actions_not: elseActions,
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toBe('not-an-automation');
+        expect(config.automations[1]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: [
+            {
+              if: [{ condition: 'state', entity_id: 'binary_sensor.x', state: 'on' }],
+              then,
+              else: elseActions,
+            },
+          ],
+        });
+      });
+    });
+
     describe('trigger-only conditions in overrides and elements', () => {
       it('should drop an override gated only on a config condition', () => {
         const config = {
