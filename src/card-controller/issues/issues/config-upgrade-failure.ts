@@ -1,5 +1,5 @@
 import { hasConfigUpgradeFailures } from '../../../config/management.js';
-import { TROUBLESHOOTING_CONFIG_UPGRADE_URL } from '../../../const.js';
+import { TROUBLESHOOTING_CONFIG_UPGRADE_FAILURE_URL } from '../../../const.js';
 import { localize } from '../../../localize/localize.js';
 import { CardIssueManagerAPI } from '../../types';
 import { Issue, IssueDescription } from '../types';
@@ -41,7 +41,7 @@ export class ConfigUpgradeFailureIssue implements Issue {
         },
         body: { text: localize('issues.config_upgrade_failure.text') },
         link: {
-          url: TROUBLESHOOTING_CONFIG_UPGRADE_URL,
+          url: TROUBLESHOOTING_CONFIG_UPGRADE_FAILURE_URL,
           title: localize('issues.troubleshooting_guide'),
         },
       },

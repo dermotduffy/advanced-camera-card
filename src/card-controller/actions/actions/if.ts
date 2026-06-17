@@ -1,8 +1,10 @@
 import { ActionContext } from 'action';
 import { ConditionEvaluator } from '../../../condition-trigger/conditions/conditions/types';
 import { createConditionEvaluator } from '../../../condition-trigger/conditions/factory';
-import { IfActionConfig } from '../../../config/schema/actions/stock/if';
-import { AuxillaryActionConfig } from '../../../config/schema/actions/types';
+import {
+  AuxillaryActionConfig,
+  IfActionConfig,
+} from '../../../config/schema/actions/types';
 import { TemplateRenderer } from '../../templates/index';
 import { CardActionsAPI } from '../../types';
 import { BaseAction } from './base';

@@ -31,13 +31,13 @@ import { SetReviewActionConfig } from '../config/schema/actions/custom/set-revie
 import { SubstreamOffActionConfig } from '../config/schema/actions/custom/substream-off.js';
 import { SubstreamOnActionConfig } from '../config/schema/actions/custom/substream-on.js';
 import { ViewActionConfig } from '../config/schema/actions/custom/view.js';
-import { IfActionConfig } from '../config/schema/actions/stock/if.js';
 import { PerformActionActionConfig } from '../config/schema/actions/stock/perform-action.js';
 import type { Notification } from '../config/schema/actions/types.js';
 import {
   ActionConfig,
   Actions,
   AdvancedCameraCardCustomActionConfig,
+  IfActionConfig,
   NotificationActionConfig,
 } from '../config/schema/actions/types.js';
 import { AdvancedCameraCardUserSpecifiedView } from '../config/schema/common/const.js';
