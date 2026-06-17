@@ -449,6 +449,12 @@ export const CONF_STATUS_BAR_HEIGHT = `${CONF_STATUS_BAR}.height` as const;
 
 export const CONF_STATUS_BAR_ITEMS = `${CONF_STATUS_BAR}.items` as const;
 
+// A single namespace shadowing the main config: anything the upgrade cannot
+// faithfully convert is recorded here as a failure, intact, at the same path it
+// came from (e.g. top-level `automations` -> `__UPGRADE_FAILURE__.automations`)
+// for the user to migrate by hand.
+export const CONF_UPGRADE_FAILURE = '__UPGRADE_FAILURE__' as const;
+
 const CONF_DIMENSIONS = 'dimensions' as const;
 export const CONF_DIMENSIONS_ASPECT_RATIO = `${CONF_DIMENSIONS}.aspect_ratio` as const;
 export const CONF_DIMENSIONS_ASPECT_RATIO_MODE =

@@ -27,6 +27,7 @@ describe('createIssueManager', () => {
     const expectedKeys = [
       'config_error',
       'config_upgrade',
+      'config_upgrade_failure',
       'connection',
       'initialization',
       'legacy_resource',

@@ -7,6 +7,7 @@ import {
   deleteWithOverrides,
   getArrayConfigPath,
   getConfigValue,
+  hasConfigUpgradeFailures,
   isConfigUpgradeable,
   moveConfigValue,
   setConfigValue,
@@ -118,6 +119,34 @@ describe('upgrade functions', () => {
         ],
       }),
     ).toBeTruthy();
+  });
+
+  describe('should detect config upgrade failures', () => {
+    it('should report no failures for a null config', () => {
+      expect(hasConfigUpgradeFailures(null)).toBeFalsy();
+    });
+
+    it('should report no failures when nothing has failed', () => {
+      expect(
+        hasConfigUpgradeFailures({ type: 'custom:advanced-camera-card' }),
+      ).toBeFalsy();
+    });
+
+    it('should report no failures when the namespace is not a record', () => {
+      expect(hasConfigUpgradeFailures({ __UPGRADE_FAILURE__: 'nonsense' })).toBeFalsy();
+    });
+
+    it('should report no failures for an empty namespace', () => {
+      expect(hasConfigUpgradeFailures({ __UPGRADE_FAILURE__: {} })).toBeFalsy();
+    });
+
+    it('should report a failure when the namespace is non-empty', () => {
+      expect(
+        hasConfigUpgradeFailures({
+          __UPGRADE_FAILURE__: { automations: [{ actions_not: [] }] },
+        }),
+      ).toBeTruthy();
+    });
   });
 
   describe('should create ranged transform', () => {
@@ -4372,12 +4401,10 @@ describe('should handle version specific upgrades', () => {
 
     describe('automation actions_not -> if/then/else', () => {
       const automate = (
-        ...automations: Record<string, unknown>[]
-      ): {
-        type: string;
-        cameras: unknown[];
-        automations: Record<string, unknown>[];
-        __UNMIGRATED_AUTOMATIONS__?: unknown[];
+        ...automations: RawAdvancedCameraCardConfig[]
+      ): RawAdvancedCameraCardConfig & {
+        automations: RawAdvancedCameraCardConfig[];
+        __UPGRADE_FAILURE__?: RawAdvancedCameraCardConfig;
       } => ({
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -4432,7 +4459,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('should synthesize a valueless trigger for a card-state gate', () => {
+      it('should synthesize a valueless trigger for a card-state condition', () => {
         const config = automate({
           conditions: [{ condition: 'fullscreen', fullscreen: true }],
           actions: then,
@@ -4452,7 +4479,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('should watch the entity for a numeric_state gate', () => {
+      it('should watch the entity for a numeric_state condition', () => {
         const config = automate({
           conditions: [{ condition: 'numeric_state', entity_id: 'sensor.t', above: 25 }],
           actions: then,
@@ -4507,49 +4534,49 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('should park a template gate untouched for manual migration', () => {
-        const parkable = {
+      it('should record a template condition as an upgrade failure, untouched', () => {
+        const failing = {
           conditions: [{ condition: 'template', value_template: '{{ true }}' }],
           actions: then,
           actions_not: elseActions,
         };
-        const config = automate({ ...parkable });
+        const config = automate({ ...failing });
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config.automations).toEqual([]);
-        expect(config['__UNMIGRATED_AUTOMATIONS__']).toEqual([parkable]);
+        expect(config['__UPGRADE_FAILURE__']).toEqual({ automations: [failing] });
         postUpgradeChecks(config);
       });
 
-      it('should park a screen gate untouched for manual migration', () => {
-        const parkable = {
+      it('should record a screen condition as an upgrade failure, untouched', () => {
+        const failing = {
           conditions: [{ condition: 'screen', media_query: '(orientation: landscape)' }],
           actions: then,
           actions_not: elseActions,
         };
-        const config = automate({ ...parkable });
+        const config = automate({ ...failing });
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config.automations).toEqual([]);
-        expect(config['__UNMIGRATED_AUTOMATIONS__']).toEqual([parkable]);
+        expect(config['__UPGRADE_FAILURE__']).toEqual({ automations: [failing] });
         postUpgradeChecks(config);
       });
 
-      it('should park a numeric_state gate with no entity to watch', () => {
-        const parkable = {
+      it('should record a numeric_state condition with no entity to watch as an upgrade failure', () => {
+        const failing = {
           conditions: [
             { condition: 'numeric_state', above: 25, value_template: '{{ 5 }}' },
           ],
           actions: then,
           actions_not: elseActions,
         };
-        const config = automate({ ...parkable });
+        const config = automate({ ...failing });
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config.automations).toEqual([]);
-        expect(config['__UNMIGRATED_AUTOMATIONS__']).toEqual([parkable]);
+        expect(config['__UPGRADE_FAILURE__']).toEqual({ automations: [failing] });
         postUpgradeChecks(config);
       });
 
-      it('should park a mixed gate when any leaf is rising-edge-only', () => {
-        const parkable = {
+      it('should record mixed conditions as an upgrade failure when any leaf is rising-edge-only', () => {
+        const failing = {
           conditions: [
             { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
             { condition: 'template', value_template: '{{ true }}' },
@@ -4557,15 +4584,15 @@ describe('should handle version specific upgrades', () => {
           actions: then,
           actions_not: elseActions,
         };
-        const config = automate({ ...parkable });
+        const config = automate({ ...failing });
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config.automations).toEqual([]);
-        expect(config['__UNMIGRATED_AUTOMATIONS__']).toEqual([parkable]);
+        expect(config['__UPGRADE_FAILURE__']).toEqual({ automations: [failing] });
         postUpgradeChecks(config);
       });
 
-      it('should convert one automation and park another in the same config', () => {
-        const parkable = {
+      it('should convert one automation and fail another in the same config', () => {
+        const failing = {
           conditions: [{ condition: 'screen', media_query: '(orientation: landscape)' }],
           actions: then,
           actions_not: elseActions,
@@ -4578,7 +4605,7 @@ describe('should handle version specific upgrades', () => {
             actions: then,
             actions_not: elseActions,
           },
-          { ...parkable },
+          { ...failing },
         );
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config.automations).toEqual([
@@ -4593,25 +4620,31 @@ describe('should handle version specific upgrades', () => {
             ],
           },
         ]);
-        expect(config['__UNMIGRATED_AUTOMATIONS__']).toEqual([parkable]);
+        expect(config['__UPGRADE_FAILURE__']).toEqual({ automations: [failing] });
         postUpgradeChecks(config);
       });
 
-      it('should append to an existing __UNMIGRATED_AUTOMATIONS__ list', () => {
-        const existing = { some: 'earlier parked automation' };
-        const parkable = {
+      it('should append to existing automation failures and leave others untouched', () => {
+        const earlier = { some: 'earlier failed automation' };
+        const failing = {
           conditions: [{ condition: 'screen', media_query: '(orientation: landscape)' }],
           actions: then,
           actions_not: elseActions,
         };
-        const config = automate({ ...parkable });
-        config['__UNMIGRATED_AUTOMATIONS__'] = [existing];
+        const config = automate({ ...failing });
+        config['__UPGRADE_FAILURE__'] = {
+          automations: [earlier],
+          overrides: ['untouched'],
+        };
         expect(upgradeConfig(config)).toBeTruthy();
-        expect(config['__UNMIGRATED_AUTOMATIONS__']).toEqual([existing, parkable]);
+        expect(config['__UPGRADE_FAILURE__']).toEqual({
+          automations: [earlier, failing],
+          overrides: ['untouched'],
+        });
         postUpgradeChecks(config);
       });
 
-      it('should fall back to an initialized trigger for an all-static gate', () => {
+      it('should fall back to an initialized trigger for all-static conditions', () => {
         const config = automate({
           conditions: [{ condition: 'user', users: ['abc'] }],
           actions: then,
@@ -4661,7 +4694,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('should keep only the then actions when the gate is entirely trigger-only', () => {
+      it('should keep only the then actions when the conditions are entirely trigger-only', () => {
         const config = automate({
           conditions: [{ condition: 'config', paths: ['menu.style'] }],
           actions: then,
@@ -4689,7 +4722,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('should map a discriminator-less state gate to a state trigger', () => {
+      it('should map a discriminator-less state condition to a state trigger', () => {
         const config = automate({
           conditions: [{ entity: 'binary_sensor.x', state: 'on' }],
           actions: then,
@@ -4730,7 +4763,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('should contribute no trigger for a non-object gate leaf', () => {
+      it('should contribute no trigger for a non-object condition leaf', () => {
         const config = automate({
           conditions: [
             'not-a-condition',
@@ -4776,7 +4809,7 @@ describe('should handle version specific upgrades', () => {
     });
 
     describe('trigger-only conditions in overrides and elements', () => {
-      it('should drop an override gated only on a config condition', () => {
+      it('should drop an override whose only condition is a config condition', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4818,7 +4851,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('should drop an override gated only on a valueless camera condition', () => {
+      it('should drop an override whose only condition is a valueless camera condition', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4834,7 +4867,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('should drop a conditional element gated only on a config condition', () => {
+      it('should drop a conditional element whose only condition is a config condition', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4913,9 +4946,9 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('should leave malformed gated entries (no conditions / no elements) untouched', () => {
+      it('should leave malformed entries (no conditions / no elements) untouched', () => {
         // These shapes are schema-invalid, so the transform must not crash on
-        // them (a non-object override, a gate without a `conditions` array, a
+        // them (a non-object override, an entry without a `conditions` array, a
         // conditional without an `elements` array); it simply leaves them as-is.
         const config = {
           type: 'custom:advanced-camera-card',

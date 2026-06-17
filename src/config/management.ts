@@ -9,6 +9,7 @@ import {
   CONF_OVERRIDES,
   CONF_PROFILES,
   CONF_STATUS_BAR,
+  CONF_UPGRADE_FAILURE,
   CONF_VIEW_DEFAULT_CYCLE_CAMERA,
   CONF_VIEW_DEFAULT_RESET_ENTITIES,
   CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
@@ -571,15 +572,46 @@ const promoteConditionsToTriggersTransform = (data: unknown): boolean => {
   return true;
 };
 
-// Automations the upgrade could not faithfully convert are parked here, intact,
-// for manual migration.
-const CONF_UNMIGRATED_AUTOMATIONS = '__UNMIGRATED_AUTOMATIONS__';
+/**
+ * Whether the upgrade recorded any config it could not faithfully convert,
+ * under {@link CONF_UPGRADE_FAILURE} (only ever written non-empty). The config
+ * is not modified.
+ * @param obj The configuration.
+ * @returns `true` if any failures remain.
+ */
+export const hasConfigUpgradeFailures = (
+  obj: RawAdvancedCameraCardConfig | null,
+): boolean => {
+  const failures = obj?.[CONF_UPGRADE_FAILURE];
+  return isRecord(failures) && Object.keys(failures).length > 0;
+};
+
+/**
+ * Record entries the upgrade could not faithfully convert under
+ * `__UPGRADE_FAILURE__.<path>` (the namespace shadows the main config -- see
+ * {@link CONF_UPGRADE_FAILURE}), appending to any already recorded there.
+ * @param data The configuration, modified in place.
+ * @param path The config path the entries came from (e.g. `automations`).
+ * @param failures The original entries, recorded untouched.
+ */
+const addUpgradeFailures = (
+  data: RawAdvancedCameraCardConfig,
+  path: string,
+  failures: unknown[],
+): void => {
+  const upgradeFailures = isRecord(data[CONF_UPGRADE_FAILURE])
+    ? data[CONF_UPGRADE_FAILURE]
+    : {};
+  const existing = upgradeFailures[path];
+  upgradeFailures[path] = [...(Array.isArray(existing) ? existing : []), ...failures];
+  data[CONF_UPGRADE_FAILURE] = upgradeFailures;
+};
 
 // `template`/`screen` conditions have no "any change" trigger -- their only
 // trigger fires on the rising edge alone (HA's own template/numeric_state
-// triggers behave identically, and HA has no `screen` trigger at all). A gate
-// resting on one cannot re-fire when it stops matching, so its migrated `else`
-// will not run on that falling edge.
+// triggers behave identically, and HA has no `screen` trigger at all). An
+// automation resting on one cannot re-fire when it stops matching, so its
+// migrated `else` will not run on that falling edge.
 const RISING_EDGE_ONLY_CONDITIONS = ['template', 'screen'];
 
 // Build the "fire on any change" trigger that drives a migrated `if`/`then`/
@@ -637,9 +669,9 @@ const synthesizeAnyChangeTrigger = (
   return { trigger: { trigger: kind }, risingEdgeOnly: false };
 };
 
-// Synthesize the deduplicated set of "any change" triggers for a gate's leaves.
-// An all-static gate never changes after startup, so a single `initialized`
-// evaluation is faithful.
+// Synthesize the deduplicated set of "any change" triggers for the condition
+// leaves. Conditions that are all static never change after startup, so a
+// single `initialized` evaluation is faithful.
 const synthesizeAnyChangeTriggers = (
   conditions: unknown[],
 ): RawAdvancedCameraCardConfig[] => {
@@ -656,42 +688,43 @@ const synthesizeAnyChangeTriggers = (
   return triggers;
 };
 
-// A gate leaf whose only trigger fires on the rising edge (`template`/`screen`,
-// or a `numeric_state` with no entity to watch) cannot drive the `else` branch
-// when it stops matching, so such an automation cannot be faithfully converted.
-const gateHasRisingEdgeOnlyLeaf = (conditions: unknown[]): boolean =>
+// A condition leaf whose only trigger fires on the rising edge (`template`/
+// `screen`, or a `numeric_state` with no entity to watch) cannot drive the
+// `else` branch when it stops matching, so such an automation cannot be
+// faithfully converted.
+const hasRisingEdgeOnlyCondition = (conditions: unknown[]): boolean =>
   conditions
     .flatMap(flattenConditionLeaves)
     .some((leaf) => synthesizeAnyChangeTrigger(leaf).risingEdgeOnly);
 
 /**
  * Convert one legacy `actions_not` automation in place to an HA-native
- * `if`/`then`/`else` action, or report that it must be parked.
+ * `if`/`then`/`else` action, or report that it failed to convert.
  *
  * `{ conditions: C, actions: A, actions_not: B }` becomes `{ triggers:
  * <any-change for each leaf of C>, actions: [{ if: C, then: A, else: B }] }`:
  * the `if` retains both branches and the synthesized triggers re-evaluate it on
- * every change of the gate. When `C` has no ongoing predicate for the `if` to
- * test -- it is absent, or holds only trigger-only conditions (legacy
+ * every change of the conditions. When `C` has no ongoing predicate for the
+ * `if` to test -- it is absent, or holds only trigger-only conditions (legacy
  * change-detectors such as a bare `camera` or a `config` condition) -- the
  * `else` branch could never run, so `actions_not` is dropped rather than
- * wrapped. A gate with a rising-edge-only leaf is returned as `'park'`,
- * untouched, because its `else` cannot be reproduced faithfully. Idempotent: a
- * converted automation has no `actions_not` left to reconvert.
+ * wrapped. Conditions with a rising-edge-only leaf are returned as `'failed'`,
+ * untouched, because their `else` cannot be reproduced faithfully. Idempotent:
+ * a converted automation has no `actions_not` left to reconvert.
  */
 const convertActionsNotAutomation = (
   automation: RawAdvancedCameraCardConfig,
-): 'converted' | 'park' => {
+): 'converted' | 'failed' => {
   const conditions = automation['conditions'];
 
   if (!Array.isArray(conditions) || !conditions.length) {
-    // No gate -- `actions_not` could never have run; it is simply dropped.
+    // No conditions -- `actions_not` could never have run; it is simply dropped.
     delete automation['actions_not'];
     return 'converted';
   }
 
-  if (gateHasRisingEdgeOnlyLeaf(conditions)) {
-    return 'park';
+  if (hasRisingEdgeOnlyCondition(conditions)) {
+    return 'failed';
   }
 
   const actionsNot = automation['actions_not'];
@@ -701,21 +734,21 @@ const convertActionsNotAutomation = (
   delete automation['actions_not'];
 
   // `conditions` move *into* the `if` below; they must not also remain as a
-  // top-level ongoing gate, which would block the automation (and so the `else`
-  // branch) whenever they fail -- exactly the case `else` exists to handle.
+  // top-level ongoing condition, which would block the automation (and so the
+  // `else` branch) whenever they fail -- exactly the case `else` exists to handle.
   delete automation['conditions'];
 
   // The `if` tests only the ongoing predicates; dropping the trigger-only
   // conditions can leave nothing, in which case `else` could never run.
-  const gate = dropTriggerOnlyConditions(conditions);
-  if (!gate.length) {
+  const ongoing = dropTriggerOnlyConditions(conditions);
+  if (!ongoing.length) {
     automation['actions'] = actions;
     return 'converted';
   }
 
   automation['actions'] = [
     {
-      if: gate,
+      if: ongoing,
       then: actions,
       ...(Array.isArray(actionsNot) && { else: actionsNot }),
     },
@@ -725,24 +758,25 @@ const convertActionsNotAutomation = (
 
 /**
  * Migrate every legacy `actions_not` automation: convert the faithful ones in
- * place to `if`/`then`/`else`, and park the rest -- a rising-edge-only gate
- * whose `else` cannot be reproduced -- untouched under
- * `__UNMIGRATED_AUTOMATIONS__` for the user to migrate by hand. Runs before the
- * conditions->triggers promotion, which then skips the converted ones (they now
- * have `triggers:`) and never sees the parked ones.
+ * place to `if`/`then`/`else`, and record the rest -- conditions with a
+ * rising-edge-only leaf, whose `else` cannot be reproduced -- as failures,
+ * untouched, under `__UPGRADE_FAILURE__.automations` for the user to migrate by
+ * hand. Runs before
+ * the conditions->triggers promotion, which then skips the converted ones (they
+ * now have `triggers:`) and never sees the failed ones.
  */
 const migrateActionsNotTransform = (data: unknown): boolean => {
   if (!isRecord(data) || !Array.isArray(data[CONF_AUTOMATIONS])) {
     return false;
   }
   const kept: unknown[] = [];
-  const parked: unknown[] = [];
+  const failed: unknown[] = [];
   let modified = false;
   for (const automation of data[CONF_AUTOMATIONS]) {
     if (isRecord(automation) && 'actions_not' in automation) {
       modified = true;
-      if (convertActionsNotAutomation(automation) === 'park') {
-        parked.push(automation);
+      if (convertActionsNotAutomation(automation) === 'failed') {
+        failed.push(automation);
         continue;
       }
     }
@@ -752,12 +786,8 @@ const migrateActionsNotTransform = (data: unknown): boolean => {
     return false;
   }
   data[CONF_AUTOMATIONS] = kept;
-  if (parked.length) {
-    const existing = data[CONF_UNMIGRATED_AUTOMATIONS];
-    data[CONF_UNMIGRATED_AUTOMATIONS] = [
-      ...(Array.isArray(existing) ? existing : []),
-      ...parked,
-    ];
+  if (failed.length) {
+    addUpgradeFailures(data, CONF_AUTOMATIONS, failed);
   }
   return true;
 };
@@ -771,14 +801,15 @@ const CONDITIONAL_ELEMENT_TYPES = [
 const isConditionalElementType = (type: unknown): boolean =>
   typeof type === 'string' && CONDITIONAL_ELEMENT_TYPES.includes(type);
 
-// Strip the trigger-only conditions from a single gate-holder's `conditions:`,
-// in place. `keep` is false when stripping emptied a non-empty gate, meaning the
-// holder has no meaningful gate left and the caller should drop it; an already-
-// empty `conditions:` (or a holder with none) is the user's and left untouched.
-const stripGateConditions = (
-  holder: RawAdvancedCameraCardConfig,
+// Strip the trigger-only conditions from a single entry's `conditions:`, in
+// place. `keep` is false when stripping emptied a non-empty `conditions:`,
+// meaning the entry has no meaningful conditions left and the caller should drop
+// it; an already-empty `conditions:` (or an entry with none) is the user's and
+// left untouched.
+const stripTriggerOnlyConditionsFromEntry = (
+  entry: RawAdvancedCameraCardConfig,
 ): { keep: boolean; modified: boolean } => {
-  const original = holder['conditions'];
+  const original = entry['conditions'];
   if (!Array.isArray(original)) {
     return { keep: true, modified: false };
   }
@@ -787,7 +818,7 @@ const stripGateConditions = (
     return { keep: false, modified: true };
   }
   if (!isEqual(stripped, original)) {
-    holder['conditions'] = stripped;
+    entry['conditions'] = stripped;
     return { keep: true, modified: true };
   }
   return { keep: true, modified: false };
@@ -808,8 +839,9 @@ const stripTriggerOnlyConditionsFromElements = (
       element &&
       isConditionalElementType(element['type'])
     ) {
-      const { keep, modified: gateModified } = stripGateConditions(element);
-      modified = gateModified || modified;
+      const { keep, modified: entryModified } =
+        stripTriggerOnlyConditionsFromEntry(element);
+      modified = entryModified || modified;
       if (!keep) {
         continue;
       }
@@ -826,9 +858,9 @@ const stripTriggerOnlyConditionsFromElements = (
 
 /**
  * Drop the now-invalid trigger-only conditions (including the removed `config`
- * condition) from the gating `conditions:` of overrides and conditional
- * elements. An entry whose conditions become empty has no meaningful gate left,
- * so it is dropped entirely. Automations are handled by the promote transform.
+ * condition) from the `conditions:` of overrides and conditional elements. An
+ * entry whose conditions become empty has no meaningful conditions left, so it
+ * is dropped entirely. Automations are handled by the promote transform.
  */
 const stripTriggerOnlyConditionsFromOverridesElementsTransform = (
   data: unknown,
@@ -844,8 +876,9 @@ const stripTriggerOnlyConditionsFromOverridesElementsTransform = (
     const kept: RawAdvancedCameraCardConfigArray = [];
     for (const override of overrides) {
       if (typeof override === 'object' && override) {
-        const { keep, modified: gateModified } = stripGateConditions(override);
-        overridesModified = gateModified || overridesModified;
+        const { keep, modified: entryModified } =
+          stripTriggerOnlyConditionsFromEntry(override);
+        overridesModified = entryModified || overridesModified;
         if (!keep) {
           continue;
         }
@@ -902,8 +935,8 @@ const rewriteTriggerTemplatePaths = (value: string): string => {
 };
 
 // Apply a string rewrite to every template-string value of a single object, in
-// place. Gated on a nunjucks delimiter (`{{` expression or `{%` statement) so
-// it only touches template strings.
+// place. Only touches values containing a nunjucks delimiter (`{{` expression
+// or `{%` statement), i.e. template strings.
 const rewriteTemplateStrings = (
   data: RawAdvancedCameraCardConfig,
   rewrite: (value: string) => string,
@@ -1630,9 +1663,9 @@ const UPGRADES = [
     upgradeWithOverrides('triggers', triggersEventsToMediaEventsTransform),
   ),
 
-  // Convert `actions_not` automations to an `if`/`then`/`else` action (or park
-  // the unfaithful ones). Runs before the promotion below, which then skips the
-  // converted ones (they gain `triggers:`).
+  // Convert `actions_not` automations to an `if`/`then`/`else` action (or record
+  // the unfaithful ones as failures). Runs before the promotion below, which
+  // then skips the converted ones (they gain `triggers:`).
   migrateActionsNotTransform,
 
   // Promote automation `conditions:` into HA-native `triggers:`. Runs last so it
