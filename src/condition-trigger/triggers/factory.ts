@@ -1,10 +1,20 @@
 import { Trigger } from '../../config/schema/condition-trigger/triggers/types';
+import { CallTrigger } from './triggers/call';
 import { CameraTrigger } from './triggers/camera';
-import { ConditionRisingEdgeTrigger } from './triggers/condition-rising-edge';
 import { ConfigTrigger } from './triggers/config';
+import { DisplayModeTrigger } from './triggers/display-mode';
+import { ExpandTrigger } from './triggers/expand';
+import { FullscreenTrigger } from './triggers/fullscreen';
+import { InitializedTrigger } from './triggers/initialized';
+import { InteractionTrigger } from './triggers/interaction';
+import { KeyTrigger } from './triggers/key';
+import { MediaLoadedTrigger } from './triggers/media-loaded';
+import { MicrophoneTrigger } from './triggers/microphone';
 import { NumericStateTrigger } from './triggers/numeric-state';
+import { ScreenTrigger } from './triggers/screen';
 import { StateTrigger } from './triggers/state';
 import { TemplateTrigger } from './triggers/template';
+import { TriggeredTrigger } from './triggers/triggered';
 import { TriggerEvaluator, TriggerEvaluatorContext } from './triggers/types';
 import { ViewTrigger } from './triggers/view';
 
@@ -13,6 +23,7 @@ export const createTriggerEvaluator = (
   context: TriggerEvaluatorContext,
 ): TriggerEvaluator => {
   switch (trigger.trigger) {
+    // Stock HA triggers: read `hass.states` and emit HA `State` payloads.
     case 'state':
       return new StateTrigger(trigger, context);
     case 'numeric_state':
@@ -20,19 +31,37 @@ export const createTriggerEvaluator = (
     case 'template':
       return new TemplateTrigger(trigger, context);
 
-    // `camera`/`view`/`config` watch a single card-state facet and own a
-    // "trigger on any change" form, so they have dedicated classes (like the
-    // stock triggers).
+    // `screen` watches window.matchMedia.
+    case 'screen':
+      return new ScreenTrigger(trigger);
+
+    // Card-state triggers: watch a field of `ConditionState`, firing on any
+    // change (omit the value) or when the change passes the matching condition.
+    case 'call':
+      return new CallTrigger(trigger, context);
     case 'camera':
       return new CameraTrigger(trigger, context);
-    case 'view':
-      return new ViewTrigger(trigger, context);
     case 'config':
       return new ConfigTrigger(trigger, context);
-
-    // Every other card-specific trigger (`display_mode`/.../`screen`) triggers
-    // on the rising edge of its (re-used) condition.
-    default:
-      return new ConditionRisingEdgeTrigger(trigger, context);
+    case 'display_mode':
+      return new DisplayModeTrigger(trigger, context);
+    case 'expand':
+      return new ExpandTrigger(trigger, context);
+    case 'fullscreen':
+      return new FullscreenTrigger(trigger, context);
+    case 'initialized':
+      return new InitializedTrigger(trigger, context);
+    case 'interaction':
+      return new InteractionTrigger(trigger, context);
+    case 'key':
+      return new KeyTrigger(trigger, context);
+    case 'media_loaded':
+      return new MediaLoadedTrigger(trigger, context);
+    case 'microphone':
+      return new MicrophoneTrigger(trigger, context);
+    case 'triggered':
+      return new TriggeredTrigger(trigger, context);
+    case 'view':
+      return new ViewTrigger(trigger, context);
   }
 };

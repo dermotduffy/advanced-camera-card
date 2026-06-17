@@ -1,10 +1,11 @@
+import { TriggeredBase } from '../../../config/schema/condition-trigger/common/triggered';
 import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ConditionOfType } from './types';
+import { ConditionEvaluator } from './types';
 
 export class TriggeredConditionEvaluator implements ConditionEvaluator {
-  private _condition: ConditionOfType<'triggered'>;
+  private _condition: TriggeredBase;
 
-  constructor(condition: ConditionOfType<'triggered'>) {
+  constructor(condition: TriggeredBase) {
     this._condition = condition;
   }
 

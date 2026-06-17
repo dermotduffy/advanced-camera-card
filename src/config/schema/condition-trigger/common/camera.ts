@@ -6,3 +6,4 @@ export const cameraBaseSchema = z.object({
   // camera selected).
   cameras: z.string().array().optional(),
 });
+export type CameraBase = z.infer<typeof cameraBaseSchema>;

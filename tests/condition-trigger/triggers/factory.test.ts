@@ -2,15 +2,30 @@ import { describe, expect, it } from 'vitest';
 import { TemplateRenderer } from '../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { createTriggerEvaluator } from '../../../src/condition-trigger/triggers/factory';
+import { CallTrigger } from '../../../src/condition-trigger/triggers/triggers/call';
 import { CameraTrigger } from '../../../src/condition-trigger/triggers/triggers/camera';
-import { ConditionRisingEdgeTrigger } from '../../../src/condition-trigger/triggers/triggers/condition-rising-edge';
 import { ConfigTrigger } from '../../../src/condition-trigger/triggers/triggers/config';
+import { DisplayModeTrigger } from '../../../src/condition-trigger/triggers/triggers/display-mode';
+import { ExpandTrigger } from '../../../src/condition-trigger/triggers/triggers/expand';
+import { FullscreenTrigger } from '../../../src/condition-trigger/triggers/triggers/fullscreen';
+import { InitializedTrigger } from '../../../src/condition-trigger/triggers/triggers/initialized';
+import { InteractionTrigger } from '../../../src/condition-trigger/triggers/triggers/interaction';
+import { KeyTrigger } from '../../../src/condition-trigger/triggers/triggers/key';
+import { MediaLoadedTrigger } from '../../../src/condition-trigger/triggers/triggers/media-loaded';
+import { MicrophoneTrigger } from '../../../src/condition-trigger/triggers/triggers/microphone';
 import { NumericStateTrigger } from '../../../src/condition-trigger/triggers/triggers/numeric-state';
+import { ScreenTrigger } from '../../../src/condition-trigger/triggers/triggers/screen';
 import { StateTrigger } from '../../../src/condition-trigger/triggers/triggers/state';
 import { TemplateTrigger } from '../../../src/condition-trigger/triggers/triggers/template';
-import { TriggerEvaluatorContext } from '../../../src/condition-trigger/triggers/triggers/types';
+import { TriggeredTrigger } from '../../../src/condition-trigger/triggers/triggers/triggered';
+import {
+  TriggerEvaluator,
+  TriggerEvaluatorContext,
+} from '../../../src/condition-trigger/triggers/triggers/types';
 import { ViewTrigger } from '../../../src/condition-trigger/triggers/triggers/view';
 import { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
+
+type TriggerEvaluatorConstructor = new (...args: never[]) => TriggerEvaluator;
 
 // @vitest-environment jsdom
 describe('createTriggerEvaluator', () => {
@@ -19,68 +34,25 @@ describe('createTriggerEvaluator', () => {
     templateRenderer: new TemplateRenderer(),
   });
 
-  it('should create a StateTrigger for a state trigger', () => {
-    expect(
-      createTriggerEvaluator(
-        { trigger: 'state', entity_id: 'binary_sensor.x' },
-        context(),
-      ),
-    ).toBeInstanceOf(StateTrigger);
-  });
-
-  it('should create a NumericStateTrigger for a numeric_state trigger', () => {
-    expect(
-      createTriggerEvaluator(
-        { trigger: 'numeric_state', entity_id: 'sensor.x', above: 5 },
-        context(),
-      ),
-    ).toBeInstanceOf(NumericStateTrigger);
-  });
-
-  it('should create a TemplateTrigger for a template trigger', () => {
-    expect(
-      createTriggerEvaluator(
-        { trigger: 'template', value_template: '{{ true }}' },
-        context(),
-      ),
-    ).toBeInstanceOf(TemplateTrigger);
-  });
-
-  it('should create a CameraTrigger for a camera trigger', () => {
-    expect(
-      createTriggerEvaluator({ trigger: 'camera', cameras: ['front'] }, context()),
-    ).toBeInstanceOf(CameraTrigger);
-  });
-
-  it('should create a ViewTrigger for a view trigger', () => {
-    expect(
-      createTriggerEvaluator({ trigger: 'view', views: ['live'] }, context()),
-    ).toBeInstanceOf(ViewTrigger);
-  });
-
-  it('should create a ConfigTrigger for a config trigger', () => {
-    expect(createTriggerEvaluator({ trigger: 'config' }, context())).toBeInstanceOf(
-      ConfigTrigger,
-    );
-  });
-
-  // Every card-specific trigger that is not its own dedicated class
-  // (camera/view/config) falls through to the rising-edge trigger.
-  it.each<Trigger>([
-    { trigger: 'call', call: true },
-    { trigger: 'display_mode', display_mode: 'single' },
-    { trigger: 'expand', expand: true },
-    { trigger: 'fullscreen', fullscreen: true },
-    { trigger: 'initialized' },
-    { trigger: 'interaction', interaction: true },
-    { trigger: 'key', key: 'a' },
-    { trigger: 'media_loaded', media_loaded: true },
-    { trigger: 'microphone', muted: true },
-    { trigger: 'screen' },
-    { trigger: 'triggered' },
-  ])('should create a ConditionRisingEdgeTrigger for a $trigger trigger', (trigger) => {
-    expect(createTriggerEvaluator(trigger, context())).toBeInstanceOf(
-      ConditionRisingEdgeTrigger,
-    );
+  it.each<[Trigger, TriggerEvaluatorConstructor]>([
+    [{ trigger: 'state', entity_id: 'binary_sensor.x' }, StateTrigger],
+    [{ trigger: 'numeric_state', entity_id: 'sensor.x', above: 5 }, NumericStateTrigger],
+    [{ trigger: 'template', value_template: '{{ true }}' }, TemplateTrigger],
+    [{ trigger: 'call', call: true }, CallTrigger],
+    [{ trigger: 'camera', cameras: ['front'] }, CameraTrigger],
+    [{ trigger: 'config' }, ConfigTrigger],
+    [{ trigger: 'display_mode', display_mode: 'single' }, DisplayModeTrigger],
+    [{ trigger: 'expand', expand: true }, ExpandTrigger],
+    [{ trigger: 'fullscreen', fullscreen: true }, FullscreenTrigger],
+    [{ trigger: 'interaction', interaction: true }, InteractionTrigger],
+    [{ trigger: 'media_loaded', media_loaded: true }, MediaLoadedTrigger],
+    [{ trigger: 'microphone', muted: true }, MicrophoneTrigger],
+    [{ trigger: 'triggered' }, TriggeredTrigger],
+    [{ trigger: 'view', views: ['live'] }, ViewTrigger],
+    [{ trigger: 'initialized' }, InitializedTrigger],
+    [{ trigger: 'key', key: 'a' }, KeyTrigger],
+    [{ trigger: 'screen' }, ScreenTrigger],
+  ])('should create the dedicated evaluator for a %o trigger', (trigger, expected) => {
+    expect(createTriggerEvaluator(trigger, context())).toBeInstanceOf(expected);
   });
 });

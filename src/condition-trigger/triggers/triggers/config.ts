@@ -1,31 +1,21 @@
-import { isEqual } from 'lodash-es';
 import { getConfigValue } from '../../../config/management';
 import { ConditionState } from '../../conditions/types';
-import { CardStateTriggerBase } from './card-state-base';
+import { ConditionStateTriggerBase } from './condition-state-base';
 import { TriggerOfType } from './types';
 
 // Triggers when the card configuration changes. With `paths`, only a change to
 // one of those config paths triggers; without `paths`, any config change does.
-export class ConfigTrigger extends CardStateTriggerBase<TriggerOfType<'config'>> {
-  protected _shouldTrigger(oldState: ConditionState, newState: ConditionState): boolean {
-    const newConfig = newState.config;
-    const oldConfig = oldState.config;
-
-    // Compare by value: config (and any subtree `getConfigValue` returns) is
-    // rebuilt fresh on each change, so a reference check would over-trigger.
-    if (!newConfig || isEqual(newConfig, oldConfig)) {
-      return false;
+// `config` is trigger-only (it has no matching condition), so the watched value
+// is the whole of its behavior.
+export class ConfigTrigger extends ConditionStateTriggerBase<TriggerOfType<'config'>> {
+  protected _getValue(state: ConditionState): unknown {
+    const config = state.config;
+    if (!config) {
+      return null;
     }
+    // The watched value: detecting a change in these path values *is* the
+    // `paths` filter. Without `paths`, the whole config is watched.
     const paths = this._trigger.paths;
-    return (
-      !paths?.length ||
-      paths.some(
-        (path) =>
-          !isEqual(
-            getConfigValue(newConfig, path),
-            oldConfig ? getConfigValue(oldConfig, path) : undefined,
-          ),
-      )
-    );
+    return paths?.length ? paths.map((path) => getConfigValue(config, path)) : config;
   }
 }

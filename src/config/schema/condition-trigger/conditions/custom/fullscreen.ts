@@ -6,4 +6,5 @@ export const fullscreenConditionSchema = fullscreenBaseSchema
   .extend(conditionBaseSchema.shape)
   .extend({
     condition: z.literal('fullscreen'),
+    fullscreen: z.boolean(),
   });

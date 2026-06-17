@@ -1,10 +1,11 @@
+import { ExpandBase } from '../../../config/schema/condition-trigger/common/expand';
 import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ConditionOfType } from './types';
+import { ConditionEvaluator } from './types';
 
 export class ExpandConditionEvaluator implements ConditionEvaluator {
-  private _condition: ConditionOfType<'expand'>;
+  private _condition: ExpandBase;
 
-  constructor(condition: ConditionOfType<'expand'>) {
+  constructor(condition: ExpandBase) {
     this._condition = condition;
   }
 

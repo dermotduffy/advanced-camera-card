@@ -1,10 +1,11 @@
+import { InteractionBase } from '../../../config/schema/condition-trigger/common/interaction';
 import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ConditionOfType } from './types';
+import { ConditionEvaluator } from './types';
 
 export class InteractionConditionEvaluator implements ConditionEvaluator {
-  private _condition: ConditionOfType<'interaction'>;
+  private _condition: InteractionBase;
 
-  constructor(condition: ConditionOfType<'interaction'>) {
+  constructor(condition: InteractionBase) {
     this._condition = condition;
   }
 

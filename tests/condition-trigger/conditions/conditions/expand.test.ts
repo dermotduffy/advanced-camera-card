@@ -16,13 +16,7 @@ describe('expand condition', () => {
     expect(evaluator.evaluate({ expand: false }).result).toBeFalsy();
   });
 
-  it('should default to matching expanded when omitted', () => {
-    const evaluator = createConditionEvaluator(
-      expandConditionSchema.parse({ condition: 'expand' }),
-      createEvaluatorContext(),
-    );
-
-    expect(evaluator.evaluate({ expand: true }).result).toBeTruthy();
-    expect(evaluator.evaluate({ expand: false }).result).toBeFalsy();
+  it('should require a value', () => {
+    expect(() => expandConditionSchema.parse({ condition: 'expand' })).toThrow();
   });
 });

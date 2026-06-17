@@ -1,0 +1,54 @@
+import { describe, expect, it, Mock, vi } from 'vitest';
+import { TemplateRenderer } from '../../../../src/card-controller/templates';
+import { MicrophoneState } from '../../../../src/card-controller/types';
+import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
+import { MicrophoneTrigger } from '../../../../src/condition-trigger/triggers/triggers/microphone';
+import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+
+// @vitest-environment jsdom
+describe('MicrophoneTrigger', () => {
+  const createMicrophoneState = (state: Partial<MicrophoneState>): MicrophoneState => ({
+    connected: false,
+    muted: false,
+    forbidden: false,
+    ...state,
+  });
+
+  const create = (
+    trigger: TriggerOfType<'microphone'>,
+  ): { stateManager: ConditionStateManager; callback: Mock } => {
+    const stateManager = new ConditionStateManager();
+    const callback = vi.fn();
+    new MicrophoneTrigger(trigger, {
+      stateManager,
+      templateRenderer: new TemplateRenderer(),
+    }).subscribe(callback);
+    return { stateManager, callback };
+  };
+
+  it('should trigger on any mute change without a value', () => {
+    const { stateManager, callback } = create({ trigger: 'microphone' });
+    stateManager.setState({ microphone: createMicrophoneState({ muted: true }) });
+    stateManager.setState({ microphone: createMicrophoneState({ muted: false }) });
+    expect(callback).toHaveBeenCalledTimes(2);
+  });
+
+  it('should trigger only on changes to the given mute value', () => {
+    const { stateManager, callback } = create({ trigger: 'microphone', muted: true });
+    stateManager.setState({ microphone: createMicrophoneState({ muted: true }) });
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    stateManager.setState({ microphone: createMicrophoneState({ muted: false }) });
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should trigger on the falling edge to a false value', () => {
+    const { stateManager, callback } = create({ trigger: 'microphone', muted: false });
+
+    stateManager.setState({ microphone: createMicrophoneState({ muted: true }) });
+    expect(callback).not.toHaveBeenCalled();
+
+    stateManager.setState({ microphone: createMicrophoneState({ muted: false }) });
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+});

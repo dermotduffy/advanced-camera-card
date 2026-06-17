@@ -19,15 +19,9 @@ describe('media loaded condition', () => {
     expect(evaluator.evaluate({ mediaLoadedInfo: null }).result).toBeFalsy();
   });
 
-  it('should default to matching loaded media when omitted', () => {
-    const evaluator = createConditionEvaluator(
+  it('should require a value', () => {
+    expect(() =>
       mediaLoadedConditionSchema.parse({ condition: 'media_loaded' }),
-      createEvaluatorContext(),
-    );
-
-    expect(
-      evaluator.evaluate({ mediaLoadedInfo: createMediaLoadedInfo() }).result,
-    ).toBeTruthy();
-    expect(evaluator.evaluate({ mediaLoadedInfo: null }).result).toBeFalsy();
+    ).toThrow();
   });
 });

@@ -1,10 +1,11 @@
+import { DisplayModeBase } from '../../../config/schema/condition-trigger/common/display-mode';
 import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ConditionOfType } from './types';
+import { ConditionEvaluator } from './types';
 
 export class DisplayModeConditionEvaluator implements ConditionEvaluator {
-  private _condition: ConditionOfType<'display_mode'>;
+  private _condition: DisplayModeBase;
 
-  constructor(condition: ConditionOfType<'display_mode'>) {
+  constructor(condition: DisplayModeBase) {
     this._condition = condition;
   }
 

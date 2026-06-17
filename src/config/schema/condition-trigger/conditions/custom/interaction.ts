@@ -6,4 +6,5 @@ export const interactionConditionSchema = interactionBaseSchema
   .extend(conditionBaseSchema.shape)
   .extend({
     condition: z.literal('interaction'),
+    interaction: z.boolean(),
   });

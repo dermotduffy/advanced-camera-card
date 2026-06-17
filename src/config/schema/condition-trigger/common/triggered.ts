@@ -6,3 +6,4 @@ export const triggeredBaseSchema = z.object({
   // set, and `[]` matches when the set is empty (no camera triggered).
   triggered: z.string().array().optional(),
 });
+export type TriggeredBase = z.infer<typeof triggeredBaseSchema>;

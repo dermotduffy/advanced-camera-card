@@ -1,10 +1,11 @@
+import { CallBase } from '../../../config/schema/condition-trigger/common/call';
 import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ConditionOfType } from './types';
+import { ConditionEvaluator } from './types';
 
 export class CallConditionEvaluator implements ConditionEvaluator {
-  private _condition: ConditionOfType<'call'>;
+  private _condition: CallBase;
 
-  constructor(condition: ConditionOfType<'call'>) {
+  constructor(condition: CallBase) {
     this._condition = condition;
   }
 

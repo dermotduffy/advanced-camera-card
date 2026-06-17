@@ -5,15 +5,8 @@ import { createEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
 describe('call condition', () => {
-  it('should default to call true in its bare form', () => {
-    const evaluator = createConditionEvaluator(
-      callConditionSchema.parse({ condition: 'call' }),
-      createEvaluatorContext(),
-    );
-
-    expect(evaluator.evaluate({}).result).toBeFalsy();
-    expect(evaluator.evaluate({ call: true }).result).toBeTruthy();
-    expect(evaluator.evaluate({ call: false }).result).toBeFalsy();
+  it('should require a value', () => {
+    expect(() => callConditionSchema.parse({ condition: 'call' })).toThrow();
   });
 
   it('should match when call is true', () => {

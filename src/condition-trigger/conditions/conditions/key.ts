@@ -1,28 +1,30 @@
+import { KeyBase } from '../../../config/schema/condition-trigger/common/key';
 import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ConditionOfType } from './types';
+import { ConditionEvaluator } from './types';
 
 export class KeyConditionEvaluator implements ConditionEvaluator {
-  private _condition: ConditionOfType<'key'>;
+  private _condition: KeyBase;
 
-  constructor(condition: ConditionOfType<'key'>) {
+  constructor(condition: KeyBase) {
     this._condition = condition;
   }
 
   public evaluate(newState?: ConditionState): ConditionsEvaluationResult {
     const condition = this._condition;
+
+    // The condition schema requires `key`; the undefined check only guards the
+    // shared base type, on which it is declared optional.
+    if (condition.key === undefined || !newState?.keys?.[condition.key]) {
+      return { result: false };
+    }
+    const pressed = newState.keys[condition.key];
     return {
       result:
-        !!newState?.keys &&
-        condition.key in newState.keys &&
-        (condition.state ?? 'down') === newState.keys[condition.key].state &&
-        (condition.ctrl === undefined ||
-          condition.ctrl === !!newState.keys[condition.key].ctrl) &&
-        (condition.alt === undefined ||
-          condition.alt === !!newState.keys[condition.key].alt) &&
-        (condition.meta === undefined ||
-          condition.meta === !!newState.keys[condition.key].meta) &&
-        (condition.shift === undefined ||
-          condition.shift === !!newState.keys[condition.key].shift),
+        (condition.state ?? 'down') === pressed.state &&
+        (condition.ctrl === undefined || condition.ctrl === !!pressed.ctrl) &&
+        (condition.alt === undefined || condition.alt === !!pressed.alt) &&
+        (condition.meta === undefined || condition.meta === !!pressed.meta) &&
+        (condition.shift === undefined || condition.shift === !!pressed.shift),
     };
   }
 }

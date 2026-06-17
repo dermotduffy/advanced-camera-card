@@ -6,4 +6,5 @@ export const mediaLoadedConditionSchema = mediaLoadedBaseSchema
   .extend(conditionBaseSchema.shape)
   .extend({
     condition: z.literal('media_loaded'),
+    media_loaded: z.boolean(),
   });

@@ -16,13 +16,9 @@ describe('interaction condition', () => {
     expect(evaluator.evaluate({ interaction: false }).result).toBeFalsy();
   });
 
-  it('should default to matching interaction when omitted', () => {
-    const evaluator = createConditionEvaluator(
+  it('should require a value', () => {
+    expect(() =>
       interactionConditionSchema.parse({ condition: 'interaction' }),
-      createEvaluatorContext(),
-    );
-
-    expect(evaluator.evaluate({ interaction: true }).result).toBeTruthy();
-    expect(evaluator.evaluate({ interaction: false }).result).toBeFalsy();
+    ).toThrow();
   });
 });

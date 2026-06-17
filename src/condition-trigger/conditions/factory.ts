@@ -1,4 +1,5 @@
 import { Condition } from '../../config/schema/condition-trigger/conditions/types';
+import { Trigger } from '../../config/schema/condition-trigger/triggers/types';
 import { AndConditionEvaluator } from './conditions/and';
 import { CallConditionEvaluator } from './conditions/call';
 import { CameraConditionEvaluator } from './conditions/camera';
@@ -76,5 +77,72 @@ export const createConditionEvaluator = (
       return new NotConditionEvaluator(
         condition.conditions.map((child) => createConditionEvaluator(child, context)),
       );
+  }
+};
+
+// A trigger carries a condition value -- the value its matching condition
+// checks against -- when it has a field beyond the discriminator and the
+// universal `enabled` (e.g. `fullscreen: true`, `cameras: [...]`).
+const triggerHasConditionValue = (trigger: Trigger): boolean =>
+  Object.keys(trigger).some((key) => key !== 'trigger' && key !== 'enabled');
+
+// Build the condition evaluator a card trigger checks its changes against, or
+// null if it has none -- it then fires on any change of its watched state. A
+// trigger has no condition when it carries no value (the any-change form) or
+// when it is trigger-only (`config`). Otherwise the trigger and its condition
+// share a base schema, so an evaluator (typed on that base) is built directly
+// from the trigger -- no discriminator-swap.
+export const createConditionEvaluatorForTrigger = (
+  trigger: Trigger,
+): ConditionEvaluator | null => {
+  // A valueless trigger has no condition to check against -- it fires on any
+  // change. This is necessary so a change that would make the matching
+  // condition *fail* still fires the trigger.
+  //
+  //  - Scenario: the selected camera changes to no camera selected.
+  //  - Trigger: `camera` with no value (means: fire on any change).
+  //  - As a condition, valueless `camera` means "any camera *is* selected".
+  //  - Without this short-circuit:
+  //      - the condition evaluates false (no camera is selected), so
+  //      - the trigger (incorrectly) does not fire.
+  //
+  // It comes down to a valueless *trigger* meaning "any change", while a
+  // valueless *condition* means "the thing is set" -- and the shared evaluator
+  // only knows the condition meaning, so this distinction must be made here.
+  if (!triggerHasConditionValue(trigger)) {
+    return null;
+  }
+
+  switch (trigger.trigger) {
+    case 'call':
+      return new CallConditionEvaluator(trigger);
+    case 'camera':
+      return new CameraConditionEvaluator(trigger);
+    case 'display_mode':
+      return new DisplayModeConditionEvaluator(trigger);
+    case 'expand':
+      return new ExpandConditionEvaluator(trigger);
+    case 'fullscreen':
+      return new FullscreenConditionEvaluator(trigger);
+    case 'interaction':
+      return new InteractionConditionEvaluator(trigger);
+    case 'key':
+      return new KeyConditionEvaluator(trigger);
+    case 'microphone':
+      return new MicrophoneConditionEvaluator(trigger);
+    case 'media_loaded':
+      return new MediaLoadedConditionEvaluator(trigger);
+    case 'screen':
+      return new ScreenConditionEvaluator(trigger);
+    case 'view':
+      return new ViewConditionEvaluator(trigger);
+    case 'triggered':
+      return new TriggeredConditionEvaluator(trigger);
+    case 'config':
+      return null;
+    default:
+      // Stock triggers (`state`/`numeric_state`/`template`) evaluate themselves
+      // and never reuse a card condition through this path.
+      return null;
   }
 };

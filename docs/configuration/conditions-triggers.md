@@ -25,6 +25,13 @@ _"when this becomes true"_. A few types are restricted to one role (`config` is
 trigger-only; the composites and `user` / `user_agent` are condition-only), as
 noted at the top of each type below.
 
+For the card-state types (`camera`, `view`, `fullscreen`, `expand`, `call`,
+`display_mode`, `media_loaded`, `microphone`, `interaction`, `triggered`) a
+trigger's value is **optional**: give it a value to fire only when the state
+changes _to_ that value, or **omit it to fire on any change**. (The stock `state`
+trigger behaves the same way when `from`/`to` are omitted). As a condition the
+value keeps its usual per-type meaning, as described below.
+
 ```yaml
 # A trigger initiates an automation; conditions are then checked.
 triggers:
@@ -89,10 +96,10 @@ triggers:
     call: true
 ```
 
-| Parameter               | Description                                                                                                  |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `condition` / `trigger` | Must be `call`.                                                                                              |
-| `call`                  | If `true` (the default) or `false`, matches when a two-way audio call is or is not in progress respectively. |
+| Parameter               | Description                                                                                    |
+| ----------------------- | ---------------------------------------------------------------------------------------------- |
+| `condition` / `trigger` | Must be `call`.                                                                                |
+| `call`                  | If `true` or `false`, matches when a two-way audio call is or is not in progress respectively. |
 
 ## `camera`
 
@@ -173,10 +180,10 @@ triggers:
     expand: true
 ```
 
-| Parameter               | Description                                                                                                               |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `condition` / `trigger` | Must be `expand`.                                                                                                         |
-| `expand`                | If `true` (the default) or `false`, matches when the card is or is not in expanded mode (in a dialog/popup) respectively. |
+| Parameter               | Description                                                                                                 |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `condition` / `trigger` | Must be `expand`.                                                                                           |
+| `expand`                | If `true` or `false`, matches when the card is or is not in expanded mode (in a dialog/popup) respectively. |
 
 ## `fullscreen`
 
@@ -199,16 +206,19 @@ becomes a match.
 conditions:
   - condition: fullscreen
     fullscreen: true
-# As a trigger:
+# As a trigger, on entering fullscreen:
 triggers:
   - trigger: fullscreen
     fullscreen: true
+# As a trigger, on any fullscreen change:
+triggers:
+  - trigger: fullscreen
 ```
 
-| Parameter               | Description                                                                                             |
-| ----------------------- | ------------------------------------------------------------------------------------------------------- |
-| `condition` / `trigger` | Must be `fullscreen`.                                                                                   |
-| `fullscreen`            | If `true` (the default) or `false`, matches when the card is or is not in fullscreen mode respectively. |
+| Parameter               | Description                                                                               |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| `condition` / `trigger` | Must be `fullscreen`.                                                                     |
+| `fullscreen`            | If `true` or `false`, matches when the card is or is not in fullscreen mode respectively. |
 
 ## `initialized`
 
@@ -246,10 +256,10 @@ triggers:
     interaction: true
 ```
 
-| Parameter               | Description                                                                                                                                                    |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `condition` / `trigger` | Must be `interaction`.                                                                                                                                         |
-| `interaction`           | If `true` (the default) or `false`, matches when the card has or has not had human interaction within `view.interaction_seconds` elapsed seconds respectively. |
+| Parameter               | Description                                                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `condition` / `trigger` | Must be `interaction`.                                                                                                                           |
+| `interaction`           | If `true` or `false`, matches when the card has or has not had human interaction within `view.interaction_seconds` elapsed seconds respectively. |
 
 ## `key`
 
@@ -294,10 +304,10 @@ triggers:
     media_loaded: true
 ```
 
-| Parameter               | Description                                                                                                                                                                                                                                                       |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `condition` / `trigger` | Must be `media_loaded`.                                                                                                                                                                                                                                           |
-| `media_loaded`          | If `true` (the default) or `false`, matches when there is or is not media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. |
+| Parameter               | Description                                                                                                                                                                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` / `trigger` | Must be `media_loaded`.                                                                                                                                                                                                                             |
+| `media_loaded`          | If `true` or `false`, matches when there is or is not media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. |
 
 > [!NOTE]
 > Toggling a substream on or off does not cause this condition to transition.

@@ -16,13 +16,7 @@ describe('fullscreen condition', () => {
     expect(evaluator.evaluate({ fullscreen: false }).result).toBeFalsy();
   });
 
-  it('should default to matching fullscreen when omitted', () => {
-    const evaluator = createConditionEvaluator(
-      fullscreenConditionSchema.parse({ condition: 'fullscreen' }),
-      createEvaluatorContext(),
-    );
-
-    expect(evaluator.evaluate({ fullscreen: true }).result).toBeTruthy();
-    expect(evaluator.evaluate({ fullscreen: false }).result).toBeFalsy();
+  it('should require a value', () => {
+    expect(() => fullscreenConditionSchema.parse({ condition: 'fullscreen' })).toThrow();
   });
 });

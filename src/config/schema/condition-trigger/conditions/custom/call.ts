@@ -6,4 +6,5 @@ export const callConditionSchema = callBaseSchema
   .extend(conditionBaseSchema.shape)
   .extend({
     condition: z.literal('call'),
+    call: z.boolean(),
   });

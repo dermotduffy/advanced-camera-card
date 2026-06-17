@@ -1,17 +1,14 @@
+import { ScreenBase } from '../../../config/schema/condition-trigger/common/screen';
 import { ConditionsEvaluationResult } from '../types';
-import {
-  ConditionEvaluator,
-  ConditionEvaluatorSubscriptionCallback,
-  ConditionOfType,
-} from './types';
+import { ConditionEvaluator, ConditionEvaluatorSubscriptionCallback } from './types';
 
 export class ScreenConditionEvaluator implements ConditionEvaluator {
   private _mediaQuery: MediaQueryList | null = null;
   private _onChange: ConditionEvaluatorSubscriptionCallback | null = null;
 
-  private _condition: ConditionOfType<'screen'>;
+  private _condition: ScreenBase;
 
-  constructor(condition: ConditionOfType<'screen'>) {
+  constructor(condition: ScreenBase) {
     this._condition = condition;
   }
 

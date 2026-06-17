@@ -6,4 +6,5 @@ export const keyConditionSchema = keyBaseSchema
   .extend(conditionBaseSchema.shape)
   .extend({
     condition: z.literal('key'),
+    key: z.string(),
   });

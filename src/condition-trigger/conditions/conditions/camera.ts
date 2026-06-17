@@ -1,10 +1,11 @@
+import { CameraBase } from '../../../config/schema/condition-trigger/common/camera';
 import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ConditionOfType } from './types';
+import { ConditionEvaluator } from './types';
 
 export class CameraConditionEvaluator implements ConditionEvaluator {
-  private _condition: ConditionOfType<'camera'>;
+  private _condition: CameraBase;
 
-  constructor(condition: ConditionOfType<'camera'>) {
+  constructor(condition: CameraBase) {
     this._condition = condition;
   }
 
