@@ -489,7 +489,7 @@ See the [Home Assistant state trigger](https://www.home-assistant.io/docs/automa
 ## `template`
 
 Matches a Home Assistant template. As a **condition**, true while the template
-renders truthy; as a **trigger**, fires when it changes from non-true to true.
+renders `true`; as a **trigger**, fires when it changes from non-true to true.
 
 ```yaml
 # As a condition:
@@ -509,6 +509,17 @@ triggers:
 | `for`                   | _Trigger only._ A duration (`hh:mm:ss` or a template) the template must stay true before firing. |
 
 See the [Home Assistant template condition](https://www.home-assistant.io/docs/scripts/conditions/#template-condition) and [template trigger](https://www.home-assistant.io/docs/automation/trigger/#template-trigger).
+
+> [!NOTE]
+> In order to match native Home Assistant behavior, condition and trigger
+> truthiness differ: a **condition** passes only when the template renders
+> `true` (case-insensitive), whereas a **trigger** also accepts broader truthy
+> values (`1`, `yes`, `on`, `enable`).
+
+> [!NOTE]
+> A **trigger** is re-evaluated when card or Home Assistant state changes, not on
+> a timer, so a template that depends only on time (e.g. `{{ now().hour == 8 }}`)
+> will not fire on its own.
 
 > [!TIP]
 > The Advanced Camera Card uses
@@ -609,10 +620,19 @@ triggers:
 > media is fetched. When naming views in a condition or trigger, you may need to
 > refer to the `media` view.
 
-## Unsupported Home Assistant conditions
+## Unsupported Home Assistant conditions and triggers
 
-Home Assistant's `time`, `zone`, `sun` and `location` conditions are **not**
-currently supported. If you need one of them, please [open an
+Several Home Assistant condition types are **not** currently supported: `time`,
+`zone`, `sun`, `location`, `device`, and `condition: trigger` (matching on the
+`id` of the trigger that fired).
+
+On the trigger side, only the stock `state`, `numeric_state` and `template`
+platforms are supported, alongside the card-specific triggers listed above.
+Other Home Assistant trigger platforms -- including `event`, `time`,
+`time_pattern`, `sun`, `zone`, `calendar`, `webhook`, `tag`, `device` and
+`mqtt` -- are **not** supported.
+
+If you need any of these, please [open an
 issue](https://github.com/dermotduffy/advanced-camera-card/issues).
 
 ## Fully expanded reference
