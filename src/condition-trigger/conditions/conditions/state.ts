@@ -11,7 +11,8 @@ const resolveExpectedStates = (
   values: string | string[],
   state?: ConditionState,
 ): string[] =>
-  arrayify(values).flatMap((value) => {
+  // Cannot use `arrayify` as an empty-string expected value is a real value.
+  (Array.isArray(values) ? values : [values]).flatMap((value) => {
     const resolved = state?.hass?.states?.[value]?.state;
     return resolved !== undefined ? [value, resolved] : [value];
   });
@@ -56,7 +57,7 @@ export class StateConditionEvaluator implements ConditionEvaluator {
       const toValue = readValue(entityID, newState);
 
       let result: boolean;
-      if (!condition.state && !condition.state_not) {
+      if (condition.state === undefined && condition.state_not === undefined) {
         // With neither `state` nor `state_not`, match any change of value.
         result = toValue !== fromValue;
       } else if (toValue === null) {
@@ -65,9 +66,9 @@ export class StateConditionEvaluator implements ConditionEvaluator {
         result = false;
       } else {
         result =
-          (!condition.state ||
+          (condition.state === undefined ||
             resolveExpectedStates(condition.state, newState).includes(toValue)) &&
-          (!condition.state_not ||
+          (condition.state_not === undefined ||
             !resolveExpectedStates(condition.state_not, newState).includes(toValue));
       }
 

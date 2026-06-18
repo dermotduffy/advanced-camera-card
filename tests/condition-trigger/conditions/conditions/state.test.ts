@@ -448,4 +448,25 @@ describe('state condition', () => {
       }).result,
     ).toBeTruthy();
   });
+
+  it('should match an empty-string expected state', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'state' as const, entity_id: 'sensor.foo', state: '' },
+      createEvaluatorContext(),
+    );
+
+    // An entity state of "" matches the configured empty `state`.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'sensor.foo': createStateEntity({ state: '' }) }),
+      }).result,
+    ).toBeTruthy();
+
+    // A non-empty entity state does not.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'sensor.foo': createStateEntity({ state: 'on' }) }),
+      }).result,
+    ).toBeFalsy();
+  });
 });

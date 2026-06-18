@@ -63,6 +63,10 @@ Assistant.
 > fixes `enabled` once when the automation loads, for both conditions and
 > triggers.
 
+Home Assistant's `id`, `alias` and `variables` keys are also _accepted_ on any
+condition or trigger (so automations pasted from Home Assistant will validate),
+but will have no effect.
+
 ## `and`
 
 _Condition only._
