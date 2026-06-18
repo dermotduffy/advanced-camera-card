@@ -17,7 +17,10 @@ import {
 import type { CardController } from '../../../src/card-controller/controller';
 import { TemplateRenderer } from '../../../src/card-controller/templates';
 import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
-import { createGeneralAction, createLogAction } from '../../../src/utils/action';
+import {
+  createInternalCallbackAction,
+  createLogAction,
+} from '../../../src/utils/action';
 import { arrayify } from '../../../src/utils/basic';
 import { createCardAPI, createConfig, createHASS, createView } from '../../test-utils';
 
@@ -363,26 +366,144 @@ describe('ActionsManager', () => {
       });
     });
 
-    it('should filter rendered actions through the lock manager', async () => {
-      const renderedAction = createGeneralAction('reload');
-      const allowedAction = createLogAction('Allowed');
+    it('should filter actions through the lock manager before rendering them', async () => {
+      const rawRan = vi.fn();
+      const allowedRan = vi.fn();
+      const rawAction = createInternalCallbackAction(async () => {
+        rawRan();
+      });
+      const allowedAction = createInternalCallbackAction(async () => {
+        allowedRan();
+      });
 
       const templateRenderer = mock<TemplateRenderer>();
-      templateRenderer.renderRecursively.mockReturnValue(renderedAction);
+      templateRenderer.renderRecursively.mockReturnValue(allowedAction);
 
       const api = createAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getLockManager().getAllowedActions).mockReturnValue([allowedAction]);
 
       const manager = new ActionsManager(api, templateRenderer);
-      const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
 
+      await manager.executeActions({ actions: rawAction });
+
+      // The lock manager sees the raw (unrendered) action; only the action it
+      // returns is rendered and run.
+      expect(api.getLockManager().getAllowedActions).toBeCalledWith(rawAction);
+      expect(allowedRan).toBeCalled();
+      expect(rawRan).not.toBeCalled();
+    });
+
+    it('should let an action observe state a prior action changed', async () => {
+      const observed: string[] = [];
+      let camera = 'first';
+
+      const templateRenderer = mock<TemplateRenderer>();
+
+      // The first action changes the selected camera; the second records the
+      // camera in the condition state at the moment it is rendered.
+      templateRenderer.renderRecursively
+        .mockReturnValueOnce(
+          createInternalCallbackAction(async () => {
+            camera = 'second';
+          }),
+        )
+        .mockImplementationOnce((_hass, _action, options) => {
+          const rendered = String(options?.conditionState?.camera);
+          return createInternalCallbackAction(async () => {
+            observed.push(rendered);
+          });
+        });
+
+      const api = createAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConditionStateManager().getState).mockImplementation(() => ({
+        camera,
+      }));
+
+      const manager = new ActionsManager(api, templateRenderer);
+
+      // The inputs are placeholders; the mocked renderer above maps each to a
+      // recorder, so their content is irrelevant.
       await manager.executeActions({
-        actions: createLogAction('{{ action }}'),
+        actions: [{ action: 'none' }, { action: 'none' }],
       });
 
-      expect(api.getLockManager().getAllowedActions).toBeCalledWith(renderedAction);
-      expect(consoleSpy).toBeCalledWith('Allowed');
+      // The second action rendered against the camera the first action set.
+      expect(observed).toEqual(['second']);
+    });
+
+    it('should render against the hass available at each step', async () => {
+      const ran: string[] = [];
+
+      const templateRenderer = mock<TemplateRenderer>();
+      templateRenderer.renderRecursively.mockReturnValue(
+        createInternalCallbackAction(async () => {
+          ran.push('rendered');
+        }),
+      );
+
+      const api = createAPI();
+
+      // No HASS for the first action; HASS for the second.
+      vi.mocked(api.getHASSManager().getHASS)
+        .mockReturnValueOnce(null)
+        .mockReturnValue(createHASS());
+
+      const manager = new ActionsManager(api, templateRenderer);
+
+      await manager.executeActions({
+        actions: [
+          createInternalCallbackAction(async () => {
+            ran.push('raw');
+          }),
+          { action: 'none' },
+        ],
+      });
+
+      // The first action ran unrendered (no HASS yet); the second rendered once
+      // HASS became available, so HASS is read per action, not captured once.
+      expect(ran).toEqual(['raw', 'rendered']);
+      expect(templateRenderer.renderRecursively).toBeCalledTimes(1);
+    });
+
+    it('should abort the remaining actions when one fails to render', async () => {
+      const first = vi.fn();
+      const third = vi.fn();
+
+      const templateRenderer = mock<TemplateRenderer>();
+      templateRenderer.renderRecursively
+        .mockReturnValueOnce(
+          createInternalCallbackAction(async () => {
+            first();
+          }),
+        )
+        .mockImplementationOnce(() => {
+          throw new Error('second: bad template');
+        })
+        .mockReturnValueOnce(
+          createInternalCallbackAction(async () => {
+            third();
+          }),
+        );
+
+      const api = createAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+      const manager = new ActionsManager(api, templateRenderer);
+      const warnSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+
+      // The inputs are placeholders; the mocked renderer above maps each to a
+      // recorder (or a throw), so their content is irrelevant.
+      await manager.executeActions({
+        actions: [{ action: 'none' }, { action: 'none' }, { action: 'none' }],
+      });
+
+      // The first action ran; the render failure aborted the rest, and the
+      // error was caught by executeActions (warning haptic + console).
+      expect(first).toBeCalled();
+      expect(third).not.toBeCalled();
+      expect(warnSpy).toBeCalled();
     });
 
     it('should not execute actions when the lock manager rejects them', async () => {

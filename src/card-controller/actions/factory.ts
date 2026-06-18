@@ -51,14 +51,16 @@ import { URLAction } from './actions/url';
 import { ViewAction } from './actions/view';
 import { Action } from './types';
 
+export interface ActionFactoryOptions {
+  config?: AuxillaryActionConfig;
+  cardID?: string;
+}
+
 export class ActionFactory {
   public createAction(
     context: ActionContext,
     action: ActionConfig,
-    options?: {
-      config?: AuxillaryActionConfig;
-      cardID?: string;
-    },
+    options?: ActionFactoryOptions,
   ): Action | null {
     if (
       // Command not intended for this card (e.g. query string command).

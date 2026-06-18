@@ -13,7 +13,7 @@ import {
 import { allPromises, errorToConsole } from '../../utils/basic.js';
 import { TemplateRenderer } from '../templates/index.js';
 import { CardActionsManagerAPI } from '../types.js';
-import { ActionSet } from './actions/set.js';
+import { ActionPrepareCallback, ActionSet } from './actions/set.js';
 import { ActionsExecutionRequest, ActionsExecutor } from './types.js';
 
 const INTERACTIONS = ['tap', 'double_tap', 'hold', 'start_tap', 'end_tap'] as const;
@@ -138,23 +138,38 @@ export class ActionsManager implements ActionsExecutor {
     request: ActionsExecutionRequest,
     renderTemplates = true,
   ): Promise<void> {
-    const hass = this._api.getHASSManager().getHASS();
-    const renderedAction: ActionConfig | ActionConfig[] =
-      renderTemplates && hass && this._templateRenderer
-        ? (this._templateRenderer.renderRecursively(hass, request.actions, {
-            conditionState: this._api.getConditionStateManager().getState(),
-            triggerData: request?.triggerData,
-          }) as ActionConfig | ActionConfig[])
-        : request.actions;
-
-    const allowedActions = this._api.getLockManager().getAllowedActions(renderedAction);
+    // Lock policies key off the action's discriminator (`action` /
+    // `advanced_camera_card_action`), which the schema fixes as literals, so a
+    // template can never appear there -- filtering the raw (unrendered) actions
+    // is safe.
+    const allowedActions = this._api.getLockManager().getAllowedActions(request.actions);
     if (!allowedActions.length) {
       return;
     }
 
+    // Render each action against the state (incl. HASS) as it is *when it runs*
+    // (fixed trigger context, fresh card/HASS state per step), so an action
+    // observes what an earlier action in the sequence changed.
+    const renderer = this._templateRenderer;
+    const prepareCallback: ActionPrepareCallback | undefined =
+      renderTemplates && renderer
+        ? (action: ActionConfig): ActionConfig => {
+            const hass = this._api.getHASSManager().getHASS();
+            return hass
+              ? (renderer.renderRecursively(hass, action, {
+                  conditionState: this._api.getConditionStateManager().getState(),
+                  triggerData: request?.triggerData,
+                }) as ActionConfig)
+              : action;
+          }
+        : undefined;
+
     const actionSet = new ActionSet(this._actionContext, allowedActions, {
-      config: request.config,
-      cardID: this._api.getConfigManager().getConfig()?.card_id,
+      factoryOptions: {
+        config: request.config,
+        cardID: this._api.getConfigManager().getConfig()?.card_id,
+      },
+      prepareCallback,
     });
 
     this._actionsInFlight.push(actionSet);
