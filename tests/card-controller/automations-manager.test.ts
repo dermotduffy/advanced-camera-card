@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ActionsExecutionRequest } from '../../src/card-controller/actions/types.js';
 import { AutomationsManager } from '../../src/card-controller/automations-manager.js';
 import { ConditionStateManager } from '../../src/condition-trigger/conditions/state-manager.js';
-import { createCardAPI } from '../test-utils.js';
+import { createCardAPI, flushPromises } from '../test-utils.js';
 
 describe('AutomationsManager', () => {
   const actions = [
@@ -218,6 +218,49 @@ describe('AutomationsManager', () => {
       },
     });
 
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(10);
+  });
+
+  it('should reset the nested-execution counter after an overflow', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+      true,
+    );
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
+    const automationsManager = new AutomationsManager(api);
+    automationsManager.addAutomations([
+      {
+        triggers: [{ trigger: 'camera' as const }],
+        actions: actions,
+      },
+    ]);
+
+    // As in the loop test: the action changes the camera, re-triggering itself
+    // until the nested-execution guard trips.
+    let camera = 'one';
+    vi.mocked(api.getActionsManager().executeActions).mockImplementation(
+      async (): Promise<void> => {
+        camera = camera === 'one' ? 'two' : 'one';
+        stateManager.setState({ camera: camera });
+      },
+    );
+
+    stateManager.setState({ camera: camera });
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(10);
+
+    // The counter is decremented on the microtasks that resume after each
+    // awaited execution, so let them drain before the next batch.
+    await flushPromises();
+
+    vi.mocked(api.getActionsManager().executeActions).mockClear();
+
+    // A second, independent change overflows afresh and reaches the full limit
+    // again -- only possible if the counter returned to zero. A leaked counter
+    // (overflow returning without decrementing) would cut this batch short.
+    stateManager.setState({ camera: 'three' });
     expect(api.getActionsManager().executeActions).toBeCalledTimes(10);
   });
 

@@ -83,9 +83,11 @@ export class AutomationsManager {
     }
 
     const runActions = async (actions: AutomationActions): Promise<void> => {
-      ++this._nestedAutomationExecutions;
-
-      if (this._nestedAutomationExecutions > MAX_NESTED_AUTOMATION_EXECUTIONS) {
+      // Check the limit *before* incrementing, so the overflow path holds no
+      // increment to leak; the `finally` then guarantees the decrement even if
+      // executing the actions throws. Either leak would permanently inflate the
+      // counter and eventually block all automations.
+      if (this._nestedAutomationExecutions >= MAX_NESTED_AUTOMATION_EXECUTIONS) {
         this._api.getNotificationManager().setNotification({
           heading: {
             text: localize('error.too_many_automations'),
@@ -96,9 +98,12 @@ export class AutomationsManager {
         return;
       }
 
-      await this._api.getActionsManager().executeActions({ actions, triggerData });
-
-      --this._nestedAutomationExecutions;
+      ++this._nestedAutomationExecutions;
+      try {
+        await this._api.getActionsManager().executeActions({ actions, triggerData });
+      } finally {
+        --this._nestedAutomationExecutions;
+      }
     };
     runActions(automation.actions);
   }
