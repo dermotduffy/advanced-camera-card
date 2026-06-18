@@ -506,6 +506,37 @@ describe('ActionsManager', () => {
       expect(warnSpy).toBeCalled();
     });
 
+    it('should render an if-action branch against the trigger data', async () => {
+      const api = createAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({
+        fullscreen: true,
+      });
+
+      // A real renderer so the branch's `{{ trigger.* }}` template resolves.
+      const manager = new ActionsManager(api, new TemplateRenderer());
+      const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
+
+      await manager.executeActions({
+        actions: {
+          if: [{ condition: 'fullscreen', fullscreen: true }],
+          then: [createLogAction('{{ trigger.entity_id }}')],
+        },
+        triggerData: { platform: 'state', entity_id: 'binary_sensor.door' },
+      });
+
+      // The branch is rendered with the trigger data before the if-action hands
+      // it to the nested executor (which then runs it without re-rendering).
+      expect(api.getActionsManager().executeActions).toBeCalledWith(
+        { actions: [createLogAction('binary_sensor.door')], config: undefined },
+        false,
+      );
+
+      // The log action is handed to the (mocked) nested executor, not run here,
+      // so it must not actually log.
+      expect(consoleSpy).not.toBeCalled();
+    });
+
     it('should not execute actions when the lock manager rejects them', async () => {
       const api = createAPI();
       vi.mocked(api.getLockManager().getAllowedActions).mockReturnValue([]);
