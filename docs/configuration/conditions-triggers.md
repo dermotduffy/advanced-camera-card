@@ -75,6 +75,14 @@ conditions:
     # [...]
 ```
 
+Or, in shorthand form:
+
+```yaml
+conditions:
+  - and:
+      # [...]
+```
+
 | Parameter    | Description                                                                                                    |
 | ------------ | -------------------------------------------------------------------------------------------------------------- |
 | `condition`  | Must be `and`.                                                                                                 |
@@ -355,6 +363,14 @@ conditions:
     # [...]
 ```
 
+Or, in shorthand form:
+
+```yaml
+conditions:
+  - not:
+      # [...]
+```
+
 | Parameter    | Description                                                                                                     |
 | ------------ | --------------------------------------------------------------------------------------------------------------- |
 | `condition`  | Must be `not`.                                                                                                  |
@@ -404,6 +420,14 @@ Evaluates to `true` if _any_ embedded condition evaluates to `true`. At least on
 conditions:
   - condition: or
     # [...]
+```
+
+Or, in shorthand form:
+
+```yaml
+conditions:
+  - or:
+      # [...]
 ```
 
 | Parameter    | Description                                                                                              |
@@ -643,6 +667,11 @@ issue](https://github.com/dermotduffy/advanced-camera-card/issues).
 
 ```yaml
 conditions:
+  - and:
+      - condition: camera
+        cameras: [front_door]
+      - condition: view
+        views: [live]
   - condition: call
     call: true
   - condition: camera
@@ -668,10 +697,18 @@ conditions:
     media_loaded: true
   - condition: microphone
     muted: true
+  - not:
+      - condition: fullscreen
+        fullscreen: true
   - condition: numeric_state
     entity: sensor.office_temperature
     above: 10
     below: 20
+  - or:
+      - condition: camera
+        cameras: [front_door]
+      - condition: view
+        views: [live]
   - condition: screen
     media_query: '(orientation: landscape)'
   - condition: state
