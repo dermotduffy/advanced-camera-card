@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { conditionSchema } from '../../../../src/config/schema/condition-trigger/conditions/types';
+import { conditionUnion } from '../../../../src/config/schema/condition-trigger/conditions/types';
 import { triggerSchema } from '../../../../src/config/schema/condition-trigger/triggers/types';
 
 // Reads the discriminator literal (`condition`/`trigger`) from every member of
@@ -42,7 +42,7 @@ describe('condition/trigger schema parity', () => {
     // Apart from the documented exceptions below, conditions and triggers stay
     // paired: adding a leaf type to one without the other (or without recording
     // it as an exception) is a bug (the fields may still differ).
-    const conditionTypes = getTypes(conditionSchema.options, 'condition');
+    const conditionTypes = getTypes(conditionUnion.options, 'condition');
     const triggerTypes = getTypes(triggerSchema.options, 'trigger');
 
     // Triggers have no composites (as per HA standard).
