@@ -1346,6 +1346,76 @@ describe('should refine user_agent_re conditions', () => {
   });
 });
 
+describe('conditions should accept Home Assistant composite shorthand', () => {
+  it('should expand and/or/not operator shorthand', () => {
+    for (const op of ['and', 'or', 'not'] as const) {
+      expect(
+        conditionSchema.parse({
+          [op]: [{ condition: 'fullscreen', fullscreen: true }],
+        }),
+      ).toMatchObject({
+        condition: op,
+        conditions: [{ condition: 'fullscreen', fullscreen: true }],
+      });
+    }
+  });
+
+  it('should expand a condition list to an implicit and', () => {
+    expect(
+      conditionSchema.parse({
+        condition: [
+          { condition: 'fullscreen', fullscreen: true },
+          { condition: 'expand', expand: true },
+        ],
+      }),
+    ).toMatchObject({
+      condition: 'and',
+      conditions: [
+        { condition: 'fullscreen', fullscreen: true },
+        { condition: 'expand', expand: true },
+      ],
+    });
+  });
+
+  it('should normalise a single shorthand condition to a list', () => {
+    expect(
+      conditionSchema.parse({ or: { condition: 'fullscreen', fullscreen: true } }),
+    ).toMatchObject({
+      condition: 'or',
+      conditions: [{ condition: 'fullscreen', fullscreen: true }],
+    });
+  });
+
+  it('should expand nested shorthand and preserve base fields', () => {
+    expect(
+      conditionSchema.parse({
+        or: [{ and: [{ condition: 'fullscreen', fullscreen: true }] }],
+        enabled: false,
+      }),
+    ).toMatchObject({
+      condition: 'or',
+      enabled: false,
+      conditions: [
+        {
+          condition: 'and',
+          conditions: [{ condition: 'fullscreen', fullscreen: true }],
+        },
+      ],
+    });
+  });
+
+  it('should leave a canonical condition untouched', () => {
+    expect(
+      conditionSchema.parse({ condition: 'fullscreen', fullscreen: true }),
+    ).toMatchObject({ condition: 'fullscreen', fullscreen: true });
+  });
+
+  it('should reject ambiguous or non-record shorthand', () => {
+    expect(conditionSchema.safeParse({ and: [], or: [] }).success).toBe(false);
+    expect(conditionSchema.safeParse('nope').success).toBe(false);
+  });
+});
+
 it('should transform action', () => {
   expect(
     advancedCameraCardCustomActionsBaseSchema.parse({
