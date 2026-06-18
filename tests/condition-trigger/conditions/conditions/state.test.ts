@@ -404,4 +404,48 @@ describe('state condition', () => {
       ).toBeFalsy();
     });
   });
+
+  it('should resolve an expected state that names another entity', () => {
+    const evaluator = createConditionEvaluator(
+      {
+        condition: 'state' as const,
+        entity_id: 'binary_sensor.foo',
+        state: 'input_text.expected',
+      },
+      createEvaluatorContext(),
+    );
+
+    // The entity's state matches the resolved state of `input_text.expected`.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'armed' }),
+          'input_text.expected': createStateEntity({ state: 'armed' }),
+        }),
+      }).result,
+    ).toBeTruthy();
+
+    // It does not match when the resolved state differs.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'disarmed' }),
+          'input_text.expected': createStateEntity({ state: 'armed' }),
+        }),
+      }).result,
+    ).toBeFalsy();
+  });
+
+  it('should match a state_not against an empty-string entity state', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'state' as const, entity_id: 'sensor.foo', state_not: 'on' },
+      createEvaluatorContext(),
+    );
+
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'sensor.foo': createStateEntity({ state: '' }) }),
+      }).result,
+    ).toBeTruthy();
+  });
 });

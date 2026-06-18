@@ -3,6 +3,19 @@ import { renderTimePeriodToSeconds } from '../../common/time-period';
 import { ConditionsEvaluationResult, ConditionState } from '../types';
 import { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './types';
 
+// Resolve each expected value that names an entity present in `hass` to that
+// entity's current state, accepting either the literal or the resolved value
+// (i.e. HA's Lovelace state condition will resolve "state: input_boolean.foo"
+// to "state: on" when input_boolean.foo is on).
+const resolveExpectedStates = (
+  values: string | string[],
+  state?: ConditionState,
+): string[] =>
+  arrayify(values).flatMap((value) => {
+    const resolved = state?.hass?.states?.[value]?.state;
+    return resolved !== undefined ? [value, resolved] : [value];
+  });
+
 export class StateConditionEvaluator implements ConditionEvaluator {
   private _condition: ConditionOfType<'state'>;
   private _context: EvaluatorContext;
@@ -42,18 +55,21 @@ export class StateConditionEvaluator implements ConditionEvaluator {
       const fromValue = readValue(entityID, oldState);
       const toValue = readValue(entityID, newState);
 
-      let result =
-        (!condition.state && !condition.state_not && toValue !== fromValue) ||
-        ((!!condition.state || !!condition.state_not) &&
-          !!toValue &&
+      let result: boolean;
+      if (!condition.state && !condition.state_not) {
+        // With neither `state` nor `state_not`, match any change of value.
+        result = toValue !== fromValue;
+      } else if (toValue === null) {
+        // A missing entity or attribute cannot match; an empty-string state is
+        // a real value, handled in the comparison below.
+        result = false;
+      } else {
+        result =
           (!condition.state ||
-            (Array.isArray(condition.state)
-              ? condition.state.includes(toValue)
-              : condition.state === toValue)) &&
+            resolveExpectedStates(condition.state, newState).includes(toValue)) &&
           (!condition.state_not ||
-            (Array.isArray(condition.state_not)
-              ? !condition.state_not.includes(toValue)
-              : condition.state_not !== toValue)));
+            !resolveExpectedStates(condition.state_not, newState).includes(toValue));
+      }
 
       // `for`: the match must have been held for at least the given duration.
       // Evaluated against `last_changed` at evaluation time (correct for the

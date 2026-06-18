@@ -1,6 +1,7 @@
 import { Timer } from '../../../utils/timer';
 import { renderTimePeriodToSeconds } from '../../common/time-period';
 import { ConditionState, ConditionStateChange } from '../../conditions/types';
+import { isTemplateTrue } from './is-template-true';
 import {
   TriggerCallback,
   TriggerEvaluator,
@@ -68,11 +69,13 @@ export class TemplateTrigger implements TriggerEvaluator {
   private _render(state: ConditionState): boolean {
     return (
       !!state.hass &&
-      this._context.templateRenderer.renderRecursively(
-        state.hass,
-        this._trigger.value_template,
-        { conditionState: state },
-      ) === true
+      isTemplateTrue(
+        this._context.templateRenderer.renderRecursively(
+          state.hass,
+          this._trigger.value_template,
+          { conditionState: state },
+        ),
+      )
     );
   }
 

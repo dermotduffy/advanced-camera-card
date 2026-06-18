@@ -1,4 +1,5 @@
 import { ConditionsEvaluationResult, ConditionState } from '../types';
+import { isTemplateTrue } from './is-template-true';
 import { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './types';
 
 export class TemplateConditionEvaluator implements ConditionEvaluator {
@@ -14,11 +15,13 @@ export class TemplateConditionEvaluator implements ConditionEvaluator {
     return {
       result:
         !!newState?.hass &&
-        this._context.templateRenderer.renderRecursively(
-          newState.hass,
-          this._condition.value_template,
-          { conditionState: newState },
-        ) === true,
+        isTemplateTrue(
+          this._context.templateRenderer.renderRecursively(
+            newState.hass,
+            this._condition.value_template,
+            { conditionState: newState },
+          ),
+        ),
     };
   }
 }

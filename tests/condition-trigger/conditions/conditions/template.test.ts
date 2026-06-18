@@ -43,4 +43,13 @@ describe('template condition', () => {
       }).result,
     ).toBeFalsy();
   });
+
+  it('should accept a template rendering the string "true" for HA symmetry', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'template' as const, value_template: '{{ "true" }}' },
+      createEvaluatorContext(),
+    );
+
+    expect(evaluator.evaluate({ hass: createHASS({}) }).result).toBeTruthy();
+  });
 });

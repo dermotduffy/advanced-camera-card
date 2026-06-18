@@ -174,4 +174,20 @@ describe('TemplateTrigger', () => {
     setSensor(stateManager, 'on');
     expect(callback).not.toHaveBeenCalled();
   });
+
+  it('should trigger on a string-truthy template value for HA symmetry', () => {
+    const { trigger, stateManager, callback } = create({
+      trigger: 'template',
+
+      // Renders the string "on"/"off", not a boolean; HA treats "on" as true.
+      value_template: `{{ "on" if is_state("${ENTITY_ONE}", "on") else "off" }}`,
+    });
+    trigger.subscribe(callback);
+
+    setSensor(stateManager, 'off');
+    expect(callback).not.toHaveBeenCalled();
+
+    setSensor(stateManager, 'on');
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
 });
