@@ -49,7 +49,7 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
     // Subscribe to evaluators' external invalidation sources, including those
     // nested inside composites, so a change there triggers a re-evaluation
     // (this is not necessary for most conditions since they are purely based on
-    // ConditionState).
+    // ConditionState, but there are exceptions, e.g. screen).
     this._conditions.forEach(({ evaluator }) =>
       (evaluator.externalSources ?? []).forEach((source) =>
         this._unsubscribeCallbacks.push(source.subscribe(() => this._evaluate())),

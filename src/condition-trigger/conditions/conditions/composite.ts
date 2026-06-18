@@ -3,7 +3,8 @@ import { ConditionEvaluator, ExternalInvalidationSource } from './types';
 
 /**
  * Base class for the `or`/`and`/`not` composites: each holds child evaluators
- * and unions their external invalidation sources. Subclasses provide `evaluate`.
+ * and unions their external invalidation sources. Subclasses provide
+ * `evaluate`.
  */
 export abstract class CompositeConditionEvaluator implements ConditionEvaluator {
   protected _children: ConditionEvaluator[];
