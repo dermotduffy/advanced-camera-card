@@ -4,6 +4,7 @@ import {
   actionConfigSchema,
   statusBarActionConfigSchema,
 } from '../../src/config/schema/actions/types';
+import { automationsSchema } from '../../src/config/schema/automations';
 import { cameraConfigSchema } from '../../src/config/schema/cameras';
 import { conditionSchema } from '../../src/config/schema/condition-trigger/conditions/types';
 import { dimensionsConfigSchema } from '../../src/config/schema/dimensions';
@@ -1676,6 +1677,30 @@ describe('should lazy evaluate schemas', () => {
         .success,
     ).toBeFalsy();
   });
+
+  it('should normalise single if/then/else items to lists', () => {
+    const result = actionConfigSchema.parse({
+      if: { condition: 'state', entity_id: 'light.office', state: 'on' },
+      then: {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'live_substream_on',
+      },
+      else: {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'live_substream_off',
+      },
+    });
+
+    expect(result).toMatchObject({
+      if: [{ condition: 'state', entity_id: 'light.office', state: 'on' }],
+      then: [
+        { action: 'fire-dom-event', advanced_camera_card_action: 'live_substream_on' },
+      ],
+      else: [
+        { action: 'fire-dom-event', advanced_camera_card_action: 'live_substream_off' },
+      ],
+    });
+  });
 });
 
 describe('should handle custom advanced camera card elements', () => {
@@ -1758,5 +1783,48 @@ describe('automations should require actions', () => {
         automations: [{ triggers: [{ trigger: 'initialized' }], conditions: [] }],
       }),
     ).toThrowError();
+  });
+});
+
+describe('automations should accept Home Assistant input shorthands', () => {
+  it('should normalise singular keys and single items to lists', () => {
+    const result = automationsSchema.parse([
+      {
+        trigger: { trigger: 'state', entity_id: 'binary_sensor.door', to: 'on' },
+        condition: { condition: 'state', entity_id: 'input_boolean.x', state: 'on' },
+        action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'live_substream_on',
+        },
+      },
+    ]);
+
+    expect(result).toMatchObject([
+      {
+        triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door', to: 'on' }],
+        conditions: [{ condition: 'state', entity_id: 'input_boolean.x', state: 'on' }],
+        actions: [
+          { action: 'fire-dom-event', advanced_camera_card_action: 'live_substream_on' },
+        ],
+      },
+    ]);
+  });
+
+  it('should keep the plural key when both singular and plural are given', () => {
+    const result = automationsSchema.parse([
+      {
+        triggers: [{ trigger: 'initialized' }],
+        trigger: { trigger: 'state', entity_id: 'x', to: 'on' },
+        actions: [
+          { action: 'fire-dom-event', advanced_camera_card_action: 'live_substream_on' },
+        ],
+      },
+    ]);
+
+    expect(result[0].triggers).toEqual([{ trigger: 'initialized' }]);
+  });
+
+  it('should reject a non-object automation', () => {
+    expect(automationsSchema.safeParse(['not-an-object']).success).toBe(false);
   });
 });

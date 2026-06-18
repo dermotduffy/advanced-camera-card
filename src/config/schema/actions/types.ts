@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { linkSchema } from '../common/link';
 import { severitySchema } from '../common/severity';
+import { preprocessToArray } from '../common/preprocess-to-array';
 import { statusBarItemBaseSchema } from '../common/status-bar';
 import { Condition, conditionSchema } from '../condition-trigger/conditions/types';
 import { actionBaseSchema } from './base';
@@ -106,12 +107,9 @@ export type IfActionConfig = z.infer<typeof actionBaseSchema> & {
   else?: ActionConfig[];
 };
 const ifActionConfigSchema: z.ZodSchema<IfActionConfig> = actionBaseSchema.extend({
-  if: conditionSchema.array(),
-  then: z.lazy(() => actionConfigSchema).array(),
-  else: z
-    .lazy(() => actionConfigSchema)
-    .array()
-    .optional(),
+  if: preprocessToArray(conditionSchema.array()),
+  then: preprocessToArray(z.lazy(() => actionConfigSchema).array()),
+  else: preprocessToArray(z.lazy(() => actionConfigSchema).array()).optional(),
 });
 
 // The HA stock actions. Assembled here, rather than in a `stock/` file, because
