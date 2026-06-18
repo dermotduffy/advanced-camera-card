@@ -1,38 +1,22 @@
 import { ScreenBase } from '../../../config/schema/condition-trigger/common/screen';
+import { MediaQueryWatcher } from '../../common/media-query-watcher';
 import { ConditionsEvaluationResult } from '../types';
-import { ConditionEvaluator, ConditionEvaluatorSubscriptionCallback } from './types';
+import { ConditionEvaluator, ExternalInvalidationSource } from './types';
 
 export class ScreenConditionEvaluator implements ConditionEvaluator {
-  private _mediaQuery: MediaQueryList | null = null;
-  private _onChange: ConditionEvaluatorSubscriptionCallback | null = null;
-
-  private _condition: ScreenBase;
+  private _watcher: MediaQueryWatcher | null;
 
   constructor(condition: ScreenBase) {
-    this._condition = condition;
+    this._watcher = condition.media_query
+      ? new MediaQueryWatcher(condition.media_query)
+      : null;
   }
 
   public evaluate(): ConditionsEvaluationResult {
-    return {
-      result: this._condition.media_query
-        ? window.matchMedia(this._condition.media_query).matches
-        : false,
-    };
+    return { result: this._watcher?.matches() ?? false };
   }
 
-  public subscribe(onChange: ConditionEvaluatorSubscriptionCallback): void {
-    if (!this._condition.media_query) {
-      return;
-    }
-    this._onChange = onChange;
-    this._mediaQuery = window.matchMedia(this._condition.media_query);
-    this._mediaQuery.addEventListener('change', this._handler);
+  public get externalSources(): ExternalInvalidationSource[] {
+    return this._watcher ? [this._watcher] : [];
   }
-
-  public destroy(): void {
-    this._mediaQuery?.removeEventListener('change', this._handler);
-    this._mediaQuery = null;
-  }
-
-  private _handler = (): void => this._onChange?.();
 }

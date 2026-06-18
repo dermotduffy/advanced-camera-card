@@ -36,7 +36,6 @@ export abstract class ConditionStateTriggerBase<T extends Trigger>
 
   public destroy(): void {
     this._context.stateManager.removeListener(this._handler);
-    this._condition?.destroy?.();
     this._callback = null;
   }
 

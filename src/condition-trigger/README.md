@@ -25,9 +25,12 @@ two cannot drift.
 ## Conditions
 
 Each type has a pure level-predicate evaluator (`evaluate(state) -> result`),
-built by `createConditionEvaluator`. `ConditionsManager` ANDs a set of them and
-notifies when the combined result flips; it backs `overrides`/`elements` and the
-automation ongoing-`conditions` pull (below).
+built by `createConditionEvaluator`. An evaluator may also declare
+`externalSources` -- change sources outside `ConditionState` (currently only
+`screen`'s `matchMedia`, via a `MediaQueryWatcher`) -- which `ConditionsManager`
+subscribes to so a change there triggers a re-evaluation. The manager ANDs a set
+of evaluators and notifies when the combined result flips; it backs
+`overrides`/`elements` and the automation ongoing-`conditions` pull (below).
 
 ## The bridge
 
@@ -48,8 +51,9 @@ triggers report `platform: acc` + the kind in `type`.
    per-`entity_id` fan-out, HA `from_state`/`to_state`, `for:` via a `Timer`.
 2. **Stock template** (`template`) -- the non-true -> true edge of `value_template`.
 3. **Screen** (`screen`) -- `ScreenTrigger`: watches a `matchMedia` query, whose
-   state lives outside `ConditionState`, so it subscribes through the screen
-   condition evaluator and fires on the rising edge of the match.
+   state lives outside `ConditionState`, so it owns a shared `MediaQueryWatcher`
+   (the same watcher the screen condition uses) and fires on the rising edge of
+   the match.
 4. **Card-state** (every other type: `camera`, `view`, `config`, `fullscreen`,
    ...) -- `ConditionStateTriggerBase`: subscribe to the
    `ConditionStateManager`, fire when the watched field (`_getValue`) changes,

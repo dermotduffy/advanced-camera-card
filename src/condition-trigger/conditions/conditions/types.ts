@@ -2,7 +2,15 @@ import { TemplateRenderer } from '../../../card-controller/templates';
 import { Condition } from '../../../config/schema/condition-trigger/conditions/types';
 import { ConditionsEvaluationResult, ConditionState } from '../types';
 
-export type ConditionEvaluatorSubscriptionCallback = () => void;
+export type ExternalInvalidationUnsubscribeCallback = () => void;
+
+// A source of change outside the card's `ConditionState` that can invalidate a
+// condition's result (currently only `screen`, via `matchMedia`). A condition
+// declares its sources so a reactive consumer knows what to watch; a pull
+// consumer ignores them.
+export interface ExternalInvalidationSource {
+  subscribe(callback: () => void): ExternalInvalidationUnsubscribeCallback;
+}
 
 /**
  * A single condition, constructed once with its configuration and evaluated
@@ -14,11 +22,11 @@ export interface ConditionEvaluator {
     oldState?: ConditionState,
   ): ConditionsEvaluationResult;
 
-  // Optional hook for conditions with an external change source (e.g.
-  // `screen`). The owner passes a callback to request re-evaluation.
-  subscribe?(onChange: ConditionEvaluatorSubscriptionCallback): void;
-
-  destroy?(): void;
+  // Sources of change outside `ConditionState` that can invalidate this
+  // condition's result (currently only `screen`, via `matchMedia`). A reactive
+  // consumer subscribes to them to know when to re-evaluate; a pull consumer
+  // ignores them.
+  externalSources?: ExternalInvalidationSource[];
 }
 
 export interface EvaluatorContext {

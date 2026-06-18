@@ -1,7 +1,10 @@
 import { TemplateRenderer } from '../../card-controller/templates';
 import { Condition } from '../../config/schema/condition-trigger/conditions/types';
 import { isEnabled } from '../common/is-enabled';
-import { ConditionEvaluator } from './conditions/types';
+import {
+  ConditionEvaluator,
+  ExternalInvalidationUnsubscribeCallback,
+} from './conditions/types';
 import { createConditionEvaluator } from './factory';
 import {
   ConditionsEvaluationResult,
@@ -29,6 +32,7 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
 
   private _listeners: ConditionsListener[] = [];
   private _evaluation: ConditionsEvaluationResult = { result: false };
+  private _unsubscribeCallbacks: ExternalInvalidationUnsubscribeCallback[] = [];
 
   constructor(
     conditions: Condition[],
@@ -42,10 +46,14 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
 
     this._stateManager = stateManager ?? null;
 
-    // Subscribe evaluators that have external change sources (currently
-    // `screen`), including nested evaluators inside composites.
+    // Subscribe to evaluators' external invalidation sources, including those
+    // nested inside composites, so a change there triggers a re-evaluation
+    // (this is not necessary for most conditions since they are purely based on
+    // ConditionState).
     this._conditions.forEach(({ evaluator }) =>
-      evaluator.subscribe?.(() => this._evaluate()),
+      (evaluator.externalSources ?? []).forEach((source) =>
+        this._unsubscribeCallbacks.push(source.subscribe(() => this._evaluate())),
+      ),
     );
 
     // Do an initial condition evaluation, but without calling listeners.
@@ -59,7 +67,8 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
 
     this._listeners.forEach((l) => this.removeListener(l));
 
-    this._conditions.forEach(({ evaluator }) => evaluator.destroy?.());
+    this._unsubscribeCallbacks.forEach((unsubscribe) => unsubscribe());
+    this._unsubscribeCallbacks = [];
     this._conditions = [];
   }
 

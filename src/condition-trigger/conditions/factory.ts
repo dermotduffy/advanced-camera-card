@@ -132,8 +132,6 @@ export const createConditionEvaluatorForTrigger = (
       return new MicrophoneConditionEvaluator(trigger);
     case 'media_loaded':
       return new MediaLoadedConditionEvaluator(trigger);
-    case 'screen':
-      return new ScreenConditionEvaluator(trigger);
     case 'view':
       return new ViewConditionEvaluator(trigger);
     case 'triggered':

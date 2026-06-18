@@ -81,7 +81,7 @@ describe('ConditionsManager', () => {
     addEventListener.mock.calls[0][1]();
     expect(listener).toBeCalledWith({ result: true }, undefined);
 
-    // Destroy tears the subscription down via the evaluator.
+    // Destroy tears the subscription down.
     manager.destroy();
     expect(removeEventListener).toBeCalled();
   });

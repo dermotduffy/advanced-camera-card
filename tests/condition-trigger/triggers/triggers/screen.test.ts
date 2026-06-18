@@ -101,4 +101,12 @@ describe('ScreenTrigger', () => {
     screenTrigger.destroy();
     expect(removeEventListener).toHaveBeenCalledWith('change', expect.anything());
   });
+
+  it('should never trigger without a media query', () => {
+    mockMatchMedia();
+    const { callback } = subscribe({ trigger: 'screen' });
+
+    expect(addEventListener).not.toHaveBeenCalled();
+    expect(callback).not.toHaveBeenCalled();
+  });
 });

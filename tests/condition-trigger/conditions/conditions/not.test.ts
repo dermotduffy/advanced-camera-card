@@ -31,16 +31,9 @@ describe('not condition', () => {
     expect(evaluator.evaluate({ fullscreen: false, expand: false }).result).toBeTruthy();
   });
 
-  it('should forward subscribe and destroy to its children', () => {
-    const addEventListener = vi.fn();
-    const removeEventListener = vi.fn();
-    vi.spyOn(window, 'matchMedia').mockReturnValue({
-      addEventListener: addEventListener,
-      removeEventListener: removeEventListener,
-    } as unknown as MediaQueryList);
-
-    // The `screen` child supports subscribe/destroy; the `fullscreen` child does
-    // not -- forwarding must handle both.
+  it('should expose its children external invalidation sources', () => {
+    // The `screen` child contributes an external source; the `fullscreen` child
+    // contributes none -- the union must include only the former.
     const evaluator = createConditionEvaluator(
       {
         condition: 'not' as const,
@@ -52,13 +45,6 @@ describe('not condition', () => {
       createEvaluatorContext(),
     );
 
-    const onChange = vi.fn();
-    evaluator.subscribe?.(onChange);
-    expect(addEventListener).toHaveBeenCalledWith('change', expect.anything());
-    addEventListener.mock.calls[0][1]();
-    expect(onChange).toHaveBeenCalled();
-
-    evaluator.destroy?.();
-    expect(removeEventListener).toHaveBeenCalled();
+    expect(evaluator.externalSources).toHaveLength(1);
   });
 });

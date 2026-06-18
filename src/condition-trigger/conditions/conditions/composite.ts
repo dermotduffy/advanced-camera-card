@@ -1,9 +1,9 @@
 import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ConditionEvaluatorSubscriptionCallback } from './types';
+import { ConditionEvaluator, ExternalInvalidationSource } from './types';
 
 /**
  * Base class for the `or`/`and`/`not` composites: each holds child evaluators
- * and forwards subscription/teardown to them. Subclasses provide `evaluate`.
+ * and unions their external invalidation sources. Subclasses provide `evaluate`.
  */
 export abstract class CompositeConditionEvaluator implements ConditionEvaluator {
   protected _children: ConditionEvaluator[];
@@ -17,11 +17,7 @@ export abstract class CompositeConditionEvaluator implements ConditionEvaluator 
     oldState?: ConditionState,
   ): ConditionsEvaluationResult;
 
-  public subscribe(onChange: ConditionEvaluatorSubscriptionCallback): void {
-    this._children.forEach((child) => child.subscribe?.(onChange));
-  }
-
-  public destroy(): void {
-    this._children.forEach((child) => child.destroy?.());
+  public get externalSources(): ExternalInvalidationSource[] {
+    return this._children.flatMap((child) => child.externalSources ?? []);
   }
 }

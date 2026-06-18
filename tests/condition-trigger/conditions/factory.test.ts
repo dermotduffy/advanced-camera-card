@@ -8,7 +8,6 @@ import { InteractionConditionEvaluator } from '../../../src/condition-trigger/co
 import { KeyConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/key';
 import { MediaLoadedConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/media-loaded';
 import { MicrophoneConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/microphone';
-import { ScreenConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/screen';
 import { TriggeredConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/triggered';
 import { ConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/types';
 import { ViewConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/view';
@@ -28,10 +27,6 @@ describe('createConditionEvaluatorForTrigger', () => {
     [{ trigger: 'key', key: 'a' }, KeyConditionEvaluator],
     [{ trigger: 'media_loaded', media_loaded: true }, MediaLoadedConditionEvaluator],
     [{ trigger: 'microphone', muted: true }, MicrophoneConditionEvaluator],
-    [
-      { trigger: 'screen', media_query: '(orientation: landscape)' },
-      ScreenConditionEvaluator,
-    ],
     [{ trigger: 'triggered', triggered: ['front'] }, TriggeredConditionEvaluator],
     [{ trigger: 'view', views: ['live'] }, ViewConditionEvaluator],
   ])(
