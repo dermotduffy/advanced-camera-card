@@ -46,6 +46,9 @@ export class TriggersManager {
             this._context.templateRenderer,
             config.enabled,
             this._context.stateManager.getState(),
+            // Fail closed: with no hass the `enabled` template cannot be
+            // evaluated, so the trigger does not fire.
+            false,
           )
         ) {
           this._callListeners(data);

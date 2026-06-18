@@ -247,7 +247,7 @@ describe('ConditionsManager', () => {
       expect(manager.getEvaluation()).toEqual({ result: false });
     });
 
-    it('should evaluate a condition with an enabled template when hass is absent', () => {
+    it('should keep a condition enabled when its template cannot render without hass', () => {
       const stateManager = new ConditionStateManager();
       const manager = new ConditionsManager(
         [
@@ -262,6 +262,8 @@ describe('ConditionsManager', () => {
 
       stateManager.setState({ fullscreen: false });
 
+      // With no hass the enabled template cannot render, so the gate stays
+      // enabled and the condition is evaluated (here: fullscreen is false).
       expect(manager.getEvaluation()).toEqual({ result: false });
     });
 

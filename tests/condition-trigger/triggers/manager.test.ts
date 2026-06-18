@@ -151,12 +151,14 @@ describe('TriggersManager', () => {
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
-    it('should trigger a trigger with an enabled template when hass is absent', () => {
+    it('should not trigger a trigger whose enabled template cannot render without hass', () => {
       const { stateManager, listener } = createWithFlag(ENABLED_TEMPLATE, null);
 
       stateManager.setState({ camera: 'front' });
 
-      expect(listener).toHaveBeenCalledTimes(1);
+      // With no hass the enabled template cannot render, so the trigger fails
+      // closed and does not fire.
+      expect(listener).not.toHaveBeenCalled();
     });
 
     it('should re-evaluate the enabled template on each trigger', () => {
