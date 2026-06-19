@@ -5,7 +5,7 @@
   - [`cameras`](README.md)
     - [`live_provider`](live-provider.md)
     - [`engine`](engine.md)
-  - [`conditions`](../conditions.md)
+  - [`conditions` / `triggers`](../conditions-triggers.md)
   - [`dimensions`](../dimensions.md)
   - [`folders`](../folders.md)
   - [`elements`](../elements/README.md)

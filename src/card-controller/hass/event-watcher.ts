@@ -1,6 +1,6 @@
 import { HassEvent } from 'home-assistant-js-websocket';
 import { HomeAssistant } from '../../ha/types';
-import { KeyedSubscriptionManager } from '../../utils/keyed-subscription-manager';
+import { KeyedSubscriptionManager } from '../../utils/concurrency/keyed-subscription-manager';
 
 export interface EventSubscriptionRequest {
   event_type: string;

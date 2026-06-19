@@ -1,5 +1,5 @@
 import { sub } from 'date-fns';
-import { ConditionState } from '../../../conditions/types';
+import { ConditionState } from '../../../condition-trigger/conditions/types';
 import {
   DateMatcher,
   Matcher,

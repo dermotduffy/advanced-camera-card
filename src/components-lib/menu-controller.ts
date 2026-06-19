@@ -8,7 +8,7 @@ import { MENU_PRIORITY_MAX } from '../config/schema/common/const.js';
 import type { MenuItem } from '../config/schema/elements/custom/menu/types.js';
 import type { MenuConfig } from '../config/schema/menu.js';
 import type { Interaction } from '../types.js';
-import { getActionConfigGivenAction } from '../utils/action';
+import { getActionConfigGivenAction, isStandardAction } from '../utils/action';
 import { arrayify, isTruthy } from '../utils/basic.js';
 import { AutoHideState, isAutoHidden as evaluateAutoHidden } from './auto-hide.js';
 
@@ -225,6 +225,7 @@ export class MenuController {
 
   private _isMenuToggleAction(action: ActionConfig): boolean {
     return (
+      isStandardAction(action) &&
       action.action === 'fire-dom-event' &&
       action.advanced_camera_card_action === 'menu_toggle'
     );

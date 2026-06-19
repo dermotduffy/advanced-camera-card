@@ -7,6 +7,12 @@ Advanced Camera Card data, to be accessible. Templates may be used in:
 - [Actions / Automations](./actions/README.md)
 - [Folder Media Matchers](./folders.md?id=matchers)
 
+> [!NOTE]
+> Templates substitute into action _values_ (e.g. a `camera` or `message`), not
+> into the action _type_. The type discriminator (`action` and
+> `advanced_camera_card_action`) must be a literal (as in Home Assistant
+> itself).
+
 ## Stock Templates
 
 The Advanced Camera Card uses
@@ -19,13 +25,13 @@ accesses Home Assistant state.
 
 ## Custom Templates
 
-Custom template values must be proceeded by `advanced_camera_card` (or `acc` for
-short).
+Custom template values must be prefixed with `acc`.
 
 | Template | Replaced with                                     |
 | -------- | ------------------------------------------------- |
 | `camera` | The currently selected camera.                    |
 | `view`   | The current [view](./view.md?id=supported-views). |
+| `config` | The current card configuration.                   |
 
 See [an example](../examples.md?id=accessing-advanced-camera-card-state) that
 accesses Advanced Camera Card state.
@@ -35,8 +41,7 @@ accesses Advanced Camera Card state.
 If templates are used for [Folder Media Matching](./folders.md?id=matchers) an
 additional `media` variable is available with these properties:
 
-Media template values must be proceeded by `advanced_camera_card.media` (or
-`acc.media` for short).
+Media template values must be prefixed with `acc.media`.
 
 | Template    | Replaced with                                                                     |
 | ----------- | --------------------------------------------------------------------------------- |
@@ -45,34 +50,35 @@ Media template values must be proceeded by `advanced_camera_card.media` (or
 
 ### Triggers
 
-If the action is called by an [Advanced Camera Card
-Automation](./automations.md), additional data is available representing the
-current and prior state of whatever triggered the action.
+When an action runs from an [automation](./automations.md), a top-level
+`trigger` variable describes what fired it (as in native Home Assistant
+actions), including the state before and after the change. Its fields depend on
+the kind of trigger.
 
-Trigger template values must be proceeded by `advanced_camera_card.trigger` (or
-`acc.trigger` for short).
+The stock `state` and `numeric_state` [triggers](./conditions-triggers.md) carry
+Home-Assistant-faithful entity data (a subset of Home Assistant's own [trigger
+data](https://www.home-assistant.io/docs/automation/templating/#available-trigger-data):
+the card does not currently surface `id`, `idx`, `for`, `attribute`, `above` /
+`below` or `alias`, so [request](https://github.com/dermotduffy/advanced-camera-card/issues)
+if you need more). The `template` trigger has no entity, so it carries only
+`trigger.platform` (`template`).
 
-| Template       | Replaced with                                                                                    |
-| -------------- | ------------------------------------------------------------------------------------------------ |
-| `camera.to`    | For [camera conditions](./conditions.md?id=camera), the currently selected camera.               |
-| `camera.from`  | For [camera conditions](./conditions.md?id=camera), the previously selected camera.              |
-| `view.to`      | For [view conditions](./conditions.md?id=view), the currently selected view.                     |
-| `view.from`    | For [view conditions](./conditions.md?id=view), the previously selected view.                    |
-| `state.entity` | For [state conditions](./conditions.md?id=state), the entity state that triggered the condition. |
-| `state.to`     | For [state conditions](./conditions.md?id=state), the current state of the entity.               |
-| `state.from`   | For [state conditions](./conditions.md?id=state), the previous state of the entity.              |
+| Template             | Replaced with                                                                                                                                              |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `trigger.platform`   | The trigger platform (`state` or `numeric_state`).                                                                                                         |
+| `trigger.entity_id`  | The entity that triggered (also available as `trigger.entity`).                                                                                            |
+| `trigger.from_state` | The full Home Assistant [state object](https://www.home-assistant.io/docs/configuration/state_object/) before the change, e.g. `trigger.from_state.state`. |
+| `trigger.to_state`   | The full Home Assistant state object after the change, e.g. `trigger.to_state.state` or `trigger.to_state.attributes.<name>`.                              |
 
-> [!NOTE]
-> If an action is triggered with multiple [state
-> conditions](./conditions.md?id=state), only data from the last listed state
-> condition is available.
+The card-specific [triggers](./conditions-triggers.md) (e.g. `camera`, `view`, `config`)
+carry the card state before and after the change:
 
-> [!NOTE]
-> If you use an [`or`](./conditions.md?id=or) condition, only the trigger data
-> for the first matching trigger will be included.
-
-Please [request](https://github.com/dermotduffy/advanced-camera-card/issues) if
-you need data from additional conditions.
+| Template           | Replaced with                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------ |
+| `trigger.platform` | `acc` for card-specific triggers.                                                                      |
+| `trigger.type`     | The card trigger kind (e.g. `camera`, `view`, `config`).                                               |
+| `trigger.from_acc` | The card state before the change, with `camera`, `view` and `config` (e.g. `trigger.from_acc.camera`). |
+| `trigger.to_acc`   | The card state after the change, with `camera`, `view` and `config` (e.g. `trigger.to_acc.camera`).    |
 
 See [an example](../examples.md?id=accessing-trigger-state) that accesses
 trigger state.

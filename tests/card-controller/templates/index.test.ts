@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TemplateRenderer } from '../../../src/card-controller/templates/index';
-import { createHASS } from '../../test-utils';
+import { createConfig, createHASS, createStateEntity } from '../../test-utils';
 
 describe('TemplateRenderer', () => {
   describe('renderRecursively', () => {
@@ -24,13 +24,13 @@ describe('TemplateRenderer', () => {
       expect(result).toBe('View: live');
     });
 
-    it('should render string templates with full advanced_camera_card context', () => {
+    it('should render string templates with the acc context', () => {
       const renderer = new TemplateRenderer();
       const hass = createHASS();
 
       const result = renderer.renderRecursively(
         hass,
-        '{{ advanced_camera_card.camera }} - {{ advanced_camera_card.view }}',
+        '{{ acc.camera }} - {{ acc.view }}',
         {
           conditionState: { camera: 'camera.front', view: 'clips' },
         },
@@ -90,14 +90,43 @@ describe('TemplateRenderer', () => {
       expect(renderer.renderRecursively(hass, 'hello world')).toBe('hello world');
     });
 
-    it('should render with triggerData context', () => {
+    it('should render with a top-level stock trigger context', () => {
       const renderer = new TemplateRenderer();
       const hass = createHASS();
 
-      const result = renderer.renderRecursively(hass, '{{ acc.trigger.camera.to }}', {
-        triggerData: { camera: { from: 'camera.front', to: 'camera.backyard' } },
+      const result = renderer.renderRecursively(hass, '{{ trigger.to_state.state }}', {
+        triggerData: {
+          platform: 'state',
+          entity_id: 'binary_sensor.door',
+          to_state: createStateEntity({ state: 'on' }),
+        },
+      });
+      expect(result).toBe('on');
+    });
+
+    it('should render with a top-level card trigger context', () => {
+      const renderer = new TemplateRenderer();
+      const hass = createHASS();
+
+      const result = renderer.renderRecursively(hass, '{{ trigger.to_acc.camera }}', {
+        triggerData: {
+          platform: 'acc',
+          type: 'camera',
+          from_acc: { camera: 'camera.front' },
+          to_acc: { camera: 'camera.backyard' },
+        },
       });
       expect(result).toBe('camera.backyard');
+    });
+
+    it('should render with config context', () => {
+      const renderer = new TemplateRenderer();
+      const hass = createHASS();
+
+      const result = renderer.renderRecursively(hass, '{{ acc.config.view.default }}', {
+        conditionState: { config: createConfig({ view: { default: 'clips' } }) },
+      });
+      expect(result).toBe('clips');
     });
 
     it('should render with mediaData context', () => {

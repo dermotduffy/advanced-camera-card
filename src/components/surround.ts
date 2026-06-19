@@ -11,7 +11,7 @@ import { CameraManager } from '../camera-manager/manager.js';
 import { FoldersManager } from '../card-controller/folders/manager.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
-import { ConditionStateManagerReadonlyInterface } from '../conditions/types.js';
+import { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types.js';
 import { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
 import { MiniTimelineControlConfig } from '../config/schema/common/controls/timeline.js';
 import { CardWideConfig } from '../config/schema/types.js';

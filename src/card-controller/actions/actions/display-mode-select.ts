@@ -8,7 +8,7 @@ export class DisplayModeSelectAction extends AdvancedCameraCardAction<DisplayMod
 
     await api.getViewManager().setViewByParametersWithNewQuery({
       params: {
-        displayMode: this._action.display_mode,
+        displayMode: this._getAction().display_mode,
       },
     });
   }

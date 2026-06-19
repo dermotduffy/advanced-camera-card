@@ -1,5 +1,5 @@
 import { STATE_RUNNING } from 'home-assistant-js-websocket';
-import { ConditionState } from '../../../conditions/types.js';
+import { ConditionState } from '../../../condition-trigger/conditions/types.js';
 import { localize } from '../../../localize/localize.js';
 import { Issue, IssueDescription } from '../types.js';
 

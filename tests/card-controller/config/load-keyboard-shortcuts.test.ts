@@ -78,10 +78,10 @@ describe('setKeyboardShortcutsFromConfig', () => {
                 ptz_phase: 'start',
               },
             ],
-            conditions: [
+            triggers: [
               {
                 alt: undefined,
-                condition: 'key',
+                trigger: 'key',
                 ctrl: undefined,
                 key: 'z',
                 meta: undefined,
@@ -100,9 +100,9 @@ describe('setKeyboardShortcutsFromConfig', () => {
                 ptz_phase: 'stop',
               },
             ],
-            conditions: [
+            triggers: [
               {
-                condition: 'key',
+                trigger: 'key',
                 key: 'z',
                 state: 'up',
               },
@@ -130,10 +130,10 @@ describe('setKeyboardShortcutsFromConfig', () => {
                   advanced_camera_card_action: 'ptz_multi',
                 },
               ],
-              conditions: [
+              triggers: [
                 {
                   alt: undefined,
-                  condition: 'key',
+                  trigger: 'key',
                   ctrl: undefined,
                   key: 'h',
                   meta: undefined,

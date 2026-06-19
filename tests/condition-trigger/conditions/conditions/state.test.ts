@@ -1,0 +1,472 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
+import { createHASS, createStateEntity } from '../../../test-utils';
+import { createEvaluatorContext } from './test-utils';
+
+// @vitest-environment jsdom
+describe('state condition', () => {
+  it('should match any transition when neither state nor state_not is set', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'state' as const, entity_id: 'binary_sensor.foo' },
+      createEvaluatorContext(),
+    );
+
+    expect(
+      evaluator.evaluate(
+        {
+          hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'on' }) }),
+        },
+        {},
+      ),
+    ).toEqual({ result: true });
+
+    expect(
+      evaluator.evaluate(
+        {
+          hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'off' }) }),
+        },
+        {
+          hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'on' }) }),
+        },
+      ),
+    ).toEqual({ result: true });
+  });
+
+  it('should match a single positive state', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'state' as const, entity_id: 'binary_sensor.foo', state: 'on' },
+      createEvaluatorContext(),
+    );
+
+    expect(evaluator.evaluate({}).result).toBeFalsy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity() }),
+      }).result,
+    ).toBeTruthy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'off' }) }),
+      }).result,
+    ).toBeFalsy();
+  });
+
+  it('should match multiple positive states', () => {
+    const evaluator = createConditionEvaluator(
+      {
+        condition: 'state' as const,
+        entity_id: 'binary_sensor.foo',
+        state: ['active', 'on'],
+      },
+      createEvaluatorContext(),
+    );
+
+    expect(evaluator.evaluate({}).result).toBeFalsy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity() }),
+      }).result,
+    ).toBeTruthy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'active' }),
+        }),
+      }).result,
+    ).toBeTruthy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'off' }) }),
+      }).result,
+    ).toBeFalsy();
+  });
+
+  it('should match a single negative state', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'state' as const, entity_id: 'binary_sensor.foo', state_not: 'on' },
+      createEvaluatorContext(),
+    );
+
+    expect(evaluator.evaluate({}).result).toBeFalsy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity() }),
+      }).result,
+    ).toBeFalsy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'off' }) }),
+      }).result,
+    ).toBeTruthy();
+  });
+
+  it('should match multiple negative states', () => {
+    const evaluator = createConditionEvaluator(
+      {
+        condition: 'state' as const,
+        entity_id: 'binary_sensor.foo',
+        state_not: ['active', 'on'],
+      },
+      createEvaluatorContext(),
+    );
+
+    expect(evaluator.evaluate({}).result).toBeFalsy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity() }),
+      }).result,
+    ).toBeFalsy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'active' }),
+        }),
+      }).result,
+    ).toBeFalsy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'off' }) }),
+      }).result,
+    ).toBeTruthy();
+  });
+
+  it('should match an implicit state condition', () => {
+    const evaluator = createConditionEvaluator(
+      { entity_id: 'binary_sensor.foo', state: 'on' },
+      createEvaluatorContext(),
+    );
+
+    expect(evaluator.evaluate({}).result).toBeFalsy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity() }),
+      }).result,
+    ).toBeTruthy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'off' }) }),
+      }).result,
+    ).toBeFalsy();
+  });
+
+  it('should not match when no entity is set', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'state' as const, state: 'on' },
+      createEvaluatorContext(),
+    );
+
+    const result = evaluator.evaluate({
+      hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'on' }) }),
+    });
+    expect(result.result).toBeFalsy();
+  });
+
+  it('should accept the entity field', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'state' as const, entity: 'binary_sensor.foo', state: 'on' },
+      createEvaluatorContext(),
+    );
+
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'on' }) }),
+      }).result,
+    ).toBeTruthy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'binary_sensor.foo': createStateEntity({ state: 'off' }) }),
+      }).result,
+    ).toBeFalsy();
+  });
+
+  it('should match a list of entities only when all match by default', () => {
+    const evaluator = createConditionEvaluator(
+      {
+        condition: 'state' as const,
+        entity_id: ['binary_sensor.foo', 'binary_sensor.bar'],
+        state: 'on',
+      },
+      createEvaluatorContext(),
+    );
+
+    // Both on -> match.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'on' }),
+          'binary_sensor.bar': createStateEntity({ state: 'on' }),
+        }),
+      }).result,
+    ).toBeTruthy();
+    // One off -> no match.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'on' }),
+          'binary_sensor.bar': createStateEntity({ state: 'off' }),
+        }),
+      }).result,
+    ).toBeFalsy();
+    // One absent -> no match.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'on' }),
+        }),
+      }).result,
+    ).toBeFalsy();
+  });
+
+  it('should match a list of entities when any matches and match is any', () => {
+    const evaluator = createConditionEvaluator(
+      {
+        condition: 'state' as const,
+        entity_id: ['binary_sensor.foo', 'binary_sensor.bar'],
+        state: 'on',
+        match: 'any' as const,
+      },
+      createEvaluatorContext(),
+    );
+
+    // One on -> match.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'on' }),
+          'binary_sensor.bar': createStateEntity({ state: 'off' }),
+        }),
+      }).result,
+    ).toBeTruthy();
+    // None on -> no match.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'off' }),
+          'binary_sensor.bar': createStateEntity({ state: 'off' }),
+        }),
+      }).result,
+    ).toBeFalsy();
+  });
+
+  it('should match against an attribute instead of the state', () => {
+    const evaluator = createConditionEvaluator(
+      {
+        condition: 'state' as const,
+        entity_id: 'binary_sensor.foo',
+        attribute: 'device_class',
+        state: 'door',
+      },
+      createEvaluatorContext(),
+    );
+
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({
+            state: 'on',
+            attributes: { device_class: 'door' },
+          }),
+        }),
+      }).result,
+    ).toBeTruthy();
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({
+            state: 'on',
+            attributes: { device_class: 'window' },
+          }),
+        }),
+      }).result,
+    ).toBeFalsy();
+    // Attribute absent on the entity -> no value -> no match.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'on', attributes: {} }),
+        }),
+      }).result,
+    ).toBeFalsy();
+  });
+
+  describe('for', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-06-05T22:56:56Z'));
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should not match until the state has been held long enough', () => {
+      const evaluator = createConditionEvaluator(
+        {
+          condition: 'state' as const,
+          entity_id: 'binary_sensor.foo',
+          state: 'on',
+          for: '00:00:05',
+        },
+        createEvaluatorContext(),
+      );
+
+      // Held 2s (< 5s) -> no match.
+      expect(
+        evaluator.evaluate({
+          hass: createHASS({
+            'binary_sensor.foo': createStateEntity({
+              state: 'on',
+              last_changed: '2026-06-05T22:56:54Z',
+            }),
+          }),
+        }).result,
+      ).toBeFalsy();
+
+      // Held 8s (>= 5s) -> match.
+      expect(
+        evaluator.evaluate({
+          hass: createHASS({
+            'binary_sensor.foo': createStateEntity({
+              state: 'on',
+              last_changed: '2026-06-05T22:56:48Z',
+            }),
+          }),
+        }).result,
+      ).toBeTruthy();
+    });
+
+    it('should render a templated "for" before comparing', () => {
+      const evaluator = createConditionEvaluator(
+        {
+          condition: 'state' as const,
+          entity_id: 'binary_sensor.foo',
+          state: 'on',
+          for: "{{ states('input_number.delay') }}",
+        },
+        createEvaluatorContext(),
+      );
+
+      const evaluateHeldSince = (lastChanged: string): boolean =>
+        !!evaluator.evaluate({
+          hass: createHASS({
+            'binary_sensor.foo': createStateEntity({
+              state: 'on',
+              last_changed: lastChanged,
+            }),
+            'input_number.delay': createStateEntity({ state: '5' }),
+          }),
+        }).result;
+
+      // `for` renders to 5s: held 2s -> no match, held 8s -> match.
+      expect(evaluateHeldSince('2026-06-05T22:56:54Z')).toBe(false);
+      expect(evaluateHeldSince('2026-06-05T22:56:48Z')).toBe(true);
+    });
+
+    it('should not match when last_changed is unavailable', () => {
+      const evaluator = createConditionEvaluator(
+        {
+          condition: 'state' as const,
+          entity_id: 'binary_sensor.foo',
+          state: 'on',
+          for: '00:00:05',
+        },
+        createEvaluatorContext(),
+      );
+
+      expect(
+        evaluator.evaluate({
+          hass: createHASS({
+            'binary_sensor.foo': createStateEntity({ state: 'on', last_changed: '' }),
+          }),
+        }).result,
+      ).toBeFalsy();
+    });
+
+    it('should not match when for is unparseable', () => {
+      const evaluator = createConditionEvaluator(
+        {
+          condition: 'state' as const,
+          entity_id: 'binary_sensor.foo',
+          state: 'on',
+          for: 'not-a-duration',
+        },
+        createEvaluatorContext(),
+      );
+
+      expect(
+        evaluator.evaluate({
+          hass: createHASS({
+            'binary_sensor.foo': createStateEntity({
+              state: 'on',
+              last_changed: '2026-06-05T22:56:46Z',
+            }),
+          }),
+        }).result,
+      ).toBeFalsy();
+    });
+  });
+
+  it('should resolve an expected state that names another entity', () => {
+    const evaluator = createConditionEvaluator(
+      {
+        condition: 'state' as const,
+        entity_id: 'binary_sensor.foo',
+        state: 'input_text.expected',
+      },
+      createEvaluatorContext(),
+    );
+
+    // The entity's state matches the resolved state of `input_text.expected`.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'armed' }),
+          'input_text.expected': createStateEntity({ state: 'armed' }),
+        }),
+      }).result,
+    ).toBeTruthy();
+
+    // It does not match when the resolved state differs.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({
+          'binary_sensor.foo': createStateEntity({ state: 'disarmed' }),
+          'input_text.expected': createStateEntity({ state: 'armed' }),
+        }),
+      }).result,
+    ).toBeFalsy();
+  });
+
+  it('should match a state_not against an empty-string entity state', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'state' as const, entity_id: 'sensor.foo', state_not: 'on' },
+      createEvaluatorContext(),
+    );
+
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'sensor.foo': createStateEntity({ state: '' }) }),
+      }).result,
+    ).toBeTruthy();
+  });
+
+  it('should match an empty-string expected state', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'state' as const, entity_id: 'sensor.foo', state: '' },
+      createEvaluatorContext(),
+    );
+
+    // An entity state of "" matches the configured empty `state`.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'sensor.foo': createStateEntity({ state: '' }) }),
+      }).result,
+    ).toBeTruthy();
+
+    // A non-empty entity state does not.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'sensor.foo': createStateEntity({ state: 'on' }) }),
+      }).result,
+    ).toBeFalsy();
+  });
+});

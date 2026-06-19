@@ -1,5 +1,5 @@
 import type { IssueTriggerContext } from 'issue';
-import { ConditionState } from '../../conditions/types';
+import { ConditionState } from '../../condition-trigger/conditions/types';
 import { Notification } from '../../config/schema/actions/types';
 import { HomeAssistant } from '../../ha/types';
 import { Severity } from '../../severity';
@@ -7,6 +7,7 @@ import { Severity } from '../../severity';
 export type IssueKey =
   | 'config_error'
   | 'config_upgrade'
+  | 'config_upgrade_failure'
   | 'connection'
   | 'initialization'
   | 'legacy_resource'

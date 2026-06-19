@@ -7,6 +7,10 @@ export class CustomAction extends AdvancedCameraCardAction<CustomActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    fireHASSEvent(api.getCardElementManager().getElement(), 'll-custom', this._action);
+    fireHASSEvent(
+      api.getCardElementManager().getElement(),
+      'll-custom',
+      this._getAction(),
+    );
   }
 }

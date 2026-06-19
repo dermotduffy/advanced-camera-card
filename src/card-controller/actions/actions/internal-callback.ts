@@ -6,6 +6,6 @@ export class InternalCallbackAction extends AdvancedCameraCardAction<InternalCal
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    await this._action.callback(api);
+    await this._getAction().callback(api);
   }
 }

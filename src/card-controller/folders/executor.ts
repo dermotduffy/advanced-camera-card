@@ -1,4 +1,4 @@
-import { ConditionState } from '../../conditions/types';
+import { ConditionState } from '../../condition-trigger/conditions/types';
 import { FolderConfig, FolderType, folderTypeSchema } from '../../config/schema/folders';
 import { HomeAssistant } from '../../ha/types';
 import { Endpoint } from '../../types';

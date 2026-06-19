@@ -6,17 +6,18 @@ export class StatusBarAction extends AdvancedCameraCardAction<StatusBarActionCon
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    switch (this._action.status_bar_action) {
+    const action = this._getAction();
+    switch (action.status_bar_action) {
       case 'reset':
         api.getStatusBarItemManager().removeAllDynamicStatusBarItems();
         break;
       case 'add':
-        this._action.items?.forEach((item) =>
+        action.items?.forEach((item) =>
           api.getStatusBarItemManager().addDynamicStatusBarItem(item),
         );
         break;
       case 'remove':
-        this._action.items?.forEach((item) =>
+        action.items?.forEach((item) =>
           api.getStatusBarItemManager().removeDynamicStatusBarItem(item),
         );
         break;

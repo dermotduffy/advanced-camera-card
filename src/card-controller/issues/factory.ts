@@ -2,6 +2,7 @@ import { CardIssueManagerAPI } from '../types';
 import { IssueManager } from './issue-manager';
 import { ConfigErrorIssue } from './issues/config-error';
 import { ConfigUpgradeIssue } from './issues/config-upgrade';
+import { ConfigUpgradeFailureIssue } from './issues/config-upgrade-failure';
 import { ConnectionIssue } from './issues/connection';
 import { InitializationIssue } from './issues/initialization';
 import { LegacyResourceIssue } from './issues/legacy-resource';
@@ -19,6 +20,7 @@ export const createIssueManager = (api: CardIssueManagerAPI): IssueManager => {
   // full-card issue. Register broader/more critical issues first.
   manager.addIssue(new ConfigErrorIssue());
   manager.addIssue(new ConfigUpgradeIssue(api));
+  manager.addIssue(new ConfigUpgradeFailureIssue(api));
   manager.addIssue(new ViewIncompatibleIssue(api));
   manager.addIssue(new ConnectionIssue());
   manager.addIssue(new InitializationIssue(api));

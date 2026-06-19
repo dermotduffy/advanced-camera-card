@@ -4,7 +4,7 @@ import { CameraManager } from '../camera-manager/manager';
 import { FoldersManager } from '../card-controller/folders/manager';
 import { ViewItemManager } from '../card-controller/view/item-manager';
 import { ViewManagerEpoch } from '../card-controller/view/types';
-import { ConditionStateManagerReadonlyInterface } from '../conditions/types';
+import { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types';
 import { TimelineConfig } from '../config/schema/timeline';
 import { CardWideConfig } from '../config/schema/types';
 import { HomeAssistant } from '../ha/types';

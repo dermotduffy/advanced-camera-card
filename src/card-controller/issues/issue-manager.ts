@@ -1,5 +1,5 @@
 import type { IssueTriggerContext } from 'issue';
-import { ConditionStateChange } from '../../conditions/types';
+import { ConditionStateChange } from '../../condition-trigger/conditions/types';
 import { isActionAllowedBasedOnInteractionState } from '../../utils/interaction-mode';
 import { Timer } from '../../utils/timer';
 import { CardIssueManagerAPI } from '../types';

@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { advancedCameraCardConditionSchema } from './conditions/types';
+import { conditionSchema } from './condition-trigger/conditions/types';
 
 const overrideSchema = z.object({
-  conditions: advancedCameraCardConditionSchema.array(),
+  conditions: conditionSchema.array(),
   merge: z.looseObject({}).optional(),
   set: z.looseObject({}).optional(),
   delete: z.string().array().optional(),

@@ -1,7 +1,10 @@
-import { ConditionsManager } from '../conditions/conditions-manager.js';
-import { ConditionsEvaluationResult } from '../conditions/types.js';
+import { ConditionEvaluator } from '../condition-trigger/conditions/conditions/types.js';
+import { createConditionEvaluator } from '../condition-trigger/conditions/factory.js';
+import { TriggersManager } from '../condition-trigger/triggers/manager.js';
+import { TriggerData } from '../condition-trigger/triggers/types.js';
 import { Automation, AutomationActions } from '../config/schema/automations.js';
 import { localize } from '../localize/localize.js';
+import { TemplateRenderer } from './templates/index.js';
 import { CardAutomationsAPI, TaggedAutomation } from './types.js';
 
 const MAX_NESTED_AUTOMATION_EXECUTIONS = 10;
@@ -9,7 +12,7 @@ const MAX_NESTED_AUTOMATION_EXECUTIONS = 10;
 export class AutomationsManager {
   private _api: CardAutomationsAPI;
 
-  private _automations = new Map<TaggedAutomation, ConditionsManager>();
+  private _automations = new Map<TaggedAutomation, TriggersManager>();
 
   // A counter to avoid infinite loops, increases every time actions are run,
   // decreases every time actions are complete.
@@ -20,28 +23,39 @@ export class AutomationsManager {
   }
 
   public deleteAutomations(tag?: unknown) {
-    for (const [automation, conditionManager] of this._automations) {
+    for (const [automation, triggers] of this._automations) {
       if (automation.tag === tag) {
         this._automations.delete(automation);
-        conditionManager.destroy();
+        triggers.destroy();
       }
     }
   }
 
   public addAutomations(automations: TaggedAutomation[]): void {
+    const context = { templateRenderer: new TemplateRenderer() };
     for (const automation of automations) {
-      const conditionManager = new ConditionsManager(
-        automation.conditions,
+      const triggers = new TriggersManager(
+        automation.triggers,
         this._api.getConditionStateManager(),
       );
-      conditionManager.addListener((result: ConditionsEvaluationResult) =>
-        this._execute(automation, result),
+
+      // The ongoing `conditions:` block is pull-evaluated at trigger time, so
+      // its evaluators are never subscribed and hold no resources to tear down.
+      // They live in the trigger callback and are released when `triggers` is
+      // destroyed.
+      const conditions = (automation.conditions ?? []).map((condition) =>
+        createConditionEvaluator(condition, context),
       );
-      this._automations.set(automation, conditionManager);
+      triggers.addListener((data) => this._execute(automation, conditions, data));
+      this._automations.set(automation, triggers);
     }
   }
 
-  private _execute(automation: Automation, result: ConditionsEvaluationResult): void {
+  private _execute(
+    automation: Automation,
+    conditions: ConditionEvaluator[],
+    triggerData: TriggerData,
+  ): void {
     if (
       !this._api.getHASSManager().hasHASS() ||
       // Never execute automations if the card hasn't finished initializing, as
@@ -55,17 +69,25 @@ export class AutomationsManager {
       return;
     }
 
-    const shouldExecute = result.result;
-    const actions = shouldExecute ? automation.actions : automation.actions_not;
+    // Evaluate the ongoing conditions against the current state at the instant
+    // the automation is triggered. The state manager updates its stored state
+    // before dispatching to listeners, so this already reflects the triggering
+    // change.
+    const state = this._api.getConditionStateManager().getState();
+    const ongoingConditionsHold = conditions.every(
+      (evaluator) => evaluator.evaluate(state).result,
+    );
 
-    if (!actions?.length) {
+    if (!ongoingConditionsHold || !automation.actions.length) {
       return;
     }
 
     const runActions = async (actions: AutomationActions): Promise<void> => {
-      ++this._nestedAutomationExecutions;
-
-      if (this._nestedAutomationExecutions > MAX_NESTED_AUTOMATION_EXECUTIONS) {
+      // Check the limit *before* incrementing, so the overflow path holds no
+      // increment to leak; the `finally` then guarantees the decrement even if
+      // executing the actions throws. Either leak would permanently inflate the
+      // counter and eventually block all automations.
+      if (this._nestedAutomationExecutions >= MAX_NESTED_AUTOMATION_EXECUTIONS) {
         this._api.getNotificationManager().setNotification({
           heading: {
             text: localize('error.too_many_automations'),
@@ -76,12 +98,13 @@ export class AutomationsManager {
         return;
       }
 
-      await this._api
-        .getActionsManager()
-        .executeActions({ actions, triggerData: result.triggerData });
-
-      --this._nestedAutomationExecutions;
+      ++this._nestedAutomationExecutions;
+      try {
+        await this._api.getActionsManager().executeActions({ actions, triggerData });
+      } finally {
+        --this._nestedAutomationExecutions;
+      }
     };
-    runActions(actions);
+    runActions(automation.actions);
   }
 }

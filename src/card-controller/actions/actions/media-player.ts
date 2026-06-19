@@ -8,10 +8,11 @@ export class MediaPlayerAction extends AdvancedCameraCardAction<MediaPlayerActio
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    const mediaPlayer = this._action.media_player;
+    const action = this._getAction();
+    const mediaPlayer = action.media_player;
     const mediaPlayerController = api.getMediaPlayerManager();
 
-    if (this._action.media_player_action === 'stop') {
+    if (action.media_player_action === 'stop') {
       await mediaPlayerController.stop(mediaPlayer);
       return;
     }

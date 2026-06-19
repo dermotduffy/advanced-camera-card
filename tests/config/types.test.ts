@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { advancedCameraCardCustomActionsBaseSchema } from '../../src/config/schema/actions/custom/base';
-import { statusBarActionConfigSchema } from '../../src/config/schema/actions/types';
+import {
+  actionConfigSchema,
+  statusBarActionConfigSchema,
+} from '../../src/config/schema/actions/types';
+import { automationsSchema } from '../../src/config/schema/automations';
 import { cameraConfigSchema } from '../../src/config/schema/cameras';
-import { advancedCameraCardConditionSchema } from '../../src/config/schema/conditions/types';
+import { conditionSchema } from '../../src/config/schema/condition-trigger/conditions/types';
 import { dimensionsConfigSchema } from '../../src/config/schema/dimensions';
 import { customSchema } from '../../src/config/schema/elements/stock/custom';
 import { conditionalSchema } from '../../src/config/schema/elements/types';
@@ -692,7 +696,7 @@ describe('config defaults', () => {
         conditions: [
           {
             condition: 'state',
-            entity: 'light.office_main_lights',
+            entity_id: 'light.office_main_lights',
             state: 'on',
             state_not: 'off',
           },
@@ -889,7 +893,6 @@ describe('config defaults', () => {
       { condition: 'and', conditions: [{ condition: 'initialized' }] },
       { condition: 'call', call: true },
       { condition: 'camera', cameras: ['camera.office'] },
-      { condition: 'config', paths: ['menu.style'] },
       { condition: 'display_mode', display_mode: 'single' },
       { condition: 'expand', expand: true },
       { condition: 'fullscreen', fullscreen: true },
@@ -909,7 +912,7 @@ describe('config defaults', () => {
       { condition: 'not', conditions: [{ condition: 'initialized' }] },
       {
         condition: 'numeric_state',
-        entity: 'sensor.office_temperature',
+        entity_id: 'sensor.office_temperature',
         above: 10,
         below: 20,
       },
@@ -917,7 +920,7 @@ describe('config defaults', () => {
       { condition: 'screen', media_query: '(orientation: landscape)' },
       {
         condition: 'state',
-        entity: 'climate.office',
+        entity_id: 'climate.office',
         state: 'heat',
         state_not: 'off',
       },
@@ -1323,7 +1326,7 @@ it('should transform dimensions.aspect_ratio', () => {
 describe('should refine user_agent_re conditions', () => {
   it('should successfully parse valid user_agent_re condition', () => {
     expect(
-      advancedCameraCardConditionSchema.parse({
+      conditionSchema.parse({
         condition: 'user_agent',
         user_agent_re: 'Chrome/',
       }),
@@ -1335,11 +1338,81 @@ describe('should refine user_agent_re conditions', () => {
 
   it('should reject invalid user_agent_re conditions', () => {
     expect(() =>
-      advancedCameraCardConditionSchema.parse({
+      conditionSchema.parse({
         condition: 'user_agent',
         user_agent_re: '[',
       }),
     ).toThrowError(/Invalid regular expression/);
+  });
+});
+
+describe('conditions should accept Home Assistant composite shorthand', () => {
+  it('should expand and/or/not operator shorthand', () => {
+    for (const op of ['and', 'or', 'not'] as const) {
+      expect(
+        conditionSchema.parse({
+          [op]: [{ condition: 'fullscreen', fullscreen: true }],
+        }),
+      ).toMatchObject({
+        condition: op,
+        conditions: [{ condition: 'fullscreen', fullscreen: true }],
+      });
+    }
+  });
+
+  it('should expand a condition list to an implicit and', () => {
+    expect(
+      conditionSchema.parse({
+        condition: [
+          { condition: 'fullscreen', fullscreen: true },
+          { condition: 'expand', expand: true },
+        ],
+      }),
+    ).toMatchObject({
+      condition: 'and',
+      conditions: [
+        { condition: 'fullscreen', fullscreen: true },
+        { condition: 'expand', expand: true },
+      ],
+    });
+  });
+
+  it('should normalise a single shorthand condition to a list', () => {
+    expect(
+      conditionSchema.parse({ or: { condition: 'fullscreen', fullscreen: true } }),
+    ).toMatchObject({
+      condition: 'or',
+      conditions: [{ condition: 'fullscreen', fullscreen: true }],
+    });
+  });
+
+  it('should expand nested shorthand and preserve base fields', () => {
+    expect(
+      conditionSchema.parse({
+        or: [{ and: [{ condition: 'fullscreen', fullscreen: true }] }],
+        enabled: false,
+      }),
+    ).toMatchObject({
+      condition: 'or',
+      enabled: false,
+      conditions: [
+        {
+          condition: 'and',
+          conditions: [{ condition: 'fullscreen', fullscreen: true }],
+        },
+      ],
+    });
+  });
+
+  it('should leave a canonical condition untouched', () => {
+    expect(
+      conditionSchema.parse({ condition: 'fullscreen', fullscreen: true }),
+    ).toMatchObject({ condition: 'fullscreen', fullscreen: true });
+  });
+
+  it('should reject ambiguous or non-record shorthand', () => {
+    expect(conditionSchema.safeParse({ and: [], or: [] }).success).toBe(false);
+    expect(conditionSchema.safeParse('nope').success).toBe(false);
   });
 });
 
@@ -1582,7 +1655,7 @@ describe('should lazy evaluate schemas', () => {
         conditions: [
           {
             condition: 'state',
-            entity: 'light.office_main_lights',
+            entity_id: 'light.office_main_lights',
             state: 'on',
             state_not: 'off',
           },
@@ -1603,7 +1676,7 @@ describe('should lazy evaluate schemas', () => {
       conditions: [
         {
           condition: 'state',
-          entity: 'light.office_main_lights',
+          entity_id: 'light.office_main_lights',
           state: 'on',
           state_not: 'off',
         },
@@ -1642,6 +1715,90 @@ describe('should lazy evaluate schemas', () => {
       ],
     };
     expect(statusBarActionConfigSchema.parse(input)).toEqual(input);
+  });
+
+  it('should recursively validate if action then/else sequences', () => {
+    const input = {
+      if: [
+        {
+          condition: 'state',
+          entity_id: 'light.office_main_lights',
+          state: 'on',
+        },
+      ],
+      then: [
+        {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'live_substream_on',
+        },
+      ],
+      else: [
+        {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'live_substream_off',
+        },
+      ],
+    };
+    expect(actionConfigSchema.parse(input)).toEqual(input);
+
+    // The then/else sequences are validated as actions (not accepted verbatim).
+    expect(
+      actionConfigSchema.safeParse({ ...input, then: [{ action: 'not-an-action' }] })
+        .success,
+    ).toBeFalsy();
+  });
+
+  it('should normalise single if/then/else items to lists', () => {
+    const result = actionConfigSchema.parse({
+      if: { condition: 'state', entity_id: 'light.office', state: 'on' },
+      then: {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'live_substream_on',
+      },
+      else: {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'live_substream_off',
+      },
+    });
+
+    expect(result).toMatchObject({
+      if: [{ condition: 'state', entity_id: 'light.office', state: 'on' }],
+      then: [
+        { action: 'fire-dom-event', advanced_camera_card_action: 'live_substream_on' },
+      ],
+      else: [
+        { action: 'fire-dom-event', advanced_camera_card_action: 'live_substream_off' },
+      ],
+    });
+  });
+});
+
+describe('should apply specific custom action schemas, not the generic catch-all', () => {
+  it('should default a log action level to info', () => {
+    // The generic `customActionSchema` (a loose `fire-dom-event` matcher) must
+    // not shadow `logActionConfigSchema`, or the `level` default is lost and the
+    // action crashes at runtime.
+    expect(
+      actionConfigSchema.parse({
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'log',
+        message: 'hello',
+      }),
+    ).toMatchObject({ advanced_camera_card_action: 'log', level: 'info' });
+  });
+
+  it('should default a log action level nested in an if branch', () => {
+    const result = actionConfigSchema.parse({
+      if: { condition: 'state', entity_id: 'light.office', state: 'on' },
+      then: {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'log',
+        message: 'hello',
+      },
+    });
+    expect(result).toMatchObject({
+      then: [{ advanced_camera_card_action: 'log', level: 'info' }],
+    });
   });
 });
 
@@ -1717,40 +1874,56 @@ it('media viewer should not support microphone based conditions', () => {
   ).toThrowError();
 });
 
-describe('automations should require at least one action', () => {
-  it('should handle no action', () => {
+describe('automations should require actions', () => {
+  it('should reject a missing actions key', () => {
     expect(() =>
       createConfig({
         cameras: [{}],
-        automations: [{ conditions: [] }],
+        automations: [{ triggers: [{ trigger: 'initialized' }], conditions: [] }],
       }),
-    ).toThrowError(/Automations must include at least one action/);
+    ).toThrowError();
   });
+});
 
-  it('should handle empty actions', () => {
-    expect(() =>
-      createConfig({
-        cameras: [{}],
-        automations: [{ conditions: [], actions: [], actions_not: [] }],
-      }),
-    ).toThrowError(/Automations must include at least one action/);
-  });
+describe('automations should accept Home Assistant input shorthands', () => {
+  it('should normalise singular keys and single items to lists', () => {
+    const result = automationsSchema.parse([
+      {
+        trigger: { trigger: 'state', entity_id: 'binary_sensor.door', to: 'on' },
+        condition: { condition: 'state', entity_id: 'input_boolean.x', state: 'on' },
+        action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'live_substream_on',
+        },
+      },
+    ]);
 
-  it('should handle at least one action', () => {
-    expect(() =>
-      createConfig({
-        cameras: [{}],
-        automations: [
-          {
-            conditions: [],
-            actions: [
-              {
-                action: 'fire-dom-event',
-              },
-            ],
-          },
+    expect(result).toMatchObject([
+      {
+        triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door', to: 'on' }],
+        conditions: [{ condition: 'state', entity_id: 'input_boolean.x', state: 'on' }],
+        actions: [
+          { action: 'fire-dom-event', advanced_camera_card_action: 'live_substream_on' },
         ],
-      }),
-    ).not.toThrowError();
+      },
+    ]);
+  });
+
+  it('should keep the plural key when both singular and plural are given', () => {
+    const result = automationsSchema.parse([
+      {
+        triggers: [{ trigger: 'initialized' }],
+        trigger: { trigger: 'state', entity_id: 'x', to: 'on' },
+        actions: [
+          { action: 'fire-dom-event', advanced_camera_card_action: 'live_substream_on' },
+        ],
+      },
+    ]);
+
+    expect(result[0].triggers).toEqual([{ trigger: 'initialized' }]);
+  });
+
+  it('should reject a non-object automation', () => {
+    expect(automationsSchema.safeParse(['not-an-object']).success).toBe(false);
   });
 });

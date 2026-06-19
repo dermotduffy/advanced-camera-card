@@ -172,12 +172,6 @@ describe('MediaMatcher', () => {
                 is_folder: false,
               },
             },
-            advanced_camera_card: {
-              media: {
-                title,
-                is_folder: false,
-              },
-            },
           },
         );
       });
@@ -203,12 +197,6 @@ describe('MediaMatcher', () => {
           '{{ acc.media.title == "Any Title Will Do" }}',
           {
             acc: {
-              media: {
-                title,
-                is_folder: false,
-              },
-            },
-            advanced_camera_card: {
               media: {
                 title,
                 is_folder: false,

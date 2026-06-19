@@ -1,4 +1,4 @@
-import { ConditionStateChange } from '../conditions/types';
+import { ConditionStateChange } from '../condition-trigger/conditions/types';
 import { PIPElement } from '../types';
 import { CardPIPAPI } from './types';
 

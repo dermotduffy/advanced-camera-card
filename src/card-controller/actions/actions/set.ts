@@ -1,34 +1,32 @@
 import { ActionContext } from 'action';
-import {
-  ActionConfig,
-  AuxillaryActionConfig,
-} from '../../../config/schema/actions/types';
+import { ActionConfig } from '../../../config/schema/actions/types';
 import { arrayify } from '../../../utils/basic';
 import { CardActionsAPI } from '../../types';
-import { ActionFactory } from '../factory';
-import { Action } from '../types';
+import { ActionFactory, ActionFactoryOptions } from '../factory';
+import { ActionPrepareCallback } from '../types';
 
-export class ActionSet implements Action {
+interface ActionSetOptions {
+  factoryOptions?: ActionFactoryOptions;
+  actionPrepareCallback?: ActionPrepareCallback;
+}
+
+export class ActionSet {
   private _context: ActionContext;
-  private _actions: Action[] = [];
+  private _actions: ActionConfig[];
+  private _factoryOptions?: ActionFactoryOptions;
+  private _actionPrepareCallback?: ActionPrepareCallback;
   private _factory = new ActionFactory();
   private _stopped = false;
 
   constructor(
     context: ActionContext,
     actions: ActionConfig | ActionConfig[],
-    options?: {
-      config?: AuxillaryActionConfig;
-      cardID?: string;
-    },
+    options?: ActionSetOptions,
   ) {
     this._context = context;
-    for (const actionObj of arrayify(actions)) {
-      const action = this._factory.createAction(context, actionObj, options);
-      if (action) {
-        this._actions.push(action);
-      }
-    }
+    this._actions = arrayify(actions);
+    this._actionPrepareCallback = options?.actionPrepareCallback;
+    this._factoryOptions = options?.factoryOptions;
   }
 
   public async execute(api: CardActionsAPI): Promise<void> {
@@ -37,7 +35,20 @@ export class ActionSet implements Action {
         break;
       }
 
-      await action.execute(api);
+      const concreteAction = this._factory.createAction(
+        this._context,
+        action,
+        this._factoryOptions,
+      );
+      if (concreteAction) {
+        // Prepare against the state as it is now, so an action observes what an
+        // earlier action in the sequence changed. A prepare error aborts the
+        // rest of the sequence (it propagates to the caller's handler).
+        if (this._actionPrepareCallback) {
+          concreteAction.prepare(this._actionPrepareCallback);
+        }
+        await concreteAction.execute(api);
+      }
     }
   }
 

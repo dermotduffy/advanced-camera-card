@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createIssueManager } from '../../../src/card-controller/issues/factory';
 import { IssueManager } from '../../../src/card-controller/issues/issue-manager';
-import { ConditionStateManager } from '../../../src/conditions/state-manager';
+import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { createCardAPI } from '../../test-utils';
 
 describe('createIssueManager', () => {
@@ -27,6 +27,7 @@ describe('createIssueManager', () => {
     const expectedKeys = [
       'config_error',
       'config_upgrade',
+      'config_upgrade_failure',
       'connection',
       'initialization',
       'legacy_resource',

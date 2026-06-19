@@ -1,7 +1,8 @@
 import { renderTemplate } from 'ha-nunjucks';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TemplateRenderer } from '../../src/card-controller/templates';
-import { ConditionsTriggerData, ConditionState } from '../../src/conditions/types';
+import { ConditionState } from '../../src/condition-trigger/conditions/types';
+import { TriggerData } from '../../src/condition-trigger/triggers/types';
 import { createHASS } from '../test-utils';
 
 // ha-nunjucks attempts to make websocket calls initially so mock it out.
@@ -46,11 +47,11 @@ describe('TemplateRenderer', () => {
       camera: 'camera',
       view: 'live',
     };
-    const triggerData: ConditionsTriggerData = {
-      camera: {
-        to: 'camera',
-        from: 'previous-camera',
-      },
+    const triggerData: TriggerData = {
+      platform: 'acc',
+      type: 'camera',
+      from_acc: { camera: 'previous-camera' },
+      to_acc: { camera: 'camera' },
     };
 
     const renderer = new TemplateRenderer();
@@ -71,22 +72,12 @@ describe('TemplateRenderer', () => {
       acc: {
         camera: 'camera',
         view: 'live',
-        trigger: {
-          camera: {
-            to: 'camera',
-            from: 'previous-camera',
-          },
-        },
       },
-      advanced_camera_card: {
-        camera: 'camera',
-        view: 'live',
-        trigger: {
-          camera: {
-            to: 'camera',
-            from: 'previous-camera',
-          },
-        },
+      trigger: {
+        platform: 'acc',
+        type: 'camera',
+        from_acc: { camera: 'previous-camera' },
+        to_acc: { camera: 'camera' },
       },
     });
   });

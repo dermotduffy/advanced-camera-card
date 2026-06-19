@@ -8,7 +8,7 @@ import { CallManager } from '../../../src/card-controller/call/manager';
 import { Ringtone } from '../../../src/card-controller/call/ringtone';
 import { CardController } from '../../../src/card-controller/controller';
 import { SubstreamViewModifier } from '../../../src/card-controller/view/modifiers/substream';
-import { ConditionStateChange } from '../../../src/conditions/types';
+import { ConditionStateChange } from '../../../src/condition-trigger/conditions/types';
 import { RingtoneConfig } from '../../../src/config/schema/live';
 import { AdvancedCameraCardConfig } from '../../../src/config/schema/types';
 import { View } from '../../../src/view/view';

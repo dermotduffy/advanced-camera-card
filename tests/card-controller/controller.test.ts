@@ -3,6 +3,7 @@ import { CameraManager } from '../../src/camera-manager/manager';
 import { ActionsManager } from '../../src/card-controller/actions/actions-manager';
 import { AutomationsManager } from '../../src/card-controller/automations-manager';
 import { CallManager } from '../../src/card-controller/call/manager';
+import { CameraTriggersManager } from '../../src/card-controller/camera-triggers-manager';
 import { CameraURLManager } from '../../src/card-controller/camera-url-manager';
 import {
   CardElementManager,
@@ -28,10 +29,9 @@ import { PIPManager } from '../../src/card-controller/pip-manager';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../../src/card-controller/style-manager';
-import { TriggersManager } from '../../src/card-controller/triggers-manager';
 import { ViewItemManager } from '../../src/card-controller/view/item-manager';
 import { ViewManager } from '../../src/card-controller/view/view-manager';
-import { ConditionStateManager } from '../../src/conditions/state-manager';
+import { ConditionStateManager } from '../../src/condition-trigger/conditions/state-manager';
 import { AdvancedCameraCardEditor } from '../../src/editor';
 import { DeviceRegistryManager } from '../../src/ha/registry/device';
 import { EntityRegistryManagerLive } from '../../src/ha/registry/entity';
@@ -64,10 +64,10 @@ vi.mock('../../src/card-controller/issues/issue-manager');
 vi.mock('../../src/card-controller/query-string-manager');
 vi.mock('../../src/card-controller/status-bar-item-manager');
 vi.mock('../../src/card-controller/style-manager');
-vi.mock('../../src/card-controller/triggers-manager');
+vi.mock('../../src/card-controller/camera-triggers-manager');
 vi.mock('../../src/card-controller/view/item-manager');
 vi.mock('../../src/card-controller/view/view-manager');
-vi.mock('../../src/conditions/state-manager');
+vi.mock('../../src/condition-trigger/conditions/state-manager');
 vi.mock('../../src/ha/registry/device');
 vi.mock('../../src/ha/registry/entity');
 vi.mock('../../src/ha/resolved-media');
@@ -301,9 +301,9 @@ describe('CardController', () => {
       );
     });
 
-    it('should return getTriggersManager', () => {
-      expect(createController().getTriggersManager()).toBe(
-        vi.mocked(TriggersManager).mock.instances[0],
+    it('should return getCameraTriggersManager', () => {
+      expect(createController().getCameraTriggersManager()).toBe(
+        vi.mocked(CameraTriggersManager).mock.instances[0],
       );
     });
 

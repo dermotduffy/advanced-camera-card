@@ -22,9 +22,9 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
 
   const automations: TaggedAutomation[] = [
     {
-      conditions: [
+      triggers: [
         {
-          condition: 'config' as const,
+          trigger: 'config' as const,
           paths: ['cameras', 'remote_control.entities.camera'],
         },
       ],
@@ -38,9 +38,9 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
       tag: automationTag,
     },
     {
-      conditions: [
+      triggers: [
         {
-          condition: 'camera' as const,
+          trigger: 'camera' as const,
         },
       ],
       actions: [
@@ -63,9 +63,9 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
       // this one, as automations only run *after* the card is initialized (and
       // it very likely will not yet be). Instead, wait to be initialized, then
       // set the camera.
-      conditions: [
+      triggers: [
         {
-          condition: 'initialized' as const,
+          trigger: 'initialized' as const,
         },
       ],
       actions: [
@@ -81,15 +81,15 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
       tag: automationTag,
     },
     {
-      conditions: [
+      triggers: [
         {
-          condition: 'state' as const,
-          entity: cameraControlEntity,
+          trigger: 'state' as const,
+          entity_id: cameraControlEntity,
         },
       ],
       actions: [
         // When the entity state changes, updated the selected option.
-        createCameraAction('{{ advanced_camera_card.trigger.state.to }}'),
+        createCameraAction('{{ trigger.to_state.state }}'),
       ],
       tag: automationTag,
     },

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CardController } from '../../src/card-controller/controller';
 import { PIPManager } from '../../src/card-controller/pip-manager';
-import { ConditionStateManager } from '../../src/conditions/state-manager';
+import { ConditionStateManager } from '../../src/condition-trigger/conditions/state-manager';
 import { MediaPlayerController } from '../../src/types';
 import { createCardAPI, createMediaLoadedInfo, flushPromises } from '../test-utils';
 

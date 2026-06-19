@@ -1,5 +1,33 @@
 # Stock Actions
 
+## `if` / `then` / `else`
+
+Run one sequence of actions or another depending on a set of
+[conditions](../../conditions-triggers.md). This action has no `action:` key: it
+is identified by the presence of an `if` key, exactly as in [Home Assistant
+script syntax](https://www.home-assistant.io/docs/scripts/#if-then). The `then`
+sequence runs when all `if` conditions hold; the optional `else` sequence runs
+otherwise.
+
+```yaml
+if:
+  - condition: state
+    entity_id: input_boolean.notify_enabled
+    state: 'on'
+then:
+  - action: fire-dom-event
+    advanced_camera_card_action: live_substream_on
+else:
+  - action: fire-dom-event
+    advanced_camera_card_action: live_substream_off
+```
+
+| Parameter | Description                                                       |
+| --------- | ----------------------------------------------------------------- |
+| `if`      | A list of [conditions](../../conditions-triggers.md) to evaluate. |
+| `then`    | A list of actions to run when all `if` conditions hold.           |
+| `else`    | An optional list of actions to run when the `if` conditions fail. |
+
 ## `more-info`
 
 Open the "more-info" dialog for an entity. See [Home Assistant actions documentation](https://www.home-assistant.io/dashboards/actions/).
@@ -117,4 +145,21 @@ elements:
     tap_action:
       action: fire-dom-event
       key: value
+  - type: icon
+    icon: mdi:numeric-8-box
+    title: If / then / else action
+    style:
+      left: 200px
+      top: 400px
+    tap_action:
+      if:
+        - condition: state
+          entity_id: light.office_main_lights
+          state: 'on'
+      then:
+        - action: fire-dom-event
+          advanced_camera_card_action: live_substream_on
+      else:
+        - action: fire-dom-event
+          advanced_camera_card_action: live_substream_off
 ```
