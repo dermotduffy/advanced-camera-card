@@ -7,6 +7,12 @@ Advanced Camera Card data, to be accessible. Templates may be used in:
 - [Actions / Automations](./actions/README.md)
 - [Folder Media Matchers](./folders.md?id=matchers)
 
+> [!NOTE]
+> Templates substitute into action _values_ (e.g. a `camera` or `message`), not
+> into the action _type_. The type discriminator (`action` and
+> `advanced_camera_card_action`) must be a literal (as in Home Assistant
+> itself).
+
 ## Stock Templates
 
 The Advanced Camera Card uses

@@ -7,13 +7,14 @@ export class NavigateAction extends AdvancedCameraCardAction<NavigateActionConfi
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    if (!!this._action.navigation_replace) {
-      history.replaceState(null, '', this._action.navigation_path);
+    const action = this._getAction();
+    if (!!action.navigation_replace) {
+      history.replaceState(null, '', action.navigation_path);
     } else {
-      history.pushState(null, '', this._action.navigation_path);
+      history.pushState(null, '', action.navigation_path);
     }
     fireHASSEvent(window, 'location-changed', {
-      replace: !!this._action.navigation_replace,
+      replace: !!action.navigation_replace,
     });
   }
 }

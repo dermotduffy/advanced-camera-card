@@ -394,26 +394,12 @@ describe('ActionsManager', () => {
       expect(rawRan).not.toBeCalled();
     });
 
-    it('should let an action observe state a prior action changed', async () => {
-      const observed: string[] = [];
+    it('should render each action against the state at its turn', async () => {
       let camera = 'first';
 
       const templateRenderer = mock<TemplateRenderer>();
-
-      // The first action changes the selected camera; the second records the
-      // camera in the condition state at the moment it is rendered.
-      templateRenderer.renderRecursively
-        .mockReturnValueOnce(
-          createInternalCallbackAction(async () => {
-            camera = 'second';
-          }),
-        )
-        .mockImplementationOnce((_hass, _action, options) => {
-          const rendered = String(options?.conditionState?.camera);
-          return createInternalCallbackAction(async () => {
-            observed.push(rendered);
-          });
-        });
+      // Identity render -- assert on the render *inputs*, not a swapped output.
+      templateRenderer.renderRecursively.mockImplementation((_hass, data) => data);
 
       const api = createAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
@@ -423,29 +409,41 @@ describe('ActionsManager', () => {
 
       const manager = new ActionsManager(api, templateRenderer);
 
-      // The inputs are placeholders; the mocked renderer above maps each to a
-      // recorder, so their content is irrelevant.
       await manager.executeActions({
-        actions: [{ action: 'none' }, { action: 'none' }],
+        actions: [
+          // The first action changes the camera...
+          createInternalCallbackAction(async () => {
+            camera = 'second';
+          }),
+          // ...the second is rendered afterwards.
+          { action: 'none' },
+        ],
       });
 
-      // The second action rendered against the camera the first action set.
-      expect(observed).toEqual(['second']);
+      // Each action renders with the state as it is at its turn: the second
+      // sees the camera the first action set.
+      expect(templateRenderer.renderRecursively).toHaveBeenNthCalledWith(
+        1,
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({ conditionState: { camera: 'first' } }),
+      );
+      expect(templateRenderer.renderRecursively).toHaveBeenNthCalledWith(
+        2,
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({ conditionState: { camera: 'second' } }),
+      );
     });
 
     it('should render against the hass available at each step', async () => {
       const ran: string[] = [];
 
       const templateRenderer = mock<TemplateRenderer>();
-      templateRenderer.renderRecursively.mockReturnValue(
-        createInternalCallbackAction(async () => {
-          ran.push('rendered');
-        }),
-      );
+      templateRenderer.renderRecursively.mockImplementation((_hass, data) => data);
 
       const api = createAPI();
-
-      // No HASS for the first action; HASS for the second.
+      // No HASS for the first action's render; HASS thereafter.
       vi.mocked(api.getHASSManager().getHASS)
         .mockReturnValueOnce(null)
         .mockReturnValue(createHASS());
@@ -455,37 +453,29 @@ describe('ActionsManager', () => {
       await manager.executeActions({
         actions: [
           createInternalCallbackAction(async () => {
-            ran.push('raw');
+            ran.push('one');
           }),
-          { action: 'none' },
+          createInternalCallbackAction(async () => {
+            ran.push('two');
+          }),
         ],
       });
 
-      // The first action ran unrendered (no HASS yet); the second rendered once
-      // HASS became available, so HASS is read per action, not captured once.
-      expect(ran).toEqual(['raw', 'rendered']);
+      // Both actions ran; only the second was rendered -- the first saw no
+      // HASS, so HASS is read per action rather than captured once.
+      expect(ran).toEqual(['one', 'two']);
       expect(templateRenderer.renderRecursively).toBeCalledTimes(1);
     });
 
     it('should abort the remaining actions when one fails to render', async () => {
-      const first = vi.fn();
-      const third = vi.fn();
+      const ran: string[] = [];
 
       const templateRenderer = mock<TemplateRenderer>();
       templateRenderer.renderRecursively
-        .mockReturnValueOnce(
-          createInternalCallbackAction(async () => {
-            first();
-          }),
-        )
+        .mockImplementationOnce((_hass, data) => data)
         .mockImplementationOnce(() => {
-          throw new Error('second: bad template');
-        })
-        .mockReturnValueOnce(
-          createInternalCallbackAction(async () => {
-            third();
-          }),
-        );
+          throw new Error('bad template');
+        });
 
       const api = createAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
@@ -493,48 +483,116 @@ describe('ActionsManager', () => {
       const manager = new ActionsManager(api, templateRenderer);
       const warnSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
 
-      // The inputs are placeholders; the mocked renderer above maps each to a
-      // recorder (or a throw), so their content is irrelevant.
       await manager.executeActions({
-        actions: [{ action: 'none' }, { action: 'none' }, { action: 'none' }],
+        actions: [
+          createInternalCallbackAction(async () => {
+            ran.push('first');
+          }),
+          createInternalCallbackAction(async () => {
+            ran.push('second');
+          }),
+          createInternalCallbackAction(async () => {
+            ran.push('third');
+          }),
+        ],
       });
 
-      // The first action ran; the render failure aborted the rest, and the
-      // error was caught by executeActions (warning haptic + console).
-      expect(first).toBeCalled();
-      expect(third).not.toBeCalled();
+      // The first action ran; the second's render threw, aborting the rest. The
+      // error was caught by executeActions().
+      expect(ran).toEqual(['first']);
       expect(warnSpy).toBeCalled();
     });
 
-    it('should render an if-action branch against the trigger data', async () => {
+    it('should hand an if-action branch to the executor unrendered, with the trigger data', async () => {
       const api = createAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({
         fullscreen: true,
       });
 
-      // A real renderer so the branch's `{{ trigger.* }}` template resolves.
       const manager = new ActionsManager(api, new TemplateRenderer());
+      const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
+
+      const thenAction = createLogAction('{{ trigger.entity_id }}');
+      await manager.executeActions({
+        actions: {
+          if: [{ condition: 'fullscreen', fullscreen: true }],
+          then: [thenAction],
+          else: [createLogAction('unused else')],
+        },
+        triggerData: { platform: 'state', entity_id: 'binary_sensor.door' },
+      });
+
+      // The branch is left raw (template intact) and forwarded with the trigger
+      // data, so the nested executor renders it per-step when it runs -- not
+      // frozen against the state at the `if` step.
+      expect(api.getActionsManager().executeActions).toBeCalledWith({
+        actions: [thenAction],
+        config: undefined,
+        triggerData: { platform: 'state', entity_id: 'binary_sensor.door' },
+      });
+
+      // The log action is handed to the (mocked) nested executor, not run here,
+      // so it must not actually log.
+      expect(consoleSpy).not.toBeCalled();
+    });
+
+    it('should render if-action branch actions per-step', async () => {
+      let camera = 'before';
+
+      const api = createAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConditionStateManager().getState).mockImplementation(() => ({
+        camera,
+        fullscreen: true,
+      }));
+
+      const manager = new ActionsManager(api, new TemplateRenderer());
+      // The if-action's nested executor is the same (real) manager.
+      vi.mocked(api.getActionsManager).mockReturnValue(manager);
+
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
 
       await manager.executeActions({
         actions: {
           if: [{ condition: 'fullscreen', fullscreen: true }],
-          then: [createLogAction('{{ trigger.entity_id }}')],
+          then: [
+            // The first branch action changes the camera...
+            createInternalCallbackAction(async () => {
+              camera = 'after';
+            }),
+            // ...the second logs `{{ acc.camera }}`, rendered at its own turn.
+            createLogAction('{{ acc.camera }}'),
+          ],
         },
-        triggerData: { platform: 'state', entity_id: 'binary_sensor.door' },
       });
 
-      // The branch is rendered with the trigger data before the if-action hands
-      // it to the nested executor (which then runs it without re-rendering).
-      expect(api.getActionsManager().executeActions).toBeCalledWith(
-        { actions: [createLogAction('binary_sensor.door')], config: undefined },
-        false,
-      );
+      // The log rendered against the camera the first branch action set, so it
+      // logs 'after' -- proving the branch renders per-step. Frozen-at-the-`if`
+      // rendering would log 'before'.
+      expect(consoleSpy).toHaveBeenCalledWith('after');
+    });
 
-      // The log action is handed to the (mocked) nested executor, not run here,
-      // so it must not actually log.
-      expect(consoleSpy).not.toBeCalled();
+    it('should drop an action whose templated discriminator cannot be classified', async () => {
+      const api = createAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+      const manager = new ActionsManager(api, new TemplateRenderer());
+      const warnSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+
+      await manager.executeActions({
+        actions: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: '{{ acc.view }}',
+        },
+      });
+
+      // The discriminator is classified on the raw action (templates render
+      // only afterwards), so a templated `advanced_camera_card_action` matches
+      // no action type and is dropped with a warning rather than executed.
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('unknown card action'),
+      );
     });
 
     it('should not execute actions when the lock manager rejects them', async () => {

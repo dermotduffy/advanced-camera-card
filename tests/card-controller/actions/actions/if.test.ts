@@ -34,10 +34,11 @@ describe('IfAction', () => {
 
     await action.execute(api);
 
-    expect(api.getActionsManager().executeActions).toBeCalledWith(
-      { actions: thenActions, config: undefined },
-      false,
-    );
+    expect(api.getActionsManager().executeActions).toBeCalledWith({
+      actions: thenActions,
+      config: undefined,
+      triggerData: undefined,
+    });
   });
 
   it('should run the else branch when the conditions do not hold', async () => {
@@ -57,10 +58,11 @@ describe('IfAction', () => {
 
     await action.execute(api);
 
-    expect(api.getActionsManager().executeActions).toBeCalledWith(
-      { actions: elseActions, config: undefined },
-      false,
-    );
+    expect(api.getActionsManager().executeActions).toBeCalledWith({
+      actions: elseActions,
+      config: undefined,
+      triggerData: undefined,
+    });
   });
 
   it('should do nothing when the conditions do not hold and there is no else branch', async () => {

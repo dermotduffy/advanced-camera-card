@@ -1,5 +1,6 @@
 import { ActionContext } from 'action';
 import { z } from 'zod';
+import { TriggerData } from '../../condition-trigger/triggers/types.js';
 import {
   ActionConfig,
   Actions,
@@ -13,8 +14,12 @@ import {
 import { allPromises, errorToConsole } from '../../utils/basic.js';
 import { TemplateRenderer } from '../templates/index.js';
 import { CardActionsManagerAPI } from '../types.js';
-import { ActionPrepareCallback, ActionSet } from './actions/set.js';
-import { ActionsExecutionRequest, ActionsExecutor } from './types.js';
+import { ActionSet } from './actions/set.js';
+import {
+  ActionPrepareCallback,
+  ActionsExecutionRequest,
+  ActionsExecutor,
+} from './types.js';
 
 const INTERACTIONS = ['tap', 'double_tap', 'hold', 'start_tap', 'end_tap'] as const;
 export type InteractionName = (typeof INTERACTIONS)[number];
@@ -138,38 +143,31 @@ export class ActionsManager implements ActionsExecutor {
     request: ActionsExecutionRequest,
     renderTemplates = true,
   ): Promise<void> {
-    // Lock policies key off the action's discriminator (`action` /
-    // `advanced_camera_card_action`), which the schema fixes as literals, so a
-    // template can never appear there -- filtering the raw (unrendered) actions
-    // is safe.
+    // Lock filtering and the factory both classify on the raw (unrendered)
+    // discriminator (`action` / `advanced_camera_card_action`). A templated
+    // `advanced_camera_card_action` (permitted only by the loose custom-action
+    // schema) is left unresolved, matches no action type, and is dropped.
     const allowedActions = this._api.getLockManager().getAllowedActions(request.actions);
     if (!allowedActions.length) {
       return;
     }
 
-    // Render each action against the state (incl. HASS) as it is *when it runs*
-    // (fixed trigger context, fresh card/HASS state per step), so an action
-    // observes what an earlier action in the sequence changed.
+    // Each action prepares itself (via Action.prepare) just before it runs, so
+    // it observes what an earlier action may have changed. Skip when the caller
+    // opts out (the templates are already rendered) or there is no renderer.
     const renderer = this._templateRenderer;
-    const prepareCallback: ActionPrepareCallback | undefined =
+    const actionPrepareCallback =
       renderTemplates && renderer
-        ? (action: ActionConfig): ActionConfig => {
-            const hass = this._api.getHASSManager().getHASS();
-            return hass
-              ? (renderer.renderRecursively(hass, action, {
-                  conditionState: this._api.getConditionStateManager().getState(),
-                  triggerData: request?.triggerData,
-                }) as ActionConfig)
-              : action;
-          }
+        ? this._createActionPrepareCallback(renderer, request.triggerData)
         : undefined;
 
     const actionSet = new ActionSet(this._actionContext, allowedActions, {
       factoryOptions: {
         config: request.config,
         cardID: this._api.getConfigManager().getConfig()?.card_id,
+        triggerData: request?.triggerData,
       },
-      prepareCallback,
+      actionPrepareCallback,
     });
 
     this._actionsInFlight.push(actionSet);
@@ -182,5 +180,23 @@ export class ActionsManager implements ActionsExecutor {
       forwardHaptic('warning');
     }
     this._actionsInFlight = this._actionsInFlight.filter((a) => a !== actionSet);
+  }
+
+  private _createActionPrepareCallback(
+    renderer: TemplateRenderer,
+    triggerData?: TriggerData,
+  ): ActionPrepareCallback {
+    // Render against the state (incl. HASS) as it is *when the action runs* --
+    // fixed trigger context, fresh card/HASS state per step. The one cast lives
+    // here as renderRecursively returns `unknown`.
+    return <T>(value: T): T => {
+      const hass = this._api.getHASSManager().getHASS();
+      return hass
+        ? (renderer.renderRecursively(hass, value, {
+            conditionState: this._api.getConditionStateManager().getState(),
+            triggerData,
+          }) as T)
+        : value;
+    };
   }
 }

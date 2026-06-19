@@ -1,48 +1,64 @@
 import { ActionContext } from 'action';
-import { ConditionEvaluator } from '../../../condition-trigger/conditions/conditions/types';
 import { createConditionEvaluator } from '../../../condition-trigger/conditions/factory';
+import { TriggerData } from '../../../condition-trigger/triggers/types';
 import {
   AuxillaryActionConfig,
   IfActionConfig,
 } from '../../../config/schema/actions/types';
 import { TemplateRenderer } from '../../templates/index';
 import { CardActionsAPI } from '../../types';
+import { ActionPrepareCallback } from '../types';
 import { BaseAction } from './base';
 
 export class IfAction extends BaseAction<IfActionConfig> {
-  private _ifEvaluators: ConditionEvaluator[];
+  private _triggerData?: TriggerData;
 
   constructor(
     context: ActionContext,
     action: IfActionConfig,
     config?: AuxillaryActionConfig,
+    triggerData?: TriggerData,
   ) {
     super(context, action, config);
 
-    const evaluatorContext = { templateRenderer: new TemplateRenderer() };
-    this._ifEvaluators = action.if.map((condition) =>
-      createConditionEvaluator(condition, evaluatorContext),
-    );
+    this._triggerData = triggerData;
+  }
+
+  public prepare(actionPrepareCallback: ActionPrepareCallback): void {
+    // Render this action's own fields (including the `if` conditions, so their
+    // `trigger.*` templates resolve), but leave `then`/`else` raw: they are
+    // nested action sequences that render per-step when their own branch runs.
+    const { then: thenBranch, else: elseBranch, ...rest } = this._rawAction;
+    this._preparedAction = {
+      ...actionPrepareCallback(rest),
+      then: thenBranch,
+      ...(elseBranch !== undefined && { else: elseBranch }),
+    };
   }
 
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    const conditionsHold = this._ifEvaluators.every(
-      (evaluator) =>
-        evaluator.evaluate(api.getConditionStateManager().getState()).result,
+    const action = this._getAction();
+    const evaluatorContext = { templateRenderer: new TemplateRenderer() };
+    const state = api.getConditionStateManager().getState();
+    const conditionsHold = action.if.every(
+      (condition) =>
+        createConditionEvaluator(condition, evaluatorContext).evaluate(state).result,
     );
 
-    const branch = conditionsHold ? this._action.then : this._action.else;
+    const branch = conditionsHold ? action.then : action.else;
     if (!branch?.length) {
       return;
     }
 
-    await api.getActionsManager().executeActions(
-      { actions: branch, config: this._config },
-      // No need to render templates for nested actions, they were already
-      // rendered as part of this action's config.
-      false,
-    );
+    // The branch renders per-step as it runs, so each action observes state an
+    // earlier branch action changed. The trigger data is forwarded so the
+    // branch can still resolve `trigger.*` templates.
+    await api.getActionsManager().executeActions({
+      actions: branch,
+      config: this._config,
+      triggerData: this._triggerData,
+    });
   }
 }

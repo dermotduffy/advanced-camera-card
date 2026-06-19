@@ -1,4 +1,5 @@
 import { ActionContext } from 'action';
+import { TriggerData } from '../../condition-trigger/triggers/types';
 import { INTERNAL_CALLBACK_ACTION } from '../../config/schema/actions/custom/internal';
 import { ActionConfig, AuxillaryActionConfig } from '../../config/schema/actions/types';
 import { isAdvancedCameraCardCustomAction, isIfAction } from '../../utils/action';
@@ -54,6 +55,11 @@ import { Action } from './types';
 export interface ActionFactoryOptions {
   config?: AuxillaryActionConfig;
   cardID?: string;
+
+  // The firing automation's trigger payload (if any), forwarded to actions with
+  // nested actions (e.g. `if`) so their branches can still resolve `trigger.*`
+  // templates when they render per-step.
+  triggerData?: TriggerData;
 }
 
 export class ActionFactory {
@@ -64,6 +70,8 @@ export class ActionFactory {
   ): Action | null {
     if (
       // Command not intended for this card (e.g. query string command).
+      // `card_id` is a static routing identifier, matched on the raw (template
+      // unrendered) config.
       action.card_id &&
       action.card_id !== options?.cardID
     ) {
@@ -71,7 +79,7 @@ export class ActionFactory {
     }
 
     if (isIfAction(action)) {
-      return new IfAction(context, action, options?.config);
+      return new IfAction(context, action, options?.config, options?.triggerData);
     }
 
     switch (action.action) {
@@ -189,11 +197,12 @@ export class ActionFactory {
         return new InternalCallbackAction(context, action, options?.config);
     }
 
-    /* istanbul ignore next: this path cannot be reached -- @preserve */
+    // Reached when the discriminator is not a known action type -- e.g. a
+    // templated `advanced_camera_card_action`, which is classified on the raw
+    // (unrendered) action and so never matches a case.
     console.warn(
       `Advanced Camera Card received unknown card action: ${action['advanced_camera_card_action']}`,
     );
-    /* istanbul ignore next: this path cannot be reached -- @preserve */
     return null;
   }
 }

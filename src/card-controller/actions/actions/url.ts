@@ -6,6 +6,6 @@ export class URLAction extends AdvancedCameraCardAction<URLActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    window.open(this._action.url_path);
+    window.open(this._getAction().url_path);
   }
 }

@@ -6,13 +6,14 @@ export class ViewAction extends AdvancedCameraCardAction<ViewActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
+    const action = this._getAction();
     await api.getViewManager().setViewByParametersWithNewQuery({
       params: {
-        view: this._action.advanced_camera_card_action,
+        view: action.advanced_camera_card_action,
       },
-      ...(this._action.folder && {
+      ...(action.folder && {
         queryExecutorOptions: {
-          folder: this._action.folder,
+          folder: action.folder,
         },
       }),
     });

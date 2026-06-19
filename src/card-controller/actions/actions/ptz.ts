@@ -33,13 +33,15 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
+    const action = this._getAction();
+
     const view = api.getViewManager().getView();
     if (!view) {
       return;
     }
 
     const ptzCameraID =
-      this._action.camera ??
+      action.camera ??
       getPTZTarget(view, { type: 'ptz', cameraManager: api.getCameraManager() })
         ?.targetID ??
       null;
@@ -53,34 +55,34 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
       return;
     }
 
-    if (!this._action.ptz_action) {
+    if (!action.ptz_action) {
       if (ptzCapabilities.presets && ptzCapabilities.presets.length >= 1) {
         await api.getCameraManager().executePTZAction(ptzCameraID, 'preset', {
-          phase: this._action.ptz_phase,
+          phase: action.ptz_phase,
           preset: ptzCapabilities.presets[0],
         });
       }
       return;
     }
 
-    const capabilityKey = ptzActionToCapabilityKey(this._action.ptz_action);
+    const capabilityKey = ptzActionToCapabilityKey(action.ptz_action);
     if (
       (capabilityKey &&
         ptzCapabilities[capabilityKey]?.includes(
-          this._action.ptz_phase ? PTZMovementType.Continuous : PTZMovementType.Relative,
+          action.ptz_phase ? PTZMovementType.Continuous : PTZMovementType.Relative,
         )) ||
-      this._action.ptz_action === 'preset'
+      action.ptz_action === 'preset'
     ) {
       // Scenario: Camera natively supports requested move type.
       return await api
         .getCameraManager()
-        .executePTZAction(ptzCameraID, this._action.ptz_action, {
-          phase: this._action.ptz_phase,
-          preset: this._action.ptz_preset,
+        .executePTZAction(ptzCameraID, action.ptz_action, {
+          phase: action.ptz_phase,
+          preset: action.ptz_preset,
         });
     }
 
-    if (this._action.ptz_phase === 'start') {
+    if (action.ptz_phase === 'start') {
       // Scenario: Asked to start a continuous move, camera only supports relative moves natively.
       await stopInProgressForThisTarget(ptzCameraID, this._context.ptz);
       setInProgressForThisTarget(ptzCameraID, this._context, 'ptz', this);
@@ -88,12 +90,10 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
       const singleStep = async (): Promise<void> => {
         /* istanbul ignore else: the else path cannot be reached as ptz_action
         being present is checked above -- @preserve */
-        if (this._action.ptz_action) {
-          await api
-            .getCameraManager()
-            .executePTZAction(ptzCameraID, this._action.ptz_action, {
-              preset: this._action.ptz_preset,
-            });
+        if (action.ptz_action) {
+          await api.getCameraManager().executePTZAction(ptzCameraID, action.ptz_action, {
+            preset: action.ptz_preset,
+          });
         }
 
         if (!this._stopped) {
@@ -109,30 +109,26 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
 
       this._stopped = false;
       await singleStep();
-    } else if (this._action.ptz_phase === 'stop') {
+    } else if (action.ptz_phase === 'stop') {
       // Scenario: Asked to stop continuous move, camera only supports relative moves natively.
       await stopInProgressForThisTarget(ptzCameraID, this._context.ptz);
     } else {
       this._stopped = false;
 
       // Relative move (but camera only supports continuous).
-      await api
-        .getCameraManager()
-        .executePTZAction(ptzCameraID, this._action.ptz_action, {
-          preset: this._action.ptz_preset,
-          phase: 'start',
-        });
+      await api.getCameraManager().executePTZAction(ptzCameraID, action.ptz_action, {
+        preset: action.ptz_preset,
+        phase: 'start',
+      });
 
       this._timer.start(ptzConfiguration.c2r_delay_between_calls_seconds, async () => {
         /* istanbul ignore else: the else path cannot be reached as ptz_action
         being present is checked above -- @preserve */
-        if (this._action.ptz_action) {
-          await api
-            .getCameraManager()
-            .executePTZAction(ptzCameraID, this._action.ptz_action, {
-              preset: this._action.ptz_preset,
-              phase: 'stop',
-            });
+        if (action.ptz_action) {
+          await api.getCameraManager().executePTZAction(ptzCameraID, action.ptz_action, {
+            preset: action.ptz_preset,
+            phase: 'stop',
+          });
         }
       });
     }

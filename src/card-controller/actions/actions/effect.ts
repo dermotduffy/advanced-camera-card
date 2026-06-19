@@ -6,15 +6,16 @@ export class EffectAction extends AdvancedCameraCardAction<EffectActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    switch (this._action.effect_action) {
+    const action = this._getAction();
+    switch (action.effect_action) {
       case 'start':
-        api.getEffectsManager().startEffect(this._action.effect);
+        api.getEffectsManager().startEffect(action.effect);
         break;
       case 'stop':
-        api.getEffectsManager().stopEffect(this._action.effect);
+        api.getEffectsManager().stopEffect(action.effect);
         break;
       case 'toggle':
-        api.getEffectsManager().toggleEffect(this._action.effect);
+        api.getEffectsManager().toggleEffect(action.effect);
         break;
     }
   }

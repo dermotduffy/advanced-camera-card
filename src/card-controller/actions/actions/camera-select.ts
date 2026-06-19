@@ -6,9 +6,10 @@ export class CameraSelectAction extends AdvancedCameraCardAction<CameraSelectAct
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
+    const action = this._getAction();
     const selectCameraID =
-      this._action.camera ??
-      (this._action.triggered
+      action.camera ??
+      (action.triggered
         ? api.getCameraTriggersManager().getMostRecentlyTriggeredCameraID()
         : null);
     const view = api.getViewManager().getView();
