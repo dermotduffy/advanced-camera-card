@@ -1,4 +1,5 @@
 import { isMatch } from 'lodash-es';
+import { isRecord } from '../utils/basic';
 
 // Deep subset match between an HA bus event's payload `data` and a user-
 // configured filter. Mirrors HA automation `event_data` semantics: every key in
@@ -8,4 +9,4 @@ import { isMatch } from 'lodash-es';
 export const matchesEventData = (
   filter: Record<string, unknown>,
   data: unknown,
-): boolean => typeof data === 'object' && data !== null && isMatch(data, filter);
+): boolean => isRecord(data) && isMatch(data, filter);

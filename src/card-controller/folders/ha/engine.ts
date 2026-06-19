@@ -1,6 +1,6 @@
 import { sub } from 'date-fns';
 import { NonEmptyTuple } from 'type-fest';
-import { ConditionState } from '../../../conditions/types';
+import { ConditionState } from '../../../condition-trigger/conditions/types';
 import {
   FolderConfig,
   folderTypeSchema,

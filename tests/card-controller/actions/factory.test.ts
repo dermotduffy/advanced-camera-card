@@ -12,6 +12,7 @@ import { DownloadAction } from '../../../src/card-controller/actions/actions/dow
 import { EffectAction } from '../../../src/card-controller/actions/actions/effect';
 import { ExpandAction } from '../../../src/card-controller/actions/actions/expand';
 import { FullscreenAction } from '../../../src/card-controller/actions/actions/fullscreen';
+import { IfAction } from '../../../src/card-controller/actions/actions/if';
 import { InfoAction } from '../../../src/card-controller/actions/actions/info';
 import { InternalCallbackAction } from '../../../src/card-controller/actions/actions/internal-callback';
 import { LogAction } from '../../../src/card-controller/actions/actions/log';
@@ -85,6 +86,11 @@ describe('ActionFactory', () => {
       const factory = new ActionFactory();
       expect(factory.createAction({}, action)).toBeInstanceOf(classObject);
     });
+  });
+
+  it('should create an if action', () => {
+    const factory = new ActionFactory();
+    expect(factory.createAction({}, { if: [], then: [] })).toBeInstanceOf(IfAction);
   });
 
   describe('custom actions', () => {

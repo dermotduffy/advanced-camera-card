@@ -12,7 +12,7 @@ import {
   IssueDescription,
   IssueKey,
 } from '../../../src/card-controller/issues/types';
-import { ConditionStateManager } from '../../../src/conditions/state-manager';
+import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { InteractionMode } from '../../../src/config/schema/view';
 import {
   createCardAPI,

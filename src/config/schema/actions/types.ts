@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import { linkSchema } from '../common/link';
+import { preprocessToArray } from '../common/preprocess-to-array';
 import { severitySchema } from '../common/severity';
 import { statusBarItemBaseSchema } from '../common/status-bar';
+import { Condition, conditionSchema } from '../condition-trigger/conditions/types';
+import { actionBaseSchema } from './base';
 import { advancedCameraCardCustomActionsBaseSchema } from './custom/base';
 import { callAnswerActionConfigSchema } from './custom/call-answer';
 import { callEndActionConfigSchema } from './custom/call-end';
@@ -22,13 +25,20 @@ import { sleepActionConfigSchema } from './custom/sleep';
 import { substreamOffActionConfigSchema } from './custom/substream-off';
 import { substreamOnActionConfigSchema } from './custom/substream-on';
 import { viewActionConfigSchema } from './custom/view';
-import { stockActionSchema } from './stock/types';
+import { callServiceActionSchema } from './stock/call-service';
+import { customActionSchema } from './stock/custom';
+import { moreInfoActionSchema } from './stock/more-info';
+import { navigateActionSchema } from './stock/navigate';
+import { noneActionSchema } from './stock/none';
+import { performActionActionSchema } from './stock/perform-action';
+import { toggleActionSchema } from './stock/toggle';
+import { urlActionSchema } from './stock/url';
 
 // ============================================================================
-// Notification and Status Bar action schemas are co-located here because their
-// content schemas reference actionConfigSchema (creating a circular dep).
-// Each uses z.lazy + a manual type annotation to break the cycle and preserve
-// correct type inference.
+// The Notification, Status Bar, and `if`/`then`/`else` action schemas are
+// co-located here because their content references actionConfigSchema (creating
+// a circular dep). Each uses z.lazy + a manual type annotation to break the
+// cycle and preserve correct type inference.
 // See: https://zod.dev/?id=recursive-types
 // ============================================================================
 
@@ -88,9 +98,41 @@ export type AdvancedCameraCardCustomActionConfig = z.infer<
   typeof advancedCameraCardCustomActionSchema
 >;
 
+// HA `if`/`then`/`else` script action: unlike most actions this has no `action:`
+// key, and is identified by the presence of an `if` key. `then`/`else` reference
+// actionConfigSchema recursively, so it uses z.lazy to break the cycle.
+export type IfActionConfig = z.infer<typeof actionBaseSchema> & {
+  if: Condition[];
+  then: ActionConfig[];
+  else?: ActionConfig[];
+};
+const ifActionConfigSchema: z.ZodSchema<IfActionConfig> = actionBaseSchema.extend({
+  if: preprocessToArray(conditionSchema.array()),
+  then: preprocessToArray(z.lazy(() => actionConfigSchema).array()),
+  else: preprocessToArray(z.lazy(() => actionConfigSchema).array()).optional(),
+});
+
+// The HA stock actions. Assembled here, rather than in a `stock/` file, because
+// it includes the recursive `if` action above (which must live in this module).
+const stockActionSchema = z.union([
+  callServiceActionSchema,
+  customActionSchema,
+  ifActionConfigSchema,
+  moreInfoActionSchema,
+  navigateActionSchema,
+  noneActionSchema,
+  performActionActionSchema,
+  toggleActionSchema,
+  urlActionSchema,
+]);
+
+// The specific custom schemas must come *before* the stock union: the latter
+// contains `customActionSchema`, a loose `action: fire-dom-event` catch-all
+// that would otherwise match (and shadow) every specific custom action,
+// dropping their defaults and validation.
 export const actionConfigSchema = z.union([
-  stockActionSchema,
   advancedCameraCardCustomActionSchema,
+  stockActionSchema,
 ]);
 export type ActionConfig = z.infer<typeof actionConfigSchema>;
 

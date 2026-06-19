@@ -55,9 +55,9 @@ export class DefaultManager {
       this._api.getAutomationsManager().addAutomations([
         {
           actions: [createGeneralAction('default')],
-          conditions: [
+          triggers: [
             {
-              condition: 'interaction' as const,
+              trigger: 'interaction' as const,
               interaction: false,
             },
           ],

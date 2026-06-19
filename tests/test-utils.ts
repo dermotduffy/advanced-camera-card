@@ -24,6 +24,7 @@ import {
 import { ActionsManager } from '../src/card-controller/actions/actions-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
 import { CallManager } from '../src/card-controller/call/manager';
+import { CameraTriggersManager } from '../src/card-controller/camera-triggers-manager';
 import { CameraURLManager } from '../src/card-controller/camera-url-manager';
 import {
   CardElementManager,
@@ -37,8 +38,8 @@ import { ExpandManager } from '../src/card-controller/expand-manager';
 import { FoldersManager } from '../src/card-controller/folders/manager';
 import { FolderQuery } from '../src/card-controller/folders/types';
 import { FullscreenManager } from '../src/card-controller/fullscreen/fullscreen-manager';
-import { HASSManager } from '../src/card-controller/hass/hass-manager';
 import { EventWatcherSubscriptionInterface } from '../src/card-controller/hass/event-watcher';
+import { HASSManager } from '../src/card-controller/hass/hass-manager';
 import { StateWatcherSubscriptionInterface } from '../src/card-controller/hass/state-watcher';
 import { InitializationManager } from '../src/card-controller/initialization-manager';
 import { InteractionManager } from '../src/card-controller/interaction-manager';
@@ -54,11 +55,10 @@ import { PIPManager } from '../src/card-controller/pip-manager';
 import { QueryStringManager } from '../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../src/card-controller/style-manager';
-import { TriggersManager } from '../src/card-controller/triggers-manager';
 import { ViewItemManager } from '../src/card-controller/view/item-manager';
 import { ViewManager } from '../src/card-controller/view/view-manager';
 import { SubmenuInteraction, SubmenuItem } from '../src/components/submenu/types';
-import { ConditionStateManager } from '../src/conditions/state-manager';
+import { ConditionStateManager } from '../src/condition-trigger/conditions/state-manager';
 import { CameraConfig, cameraConfigSchema } from '../src/config/schema/cameras';
 import { FolderConfig } from '../src/config/schema/folders';
 import {
@@ -725,7 +725,7 @@ export const createCardAPI = (): CardController => {
   api.getQueryStringManager.mockReturnValue(mock<QueryStringManager>());
   api.getStatusBarItemManager.mockReturnValue(mock<StatusBarItemManager>());
   api.getStyleManager.mockReturnValue(mock<StyleManager>());
-  api.getTriggersManager.mockReturnValue(mock<TriggersManager>());
+  api.getCameraTriggersManager.mockReturnValue(mock<CameraTriggersManager>());
   api.getViewItemManager.mockReturnValue(mock<ViewItemManager>());
   api.getViewManager.mockReturnValue(mock<ViewManager>());
 

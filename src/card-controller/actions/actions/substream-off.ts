@@ -8,7 +8,7 @@ export class SubstreamOffAction extends AdvancedCameraCardAction<SubstreamOffAct
     await super.execute(api);
 
     api.getViewManager().setViewByParameters({
-      modifiers: [new SubstreamViewModifier({ camera: this._action.camera })],
+      modifiers: [new SubstreamViewModifier({ camera: this._getAction().camera })],
     });
   }
 }

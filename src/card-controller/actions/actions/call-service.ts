@@ -11,7 +11,8 @@ export class CallServiceAction extends AdvancedCameraCardAction<CallServiceActio
       return;
     }
 
-    const [domain, service] = this._action.service.split('.', 2);
-    await hass.callService(domain, service, this._action.data, this._action.target);
+    const action = this._getAction();
+    const [domain, service] = action.service.split('.', 2);
+    await hass.callService(domain, service, action.data, action.target);
   }
 }

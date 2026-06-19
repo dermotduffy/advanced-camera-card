@@ -48,25 +48,26 @@ export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialAction
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
+    const action = this._getAction();
     const view = api.getViewManager().getView();
     if (!view) {
       return;
     }
 
     const targetID =
-      this._action.target_id ??
+      action.target_id ??
       getPTZTarget(view, { type: 'digital', cameraManager: api.getCameraManager() })
         ?.targetID;
     if (!targetID) {
       return;
     }
 
-    if (!!this._action.absolute || !this._action.ptz_phase) {
+    if (!!action.absolute || !action.ptz_phase) {
       return await this._stepChange(api, targetID);
     }
 
     /* istanbul ignore else: the else path cannot be reached -- @preserve */
-    if (this._action.ptz_phase === 'start') {
+    if (action.ptz_phase === 'start') {
       await stopInProgressForThisTarget(targetID, this._context.ptzDigital);
       setInProgressForThisTarget(targetID, this._context, 'ptzDigital', this);
 
@@ -74,21 +75,22 @@ export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialAction
       this._timer.startRepeated(STEP_DELAY_SECONDS, () =>
         this._stepChange(api, targetID),
       );
-    } else if (this._action.ptz_phase === 'stop') {
+    } else if (action.ptz_phase === 'stop') {
       await stopInProgressForThisTarget(targetID, this._context.ptzDigital);
       delete this._context.ptzDigital?.[targetID];
     }
   }
 
   private _convertActionToZoomSettings(base?: PartialZoomSettings): PartialZoomSettings {
-    if (!this._action.absolute && !this._action.ptz_action) {
+    const action = this._getAction();
+    if (!action.absolute && !action.ptz_action) {
       // If neither an absolute position nor an action are specified, the request
       // is assumed to be to return to default.
       return {};
     }
 
-    if (this._action.absolute) {
-      return this._action.absolute;
+    if (action.absolute) {
+      return action.absolute;
     }
 
     const zoom = base?.zoom ?? ZOOM_DEFAULT_SCALE;
@@ -98,21 +100,21 @@ export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialAction
     };
 
     const zoomDelta =
-      this._action.ptz_action === 'zoom_in'
+      action.ptz_action === 'zoom_in'
         ? STEP_ZOOM
-        : this._action.ptz_action === 'zoom_out'
+        : action.ptz_action === 'zoom_out'
           ? -STEP_ZOOM
           : 0;
     const xDelta =
-      this._action.ptz_action === 'left'
+      action.ptz_action === 'left'
         ? -STEP_PAN
-        : this._action.ptz_action === 'right'
+        : action.ptz_action === 'right'
           ? STEP_PAN
           : 0;
     const yDelta =
-      this._action.ptz_action === 'up'
+      action.ptz_action === 'up'
         ? -STEP_PAN
-        : this._action.ptz_action === 'down'
+        : action.ptz_action === 'down'
           ? STEP_PAN
           : 0;
 

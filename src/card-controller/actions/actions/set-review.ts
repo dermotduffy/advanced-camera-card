@@ -18,7 +18,7 @@ export class SetReviewAction extends AdvancedCameraCardAction<SetReviewActionCon
       return;
     }
 
-    const targetReviewedState = this._action.reviewed;
+    const targetReviewedState = this._getAction().reviewed;
     if (targetReviewedState !== undefined && targetReviewedState === item.isReviewed()) {
       return;
     }

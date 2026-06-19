@@ -37,6 +37,7 @@ import {
   ActionConfig,
   Actions,
   AdvancedCameraCardCustomActionConfig,
+  IfActionConfig,
   NotificationActionConfig,
 } from '../config/schema/actions/types.js';
 import { AdvancedCameraCardUserSpecifiedView } from '../config/schema/common/const.js';
@@ -387,17 +388,48 @@ export function getActionConfigGivenAction(
  * @returns `true` if there's a real action defined, `false` otherwise.
  */
 export const hasAction = (config?: ActionConfig | ActionConfig[]): boolean => {
-  return arrayify(config).some((item) => item.action !== 'none');
+  return arrayify(config).some((item) => isIfAction(item) || item.action !== 'none');
+};
+
+export const isIfAction = (action: ActionConfig): action is IfActionConfig => {
+  // The `if`/`then`/`else` action is structural: it has no `action:`
+  // discriminator and is identified by the presence of an `if` key.
+  return !('action' in action) && 'if' in action;
+};
+
+export const isStandardAction = (
+  action: ActionConfig,
+): action is Exclude<ActionConfig, IfActionConfig> => {
+  // Every action except the structural `if`/`then`/`else` action carries an
+  // `action:` discriminator.
+  return 'action' in action;
 };
 
 export const isAdvancedCameraCardCustomAction = (
   action: ActionConfig,
 ): action is AdvancedCameraCardCustomActionConfig => {
   return (
+    isStandardAction(action) &&
     action.action === 'fire-dom-event' &&
     'advanced_camera_card_action' in action &&
     typeof action.advanced_camera_card_action === 'string'
   );
+};
+
+/**
+ * Get a short human-readable name identifying an action (e.g. for confirmation
+ * prompts).
+ * @param action The action config.
+ * @returns The action's identifying name.
+ */
+export const getActionName = (action: ActionConfig): string => {
+  if (isIfAction(action)) {
+    return 'if';
+  }
+  if (isAdvancedCameraCardCustomAction(action)) {
+    return action.advanced_camera_card_action;
+  }
+  return action.action;
 };
 
 /**

@@ -1,4 +1,4 @@
-import { ConditionStateChange } from '../../../conditions/types';
+import { ConditionStateChange } from '../../../condition-trigger/conditions/types';
 import { WebkitHTMLVideoElement } from '../../../types';
 import { Timer } from '../../../utils/timer';
 import { FullscreenProviderBase } from '../provider';

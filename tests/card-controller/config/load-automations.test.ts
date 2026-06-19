@@ -20,7 +20,7 @@ describe('setAutomationsFromConfig', () => {
             advanced_camera_card_action: 'clips',
           },
         ],
-        conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
+        triggers: [{ trigger: 'fullscreen' as const, fullscreen: true }],
       },
     ];
     const api = createCardAPI();

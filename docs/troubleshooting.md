@@ -43,6 +43,23 @@ To upgrade:
 If the automatic upgrade button is not visible, your configuration may already
 be up to date. Try clearing your browser cache and reloading.
 
+### Configuration could not be fully upgraded
+
+Automatic configuration upgrades are not perfect. If you see a notification that
+your configuration could not be fully upgraded, you will find part of your
+configuration set aside -- untouched -- under an `__UPGRADE_FAILURE__` field.
+
+To resolve it:
+
+1. Edit your card's YAML manually and find the `__UPGRADE_FAILURE__` key.
+1. Re-create each entry under it in the current format (see the relevant
+   configuration documentation in the sidebar). An upgrade usually fails this
+   way when a feature has been retired, or changed enough that the migration
+   needs human judgement.
+1. Once you're happy with the result, delete the `__UPGRADE_FAILURE__` key.
+
+The notification clears once the `__UPGRADE_FAILURE__` key is gone.
+
 ### Media does not load
 
 Media not loading? Permanent "loading circle"?

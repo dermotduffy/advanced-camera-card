@@ -6,6 +6,7 @@ export class PTZControlsAction extends AdvancedCameraCardAction<PTZControlsActio
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
+    const action = this._getAction();
     const currentEnabled = api.getViewManager().getView()?.context?.ptzControls?.enabled;
 
     // If `enabled` is explicit, use it. If only `type` is being changed, leave
@@ -13,8 +14,8 @@ export class PTZControlsAction extends AdvancedCameraCardAction<PTZControlsActio
     // toggle the current enabled value — this is the menu-button show/hide use
     // case.
     const enabled =
-      this._action.enabled ??
-      (this._action.type
+      action.enabled ??
+      (action.type
         ? undefined
         : currentEnabled === undefined
           ? undefined
@@ -23,7 +24,7 @@ export class PTZControlsAction extends AdvancedCameraCardAction<PTZControlsActio
     api.getViewManager().setViewWithMergedContext({
       ptzControls: {
         ...(enabled !== undefined && { enabled }),
-        ...(this._action.type && { type: this._action.type }),
+        ...(action.type && { type: action.type }),
       },
     });
   }

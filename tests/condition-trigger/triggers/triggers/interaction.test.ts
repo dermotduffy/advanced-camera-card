@@ -1,0 +1,50 @@
+import { describe, expect, it, Mock, vi } from 'vitest';
+import { TemplateRenderer } from '../../../../src/card-controller/templates';
+import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
+import { InteractionTrigger } from '../../../../src/condition-trigger/triggers/triggers/interaction';
+import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+
+// @vitest-environment jsdom
+describe('InteractionTrigger', () => {
+  const create = (
+    trigger: TriggerOfType<'interaction'>,
+  ): { stateManager: ConditionStateManager; callback: Mock } => {
+    const stateManager = new ConditionStateManager();
+    const callback = vi.fn();
+    new InteractionTrigger(trigger, {
+      stateManager,
+      templateRenderer: new TemplateRenderer(),
+    }).subscribe(callback);
+    return { stateManager, callback };
+  };
+
+  it('should trigger on any change without a value', () => {
+    const { stateManager, callback } = create({ trigger: 'interaction' });
+    stateManager.setState({ interaction: true });
+    stateManager.setState({ interaction: false });
+    expect(callback).toHaveBeenCalledTimes(2);
+  });
+
+  it('should trigger only on changes to the given value', () => {
+    const { stateManager, callback } = create({
+      trigger: 'interaction',
+      interaction: true,
+    });
+    stateManager.setState({ interaction: true });
+    stateManager.setState({ interaction: false });
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should trigger on the falling edge to a false value', () => {
+    const { stateManager, callback } = create({
+      trigger: 'interaction',
+      interaction: false,
+    });
+
+    stateManager.setState({ interaction: true });
+    expect(callback).not.toHaveBeenCalled();
+
+    stateManager.setState({ interaction: false });
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+});

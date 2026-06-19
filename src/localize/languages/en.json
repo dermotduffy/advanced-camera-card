@@ -830,6 +830,10 @@
       "heading": "Configuration upgrade available",
       "text": "A configuration upgrade is available. To upgrade, edit this card (Dashboard pencil icon \u2192 Three-dot menu \u2192 Edit) and click the 'Automatic Upgrade' button in the card editor"
     },
+    "config_upgrade_failure": {
+      "heading": "Configuration could not be fully upgraded",
+      "text": "An automatic configuration upgrade did not complete successfully. Non-upgraded configuration has been set aside under '__UPGRADE_FAILURE__' in your configuration. Manually examine, upgrade and remove those entries."
+    },
     "connection": {
       "lost": {
         "heading": "Connection lost",

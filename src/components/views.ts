@@ -16,7 +16,7 @@ import { MicrophoneState } from '../card-controller/types.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import { CallSession } from '../card-controller/call/types.js';
-import { ConditionStateManagerReadonlyInterface } from '../conditions/types.js';
+import { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types.js';
 import { AdvancedCameraCardConfig, CardWideConfig } from '../config/schema/types.js';
 import { RawAdvancedCameraCardConfig } from '../config/types.js';
 import { DeviceRegistryManager } from '../ha/registry/device/index.js';

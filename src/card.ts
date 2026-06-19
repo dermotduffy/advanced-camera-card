@@ -25,7 +25,7 @@ import './components/status-bar';
 import './components/thumbnail-carousel.js';
 import './components/views.js';
 import { AdvancedCameraCardViews } from './components/views.js';
-import { ConditionStateManagerGetEvent } from './conditions/state-manager-via-event.js';
+import { ConditionStateManagerGetEvent } from './condition-trigger/conditions/state-manager-via-event.js';
 import { StatusBarItem } from './config/schema/actions/types.js';
 import { MenuItem } from './config/schema/elements/custom/menu/types.js';
 import { AdvancedCameraCardConfig } from './config/schema/types.js';
@@ -457,7 +457,7 @@ class AdvancedCameraCard extends LitElement {
               .locked=${this._controller.getLockManager().isLocked()}
               .conditionStateManager=${this._controller.getConditionStateManager()}
               .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
-                ? this._controller.getTriggersManager().getTriggeredCameraIDs()
+                ? this._controller.getCameraTriggersManager().getTriggeredCameraIDs()
                 : undefined}
               .deviceRegistryManager=${this._controller.getDeviceRegistryManager()}
               .issues=${this._controller

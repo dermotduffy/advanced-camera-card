@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { HomeAssistant } from '../../ha/types';
-import { KeyedSubscriptionManager } from '../../utils/keyed-subscription-manager';
+import { KeyedSubscriptionManager } from '../../utils/concurrency/keyed-subscription-manager';
 import {
   FrigateEventChange,
   FrigateReviewChange,

@@ -8,6 +8,6 @@ export class SleepAction extends AdvancedCameraCardAction<SleepActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    await sleep(timeDeltaToSeconds(this._action.duration));
+    await sleep(timeDeltaToSeconds(this._getAction().duration));
   }
 }

@@ -1,28 +1,20 @@
 import { HASS, renderTemplate } from 'ha-nunjucks/dist';
-import { ConditionState, ConditionsTriggerData } from '../../conditions/types';
+import { ConditionState } from '../../condition-trigger/conditions/types';
+import { TriggerData } from '../../condition-trigger/triggers/types';
 import { HomeAssistant } from '../../ha/types';
-
-interface TemplateMediaData {
-  title: string;
-  is_folder: boolean;
-}
-interface TemplateContextInternal {
-  camera?: string;
-  view?: string;
-  trigger?: ConditionsTriggerData;
-  media?: TemplateMediaData;
-}
+import { isRecord } from '../../utils/basic';
+import { TemplateACCNamespace, TemplateMediaData } from './types';
 
 interface TemplateContext {
-  advanced_camera_card: TemplateContextInternal;
+  acc: TemplateACCNamespace;
 
-  // Convenient alias.
-  acc: TemplateContextInternal;
+  // The HA-native top-level `trigger`, set only when a trigger fired.
+  trigger?: TriggerData;
 }
 
 interface TemplateRenderOptions {
   conditionState?: ConditionState;
-  triggerData?: ConditionsTriggerData;
+  triggerData?: TriggerData;
   mediaData?: TemplateMediaData;
 }
 
@@ -45,22 +37,23 @@ export class TemplateRenderer {
     if (
       !options?.conditionState?.camera &&
       !options?.conditionState?.view &&
+      !options?.conditionState?.config &&
       !options?.triggerData &&
       !options?.mediaData
     ) {
       return;
     }
 
-    const advancedCameraCardContext: TemplateContextInternal = {
+    const acc: TemplateACCNamespace = {
       ...(options?.conditionState?.camera && { camera: options.conditionState.camera }),
       ...(options?.conditionState?.view && { view: options.conditionState.view }),
-      ...(options?.triggerData && { trigger: options.triggerData }),
+      ...(options?.conditionState?.config && { config: options.conditionState.config }),
       ...(options?.mediaData && { media: options.mediaData }),
     };
 
     return {
-      acc: advancedCameraCardContext,
-      advanced_camera_card: advancedCameraCardContext,
+      acc,
+      ...(options?.triggerData && { trigger: options.triggerData }),
     };
   }
 
@@ -81,7 +74,7 @@ export class TemplateRenderer {
       return data.map((item) =>
         this._renderTemplateRecursively(hass, item, templateContext),
       );
-    } else if (typeof data === 'object' && data !== null) {
+    } else if (isRecord(data)) {
       const result = {};
       for (const key in data) {
         result[key] = this._renderTemplateRecursively(hass, data[key], templateContext);

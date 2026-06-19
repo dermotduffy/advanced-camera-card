@@ -234,6 +234,12 @@ export const setOrRemoveStyleProperty = <T extends string>(
 export const isTruthy = <T>(x: T | false | undefined | null | '' | 0): x is T => !!x;
 
 /**
+ * Allow typescript to narrow an unknown value to a non-null object.
+ */
+export const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+/**
  * Allow typescript to narrow types for HTMLElements.
  */
 export const isHTMLElement = (element: unknown): element is HTMLElement =>
@@ -291,7 +297,7 @@ export const desparsifyArrays = <T>(data: T): T => {
     return <T>(
       data.filter((item) => item !== undefined).map((item) => desparsifyArrays(item))
     );
-  } else if (typeof data === 'object' && data !== null) {
+  } else if (isRecord(data)) {
     const result: Record<string | number | symbol, unknown> = {};
     for (const key in data) {
       result[key] = desparsifyArrays(data[key]);

@@ -7,7 +7,7 @@ export class MoreInfoAction extends AdvancedCameraCardAction<MoreInfoActionConfi
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    const entityID = this._action.entity ?? this._config?.entity ?? null;
+    const entityID = this._getAction().entity ?? this._config?.entity ?? null;
     if (!entityID) {
       return;
     }

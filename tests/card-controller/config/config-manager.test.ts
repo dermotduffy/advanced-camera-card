@@ -5,9 +5,9 @@ import { ConfigManager } from '../../../src/card-controller/config/config-manage
 import { setRemoteControlEntityFromConfig } from '../../../src/card-controller/config/load-control-entities';
 import { setKeyboardShortcutsFromConfig } from '../../../src/card-controller/config/load-keyboard-shortcuts';
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
-import { ConditionStateManager } from '../../../src/conditions/state-manager';
+import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { Automation } from '../../../src/config/schema/automations';
-import { AdvancedCameraCardCondition } from '../../../src/config/schema/conditions/types';
+import { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
 import { createGeneralAction } from '../../../src/utils/action';
 import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
@@ -507,8 +507,8 @@ describe('ConfigManager', () => {
         expect(addAutomationsSpy).toHaveBeenCalledWith(
           expect.arrayContaining([
             expect.objectContaining({
-              conditions: expect.arrayContaining([
-                expect.objectContaining({ condition: 'key', key: 'h' }),
+              triggers: expect.arrayContaining([
+                expect.objectContaining({ trigger: 'key', key: 'h' }),
               ]),
               actions: expect.arrayContaining([
                 expect.objectContaining({
@@ -530,9 +530,8 @@ describe('ConfigManager', () => {
         const addCalls = addAutomationsSpy.mock.calls;
         const hasKeyboardShortcut = addCalls.some((call) =>
           call[0].some((automation: Automation) =>
-            automation.conditions?.some(
-              (cond: AdvancedCameraCardCondition) =>
-                cond.condition === 'key' && cond.key === 'h',
+            automation.triggers.some(
+              (trig: Trigger) => trig.trigger === 'key' && trig.key === 'h',
             ),
           ),
         );
@@ -610,7 +609,7 @@ describe('ConfigManager', () => {
         );
 
         const automation = {
-          conditions: [TEST_CONDITIONS.FULLSCREEN_OFF],
+          triggers: [{ trigger: 'fullscreen' as const, fullscreen: false }],
           actions: [createGeneralAction('screenshot')],
         };
         const config = createConfig({
@@ -672,7 +671,7 @@ describe('ConfigManager', () => {
         );
 
         const automation = {
-          conditions: [TEST_CONDITIONS.FULLSCREEN_ON],
+          triggers: [{ trigger: 'fullscreen' as const, fullscreen: true }],
           actions: [createGeneralAction('screenshot')],
         };
         const config = createConfig({
@@ -728,9 +727,9 @@ describe('ConfigManager', () => {
         expect(addAutomationsSpy).toHaveBeenCalledWith(
           expect.arrayContaining([
             expect.objectContaining({
-              conditions: expect.arrayContaining([
+              triggers: expect.arrayContaining([
                 expect.objectContaining({
-                  condition: 'config',
+                  trigger: 'config',
                   paths: expect.arrayContaining(['remote_control.entities.camera']),
                 }),
               ]),
@@ -752,10 +751,10 @@ describe('ConfigManager', () => {
         const addCalls = addAutomationsSpy.mock.calls;
         const hasRemoteControl = addCalls.some((call) =>
           call[0].some((automation: Automation) =>
-            automation.conditions?.some(
-              (cond: AdvancedCameraCardCondition) =>
-                cond.condition === 'config' &&
-                cond.paths?.includes('remote_control.entities.camera'),
+            automation.triggers.some(
+              (trig: Trigger) =>
+                trig.trigger === 'config' &&
+                trig.paths?.includes('remote_control.entities.camera'),
             ),
           ),
         );
@@ -771,9 +770,9 @@ describe('ConfigManager', () => {
         expect(addAutomationsSpy).toHaveBeenCalledWith(
           expect.arrayContaining([
             expect.objectContaining({
-              conditions: expect.arrayContaining([
+              triggers: expect.arrayContaining([
                 expect.objectContaining({
-                  condition: 'config',
+                  trigger: 'config',
                   paths: expect.arrayContaining(['remote_control.entities.camera']),
                 }),
               ]),

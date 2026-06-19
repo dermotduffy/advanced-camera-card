@@ -1,7 +1,8 @@
 import { ActionContext } from 'action';
+import { TriggerData } from '../../condition-trigger/triggers/types';
 import { INTERNAL_CALLBACK_ACTION } from '../../config/schema/actions/custom/internal';
 import { ActionConfig, AuxillaryActionConfig } from '../../config/schema/actions/types';
-import { isAdvancedCameraCardCustomAction } from '../../utils/action';
+import { isAdvancedCameraCardCustomAction, isIfAction } from '../../utils/action';
 import { CallAnswerAction } from './actions/call-answer';
 import { CallEndAction } from './actions/call-end';
 import { CallServiceAction } from './actions/call-service';
@@ -15,6 +16,7 @@ import { DownloadAction } from './actions/download';
 import { EffectAction } from './actions/effect';
 import { ExpandAction } from './actions/expand';
 import { FullscreenAction } from './actions/fullscreen';
+import { IfAction } from './actions/if';
 import { InfoAction } from './actions/info';
 import { InternalCallbackAction } from './actions/internal-callback';
 import { LogAction } from './actions/log';
@@ -50,21 +52,34 @@ import { URLAction } from './actions/url';
 import { ViewAction } from './actions/view';
 import { Action } from './types';
 
+export interface ActionFactoryOptions {
+  config?: AuxillaryActionConfig;
+  cardID?: string;
+
+  // The firing automation's trigger payload (if any), forwarded to actions with
+  // nested actions (e.g. `if`) so their branches can still resolve `trigger.*`
+  // templates when they render per-step.
+  triggerData?: TriggerData;
+}
+
 export class ActionFactory {
   public createAction(
     context: ActionContext,
     action: ActionConfig,
-    options?: {
-      config?: AuxillaryActionConfig;
-      cardID?: string;
-    },
+    options?: ActionFactoryOptions,
   ): Action | null {
     if (
       // Command not intended for this card (e.g. query string command).
+      // `card_id` is a static routing identifier, matched on the raw (template
+      // unrendered) config.
       action.card_id &&
       action.card_id !== options?.cardID
     ) {
       return null;
+    }
+
+    if (isIfAction(action)) {
+      return new IfAction(context, action, options?.config, options?.triggerData);
     }
 
     switch (action.action) {
@@ -182,11 +197,12 @@ export class ActionFactory {
         return new InternalCallbackAction(context, action, options?.config);
     }
 
-    /* istanbul ignore next: this path cannot be reached -- @preserve */
+    // Reached when the discriminator is not a known action type -- e.g. a
+    // templated `advanced_camera_card_action`, which is classified on the raw
+    // (unrendered) action and so never matches a case.
     console.warn(
       `Advanced Camera Card received unknown card action: ${action['advanced_camera_card_action']}`,
     );
-    /* istanbul ignore next: this path cannot be reached -- @preserve */
     return null;
   }
 }

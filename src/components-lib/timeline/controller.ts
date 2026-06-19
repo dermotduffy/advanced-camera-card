@@ -19,7 +19,7 @@ import { FoldersManager } from '../../card-controller/folders/manager';
 import { ViewItemManager } from '../../card-controller/view/item-manager';
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context';
 import { ViewManagerEpoch } from '../../card-controller/view/types';
-import { ConditionStateManagerReadonlyInterface } from '../../conditions/types';
+import { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
 import { CameraConfig } from '../../config/schema/cameras';
 import { AdvancedCameraCardView } from '../../config/schema/common/const';
 import { ThumbnailsControlBaseConfig } from '../../config/schema/common/controls/thumbnails';

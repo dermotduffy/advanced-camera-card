@@ -14,13 +14,14 @@ export class SubstreamOnAction extends AdvancedCameraCardAction<SubstreamOnActio
       return;
     }
 
-    const cameraID = this._action.camera ?? view.camera;
+    const action = this._getAction();
+    const cameraID = action.camera ?? view.camera;
     if (!cameraID) {
       return;
     }
 
     const stream =
-      this._action.stream ??
+      action.stream ??
       this._getCycledSubstreamID(view, cameraID, api.getCameraManager());
 
     api.getViewManager().setViewByParameters({

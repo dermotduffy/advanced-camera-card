@@ -7,6 +7,7 @@ import {
   deleteWithOverrides,
   getArrayConfigPath,
   getConfigValue,
+  hasConfigUpgradeFailures,
   isConfigUpgradeable,
   moveConfigValue,
   setConfigValue,
@@ -35,19 +36,19 @@ describe('general functions', () => {
   });
 
   describe('should get value', () => {
-    it('present', () => {
+    it('should get a present value', () => {
       expect(getConfigValue({ b: 11 }, 'b')).toEqual(11);
     });
-    it('absent', () => {
+    it('should return undefined for an absent value', () => {
       expect(getConfigValue({ b: 11 }, 'c')).toBeUndefined();
     });
-    it('absent with default', () => {
+    it('should return the default for an absent value', () => {
       expect(getConfigValue({ b: 11 }, 'c', 12)).toBe(12);
     });
   });
 
   describe('should unset value', () => {
-    it('nested', () => {
+    it('should unset a nested value', () => {
       const target = {
         moo: {
           foo: {
@@ -62,7 +63,7 @@ describe('general functions', () => {
       expect(target).toEqual({ moo: { bar: { b: 11 } } });
     });
 
-    it('top-level', () => {
+    it('should unset a top-level value', () => {
       const target = {
         a: 10,
         b: 11,
@@ -120,19 +121,47 @@ describe('upgrade functions', () => {
     ).toBeTruthy();
   });
 
+  describe('should detect config upgrade failures', () => {
+    it('should report no failures for a null config', () => {
+      expect(hasConfigUpgradeFailures(null)).toBeFalsy();
+    });
+
+    it('should report no failures when nothing has failed', () => {
+      expect(
+        hasConfigUpgradeFailures({ type: 'custom:advanced-camera-card' }),
+      ).toBeFalsy();
+    });
+
+    it('should report no failures when the namespace is not a record', () => {
+      expect(hasConfigUpgradeFailures({ __UPGRADE_FAILURE__: 'nonsense' })).toBeFalsy();
+    });
+
+    it('should report no failures for an empty namespace', () => {
+      expect(hasConfigUpgradeFailures({ __UPGRADE_FAILURE__: {} })).toBeFalsy();
+    });
+
+    it('should report a failure when the namespace is non-empty', () => {
+      expect(
+        hasConfigUpgradeFailures({
+          __UPGRADE_FAILURE__: { automations: [{ actions_not: [] }] },
+        }),
+      ).toBeTruthy();
+    });
+  });
+
   describe('should create ranged transform', () => {
     describe('with numbers', () => {
-      it('inside range', () => {
+      it('should keep a value inside the range', () => {
         expect(createRangedTransform((val) => val, 10, 20)(11)).toBe(11);
       });
-      it('outside range', () => {
+      it('should clamp a value outside the range', () => {
         expect(createRangedTransform((val) => val, 10, 20)(1)).toBe(10);
       });
-      it('with a range', () => {
+      it('should pass a value through with no range bounds', () => {
         expect(createRangedTransform((val) => val)(100)).toBe(100);
       });
     });
-    it('with non-number', () => {
+    it('should pass a non-number through', () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       expect(createRangedTransform((_val) => 'foo')(1)).toBe('foo');
     });
@@ -143,7 +172,7 @@ describe('upgrade functions', () => {
   });
 
   describe('should move config value', () => {
-    it('simple', () => {
+    it('should move a value', () => {
       const config = {
         foo: {
           c: 10,
@@ -158,7 +187,7 @@ describe('upgrade functions', () => {
     });
 
     describe('in place', () => {
-      it('non-transformed', () => {
+      it('should not modify a non-transformed in-place value', () => {
         const config = {
           foo: {
             c: 10,
@@ -172,7 +201,7 @@ describe('upgrade functions', () => {
         });
       });
 
-      it('transformed', () => {
+      it('should transform an in-place value', () => {
         const config = {
           foo: {
             c: 10,
@@ -190,7 +219,7 @@ describe('upgrade functions', () => {
     });
 
     describe('with transform result', () => {
-      it('move', () => {
+      it('should move with a transform result', () => {
         const config = {
           c: 10,
         };
@@ -200,7 +229,7 @@ describe('upgrade functions', () => {
         expect(config).toEqual({ d: '10' });
       });
 
-      it('keep original', () => {
+      it('should keep the original with a transform result', () => {
         const config = {
           c: 10,
         };
@@ -215,7 +244,7 @@ describe('upgrade functions', () => {
     });
 
     describe('with transform null result', () => {
-      it('remove', () => {
+      it('should remove on a null transform result', () => {
         const config = {
           c: 10,
         };
@@ -226,7 +255,7 @@ describe('upgrade functions', () => {
         expect(config).toEqual({});
       });
 
-      it('keep', () => {
+      it('should keep the original on a null transform result', () => {
         const config = {
           c: 10,
         };
@@ -241,7 +270,7 @@ describe('upgrade functions', () => {
       });
     });
 
-    it('with transform undefined result', () => {
+    it('should not modify on an undefined transform result', () => {
       const config = {
         c: 10,
       };
@@ -298,19 +327,19 @@ describe('upgrade functions', () => {
   });
 
   describe('should upgrade array', () => {
-    it('in case of non-array', () => {
+    it('should handle a non-array', () => {
       const config = { c: 10 };
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       expect(upgradeArrayOfObjects('c', (_val) => false)(config)).toBeFalsy();
     });
 
-    it('in case of non-object items', () => {
+    it('should handle non-object items', () => {
       const config = { c: [10, 11] };
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       expect(upgradeArrayOfObjects('c', (_val) => false)(config)).toBeFalsy();
     });
 
-    it('in case of array', () => {
+    it('should upgrade each object in an array', () => {
       const config = { c: [{ d: 10 }, { d: 11 }] };
       expect(
         upgradeArrayOfObjects('c', (val) => {
@@ -334,14 +363,14 @@ describe('upgrade functions', () => {
   });
 
   describe('should recursively upgrade', () => {
-    it('ignoring simple objects', () => {
+    it('should ignore simple objects', () => {
       const config = { c: 10, d: 10 };
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       expect(upgradeObjectRecursively((_val) => false)(config)).toBeFalsy();
       expect(config).toEqual({ c: 10, d: 10 });
     });
 
-    it('getting sub-objects', () => {
+    it('should get sub-objects', () => {
       const config = { c: 10, target_obj: { target_val: 10 } };
       expect(
         upgradeObjectRecursively(
@@ -355,7 +384,7 @@ describe('upgrade functions', () => {
       expect(config).toEqual({ c: 10, target_obj: { target_val: 11 } });
     });
 
-    it('iterating into arrays', () => {
+    it('should iterate into arrays', () => {
       const config = { values: [{ c: 10 }, { d: 10 }, 'random'] };
       expect(
         upgradeObjectRecursively((val) => {
@@ -404,8 +433,8 @@ describe('should handle version specific upgrades', () => {
   };
 
   describe('v5.2.0 -> v6.0.0', () => {
-    describe('should rename service_data to data', () => {
-      it('positive case', () => {
+    describe('should rename service_data -> data', () => {
+      it('should rename service_data -> data', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -507,7 +536,7 @@ describe('should handle version specific upgrades', () => {
         });
         postUpgradeChecks(config);
       });
-      it('negative case', () => {
+      it('should not change a config with nothing to rename', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -528,7 +557,7 @@ describe('should handle version specific upgrades', () => {
     });
 
     describe('should move PTZ elements to live', () => {
-      it('case with 1 element', () => {
+      it('should move a single PTZ element to live', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -584,7 +613,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('case with >1 element', () => {
+      it('should move a PTZ element to live and keep other elements', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -658,7 +687,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('case with custom conditional element with 2 PTZ but nothing else', () => {
+      it('should move PTZ from a custom conditional element with nothing else remaining', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -741,7 +770,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('case with custom conditional element with 1 PTZ and another element', () => {
+      it('should move PTZ from a custom conditional element keeping the other element', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -839,7 +868,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('case with stock conditional element with 1 PTZ', () => {
+      it('should move PTZ from a stock conditional element', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -901,7 +930,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('case when live.controls.ptz already exists', () => {
+      it('should not overwrite an existing live.controls.ptz', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -1020,7 +1049,7 @@ describe('should handle version specific upgrades', () => {
     describe('should handle all and never action conditions', () => {
       describe('live', () => {
         describe('lazy_unload', () => {
-          it('all', () => {
+          it('should handle all', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1038,7 +1067,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('never', () => {
+          it('should handle never', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1054,7 +1083,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('other value', () => {
+          it('should handle another value', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1075,7 +1104,7 @@ describe('should handle version specific upgrades', () => {
         });
 
         describe('auto_play', () => {
-          it('all', () => {
+          it('should handle all', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1091,7 +1120,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('never', () => {
+          it('should handle never', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1109,7 +1138,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('other value', () => {
+          it('should handle another value', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1129,7 +1158,7 @@ describe('should handle version specific upgrades', () => {
           });
         });
         describe('auto_pause', () => {
-          it('all', () => {
+          it('should handle all', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1147,7 +1176,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('never', () => {
+          it('should handle never', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1163,7 +1192,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('other value', () => {
+          it('should handle another value', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1183,7 +1212,7 @@ describe('should handle version specific upgrades', () => {
           });
         });
         describe('auto_mute', () => {
-          it('all', () => {
+          it('should handle all', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1199,7 +1228,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('never', () => {
+          it('should handle never', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1217,7 +1246,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('other value', () => {
+          it('should handle another value', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1237,7 +1266,7 @@ describe('should handle version specific upgrades', () => {
           });
         });
         describe('auto_unmute', () => {
-          it('all', () => {
+          it('should handle all', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1255,7 +1284,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('never', () => {
+          it('should handle never', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1271,7 +1300,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('other value', () => {
+          it('should handle another value', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1294,7 +1323,7 @@ describe('should handle version specific upgrades', () => {
 
       describe('media_viewer', () => {
         describe('auto_play', () => {
-          it('all', () => {
+          it('should handle all', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1310,7 +1339,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('never', () => {
+          it('should handle never', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1328,7 +1357,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('other value', () => {
+          it('should handle another value', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1348,7 +1377,7 @@ describe('should handle version specific upgrades', () => {
           });
         });
         describe('auto_pause', () => {
-          it('all', () => {
+          it('should handle all', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1364,7 +1393,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('never', () => {
+          it('should handle never', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1382,7 +1411,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('other value', () => {
+          it('should handle another value', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1402,7 +1431,7 @@ describe('should handle version specific upgrades', () => {
           });
         });
         describe('auto_mute', () => {
-          it('all', () => {
+          it('should handle all', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1418,7 +1447,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('never', () => {
+          it('should handle never', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1436,7 +1465,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('other value', () => {
+          it('should handle another value', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1456,7 +1485,7 @@ describe('should handle version specific upgrades', () => {
           });
         });
         describe('auto_unmute', () => {
-          it('all', () => {
+          it('should handle all', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1474,7 +1503,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('never', () => {
+          it('should handle never', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1490,7 +1519,7 @@ describe('should handle version specific upgrades', () => {
             });
             postUpgradeChecks(config);
           });
-          it('other value', () => {
+          it('should handle another value', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{}],
@@ -1512,9 +1541,9 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
-    describe('should rename thumbnails.media to thumbnails.events_media_type', () => {
+    describe('should rename thumbnails.media -> thumbnails.events_media_type', () => {
       it.each([['all' as const], ['clips' as const], ['snapshots' as const]])(
-        '%s',
+        'should handle %s',
         (mediaEventType: string) => {
           const config = {
             type: 'custom:advanced-camera-card',
@@ -1551,9 +1580,9 @@ describe('should handle version specific upgrades', () => {
       );
     });
 
-    describe('should rename timeline.media to timeline.events_media_type', () => {
+    describe('should rename timeline.media -> timeline.events_media_type', () => {
       it.each([['all' as const], ['clips' as const], ['snapshots' as const]])(
-        '%s',
+        'should handle %s',
         (mediaEventType: string) => {
           const config = {
             type: 'custom:advanced-camera-card',
@@ -1575,9 +1604,9 @@ describe('should handle version specific upgrades', () => {
       );
     });
 
-    describe('should rename live.controls.timeline.media to live.controls.timeline.events_media_type', () => {
+    describe('should rename live.controls.timeline.media -> live.controls.timeline.events_media_type', () => {
       it.each([['all' as const], ['clips' as const], ['snapshots' as const]])(
-        '%s',
+        'should handle %s',
         (mediaEventType: string) => {
           const config = {
             type: 'custom:advanced-camera-card',
@@ -1607,9 +1636,9 @@ describe('should handle version specific upgrades', () => {
       );
     });
 
-    describe('should rename media_viewer.controls.timeline.media to media_viewer.controls.timeline.events_media_type', () => {
+    describe('should rename media_viewer.controls.timeline.media -> media_viewer.controls.timeline.events_media_type', () => {
       it.each([['all' as const], ['clips' as const], ['snapshots' as const]])(
-        '%s',
+        'should handle %s',
         (mediaEventType: string) => {
           const config = {
             type: 'custom:advanced-camera-card',
@@ -1641,7 +1670,7 @@ describe('should handle version specific upgrades', () => {
 
     describe('should transform scan mode', () => {
       describe('should move and transform untrigger_reset', () => {
-        it('when true', () => {
+        it('should handle when true', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -1666,7 +1695,7 @@ describe('should handle version specific upgrades', () => {
           postUpgradeChecks(config);
         });
 
-        it('when false', () => {
+        it('should handle when false', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -1689,7 +1718,7 @@ describe('should handle version specific upgrades', () => {
       });
 
       describe('should rename view.scan.enabled to a trigger action', () => {
-        it('when true', () => {
+        it('should handle when true', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{}],
@@ -1715,7 +1744,7 @@ describe('should handle version specific upgrades', () => {
           postUpgradeChecks(config);
         });
 
-        it('when false', () => {
+        it('should handle when false', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{}],
@@ -1739,7 +1768,7 @@ describe('should handle version specific upgrades', () => {
     });
 
     describe('should handle media layout changes', () => {
-      it('from live.layout to camera_global.dimensions', () => {
+      it('should move live.layout -> cameras_global.dimensions', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{}],
@@ -1775,7 +1804,7 @@ describe('should handle version specific upgrades', () => {
 
       describe('from delete old media layouts', () => {
         it.each([['media_viewer' as const], ['image' as const]])(
-          '%s',
+          'should handle %s',
           (section: string) => {
             const config = {
               type: 'custom:advanced-camera-card',
@@ -1804,7 +1833,7 @@ describe('should handle version specific upgrades', () => {
 
     describe('from condition object to condition array', () => {
       describe('with view condition', () => {
-        it('elements', () => {
+        it('should convert conditions on elements', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -1844,7 +1873,7 @@ describe('should handle version specific upgrades', () => {
           postUpgradeChecks(config);
         });
 
-        it('overrides', () => {
+        it('should convert conditions on overrides', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -1885,7 +1914,7 @@ describe('should handle version specific upgrades', () => {
           postUpgradeChecks(config);
         });
 
-        it('automations', () => {
+        it('should convert conditions on automations', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -1910,9 +1939,9 @@ describe('should handle version specific upgrades', () => {
             cameras: [{ camera_entity: 'camera.office' }],
             automations: [
               {
-                conditions: [
+                triggers: [
                   {
-                    condition: 'view' as const,
+                    trigger: 'view' as const,
                     views: ['clips', 'snapshots'],
                   },
                 ],
@@ -1930,7 +1959,7 @@ describe('should handle version specific upgrades', () => {
       });
 
       describe('with camera condition', () => {
-        it('elements', () => {
+        it('should convert conditions on elements', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -1970,7 +1999,7 @@ describe('should handle version specific upgrades', () => {
           postUpgradeChecks(config);
         });
 
-        it('overrides', () => {
+        it('should convert conditions on overrides', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -2011,7 +2040,7 @@ describe('should handle version specific upgrades', () => {
           postUpgradeChecks(config);
         });
 
-        it('automations', () => {
+        it('should convert conditions on automations', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -2036,9 +2065,9 @@ describe('should handle version specific upgrades', () => {
             cameras: [{ camera_entity: 'camera.office' }],
             automations: [
               {
-                conditions: [
+                triggers: [
                   {
-                    condition: 'camera' as const,
+                    trigger: 'camera' as const,
                     cameras: ['camera_1', 'camera_2'],
                   },
                 ],
@@ -2061,7 +2090,7 @@ describe('should handle version specific upgrades', () => {
           ['expand' as const],
           ['media_loaded' as const],
         ])('%s', (condition: string) => {
-          it('elements', () => {
+          it('should convert conditions on elements', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{ camera_entity: 'camera.office' }],
@@ -2101,7 +2130,7 @@ describe('should handle version specific upgrades', () => {
             postUpgradeChecks(config);
           });
 
-          it('overrides', () => {
+          it('should convert conditions on overrides', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{ camera_entity: 'camera.office' }],
@@ -2142,7 +2171,7 @@ describe('should handle version specific upgrades', () => {
             postUpgradeChecks(config);
           });
 
-          it('automations', () => {
+          it('should convert conditions on automations', () => {
             const config = {
               type: 'custom:advanced-camera-card',
               cameras: [{ camera_entity: 'camera.office' }],
@@ -2167,9 +2196,9 @@ describe('should handle version specific upgrades', () => {
               cameras: [{ camera_entity: 'camera.office' }],
               automations: [
                 {
-                  conditions: [
+                  triggers: [
                     {
-                      condition: condition,
+                      trigger: condition,
                       [condition]: true,
                     },
                   ],
@@ -2188,7 +2217,7 @@ describe('should handle version specific upgrades', () => {
       });
 
       describe('with state condition', () => {
-        it('elements', () => {
+        it('should convert conditions on elements', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -2225,12 +2254,12 @@ describe('should handle version specific upgrades', () => {
                 conditions: [
                   {
                     condition: 'state' as const,
-                    entity: 'binary_sensor.first',
+                    entity_id: 'binary_sensor.first',
                     state: 'on',
                   },
                   {
                     condition: 'state' as const,
-                    entity: 'binary_sensor.second',
+                    entity_id: 'binary_sensor.second',
                     state_not: 'off',
                   },
                 ],
@@ -2244,7 +2273,7 @@ describe('should handle version specific upgrades', () => {
           postUpgradeChecks(config);
         });
 
-        it('overrides', () => {
+        it('should convert conditions on overrides', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -2281,12 +2310,12 @@ describe('should handle version specific upgrades', () => {
                 conditions: [
                   {
                     condition: 'state' as const,
-                    entity: 'binary_sensor.first',
+                    entity_id: 'binary_sensor.first',
                     state: 'on',
                   },
                   {
                     condition: 'state' as const,
-                    entity: 'binary_sensor.second',
+                    entity_id: 'binary_sensor.second',
                     state_not: 'off',
                   },
                 ],
@@ -2301,7 +2330,7 @@ describe('should handle version specific upgrades', () => {
           postUpgradeChecks(config);
         });
 
-        it('automations', () => {
+        it('should convert conditions on automations', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -2339,13 +2368,25 @@ describe('should handle version specific upgrades', () => {
                 conditions: [
                   {
                     condition: 'state' as const,
-                    entity: 'binary_sensor.first',
+                    entity_id: 'binary_sensor.first',
                     state: 'on',
                   },
                   {
                     condition: 'state' as const,
-                    entity: 'binary_sensor.second',
+                    entity_id: 'binary_sensor.second',
                     state_not: 'off',
+                  },
+                ],
+                triggers: [
+                  {
+                    trigger: 'state' as const,
+                    entity_id: 'binary_sensor.first',
+                    to: 'on',
+                  },
+                  {
+                    trigger: 'state' as const,
+                    entity_id: 'binary_sensor.second',
+                    not_to: 'off',
                   },
                 ],
                 actions: [
@@ -2362,7 +2403,7 @@ describe('should handle version specific upgrades', () => {
       });
 
       describe('with media query condition', () => {
-        it('elements', () => {
+        it('should convert conditions on elements', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -2402,7 +2443,7 @@ describe('should handle version specific upgrades', () => {
           postUpgradeChecks(config);
         });
 
-        it('overrides', () => {
+        it('should convert conditions on overrides', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -2443,7 +2484,7 @@ describe('should handle version specific upgrades', () => {
           postUpgradeChecks(config);
         });
 
-        it('automations', () => {
+        it('should convert conditions on automations', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{ camera_entity: 'camera.office' }],
@@ -2468,9 +2509,9 @@ describe('should handle version specific upgrades', () => {
             cameras: [{ camera_entity: 'camera.office' }],
             automations: [
               {
-                conditions: [
+                triggers: [
                   {
-                    condition: 'screen' as const,
+                    trigger: 'screen' as const,
                     media_query: 'query',
                   },
                 ],
@@ -2489,7 +2530,7 @@ describe('should handle version specific upgrades', () => {
     });
 
     describe('from hide to substream capability disable', () => {
-      it('overrides', () => {
+      it('should disable substream capability from a hidden camera', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [
@@ -2513,7 +2554,7 @@ describe('should handle version specific upgrades', () => {
       });
 
       describe('from performance profile to generic profile', () => {
-        it('low performance', () => {
+        it('should migrate the low performance profile', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{}],
@@ -2532,7 +2573,7 @@ describe('should handle version specific upgrades', () => {
           postUpgradeChecks(config);
         });
 
-        it('high performance', () => {
+        it('should handle the high performance profile', () => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{}],
@@ -2552,7 +2593,7 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
-    it('from overrides to merge', () => {
+    it('should move overrides -> merge', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{}],
@@ -2617,7 +2658,7 @@ describe('should handle version specific upgrades', () => {
         tap_action: getActionBefore(action),
       });
 
-      it('with action_ format', () => {
+      it('should transform the action_ format', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{}],
@@ -2687,7 +2728,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('with data_ format', () => {
+      it('should transform the data_ format', () => {
         const getDataAction = (action: PTZControlAction): Actions => ({
           action: {
             device: '048123',
@@ -2764,7 +2805,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('with invalid ptz type', () => {
+      it('should handle an invalid ptz type', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{}],
@@ -2778,7 +2819,7 @@ describe('should handle version specific upgrades', () => {
         expect(upgradeConfig(config)).toBeFalsy();
       });
 
-      it('with nothing to transform', () => {
+      it('should handle nothing to transform', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{}],
@@ -2794,7 +2835,7 @@ describe('should handle version specific upgrades', () => {
         expect(upgradeConfig(config)).toBeFalsy();
       });
 
-      it('without tap_action', () => {
+      it('should handle a missing tap_action', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{}],
@@ -2823,7 +2864,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('without pre-existing presets', () => {
+      it('should handle no pre-existing presets', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{}],
@@ -2857,7 +2898,7 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
-    it('view.update_cycle_camera -> view.default_cycle_camera', () => {
+    it('should rename view.update_cycle_camera -> view.default_cycle_camera', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{}],
@@ -2907,7 +2948,7 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
-    it('view.update_seconds', () => {
+    it('should move view.update_seconds', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{}],
@@ -2925,7 +2966,7 @@ describe('should handle version specific upgrades', () => {
       postUpgradeChecks(config);
     });
 
-    it('view.update_entities', () => {
+    it('should move view.update_entities', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{}],
@@ -2944,7 +2985,7 @@ describe('should handle version specific upgrades', () => {
     });
 
     describe('title controls to status bar', () => {
-      it('when mode is none', () => {
+      it('should handle when mode is none', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{}],
@@ -2980,7 +3021,7 @@ describe('should handle version specific upgrades', () => {
 
       describe('when mode is invalid type', () => {
         it.each([[{ mode: { should_not_be: 'an object' } }], ['sideways']])(
-          '%s',
+          'should handle %s',
           (mode: unknown) => {
             const config = {
               type: 'custom:advanced-camera-card',
@@ -3018,7 +3059,7 @@ describe('should handle version specific upgrades', () => {
         it.each([
           [`popup-${position}-left` as const],
           [`popup-${position}-right` as const],
-        ])('%s', (mode: string) => {
+        ])('should handle %s', (mode: string) => {
           const config = {
             type: 'custom:advanced-camera-card',
             cameras: [{}],
@@ -3054,7 +3095,7 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
-    it('rename call-service -> perform-action', () => {
+    it('should rename call-service -> perform-action', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3109,7 +3150,7 @@ describe('should handle version specific upgrades', () => {
       postUpgradeChecks(config);
     });
 
-    it('rename dimensions.max_height -> dimensions.height', () => {
+    it('should rename dimensions.max_height -> dimensions.height', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3128,7 +3169,7 @@ describe('should handle version specific upgrades', () => {
       postUpgradeChecks(config);
     });
 
-    it('delete dimensions.min_height', () => {
+    it('should delete dimensions.min_height', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3152,7 +3193,7 @@ describe('should handle version specific upgrades', () => {
         ['on' as const, true],
         ['auto' as const, false],
         ['off' as const, false],
-      ])('%s', (darkMode: 'on' | 'off' | 'auto', expected: boolean) => {
+      ])('should handle %s', (darkMode: 'on' | 'off' | 'auto', expected: boolean) => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -3174,7 +3215,7 @@ describe('should handle version specific upgrades', () => {
   });
 
   describe('v7.0.0+', () => {
-    it('custom:frigate-card -> custom:advanced-camera-card', () => {
+    it('should rename custom:frigate-card -> custom:advanced-camera-card', () => {
       const config = {
         type: 'custom:frigate-card',
         cameras: [{}],
@@ -3187,7 +3228,7 @@ describe('should handle version specific upgrades', () => {
       postUpgradeChecks(config);
     });
 
-    it('custom:frigate-card-action -> custom:advanced-camera-card-action', () => {
+    it('should rename custom:frigate-card-action -> custom:advanced-camera-card-action', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3236,7 +3277,7 @@ describe('should handle version specific upgrades', () => {
       postUpgradeChecks(config);
     });
 
-    it('custom:frigate-card-menu-icon -> custom:advanced-camera-card-menu-icon', () => {
+    it('should rename custom:frigate-card-menu-icon -> custom:advanced-camera-card-menu-icon', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3261,7 +3302,7 @@ describe('should handle version specific upgrades', () => {
       postUpgradeChecks(config);
     });
 
-    it('custom:frigate-card-menu-state-icon -> custom:advanced-camera-card-menu-state-icon', () => {
+    it('should rename custom:frigate-card-menu-state-icon -> custom:advanced-camera-card-menu-state-icon', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3288,7 +3329,7 @@ describe('should handle version specific upgrades', () => {
       postUpgradeChecks(config);
     });
 
-    it('custom:frigate-card-menu-submenu -> custom:advanced-camera-card-menu-submenu', () => {
+    it('should rename custom:frigate-card-menu-submenu -> custom:advanced-camera-card-menu-submenu', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3315,7 +3356,7 @@ describe('should handle version specific upgrades', () => {
       postUpgradeChecks(config);
     });
 
-    it('custom:frigate-card-status-bar-icon -> custom:advanced-camera-card-status-bar-icon', () => {
+    it('should rename custom:frigate-card-status-bar-icon -> custom:advanced-camera-card-status-bar-icon', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3340,7 +3381,7 @@ describe('should handle version specific upgrades', () => {
       postUpgradeChecks(config);
     });
 
-    it('custom:frigate-card-status-bar-image -> custom:advanced-camera-card-status-bar-image', () => {
+    it('should rename custom:frigate-card-status-bar-image -> custom:advanced-camera-card-status-bar-image', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3365,7 +3406,7 @@ describe('should handle version specific upgrades', () => {
       postUpgradeChecks(config);
     });
 
-    it('custom:frigate-card-status-bar-string -> custom:advanced-camera-card-status-bar-string', () => {
+    it('should rename custom:frigate-card-status-bar-string -> custom:advanced-camera-card-status-bar-string', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3390,7 +3431,7 @@ describe('should handle version specific upgrades', () => {
       postUpgradeChecks(config);
     });
 
-    it('custom:frigate-card-conditional -> custom:advanced-camera-card-conditional', () => {
+    it('should rename custom:frigate-card-conditional -> custom:advanced-camera-card-conditional', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3417,7 +3458,7 @@ describe('should handle version specific upgrades', () => {
       postUpgradeChecks(config);
     });
 
-    it('frigate_card_action -> advanced_camera_card_action', () => {
+    it('should rename frigate_card_action -> advanced_camera_card_action', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3467,7 +3508,7 @@ describe('should handle version specific upgrades', () => {
     });
 
     describe('frigate card style overrides -> advanced camera card style overrides', () => {
-      it('valid style overrides', () => {
+      it('should rename valid style overrides', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -3534,7 +3575,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('invalid style overrides', () => {
+      it('should handle invalid style overrides', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -3548,7 +3589,7 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
-    it('frigate card button -> iris button', () => {
+    it('should rename the frigate card button -> the iris button', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3617,7 +3658,7 @@ describe('should handle version specific upgrades', () => {
   describe('v8.0.0+', () => {
     describe('live.controls.thumbnails.media_type -> cameras_global.media.type', () => {
       it.each([['events' as const], ['recordings' as const]])(
-        '%s',
+        'should handle %s',
         (mediaType: string) => {
           const config = {
             type: 'custom:advanced-camera-card',
@@ -3652,7 +3693,7 @@ describe('should handle version specific upgrades', () => {
 
     describe('live.controls.thumbnails.events_media_type -> cameras_global.media.events_type', () => {
       it.each([['clips' as const], ['snapshots' as const]])(
-        '%s',
+        'should handle %s',
         (eventsType: string) => {
           const config = {
             type: 'custom:advanced-camera-card',
@@ -3684,7 +3725,7 @@ describe('should handle version specific upgrades', () => {
         },
       );
 
-      it('all', () => {
+      it('should handle all', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{}],
@@ -3710,7 +3751,7 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
-    it('view.triggers.untrigger_seconds -> view.triggers.untrigger_delay_seconds', () => {
+    it('should rename view.triggers.untrigger_seconds -> view.triggers.untrigger_delay_seconds', () => {
       const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{}],
@@ -3768,7 +3809,7 @@ describe('should handle version specific upgrades', () => {
     });
 
     describe('ptz data_*_start/stop -> data_start/end_* (WebRTC ordering)', () => {
-      it('in cameras_global.ptz', () => {
+      it('should transform in cameras_global.ptz', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{}],
@@ -3790,7 +3831,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('in cameras[n].ptz', () => {
+      it('should transform in cameras[n].ptz', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [
@@ -3813,7 +3854,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('ignores non-object ptz value', () => {
+      it('should ignore a non-object ptz value', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{}],
@@ -3825,7 +3866,7 @@ describe('should handle version specific upgrades', () => {
         expect(upgradeConfig(config)).toBeFalsy();
       });
 
-      it('does not overwrite existing WebRTC key', () => {
+      it('should not overwrite an existing WebRTC key', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{}],
@@ -3847,8 +3888,8 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
-    describe('microphone.connected → call condition', () => {
-      it('rewrites connected:true to call:true in an automation', () => {
+    describe('microphone.connected -> call condition', () => {
+      it('should rewrite connected:true -> call:true in an automation', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -3865,13 +3906,13 @@ describe('should handle version specific upgrades', () => {
           ],
         };
         expect(upgradeConfig(config)).toBeTruthy();
-        expect(config.automations[0].conditions).toEqual([
-          { condition: 'call', call: true },
-        ]);
+        expect(config.automations[0]).toEqual(
+          expect.objectContaining({ triggers: [{ trigger: 'call', call: true }] }),
+        );
         postUpgradeChecks(config);
       });
 
-      it('rewrites connected:false to call:false', () => {
+      it('should rewrite connected:false -> call:false', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -3888,13 +3929,13 @@ describe('should handle version specific upgrades', () => {
           ],
         };
         expect(upgradeConfig(config)).toBeTruthy();
-        expect(config.automations[0].conditions).toEqual([
-          { condition: 'call', call: false },
-        ]);
+        expect(config.automations[0]).toEqual(
+          expect.objectContaining({ triggers: [{ trigger: 'call', call: false }] }),
+        );
         postUpgradeChecks(config);
       });
 
-      it('leaves a microphone.muted only condition untouched', () => {
+      it('should not convert a microphone.muted only condition to call', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -3910,14 +3951,16 @@ describe('should handle version specific upgrades', () => {
             },
           ],
         };
-        expect(upgradeConfig(config)).toBeFalsy();
-        expect(config.automations[0].conditions).toEqual([
-          { condition: 'microphone', muted: true },
-        ]);
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual(
+          expect.objectContaining({
+            triggers: [{ trigger: 'microphone', muted: true }],
+          }),
+        );
         postUpgradeChecks(config);
       });
 
-      it('splits a condition with both connected and muted into an AND condition', () => {
+      it('should split a condition with both connected and muted into an AND condition', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -3946,7 +3989,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('migrates a microphone.connected nested under or/and/not', () => {
+      it('should migrate a microphone.connected nested under or/and/not', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -3997,7 +4040,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('migrates conditions on elements and overrides', () => {
+      it('should migrate conditions on elements and overrides', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4025,7 +4068,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('is idempotent', () => {
+      it('should be idempotent', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4045,15 +4088,1121 @@ describe('should handle version specific upgrades', () => {
 
         // Running upgradeConfig again should not change anything.
         expect(upgradeConfig(config)).toBeFalsy();
-        expect(config.automations[0].conditions).toEqual([
-          { condition: 'call', call: true },
-        ]);
+        expect(config.automations[0]).toEqual(
+          expect.objectContaining({ triggers: [{ trigger: 'call', call: true }] }),
+        );
         postUpgradeChecks(config);
       });
     });
 
-    describe('cameras[].triggers.events string[] → triggers.media_events', () => {
-      it('migrates a legacy string array to media_events', () => {
+    describe('automation conditions -> triggers', () => {
+      it('should flatten a composite condition into trigger leaves and keep the composite', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                {
+                  condition: 'or',
+                  conditions: [
+                    { condition: 'camera', cameras: ['front'] },
+                    { condition: 'view', views: ['live'] },
+                  ],
+                },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [
+            {
+              condition: 'or',
+              conditions: [
+                { condition: 'camera', cameras: ['front'] },
+                { condition: 'view', views: ['live'] },
+              ],
+            },
+          ],
+          triggers: [
+            { trigger: 'camera', cameras: ['front'] },
+            { trigger: 'view', views: ['live'] },
+          ],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should leave non-object conditions untouched while rewriting the rest', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                'not-a-condition',
+                { condition: 'camera', cameras: ['front'] },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: ['not-a-condition', { condition: 'camera', cameras: ['front'] }],
+          triggers: ['not-a-condition', { trigger: 'camera', cameras: ['front'] }],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+      });
+
+      it('should leave an automation with no conditions untouched', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        upgradeConfig(config);
+        expect(config.automations[0]).toEqual({
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+      });
+
+      it('should map a discriminator-less state condition to a state trigger', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ entity: 'binary_sensor.x', state: 'on' }],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x', to: 'on' }],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should drop a composite with no nested conditions from the trigger list', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                { condition: 'or' },
+                { condition: 'camera', cameras: ['front'] },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        upgradeConfig(config);
+        expect(config.automations[0]).toEqual({
+          conditions: [{ condition: 'or' }, { condition: 'camera', cameras: ['front'] }],
+          triggers: [{ trigger: 'camera', cameras: ['front'] }],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+      });
+
+      it('should promote stock numeric_state and template by swapping the discriminator', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                { condition: 'numeric_state', entity_id: 'sensor.t', above: 25 },
+                { condition: 'template', value_template: '{{ true }}' },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [
+            { condition: 'numeric_state', entity_id: 'sensor.t', above: 25 },
+            { condition: 'template', value_template: '{{ true }}' },
+          ],
+          triggers: [
+            { trigger: 'numeric_state', entity_id: 'sensor.t', above: 25 },
+            { trigger: 'template', value_template: '{{ true }}' },
+          ],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should drop a trigger-only condition from the retained conditions', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                { condition: 'camera' },
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+          ],
+          triggers: [
+            { trigger: 'camera' },
+            { trigger: 'state', entity_id: 'binary_sensor.door', to: 'on' },
+          ],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should drop the conditions block when all are trigger-only', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'camera' }, { condition: 'view' }],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'camera' }, { trigger: 'view' }],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should prune trigger-only leaves from a retained composite', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                {
+                  condition: 'or',
+                  conditions: [
+                    { condition: 'camera' },
+                    { condition: 'view', views: ['live'] },
+                  ],
+                },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [
+            { condition: 'or', conditions: [{ condition: 'view', views: ['live'] }] },
+          ],
+          triggers: [{ trigger: 'camera' }, { trigger: 'view', views: ['live'] }],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should drop a composite whose leaves are all trigger-only', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                { condition: 'or', conditions: [{ condition: 'camera' }] },
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+          ],
+          triggers: [
+            { trigger: 'camera' },
+            { trigger: 'state', entity_id: 'binary_sensor.door', to: 'on' },
+          ],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should promote a config condition to a config trigger', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                { condition: 'config', paths: ['menu.style'] },
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+          ],
+          triggers: [
+            { trigger: 'config', paths: ['menu.style'] },
+            { trigger: 'state', entity_id: 'binary_sensor.door', to: 'on' },
+          ],
+          actions: [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }],
+        });
+        postUpgradeChecks(config);
+      });
+    });
+
+    describe('automation actions_not -> if/then/else', () => {
+      const automate = (
+        ...automations: RawAdvancedCameraCardConfig[]
+      ): RawAdvancedCameraCardConfig & {
+        automations: RawAdvancedCameraCardConfig[];
+        __UPGRADE_FAILURE__?: RawAdvancedCameraCardConfig;
+      } => ({
+        type: 'custom:advanced-camera-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        automations,
+      });
+
+      const then = [{ action: 'fire-dom-event', advanced_camera_card_action: 'live' }];
+      const elseActions = [
+        { action: 'fire-dom-event', advanced_camera_card_action: 'clips' },
+      ];
+
+      it('should migrate a self-gating state toggle to an if/then/else action', () => {
+        const config = automate({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: [
+            {
+              if: [{ condition: 'state', entity_id: 'binary_sensor.x', state: 'on' }],
+              then,
+              else: elseActions,
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should default then to an empty list when there are no then actions', () => {
+        const config = automate({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+          ],
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: [
+            {
+              if: [{ condition: 'state', entity_id: 'binary_sensor.x', state: 'on' }],
+              then: [],
+              else: elseActions,
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should synthesize a valueless trigger for a card-state condition', () => {
+        const config = automate({
+          conditions: [{ condition: 'fullscreen', fullscreen: true }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'fullscreen' }],
+          actions: [
+            {
+              if: [{ condition: 'fullscreen', fullscreen: true }],
+              then,
+              else: elseActions,
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should watch the entity for a numeric_state condition', () => {
+        const config = automate({
+          conditions: [{ condition: 'numeric_state', entity_id: 'sensor.t', above: 25 }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]['triggers']).toEqual([
+          { trigger: 'state', entity_id: 'sensor.t' },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should preserve config paths in a synthesized config trigger', () => {
+        const config = automate({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+            // `config` is trigger-only: it is dropped from the `if` predicate but
+            // still contributes a trigger (with its `paths` preserved).
+            { condition: 'config', paths: ['menu.style'] },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]['triggers']).toEqual([
+          { trigger: 'state', entity_id: 'binary_sensor.x' },
+          { trigger: 'config', paths: ['menu.style'] },
+        ]);
+        expect(config.automations[0]['actions']).toEqual([
+          {
+            if: [{ condition: 'state', entity_id: 'binary_sensor.x', state: 'on' }],
+            then,
+            else: elseActions,
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should deduplicate identical synthesized triggers', () => {
+        const config = automate({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+            { condition: 'state', entity_id: 'binary_sensor.x', state_not: 'off' },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]['triggers']).toEqual([
+          { trigger: 'state', entity_id: 'binary_sensor.x' },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should record a template condition as an upgrade failure, untouched', () => {
+        const failing = {
+          conditions: [{ condition: 'template', value_template: '{{ true }}' }],
+          actions: then,
+          actions_not: elseActions,
+        };
+        const config = automate({ ...failing });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations).toEqual([]);
+        expect(config['__UPGRADE_FAILURE__']).toEqual({ automations: [failing] });
+        postUpgradeChecks(config);
+      });
+
+      it('should record a screen condition as an upgrade failure, untouched', () => {
+        const failing = {
+          conditions: [{ condition: 'screen', media_query: '(orientation: landscape)' }],
+          actions: then,
+          actions_not: elseActions,
+        };
+        const config = automate({ ...failing });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations).toEqual([]);
+        expect(config['__UPGRADE_FAILURE__']).toEqual({ automations: [failing] });
+        postUpgradeChecks(config);
+      });
+
+      it('should record a numeric_state condition with no entity to watch as an upgrade failure', () => {
+        const failing = {
+          conditions: [
+            { condition: 'numeric_state', above: 25, value_template: '{{ 5 }}' },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        };
+        const config = automate({ ...failing });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations).toEqual([]);
+        expect(config['__UPGRADE_FAILURE__']).toEqual({ automations: [failing] });
+        postUpgradeChecks(config);
+      });
+
+      it('should record mixed conditions as an upgrade failure when any leaf is rising-edge-only', () => {
+        const failing = {
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+            { condition: 'template', value_template: '{{ true }}' },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        };
+        const config = automate({ ...failing });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations).toEqual([]);
+        expect(config['__UPGRADE_FAILURE__']).toEqual({ automations: [failing] });
+        postUpgradeChecks(config);
+      });
+
+      it('should convert one automation and fail another in the same config', () => {
+        const failing = {
+          conditions: [{ condition: 'screen', media_query: '(orientation: landscape)' }],
+          actions: then,
+          actions_not: elseActions,
+        };
+        const config = automate(
+          {
+            conditions: [
+              { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+            ],
+            actions: then,
+            actions_not: elseActions,
+          },
+          { ...failing },
+        );
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations).toEqual([
+          {
+            triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+            actions: [
+              {
+                if: [{ condition: 'state', entity_id: 'binary_sensor.x', state: 'on' }],
+                then,
+                else: elseActions,
+              },
+            ],
+          },
+        ]);
+        expect(config['__UPGRADE_FAILURE__']).toEqual({ automations: [failing] });
+        postUpgradeChecks(config);
+      });
+
+      it('should append to existing automation failures and leave others untouched', () => {
+        const earlier = { some: 'earlier failed automation' };
+        const failing = {
+          conditions: [{ condition: 'screen', media_query: '(orientation: landscape)' }],
+          actions: then,
+          actions_not: elseActions,
+        };
+        const config = automate({ ...failing });
+        config['__UPGRADE_FAILURE__'] = {
+          automations: [earlier],
+          overrides: ['untouched'],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config['__UPGRADE_FAILURE__']).toEqual({
+          automations: [earlier, failing],
+          overrides: ['untouched'],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should fall back to an initialized trigger for all-static conditions', () => {
+        const config = automate({
+          conditions: [{ condition: 'user', users: ['abc'] }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'initialized' }],
+          actions: [
+            {
+              if: [{ condition: 'user', users: ['abc'] }],
+              then,
+              else: elseActions,
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should not synthesize a trigger for a user condition that cannot change at runtime', () => {
+        const config = automate({
+          conditions: [
+            { condition: 'user', users: ['abc'] },
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]['triggers']).toEqual([
+          { trigger: 'state', entity_id: 'binary_sensor.x' },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should drop actions_not when there are no conditions', () => {
+        const config = automate({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: then,
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should keep only the then actions when the conditions are entirely trigger-only', () => {
+        const config = automate({
+          conditions: [{ condition: 'config', paths: ['menu.style'] }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'config', paths: ['menu.style'] }],
+          actions: then,
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should synthesize a valueless config trigger when no paths are given', () => {
+        const config = automate({
+          conditions: [{ condition: 'config' }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'config' }],
+          actions: then,
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should map a discriminator-less state condition to a state trigger', () => {
+        const config = automate({
+          conditions: [{ entity: 'binary_sensor.x', state: 'on' }],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: [
+            {
+              if: [{ entity: 'binary_sensor.x', state: 'on' }],
+              then,
+              else: elseActions,
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should omit else when actions_not is not a list', () => {
+        const config = automate({
+          conditions: [
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+          ],
+          actions: then,
+          actions_not: 'not-a-list',
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: [
+            {
+              if: [{ condition: 'state', entity_id: 'binary_sensor.x', state: 'on' }],
+              then,
+            },
+          ],
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should contribute no trigger for a non-object condition leaf', () => {
+        const config = automate({
+          conditions: [
+            'not-a-condition',
+            { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+          ],
+          actions: then,
+          actions_not: elseActions,
+        });
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]['triggers']).toEqual([
+          { trigger: 'state', entity_id: 'binary_sensor.x' },
+        ]);
+      });
+
+      it('should leave a non-object automation entry untouched', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            'not-an-automation',
+            {
+              conditions: [
+                { condition: 'state', entity_id: 'binary_sensor.x', state: 'on' },
+              ],
+              actions: then,
+              actions_not: elseActions,
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toBe('not-an-automation');
+        expect(config.automations[1]).toEqual({
+          triggers: [{ trigger: 'state', entity_id: 'binary_sensor.x' }],
+          actions: [
+            {
+              if: [{ condition: 'state', entity_id: 'binary_sensor.x', state: 'on' }],
+              then,
+              else: elseActions,
+            },
+          ],
+        });
+      });
+    });
+
+    describe('trigger-only conditions in overrides and elements', () => {
+      it('should drop an override whose only condition is a config condition', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: [
+            {
+              conditions: [{ condition: 'config', paths: ['menu.style'] }],
+              merge: { menu: { style: 'none' } },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.overrides).toEqual([]);
+        postUpgradeChecks(config);
+      });
+
+      it('should strip a config condition from an override with other conditions', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: [
+            {
+              conditions: [
+                { condition: 'config', paths: ['menu.style'] },
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+              merge: { menu: { style: 'none' } },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.overrides).toEqual([
+          {
+            conditions: [
+              { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+            ],
+            merge: { menu: { style: 'none' } },
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should drop an override whose only condition is a valueless camera condition', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: [
+            {
+              conditions: [{ condition: 'camera' }],
+              merge: { menu: { style: 'none' } },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.overrides).toEqual([]);
+        postUpgradeChecks(config);
+      });
+
+      it('should drop a conditional element whose only condition is a config condition', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-conditional',
+              conditions: [{ condition: 'config', paths: ['menu.style'] }],
+              elements: [{ type: 'icon', icon: 'mdi:cow' }],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.elements).toBeUndefined();
+        postUpgradeChecks(config);
+      });
+
+      it('should strip a config condition from a conditional element with other conditions', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-conditional',
+              conditions: [
+                { condition: 'config', paths: ['menu.style'] },
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+              elements: [{ type: 'icon', icon: 'mdi:cow' }],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.elements).toEqual([
+          {
+            type: 'custom:advanced-camera-card-conditional',
+            conditions: [
+              { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+            ],
+            elements: [{ type: 'icon', icon: 'mdi:cow' }],
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should recurse into nested conditional elements, keeping siblings', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-conditional',
+              conditions: [
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+              elements: [
+                { type: 'icon', icon: 'mdi:cow' },
+                {
+                  type: 'custom:advanced-camera-card-conditional',
+                  conditions: [{ condition: 'config', paths: ['menu.style'] }],
+                  elements: [{ type: 'icon', icon: 'mdi:pig' }],
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.elements).toEqual([
+          {
+            type: 'custom:advanced-camera-card-conditional',
+            conditions: [
+              { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+            ],
+            elements: [{ type: 'icon', icon: 'mdi:cow' }],
+          },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should leave malformed entries (no conditions / no elements) untouched', () => {
+        // These shapes are schema-invalid, so the transform must not crash on
+        // them (a non-object override, an entry without a `conditions` array, a
+        // conditional without an `elements` array); it simply leaves them as-is.
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: ['malformed', { merge: {} }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-conditional',
+              conditions: [
+                { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+              ],
+            },
+          ],
+        };
+        upgradeConfig(config);
+        expect(config.overrides).toEqual(['malformed', { merge: {} }]);
+        expect(config.elements).toEqual([
+          {
+            type: 'custom:advanced-camera-card-conditional',
+            conditions: [
+              { condition: 'state', entity_id: 'binary_sensor.door', state: 'on' },
+            ],
+          },
+        ]);
+      });
+    });
+
+    describe('trigger template paths -> top-level trigger.*', () => {
+      it('should rewrite every legacy trigger path in an automation action', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'log',
+                  message:
+                    '{{ acc.trigger.state.entity }} {{ acc.trigger.state.from }} ' +
+                    '{{ acc.trigger.state.to }} {{ acc.trigger.camera.from }} ' +
+                    '{{ acc.trigger.camera.to }} {{ acc.trigger.view.from }} ' +
+                    '{{ acc.trigger.view.to }} {{ acc.trigger.config.from }} ' +
+                    '{{ acc.trigger.config.to }}',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].actions[0].message).toBe(
+          '{{ trigger.entity_id }} {{ trigger.from_state.state }} ' +
+            '{{ trigger.to_state.state }} {{ trigger.from_acc.camera }} ' +
+            '{{ trigger.to_acc.camera }} {{ trigger.from_acc.view }} ' +
+            '{{ trigger.to_acc.view }} {{ trigger.from_acc.config }} ' +
+            '{{ trigger.to_acc.config }}',
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('should also migrate the long advanced_camera_card prefix', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'log',
+                  message: '{{ advanced_camera_card.trigger.state.to }}',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].actions[0].message).toBe(
+          '{{ trigger.to_state.state }}',
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('should rewrite paths in a non-automation menu action', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-icon',
+              icon: 'mdi:cctv',
+              tap_action: {
+                action: 'fire-dom-event',
+                advanced_camera_card_action: 'camera_select',
+                camera: '{{ acc.trigger.camera.to }}',
+              },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.elements[0].tap_action.camera).toBe('{{ trigger.to_acc.camera }}');
+        postUpgradeChecks(config);
+      });
+
+      it('should not rewrite a string without a template marker', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'log',
+                  // No `{{` or `{%`, so it is opaque text, not a template, and is
+                  // left alone.
+                  message: 'see acc.trigger.state.to for details',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.automations[0].actions[0].message).toBe(
+          'see acc.trigger.state.to for details',
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('should migrate a path inside a statement-only template', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'log',
+                  // A `{% %}` statement with no `{{` is still a template.
+                  message: "{% if acc.trigger.state.to == 'on' %}on{% endif %}",
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].actions[0].message).toBe(
+          "{% if trigger.to_state.state == 'on' %}on{% endif %}",
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('should migrate the config trigger path', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              triggers: [{ trigger: 'config' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'log',
+                  message: '{{ acc.trigger.config.to }}',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0].actions[0].message).toBe(
+          '{{ trigger.to_acc.config }}',
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('should be idempotent', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              triggers: [{ trigger: 'state', entity_id: 'binary_sensor.door' }],
+              actions: [
+                {
+                  action: 'fire-dom-event',
+                  advanced_camera_card_action: 'log',
+                  message: '{{ acc.trigger.state.to }}',
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.automations[0].actions[0].message).toBe(
+          '{{ trigger.to_state.state }}',
+        );
+      });
+    });
+
+    describe('ambient advanced_camera_card.* -> acc.*', () => {
+      it('should rewrite the ambient namespace in a template', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-icon',
+              icon: 'mdi:cctv',
+              tap_action: {
+                action: 'fire-dom-event',
+                advanced_camera_card_action: 'log',
+                message:
+                  '{{ advanced_camera_card.camera }} / {{ advanced_camera_card.view }}',
+              },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.elements[0].tap_action.message).toBe(
+          '{{ acc.camera }} / {{ acc.view }}',
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('should leave the short acc spelling untouched', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:advanced-camera-card-menu-icon',
+              icon: 'mdi:cctv',
+              tap_action: {
+                action: 'fire-dom-event',
+                advanced_camera_card_action: 'log',
+                message: '{{ acc.camera }}',
+              },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeFalsy();
+        expect(config.elements[0].tap_action.message).toBe('{{ acc.camera }}');
+      });
+    });
+
+    describe('cameras[].triggers.events string[] -> triggers.media_events', () => {
+      it('should migrate a legacy string array to media_events', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [
@@ -4070,7 +5219,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('migrates an empty legacy array', () => {
+      it('should migrate an empty legacy array', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office', triggers: { events: [] } }],
@@ -4080,7 +5229,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('leaves the new object-array shape untouched', () => {
+      it('should leave the new object-array shape untouched', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [
@@ -4099,7 +5248,7 @@ describe('should handle version specific upgrades', () => {
         });
       });
 
-      it('drops legacy events but keeps an existing media_events untouched', () => {
+      it('should drop legacy events but keep an existing media_events untouched', () => {
         // Both fields present is implausible in real user configs, but if it
         // happens we still must remove the legacy `events: string[]` because
         // the new schema would reject it; the explicit `media_events` wins.
@@ -4122,7 +5271,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('is idempotent across repeated runs', () => {
+      it('should be idempotent across repeated runs', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [
@@ -4137,7 +5286,7 @@ describe('should handle version specific upgrades', () => {
         expect(config.cameras[0].triggers).toEqual({ media_events: ['events'] });
       });
 
-      it('migrates per camera independently', () => {
+      it('should migrate per camera independently', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [
@@ -4157,7 +5306,7 @@ describe('should handle version specific upgrades', () => {
         expect(config.cameras[2].triggers).toBeUndefined();
       });
 
-      it('migrates a legacy cameras_global.triggers.events string array', () => {
+      it('should migrate a legacy cameras_global.triggers.events string array', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4174,7 +5323,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('leaves cameras_global new-shape events untouched', () => {
+      it('should leave cameras_global new-shape events untouched', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4190,7 +5339,7 @@ describe('should handle version specific upgrades', () => {
         });
       });
 
-      it('is a no-op when triggers is not an object (malformed user config)', () => {
+      it('should be a no-op when triggers is not an object', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office', triggers: 'not-an-object' }],
@@ -4200,8 +5349,8 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
-    describe('live_substream_{on,off,select} → substream_{on,off}', () => {
-      it('rewrites live_substream_on to substream_on in an automation', () => {
+    describe('live_substream_{on,off,select} -> substream_{on,off}', () => {
+      it('should rewrite live_substream_on -> substream_on in an automation', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4227,7 +5376,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('rewrites live_substream_off to substream_off in an automation', () => {
+      it('should rewrite live_substream_off -> substream_off in an automation', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4253,7 +5402,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('rewrites live_substream_select to substream_on with camera → stream', () => {
+      it('should rewrite live_substream_select -> substream_on with camera -> stream', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4281,7 +5430,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('rewrites a malformed live_substream_select with no camera field', () => {
+      it('should rewrite a malformed live_substream_select with no camera field', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4307,7 +5456,7 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('migrates actions on elements and overrides', () => {
+      it('should migrate actions on elements and overrides', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4353,16 +5502,16 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('leaves opaque user payloads alone', () => {
+      it('should leave opaque user payloads alone', () => {
         // A perform-action service payload that happens to mention the legacy
-        // action string in its `data` block must not be rewritten — `data` is
+        // action string in its `data` block must not be rewritten -- `data` is
         // opaque, not an action.
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
           automations: [
             {
-              conditions: [{ condition: 'initialized' }],
+              triggers: [{ trigger: 'initialized' }],
               actions: [
                 {
                   action: 'perform-action',
@@ -4387,7 +5536,7 @@ describe('should handle version specific upgrades', () => {
         });
       });
 
-      it('is idempotent', () => {
+      it('should be idempotent', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],

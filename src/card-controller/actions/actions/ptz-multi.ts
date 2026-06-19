@@ -14,8 +14,9 @@ export class PTZMultiAction extends AdvancedCameraCardAction<PTZMultiActionConfi
     let targetID: string | null = null;
     let type: PTZType | null = null;
 
-    if (this._action.target_id) {
-      targetID = this._action.target_id;
+    const action = this._getAction();
+    if (action.target_id) {
+      targetID = action.target_id;
       type = hasCameraTruePTZ(api.getCameraManager(), targetID) ? 'ptz' : 'digital';
     } else if (view) {
       const multiTarget = getPTZTarget(view, { cameraManager: api.getCameraManager() });
@@ -34,26 +35,28 @@ export class PTZMultiAction extends AdvancedCameraCardAction<PTZMultiActionConfi
   }
 
   private _toPTZAction(targetID: string): PTZAction {
+    const action = this._getAction();
     return new PTZAction(
       this._context,
       createPTZAction({
-        cardID: this._action.card_id,
+        cardID: action.card_id,
         cameraID: targetID,
-        ptzAction: this._action.ptz_action,
-        ptzPhase: this._action.ptz_phase,
-        ptzPreset: this._action.ptz_preset,
+        ptzAction: action.ptz_action,
+        ptzPhase: action.ptz_phase,
+        ptzPreset: action.ptz_preset,
       }),
       this._config,
     );
   }
 
   private _toPTZDigitalAction(targetID: string): PTZDigitalAction {
+    const action = this._getAction();
     return new PTZDigitalAction(
       this._context,
       createPTZDigitalAction({
-        cardID: this._action.card_id,
-        ptzPhase: this._action.ptz_phase,
-        ptzAction: this._action.ptz_action,
+        cardID: action.card_id,
+        ptzPhase: action.ptz_phase,
+        ptzAction: action.ptz_action,
         targetID: targetID,
       }),
       this._config,

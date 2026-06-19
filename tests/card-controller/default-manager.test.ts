@@ -192,9 +192,9 @@ describe('DefaultManager', () => {
               advanced_camera_card_action: 'default',
             },
           ],
-          conditions: [
+          triggers: [
             {
-              condition: 'interaction',
+              trigger: 'interaction',
               interaction: false,
             },
           ],

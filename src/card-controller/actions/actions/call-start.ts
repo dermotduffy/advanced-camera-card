@@ -6,9 +6,10 @@ export class CallStartAction extends AdvancedCameraCardAction<CallStartActionCon
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
+    const action = this._getAction();
     await api.getCallManager().start({
-      cameraID: this._action.camera,
-      streamID: this._action.stream,
+      cameraID: action.camera,
+      streamID: action.stream,
     });
   }
 }

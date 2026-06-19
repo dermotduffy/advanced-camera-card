@@ -53,7 +53,7 @@ render and can operate in `image` or `folders` views depending on configuration.
 
 #### Common configuration blocks
 
-| Option                         | Description           |
-| ------------------------------ | --------------------- |
-| [`actions`](actions/README.md) | Configure actions.    |
-| [`conditions`](conditions.md)  | Configure conditions. |
+| Option                                 | Description           |
+| -------------------------------------- | --------------------- |
+| [`actions`](actions/README.md)         | Configure actions.    |
+| [`conditions`](conditions-triggers.md) | Configure conditions. |
