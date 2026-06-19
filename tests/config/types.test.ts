@@ -1773,6 +1773,35 @@ describe('should lazy evaluate schemas', () => {
   });
 });
 
+describe('should apply specific custom action schemas, not the generic catch-all', () => {
+  it('should default a log action level to info', () => {
+    // The generic `customActionSchema` (a loose `fire-dom-event` matcher) must
+    // not shadow `logActionConfigSchema`, or the `level` default is lost and the
+    // action crashes at runtime.
+    expect(
+      actionConfigSchema.parse({
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'log',
+        message: 'hello',
+      }),
+    ).toMatchObject({ advanced_camera_card_action: 'log', level: 'info' });
+  });
+
+  it('should default a log action level nested in an if branch', () => {
+    const result = actionConfigSchema.parse({
+      if: { condition: 'state', entity_id: 'light.office', state: 'on' },
+      then: {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'log',
+        message: 'hello',
+      },
+    });
+    expect(result).toMatchObject({
+      then: [{ advanced_camera_card_action: 'log', level: 'info' }],
+    });
+  });
+});
+
 describe('should handle custom advanced camera card elements', () => {
   it('should reject non-custom element types', () => {
     const result = customSchema.safeParse({

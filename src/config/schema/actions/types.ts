@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { linkSchema } from '../common/link';
-import { severitySchema } from '../common/severity';
 import { preprocessToArray } from '../common/preprocess-to-array';
+import { severitySchema } from '../common/severity';
 import { statusBarItemBaseSchema } from '../common/status-bar';
 import { Condition, conditionSchema } from '../condition-trigger/conditions/types';
 import { actionBaseSchema } from './base';
@@ -126,9 +126,13 @@ const stockActionSchema = z.union([
   urlActionSchema,
 ]);
 
+// The specific custom schemas must come *before* the stock union: the latter
+// contains `customActionSchema`, a loose `action: fire-dom-event` catch-all
+// that would otherwise match (and shadow) every specific custom action,
+// dropping their defaults and validation.
 export const actionConfigSchema = z.union([
-  stockActionSchema,
   advancedCameraCardCustomActionSchema,
+  stockActionSchema,
 ]);
 export type ActionConfig = z.infer<typeof actionConfigSchema>;
 
