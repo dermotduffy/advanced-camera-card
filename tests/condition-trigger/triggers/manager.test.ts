@@ -1,4 +1,6 @@
 import { describe, expect, it, Mock, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
+import { HASSManagerReadonlyInterface } from '../../../src/card-controller/hass/types';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { TriggersManager } from '../../../src/condition-trigger/triggers/manager';
 import { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
@@ -14,7 +16,11 @@ describe('TriggersManager', () => {
     listener: Mock;
   } => {
     const stateManager = new ConditionStateManager();
-    const manager = new TriggersManager(triggers, stateManager);
+    const manager = new TriggersManager(
+      triggers,
+      stateManager,
+      mock<HASSManagerReadonlyInterface>(),
+    );
     const listener = vi.fn();
     return { manager, stateManager, listener };
   };
@@ -107,6 +113,7 @@ describe('TriggersManager', () => {
       const manager = new TriggersManager(
         [{ trigger: 'camera', cameras: ['front'], enabled }],
         stateManager,
+        mock<HASSManagerReadonlyInterface>(),
       );
       const listener = vi.fn();
       manager.addListener(listener);
@@ -169,6 +176,7 @@ describe('TriggersManager', () => {
       const manager = new TriggersManager(
         [{ trigger: 'camera', cameras: ['front', 'back'], enabled: ENABLED_TEMPLATE }],
         stateManager,
+        mock<HASSManagerReadonlyInterface>(),
       );
       const listener = vi.fn();
       manager.addListener(listener);

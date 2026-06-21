@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { mock } from 'vitest-mock-extended';
+import { HASSManagerReadonlyInterface } from '../../../src/card-controller/hass/types';
 import { TemplateRenderer } from '../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { createTriggerEvaluator } from '../../../src/condition-trigger/triggers/factory';
@@ -6,6 +8,7 @@ import { CallTrigger } from '../../../src/condition-trigger/triggers/triggers/ca
 import { CameraTrigger } from '../../../src/condition-trigger/triggers/triggers/camera';
 import { ConfigTrigger } from '../../../src/condition-trigger/triggers/triggers/config';
 import { DisplayModeTrigger } from '../../../src/condition-trigger/triggers/triggers/display-mode';
+import { EventTrigger } from '../../../src/condition-trigger/triggers/triggers/event';
 import { ExpandTrigger } from '../../../src/condition-trigger/triggers/triggers/expand';
 import { FullscreenTrigger } from '../../../src/condition-trigger/triggers/triggers/fullscreen';
 import { InitializedTrigger } from '../../../src/condition-trigger/triggers/triggers/initialized';
@@ -32,9 +35,11 @@ describe('createTriggerEvaluator', () => {
   const context = (): TriggerEvaluatorContext => ({
     stateManager: new ConditionStateManager(),
     templateRenderer: new TemplateRenderer(),
+    hassManager: mock<HASSManagerReadonlyInterface>(),
   });
 
   it.each<[Trigger, TriggerEvaluatorConstructor]>([
+    [{ trigger: 'event', event_type: 'zha_event' }, EventTrigger],
     [{ trigger: 'state', entity_id: 'binary_sensor.x' }, StateTrigger],
     [{ trigger: 'numeric_state', entity_id: 'sensor.x', above: 5 }, NumericStateTrigger],
     [{ trigger: 'template', value_template: '{{ true }}' }, TemplateTrigger],

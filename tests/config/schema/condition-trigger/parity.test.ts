@@ -28,8 +28,9 @@ const getTypes = (
 // composites.
 const COMPOSITES = ['or', 'and', 'not'];
 
-// `config` only ever detects a change, so it is a trigger but not a condition.
-const TRIGGER_ONLY = ['config'];
+// `config` only ever detects a change, and `event` is HA-side trigger-only (HA
+// has no `condition: event` -- events are momentary).
+const TRIGGER_ONLY = ['config', 'event'];
 
 // `user`/`user_agent` are static per session, so they are conditions but not
 // triggers.

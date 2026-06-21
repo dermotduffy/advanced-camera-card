@@ -1,7 +1,14 @@
 import PQueue from 'p-queue';
 
-type UnsubscribeFn = () => Promise<void>;
-type SubscribeFn = () => Promise<UnsubscribeFn>;
+type UnsubscribeCallback = () => Promise<void>;
+type SubscribeCallback = () => Promise<UnsubscribeCallback>;
+
+/**
+ * Extracts the key from a request. Used by `KeyedSubscriptionManager` and any
+ * higher-level wrapper that shares its request-to-key mapping (e.g. the HASS
+ * connection subscription manager).
+ */
+export type GetKeyCallback<R, K> = (request: R) => K;
 
 /**
  * Manages subscriptions keyed by `K`: the first subscriber for a key invokes
@@ -15,27 +22,36 @@ type SubscribeFn = () => Promise<UnsubscribeFn>;
  */
 export class KeyedSubscriptionManager<K, R> {
   private _requests: R[] = [];
-  private _unsubscribers = new Map<K, UnsubscribeFn>();
+  private _unsubscribers = new Map<K, UnsubscribeCallback>();
   private _queues = new Map<K, PQueue>();
-  private _getKeyFn: (request: R) => K;
+  private _getKeyCallback: GetKeyCallback<R, K>;
 
-  constructor(getKeyFn: (request: R) => K) {
-    this._getKeyFn = getKeyFn;
+  constructor(getKeyCallback: GetKeyCallback<R, K>) {
+    this._getKeyCallback = getKeyCallback;
   }
 
-  public async subscribe(request: R, subscribeFn: SubscribeFn): Promise<void> {
-    const key = this._getKeyFn(request);
+  public async subscribe(
+    request: R,
+    subscribeCallback: SubscribeCallback,
+  ): Promise<void> {
+    const key = this._getKeyCallback(request);
     await this._queueFor(key).add(async () => {
       this._requests.push(request);
       if (!this._unsubscribers.has(key)) {
-        const unsubscribe = await subscribeFn();
-        this._unsubscribers.set(key, unsubscribe);
+        try {
+          this._unsubscribers.set(key, await subscribeCallback());
+        } catch (e) {
+          // Roll back the orphan request so it doesn't sit in `_requests`
+          // dispatching against a connection that was never established.
+          this._requests = this._requests.filter((r) => r !== request);
+          throw e;
+        }
       }
     });
   }
 
   public async unsubscribe(request: R): Promise<void> {
-    const key = this._getKeyFn(request);
+    const key = this._getKeyCallback(request);
     await this._queueFor(key).add(async () => {
       this._requests = this._requests.filter((r) => r !== request);
       if (!this._hasSubscribers(key)) {
@@ -47,7 +63,7 @@ export class KeyedSubscriptionManager<K, R> {
   }
 
   public getRequestsForKey(key: K): readonly R[] {
-    return this._requests.filter((r) => this._getKeyFn(r) === key);
+    return this._requests.filter((r) => this._getKeyCallback(r) === key);
   }
 
   private _queueFor(key: K): PQueue {
@@ -60,6 +76,6 @@ export class KeyedSubscriptionManager<K, R> {
   }
 
   private _hasSubscribers(key: K): boolean {
-    return this._requests.some((r) => this._getKeyFn(r) === key);
+    return this._requests.some((r) => this._getKeyCallback(r) === key);
   }
 }

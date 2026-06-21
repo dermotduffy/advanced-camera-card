@@ -1,9 +1,9 @@
 import { describe, expect, it, Mock, vi } from 'vitest';
-import { TemplateRenderer } from '../../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { CameraTrigger } from '../../../../src/condition-trigger/triggers/triggers/camera';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createConfig } from '../../../test-utils';
+import { createTriggerEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
 describe('CameraTrigger', () => {
@@ -16,10 +16,10 @@ describe('CameraTrigger', () => {
   } => {
     const stateManager = new ConditionStateManager();
     const callback = vi.fn();
-    const cameraTrigger = new CameraTrigger(trigger, {
-      stateManager,
-      templateRenderer: new TemplateRenderer(),
-    });
+    const cameraTrigger = new CameraTrigger(
+      trigger,
+      createTriggerEvaluatorContext({ stateManager }),
+    );
     return { cameraTrigger, stateManager, callback };
   };
 

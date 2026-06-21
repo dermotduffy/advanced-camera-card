@@ -1,9 +1,9 @@
 import { describe, expect, it, Mock, vi } from 'vitest';
-import { TemplateRenderer } from '../../../../src/card-controller/templates';
 import { MicrophoneState } from '../../../../src/card-controller/types';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { MicrophoneTrigger } from '../../../../src/condition-trigger/triggers/triggers/microphone';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+import { createTriggerEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
 describe('MicrophoneTrigger', () => {
@@ -19,10 +19,10 @@ describe('MicrophoneTrigger', () => {
   ): { stateManager: ConditionStateManager; callback: Mock } => {
     const stateManager = new ConditionStateManager();
     const callback = vi.fn();
-    new MicrophoneTrigger(trigger, {
-      stateManager,
-      templateRenderer: new TemplateRenderer(),
-    }).subscribe(callback);
+    new MicrophoneTrigger(
+      trigger,
+      createTriggerEvaluatorContext({ stateManager }),
+    ).subscribe(callback);
     return { stateManager, callback };
   };
 

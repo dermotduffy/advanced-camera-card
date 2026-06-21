@@ -47,6 +47,7 @@ import {
   createFrigateRecording,
   createFrigateReview,
   createHASS,
+  createHASSSource,
   createStore,
   TestViewMedia,
 } from '../../test-utils';
@@ -59,7 +60,7 @@ const createEngine = (options?: {
 }): FrigateCameraManagerEngine => {
   return new FrigateCameraManagerEngine(
     new EntityRegistryManagerMock(),
-    new StateWatcher(),
+    new StateWatcher(createHASSSource().source),
     mock<EventWatcherSubscriptionInterface>(),
     options?.cache ?? new RecordingSegmentsCache(),
     options?.requestCache ?? new CameraManagerRequestCache(),

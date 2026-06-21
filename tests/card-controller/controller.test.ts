@@ -104,6 +104,26 @@ describe('CardController', () => {
     expect(controller.getEffectsManager()).toBeTruthy();
   });
 
+  it('should wire ConditionStateManager as the first hass listener so semantic state is fresh before any other listener runs', () => {
+    createController();
+
+    const hassManager = vi.mocked(HASSManager).mock.instances[0];
+    const calls = vi.mocked(hassManager.addListener).mock.calls;
+
+    // ConditionStateManager (CSM) first ordering is load-bearing: StateWatcher
+    // lazy-attaches later; its diff handlers can synchronously write to CSM, so
+    // CSM.hass must be fresh before any listener whose dispatch path reads
+    // condition state.
+    expect(calls).toHaveLength(1);
+
+    const csmListener = calls[0][0];
+    const hass = {} as Parameters<typeof csmListener>[0];
+    csmListener(hass, null);
+    expect(vi.mocked(ConditionStateManager).mock.instances[0].setState).toBeCalledWith({
+      hass,
+    });
+  });
+
   describe('accessors', () => {
     it('should return getActionsManager', () => {
       expect(createController().getActionsManager()).toBe(

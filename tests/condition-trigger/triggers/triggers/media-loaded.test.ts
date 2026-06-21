@@ -1,9 +1,9 @@
 import { describe, expect, it, Mock, vi } from 'vitest';
-import { TemplateRenderer } from '../../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { MediaLoadedTrigger } from '../../../../src/condition-trigger/triggers/triggers/media-loaded';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createMediaLoadedInfo } from '../../../test-utils';
+import { createTriggerEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
 describe('MediaLoadedTrigger', () => {
@@ -12,10 +12,10 @@ describe('MediaLoadedTrigger', () => {
   ): { stateManager: ConditionStateManager; callback: Mock } => {
     const stateManager = new ConditionStateManager();
     const callback = vi.fn();
-    new MediaLoadedTrigger(trigger, {
-      stateManager,
-      templateRenderer: new TemplateRenderer(),
-    }).subscribe(callback);
+    new MediaLoadedTrigger(
+      trigger,
+      createTriggerEvaluatorContext({ stateManager }),
+    ).subscribe(callback);
     return { stateManager, callback };
   };
 

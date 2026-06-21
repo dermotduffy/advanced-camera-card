@@ -1,7 +1,7 @@
 import type { IssueTriggerContext } from 'issue';
 import { ConditionStateChange } from '../../condition-trigger/conditions/types';
 import { isActionAllowedBasedOnInteractionState } from '../../utils/interaction-mode';
-import { Timer } from '../../utils/timer';
+import { RetryTimer } from '../../utils/retry-timer';
 import { CardIssueManagerAPI } from '../types';
 import { IssueStateManager } from './state-manager';
 import { Issue, IssueKey, IssueReadOnlyState, IssueTriggerContextKey } from './types';
@@ -11,21 +11,21 @@ import { Issue, IssueKey, IssueReadOnlyState, IssueTriggerContextKey } from './t
 // lower-level recovery has had a chance to work, not in parallel with it.
 export const RETRY_EXPONENTIAL_BASE_SECONDS = 30;
 export const RETRY_EXPONENTIAL_MAX_SECONDS = 600;
-const RETRY_EXPONENTIAL_JITTER_MIN = 0.5;
-const RETRY_EXPONENTIAL_JITTER_MAX = 1.0;
 
 // Wraps the passive IssueStateManager with reaction logic. A single
-// condition-state listener drives everything: it runs one-shot static
-// detection when mandatory-init completes (`initialized` transitions to
-// true), then evaluates dynamic issues on every subsequent state change,
-// schedules retries, and updates the card. Full-card issues are rendered by
-// card.ts via getStateManager().getFullCardIssue(). Non-full-card issue
-// notifications are shown on demand via showNotification().
+// condition-state listener drives everything: it runs one-shot static detection
+// when mandatory-init completes (`initialized` transitions to true), then
+// evaluates dynamic issues on every subsequent state change, schedules retries,
+// and updates the card. Full-card issues are rendered by card.ts via
+// getStateManager().getFullCardIssue(). Non-full-card issue notifications are
+// shown on demand via showNotification().
 export class IssueManager {
   private _api: CardIssueManagerAPI;
   private _stateManager = new IssueStateManager();
-  private _retryTimer = new Timer();
-  private _retryAttempt = 0;
+  private _retryTimer = new RetryTimer({
+    baseSeconds: RETRY_EXPONENTIAL_BASE_SECONDS,
+    maxSeconds: RETRY_EXPONENTIAL_MAX_SECONDS,
+  });
   private _suspended = false;
 
   // Reentrancy guard: evaluate() calls setState() on the condition state
@@ -106,7 +106,7 @@ export class IssueManager {
   // user action resets the backoff schedule.
   public retry(key: IssueKey, force?: boolean): void {
     this._stateManager.retry(key, force);
-    this._retryTimer.stop();
+    this._retryTimer.reset();
     this.evaluate();
   }
 
@@ -140,7 +140,7 @@ export class IssueManager {
   // loading timeout). Evaluation resumes on resume().
   public suspend(): void {
     this._suspended = true;
-    this._retryTimer.stop();
+    this._retryTimer.cancel();
     this._stateManager.suspend();
   }
 
@@ -150,7 +150,7 @@ export class IssueManager {
   }
 
   public destroy(): void {
-    this._retryTimer.stop();
+    this._retryTimer.cancel();
     this._stateManager.destroy();
   }
 
@@ -178,8 +178,7 @@ export class IssueManager {
 
   private _scheduleRetryIfNeeded(): void {
     if (!this._stateManager.needsRetry()) {
-      this._retryTimer.stop();
-      this._retryAttempt = 0;
+      this._retryTimer.reset();
       return;
     }
     if (this._retryTimer.isRunning()) {
@@ -188,48 +187,50 @@ export class IssueManager {
 
     const config = this._api.getConfigManager().getConfig();
     if (!config) {
-      this._retryAttempt = 0;
-      return;
-    }
-    const delaySeconds = this._nextRetryDelaySeconds(config.view.issues.retry_seconds);
-    if (delaySeconds === null) {
-      this._retryAttempt = 0;
+      this._retryTimer.reset();
       return;
     }
 
-    this._retryTimer.start(delaySeconds, () => {
-      if (!this._stateManager.needsRetry()) {
-        this._retryAttempt = 0;
-        return;
-      }
-      if (this._isScheduledRetryAllowed()) {
-        this._stateManager.retry();
-        this._retryAttempt++;
-        // evaluate() re-arms the timer via _scheduleRetryIfNeeded.
-        this.evaluate();
-      } else {
-        // Retry was gated (e.g. user interaction). This isn't a failed attempt
-        // so don't increment — re-arm at the same delay.
-        this._scheduleRetryIfNeeded();
-      }
-    });
-  }
-
-  private _nextRetryDelaySeconds(retryConfig: 'auto' | number): number | null {
-    if (typeof retryConfig === 'number') {
-      return retryConfig === 0 ? null : retryConfig;
+    const retryConfig = config.view.issues.retry_seconds;
+    if (retryConfig === 0) {
+      this._retryTimer.reset();
+      return;
     }
 
-    // 'auto': exponential backoff, capped, with jitter to avoid thundering-herd
-    // when multiple cards retry the same backend in lockstep.
-    const exp = Math.min(
-      RETRY_EXPONENTIAL_MAX_SECONDS,
-      RETRY_EXPONENTIAL_BASE_SECONDS * 2 ** this._retryAttempt,
+    this._retryTimer.setOptions(
+      retryConfig === 'auto'
+        ? {
+            baseSeconds: RETRY_EXPONENTIAL_BASE_SECONDS,
+            maxSeconds: RETRY_EXPONENTIAL_MAX_SECONDS,
+          }
+        : retryConfig,
     );
-    const jitter =
-      RETRY_EXPONENTIAL_JITTER_MIN +
-      Math.random() * (RETRY_EXPONENTIAL_JITTER_MAX - RETRY_EXPONENTIAL_JITTER_MIN);
-    return exp * jitter;
+
+    // Schedule without advancing: the backoff only escalates if the retry
+    // actually runs (via the explicit advance() below), not when it's gated.
+    this._retryTimer.schedule(
+      () => {
+        if (!this._stateManager.needsRetry()) {
+          this._retryTimer.reset();
+          return;
+        }
+        if (this._isScheduledRetryAllowed()) {
+          this._stateManager.retry();
+
+          // This attempt counts: advance the backoff so the next schedule
+          // (re-armed by evaluate() via _scheduleRetryIfNeeded) uses a longer
+          // delay. For static-delay mode (base = max, no jitter) advancing is
+          // observable in `getAttempts()` but doesn't change the next delay.
+          this._retryTimer.advance();
+          this.evaluate();
+        } else {
+          // Retry was gated (e.g. user interaction). Not a failed attempt; the
+          // backoff stays put and we re-arm at the same delay.
+          this._scheduleRetryIfNeeded();
+        }
+      },
+      { advance: false },
+    );
   }
 
   private _isScheduledRetryAllowed(): boolean {

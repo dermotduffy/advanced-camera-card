@@ -1,8 +1,8 @@
 import { describe, expect, it, Mock, vi } from 'vitest';
-import { TemplateRenderer } from '../../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { FullscreenTrigger } from '../../../../src/condition-trigger/triggers/triggers/fullscreen';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+import { createTriggerEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
 describe('FullscreenTrigger', () => {
@@ -15,10 +15,10 @@ describe('FullscreenTrigger', () => {
   } => {
     const stateManager = new ConditionStateManager();
     const callback = vi.fn();
-    const fullscreenTrigger = new FullscreenTrigger(trigger, {
-      stateManager,
-      templateRenderer: new TemplateRenderer(),
-    });
+    const fullscreenTrigger = new FullscreenTrigger(
+      trigger,
+      createTriggerEvaluatorContext({ stateManager }),
+    );
     return { fullscreenTrigger, stateManager, callback };
   };
 

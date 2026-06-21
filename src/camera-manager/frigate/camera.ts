@@ -43,6 +43,12 @@ export const isBirdseye = (cameraConfig: CameraConfig): boolean => {
 };
 
 export class FrigateCamera extends Camera {
+  // Guard for `_setupAsyncSubscription`: short-circuits a subscribe whose
+  // caller has already invoked destroy() while async init was still running.
+  // Set BEFORE awaiting `super.destroy()` so concurrent in-flight subscribes
+  // see the flip immediately.
+  private _destroyed = false;
+
   public async initialize(options: FrigateCameraInitializationOptions): Promise<Camera> {
     await super.initialize(options);
 
@@ -52,6 +58,11 @@ export class FrigateCamera extends Camera {
     }
 
     return this;
+  }
+
+  public override async destroy(): Promise<void> {
+    this._destroyed = true;
+    await super.destroy();
   }
 
   public async executePTZAction(
@@ -473,10 +484,28 @@ export class FrigateCamera extends Camera {
         event.after.camera === config.frigate.camera_name,
     };
 
-    await this._setupSubscription(
+    await this._setupAsyncSubscription(
       () => frigateEventWatcher.subscribe(hass, request),
       () => frigateEventWatcher.unsubscribe(request),
     );
+  }
+
+  /**
+   * Wire up an async subscription with its teardown. Registers the unsubscribe
+   * callback synchronously before awaiting subscribe, so a destroy during the
+   * await reliably triggers cleanup; short-circuits if destroy has already run,
+   * so the cleanup callback can't fire (and enqueue an unsubscribe) before the
+   * subscribe runs.
+   */
+  private async _setupAsyncSubscription(
+    subscribe: () => Promise<void>,
+    unsubscribe: () => void | Promise<void>,
+  ): Promise<void> {
+    if (this._destroyed) {
+      return;
+    }
+    this._onDestroy(unsubscribe);
+    await subscribe();
   }
 
   private _frigateEventHandler = (ev: FrigateEventChange): void => {
@@ -550,7 +579,7 @@ export class FrigateCamera extends Camera {
         review.after.camera === config.frigate.camera_name,
     };
 
-    await this._setupSubscription(
+    await this._setupAsyncSubscription(
       () => frigateReviewWatcher.subscribe(hass, request),
       () => frigateReviewWatcher.unsubscribe(request),
     );

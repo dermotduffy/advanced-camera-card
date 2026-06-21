@@ -6,15 +6,17 @@ import {
 } from '../card-controller/hass/event-watcher';
 import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
 import { PTZAction, PTZActionPhase } from '../config/schema/actions/custom/ptz';
-import { CameraConfig, TriggerEvent } from '../config/schema/cameras';
+import { CameraConfig } from '../config/schema/cameras';
+import { HAEvent } from '../config/schema/common/ha-event';
 import { EnabledProxyConfig, resolveProxyConfig } from '../config/schema/common/proxy';
 import { computeDomain } from '../ha/compute-domain';
-import { matchesEventData } from '../ha/event-data-match';
+import { matchesEventContext, matchesEventData } from '../ha/event-match';
 import { getTriggerEventType } from '../ha/get-trigger-event-type';
 import { Entity, EntityRegistryManager } from '../ha/registry/entity/types';
 import { HassStateDifference, HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import { CapabilitiesRaw, CapabilityKey, Endpoint } from '../types';
+import { arrayify } from '../utils/basic';
 import { liveProviderSupports2WayAudio } from '../utils/live-provider';
 import { Capabilities } from './capabilities';
 import { CameraManagerEngine } from './engine';
@@ -58,7 +60,6 @@ export class Camera {
   protected _capabilities?: Capabilities;
   protected _eventCallback?: CameraEventCallback;
   protected _destroyCallbacks: DestroyCallback[] = [];
-  protected _destroyed = false;
   protected _entity: Entity | null = null;
 
   constructor(
@@ -99,44 +100,31 @@ export class Camera {
       );
       this._onDestroy(() => options.stateWatcher.unsubscribe(this._stateChangeHandler));
 
-      // Subscribe to event based triggers.
+      // Subscribe to event based triggers. List-form `event_type` expands into
+      // one subscription per type sharing the same data/context matcher.
       for (const event of this._config.triggers.events) {
-        const request = this._buildEventSubscriptionRequest(event);
-        await this._setupSubscription(
-          () => options.eventWatcher.subscribe(options.hass, request),
-          () => options.eventWatcher.unsubscribe(request),
-        );
+        for (const request of this._buildEventSubscriptionRequests(event)) {
+          options.eventWatcher.subscribe(request);
+          this._onDestroy(() => options.eventWatcher.unsubscribe(request));
+        }
       }
     }
 
     return this;
   }
 
-  /**
-   * Wire up an async subscription with its teardown. Registers the unsubscribe
-   * callback synchronously before awaiting subscribe, so a destroy during the
-   * await reliably triggers cleanup; short-circuits if destroy has already
-   * run, so the cleanup callback can't fire (and enqueue an unsubscribe)
-   * before the subscribe runs.
-   */
-  protected async _setupSubscription(
-    subscribe: () => Promise<void>,
-    unsubscribe: () => void | Promise<void>,
-  ): Promise<void> {
-    if (this._destroyed) {
-      return;
-    }
-    this._onDestroy(unsubscribe);
-    await subscribe();
-  }
-
-  private _buildEventSubscriptionRequest(event: TriggerEvent): EventSubscriptionRequest {
-    const filter = event.event_data;
-    return {
-      event_type: event.event_type,
-      ...(filter && { matcher: (data) => matchesEventData(filter, data) }),
-      callback: () => this._momentaryEventHandler(event.event_type),
-    };
+  private _buildEventSubscriptionRequests(event: HAEvent): EventSubscriptionRequest[] {
+    const dataFilter = event.event_data;
+    const contextFilter = event.context;
+    return uniq(arrayify(event.event_type)).map((eventType) => ({
+      event_type: eventType,
+      ...((dataFilter || contextFilter) && {
+        matcher: (evt) =>
+          (!dataFilter || matchesEventData(dataFilter, evt.data)) &&
+          (!contextFilter || matchesEventContext(contextFilter, evt.context)),
+      }),
+      callback: () => this._momentaryEventHandler(eventType),
+    }));
   }
 
   private _momentaryEventHandler(eventType: string): void {
@@ -267,7 +255,6 @@ export class Camera {
   }
 
   public async destroy(): Promise<void> {
-    this._destroyed = true;
     const callbacks = this._destroyCallbacks;
     this._destroyCallbacks = [];
     await Promise.all(callbacks.map((callback) => callback()));

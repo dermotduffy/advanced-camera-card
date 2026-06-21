@@ -1,10 +1,10 @@
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { TemplateRenderer } from '../../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { StateTrigger } from '../../../../src/condition-trigger/triggers/triggers/state';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createHASS, createStateEntity } from '../../../test-utils';
+import { createTriggerEvaluatorContext } from './test-utils';
 
 const ENTITY = 'binary_sensor.door';
 const ENTITY_TWO = 'binary_sensor.window';
@@ -20,10 +20,10 @@ describe('StateTrigger', () => {
   } => {
     const stateManager = new ConditionStateManager();
     const callback = vi.fn();
-    const trigger = new StateTrigger(config, {
-      stateManager,
-      templateRenderer: new TemplateRenderer(),
-    });
+    const trigger = new StateTrigger(
+      config,
+      createTriggerEvaluatorContext({ stateManager }),
+    );
     return { trigger, stateManager, callback };
   };
 

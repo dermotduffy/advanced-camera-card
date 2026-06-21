@@ -13,6 +13,7 @@ import {
   createCameraConfig,
   createCapabilities,
   createHASS,
+  createHASSEvent,
   createInitializedCamera,
   createRegistryEntity,
   createStateEntity,
@@ -796,11 +797,14 @@ describe('Camera', () => {
       });
 
       expect(eventWatcher.subscribe).toBeCalledTimes(1);
-      const request = vi.mocked(eventWatcher.subscribe).mock.calls[0][1];
+      const request = vi.mocked(eventWatcher.subscribe).mock.calls[0][0];
       expect(request.event_type).toBe('zha_event');
       expect(request.matcher).toBeUndefined();
 
-      callEventWatcherCallback(eventWatcher, { command: 'press' });
+      callEventWatcherCallback(
+        eventWatcher,
+        createHASSEvent('zha_event', { command: 'press' }),
+      );
 
       expect(eventCallback).toBeCalledWith({
         cameraID: 'camera_1',
@@ -810,6 +814,73 @@ describe('Camera', () => {
 
       await camera.destroy();
       expect(eventWatcher.unsubscribe).toBeCalled();
+    });
+
+    it('should attach a context-only matcher when only a context filter is set', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          id: 'camera_1',
+          triggers: {
+            events: [{ event_type: 'zha_event', context: { user_id: 'u-1' } }],
+          },
+        }),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
+      );
+
+      const eventWatcher = mock<EventWatcherSubscriptionInterface>();
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher,
+        capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
+      });
+
+      const matcher = vi.mocked(eventWatcher.subscribe).mock.calls[0][0].matcher;
+      expect(matcher).toBeDefined();
+      expect(
+        matcher?.(
+          createHASSEvent('zha_event', {}, { id: 'i', user_id: 'u-1', parent_id: null }),
+        ),
+      ).toBe(true);
+      expect(
+        matcher?.(
+          createHASSEvent('zha_event', {}, { id: 'i', user_id: 'u-2', parent_id: null }),
+        ),
+      ).toBe(false);
+    });
+
+    it('should expand list-form event_type into one subscription per type', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          id: 'camera_1',
+          triggers: {
+            events: [{ event_type: ['zha_event', 'deconz_event'] }],
+          },
+        }),
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          mock<EventWatcherSubscriptionInterface>(),
+        ),
+      );
+
+      const eventWatcher = mock<EventWatcherSubscriptionInterface>();
+      await camera.initialize({
+        hass: createHASS(),
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        eventWatcher,
+        capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
+      });
+
+      expect(eventWatcher.subscribe).toBeCalledTimes(2);
+      expect(vi.mocked(eventWatcher.subscribe).mock.calls[0][0].event_type).toBe(
+        'zha_event',
+      );
+      expect(vi.mocked(eventWatcher.subscribe).mock.calls[1][0].event_type).toBe(
+        'deconz_event',
+      );
     });
 
     it('should attach a matcher when triggers.events entry has data filter', async () => {
@@ -834,10 +905,14 @@ describe('Camera', () => {
         capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
       });
 
-      const matcher = vi.mocked(eventWatcher.subscribe).mock.calls[0][1].matcher;
+      const matcher = vi.mocked(eventWatcher.subscribe).mock.calls[0][0].matcher;
       expect(matcher).toBeDefined();
-      expect(matcher?.({ command: 'press', extra: 1 })).toBe(true);
-      expect(matcher?.({ command: 'release' })).toBe(false);
+      expect(
+        matcher?.(createHASSEvent('zha_event', { command: 'press', extra: 1 })),
+      ).toBe(true);
+      expect(matcher?.(createHASSEvent('zha_event', { command: 'release' }))).toBe(
+        false,
+      );
     });
 
     it('should not subscribe to events when trigger capability is disabled', async () => {

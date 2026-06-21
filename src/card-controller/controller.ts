@@ -146,14 +146,22 @@ export class CardController
     scrollCallback: ScrollCallback,
     menuToggleCallback: MenuToggleCallback,
   ) {
-    host.addController(this);
-
     this._cardElementManager = new CardElementManager(
       this,
       host,
       scrollCallback,
       menuToggleCallback,
     );
+
+    // ConditionStateManager MUST be wired first so its `hass` is current before
+    // any later listener fires. Otherwise StateWatcher could fire a
+    // camera-trigger handler that writes back to ConditionStateManager, fanning
+    // out to automations that still read a stale `hass`.
+    this._hassManager.addListener((hass) =>
+      this._conditionStateManager.setState({ hass }),
+    );
+
+    host.addController(this);
   }
 
   // *************************************************************************

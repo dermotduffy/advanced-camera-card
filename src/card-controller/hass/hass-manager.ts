@@ -1,16 +1,21 @@
-import { STATE_RUNNING } from 'home-assistant-js-websocket';
+import { HASSListener, HASSUnlistenCallback } from '../../ha/source';
+import { isHassReady } from '../../ha/is-hass-ready';
 import { HomeAssistant } from '../../ha/types';
 import { log } from '../../utils/debug';
 import { InitializationAspect } from '../initialization-manager';
 import { CardHASSAPI } from '../types';
 import { EventWatcher, EventWatcherSubscriptionInterface } from './event-watcher';
 import { StateWatcher, StateWatcherSubscriptionInterface } from './state-watcher';
+import { HASSManagerReadonlyInterface } from './types';
 
-export class HASSManager {
+export class HASSManager implements HASSManagerReadonlyInterface {
   private _hass: HomeAssistant | null = null;
   private _api: CardHASSAPI;
-  private _stateWatcher: StateWatcher = new StateWatcher();
-  private _eventWatcher: EventWatcher = new EventWatcher();
+
+  private _hassListeners = new Set<HASSListener>();
+
+  private _stateWatcher: StateWatcher = new StateWatcher(this);
+  private _eventWatcher: EventWatcher = new EventWatcher(this);
 
   constructor(api: CardHASSAPI) {
     this._api = api;
@@ -32,20 +37,21 @@ export class HASSManager {
     return this._eventWatcher;
   }
 
+  public addListener(listener: HASSListener): HASSUnlistenCallback {
+    this._hassListeners.add(listener);
+    return () => {
+      this._hassListeners.delete(listener);
+    };
+  }
+
   public setHASS(hass?: HomeAssistant | null): void {
     // When HA transitions from "not ready" to "ready" (WebSocket reconnected
     // AND all integrations finished loading), reinitialize cameras and the
-    // view. This is necessary because event subscriptions (e.g. Frigate
-    // WebSocket subscriptions via hass.connection.subscribeMessage) are tied to
-    // the old connection and are lost when it drops. Without reinitialization,
-    // triggers and thumbnail updates stop working.
-    //
-    // We deliberately wait for hass.config.state === STATE_RUNNING rather than
-    // just hass.connected, because HA exposes the WebSocket before integrations
-    // have finished loading. Triggering re-init too early would race against
-    // integration startup and fail with "Unknown command" on
-    // integration-specific WS calls.
-    if (this._hass && !this._isReady(this._hass) && this._isReady(hass)) {
+    // view. The entity world may change across reconnects, so a full re-init is
+    // a correctness requirement. Stays as a direct call (before fan-out)
+    // because cameras must tear down before any listener observes the new hass,
+    // or they'd briefly re-init against the old world.
+    if (this._hass && !isHassReady(this._hass) && isHassReady(hass)) {
       log(
         this._api.getConfigManager().getCardWideConfig(),
         'Advanced Camera Card: HA fully ready, reinitializing...',
@@ -66,17 +72,9 @@ export class HASSManager {
     const oldHass = this._hass;
     this._hass = hass;
 
-    this._api.getConditionStateManager().setState({
-      hass: this._hass,
-    });
-
-    // Theme may depend on HASS.
-    this._api.getStyleManager().applyTheme();
-
-    this._stateWatcher.setHASS(oldHass, hass);
-  }
-
-  private _isReady(hass?: HomeAssistant | null): boolean {
-    return !!hass?.connected && hass.config?.state === STATE_RUNNING;
+    // Fan out to source listeners in insertion order.
+    for (const listener of this._hassListeners) {
+      listener(hass, oldHass);
+    }
   }
 }
