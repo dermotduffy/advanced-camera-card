@@ -813,6 +813,15 @@ export const flushPromises = async (): Promise<void> => {
   await new Promise(process.nextTick);
 };
 
+/**
+ * Install fake timers and pin Math.random to 1 (max jitter), so exponential
+ * backoff retry delays advance by exact, predictable durations.
+ */
+export const useDeterministicTimers = (): void => {
+  vi.useFakeTimers();
+  vi.spyOn(Math, 'random').mockReturnValue(1);
+};
+
 export const createInteractionActionEvent = (
   action: string,
 ): CustomEvent<Interaction> => {

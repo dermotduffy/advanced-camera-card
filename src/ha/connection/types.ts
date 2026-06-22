@@ -18,7 +18,7 @@ export interface HASSWebSocketLiveness {
   isConnected(): boolean;
 }
 
-export type HASSWebSocketCloseCallback = () => Promise<void>;
+type HASSWebSocketCloseCallback = () => Promise<void>;
 
 export type HASSWebSocketOpenCallback = (
   connection: Connection,

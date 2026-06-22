@@ -1,5 +1,5 @@
 import { Connection, HassEvent } from 'home-assistant-js-websocket';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { EventWatcher } from '../../../src/card-controller/hass/event-watcher';
 import { HomeAssistant } from '../../../src/ha/types';
@@ -8,6 +8,7 @@ import {
   createHASSEvent,
   createHASSSource,
   flushPromises,
+  useDeterministicTimers,
 } from '../../test-utils';
 
 // Drive the dispatcher registered with `hass.connection.subscribeEvents` to
@@ -18,7 +19,13 @@ const fireEvent = (hass: HomeAssistant, event: HassEvent, n = 0): void => {
   mock.calls[n][0]?.(event);
 };
 
+// @vitest-environment jsdom
 describe('EventWatcher', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
   it('should open a WS subscription keyed by event_type', async () => {
     const hass = createHASS();
     const { source } = createHASSSource(hass);
@@ -158,5 +165,35 @@ describe('EventWatcher', () => {
 
     expect(reentrantCallback).toBeCalledTimes(1);
     expect(lateCallback).not.toBeCalled();
+  });
+
+  describe('subscription health monitoring', () => {
+    it('should surface and retry failing subscriptions through getHealth', async () => {
+      useDeterministicTimers();
+
+      const hass = createHASS();
+      vi.mocked(hass.connection.subscribeEvents).mockRejectedValue(new Error('boom'));
+      const { source } = createHASSSource(hass);
+      const watcher = new EventWatcher(source);
+
+      watcher.subscribe({ event_type: 'zha_event', callback: vi.fn() });
+      await flushPromises();
+
+      expect(
+        watcher
+          .getHealth()
+          .getFailures()
+          .map((failure) => failure.key),
+      ).toEqual(['zha_event']);
+
+      const before = vi.mocked(hass.connection.subscribeEvents).mock.calls.length;
+
+      watcher.getHealth().retry();
+
+      await flushPromises();
+      expect(vi.mocked(hass.connection.subscribeEvents).mock.calls.length).toBe(
+        before + 1,
+      );
+    });
   });
 });

@@ -122,7 +122,7 @@ export class CardController
   private _expandManager = new ExpandManager(this);
   private _foldersManager = new FoldersManager(this);
   private _fullscreenManager = new FullscreenManager(this);
-  private _hassManager = new HASSManager(this);
+  private _hassManager: HASSManager;
   private _initializationManager = new InitializationManager(this);
   private _interactionManager = new InteractionManager(this);
   private _keyboardStateManager = new KeyboardStateManager(this);
@@ -133,7 +133,7 @@ export class CardController
   private _microphoneManager = new MicrophoneManager(this);
   private _notificationManager = new NotificationManager(this);
   private _pipManager = new PIPManager(this);
-  private _issueManager = createIssueManager(this);
+  private _issueManager: IssueManager;
   private _queryStringManager = new QueryStringManager(this);
   private _statusBarItemManager = new StatusBarItemManager(this);
   private _styleManager = new StyleManager(this);
@@ -145,7 +145,14 @@ export class CardController
     host: CardHTMLElement,
     scrollCallback: ScrollCallback,
     menuToggleCallback: MenuToggleCallback,
+    hassManager?: HASSManager,
   ) {
+    this._hassManager = hassManager ?? new HASSManager(this);
+    this._issueManager = createIssueManager(
+      this,
+      this._hassManager.getEventWatcher().getHealth(),
+    );
+
     this._cardElementManager = new CardElementManager(
       this,
       host,

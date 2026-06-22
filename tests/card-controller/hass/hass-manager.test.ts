@@ -1,8 +1,15 @@
 import { STATE_RUNNING, STATE_STARTING } from 'home-assistant-js-websocket';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { EventWatcher } from '../../../src/card-controller/hass/event-watcher';
+import { mock } from 'vitest-mock-extended';
+import {
+  EventWatcher,
+  EventWatcherSubscriptionInterface,
+} from '../../../src/card-controller/hass/event-watcher';
 import { HASSManager } from '../../../src/card-controller/hass/hass-manager';
-import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
+import {
+  StateWatcher,
+  StateWatcherSubscriptionInterface,
+} from '../../../src/card-controller/hass/state-watcher';
 import {
   createCameraConfig,
   createCameraManager,
@@ -30,9 +37,21 @@ describe('HASSManager', () => {
     expect(manager.getStateWatcher()).toEqual(expect.any(StateWatcher));
   });
 
+  it('should use an injected state watcher', () => {
+    const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+    const manager = new HASSManager(createCardAPI(), stateWatcher);
+    expect(manager.getStateWatcher()).toBe(stateWatcher);
+  });
+
   it('should get event watcher', () => {
     const manager = new HASSManager(createCardAPI());
     expect(manager.getEventWatcher()).toEqual(expect.any(EventWatcher));
+  });
+
+  it('should use an injected event watcher', () => {
+    const eventWatcher = mock<EventWatcherSubscriptionInterface>();
+    const manager = new HASSManager(createCardAPI(), undefined, eventWatcher);
+    expect(manager.getEventWatcher()).toBe(eventWatcher);
   });
 
   it('should get hass after set', () => {

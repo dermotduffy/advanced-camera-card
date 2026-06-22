@@ -4,6 +4,7 @@ import { createIssueManager } from '../../../src/card-controller/issues/factory'
 import { IssueManager } from '../../../src/card-controller/issues/issue-manager';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { createCardAPI } from '../../test-utils';
+import { createSubscriptionHealth } from '../test-utils';
 
 describe('createIssueManager', () => {
   beforeEach(() => {
@@ -15,12 +16,15 @@ describe('createIssueManager', () => {
   });
 
   it('should return a IssueManager instance', () => {
-    const manager = createIssueManager(createCardAPI());
+    const manager = createIssueManager(createCardAPI(), createSubscriptionHealth());
     expect(manager).toBeInstanceOf(IssueManager);
   });
 
   it('should register all expected issues', () => {
-    const manager = createIssueManager(createCardAPI()).getStateManager();
+    const manager = createIssueManager(
+      createCardAPI(),
+      createSubscriptionHealth(),
+    ).getStateManager();
 
     expect(manager.getIssueDescriptions()).toHaveLength(0);
 
@@ -29,6 +33,7 @@ describe('createIssueManager', () => {
       'config_upgrade',
       'config_upgrade_failure',
       'connection',
+      'event_subscription',
       'initialization',
       'legacy_resource',
       'media_query',
@@ -51,7 +56,7 @@ describe('createIssueManager', () => {
     const api = createCardAPI();
     const stateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
-    const manager = createIssueManager(api);
+    const manager = createIssueManager(api, createSubscriptionHealth());
 
     manager.trigger('media_query', { error: new Error('x') });
     manager.trigger('initialization', { error: new Error('x') });
@@ -76,7 +81,7 @@ describe('createIssueManager', () => {
     const stateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
-    const manager = createIssueManager(api);
+    const manager = createIssueManager(api, createSubscriptionHealth());
 
     // Setting view starts the media_load timer (via the condition state
     // listener → evaluate → detectDynamic).

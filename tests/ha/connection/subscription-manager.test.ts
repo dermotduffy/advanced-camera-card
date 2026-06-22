@@ -11,7 +11,12 @@ import {
   HASSWebSocketOpenCallback,
 } from '../../../src/ha/connection/types';
 import { HASSSource } from '../../../src/ha/source';
-import { createHASS, createHASSSource, flushPromises } from '../../test-utils';
+import {
+  createHASS,
+  createHASSSource,
+  flushPromises,
+  useDeterministicTimers,
+} from '../../test-utils';
 
 interface TestRequest {
   key: string;
@@ -62,12 +67,6 @@ const createSwappedHASS = (): ReturnType<typeof createHASS> => {
   hass.connection = mock<Connection>();
   vi.mocked(hass.connection.subscribeEvents).mockResolvedValue(vi.fn());
   return hass;
-};
-
-// Fake timers plus pinned jitter, so backoff delays advance by exact durations.
-const useDeterministicTimers = (): void => {
-  vi.useFakeTimers();
-  vi.spyOn(Math, 'random').mockReturnValue(1);
 };
 
 // @vitest-environment jsdom

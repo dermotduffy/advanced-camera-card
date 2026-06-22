@@ -1,4 +1,8 @@
 import { HassEvent } from 'home-assistant-js-websocket';
+import {
+  SubscriptionHealthInterface,
+  SubscriptionHealthMonitor,
+} from '../../ha/connection/subscription-health-monitor';
 import { HASSConnectionSubscriptionManager } from '../../ha/connection/subscription-manager';
 import { HASSSource } from '../../ha/source';
 
@@ -15,38 +19,49 @@ export interface EventSubscriptionRequest {
 export interface EventWatcherSubscriptionInterface {
   subscribe(request: EventSubscriptionRequest): void;
   unsubscribe(request: EventSubscriptionRequest): void;
+  getHealth(): SubscriptionHealthInterface<string>;
 }
 
 /**
  * Subscribes to HA bus events via the WebSocket connection. Thin wrapper over
- * `HASSConnectionSubscriptionManager`, which owns the connection-era
- * lifecycle, refcounting, retry budgets, and stale-callback guards. This
- * class only translates the event-specific shape (key by `event_type`, run
- * the request's optional matcher before fan-out).
+ * `HASSConnectionSubscriptionManager` (connection-era lifecycle, refcounting,
+ * retry budgets, stale-callback guards): keys by `event_type`, runs each
+ * request's optional matcher before fan-out.
  */
 export class EventWatcher implements EventWatcherSubscriptionInterface {
   private _manager: HASSConnectionSubscriptionManager<string, EventSubscriptionRequest>;
+  private _health: SubscriptionHealthMonitor<string, EventSubscriptionRequest>;
 
   constructor(source: HASSSource) {
     this._manager = new HASSConnectionSubscriptionManager(
       (request) => request.event_type,
       source,
     );
+    this._health = new SubscriptionHealthMonitor((request) =>
+      this._manager.retry(request),
+    );
   }
 
   public subscribe(request: EventSubscriptionRequest): void {
-    this._manager.subscribe(request, (connection, liveness) =>
-      connection.subscribeEvents<HassEvent>((event) => {
-        if (!liveness.isConnected()) {
-          return;
-        }
-        this._dispatch(event);
-      }, request.event_type),
+    this._manager.subscribe(
+      request,
+      (connection, liveness) =>
+        connection.subscribeEvents<HassEvent>((event) => {
+          if (!liveness.isConnected()) {
+            return;
+          }
+          this._dispatch(event);
+        }, request.event_type),
+      (status) => this._health.update(status),
     );
   }
 
   public unsubscribe(request: EventSubscriptionRequest): void {
     this._manager.unsubscribe(request);
+  }
+
+  public getHealth(): SubscriptionHealthInterface<string> {
+    return this._health;
   }
 
   private _dispatch(event: HassEvent): void {
