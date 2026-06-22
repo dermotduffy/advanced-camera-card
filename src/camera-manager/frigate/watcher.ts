@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { HomeAssistant } from '../../ha/types';
-import { KeyedSubscriptionManager } from '../../utils/concurrency/keyed-subscription-manager';
+import { HASSConnectionSubscriptionManager } from '../../ha/connection/subscription-manager';
+import { HASSSource } from '../../ha/source';
 import {
   FrigateEventChange,
   FrigateReviewChange,
@@ -17,43 +17,48 @@ export interface FrigateWatcherRequest<T> {
 
 // Generic subscription interface
 export interface FrigateWatcherSubscriptionInterface<T> {
-  subscribe(hass: HomeAssistant, request: FrigateWatcherRequest<T>): Promise<void>;
-  unsubscribe(request: FrigateWatcherRequest<T>): Promise<void>;
+  subscribe(request: FrigateWatcherRequest<T>): void;
+  unsubscribe(request: FrigateWatcherRequest<T>): void;
 }
 
 /**
- * Base class for Frigate WebSocket watchers. Counted per `instanceID`: the
- * first subscriber for an instance opens the WS subscription, the last to
- * unsubscribe tears it down. Each message is parsed, schema-validated, and
- * fanned out to every registered request whose `instanceID` matches and whose
- * `matcher` accepts the payload.
+ * Base class for Frigate WebSocket watchers. Thin wrapper over
+ * `HASSConnectionSubscriptionManager`: keys by `instanceID`, parses and
+ * schema-validates each message, then fans out to every registered request
+ * whose `instanceID` matches and whose optional `matcher` accepts the payload.
  */
 abstract class FrigateWatcher<T> implements FrigateWatcherSubscriptionInterface<T> {
   protected abstract _type: string;
   protected abstract _schema: z.ZodType<T>;
 
-  private _subscriptions = new KeyedSubscriptionManager<
-    string,
-    FrigateWatcherRequest<T>
-  >((request) => request.instanceID);
+  private _manager: HASSConnectionSubscriptionManager<string, FrigateWatcherRequest<T>>;
 
-  public async subscribe(
-    hass: HomeAssistant,
-    request: FrigateWatcherRequest<T>,
-  ): Promise<void> {
-    await this._subscriptions.subscribe(request, () =>
-      hass.connection.subscribeMessage<string>(
-        (data) => this._receiveHandler(request.instanceID, data),
+  constructor(source: HASSSource) {
+    this._manager = new HASSConnectionSubscriptionManager(
+      (request) => request.instanceID,
+      source,
+    );
+  }
+
+  public subscribe(request: FrigateWatcherRequest<T>): void {
+    this._manager.subscribe(request, (connection, liveness) =>
+      connection.subscribeMessage<string>(
+        (data) => {
+          if (!liveness.isConnected()) {
+            return;
+          }
+          this._receive(request.instanceID, data);
+        },
         { type: this._type, instance_id: request.instanceID },
       ),
     );
   }
 
-  public async unsubscribe(request: FrigateWatcherRequest<T>): Promise<void> {
-    await this._subscriptions.unsubscribe(request);
+  public unsubscribe(request: FrigateWatcherRequest<T>): void {
+    this._manager.unsubscribe(request);
   }
 
-  protected _receiveHandler(instanceID: string, data: string): void {
+  private _receive(instanceID: string, data: string): void {
     let json: unknown;
     try {
       json = JSON.parse(data);
@@ -69,7 +74,7 @@ abstract class FrigateWatcher<T> implements FrigateWatcherSubscriptionInterface<
       return;
     }
 
-    for (const request of this._subscriptions.getRequestsForKey(instanceID)) {
+    for (const request of this._manager.getRequestsForKey(instanceID)) {
       if (!request.matcher || request.matcher(parseResult.data)) {
         request.callback(parseResult.data);
       }

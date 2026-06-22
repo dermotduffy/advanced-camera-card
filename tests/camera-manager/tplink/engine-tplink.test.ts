@@ -1,19 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { mock } from 'vitest-mock-extended';
 import { TPLinkCameraManagerEngine } from '../../../src/camera-manager/tplink/engine-tplink';
 import { Engine } from '../../../src/camera-manager/types';
-import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
-import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
-import { createCameraConfig, createHASS, createRegistryEntity } from '../../test-utils';
+import {
+  createCameraConfig,
+  createHASS,
+  createHASSManager,
+  createRegistryEntity,
+} from '../../test-utils';
 
 const createEngine = (options?: {
   entityRegistryManager?: EntityRegistryManagerMock;
 }): TPLinkCameraManagerEngine => {
   return new TPLinkCameraManagerEngine(
     options?.entityRegistryManager ?? new EntityRegistryManagerMock(),
-    mock<StateWatcherSubscriptionInterface>(),
-    mock<EventWatcherSubscriptionInterface>(),
+    createHASSManager(),
   );
 };
 
@@ -42,7 +43,7 @@ describe('TPLinkCameraManagerEngine', () => {
       id: 'tapo_office',
     });
 
-    const camera = await engine.createCamera(createHASS(), config);
+    const camera = await engine.createCamera(config);
 
     expect(camera.getConfig()).toBe(config);
     expect(camera.getEngine()).toBe(engine);

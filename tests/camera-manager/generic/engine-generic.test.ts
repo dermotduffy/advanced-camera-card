@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { mock } from 'vitest-mock-extended';
 import { GenericCameraManagerEngine } from '../../../src/camera-manager/generic/engine-generic';
 import { Engine, QueryResultsType, QueryType } from '../../../src/camera-manager/types';
-import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
-import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { CameraConfig } from '../../../src/config/schema/cameras';
 import { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import { QuerySource } from '../../../src/query-source';
@@ -11,15 +8,13 @@ import {
   TestViewMedia,
   createCameraConfig,
   createHASS,
+  createHASSManager,
   createStateEntity,
   createStore,
 } from '../../test-utils';
 
 const createEngine = (): GenericCameraManagerEngine => {
-  return new GenericCameraManagerEngine(
-    mock<StateWatcherSubscriptionInterface>(),
-    mock<EventWatcherSubscriptionInterface>(),
-  );
+  return new GenericCameraManagerEngine(createHASSManager());
 };
 
 const createGenericCameraConfig = (
@@ -35,7 +30,7 @@ describe('GenericCameraManagerEngine', () => {
 
   it('should initialize camera', async () => {
     const config = createGenericCameraConfig();
-    const camera = await createEngine().createCamera(createHASS(), config);
+    const camera = await createEngine().createCamera(config);
 
     expect(camera.getConfig()).toEqual(config);
     expect(camera.getCapabilities()).toBeTruthy();
@@ -50,7 +45,7 @@ describe('GenericCameraManagerEngine', () => {
 
   it('should get default query parameters', async () => {
     const config = createGenericCameraConfig();
-    const camera = await createEngine().createCamera(createHASS(), config);
+    const camera = await createEngine().createCamera(config);
     expect(createEngine().getDefaultQueryParameters(camera, QueryType.Event)).toEqual(
       {},
     );
@@ -375,16 +370,12 @@ describe('GenericCameraManagerEngine', () => {
 
   describe('should get camera endpoints', () => {
     it('default', async () => {
-      const camera = await createEngine().createCamera(
-        createHASS(),
-        createGenericCameraConfig(),
-      );
+      const camera = await createEngine().createCamera(createGenericCameraConfig());
       expect(camera.getEndpoints()).toBeNull();
     });
 
     it('for go2rtc', async () => {
       const camera = await createEngine().createCamera(
-        createHASS(),
         createGenericCameraConfig({
           go2rtc: {
             stream: 'stream',
@@ -403,7 +394,6 @@ describe('GenericCameraManagerEngine', () => {
 
     it('for webrtc-card', async () => {
       const camera = await createEngine().createCamera(
-        createHASS(),
         createGenericCameraConfig({
           camera_entity: 'camera.office',
         }),

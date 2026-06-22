@@ -1,6 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { mock } from 'vitest-mock-extended';
-import { HASSManagerReadonlyInterface } from '../../../src/card-controller/hass/types';
 import { TemplateRenderer } from '../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { createTriggerEvaluator } from '../../../src/condition-trigger/triggers/factory';
@@ -27,6 +25,7 @@ import {
 } from '../../../src/condition-trigger/triggers/triggers/types';
 import { ViewTrigger } from '../../../src/condition-trigger/triggers/triggers/view';
 import { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
+import { createHASSManager } from '../../test-utils';
 
 type TriggerEvaluatorConstructor = new (...args: never[]) => TriggerEvaluator;
 
@@ -35,7 +34,7 @@ describe('createTriggerEvaluator', () => {
   const context = (): TriggerEvaluatorContext => ({
     stateManager: new ConditionStateManager(),
     templateRenderer: new TemplateRenderer(),
-    hassManager: mock<HASSManagerReadonlyInterface>(),
+    hassManager: createHASSManager(),
   });
 
   it.each<[Trigger, TriggerEvaluatorConstructor]>([

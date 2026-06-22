@@ -1,7 +1,6 @@
 import { add, endOfDay, parse, startOfDay } from 'date-fns';
 import { orderBy } from 'lodash-es';
-import { EventWatcherSubscriptionInterface } from '../../card-controller/hass/event-watcher';
-import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
+import { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
 import { CameraConfig } from '../../config/schema/cameras';
 import { getViewMediaFromBrowseMediaArray } from '../../ha/browse-media/browse-media-to-view-media';
 import { sortMostRecentFirst } from '../../ha/browse-media/sort';
@@ -61,8 +60,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
   public constructor(
     entityRegistryManager: EntityRegistryManager,
     deviceRegistryManager: DeviceRegistryManager,
-    stateWatcher: StateWatcherSubscriptionInterface,
-    eventWatcher: EventWatcherSubscriptionInterface,
+    hassManager: HASSManagerReadonlyInterface,
     browseMediaManager: BrowseMediaWalker,
     resolvedMediaCache: ResolvedMediaCache,
     requestCache: CameraManagerRequestCache,
@@ -70,8 +68,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
   ) {
     super(
       entityRegistryManager,
-      stateWatcher,
-      eventWatcher,
+      hassManager,
       browseMediaManager,
       resolvedMediaCache,
       requestCache,
@@ -167,19 +164,14 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       : null;
   }
 
-  public async createCamera(
-    hass: HomeAssistant,
-    cameraConfig: CameraConfig,
-  ): Promise<Camera> {
+  public async createCamera(cameraConfig: CameraConfig): Promise<Camera> {
     const camera = new ReolinkCamera(cameraConfig, this, {
       eventCallback: this._eventCallback,
     });
     return await camera.initialize({
+      hassManager: this._hassManager,
       entityRegistryManager: this._entityRegistryManager,
       deviceRegistryManager: this._deviceRegistryManager,
-      hass,
-      stateWatcher: this._stateWatcher,
-      eventWatcher: this._eventWatcher,
     });
   }
 

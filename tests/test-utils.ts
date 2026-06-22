@@ -46,6 +46,7 @@ import { FullscreenManager } from '../src/card-controller/fullscreen/fullscreen-
 import { EventWatcherSubscriptionInterface } from '../src/card-controller/hass/event-watcher';
 import { HASSManager } from '../src/card-controller/hass/hass-manager';
 import { StateWatcherSubscriptionInterface } from '../src/card-controller/hass/state-watcher';
+import { HASSManagerReadonlyInterface } from '../src/card-controller/hass/types';
 import { InitializationManager } from '../src/card-controller/initialization-manager';
 import { InteractionManager } from '../src/card-controller/interaction-manager';
 import { IssueManager } from '../src/card-controller/issues/issue-manager';
@@ -130,9 +131,7 @@ export const createInitializedCamera = async (
 ): Promise<Camera> => {
   const camera = new Camera(config, engine);
   await camera.initialize({
-    hass: createHASS(),
-    stateWatcher: stateWatcher ?? mock<StateWatcherSubscriptionInterface>(),
-    eventWatcher: mock<EventWatcherSubscriptionInterface>(),
+    hassManager: createHASSManager({ stateWatcher }),
     ...(capabilities ? { capabilityOptions: { capabilities } } : {}),
   });
   return camera;
@@ -193,6 +192,24 @@ export const createHASSSource = (
     },
     getListenerCount: () => listeners.size,
   };
+};
+
+export const createHASSManager = (options?: {
+  hass?: HomeAssistant | null;
+  stateWatcher?: StateWatcherSubscriptionInterface;
+  eventWatcher?: EventWatcherSubscriptionInterface;
+}): HASSManagerReadonlyInterface => {
+  const hassManager = mock<HASSManagerReadonlyInterface>();
+  hassManager.getHASS.mockReturnValue(
+    options?.hass === undefined ? createHASS() : options.hass,
+  );
+  hassManager.getStateWatcher.mockReturnValue(
+    options?.stateWatcher ?? mock<StateWatcherSubscriptionInterface>(),
+  );
+  hassManager.getEventWatcher.mockReturnValue(
+    options?.eventWatcher ?? mock<EventWatcherSubscriptionInterface>(),
+  );
+  return hassManager;
 };
 
 export const createUser = (user?: Partial<CurrentUser>): CurrentUser => ({
@@ -327,8 +344,7 @@ export const createStore = (
       cameraProps.config ?? createCameraConfig(),
       cameraProps.engine ??
         new GenericCameraManagerEngine(
-          mock<StateWatcherSubscriptionInterface>(),
-          mock<EventWatcherSubscriptionInterface>(),
+          createHASSManager(),
           mock<EntityRegistryManager>(),
           eventCallback,
         ),

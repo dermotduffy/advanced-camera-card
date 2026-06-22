@@ -23,16 +23,15 @@ export class TPLinkCamera extends EntityCamera {
   private _ptzEntities: PTZEntities | null = null;
 
   protected async _initialize(
+    hass: HomeAssistant,
     options: TPLinkCameraInitializationOptions,
   ): Promise<void> {
-    await super._initialize(options);
-    this._ptzEntities = await this._getPTZEntities(
-      options.hass,
-      options.entityRegistryManager,
-    );
+    await super._initialize(hass, options);
+    this._ptzEntities = await this._getPTZEntities(hass, options.entityRegistryManager);
   }
 
   protected async _getRawCapabilities(
+    hass: HomeAssistant,
     options: TPLinkCameraInitializationOptions,
   ): Promise<CapabilitiesRaw> {
     const configPTZ = getPTZCapabilitiesFromCameraConfig(this.getConfig());
@@ -44,7 +43,7 @@ export class TPLinkCamera extends EntityCamera {
       configPTZ || tplinkPTZ ? { ...tplinkPTZ, ...configPTZ } : null;
 
     return {
-      ...(await super._getRawCapabilities(options)),
+      ...(await super._getRawCapabilities(hass, options)),
       ...(combinedPTZ && { ptz: combinedPTZ }),
     };
   }

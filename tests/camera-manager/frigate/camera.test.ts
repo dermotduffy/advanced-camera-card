@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { FrigateCamera } from '../../../src/camera-manager/frigate/camera';
@@ -18,8 +18,6 @@ import {
   FrigateReviewWatcher,
 } from '../../../src/camera-manager/frigate/watcher';
 import { ActionsExecutor } from '../../../src/card-controller/actions/types';
-import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
-import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { PTZAction } from '../../../src/config/schema/actions/custom/ptz';
 import { CameraTriggerMediaEventType } from '../../../src/config/schema/cameras';
 import { Entity, EntityRegistryManager } from '../../../src/ha/registry/entity/types';
@@ -29,6 +27,7 @@ import {
   createCameraConfig,
   createCapabilities,
   createHASS,
+  createHASSManager,
   createRegistryEntity,
   createStateEntity,
 } from '../../test-utils';
@@ -42,7 +41,7 @@ const callEventWatcherCallback = (
 ): void => {
   const mock = vi.mocked(eventWatcher.subscribe).mock;
   expect(mock.calls.length).greaterThan(n);
-  mock.calls[n][1].callback(event);
+  mock.calls[n][0].callback(event);
 };
 
 const callReviewWatcherCallback = (
@@ -52,7 +51,7 @@ const callReviewWatcherCallback = (
 ): void => {
   const mock = vi.mocked(reviewWatcher.subscribe).mock;
   expect(mock.calls.length).greaterThan(n);
-  mock.calls[n][1].callback(review);
+  mock.calls[n][0].callback(review);
 };
 
 describe('FrigateCamera', () => {
@@ -69,10 +68,8 @@ describe('FrigateCamera', () => {
         const beforeConfig = { ...config };
 
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -92,10 +89,8 @@ describe('FrigateCamera', () => {
         expect(
           async () =>
             await camera.initialize({
-              hass: createHASS(),
+              hassManager: createHASSManager(),
               entityRegistryManager: entityRegistryManager,
-              stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-              eventWatcher: mock<EventWatcherSubscriptionInterface>(),
               frigateEventWatcher: mock<FrigateEventWatcher>(),
               frigateReviewWatcher: mock<FrigateReviewWatcher>(),
             }),
@@ -118,10 +113,8 @@ describe('FrigateCamera', () => {
         ]);
 
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: entityRegistryManager,
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -144,10 +137,8 @@ describe('FrigateCamera', () => {
         ]);
 
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: entityRegistryManager,
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -170,10 +161,8 @@ describe('FrigateCamera', () => {
         ]);
 
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: entityRegistryManager,
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -191,15 +180,15 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         await camera.initialize({
-          hass: createHASS({
-            'camera.front_door': createStateEntity({
-              entity_id: 'camera.front_door',
-              attributes: { client_id: 'remote_frigate' },
+          hassManager: createHASSManager({
+            hass: createHASS({
+              'camera.front_door': createStateEntity({
+                entity_id: 'camera.front_door',
+                attributes: { client_id: 'remote_frigate' },
+              }),
             }),
           }),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -215,15 +204,15 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         await camera.initialize({
-          hass: createHASS({
-            'camera.front_door': createStateEntity({
-              entity_id: 'camera.front_door',
-              attributes: {},
+          hassManager: createHASSManager({
+            hass: createHASS({
+              'camera.front_door': createStateEntity({
+                entity_id: 'camera.front_door',
+                attributes: {},
+              }),
             }),
           }),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -238,10 +227,8 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -257,15 +244,15 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         await camera.initialize({
-          hass: createHASS({
-            'camera.front_door': createStateEntity({
-              entity_id: 'camera.front_door',
-              attributes: { client_id: 'something_else' },
+          hassManager: createHASSManager({
+            hass: createHASS({
+              'camera.front_door': createStateEntity({
+                entity_id: 'camera.front_door',
+                attributes: { client_id: 'something_else' },
+              }),
             }),
           }),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -281,16 +268,16 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         await camera.initialize({
-          hass: createHASS({
-            'camera.front_door': createStateEntity({
-              entity_id: 'camera.front_door',
-              state: 'unavailable',
-              attributes: {},
+          hassManager: createHASSManager({
+            hass: createHASS({
+              'camera.front_door': createStateEntity({
+                entity_id: 'camera.front_door',
+                state: 'unavailable',
+                attributes: {},
+              }),
             }),
           }),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -311,10 +298,8 @@ describe('FrigateCamera', () => {
       );
 
       await camera.initialize({
-        hass: createHASS(),
+        hassManager: createHASSManager(),
         entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         frigateEventWatcher: mock<FrigateEventWatcher>(),
         frigateReviewWatcher: mock<FrigateReviewWatcher>(),
       });
@@ -340,10 +325,8 @@ describe('FrigateCamera', () => {
       );
 
       await camera.initialize({
-        hass: createHASS(),
+        hassManager: createHASSManager(),
         entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         frigateEventWatcher: mock<FrigateEventWatcher>(),
         frigateReviewWatcher: mock<FrigateReviewWatcher>(),
       });
@@ -373,10 +356,8 @@ describe('FrigateCamera', () => {
         vi.mocked(getPTZInfo).mockRejectedValue(new Error());
 
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -404,10 +385,8 @@ describe('FrigateCamera', () => {
         });
 
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -442,10 +421,8 @@ describe('FrigateCamera', () => {
         });
 
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -475,10 +452,8 @@ describe('FrigateCamera', () => {
         });
 
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -512,10 +487,8 @@ describe('FrigateCamera', () => {
         });
 
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -842,15 +815,12 @@ describe('FrigateCamera', () => {
 
       const eventWatcher = mock<FrigateEventWatcher>();
       await camera.initialize({
-        hass: hass,
+        hassManager: createHASSManager({ hass }),
         entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         frigateEventWatcher: eventWatcher,
         frigateReviewWatcher: mock<FrigateReviewWatcher>(),
       });
       expect(eventWatcher.subscribe).toBeCalledWith(
-        hass,
         expect.objectContaining({
           instanceID: 'CLIENT_ID',
         }),
@@ -874,10 +844,8 @@ describe('FrigateCamera', () => {
 
       const eventWatcher = mock<FrigateEventWatcher>();
       await camera.initialize({
-        hass: hass,
+        hassManager: createHASSManager({ hass }),
         entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         frigateEventWatcher: eventWatcher,
         frigateReviewWatcher: mock<FrigateReviewWatcher>(),
       });
@@ -901,10 +869,8 @@ describe('FrigateCamera', () => {
 
       const eventWatcher = mock<FrigateEventWatcher>();
       await camera.initialize({
-        hass: hass,
+        hassManager: createHASSManager({ hass }),
         entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         frigateEventWatcher: eventWatcher,
         frigateReviewWatcher: mock<FrigateReviewWatcher>(),
       });
@@ -927,10 +893,8 @@ describe('FrigateCamera', () => {
 
       const eventWatcher = mock<FrigateEventWatcher>();
       await camera.initialize({
-        hass: hass,
+        hassManager: createHASSManager({ hass }),
         entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         frigateEventWatcher: eventWatcher,
         frigateReviewWatcher: mock<FrigateReviewWatcher>(),
       });
@@ -953,10 +917,8 @@ describe('FrigateCamera', () => {
 
       const eventWatcher = mock<FrigateEventWatcher>();
       await camera.initialize({
-        hass: hass,
+        hassManager: createHASSManager({ hass }),
         entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         frigateEventWatcher: eventWatcher,
         frigateReviewWatcher: mock<FrigateReviewWatcher>(),
       });
@@ -966,9 +928,10 @@ describe('FrigateCamera', () => {
       expect(eventWatcher.unsubscribe).toBeCalled();
     });
 
-    it('should unsubscribe on destroy while event subscription is pending', async () => {
+    it('should not subscribe when destroyed while base initialization is pending', async () => {
       const camera = new FrigateCamera(
         createCameraConfig({
+          camera_entity: 'camera.front_door',
           frigate: { client_id: 'CLIENT_ID', camera_name: 'front_door' },
           triggers: {
             media_events: ['events'],
@@ -978,45 +941,40 @@ describe('FrigateCamera', () => {
         mock<CameraManagerEngine>(),
       );
       const hass = createHASS();
-      let resolveSubscribe: () => void = () => {};
       const eventWatcher = mock<FrigateEventWatcher>();
       const reviewWatcher = mock<FrigateReviewWatcher>();
-      vi.mocked(eventWatcher.subscribe).mockReturnValue(
-        new Promise<void>((resolve) => {
-          resolveSubscribe = resolve;
+
+      // Pend base initialization on entity resolution so destroy() can flip
+      // `_destroyed` before initialize() reaches the subscribe calls.
+      let resolveEntity: () => void = () => {};
+      const entityRegistryManager = mock<EntityRegistryManager>();
+      vi.mocked(entityRegistryManager.getEntity).mockReturnValue(
+        new Promise((resolve) => {
+          resolveEntity = () => resolve(createRegistryEntity());
         }),
       );
 
       const initializePromise = camera.initialize({
-        hass: hass,
-        entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
+        hassManager: createHASSManager({ hass }),
+        entityRegistryManager: entityRegistryManager,
         frigateEventWatcher: eventWatcher,
         frigateReviewWatcher: reviewWatcher,
-
-        // Pre-built so `_buildCapabilities` (which calls the un-mocked
-        // `liveProviderSupports2WayAudio`) is skipped and init reaches the
-        // pending Frigate event subscribe.
         capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
       });
-      await vi.waitFor(() => expect(eventWatcher.subscribe).toBeCalled());
+      await vi.waitFor(() => expect(entityRegistryManager.getEntity).toBeCalled());
 
       await camera.destroy();
 
-      // Destroy iterated `_destroyCallbacks` and called the unsubscribe that
-      // was registered before the (still pending) event subscribe.
-      const subscribeCall = vi.mocked(eventWatcher.subscribe).mock.calls[0];
-      assert(subscribeCall);
-      expect(eventWatcher.unsubscribe).toBeCalledWith(subscribeCall[1]);
+      // `_destroyed` short-circuits initialize() after the pending await, so
+      // neither watcher is ever subscribed.
+      expect(eventWatcher.subscribe).not.toBeCalled();
+      expect(reviewWatcher.subscribe).not.toBeCalled();
 
-      resolveSubscribe();
+      resolveEntity();
       await initializePromise;
 
-      // The subsequent `_subscribeToReviews` short-circuited on `_destroyed`,
-      // so the review watcher was never subscribed (and so never needs an
-      // unsubscribe -- which would otherwise be ordered before the subscribe
-      // in the per-key PQueue and leak the resulting subscription).
+      expect(eventWatcher.subscribe).not.toBeCalled();
+      expect(eventWatcher.unsubscribe).not.toBeCalled();
       expect(reviewWatcher.subscribe).not.toBeCalled();
       expect(reviewWatcher.unsubscribe).not.toBeCalled();
     });
@@ -1106,10 +1064,8 @@ describe('FrigateCamera', () => {
             const hass = createHASS();
             const eventWatcher = mock<FrigateEventWatcher>();
             await camera.initialize({
-              hass: hass,
+              hassManager: createHASSManager({ hass }),
               entityRegistryManager: mock<EntityRegistryManager>(),
-              stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-              eventWatcher: mock<EventWatcherSubscriptionInterface>(),
               frigateEventWatcher: eventWatcher,
               frigateReviewWatcher: mock<FrigateReviewWatcher>(),
             });
@@ -1179,10 +1135,8 @@ describe('FrigateCamera', () => {
           const hass = createHASS();
           const eventWatcher = mock<FrigateEventWatcher>();
           await camera.initialize({
-            hass: hass,
+            hassManager: createHASSManager({ hass }),
             entityRegistryManager: mock<EntityRegistryManager>(),
-            stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-            eventWatcher: mock<EventWatcherSubscriptionInterface>(),
             frigateEventWatcher: eventWatcher,
             frigateReviewWatcher: mock<FrigateReviewWatcher>(),
           });
@@ -1239,10 +1193,8 @@ describe('FrigateCamera', () => {
           const hass = createHASS();
           const eventWatcher = mock<FrigateEventWatcher>();
           await camera.initialize({
-            hass: hass,
+            hassManager: createHASSManager({ hass }),
             entityRegistryManager: mock<EntityRegistryManager>(),
-            stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-            eventWatcher: mock<EventWatcherSubscriptionInterface>(),
             frigateEventWatcher: eventWatcher,
             frigateReviewWatcher: mock<FrigateReviewWatcher>(),
           });
@@ -1296,10 +1248,8 @@ describe('FrigateCamera', () => {
         const hass = createHASS();
         const eventWatcher = mock<FrigateEventWatcher>();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: eventWatcher,
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -1350,15 +1300,12 @@ describe('FrigateCamera', () => {
 
       const reviewWatcher = mock<FrigateReviewWatcher>();
       await camera.initialize({
-        hass: hass,
+        hassManager: createHASSManager({ hass }),
         entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         frigateEventWatcher: mock<FrigateEventWatcher>(),
         frigateReviewWatcher: reviewWatcher,
       });
       expect(reviewWatcher.subscribe).toBeCalledWith(
-        hass,
         expect.objectContaining({
           instanceID: 'CLIENT_ID',
         }),
@@ -1384,10 +1331,8 @@ describe('FrigateCamera', () => {
 
       const reviewWatcher = mock<FrigateReviewWatcher>();
       await camera.initialize({
-        hass: hass,
+        hassManager: createHASSManager({ hass }),
         entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         frigateEventWatcher: mock<FrigateEventWatcher>(),
         frigateReviewWatcher: reviewWatcher,
       });
@@ -1414,10 +1359,8 @@ describe('FrigateCamera', () => {
 
       const reviewWatcher = mock<FrigateReviewWatcher>();
       await camera.initialize({
-        hass: hass,
+        hassManager: createHASSManager({ hass }),
         entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         frigateEventWatcher: mock<FrigateEventWatcher>(),
         frigateReviewWatcher: reviewWatcher,
       });
@@ -1449,10 +1392,8 @@ describe('FrigateCamera', () => {
         const hass = createHASS();
         const reviewWatcher = mock<FrigateReviewWatcher>();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: reviewWatcher,
         });
@@ -1514,10 +1455,8 @@ describe('FrigateCamera', () => {
         const hass = createHASS();
         const reviewWatcher = mock<FrigateReviewWatcher>();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: reviewWatcher,
         });
@@ -1587,10 +1526,8 @@ describe('FrigateCamera', () => {
         const hass = createHASS();
         const reviewWatcher = mock<FrigateReviewWatcher>();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: reviewWatcher,
         });
@@ -1660,10 +1597,8 @@ describe('FrigateCamera', () => {
         const hass = createHASS();
         const reviewWatcher = mock<FrigateReviewWatcher>();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: reviewWatcher,
         });
@@ -1719,10 +1654,8 @@ describe('FrigateCamera', () => {
         const hass = createHASS();
         const reviewWatcher = mock<FrigateReviewWatcher>();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: reviewWatcher,
         });
@@ -1777,10 +1710,8 @@ describe('FrigateCamera', () => {
         const hass = createHASS();
         const reviewWatcher = mock<FrigateReviewWatcher>();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: reviewWatcher,
         });
@@ -1839,10 +1770,8 @@ describe('FrigateCamera', () => {
       const hass = createHASS();
       const reviewWatcher = mock<FrigateReviewWatcher>();
       await camera.initialize({
-        hass: hass,
+        hassManager: createHASSManager({ hass }),
         entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         frigateEventWatcher: mock<FrigateEventWatcher>(),
         frigateReviewWatcher: reviewWatcher,
       });
@@ -1898,10 +1827,8 @@ describe('FrigateCamera', () => {
       const hass = createHASS();
       const reviewWatcher = mock<FrigateReviewWatcher>();
       await camera.initialize({
-        hass: hass,
+        hassManager: createHASSManager({ hass }),
         entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         frigateEventWatcher: mock<FrigateEventWatcher>(),
         frigateReviewWatcher: reviewWatcher,
       });
@@ -1965,10 +1892,8 @@ describe('FrigateCamera', () => {
       const hass = createHASS();
       const reviewWatcher = mock<FrigateReviewWatcher>();
       await camera.initialize({
-        hass: hass,
+        hassManager: createHASSManager({ hass }),
         entityRegistryManager: mock<EntityRegistryManager>(),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
         frigateEventWatcher: mock<FrigateEventWatcher>(),
         frigateReviewWatcher: reviewWatcher,
       });
@@ -2044,10 +1969,8 @@ describe('FrigateCamera', () => {
 
         const hass = createHASS();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: entityRegistryManager,
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -2075,10 +1998,8 @@ describe('FrigateCamera', () => {
 
         const hass = createHASS();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: entityRegistryManager,
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -2100,10 +2021,8 @@ describe('FrigateCamera', () => {
         );
         const hass = createHASS();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: new EntityRegistryManagerMock(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -2126,10 +2045,8 @@ describe('FrigateCamera', () => {
         );
         await expect(
           camera.initialize({
-            hass: createHASS(),
+            hassManager: createHASSManager(),
             entityRegistryManager: new EntityRegistryManagerMock(),
-            stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-            eventWatcher: mock<EventWatcherSubscriptionInterface>(),
             frigateEventWatcher: mock<FrigateEventWatcher>(),
             frigateReviewWatcher: mock<FrigateReviewWatcher>(),
           }),
@@ -2153,10 +2070,8 @@ describe('FrigateCamera', () => {
         );
         const hass = createHASS();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: entityRegistryManager,
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -2179,10 +2094,8 @@ describe('FrigateCamera', () => {
         );
         const hass = createHASS();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: entityRegistryManager,
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -2204,10 +2117,8 @@ describe('FrigateCamera', () => {
         );
         const hass = createHASS();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: new EntityRegistryManagerMock(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -2238,10 +2149,8 @@ describe('FrigateCamera', () => {
         );
         const hass = createHASS();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: entityRegistryManager,
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -2274,10 +2183,8 @@ describe('FrigateCamera', () => {
         );
         const hass = createHASS();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: entityRegistryManager,
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -2295,10 +2202,8 @@ describe('FrigateCamera', () => {
 
         const hass = createHASS();
         await camera.initialize({
-          hass: hass,
+          hassManager: createHASSManager({ hass }),
           entityRegistryManager: mock<EntityRegistryManager>(),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -2327,12 +2232,10 @@ describe('FrigateCamera', () => {
         );
 
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             createRegistryEntity({ entity_id: 'camera.office_frigate' }),
           ]),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -2366,12 +2269,10 @@ describe('FrigateCamera', () => {
         );
 
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             createRegistryEntity({ entity_id: 'camera.office_frigate' }),
           ]),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -2420,12 +2321,10 @@ describe('FrigateCamera', () => {
         );
 
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             createRegistryEntity({ entity_id: 'camera.office_frigate' }),
           ]),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
@@ -2457,12 +2356,10 @@ describe('FrigateCamera', () => {
         );
 
         await camera.initialize({
-          hass: createHASS(),
+          hassManager: createHASSManager(),
           entityRegistryManager: new EntityRegistryManagerMock([
             createRegistryEntity({ entity_id: 'camera.office_frigate' }),
           ]),
-          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-          eventWatcher: mock<EventWatcherSubscriptionInterface>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });

@@ -4,10 +4,9 @@ import {
   EventSubscriptionRequest,
   EventWatcherSubscriptionInterface,
 } from '../../../../src/card-controller/hass/event-watcher';
-import { HASSManagerReadonlyInterface } from '../../../../src/card-controller/hass/types';
 import { EventTrigger } from '../../../../src/condition-trigger/triggers/triggers/event';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
-import { createHASSEvent } from '../../../test-utils';
+import { createHASSEvent, createHASSManager } from '../../../test-utils';
 import { createTriggerEvaluatorContext } from './test-utils';
 
 interface Harness {
@@ -18,8 +17,7 @@ interface Harness {
 
 const create = (config: TriggerOfType<'event'>): Harness => {
   const eventWatcher = mock<EventWatcherSubscriptionInterface>();
-  const hassManager = mock<HASSManagerReadonlyInterface>();
-  vi.mocked(hassManager.getEventWatcher).mockReturnValue(eventWatcher);
+  const hassManager = createHASSManager({ eventWatcher });
 
   const callback = vi.fn();
   const trigger = new EventTrigger(

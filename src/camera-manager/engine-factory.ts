@@ -1,5 +1,4 @@
-import { EventWatcherSubscriptionInterface } from '../card-controller/hass/event-watcher';
-import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
+import { HASSManagerReadonlyInterface } from '../card-controller/hass/types';
 import { CameraConfig } from '../config/schema/cameras';
 import { BrowseMediaWalker } from '../ha/browse-media/walker';
 import { DeviceRegistryManager } from '../ha/registry/device';
@@ -13,8 +12,7 @@ import { CameraEventCallback, CameraManagerRequestCache, Engine } from './types'
 import { getCameraEntityFromConfig } from './utils/camera-entity-from-config';
 
 interface CameraManagerEngineFactoryOptions {
-  stateWatcher: StateWatcherSubscriptionInterface;
-  eventWatcher: EventWatcherSubscriptionInterface;
+  hassManager: HASSManagerReadonlyInterface;
   resolvedMediaCache: ResolvedMediaCache;
   eventCallback?: CameraEventCallback;
 }
@@ -40,8 +38,7 @@ export class CameraManagerEngineFactory {
       case Engine.Generic:
         const { GenericCameraManagerEngine } = await import('./generic/engine-generic');
         cameraManagerEngine = new GenericCameraManagerEngine(
-          options.stateWatcher,
-          options.eventWatcher,
+          options.hassManager,
           this._entityRegistryManager,
           options.eventCallback,
         );
@@ -50,8 +47,7 @@ export class CameraManagerEngineFactory {
         const { FrigateCameraManagerEngine } = await import('./frigate/engine-frigate');
         cameraManagerEngine = new FrigateCameraManagerEngine(
           this._entityRegistryManager,
-          options.stateWatcher,
-          options.eventWatcher,
+          options.hassManager,
           new RecordingSegmentsCache(),
           new CameraManagerRequestCache(),
           options.eventCallback,
@@ -63,8 +59,7 @@ export class CameraManagerEngineFactory {
         );
         cameraManagerEngine = new MotionEyeCameraManagerEngine(
           this._entityRegistryManager,
-          options.stateWatcher,
-          options.eventWatcher,
+          options.hassManager,
           new BrowseMediaWalker(),
           options.resolvedMediaCache,
           new CameraManagerRequestCache(),
@@ -76,8 +71,7 @@ export class CameraManagerEngineFactory {
         cameraManagerEngine = new ReolinkCameraManagerEngine(
           this._entityRegistryManager,
           this._deviceRegistryManager,
-          options.stateWatcher,
-          options.eventWatcher,
+          options.hassManager,
           new BrowseMediaWalker(),
           options.resolvedMediaCache,
           new CameraManagerRequestCache(),
@@ -88,8 +82,7 @@ export class CameraManagerEngineFactory {
         const { TPLinkCameraManagerEngine } = await import('./tplink/engine-tplink');
         cameraManagerEngine = new TPLinkCameraManagerEngine(
           this._entityRegistryManager,
-          options.stateWatcher,
-          options.eventWatcher,
+          options.hassManager,
           options.eventCallback,
         );
         break;

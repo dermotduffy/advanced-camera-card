@@ -1,5 +1,4 @@
-import { EventWatcherSubscriptionInterface } from '../../card-controller/hass/event-watcher';
-import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
+import { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
 import { CameraConfig } from '../../config/schema/cameras';
 import { EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
@@ -11,11 +10,10 @@ import { TPLinkCamera } from './camera';
 export class TPLinkCameraManagerEngine extends GenericCameraManagerEngine {
   constructor(
     entityRegistryManager: EntityRegistryManager,
-    stateWatcher: StateWatcherSubscriptionInterface,
-    eventWatcher: EventWatcherSubscriptionInterface,
+    hassManager: HASSManagerReadonlyInterface,
     eventCallback?: CameraEventCallback,
   ) {
-    super(stateWatcher, eventWatcher, entityRegistryManager, eventCallback);
+    super(hassManager, entityRegistryManager, eventCallback);
     this._entityRegistryManager = entityRegistryManager;
   }
 
@@ -23,18 +21,13 @@ export class TPLinkCameraManagerEngine extends GenericCameraManagerEngine {
     return Engine.TPLink;
   }
 
-  public async createCamera(
-    hass: HomeAssistant,
-    cameraConfig: CameraConfig,
-  ): Promise<Camera> {
+  public async createCamera(cameraConfig: CameraConfig): Promise<Camera> {
     const camera = new TPLinkCamera(cameraConfig, this, {
       eventCallback: this._eventCallback,
     });
     return await camera.initialize({
+      hassManager: this._hassManager,
       entityRegistryManager: this._entityRegistryManager,
-      hass,
-      stateWatcher: this._stateWatcher,
-      eventWatcher: this._eventWatcher,
     });
   }
 
