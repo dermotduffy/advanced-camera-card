@@ -4,6 +4,7 @@ import { mediaLayoutConfigSchema } from './camera/media-layout';
 import { ptzCameraConfigDefaults, ptzCameraConfigSchema } from './camera/ptz';
 import { aspectRatioSchema } from './common/aspect-ratio';
 import { eventsMediaTypeSchema } from './common/events-media';
+import { haEventSchema } from './common/ha-event';
 import { imageBaseConfigDefault, imageBaseConfigSchema } from './common/image';
 import { proxyBaseConfigDefault, proxyBaseConfigSchema } from './common/proxy';
 import { severitySchema } from './common/severity';
@@ -219,12 +220,6 @@ const cameraMediaConfigSchema = z.object({
     .default(cameraMediaConfigDefault.reviewed),
 });
 
-const triggerEventSchema = z.object({
-  event_type: z.string().min(1),
-  event_data: z.record(z.string(), z.unknown()).optional(),
-});
-export type TriggerEvent = z.infer<typeof triggerEventSchema>;
-
 export const cameraConfigSchema = z
   .looseObject({
     camera_entity: z.string().optional(),
@@ -259,7 +254,7 @@ export const cameraConfigSchema = z
         occupancy: z.boolean().default(cameraConfigDefault.triggers.occupancy),
         doorbell: z.boolean().default(cameraConfigDefault.triggers.doorbell),
         entities: z.string().array().default(cameraConfigDefault.triggers.entities),
-        events: triggerEventSchema.array().default(cameraConfigDefault.triggers.events),
+        events: haEventSchema.array().default(cameraConfigDefault.triggers.events),
         media_events: z
           .enum(CAMERA_TRIGGER_MEDIA_EVENT_TYPES)
           .array()

@@ -44,27 +44,62 @@ describe('HASSManager', () => {
     expect(manager.hasHASS()).toBeTruthy();
   });
 
-  it('should update theme upon setting hass', () => {
-    const api = createCardAPI();
-    const manager = new HASSManager(api);
+  describe('as a HASS source', () => {
+    it('should fan out to registered listeners with (hass, oldHass)', () => {
+      const manager = new HASSManager(createCardAPI());
+      const listener = vi.fn();
+      manager.addListener(listener);
 
-    manager.setHASS(createHASS());
+      const hass1 = createHASS();
+      manager.setHASS(hass1);
+      expect(listener).toBeCalledWith(hass1, null);
 
-    expect(api.getStyleManager().applyTheme).toBeCalled();
-  });
+      const hass2 = createHASS();
+      manager.setHASS(hass2);
+      expect(listener).toBeCalledWith(hass2, hass1);
+    });
 
-  it('should set condition manager state', () => {
-    const api = createCardAPI();
-    const manager = new HASSManager(api);
-    const hass = createHASS();
+    it('should call listeners in insertion order on every fan-out', () => {
+      const manager = new HASSManager(createCardAPI());
+      const order: string[] = [];
+      manager.addListener(() => order.push('first'));
+      manager.addListener(() => order.push('second'));
 
-    manager.setHASS(hass);
+      manager.setHASS(createHASS());
 
-    expect(api.getConditionStateManager().setState).toBeCalledWith(
-      expect.objectContaining({
-        hass: hass,
-      }),
-    );
+      expect(order).toEqual(['first', 'second']);
+    });
+
+    it('should detach a listener via the returned unlisten callback', () => {
+      const manager = new HASSManager(createCardAPI());
+      const listener = vi.fn();
+      const unlisten = manager.addListener(listener);
+
+      unlisten();
+      manager.setHASS(createHASS());
+
+      expect(listener).not.toBeCalled();
+    });
+
+    it('should not fan out on null/undefined hass', () => {
+      const manager = new HASSManager(createCardAPI());
+      const listener = vi.fn();
+      manager.addListener(listener);
+
+      manager.setHASS(null);
+      manager.setHASS();
+
+      expect(listener).not.toBeCalled();
+    });
+
+    it('should expose current hass via getHASS for source consumers', () => {
+      const manager = new HASSManager(createCardAPI());
+      expect(manager.getHASS()).toBeNull();
+
+      const hass = createHASS();
+      manager.setHASS(hass);
+      expect(manager.getHASS()).toBe(hass);
+    });
   });
 
   describe('should handle connection state change when', () => {

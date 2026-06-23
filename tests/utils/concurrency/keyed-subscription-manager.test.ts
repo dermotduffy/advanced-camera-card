@@ -86,6 +86,24 @@ describe('KeyedSubscriptionManager', () => {
     expect(manager.getRequestsForKey('a')).toEqual([reqA2]);
   });
 
+  it('should roll back the request when the underlying subscribeFn rejects', async () => {
+    const manager = create();
+    const subscribeFn = vi.fn().mockRejectedValue(new Error('ws-fail'));
+
+    const req = { key: 'a', callback: vi.fn() };
+    await expect(manager.subscribe(req, subscribeFn)).rejects.toThrow('ws-fail');
+
+    // The failed subscriber must not be left dispatching against a
+    // never-established connection.
+    expect(manager.getRequestsForKey('a')).toEqual([]);
+
+    // A subsequent successful subscribe should re-attempt the underlying call.
+    const successFn = vi.fn().mockResolvedValue(vi.fn());
+    await manager.subscribe(req, successFn);
+    expect(successFn).toBeCalledTimes(1);
+    expect(manager.getRequestsForKey('a')).toEqual([req]);
+  });
+
   it('should treat unsubscribe of an unknown request as a no-op', async () => {
     const manager = create();
     const unsub = vi.fn();

@@ -1,10 +1,10 @@
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { TemplateRenderer } from '../../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { NumericStateTrigger } from '../../../../src/condition-trigger/triggers/triggers/numeric-state';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createHASS, createStateEntity } from '../../../test-utils';
+import { createTriggerEvaluatorContext } from './test-utils';
 
 const SENSOR = 'sensor.temperature';
 const SENSOR_TWO = 'sensor.humidity';
@@ -21,10 +21,10 @@ describe('NumericStateTrigger', () => {
   } => {
     const stateManager = new ConditionStateManager();
     const callback = vi.fn();
-    const trigger = new NumericStateTrigger(config, {
-      stateManager,
-      templateRenderer: new TemplateRenderer(),
-    });
+    const trigger = new NumericStateTrigger(
+      config,
+      createTriggerEvaluatorContext({ stateManager }),
+    );
     return { trigger, stateManager, callback };
   };
 

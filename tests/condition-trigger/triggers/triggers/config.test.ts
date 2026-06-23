@@ -1,9 +1,9 @@
 import { describe, expect, it, Mock, vi } from 'vitest';
-import { TemplateRenderer } from '../../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { ConfigTrigger } from '../../../../src/condition-trigger/triggers/triggers/config';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createConfig } from '../../../test-utils';
+import { createTriggerEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
 describe('ConfigTrigger', () => {
@@ -16,10 +16,10 @@ describe('ConfigTrigger', () => {
   } => {
     const stateManager = new ConditionStateManager();
     const callback = vi.fn();
-    const configTrigger = new ConfigTrigger(trigger, {
-      stateManager,
-      templateRenderer: new TemplateRenderer(),
-    });
+    const configTrigger = new ConfigTrigger(
+      trigger,
+      createTriggerEvaluatorContext({ stateManager }),
+    );
     return { configTrigger, stateManager, callback };
   };
 

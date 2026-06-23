@@ -1,4 +1,6 @@
-import { afterEach, assert, describe, expect, it, vi } from 'vitest';
+import { Connection } from 'home-assistant-js-websocket';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 import {
   FrigateEventChange,
   FrigateReviewChange,
@@ -8,7 +10,7 @@ import {
   FrigateReviewWatcher,
 } from '../../../src/camera-manager/frigate/watcher.js';
 import { HomeAssistant } from '../../../src/ha/types.js';
-import { createHASS } from '../../test-utils.js';
+import { createHASS, createHASSSource, flushPromises } from '../../test-utils.js';
 
 const createEventChange = (): FrigateEventChange => {
   return {
@@ -68,110 +70,91 @@ const createReviewChange = (): FrigateReviewChange => {
     },
   };
 };
-const callHASubscribeMessageCallback = (
-  hass: HomeAssistant,
-  data: unknown,
-  n = 0,
-): void => {
+
+// Drive the dispatcher registered with `hass.connection.subscribeMessage` to
+// simulate a Frigate WS message arriving over the bus.
+const fireMessage = (hass: HomeAssistant, data: unknown, n = 0): void => {
   const mock = vi.mocked(hass.connection.subscribeMessage).mock;
   expect(mock.calls.length).greaterThan(n);
   mock.calls[n][0](data);
 };
 
+// @vitest-environment jsdom
 describe('FrigateEventWatcher', () => {
-  it('should subscribe to a given topic once', async () => {
-    const stateWatcher = new FrigateEventWatcher();
-    const hass = createHASS();
-
-    await stateWatcher.subscribe(hass, {
-      instanceID: 'frigate',
-      callback: vi.fn(),
-    });
-
-    await stateWatcher.subscribe(hass, {
-      instanceID: 'frigate',
-      callback: vi.fn(),
-    });
-
-    expect(hass.connection.subscribeMessage).toBeCalledTimes(1);
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
-  it('should only subscribe from a given topic once', async () => {
-    const stateWatcher = new FrigateEventWatcher();
+  it('should open a WS subscription with the frigate event type and instance id', async () => {
     const hass = createHASS();
+    const { source } = createHASSSource(hass);
+    const watcher = new FrigateEventWatcher(source);
 
-    const unsubscribeCallback = vi.fn();
-    vi.mocked(hass.connection.subscribeMessage).mockResolvedValue(unsubscribeCallback);
+    watcher.subscribe({ instanceID: 'frigate', callback: vi.fn() });
+    await flushPromises();
 
-    const request_1 = {
-      instanceID: 'frigate',
-      callback: vi.fn(),
-    };
-    const request_2 = { ...request_1 };
-
-    await stateWatcher.subscribe(hass, request_1);
-    await stateWatcher.subscribe(hass, request_2);
-
-    await stateWatcher.unsubscribe(request_1);
-    expect(unsubscribeCallback).not.toBeCalled();
-
-    await stateWatcher.unsubscribe(request_2);
-    expect(unsubscribeCallback).toBeCalledTimes(1);
+    expect(hass.connection.subscribeMessage).toBeCalledWith(
+      expect.any(Function),
+      expect.objectContaining({
+        type: 'frigate/events/subscribe',
+        instance_id: 'frigate',
+      }),
+    );
   });
 
-  it('should handle unsubscribe during pending subscription', async () => {
-    const stateWatcher = new FrigateEventWatcher();
+  it('should unsubscribe from the WS subscription', async () => {
     const hass = createHASS();
+    const unsub = vi.fn();
+    vi.mocked(hass.connection.subscribeMessage).mockResolvedValue(unsub);
+    const { source } = createHASSSource(hass);
+    const watcher = new FrigateEventWatcher(source);
+    const request = { instanceID: 'frigate', callback: vi.fn() };
 
-    let resolveSubscription: ((callback: () => Promise<void>) => void) | undefined;
-    const subscriptionPromise = new Promise<() => Promise<void>>((resolve) => {
-      resolveSubscription = resolve;
-    });
-    vi.mocked(hass.connection.subscribeMessage).mockReturnValue(subscriptionPromise);
+    watcher.subscribe(request);
+    await flushPromises();
 
-    const request = {
-      instanceID: 'frigate',
-      callback: vi.fn(),
-    };
+    watcher.unsubscribe(request);
+    await flushPromises();
 
-    // Start subscription (doesn't complete yet as not awaited).
-    const subscribePromise = stateWatcher.subscribe(hass, request);
+    expect(unsub).toBeCalledTimes(1);
+  });
 
-    // Unsubscribe while subscription is still pending.
-    const unsubscribePromise = stateWatcher.unsubscribe(request);
+  it('should drop messages from an old-connection subscription after a swap', async () => {
+    const oldHass = createHASS();
+    const { source, push } = createHASSSource(oldHass);
+    const watcher = new FrigateEventWatcher(source);
+    const callback = vi.fn();
 
-    // Complete the subscription: both subscribe and unsubscribe await the same
-    // pending promise, and unsubscribe then invokes the resolved unsub.
-    const unsubscribeCallback = vi.fn();
-    assert(resolveSubscription);
-    resolveSubscription(unsubscribeCallback);
-    await subscribePromise;
-    await unsubscribePromise;
+    watcher.subscribe({ instanceID: 'frigate', callback });
+    await flushPromises();
 
-    expect(unsubscribeCallback).toBeCalledTimes(1);
-    callHASubscribeMessageCallback(hass, JSON.stringify(createEventChange()));
-    expect(request.callback).not.toBeCalled();
+    // Capture the dispatcher registered against the OLD connection before the
+    // swap, so it still points at the now-stale era guard.
+    const oldDispatcher = vi.mocked(oldHass.connection.subscribeMessage).mock
+      .calls[0][0];
+
+    const newHass = createHASS();
+    newHass.connection = mock<Connection>();
+    vi.mocked(newHass.connection.subscribeMessage).mockResolvedValue(vi.fn());
+    push(newHass);
+    await flushPromises();
+
+    oldDispatcher(JSON.stringify(createEventChange()));
+    expect(callback).not.toBeCalled();
   });
 
   describe('should call handler', () => {
-    afterEach(() => {
-      vi.resetAllMocks();
-    });
-
     it('with invalid JSON', async () => {
       const spy = vi.spyOn(global.console, 'warn').mockImplementation(() => true);
 
-      const stateWatcher = new FrigateEventWatcher();
       const hass = createHASS();
+      const { source } = createHASSSource(hass);
+      const watcher = new FrigateEventWatcher(source);
 
       const callback = vi.fn();
-      const request = {
-        instanceID: 'frigate',
-        callback: callback,
-      };
-
-      await stateWatcher.subscribe(hass, request);
-      callHASubscribeMessageCallback(hass, 'NOT_JSON');
+      watcher.subscribe({ instanceID: 'frigate', callback });
+      await flushPromises();
+      fireMessage(hass, 'NOT_JSON');
 
       expect(callback).not.toBeCalled();
       expect(spy).toBeCalledWith(
@@ -183,18 +166,15 @@ describe('FrigateEventWatcher', () => {
     it('with malformed event', async () => {
       const spy = vi.spyOn(global.console, 'warn').mockImplementation(() => true);
 
-      const stateWatcher = new FrigateEventWatcher();
       const hass = createHASS();
+      const { source } = createHASSSource(hass);
+      const watcher = new FrigateEventWatcher(source);
 
       const callback = vi.fn();
-      const request = {
-        instanceID: 'frigate',
-        callback: callback,
-      };
-
-      await stateWatcher.subscribe(hass, request);
+      watcher.subscribe({ instanceID: 'frigate', callback });
+      await flushPromises();
       const data = JSON.stringify({});
-      callHASubscribeMessageCallback(hass, data);
+      fireMessage(hass, data);
 
       expect(callback).not.toBeCalled();
       expect(spy).toBeCalledWith(
@@ -204,71 +184,40 @@ describe('FrigateEventWatcher', () => {
     });
 
     it('without a matcher', async () => {
-      const stateWatcher = new FrigateEventWatcher();
       const hass = createHASS();
+      const { source } = createHASSSource(hass);
+      const watcher = new FrigateEventWatcher(source);
 
       const callback = vi.fn();
-      const request = {
-        instanceID: 'frigate',
-        callback: callback,
-      };
-
-      await stateWatcher.subscribe(hass, request);
+      watcher.subscribe({ instanceID: 'frigate', callback });
+      await flushPromises();
       const eventChange = createEventChange();
-      callHASubscribeMessageCallback(hass, JSON.stringify(eventChange));
+      fireMessage(hass, JSON.stringify(eventChange));
 
       expect(callback).toBeCalledWith(eventChange);
     });
 
-    it('with a non-matching instance_id', async () => {
-      const stateWatcher = new FrigateEventWatcher();
-      const hass = createHASS();
-
-      const callback_1 = vi.fn();
-      const request_1 = {
-        instanceID: 'frigate_1',
-        callback: callback_1,
-      };
-
-      const callback_2 = vi.fn();
-      const request_2 = {
-        instanceID: 'frigate_2',
-        callback: callback_2,
-      };
-
-      await stateWatcher.subscribe(hass, request_1);
-      await stateWatcher.subscribe(hass, request_2);
-
-      const eventChange = createEventChange();
-      callHASubscribeMessageCallback(hass, JSON.stringify(eventChange), 1);
-
-      expect(callback_1).not.toBeCalledWith(eventChange);
-      expect(callback_2).toBeCalledWith(eventChange);
-    });
-
     it('with a matcher', async () => {
-      const stateWatcher = new FrigateEventWatcher();
       const hass = createHASS();
+      const { source } = createHASSSource(hass);
+      const watcher = new FrigateEventWatcher(source);
 
       const matching_callback = vi.fn();
-      const matching_request = {
+      const non_matching_callback = vi.fn();
+      watcher.subscribe({
         instanceID: 'frigate',
         callback: matching_callback,
         matcher: (event: FrigateEventChange) => event.after.camera === 'front_door',
-      };
-
-      const non_matching_callback = vi.fn();
-      const non_matching_request = {
+      });
+      watcher.subscribe({
         instanceID: 'frigate',
         callback: non_matching_callback,
         matcher: (event: FrigateEventChange) => event.after.camera === 'back_door',
-      };
-
-      await stateWatcher.subscribe(hass, matching_request);
-      await stateWatcher.subscribe(hass, non_matching_request);
+      });
+      await flushPromises();
 
       const eventChange = createEventChange();
-      callHASubscribeMessageCallback(hass, JSON.stringify(eventChange));
+      fireMessage(hass, JSON.stringify(eventChange));
 
       expect(non_matching_callback).not.toBeCalledWith(eventChange);
       expect(matching_callback).toBeCalledWith(eventChange);
@@ -276,20 +225,20 @@ describe('FrigateEventWatcher', () => {
   });
 });
 
+// @vitest-environment jsdom
 describe('FrigateReviewWatcher', () => {
-  it('should subscribe to a given topic once', async () => {
-    const stateWatcher = new FrigateReviewWatcher();
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('should subscribe to the frigate reviews channel and dispatch review changes', async () => {
     const hass = createHASS();
+    const { source } = createHASSSource(hass);
+    const watcher = new FrigateReviewWatcher(source);
 
-    await stateWatcher.subscribe(hass, {
-      instanceID: 'frigate',
-      callback: vi.fn(),
-    });
-
-    await stateWatcher.subscribe(hass, {
-      instanceID: 'frigate',
-      callback: vi.fn(),
-    });
+    const callback = vi.fn();
+    watcher.subscribe({ instanceID: 'frigate', callback });
+    await flushPromises();
 
     expect(hass.connection.subscribeMessage).toBeCalledWith(
       expect.any(Function),
@@ -297,73 +246,10 @@ describe('FrigateReviewWatcher', () => {
         type: 'frigate/reviews/subscribe',
       }),
     );
-    expect(hass.connection.subscribeMessage).toBeCalledTimes(1);
-  });
 
-  describe('should call handler', () => {
-    afterEach(() => {
-      vi.resetAllMocks();
-    });
+    const reviewChange = createReviewChange();
+    fireMessage(hass, JSON.stringify(reviewChange));
 
-    it('with a review change', async () => {
-      const stateWatcher = new FrigateReviewWatcher();
-      const hass = createHASS();
-
-      const callback = vi.fn();
-      const request = {
-        instanceID: 'frigate',
-        callback: callback,
-      };
-
-      await stateWatcher.subscribe(hass, request);
-
-      const reviewChange = createReviewChange();
-
-      callHASubscribeMessageCallback(hass, JSON.stringify(reviewChange));
-
-      expect(callback).toBeCalledWith(reviewChange);
-    });
-
-    it('with a genai review change', async () => {
-      const stateWatcher = new FrigateReviewWatcher();
-      const hass = createHASS();
-
-      const callback = vi.fn();
-      const request = {
-        instanceID: 'frigate',
-        callback: callback,
-      };
-
-      await stateWatcher.subscribe(hass, request);
-
-      const reviewChange = createReviewChange();
-      reviewChange.type = 'genai';
-
-      callHASubscribeMessageCallback(hass, JSON.stringify(reviewChange));
-
-      expect(callback).toBeCalledWith(reviewChange);
-    });
-
-    it('with invalid JSON', async () => {
-      const spy = vi.spyOn(global.console, 'warn').mockImplementation(() => true);
-
-      const stateWatcher = new FrigateReviewWatcher();
-      const hass = createHASS();
-
-      const callback = vi.fn();
-      const request = {
-        instanceID: 'frigate',
-        callback: callback,
-      };
-
-      await stateWatcher.subscribe(hass, request);
-      callHASubscribeMessageCallback(hass, 'NOT_JSON');
-
-      expect(callback).not.toBeCalled();
-      expect(spy).toBeCalledWith(
-        'Received non-JSON payload from subscription: frigate/reviews/subscribe',
-        'NOT_JSON',
-      );
-    });
+    expect(callback).toBeCalledWith(reviewChange);
   });
 });

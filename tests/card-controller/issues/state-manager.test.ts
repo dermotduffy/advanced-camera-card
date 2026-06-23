@@ -539,7 +539,7 @@ describe('IssueStateManager', () => {
   });
 
   describe('destroy', () => {
-    it('should destroy all issues and clear', () => {
+    it('should clear, reset and destroy all issues', () => {
       const manager = createManager();
       manager.destroy();
 
@@ -549,6 +549,14 @@ describe('IssueStateManager', () => {
       expect(mockConfigUpgrade.reset).toBeCalled();
       expect(mockLegacyResource.reset).toBeCalled();
       expect(mockMediaLoad.reset).toBeCalled();
+
+      assert(mockConfigUpgrade.destroy);
+      assert(mockLegacyResource.destroy);
+      assert(mockMediaLoad.destroy);
+      expect(mockConfigUpgrade.destroy).toBeCalled();
+      expect(mockLegacyResource.destroy).toBeCalled();
+      expect(mockMediaLoad.destroy).toBeCalled();
+
       expect(manager.getIssuePresence().size).toBe(0);
     });
   });

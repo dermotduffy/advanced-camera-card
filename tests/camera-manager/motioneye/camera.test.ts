@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { MotionEyeCamera } from '../../../src/camera-manager/motioneye/camera';
-import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
-import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
-import { createCameraConfig, createHASS, createRegistryEntity } from '../../test-utils';
+import {
+  createCameraConfig,
+  createHASSManager,
+  createRegistryEntity,
+} from '../../test-utils';
 
 const cameraEntity = createRegistryEntity({
   entity_id: 'camera.motioneye',
@@ -47,10 +49,8 @@ describe('MotionEyeCamera', () => {
       });
       const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>());
       await camera.initialize({
-        hass: createHASS(),
+        hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       const endpoints = camera.getEndpoints();
@@ -65,10 +65,8 @@ describe('MotionEyeCamera', () => {
       });
       const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>());
       await camera.initialize({
-        hass: createHASS(),
+        hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       const endpoints = camera.getEndpoints();
@@ -83,10 +81,8 @@ describe('MotionEyeCamera', () => {
       });
       const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>());
       await camera.initialize({
-        hass: createHASS(),
+        hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       const capabilities = camera.getCapabilities();
@@ -109,10 +105,8 @@ describe('MotionEyeCamera', () => {
       });
       const camera = new MotionEyeCamera(config, mock<CameraManagerEngine>());
       await camera.initialize({
-        hass: createHASS(),
+        hassManager: createHASSManager(),
         entityRegistryManager: new EntityRegistryManagerMock([cameraEntity]),
-        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-        eventWatcher: mock<EventWatcherSubscriptionInterface>(),
       });
 
       const capabilities = camera.getCapabilities();

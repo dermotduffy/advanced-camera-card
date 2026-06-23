@@ -1,3 +1,4 @@
+import { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
 import { TemplateRenderer } from '../../card-controller/templates';
 import { Trigger } from '../../config/schema/condition-trigger/triggers/types';
 import { isEnabled } from '../common/is-enabled';
@@ -30,8 +31,13 @@ export class TriggersManager {
   constructor(
     triggers: Trigger[],
     stateManager: ConditionStateManagerReadonlyInterface,
+    hassManager: HASSManagerReadonlyInterface,
   ) {
-    this._context = { stateManager, templateRenderer: new TemplateRenderer() };
+    this._context = {
+      stateManager,
+      templateRenderer: new TemplateRenderer(),
+      hassManager,
+    };
     this._triggers = triggers.map((config) => ({
       config,
       evaluator: createTriggerEvaluator(config, this._context),

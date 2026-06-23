@@ -143,6 +143,9 @@ export class IssueStateManager implements IssueReadOnlyState {
   }
 
   public destroy(): void {
+    for (const issue of this._issues.values()) {
+      issue.destroy?.();
+    }
     this.reset();
     this._issues.clear();
     this._loggedKeys.clear();

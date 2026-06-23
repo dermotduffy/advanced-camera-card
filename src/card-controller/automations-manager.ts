@@ -37,6 +37,7 @@ export class AutomationsManager {
       const triggers = new TriggersManager(
         automation.triggers,
         this._api.getConditionStateManager(),
+        this._api.getHASSManager(),
       );
 
       // The ongoing `conditions:` block is pull-evaluated at trigger time, so

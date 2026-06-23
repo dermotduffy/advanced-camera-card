@@ -1,7 +1,6 @@
 import { add, endOfHour, fromUnixTime, startOfHour } from 'date-fns';
 import { isEqual, orderBy, throttle, uniqWith } from 'lodash-es';
-import { EventWatcherSubscriptionInterface } from '../../card-controller/hass/event-watcher';
-import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
+import { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
 import { CameraConfig } from '../../config/schema/cameras';
 import { getEntityTitle } from '../../ha/get-entity-title';
 import { EntityRegistryManager } from '../../ha/registry/entity/types';
@@ -136,16 +135,15 @@ export class FrigateCameraManagerEngine
 
   constructor(
     entityRegistryManager: EntityRegistryManager,
-    stateWatcher: StateWatcherSubscriptionInterface,
-    eventWatcher: EventWatcherSubscriptionInterface,
+    hassManager: HASSManagerReadonlyInterface,
     recordingSegmentsCache: RecordingSegmentsCache,
     requestCache: CameraManagerRequestCache,
     eventCallback?: CameraEventCallback,
   ) {
-    super(stateWatcher, eventWatcher, entityRegistryManager, eventCallback);
+    super(hassManager, entityRegistryManager, eventCallback);
     this._entityRegistryManager = entityRegistryManager;
-    this._frigateEventWatcher = new FrigateEventWatcher();
-    this._frigateReviewWatcher = new FrigateReviewWatcher();
+    this._frigateEventWatcher = new FrigateEventWatcher(hassManager);
+    this._frigateReviewWatcher = new FrigateReviewWatcher(hassManager);
     this._recordingSegmentsCache = recordingSegmentsCache;
     this._requestCache = requestCache;
   }
@@ -154,18 +152,13 @@ export class FrigateCameraManagerEngine
     return Engine.Frigate;
   }
 
-  public async createCamera(
-    hass: HomeAssistant,
-    cameraConfig: CameraConfig,
-  ): Promise<Camera> {
+  public async createCamera(cameraConfig: CameraConfig): Promise<Camera> {
     const camera = new FrigateCamera(cameraConfig, this, {
       eventCallback: this._eventCallback,
     });
     return await camera.initialize({
-      hass,
+      hassManager: this._hassManager,
       entityRegistryManager: this._entityRegistryManager,
-      stateWatcher: this._stateWatcher,
-      eventWatcher: this._eventWatcher,
       frigateEventWatcher: this._frigateEventWatcher,
       frigateReviewWatcher: this._frigateReviewWatcher,
     });

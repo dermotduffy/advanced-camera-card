@@ -183,15 +183,7 @@ class AdvancedCameraCard extends LitElement {
       return false;
     }
 
-    // Always allow blocking issues to render, as they may be generated during
-    // initialization.
-    if (this._controller.getIssueManager().getStateManager().hasFullCardIssue()) {
-      return true;
-    }
-
-    if (!this._controller.getInitializationManager().isInitializedMandatory()) {
-      /* async */ this._controller.getInitializationManager().initializeMandatory();
-    }
+    this._controller.getInitializationManager().triggerInitialization();
     return true;
   }
 

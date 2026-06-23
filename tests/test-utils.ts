@@ -1,4 +1,9 @@
-import { HassEntities, HassEntity, STATE_RUNNING } from 'home-assistant-js-websocket';
+import {
+  HassEntities,
+  HassEntity,
+  HassEvent,
+  STATE_RUNNING,
+} from 'home-assistant-js-websocket';
 import { LitElement } from 'lit';
 import screenfull from 'screenfull';
 import { expect, vi } from 'vitest';
@@ -41,6 +46,7 @@ import { FullscreenManager } from '../src/card-controller/fullscreen/fullscreen-
 import { EventWatcherSubscriptionInterface } from '../src/card-controller/hass/event-watcher';
 import { HASSManager } from '../src/card-controller/hass/hass-manager';
 import { StateWatcherSubscriptionInterface } from '../src/card-controller/hass/state-watcher';
+import { HASSManagerReadonlyInterface } from '../src/card-controller/hass/types';
 import { InitializationManager } from '../src/card-controller/initialization-manager';
 import { InteractionManager } from '../src/card-controller/interaction-manager';
 import { IssueManager } from '../src/card-controller/issues/issue-manager';
@@ -77,6 +83,7 @@ import {
 } from '../src/ha/browse-media/types';
 import { Device } from '../src/ha/registry/device/types';
 import { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
+import { HASSListener, HASSSource } from '../src/ha/source';
 import { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
 import { QuerySource } from '../src/query-source';
 import { Severity } from '../src/severity';
@@ -124,9 +131,7 @@ export const createInitializedCamera = async (
 ): Promise<Camera> => {
   const camera = new Camera(config, engine);
   await camera.initialize({
-    hass: createHASS(),
-    stateWatcher: stateWatcher ?? mock<StateWatcherSubscriptionInterface>(),
-    eventWatcher: mock<EventWatcherSubscriptionInterface>(),
+    hassManager: createHASSManager({ stateWatcher }),
     ...(capabilities ? { capabilityOptions: { capabilities } } : {}),
   });
   return camera;
@@ -151,6 +156,60 @@ export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssis
   // ha-nunjucks calls sendMessagePromise to fetch label registry; return empty array to prevent crash.
   hass.connection.sendMessagePromise = vi.fn().mockResolvedValue([]);
   return hass;
+};
+
+/**
+ * Build a driveable HASSSource backed by a single `hass` value. The
+ * returned `push(hass)` synchronously updates the source's current hass and
+ * fans out to every registered listener with `(hass, oldHass)`.
+ */
+export const createHASSSource = (
+  initial?: HomeAssistant | null,
+): {
+  source: HASSSource;
+  push: (hass: HomeAssistant) => void;
+  getListenerCount: () => number;
+} => {
+  let current: HomeAssistant | null = initial ?? null;
+  const listeners = new Set<HASSListener>();
+  const source: HASSSource = {
+    getHASS: () => current,
+    addListener: (listener) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+  };
+  return {
+    source,
+    push: (hass) => {
+      const prev = current;
+      current = hass;
+      for (const l of listeners) {
+        l(hass, prev);
+      }
+    },
+    getListenerCount: () => listeners.size,
+  };
+};
+
+export const createHASSManager = (options?: {
+  hass?: HomeAssistant | null;
+  stateWatcher?: StateWatcherSubscriptionInterface;
+  eventWatcher?: EventWatcherSubscriptionInterface;
+}): HASSManagerReadonlyInterface => {
+  const hassManager = mock<HASSManagerReadonlyInterface>();
+  hassManager.getHASS.mockReturnValue(
+    options?.hass === undefined ? createHASS() : options.hass,
+  );
+  hassManager.getStateWatcher.mockReturnValue(
+    options?.stateWatcher ?? mock<StateWatcherSubscriptionInterface>(),
+  );
+  hassManager.getEventWatcher.mockReturnValue(
+    options?.eventWatcher ?? mock<EventWatcherSubscriptionInterface>(),
+  );
+  return hassManager;
 };
 
 export const createUser = (user?: Partial<CurrentUser>): CurrentUser => ({
@@ -285,8 +344,7 @@ export const createStore = (
       cameraProps.config ?? createCameraConfig(),
       cameraProps.engine ??
         new GenericCameraManagerEngine(
-          mock<StateWatcherSubscriptionInterface>(),
-          mock<EventWatcherSubscriptionInterface>(),
+          createHASSManager(),
           mock<EntityRegistryManager>(),
           eventCallback,
         ),
@@ -744,19 +802,40 @@ export const callStateWatcherCallback = (
 
 export const callEventWatcherCallback = (
   eventWatcher: EventWatcherSubscriptionInterface,
-  data: unknown,
+  event: HassEvent,
   n = 0,
 ): void => {
   const mock = vi.mocked(eventWatcher.subscribe).mock;
   expect(mock.calls.length).greaterThan(n);
-  mock.calls[n][1].callback(data);
+  mock.calls[n][0].callback(event);
 };
+
+export const createHASSEvent = (
+  event_type: string,
+  data: Record<string, unknown> = {},
+  context: HassEvent['context'] = { id: 'ctx', user_id: null, parent_id: null },
+): HassEvent => ({
+  event_type,
+  data,
+  origin: 'LOCAL',
+  time_fired: '2026-06-19T21:12:18Z',
+  context,
+});
 
 /**
  * Flush resolved promises.
  */
 export const flushPromises = async (): Promise<void> => {
   await new Promise(process.nextTick);
+};
+
+/**
+ * Install fake timers and pin Math.random to 1 (max jitter), so exponential
+ * backoff retry delays advance by exact, predictable durations.
+ */
+export const useDeterministicTimers = (): void => {
+  vi.useFakeTimers();
+  vi.spyOn(Math, 'random').mockReturnValue(1);
 };
 
 export const createInteractionActionEvent = (

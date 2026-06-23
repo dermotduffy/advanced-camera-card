@@ -9,6 +9,7 @@ export type IssueKey =
   | 'config_upgrade'
   | 'config_upgrade_failure'
   | 'connection'
+  | 'event_subscription'
   | 'initialization'
   | 'legacy_resource'
   | 'media_load'
@@ -83,7 +84,10 @@ export interface Issue {
   // callers (e.g. notification control actions) invoke this directly.
   fix?(hass: HomeAssistant): Promise<boolean>;
 
-  // Reset internal state (clear errors, stop timers, etc.).
+  // Clear transient state (errors, timers) while the issue stays registered and
+  // able to re-activate. Runs repeatedly during the card's life (e.g. when the
+  // underlying problem recovers), so it must NOT release anything the issue
+  // needs to keep working -- that belongs in `destroy()`.
   reset?(): void;
 
   // Called when the card is detached. Issues with age-based timers (e.g.
@@ -94,4 +98,10 @@ export interface Issue {
   // evaluate(), so any timer that should restart is re-armed via
   // detectDynamic against the current condition state.
   suspend?(): void;
+
+  // Release external resources (e.g. a listener registered on another manager)
+  // at end of life. Called once when the IssueManager is destroyed -- unlike
+  // `reset()`, which runs repeatedly while the issue is still live, this is the
+  // final teardown.
+  destroy?(): void;
 }

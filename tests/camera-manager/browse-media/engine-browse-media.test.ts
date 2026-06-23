@@ -7,21 +7,18 @@ import {
   CameraQuery,
   QueryType,
 } from '../../../src/camera-manager/types';
-import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
-import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { BROWSE_MEDIA_CACHE_SECONDS } from '../../../src/ha/browse-media/types';
 import { BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { QuerySource } from '../../../src/query-source';
 import { ViewMedia } from '../../../src/view/item';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
-import { createCameraConfig, createHASS } from '../../test-utils';
+import { createCameraConfig, createHASS, createHASSManager } from '../../test-utils';
 
 const createEngine = (): BrowseMediaCameraManagerEngine => {
   return new BrowseMediaCameraManagerEngine(
     new EntityRegistryManagerMock(),
-    mock<StateWatcherSubscriptionInterface>(),
-    mock<EventWatcherSubscriptionInterface>(),
+    createHASSManager(),
     new BrowseMediaWalker(),
     new ResolvedMediaCache(),
     new CameraManagerRequestCache(),

@@ -13,12 +13,14 @@ import { microphoneTriggerSchema } from './custom/microphone';
 import { screenTriggerSchema } from './custom/screen';
 import { triggeredTriggerSchema } from './custom/triggered';
 import { viewTriggerSchema } from './custom/view';
+import { eventTriggerSchema } from './stock/event';
 import { numericStateTriggerSchema } from './stock/numeric-state';
 import { stateTriggerSchema } from './stock/state';
 import { templateTriggerSchema } from './stock/template';
 
 export const triggerSchema = z.union([
   // Stock triggers (HA automation triggers):
+  eventTriggerSchema,
   numericStateTriggerSchema,
   stateTriggerSchema,
   templateTriggerSchema,

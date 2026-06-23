@@ -205,8 +205,7 @@ export class CameraManager {
           (await this._engineFactory.createEngine(engineType, {
             eventCallback: (ev) =>
               this._api.getCameraTriggersManager().handleCameraEvent(ev),
-            stateWatcher: this._api.getHASSManager().getStateWatcher(),
-            eventWatcher: this._api.getHASSManager().getEventWatcher(),
+            hassManager: this._api.getHASSManager(),
             resolvedMediaCache: this._api.getResolvedMediaCache(),
           }))
         : null;
@@ -253,7 +252,7 @@ export class CameraManager {
     // Configuration is initialized in parallel.
     const cameras = await allPromises(
       engineByConfig.entries(),
-      async ([cameraConfig, engine]) => await engine.createCamera(hass, cameraConfig),
+      async ([cameraConfig, engine]) => await engine.createCamera(cameraConfig),
     );
 
     const destroyCameras = async () => {

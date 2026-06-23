@@ -1,16 +1,21 @@
+import { SubscriptionHealthInterface } from '../../ha/connection/subscription-health-monitor';
 import { CardIssueManagerAPI } from '../types';
 import { IssueManager } from './issue-manager';
 import { ConfigErrorIssue } from './issues/config-error';
 import { ConfigUpgradeIssue } from './issues/config-upgrade';
 import { ConfigUpgradeFailureIssue } from './issues/config-upgrade-failure';
 import { ConnectionIssue } from './issues/connection';
+import { EventSubscriptionIssue } from './issues/event-subscription';
 import { InitializationIssue } from './issues/initialization';
 import { LegacyResourceIssue } from './issues/legacy-resource';
 import { MediaLoadIssue } from './issues/media-load';
 import { MediaQueryIssue } from './issues/media-query';
 import { ViewIncompatibleIssue } from './issues/view-incompatible';
 
-export const createIssueManager = (api: CardIssueManagerAPI): IssueManager => {
+export const createIssueManager = (
+  api: CardIssueManagerAPI,
+  eventSubscriptionHealth: SubscriptionHealthInterface<string>,
+): IssueManager => {
   const manager = new IssueManager(api);
   const changeCallback = () => manager.evaluate();
 
@@ -23,6 +28,7 @@ export const createIssueManager = (api: CardIssueManagerAPI): IssueManager => {
   manager.addIssue(new ConfigUpgradeFailureIssue(api));
   manager.addIssue(new ViewIncompatibleIssue(api));
   manager.addIssue(new ConnectionIssue());
+  manager.addIssue(new EventSubscriptionIssue(eventSubscriptionHealth, changeCallback));
   manager.addIssue(new InitializationIssue(api));
   manager.addIssue(new LegacyResourceIssue(changeCallback));
   manager.addIssue(new MediaQueryIssue(api));

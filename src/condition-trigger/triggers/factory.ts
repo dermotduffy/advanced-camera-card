@@ -3,6 +3,7 @@ import { CallTrigger } from './triggers/call';
 import { CameraTrigger } from './triggers/camera';
 import { ConfigTrigger } from './triggers/config';
 import { DisplayModeTrigger } from './triggers/display-mode';
+import { EventTrigger } from './triggers/event';
 import { ExpandTrigger } from './triggers/expand';
 import { FullscreenTrigger } from './triggers/fullscreen';
 import { InitializedTrigger } from './triggers/initialized';
@@ -30,6 +31,8 @@ export const createTriggerEvaluator = (
       return new NumericStateTrigger(trigger, context);
     case 'template':
       return new TemplateTrigger(trigger, context);
+    case 'event':
+      return new EventTrigger(trigger, context);
 
     // `screen` watches window.matchMedia.
     case 'screen':

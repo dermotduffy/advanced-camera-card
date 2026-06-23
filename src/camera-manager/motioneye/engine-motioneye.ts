@@ -67,18 +67,13 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     return Engine.MotionEye;
   }
 
-  public async createCamera(
-    hass: HomeAssistant,
-    cameraConfig: CameraConfig,
-  ): Promise<Camera> {
+  public async createCamera(cameraConfig: CameraConfig): Promise<Camera> {
     const camera = new MotionEyeCamera(cameraConfig, this, {
       eventCallback: this._eventCallback,
     });
     return await camera.initialize({
+      hassManager: this._hassManager,
       entityRegistryManager: this._entityRegistryManager,
-      hass,
-      stateWatcher: this._stateWatcher,
-      eventWatcher: this._eventWatcher,
     });
   }
 

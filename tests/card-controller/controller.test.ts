@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { mock, MockProxy } from 'vitest-mock-extended';
 import { CameraManager } from '../../src/camera-manager/manager';
 import { ActionsManager } from '../../src/card-controller/actions/actions-manager';
 import { AutomationsManager } from '../../src/card-controller/automations-manager';
@@ -15,6 +16,7 @@ import { DefaultManager } from '../../src/card-controller/default-manager';
 import { ExpandManager } from '../../src/card-controller/expand-manager';
 import { FoldersManager } from '../../src/card-controller/folders/manager';
 import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager';
+import { EventWatcherSubscriptionInterface } from '../../src/card-controller/hass/event-watcher';
 import { HASSManager } from '../../src/card-controller/hass/hass-manager';
 import { InitializationManager } from '../../src/card-controller/initialization-manager';
 import { InteractionManager } from '../../src/card-controller/interaction-manager';
@@ -36,6 +38,7 @@ import { AdvancedCameraCardEditor } from '../../src/editor';
 import { DeviceRegistryManager } from '../../src/ha/registry/device';
 import { EntityRegistryManagerLive } from '../../src/ha/registry/entity';
 import { ResolvedMediaCache } from '../../src/ha/resolved-media';
+import { createSubscriptionHealth } from './test-utils';
 
 vi.mock('../../src/camera-manager/manager');
 vi.mock('../../src/card-controller/actions/actions-manager');
@@ -49,7 +52,6 @@ vi.mock('../../src/card-controller/download-manager');
 vi.mock('../../src/card-controller/expand-manager');
 vi.mock('../../src/card-controller/folders/manager');
 vi.mock('../../src/card-controller/fullscreen/fullscreen-manager');
-vi.mock('../../src/card-controller/hass/hass-manager');
 vi.mock('../../src/card-controller/initialization-manager');
 vi.mock('../../src/card-controller/interaction-manager');
 vi.mock('../../src/card-controller/keyboard-state-manager');
@@ -78,8 +80,21 @@ const createCardElement = (): CardHTMLElement => {
   return element;
 };
 
-const createController = (): CardController => {
-  return new CardController(createCardElement(), vi.fn(), vi.fn());
+// Full HASSManager mock for CardController ctor injection (wires
+// getEventWatcher().getHealth() so construction resolves). Distinct from the
+// readonly-interface `createHASSManager` helper in tests/test-utils.ts.
+const createMockHASSManager = (): MockProxy<HASSManager> => {
+  const hassManager = mock<HASSManager>();
+  hassManager.getEventWatcher.mockReturnValue(
+    mock<EventWatcherSubscriptionInterface>({
+      getHealth: () => createSubscriptionHealth(),
+    }),
+  );
+  return hassManager;
+};
+
+const createController = (hassManager = createMockHASSManager()): CardController => {
+  return new CardController(createCardElement(), vi.fn(), vi.fn(), hassManager);
 };
 
 // @vitest-environment jsdom
@@ -102,6 +117,26 @@ describe('CardController', () => {
       menuToggleCallback,
     );
     expect(controller.getEffectsManager()).toBeTruthy();
+  });
+
+  it('should wire ConditionStateManager as the first hass listener so semantic state is fresh before any other listener runs', () => {
+    const hassManager = createMockHASSManager();
+    createController(hassManager);
+
+    const calls = vi.mocked(hassManager.addListener).mock.calls;
+
+    // ConditionStateManager (CSM) first ordering is load-bearing: StateWatcher
+    // lazy-attaches later; its diff handlers can synchronously write to CSM, so
+    // CSM.hass must be fresh before any listener whose dispatch path reads
+    // condition state.
+    expect(calls).toHaveLength(1);
+
+    const csmListener = calls[0][0];
+    const hass = {} as Parameters<typeof csmListener>[0];
+    csmListener(hass, null);
+    expect(vi.mocked(ConditionStateManager).mock.instances[0].setState).toBeCalledWith({
+      hass,
+    });
   });
 
   describe('accessors', () => {
@@ -196,9 +231,8 @@ describe('CardController', () => {
     });
 
     it('should return getHASSManager', () => {
-      expect(createController().getHASSManager()).toBe(
-        vi.mocked(HASSManager).mock.instances[0],
-      );
+      const hassManager = createMockHASSManager();
+      expect(createController(hassManager).getHASSManager()).toBe(hassManager);
     });
 
     it('should return getInitializationManager', () => {
