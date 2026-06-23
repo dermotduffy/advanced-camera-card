@@ -126,9 +126,9 @@ describe('MediaLoadedInfoSourceController', () => {
     });
 
     it('should abort the prior dispatch when targetID changes between calls', () => {
-      // Without this, the manager would zombie an entry under the old
-      // targetID -- its `onAbort` cleanup never fires because we never aborted
-      // the prior signal before overwriting `_abort`.
+      // Without this, the manager would zombie an entry under the old targetID
+      // -- its `onAbort` cleanup never fires because we never aborted the prior
+      // signal before overwriting `_abort`.
       let targetID: string | null = 'target-1';
       const host = createLitElement();
       const controller = new MediaLoadedInfoSourceController(host, {

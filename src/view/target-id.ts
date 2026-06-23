@@ -10,8 +10,8 @@ export const IMAGE_VIEW_TARGET_ID_SENTINEL = '__IMAGE_VIEW__';
 // used by PTZ/zoom state and media retry epochs to identify "what is currently
 // being displayed." For live, this is the *base* camera ID (substream is an
 // implementation detail of how to play camera X, not a separate logical
-// identity -- see `getStreamCameraID` for the substream-aware variant used
-// only inside the playback chain).
+// identity -- see `getStreamCameraID` for the substream-aware variant used only
+// inside the playback chain).
 export const getViewTargetID = (view: View): string | null => {
   if (view.isViewerView()) {
     return view.queryResults?.getSelectedResult()?.getID() ?? null;
