@@ -89,6 +89,9 @@ export class IssueManager {
           issues: this._stateManager.getIssuePresence(),
         })
       ) {
+        // Re-render to show the change. The re-render also re-attempts
+        // initialization, which matters when a blocking notice like "Home
+        // Assistant is starting" clears and the card can finally initialize.
         this._api.getCardElementManager().update();
       }
 

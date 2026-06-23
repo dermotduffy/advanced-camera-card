@@ -71,4 +71,36 @@ describe('Initializer', () => {
 
     expect(initializer.isInitialized('foo')).toBeFalsy();
   });
+
+  it('should discard an initialization that was uninitialized while it was running', async () => {
+    const initializer = new Initializer();
+
+    let finishInitializer: () => void = () => undefined;
+    const initializing = initializer.initializeIfNecessary(
+      'foo',
+      () =>
+        new Promise<void>((resolve) => {
+          finishInitializer = resolve;
+        }),
+    );
+
+    // A uninitialize lands while the initializer is still running.
+    initializer.uninitialize('foo');
+
+    finishInitializer();
+    await initializing;
+
+    expect(initializer.isInitialized('foo')).toBeFalsy();
+  });
+
+  it('should initialize again after being uninitialized', async () => {
+    const initializer = new Initializer();
+
+    await initializer.initializeIfNecessary('foo');
+    initializer.uninitialize('foo');
+    expect(initializer.isInitialized('foo')).toBeFalsy();
+
+    await initializer.initializeIfNecessary('foo');
+    expect(initializer.isInitialized('foo')).toBeTruthy();
+  });
 });

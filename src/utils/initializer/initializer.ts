@@ -3,12 +3,21 @@ import { allPromises } from '../basic';
 type InitializationCallback = () => Promise<void>;
 
 /**
- * Manages initialization state & calling initializers. There is no guarantee
- * something will not be initialized twice unless there are concurrency controls
- * applied to the usage of this class.
+ * Manages initialization state and runs initializers.
+ *
+ * Safe when `uninitialize()` is called while an (async) initializer is still
+ * running: that initializer's result is discarded instead of marking the aspect
+ * initialized again. (Two initializers running for the same aspect at once is
+ * still the caller's job to avoid.)
  */
 export class Initializer {
   private _initialized: Set<string> = new Set();
+
+  // Bumped on every `uninitialize()`. An `initializeIfNecessary()` captures the
+  // generation before awaiting its initializer and, on completion, only records
+  // success if the generation is unchanged -- i.e. no `uninitialize()` for that
+  // aspect landed while it was running.
+  private _generation: Map<string, number> = new Map();
 
   public async initializeMultipleIfNecessary(
     aspects: Record<string, InitializationCallback>,
@@ -26,14 +35,22 @@ export class Initializer {
     if (this._initialized.has(aspect)) {
       return;
     }
+    const generation = this._generation.get(aspect) ?? 0;
     if (initializer) {
       await initializer();
+    }
+    // If `uninitialize()` ran while we were awaiting, a newer attempt has taken
+    // over -- throw this result away (don't mark it initialized) so a stale
+    // result can't leave the card stuck, and a fresh attempt runs next time.
+    if ((this._generation.get(aspect) ?? 0) !== generation) {
+      return;
     }
     this._initialized.add(aspect);
   }
 
   public uninitialize(aspect: string): void {
     this._initialized.delete(aspect);
+    this._generation.set(aspect, (this._generation.get(aspect) ?? 0) + 1);
   }
 
   public isInitialized(aspect: string): boolean {
