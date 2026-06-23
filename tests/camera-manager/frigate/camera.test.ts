@@ -1108,6 +1108,75 @@ describe('FrigateCamera', () => {
         );
       });
 
+      describe('should always forward end events to clear the trigger', () => {
+        it.each([
+          ['with media still present', true, ['front_steps']],
+          ['with no media present at end', false, ['front_steps']],
+          ['even after the object left the configured zone', true, []],
+        ])('%s', async (_name: string, hasClip: boolean, currentZones: string[]) => {
+          const eventCallback = vi.fn();
+          const camera = new FrigateCamera(
+            createCameraConfig({
+              id: 'CAMERA_1',
+              frigate: {
+                camera_name: 'camera.front_door',
+                zones: ['front_steps'],
+              },
+              triggers: {
+                media_events: ['clips'],
+              },
+            }),
+            mock<CameraManagerEngine>(),
+            {
+              eventCallback: eventCallback,
+            },
+          );
+
+          const hass = createHASS();
+          const eventWatcher = mock<FrigateEventWatcher>();
+          await camera.initialize({
+            hassManager: createHASSManager({ hass }),
+            entityRegistryManager: mock<EntityRegistryManager>(),
+            frigateEventWatcher: eventWatcher,
+            frigateReviewWatcher: mock<FrigateReviewWatcher>(),
+          });
+
+          // An 'end' clears the trigger regardless of the start criteria: the
+          // media may be unchanged or absent, and the object may have left the
+          // zone by now.
+          callEventWatcherCallback(eventWatcher, {
+            type: 'end',
+            before: {
+              id: 'event-1',
+              camera: 'camera.front_door',
+              snapshot: null,
+              has_clip: hasClip,
+              has_snapshot: false,
+              label: 'person',
+              current_zones: currentZones,
+            },
+            after: {
+              id: 'event-1',
+              camera: 'camera.front_door',
+              snapshot: null,
+              has_clip: hasClip,
+              has_snapshot: false,
+              label: 'person',
+              current_zones: currentZones,
+            },
+          });
+
+          expect(eventCallback).toBeCalledWith({
+            type: 'end',
+            cameraID: 'CAMERA_1',
+            id: 'event-1',
+            clip: false,
+            snapshot: false,
+            fidelity: 'high',
+          });
+        });
+      });
+
       describe('should handle zones correctly', () => {
         it.each([
           ['has no zone', [], false],

@@ -508,23 +508,32 @@ export class FrigateCamera extends Camera {
       return;
     }
 
-    if (
-      (config.frigate.zones?.length &&
-        !config.frigate.zones.some((zone) => ev.after.current_zones.includes(zone))) ||
-      (config.frigate.labels?.length && !config.frigate.labels.includes(ev.after.label))
-    ) {
-      return;
-    }
-
     const mediaEventsToTriggerOn = config.triggers.media_events;
-    if (
-      !(
-        mediaEventsToTriggerOn.includes('events') ||
-        (mediaEventsToTriggerOn.includes('snapshots') && snapshotChange) ||
-        (mediaEventsToTriggerOn.includes('clips') && clipChange)
-      )
-    ) {
-      return;
+
+    // The zone/label/media checks decide when to START a trigger, so they only
+    // apply to 'new'/'update'. An 'end' always passes through: it ends whatever
+    // trigger an earlier event with the same id started, and by 'end' the
+    // object may have left the zone or the media flag may differ -- the trigger
+    // must still clear. (The trigger manager ignores an 'end' for an id that
+    // never triggered, so a pass-through 'end' is harmless.)
+    if (ev.type !== 'end') {
+      if (
+        (config.frigate.zones?.length &&
+          !config.frigate.zones.some((zone) => ev.after.current_zones.includes(zone))) ||
+        (config.frigate.labels?.length && !config.frigate.labels.includes(ev.after.label))
+      ) {
+        return;
+      }
+
+      if (
+        !(
+          mediaEventsToTriggerOn.includes('events') ||
+          (mediaEventsToTriggerOn.includes('snapshots') && snapshotChange) ||
+          (mediaEventsToTriggerOn.includes('clips') && clipChange)
+        )
+      ) {
+        return;
+      }
     }
 
     this._eventCallback?.({
