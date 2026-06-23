@@ -44,6 +44,10 @@ export class CardElementManager {
     return this._element;
   }
 
+  public isConnected(): boolean {
+    return this._element.isConnected;
+  }
+
   public scrollReset(): void {
     this._scrollCallback();
   }
@@ -160,7 +164,8 @@ export class CardElementManager {
 
     this._api.getIssueManager().resume();
 
-    // Make sure reconnections call the initialization code.
+    // A reconnected card (e.g. after HA rebuilt it on restart) won't re-render
+    // on its own; request one so it re-initializes and shows current state.
     this._element.requestUpdate();
   }
 

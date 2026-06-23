@@ -34,7 +34,7 @@ export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
 export interface CameraManagerEngine {
   getEngineType(): Engine;
 
-  createCamera(hass: HomeAssistant, cameraConfig: CameraConfig): Promise<Camera>;
+  createCamera(cameraConfig: CameraConfig): Promise<Camera>;
 
   /**
    * Get default query parameters for a camera based on its configuration.

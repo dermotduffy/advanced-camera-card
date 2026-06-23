@@ -23,8 +23,6 @@ import {
   QueryReturnType,
   QueryType,
 } from '../../../src/camera-manager/types';
-import { EventWatcherSubscriptionInterface } from '../../../src/card-controller/hass/event-watcher';
-import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { BrowseMedia, browseMediaSchema } from '../../../src/ha/browse-media/types';
 import { BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
 import { DeviceRegistryManager } from '../../../src/ha/registry/device';
@@ -36,6 +34,7 @@ import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
   createCameraConfig,
   createHASS,
+  createHASSManager,
   createInitializedCamera,
   createRegistryEntity,
   createStore,
@@ -187,8 +186,7 @@ const createEngine = (options?: {
   return new ReolinkCameraManagerEngine(
     options?.entityRegistryManager ?? new EntityRegistryManagerMock(),
     mock<DeviceRegistryManager>(),
-    mock<StateWatcherSubscriptionInterface>(),
-    mock<EventWatcherSubscriptionInterface>(),
+    createHASSManager(),
     options?.browseMediaManager ?? new BrowseMediaWalker(),
     new ResolvedMediaCache(),
     new CameraManagerRequestCache(),
@@ -212,7 +210,6 @@ const createStoreWithReolinkCamera = async (
 ): Promise<CameraManagerStore> => {
   const store = new CameraManagerStore();
   const camera = await engine.createCamera(
-    createHASS(),
     createCameraConfig({ camera_entity: 'camera.office', id: 'office' }),
   );
   store.addCamera(camera);
@@ -252,7 +249,7 @@ describe('ReolinkCameraManagerEngine', () => {
       unique_id: 'office',
     });
 
-    const camera = await engine.createCamera(createHASS(), config);
+    const camera = await engine.createCamera(config);
 
     expect(camera.getConfig()).toBe(config);
     expect(camera.getEngine()).toBe(engine);
@@ -289,7 +286,6 @@ describe('ReolinkCameraManagerEngine', () => {
     it('should return ui endpoint', async () => {
       const engine = createPopulatedEngine();
       const camera = await engine.createCamera(
-        createHASS(),
         createCameraConfig({
           camera_entity: 'camera.office',
           reolink: {
@@ -308,7 +304,6 @@ describe('ReolinkCameraManagerEngine', () => {
     it('should return go2rtc endpoint', async () => {
       const engine = createPopulatedEngine();
       const camera = await engine.createCamera(
-        createHASS(),
         createCameraConfig({
           camera_entity: 'camera.office',
           go2rtc: {
@@ -497,7 +492,6 @@ describe('ReolinkCameraManagerEngine', () => {
     it('should request high resolution if configured', async () => {
       const engine = createPopulatedEngine();
       const camera = await engine.createCamera(
-        createHASS(),
         createCameraConfig({
           camera_entity: 'camera.office',
           id: 'office',

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { EventWatcherSubscriptionInterface } from '../../card-controller/hass/event-watcher';
-import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
+import { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
 import { CameraConfig } from '../../config/schema/cameras';
 import { getEntityTitle } from '../../ha/get-entity-title';
 import { EntityRegistryManager } from '../../ha/registry/entity/types';
@@ -41,18 +40,15 @@ import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
 export class GenericCameraManagerEngine implements CameraManagerEngine {
   protected _eventCallback?: CameraEventCallback;
-  protected _stateWatcher: StateWatcherSubscriptionInterface;
-  protected _eventWatcher: EventWatcherSubscriptionInterface;
+  protected _hassManager: HASSManagerReadonlyInterface;
   protected _entityRegistryManager?: EntityRegistryManager;
 
   constructor(
-    stateWatcher: StateWatcherSubscriptionInterface,
-    eventWatcher: EventWatcherSubscriptionInterface,
+    hassManager: HASSManagerReadonlyInterface,
     entityRegistryManager?: EntityRegistryManager,
     eventCallback?: CameraEventCallback,
   ) {
-    this._stateWatcher = stateWatcher;
-    this._eventWatcher = eventWatcher;
+    this._hassManager = hassManager;
     this._entityRegistryManager = entityRegistryManager;
     this._eventCallback = eventCallback;
   }
@@ -61,16 +57,11 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     return Engine.Generic;
   }
 
-  public async createCamera(
-    hass: HomeAssistant,
-    cameraConfig: CameraConfig,
-  ): Promise<Camera> {
+  public async createCamera(cameraConfig: CameraConfig): Promise<Camera> {
     return await new Camera(cameraConfig, this, {
       eventCallback: this._eventCallback,
     }).initialize({
-      hass,
-      stateWatcher: this._stateWatcher,
-      eventWatcher: this._eventWatcher,
+      hassManager: this._hassManager,
       entityRegistryManager: this._entityRegistryManager,
       capabilityOptions: {
         raw: {

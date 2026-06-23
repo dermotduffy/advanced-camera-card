@@ -1,8 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 import { ActionsExecutionRequest } from '../../src/card-controller/actions/types.js';
 import { AutomationsManager } from '../../src/card-controller/automations-manager.js';
+import { EventWatcherSubscriptionInterface } from '../../src/card-controller/hass/event-watcher.js';
 import { ConditionStateManager } from '../../src/condition-trigger/conditions/state-manager.js';
-import { createCardAPI, flushPromises } from '../test-utils.js';
+import {
+  createCardAPI,
+  createHASS,
+  createHASSEvent,
+  flushPromises,
+} from '../test-utils.js';
 
 describe('AutomationsManager', () => {
   const actions = [
@@ -262,6 +269,40 @@ describe('AutomationsManager', () => {
     // (overflow returning without decrementing) would cut this batch short.
     stateManager.setState({ camera: 'three' });
     expect(api.getActionsManager().executeActions).toBeCalledTimes(10);
+  });
+
+  it('should execute actions on a matching HA bus event trigger', () => {
+    const api = createCardAPI();
+    const eventWatcher = mock<EventWatcherSubscriptionInterface>();
+    vi.mocked(eventWatcher.subscribe).mockResolvedValue();
+    vi.mocked(eventWatcher.unsubscribe).mockResolvedValue();
+    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+    vi.mocked(api.getHASSManager().getEventWatcher).mockReturnValue(eventWatcher);
+    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+      true,
+    );
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
+    const automationsManager = new AutomationsManager(api);
+    automationsManager.addAutomations([
+      {
+        triggers: [{ trigger: 'event' as const, event_type: 'zha_event' }],
+        actions: actions,
+      },
+    ]);
+
+    expect(eventWatcher.subscribe).toBeCalledTimes(1);
+
+    // Simulate an event arrival.
+    const event = createHASSEvent('zha_event', { command: 'press' });
+    vi.mocked(eventWatcher.subscribe).mock.calls[0][0].callback(event);
+
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
+    expect(
+      vi.mocked(api.getActionsManager().executeActions).mock.calls[0][0].triggerData,
+    ).toEqual({ platform: 'event', event });
   });
 
   it('should delete automations', () => {

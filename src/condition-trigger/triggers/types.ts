@@ -1,4 +1,4 @@
-import { HassEntity } from 'home-assistant-js-websocket';
+import { HassEntity, HassEvent } from 'home-assistant-js-websocket';
 import { TemplateAdvancedCameraCardState } from '../../card-controller/templates/types';
 
 // The top-level `trigger` template variable produced each time an evaluator
@@ -14,6 +14,10 @@ export interface TriggerData {
   entity?: string;
   from_state?: HassEntity;
   to_state?: HassEntity;
+
+  // For `platform: 'event'` (HA event trigger) -- the full HA event, surfaced
+  // as `trigger.event.*` to mirror HA's event-trigger template variables.
+  event?: HassEvent;
 
   // Card (`acc` platform) fields -- full before/after card-state trigger data:
   from_acc?: TemplateAdvancedCameraCardState;

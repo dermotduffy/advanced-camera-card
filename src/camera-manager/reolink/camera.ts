@@ -172,14 +172,12 @@ export class ReolinkCamera extends EntityCamera {
   }
 
   protected async _initialize(
+    hass: HomeAssistant,
     options: ReolinkCameraInitializationOptions,
   ): Promise<void> {
-    await super._initialize(options);
-    await this._initializeChannel(options.hass, options.deviceRegistryManager);
-    this._ptzEntities = await this._getPTZEntities(
-      options.hass,
-      options.entityRegistryManager,
-    );
+    await super._initialize(hass, options);
+    await this._initializeChannel(hass, options.deviceRegistryManager);
+    this._ptzEntities = await this._getPTZEntities(hass, options.entityRegistryManager);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -188,18 +186,19 @@ export class ReolinkCamera extends EntityCamera {
   }
 
   protected async _getRawCapabilities(
+    hass: HomeAssistant,
     options: ReolinkCameraInitializationOptions,
   ): Promise<CapabilitiesRaw> {
     const configPTZ = getPTZCapabilitiesFromCameraConfig(this.getConfig());
     const reolinkPTZ = this._ptzEntities
-      ? this._entitiesToCapabilities(options.hass, this._ptzEntities)
+      ? this._entitiesToCapabilities(hass, this._ptzEntities)
       : null;
 
     const combinedPTZ: PTZCapabilities | null =
       configPTZ || reolinkPTZ ? { ...reolinkPTZ, ...configPTZ } : null;
 
     return {
-      ...(await super._getRawCapabilities(options)),
+      ...(await super._getRawCapabilities(hass, options)),
       clips: true,
       ...(combinedPTZ && { ptz: combinedPTZ }),
     };

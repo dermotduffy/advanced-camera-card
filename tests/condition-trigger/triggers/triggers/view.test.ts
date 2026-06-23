@@ -1,7 +1,7 @@
 import { describe, expect, it, Mock, vi } from 'vitest';
-import { TemplateRenderer } from '../../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+import { createTriggerEvaluatorContext } from './test-utils';
 import { ViewTrigger } from '../../../../src/condition-trigger/triggers/triggers/view';
 
 // @vitest-environment jsdom
@@ -15,10 +15,10 @@ describe('ViewTrigger', () => {
   } => {
     const stateManager = new ConditionStateManager();
     const callback = vi.fn();
-    const viewTrigger = new ViewTrigger(trigger, {
-      stateManager,
-      templateRenderer: new TemplateRenderer(),
-    });
+    const viewTrigger = new ViewTrigger(
+      trigger,
+      createTriggerEvaluatorContext({ stateManager }),
+    );
     return { viewTrigger, stateManager, callback };
   };
 

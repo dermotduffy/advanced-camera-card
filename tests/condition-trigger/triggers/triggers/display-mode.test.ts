@@ -1,8 +1,8 @@
 import { describe, expect, it, Mock, vi } from 'vitest';
-import { TemplateRenderer } from '../../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { DisplayModeTrigger } from '../../../../src/condition-trigger/triggers/triggers/display-mode';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+import { createTriggerEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
 describe('DisplayModeTrigger', () => {
@@ -11,10 +11,10 @@ describe('DisplayModeTrigger', () => {
   ): { stateManager: ConditionStateManager; callback: Mock } => {
     const stateManager = new ConditionStateManager();
     const callback = vi.fn();
-    new DisplayModeTrigger(trigger, {
-      stateManager,
-      templateRenderer: new TemplateRenderer(),
-    }).subscribe(callback);
+    new DisplayModeTrigger(
+      trigger,
+      createTriggerEvaluatorContext({ stateManager }),
+    ).subscribe(callback);
     return { stateManager, callback };
   };
 

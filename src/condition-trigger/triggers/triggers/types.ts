@@ -1,3 +1,4 @@
+import { HASSManagerReadonlyInterface } from '../../../card-controller/hass/types';
 import { TemplateRenderer } from '../../../card-controller/templates';
 import { Trigger } from '../../../config/schema/condition-trigger/triggers/types';
 import { ConditionStateManagerReadonlyInterface } from '../../conditions/types';
@@ -8,6 +9,7 @@ export type TriggerCallback = (data: TriggerData) => void;
 export interface TriggerEvaluatorContext {
   stateManager: ConditionStateManagerReadonlyInterface;
   templateRenderer: TemplateRenderer;
+  hassManager: HASSManagerReadonlyInterface;
 }
 
 export type TriggerOfType<T extends string> = Extract<Trigger, { trigger: T }>;

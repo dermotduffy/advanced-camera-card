@@ -31,7 +31,6 @@ import { StateWatcherSubscriptionInterface } from '../../src/card-controller/has
 import { sortItems } from '../../src/card-controller/view/sort.js';
 import { CameraConfig } from '../../src/config/schema/cameras.js';
 import { advancedCameraCardConfigSchema } from '../../src/config/schema/types.js';
-import { HomeAssistant } from '../../src/ha/types.js';
 import { QuerySource } from '../../src/query-source.js';
 import { Endpoint, PTZMovementType } from '../../src/types.js';
 import { ViewFolder, ViewItem, ViewMedia } from '../../src/view/item.js';
@@ -297,7 +296,7 @@ describe('CameraManager', () => {
         camera.engineType === undefined ? Engine.Generic : camera.engineType;
       if (engineType) {
         vi.mocked(mockEngine.createCamera).mockImplementationOnce(
-          async (_hass: HomeAssistant, cameraConfig: CameraConfig): Promise<Camera> =>
+          async (cameraConfig: CameraConfig): Promise<Camera> =>
             await createInitializedCamera(
               cameraConfig,
               mockEngine,

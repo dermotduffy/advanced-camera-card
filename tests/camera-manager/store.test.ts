@@ -5,14 +5,13 @@ import { Capabilities } from '../../src/camera-manager/capabilities.js';
 import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
 import { CameraManagerStore } from '../../src/camera-manager/store.js';
 import { Engine } from '../../src/camera-manager/types.js';
-import { EventWatcherSubscriptionInterface } from '../../src/card-controller/hass/event-watcher.js';
-import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { DeviceRegistryManager } from '../../src/ha/registry/device/index.js';
 import { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
 import { ResolvedMediaCache } from '../../src/ha/resolved-media.js';
 import {
   TestViewMedia,
   createCameraConfig,
+  createHASSManager,
   createInitializedCamera,
 } from '../test-utils.js';
 
@@ -31,13 +30,11 @@ describe('CameraManagerStore', async () => {
   );
 
   const engineGeneric = await engineFactory.createEngine(Engine.Generic, {
-    stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-    eventWatcher: mock<EventWatcherSubscriptionInterface>(),
+    hassManager: createHASSManager(),
     resolvedMediaCache: mock<ResolvedMediaCache>(),
   });
   const engineFrigate = await engineFactory.createEngine(Engine.Frigate, {
-    stateWatcher: mock<StateWatcherSubscriptionInterface>(),
-    eventWatcher: mock<EventWatcherSubscriptionInterface>(),
+    hassManager: createHASSManager(),
     resolvedMediaCache: mock<ResolvedMediaCache>(),
   });
 

@@ -176,6 +176,33 @@ triggers:
 | `condition` / `trigger` | Must be `display_mode`.     |
 | `display_mode`          | Must be `single` or `grid`. |
 
+## `event`
+
+_Trigger only._
+
+Fires when a Home Assistant bus event matching `event_type` is dispatched, with optional payload (`event_data`) and context (`context`) filtering. Field names and semantics mirror HA's [event trigger](https://www.home-assistant.io/docs/automation/trigger/#event-trigger), so YAML copied from HA works without modification.
+
+```yaml
+triggers:
+  - trigger: event
+    event_type: zha_event
+    event_data:
+      device_ieee: '00:11:22:33:44:55:66:77'
+      command: press
+```
+
+| Parameter    | Description                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `trigger`    | Must be `event`.                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `event_type` | The Home Assistant event type to subscribe to (e.g. `zha_event`, `deconz_event`, or a custom event fired by one of your automations). May be a single string or a list of strings to match any of them.                                                                                                                                                                                                                      |
+| `event_data` | Optional dictionary of key/value pairs the event's payload must contain for this entry to match. Mirrors Home Assistant's `event_data` matching exactly: the top-level keys you list must be present in the payload (extra payload keys are ignored), and nested objects are matched the same way -- list only the keys you care about and extra nested keys are ignored. Omit entirely to match every fire of `event_type`. |
+| `context`    | Optional filter on the event's `context` object. Recognised fields: `id`, `user_id`, `parent_id`. Each field may be a single value (equality) or a list (membership). All listed fields must match.                                                                                                                                                                                                                          |
+
+The fired event is exposed to action templates as `trigger.event.*`, matching HA's event trigger template surface (`trigger.event.event_type`, `trigger.event.data`, `trigger.event.context`, `trigger.event.origin`, `trigger.event.time_fired`).
+
+> [!TIP]
+> Shared event types like `zha_event` and `deconz_event` fire for **every** device on that integration. Without an `event_data` filter the trigger would fire on every Zigbee/deCONZ device press in your home. Use `event_data` to narrow to the specific device you care about; you can copy values straight out of **Developer tools → Events** in Home Assistant.
+
 ## `expand`
 
 Matches whether the card is in "expanded" mode (in a dialog/popup). As a
@@ -654,9 +681,9 @@ Several Home Assistant condition types are **not** currently supported: `time`,
 `zone`, `sun`, `location`, `device`, and `condition: trigger` (matching on the
 `id` of the trigger that fired).
 
-On the trigger side, only the stock `state`, `numeric_state` and `template`
-platforms are supported, alongside the card-specific triggers listed above.
-Other Home Assistant trigger platforms -- including `event`, `time`,
+On the trigger side, only the stock `event`, `state`, `numeric_state` and
+`template` platforms are supported, alongside the card-specific triggers listed
+above. Other Home Assistant trigger platforms -- including `time`,
 `time_pattern`, `sun`, `zone`, `calendar`, `webhook`, `tag`, `device` and
 `mqtt` -- are **not** supported.
 
@@ -751,6 +778,14 @@ triggers:
       - 'menu.style'
   - trigger: display_mode
     display_mode: single
+  - trigger: event
+    event_type:
+      - zha_event
+      - deconz_event
+    event_data:
+      command: press
+    context:
+      user_id: 581fca7fdc014b8b894519cc531f9a04
   - trigger: expand
     expand: true
   - trigger: fullscreen

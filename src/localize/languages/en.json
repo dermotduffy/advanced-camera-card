@@ -844,6 +844,10 @@
         "text": "Waiting for Home Assistant startup to complete"
       }
     },
+    "event_subscription": {
+      "heading": "Home Assistant event subscriptions",
+      "text": "The card could not subscribe to one or more Home Assistant event types and will keep retrying"
+    },
     "initialization": {
       "heading": "Initialization failed"
     },

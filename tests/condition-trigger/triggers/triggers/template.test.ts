@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { TemplateRenderer } from '../../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { TemplateTrigger } from '../../../../src/condition-trigger/triggers/triggers/template';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createHASS, createStateEntity } from '../../../test-utils';
+import { createTriggerEvaluatorContext } from './test-utils';
 
 const ENTITY_ONE = 'sensor.foo';
 const ENTITY_TWO = 'sensor.bar';
@@ -21,10 +21,10 @@ describe('TemplateTrigger', () => {
   } => {
     const stateManager = new ConditionStateManager();
     const callback = vi.fn();
-    const trigger = new TemplateTrigger(config, {
-      stateManager,
-      templateRenderer: new TemplateRenderer(),
-    });
+    const trigger = new TemplateTrigger(
+      config,
+      createTriggerEvaluatorContext({ stateManager }),
+    );
     return { trigger, stateManager, callback };
   };
 

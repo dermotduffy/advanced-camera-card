@@ -1,3 +1,4 @@
+import { HomeAssistant } from '../ha/types';
 import { Camera, CameraInitializationOptions } from './camera';
 import { CameraNoEntityError } from './error';
 
@@ -9,11 +10,12 @@ import { CameraNoEntityError } from './error';
  */
 export class EntityCamera extends Camera {
   protected override async _initialize(
+    hass: HomeAssistant,
     options: CameraInitializationOptions,
   ): Promise<void> {
     if (!this._entity) {
       throw new CameraNoEntityError(this.getConfig());
     }
-    await super._initialize(options);
+    await super._initialize(hass, options);
   }
 }

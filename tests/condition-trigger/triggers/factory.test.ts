@@ -6,6 +6,7 @@ import { CallTrigger } from '../../../src/condition-trigger/triggers/triggers/ca
 import { CameraTrigger } from '../../../src/condition-trigger/triggers/triggers/camera';
 import { ConfigTrigger } from '../../../src/condition-trigger/triggers/triggers/config';
 import { DisplayModeTrigger } from '../../../src/condition-trigger/triggers/triggers/display-mode';
+import { EventTrigger } from '../../../src/condition-trigger/triggers/triggers/event';
 import { ExpandTrigger } from '../../../src/condition-trigger/triggers/triggers/expand';
 import { FullscreenTrigger } from '../../../src/condition-trigger/triggers/triggers/fullscreen';
 import { InitializedTrigger } from '../../../src/condition-trigger/triggers/triggers/initialized';
@@ -24,6 +25,7 @@ import {
 } from '../../../src/condition-trigger/triggers/triggers/types';
 import { ViewTrigger } from '../../../src/condition-trigger/triggers/triggers/view';
 import { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
+import { createHASSManager } from '../../test-utils';
 
 type TriggerEvaluatorConstructor = new (...args: never[]) => TriggerEvaluator;
 
@@ -32,9 +34,11 @@ describe('createTriggerEvaluator', () => {
   const context = (): TriggerEvaluatorContext => ({
     stateManager: new ConditionStateManager(),
     templateRenderer: new TemplateRenderer(),
+    hassManager: createHASSManager(),
   });
 
   it.each<[Trigger, TriggerEvaluatorConstructor]>([
+    [{ trigger: 'event', event_type: 'zha_event' }, EventTrigger],
     [{ trigger: 'state', entity_id: 'binary_sensor.x' }, StateTrigger],
     [{ trigger: 'numeric_state', entity_id: 'sensor.x', above: 5 }, NumericStateTrigger],
     [{ trigger: 'template', value_template: '{{ true }}' }, TemplateTrigger],

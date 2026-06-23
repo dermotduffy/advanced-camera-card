@@ -1,5 +1,6 @@
 import { STATE_RUNNING } from 'home-assistant-js-websocket';
 import PQueue from 'p-queue';
+import { isHassReady } from '../ha/is-hass-ready';
 import { sideLoadHomeAssistantElements } from '../ha/side-load-ha-elements';
 import { loadLanguages } from '../localize/localize';
 import { errorToConsole } from '../utils/basic';
@@ -68,6 +69,32 @@ export class InitializationManager {
       InitializationAspect.VIEW,
       InitializationAspect.INITIAL_TRIGGER,
     ]);
+  }
+
+  // The one place that decides whether to (re)start mandatory initialization,
+  // so callers don't re-check the conditions themselves. Called on every render
+  // (from the card's shouldUpdate) and whenever hass changes (from
+  // HASSManager); a reconnect or a cleared issue reaches it by causing a
+  // render.
+  public triggerInitialization(): void {
+    if (!this._shouldInitializeMandatory()) {
+      return;
+    }
+    /* async */ this.initializeMandatory();
+  }
+
+  private _shouldInitializeMandatory(): boolean {
+    return (
+      this._api.getConfigManager().hasConfig() &&
+      this._api.getCardElementManager().isConnected() &&
+      isHassReady(this._api.getHASSManager().getHASS()) &&
+      !this.isInitializedMandatory() &&
+      // Don't start while a full-card issue (e.g. the "Home Assistant is
+      // starting" notice) is shown: each initialization step aborts as soon as
+      // it sees one, so an attempt now would be wasted. The card tries again
+      // once the issue clears.
+      !this._api.getIssueManager().getStateManager().hasFullCardIssue()
+    );
   }
 
   /**

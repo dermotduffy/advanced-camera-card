@@ -32,6 +32,24 @@ describe('CardElementManager', () => {
     expect(manager.getElement()).toBe(element);
   });
 
+  it('should report whether the element is connected', () => {
+    const element = createCardHTMLElement();
+    const manager = new CardElementManager(
+      createCardAPI(),
+      element,
+      () => undefined,
+      () => undefined,
+    );
+
+    expect(manager.isConnected()).toBe(false);
+
+    document.body.append(element);
+    expect(manager.isConnected()).toBe(true);
+
+    element.remove();
+    expect(manager.isConnected()).toBe(false);
+  });
+
   it('should reset scroll', () => {
     const callback = vi.fn();
     const manager = new CardElementManager(

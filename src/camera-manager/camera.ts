@@ -1,20 +1,19 @@
 import { uniq } from 'lodash-es';
 import { ActionsExecutor } from '../card-controller/actions/types';
-import {
-  EventSubscriptionRequest,
-  EventWatcherSubscriptionInterface,
-} from '../card-controller/hass/event-watcher';
-import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
+import { EventSubscriptionRequest } from '../card-controller/hass/event-watcher';
+import { HASSManagerReadonlyInterface } from '../card-controller/hass/types';
 import { PTZAction, PTZActionPhase } from '../config/schema/actions/custom/ptz';
-import { CameraConfig, TriggerEvent } from '../config/schema/cameras';
+import { CameraConfig } from '../config/schema/cameras';
+import { HAEvent } from '../config/schema/common/ha-event';
 import { EnabledProxyConfig, resolveProxyConfig } from '../config/schema/common/proxy';
 import { computeDomain } from '../ha/compute-domain';
-import { matchesEventData } from '../ha/event-data-match';
+import { matchesEventContext, matchesEventData } from '../ha/event-match';
 import { getTriggerEventType } from '../ha/get-trigger-event-type';
 import { Entity, EntityRegistryManager } from '../ha/registry/entity/types';
 import { HassStateDifference, HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import { CapabilitiesRaw, CapabilityKey, Endpoint } from '../types';
+import { arrayify } from '../utils/basic';
 import { liveProviderSupports2WayAudio } from '../utils/live-provider';
 import { Capabilities } from './capabilities';
 import { CameraManagerEngine } from './engine';
@@ -43,9 +42,7 @@ interface CapabilityOptions {
 }
 
 export interface CameraInitializationOptions {
-  hass: HomeAssistant;
-  stateWatcher: StateWatcherSubscriptionInterface;
-  eventWatcher: EventWatcherSubscriptionInterface;
+  hassManager: HASSManagerReadonlyInterface;
   capabilityOptions?: CapabilityOptions;
   entityRegistryManager?: EntityRegistryManager;
 }
@@ -58,7 +55,6 @@ export class Camera {
   protected _capabilities?: Capabilities;
   protected _eventCallback?: CameraEventCallback;
   protected _destroyCallbacks: DestroyCallback[] = [];
-  protected _destroyed = false;
   protected _entity: Entity | null = null;
 
   constructor(
@@ -80,63 +76,57 @@ export class Camera {
   }
 
   async initialize(options: CameraInitializationOptions): Promise<Camera> {
-    this._entity = await this._resolveEntity(options);
-    await this._initialize(options);
+    // Freeze a single HASS snapshot for the whole (async, multi-step)
+    // initialization so every step observes a consistent entity world; live
+    // subscriptions below still use the manager's current watchers.
+    const hass = options.hassManager.getHASS();
+    if (!hass) {
+      return this;
+    }
+
+    this._entity = await this._resolveEntity(hass, options);
+    await this._initialize(hass, options);
 
     this._capabilities =
       options.capabilityOptions?.capabilities ??
       this._capabilities ??
-      (await this._buildCapabilities(options));
+      (await this._buildCapabilities(hass, options));
 
     if (this._capabilities.has('trigger')) {
-      await this._getTriggerEntities(options);
+      await this._getTriggerEntities(hass, options);
       this._config.triggers.entities = uniq(this._config.triggers.entities);
 
       // Subscribe to state based triggers (sync; no race with destroy).
-      options.stateWatcher.subscribe(
-        this._stateChangeHandler,
-        this._config.triggers.entities,
-      );
-      this._onDestroy(() => options.stateWatcher.unsubscribe(this._stateChangeHandler));
+      const stateWatcher = options.hassManager.getStateWatcher();
+      stateWatcher.subscribe(this._stateChangeHandler, this._config.triggers.entities);
+      this._onDestroy(() => stateWatcher.unsubscribe(this._stateChangeHandler));
 
-      // Subscribe to event based triggers.
+      // Subscribe to event based triggers. List-form `event_type` expands into
+      // one subscription per type sharing the same data/context matcher.
+      const eventWatcher = options.hassManager.getEventWatcher();
       for (const event of this._config.triggers.events) {
-        const request = this._buildEventSubscriptionRequest(event);
-        await this._setupSubscription(
-          () => options.eventWatcher.subscribe(options.hass, request),
-          () => options.eventWatcher.unsubscribe(request),
-        );
+        for (const request of this._buildEventSubscriptionRequests(event)) {
+          eventWatcher.subscribe(request);
+          this._onDestroy(() => eventWatcher.unsubscribe(request));
+        }
       }
     }
 
     return this;
   }
 
-  /**
-   * Wire up an async subscription with its teardown. Registers the unsubscribe
-   * callback synchronously before awaiting subscribe, so a destroy during the
-   * await reliably triggers cleanup; short-circuits if destroy has already
-   * run, so the cleanup callback can't fire (and enqueue an unsubscribe)
-   * before the subscribe runs.
-   */
-  protected async _setupSubscription(
-    subscribe: () => Promise<void>,
-    unsubscribe: () => void | Promise<void>,
-  ): Promise<void> {
-    if (this._destroyed) {
-      return;
-    }
-    this._onDestroy(unsubscribe);
-    await subscribe();
-  }
-
-  private _buildEventSubscriptionRequest(event: TriggerEvent): EventSubscriptionRequest {
-    const filter = event.event_data;
-    return {
-      event_type: event.event_type,
-      ...(filter && { matcher: (data) => matchesEventData(filter, data) }),
-      callback: () => this._momentaryEventHandler(event.event_type),
-    };
+  private _buildEventSubscriptionRequests(event: HAEvent): EventSubscriptionRequest[] {
+    const dataFilter = event.event_data;
+    const contextFilter = event.context;
+    return uniq(arrayify(event.event_type)).map((eventType) => ({
+      event_type: eventType,
+      ...((dataFilter || contextFilter) && {
+        matcher: (evt) =>
+          (!dataFilter || matchesEventData(dataFilter, evt.data)) &&
+          (!contextFilter || matchesEventContext(contextFilter, evt.context)),
+      }),
+      callback: () => this._momentaryEventHandler(eventType),
+    }));
   }
 
   private _momentaryEventHandler(eventType: string): void {
@@ -148,13 +138,14 @@ export class Camera {
   }
 
   private async _resolveEntity(
+    hass: HomeAssistant,
     options: CameraInitializationOptions,
   ): Promise<Entity | null> {
     const cameraEntityID = getCameraEntityFromConfig(this._config);
     if (!cameraEntityID || !options.entityRegistryManager) {
       return null;
     }
-    return await options.entityRegistryManager.getEntity(options.hass, cameraEntityID);
+    return await options.entityRegistryManager.getEntity(hass, cameraEntityID);
   }
 
   /**
@@ -162,12 +153,14 @@ export class Camera {
    * to add engine-specific discovery; call `super` to keep the base discoveries.
    */
   protected async _getTriggerEntities(
+    hass: HomeAssistant,
     options: CameraInitializationOptions,
   ): Promise<void> {
-    await this._getDoorbellEntities(options);
+    await this._getDoorbellEntities(hass, options);
   }
 
   private async _getDoorbellEntities(
+    hass: HomeAssistant,
     options: CameraInitializationOptions,
   ): Promise<void> {
     if (
@@ -183,7 +176,7 @@ export class Camera {
     // narrow by `device_id` + domain first and filter by device_class against
     // `hass.states` second.
     const candidates = await options.entityRegistryManager.getMatchingEntities(
-      options.hass,
+      hass,
       (ent) =>
         ent.device_id === deviceID &&
         !ent.disabled_by &&
@@ -192,8 +185,7 @@ export class Camera {
 
     const doorbells = candidates
       .filter(
-        (ent) =>
-          options.hass.states[ent.entity_id]?.attributes?.device_class === 'doorbell',
+        (ent) => hass.states[ent.entity_id]?.attributes?.device_class === 'doorbell',
       )
       .map((ent) => ent.entity_id);
 
@@ -205,15 +197,18 @@ export class Camera {
    */
   protected async _initialize(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _hass: HomeAssistant,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _options: CameraInitializationOptions,
   ): Promise<void> {}
 
   protected async _buildCapabilities(
+    hass: HomeAssistant,
     options: CameraInitializationOptions,
   ): Promise<Capabilities> {
-    const rawCapabilities = await this._getRawCapabilities(options);
+    const rawCapabilities = await this._getRawCapabilities(hass, options);
     const config = this.getConfig();
-    const has2WayAudio = await this._has2WayAudioCapability(options.hass);
+    const has2WayAudio = await this._has2WayAudioCapability(hass);
 
     return new Capabilities(
       {
@@ -254,6 +249,7 @@ export class Camera {
    * and call super._getRawCapabilities() to extend defaults.
    */
   protected async _getRawCapabilities(
+    _hass: HomeAssistant,
     options: CameraInitializationOptions,
   ): Promise<CapabilitiesRaw> {
     return {
@@ -267,7 +263,6 @@ export class Camera {
   }
 
   public async destroy(): Promise<void> {
-    this._destroyed = true;
     const callbacks = this._destroyCallbacks;
     this._destroyCallbacks = [];
     await Promise.all(callbacks.map((callback) => callback()));

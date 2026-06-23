@@ -1,3 +1,4 @@
+import { HomeAssistant } from '../../ha/types';
 import { CapabilitiesRaw, Endpoint } from '../../types';
 import { CameraInitializationOptions } from '../camera';
 import { EntityCamera } from '../entity-camera';
@@ -20,12 +21,13 @@ export class MotionEyeCamera extends EntityCamera {
   }
 
   protected async _getRawCapabilities(
+    hass: HomeAssistant,
     options: CameraInitializationOptions,
   ): Promise<CapabilitiesRaw> {
     const ptz = getPTZCapabilitiesFromCameraConfig(this.getConfig());
 
     return {
-      ...(await super._getRawCapabilities(options)),
+      ...(await super._getRawCapabilities(hass, options)),
       clips: true,
       snapshots: true,
       ...(ptz && { ptz }),

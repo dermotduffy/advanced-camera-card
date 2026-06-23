@@ -1,4 +1,4 @@
-import { STATE_STARTING } from 'home-assistant-js-websocket';
+import { STATE_RUNNING, STATE_STARTING } from 'home-assistant-js-websocket';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import {
@@ -292,5 +292,90 @@ describe('InitializationManager', () => {
     manager.uninitialize(InitializationAspect.CAMERAS);
 
     expect(initializer.uninitialize).toBeCalledWith(InitializationAspect.CAMERAS);
+  });
+
+  describe('should decide whether to trigger initialization', () => {
+    const createReadyAPI = () => {
+      const api = createCardAPI();
+      vi.mocked(api.getConfigManager().hasConfig).mockReturnValue(true);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+      vi.mocked(api.getCardElementManager().isConnected).mockReturnValue(true);
+      const hass = createHASS();
+      hass.connected = true;
+      hass.config.state = STATE_RUNNING;
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+      vi.mocked(
+        api.getIssueManager().getStateManager().hasFullCardIssue,
+      ).mockReturnValue(false);
+      return api;
+    };
+
+    it('should initialize when all conditions are met', () => {
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(createReadyAPI(), initializer);
+
+      manager.triggerInitialization();
+
+      expect(initializer.initializeMultipleIfNecessary).toBeCalled();
+    });
+
+    it('should not initialize without config', () => {
+      const api = createReadyAPI();
+      vi.mocked(api.getConfigManager().hasConfig).mockReturnValue(false);
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+
+      manager.triggerInitialization();
+
+      expect(initializer.initializeMultipleIfNecessary).not.toBeCalled();
+    });
+
+    it('should not initialize when the element is disconnected', () => {
+      const api = createReadyAPI();
+      vi.mocked(api.getCardElementManager().isConnected).mockReturnValue(false);
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+
+      manager.triggerInitialization();
+
+      expect(initializer.initializeMultipleIfNecessary).not.toBeCalled();
+    });
+
+    it('should not initialize when hass is not ready', () => {
+      const api = createReadyAPI();
+      const hass = createHASS();
+      hass.connected = true;
+      hass.config.state = STATE_STARTING;
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+
+      manager.triggerInitialization();
+
+      expect(initializer.initializeMultipleIfNecessary).not.toBeCalled();
+    });
+
+    it('should not initialize when already initialized', () => {
+      const initializer = mock<Initializer>();
+      initializer.isInitializedMultiple.mockReturnValue(true);
+      const manager = new InitializationManager(createReadyAPI(), initializer);
+
+      manager.triggerInitialization();
+
+      expect(initializer.initializeMultipleIfNecessary).not.toBeCalled();
+    });
+
+    it('should not initialize while a full-card issue is shown', () => {
+      const api = createReadyAPI();
+      vi.mocked(
+        api.getIssueManager().getStateManager().hasFullCardIssue,
+      ).mockReturnValue(true);
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+
+      manager.triggerInitialization();
+
+      expect(initializer.initializeMultipleIfNecessary).not.toBeCalled();
+    });
   });
 });

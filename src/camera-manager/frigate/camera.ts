@@ -43,15 +43,31 @@ export const isBirdseye = (cameraConfig: CameraConfig): boolean => {
 };
 
 export class FrigateCamera extends Camera {
+  // Short-circuits subscription when destroy() was invoked while base
+  // initialization was still awaiting. Set BEFORE awaiting `super.destroy()` so
+  // an in-flight initialize() sees the flip immediately.
+  private _destroyed = false;
+
   public async initialize(options: FrigateCameraInitializationOptions): Promise<Camera> {
     await super.initialize(options);
 
+    // A destroy() during the await above means the camera is being torn down;
+    // it must not register live subscriptions afterward.
+    if (this._destroyed) {
+      return this;
+    }
+
     if (this._capabilities?.has('trigger')) {
-      await this._subscribeToEvents(options.hass, options.frigateEventWatcher);
-      await this._subscribeToReviews(options.hass, options.frigateReviewWatcher);
+      this._subscribeToEvents(options.frigateEventWatcher);
+      this._subscribeToReviews(options.frigateReviewWatcher);
     }
 
     return this;
+  }
+
+  public override async destroy(): Promise<void> {
+    this._destroyed = true;
+    await super.destroy();
   }
 
   public async executePTZAction(
@@ -104,9 +120,7 @@ export class FrigateCamera extends Camera {
     return true;
   }
 
-  protected override async _initialize(
-    options: FrigateCameraInitializationOptions,
-  ): Promise<void> {
+  protected override async _initialize(hass: HomeAssistant): Promise<void> {
     const config = this.getConfig();
     const hasCameraName = !!config.frigate?.camera_name;
     const cameraEntity = getCameraEntityFromConfig(config);
@@ -126,7 +140,7 @@ export class FrigateCamera extends Camera {
     }
 
     if (!this._config.frigate.client_id) {
-      const stateEntity = cameraEntity ? options.hass.states[cameraEntity] : undefined;
+      const stateEntity = cameraEntity ? hass.states[cameraEntity] : undefined;
       const clientID = stateEntity?.attributes?.client_id;
       if (typeof clientID === 'string' && clientID) {
         this._config.frigate.client_id = clientID;
@@ -137,13 +151,15 @@ export class FrigateCamera extends Camera {
   }
 
   protected override async _getTriggerEntities(
+    hass: HomeAssistant,
     options: FrigateCameraInitializationOptions,
   ): Promise<void> {
-    await this._getFrigateMotionAndOccupancyEntities(options);
-    await super._getTriggerEntities(options);
+    await this._getFrigateMotionAndOccupancyEntities(hass, options);
+    await super._getTriggerEntities(hass, options);
   }
 
   private async _getFrigateMotionAndOccupancyEntities(
+    hass: HomeAssistant,
     options: FrigateCameraInitializationOptions,
   ): Promise<void> {
     const config = this.getConfig();
@@ -162,7 +178,7 @@ export class FrigateCamera extends Camera {
     // searching via unique_id ensures this still works if the user renames
     // the entity_id.
     const binarySensorEntities = await options.entityRegistryManager.getMatchingEntities(
-      options.hass,
+      hass,
       (ent) =>
         ent.config_entry_id === this._entity?.config_entry_id &&
         !ent.disabled_by &&
@@ -189,12 +205,13 @@ export class FrigateCamera extends Camera {
   }
 
   protected async _getRawCapabilities(
+    hass: HomeAssistant,
     options: FrigateCameraInitializationOptions,
   ): Promise<CapabilitiesRaw> {
-    const base = await super._getRawCapabilities(options);
+    const base = await super._getRawCapabilities(hass, options);
     const config = this.getConfig();
 
-    const frigatePTZ = await this._getPTZCapabilities(options.hass, config);
+    const frigatePTZ = await this._getPTZCapabilities(hass, config);
     const configPTZ = getPTZCapabilitiesFromCameraConfig(config);
     const combinedPTZ: PTZCapabilities | null =
       configPTZ || frigatePTZ ? { ...frigatePTZ, ...configPTZ } : null;
@@ -451,10 +468,9 @@ export class FrigateCamera extends Camera {
     return null;
   }
 
-  private async _subscribeToEvents(
-    hass: HomeAssistant,
+  private _subscribeToEvents(
     frigateEventWatcher: FrigateWatcherSubscriptionInterface<FrigateEventChange>,
-  ): Promise<void> {
+  ): void {
     const config = this.getConfig();
     if (
       !config.triggers.media_events.length ||
@@ -473,10 +489,8 @@ export class FrigateCamera extends Camera {
         event.after.camera === config.frigate.camera_name,
     };
 
-    await this._setupSubscription(
-      () => frigateEventWatcher.subscribe(hass, request),
-      () => frigateEventWatcher.unsubscribe(request),
-    );
+    frigateEventWatcher.subscribe(request);
+    this._onDestroy(() => frigateEventWatcher.unsubscribe(request));
   }
 
   private _frigateEventHandler = (ev: FrigateEventChange): void => {
@@ -494,23 +508,33 @@ export class FrigateCamera extends Camera {
       return;
     }
 
-    if (
-      (config.frigate.zones?.length &&
-        !config.frigate.zones.some((zone) => ev.after.current_zones.includes(zone))) ||
-      (config.frigate.labels?.length && !config.frigate.labels.includes(ev.after.label))
-    ) {
-      return;
-    }
-
     const mediaEventsToTriggerOn = config.triggers.media_events;
-    if (
-      !(
-        mediaEventsToTriggerOn.includes('events') ||
-        (mediaEventsToTriggerOn.includes('snapshots') && snapshotChange) ||
-        (mediaEventsToTriggerOn.includes('clips') && clipChange)
-      )
-    ) {
-      return;
+
+    // The zone/label/media checks decide when to START a trigger, so they only
+    // apply to 'new'/'update'. An 'end' always passes through: it ends whatever
+    // trigger an earlier event with the same id started, and by 'end' the
+    // object may have left the zone or the media flag may differ -- the trigger
+    // must still clear. (The trigger manager ignores an 'end' for an id that
+    // never triggered, so a pass-through 'end' is harmless.)
+    if (ev.type !== 'end') {
+      if (
+        (config.frigate.zones?.length &&
+          !config.frigate.zones.some((zone) => ev.after.current_zones.includes(zone))) ||
+        (config.frigate.labels?.length &&
+          !config.frigate.labels.includes(ev.after.label))
+      ) {
+        return;
+      }
+
+      if (
+        !(
+          mediaEventsToTriggerOn.includes('events') ||
+          (mediaEventsToTriggerOn.includes('snapshots') && snapshotChange) ||
+          (mediaEventsToTriggerOn.includes('clips') && clipChange)
+        )
+      ) {
+        return;
+      }
     }
 
     this._eventCallback?.({
@@ -525,10 +549,9 @@ export class FrigateCamera extends Camera {
     });
   };
 
-  private async _subscribeToReviews(
-    hass: HomeAssistant,
+  private _subscribeToReviews(
     frigateReviewWatcher: FrigateWatcherSubscriptionInterface<FrigateReviewChange>,
-  ): Promise<void> {
+  ): void {
     const config = this.getConfig();
     const reviewConfig = config.triggers.reviews;
 
@@ -550,10 +573,8 @@ export class FrigateCamera extends Camera {
         review.after.camera === config.frigate.camera_name,
     };
 
-    await this._setupSubscription(
-      () => frigateReviewWatcher.subscribe(hass, request),
-      () => frigateReviewWatcher.unsubscribe(request),
-    );
+    frigateReviewWatcher.subscribe(request);
+    this._onDestroy(() => frigateReviewWatcher.unsubscribe(request));
   }
 
   private _frigateReviewHandler = (review: FrigateReviewChange): void => {
