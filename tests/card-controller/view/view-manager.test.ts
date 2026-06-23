@@ -509,7 +509,7 @@ describe('should handle exceptions', () => {
       expect.objectContaining({ error }),
     );
 
-    // The loading flag must be cleared on error — otherwise gallery/viewer
+    // The loading flag must be cleared on error -- otherwise gallery/viewer
     // components render "Awaiting media" indefinitely on top of the error
     // notification.
     expect(manager.getView()?.context?.loading?.query).toBeUndefined();
@@ -538,9 +538,9 @@ describe('should handle exceptions', () => {
       viewQueryExecutor: viewQueryExecutor,
     });
 
-    // Concurrent reset during the await — clears `_view` before the
-    // rejection is processed. The error path must not crash on the null
-    // view when attempting to clear the loading flag.
+    // Concurrent reset during the await -- clears `_view` before the rejection
+    // is processed. The error path must not crash on the null view when
+    // attempting to clear the loading flag.
     viewQueryExecutor.getNewQueryModifiers.mockImplementation(async () => {
       manager.reset();
       throw error;

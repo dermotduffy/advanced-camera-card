@@ -56,7 +56,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
 
     // ha-camera-stream renders up to three inner players (MJPEG / HLS /
     // WebRTC), only one visible. Inner leaves all fire `media:loaded`
-    // independently — we suppress those at this boundary (`stopPropagation` in
+    // independently -- we suppress those at this boundary (`stopPropagation` in
     // `_captureInnerLoad`), cache the latest per type, and republish the
     // visible one's info via our own source controller in `updated()`.
     private _mediaLoadedInfoPerStream: Record<StreamType, MediaLoadedInfo> = {};

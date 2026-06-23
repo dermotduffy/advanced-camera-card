@@ -61,7 +61,7 @@ describe('MediaLoadedInfoSinkController', () => {
       // Both cached, but only the selected one is exposed.
       expect(controller.get()).toBe(infoA);
 
-      // Selecting the other target switches what `get()` returns — without a
+      // Selecting the other target switches what `get()` returns -- without a
       // new event arriving for it.
       selected = 'target-B';
       controller.hostUpdated();
@@ -102,7 +102,7 @@ describe('MediaLoadedInfoSinkController', () => {
       controller.hostConnected();
       vi.clearAllMocks();
 
-      // Load for an unselected target — cached but inactive.
+      // Load for an unselected target -- cached but inactive.
       host.dispatchEvent(
         createMediaLoadedInfoEvent({
           info: createMediaLoadedInfo({ targetID: 'target-B' }),
@@ -162,7 +162,7 @@ describe('MediaLoadedInfoSinkController', () => {
       controller.hostUpdated();
       vi.clearAllMocks();
 
-      // Switch to another target with no cached info — active stays null.
+      // Switch to another target with no cached info -- active stays null.
       selected = 'target-B';
       controller.hostUpdated();
 

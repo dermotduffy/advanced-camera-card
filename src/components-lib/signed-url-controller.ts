@@ -64,7 +64,7 @@ export class SignedURLController implements ReactiveController {
 
     // When the endpoint requires signing or proxying, the URL must go through
     // the async resolution path. For proxied URLs, under no circumstances
-    // should we fall back to returning the unproxied URL — doing so risks
+    // should we fall back to returning the unproxied URL -- doing so risks
     // leaking traffic or causing mixed-content errors.
     if (options.proxyConfig?.enabled || options.endpoint?.sign) {
       return this._value;

@@ -27,7 +27,7 @@ export class IssueStateManager implements IssueReadOnlyState {
   }
 
   // =========================================================================
-  // Detection — static (one-shot on init) and dynamic (on every state change).
+  // Detection -- static (one-shot on init) and dynamic (on every state change).
   // =========================================================================
 
   public async detectStatic(hass: HomeAssistant): Promise<void> {
@@ -57,7 +57,7 @@ export class IssueStateManager implements IssueReadOnlyState {
   }
 
   // =========================================================================
-  // Queries — read active issue state.
+  // Queries -- read active issue state.
   // =========================================================================
 
   public getFullCardIssue(): IssueDescription | null {

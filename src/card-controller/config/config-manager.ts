@@ -154,7 +154,7 @@ export class ConfigManager {
     // automations, which destroys associated ConditionsManagers. If a condition
     // transition (e.g. microphone connect) triggers both a user automation and
     // an unrelated override, an unconditional reload would delete the
-    // automation mid-transition — the freshly created replacement has no prior
+    // automation mid-transition -- the freshly created replacement has no prior
     // state, treats the current condition as its baseline, and never fires the
     // action.
     const runIfChanged = <T>(

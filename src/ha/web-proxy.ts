@@ -82,7 +82,7 @@ export const createProxiedEndpointIfNecessary = async (
   }
 
   if (proxyConfig.dynamic) {
-    // Strip hash fragment — it's client-side only and not relevant for
+    // Strip hash fragment -- it's client-side only and not relevant for
     // proxy pattern matching.
     const url = endpoint.endpoint.split(/#/)[0];
     await addDynamicProxyURL(hass, url, {

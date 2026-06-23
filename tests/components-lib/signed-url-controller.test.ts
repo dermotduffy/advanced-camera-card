@@ -771,7 +771,7 @@ describe('SignedURLController', () => {
     controller.hostUpdate();
     expect(createProxiedEndpointIfNecessary).toHaveBeenCalledTimes(1);
 
-    // Resolve the original request — should still succeed.
+    // Resolve the original request -- should still succeed.
     resolveProxy?.({ endpoint: 'http://proxied-url.com', sign: false });
     await flushPromises();
 
@@ -809,7 +809,7 @@ describe('SignedURLController', () => {
     expect(createProxiedEndpointIfNecessary).toHaveBeenCalledTimes(1);
     expect(controller.getValue()).toBe('http://signed.com');
 
-    // Change only the extraneous field — should hit the cache, not re-fetch.
+    // Change only the extraneous field -- should hit the cache, not re-fetch.
     extraneous = false;
     await controller.hostUpdate();
     expect(createProxiedEndpointIfNecessary).toHaveBeenCalledTimes(1);

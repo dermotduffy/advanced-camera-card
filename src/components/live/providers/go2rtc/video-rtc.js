@@ -271,7 +271,7 @@ export class VideoRTC extends HTMLElement {
   /**
    * Owns the microphone stream transition end-to-end: updates the property,
    * extracts the outbound audio track, and swaps it onto the pre-armed audio
-   * transceiver via `replaceTrack` — no SDP renegotiation, no visible reload.
+   * transceiver via `replaceTrack` -- no SDP renegotiation, no visible reload.
    *
    * Falls back to a full reconnect if `replaceTrack` rejects, but only when
    * the rejection still describes the current desired state. The transceiver
@@ -410,8 +410,8 @@ export class VideoRTC extends HTMLElement {
    */
   disconnectedCallback() {
     // Synchronous manager-side cleanup by aborting the load's signal. The
-    // signal's abort listeners — registered by the card-root listener and
-    // any sinks in the bubble path — fire even though `parentNode` is
+    // signal's abort listeners -- registered by the card-root listener and
+    // any sinks in the bubble path -- fire even though `parentNode` is
     // already null, because abort is plain JS, not DOM-event-bound.
     this._abortController?.abort();
     this._abortController = null;
@@ -833,7 +833,7 @@ export class VideoRTC extends HTMLElement {
     // Always pre-arm a single outbound audio transceiver so the SDP advertises
     // the slot from the start. With the slot in place, the mic track can be
     // attached/detached later via `setMicrophoneStream` (replaceTrack) without
-    // renegotiating — avoiding a visible reload of this cell each time grid
+    // renegotiating -- avoiding a visible reload of this cell each time grid
     // selection moves the mic between cameras.
     //
     // Pure SDP allocation: the kind-only `addTransceiver('audio', ...)` form

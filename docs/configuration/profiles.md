@@ -39,7 +39,7 @@ Turns the card into a phone-style ringer that answers a [two-way audio
 call](../usage/2-way-audio.md) when somebody presses a doorbell. Intended for a
 wall-mounted tablet sitting on a dashboard with a doorbell camera.
 
-Minimal configuration — just point it at a doorbell-capable camera:
+Minimal configuration -- just point it at a doorbell-capable camera:
 
 ```yaml
 type: custom:advanced-camera-card

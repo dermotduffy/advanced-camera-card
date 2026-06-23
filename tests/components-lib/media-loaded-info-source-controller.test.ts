@@ -127,7 +127,7 @@ describe('MediaLoadedInfoSourceController', () => {
 
     it('should abort the prior dispatch when targetID changes between calls', () => {
       // Without this, the manager would zombie an entry under the old
-      // targetID — its `onAbort` cleanup never fires because we never aborted
+      // targetID -- its `onAbort` cleanup never fires because we never aborted
       // the prior signal before overwriting `_abort`.
       let targetID: string | null = 'target-1';
       const host = createLitElement();
@@ -164,7 +164,7 @@ describe('MediaLoadedInfoSourceController', () => {
       controller.set(createMediaLoadedInfo());
       const firstSignal = (handler.mock.calls[0][0] as CustomEvent).detail.signal;
 
-      // Disconnect and reconnect — without a fresh `set`.
+      // Disconnect and reconnect -- without a fresh `set`.
       controller.hostDisconnected();
       controller.hostConnected();
 
@@ -201,7 +201,7 @@ describe('MediaLoadedInfoSourceController', () => {
       host.addEventListener('advanced-camera-card:media:loaded', handler);
 
       controller.set(createMediaLoadedInfo());
-      // Active registration, no disconnect — connect should be a no-op.
+      // Active registration, no disconnect -- connect should be a no-op.
       controller.hostConnected();
 
       expect(handler).toBeCalledTimes(1);
@@ -228,7 +228,7 @@ describe('MediaLoadedInfoSourceController', () => {
       targetID = 'target-2';
       controller.hostConnected();
 
-      // No re-dispatch — the stale cache was discarded.
+      // No re-dispatch -- the stale cache was discarded.
       expect(handler).toBeCalledTimes(1);
 
       // A subsequent set() under the new target dispatches fresh.

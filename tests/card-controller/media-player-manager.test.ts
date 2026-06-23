@@ -451,9 +451,9 @@ describe('MediaPlayerManager', () => {
           const api = createCardAPI();
           vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
 
-          // Bypass schema validation — the code has a runtime guard (TypeScript
-          // narrowing) for the case where dashboard config is present but
-          // dashboard_path / view_path are missing.
+          // Bypass schema validation -- the code has a runtime guard
+          // (TypeScript narrowing) for the case where dashboard config is
+          // present but dashboard_path / view_path are missing.
           const configWithNoDashboardPaths = createCameraConfig({
             camera_entity: 'camera.foo',
           });

@@ -13,6 +13,39 @@ const compat = new FlatCompat({
   allConfig: js.configs.all,
 });
 
+// Local rule: ban the em-dash character (U+2014) anywhere, including comments and
+// strings. The codebase uses a colon or a double hyphen `--` instead. The regex uses
+// the unicode escape so the character never appears literally in this file.
+const noEmDash = {
+  meta: {
+    type: 'problem',
+    docs: { description: 'Disallow the em-dash character; use ":" or "--" instead.' },
+    messages: {
+      emDash: 'Em-dash character is not allowed; use ":" or "--" instead.',
+    },
+  },
+  create(context) {
+    const sourceCode = context.sourceCode ?? context.getSourceCode();
+    return {
+      Program(node) {
+        const text = sourceCode.getText();
+        const re = /\u2014/g;
+        let match;
+        while ((match = re.exec(text)) !== null) {
+          context.report({
+            node,
+            loc: {
+              start: sourceCode.getLocFromIndex(match.index),
+              end: sourceCode.getLocFromIndex(match.index + 1),
+            },
+            messageId: 'emDash',
+          });
+        }
+      },
+    };
+  },
+};
+
 export default defineConfig([
   {
     extends: compat.extends('plugin:@typescript-eslint/recommended', 'prettier'),
@@ -23,8 +56,37 @@ export default defineConfig([
       sourceType: 'module',
     },
 
+    plugins: {
+      local: { rules: { 'no-em-dash': noEmDash } },
+    },
+
     rules: {
       curly: 'error',
+      'local/no-em-dash': 'error',
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-non-null-assertion': 'error',
+      '@typescript-eslint/parameter-properties': 'error',
+    },
+  },
+
+  // Timers must go through the Timer class (src/utils/timer.ts).
+  {
+    files: ['src/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression > Identifier.callee[name=/^(setTimeout|setInterval)$/]",
+          message:
+            'Use the Timer class (src/utils/timer.ts) instead of setTimeout/setInterval.',
+        },
+        {
+          selector: "MemberExpression[property.name=/^(setTimeout|setInterval)$/]",
+          message:
+            'Use the Timer class (src/utils/timer.ts) instead of window.setTimeout/setInterval.',
+        },
+      ],
     },
   },
 ]);

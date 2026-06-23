@@ -6,7 +6,7 @@ import { ConditionState } from '../conditions/types';
 // Parses a Home Assistant time-period value (a condition/trigger `for:`) to
 // seconds, matching HA's `cv.time_period`:
 //   - a number, or a bare numeric string, is a count of seconds;
-//   - a colon string is `HH:MM` or `HH:MM:SS` — HA reads TWO parts as
+//   - a colon string is `HH:MM` or `HH:MM:SS` -- HA reads TWO parts as
 //     hours:minutes (not minutes:seconds);
 //   - a `{days, hours, minutes, seconds, milliseconds}` dict (each field a
 //     number or a numeric string, e.g. once a template field has been rendered).

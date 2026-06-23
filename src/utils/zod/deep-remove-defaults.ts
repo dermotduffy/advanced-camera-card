@@ -76,7 +76,7 @@ function strip(schema: z.ZodType, cache: Map<z.ZodType, z.ZodType>): z.ZodType {
   let result: z.ZodType;
 
   if (schema instanceof z.ZodDefault || schema instanceof z.ZodPrefault) {
-    // Unwrap the default — don't cache the wrapper itself.
+    // Unwrap the default -- don't cache the wrapper itself.
     result = strip(toClassic(schema.unwrap()), cache);
   } else if (schema instanceof z.ZodObject) {
     const newShape: Record<string, z.core.$ZodType> = {};

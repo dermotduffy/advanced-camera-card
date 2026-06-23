@@ -11,10 +11,10 @@ const MEDIA_INFO_HEIGHT_CUTOFF = 50;
 const MEDIA_INFO_WIDTH_CUTOFF = MEDIA_INFO_HEIGHT_CUTOFF;
 
 /**
- * Create a MediaLoadedInfo object. `targetID` is intentionally NOT an option
- * — it's owned by the source controller (`MediaLoadedInfoSourceController`)
- * and injected at dispatch time, so leaves don't have to (and can't) plumb
- * it through info construction.
+ * Create a MediaLoadedInfo object. `targetID` is intentionally NOT an option --
+ * it's owned by the source controller (`MediaLoadedInfoSourceController`) and
+ * injected at dispatch time, so leaves don't have to (and can't) plumb it
+ * through info construction.
  * @param source An event or HTMLElement that should be used as a source.
  * @returns A new info or null if one could not be created.
  */

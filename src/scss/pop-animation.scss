@@ -1,7 +1,7 @@
 // Shared "pop" enter/exit animation for overlays.
 //
-// `@include pop-in` auto-plays an entrance on render. `@include pop-out` —
-// typically guarded by an `.exiting` class — plays the matching exit; it is
+// `@include pop-in` auto-plays an entrance on render. `@include pop-out` --
+// typically guarded by an `.exiting` class -- plays the matching exit; it is
 // named `pop-out` so an `animationend` handler can detect exit completion and
 // unmount the element.
 

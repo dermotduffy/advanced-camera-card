@@ -37,7 +37,7 @@ export class MediaLoadIssue implements Issue {
   }
 
   // =========================================================================
-  // Explicit trigger — called when a component fires an issue:trigger event.
+  // Explicit trigger -- called when a component fires an issue:trigger event.
   // =========================================================================
 
   public trigger(context: IssueTriggerContext['media_load']): void {
@@ -45,7 +45,7 @@ export class MediaLoadIssue implements Issue {
   }
 
   // =========================================================================
-  // Detection — called by the manager on every state change.
+  // Detection -- called by the manager on every state change.
   // =========================================================================
 
   public detectDynamic(state: ConditionState): void {
@@ -62,7 +62,7 @@ export class MediaLoadIssue implements Issue {
   }
 
   // =========================================================================
-  // State queries — called by the manager to read current state.
+  // State queries -- called by the manager to read current state.
   // =========================================================================
 
   public hasIssue(): boolean {
@@ -113,7 +113,7 @@ export class MediaLoadIssue implements Issue {
   }
 
   // =========================================================================
-  // Retry — called by the manager to schedule a media reload.
+  // Retry -- called by the manager to schedule a media reload.
   // =========================================================================
 
   public needsRetry(): boolean {
@@ -144,7 +144,7 @@ export class MediaLoadIssue implements Issue {
     // re-attempts loading underneath. If the retry succeeds,
     // _handleMediaLoaded will clear everything when media:loaded fires. If
     // it fails silently (e.g. bogus stream name), the error stays visible
-    // immediately — no new 10s grace period.
+    // immediately -- no new 10s grace period.
     this._api.getViewManager().setViewWithMergedContext({ mediaEpoch });
     return false;
   }
@@ -212,7 +212,7 @@ export class MediaLoadIssue implements Issue {
       this._timerTargetID = targetID;
       this._timer.start(MEDIA_LOADING_TIMEOUT_SECONDS, () => {
         // Record the error on timeout so retry() knows which epoch to bump.
-        // targetID is guaranteed non-null here — the null case bails at the
+        // targetID is guaranteed non-null here -- the null case bails at the
         // top of _handleMediaNotLoaded.
         this._erroredTargetIDs.add(targetID);
         this._activate();
