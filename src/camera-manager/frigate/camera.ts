@@ -520,7 +520,8 @@ export class FrigateCamera extends Camera {
       if (
         (config.frigate.zones?.length &&
           !config.frigate.zones.some((zone) => ev.after.current_zones.includes(zone))) ||
-        (config.frigate.labels?.length && !config.frigate.labels.includes(ev.after.label))
+        (config.frigate.labels?.length &&
+          !config.frigate.labels.includes(ev.after.label))
       ) {
         return;
       }
