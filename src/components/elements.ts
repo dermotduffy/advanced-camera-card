@@ -136,9 +136,13 @@ export class AdvancedCameraCardElementsCore extends LitElement {
       return;
     }
 
-    const elements = this._templateRenderer.renderRecursively(this.hass, this.elements, {
-      conditionState: this.conditionStateManager?.getState(),
-    }) as PictureElements | undefined;
+    const elements = this._templateRenderer.renderRecursivelyAsType(
+      this.hass,
+      this.elements,
+      {
+        conditionState: this.conditionStateManager?.getState(),
+      },
+    );
 
     // Condition state changes won't change the actual rendered config unless
     // `elements` has a template, which is more likely does not. Avoid updating
