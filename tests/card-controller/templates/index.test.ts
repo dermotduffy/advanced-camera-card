@@ -178,4 +178,18 @@ describe('TemplateRenderer', () => {
       expect(result).toBe('Value:');
     });
   });
+
+  describe('renderRecursivelyAsType', () => {
+    it('should render in place while preserving the input structure', () => {
+      const renderer = new TemplateRenderer();
+      const hass = createHASS();
+
+      const result = renderer.renderRecursivelyAsType(
+        hass,
+        { camera: '{{ acc.camera }}', static: 'value' },
+        { conditionState: { camera: 'camera.office' } },
+      );
+      expect(result).toEqual({ camera: 'camera.office', static: 'value' });
+    });
+  });
 });

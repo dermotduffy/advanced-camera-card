@@ -187,15 +187,14 @@ export class ActionsManager implements ActionsExecutor {
     triggerData?: TriggerData,
   ): ActionPrepareCallback {
     // Render against the state (incl. HASS) as it is *when the action runs* --
-    // fixed trigger context, fresh card/HASS state per step. The one cast lives
-    // here as renderRecursively returns `unknown`.
+    // fixed trigger context, fresh card/HASS state per step.
     return <T>(value: T): T => {
       const hass = this._api.getHASSManager().getHASS();
       return hass
-        ? (renderer.renderRecursively(hass, value, {
+        ? renderer.renderRecursivelyAsType(hass, value, {
             conditionState: this._api.getConditionStateManager().getState(),
             triggerData,
-          }) as T)
+          })
         : value;
     };
   }

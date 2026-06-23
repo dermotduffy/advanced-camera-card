@@ -31,6 +31,17 @@ export class TemplateRenderer {
     );
   };
 
+  // Structure-preserving variant of `renderRecursively`: arrays, records, and
+  // primitives keep their shape (only string leaves are rendered), so the
+  // caller's type is asserted back unchanged. Callers whose template renders to
+  // a *different* type than its input (e.g. a string that yields a boolean)
+  // must use `renderRecursively` and narrow the `unknown` result at runtime.
+  public renderRecursivelyAsType = <T>(
+    hass: HomeAssistant,
+    data: T,
+    options?: TemplateRenderOptions,
+  ): T => this.renderRecursively(hass, data, options) as T;
+
   private _generateTemplateContext(
     options?: TemplateRenderOptions,
   ): TemplateContext | undefined {

@@ -337,7 +337,7 @@ describe('ActionsManager', () => {
       const action = createLogAction('{{ acc.camera }}');
 
       const templateRenderer = mock<TemplateRenderer>();
-      templateRenderer.renderRecursively.mockReturnValue(action);
+      templateRenderer.renderRecursivelyAsType.mockReturnValue(action);
 
       const api = createAPI();
       const hass = createHASS();
@@ -360,7 +360,7 @@ describe('ActionsManager', () => {
 
       await manager.executeActions({ actions: action, config, triggerData });
 
-      expect(templateRenderer.renderRecursively).toBeCalledWith(hass, action, {
+      expect(templateRenderer.renderRecursivelyAsType).toBeCalledWith(hass, action, {
         conditionState,
         triggerData,
       });
@@ -377,7 +377,7 @@ describe('ActionsManager', () => {
       });
 
       const templateRenderer = mock<TemplateRenderer>();
-      templateRenderer.renderRecursively.mockReturnValue(allowedAction);
+      templateRenderer.renderRecursivelyAsType.mockReturnValue(allowedAction);
 
       const api = createAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
@@ -399,7 +399,7 @@ describe('ActionsManager', () => {
 
       const templateRenderer = mock<TemplateRenderer>();
       // Identity render -- assert on the render *inputs*, not a swapped output.
-      templateRenderer.renderRecursively.mockImplementation((_hass, data) => data);
+      templateRenderer.renderRecursivelyAsType.mockImplementation((_hass, data) => data);
 
       const api = createAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
@@ -422,13 +422,13 @@ describe('ActionsManager', () => {
 
       // Each action renders with the state as it is at its turn: the second
       // sees the camera the first action set.
-      expect(templateRenderer.renderRecursively).toHaveBeenNthCalledWith(
+      expect(templateRenderer.renderRecursivelyAsType).toHaveBeenNthCalledWith(
         1,
         expect.anything(),
         expect.anything(),
         expect.objectContaining({ conditionState: { camera: 'first' } }),
       );
-      expect(templateRenderer.renderRecursively).toHaveBeenNthCalledWith(
+      expect(templateRenderer.renderRecursivelyAsType).toHaveBeenNthCalledWith(
         2,
         expect.anything(),
         expect.anything(),
@@ -440,7 +440,7 @@ describe('ActionsManager', () => {
       const ran: string[] = [];
 
       const templateRenderer = mock<TemplateRenderer>();
-      templateRenderer.renderRecursively.mockImplementation((_hass, data) => data);
+      templateRenderer.renderRecursivelyAsType.mockImplementation((_hass, data) => data);
 
       const api = createAPI();
       // No HASS for the first action's render; HASS thereafter.
@@ -464,14 +464,14 @@ describe('ActionsManager', () => {
       // Both actions ran; only the second was rendered -- the first saw no
       // HASS, so HASS is read per action rather than captured once.
       expect(ran).toEqual(['one', 'two']);
-      expect(templateRenderer.renderRecursively).toBeCalledTimes(1);
+      expect(templateRenderer.renderRecursivelyAsType).toBeCalledTimes(1);
     });
 
     it('should abort the remaining actions when one fails to render', async () => {
       const ran: string[] = [];
 
       const templateRenderer = mock<TemplateRenderer>();
-      templateRenderer.renderRecursively
+      templateRenderer.renderRecursivelyAsType
         .mockImplementationOnce((_hass, data) => data)
         .mockImplementationOnce(() => {
           throw new Error('bad template');
