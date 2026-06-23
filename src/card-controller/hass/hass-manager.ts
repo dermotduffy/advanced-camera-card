@@ -17,14 +17,10 @@ export class HASSManager implements HASSManagerReadonlyInterface {
   private _stateWatcher: StateWatcherSubscriptionInterface;
   private _eventWatcher: EventWatcherSubscriptionInterface;
 
-  constructor(
-    api: CardHASSAPI,
-    stateWatcher?: StateWatcherSubscriptionInterface,
-    eventWatcher?: EventWatcherSubscriptionInterface,
-  ) {
+  constructor(api: CardHASSAPI) {
     this._api = api;
-    this._stateWatcher = stateWatcher ?? new StateWatcher(this);
-    this._eventWatcher = eventWatcher ?? new EventWatcher(this);
+    this._stateWatcher = new StateWatcher(this);
+    this._eventWatcher = new EventWatcher(this);
   }
 
   public getHASS(): HomeAssistant | null {

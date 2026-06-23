@@ -13,6 +13,11 @@ const ISSUE_ICON = 'mdi:lan-disconnect';
  * types. Self-detects by observing the health monitor and asking the
  * IssueManager to re-evaluate on change.
  *
+ * Detection scope: the transport reports `failing` only when a subscribe
+ * attempt rejects (initial subscribe, era replay, or retry) -- there is no
+ * heartbeat on an established subscription, so this catches subscribe-time
+ * failures, not a subscription that goes silently dead after subscribing.
+ *
  * Recovery is the subscription manager's own forever-retry loop, so this issue
  * does NOT implement `needsRetry()` (no IssueManager-scheduled retry that would
  * race the transport loop). The notification's Retry button is user-forced

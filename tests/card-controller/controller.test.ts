@@ -80,7 +80,10 @@ const createCardElement = (): CardHTMLElement => {
   return element;
 };
 
-const createHASSManager = (): MockProxy<HASSManager> => {
+// Full HASSManager mock for CardController ctor injection (wires
+// getEventWatcher().getHealth() so construction resolves). Distinct from the
+// readonly-interface `createHASSManager` helper in tests/test-utils.ts.
+const createMockHASSManager = (): MockProxy<HASSManager> => {
   const hassManager = mock<HASSManager>();
   hassManager.getEventWatcher.mockReturnValue(
     mock<EventWatcherSubscriptionInterface>({
@@ -90,7 +93,7 @@ const createHASSManager = (): MockProxy<HASSManager> => {
   return hassManager;
 };
 
-const createController = (hassManager = createHASSManager()): CardController => {
+const createController = (hassManager = createMockHASSManager()): CardController => {
   return new CardController(createCardElement(), vi.fn(), vi.fn(), hassManager);
 };
 
@@ -117,7 +120,7 @@ describe('CardController', () => {
   });
 
   it('should wire ConditionStateManager as the first hass listener so semantic state is fresh before any other listener runs', () => {
-    const hassManager = createHASSManager();
+    const hassManager = createMockHASSManager();
     createController(hassManager);
 
     const calls = vi.mocked(hassManager.addListener).mock.calls;
@@ -228,7 +231,7 @@ describe('CardController', () => {
     });
 
     it('should return getHASSManager', () => {
-      const hassManager = createHASSManager();
+      const hassManager = createMockHASSManager();
       expect(createController(hassManager).getHASSManager()).toBe(hassManager);
     });
 
