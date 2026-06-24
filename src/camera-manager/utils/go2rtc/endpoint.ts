@@ -1,10 +1,10 @@
 import { CameraConfig } from '../../../config/schema/cameras';
 import { Endpoint } from '../../../types';
 
-type EndpointOptions = {
+interface EndpointOptions {
   url?: string;
   stream?: string;
-};
+}
 
 const buildGo2RTCEndpoint = (
   cameraConfig: CameraConfig,
