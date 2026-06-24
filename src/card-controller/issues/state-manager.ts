@@ -3,7 +3,7 @@ import { summarizeNotification } from '../../components-lib/notification/summari
 import { ConditionState } from '../../condition-trigger/conditions/types';
 import { Notification } from '../../config/schema/actions/types';
 import { HomeAssistant } from '../../ha/types';
-import { isTruthy } from '../../utils/basic';
+import { errorToConsole, isTruthy } from '../../utils/basic';
 import {
   Issue,
   IssueDescription,
@@ -32,7 +32,13 @@ export class IssueStateManager implements IssueReadOnlyState {
 
   public async detectStatic(hass: HomeAssistant): Promise<void> {
     for (const issue of this._issues.values()) {
-      await issue.detectStatic?.(hass);
+      try {
+        await issue.detectStatic?.(hass);
+      } catch (e) {
+        // Isolate one issue's detection failure so it cannot abort detection
+        // for the rest; log so the cause is visible.
+        errorToConsole(e as Error);
+      }
       this._logIfNew(issue);
     }
   }

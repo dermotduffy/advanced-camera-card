@@ -85,7 +85,8 @@ export class WebkitFullScreenProvider
     // clicking the 'X' which then fires this event). That's probably the rare
     // case though.
     this._playTimer.start(WEBKIT_PLAY_SECONDS, () => {
-      void this._getVideoElement()?.play();
+      // Best-effort resume after a fullscreen exit.
+      this._getVideoElement()?.play().catch(() => {});
     });
   };
 }
