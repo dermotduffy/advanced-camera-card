@@ -1,5 +1,6 @@
 import { LitElement } from 'lit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { sideLoadHomeAssistantElements } from '../../src/ha/side-load-ha-elements';
 
 describe('sideLoadHomeAssistantElements', () => {

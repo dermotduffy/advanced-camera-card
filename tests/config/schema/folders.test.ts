@@ -1,5 +1,6 @@
 import { NonEmptyTuple } from 'type-fest';
 import { describe, expect, it } from 'vitest';
+
 import {
   FolderConfigWithoutID,
   foldersConfigSchema,

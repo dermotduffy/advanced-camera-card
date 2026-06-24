@@ -1,4 +1,5 @@
 import { describe, expect, it, Mock, vi } from 'vitest';
+
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { TriggeredTrigger } from '../../../../src/condition-trigger/triggers/triggers/triggered';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';

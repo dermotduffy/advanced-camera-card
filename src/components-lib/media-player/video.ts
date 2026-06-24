@@ -1,4 +1,5 @@
 import { LitElement } from 'lit';
+
 import { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
 import { hideMediaControlsTemporarily, setControlsOnVideo } from '../../utils/controls';
 import { screenshotVideo } from '../../utils/screenshot';

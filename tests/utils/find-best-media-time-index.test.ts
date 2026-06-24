@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { findBestMediaTimeIndex } from '../../src/utils/find-best-media-time-index';
 import { ViewFolder } from '../../src/view/item';
 import { TestViewMedia } from '../test-utils';

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { getIntegrationManifest } from '../../../src/ha/integration';
 import { integrationManifestSchema } from '../../../src/ha/integration/types';
 import { homeAssistantWSRequest } from '../../../src/ha/ws-request.js';

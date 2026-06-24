@@ -1,7 +1,8 @@
 import { CSSResultGroup, html, TemplateResult, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { BaseEffectComponent } from './base';
+
 import ghostStyle from '../../scss/ghost.scss';
+import { BaseEffectComponent } from './base';
 
 @customElement('advanced-camera-card-effect-ghost')
 export class AdvancedCameraCardEffectGhost extends BaseEffectComponent {

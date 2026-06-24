@@ -9,6 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { keyed } from 'lit/directives/keyed.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
+
 import { CameraManager } from '../../camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../../camera-manager/types.js';
 import { CallSession } from '../../card-controller/call/types.js';
@@ -35,6 +36,7 @@ import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { getTextDirection } from '../../utils/text-direction.js';
 import { getStreamCameraID } from '../../view/substream.js';
 import { View } from '../../view/view.js';
+
 import '../call-controls.js';
 import '../carousel';
 import '../next-prev-control.js';

@@ -10,6 +10,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { keyed } from 'lit/directives/keyed.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
+
 import { CameraManager } from '../../camera-manager/manager.js';
 import { RemoveContextPropertyViewModifier } from '../../card-controller/view/modifiers/remove-context-property.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
@@ -23,7 +24,9 @@ import { ViewerConfig } from '../../config/schema/viewer.js';
 import { ResolvedMediaCache } from '../../ha/resolved-media.js';
 import { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
+
 import '../../patches/ha-hls-player.js';
+
 import viewerCarouselStyle from '../../scss/viewer-carousel.scss';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { contentsChanged } from '../../utils/basic.js';
@@ -31,9 +34,12 @@ import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { getTextDirection } from '../../utils/text-direction.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { ViewMedia } from '../../view/item.js';
+
 import '../carousel';
 import '../next-prev-control.js';
+
 import { renderNoMedia } from '../notification/no-media.js';
+
 import '../ptz.js';
 import './provider.js';
 

@@ -1,4 +1,5 @@
 import { assert, describe, expect, it } from 'vitest';
+
 import { isAncestorInEventPath } from '../../src/utils/event-ancestor';
 
 // @vitest-environment jsdom

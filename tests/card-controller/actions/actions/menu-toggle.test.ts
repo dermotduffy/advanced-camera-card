@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { MenuToggleAction } from '../../../../src/card-controller/actions/actions/menu-toggle';
 import { createCardAPI } from '../../../test-utils';
 

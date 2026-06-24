@@ -1,6 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
+
 import { IssuePresence } from '../card-controller/issues/types';
 import { RawAdvancedCameraCardConfig } from '../config/types';
 import { DeviceRegistryManager } from '../ha/registry/device';
@@ -9,6 +10,7 @@ import { localize } from '../localize/localize';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { getDiagnostics } from '../utils/diagnostics';
 import { renderNotificationBlockFromText } from './notification/block';
+
 @customElement('advanced-camera-card-diagnostics')
 export class AdvancedCameraCardDiagnostics extends LitElement {
   // Not a reactive property to avoid multiple diagnostics fetches.

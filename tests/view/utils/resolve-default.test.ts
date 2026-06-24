@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { CameraManager } from '../../../src/camera-manager/manager';
 import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import { resolveViewName } from '../../../src/view/utils/resolve-default';

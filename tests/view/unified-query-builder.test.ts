@@ -1,5 +1,6 @@
 import { assert, describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { CameraManager } from '../../src/camera-manager/manager';
 import { CameraManagerStore } from '../../src/camera-manager/store';
 import { QueryType } from '../../src/camera-manager/types';

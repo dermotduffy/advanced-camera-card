@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+
 import { actionHandler } from '../action-handler-directive.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { PTZController } from '../components-lib/ptz/ptz-controller.js';
@@ -23,8 +24,10 @@ import ptzStyle from '../scss/ptz.scss';
 import { Interaction } from '../types.js';
 import { hasAction } from '../utils/action.js';
 import { prettifyTitle } from '../utils/basic.js';
+
 import './icon.js';
 import './submenu';
+
 import { SubmenuInteraction, SubmenuItem } from './submenu/types.js';
 
 @customElement('advanced-camera-card-ptz')

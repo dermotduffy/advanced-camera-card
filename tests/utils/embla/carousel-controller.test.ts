@@ -1,12 +1,13 @@
 import EmblaCarousel, { EmblaCarouselType } from 'embla-carousel';
-import { MockedObject, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, MockedObject, vi } from 'vitest';
+
 import { CarouselController } from '../../../src/utils/embla/carousel-controller';
 import {
-  MutationObserverMock,
   callMutationHandler,
   createParent,
   createSlot,
   createSlotHost,
+  MutationObserverMock,
 } from '../../test-utils';
 import {
   callEmblaHandler,

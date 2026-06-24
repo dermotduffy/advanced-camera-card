@@ -1,5 +1,6 @@
 import JSMpeg from '@cycjimmy/jsmpeg-player';
 import { LitElement } from 'lit';
+
 import { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
 
 export class JSMPEGMediaPlayerController implements MediaPlayerController {

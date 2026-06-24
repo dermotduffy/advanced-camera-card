@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { isBeingCasted } from '../../src/utils/casting.js';
 
 describe('isBeingCasted', () => {

@@ -1,11 +1,12 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
 import { isEqual } from 'lodash-es';
+
 import { EnabledProxyConfig } from '../config/schema/common/proxy.js';
 import { homeAssistantGetSignedURLIfNecessary } from '../ha/sign-path.js';
 import { HomeAssistant } from '../ha/types.js';
 import {
-  CreateProxiedEndpointOptions,
   createProxiedEndpointIfNecessary,
+  CreateProxiedEndpointOptions,
 } from '../ha/web-proxy.js';
 import { Endpoint } from '../types.js';
 import { errorToConsole } from '../utils/basic.js';

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { EventSubscriptionIssue } from '../../../../src/card-controller/issues/issues/event-subscription';
 import { Issue } from '../../../../src/card-controller/issues/types';
 import { SubscriptionFailure } from '../../../../src/ha/connection/subscription-health-monitor';

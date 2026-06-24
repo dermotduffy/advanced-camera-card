@@ -1,5 +1,6 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import { CameraManager } from '../camera-manager/manager';
 import { FoldersManager } from '../card-controller/folders/manager';
 import { ViewItemManager } from '../card-controller/view/item-manager';
@@ -9,6 +10,7 @@ import { TimelineConfig } from '../config/schema/timeline';
 import { CardWideConfig } from '../config/schema/types';
 import { HomeAssistant } from '../ha/types';
 import basicBlockStyle from '../scss/basic-block.scss';
+
 import './surround.js';
 import './timeline-core.js';
 

@@ -1,4 +1,5 @@
 import screenfull from 'screenfull';
+
 import { WebkitHTMLVideoElement } from '../../types';
 import { CardFullscreenAPI } from '../types';
 import { ScreenfullFullScreenProvider } from './screenfull';

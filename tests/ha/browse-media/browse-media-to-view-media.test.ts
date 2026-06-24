@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { getViewMediaFromBrowseMediaArray } from '../../../src/ha/browse-media/browse-media-to-view-media';
 import {
   BrowseMediaMetadata,

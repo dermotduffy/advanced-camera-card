@@ -1,5 +1,6 @@
 import { compute as computeScroll } from 'compute-scroll-into-view';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { scrollIntoView } from '../../src/utils/scroll';
 
 vi.mock('compute-scroll-into-view');

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { UnifiedQuery } from '../../src/view/unified-query';
+
 import { QueryResults } from '../../src/view/query-results';
+import { UnifiedQuery } from '../../src/view/unified-query';
 import { createView } from '../test-utils';
 
 describe('View Basics', () => {

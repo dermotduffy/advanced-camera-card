@@ -1,4 +1,5 @@
 import { NonEmptyTuple } from 'type-fest';
+
 import { ConditionState } from '../../condition-trigger/conditions/types';
 import { FolderConfig, HAFolderPathComponent } from '../../config/schema/folders';
 import { ResolvedMediaCache } from '../../ha/resolved-media';

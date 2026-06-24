@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { conditionBaseSchema } from '../base';
 
 // https://www.home-assistant.io/docs/scripts/conditions/#template-condition

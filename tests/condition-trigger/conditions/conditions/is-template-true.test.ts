@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { isTemplateTrue } from '../../../../src/condition-trigger/conditions/conditions/is-template-true';
 
 describe('condition isTemplateTrue', () => {

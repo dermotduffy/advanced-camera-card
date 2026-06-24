@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+
 import { PTZDigitalAction } from '../../../../src/card-controller/actions/actions/ptz-digital';
 import {
   PartialZoomSettings,

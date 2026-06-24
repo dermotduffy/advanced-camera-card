@@ -1,4 +1,5 @@
 import { HassEntity } from 'home-assistant-js-websocket';
+
 import { computeDomain } from './compute-domain.js';
 import { Entity } from './registry/entity/types.js';
 import { HomeAssistant } from './types.js';

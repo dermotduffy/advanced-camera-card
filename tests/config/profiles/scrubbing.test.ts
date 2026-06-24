@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { SCRUBBING_PROFILE } from '../../../src/config/profiles/scrubbing';
 import { setProfiles } from '../../../src/config/profiles/set-profiles';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';

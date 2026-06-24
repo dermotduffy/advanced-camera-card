@@ -1,5 +1,6 @@
 import { STATE_RUNNING, STATE_STARTING } from 'home-assistant-js-websocket';
 import { describe, expect, it } from 'vitest';
+
 import { ConnectionIssue } from '../../../../src/card-controller/issues/issues/connection';
 import { createHASS } from '../../../test-utils';
 

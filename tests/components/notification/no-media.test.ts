@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { renderNoMedia } from '../../../src/components/notification/no-media';
 import { createCameraManager, createStore } from '../../test-utils';
 

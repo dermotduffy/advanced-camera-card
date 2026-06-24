@@ -1,4 +1,5 @@
 import type { IssueTriggerContext } from 'issue';
+
 import { ConditionStateChange } from '../../condition-trigger/conditions/types';
 import { isActionAllowedBasedOnInteractionState } from '../../utils/interaction-mode';
 import { RetryTimer } from '../../utils/retry-timer';

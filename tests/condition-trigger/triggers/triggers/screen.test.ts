@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, Mock, vi } from 'vitest';
+
 import { ScreenTrigger } from '../../../../src/condition-trigger/triggers/triggers/screen';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
 import { mediaLoadedConditionSchema } from '../../../../src/config/schema/condition-trigger/conditions/custom/media-loaded';
 import { createMediaLoadedInfo } from '../../../test-utils';

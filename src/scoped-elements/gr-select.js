@@ -1,5 +1,5 @@
-import { GrSelect } from '@graphiteds/core/components/gr-select';
 import { GrMenuItem } from '@graphiteds/core/components/gr-menu-item';
+import { GrSelect } from '@graphiteds/core/components/gr-select';
 
 // It was difficult to find a multi-select web component that matches these criteria:
 // - Is a dropdown vs multi-select list.

@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash-es';
+
 import { ConditionState } from '../../condition-trigger/conditions/types';
 import { FolderConfig, FolderConfigWithoutID } from '../../config/schema/folders';
 import { localize } from '../../localize/localize';

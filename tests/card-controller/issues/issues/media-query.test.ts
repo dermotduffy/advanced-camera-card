@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { CardController } from '../../../../src/card-controller/controller';
 import { MediaQueryIssue } from '../../../../src/card-controller/issues/issues/media-query';
 import { InternalCallbackActionConfig } from '../../../../src/config/schema/actions/custom/internal';

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { AdvancedCameraCardError } from '../../src/types';
 import { getContextFromError } from '../../src/utils/error-context';
 

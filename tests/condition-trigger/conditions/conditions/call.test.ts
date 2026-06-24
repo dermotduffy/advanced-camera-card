@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
 import { callConditionSchema } from '../../../../src/config/schema/condition-trigger/conditions/custom/call';
 import { createEvaluatorContext } from './test-utils';

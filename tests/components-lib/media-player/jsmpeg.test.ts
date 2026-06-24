@@ -1,6 +1,7 @@
 import JSMpeg from '@cycjimmy/jsmpeg-player';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { JSMPEGMediaPlayerController } from '../../../src/components-lib/media-player/jsmpeg';
 import { createLitElement } from '../../test-utils';
 

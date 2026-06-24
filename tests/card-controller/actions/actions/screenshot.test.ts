@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { ScreenshotAction } from '../../../../src/card-controller/actions/actions/screenshot';
 import { MediaPlayerController } from '../../../../src/types';
 import { downloadURL } from '../../../../src/utils/download';

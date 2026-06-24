@@ -1,15 +1,16 @@
 import Panzoom, { PanzoomEventDetail, PanzoomObject } from '@dermotduffy/panzoom';
 import { round, throttle } from 'lodash-es';
+
 import { arefloatsApproximatelyEqual, isHoverableDevice } from '../../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import {
+  isZoomEmpty,
   PartialZoomSettings,
   ZOOM_DEFAULT_PAN_X,
   ZOOM_DEFAULT_PAN_Y,
   ZOOM_DEFAULT_SCALE,
   ZOOM_PRECISION,
   ZoomSettingsObserved,
-  isZoomEmpty,
 } from './types';
 
 export class ZoomController {

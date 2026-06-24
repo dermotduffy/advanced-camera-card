@@ -1,5 +1,6 @@
 import { sub } from 'date-fns';
 import { NonEmptyTuple } from 'type-fest';
+
 import { ConditionState } from '../../../condition-trigger/conditions/types';
 import {
   FolderConfig,
@@ -25,7 +26,6 @@ import { getMediaDownloadPath } from '../../../ha/download';
 import { HomeAssistant } from '../../../ha/types';
 import { QuerySource } from '../../../query-source.js';
 import { Endpoint } from '../../../types';
-
 import { ViewFolder, ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import { ViewItemCapabilities } from '../../../view/types';

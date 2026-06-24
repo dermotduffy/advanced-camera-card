@@ -7,6 +7,7 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import { Camera } from '../../../../camera-manager/camera.js';
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
 import { VideoMediaPlayerController } from '../../../../components-lib/media-player/video.js';

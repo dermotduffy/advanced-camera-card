@@ -10,6 +10,7 @@ import {
 import { customElement, property, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
 import { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
@@ -19,7 +20,7 @@ import { dataToContext } from '../components-lib/notification/data-to-context.js
 import { SignedURLController } from '../components-lib/signed-url-controller.js';
 import { Notification } from '../config/schema/actions/types.js';
 import { CameraConfig } from '../config/schema/cameras.js';
-import { type ImageBaseConfig, ImageMode } from '../config/schema/common/image.js';
+import { ImageMode, type ImageBaseConfig } from '../config/schema/common/image.js';
 import { EnabledProxyConfig } from '../config/schema/common/proxy.js';
 import { TROUBLESHOOTING_URL } from '../const.js';
 import { isHassDifferent } from '../ha/is-hass-different.js';

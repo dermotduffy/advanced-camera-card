@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+
 import { MediaDimensionsContainerController } from '../components-lib/media-dimensions-container-controller.js';
 import { CameraDimensionsConfig } from '../config/schema/cameras';
 import mediaDimensionsContainerStyle from '../scss/media-dimensions-container.scss';

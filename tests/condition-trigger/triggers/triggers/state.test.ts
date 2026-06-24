@@ -1,5 +1,6 @@
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { StateTrigger } from '../../../../src/condition-trigger/triggers/triggers/state';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';

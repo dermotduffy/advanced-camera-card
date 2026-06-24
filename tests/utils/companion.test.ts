@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
+
 import {
-  isCompanionApp,
   isAndroidCompanionApp,
+  isCompanionApp,
   isIOSCompanionApp,
 } from '../../src/utils/companion';
 

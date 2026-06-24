@@ -1,11 +1,12 @@
 import { add, endOfHour, fromUnixTime, startOfHour } from 'date-fns';
 import { isEqual, orderBy, throttle, uniqWith } from 'lodash-es';
+
 import { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
 import { CameraConfig } from '../../config/schema/cameras';
 import { getEntityTitle } from '../../ha/get-entity-title';
 import { EntityRegistryManager } from '../../ha/registry/entity/types';
 import { HomeAssistant } from '../../ha/types';
-import { QuerySource, hasUnsupportedFilters } from '../../query-source.js';
+import { hasUnsupportedFilters, QuerySource } from '../../query-source.js';
 import { Endpoint } from '../../types';
 import {
   allPromises,
@@ -60,13 +61,13 @@ import { FrigateCamera, isBirdseye } from './camera';
 import { FrigateViewMediaFactory } from './media';
 import { FrigateViewMediaClassifier } from './media-classifier';
 import {
-  NativeFrigateEventQuery,
-  NativeFrigateRecordingSegmentsQuery,
-  getEventSummary,
   getEvents,
+  getEventSummary,
   getRecordingSegments,
   getRecordingsSummary,
   getReviews,
+  NativeFrigateEventQuery,
+  NativeFrigateRecordingSegmentsQuery,
   retainEvent,
   setReviewsReviewed,
 } from './requests';

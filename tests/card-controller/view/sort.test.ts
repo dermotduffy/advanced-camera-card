@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
+
 import { sortItems } from '../../../src/card-controller/view/sort.js';
-import { createFolder, TestViewMedia } from '../../test-utils.js';
 import { ViewFolder } from '../../../src/view/item.js';
+import { createFolder, TestViewMedia } from '../../test-utils.js';
 
 describe('sortMedia', () => {
   const media_1 = new TestViewMedia({

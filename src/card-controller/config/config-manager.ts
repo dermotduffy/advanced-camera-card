@@ -1,17 +1,18 @@
 import { isEqual } from 'lodash-es';
-import { ConfigParseError } from './error.js';
+
 import { copyConfig, isConfigUpgradeable } from '../../config/management.js';
 import { setProfiles } from '../../config/profiles/set-profiles.js';
 import {
   AdvancedCameraCardConfig,
-  CardWideConfig,
   advancedCameraCardConfigSchema,
+  CardWideConfig,
 } from '../../config/schema/types.js';
 import { RawAdvancedCameraCardConfig } from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
 import { getParseError } from '../../utils/zod/parse-errors.js';
 import { InitializationAspect } from '../initialization-manager.js';
 import { CardConfigAPI } from '../types.js';
+import { ConfigParseError } from './error.js';
 import { setAutomationsFromConfig } from './load-automations.js';
 import { setRemoteControlEntityFromConfig } from './load-control-entities.js';
 import { setFoldersFromConfig } from './load-folders.js';

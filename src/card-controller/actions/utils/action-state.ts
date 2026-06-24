@@ -1,6 +1,7 @@
-import { merge } from 'lodash-es';
-import { Action, TargetedActionContext } from '../types';
 import { ActionContext } from 'action';
+import { merge } from 'lodash-es';
+
+import { Action, TargetedActionContext } from '../types';
 
 export const stopInProgressForThisTarget = async (
   targetID: string,

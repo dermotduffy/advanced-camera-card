@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { advancedCameraCardCustomActionsBaseSchema } from './base';
 
 const timeDeltaSchema = z.object({

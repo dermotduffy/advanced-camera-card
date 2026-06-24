@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { conditionSchema } from './condition-trigger/conditions/types';
 
 const overrideSchema = z.object({

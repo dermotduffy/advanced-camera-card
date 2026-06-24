@@ -1,4 +1,5 @@
 import { ViewContext } from 'view';
+
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context.js';
 import { ViewManagerInterface } from '../../card-controller/view/types.js';
 import { PartialZoomSettings, ZoomSettingsObserved } from './types.js';

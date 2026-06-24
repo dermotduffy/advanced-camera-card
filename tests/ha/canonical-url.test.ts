@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { canonicalizeHAURL } from '../../src/ha/canonical-url';
 import { createHASS } from '../test-utils';
 

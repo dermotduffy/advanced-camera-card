@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { userAgentBaseSchema } from '../../common/user-agent';
 import { conditionBaseSchema } from '../base';
 

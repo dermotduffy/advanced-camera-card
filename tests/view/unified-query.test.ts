@@ -1,4 +1,5 @@
 import { assert, describe, expect, it } from 'vitest';
+
 import { QueryType } from '../../src/camera-manager/types';
 import { QuerySource } from '../../src/query-source';
 import { UnifiedQuery } from '../../src/view/unified-query';

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { CardController } from '../../src/card-controller/controller';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
 import { SubstreamViewModifier } from '../../src/card-controller/view/modifiers/substream';

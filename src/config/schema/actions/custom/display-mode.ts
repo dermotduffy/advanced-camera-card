@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { viewDisplayModeSchema } from '../../common/display';
 import { advancedCameraCardCustomActionsBaseSchema } from './base';
 

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { PTZControlsAction } from '../../../../src/card-controller/actions/actions/ptz-controls';
 import { View } from '../../../../src/view/view';
 import { createCardAPI } from '../../../test-utils';

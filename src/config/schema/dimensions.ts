@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { aspectRatioSchema } from './common/aspect-ratio';
 
 const dimensionsConfigDefault = {

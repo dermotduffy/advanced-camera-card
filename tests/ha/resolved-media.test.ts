@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { ResolvedMediaCache, resolveMedia } from '../../src/ha/resolved-media';
 import { ResolvedMedia, resolvedMediaSchema } from '../../src/ha/types';
 import { homeAssistantWSRequest } from '../../src/ha/ws-request';

@@ -1,16 +1,17 @@
 import Masonry from 'masonry-layout';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import {
   ExtendedMasonry,
   MediaGridConstructorOptions,
   MediaGridController,
 } from '../../src/components-lib/media-grid-controller';
 import {
-  MutationObserverMock,
-  ResizeObserverMock,
   createSlot,
   createSlotHost,
+  MutationObserverMock,
+  ResizeObserverMock,
 } from '../test-utils';
 
 vi.mock('lodash-es', async () => ({

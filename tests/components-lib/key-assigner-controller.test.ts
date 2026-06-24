@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { KeyAssignerController } from '../../src/components-lib/key-assigner-controller';
 import { createLitElement } from '../test-utils';
 

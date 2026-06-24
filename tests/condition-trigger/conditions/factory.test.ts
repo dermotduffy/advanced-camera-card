@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { CallConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/call';
 import { CameraConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/camera';
 import { DisplayModeConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/display-mode';

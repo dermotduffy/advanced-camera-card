@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { stateConditionSchema } from '../../../../../../src/config/schema/condition-trigger/conditions/stock/state';
 
 describe('stateConditionSchema', () => {

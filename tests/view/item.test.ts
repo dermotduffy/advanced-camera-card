@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { ViewFolder, ViewMedia, ViewMediaType } from '../../src/view/item';
 import { createFolder, TestViewMedia } from '../test-utils';
 

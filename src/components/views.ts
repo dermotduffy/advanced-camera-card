@@ -8,14 +8,15 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+
 import { CameraManager } from '../camera-manager/manager.js';
+import { CallSession } from '../card-controller/call/types.js';
 import { FoldersManager } from '../card-controller/folders/manager.js';
 import { IssuePresence } from '../card-controller/issues/types.js';
 import { MicrophoneManager } from '../card-controller/microphone-manager.js';
 import { MicrophoneState } from '../card-controller/types.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
-import { CallSession } from '../card-controller/call/types.js';
 import { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types.js';
 import { AdvancedCameraCardConfig, CardWideConfig } from '../config/schema/types.js';
 import { RawAdvancedCameraCardConfig } from '../config/types.js';
@@ -24,8 +25,8 @@ import { ResolvedMediaCache } from '../ha/resolved-media.js';
 import { HomeAssistant } from '../ha/types.js';
 import viewsStyle from '../scss/views.scss';
 import { contentsChanged } from '../utils/basic.js';
-import './surround.js';
 
+import './surround.js';
 // As a special case: The diagnostics view is not dynamically loaded in case
 // something goes wrong.
 import './diagnostics.js';

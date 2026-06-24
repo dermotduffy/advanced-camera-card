@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
 import { FrigateCameraManagerEngine } from '../../src/camera-manager/frigate/engine-frigate';
 import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic';

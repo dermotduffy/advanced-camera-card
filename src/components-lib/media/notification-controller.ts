@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+
 import { CameraManager } from '../../camera-manager/manager';
 import { CameraManagerCameraMetadata } from '../../camera-manager/types';
 import { ViewItemManager } from '../../card-controller/view/item-manager';

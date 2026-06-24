@@ -1,5 +1,6 @@
 import { LitElement, ReactiveController } from 'lit';
 import { throttle } from 'lodash-es';
+
 import { GalleryExtendEvent } from '../../components/gallery/types';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 import { scrollIntoView } from '../../utils/scroll';

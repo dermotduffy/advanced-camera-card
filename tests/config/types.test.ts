@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { advancedCameraCardCustomActionsBaseSchema } from '../../src/config/schema/actions/custom/base';
 import {
   actionConfigSchema,

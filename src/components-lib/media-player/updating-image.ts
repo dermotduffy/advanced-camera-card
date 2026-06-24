@@ -1,4 +1,5 @@
 import { LitElement } from 'lit';
+
 import { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
 import { CachedValueController } from '../cached-value-controller';
 

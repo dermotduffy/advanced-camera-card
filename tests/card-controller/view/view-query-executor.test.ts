@@ -1,4 +1,5 @@
 import { afterAll, assert, beforeAll, describe, expect, it, vi } from 'vitest';
+
 import { Capabilities } from '../../../src/camera-manager/capabilities';
 import { EventQuery, QueryType } from '../../../src/camera-manager/types';
 import { applyViewModifiers } from '../../../src/card-controller/view/modifiers';

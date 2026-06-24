@@ -3,14 +3,15 @@ import { customElement, property } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { keyed } from 'lit/directives/keyed.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+
 import { CameraManager } from '../camera-manager/manager';
 import { ViewManagerEpoch } from '../card-controller/view/types';
 import { ZoomSettingsObserved } from '../components-lib/zoom/types';
 import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context';
 import { CameraConfig } from '../config/schema/cameras';
 import {
-  type EnabledProxyConfig,
   resolveProxyConfig,
+  type EnabledProxyConfig,
 } from '../config/schema/common/proxy';
 import { ImageViewConfig, type ImageViewProxyConfig } from '../config/schema/image';
 import { HomeAssistant } from '../ha/types';
@@ -18,10 +19,15 @@ import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
 import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../types.js';
 import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../view/target-id.js';
+
 import './image-updating-player';
+
 import { resolveImageMode } from './image-updating-player';
+
 import './media-dimensions-container';
+
 import { renderNotificationBlockFromText } from './notification/block.js';
+
 import './zoomer.js';
 
 @customElement('advanced-camera-card-image')

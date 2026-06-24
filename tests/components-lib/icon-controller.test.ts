@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { IconController } from '../../src/components-lib/icon-controller';
 import { createHASS, createStateEntity } from '../test-utils';
 

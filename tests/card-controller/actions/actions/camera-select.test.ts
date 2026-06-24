@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { CameraSelectAction } from '../../../../src/card-controller/actions/actions/camera-select';
 import { createCardAPI, createConfig, createView } from '../../../test-utils';
 

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { setFoldersFromConfig } from '../../../src/card-controller/config/load-folders';
 import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import { createCardAPI, createConfig, createFolder } from '../../test-utils';

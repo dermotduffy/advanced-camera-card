@@ -8,16 +8,18 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
+
 import { CameraManager } from '../../camera-manager/manager.js';
+import { CallSession } from '../../card-controller/call/types.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
-import { CallSession } from '../../card-controller/call/types.js';
 import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
 import { LiveConfig } from '../../config/schema/live.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import liveGridStyle from '../../scss/live-grid.scss';
 import { contentsChanged } from '../../utils/basic.js';
+
 import './carousel.js';
 
 @customElement('advanced-camera-card-live-grid')

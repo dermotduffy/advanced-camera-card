@@ -1,10 +1,12 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+
 import { localize } from '../localize/localize';
 import datePickerStyle from '../scss/date-picker.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
+
 import './icon';
 
 export interface DatePickerEvent {

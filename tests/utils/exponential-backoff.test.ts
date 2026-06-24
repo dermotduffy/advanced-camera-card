@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import { ExponentialBackoff } from '../../src/utils/exponential-backoff';
 
 describe('ExponentialBackoff', () => {

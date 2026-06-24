@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { DisplayModeSelectAction } from '../../../../src/card-controller/actions/actions/display-mode-select';
 import { createCardAPI } from '../../../test-utils';
 

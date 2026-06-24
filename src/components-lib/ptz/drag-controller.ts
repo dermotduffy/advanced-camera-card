@@ -1,11 +1,12 @@
-import type { Handler } from '@use-gesture/vanilla';
 import {
   createGesture,
   dragAction,
   pinchAction,
   wheelAction,
+  type Handler,
 } from '@use-gesture/vanilla';
 import { ReactiveController, ReactiveControllerHost } from 'lit';
+
 import { dispatchActionExecutionRequest } from '../../card-controller/actions/utils/execution-request.js';
 import {
   PTZAction,

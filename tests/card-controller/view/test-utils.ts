@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+
 import { CardController } from '../../../src/card-controller/controller';
 import { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import {

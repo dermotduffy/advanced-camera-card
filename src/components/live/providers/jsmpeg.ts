@@ -9,6 +9,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
+
 import { Camera } from '../../../camera-manager/camera.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import { MediaLoadedInfoSourceController } from '../../../components-lib/media-loaded-info-source-controller.js';
@@ -28,9 +29,13 @@ import {
   dispatchMediaPlayEvent,
 } from '../../../utils/media-info.js';
 import { Timer } from '../../../utils/timer.js';
+
 import '../../notification/block.js';
+
 import { renderNotificationBlock } from '../../notification/block.js';
+
 import '../../progress-indicator.js';
+
 import { renderProgressIndicator } from '../../progress-indicator.js';
 
 // Number of seconds a signed URL is valid for.

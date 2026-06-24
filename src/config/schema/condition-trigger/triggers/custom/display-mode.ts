@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { displayModeBaseSchema } from '../../common/display-mode';
 import { triggerBaseSchema } from '../base';
 

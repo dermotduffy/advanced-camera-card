@@ -10,6 +10,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
+
 import { Camera } from '../../camera-manager/camera.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
@@ -23,8 +24,11 @@ import liveProviderStyle from '../../scss/live-provider.scss';
 import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../../types.js';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event.js';
 import { getResolvedLiveProvider } from '../../utils/live-provider.js';
+
 import '../icon.js';
+
 import { renderNotificationBlockFromText } from '../notification/block.js';
+
 import './../media-dimensions-container';
 
 @customElement('advanced-camera-card-live-provider')

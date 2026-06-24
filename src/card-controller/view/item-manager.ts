@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+
 import { createNotificationFromError } from '../../components-lib/notification/factory';
 import { homeAssistantGetSignedURLIfNecessary } from '../../ha/sign-path';
 import { localize } from '../../localize/localize';

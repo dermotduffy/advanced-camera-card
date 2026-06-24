@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+
 import {
   GalleryColumnCountRoundMethod,
   GalleryCoreController,
@@ -16,7 +17,9 @@ import { THUMBNAIL_WIDTH_DEFAULT } from '../../config/schema/common/controls/thu
 import { CardWideConfig } from '../../config/schema/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import galleryCoreStyle from '../../scss/gallery-core.scss';
+
 import '../progress-indicator.js';
+
 import { renderProgressIndicator } from '../progress-indicator.js';
 
 @customElement('advanced-camera-card-gallery-core')

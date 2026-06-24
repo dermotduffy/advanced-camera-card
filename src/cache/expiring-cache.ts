@@ -1,5 +1,5 @@
-import { CacheInterface } from './types';
 import { EqualityCache } from './equality-cache';
+import { CacheInterface } from './types';
 
 interface ExpiringValue<Value> {
   value: Value;

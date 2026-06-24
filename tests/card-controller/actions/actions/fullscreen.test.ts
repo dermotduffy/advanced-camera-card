@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { FullscreenAction } from '../../../../src/card-controller/actions/actions/fullscreen';
 import { createCardAPI } from '../../../test-utils';
 

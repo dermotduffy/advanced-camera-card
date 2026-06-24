@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { PTZ_CONTROL_TYPES } from '../../common/controls/ptz';
 import { advancedCameraCardCustomActionsBaseSchema } from './base';
 

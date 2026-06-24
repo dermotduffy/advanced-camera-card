@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash-es';
+
 import { CameraManager } from '../camera-manager/manager';
 import { StatusBarItem } from '../config/schema/actions/types';
 import { StatusBarConfig } from '../config/schema/status-bar';

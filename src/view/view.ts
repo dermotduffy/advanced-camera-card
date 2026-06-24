@@ -1,5 +1,6 @@
 import { cloneDeep, merge } from 'lodash-es';
 import { ViewContext } from 'view';
+
 import { AdvancedCameraCardView } from '../config/schema/common/const';
 import { ViewDisplayMode } from '../config/schema/common/display';
 import { ViewMediaType } from '../types';

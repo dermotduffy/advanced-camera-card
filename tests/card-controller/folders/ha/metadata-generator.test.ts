@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { MetadataGenerator } from '../../../../src/card-controller/folders/ha/metadata-generator';
 import { Parser } from '../../../../src/config/schema/folders';
 import { createBrowseMedia, createRichBrowseMedia } from '../../../test-utils';

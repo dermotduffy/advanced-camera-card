@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import * as go2rtcAudio from '../../src/camera-manager/utils/go2rtc/audio';
 import {
   getResolvedLiveProvider,

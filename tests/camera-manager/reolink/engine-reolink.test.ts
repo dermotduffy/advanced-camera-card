@@ -9,6 +9,7 @@ import {
   vi,
 } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import {
   ReolinkCameraManagerEngine,
   ReolinkQueryResultsClassifier,

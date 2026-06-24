@@ -1,12 +1,12 @@
+import type parser from 'any-date-parser';
 import { parse } from 'date-fns';
+
 import { Parser } from '../../../config/schema/folders';
 import {
   BrowseMedia,
   BrowseMediaMetadata,
   RichBrowseMedia,
 } from '../../../ha/browse-media/types';
-
-import type parser from 'any-date-parser';
 import { isValidDate } from '../../../utils/basic';
 import { regexpExtract } from '../../../utils/regexp-extract';
 import { REGEXP_GROUP_VALUE_KEY } from './types';

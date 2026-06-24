@@ -1,5 +1,6 @@
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
+
 import overlayStyle from '../scss/overlay.scss';
 
 @customElement('advanced-camera-card-overlay')

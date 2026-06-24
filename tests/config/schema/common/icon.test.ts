@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { iconSchema } from '../../../../src/config/schema/common/icon';
 
 describe('iconSchema', () => {

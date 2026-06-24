@@ -1,5 +1,6 @@
 import { HassEventBase } from 'home-assistant-js-websocket';
 import { describe, expect, it } from 'vitest';
+
 import { matchesEventContext, matchesEventData } from '../../src/ha/event-match';
 
 const ctx = (

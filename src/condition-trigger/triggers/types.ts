@@ -1,4 +1,5 @@
 import { HassEntity, HassEvent } from 'home-assistant-js-websocket';
+
 import { TemplateAdvancedCameraCardState } from '../../card-controller/templates/types';
 
 // The top-level `trigger` template variable produced each time an evaluator

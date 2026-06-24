@@ -1,5 +1,6 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import snowflakeStyle from '../../scss/snowflake.scss';
 
 @customElement('advanced-camera-card-snowflake')

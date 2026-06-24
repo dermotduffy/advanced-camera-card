@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { FoldersExecutor } from '../../../src/card-controller/folders/executor';
 import { HAFoldersEngine } from '../../../src/card-controller/folders/ha/engine';
 import { FolderQuery } from '../../../src/card-controller/folders/types';

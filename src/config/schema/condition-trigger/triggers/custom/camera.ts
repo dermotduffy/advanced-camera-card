@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { cameraBaseSchema } from '../../common/camera';
 import { triggerBaseSchema } from '../base';
 

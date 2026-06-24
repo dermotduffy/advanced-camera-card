@@ -7,6 +7,7 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import { CameraManager } from '../camera-manager/manager.js';
 import { FoldersManager } from '../card-controller/folders/manager.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
@@ -19,6 +20,7 @@ import { HomeAssistant } from '../ha/types.js';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { contentsChanged } from '../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
+
 import './surround-basic.js';
 import './thumbnail-carousel';
 

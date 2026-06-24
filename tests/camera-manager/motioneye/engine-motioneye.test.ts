@@ -2,6 +2,7 @@
 import { endOfDay, startOfDay } from 'date-fns';
 import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';
+
 import { Camera } from '../../../src/camera-manager/camera';
 import { MotionEyeCamera } from '../../../src/camera-manager/motioneye/camera';
 import { MotionEyeCameraManagerEngine } from '../../../src/camera-manager/motioneye/engine-motioneye';

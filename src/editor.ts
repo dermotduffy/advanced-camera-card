@@ -1,8 +1,10 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+
 import './components/icon.js';
 import './components/key-assigner.js';
+
 import { renderNotificationBlock } from './components/notification/block.js';
 import {
   copyConfig,

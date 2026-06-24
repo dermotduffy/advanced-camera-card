@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { fireAdvancedCameraCardEvent } from '../../src/utils/fire-advanced-camera-card-event.js';
 
 // @vitest-environment jsdom

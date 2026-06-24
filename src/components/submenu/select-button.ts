@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
+
 import { actionHandler } from '../../action-handler-directive.js';
 import type { LockManagerEpoch } from '../../card-controller/lock/types';
 import type { InternalIcon } from '../../config/schema/common/icon.js';
@@ -21,6 +22,7 @@ import type { EntityRegistryManager } from '../../ha/registry/entity/types.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import menuButtonStyle from '../../scss/menu-button.scss';
 import { createSelectOptionAction, hasAction } from '../../utils/action.js';
+
 import '../icon.js';
 import './index.js';
 

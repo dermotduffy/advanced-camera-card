@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { STATUS_BAR_PRIORITY_DEFAULT, STATUS_BAR_PRIORITY_MAX } from './const';
 
 export const statusBarItemBaseSchema = z.object({

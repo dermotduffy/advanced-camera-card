@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { Cache } from '../../../cache/cache';
 
 const deviceSchema = z.object({

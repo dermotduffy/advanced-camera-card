@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+
 import { CameraManager } from '../camera-manager/manager.js';
 import { FoldersManager } from '../card-controller/folders/manager.js';
 import { ViewItemManager } from '../card-controller/view/item-manager.js';
@@ -32,6 +33,7 @@ import { ViewItemClassifier } from '../view/item-classifier.js';
 import { ViewItem, ViewMedia } from '../view/item.js';
 import { UnifiedQueryBuilder } from '../view/unified-query-builder.js';
 import { getReviewedQueryFilterFromQuery } from '../view/utils/query-filter.js';
+
 import './carousel.js';
 import './thumbnail/thumbnail.js';
 

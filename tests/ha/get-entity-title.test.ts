@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { getEntityTitle } from '../../src/ha/get-entity-title';
 import type { HomeAssistant } from '../../src/ha/types';
 import { createHASS, createStateEntity } from '../test-utils';

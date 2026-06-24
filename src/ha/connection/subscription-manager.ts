@@ -1,4 +1,5 @@
 import { Connection } from 'home-assistant-js-websocket';
+
 import {
   GetKeyCallback,
   KeyedSubscriptionManager,

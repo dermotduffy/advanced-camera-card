@@ -1,4 +1,5 @@
 import type { IssueTriggerContext } from 'issue';
+
 import { ConditionState } from '../../../condition-trigger/conditions/types.js';
 import { Notification } from '../../../config/schema/actions/types.js';
 import { TROUBLESHOOTING_MEDIA_URL } from '../../../const.js';

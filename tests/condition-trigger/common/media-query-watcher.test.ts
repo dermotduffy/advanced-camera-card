@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import { MediaQueryWatcher } from '../../../src/condition-trigger/common/media-query-watcher';
 
 // @vitest-environment jsdom

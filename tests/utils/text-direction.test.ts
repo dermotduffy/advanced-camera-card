@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { getTextDirection } from '../../src/utils/text-direction.js';
 
 // @vitest-environment jsdom

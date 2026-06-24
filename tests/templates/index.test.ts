@@ -1,5 +1,6 @@
 import { renderTemplate } from 'ha-nunjucks';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { TemplateRenderer } from '../../src/card-controller/templates';
 import { ConditionState } from '../../src/condition-trigger/conditions/types';
 import { TriggerData } from '../../src/condition-trigger/triggers/types';

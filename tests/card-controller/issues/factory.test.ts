@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { createIssueManager } from '../../../src/card-controller/issues/factory';
 import { IssueManager } from '../../../src/card-controller/issues/issue-manager';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';

@@ -1,11 +1,12 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { VisibilityObserver } from '../../src/components-lib/visibility-observer';
 import {
-  IntersectionObserverMock,
   callIntersectionHandler,
   callVisibilityHandler,
   createParent,
   getMockIntersectionObserver,
+  IntersectionObserverMock,
 } from '../test-utils';
 
 // @vitest-environment jsdom

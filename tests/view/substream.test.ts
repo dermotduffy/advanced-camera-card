@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { getStreamCameraID, hasSubstream } from '../../src/view/substream';
 import { createView } from '../test-utils';
 

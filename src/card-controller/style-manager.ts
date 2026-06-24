@@ -1,4 +1,5 @@
 import { StyleInfo } from 'lit/directives/style-map';
+
 import { AdvancedCameraCardConfig, configDefaults } from '../config/schema/types';
 import { ThemeConfig, ThemeName } from '../config/schema/view';
 import {

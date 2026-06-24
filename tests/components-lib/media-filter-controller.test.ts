@@ -10,6 +10,7 @@ import {
   vi,
 } from 'vitest';
 import { mock, MockProxy } from 'vitest-mock-extended';
+
 import { Capabilities } from '../../src/camera-manager/capabilities';
 import {
   EventQuery,

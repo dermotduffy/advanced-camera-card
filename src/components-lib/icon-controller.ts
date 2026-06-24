@@ -1,4 +1,5 @@
 import { HassEntity } from 'home-assistant-js-websocket';
+
 import frigateSVG from '../camera-manager/frigate/assets/frigate.svg';
 import motioneyeSVG from '../camera-manager/motioneye/assets/motioneye.svg';
 import reolinkSVG from '../camera-manager/reolink/assets/reolink.svg';

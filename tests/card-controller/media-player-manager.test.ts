@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
 import {
   MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,

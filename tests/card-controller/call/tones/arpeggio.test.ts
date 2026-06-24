@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it } from 'vitest';
+
 import { ArpeggioTone } from '../../../../src/card-controller/call/tones/arpeggio';
 import { useAudioMocks } from './test-utils';
 

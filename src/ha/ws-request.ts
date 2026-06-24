@@ -1,5 +1,6 @@
 import { MessageBase } from 'home-assistant-js-websocket';
 import { ZodSchema } from 'zod';
+
 import { localize } from '../localize/localize';
 import { AdvancedCameraCardError } from '../types';
 import { HomeAssistant } from './types';

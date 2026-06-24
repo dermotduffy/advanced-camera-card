@@ -1,4 +1,5 @@
 import { expect, it, vi } from 'vitest';
+
 import { SleepAction } from '../../../../src/card-controller/actions/actions/sleep';
 import { sleep } from '../../../../src/utils/sleep';
 import { createCardAPI } from '../../../test-utils';
