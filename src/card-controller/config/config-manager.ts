@@ -7,7 +7,12 @@ import {
   type AdvancedCameraCardConfig,
   type CardWideConfig,
 } from '../../config/schema/types.js';
-import type { RawAdvancedCameraCardConfig } from '../../config/types.js';
+import type {
+  PartialAdvancedCameraCardConfig,
+  RawAdvancedCameraCardConfig,
+} from '../../config/types.js';
+import { computeDomain } from '../../ha/compute-domain.js';
+import type { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import { getParseError } from '../../utils/zod/parse-errors.js';
 import { InitializationAspect } from '../initialization-manager.js';
@@ -34,6 +39,32 @@ export class ConfigManager {
 
   constructor(api: CardConfigAPI) {
     this._api = api;
+  }
+
+  public static getEntitySuggestion(
+    hass: HomeAssistant,
+    entityId: string,
+  ): { config: PartialAdvancedCameraCardConfig } | null {
+    if (computeDomain(entityId) !== 'camera' || !hass.states[entityId]) {
+      return null;
+    }
+    return {
+      config: {
+        type: 'custom:advanced-camera-card',
+        cameras: [{ camera_entity: entityId }],
+      },
+    };
+  }
+
+  public static getStubConfig(entities: string[]): PartialAdvancedCameraCardConfig {
+    const cameraEntity = entities.find((entity) => computeDomain(entity) === 'camera');
+    return {
+      cameras: [
+        {
+          camera_entity: cameraEntity ?? 'camera.demo',
+        },
+      ],
+    };
   }
 
   public hasConfig(): boolean {

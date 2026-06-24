@@ -2,7 +2,6 @@ import type { ReactiveController } from 'lit';
 
 import { CameraManager } from '../camera-manager/manager';
 import { ConditionStateManager } from '../condition-trigger/conditions/state-manager';
-import type { AdvancedCameraCardConfig } from '../config/schema/types';
 import { DeviceRegistryManager } from '../ha/registry/device';
 import { DeviceCache } from '../ha/registry/device/types';
 import { EntityRegistryManagerLive } from '../ha/registry/entity';
@@ -301,20 +300,6 @@ export class CardController
 
   public getStatusBarItemManager(): StatusBarItemManager {
     return this._statusBarItemManager;
-  }
-
-  public static getStubConfig(entities: string[]): AdvancedCameraCardConfig {
-    const cameraEntity = entities.find((element) => element.startsWith('camera.'));
-    return {
-      cameras: [
-        {
-          camera_entity: cameraEntity ?? 'camera.demo',
-        },
-      ],
-      // Need to use 'as unknown' to convince Typescript that this really isn't a
-      // mistake, despite the miniscule size of the configuration vs the full type
-      // description.
-    } as unknown as AdvancedCameraCardConfig;
   }
 
   public getStyleManager(): StyleManager {
