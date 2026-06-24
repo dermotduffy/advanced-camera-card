@@ -285,7 +285,7 @@ describe('GalleryController', () => {
       manager.getView.mockReturnValue(view);
 
       const error = new Error('test error');
-      const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const spy = vi.spyOn(console, 'warn');
       runner.extend.mockRejectedValue(error);
 
       await controller.extend(runner, epoch, 'earlier');

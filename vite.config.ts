@@ -30,6 +30,12 @@ export default defineConfig({
       },
     },
     include: INCLUSIONS,
+
+    // Hide console writing to keep output clean, usual sources of noise:
+    // - Unnecessary Lit dev-mode warnings.
+    // - Various console outputs (that are expected/tested).
+    onConsoleLog: () => false,
+
     coverage: {
       exclude: EXCLUSIONS,
 

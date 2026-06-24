@@ -25,7 +25,7 @@ describe('supports2WayAudio', () => {
     vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue(endpoint);
     vi.mocked(homeAssistantSignAndFetch).mockRejectedValue(new Error('fetch error'));
 
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const spy = vi.spyOn(console, 'warn');
     const result = await supports2WayAudio(hass, 2, endpoint);
 
     expect(result).toBe(false);
