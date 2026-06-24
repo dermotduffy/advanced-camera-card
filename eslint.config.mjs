@@ -77,12 +77,12 @@ export default defineConfig([
         'error',
         {
           selector:
-            "CallExpression > Identifier.callee[name=/^(setTimeout|setInterval)$/]",
+            'CallExpression > Identifier.callee[name=/^(setTimeout|setInterval)$/]',
           message:
             'Use the Timer class (src/utils/timer.ts) instead of setTimeout/setInterval.',
         },
         {
-          selector: "MemberExpression[property.name=/^(setTimeout|setInterval)$/]",
+          selector: 'MemberExpression[property.name=/^(setTimeout|setInterval)$/]',
           message:
             'Use the Timer class (src/utils/timer.ts) instead of window.setTimeout/setInterval.',
         },

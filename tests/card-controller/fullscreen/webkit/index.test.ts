@@ -3,7 +3,11 @@ import { mock } from 'vitest-mock-extended';
 import { WebkitFullScreenProvider } from '../../../../src/card-controller/fullscreen/webkit';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { MediaPlayerController, WebkitHTMLVideoElement } from '../../../../src/types';
-import { createCardAPI, createMediaLoadedInfo, flushPromises } from '../../../test-utils';
+import {
+  createCardAPI,
+  createMediaLoadedInfo,
+  flushPromises,
+} from '../../../test-utils';
 
 const createWebkitVideoElement = (): HTMLVideoElement &
   Partial<WebkitHTMLVideoElement> => {

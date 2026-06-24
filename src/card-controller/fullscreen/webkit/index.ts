@@ -86,7 +86,9 @@ export class WebkitFullScreenProvider
     // case though.
     this._playTimer.start(WEBKIT_PLAY_SECONDS, () => {
       // Best-effort resume after a fullscreen exit.
-      this._getVideoElement()?.play().catch(() => {});
+      this._getVideoElement()
+        ?.play()
+        .catch(() => {});
     });
   };
 }
