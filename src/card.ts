@@ -14,6 +14,7 @@ import { styleMap } from 'lit/directives/style-map.js';
 import 'web-dialog';
 
 import { actionHandler } from './action-handler-directive.js';
+import { ConfigManager } from './card-controller/config/config-manager';
 import { CardController } from './card-controller/controller';
 import type { IssueKey, IssueTriggerEventData } from './card-controller/issues/types.js';
 import { resolveAutoHideState, type AutoHideState } from './components-lib/auto-hide.js';
@@ -47,7 +48,10 @@ import type { ConditionStateManagerGetEvent } from './condition-trigger/conditio
 import type { StatusBarItem } from './config/schema/actions/types.js';
 import type { MenuItem } from './config/schema/elements/custom/menu/types.js';
 import type { AdvancedCameraCardConfig } from './config/schema/types.js';
-import type { RawAdvancedCameraCardConfig } from './config/types.js';
+import type {
+  PartialAdvancedCameraCardConfig,
+  RawAdvancedCameraCardConfig,
+} from './config/types.js';
 import { REPO_URL } from './const.js';
 import type { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
@@ -87,21 +91,6 @@ console.info(
   'padding: 3px; color: black; background: white;',
 );
 
-const getEntitySuggestion = (
-  hass: HomeAssistant,
-  entityId: string,
-): { config: RawAdvancedCameraCardConfig } | null => {
-  if (entityId.split('.')[0] !== 'camera' || !hass.states[entityId]) {
-    return null;
-  }
-  return {
-    config: {
-      type: 'custom:advanced-camera-card',
-      cameras: [{ camera_entity: entityId }],
-    },
-  };
-};
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).customCards = (window as any).customCards || [];
 
@@ -112,7 +101,7 @@ const getEntitySuggestion = (
   description: localize('common.advanced_camera_card_description'),
   preview: true,
   documentationURL: REPO_URL,
-  getEntitySuggestion,
+  getEntitySuggestion: ConfigManager.getEntitySuggestion,
 });
 
 // Expose currently-connected card instances on `window.advancedCameraCards` for
@@ -188,8 +177,8 @@ class AdvancedCameraCard extends LitElement {
   public static getStubConfig(
     _: HomeAssistant,
     entities: string[],
-  ): AdvancedCameraCardConfig {
-    return CardController.getStubConfig(entities);
+  ): PartialAdvancedCameraCardConfig {
+    return ConfigManager.getStubConfig(entities);
   }
 
   public setConfig(config: RawAdvancedCameraCardConfig): void {
