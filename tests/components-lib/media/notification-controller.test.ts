@@ -416,8 +416,6 @@ describe('MediaNotificationController', () => {
       assert(controls);
       expect(controls).toHaveLength(4);
 
-      vi.spyOn(console, 'warn').mockImplementation(() => {});
-
       // 1. Review control
       expect(controls?.[0].tooltip).toBe('Mark as reviewed');
       expect(controls?.[0].dismiss).toBe(false);

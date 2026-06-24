@@ -46,7 +46,7 @@ describe('task utilities', () => {
     task.render.mockImplementation((renderers) =>
       renderers.error?.(new Error('test error')),
     );
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const consoleSpy = vi.spyOn(console, 'warn');
     const errorFunc = vi.fn().mockReturnValue(html`error`);
 
     const result = renderTask(task, (r) => html`${r}`, { errorFunc });

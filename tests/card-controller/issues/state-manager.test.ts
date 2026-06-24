@@ -70,7 +70,7 @@ describe('IssueStateManager', () => {
     });
 
     it('should isolate a failing issue and continue detecting the rest', async () => {
-      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const spy = vi.spyOn(console, 'warn');
       assert(mockConfigUpgrade.detectStatic);
       assert(mockLegacyResource.detectStatic);
       assert(mockMediaLoad.detectStatic);
@@ -345,7 +345,7 @@ describe('IssueStateManager', () => {
 
   describe('logging', () => {
     it('should log on static detection when issue is active', async () => {
-      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const spy = vi.spyOn(console, 'warn');
       const result = createIssueDescription({
         notification: { body: { text: 'Legacy issue' } },
       });
@@ -362,7 +362,7 @@ describe('IssueStateManager', () => {
     });
 
     it('should log on dynamic evaluation when issue becomes active', () => {
-      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const spy = vi.spyOn(console, 'warn');
       const result = createIssueDescription({
         notification: { body: { text: 'Stream issue' } },
       });
@@ -379,7 +379,7 @@ describe('IssueStateManager', () => {
     });
 
     it('should log on trigger when the issue becomes active', () => {
-      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const spy = vi.spyOn(console, 'warn');
       const result = createIssueDescription({
         notification: { body: { text: 'Triggered' } },
       });
@@ -393,7 +393,7 @@ describe('IssueStateManager', () => {
     });
 
     it('should not log on trigger when the issue stays inactive', () => {
-      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const spy = vi.spyOn(console, 'warn');
       vi.mocked(mockMediaLoad.getIssue).mockReturnValue(null);
 
       const manager = createManager();
@@ -404,7 +404,7 @@ describe('IssueStateManager', () => {
     });
 
     it('should not log on trigger for an unknown key', () => {
-      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const spy = vi.spyOn(console, 'warn');
 
       const manager = createManager();
       manager.trigger('unknown' as never, {} as never);
@@ -414,7 +414,7 @@ describe('IssueStateManager', () => {
     });
 
     it('should only log once per issue key', async () => {
-      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const spy = vi.spyOn(console, 'warn');
       const result = createIssueDescription({
         notification: { body: { text: 'Repeated' } },
       });
@@ -430,7 +430,7 @@ describe('IssueStateManager', () => {
     });
 
     it('should not log when issue has no result', async () => {
-      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const spy = vi.spyOn(console, 'warn');
       vi.mocked(mockLegacyResource.hasIssue).mockReturnValue(false);
 
       const manager = createManager();
@@ -441,7 +441,7 @@ describe('IssueStateManager', () => {
     });
 
     it('should not log when issue result has no summarizable text', async () => {
-      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const spy = vi.spyOn(console, 'warn');
       // Notification has neither body.text nor heading.text
       const result = createIssueDescription({
         notification: {},
@@ -457,7 +457,7 @@ describe('IssueStateManager', () => {
     });
 
     it('should log again after the issue clears and re-activates', async () => {
-      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const spy = vi.spyOn(console, 'warn');
       const first = createIssueDescription({
         notification: { body: { text: 'First' } },
       });
@@ -490,7 +490,7 @@ describe('IssueStateManager', () => {
     });
 
     it('should log again after reset and re-activation', () => {
-      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      const spy = vi.spyOn(console, 'warn');
       const description = createIssueDescription({
         notification: { body: { text: 'Repeat' } },
       });
