@@ -374,8 +374,6 @@ describe('SignedURLController', () => {
   it('should handle errors gracefully', async () => {
     const host = mock<ReactiveControllerHost>();
     const hass = createHASS();
-    const consoleSpy = vi.spyOn(console, 'warn').mockReturnValue();
-
     vi.mocked(createProxiedEndpointIfNecessary).mockRejectedValue(
       new Error('test-error'),
     );
@@ -399,7 +397,6 @@ describe('SignedURLController', () => {
     expect(controller.getValue()).toBeNull();
     expect(controller.getError()).toBe('proxy');
     expect(host.requestUpdate).toBeCalledTimes(1);
-    consoleSpy.mockRestore();
   });
 
   it('should not retry after sign error with same inputs', async () => {
@@ -437,7 +434,6 @@ describe('SignedURLController', () => {
   it('should set sign error when signing throws', async () => {
     const host = mock<ReactiveControllerHost>();
     const hass = createHASS();
-    const consoleSpy = vi.spyOn(console, 'error').mockReturnValue(undefined);
 
     vi.mocked(createProxiedEndpointIfNecessary).mockResolvedValue({
       endpoint: 'http://proxied-url.com',
@@ -462,7 +458,6 @@ describe('SignedURLController', () => {
 
     expect(controller.getValue()).toBeNull();
     expect(controller.getError()).toBe('sign');
-    consoleSpy.mockRestore();
   });
 
   it('should not fetch again if within cache TTL', async () => {
@@ -652,7 +647,6 @@ describe('SignedURLController', () => {
         // Pending forever for request 2.
         new Promise(() => {}),
       );
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     const controller = new SignedURLController(host, () => ({
       hass,

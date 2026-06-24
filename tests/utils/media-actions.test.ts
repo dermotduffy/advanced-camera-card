@@ -84,7 +84,7 @@ describe('MediaActions', () => {
       const error = new Error('fail');
       viewItemManager.reviewMedia.mockRejectedValue(error);
 
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn');
 
       expect(await toggleReviewed(item, viewItemManager)).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith(error.message);
@@ -128,7 +128,7 @@ describe('MediaActions', () => {
       const error = new Error('fail');
       viewItemManager.favorite.mockRejectedValue(error);
 
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn');
 
       expect(await toggleFavorite(item, viewItemManager)).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith(error.message);
@@ -158,7 +158,7 @@ describe('MediaActions', () => {
       const error = new Error('fail');
       viewItemManager.download.mockRejectedValue(error);
 
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn');
 
       expect(await downloadMedia(item, viewItemManager)).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith(error.message);
