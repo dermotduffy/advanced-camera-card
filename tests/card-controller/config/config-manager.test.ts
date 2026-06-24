@@ -11,7 +11,13 @@ import type { Automation } from '../../../src/config/schema/automations';
 import type { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
 import { createGeneralAction } from '../../../src/utils/action';
-import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
+import {
+  createCardAPI,
+  createConfig,
+  createHASS,
+  createStateEntity,
+  flushPromises,
+} from '../../test-utils';
 
 /**
  * Create a ConfigManager test setup with real AutomationsManager and ConditionStateManager.
@@ -73,6 +79,44 @@ const TEST_PROFILES = {
 describe('ConfigManager', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+  });
+
+  describe('getEntitySuggestion', () => {
+    it('should suggest the card for a camera entity', () => {
+      const hass = createHASS({ 'camera.office': createStateEntity() });
+      expect(ConfigManager.getEntitySuggestion(hass, 'camera.office')).toEqual({
+        config: {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+        },
+      });
+    });
+
+    it('should not suggest the card for a non-camera entity', () => {
+      const hass = createHASS({ 'binary_sensor.motion': createStateEntity() });
+      expect(ConfigManager.getEntitySuggestion(hass, 'binary_sensor.motion')).toBeNull();
+    });
+
+    it('should not suggest the card for an unknown entity', () => {
+      const hass = createHASS({});
+      expect(ConfigManager.getEntitySuggestion(hass, 'camera.office')).toBeNull();
+    });
+  });
+
+  describe('getStubConfig', () => {
+    it('should handle with camera entities', () => {
+      expect(
+        ConfigManager.getStubConfig(['camera.office', 'binary_sensor.motion']),
+      ).toEqual({
+        cameras: [{ camera_entity: 'camera.office' }],
+      });
+    });
+
+    it('should handle without camera entities', () => {
+      expect(ConfigManager.getStubConfig(['binary_sensor.motion'])).toEqual({
+        cameras: [{ camera_entity: 'camera.demo' }],
+      });
+    });
   });
 
   describe('should handle error when', () => {

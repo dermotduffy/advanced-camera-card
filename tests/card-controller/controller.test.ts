@@ -302,22 +302,6 @@ describe('CardController', () => {
       );
     });
 
-    describe('getStubConfig', () => {
-      it('should handle with camera entities', () => {
-        expect(
-          CardController.getStubConfig(['camera.office', 'binary_sensor.motion']),
-        ).toEqual({
-          cameras: [{ camera_entity: 'camera.office' }],
-        });
-      });
-
-      it('should handle without camera entities', () => {
-        expect(CardController.getStubConfig(['binary_sensor.motion'])).toEqual({
-          cameras: [{ camera_entity: 'camera.demo' }],
-        });
-      });
-    });
-
     it('should return getQueryStringManager', () => {
       expect(createController().getQueryStringManager()).toBe(
         vi.mocked(QueryStringManager).mock.instances[0],
