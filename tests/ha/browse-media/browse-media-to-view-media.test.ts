@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { getViewMediaFromBrowseMediaArray } from '../../../src/ha/browse-media/browse-media-to-view-media';
 import {
-  BrowseMediaMetadata,
   MEDIA_CLASS_IMAGE,
   MEDIA_CLASS_VIDEO,
-  RichBrowseMedia,
+  type BrowseMediaMetadata,
+  type RichBrowseMedia,
 } from '../../../src/ha/browse-media/types';
 import { createBrowseMedia, createRichBrowseMedia } from '../../test-utils';
 

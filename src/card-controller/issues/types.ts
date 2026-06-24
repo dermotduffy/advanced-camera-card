@@ -1,9 +1,9 @@
 import type { IssueTriggerContext } from 'issue';
 
-import { ConditionState } from '../../condition-trigger/conditions/types';
-import { Notification } from '../../config/schema/actions/types';
-import { HomeAssistant } from '../../ha/types';
-import { Severity } from '../../severity';
+import type { ConditionState } from '../../condition-trigger/conditions/types';
+import type { Notification } from '../../config/schema/actions/types';
+import type { HomeAssistant } from '../../ha/types';
+import type { Severity } from '../../severity';
 
 export type IssueKey =
   | 'config_error'

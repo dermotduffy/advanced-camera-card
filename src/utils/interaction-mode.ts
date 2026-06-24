@@ -1,4 +1,4 @@
-import { InteractionMode } from '../config/schema/view';
+import type { InteractionMode } from '../config/schema/view';
 
 export const isActionAllowedBasedOnInteractionState = (
   interactionMode: InteractionMode,

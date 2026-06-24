@@ -1,8 +1,8 @@
-import { ActionContext } from 'action';
+import type { ActionContext } from 'action';
 import { z } from 'zod';
 
-import { TriggerData } from '../../condition-trigger/triggers/types.js';
-import {
+import type { TriggerData } from '../../condition-trigger/triggers/types.js';
+import type {
   ActionConfig,
   Actions,
   ActionsConfig,
@@ -13,10 +13,10 @@ import {
   isAdvancedCameraCardCustomAction,
 } from '../../utils/action.js';
 import { allPromises, errorToConsole } from '../../utils/basic.js';
-import { TemplateRenderer } from '../templates/index.js';
-import { CardActionsManagerAPI } from '../types.js';
+import type { TemplateRenderer } from '../templates/index.js';
+import type { CardActionsManagerAPI } from '../types.js';
 import { ActionSet } from './actions/set.js';
-import {
+import type {
   ActionPrepareCallback,
   ActionsExecutionRequest,
   ActionsExecutor,

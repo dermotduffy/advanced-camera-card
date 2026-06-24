@@ -2,10 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   addAudioTracksMuteStateListener,
-  AudioProperties,
   has2WayAudio,
   hasAudio,
   mayHaveAudio,
+  type AudioProperties,
 } from '../../src/utils/audio';
 
 // @vitest-environment jsdom

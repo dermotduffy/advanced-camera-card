@@ -1,6 +1,6 @@
-import { ConditionState } from '../../conditions/types';
+import type { ConditionState } from '../../conditions/types';
 import { ConditionStateTriggerBase } from './condition-state-base';
-import { TriggerOfType } from './types';
+import type { TriggerOfType } from './types';
 
 // Triggers when the microphone mute state changes: to the given value if `muted`
 // is set, or on any change if it is omitted.

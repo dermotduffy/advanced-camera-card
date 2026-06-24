@@ -4,8 +4,8 @@ import { mock } from 'vitest-mock-extended';
 import type { LockManager } from '../../src/card-controller/lock/manager';
 import type { LockManagerEpoch } from '../../src/card-controller/lock/types';
 import { MenuController } from '../../src/components-lib/menu-controller.js';
-import { SubmenuItem } from '../../src/components/submenu/types.js';
-import { MenuConfig, menuConfigSchema } from '../../src/config/schema/menu.js';
+import type { SubmenuItem } from '../../src/components/submenu/types.js';
+import { menuConfigSchema, type MenuConfig } from '../../src/config/schema/menu.js';
 import {
   createInteractionActionEvent,
   createLitElement,

@@ -1,7 +1,7 @@
-import { CameraManager } from '../../../camera-manager/manager';
-import { SubstreamOnActionConfig } from '../../../config/schema/actions/custom/substream-on';
-import { View } from '../../../view/view';
-import { CardActionsAPI } from '../../types';
+import type { CameraManager } from '../../../camera-manager/manager';
+import type { SubstreamOnActionConfig } from '../../../config/schema/actions/custom/substream-on';
+import type { View } from '../../../view/view';
+import type { CardActionsAPI } from '../../types';
 import { SubstreamViewModifier } from '../../view/modifiers/substream';
 import { AdvancedCameraCardAction } from './base';
 

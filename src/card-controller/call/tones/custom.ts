@@ -1,4 +1,4 @@
-import { RingtoneFinishedHandler, Tone } from './types';
+import type { RingtoneFinishedHandler, Tone } from './types';
 
 export class CustomTone implements Tone {
   private _audio: HTMLAudioElement | null = null;

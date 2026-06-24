@@ -1,13 +1,13 @@
 import { isEqual } from 'lodash-es';
 
-import { CameraManager } from '../camera-manager/manager';
-import { StatusBarItem } from '../config/schema/actions/types';
-import { StatusBarConfig } from '../config/schema/status-bar';
-import { MediaLoadedInfo } from '../types';
+import type { CameraManager } from '../camera-manager/manager';
+import type { StatusBarItem } from '../config/schema/actions/types';
+import type { StatusBarConfig } from '../config/schema/status-bar';
+import type { MediaLoadedInfo } from '../types';
 import { createNotificationAction } from '../utils/action';
-import { View } from '../view/view';
-import { KeyedIssueDescription } from './issues/types';
-import { CardStatusBarAPI } from './types';
+import type { View } from '../view/view';
+import type { KeyedIssueDescription } from './issues/types';
+import type { CardStatusBarAPI } from './types';
 
 const RESOLUTION_TOLERANCE_PCT = 0.01;
 

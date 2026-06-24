@@ -1,6 +1,6 @@
-import { ViewBase } from '../../../config/schema/condition-trigger/common/view';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator } from './types';
+import type { ViewBase } from '../../../config/schema/condition-trigger/common/view';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator } from './types';
 
 export class ViewConditionEvaluator implements ConditionEvaluator {
   private _condition: ViewBase;

@@ -1,8 +1,8 @@
-import { describe, expect, it, Mock, vi } from 'vitest';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { FullscreenTrigger } from '../../../../src/condition-trigger/triggers/triggers/fullscreen';
-import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createTriggerEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom

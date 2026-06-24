@@ -1,4 +1,4 @@
-import { MediaPlayerController } from '../../../../types';
+import type { MediaPlayerController } from '../../../../types';
 
 export class VideoRTC extends HTMLElement {
   DISCONNECT_TIMEOUT: number;

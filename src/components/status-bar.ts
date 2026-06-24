@@ -1,11 +1,11 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
   nothing,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -13,8 +13,8 @@ import { classMap } from 'lit/directives/class-map.js';
 import { actionHandler } from '../action-handler-directive.js';
 import type { AutoHideState } from '../components-lib/auto-hide.js';
 import { StatusBarController } from '../components-lib/status-bar-controller';
-import { StatusBarItem } from '../config/schema/actions/types.js';
-import { StatusBarConfig } from '../config/schema/status-bar.js';
+import type { StatusBarItem } from '../config/schema/actions/types.js';
+import type { StatusBarConfig } from '../config/schema/status-bar.js';
 import statusStyle from '../scss/status.scss';
 import { hasAction } from '../utils/action';
 import { contentsChanged } from '../utils/basic.js';

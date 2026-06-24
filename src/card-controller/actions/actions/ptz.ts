@@ -1,8 +1,8 @@
-import { PTZActionConfig } from '../../../config/schema/actions/custom/ptz';
+import type { PTZActionConfig } from '../../../config/schema/actions/custom/ptz';
 import { PTZMovementType } from '../../../types';
 import { getPTZTarget, ptzActionToCapabilityKey } from '../../../utils/ptz';
 import { Timer } from '../../../utils/timer';
-import { CardActionsAPI } from '../../types';
+import type { CardActionsAPI } from '../../types';
 import {
   setInProgressForThisTarget,
   stopInProgressForThisTarget,

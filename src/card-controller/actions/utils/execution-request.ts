@@ -1,5 +1,5 @@
 import { fireAdvancedCameraCardEvent } from '../../../utils/fire-advanced-camera-card-event';
-import { ActionsExecutionRequest } from '../types';
+import type { ActionsExecutionRequest } from '../types';
 
 export const dispatchActionExecutionRequest = (
   element: HTMLElement,

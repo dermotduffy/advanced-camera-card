@@ -1,16 +1,22 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
-import { Camera } from '../../../camera-manager/camera.js';
-import { HomeAssistant } from '../../../ha/types';
+import type { Camera } from '../../../camera-manager/camera.js';
+import type { HomeAssistant } from '../../../ha/types';
 
 import '../../../patches/ha-camera-stream';
 import '../../../patches/ha-hls-player.js';
 import '../../../patches/ha-web-rtc-player.js';
 
 import liveHAStyle from '../../../scss/live-ha.scss';
-import {
+import type {
   MediaPlayer,
   MediaPlayerController,
   MediaPlayerElement,

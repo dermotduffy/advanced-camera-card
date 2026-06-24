@@ -1,12 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  BrowseMedia,
   BrowseMediaCache,
   browseMediaSchema,
-  RichBrowseMedia,
+  type BrowseMedia,
+  type RichBrowseMedia,
 } from '../../../src/ha/browse-media/types';
-import { BrowseMediaStep, BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
+import {
+  BrowseMediaWalker,
+  type BrowseMediaStep,
+} from '../../../src/ha/browse-media/walker';
 import { homeAssistantWSRequest } from '../../../src/ha/ws-request';
 import { createBrowseMedia, createHASS } from '../../test-utils';
 

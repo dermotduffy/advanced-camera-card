@@ -1,4 +1,4 @@
-import { CSSResultGroup, LitElement, PropertyValues, unsafeCSS } from 'lit';
+import { LitElement, unsafeCSS, type CSSResultGroup, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 
 import effectBaseStyle from '../../scss/effect-base.scss';

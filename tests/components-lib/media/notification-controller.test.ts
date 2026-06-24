@@ -2,16 +2,16 @@ import { format } from 'date-fns';
 import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CameraManager } from '../../../src/camera-manager/manager';
+import type { CameraManager } from '../../../src/camera-manager/manager';
 import { ActionFactory } from '../../../src/card-controller/actions/factory';
-import { CardController } from '../../../src/card-controller/controller';
-import { ViewItemManager } from '../../../src/card-controller/view/item-manager';
-import { ViewManagerEpoch } from '../../../src/card-controller/view/types';
+import type { CardController } from '../../../src/card-controller/controller';
+import type { ViewItemManager } from '../../../src/card-controller/view/item-manager';
+import type { ViewManagerEpoch } from '../../../src/card-controller/view/types';
 import {
   MediaNotificationController,
-  NotificationControlsContext,
+  type NotificationControlsContext,
 } from '../../../src/components-lib/media/notification-controller';
-import { NotificationControl } from '../../../src/config/schema/actions/types';
+import type { NotificationControl } from '../../../src/config/schema/actions/types';
 import { formatDateAndTime } from '../../../src/utils/basic';
 import { downloadMedia, navigateToTimeline } from '../../../src/utils/media-actions';
 import { ViewFolder, ViewMediaType } from '../../../src/view/item';

@@ -5,7 +5,7 @@ import {
   MicrophoneManager,
   MicrophoneNotSupportedError,
 } from '../../src/card-controller/microphone-manager';
-import { MicrophoneState } from '../../src/card-controller/types';
+import type { MicrophoneState } from '../../src/card-controller/types';
 import { createCardAPI, createConfig } from '../test-utils';
 
 const navigatorMock: Navigator = {

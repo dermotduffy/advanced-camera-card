@@ -1,15 +1,15 @@
-import { LitElement, ReactiveControllerHost } from 'lit';
+import type { LitElement, ReactiveControllerHost } from 'lit';
 
-import { ActionEventTarget } from '../action-handler-directive';
+import type { ActionEventTarget } from '../action-handler-directive';
 import { isCardInPanel } from '../ha/panel';
-import { LovelaceCard } from '../ha/types';
+import type { LovelaceCard } from '../ha/types';
 import { isBeingCasted } from '../utils/casting';
 import { isAncestorInEventPath } from '../utils/event-ancestor';
-import { CardMediaReviewEventTarget } from '../utils/review';
-import { ViewItem } from '../view/item';
-import { ActionExecutionRequestEventTarget } from './actions/utils/execution-request';
+import type { CardMediaReviewEventTarget } from '../utils/review';
+import type { ViewItem } from '../view/item';
+import type { ActionExecutionRequestEventTarget } from './actions/utils/execution-request';
 import { InitializationAspect } from './initialization-manager';
-import { CardElementAPI } from './types';
+import type { CardElementAPI } from './types';
 
 export type ScrollCallback = () => void;
 export type MenuToggleCallback = () => void;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CameraManagerEngine } from '../../../src/camera-manager/engine';
+import type { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { MotionEyeCamera } from '../../../src/camera-manager/motioneye/camera';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {

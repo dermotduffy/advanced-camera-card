@@ -1,48 +1,51 @@
-import { CardActionsAPI } from '../card-controller/types.js';
-import { ZoomSettingsBase } from '../components-lib/zoom/types.js';
-import { CallAnswerActionConfig } from '../config/schema/actions/custom/call-answer.js';
-import { CallEndActionConfig } from '../config/schema/actions/custom/call-end.js';
-import { CallStartActionConfig } from '../config/schema/actions/custom/call-start.js';
-import { CameraSelectActionConfig } from '../config/schema/actions/custom/camera-select.js';
-import { DisplayModeActionConfig } from '../config/schema/actions/custom/display-mode.js';
-import {
+import type { CardActionsAPI } from '../card-controller/types.js';
+import type { ZoomSettingsBase } from '../components-lib/zoom/types.js';
+import type { CallAnswerActionConfig } from '../config/schema/actions/custom/call-answer.js';
+import type { CallEndActionConfig } from '../config/schema/actions/custom/call-end.js';
+import type { CallStartActionConfig } from '../config/schema/actions/custom/call-start.js';
+import type { CameraSelectActionConfig } from '../config/schema/actions/custom/camera-select.js';
+import type { DisplayModeActionConfig } from '../config/schema/actions/custom/display-mode.js';
+import type {
   EffectAction,
   EffectActionConfig,
 } from '../config/schema/actions/custom/effect.js';
-import {
+import type {
   AdvancedCameraCardGeneralAction,
   GeneralActionConfig,
 } from '../config/schema/actions/custom/general.js';
 import {
   INTERNAL_CALLBACK_ACTION,
-  InternalCallbackActionConfig,
+  type InternalCallbackActionConfig,
 } from '../config/schema/actions/custom/internal.js';
-import { LogActionConfig, LogActionLevel } from '../config/schema/actions/custom/log.js';
-import { MediaPlayerActionConfig } from '../config/schema/actions/custom/media-player.js';
-import { PTZControlsActionConfig } from '../config/schema/actions/custom/ptz-controls.js';
-import { PTZDigitialActionConfig } from '../config/schema/actions/custom/ptz-digital.js';
-import { PTZMultiActionConfig } from '../config/schema/actions/custom/ptz-multi.js';
-import {
+import type {
+  LogActionConfig,
+  LogActionLevel,
+} from '../config/schema/actions/custom/log.js';
+import type { MediaPlayerActionConfig } from '../config/schema/actions/custom/media-player.js';
+import type { PTZControlsActionConfig } from '../config/schema/actions/custom/ptz-controls.js';
+import type { PTZDigitialActionConfig } from '../config/schema/actions/custom/ptz-digital.js';
+import type { PTZMultiActionConfig } from '../config/schema/actions/custom/ptz-multi.js';
+import type {
   PTZAction,
   PTZActionConfig,
   PTZActionPhase,
 } from '../config/schema/actions/custom/ptz.js';
-import { SetReviewActionConfig } from '../config/schema/actions/custom/set-review.js';
-import { SubstreamOffActionConfig } from '../config/schema/actions/custom/substream-off.js';
-import { SubstreamOnActionConfig } from '../config/schema/actions/custom/substream-on.js';
-import { ViewActionConfig } from '../config/schema/actions/custom/view.js';
-import { PerformActionActionConfig } from '../config/schema/actions/stock/perform-action.js';
+import type { SetReviewActionConfig } from '../config/schema/actions/custom/set-review.js';
+import type { SubstreamOffActionConfig } from '../config/schema/actions/custom/substream-off.js';
+import type { SubstreamOnActionConfig } from '../config/schema/actions/custom/substream-on.js';
+import type { ViewActionConfig } from '../config/schema/actions/custom/view.js';
+import type { PerformActionActionConfig } from '../config/schema/actions/stock/perform-action.js';
 import {
-  ActionConfig,
-  Actions,
-  AdvancedCameraCardCustomActionConfig,
-  IfActionConfig,
-  NotificationActionConfig,
+  type ActionConfig,
+  type Actions,
+  type AdvancedCameraCardCustomActionConfig,
+  type IfActionConfig,
   type Notification,
+  type NotificationActionConfig,
 } from '../config/schema/actions/types.js';
-import { AdvancedCameraCardUserSpecifiedView } from '../config/schema/common/const.js';
-import { PTZControlType } from '../config/schema/common/controls/ptz.js';
-import { ServiceCallRequest } from '../ha/types.js';
+import type { AdvancedCameraCardUserSpecifiedView } from '../config/schema/common/const.js';
+import type { PTZControlType } from '../config/schema/common/controls/ptz.js';
+import type { ServiceCallRequest } from '../ha/types.js';
 import type { EffectName } from '../types.js';
 import { arrayify } from './basic.js';
 

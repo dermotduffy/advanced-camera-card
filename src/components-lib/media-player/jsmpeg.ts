@@ -1,7 +1,7 @@
-import JSMpeg from '@cycjimmy/jsmpeg-player';
-import { LitElement } from 'lit';
+import type JSMpeg from '@cycjimmy/jsmpeg-player';
+import type { LitElement } from 'lit';
 
-import { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
+import type { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
 
 export class JSMPEGMediaPlayerController implements MediaPlayerController {
   private _host: LitElement;

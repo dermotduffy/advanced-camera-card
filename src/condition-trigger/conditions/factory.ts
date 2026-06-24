@@ -1,5 +1,5 @@
-import { Condition } from '../../config/schema/condition-trigger/conditions/types';
-import { Trigger } from '../../config/schema/condition-trigger/triggers/types';
+import type { Condition } from '../../config/schema/condition-trigger/conditions/types';
+import type { Trigger } from '../../config/schema/condition-trigger/triggers/types';
 import { AndConditionEvaluator } from './conditions/and';
 import { CallConditionEvaluator } from './conditions/call';
 import { CameraConditionEvaluator } from './conditions/camera';
@@ -18,7 +18,7 @@ import { ScreenConditionEvaluator } from './conditions/screen';
 import { StateConditionEvaluator } from './conditions/state';
 import { TemplateConditionEvaluator } from './conditions/template';
 import { TriggeredConditionEvaluator } from './conditions/triggered';
-import { ConditionEvaluator, EvaluatorContext } from './conditions/types';
+import type { ConditionEvaluator, EvaluatorContext } from './conditions/types';
 import { UserConditionEvaluator } from './conditions/user';
 import { UserAgentConditionEvaluator } from './conditions/user-agent';
 import { ViewConditionEvaluator } from './conditions/view';

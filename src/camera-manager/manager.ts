@@ -3,16 +3,16 @@ import { cloneDeep, omit, sum } from 'lodash-es';
 import PQueue from 'p-queue';
 
 import { EqualityMap } from '../cache/equality-map.js';
-import { CardCameraAPI } from '../card-controller/types.js';
+import type { CardCameraAPI } from '../card-controller/types.js';
 import { sortItems } from '../card-controller/view/sort.js';
-import {
+import type {
   PTZAction,
   PTZActionPhase,
   PTZPanTiltAction,
 } from '../config/schema/actions/custom/ptz.js';
-import { CameraConfig, Rotation } from '../config/schema/cameras.js';
+import type { CameraConfig, Rotation } from '../config/schema/cameras.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
-import { Endpoint } from '../types.js';
+import type { Endpoint } from '../types.js';
 import {
   allPromises,
   arrayify,
@@ -23,51 +23,51 @@ import {
 import { getCameraID } from '../utils/camera.js';
 import { log } from '../utils/debug.js';
 import { ViewItemClassifier } from '../view/item-classifier.js';
-import { ViewItem, ViewMedia } from '../view/item.js';
-import { ViewItemCapabilities } from '../view/types.js';
+import type { ViewItem, ViewMedia } from '../view/item.js';
+import type { ViewItemCapabilities } from '../view/types.js';
 import { Capabilities } from './capabilities.js';
 import { CameraManagerEngineFactory } from './engine-factory.js';
-import { CameraManagerEngine } from './engine.js';
+import type { CameraManagerEngine } from './engine.js';
 import {
   CameraDuplicateIDError,
   CameraNoEngineError,
   CameraNoIDError,
 } from './error.js';
-import { CameraManagerReadOnlyConfigStore, CameraManagerStore } from './store.js';
+import { CameraManagerStore, type CameraManagerReadOnlyConfigStore } from './store.js';
 import {
-  CameraEndpoints,
-  CameraEndpointsContext,
-  CameraManagerCameraMetadata,
-  CameraQuery,
-  DefaultQueryParameters,
-  Engine,
-  EngineOptions,
-  EventQuery,
-  EventQueryResults,
-  EventQueryResultsMap,
-  MediaMetadata,
-  MediaMetadataQuery,
-  MediaMetadataQueryResults,
-  MediaQuery,
-  PartialCameraQuery,
-  PartialEventQuery,
-  PartialQueryConcreteType,
-  PartialRecordingQuery,
-  PartialRecordingSegmentsQuery,
-  PartialReviewQuery,
-  QueryResults,
   QueryResultsType,
-  QueryReturnType,
   QueryType,
-  RecordingQuery,
-  RecordingQueryResults,
-  RecordingQueryResultsMap,
-  RecordingSegmentsQuery,
-  RecordingSegmentsQueryResults,
-  RecordingSegmentsQueryResultsMap,
-  ResultsMap,
-  ReviewQuery,
-  ReviewQueryResults,
+  type CameraEndpoints,
+  type CameraEndpointsContext,
+  type CameraManagerCameraMetadata,
+  type CameraQuery,
+  type DefaultQueryParameters,
+  type Engine,
+  type EngineOptions,
+  type EventQuery,
+  type EventQueryResults,
+  type EventQueryResultsMap,
+  type MediaMetadata,
+  type MediaMetadataQuery,
+  type MediaMetadataQueryResults,
+  type MediaQuery,
+  type PartialCameraQuery,
+  type PartialEventQuery,
+  type PartialQueryConcreteType,
+  type PartialRecordingQuery,
+  type PartialRecordingSegmentsQuery,
+  type PartialReviewQuery,
+  type QueryResults,
+  type QueryReturnType,
+  type RecordingQuery,
+  type RecordingQueryResults,
+  type RecordingQueryResultsMap,
+  type RecordingSegmentsQuery,
+  type RecordingSegmentsQueryResults,
+  type RecordingSegmentsQueryResultsMap,
+  type ResultsMap,
+  type ReviewQuery,
+  type ReviewQueryResults,
 } from './types.js';
 
 export class CameraQueryClassifier {

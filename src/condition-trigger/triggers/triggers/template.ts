@@ -1,8 +1,8 @@
 import { Timer } from '../../../utils/timer';
 import { renderTimePeriodToSeconds } from '../../common/time-period';
-import { ConditionState, ConditionStateChange } from '../../conditions/types';
+import type { ConditionState, ConditionStateChange } from '../../conditions/types';
 import { isTemplateTrue } from './is-template-true';
-import {
+import type {
   TriggerCallback,
   TriggerEvaluator,
   TriggerEvaluatorContext,

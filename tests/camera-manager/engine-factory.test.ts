@@ -8,10 +8,10 @@ import { MotionEyeCameraManagerEngine } from '../../src/camera-manager/motioneye
 import { ReolinkCameraManagerEngine } from '../../src/camera-manager/reolink/engine-reolink.js';
 import { TPLinkCameraManagerEngine } from '../../src/camera-manager/tplink/engine-tplink.js';
 import { Engine } from '../../src/camera-manager/types.js';
-import { CardWideConfig } from '../../src/config/schema/types.js';
-import { DeviceRegistryManager } from '../../src/ha/registry/device';
-import { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
-import { ResolvedMediaCache } from '../../src/ha/resolved-media.js';
+import type { CardWideConfig } from '../../src/config/schema/types.js';
+import type { DeviceRegistryManager } from '../../src/ha/registry/device';
+import type { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
+import type { ResolvedMediaCache } from '../../src/ha/resolved-media.js';
 import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {
   createCameraConfig,

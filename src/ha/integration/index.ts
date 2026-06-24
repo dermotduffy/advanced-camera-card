@@ -1,6 +1,6 @@
-import { HomeAssistant } from '../types.js';
+import type { HomeAssistant } from '../types.js';
 import { homeAssistantWSRequest } from '../ws-request.js';
-import { IntegrationManifest, integrationManifestSchema } from './types.js';
+import { integrationManifestSchema, type IntegrationManifest } from './types.js';
 
 export const getIntegrationManifest = async (
   hass: HomeAssistant,

@@ -1,9 +1,9 @@
-import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
-import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import type { HassEntities, HassEntity } from 'home-assistant-js-websocket';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { StateTrigger } from '../../../../src/condition-trigger/triggers/triggers/state';
-import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createHASS, createStateEntity } from '../../../test-utils';
 import { createTriggerEvaluatorContext } from './test-utils';
 

@@ -1,27 +1,27 @@
 import JSMpeg from '@cycjimmy/jsmpeg-player';
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 
-import { Camera } from '../../../camera-manager/camera.js';
+import type { Camera } from '../../../camera-manager/camera.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import { MediaLoadedInfoSourceController } from '../../../components-lib/media-loaded-info-source-controller.js';
 import { JSMPEGMediaPlayerController } from '../../../components-lib/media-player/jsmpeg.js';
 import { createNotificationFromText } from '../../../components-lib/notification/factory.js';
-import { Notification } from '../../../config/schema/actions/types.js';
-import { CardWideConfig } from '../../../config/schema/types.js';
+import type { Notification } from '../../../config/schema/actions/types.js';
+import type { CardWideConfig } from '../../../config/schema/types.js';
 import { homeAssistantGetSignedURLIfNecessary } from '../../../ha/sign-path.js';
-import { HomeAssistant } from '../../../ha/types.js';
+import type { HomeAssistant } from '../../../ha/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveJSMPEGStyle from '../../../scss/live-jsmpeg.scss';
-import { MediaPlayer, MediaPlayerController } from '../../../types.js';
+import type { MediaPlayer, MediaPlayerController } from '../../../types.js';
 import { convertHTTPAdressToWebsocket, errorToConsole } from '../../../utils/basic.js';
 import {
   createMediaLoadedInfo,

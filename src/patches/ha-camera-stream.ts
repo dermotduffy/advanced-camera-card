@@ -9,7 +9,14 @@
 // available as compilation time.
 // ====================================================================
 
-import { css, CSSResultGroup, html, nothing, PropertyValues, unsafeCSS } from 'lit';
+import {
+  css,
+  html,
+  nothing,
+  unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
 
@@ -18,7 +25,7 @@ import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-
 import '../components/image-player.js';
 
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
-import {
+import type {
   MediaLoadedInfo,
   MediaLoadedInfoEventDetail,
   MediaPlayer,

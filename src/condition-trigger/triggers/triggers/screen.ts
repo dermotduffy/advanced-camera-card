@@ -1,9 +1,9 @@
 import {
   MediaQueryWatcher,
-  MediaQueryWatcherUnsubscribeCallback,
+  type MediaQueryWatcherUnsubscribeCallback,
 } from '../../common/media-query-watcher';
 import { buildCardTriggerData } from '../build-trigger-data';
-import { TriggerCallback, TriggerEvaluator, TriggerOfType } from './types';
+import type { TriggerCallback, TriggerEvaluator, TriggerOfType } from './types';
 
 // `screen` watches a matchMedia query, whose state lives outside the card's
 // `ConditionState`, so it owns a `MediaQueryWatcher` (the same watcher the

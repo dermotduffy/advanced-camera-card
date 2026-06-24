@@ -1,5 +1,8 @@
-import { Notification, NotificationDetail } from '../../config/schema/actions/types.js';
-import { Link } from '../../config/schema/common/link.js';
+import type {
+  Notification,
+  NotificationDetail,
+} from '../../config/schema/actions/types.js';
+import type { Link } from '../../config/schema/common/link.js';
 import { getContextFromError } from '../../utils/error-context.js';
 import { dataToContext } from './data-to-context.js';
 

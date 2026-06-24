@@ -1,5 +1,5 @@
-import { HomeAssistant } from '../ha/types';
-import { Camera, CameraInitializationOptions } from './camera';
+import type { HomeAssistant } from '../ha/types';
+import { Camera, type CameraInitializationOptions } from './camera';
 import { CameraNoEntityError } from './error';
 
 /**

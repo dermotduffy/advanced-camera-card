@@ -1,6 +1,6 @@
-import { TemplateRenderer } from '../../../card-controller/templates';
-import { Condition } from '../../../config/schema/condition-trigger/conditions/types';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { TemplateRenderer } from '../../../card-controller/templates';
+import type { Condition } from '../../../config/schema/condition-trigger/conditions/types';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
 
 export type ExternalInvalidationUnsubscribeCallback = () => void;
 

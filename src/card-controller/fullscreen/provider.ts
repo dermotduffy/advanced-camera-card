@@ -1,5 +1,5 @@
-import { CardFullscreenAPI } from '../types';
-import { FullscreenHandler } from './types';
+import type { CardFullscreenAPI } from '../types';
+import type { FullscreenHandler } from './types';
 
 export class FullscreenProviderBase {
   protected _api: CardFullscreenAPI;

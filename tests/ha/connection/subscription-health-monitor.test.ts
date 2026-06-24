@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { SubscriptionHealthMonitor } from '../../../src/ha/connection/subscription-health-monitor';
-import { HASSWebSocketSubscriptionStatus } from '../../../src/ha/connection/subscription-manager';
+import type { HASSWebSocketSubscriptionStatus } from '../../../src/ha/connection/subscription-manager';
 
 interface TestRequest {
   id: string;

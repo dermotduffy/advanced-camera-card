@@ -9,7 +9,7 @@
 // available as compilation time.
 // ====================================================================
 
-import { css, CSSResultGroup, html, TemplateResult, unsafeCSS } from 'lit';
+import { css, html, unsafeCSS, type CSSResultGroup, type TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
 
@@ -18,7 +18,7 @@ import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-
 import { VideoMediaPlayerController } from '../components-lib/media-player/video.js';
 import { renderNotificationBlockFromText } from '../components/notification/block.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
-import { MediaPlayer, MediaPlayerController } from '../types.js';
+import type { MediaPlayer, MediaPlayerController } from '../types.js';
 import { mayHaveAudio } from '../utils/audio.js';
 import { errorToConsole } from '../utils/basic.js';
 import {
@@ -31,7 +31,7 @@ import {
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
 } from '../utils/media-info.js';
-import { ConstructableLitElement } from './types.js';
+import type { ConstructableLitElement } from './types.js';
 
 void customElements.whenDefined('ha-hls-player').then(() => {
   const HaHlsPlayer = customElements.get('ha-hls-player') as ConstructableLitElement;

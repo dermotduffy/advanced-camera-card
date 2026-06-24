@@ -1,6 +1,6 @@
-import { ActionConfig, Actions } from '../../config/schema/actions/types';
+import type { ActionConfig, Actions } from '../../config/schema/actions/types';
 import { arrayify } from '../../utils/basic';
-import { CardLockAPI } from '../types';
+import type { CardLockAPI } from '../types';
 import { CallLockPolicy } from './call-policy';
 import type { LockManagerEpoch, LockPolicy } from './types';
 

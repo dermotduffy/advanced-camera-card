@@ -1,9 +1,9 @@
-import { MessageBase } from 'home-assistant-js-websocket';
-import { ZodSchema } from 'zod';
+import type { MessageBase } from 'home-assistant-js-websocket';
+import type { ZodSchema } from 'zod';
 
 import { localize } from '../localize/localize';
 import { AdvancedCameraCardError } from '../types';
-import { HomeAssistant } from './types';
+import type { HomeAssistant } from './types';
 
 /**
  * Make a HomeAssistant websocket request. May throw.

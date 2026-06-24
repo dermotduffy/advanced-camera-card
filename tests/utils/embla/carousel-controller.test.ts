@@ -1,5 +1,13 @@
-import EmblaCarousel, { EmblaCarouselType } from 'embla-carousel';
-import { beforeAll, beforeEach, describe, expect, it, MockedObject, vi } from 'vitest';
+import EmblaCarousel, { type EmblaCarouselType } from 'embla-carousel';
+import {
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type MockedObject,
+} from 'vitest';
 
 import { CarouselController } from '../../../src/utils/embla/carousel-controller';
 import {

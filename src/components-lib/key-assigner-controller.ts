@@ -1,7 +1,7 @@
-import { LitElement, ReactiveController } from 'lit';
+import type { LitElement, ReactiveController } from 'lit';
 import { isEqual } from 'lodash-es';
 
-import { KeyboardShortcut } from '../config/schema/view';
+import type { KeyboardShortcut } from '../config/schema/view';
 
 export class KeyAssignerController implements ReactiveController {
   private _host: LitElement;

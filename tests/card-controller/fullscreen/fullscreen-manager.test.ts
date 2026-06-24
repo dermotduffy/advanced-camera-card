@@ -3,7 +3,7 @@ import { mock } from 'vitest-mock-extended';
 
 import { FullscreenProviderFactory } from '../../../src/card-controller/fullscreen/factory';
 import { FullscreenManager } from '../../../src/card-controller/fullscreen/fullscreen-manager';
-import { FullscreenProvider } from '../../../src/card-controller/fullscreen/types';
+import type { FullscreenProvider } from '../../../src/card-controller/fullscreen/types';
 import { createCardAPI } from '../../test-utils';
 
 vi.mock('../../../src/card-controller/fullscreen/factory');

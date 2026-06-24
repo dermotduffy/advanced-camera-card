@@ -1,6 +1,6 @@
-import { MicrophoneBase } from '../../../config/schema/condition-trigger/common/microphone';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator } from './types';
+import type { MicrophoneBase } from '../../../config/schema/condition-trigger/common/microphone';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator } from './types';
 
 export class MicrophoneConditionEvaluator implements ConditionEvaluator {
   private _condition: MicrophoneBase;

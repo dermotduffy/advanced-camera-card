@@ -1,17 +1,17 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
-import { MicrophoneState } from '../card-controller/types.js';
-import { ActionConfig } from '../config/schema/actions/types.js';
+import type { MicrophoneState } from '../card-controller/types.js';
+import type { ActionConfig } from '../config/schema/actions/types.js';
 import { localize } from '../localize/localize.js';
 import callControlsStyle from '../scss/call-controls.scss';
 import {

@@ -1,10 +1,10 @@
-import { EnabledProxyConfig } from '../../../config/schema/common/proxy';
+import type { EnabledProxyConfig } from '../../../config/schema/common/proxy';
 import { homeAssistantSignAndFetch } from '../../../ha/fetch';
-import { HomeAssistant } from '../../../ha/types';
+import type { HomeAssistant } from '../../../ha/types';
 import { createProxiedEndpointIfNecessary } from '../../../ha/web-proxy';
-import { Endpoint } from '../../../types';
+import type { Endpoint } from '../../../types';
 import { errorToConsole } from '../../../utils/basic';
-import { Go2RTCStreamInfo, go2RTCStreamInfoSchema } from './types';
+import { go2RTCStreamInfoSchema, type Go2RTCStreamInfo } from './types';
 
 const getGo2RTCStreamMetadata = async (
   hass: HomeAssistant,

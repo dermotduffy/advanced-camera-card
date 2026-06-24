@@ -1,5 +1,5 @@
 import { rangesOverlap } from '../../camera-manager/range';
-import { BrowseMediaMetadata, RichBrowseMedia } from './types';
+import type { BrowseMediaMetadata, RichBrowseMedia } from './types';
 
 /**
  * A utility method to determine if a browse media object matches against a

@@ -1,22 +1,22 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 
-import { CameraManager } from '../../camera-manager/manager.js';
-import { CallSession } from '../../card-controller/call/types.js';
-import { MicrophoneState } from '../../card-controller/types.js';
-import { ViewManagerEpoch } from '../../card-controller/view/types.js';
-import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
-import { LiveConfig } from '../../config/schema/live.js';
-import { CardWideConfig } from '../../config/schema/types.js';
-import { HomeAssistant } from '../../ha/types.js';
+import type { CameraManager } from '../../camera-manager/manager.js';
+import type { CallSession } from '../../card-controller/call/types.js';
+import type { MicrophoneState } from '../../card-controller/types.js';
+import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import type { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
+import type { LiveConfig } from '../../config/schema/live.js';
+import type { CardWideConfig } from '../../config/schema/types.js';
+import type { HomeAssistant } from '../../ha/types.js';
 import liveGridStyle from '../../scss/live-grid.scss';
 import { contentsChanged } from '../../utils/basic.js';
 

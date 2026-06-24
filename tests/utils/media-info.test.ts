@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { MediaLoadedCapabilities, MediaPlayer } from '../../src/types';
+import type { MediaLoadedCapabilities, MediaPlayer } from '../../src/types';
 import {
   createMediaLoadedInfo,
   dispatchMediaPauseEvent,

@@ -1,16 +1,16 @@
-import { CameraConfig } from '../config/schema/cameras';
-import { AdvancedCameraCardConfig } from '../config/schema/types';
+import type { CameraConfig } from '../config/schema/cameras';
+import type { AdvancedCameraCardConfig } from '../config/schema/types';
 import {
   MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
   MEDIA_PLAYER_SUPPORT_STOP,
   MEDIA_PLAYER_SUPPORT_TURN_OFF,
 } from '../const';
-import { Entity } from '../ha/registry/entity/types';
+import type { Entity } from '../ha/registry/entity/types';
 import { supportsFeature } from '../ha/supports-feature';
 import { errorToConsole } from '../utils/basic';
-import { ViewMedia } from '../view/item';
+import type { ViewMedia } from '../view/item';
 import { ViewItemClassifier } from '../view/item-classifier';
-import { CardMediaPlayerAPI } from './types';
+import type { CardMediaPlayerAPI } from './types';
 
 export class MediaPlayerManager {
   private _mediaPlayers: string[] = [];

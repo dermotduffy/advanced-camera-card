@@ -1,11 +1,11 @@
-import { CameraConfig } from '../config/schema/cameras';
-import { HomeAssistant } from '../ha/types';
-import { Endpoint } from '../types';
-import { ViewMedia } from '../view/item';
-import { ViewItemCapabilities } from '../view/types';
-import { Camera } from './camera';
-import { CameraManagerReadOnlyConfigStore } from './store';
-import {
+import type { CameraConfig } from '../config/schema/cameras';
+import type { HomeAssistant } from '../ha/types';
+import type { Endpoint } from '../types';
+import type { ViewMedia } from '../view/item';
+import type { ViewItemCapabilities } from '../view/types';
+import type { Camera } from './camera';
+import type { CameraManagerReadOnlyConfigStore } from './store';
+import type {
   CameraManagerCameraMetadata,
   CameraQuery,
   DefaultQueryParameters,

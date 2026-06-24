@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { sortMostRecentFirst } from '../../../src/ha/browse-media/sort';
-import {
+import type {
   BrowseMediaMetadata,
   RichBrowseMedia,
 } from '../../../src/ha/browse-media/types';

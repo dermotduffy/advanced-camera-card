@@ -1,25 +1,25 @@
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
-import { CameraManager } from '../camera-manager/manager';
-import { FoldersManager } from '../card-controller/folders/manager';
-import { ViewManagerEpoch } from '../card-controller/view/types';
+import type { CameraManager } from '../camera-manager/manager';
+import type { FoldersManager } from '../card-controller/folders/manager';
+import type { ViewManagerEpoch } from '../card-controller/view/types';
 import {
   MediaFilterController,
   MediaFilterCoreWhen,
 } from '../components-lib/media-filter-controller';
-import { CardWideConfig } from '../config/schema/types';
-import { HomeAssistant } from '../ha/types';
+import type { CardWideConfig } from '../config/schema/types';
+import type { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import mediaFilterStyle from '../scss/media-filter.scss';
 import { AdvancedCameraCardDatePicker } from './date-picker';

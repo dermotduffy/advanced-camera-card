@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CameraManagerEngine } from '../../../src/camera-manager/engine';
+import type { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { FrigateCamera } from '../../../src/camera-manager/frigate/camera';
 import {
   FrigateEventViewMedia,
@@ -11,17 +11,20 @@ import {
 import { getPTZInfo } from '../../../src/camera-manager/frigate/requests';
 import {
   eventSchema,
-  FrigateEventChange,
-  FrigateReviewChange,
+  type FrigateEventChange,
+  type FrigateReviewChange,
 } from '../../../src/camera-manager/frigate/types';
-import {
+import type {
   FrigateEventWatcher,
   FrigateReviewWatcher,
 } from '../../../src/camera-manager/frigate/watcher';
-import { ActionsExecutor } from '../../../src/card-controller/actions/types';
-import { PTZAction } from '../../../src/config/schema/actions/custom/ptz';
-import { CameraTriggerMediaEventType } from '../../../src/config/schema/cameras';
-import { Entity, EntityRegistryManager } from '../../../src/ha/registry/entity/types';
+import type { ActionsExecutor } from '../../../src/card-controller/actions/types';
+import type { PTZAction } from '../../../src/config/schema/actions/custom/ptz';
+import type { CameraTriggerMediaEventType } from '../../../src/config/schema/cameras';
+import type {
+  Entity,
+  EntityRegistryManager,
+} from '../../../src/ha/registry/entity/types';
 import { ViewMediaType } from '../../../src/view/item';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {

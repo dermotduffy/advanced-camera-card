@@ -1,20 +1,20 @@
-import { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManager } from '../../camera-manager/manager.js';
 import { dispatchActionExecutionRequest } from '../../card-controller/actions/utils/execution-request.js';
-import { SubmenuInteraction } from '../../components/submenu/types.js';
-import { PTZAction } from '../../config/schema/actions/custom/ptz.js';
-import { Actions, ActionsConfig } from '../../config/schema/actions/types.js';
-import {
+import type { SubmenuInteraction } from '../../components/submenu/types.js';
+import type { PTZAction } from '../../config/schema/actions/custom/ptz.js';
+import type { Actions, ActionsConfig } from '../../config/schema/actions/types.js';
+import type {
   PTZControlsConfig,
   PTZControlType,
 } from '../../config/schema/common/controls/ptz.js';
-import { HomeAssistant } from '../../ha/types.js';
-import { Interaction } from '../../types.js';
+import type { HomeAssistant } from '../../ha/types.js';
+import type { Interaction } from '../../types.js';
 import {
   createPTZControlsAction,
   createPTZMultiAction,
   getActionConfigGivenAction,
 } from '../../utils/action.js';
-import { PTZControllerActions } from './types';
+import type { PTZControllerActions } from './types';
 
 export class PTZController {
   private _host: HTMLElement;

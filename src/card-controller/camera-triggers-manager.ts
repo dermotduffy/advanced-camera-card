@@ -1,9 +1,9 @@
 import { maxBy, throttle } from 'lodash-es';
 
-import { CameraEvent } from '../camera-manager/types';
+import type { CameraEvent } from '../camera-manager/types';
 import { isTriggeredState } from '../ha/is-triggered-state';
 import { Timer } from '../utils/timer';
-import { CardCameraTriggersAPI } from './types';
+import type { CardCameraTriggersAPI } from './types';
 
 interface CameraTriggerState {
   // The time of the most recent trigger event. Used to determine the most

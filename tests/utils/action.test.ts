@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { INTERNAL_CALLBACK_ACTION } from '../../src/config/schema/actions/custom/internal.js';
-import { ActionConfig } from '../../src/config/schema/actions/types.js';
+import type { ActionConfig } from '../../src/config/schema/actions/types.js';
 import {
   createCallAnswerAction,
   createCallEndAction,

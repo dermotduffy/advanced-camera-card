@@ -1,14 +1,14 @@
-import { ActionContext } from 'action';
+import type { ActionContext } from 'action';
 
 import { createConditionEvaluator } from '../../../condition-trigger/conditions/factory';
-import { TriggerData } from '../../../condition-trigger/triggers/types';
-import {
+import type { TriggerData } from '../../../condition-trigger/triggers/types';
+import type {
   AuxillaryActionConfig,
   IfActionConfig,
 } from '../../../config/schema/actions/types';
 import { TemplateRenderer } from '../../templates/index';
-import { CardActionsAPI } from '../../types';
-import { ActionPrepareCallback } from '../types';
+import type { CardActionsAPI } from '../../types';
+import type { ActionPrepareCallback } from '../types';
 import { BaseAction } from './base';
 
 export class IfAction extends BaseAction<IfActionConfig> {

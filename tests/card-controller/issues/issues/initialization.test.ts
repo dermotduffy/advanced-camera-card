@@ -1,8 +1,8 @@
 import { assert, describe, expect, it, vi } from 'vitest';
 
-import { CardController } from '../../../../src/card-controller/controller';
+import type { CardController } from '../../../../src/card-controller/controller';
 import { InitializationIssue } from '../../../../src/card-controller/issues/issues/initialization';
-import { InternalCallbackActionConfig } from '../../../../src/config/schema/actions/custom/internal';
+import type { InternalCallbackActionConfig } from '../../../../src/config/schema/actions/custom/internal';
 import { createCardAPI } from '../../../test-utils';
 
 describe('InitializationIssue', () => {

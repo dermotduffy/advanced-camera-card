@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { ActionsExecutionRequest } from '../../src/card-controller/actions/types.js';
+import type { ActionsExecutionRequest } from '../../src/card-controller/actions/types.js';
 import { AutomationsManager } from '../../src/card-controller/automations-manager.js';
-import { EventWatcherSubscriptionInterface } from '../../src/card-controller/hass/event-watcher.js';
+import type { EventWatcherSubscriptionInterface } from '../../src/card-controller/hass/event-watcher.js';
 import { ConditionStateManager } from '../../src/condition-trigger/conditions/state-manager.js';
 import {
   createCardAPI,

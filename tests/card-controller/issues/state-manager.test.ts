@@ -2,7 +2,7 @@ import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { IssueStateManager } from '../../../src/card-controller/issues/state-manager';
-import { Issue, IssueDescription } from '../../../src/card-controller/issues/types';
+import type { Issue, IssueDescription } from '../../../src/card-controller/issues/types';
 import { createHASS } from '../../test-utils';
 
 const createIssueDescription = (

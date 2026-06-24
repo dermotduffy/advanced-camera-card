@@ -1,16 +1,20 @@
 import { cloneDeep } from 'lodash-es';
 
-import { ConditionState } from '../../condition-trigger/conditions/types';
-import { FolderConfig, FolderConfigWithoutID } from '../../config/schema/folders';
+import type { ConditionState } from '../../condition-trigger/conditions/types';
+import type { FolderConfig, FolderConfigWithoutID } from '../../config/schema/folders';
 import { localize } from '../../localize/localize';
 import { hasUnsupportedFilters } from '../../query-source.js';
-import { Endpoint } from '../../types';
+import type { Endpoint } from '../../types';
 import { getFolderID } from '../../utils/folder';
-import { ViewFolder, ViewItem } from '../../view/item';
-import { ViewItemCapabilities } from '../../view/types';
-import { CardFoldersAPI } from '../types';
+import type { ViewFolder, ViewItem } from '../../view/item';
+import type { ViewItemCapabilities } from '../../view/types';
+import type { CardFoldersAPI } from '../types';
 import { FoldersExecutor } from './executor';
-import { EngineOptions, FolderInitializationError, FolderQuery } from './types';
+import {
+  FolderInitializationError,
+  type EngineOptions,
+  type FolderQuery,
+} from './types';
 
 export class FoldersManager {
   private _api: CardFoldersAPI;

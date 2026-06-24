@@ -4,7 +4,7 @@ import {
   differenceInSeconds,
   format,
 } from 'date-fns';
-import { StyleInfo } from 'lit/directives/style-map';
+import type { StyleInfo } from 'lit/directives/style-map';
 import { isEqualWith, mergeWith, round, uniq } from 'lodash-es';
 
 import { AdvancedCameraCardError } from '../types';

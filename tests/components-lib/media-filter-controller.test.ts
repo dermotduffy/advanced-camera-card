@@ -9,28 +9,28 @@ import {
   it,
   vi,
 } from 'vitest';
-import { mock, MockProxy } from 'vitest-mock-extended';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 
 import { Capabilities } from '../../src/camera-manager/capabilities';
 import {
-  EventQuery,
-  MediaQuery,
   QueryType,
-  RecordingQuery,
-  ReviewQuery,
+  type EventQuery,
+  type MediaQuery,
+  type RecordingQuery,
+  type ReviewQuery,
 } from '../../src/camera-manager/types';
-import { FoldersManager } from '../../src/card-controller/folders/manager';
-import { ViewManager } from '../../src/card-controller/view/view-manager';
+import type { FoldersManager } from '../../src/card-controller/folders/manager';
+import type { ViewManager } from '../../src/card-controller/view/view-manager';
 import {
   MediaFilterController,
-  MediaFilterCoreDefaults,
   MediaFilterCoreFavoriteSelection,
   MediaFilterCoreReviewedSelection,
   MediaFilterCoreWhen,
   MediaFilterMediaType,
+  type MediaFilterCoreDefaults,
 } from '../../src/components-lib/media-filter-controller';
 import { QuerySource } from '../../src/query-source';
-import { Severity } from '../../src/severity';
+import type { Severity } from '../../src/severity';
 import { UnifiedQuery } from '../../src/view/unified-query';
 import {
   createCameraConfig,

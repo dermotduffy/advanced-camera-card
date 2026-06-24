@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { EnabledProxyConfig } from '../../src/config/schema/common/proxy.js';
+import type { EnabledProxyConfig } from '../../src/config/schema/common/proxy.js';
 import {
   addDynamicProxyURL,
   createProxiedEndpointIfNecessary,

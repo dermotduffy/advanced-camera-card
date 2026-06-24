@@ -1,11 +1,11 @@
 import { assert, describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CameraManager } from '../../src/camera-manager/manager';
-import { FoldersManager } from '../../src/card-controller/folders/manager';
-import { ConditionStateManagerReadonlyInterface } from '../../src/condition-trigger/conditions/types';
+import type { CameraManager } from '../../src/camera-manager/manager';
+import type { FoldersManager } from '../../src/card-controller/folders/manager';
+import type { ConditionStateManagerReadonlyInterface } from '../../src/condition-trigger/conditions/types';
 import { QuerySource } from '../../src/query-source';
-import { ViewMedia } from '../../src/view/item';
+import type { ViewMedia } from '../../src/view/item';
 import { UnifiedQuery } from '../../src/view/unified-query';
 import { UnifiedQueryRunner } from '../../src/view/unified-query-runner';
 import { createEventQuery, createFolderQuery } from '../test-utils';

@@ -1,4 +1,4 @@
-import { Connection } from 'home-assistant-js-websocket';
+import type { Connection } from 'home-assistant-js-websocket';
 
 /**
  * Types describing the caller-supplied callbacks for opening and closing a

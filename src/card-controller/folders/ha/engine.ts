@@ -1,35 +1,35 @@
 import { sub } from 'date-fns';
-import { NonEmptyTuple } from 'type-fest';
+import type { NonEmptyTuple } from 'type-fest';
 
-import { ConditionState } from '../../../condition-trigger/conditions/types';
+import type { ConditionState } from '../../../condition-trigger/conditions/types';
 import {
-  FolderConfig,
   folderTypeSchema,
   HA_MEDIA_SOURCE_ROOT,
-  HAFolderConfig,
-  HAFolderPathComponent,
+  type FolderConfig,
+  type HAFolderConfig,
+  type HAFolderPathComponent,
 } from '../../../config/schema/folders';
 import { getViewItemsFromBrowseMediaArray } from '../../../ha/browse-media/browse-media-to-view-media';
 import { BrowseMediaViewFolder } from '../../../ha/browse-media/item';
 import {
   BROWSE_MEDIA_CACHE_SECONDS,
   BrowseMediaCache,
-  BrowseMediaMetadata,
-  RichBrowseMedia,
+  type BrowseMediaMetadata,
+  type RichBrowseMedia,
 } from '../../../ha/browse-media/types';
 import {
-  BrowseMediaStep,
-  BrowseMediaTarget,
   BrowseMediaWalker,
+  type BrowseMediaStep,
+  type BrowseMediaTarget,
 } from '../../../ha/browse-media/walker';
 import { getMediaDownloadPath } from '../../../ha/download';
-import { HomeAssistant } from '../../../ha/types';
+import type { HomeAssistant } from '../../../ha/types';
 import { QuerySource } from '../../../query-source.js';
-import { Endpoint } from '../../../types';
-import { ViewFolder, ViewItem } from '../../../view/item';
+import type { Endpoint } from '../../../types';
+import type { ViewFolder, ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
-import { ViewItemCapabilities } from '../../../view/types';
-import {
+import type { ViewItemCapabilities } from '../../../view/types';
+import type {
   DownloadHelpers,
   EngineOptions,
   FolderPathComponent,

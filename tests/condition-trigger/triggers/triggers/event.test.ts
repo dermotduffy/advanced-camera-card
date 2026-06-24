@@ -1,12 +1,12 @@
-import { describe, expect, it, Mock, vi } from 'vitest';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import {
+import type {
   EventSubscriptionRequest,
   EventWatcherSubscriptionInterface,
 } from '../../../../src/card-controller/hass/event-watcher';
 import { EventTrigger } from '../../../../src/condition-trigger/triggers/triggers/event';
-import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createHASSEvent, createHASSManager } from '../../../test-utils';
 import { createTriggerEvaluatorContext } from './test-utils';
 

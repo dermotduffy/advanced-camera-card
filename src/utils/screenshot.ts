@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 
-import { View } from '../view/view';
+import type { View } from '../view/view';
 
 export const screenshotImage = (image: HTMLImageElement): string | null => {
   return screenshotElement(image, image.naturalWidth, image.naturalHeight);

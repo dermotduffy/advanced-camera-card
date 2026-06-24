@@ -1,11 +1,11 @@
-import { MicrophoneState } from '../card-controller/types.js';
-import {
+import type { MicrophoneState } from '../card-controller/types.js';
+import type {
   AutoMuteCondition,
   AutoPauseCondition,
   AutoPlayCondition,
   AutoUnmuteCondition,
 } from '../config/schema/common/media-actions.js';
-import { MediaPlayerElement } from '../types.js';
+import type { MediaPlayerElement } from '../types.js';
 import { Timer } from '../utils/timer.js';
 import { VisibilityObserver } from './visibility-observer.js';
 

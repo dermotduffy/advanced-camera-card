@@ -1,16 +1,16 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { IconController } from '../components-lib/icon-controller';
-import { InternalIcon } from '../config/schema/common/icon.js';
-import { HomeAssistant } from '../ha/types';
+import type { InternalIcon } from '../config/schema/common/icon.js';
+import type { HomeAssistant } from '../ha/types';
 import iconStyle from '../scss/icon.scss';
 import { contentsChanged } from '../utils/basic.js';
 

@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, Mock, vi } from 'vitest';
-import { mock, MockProxy } from 'vitest-mock-extended';
+import { afterEach, beforeEach, vi, type Mock } from 'vitest';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 
 // Type-safe Web Audio API mocks for tone tests. The real `GeneratedTone`
 // constructs an AudioContext directly; here we stub the global `AudioContext`

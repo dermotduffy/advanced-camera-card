@@ -1,10 +1,10 @@
-import { CameraConfig } from '../config/schema/cameras';
-import { CapabilityKey } from '../types';
+import type { CameraConfig } from '../config/schema/cameras';
+import type { CapabilityKey } from '../types';
 import { allPromises } from '../utils/basic';
-import { ViewMedia } from '../view/item';
-import { Camera } from './camera';
-import { CameraManagerEngine } from './engine';
-import { CapabilitySearchKeys, CapabilitySearchOptions, Engine } from './types';
+import type { ViewMedia } from '../view/item';
+import type { Camera } from './camera';
+import type { CameraManagerEngine } from './engine';
+import type { CapabilitySearchKeys, CapabilitySearchOptions, Engine } from './types';
 
 type CameraManagerEngineCameraIDMap = Map<CameraManagerEngine, Set<string>>;
 

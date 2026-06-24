@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it, Mock, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi, type Mock } from 'vitest';
 
 import { ScreenTrigger } from '../../../../src/condition-trigger/triggers/triggers/screen';
-import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 
 // @vitest-environment jsdom
 describe('ScreenTrigger', () => {

@@ -1,4 +1,4 @@
-import { CardConfigLoaderAPI } from '../types';
+import type { CardConfigLoaderAPI } from '../types';
 
 export const setFoldersFromConfig = (api: CardConfigLoaderAPI): void => {
   api.getFoldersManager().deleteFolders();

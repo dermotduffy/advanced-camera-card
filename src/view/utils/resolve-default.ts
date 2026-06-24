@@ -1,6 +1,6 @@
-import { CameraManager } from '../../camera-manager/manager';
-import { FoldersManager } from '../../card-controller/folders/manager';
-import {
+import type { CameraManager } from '../../camera-manager/manager';
+import type { FoldersManager } from '../../card-controller/folders/manager';
+import type {
   AdvancedCameraCardUserSpecifiedView,
   AdvancedCameraCardView,
 } from '../../config/schema/common/const';

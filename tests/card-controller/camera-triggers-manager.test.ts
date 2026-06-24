@@ -1,11 +1,11 @@
 import { add } from 'date-fns';
-import { PartialDeep } from 'type-fest';
+import type { PartialDeep } from 'type-fest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CameraTriggersManager } from '../../src/card-controller/camera-triggers-manager';
-import { CardController } from '../../src/card-controller/controller';
-import { AdvancedCameraCardView } from '../../src/config/schema/common/const';
-import { TriggersOptions, triggersSchema } from '../../src/config/schema/view';
+import type { CardController } from '../../src/card-controller/controller';
+import type { AdvancedCameraCardView } from '../../src/config/schema/common/const';
+import { triggersSchema, type TriggersOptions } from '../../src/config/schema/view';
 import {
   createCameraConfig,
   createCameraManager,

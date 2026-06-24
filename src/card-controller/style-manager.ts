@@ -1,14 +1,14 @@
-import { StyleInfo } from 'lit/directives/style-map';
+import type { StyleInfo } from 'lit/directives/style-map';
 
-import { AdvancedCameraCardConfig, configDefaults } from '../config/schema/types';
-import { ThemeConfig, ThemeName } from '../config/schema/view';
+import { configDefaults, type AdvancedCameraCardConfig } from '../config/schema/types';
+import type { ThemeConfig, ThemeName } from '../config/schema/view';
 import {
   aspectRatioToStyle,
   setOrRemoveAttribute,
   setOrRemoveStyleProperty,
 } from '../utils/basic';
-import { View } from '../view/view';
-import { CardStyleAPI } from './types';
+import type { View } from '../view/view';
+import type { CardStyleAPI } from './types';
 
 export class StyleManager {
   private _api: CardStyleAPI;

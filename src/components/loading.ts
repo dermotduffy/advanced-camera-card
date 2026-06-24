@@ -1,8 +1,14 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import loadingStyle from '../scss/loading.scss';
-import { EffectName, EffectsManagerInterface } from '../types';
+import type { EffectName, EffectsManagerInterface } from '../types';
 import { getReleaseVersion } from '../utils/diagnostics';
 
 import './icon';

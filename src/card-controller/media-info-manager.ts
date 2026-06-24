@@ -1,4 +1,4 @@
-import {
+import type {
   MediaLoadedInfo,
   MediaLoadedInfoEventDetail,
   MediaLoadedInfoOwner,
@@ -6,7 +6,7 @@ import {
 import { onAbort } from '../utils/abort-signal';
 import { log } from '../utils/debug';
 import { isValidMediaLoadedInfo } from '../utils/media-info';
-import { CardMediaLoadedAPI } from './types';
+import type { CardMediaLoadedAPI } from './types';
 
 interface ActiveEntry {
   info: MediaLoadedInfo;

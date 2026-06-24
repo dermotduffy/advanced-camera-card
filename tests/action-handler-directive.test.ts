@@ -1,9 +1,12 @@
 import { html, render } from 'lit';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { actionHandler, ActionHandlerInterface } from '../src/action-handler-directive';
+import {
+  actionHandler,
+  type ActionHandlerInterface,
+} from '../src/action-handler-directive';
 import { fireHASSEvent } from '../src/ha/fire-hass-event';
-import { ActionHandlerDetail } from '../src/ha/types';
+import type { ActionHandlerDetail } from '../src/ha/types';
 import { stopEventFromActivatingCardWideActions } from '../src/utils/action';
 
 vi.mock('../src/ha/fire-hass-event.js');

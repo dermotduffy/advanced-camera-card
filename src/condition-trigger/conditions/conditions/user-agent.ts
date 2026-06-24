@@ -1,7 +1,7 @@
 import { isBeingCasted } from '../../../utils/casting';
 import { isCompanionApp } from '../../../utils/companion';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ConditionOfType } from './types';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator, ConditionOfType } from './types';
 
 export class UserAgentConditionEvaluator implements ConditionEvaluator {
   private _condition: ConditionOfType<'user_agent'>;

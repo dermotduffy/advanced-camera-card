@@ -4,7 +4,7 @@ import { mock } from 'vitest-mock-extended';
 import { FullscreenProviderFactory } from '../../../src/card-controller/fullscreen/factory';
 import { ScreenfullFullScreenProvider } from '../../../src/card-controller/fullscreen/screenfull';
 import { WebkitFullScreenProvider } from '../../../src/card-controller/fullscreen/webkit';
-import { WebkitHTMLVideoElement } from '../../../src/types';
+import type { WebkitHTMLVideoElement } from '../../../src/types';
 import { createCardAPI, setScreenfulEnabled } from '../../test-utils';
 
 // @vitest-environment jsdom

@@ -1,11 +1,16 @@
 import type { IssueTriggerContext } from 'issue';
 
-import { ConditionStateChange } from '../../condition-trigger/conditions/types';
+import type { ConditionStateChange } from '../../condition-trigger/conditions/types';
 import { isActionAllowedBasedOnInteractionState } from '../../utils/interaction-mode';
 import { RetryTimer } from '../../utils/retry-timer';
-import { CardIssueManagerAPI } from '../types';
+import type { CardIssueManagerAPI } from '../types';
 import { IssueStateManager } from './state-manager';
-import { Issue, IssueKey, IssueReadOnlyState, IssueTriggerContextKey } from './types';
+import type {
+  Issue,
+  IssueKey,
+  IssueReadOnlyState,
+  IssueTriggerContextKey,
+} from './types';
 
 // Exponential backoff schedule for 'auto' retry. The base is set above the
 // per-media retry threshold (~10s) so the issue-level backoff kicks in *after*

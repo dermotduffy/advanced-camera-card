@@ -1,6 +1,6 @@
-import { FullscreenBase } from '../../../config/schema/condition-trigger/common/fullscreen';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator } from './types';
+import type { FullscreenBase } from '../../../config/schema/condition-trigger/common/fullscreen';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator } from './types';
 
 export class FullscreenConditionEvaluator implements ConditionEvaluator {
   private _condition: FullscreenBase;

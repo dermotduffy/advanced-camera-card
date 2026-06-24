@@ -1,21 +1,21 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import {
-  GalleryColumnCountRoundMethod,
   GalleryCoreController,
+  type GalleryColumnCountRoundMethod,
 } from '../../components-lib/gallery/gallery-core-controller.js';
 import { THUMBNAIL_WIDTH_DEFAULT } from '../../config/schema/common/controls/thumbnails.js';
-import { CardWideConfig } from '../../config/schema/types.js';
-import { HomeAssistant } from '../../ha/types.js';
+import type { CardWideConfig } from '../../config/schema/types.js';
+import type { HomeAssistant } from '../../ha/types.js';
 import galleryCoreStyle from '../../scss/gallery-core.scss';
 
 import '../progress-indicator.js';

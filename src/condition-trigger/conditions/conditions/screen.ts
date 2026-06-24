@@ -1,7 +1,7 @@
-import { ScreenBase } from '../../../config/schema/condition-trigger/common/screen';
+import type { ScreenBase } from '../../../config/schema/condition-trigger/common/screen';
 import { MediaQueryWatcher } from '../../common/media-query-watcher';
-import { ConditionsEvaluationResult } from '../types';
-import { ConditionEvaluator, ExternalInvalidationSource } from './types';
+import type { ConditionsEvaluationResult } from '../types';
+import type { ConditionEvaluator, ExternalInvalidationSource } from './types';
 
 export class ScreenConditionEvaluator implements ConditionEvaluator {
   private _watcher: MediaQueryWatcher | null;

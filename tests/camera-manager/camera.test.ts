@@ -3,9 +3,9 @@ import { mock } from 'vitest-mock-extended';
 
 import { Camera } from '../../src/camera-manager/camera.js';
 import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic.js';
-import { CameraProxyConfig } from '../../src/camera-manager/types.js';
-import { EventWatcherSubscriptionInterface } from '../../src/card-controller/hass/event-watcher.js';
-import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
+import type { CameraProxyConfig } from '../../src/camera-manager/types.js';
+import type { EventWatcherSubscriptionInterface } from '../../src/card-controller/hass/event-watcher.js';
+import type { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { liveProviderSupports2WayAudio } from '../../src/utils/live-provider.js';
 import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {

@@ -2,7 +2,7 @@ import { expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { PlayAction } from '../../../../src/card-controller/actions/actions/play';
-import { MediaPlayerController } from '../../../../src/types';
+import type { MediaPlayerController } from '../../../../src/types';
 import { createCardAPI, createMediaLoadedInfo } from '../../../test-utils';
 
 it('should handle play action', async () => {

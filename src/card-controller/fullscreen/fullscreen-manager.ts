@@ -1,7 +1,7 @@
 import { isBeingCasted } from '../../utils/casting';
-import { CardFullscreenAPI } from '../types';
+import type { CardFullscreenAPI } from '../types';
 import { FullscreenProviderFactory } from './factory';
-import { FullscreenProvider } from './types';
+import type { FullscreenProvider } from './types';
 
 export class FullscreenManager {
   private _api: CardFullscreenAPI;

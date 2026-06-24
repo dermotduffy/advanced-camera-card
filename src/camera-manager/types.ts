@@ -1,10 +1,10 @@
 import { ExpiringEqualityCache } from '../cache/expiring-cache';
-import { AdvancedCameraCardView } from '../config/schema/common/const';
-import { InternalIcon } from '../config/schema/common/icon';
-import { ResolvedProxyConfig } from '../config/schema/common/proxy';
-import { BaseQuery, QueryFilters, QuerySource } from '../query-source';
-import { CapabilityKey, Endpoint } from '../types';
-import { ViewMedia } from '../view/item';
+import type { AdvancedCameraCardView } from '../config/schema/common/const';
+import type { InternalIcon } from '../config/schema/common/icon';
+import type { ResolvedProxyConfig } from '../config/schema/common/proxy';
+import type { BaseQuery, QueryFilters, QuerySource } from '../query-source';
+import type { CapabilityKey, Endpoint } from '../types';
+import type { ViewMedia } from '../view/item';
 
 // ====
 // Base

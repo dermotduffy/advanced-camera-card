@@ -1,6 +1,6 @@
-import { EffectName, EffectsContainer, EffectsManagerInterface } from '../../types';
+import type { EffectName, EffectsContainer, EffectsManagerInterface } from '../../types';
 import { Timer } from '../../utils/timer';
-import { EffectComponent, EffectModule, EffectOptions } from './types';
+import type { EffectComponent, EffectModule, EffectOptions } from './types';
 
 const effectRegistry: Record<EffectName, () => Promise<EffectModule>> = {
   check: async () => {

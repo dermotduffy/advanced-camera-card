@@ -1,7 +1,7 @@
 import screenfull from 'screenfull';
 
 import { FullscreenProviderBase } from '../provider';
-import { FullscreenProvider } from '../types';
+import type { FullscreenProvider } from '../types';
 
 export class ScreenfullFullScreenProvider
   extends FullscreenProviderBase

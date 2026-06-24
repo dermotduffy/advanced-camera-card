@@ -1,108 +1,108 @@
 import {
-  HassEntities,
-  HassEntity,
-  HassEvent,
   STATE_RUNNING,
+  type HassEntities,
+  type HassEntity,
+  type HassEvent,
 } from 'home-assistant-js-websocket';
-import { LitElement } from 'lit';
+import type { LitElement } from 'lit';
 import screenfull from 'screenfull';
 import { expect, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { Camera } from '../src/camera-manager/camera';
 import { Capabilities } from '../src/camera-manager/capabilities';
-import { CameraManagerEngine } from '../src/camera-manager/engine';
-import {
+import type { CameraManagerEngine } from '../src/camera-manager/engine';
+import type {
   FrigateEvent,
   FrigateRecording,
   FrigateReview,
 } from '../src/camera-manager/frigate/types';
 import { GenericCameraManagerEngine } from '../src/camera-manager/generic/engine-generic';
-import { CameraManager } from '../src/camera-manager/manager';
+import type { CameraManager } from '../src/camera-manager/manager';
 import { CameraManagerStore } from '../src/camera-manager/store';
 import {
-  CameraEventCallback,
-  EventQuery,
   QueryType,
-  RecordingQuery,
-  ReviewQuery,
+  type CameraEventCallback,
+  type EventQuery,
+  type RecordingQuery,
+  type ReviewQuery,
 } from '../src/camera-manager/types';
-import { ActionsManager } from '../src/card-controller/actions/actions-manager';
-import { AutomationsManager } from '../src/card-controller/automations-manager';
-import { CallManager } from '../src/card-controller/call/manager';
-import { CameraTriggersManager } from '../src/card-controller/camera-triggers-manager';
-import { CameraURLManager } from '../src/card-controller/camera-url-manager';
-import {
+import type { ActionsManager } from '../src/card-controller/actions/actions-manager';
+import type { AutomationsManager } from '../src/card-controller/automations-manager';
+import type { CallManager } from '../src/card-controller/call/manager';
+import type { CameraTriggersManager } from '../src/card-controller/camera-triggers-manager';
+import type { CameraURLManager } from '../src/card-controller/camera-url-manager';
+import type {
   CardElementManager,
   CardHTMLElement,
 } from '../src/card-controller/card-element-manager';
-import { ConfigManager } from '../src/card-controller/config/config-manager';
-import { CardController } from '../src/card-controller/controller';
-import { DefaultManager } from '../src/card-controller/default-manager';
-import { EffectsManager } from '../src/card-controller/effects/effects-manager';
-import { ExpandManager } from '../src/card-controller/expand-manager';
-import { FoldersManager } from '../src/card-controller/folders/manager';
-import { FolderQuery } from '../src/card-controller/folders/types';
-import { FullscreenManager } from '../src/card-controller/fullscreen/fullscreen-manager';
-import { EventWatcherSubscriptionInterface } from '../src/card-controller/hass/event-watcher';
-import { HASSManager } from '../src/card-controller/hass/hass-manager';
-import { StateWatcherSubscriptionInterface } from '../src/card-controller/hass/state-watcher';
-import { HASSManagerReadonlyInterface } from '../src/card-controller/hass/types';
-import { InitializationManager } from '../src/card-controller/initialization-manager';
-import { InteractionManager } from '../src/card-controller/interaction-manager';
-import { IssueManager } from '../src/card-controller/issues/issue-manager';
-import { IssueStateManager } from '../src/card-controller/issues/state-manager';
-import { KeyboardStateManager } from '../src/card-controller/keyboard-state-manager';
-import { LockManager } from '../src/card-controller/lock/manager';
-import { MediaLoadedInfoManager } from '../src/card-controller/media-info-manager';
-import { MediaPlayerManager } from '../src/card-controller/media-player-manager';
-import { MicrophoneManager } from '../src/card-controller/microphone-manager';
-import { NotificationManager } from '../src/card-controller/notification-manager';
-import { PIPManager } from '../src/card-controller/pip-manager';
-import { QueryStringManager } from '../src/card-controller/query-string-manager';
-import { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
-import { StyleManager } from '../src/card-controller/style-manager';
-import { ViewItemManager } from '../src/card-controller/view/item-manager';
-import { ViewManager } from '../src/card-controller/view/view-manager';
-import { SubmenuInteraction, SubmenuItem } from '../src/components/submenu/types';
-import { ConditionStateManager } from '../src/condition-trigger/conditions/state-manager';
-import { CameraConfig, cameraConfigSchema } from '../src/config/schema/cameras';
-import { FolderConfig } from '../src/config/schema/folders';
+import type { ConfigManager } from '../src/card-controller/config/config-manager';
+import type { CardController } from '../src/card-controller/controller';
+import type { DefaultManager } from '../src/card-controller/default-manager';
+import type { EffectsManager } from '../src/card-controller/effects/effects-manager';
+import type { ExpandManager } from '../src/card-controller/expand-manager';
+import type { FoldersManager } from '../src/card-controller/folders/manager';
+import type { FolderQuery } from '../src/card-controller/folders/types';
+import type { FullscreenManager } from '../src/card-controller/fullscreen/fullscreen-manager';
+import type { EventWatcherSubscriptionInterface } from '../src/card-controller/hass/event-watcher';
+import type { HASSManager } from '../src/card-controller/hass/hass-manager';
+import type { StateWatcherSubscriptionInterface } from '../src/card-controller/hass/state-watcher';
+import type { HASSManagerReadonlyInterface } from '../src/card-controller/hass/types';
+import type { InitializationManager } from '../src/card-controller/initialization-manager';
+import type { InteractionManager } from '../src/card-controller/interaction-manager';
+import type { IssueManager } from '../src/card-controller/issues/issue-manager';
+import type { IssueStateManager } from '../src/card-controller/issues/state-manager';
+import type { KeyboardStateManager } from '../src/card-controller/keyboard-state-manager';
+import type { LockManager } from '../src/card-controller/lock/manager';
+import type { MediaLoadedInfoManager } from '../src/card-controller/media-info-manager';
+import type { MediaPlayerManager } from '../src/card-controller/media-player-manager';
+import type { MicrophoneManager } from '../src/card-controller/microphone-manager';
+import type { NotificationManager } from '../src/card-controller/notification-manager';
+import type { PIPManager } from '../src/card-controller/pip-manager';
+import type { QueryStringManager } from '../src/card-controller/query-string-manager';
+import type { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
+import type { StyleManager } from '../src/card-controller/style-manager';
+import type { ViewItemManager } from '../src/card-controller/view/item-manager';
+import type { ViewManager } from '../src/card-controller/view/view-manager';
+import type { SubmenuInteraction, SubmenuItem } from '../src/components/submenu/types';
+import type { ConditionStateManager } from '../src/condition-trigger/conditions/state-manager';
+import { cameraConfigSchema, type CameraConfig } from '../src/config/schema/cameras';
+import type { FolderConfig } from '../src/config/schema/folders';
 import {
-  PerformanceConfig,
   performanceConfigSchema,
+  type PerformanceConfig,
 } from '../src/config/schema/performance';
 import {
-  AdvancedCameraCardConfig,
   advancedCameraCardConfigSchema,
+  type AdvancedCameraCardConfig,
 } from '../src/config/schema/types';
-import { RawAdvancedCameraCardConfig } from '../src/config/types';
-import {
+import type { RawAdvancedCameraCardConfig } from '../src/config/types';
+import type {
   BrowseMedia,
   BrowseMediaMetadata,
   RichBrowseMedia,
 } from '../src/ha/browse-media/types';
-import { Device } from '../src/ha/registry/device/types';
-import { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
-import { HASSListener, HASSSource } from '../src/ha/source';
-import { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
+import type { Device } from '../src/ha/registry/device/types';
+import type { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
+import type { HASSListener, HASSSource } from '../src/ha/source';
+import type { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
 import { QuerySource } from '../src/query-source';
-import { Severity } from '../src/severity';
-import {
+import type { Severity } from '../src/severity';
+import type {
   CapabilitiesRaw,
   Interaction,
   MediaLoadedInfo,
   MediaLoadedInfoEventDetail,
 } from '../src/types';
 import {
-  EventViewMedia,
-  ReviewViewMedia,
   ViewMedia,
   ViewMediaType,
+  type EventViewMedia,
+  type ReviewViewMedia,
 } from '../src/view/item';
 import { QueryResults } from '../src/view/query-results';
-import { ViewItemCapabilities } from '../src/view/types';
-import { View, ViewParameters } from '../src/view/view';
+import type { ViewItemCapabilities } from '../src/view/types';
+import { View, type ViewParameters } from '../src/view/view';
 
 export const createCameraConfig = (config?: unknown): CameraConfig => {
   return cameraConfigSchema.parse(config ?? {});

@@ -3,6 +3,7 @@
     "target": "es2021",
     "module": "es2020",
     "moduleResolution": "node",
+    "verbatimModuleSyntax": true,
     "lib": ["es2021", "dom", "dom.iterable"],
     "noEmit": true,
     "noErrorTruncation": false,

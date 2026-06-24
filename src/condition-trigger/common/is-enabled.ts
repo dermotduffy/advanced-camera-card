@@ -1,5 +1,5 @@
-import { TemplateRenderer } from '../../card-controller/templates';
-import { ConditionState } from '../conditions/types';
+import type { TemplateRenderer } from '../../card-controller/templates';
+import type { ConditionState } from '../conditions/types';
 
 // The shared `enabled` gate for triggers and conditions (equivalent to HA's
 // `vol.Any(boolean, template)`): a boolean, or a template rendered against the

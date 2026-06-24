@@ -1,15 +1,18 @@
 import { sub } from 'date-fns';
 
-import { ConditionState } from '../../../condition-trigger/conditions/types';
-import {
+import type { ConditionState } from '../../../condition-trigger/conditions/types';
+import type {
   DateMatcher,
   Matcher,
   StartDateMatcher,
   TemplateMatcher,
   TitleMatcher,
 } from '../../../config/schema/folders';
-import { BrowseMediaMetadata, RichBrowseMedia } from '../../../ha/browse-media/types';
-import { HomeAssistant } from '../../../ha/types';
+import type {
+  BrowseMediaMetadata,
+  RichBrowseMedia,
+} from '../../../ha/browse-media/types';
+import type { HomeAssistant } from '../../../ha/types';
 import { regexpExtract } from '../../../utils/regexp-extract';
 import { TemplateRenderer } from '../../templates';
 import { REGEXP_GROUP_VALUE_KEY } from './types';

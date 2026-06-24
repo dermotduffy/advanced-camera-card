@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 import { TROUBLESHOOTING_LEGACY_RESOURCE_URL } from '../../../const.js';
-import { HomeAssistant } from '../../../ha/types';
+import type { HomeAssistant } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import { createInternalCallbackAction } from '../../../utils/action';
-import { CardActionsAPI } from '../../types';
-import { Issue, IssueDescription } from '../types';
+import type { CardActionsAPI } from '../../types';
+import type { Issue, IssueDescription } from '../types';
 
 const LEGACY_RESOURCE_FILENAME = 'frigate-hass-card.js';
 

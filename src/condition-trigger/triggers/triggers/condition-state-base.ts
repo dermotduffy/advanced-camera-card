@@ -1,11 +1,15 @@
 import { isEqual } from 'lodash-es';
 
-import { Trigger } from '../../../config/schema/condition-trigger/triggers/types';
-import { ConditionEvaluator } from '../../conditions/conditions/types';
+import type { Trigger } from '../../../config/schema/condition-trigger/triggers/types';
+import type { ConditionEvaluator } from '../../conditions/conditions/types';
 import { createConditionEvaluatorForTrigger } from '../../conditions/factory';
-import { ConditionState, ConditionStateChange } from '../../conditions/types';
+import type { ConditionState, ConditionStateChange } from '../../conditions/types';
 import { buildCardTriggerData } from '../build-trigger-data';
-import { TriggerCallback, TriggerEvaluator, TriggerEvaluatorContext } from './types';
+import type {
+  TriggerCallback,
+  TriggerEvaluator,
+  TriggerEvaluatorContext,
+} from './types';
 
 // A trigger driven by `ConditionState` changes: subscribe to the state manager,
 // fire when the watched value (`_getValue`) changes and the new state passes

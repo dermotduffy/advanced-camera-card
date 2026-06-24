@@ -1,12 +1,21 @@
-import { ConditionState } from '../../condition-trigger/conditions/types';
-import { FolderConfig, FolderType, folderTypeSchema } from '../../config/schema/folders';
-import { HomeAssistant } from '../../ha/types';
-import { Endpoint } from '../../types';
-import { ViewFolder, ViewItem } from '../../view/item';
-import { ViewItemCapabilities } from '../../view/types';
+import type { ConditionState } from '../../condition-trigger/conditions/types';
+import {
+  folderTypeSchema,
+  type FolderConfig,
+  type FolderType,
+} from '../../config/schema/folders';
+import type { HomeAssistant } from '../../ha/types';
+import type { Endpoint } from '../../types';
+import type { ViewFolder, ViewItem } from '../../view/item';
+import type { ViewItemCapabilities } from '../../view/types';
 import { sortItems } from '../view/sort';
 import { HAFoldersEngine } from './ha/engine';
-import { DownloadHelpers, EngineOptions, FolderQuery, FoldersEngine } from './types';
+import type {
+  DownloadHelpers,
+  EngineOptions,
+  FolderQuery,
+  FoldersEngine,
+} from './types';
 
 export class FoldersExecutor {
   private _ha: FoldersEngine;

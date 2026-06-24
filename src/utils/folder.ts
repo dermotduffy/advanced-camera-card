@@ -1,5 +1,5 @@
-import { FolderConfig } from '../config/schema/folders';
-import { RawAdvancedCameraCardConfig } from '../config/types';
+import type { FolderConfig } from '../config/schema/folders';
+import type { RawAdvancedCameraCardConfig } from '../config/types';
 
 /**
  * Get a folder id.

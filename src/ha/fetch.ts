@@ -1,9 +1,9 @@
-import { ZodSchema } from 'zod';
+import type { ZodSchema } from 'zod';
 
 import { localize } from '../localize/localize';
-import { AdvancedCameraCardError, Endpoint } from '../types';
+import { AdvancedCameraCardError, type Endpoint } from '../types';
 import { homeAssistantGetSignedURLIfNecessary } from './sign-path';
-import { HomeAssistant } from './types';
+import type { HomeAssistant } from './types';
 
 /**
  * Fetch a JSON response from a signed or unsigned endpoint and validate it

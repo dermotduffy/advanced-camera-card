@@ -1,8 +1,8 @@
-import { HomeAssistant } from '../../ha/types';
-import { CapabilitiesRaw, Endpoint } from '../../types';
-import { CameraInitializationOptions } from '../camera';
+import type { HomeAssistant } from '../../ha/types';
+import type { CapabilitiesRaw, Endpoint } from '../../types';
+import type { CameraInitializationOptions } from '../camera';
 import { EntityCamera } from '../entity-camera';
-import { CameraEndpointsContext, CameraProxyConfig } from '../types';
+import type { CameraEndpointsContext, CameraProxyConfig } from '../types';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
 export class MotionEyeCamera extends EntityCamera {

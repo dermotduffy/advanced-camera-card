@@ -1,21 +1,21 @@
-import { NonEmptyTuple } from 'type-fest';
+import type { NonEmptyTuple } from 'type-fest';
 
-import { CameraManager } from '../camera-manager/manager';
+import type { CameraManager } from '../camera-manager/manager';
 import {
-  CapabilitySearchKeys,
-  EventQuery,
   QueryType,
-  RecordingQuery,
-  ReviewQuery,
+  type CapabilitySearchKeys,
+  type EventQuery,
+  type RecordingQuery,
+  type ReviewQuery,
 } from '../camera-manager/types';
-import { FoldersManager } from '../card-controller/folders/manager';
-import { FolderPathComponent, FolderQuery } from '../card-controller/folders/types';
-import { CameraMediaType } from '../config/schema/cameras';
-import { FolderConfig } from '../config/schema/folders';
-import { QueryFilters, QuerySource } from '../query-source.js';
-import { VIEW_MEDIA_TYPES, ViewMediaType } from '../types';
+import type { FoldersManager } from '../card-controller/folders/manager';
+import type { FolderPathComponent, FolderQuery } from '../card-controller/folders/types';
+import type { CameraMediaType } from '../config/schema/cameras';
+import type { FolderConfig } from '../config/schema/folders';
+import { QuerySource, type QueryFilters } from '../query-source.js';
+import { VIEW_MEDIA_TYPES, type ViewMediaType } from '../types';
 import { arrayify } from '../utils/basic';
-import { QueryNode, UnifiedQuery } from '../view/unified-query';
+import { UnifiedQuery, type QueryNode } from '../view/unified-query';
 import { getReviewedQueryFilterFromConfig } from './utils/query-filter';
 
 interface MediaQueryBuildOptions extends QueryFilters {

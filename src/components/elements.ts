@@ -1,35 +1,35 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { isEqual } from 'lodash-es';
 
-import { IssueTriggerEventData } from '../card-controller/issues/types.js';
+import type { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { TemplateRenderer } from '../card-controller/templates/index.js';
 import { ConditionsManager } from '../condition-trigger/conditions/conditions-manager.js';
 import { getConditionStateManagerViaEvent } from '../condition-trigger/conditions/state-manager-via-event.js';
-import { ConditionStateManager } from '../condition-trigger/conditions/state-manager.js';
-import {
+import type { ConditionStateManager } from '../condition-trigger/conditions/state-manager.js';
+import type {
   StatusBarIcon,
   StatusBarImage,
   StatusBarItem,
   StatusBarString,
 } from '../config/schema/actions/types.js';
-import { MenuIcon } from '../config/schema/elements/custom/menu/icon.js';
-import { MenuStateIcon } from '../config/schema/elements/custom/menu/state-icon.js';
-import { MenuSubmenuSelect } from '../config/schema/elements/custom/menu/submenu-select.js';
-import { MenuSubmenu } from '../config/schema/elements/custom/menu/submenu.js';
-import { MenuItem } from '../config/schema/elements/custom/menu/types.js';
-import {
+import type { MenuIcon } from '../config/schema/elements/custom/menu/icon.js';
+import type { MenuStateIcon } from '../config/schema/elements/custom/menu/state-icon.js';
+import type { MenuSubmenuSelect } from '../config/schema/elements/custom/menu/submenu-select.js';
+import type { MenuSubmenu } from '../config/schema/elements/custom/menu/submenu.js';
+import type { MenuItem } from '../config/schema/elements/custom/menu/types.js';
+import type {
   AdvancedCameraCardConditional,
   PictureElements,
 } from '../config/schema/elements/types.js';
-import { HomeAssistant } from '../ha/types.js';
+import type { HomeAssistant } from '../ha/types.js';
 import { localize } from '../localize/localize.js';
 import elementsStyle from '../scss/elements.scss';
 import { AdvancedCameraCardError } from '../types.js';

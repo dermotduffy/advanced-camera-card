@@ -1,4 +1,4 @@
-import { HassServiceTarget } from 'home-assistant-js-websocket';
+import type { HassServiceTarget } from 'home-assistant-js-websocket';
 import { z } from 'zod';
 
 export const targetSchema: z.ZodSchema<HassServiceTarget> = z.object({

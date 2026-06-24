@@ -1,17 +1,21 @@
-import { Connection, STATE_RUNNING, STATE_STARTING } from 'home-assistant-js-websocket';
+import {
+  STATE_RUNNING,
+  STATE_STARTING,
+  type Connection,
+} from 'home-assistant-js-websocket';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import {
   HASSConnectionSubscriptionManager,
-  HASSWebSocketStatusCallback,
-  HASSWebSocketSubscriptionStatus,
+  type HASSWebSocketStatusCallback,
+  type HASSWebSocketSubscriptionStatus,
 } from '../../../src/ha/connection/subscription-manager';
-import {
+import type {
   HASSWebSocketLiveness,
   HASSWebSocketOpenCallback,
 } from '../../../src/ha/connection/types';
-import { HASSSource } from '../../../src/ha/source';
+import type { HASSSource } from '../../../src/ha/source';
 import {
   createHASS,
   createHASSSource,

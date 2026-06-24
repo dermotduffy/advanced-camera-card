@@ -1,37 +1,37 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 import type { IdType } from 'vis-timeline/esnext';
 
-import { CameraManager } from '../camera-manager/manager';
-import { FoldersManager } from '../card-controller/folders/manager';
-import { ViewItemManager } from '../card-controller/view/item-manager';
-import { ViewManagerEpoch } from '../card-controller/view/types';
+import type { CameraManager } from '../camera-manager/manager';
+import type { FoldersManager } from '../card-controller/folders/manager';
+import type { ViewItemManager } from '../card-controller/view/item-manager';
+import type { ViewManagerEpoch } from '../card-controller/view/types';
 import { TimelineController } from '../components-lib/timeline/controller';
 import {
-  ThumbnailDataRequest,
   ThumbnailDataRequestEvent,
-  TimelineItemClickAction,
+  type ThumbnailDataRequest,
+  type TimelineItemClickAction,
 } from '../components-lib/timeline/types';
-import { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types';
-import { ThumbnailsControlBaseConfig } from '../config/schema/common/controls/thumbnails';
-import { TimelineCoreConfig } from '../config/schema/common/controls/timeline';
-import { CardWideConfig } from '../config/schema/types';
-import { HomeAssistant } from '../ha/types';
+import type { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types';
+import type { ThumbnailsControlBaseConfig } from '../config/schema/common/controls/thumbnails';
+import type { TimelineCoreConfig } from '../config/schema/common/controls/timeline';
+import type { CardWideConfig } from '../config/schema/types';
+import type { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import timelineCoreStyle from '../scss/timeline-core.scss';
 import { contentsChanged } from '../utils/basic';
 
 import './date-picker.js';
 
-import { AdvancedCameraCardDatePicker, DatePickerEvent } from './date-picker.js';
+import type { AdvancedCameraCardDatePicker, DatePickerEvent } from './date-picker.js';
 
 import './icon';
 

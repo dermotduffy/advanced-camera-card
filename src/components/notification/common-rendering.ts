@@ -1,8 +1,8 @@
-import { html, TemplateResult } from 'lit';
+import { html, type TemplateResult } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 
 import { actionHandler } from '../../action-handler-directive.js';
-import {
+import type {
   Notification,
   NotificationControl,
   NotificationDetail,

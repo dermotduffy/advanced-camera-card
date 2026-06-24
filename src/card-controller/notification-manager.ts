@@ -1,5 +1,5 @@
-import { Notification } from '../config/schema/actions/types';
-import { CardNotificationAPI } from './types';
+import type { Notification } from '../config/schema/actions/types';
+import type { CardNotificationAPI } from './types';
 
 export class NotificationManager {
   private _notification: Notification | null = null;

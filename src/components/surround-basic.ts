@@ -1,13 +1,19 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import surroundBasicStyle from '../scss/surround-basic.scss';
 import { contentsChanged } from '../utils/basic.js';
 
 import './drawer.js';
 
-import { AdvancedCameraCardDrawer, DrawerIcons } from './drawer.js';
+import type { AdvancedCameraCardDrawer, DrawerIcons } from './drawer.js';
 
 interface AdvancedCameraCardDrawerOpen {
   drawer: 'left' | 'right';

@@ -6,10 +6,10 @@ import { localize } from '../../localize/localize';
 import { AdvancedCameraCardError } from '../../types';
 import { errorToConsole } from '../../utils/basic';
 import { downloadURL } from '../../utils/download';
-import { ViewItem } from '../../view/item';
+import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
-import { ViewItemCapabilities } from '../../view/types';
-import { CardViewAPI } from '../types';
+import type { ViewItemCapabilities } from '../../view/types';
+import type { CardViewAPI } from '../types';
 
 enum ViewMediaSource {
   Camera = 'camera',

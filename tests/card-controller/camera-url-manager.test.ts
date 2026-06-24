@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CameraURLManager } from '../../src/card-controller/camera-url-manager';
-import { CardCameraURLAPI } from '../../src/card-controller/types';
-import { Endpoint } from '../../src/types';
+import type { CardCameraURLAPI } from '../../src/card-controller/types';
+import type { Endpoint } from '../../src/types';
 import { createCardAPI, createViewWithMedia } from '../test-utils';
 
 const createAPIWithMedia = (): CardCameraURLAPI => {

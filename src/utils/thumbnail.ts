@@ -1,7 +1,7 @@
 import { Task } from '@lit-labs/task';
-import { ReactiveControllerHost } from '@lit/reactive-element';
+import type { ReactiveControllerHost } from '@lit/reactive-element';
 
-import { HomeAssistant } from '../ha/types';
+import type { HomeAssistant } from '../ha/types';
 
 // See: https://github.com/sindresorhus/is-absolute-url
 // Scheme: https://tools.ietf.org/html/rfc3986#section-3.1

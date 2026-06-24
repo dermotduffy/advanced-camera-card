@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
+import type { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import {
-  ConditionStateManagerGetEvent,
   getConditionStateManagerViaEvent,
+  type ConditionStateManagerGetEvent,
 } from '../../../src/condition-trigger/conditions/state-manager-via-event';
 
 // @vitest-environment jsdom

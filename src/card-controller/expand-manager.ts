@@ -1,4 +1,4 @@
-import { CardExpandAPI } from './types';
+import type { CardExpandAPI } from './types';
 
 export class ExpandManager {
   private _expanded = false;

@@ -1,7 +1,7 @@
-import { ReactiveController, ReactiveControllerHost } from 'lit';
+import type { ReactiveController, ReactiveControllerHost } from 'lit';
 import { isEqual, omit } from 'lodash-es';
 
-import {
+import type {
   MediaLoadedInfo,
   MediaLoadedInfoEventDetail,
   UntargetedMediaLoadedInfo,

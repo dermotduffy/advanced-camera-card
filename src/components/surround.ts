@@ -1,22 +1,22 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { CameraManager } from '../camera-manager/manager.js';
-import { FoldersManager } from '../card-controller/folders/manager.js';
-import { ViewItemManager } from '../card-controller/view/item-manager.js';
-import { ViewManagerEpoch } from '../card-controller/view/types.js';
-import { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types.js';
-import { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
-import { MiniTimelineControlConfig } from '../config/schema/common/controls/timeline.js';
-import { CardWideConfig } from '../config/schema/types.js';
-import { HomeAssistant } from '../ha/types.js';
+import type { CameraManager } from '../camera-manager/manager.js';
+import type { FoldersManager } from '../card-controller/folders/manager.js';
+import type { ViewItemManager } from '../card-controller/view/item-manager.js';
+import type { ViewManagerEpoch } from '../card-controller/view/types.js';
+import type { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types.js';
+import type { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
+import type { MiniTimelineControlConfig } from '../config/schema/common/controls/timeline.js';
+import type { CardWideConfig } from '../config/schema/types.js';
+import type { HomeAssistant } from '../ha/types.js';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { contentsChanged } from '../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';

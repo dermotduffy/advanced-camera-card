@@ -1,5 +1,5 @@
-import { EmblaCarouselType, EmblaEventType } from 'embla-carousel';
-import { EngineType } from 'embla-carousel/components/Engine';
+import type { EmblaCarouselType, EmblaEventType } from 'embla-carousel';
+import type { EngineType } from 'embla-carousel/components/Engine';
 import { vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 

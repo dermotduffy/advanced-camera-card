@@ -1,14 +1,14 @@
-import { ViewContext } from 'view';
+import type { ViewContext } from 'view';
 
 import { log } from '../../utils/debug';
 import { getStreamCameraID } from '../../view/substream';
 import { getViewTargetID } from '../../view/target-id';
-import { View } from '../../view/view';
+import type { View } from '../../view/view';
 import { InitializationAspect } from '../initialization-manager';
-import { CardViewAPI } from '../types';
+import type { CardViewAPI } from '../types';
 import { ViewFactory } from './factory';
 import { applyViewModifiers } from './modifiers';
-import {
+import type {
   QueryExecutorOptions,
   ViewFactoryOptions,
   ViewManagerEpoch,

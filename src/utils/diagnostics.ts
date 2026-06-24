@@ -1,10 +1,10 @@
 import pkg from '../../package.json';
-import { IssueKey, IssuePresence } from '../card-controller/issues/types';
-import { RawAdvancedCameraCardConfig } from '../config/types';
+import type { IssueKey, IssuePresence } from '../card-controller/issues/types';
+import type { RawAdvancedCameraCardConfig } from '../config/types';
 import { getIntegrationManifest } from '../ha/integration';
-import { IntegrationManifest } from '../ha/integration/types';
-import { DeviceRegistryManager } from '../ha/registry/device';
-import { HomeAssistant } from '../ha/types';
+import type { IntegrationManifest } from '../ha/integration/types';
+import type { DeviceRegistryManager } from '../ha/registry/device';
+import type { HomeAssistant } from '../ha/types';
 import { HASS_WEB_PROXY_DOMAIN } from '../ha/web-proxy';
 import { getLanguage } from '../localize/localize';
 

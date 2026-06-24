@@ -1,17 +1,17 @@
 import { get, merge } from 'lodash-es';
 
 import { ConditionsManager } from '../../condition-trigger/conditions/conditions-manager';
-import { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
+import type { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
 import {
   copyConfig,
   deleteConfigValue,
   getConfigValue,
   setConfigValue,
 } from '../../config/management';
-import { Override } from '../../config/schema/overrides';
+import type { Override } from '../../config/schema/overrides';
 import {
-  AdvancedCameraCardConfig,
   advancedCameraCardConfigSchema,
+  type AdvancedCameraCardConfig,
 } from '../../config/schema/types';
 import { localize } from '../../localize/localize';
 import { AdvancedCameraCardError } from '../../types';

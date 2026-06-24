@@ -1,9 +1,13 @@
-import { ActionsExecutor } from '../../card-controller/actions/types';
-import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
-import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
-import { HomeAssistant } from '../../ha/types';
-import { CapabilitiesRaw, PTZCapabilities, PTZMovementType } from '../../types';
-import { CameraInitializationOptions } from '../camera';
+import type { ActionsExecutor } from '../../card-controller/actions/types';
+import type { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
+import type { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
+import type { HomeAssistant } from '../../ha/types';
+import {
+  PTZMovementType,
+  type CapabilitiesRaw,
+  type PTZCapabilities,
+} from '../../types';
+import type { CameraInitializationOptions } from '../camera';
 import { EntityCamera } from '../entity-camera';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 

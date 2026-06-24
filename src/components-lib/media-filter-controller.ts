@@ -10,24 +10,24 @@ import {
   startOfYesterday,
   sub,
 } from 'date-fns';
-import { LitElement } from 'lit';
+import type { LitElement } from 'lit';
 import { isEqual, orderBy } from 'lodash-es';
 
-import { CameraManager, CameraQueryClassifier } from '../camera-manager/manager';
-import { DateRange, PartialDateRange } from '../camera-manager/range';
+import { CameraQueryClassifier, type CameraManager } from '../camera-manager/manager';
+import type { DateRange, PartialDateRange } from '../camera-manager/range';
 import {
-  EventQuery,
-  MediaMetadata,
   QueryType,
-  ReviewQuery,
+  type EventQuery,
+  type MediaMetadata,
+  type ReviewQuery,
 } from '../camera-manager/types';
-import { FoldersManager } from '../card-controller/folders/manager';
-import { ViewManagerInterface } from '../card-controller/view/types';
-import { SelectOption, SelectValues } from '../components/select';
-import { CardWideConfig } from '../config/schema/types';
+import type { FoldersManager } from '../card-controller/folders/manager';
+import type { ViewManagerInterface } from '../card-controller/view/types';
+import type { SelectOption, SelectValues } from '../components/select';
+import type { CardWideConfig } from '../config/schema/types';
 import { localize } from '../localize/localize';
-import { SEVERITIES, Severity } from '../severity';
-import { ViewMediaType } from '../types';
+import { SEVERITIES, type Severity } from '../severity';
+import type { ViewMediaType } from '../types';
 import { errorToConsole, formatDate, prettifyTitle } from '../utils/basic';
 import { UnifiedQueryBuilder } from '../view/unified-query-builder';
 

@@ -1,21 +1,21 @@
 import {
-  CSSResult,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResult,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 
-import { CameraManager } from '../../camera-manager/manager';
+import type { CameraManager } from '../../camera-manager/manager';
 import { MediaNotificationController } from '../../components-lib/media/notification-controller';
-import { NotificationDetail } from '../../config/schema/actions/types';
-import { HomeAssistant } from '../../ha/types';
+import type { NotificationDetail } from '../../config/schema/actions/types';
+import type { HomeAssistant } from '../../ha/types';
 import thumbnailDetailsStyle from '../../scss/thumbnail-details.scss';
-import { ViewItem } from '../../view/item';
+import type { ViewItem } from '../../view/item';
 
 import '../icon';
 

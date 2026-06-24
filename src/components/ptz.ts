@@ -1,34 +1,34 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import { actionHandler } from '../action-handler-directive.js';
-import { CameraManager } from '../camera-manager/manager.js';
+import type { CameraManager } from '../camera-manager/manager.js';
 import { PTZController } from '../components-lib/ptz/ptz-controller.js';
-import { PTZControllerActions } from '../components-lib/ptz/types.js';
-import { Actions } from '../config/schema/actions/types.js';
-import {
+import type { PTZControllerActions } from '../components-lib/ptz/types.js';
+import type { Actions } from '../config/schema/actions/types.js';
+import type {
   PTZControlsConfig,
   PTZControlType,
 } from '../config/schema/common/controls/ptz.js';
-import { HomeAssistant } from '../ha/types.js';
+import type { HomeAssistant } from '../ha/types.js';
 import { localize } from '../localize/localize.js';
 import ptzStyle from '../scss/ptz.scss';
-import { Interaction } from '../types.js';
+import type { Interaction } from '../types.js';
 import { hasAction } from '../utils/action.js';
 import { prettifyTitle } from '../utils/basic.js';
 
 import './icon.js';
 import './submenu';
 
-import { SubmenuInteraction, SubmenuItem } from './submenu/types.js';
+import type { SubmenuInteraction, SubmenuItem } from './submenu/types.js';
 
 @customElement('advanced-camera-card-ptz')
 export class AdvancedCameraCardPTZ extends LitElement {

@@ -1,4 +1,4 @@
-import { View } from '../../view/view';
+import type { View } from '../../view/view';
 
 export interface CallSession {
   // The camera that owns the call.

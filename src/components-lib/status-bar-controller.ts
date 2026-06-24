@@ -1,14 +1,14 @@
-import { LitElement } from 'lit';
+import type { LitElement } from 'lit';
 import { isEqual, orderBy } from 'lodash-es';
 
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request';
-import { ActionsConfig, StatusBarItem } from '../config/schema/actions/types';
+import type { ActionsConfig, StatusBarItem } from '../config/schema/actions/types';
 import { STATUS_BAR_PRIORITY_DEFAULT } from '../config/schema/common/const';
-import { StatusBarConfig } from '../config/schema/status-bar';
+import type { StatusBarConfig } from '../config/schema/status-bar';
 import { getActionConfigGivenAction } from '../utils/action';
 import { arrayify } from '../utils/basic';
 import { Timer } from '../utils/timer';
-import { AutoHideState, isAutoHidden as evaluateAutoHidden } from './auto-hide';
+import { isAutoHidden as evaluateAutoHidden, type AutoHideState } from './auto-hide';
 
 export class StatusBarController {
   private _host: LitElement;

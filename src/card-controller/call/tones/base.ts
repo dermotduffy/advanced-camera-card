@@ -1,5 +1,5 @@
 import { Timer } from '../../../utils/timer';
-import { RingtoneFinishedHandler, Tone, ToneEnvelope } from './types';
+import type { RingtoneFinishedHandler, Tone, ToneEnvelope } from './types';
 
 // Shared scaffolding for tones generated via the Web Audio API: owns the
 // AudioContext lifecycle, the repeat timer, and the bell-shaped note envelope.

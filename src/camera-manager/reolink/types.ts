@@ -1,5 +1,5 @@
-import { BrowseMediaMetadata, RichBrowseMedia } from '../../ha/browse-media/types';
-import { Engine, EventQueryResults } from '../types';
+import type { BrowseMediaMetadata, RichBrowseMedia } from '../../ha/browse-media/types';
+import type { Engine, EventQueryResults } from '../types';
 
 export interface BrowseMediaReolinkCameraMetadata {
   configEntryID: string;

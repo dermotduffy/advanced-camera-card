@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { EffectName } from '../../../../types';
+import type { EffectName } from '../../../../types';
 import { advancedCameraCardCustomActionsBaseSchema } from './base';
 
 const effectNameSchema = z.enum([

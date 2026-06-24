@@ -1,8 +1,11 @@
-import { ActionContext } from 'action';
+import type { ActionContext } from 'action';
 
-import { TriggerData } from '../../condition-trigger/triggers/types';
+import type { TriggerData } from '../../condition-trigger/triggers/types';
 import { INTERNAL_CALLBACK_ACTION } from '../../config/schema/actions/custom/internal';
-import { ActionConfig, AuxillaryActionConfig } from '../../config/schema/actions/types';
+import type {
+  ActionConfig,
+  AuxillaryActionConfig,
+} from '../../config/schema/actions/types';
 import { isAdvancedCameraCardCustomAction, isIfAction } from '../../utils/action';
 import { CallAnswerAction } from './actions/call-answer';
 import { CallEndAction } from './actions/call-end';
@@ -51,7 +54,7 @@ import { ToggleAction } from './actions/toggle';
 import { UnmuteAction } from './actions/unmute';
 import { URLAction } from './actions/url';
 import { ViewAction } from './actions/view';
-import { Action } from './types';
+import type { Action } from './types';
 
 export interface ActionFactoryOptions {
   config?: AuxillaryActionConfig;

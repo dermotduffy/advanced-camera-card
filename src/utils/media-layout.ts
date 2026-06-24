@@ -1,4 +1,4 @@
-import { MediaLayoutConfig } from '../config/schema/camera/media-layout';
+import type { MediaLayoutConfig } from '../config/schema/camera/media-layout';
 import { setOrRemoveStyleProperty } from './basic';
 
 /**

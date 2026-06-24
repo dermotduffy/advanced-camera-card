@@ -1,14 +1,14 @@
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { property } from 'lit/decorators.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 import { isEqual } from 'lodash-es';
 
 import { grSelectElements } from '../scoped-elements/gr-select';

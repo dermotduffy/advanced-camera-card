@@ -1,21 +1,21 @@
 import { format } from 'date-fns';
 
-import { ActionsExecutor } from '../../card-controller/actions/types';
-import { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
-import { CameraConfig } from '../../config/schema/cameras';
-import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
-import { HomeAssistant } from '../../ha/types';
+import type { ActionsExecutor } from '../../card-controller/actions/types';
+import type { PTZAction, PTZActionPhase } from '../../config/schema/actions/custom/ptz';
+import type { CameraConfig } from '../../config/schema/cameras';
+import type { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
+import type { HomeAssistant } from '../../ha/types';
 import { SEVERITIES } from '../../severity';
 import {
-  CapabilitiesRaw,
-  Endpoint,
-  PTZCapabilities,
   PTZMovementType,
+  type CapabilitiesRaw,
+  type Endpoint,
+  type PTZCapabilities,
 } from '../../types';
 import { errorToConsole } from '../../utils/basic';
-import { Camera, CameraInitializationOptions } from '../camera';
+import { Camera, type CameraInitializationOptions } from '../camera';
 import { CameraNoEntityError } from '../error';
-import { CameraEndpoints, CameraEndpointsContext } from '../types';
+import type { CameraEndpoints, CameraEndpointsContext } from '../types';
 import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
 import {
   getGo2RTCMetadataEndpoint,
@@ -25,11 +25,14 @@ import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 import { getPTZInfo } from './requests';
 import {
   FRIGATE_SEVERITY_MAP,
-  FrigateEventChange,
-  FrigateReviewChange,
-  PTZInfo,
+  type FrigateEventChange,
+  type FrigateReviewChange,
+  type PTZInfo,
 } from './types';
-import { FrigateWatcherRequest, FrigateWatcherSubscriptionInterface } from './watcher';
+import type {
+  FrigateWatcherRequest,
+  FrigateWatcherSubscriptionInterface,
+} from './watcher';
 
 const CAMERA_BIRDSEYE = 'birdseye' as const;
 

@@ -1,6 +1,6 @@
-import { MenuIcon } from './icon';
-import { MenuStateIcon } from './state-icon';
-import { MenuSubmenu } from './submenu';
-import { MenuSubmenuSelect } from './submenu-select';
+import type { MenuIcon } from './icon';
+import type { MenuStateIcon } from './state-icon';
+import type { MenuSubmenu } from './submenu';
+import type { MenuSubmenuSelect } from './submenu-select';
 
 export type MenuItem = MenuIcon | MenuStateIcon | MenuSubmenu | MenuSubmenuSelect;

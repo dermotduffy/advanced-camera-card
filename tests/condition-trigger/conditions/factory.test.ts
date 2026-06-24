@@ -10,10 +10,10 @@ import { KeyConditionEvaluator } from '../../../src/condition-trigger/conditions
 import { MediaLoadedConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/media-loaded';
 import { MicrophoneConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/microphone';
 import { TriggeredConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/triggered';
-import { ConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/types';
+import type { ConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/types';
 import { ViewConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/view';
 import { createConditionEvaluatorForTrigger } from '../../../src/condition-trigger/conditions/factory';
-import { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
+import type { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
 
 type ConditionEvaluatorConstructor = new (...args: never[]) => ConditionEvaluator;
 

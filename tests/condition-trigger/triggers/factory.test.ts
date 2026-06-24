@@ -20,12 +20,12 @@ import { ScreenTrigger } from '../../../src/condition-trigger/triggers/triggers/
 import { StateTrigger } from '../../../src/condition-trigger/triggers/triggers/state';
 import { TemplateTrigger } from '../../../src/condition-trigger/triggers/triggers/template';
 import { TriggeredTrigger } from '../../../src/condition-trigger/triggers/triggers/triggered';
-import {
+import type {
   TriggerEvaluator,
   TriggerEvaluatorContext,
 } from '../../../src/condition-trigger/triggers/triggers/types';
 import { ViewTrigger } from '../../../src/condition-trigger/triggers/triggers/view';
-import { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
+import type { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
 import { createHASSManager } from '../../test-utils';
 
 type TriggerEvaluatorConstructor = new (...args: never[]) => TriggerEvaluator;

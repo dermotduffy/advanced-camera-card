@@ -1,8 +1,8 @@
-import { HASSManagerReadonlyInterface } from '../../../card-controller/hass/types';
-import { TemplateRenderer } from '../../../card-controller/templates';
-import { Trigger } from '../../../config/schema/condition-trigger/triggers/types';
-import { ConditionStateManagerReadonlyInterface } from '../../conditions/types';
-import { TriggerData } from '../types';
+import type { HASSManagerReadonlyInterface } from '../../../card-controller/hass/types';
+import type { TemplateRenderer } from '../../../card-controller/templates';
+import type { Trigger } from '../../../config/schema/condition-trigger/triggers/types';
+import type { ConditionStateManagerReadonlyInterface } from '../../conditions/types';
+import type { TriggerData } from '../types';
 
 export type TriggerCallback = (data: TriggerData) => void;
 

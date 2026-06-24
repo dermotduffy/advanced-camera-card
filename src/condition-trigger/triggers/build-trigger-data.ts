@@ -1,6 +1,6 @@
-import { TemplateAdvancedCameraCardState } from '../../card-controller/templates/types';
-import { ConditionState, ConditionStateChange } from '../conditions/types';
-import { TriggerData } from './types';
+import type { TemplateAdvancedCameraCardState } from '../../card-controller/templates/types';
+import type { ConditionState, ConditionStateChange } from '../conditions/types';
+import type { TriggerData } from './types';
 
 // The card-state snapshot (`from_acc`/`to_acc`) surfaced by card triggers: the
 // card's own camera/view/config at a point in time.
