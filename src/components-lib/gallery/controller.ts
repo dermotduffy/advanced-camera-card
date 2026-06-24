@@ -111,7 +111,7 @@ export class GalleryController {
         useCache,
       });
     } catch (e) {
-      errorToConsole(e as Error);
+      errorToConsole(e);
       return;
     }
 

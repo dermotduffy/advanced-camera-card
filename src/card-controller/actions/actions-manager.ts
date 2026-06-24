@@ -176,7 +176,7 @@ export class ActionsManager implements ActionsExecutor {
       await actionSet.execute(this._api);
       forwardHaptic('success');
     } catch (e) {
-      errorToConsole(e as Error);
+      errorToConsole(e);
       forwardHaptic('warning');
     }
     this._actionsInFlight = this._actionsInFlight.filter((a) => a !== actionSet);

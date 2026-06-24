@@ -76,13 +76,13 @@ export function contentsChanged(
 
 /**
  * Log an error as a warning to the console.
- * @param e The Error-like object.
+ * @param e The caught error or error-like value.
  * @param func The Console func to call.
  */
-export function errorToConsole(
-  e: Error | { message: unknown } | string,
-  func: CallableFunction = console.warn,
-): void {
+export function errorToConsole(e: unknown, func: CallableFunction = console.warn): void {
+  if (!e) {
+    return;
+  }
   if (e instanceof AdvancedCameraCardError && e.context) {
     func(e, e.context);
   } else if (typeof e === 'object' && 'message' in e) {

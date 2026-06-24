@@ -400,7 +400,7 @@ export class MediaFilterController {
     try {
       metadata = await cameraManager.getMediaMetadata();
     } catch (e) {
-      errorToConsole(e as Error);
+      errorToConsole(e);
     }
     if (!metadata) {
       return;

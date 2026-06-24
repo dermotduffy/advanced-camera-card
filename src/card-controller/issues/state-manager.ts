@@ -37,7 +37,7 @@ export class IssueStateManager implements IssueReadOnlyState {
       } catch (e) {
         // Isolate one issue's detection failure so it cannot abort detection
         // for the rest; log so the cause is visible.
-        errorToConsole(e as Error);
+        errorToConsole(e);
       }
       this._logIfNew(issue);
     }

@@ -103,7 +103,7 @@ export class ViewItemManager {
     try {
       url = await homeAssistantGetSignedURLIfNecessary(hass, endpoint);
     } catch (e) {
-      errorToConsole(e as Error);
+      errorToConsole(e);
       url = null;
     }
 
