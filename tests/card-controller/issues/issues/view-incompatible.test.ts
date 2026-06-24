@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CardController } from '../../../../src/card-controller/controller';
+import type { CardController } from '../../../../src/card-controller/controller';
 import { ViewIncompatibleIssue } from '../../../../src/card-controller/issues/issues/view-incompatible';
 import { AdvancedCameraCardError } from '../../../../src/types';
-import { View } from '../../../../src/view/view';
+import type { View } from '../../../../src/view/view';
 import { createCardAPI } from '../../../test-utils';
 
 describe('ViewIncompatibleIssue', () => {

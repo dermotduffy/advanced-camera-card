@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { MediaLoadedInfoSourceController } from '../../src/components-lib/media-loaded-info-source-controller';
-import { MediaPlayerController } from '../../src/types';
+import type { MediaPlayerController } from '../../src/types';
 import { createLitElement, createMediaLoadedInfo } from '../test-utils';
 
 // @vitest-environment jsdom

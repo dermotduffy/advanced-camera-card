@@ -1,6 +1,6 @@
-import { TemplateResult } from 'lit';
+import type { TemplateResult } from 'lit';
 
-import { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManager } from '../../camera-manager/manager.js';
 import { localize } from '../../localize/localize.js';
 import { renderNotificationBlock } from './block.js';
 

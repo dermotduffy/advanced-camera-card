@@ -1,15 +1,15 @@
 import { format } from 'date-fns';
 
-import { CameraManager } from '../../camera-manager/manager';
-import { CameraManagerCameraMetadata } from '../../camera-manager/types';
-import { ViewItemManager } from '../../card-controller/view/item-manager';
-import { ViewManagerEpoch } from '../../card-controller/view/types';
-import {
+import type { CameraManager } from '../../camera-manager/manager';
+import type { CameraManagerCameraMetadata } from '../../camera-manager/types';
+import type { ViewItemManager } from '../../card-controller/view/item-manager';
+import type { ViewManagerEpoch } from '../../card-controller/view/types';
+import type {
   Notification,
   NotificationControl,
   NotificationDetail,
 } from '../../config/schema/actions/types';
-import { HomeAssistant } from '../../ha/types';
+import type { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import { createInternalCallbackAction } from '../../utils/action';
 import { getDurationString, prettifyTitle } from '../../utils/basic';
@@ -19,9 +19,9 @@ import {
   toggleFavorite,
   toggleReviewed,
 } from '../../utils/media-actions';
-import { ViewItem } from '../../view/item';
+import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
-import { ViewItemCapabilities } from '../../view/types';
+import type { ViewItemCapabilities } from '../../view/types';
 
 export interface NotificationControlsContext {
   hass?: HomeAssistant;

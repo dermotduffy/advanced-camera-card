@@ -1,6 +1,6 @@
-import { MoreInfoActionConfig } from '../../../config/schema/actions/stock/more-info';
+import type { MoreInfoActionConfig } from '../../../config/schema/actions/stock/more-info';
 import { fireHASSEvent } from '../../../ha/fire-hass-event';
-import { CardActionsAPI } from '../../types';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class MoreInfoAction extends AdvancedCameraCardAction<MoreInfoActionConfig> {

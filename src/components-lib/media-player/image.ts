@@ -1,6 +1,6 @@
-import { LitElement } from 'lit';
+import type { LitElement } from 'lit';
 
-import { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
+import type { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
 import { screenshotImage } from '../../utils/screenshot';
 
 export class ImageMediaPlayerController implements MediaPlayerController {

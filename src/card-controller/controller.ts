@@ -1,14 +1,14 @@
-import { ReactiveController } from 'lit';
+import type { ReactiveController } from 'lit';
 
 import { CameraManager } from '../camera-manager/manager';
 import { ConditionStateManager } from '../condition-trigger/conditions/state-manager';
-import { AdvancedCameraCardConfig } from '../config/schema/types';
+import type { AdvancedCameraCardConfig } from '../config/schema/types';
 import { DeviceRegistryManager } from '../ha/registry/device';
 import { DeviceCache } from '../ha/registry/device/types';
 import { EntityRegistryManagerLive } from '../ha/registry/entity';
-import { EntityCache, EntityRegistryManager } from '../ha/registry/entity/types';
+import { EntityCache, type EntityRegistryManager } from '../ha/registry/entity/types';
 import { ResolvedMediaCache } from '../ha/resolved-media';
-import { LovelaceCardEditor } from '../ha/types';
+import type { LovelaceCardEditor } from '../ha/types';
 import { ActionsManager } from './actions/actions-manager';
 import { AutomationsManager } from './automations-manager';
 import { CallManager } from './call/manager';
@@ -16,9 +16,9 @@ import { CameraTriggersManager } from './camera-triggers-manager';
 import { CameraURLManager } from './camera-url-manager';
 import {
   CardElementManager,
-  CardHTMLElement,
-  MenuToggleCallback,
-  ScrollCallback,
+  type CardHTMLElement,
+  type MenuToggleCallback,
+  type ScrollCallback,
 } from './card-element-manager';
 import { ConfigManager } from './config/config-manager';
 import { DefaultManager } from './default-manager';
@@ -30,7 +30,7 @@ import { HASSManager } from './hass/hass-manager';
 import { InitializationManager } from './initialization-manager';
 import { InteractionManager } from './interaction-manager';
 import { createIssueManager } from './issues/factory';
-import { IssueManager } from './issues/issue-manager';
+import type { IssueManager } from './issues/issue-manager';
 import { KeyboardStateManager } from './keyboard-state-manager';
 import { LockManager } from './lock/manager';
 import { MediaLoadedInfoManager } from './media-info-manager';
@@ -42,7 +42,7 @@ import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
 import { TemplateRenderer } from './templates';
-import {
+import type {
   CardActionsManagerAPI,
   CardAutomationsAPI,
   CardCameraAPI,

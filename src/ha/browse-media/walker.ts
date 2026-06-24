@@ -2,14 +2,14 @@ import { add } from 'date-fns';
 import { chunk } from 'lodash-es';
 
 import { allPromises } from '../../utils/basic';
-import { HomeAssistant } from '../types';
+import type { HomeAssistant } from '../types';
 import { homeAssistantWSRequest } from '../ws-request';
 import {
   BROWSE_MEDIA_CACHE_SECONDS,
-  BrowseMedia,
-  BrowseMediaCache,
   browseMediaSchema,
-  RichBrowseMedia,
+  type BrowseMedia,
+  type BrowseMediaCache,
+  type RichBrowseMedia,
 } from './types';
 
 type RichMetadataGenerator<M> = (

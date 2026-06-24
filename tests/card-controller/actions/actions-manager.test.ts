@@ -12,12 +12,12 @@ import { mock } from 'vitest-mock-extended';
 
 import {
   ActionsManager,
-  Interaction,
-  InteractionName,
+  type Interaction,
+  type InteractionName,
 } from '../../../src/card-controller/actions/actions-manager';
 import type { CardController } from '../../../src/card-controller/controller';
 import { TemplateRenderer } from '../../../src/card-controller/templates';
-import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
+import type { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import {
   createInternalCallbackAction,
   createLogAction,

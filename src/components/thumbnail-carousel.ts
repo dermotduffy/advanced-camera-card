@@ -1,36 +1,36 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { CameraManager } from '../camera-manager/manager.js';
-import { FoldersManager } from '../card-controller/folders/manager.js';
-import { ViewItemManager } from '../card-controller/view/item-manager.js';
+import type { CameraManager } from '../camera-manager/manager.js';
+import type { FoldersManager } from '../card-controller/folders/manager.js';
+import type { ViewItemManager } from '../card-controller/view/item-manager.js';
 import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context.js';
-import { ViewManagerEpoch } from '../card-controller/view/types.js';
+import type { ViewManagerEpoch } from '../card-controller/view/types.js';
 import {
-  FolderNavigationParamaters,
   getUpFolderItem,
   navigateToFolder,
   navigateToMedia,
   navigateUp,
+  type FolderNavigationParamaters,
 } from '../components-lib/navigation.js';
-import { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
-import { CardWideConfig } from '../config/schema/types.js';
+import type { ThumbnailsControlConfig } from '../config/schema/common/controls/thumbnails.js';
+import type { CardWideConfig } from '../config/schema/types.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
-import { HomeAssistant } from '../ha/types.js';
+import type { HomeAssistant } from '../ha/types.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
-import { CarouselDirection } from '../utils/embla/carousel-controller.js';
+import type { CarouselDirection } from '../utils/embla/carousel-controller.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 import { ViewItemClassifier } from '../view/item-classifier.js';
-import { ViewItem, ViewMedia } from '../view/item.js';
+import type { ViewItem, ViewMedia } from '../view/item.js';
 import { UnifiedQueryBuilder } from '../view/unified-query-builder.js';
 import { getReviewedQueryFilterFromQuery } from '../view/utils/query-filter.js';
 

@@ -1,6 +1,6 @@
-import { CameraBase } from '../../../config/schema/condition-trigger/common/camera';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator } from './types';
+import type { CameraBase } from '../../../config/schema/condition-trigger/common/camera';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator } from './types';
 
 export class CameraConditionEvaluator implements ConditionEvaluator {
   private _condition: CameraBase;

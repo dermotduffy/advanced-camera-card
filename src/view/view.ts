@@ -1,11 +1,11 @@
 import { cloneDeep, merge } from 'lodash-es';
-import { ViewContext } from 'view';
+import type { ViewContext } from 'view';
 
-import { AdvancedCameraCardView } from '../config/schema/common/const';
-import { ViewDisplayMode } from '../config/schema/common/display';
-import { ViewMediaType } from '../types';
-import { QueryResults } from './query-results';
-import { UnifiedQuery } from './unified-query';
+import type { AdvancedCameraCardView } from '../config/schema/common/const';
+import type { ViewDisplayMode } from '../config/schema/common/display';
+import type { ViewMediaType } from '../types';
+import type { QueryResults } from './query-results';
+import type { UnifiedQuery } from './unified-query';
 
 declare module 'view' {
   interface ViewContext {

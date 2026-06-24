@@ -2,17 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { BrowseMediaCameraManagerEngine } from '../../../src/camera-manager/browse-media/engine-browse-media';
-import { CameraManagerReadOnlyConfigStore } from '../../../src/camera-manager/store';
+import type { CameraManagerReadOnlyConfigStore } from '../../../src/camera-manager/store';
 import {
   CameraManagerRequestCache,
-  CameraQuery,
   QueryType,
+  type CameraQuery,
 } from '../../../src/camera-manager/types';
 import { BROWSE_MEDIA_CACHE_SECONDS } from '../../../src/ha/browse-media/types';
 import { BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { QuerySource } from '../../../src/query-source';
-import { ViewMedia } from '../../../src/view/item';
+import type { ViewMedia } from '../../../src/view/item';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import { createCameraConfig, createHASS, createHASSManager } from '../../test-utils';
 

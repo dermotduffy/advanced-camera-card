@@ -3,9 +3,9 @@ import { mock } from 'vitest-mock-extended';
 
 import { supports2WayAudio } from '../../../src/camera-manager/utils/go2rtc/audio';
 import { homeAssistantSignAndFetch } from '../../../src/ha/fetch';
-import { HomeAssistant } from '../../../src/ha/types';
+import type { HomeAssistant } from '../../../src/ha/types';
 import { createProxiedEndpointIfNecessary } from '../../../src/ha/web-proxy';
-import { Endpoint } from '../../../src/types';
+import type { Endpoint } from '../../../src/types';
 
 vi.mock('../../../src/ha/fetch');
 vi.mock('../../../src/ha/web-proxy');

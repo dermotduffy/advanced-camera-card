@@ -1,7 +1,7 @@
-import { CameraConfig } from '../../config/schema/cameras';
-import { Severity } from '../../severity';
+import type { CameraConfig } from '../../config/schema/cameras';
+import type { Severity } from '../../severity';
 import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
-import {
+import type {
   FrigateEvent,
   FrigateRecording,
   FrigateReview,

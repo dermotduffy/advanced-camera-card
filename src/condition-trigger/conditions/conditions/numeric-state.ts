@@ -1,7 +1,7 @@
 import { arrayify } from '../../../utils/basic';
 import { matchesNumericState } from '../../common/numeric-state';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './types';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './types';
 
 export class NumericStateConditionEvaluator implements ConditionEvaluator {
   private _condition: ConditionOfType<'numeric_state'>;

@@ -1,5 +1,5 @@
-import { CallEndActionConfig } from '../../../config/schema/actions/custom/call-end';
-import { CardActionsAPI } from '../../types';
+import type { CallEndActionConfig } from '../../../config/schema/actions/custom/call-end';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class CallEndAction extends AdvancedCameraCardAction<CallEndActionConfig> {

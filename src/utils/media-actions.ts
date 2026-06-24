@@ -1,7 +1,7 @@
-import { ViewItemManager } from '../card-controller/view/item-manager';
+import type { ViewItemManager } from '../card-controller/view/item-manager';
 import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context';
-import { ViewManagerEpoch } from '../card-controller/view/types';
-import { ViewItem } from '../view/item';
+import type { ViewManagerEpoch } from '../card-controller/view/types';
+import type { ViewItem } from '../view/item';
 import { ViewItemClassifier } from '../view/item-classifier';
 import { errorToConsole } from './basic';
 

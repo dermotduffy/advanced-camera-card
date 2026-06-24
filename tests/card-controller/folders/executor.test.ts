@@ -2,11 +2,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { FoldersExecutor } from '../../../src/card-controller/folders/executor';
-import { HAFoldersEngine } from '../../../src/card-controller/folders/ha/engine';
-import { FolderQuery } from '../../../src/card-controller/folders/types';
-import { FolderConfig } from '../../../src/config/schema/folders';
+import type { HAFoldersEngine } from '../../../src/card-controller/folders/ha/engine';
+import type { FolderQuery } from '../../../src/card-controller/folders/types';
+import type { FolderConfig } from '../../../src/config/schema/folders';
 import { QuerySource } from '../../../src/query-source';
-import { Endpoint } from '../../../src/types';
+import type { Endpoint } from '../../../src/types';
 import { ViewFolder } from '../../../src/view/item';
 import { createFolder, createHASS, TestViewMedia } from '../../test-utils';
 

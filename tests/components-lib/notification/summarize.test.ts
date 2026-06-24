@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { summarizeNotification } from '../../../src/components-lib/notification/summarize';
-import { Notification } from '../../../src/config/schema/actions/types';
+import type { Notification } from '../../../src/config/schema/actions/types';
 
 describe('summarizeNotification', () => {
   it('should return the body text when present', () => {

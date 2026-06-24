@@ -1,4 +1,4 @@
-import { NonEmptyTuple } from 'type-fest';
+import type { NonEmptyTuple } from 'type-fest';
 import { z } from 'zod';
 
 import { AdvancedCameraCardError } from '../../types';

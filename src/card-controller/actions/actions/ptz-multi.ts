@@ -1,7 +1,7 @@
-import { PTZMultiActionConfig } from '../../../config/schema/actions/custom/ptz-multi';
+import type { PTZMultiActionConfig } from '../../../config/schema/actions/custom/ptz-multi';
 import { createPTZAction, createPTZDigitalAction } from '../../../utils/action';
-import { getPTZTarget, hasCameraTruePTZ, PTZType } from '../../../utils/ptz';
-import { CardActionsAPI } from '../../types';
+import { getPTZTarget, hasCameraTruePTZ, type PTZType } from '../../../utils/ptz';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 import { PTZAction } from './ptz';
 import { PTZDigitalAction } from './ptz-digital';

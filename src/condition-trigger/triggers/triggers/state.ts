@@ -1,8 +1,8 @@
-import { HassEntity } from 'home-assistant-js-websocket';
+import type { HassEntity } from 'home-assistant-js-websocket';
 
 import { arrayify } from '../../../utils/basic';
 import { EntityStateTriggerBase } from './entity-state-base';
-import { TriggerOfType } from './types';
+import type { TriggerOfType } from './types';
 
 // https://www.home-assistant.io/docs/automation/trigger/#state-trigger Faithful
 // to HA's state trigger

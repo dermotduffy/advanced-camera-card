@@ -1,4 +1,4 @@
-import { CacheInterface } from './types.js';
+import type { CacheInterface } from './types.js';
 
 export class CacheBase<Key, Value> implements CacheInterface<Key, Value> {
   private _cache: Map<Key, Value>;

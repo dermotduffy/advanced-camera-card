@@ -1,23 +1,33 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { keyed } from 'lit/directives/keyed.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
-import { CameraManager } from '../camera-manager/manager';
-import { ViewManagerEpoch } from '../card-controller/view/types';
-import { ZoomSettingsObserved } from '../components-lib/zoom/types';
+import type { CameraManager } from '../camera-manager/manager';
+import type { ViewManagerEpoch } from '../card-controller/view/types';
+import type { ZoomSettingsObserved } from '../components-lib/zoom/types';
 import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context';
-import { CameraConfig } from '../config/schema/cameras';
+import type { CameraConfig } from '../config/schema/cameras';
 import {
   resolveProxyConfig,
   type EnabledProxyConfig,
 } from '../config/schema/common/proxy';
-import { ImageViewConfig, type ImageViewProxyConfig } from '../config/schema/image';
-import { HomeAssistant } from '../ha/types';
+import { type ImageViewConfig, type ImageViewProxyConfig } from '../config/schema/image';
+import type { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
-import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../types.js';
+import type {
+  MediaPlayer,
+  MediaPlayerController,
+  MediaPlayerElement,
+} from '../types.js';
 import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../view/target-id.js';
 
 import './image-updating-player';

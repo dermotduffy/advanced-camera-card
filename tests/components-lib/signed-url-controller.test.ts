@@ -1,11 +1,11 @@
-import { ReactiveControllerHost } from 'lit';
+import type { ReactiveControllerHost } from 'lit';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { SignedURLController } from '../../src/components-lib/signed-url-controller';
 import { homeAssistantGetSignedURLIfNecessary } from '../../src/ha/sign-path';
 import { createProxiedEndpointIfNecessary } from '../../src/ha/web-proxy';
-import { Endpoint } from '../../src/types';
+import type { Endpoint } from '../../src/types';
 import { createHASS, flushPromises } from '../test-utils';
 
 vi.mock('../../src/ha/sign-path');

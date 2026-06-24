@@ -1,4 +1,4 @@
-import { Trigger } from '../../config/schema/condition-trigger/triggers/types';
+import type { Trigger } from '../../config/schema/condition-trigger/triggers/types';
 import { CallTrigger } from './triggers/call';
 import { CameraTrigger } from './triggers/camera';
 import { ConfigTrigger } from './triggers/config';
@@ -16,7 +16,7 @@ import { ScreenTrigger } from './triggers/screen';
 import { StateTrigger } from './triggers/state';
 import { TemplateTrigger } from './triggers/template';
 import { TriggeredTrigger } from './triggers/triggered';
-import { TriggerEvaluator, TriggerEvaluatorContext } from './triggers/types';
+import type { TriggerEvaluator, TriggerEvaluatorContext } from './triggers/types';
 import { ViewTrigger } from './triggers/view';
 
 export const createTriggerEvaluator = (

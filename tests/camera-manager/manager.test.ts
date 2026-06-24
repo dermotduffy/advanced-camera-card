@@ -2,10 +2,10 @@ import { add } from 'date-fns';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { Camera } from '../../src/camera-manager/camera.js';
+import type { Camera } from '../../src/camera-manager/camera.js';
 import { Capabilities } from '../../src/camera-manager/capabilities.js';
-import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
-import { CameraManagerEngine } from '../../src/camera-manager/engine.js';
+import type { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
+import type { CameraManagerEngine } from '../../src/camera-manager/engine.js';
 import {
   CameraDuplicateIDError,
   CameraNoEngineError,
@@ -17,25 +17,25 @@ import {
   QueryResultClassifier,
 } from '../../src/camera-manager/manager.js';
 import {
-  CameraEvent,
-  CameraManagerCameraMetadata,
   Engine,
-  EventQuery,
-  EventQueryResults,
-  MediaMetadata,
-  QueryResults,
   QueryResultsType,
   QueryType,
+  type CameraEvent,
+  type CameraManagerCameraMetadata,
+  type EventQuery,
+  type EventQueryResults,
+  type MediaMetadata,
+  type QueryResults,
 } from '../../src/camera-manager/types.js';
-import { CardController } from '../../src/card-controller/controller.js';
-import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
+import type { CardController } from '../../src/card-controller/controller.js';
+import type { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { sortItems } from '../../src/card-controller/view/sort.js';
-import { CameraConfig } from '../../src/config/schema/cameras.js';
+import type { CameraConfig } from '../../src/config/schema/cameras.js';
 import { advancedCameraCardConfigSchema } from '../../src/config/schema/types.js';
 import { QuerySource } from '../../src/query-source.js';
-import { Endpoint, PTZMovementType } from '../../src/types.js';
-import { ViewFolder, ViewItem, ViewMedia } from '../../src/view/item.js';
-import { ViewItemCapabilities } from '../../src/view/types.js';
+import { PTZMovementType, type Endpoint } from '../../src/types.js';
+import { ViewFolder, type ViewItem, type ViewMedia } from '../../src/view/item.js';
+import type { ViewItemCapabilities } from '../../src/view/types.js';
 import {
   createCameraConfig,
   createCapabilities,

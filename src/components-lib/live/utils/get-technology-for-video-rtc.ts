@@ -1,5 +1,5 @@
-import { VideoRTC } from '../../../components/live/providers/go2rtc/video-rtc';
-import { MediaTechnology } from '../../../types';
+import type { VideoRTC } from '../../../components/live/providers/go2rtc/video-rtc';
+import type { MediaTechnology } from '../../../types';
 
 export const getTechnologyForVideoRTC = (
   element: VideoRTC,

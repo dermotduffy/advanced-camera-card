@@ -1,6 +1,6 @@
-import { ReactiveController, ReactiveControllerHost } from 'lit';
+import type { ReactiveController, ReactiveControllerHost } from 'lit';
 
-import { LazyUnloadCondition } from '../config/schema/common/media-actions';
+import type { LazyUnloadCondition } from '../config/schema/common/media-actions';
 
 type LazyLoadListener = (loaded: boolean) => void;
 

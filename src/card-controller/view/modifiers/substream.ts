@@ -1,5 +1,5 @@
-import { View } from '../../../view/view';
-import { ViewModifier } from '../types';
+import type { View } from '../../../view/view';
+import type { ViewModifier } from '../types';
 
 interface SubstreamViewModifierOptions {
   // The substream to engage. When absent, the override is cleared so the

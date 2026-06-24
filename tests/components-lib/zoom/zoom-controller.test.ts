@@ -1,4 +1,7 @@
-import Panzoom, { PanzoomEventDetail, PanzoomObject } from '@dermotduffy/panzoom';
+import Panzoom, {
+  type PanzoomEventDetail,
+  type PanzoomObject,
+} from '@dermotduffy/panzoom';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock, mockClear } from 'vitest-mock-extended';
 

@@ -1,16 +1,16 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { MediaGridController } from '../components-lib/media-grid-controller.js';
-import { ViewDisplayConfig } from '../config/schema/common/display.js';
+import type { ViewDisplayConfig } from '../config/schema/common/display.js';
 import mediaGridStyle from '../scss/media-grid.scss';
 
 @customElement('advanced-camera-card-media-grid')

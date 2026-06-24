@@ -1,38 +1,42 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
-import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
-import { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManager } from '../../camera-manager/manager.js';
 import { QueryType } from '../../camera-manager/types.js';
-import { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { SignedURLController } from '../../components-lib/signed-url-controller.js';
-import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
+import type { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
-import { CameraConfig } from '../../config/schema/cameras.js';
-import { CardWideConfig } from '../../config/schema/types.js';
-import { ViewerConfig } from '../../config/schema/viewer.js';
+import type { CameraConfig } from '../../config/schema/cameras.js';
+import type { CardWideConfig } from '../../config/schema/types.js';
+import type { ViewerConfig } from '../../config/schema/viewer.js';
 import { canonicalizeHAURL } from '../../ha/canonical-url.js';
 import { isHARelativeURL } from '../../ha/is-ha-relative-url.js';
-import { ResolvedMediaCache, resolveMedia } from '../../ha/resolved-media.js';
-import { HomeAssistant, ResolvedMedia } from '../../ha/types.js';
+import { resolveMedia, type ResolvedMediaCache } from '../../ha/resolved-media.js';
+import type { HomeAssistant, ResolvedMedia } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 
 import '../../patches/ha-hls-player.js';
 
 import viewerProviderStyle from '../../scss/viewer-provider.scss';
-import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../../types.js';
+import type {
+  MediaPlayer,
+  MediaPlayerController,
+  MediaPlayerElement,
+} from '../../types.js';
 import { classifyMimeType } from '../../utils/mime-type.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
-import { ViewMedia } from '../../view/item.js';
+import type { ViewMedia } from '../../view/item.js';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer.js';
 
 import '../image-player.js';

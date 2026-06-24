@@ -1,11 +1,11 @@
-import { ConditionEvaluator } from '../condition-trigger/conditions/conditions/types.js';
+import type { ConditionEvaluator } from '../condition-trigger/conditions/conditions/types.js';
 import { createConditionEvaluator } from '../condition-trigger/conditions/factory.js';
 import { TriggersManager } from '../condition-trigger/triggers/manager.js';
-import { TriggerData } from '../condition-trigger/triggers/types.js';
-import { Automation, AutomationActions } from '../config/schema/automations.js';
+import type { TriggerData } from '../condition-trigger/triggers/types.js';
+import type { Automation, AutomationActions } from '../config/schema/automations.js';
 import { localize } from '../localize/localize.js';
 import { TemplateRenderer } from './templates/index.js';
-import { CardAutomationsAPI, TaggedAutomation } from './types.js';
+import type { CardAutomationsAPI, TaggedAutomation } from './types.js';
 
 const MAX_NESTED_AUTOMATION_EXECUTIONS = 10;
 

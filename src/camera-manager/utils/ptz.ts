@@ -1,11 +1,11 @@
-import {
+import type {
   PTZAction,
   PTZActionPhase,
   PTZBaseAction,
 } from '../../config/schema/actions/custom/ptz';
-import { ActionConfig } from '../../config/schema/actions/types';
-import { CameraConfig } from '../../config/schema/cameras';
-import { PTZCapabilities, PTZMovementType } from '../../types';
+import type { ActionConfig } from '../../config/schema/actions/types';
+import type { CameraConfig } from '../../config/schema/cameras';
+import { PTZMovementType, type PTZCapabilities } from '../../types';
 
 export const getConfiguredPTZAction = (
   cameraConfig: CameraConfig,

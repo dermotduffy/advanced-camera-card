@@ -1,19 +1,19 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { ViewItemManager } from '../../src/card-controller/view/item-manager';
+import type { ViewItemManager } from '../../src/card-controller/view/item-manager';
 import { RemoveContextViewModifier } from '../../src/card-controller/view/modifiers/remove-context';
-import { ViewManagerEpoch } from '../../src/card-controller/view/types';
-import { ViewManager } from '../../src/card-controller/view/view-manager';
+import type { ViewManagerEpoch } from '../../src/card-controller/view/types';
+import type { ViewManager } from '../../src/card-controller/view/view-manager';
 import {
   downloadMedia,
   navigateToTimeline,
   toggleFavorite,
   toggleReviewed,
 } from '../../src/utils/media-actions';
-import { ViewItem, ViewMediaType } from '../../src/view/item';
-import { QueryResults } from '../../src/view/query-results';
-import { View } from '../../src/view/view';
+import { ViewMediaType, type ViewItem } from '../../src/view/item';
+import type { QueryResults } from '../../src/view/query-results';
+import type { View } from '../../src/view/view';
 import { TestViewMedia } from '../test-utils';
 
 describe('MediaActions', () => {

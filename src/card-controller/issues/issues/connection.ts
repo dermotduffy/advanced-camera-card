@@ -1,8 +1,8 @@
 import { STATE_RUNNING } from 'home-assistant-js-websocket';
 
-import { ConditionState } from '../../../condition-trigger/conditions/types.js';
+import type { ConditionState } from '../../../condition-trigger/conditions/types.js';
 import { localize } from '../../../localize/localize.js';
-import { Issue, IssueDescription } from '../types.js';
+import type { Issue, IssueDescription } from '../types.js';
 
 // Tracks "is HA fully ready to talk to". Active in two sub-states:
 //   - 'lost'     : the WebSocket is disconnected

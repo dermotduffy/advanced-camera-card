@@ -1,7 +1,7 @@
-import { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
+import type { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
 import { downloadURL } from '../../../utils/download';
 import { generateScreenshotFilename } from '../../../utils/screenshot';
-import { CardActionsAPI } from '../../types';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class ScreenshotAction extends AdvancedCameraCardAction<GeneralActionConfig> {

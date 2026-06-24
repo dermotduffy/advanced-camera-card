@@ -1,13 +1,13 @@
 import { errorToConsole } from '../../../utils/basic.js';
-import { HomeAssistant } from '../../types.js';
+import type { HomeAssistant } from '../../types.js';
 import { homeAssistantWSRequest } from '../../ws-request.js';
 import {
-  Entity,
-  EntityCache,
-  EntityList,
   entityListSchema,
-  EntityRegistryManager,
   entitySchema,
+  type Entity,
+  type EntityCache,
+  type EntityList,
+  type EntityRegistryManager,
 } from './types.js';
 
 // This class manages interactions with entities, caching results and fetching

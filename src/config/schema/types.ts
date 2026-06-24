@@ -4,7 +4,7 @@ import { deepRemoveDefaults } from '../../utils/zod/deep-remove-defaults';
 import { automationsSchema } from './automations';
 import { cameraConfigDefault, cameraConfigSchema, camerasConfigSchema } from './cameras';
 import { cardIDRegex } from './common/const';
-import { DebugConfig, debugConfigDefault, debugConfigSchema } from './debug';
+import { debugConfigDefault, debugConfigSchema, type DebugConfig } from './debug';
 import { dimensionsConfigSchema } from './dimensions';
 import { pictureElementsSchema } from './elements/types';
 import { foldersConfigSchema } from './folders';
@@ -14,9 +14,9 @@ import { mediaGalleryConfigDefault, mediaGalleryConfigSchema } from './media-gal
 import { menuConfigDefault, menuConfigSchema } from './menu';
 import { overridesSchema } from './overrides';
 import {
-  PerformanceConfig,
   performanceConfigDefault,
   performanceConfigSchema,
+  type PerformanceConfig,
 } from './performance';
 import { profilesSchema } from './profiles';
 import { remoteControlConfigDefault, remoteControlConfigSchema } from './remote-control';

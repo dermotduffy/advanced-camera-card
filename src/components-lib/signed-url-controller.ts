@@ -1,14 +1,14 @@
-import { ReactiveController, ReactiveControllerHost } from 'lit';
+import type { ReactiveController, ReactiveControllerHost } from 'lit';
 import { isEqual } from 'lodash-es';
 
-import { EnabledProxyConfig } from '../config/schema/common/proxy.js';
+import type { EnabledProxyConfig } from '../config/schema/common/proxy.js';
 import { homeAssistantGetSignedURLIfNecessary } from '../ha/sign-path.js';
-import { HomeAssistant } from '../ha/types.js';
+import type { HomeAssistant } from '../ha/types.js';
 import {
   createProxiedEndpointIfNecessary,
-  CreateProxiedEndpointOptions,
+  type CreateProxiedEndpointOptions,
 } from '../ha/web-proxy.js';
-import { Endpoint } from '../types.js';
+import type { Endpoint } from '../types.js';
 import { errorToConsole } from '../utils/basic.js';
 
 const PROXY_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;

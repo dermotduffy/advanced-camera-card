@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { EffectsManager } from '../../../src/card-controller/effects/effects-manager';
-import { EffectComponent } from '../../../src/card-controller/effects/types';
-import { EffectName } from '../../../src/types';
+import type { EffectComponent } from '../../../src/card-controller/effects/types';
+import type { EffectName } from '../../../src/types';
 import { flushPromises } from '../../test-utils';
 
 vi.mock('../../../src/components/effects/fireworks', () => ({

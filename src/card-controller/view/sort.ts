@@ -1,6 +1,6 @@
 import { orderBy, uniqBy } from 'lodash-es';
 
-import { ViewItem } from '../../view/item';
+import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 
 export const sortItems = <T extends ViewItem>(itemArray: T[]): T[] => {

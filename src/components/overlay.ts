@@ -1,4 +1,10 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import overlayStyle from '../scss/overlay.scss';

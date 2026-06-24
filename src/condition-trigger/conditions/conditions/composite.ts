@@ -1,5 +1,5 @@
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ExternalInvalidationSource } from './types';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator, ExternalInvalidationSource } from './types';
 
 /**
  * Base class for the `or`/`and`/`not` composites: each holds child evaluators

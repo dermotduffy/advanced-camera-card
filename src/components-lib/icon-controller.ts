@@ -1,11 +1,11 @@
-import { HassEntity } from 'home-assistant-js-websocket';
+import type { HassEntity } from 'home-assistant-js-websocket';
 
 import frigateSVG from '../camera-manager/frigate/assets/frigate.svg';
 import motioneyeSVG from '../camera-manager/motioneye/assets/motioneye.svg';
 import reolinkSVG from '../camera-manager/reolink/assets/reolink.svg';
 import tplinkSVG from '../camera-manager/tplink/assets/tplink.svg';
-import { Icon } from '../config/schema/common/icon';
-import { HomeAssistant } from '../ha/types';
+import type { Icon } from '../config/schema/common/icon';
+import type { HomeAssistant } from '../ha/types';
 import irisSVG from '../images/iris.svg';
 
 export class IconController {

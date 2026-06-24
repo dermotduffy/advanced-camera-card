@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { MediaLoadIssue } from '../../../../src/card-controller/issues/issues/media-load';
-import { InternalCallbackActionConfig } from '../../../../src/config/schema/actions/custom/internal';
+import type { InternalCallbackActionConfig } from '../../../../src/config/schema/actions/custom/internal';
 import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../../../src/view/target-id';
-import { View } from '../../../../src/view/view';
+import type { View } from '../../../../src/view/view';
 import { createCardAPI, createMediaLoadedInfo } from '../../../test-utils';
 
 const createAPI = () => createCardAPI();

@@ -1,8 +1,8 @@
-import { ViewContext } from 'view';
+import type { ViewContext } from 'view';
 
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context.js';
-import { ViewManagerInterface } from '../../card-controller/view/types.js';
-import { PartialZoomSettings, ZoomSettingsObserved } from './types.js';
+import type { ViewManagerInterface } from '../../card-controller/view/types.js';
+import type { PartialZoomSettings, ZoomSettingsObserved } from './types.js';
 
 interface ZoomViewContext {
   observed?: ZoomSettingsObserved;

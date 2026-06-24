@@ -1,7 +1,7 @@
-import { MediaPlayerActionConfig } from '../../../config/schema/actions/custom/media-player';
+import type { MediaPlayerActionConfig } from '../../../config/schema/actions/custom/media-player';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import { getStreamCameraID } from '../../../view/substream';
-import { CardActionsAPI } from '../../types';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class MediaPlayerAction extends AdvancedCameraCardAction<MediaPlayerActionConfig> {

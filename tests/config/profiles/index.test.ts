@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { setProfiles } from '../../../src/config/profiles/set-profiles';
-import { ProfileType } from '../../../src/config/schema/profiles';
+import type { ProfileType } from '../../../src/config/schema/profiles';
 import { createConfig } from '../../test-utils';
 
 describe('setProfiles', () => {

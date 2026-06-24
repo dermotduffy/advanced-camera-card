@@ -3,16 +3,16 @@ import { sub } from 'date-fns';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const';
 import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
 import { QueryResults } from '../../view/query-results';
-import { UnifiedQuery } from '../../view/unified-query';
+import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryBuilder } from '../../view/unified-query-builder';
 import { UnifiedQueryRunner } from '../../view/unified-query-runner';
-import { View } from '../../view/view';
+import type { View } from '../../view/view';
 import { doesViewRequireCamera, isViewSupported } from '../../view/view-support';
-import { CardViewAPI } from '../types';
+import type { CardViewAPI } from '../types';
 import { MergeContextViewModifier } from './modifiers/merge-context';
 import { RemoveContextPropertyViewModifier } from './modifiers/remove-context-property';
 import { SetQueryViewModifier } from './modifiers/set-query';
-import { QueryExecutorOptions, ViewModifier } from './types';
+import type { QueryExecutorOptions, ViewModifier } from './types';
 
 /**
  * This class executes media queries and returns an array of ViewModifiers that

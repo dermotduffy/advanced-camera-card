@@ -1,10 +1,10 @@
 import { isEqual } from 'lodash-es';
 
-import { AdvancedCameraCardConfig } from '../config/schema/types';
+import type { AdvancedCameraCardConfig } from '../config/schema/types';
 import { createGeneralAction } from '../utils/action';
 import { isActionAllowedBasedOnInteractionState } from '../utils/interaction-mode';
 import { Timer } from '../utils/timer';
-import { CardDefaultManagerAPI } from './types';
+import type { CardDefaultManagerAPI } from './types';
 
 /**
  * Manages automated resetting to the default view.

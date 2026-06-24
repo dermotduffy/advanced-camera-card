@@ -1,12 +1,12 @@
 import { uniq } from 'lodash-es';
 
-import {
+import type {
   EventSubscriptionRequest,
   EventWatcherSubscriptionInterface,
 } from '../../../card-controller/hass/event-watcher';
 import { matchesEventContext, matchesEventData } from '../../../ha/event-match';
 import { arrayify } from '../../../utils/basic';
-import {
+import type {
   TriggerCallback,
   TriggerEvaluator,
   TriggerEvaluatorContext,

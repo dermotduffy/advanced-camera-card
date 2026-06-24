@@ -1,5 +1,5 @@
-import { CallStartActionConfig } from '../../../config/schema/actions/custom/call-start';
-import { CardActionsAPI } from '../../types';
+import type { CallStartActionConfig } from '../../../config/schema/actions/custom/call-start';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class CallStartAction extends AdvancedCameraCardAction<CallStartActionConfig> {

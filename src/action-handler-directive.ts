@@ -1,13 +1,13 @@
 import { noChange } from 'lit';
 import {
-  AttributePart,
   Directive,
   directive,
-  DirectiveParameters,
+  type AttributePart,
+  type DirectiveParameters,
 } from 'lit/directive.js';
 
 import { fireHASSEvent } from './ha/fire-hass-event.js';
-import { ActionHandlerDetail, ActionHandlerOptions } from './ha/types.js';
+import type { ActionHandlerDetail, ActionHandlerOptions } from './ha/types.js';
 import { stopEventFromActivatingCardWideActions } from './utils/action.js';
 import { Timer } from './utils/timer.js';
 

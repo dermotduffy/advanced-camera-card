@@ -3,27 +3,27 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { Capabilities } from '../../src/camera-manager/capabilities.js';
-import { CameraManager } from '../../src/camera-manager/manager.js';
-import { CameraManagerCameraMetadata } from '../../src/camera-manager/types.js';
-import { CallManager } from '../../src/card-controller/call/manager.js';
-import { FoldersManager } from '../../src/card-controller/folders/manager.js';
-import { FolderQuery } from '../../src/card-controller/folders/types';
-import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager.js';
-import { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
-import { MicrophoneManager } from '../../src/card-controller/microphone-manager.js';
-import { PIPManager } from '../../src/card-controller/pip-manager.js';
-import { ViewManager } from '../../src/card-controller/view/view-manager.js';
+import type { CameraManager } from '../../src/camera-manager/manager.js';
+import type { CameraManagerCameraMetadata } from '../../src/camera-manager/types.js';
+import type { CallManager } from '../../src/card-controller/call/manager.js';
+import type { FoldersManager } from '../../src/card-controller/folders/manager.js';
+import type { FolderQuery } from '../../src/card-controller/folders/types';
+import type { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager.js';
+import type { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
+import type { MicrophoneManager } from '../../src/card-controller/microphone-manager.js';
+import type { PIPManager } from '../../src/card-controller/pip-manager.js';
+import type { ViewManager } from '../../src/card-controller/view/view-manager.js';
 import {
   MenuButtonController,
-  MenuButtonControllerOptions,
+  type MenuButtonControllerOptions,
 } from '../../src/components-lib/menu-button-controller.js';
-import { AdvancedCameraCardView } from '../../src/config/schema/common/const.js';
-import { ViewDisplayMode } from '../../src/config/schema/common/display.js';
-import { MenuItem } from '../../src/config/schema/elements/custom/menu/types.js';
-import { AdvancedCameraCardConfig } from '../../src/config/schema/types.js';
-import { HomeAssistant } from '../../src/ha/types.js';
+import type { AdvancedCameraCardView } from '../../src/config/schema/common/const.js';
+import type { ViewDisplayMode } from '../../src/config/schema/common/display.js';
+import type { MenuItem } from '../../src/config/schema/elements/custom/menu/types.js';
+import type { AdvancedCameraCardConfig } from '../../src/config/schema/types.js';
+import type { HomeAssistant } from '../../src/ha/types.js';
 import { QuerySource } from '../../src/query-source';
-import { MediaPlayerController, PTZMovementType } from '../../src/types.js';
+import { PTZMovementType, type MediaPlayerController } from '../../src/types.js';
 import { createGeneralAction, createViewAction } from '../../src/utils/action.js';
 import { ViewMedia, ViewMediaType } from '../../src/view/item.js';
 import { QueryResults } from '../../src/view/query-results.js';
@@ -32,7 +32,7 @@ import {
   getCameraIDsWithCapabilityForView,
   isViewSupported,
 } from '../../src/view/view-support.js';
-import { View } from '../../src/view/view.js';
+import type { View } from '../../src/view/view.js';
 import {
   createCameraConfig,
   createCameraManager,

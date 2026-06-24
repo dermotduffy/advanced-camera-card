@@ -1,15 +1,15 @@
 import type { IssueTriggerContext } from 'issue';
 
-import { ConditionState } from '../../../condition-trigger/conditions/types.js';
-import { Notification } from '../../../config/schema/actions/types.js';
+import type { ConditionState } from '../../../condition-trigger/conditions/types.js';
+import type { Notification } from '../../../config/schema/actions/types.js';
 import { TROUBLESHOOTING_MEDIA_URL } from '../../../const.js';
 import { localize } from '../../../localize/localize.js';
 import { Timer } from '../../../utils/timer.js';
 import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../../view/target-id.js';
 import { isAnyMediaViewName } from '../../../view/view.js';
-import { CardIssueManagerAPI } from '../../types.js';
+import type { CardIssueManagerAPI } from '../../types.js';
 import { createRetryControl } from '../retry-control.js';
-import { Issue, IssueDescription } from '../types.js';
+import type { Issue, IssueDescription } from '../types.js';
 
 declare module 'issue' {
   interface IssueTriggerContext {

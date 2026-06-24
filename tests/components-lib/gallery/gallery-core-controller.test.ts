@@ -1,11 +1,11 @@
-import { LitElement } from 'lit';
+import type { LitElement } from 'lit';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  GalleryColumnCountRoundMethod,
   GalleryCoreController,
+  type GalleryColumnCountRoundMethod,
 } from '../../../src/components-lib/gallery/gallery-core-controller';
-import { GalleryExtendEvent } from '../../../src/components/gallery/types';
+import type { GalleryExtendEvent } from '../../../src/components/gallery/types';
 import { scrollIntoView } from '../../../src/utils/scroll';
 import { sleep } from '../../../src/utils/sleep';
 import {

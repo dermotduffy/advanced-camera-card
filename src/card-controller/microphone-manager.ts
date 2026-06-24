@@ -1,7 +1,7 @@
 import { localize } from '../localize/localize';
 import { AdvancedCameraCardError } from '../types';
 import { Timer } from '../utils/timer';
-import { CardMicrophoneAPI, MicrophoneState } from './types';
+import type { CardMicrophoneAPI, MicrophoneState } from './types';
 
 export class MicrophoneNotSupportedError extends AdvancedCameraCardError {
   constructor() {

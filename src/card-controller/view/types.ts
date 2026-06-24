@@ -1,10 +1,10 @@
-import { ViewContext } from 'view';
+import type { ViewContext } from 'view';
 
-import { AdvancedCameraCardUserSpecifiedView } from '../../config/schema/common/const.js';
+import type { AdvancedCameraCardUserSpecifiedView } from '../../config/schema/common/const.js';
 import { AdvancedCameraCardError } from '../../types.js';
-import { ViewItem } from '../../view/item.js';
-import { QueryResults } from '../../view/query-results.js';
-import { View, ViewParameters } from '../../view/view.js';
+import type { ViewItem } from '../../view/item.js';
+import type { QueryResults } from '../../view/query-results.js';
+import type { View, ViewParameters } from '../../view/view.js';
 
 export interface ViewModifier {
   modify(view: View): void;

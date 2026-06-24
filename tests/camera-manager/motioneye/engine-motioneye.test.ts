@@ -6,18 +6,21 @@ import { mock, type MockProxy } from 'vitest-mock-extended';
 import { Camera } from '../../../src/camera-manager/camera';
 import { MotionEyeCamera } from '../../../src/camera-manager/motioneye/camera';
 import { MotionEyeCameraManagerEngine } from '../../../src/camera-manager/motioneye/engine-motioneye';
-import { MotionEyeEventQueryResults } from '../../../src/camera-manager/motioneye/types';
+import type { MotionEyeEventQueryResults } from '../../../src/camera-manager/motioneye/types';
 import { CameraManagerStore } from '../../../src/camera-manager/store';
 import {
   CameraManagerRequestCache,
   Engine,
-  EventQueryResults,
   QueryResultsType,
   QueryType,
+  type EventQueryResults,
 } from '../../../src/camera-manager/types';
-import { BrowseMediaMetadata } from '../../../src/ha/browse-media/types';
-import { BrowseMediaStep, BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
-import { Entity } from '../../../src/ha/registry/entity/types';
+import type { BrowseMediaMetadata } from '../../../src/ha/browse-media/types';
+import {
+  BrowseMediaWalker,
+  type BrowseMediaStep,
+} from '../../../src/ha/browse-media/walker';
+import type { Entity } from '../../../src/ha/registry/entity/types';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { QuerySource } from '../../../src/query-source';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';

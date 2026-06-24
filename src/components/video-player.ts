@@ -1,12 +1,18 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../components-lib/media-player/video';
 import videoPlayerStyle from '../scss/video-player.scss';
-import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../types';
+import type { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../types';
 import { mayHaveAudio } from '../utils/audio';
 import {
   hideMediaControlsTemporarily,

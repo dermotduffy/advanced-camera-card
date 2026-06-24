@@ -1,5 +1,5 @@
-import { SubscriptionHealthInterface } from '../../ha/connection/subscription-health-monitor';
-import { CardIssueManagerAPI } from '../types';
+import type { SubscriptionHealthInterface } from '../../ha/connection/subscription-health-monitor';
+import type { CardIssueManagerAPI } from '../types';
 import { IssueManager } from './issue-manager';
 import { ConfigErrorIssue } from './issues/config-error';
 import { ConfigUpgradeIssue } from './issues/config-upgrade';

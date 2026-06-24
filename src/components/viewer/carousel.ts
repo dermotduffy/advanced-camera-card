@@ -1,28 +1,28 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { keyed } from 'lit/directives/keyed.js';
-import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
-import { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManager } from '../../camera-manager/manager.js';
 import { RemoveContextPropertyViewModifier } from '../../card-controller/view/modifiers/remove-context-property.js';
-import { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { resolveAutoHideState } from '../../components-lib/auto-hide.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import { MediaHeightController } from '../../components-lib/media-height-controller.js';
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
-import { TransitionEffect } from '../../config/schema/common/transition-effect.js';
-import { CardWideConfig, configDefaults } from '../../config/schema/types.js';
-import { ViewerConfig } from '../../config/schema/viewer.js';
-import { ResolvedMediaCache } from '../../ha/resolved-media.js';
-import { HomeAssistant } from '../../ha/types.js';
+import type { TransitionEffect } from '../../config/schema/common/transition-effect.js';
+import { configDefaults, type CardWideConfig } from '../../config/schema/types.js';
+import type { ViewerConfig } from '../../config/schema/viewer.js';
+import type { ResolvedMediaCache } from '../../ha/resolved-media.js';
+import type { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 
 import '../../patches/ha-hls-player.js';
@@ -30,10 +30,10 @@ import '../../patches/ha-hls-player.js';
 import viewerCarouselStyle from '../../scss/viewer-carousel.scss';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { contentsChanged } from '../../utils/basic.js';
-import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
+import type { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { getTextDirection } from '../../utils/text-direction.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
-import { ViewMedia } from '../../view/item.js';
+import type { ViewMedia } from '../../view/item.js';
 
 import '../carousel';
 import '../next-prev-control.js';

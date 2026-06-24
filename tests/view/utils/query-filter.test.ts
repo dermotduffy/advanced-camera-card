@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { ViewFolder } from '../../../src/view/item';
-import { UnifiedQuery } from '../../../src/view/unified-query';
+import type { UnifiedQuery } from '../../../src/view/unified-query';
 import {
   getReviewedQueryFilterFromConfig,
   getReviewedQueryFilterFromQuery,

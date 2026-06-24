@@ -3,16 +3,16 @@ import { sortBy } from 'lodash-es';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RecordingSegmentsCache } from '../../src/camera-manager/cache.js';
-import { DateRange } from '../../src/camera-manager/range.js';
+import type { DateRange } from '../../src/camera-manager/range.js';
 import {
   CameraManagerRequestCache,
-  CameraQuery,
   Engine,
-  EventQuery,
   QueryResultsType,
-  QueryReturnType,
   QueryType,
-  RecordingSegment,
+  type CameraQuery,
+  type EventQuery,
+  type QueryReturnType,
+  type RecordingSegment,
 } from '../../src/camera-manager/types.js';
 
 describe('MemoryRequestCache', () => {

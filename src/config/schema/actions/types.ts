@@ -4,7 +4,7 @@ import { linkSchema } from '../common/link';
 import { preprocessToArray } from '../common/preprocess-to-array';
 import { severitySchema } from '../common/severity';
 import { statusBarItemBaseSchema } from '../common/status-bar';
-import { Condition, conditionSchema } from '../condition-trigger/conditions/types';
+import { conditionSchema, type Condition } from '../condition-trigger/conditions/types';
 import { actionBaseSchema } from './base';
 import { advancedCameraCardCustomActionsBaseSchema } from './custom/base';
 import { callAnswerActionConfigSchema } from './custom/call-answer';

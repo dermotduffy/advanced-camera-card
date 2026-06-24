@@ -1,5 +1,5 @@
-import { ViewActionConfig } from '../config/schema/actions/custom/view';
-import { AdvancedCameraCardCustomActionConfig } from '../config/schema/actions/types';
+import type { ViewActionConfig } from '../config/schema/actions/custom/view';
+import type { AdvancedCameraCardCustomActionConfig } from '../config/schema/actions/types';
 import {
   createCameraAction,
   createGeneralAction,
@@ -7,9 +7,9 @@ import {
   createSubstreamOnAction,
   createViewAction,
 } from '../utils/action.js';
-import { CardQueryStringAPI } from './types';
+import type { CardQueryStringAPI } from './types';
 import { SubstreamViewModifier } from './view/modifiers/substream';
-import { ViewParametersUserSpecified } from './view/types.js';
+import type { ViewParametersUserSpecified } from './view/types.js';
 
 interface QueryStringViewIntent {
   view?: ViewParametersUserSpecified & {

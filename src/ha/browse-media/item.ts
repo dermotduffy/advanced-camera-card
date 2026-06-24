@@ -1,17 +1,17 @@
 import { format } from 'date-fns';
 import { isEqual } from 'lodash-es';
 
-import { FolderPathComponent } from '../../card-controller/folders/types';
-import { FolderConfig } from '../../config/schema/folders';
+import type { FolderPathComponent } from '../../card-controller/folders/types';
+import type { FolderConfig } from '../../config/schema/folders';
 import { formatDateAndTime } from '../../utils/basic';
 import {
-  EventViewMedia,
   ViewFolder,
   ViewMedia,
-  ViewMediaSourceOptions,
-  ViewMediaType,
+  type EventViewMedia,
+  type ViewMediaSourceOptions,
+  type ViewMediaType,
 } from '../../view/item';
-import { BrowseMediaMetadata, RichBrowseMedia } from './types';
+import type { BrowseMediaMetadata, RichBrowseMedia } from './types';
 
 interface MediaClassBrowserSetting {
   icon: string;

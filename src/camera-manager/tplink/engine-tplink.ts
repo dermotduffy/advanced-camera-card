@@ -1,10 +1,14 @@
-import { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
-import { CameraConfig } from '../../config/schema/cameras';
-import { EntityRegistryManager } from '../../ha/registry/entity/types';
-import { HomeAssistant } from '../../ha/types';
-import { Camera } from '../camera';
+import type { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
+import type { CameraConfig } from '../../config/schema/cameras';
+import type { EntityRegistryManager } from '../../ha/registry/entity/types';
+import type { HomeAssistant } from '../../ha/types';
+import type { Camera } from '../camera';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
-import { CameraEventCallback, CameraManagerCameraMetadata, Engine } from '../types';
+import {
+  Engine,
+  type CameraEventCallback,
+  type CameraManagerCameraMetadata,
+} from '../types';
 import { TPLinkCamera } from './camera';
 
 export class TPLinkCameraManagerEngine extends GenericCameraManagerEngine {

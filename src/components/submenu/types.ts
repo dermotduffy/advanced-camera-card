@@ -1,5 +1,5 @@
-import { Actions } from '../../config/schema/actions/types';
-import { Interaction } from '../../types';
+import type { Actions } from '../../config/schema/actions/types';
+import type { Interaction } from '../../types';
 
 export interface SubmenuItem extends Actions {
   title?: string;

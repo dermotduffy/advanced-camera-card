@@ -1,9 +1,15 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { handleControlAction } from '../../components-lib/notification/action.js';
-import { Notification } from '../../config/schema/actions/types.js';
+import type { Notification } from '../../config/schema/actions/types.js';
 import { localize } from '../../localize/localize.js';
 import notificationPopupStyle from '../../scss/notification-popup.scss';
 import { hasPopOutAnimationEnded } from '../../utils/animation.js';

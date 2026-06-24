@@ -1,7 +1,7 @@
-import { LitElement } from 'lit';
+import type { LitElement } from 'lit';
 
-import { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
-import { CachedValueController } from '../cached-value-controller';
+import type { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
+import type { CachedValueController } from '../cached-value-controller';
 
 export class UpdatingImageMediaPlayerController implements MediaPlayerController {
   private _host: LitElement;

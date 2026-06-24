@@ -1,6 +1,6 @@
 import { getHassDifferences } from '../../ha/get-hass-differences';
-import { HASSSource, HASSUnlistenCallback } from '../../ha/source';
-import { HassStateDifference, HomeAssistant } from '../../ha/types';
+import type { HASSSource, HASSUnlistenCallback } from '../../ha/source';
+import type { HassStateDifference, HomeAssistant } from '../../ha/types';
 
 type StateWatcherCallback = (difference: HassStateDifference) => void;
 

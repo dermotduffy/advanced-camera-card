@@ -1,10 +1,14 @@
-import { ViewItem, ViewMediaSourceOptions, ViewMediaType } from '../../view/item';
+import {
+  ViewMediaType,
+  type ViewItem,
+  type ViewMediaSourceOptions,
+} from '../../view/item';
 import { BrowseMediaEventViewMedia, BrowseMediaViewFolder } from './item';
 import {
-  BrowseMediaMetadata,
   MEDIA_CLASS_IMAGE,
   MEDIA_CLASS_VIDEO,
-  RichBrowseMedia,
+  type BrowseMediaMetadata,
+  type RichBrowseMedia,
 } from './types';
 
 export class BrowseMediaViewItemFactory {

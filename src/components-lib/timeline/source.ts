@@ -1,23 +1,23 @@
 import { add, sub } from 'date-fns';
 import { DataSet } from 'vis-data';
-import { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
+import type { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
 
-import { CameraManager } from '../../camera-manager/manager';
+import type { CameraManager } from '../../camera-manager/manager';
 import {
   compressRanges,
   ExpiringMemoryRangeSet,
   MemoryRangeSet,
 } from '../../camera-manager/range';
-import { RecordingSegment } from '../../camera-manager/types';
+import type { RecordingSegment } from '../../camera-manager/types';
 import { capEndDate } from '../../camera-manager/utils/cap-end-date';
 import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/range-to-cache-friendly';
-import { FoldersManager } from '../../card-controller/folders/manager';
-import { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
-import { FolderConfig } from '../../config/schema/folders';
+import type { FoldersManager } from '../../card-controller/folders/manager';
+import type { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
+import type { FolderConfig } from '../../config/schema/folders';
 import { errorToConsole } from '../../utils/basic.js';
-import { ViewItem, ViewMedia } from '../../view/item';
+import type { ViewItem, ViewMedia } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
-import { UnifiedQuery } from '../../view/unified-query';
+import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryBuilder } from '../../view/unified-query-builder';
 import { UnifiedQueryRunner } from '../../view/unified-query-runner';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';

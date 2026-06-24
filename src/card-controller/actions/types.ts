@@ -1,10 +1,10 @@
-import { TriggerData } from '../../condition-trigger/triggers/types.js';
-import {
+import type { TriggerData } from '../../condition-trigger/triggers/types.js';
+import type {
   ActionConfig,
   AuxillaryActionConfig,
 } from '../../config/schema/actions/types.js';
 import { AdvancedCameraCardError } from '../../types.js';
-import { CardActionsAPI } from '../types';
+import type { CardActionsAPI } from '../types';
 
 // Renders a value's templates, returning a rendered copy. Generic so it
 // preserves the value's type (the one cast lives in the renderer that supplies

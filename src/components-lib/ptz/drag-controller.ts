@@ -5,10 +5,10 @@ import {
   wheelAction,
   type Handler,
 } from '@use-gesture/vanilla';
-import { ReactiveController, ReactiveControllerHost } from 'lit';
+import type { ReactiveController, ReactiveControllerHost } from 'lit';
 
 import { dispatchActionExecutionRequest } from '../../card-controller/actions/utils/execution-request.js';
-import {
+import type {
   PTZAction,
   PTZActionPhase,
   PTZPanAction,

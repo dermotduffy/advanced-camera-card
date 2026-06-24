@@ -1,4 +1,7 @@
-import { ExponentialBackoff, ExponentialBackoffOptions } from './exponential-backoff';
+import {
+  ExponentialBackoff,
+  type ExponentialBackoffOptions,
+} from './exponential-backoff';
 import { Timer } from './timer';
 
 // Expand a plain `number` (fixed delay in seconds) into the equivalent

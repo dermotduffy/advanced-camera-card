@@ -1,4 +1,4 @@
-import { CSSResultGroup, html, TemplateResult, unsafeCSS } from 'lit';
+import { html, unsafeCSS, type CSSResultGroup, type TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import ghostStyle from '../../scss/ghost.scss';

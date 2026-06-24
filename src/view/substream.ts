@@ -1,4 +1,4 @@
-import { View } from './view';
+import type { View } from './view';
 
 // Resolves the engaged stream for a camera: its substream override if one is
 // set in `live.overrides`, otherwise the camera itself. `cameraID` defaults to

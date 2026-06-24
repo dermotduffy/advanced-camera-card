@@ -1,6 +1,6 @@
-import { MediaLoadedBase } from '../../../config/schema/condition-trigger/common/media-loaded';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator } from './types';
+import type { MediaLoadedBase } from '../../../config/schema/condition-trigger/common/media-loaded';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator } from './types';
 
 export class MediaLoadedConditionEvaluator implements ConditionEvaluator {
   private _condition: MediaLoadedBase;

@@ -1,9 +1,15 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { ClassInfo, classMap } from 'lit/directives/class-map.js';
-import { ref, Ref } from 'lit/directives/ref.js';
+import { classMap, type ClassInfo } from 'lit/directives/class-map.js';
+import { ref, type Ref } from 'lit/directives/ref.js';
 
-import { CardWideConfig } from '../config/schema/types';
+import type { CardWideConfig } from '../config/schema/types';
 import progressIndicatorStyle from '../scss/progress-indicator.scss';
 
 import './icon.js';

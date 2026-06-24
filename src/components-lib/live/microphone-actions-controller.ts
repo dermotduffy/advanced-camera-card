@@ -1,5 +1,5 @@
-import { MicrophoneManager } from '../../card-controller/microphone-manager.js';
-import {
+import type { MicrophoneManager } from '../../card-controller/microphone-manager.js';
+import type {
   MicrophoneAutoMuteCondition,
   MicrophoneAutoUnmuteCondition,
 } from '../../config/schema/common/media-actions.js';

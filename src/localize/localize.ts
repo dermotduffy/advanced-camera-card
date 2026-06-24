@@ -1,4 +1,4 @@
-import { HomeAssistant } from '../ha/types';
+import type { HomeAssistant } from '../ha/types';
 import * as en from './languages/en.json';
 
 const DEFAULT_LANG = 'en' as const;

@@ -1,4 +1,4 @@
-import { PartialDeep } from 'type-fest';
+import type { PartialDeep } from 'type-fest';
 
 export const ZOOM_DEFAULT_PAN_X = 50;
 export const ZOOM_DEFAULT_PAN_Y = 50;

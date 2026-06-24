@@ -1,15 +1,15 @@
-import { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
+import type { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
 import { TemplateRenderer } from '../../card-controller/templates';
-import { Trigger } from '../../config/schema/condition-trigger/triggers/types';
+import type { Trigger } from '../../config/schema/condition-trigger/triggers/types';
 import { isEnabled } from '../common/is-enabled';
-import { ConditionStateManagerReadonlyInterface } from '../conditions/types';
+import type { ConditionStateManagerReadonlyInterface } from '../conditions/types';
 import { createTriggerEvaluator } from './factory';
-import {
+import type {
   TriggerCallback,
   TriggerEvaluator,
   TriggerEvaluatorContext,
 } from './triggers/types';
-import { TriggerData } from './types';
+import type { TriggerData } from './types';
 
 // A trigger evaluator paired with its config, so `enabled` can be re-checked
 // against the config each time the evaluator triggers.

@@ -1,14 +1,20 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { CameraManager } from '../camera-manager/manager';
-import { FoldersManager } from '../card-controller/folders/manager';
-import { ViewItemManager } from '../card-controller/view/item-manager';
-import { ViewManagerEpoch } from '../card-controller/view/types';
-import { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types';
-import { TimelineConfig } from '../config/schema/timeline';
-import { CardWideConfig } from '../config/schema/types';
-import { HomeAssistant } from '../ha/types';
+import type { CameraManager } from '../camera-manager/manager';
+import type { FoldersManager } from '../card-controller/folders/manager';
+import type { ViewItemManager } from '../card-controller/view/item-manager';
+import type { ViewManagerEpoch } from '../card-controller/view/types';
+import type { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types';
+import type { TimelineConfig } from '../config/schema/timeline';
+import type { CardWideConfig } from '../config/schema/types';
+import type { HomeAssistant } from '../ha/types';
 import basicBlockStyle from '../scss/basic-block.scss';
 
 import './surround.js';

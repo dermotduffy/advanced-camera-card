@@ -1,7 +1,7 @@
-import { ToggleActionConfig } from '../../../config/schema/actions/stock/toggle';
+import type { ToggleActionConfig } from '../../../config/schema/actions/stock/toggle';
 import { computeDomain } from '../../../ha/compute-domain';
 import { STATES_OFF } from '../../../ha/const';
-import { CardActionsAPI } from '../../types';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class ToggleAction extends AdvancedCameraCardAction<ToggleActionConfig> {

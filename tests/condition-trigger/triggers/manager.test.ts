@@ -1,8 +1,8 @@
-import { describe, expect, it, Mock, vi } from 'vitest';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { TriggersManager } from '../../../src/condition-trigger/triggers/manager';
-import { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
+import type { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
 import { createHASS, createHASSManager, createStateEntity } from '../../test-utils';
 
 // @vitest-environment jsdom

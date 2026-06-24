@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ConfigUpgradeFailureIssue } from '../../../../src/card-controller/issues/issues/config-upgrade-failure';
 import { hasConfigUpgradeFailures } from '../../../../src/config/management';
-import { RawAdvancedCameraCardConfig } from '../../../../src/config/types';
+import type { RawAdvancedCameraCardConfig } from '../../../../src/config/types';
 import { createCardAPI } from '../../../test-utils';
 
 vi.mock('../../../../src/config/management.js');

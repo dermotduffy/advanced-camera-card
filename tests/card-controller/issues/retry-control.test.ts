@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { createRetryControl } from '../../../src/card-controller/issues/retry-control';
-import { InternalCallbackActionConfig } from '../../../src/config/schema/actions/custom/internal';
+import type { InternalCallbackActionConfig } from '../../../src/config/schema/actions/custom/internal';
 import { createCardAPI } from '../../test-utils';
 
 describe('createRetryControl', () => {

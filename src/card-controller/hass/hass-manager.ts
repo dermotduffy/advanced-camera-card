@@ -1,12 +1,12 @@
 import { isHassReady } from '../../ha/is-hass-ready';
-import { HASSListener, HASSUnlistenCallback } from '../../ha/source';
-import { HomeAssistant } from '../../ha/types';
+import type { HASSListener, HASSUnlistenCallback } from '../../ha/source';
+import type { HomeAssistant } from '../../ha/types';
 import { log } from '../../utils/debug';
 import { InitializationAspect } from '../initialization-manager';
-import { CardHASSAPI } from '../types';
-import { EventWatcher, EventWatcherSubscriptionInterface } from './event-watcher';
-import { StateWatcher, StateWatcherSubscriptionInterface } from './state-watcher';
-import { HASSManagerReadonlyInterface } from './types';
+import type { CardHASSAPI } from '../types';
+import { EventWatcher, type EventWatcherSubscriptionInterface } from './event-watcher';
+import { StateWatcher, type StateWatcherSubscriptionInterface } from './state-watcher';
+import type { HASSManagerReadonlyInterface } from './types';
 
 export class HASSManager implements HASSManagerReadonlyInterface {
   private _hass: HomeAssistant | null = null;

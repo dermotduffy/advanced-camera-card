@@ -1,4 +1,4 @@
-import { LitElement } from 'lit';
+import type { LitElement } from 'lit';
 import { isEqual, orderBy } from 'lodash-es';
 
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
@@ -11,7 +11,7 @@ import type { MenuConfig } from '../config/schema/menu.js';
 import type { Interaction } from '../types.js';
 import { getActionConfigGivenAction, isStandardAction } from '../utils/action';
 import { arrayify, isTruthy } from '../utils/basic.js';
-import { AutoHideState, isAutoHidden as evaluateAutoHidden } from './auto-hide.js';
+import { isAutoHidden as evaluateAutoHidden, type AutoHideState } from './auto-hide.js';
 
 export class MenuController {
   private _host: LitElement;

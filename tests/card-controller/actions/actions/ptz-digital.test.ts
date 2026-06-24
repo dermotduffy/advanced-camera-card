@@ -1,11 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { PTZDigitalAction } from '../../../../src/card-controller/actions/actions/ptz-digital';
-import {
+import type {
   PartialZoomSettings,
   ZoomSettingsObserved,
 } from '../../../../src/components-lib/zoom/types';
-import { PTZAction } from '../../../../src/config/schema/actions/custom/ptz';
+import type { PTZAction } from '../../../../src/config/schema/actions/custom/ptz';
 import { createCardAPI, createView } from '../../../test-utils';
 
 describe('should handle ptz digital action', () => {

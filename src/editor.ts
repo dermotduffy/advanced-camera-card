@@ -1,4 +1,10 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
@@ -28,9 +34,9 @@ import {
 import { ZOOM_MAX, ZOOM_MIN } from './config/schema/common/zoom.js';
 import { profilesSchema } from './config/schema/profiles.js';
 import { STATUS_BAR_HEIGHT_MIN } from './config/schema/status-bar.js';
-import { AdvancedCameraCardConfig, configDefaults } from './config/schema/types.js';
-import { KeyboardShortcut } from './config/schema/view.js';
-import {
+import { configDefaults, type AdvancedCameraCardConfig } from './config/schema/types.js';
+import type { KeyboardShortcut } from './config/schema/view.js';
+import type {
   RawAdvancedCameraCardConfig,
   RawAdvancedCameraCardConfigArray,
 } from './config/types.js';
@@ -292,7 +298,7 @@ import { fireHASSEvent } from './ha/fire-hass-event.js';
 import { getEntitiesFromHASS } from './ha/get-entities.js';
 import { getEntityTitle } from './ha/get-entity-title.js';
 import { sideLoadHomeAssistantElements } from './ha/side-load-ha-elements.js';
-import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
+import type { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
 import editorStyle from './scss/editor.scss';
 import type { CapabilityKey } from './types.js';

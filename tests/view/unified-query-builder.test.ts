@@ -1,15 +1,15 @@
 import { assert, describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CameraManager } from '../../src/camera-manager/manager';
-import { CameraManagerStore } from '../../src/camera-manager/store';
+import type { CameraManager } from '../../src/camera-manager/manager';
+import type { CameraManagerStore } from '../../src/camera-manager/store';
 import { QueryType } from '../../src/camera-manager/types';
-import { FoldersManager } from '../../src/card-controller/folders/manager';
-import {
+import type { FoldersManager } from '../../src/card-controller/folders/manager';
+import type {
   FolderPathComponent,
   FolderQuery,
 } from '../../src/card-controller/folders/types';
-import { FolderConfig } from '../../src/config/schema/folders';
+import type { FolderConfig } from '../../src/config/schema/folders';
 import { QuerySource } from '../../src/query-source';
 import {
   MediaTypeSpec,

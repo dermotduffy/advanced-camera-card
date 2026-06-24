@@ -1,11 +1,11 @@
-import { NonEmptyTuple } from 'type-fest';
+import type { NonEmptyTuple } from 'type-fest';
 import { describe, expect, it } from 'vitest';
 
 import {
-  FolderConfigWithoutID,
   foldersConfigSchema,
   matcherSchema,
   transformPathURLToPathArray,
+  type FolderConfigWithoutID,
 } from '../../../src/config/schema/folders';
 
 describe('transformPathURLToPathArray', () => {

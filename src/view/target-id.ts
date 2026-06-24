@@ -1,4 +1,4 @@
-import { View } from './view';
+import type { View } from './view';
 
 // Synthetic target ID used for the image view. The image view has no natural
 // per-display identifier (unlike live, which has a camera ID, or the viewer,

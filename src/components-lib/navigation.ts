@@ -1,11 +1,11 @@
-import { NonEmptyTuple } from 'type-fest';
+import type { NonEmptyTuple } from 'type-fest';
 
-import { FolderPathComponent, FolderQuery } from '../card-controller/folders/types';
-import { ViewManagerEpoch, ViewModifier } from '../card-controller/view/types';
+import type { FolderPathComponent, FolderQuery } from '../card-controller/folders/types';
+import type { ViewManagerEpoch, ViewModifier } from '../card-controller/view/types';
 import { localize } from '../localize/localize';
-import { ViewFolder, ViewMedia } from '../view/item';
-import { UnifiedQuery } from '../view/unified-query';
-import { UnifiedQueryBuilder } from '../view/unified-query-builder';
+import { ViewFolder, type ViewMedia } from '../view/item';
+import type { UnifiedQuery } from '../view/unified-query';
+import type { UnifiedQueryBuilder } from '../view/unified-query-builder';
 
 export interface FolderNavigationParamaters {
   viewManagerEpoch: ViewManagerEpoch;

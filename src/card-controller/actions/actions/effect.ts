@@ -1,5 +1,5 @@
-import { EffectActionConfig } from '../../../config/schema/actions/custom/effect';
-import { CardActionsAPI } from '../../types';
+import type { EffectActionConfig } from '../../../config/schema/actions/custom/effect';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class EffectAction extends AdvancedCameraCardAction<EffectActionConfig> {

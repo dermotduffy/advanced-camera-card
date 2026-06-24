@@ -1,9 +1,9 @@
-import { RingtoneConfig } from '../../config/schema/live';
+import type { RingtoneConfig } from '../../config/schema/live';
 import { ArpeggioTone } from './tones/arpeggio';
 import { ChimeTone } from './tones/chime';
 import { CustomTone } from './tones/custom';
 import { MelodyTone } from './tones/melody';
-import { Tone } from './tones/types';
+import type { Tone } from './tones/types';
 import { WestminsterTone } from './tones/westminster';
 
 // Module-level singleton lock: only one `Ringtone` plays at a time across all

@@ -1,12 +1,12 @@
 import { TemplateRenderer } from '../../card-controller/templates';
-import { Condition } from '../../config/schema/condition-trigger/conditions/types';
+import type { Condition } from '../../config/schema/condition-trigger/conditions/types';
 import { isEnabled } from '../common/is-enabled';
-import {
+import type {
   ConditionEvaluator,
   ExternalInvalidationUnsubscribeCallback,
 } from './conditions/types';
 import { createConditionEvaluator } from './factory';
-import {
+import type {
   ConditionsEvaluationResult,
   ConditionsListener,
   ConditionsManagerReadonlyInterface,

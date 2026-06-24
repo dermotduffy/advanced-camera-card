@@ -1,5 +1,5 @@
-import { PerformActionActionConfig } from '../../../config/schema/actions/stock/perform-action';
-import { CardActionsAPI } from '../../types';
+import type { PerformActionActionConfig } from '../../../config/schema/actions/stock/perform-action';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class PerformActionAction extends AdvancedCameraCardAction<PerformActionActionConfig> {

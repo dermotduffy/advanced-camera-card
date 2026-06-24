@@ -1,8 +1,8 @@
 import { deepRemoveDefaults } from '../../utils/zod/deep-remove-defaults.js';
 import { getConfigValue, setConfigValue } from '../management.js';
-import { ProfileType } from '../schema/profiles.js';
+import type { ProfileType } from '../schema/profiles.js';
 import { advancedCameraCardConfigSchema } from '../schema/types.js';
-import { RawAdvancedCameraCardConfig } from '../types.js';
+import type { RawAdvancedCameraCardConfig } from '../types.js';
 import { CASTING_PROFILE } from './casting.js';
 import { DOORBELL_PROFILE } from './doorbell.js';
 import { LOW_PERFORMANCE_PROFILE } from './low-performance.js';

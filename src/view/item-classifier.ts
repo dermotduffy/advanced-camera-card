@@ -1,10 +1,10 @@
 import {
-  EventViewMedia,
-  RecordingViewMedia,
-  ReviewViewMedia,
   ViewFolder,
-  ViewItem,
   ViewMedia,
+  type EventViewMedia,
+  type RecordingViewMedia,
+  type ReviewViewMedia,
+  type ViewItem,
 } from './item';
 
 export class ViewItemClassifier {

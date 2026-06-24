@@ -2,19 +2,19 @@
 import { afterEach, assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CardController } from '../../../src/card-controller/controller';
+import type { CardController } from '../../../src/card-controller/controller';
 import {
   IssueManager,
   RETRY_EXPONENTIAL_BASE_SECONDS,
   RETRY_EXPONENTIAL_MAX_SECONDS,
 } from '../../../src/card-controller/issues/issue-manager';
-import {
+import type {
   Issue,
   IssueDescription,
   IssueKey,
 } from '../../../src/card-controller/issues/types';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
-import { InteractionMode } from '../../../src/config/schema/view';
+import type { InteractionMode } from '../../../src/config/schema/view';
 import {
   createCardAPI,
   createConfig,

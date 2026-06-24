@@ -1,6 +1,6 @@
 import { LRUCache } from '../cache/lru';
 import { errorToConsole } from '../utils/basic';
-import { HomeAssistant, ResolvedMedia, resolvedMediaSchema } from './types';
+import { resolvedMediaSchema, type HomeAssistant, type ResolvedMedia } from './types';
 import { homeAssistantWSRequest } from './ws-request';
 
 // It's important the cache size be at least as large as the largest likely

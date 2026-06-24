@@ -2,7 +2,7 @@ import { expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { PauseAction } from '../../../../src/card-controller/actions/actions/pause';
-import { MediaPlayerController } from '../../../../src/types';
+import type { MediaPlayerController } from '../../../../src/types';
 import { createCardAPI, createMediaLoadedInfo } from '../../../test-utils';
 
 it('should handle pause action', async () => {

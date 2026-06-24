@@ -1,11 +1,17 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 
-import { IssuePresence } from '../card-controller/issues/types';
-import { RawAdvancedCameraCardConfig } from '../config/types';
-import { DeviceRegistryManager } from '../ha/registry/device';
-import { HomeAssistant } from '../ha/types';
+import type { IssuePresence } from '../card-controller/issues/types';
+import type { RawAdvancedCameraCardConfig } from '../config/types';
+import type { DeviceRegistryManager } from '../ha/registry/device';
+import type { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { getDiagnostics } from '../utils/diagnostics';

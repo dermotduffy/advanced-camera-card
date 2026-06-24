@@ -1,6 +1,6 @@
-import { ConditionStateChange } from '../condition-trigger/conditions/types';
-import { PIPElement } from '../types';
-import { CardPIPAPI } from './types';
+import type { ConditionStateChange } from '../condition-trigger/conditions/types';
+import type { PIPElement } from '../types';
+import type { CardPIPAPI } from './types';
 
 export class PIPManager {
   private _api: CardPIPAPI;

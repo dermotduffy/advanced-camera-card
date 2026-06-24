@@ -1,6 +1,6 @@
 import { createNotificationFromError } from '../../../components-lib/notification/factory.js';
 import { localize } from '../../../localize/localize.js';
-import { IssueDescription } from '../types.js';
+import type { IssueDescription } from '../types.js';
 import { AbstractErrorIssue } from './abstract-error-issue.js';
 
 declare module 'issue' {

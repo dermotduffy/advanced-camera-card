@@ -1,9 +1,9 @@
-import { describe, expect, it, Mock, vi } from 'vitest';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 
-import { MicrophoneState } from '../../../../src/card-controller/types';
+import type { MicrophoneState } from '../../../../src/card-controller/types';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { MicrophoneTrigger } from '../../../../src/condition-trigger/triggers/triggers/microphone';
-import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createTriggerEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom

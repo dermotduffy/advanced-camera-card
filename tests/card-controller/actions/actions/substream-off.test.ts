@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { SubstreamOffAction } from '../../../../src/card-controller/actions/actions/substream-off';
 import { applyViewModifiers } from '../../../../src/card-controller/view/modifiers';
 import { createSubstreamOffAction } from '../../../../src/utils/action';
-import { View } from '../../../../src/view/view';
+import type { View } from '../../../../src/view/view';
 import { createCardAPI, createView } from '../../../test-utils';
 
 // Runs the off-action for `view` and applies the modifier it produces.

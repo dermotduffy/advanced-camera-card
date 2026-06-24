@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CachedValueController } from '../../../src/components-lib/cached-value-controller';
+import type { CachedValueController } from '../../../src/components-lib/cached-value-controller';
 import { ImageMediaPlayerController } from '../../../src/components-lib/media-player/image';
 import { UpdatingImageMediaPlayerController } from '../../../src/components-lib/media-player/updating-image';
 import { createLitElement } from '../../test-utils';

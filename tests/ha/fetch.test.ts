@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { homeAssistantSignAndFetch } from '../../src/ha/fetch';
 import { homeAssistantGetSignedURLIfNecessary } from '../../src/ha/sign-path';
-import { AdvancedCameraCardError, Endpoint } from '../../src/types';
+import type { AdvancedCameraCardError, Endpoint } from '../../src/types';
 import { createHASS } from '../test-utils';
 
 vi.mock('../../src/ha/sign-path');

@@ -1,7 +1,7 @@
-import { ActionConfig } from '../../config/schema/actions/types';
+import type { ActionConfig } from '../../config/schema/actions/types';
 import { VIEWS_USER_SPECIFIED } from '../../config/schema/common/const';
 import { isAdvancedCameraCardCustomAction } from '../../utils/action';
-import { CardLockAPI } from '../types';
+import type { CardLockAPI } from '../types';
 import type { LockPolicy } from './types';
 
 // Actions that would disrupt an active call. Two categories:

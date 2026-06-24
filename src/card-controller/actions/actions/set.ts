@@ -1,10 +1,10 @@
-import { ActionContext } from 'action';
+import type { ActionContext } from 'action';
 
-import { ActionConfig } from '../../../config/schema/actions/types';
+import type { ActionConfig } from '../../../config/schema/actions/types';
 import { arrayify } from '../../../utils/basic';
-import { CardActionsAPI } from '../../types';
-import { ActionFactory, ActionFactoryOptions } from '../factory';
-import { ActionPrepareCallback } from '../types';
+import type { CardActionsAPI } from '../../types';
+import { ActionFactory, type ActionFactoryOptions } from '../factory';
+import type { ActionPrepareCallback } from '../types';
 
 interface ActionSetOptions {
   factoryOptions?: ActionFactoryOptions;

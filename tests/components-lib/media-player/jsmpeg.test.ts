@@ -1,4 +1,4 @@
-import JSMpeg from '@cycjimmy/jsmpeg-player';
+import type JSMpeg from '@cycjimmy/jsmpeg-player';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 

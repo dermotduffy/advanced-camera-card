@@ -10,7 +10,7 @@ import {
 } from 'vitest';
 
 import { LazyLoadController } from '../../src/components-lib/lazy-load-controller';
-import { LazyUnloadCondition } from '../../src/config/schema/common/media-actions';
+import type { LazyUnloadCondition } from '../../src/config/schema/common/media-actions';
 import {
   callIntersectionHandler,
   callVisibilityHandler,

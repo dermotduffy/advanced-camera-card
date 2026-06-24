@@ -1,20 +1,20 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { CameraManager } from '../../camera-manager/manager.js';
-import { ViewItemManager } from '../../card-controller/view/item-manager.js';
-import { ViewManagerEpoch } from '../../card-controller/view/types.js';
-import { CardWideConfig } from '../../config/schema/types.js';
-import { ViewerConfig } from '../../config/schema/viewer.js';
-import { ResolvedMediaCache } from '../../ha/resolved-media.js';
-import { HomeAssistant } from '../../ha/types.js';
+import type { CameraManager } from '../../camera-manager/manager.js';
+import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
+import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import type { CardWideConfig } from '../../config/schema/types.js';
+import type { ViewerConfig } from '../../config/schema/viewer.js';
+import type { ResolvedMediaCache } from '../../ha/resolved-media.js';
+import type { HomeAssistant } from '../../ha/types.js';
 
 import '../../patches/ha-hls-player.js';
 

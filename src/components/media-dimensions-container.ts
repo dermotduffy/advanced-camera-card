@@ -1,16 +1,16 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { MediaDimensionsContainerController } from '../components-lib/media-dimensions-container-controller.js';
-import { CameraDimensionsConfig } from '../config/schema/cameras';
+import type { CameraDimensionsConfig } from '../config/schema/cameras';
 import mediaDimensionsContainerStyle from '../scss/media-dimensions-container.scss';
 
 @customElement('advanced-camera-card-media-dimensions-container')

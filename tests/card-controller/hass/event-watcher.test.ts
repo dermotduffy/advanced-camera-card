@@ -1,9 +1,9 @@
-import { Connection, HassEvent } from 'home-assistant-js-websocket';
+import type { Connection, HassEvent } from 'home-assistant-js-websocket';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { EventWatcher } from '../../../src/card-controller/hass/event-watcher';
-import { HomeAssistant } from '../../../src/ha/types';
+import type { HomeAssistant } from '../../../src/ha/types';
 import {
   createHASS,
   createHASSEvent,

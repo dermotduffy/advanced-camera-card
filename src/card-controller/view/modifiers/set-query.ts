@@ -1,7 +1,7 @@
-import { QueryResults } from '../../../view/query-results';
-import { UnifiedQuery } from '../../../view/unified-query';
-import { View } from '../../../view/view';
-import { ViewModifier } from '../types';
+import type { QueryResults } from '../../../view/query-results';
+import type { UnifiedQuery } from '../../../view/unified-query';
+import type { View } from '../../../view/view';
+import type { ViewModifier } from '../types';
 
 export class SetQueryViewModifier implements ViewModifier {
   private _query?: UnifiedQuery | null;

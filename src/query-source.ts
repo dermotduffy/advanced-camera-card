@@ -1,4 +1,4 @@
-import { Severity } from './severity';
+import type { Severity } from './severity';
 
 export enum QuerySource {
   // Camera queries are handled by CameraManager.

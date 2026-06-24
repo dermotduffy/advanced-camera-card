@@ -1,6 +1,6 @@
 import { isSuperset } from '../utils/basic.js';
 import { ViewItemClassifier } from './item-classifier.js';
-import { ViewItem } from './item.js';
+import type { ViewItem } from './item.js';
 
 type CameraResultSlices = Map<string, ResultSlice>;
 type SelectApproach = 'first' | 'last';

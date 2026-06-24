@@ -1,7 +1,7 @@
 import { getConfigValue } from '../../../config/management';
-import { ConditionState } from '../../conditions/types';
+import type { ConditionState } from '../../conditions/types';
 import { ConditionStateTriggerBase } from './condition-state-base';
-import { TriggerOfType } from './types';
+import type { TriggerOfType } from './types';
 
 // Triggers when the card configuration changes. With `paths`, only a change to
 // one of those config paths triggers; without `paths`, any config change does.

@@ -1,13 +1,13 @@
-import { ActionContext } from 'action';
+import type { ActionContext } from 'action';
 
-import {
+import type {
   ActionConfig,
   AuxillaryActionConfig,
 } from '../../../config/schema/actions/types.js';
 import { localize } from '../../../localize/localize.js';
 import { getActionName } from '../../../utils/action';
-import { CardActionsAPI } from '../../types';
-import { Action, ActionAbortError, ActionPrepareCallback } from '../types';
+import type { CardActionsAPI } from '../../types';
+import { ActionAbortError, type Action, type ActionPrepareCallback } from '../types';
 
 export class BaseAction<T extends ActionConfig> implements Action {
   protected _context: ActionContext;

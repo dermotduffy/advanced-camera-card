@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { MicrophoneState } from '../../../../src/card-controller/types';
+import type { MicrophoneState } from '../../../../src/card-controller/types';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
 import { createEvaluatorContext } from './test-utils';
 
