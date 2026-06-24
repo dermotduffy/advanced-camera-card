@@ -29,10 +29,10 @@ type RenderRoot = HTMLElement;
  * start the video.
  */
 
-type MediaActionsTarget = {
+interface MediaActionsTarget {
   selected: boolean;
   index: number;
-};
+}
 
 export class MediaActionsController {
   private _options: MediaActionsControllerOptions | null = null;
