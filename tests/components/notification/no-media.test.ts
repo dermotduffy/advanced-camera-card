@@ -61,7 +61,7 @@ describe('renderNoMedia', () => {
   });
 
   it('should not include metadata when no camera is resolvable', () => {
-    // Empty store — no default camera.
+    // Empty store -- no default camera.
     const cameraManager = createCameraManager(createStore());
 
     const result = renderNoMedia({

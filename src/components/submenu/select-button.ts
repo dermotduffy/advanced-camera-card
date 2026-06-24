@@ -87,7 +87,7 @@ export class AdvancedCameraCardSubmenuSelectButton extends LitElement {
     }
 
     if (!this._optionTitles) {
-      this._refreshOptionTitles();
+      void this._refreshOptionTitles();
     }
 
     const entityID = this.submenuSelect.entity;

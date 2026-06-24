@@ -93,7 +93,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
       (this._selected !== null && this._media?.[this._selected]?.getID()) || null,
     callback: () => {
       this._mediaHeightController.recalculate();
-      this._seekHandler();
+      void this._seekHandler();
     },
   });
 
@@ -388,7 +388,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
           ?.context?.mediaViewer?.seek?.getTime() !==
         this.viewManagerEpoch?.oldView?.context?.mediaViewer?.seek?.getTime()
       ) {
-        this._seekHandler();
+        void this._seekHandler();
       }
     }
   }
@@ -397,7 +397,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     if (!this._media?.length || this._selected === null) {
       this._mediaActionsController.unsetTarget();
     } else {
-      this._mediaActionsController.setTarget(
+      void this._mediaActionsController.setTarget(
         this._selected,
         // Camera in this carousel is only selected if the camera from the view
         // matches the filtered camera.
@@ -438,16 +438,16 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     const seekTimeInMedia = selectedMedia.includesTime(seek);
     this.toggleAttribute('unseekable', !seekTimeInMedia);
     if (!seekTimeInMedia && !mediaPlayerController.isPaused()) {
-      mediaPlayerController.pause();
+      void mediaPlayerController.pause();
     } else if (seekTimeInMedia && mediaPlayerController.isPaused()) {
-      mediaPlayerController.play();
+      void mediaPlayerController.play();
     }
 
     const seekTime =
       (await this.cameraManager?.getMediaSeekTime(selectedMedia, seek)) ?? null;
 
     if (seekTime !== null) {
-      mediaPlayerController.seek(seekTime);
+      void mediaPlayerController.seek(seekTime);
     }
   }
 

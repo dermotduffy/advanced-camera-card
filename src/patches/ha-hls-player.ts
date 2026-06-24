@@ -32,7 +32,7 @@ import {
 } from '../utils/media-info.js';
 import { ConstructableLitElement } from './types.js';
 
-customElements.whenDefined('ha-hls-player').then(() => {
+void customElements.whenDefined('ha-hls-player').then(() => {
   const HaHlsPlayer = customElements.get('ha-hls-player') as ConstructableLitElement;
 
   @customElement('advanced-camera-card-ha-hls-player')

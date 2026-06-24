@@ -27,7 +27,7 @@ export class MediaLoadedInfoManager {
   // never cleared by `clear` / `_clearTarget`, only by `initialize`.
   private _lastKnown: Map<string, MediaLoadedInfo> = new Map();
 
-  // The currently "active" target — the one whose info drives condition state
+  // The currently "active" target -- the one whose info drives condition state
   // and card-level side effects. Driven by ViewManager on every view change.
   private _selected: string | null = null;
 

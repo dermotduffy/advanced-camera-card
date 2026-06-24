@@ -355,7 +355,7 @@ describe('OverridesManager', () => {
     it('with `invalid_type` surfacing the attempted value', () => {
       const error = runInvalidOverride((config) => {
         assert(config.overrides);
-        // @ts-expect-error — intentionally invalid runtime value to trigger
+        // @ts-expect-error -- intentionally invalid runtime value to trigger
         // Zod's `invalid_type` issue code.
         config.overrides[0].merge = 6;
       });

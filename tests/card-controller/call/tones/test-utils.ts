@@ -5,8 +5,9 @@ import { mock, MockProxy } from 'vitest-mock-extended';
 // constructs an AudioContext directly; here we stub the global `AudioContext`
 // to return a deep-mocked instance whose `createOscillator()` / `createGain()`
 // factories return a *fresh* mock per call (not a shared one). This lets tests
-// assert against individual notes — e.g. `audio.oscillators[2].frequency.value`
-// — instead of having every call write over the same observable state.
+// assert against individual notes -- e.g.
+// `audio.oscillators[2].frequency.value` -- instead of having every call write
+// over the same observable state.
 interface AudioMocks {
   audioContext: MockProxy<AudioContext>;
   audioContextCtor: Mock<[], MockProxy<AudioContext>>;
@@ -15,7 +16,7 @@ interface AudioMocks {
   oscillators: MockProxy<OscillatorNode>[];
   gains: MockProxy<GainNode>[];
 
-  // gainParams[i] is the AudioParam exposed by `gains[i].gain` — kept as a
+  // gainParams[i] is the AudioParam exposed by `gains[i].gain` -- kept as a
   // parallel array because `mock<GainNode>()` doesn't auto-populate the
   // AudioParam interface as a callable deep mock (we wire it up by hand).
   gainParams: MockProxy<AudioParam>[];
@@ -26,9 +27,9 @@ interface AudioMocks {
 // can read its fields after each `beforeEach` runs.
 //
 // Called once at module load. The `beforeEach`/`afterEach` calls inside this
-// helper register Vitest hooks at the file level — Vitest picks them up just as
-// if they had been written at the top of the file — so every test in the file
-// gets fresh mocks installed/torn down automatically.
+// helper register Vitest hooks at the file level -- Vitest picks them up just
+// as if they had been written at the top of the file -- so every test in the
+// file gets fresh mocks installed/torn down automatically.
 export const useAudioMocks = (): AudioMocks => {
   const audio = {} as AudioMocks;
 
@@ -64,7 +65,7 @@ export const useAudioMocks = (): AudioMocks => {
 
     // The source chains `.catch(...)` on the close() Promise.
     vi.mocked(audio.audioContext.close).mockResolvedValue();
-    // The base class reads `_currentTime` from this — left as a deep-mock spy
+    // The base class reads `_currentTime` from this -- left as a deep-mock spy
     // by default it'd return a function, so anchor it at 0 for predictable
     // scheduling assertions.
     Object.defineProperty(audio.audioContext, 'currentTime', {

@@ -25,7 +25,7 @@ opt <color:#43a047>**""live.microphone.always_connected""**</color> not enabled
 end
 
 note over User, Mic
-  The microphone must connect for the call to proceed —
+  The microphone must connect for the call to proceed --
   if access is denied or unsupported, the call does not start
 end note
 
@@ -46,8 +46,8 @@ end
 
 User -> Card : End the call
 note over User, Card
-  Via Hang-up button, <color:#43a047>**""call_end""**</color> action, or — when
-  <color:#43a047>**""live.controls.call.lock""**</color> is disabled — navigating away
+  Via Hang-up button, <color:#43a047>**""call_end""**</color> action, or -- when
+  <color:#43a047>**""live.controls.call.lock""**</color> is disabled -- navigating away
 end note
 
 Card --> User : Inbound audio mutes (<color:#43a047>**""live.auto_mute""**</color>)

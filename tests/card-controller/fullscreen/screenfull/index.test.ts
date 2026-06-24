@@ -1,7 +1,7 @@
 import screenfull from 'screenfull';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ScreenfullFullScreenProvider } from '../../../../src/card-controller/fullscreen/screenfull';
-import { createCardAPI, setScreenfulEnabled } from '../../../test-utils';
+import { createCardAPI, flushPromises, setScreenfulEnabled } from '../../../test-utils';
 
 vi.mock('screenfull', () => ({
   default: {
@@ -21,6 +21,11 @@ const setScreenfulFullscreen = (fullscreen: boolean): void => {
 
 // @vitest-environment jsdom
 describe('ScreenfullFullScreenProvider', () => {
+  beforeEach(() => {
+    vi.mocked(screenfull.request).mockResolvedValue();
+    vi.mocked(screenfull.exit).mockResolvedValue();
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -157,6 +162,31 @@ describe('ScreenfullFullScreenProvider', () => {
 
       expect(screenfull.request).not.toBeCalled();
       expect(screenfull.exit).not.toBeCalled();
+    });
+
+    it('should swallow a rejected fullscreen request', async () => {
+      setScreenfulEnabled(true);
+      const api = createCardAPI();
+      const element = document.createElement('div');
+      vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+      vi.mocked(screenfull.request).mockRejectedValue(new Error('denied'));
+      const provider = new ScreenfullFullScreenProvider(api, vi.fn());
+
+      provider.setFullscreen(true);
+      await flushPromises();
+
+      expect(screenfull.request).toBeCalledWith(element);
+    });
+
+    it('should swallow a rejected fullscreen exit', async () => {
+      setScreenfulEnabled(true);
+      vi.mocked(screenfull.exit).mockRejectedValue(new Error('not in fullscreen'));
+      const provider = new ScreenfullFullScreenProvider(createCardAPI(), vi.fn());
+
+      provider.setFullscreen(false);
+      await flushPromises();
+
+      expect(screenfull.exit).toBeCalled();
     });
   });
 });

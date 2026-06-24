@@ -46,7 +46,7 @@ describe('ActionHandler', () => {
       // A document-level mouseup should cancel the hold timer.
       document.dispatchEvent(new MouseEvent('mouseup'));
 
-      // Advance past hold time — hold should NOT have triggered.
+      // Advance past hold time -- hold should NOT have triggered.
       vi.advanceTimersByTime(500);
 
       element.dispatchEvent(new MouseEvent('click'));

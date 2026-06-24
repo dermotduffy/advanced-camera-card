@@ -44,7 +44,7 @@ export class InitializationIssue extends AbstractErrorIssue {
     // resources (WebSocket subscriptions, listeners) before the CAMERAS
     // init aspect replaces the instance via createCameraManager().
     this._api.getInitializationManager().uninitializeMandatory();
-    this._api.getCameraManager().destroy();
+    void this._api.getCameraManager().destroy();
     return false;
   }
 

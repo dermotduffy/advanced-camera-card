@@ -145,7 +145,7 @@ describe('HASSManager', () => {
       startingHASS.config.state = STATE_STARTING;
       manager.setHASS(startingHASS);
 
-      // No reinit yet — HA isn't fully ready.
+      // No reinit yet -- HA isn't fully ready.
       expect(api.getInitializationManager().uninitialize).not.toBeCalled();
       expect(api.getCameraManager().destroy).not.toBeCalled();
 
@@ -176,7 +176,7 @@ describe('HASSManager', () => {
       startingHASS.config.state = STATE_STARTING;
       manager.setHASS(startingHASS);
 
-      // WS came back but integrations still loading — wait for RUNNING.
+      // WS came back but integrations still loading -- wait for RUNNING.
       expect(api.getInitializationManager().uninitialize).not.toBeCalled();
       expect(api.getCameraManager().destroy).not.toBeCalled();
     });
@@ -190,9 +190,9 @@ describe('HASSManager', () => {
       readyHASS.config.state = STATE_RUNNING;
       manager.setHASS(readyHASS);
 
-      // First-ever hass set — there's no "previous not-ready state" to
-      // transition from, so the normal first-load init flow applies and we
-      // must not blow away cameras.
+      // First-ever hass set -- there's no "previous not-ready state" to
+      // transition from, so the normal first-load init flow applies and we must
+      // not blow away cameras.
       expect(api.getInitializationManager().uninitialize).not.toBeCalled();
       expect(api.getCameraManager().destroy).not.toBeCalled();
     });

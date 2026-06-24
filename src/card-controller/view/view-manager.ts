@@ -126,7 +126,7 @@ export class ViewManager implements ViewManagerInterface {
         ...options,
       });
       // A non-throwing factory call clears any prior view_incompatible /
-      // media_query state — ensures a previously-dismissed mid-session popup
+      // media_query state -- ensures a previously-dismissed mid-session popup
       // does not linger invisibly and re-pop on the next evaluation cycle,
       // and that a stale media_query failure from an abandoned gallery /
       // viewer doesn't follow the user into an unrelated view.
@@ -361,7 +361,7 @@ export class ViewManager implements ViewManagerInterface {
     if (!this._api.getQueryStringManager().hasViewRelatedActionsToRun()) {
       // This is not awaited to allow the initialization to complete before the
       // query is answered.
-      this.setViewDefaultWithNewQuery({ failSafe: true });
+      void this.setViewDefaultWithNewQuery({ failSafe: true });
     }
   };
 

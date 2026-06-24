@@ -56,6 +56,19 @@ describe('MicrophoneActionsController', () => {
       expect(microphoneManager.mute).not.toBeCalled();
     });
 
+    it('should swallow a rejected auto-unmute so a denied microphone does not surface', async () => {
+      const microphoneManager = createMicrophoneManager();
+      vi.mocked(microphoneManager.unmute).mockRejectedValue(new Error('denied'));
+      const controller = new MicrophoneActionsController();
+      controller.setOptions({
+        microphoneManager,
+        autoUnmuteConditions: ['selected' as const],
+      });
+
+      await expect(controller.setSelectedCamera('camera-1')).resolves.toBeUndefined();
+      expect(microphoneManager.unmute).toBeCalledTimes(1);
+    });
+
     it('should mute on unselected when transitioning to a new camera', async () => {
       const microphoneManager = createMicrophoneManager();
       const controller = new MicrophoneActionsController();

@@ -17,8 +17,8 @@ interface QueryStringViewIntent {
 
     // The substream change to apply alongside the view. Tri-state:
     //   - `undefined`: no substream URL action present, no modifier issued.
-    //   - `string`:    `substream_on=X` — engage stream X.
-    //   - `null`:      `substream_off` — explicitly clear the override.
+    //   - `string`:    `substream_on=X` -- engage stream X.
+    //   - `null`:      `substream_off` -- explicitly clear the override.
     stream?: string | null;
   };
   other?: AdvancedCameraCardCustomActionConfig[];

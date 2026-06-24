@@ -19,6 +19,8 @@ export class Timer {
 
   public start(seconds: number, func: () => void): void {
     this.stop();
+    // This class is the sanctioned wrapper for the browser timer APIs.
+    // eslint-disable-next-line no-restricted-syntax
     this._timer = window.setTimeout(() => {
       this._timer = null;
       func();
@@ -28,6 +30,8 @@ export class Timer {
 
   public startRepeated(seconds: number, func: () => void): void {
     this.stop();
+    // This class is the sanctioned wrapper for the browser timer APIs.
+    // eslint-disable-next-line no-restricted-syntax
     this._timer = window.setInterval(() => {
       func();
     }, seconds * 1000);

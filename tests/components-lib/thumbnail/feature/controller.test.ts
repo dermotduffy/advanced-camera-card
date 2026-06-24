@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManager } from '../../../../src/camera-manager/manager';
 import { ThumbnailFeatureController } from '../../../../src/components-lib/thumbnail/feature/controller';
@@ -12,6 +12,8 @@ describe('ThumbnailFeatureController', () => {
     title: 'Test Event',
     cameraID: 'camera_1',
   });
+  const itemStartTime = itemWithTime.getStartTime();
+  assert(itemStartTime);
 
   describe('should set title', () => {
     it('should set title with start time ', () => {
@@ -20,7 +22,7 @@ describe('ThumbnailFeatureController', () => {
       controller.calculate(null, itemWithTime, false);
 
       // Use format() to generate expected time in local timezone
-      const expectedTime = format(itemWithTime.getStartTime()!, 'HH:mm');
+      const expectedTime = format(itemStartTime, 'HH:mm');
       expect(controller.getTitle()).toBe(expectedTime);
     });
 
@@ -54,7 +56,7 @@ describe('ThumbnailFeatureController', () => {
       controller.calculate(null, itemWithTime, false);
 
       // Use format() to generate expected date string (formats in local time)
-      const expectedDate = format(itemWithTime.getStartTime()!, 'MMM do');
+      const expectedDate = format(itemStartTime, 'MMM do');
       expect(controller.getSubtitles()).toContain(expectedDate);
     });
 

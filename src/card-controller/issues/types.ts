@@ -28,11 +28,11 @@ export interface KeyedIssueDescription {
 }
 
 // Map of currently active issues keyed by IssueKey, with each entry's value
-// being the issue's current rendered description. Stored as a Map (not just
-// a Set of keys) so that sub-state changes within an issue — e.g.
-// ConnectionIssue swapping between 'lost' and 'starting' — are reflected as
-// real value-level diffs to the condition state, triggering re-renders and
-// any user-defined conditions that depend on issue state.
+// being the issue's current rendered description. Stored as a Map (not just a
+// Set of keys) so that sub-state changes within an issue -- e.g.
+// ConnectionIssue swapping between 'lost' and 'starting' -- are reflected as
+// real value-level diffs to the condition state, triggering re-renders and any
+// user-defined conditions that depend on issue state.
 export type IssuePresence = Map<IssueKey, IssueDescription>;
 export interface IssueReadOnlyState {
   hasFullCardIssue(): boolean;
@@ -80,7 +80,7 @@ export interface Issue {
   // loop (exclusive), false to allow subsequent issues to also retry.
   retry?(): boolean;
 
-  // Optional user-initiated fix. Not called by the issue infrastructure —
+  // Optional user-initiated fix. Not called by the issue infrastructure --
   // callers (e.g. notification control actions) invoke this directly.
   fix?(hass: HomeAssistant): Promise<boolean>;
 
@@ -92,11 +92,11 @@ export interface Issue {
 
   // Called when the card is detached. Issues with age-based timers (e.g.
   // loading-timeout timers) must stop them here so that time spent offscreen
-  // doesn't count against the user. Must preserve already-active issue state
-  // — a full-card issue visible at detach should still be visible on
-  // reattach. No `resume` hook: IssueManager.resume() triggers a normal
-  // evaluate(), so any timer that should restart is re-armed via
-  // detectDynamic against the current condition state.
+  // doesn't count against the user. Must preserve already-active issue state --
+  // a full-card issue visible at detach should still be visible on reattach. No
+  // `resume` hook: IssueManager.resume() triggers a normal evaluate(), so any
+  // timer that should restart is re-armed via detectDynamic against the current
+  // condition state.
   suspend?(): void;
 
   // Release external resources (e.g. a listener registered on another manager)

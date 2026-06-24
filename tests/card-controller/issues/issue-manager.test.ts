@@ -198,11 +198,11 @@ describe('IssueManager', () => {
 
       const manager = new IssueManager(api);
 
-      // hasIssue returns true from the start — simulates trigger() having
-      // already mutated state before detectDynamic snapshots. The
-      // before/after check inside detectDynamic sees true→true (no
-      // transition), but the presence comparison against ConditionState
-      // must still detect the change.
+      // hasIssue returns true from the start -- simulates trigger() having
+      // already mutated state before detectDynamic snapshots. The before/after
+      // check inside detectDynamic sees true→true (no transition), but the
+      // presence comparison against ConditionState must still detect the
+      // change.
       const description = createIssueDescription();
       const issue = createIssue('config_error', {
         hasIssue: vi.fn().mockReturnValue(true),
@@ -219,7 +219,7 @@ describe('IssueManager', () => {
       expect(api.getCardElementManager().update).toBeCalled();
     });
 
-    it('should never auto-popup on trigger — non-full-card issues surface via the status-bar icon; user clicks to open', () => {
+    it('should never auto-popup on trigger -- non-full-card issues surface via the status-bar icon; user clicks to open', () => {
       const api = createCardAPI();
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
@@ -250,8 +250,8 @@ describe('IssueManager', () => {
 
       expect(issue.retry).toBeCalled();
 
-      // Timer should have been reset — advancing less than retrySeconds
-      // should not fire it again.
+      // Timer should have been reset -- advancing less than retrySeconds should
+      // not fire it again.
       assert(issue.retry);
       vi.mocked(issue.retry).mockClear();
       vi.advanceTimersByTime(500);
@@ -312,11 +312,11 @@ describe('IssueManager', () => {
     });
 
     it('should call update when an active issue swaps sub-states without changing the key set', () => {
-      // Simulates ConnectionIssue going from 'lost' to 'starting': the
-      // presence key set ({connection}) is identical, but the description
-      // value differs. Because IssuePresence is a Map<key, description>,
-      // the condition state diff sees the value-level change and fires
-      // listeners — the IssueManager's own listener calls update().
+      // Simulates ConnectionIssue going from 'lost' to 'starting': the presence
+      // key set ({connection}) is identical, but the description value differs.
+      // Because IssuePresence is a Map<key, description>, the condition state
+      // diff sees the value-level change and fires listeners -- the
+      // IssueManager's own listener calls update().
       const api = createCardAPI();
 
       // Real ConditionStateManager so its isEqual-based diff actually runs.
@@ -638,7 +638,7 @@ describe('IssueManager', () => {
       const { manager, issue } = createRetriableSetup({ retrySeconds: 'auto' });
       manager.evaluate();
 
-      // Run two retries — second delay should be 2x the first.
+      // Run two retries -- second delay should be 2x the first.
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 2 * 0.75 * 1000);
       expect(issue.retry).toBeCalledTimes(2);
@@ -671,16 +671,16 @@ describe('IssueManager', () => {
       });
       manager.evaluate();
 
-      // Three gated firings — each at the base delay (22.5s with 0.75 jitter).
-      // If the counter were incrementing on gated fires, the second would be
-      // at 45s and we'd never reach it after only 22.5s.
+      // Three gated firings -- each at the base delay (22.5s with 0.75 jitter).
+      // If the counter were incrementing on gated fires, the second would be at
+      // 45s and we'd never reach it after only 22.5s.
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
       expect(issue.retry).not.toBeCalled();
 
-      // Clear the interaction. The next firing — still at the base delay —
-      // is now allowed and the retry runs.
+      // Clear the interaction. The next firing -- still at the base delay -- is
+      // now allowed and the retry runs.
       vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(false);
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
       expect(issue.retry).toBeCalledTimes(1);
@@ -854,7 +854,7 @@ describe('IssueManager', () => {
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
       const manager = new IssueManager(api);
-      // Plain Issue implementation — no optional methods installed.
+      // Plain Issue implementation -- no optional methods installed.
       const issue: Issue = {
         key: 'config_error',
         hasIssue: () => false,

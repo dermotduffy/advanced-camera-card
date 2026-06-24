@@ -76,7 +76,7 @@ class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
         this.cameraManager,
         this.foldersManager,
       );
-      this._mediaFilterController.computeMetadataOptions(this.cameraManager);
+      void this._mediaFilterController.computeMetadataOptions(this.cameraManager);
     }
 
     // The first time the viewManager is set, compute the initial default selections.

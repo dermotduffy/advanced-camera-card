@@ -48,7 +48,7 @@ export class PTZDragController implements ReactiveController {
   // continuous mode. Below that threshold, drag-end dispatches relative.
   private _continuous = false;
 
-  // When a pinch occurs mid-drag, the drag is "poisoned" — all remaining
+  // When a pinch occurs mid-drag, the drag is "poisoned" -- all remaining
   // drag events for that gesture are ignored to prevent stray pan/tilt.
   private _dragCancelledByPinch = false;
 

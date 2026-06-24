@@ -68,6 +68,28 @@ describe('IssueStateManager', () => {
       expect(mockLegacyResource.detectStatic).toBeCalledWith(hass);
       expect(mockMediaLoad.detectStatic).toBeCalledWith(hass);
     });
+
+    it('should isolate a failing issue and continue detecting the rest', async () => {
+      const spy = vi.spyOn(console, 'warn').mockReturnValue();
+      assert(mockConfigUpgrade.detectStatic);
+      assert(mockLegacyResource.detectStatic);
+      assert(mockMediaLoad.detectStatic);
+
+      vi.mocked(mockConfigUpgrade.detectStatic).mockRejectedValue(new Error('boom'));
+
+      // A second failure, a non-Error rejection, is isolated and logged too.
+      vi.mocked(mockLegacyResource.detectStatic).mockRejectedValue('bad');
+
+      const manager = createManager();
+      const hass = createHASS();
+
+      await expect(manager.detectStatic(hass)).resolves.toBeUndefined();
+
+      // Detection continued to the final issue despite the two earlier failures.
+      expect(mockMediaLoad.detectStatic).toBeCalledWith(hass);
+      expect(spy).toBeCalledTimes(2);
+      spy.mockRestore();
+    });
   });
 
   describe('trigger', () => {

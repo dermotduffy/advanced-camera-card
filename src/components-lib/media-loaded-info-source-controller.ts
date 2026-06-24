@@ -53,7 +53,7 @@ export class MediaLoadedInfoSourceController implements ReactiveController {
   private _abort: AbortController | null = null;
 
   // Survives disconnect so we can re-dispatch on reconnect. Only ever holds
-  // info validated by `set` — i.e., always has a targetID.
+  // info validated by `set` -- i.e., always has a targetID.
   private _lastSet: TargetedMediaLoadedInfo | null = null;
 
   constructor(
@@ -67,7 +67,7 @@ export class MediaLoadedInfoSourceController implements ReactiveController {
 
   public hostConnected(): void {
     // Two early-returns:
-    //  - `!_lastSet`: nothing to replay — either the host has never seen a
+    //  - `!_lastSet`: nothing to replay -- either the host has never seen a
     //    media load or the cache was discarded as stale on a prior reconnect
     //    (see below).
     //  - `_abort` non-null: a dispatch is already live, meaning we're already
@@ -79,7 +79,7 @@ export class MediaLoadedInfoSourceController implements ReactiveController {
       return;
     }
 
-    // Revalidate against the current targetID — the host's property may have
+    // Revalidate against the current targetID -- the host's property may have
     // flipped while we were disconnected. Replaying the cached info under a
     // stale targetID would misregister with the manager.
     if (this._lastSet.targetID === this._config.getTargetID()) {

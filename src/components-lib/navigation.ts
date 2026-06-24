@@ -55,7 +55,7 @@ export const navigateUp = (options?: FolderNavigationParamaters | null): void =>
     },
   );
 
-  options?.viewManagerEpoch.manager.setViewByParametersWithExistingQuery({
+  void options?.viewManagerEpoch.manager.setViewByParametersWithExistingQuery({
     params: { query },
   });
 };
@@ -77,7 +77,7 @@ export const navigateToFolder = (
     },
   );
 
-  options?.viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
+  void options?.viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
     params: { query },
   });
 };

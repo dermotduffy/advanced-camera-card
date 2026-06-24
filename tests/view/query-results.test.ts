@@ -78,36 +78,37 @@ describe('dispatchViewContextChangeEvent', () => {
     const results = new QueryResults({ results: testResults });
     const slice = results.getSlice('office');
     expect(slice).not.toBeNull();
-    expect(slice!.getResults()).toEqual(
+    assert(slice);
+    expect(slice.getResults()).toEqual(
       testResults.filter((item) => item.getCameraID() === 'office'),
     );
-    expect(slice!.getResultsCount()).toEqual(100);
-    expect(slice!.hasResults()).toBeTruthy();
-    expect(slice!.getResult(0)).not.toBeNull();
-    expect(slice!.getResult()).toBeNull();
-    expect(slice!.getSelectedIndex()).toBe(99);
-    expect(slice!.getSelectedResult()?.getID()).toEqual('id-office-99');
-    expect(slice!.hasSelectedResult()).toBeTruthy();
+    expect(slice.getResultsCount()).toEqual(100);
+    expect(slice.hasResults()).toBeTruthy();
+    expect(slice.getResult(0)).not.toBeNull();
+    expect(slice.getResult()).toBeNull();
+    expect(slice.getSelectedIndex()).toBe(99);
+    expect(slice.getSelectedResult()?.getID()).toEqual('id-office-99');
+    expect(slice.hasSelectedResult()).toBeTruthy();
 
-    expect(slice!.resetSelectedResult());
-    expect(slice!.getSelectedResult()).toBeNull();
+    expect(slice.resetSelectedResult());
+    expect(slice.getSelectedResult()).toBeNull();
 
-    expect(slice!.selectIndex(10));
-    expect(slice!.getSelectedIndex()).toBe(10);
+    expect(slice.selectIndex(10));
+    expect(slice.getSelectedIndex()).toBe(10);
 
-    expect(slice!.selectIndex(10000));
-    expect(slice!.getSelectedIndex()).toBe(10);
+    expect(slice.selectIndex(10000));
+    expect(slice.getSelectedIndex()).toBe(10);
 
-    expect(slice!.selectIndex(-10000));
-    expect(slice!.getSelectedIndex()).toBe(10);
+    expect(slice.selectIndex(-10000));
+    expect(slice.getSelectedIndex()).toBe(10);
 
-    slice!.selectResultIfFound((item: ViewItem) => item.getID() === 'id-office-42');
-    expect(slice!.getSelectedResult()?.getID()).toBe('id-office-42');
+    slice.selectResultIfFound((item: ViewItem) => item.getID() === 'id-office-42');
+    expect(slice.getSelectedResult()?.getID()).toBe('id-office-42');
 
-    slice!.selectBestResult((itemArray: ViewItem[]) =>
+    slice.selectBestResult((itemArray: ViewItem[]) =>
       itemArray.findIndex((item) => item.getID() === 'id-office-43'),
     );
-    expect(slice!.getSelectedResult()?.getID()).toBe('id-office-43');
+    expect(slice.getSelectedResult()?.getID()).toBe('id-office-43');
   });
 
   describe('should respect select approach during construction', () => {

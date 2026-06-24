@@ -329,7 +329,7 @@ class AdvancedCameraCard extends LitElement {
 
   protected updated(): void {
     if (this._controller.getInitializationManager().isInitializedMandatory()) {
-      this._controller.getQueryStringManager().executeIfNecessary();
+      void this._controller.getQueryStringManager().executeIfNecessary();
     }
   }
 

@@ -79,8 +79,8 @@ export class CardElementManager {
     // These initializers are called when the config is updated, but on initial
     // creation of the card hass is not yet available when the config is first
     // loaded.
-    this._api.getDefaultManager().initialize();
-    this._api.getMediaPlayerManager().initialize();
+    void this._api.getDefaultManager().initialize();
+    void this._api.getMediaPlayerManager().initialize();
 
     this._api
       .getHASSManager()
@@ -184,7 +184,7 @@ export class CardElementManager {
     this._api.getFullscreenManager().disconnect();
     this._api.getPIPManager().uninitialize();
     this._api.getKeyboardStateManager().uninitialize();
-    this._api.getActionsManager().uninitialize();
+    void this._api.getActionsManager().uninitialize();
     this._api.getInteractionManager().uninitialize();
     this._api.getDefaultManager().uninitialize();
     this._api.getHASSManager().getStateWatcher()?.unsubscribe(this.update);
@@ -200,7 +200,7 @@ export class CardElementManager {
     this._api
       .getInitializationManager()
       .uninitialize(InitializationAspect.INITIAL_TRIGGER);
-    this._api.getCameraManager().destroy();
+    void this._api.getCameraManager().destroy();
 
     this._element.removeEventListener(
       'mousemove',

@@ -233,7 +233,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
   private _setViewCameraID(cameraID?: string | null): void {
     if (cameraID) {
-      this.viewManagerEpoch?.manager.setViewByParametersWithNewQuery({
+      void this.viewManagerEpoch?.manager.setViewByParametersWithNewQuery({
         params: {
           camera: cameraID,
         },
@@ -319,9 +319,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     const controller = this._mediaLoadedInfoSinkController.get()?.mediaPlayerController;
     // Fire-and-forget; the `volumechange` event drives the re-render.
     if (controller?.isMuted()) {
-      controller.unmute();
+      void controller.unmute();
     } else {
-      controller?.mute();
+      void controller?.mute();
     }
   }
 
@@ -478,7 +478,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     const selectedCameraIndex = this._getSelectedCameraIndex();
 
     if (this.viewFilterCameraID) {
-      this._mediaActionsController.setTarget(
+      void this._mediaActionsController.setTarget(
         selectedCameraIndex,
         // Camera in this carousel is only selected if the camera from the
         // view matches the filtered camera.
@@ -486,7 +486,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       );
     } else {
       // Carousel is not filtered, so the targeted camera is always selected.
-      this._mediaActionsController.setTarget(selectedCameraIndex, true);
+      void this._mediaActionsController.setTarget(selectedCameraIndex, true);
     }
 
     this._mediaHeightController.setSelected(selectedCameraIndex);

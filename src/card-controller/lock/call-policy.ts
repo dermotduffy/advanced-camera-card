@@ -10,8 +10,8 @@ import type { LockPolicy } from './types';
 //   - Stream-stopping / re-init actions: pause, reload, and casting (which
 //     rehosts the stream to a media player).
 //
-// `call_start` is intentionally absent — it's the entry into the lock.
-// `call_end` is also absent — it dispatches via `setViewByParameters({ force:
+// `call_start` is intentionally absent -- it's the entry into the lock.
+// `call_end` is also absent -- it dispatches via `setViewByParameters({ force:
 // true })` to bypass the lock, so listing it here would be redundant.
 const CALL_DISRUPTIVE_ACTIONS: ReadonlySet<string> = new Set([
   // View / camera / substream changes.
