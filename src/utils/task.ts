@@ -30,7 +30,7 @@ export const renderTask = <R>(
     pending: () =>
       options?.inProgressFunc?.() ?? renderProgressIndicator(progressConfig),
     error: (e: unknown) => {
-      errorToConsole(e as Error);
+      errorToConsole(e);
       return options?.errorFunc?.(e as Error);
     },
     complete: completeFunc,

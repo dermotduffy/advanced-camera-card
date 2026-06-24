@@ -19,7 +19,7 @@ export async function toggleReviewed(
   try {
     await viewItemManager.reviewMedia(item, newState);
   } catch (e) {
-    errorToConsole(e as Error);
+    errorToConsole(e);
     return false;
   }
   item.setReviewed(newState);
@@ -55,7 +55,7 @@ export async function toggleFavorite(
   try {
     await viewItemManager.favorite(item, newState);
   } catch (e) {
-    errorToConsole(e as Error);
+    errorToConsole(e);
     return false;
   }
   return true;
@@ -72,7 +72,7 @@ export async function downloadMedia(
   try {
     await viewItemManager.download(item);
   } catch (e) {
-    errorToConsole(e as Error);
+    errorToConsole(e);
     return false;
   }
   return true;

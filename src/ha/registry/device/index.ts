@@ -40,7 +40,7 @@ export class DeviceRegistryManager {
         type: 'config/device_registry/list',
       });
     } catch (e) {
-      errorToConsole(e as Error);
+      errorToConsole(e);
       return;
     }
     deviceList.forEach((device) => {

@@ -35,7 +35,7 @@ export class EntityRegistryManagerLive implements EntityRegistryManager {
         entity_id: entityID,
       });
     } catch (e) {
-      errorToConsole(e as Error);
+      errorToConsole(e);
       return null;
     }
     this._cache.set(entity.entity_id, entity);
@@ -79,7 +79,7 @@ export class EntityRegistryManagerLive implements EntityRegistryManager {
         type: 'config/entity_registry/list',
       });
     } catch (e) {
-      errorToConsole(e as Error);
+      errorToConsole(e);
       return;
     }
     entityList.forEach((entity) => {

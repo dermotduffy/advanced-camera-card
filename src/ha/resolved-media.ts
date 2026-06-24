@@ -40,7 +40,7 @@ export const resolveMedia = async (
   try {
     resolvedMedia = await homeAssistantWSRequest(hass, resolvedMediaSchema, request);
   } catch (e) {
-    errorToConsole(e as Error);
+    errorToConsole(e);
   }
   if (cache && resolvedMedia) {
     cache.set(mediaContentID, resolvedMedia);

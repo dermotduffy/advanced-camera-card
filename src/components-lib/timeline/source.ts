@@ -248,7 +248,7 @@ export class TimelineDataSource {
         ...(this._showRecordings ? [this._refreshRecordings(window)] : []),
       ]);
     } catch (e) {
-      errorToConsole(e as Error);
+      errorToConsole(e);
     }
   }
 

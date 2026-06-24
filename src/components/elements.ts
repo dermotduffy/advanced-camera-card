@@ -125,7 +125,7 @@ export class AdvancedCameraCardElementsCore extends LitElement {
     try {
       element.setConfig(config);
     } catch (e) {
-      errorToConsole(e as Error, console.error);
+      errorToConsole(e, console.error);
       throw new AdvancedCameraCardError(localize('error.invalid_elements_config'));
     }
     return element;
@@ -155,7 +155,7 @@ export class AdvancedCameraCardElementsCore extends LitElement {
       this._renderedElements = elements;
       this._root = this._createRoot();
     } catch (e) {
-      errorToConsole(e as Error);
+      errorToConsole(e);
       fireAdvancedCameraCardEvent<IssueTriggerEventData>(this, 'issue:trigger', {
         key: 'config_error',
         error: new ElementsCreationError(elements),

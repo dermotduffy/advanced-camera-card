@@ -366,7 +366,7 @@ export class FrigateCamera extends Camera {
         cameraConfig.frigate.camera_name,
       );
     } catch (e) {
-      errorToConsole(e as Error);
+      errorToConsole(e);
       return null;
     }
 

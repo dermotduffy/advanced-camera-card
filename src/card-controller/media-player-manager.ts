@@ -73,7 +73,7 @@ export class MediaPlayerManager {
       // Failing to fetch media player information is not considered
       // sufficiently serious to block card startup -- it is just logged and we
       // move on.
-      errorToConsole(e as Error);
+      errorToConsole(e);
     }
 
     // Filter out entities that are marked as hidden (this information is not
