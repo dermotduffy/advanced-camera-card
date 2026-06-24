@@ -29,7 +29,7 @@ export class IssueManager {
   private _suspended = false;
 
   // Reentrancy guard: evaluate() calls setState() on the condition state
-  // manager, which fires listeners synchronously — including the one
+  // manager, which fires listeners synchronously -- including the one
   // registered in this constructor. Without this guard, detectDynamic()
   // and presence computation would run twice per evaluation.
   private _evaluating = false;
@@ -165,16 +165,14 @@ export class IssueManager {
   // normal re-evaluation (on any condition-state change).
   //
   // `initialized: true` in the change payload means mandatory initialization
-  // just finished — see InitializationManager._initializeMandatory. That's
+  // just finished -- see InitializationManager._initializeMandatory. That's
   // also the earliest point at which the full HASS object is guaranteed
   // ready for websocket calls (e.g. LegacyResourceIssue's lovelace/resources
   // fetch). Because `initialized` is latched (its comment notes it never
   // changes again), this block fires exactly once per IssueManager life.
   private _onStateChange(change: ConditionStateChange): void {
     if (change.change.initialized === true && change.new.hass) {
-      /* async */ this._stateManager
-        .detectStatic(change.new.hass)
-        .then(() => this.evaluate());
+      void this._stateManager.detectStatic(change.new.hass).then(() => this.evaluate());
     }
     this.evaluate();
   }

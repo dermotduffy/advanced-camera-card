@@ -81,7 +81,7 @@ export class AdvancedCameraCardLive extends LitElement {
       // from a hidden live view. Treat the live view as having no selected
       // camera unless it is the active view.
       const view = this.viewManagerEpoch?.manager.getView();
-      this._microphoneActionsController.setSelectedCamera(
+      void this._microphoneActionsController.setSelectedCamera(
         view?.is('live') ? view.camera ?? null : null,
       );
     }

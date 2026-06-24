@@ -166,7 +166,7 @@ export class EffectsManager implements EffectsManagerInterface {
   private _startPendingEffects(): void {
     for (const [name, options] of this._pendingEffects.entries()) {
       this._pendingEffects.delete(name);
-      this._startEffect(name, options);
+      void this._startEffect(name, options);
     }
   }
 }

@@ -200,7 +200,7 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
   public updated(): void {
     // Extract the video component after it has been rendered and generate the
     // media load event.
-    this.updateComplete.then(() => {
+    void this.updateComplete.then(() => {
       this._videoRTC = this.renderRoot?.querySelector('#webrtc') ?? null;
       const video = this._getVideo();
       if (video) {

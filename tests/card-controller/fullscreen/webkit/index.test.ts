@@ -3,7 +3,11 @@ import { mock } from 'vitest-mock-extended';
 import { WebkitFullScreenProvider } from '../../../../src/card-controller/fullscreen/webkit';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { MediaPlayerController, WebkitHTMLVideoElement } from '../../../../src/types';
-import { createCardAPI, createMediaLoadedInfo } from '../../../test-utils';
+import {
+  createCardAPI,
+  createMediaLoadedInfo,
+  flushPromises,
+} from '../../../test-utils';
 
 const createWebkitVideoElement = (): HTMLVideoElement &
   Partial<WebkitHTMLVideoElement> => {
@@ -242,7 +246,7 @@ describe('WebkitFullScreenProvider', () => {
     provider.connect();
 
     const element = createWebkitVideoElement();
-    element.play = vi.fn();
+    element.play = vi.fn().mockResolvedValue(undefined);
 
     const mediaPlayerController = createMediaPlayerController(element);
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
@@ -260,6 +264,32 @@ describe('WebkitFullScreenProvider', () => {
     expect(element.play).not.toBeCalled();
 
     vi.runOnlyPendingTimers();
+
+    expect(element.play).toBeCalled();
+  });
+
+  it('should swallow a rejected video replay after fullscreen ends', async () => {
+    const api = createCardAPI();
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
+    const provider = new WebkitFullScreenProvider(api, vi.fn());
+    provider.connect();
+
+    const element = createWebkitVideoElement();
+    element.play = vi.fn().mockRejectedValue(new Error('denied'));
+
+    const mediaPlayerController = createMediaPlayerController(element);
+    vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
+      createMediaLoadedInfo({ mediaPlayerController }),
+    );
+    stateManager.setState({
+      mediaLoadedInfo: createMediaLoadedInfo({ mediaPlayerController }),
+    });
+
+    element.dispatchEvent(new Event('webkitendfullscreen'));
+    vi.runOnlyPendingTimers();
+    await flushPromises();
 
     expect(element.play).toBeCalled();
   });

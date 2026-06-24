@@ -103,7 +103,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('viewManagerEpoch') && this._needsGrid()) {
-      import('../media-grid.js');
+      void import('../media-grid.js');
     }
   }
 

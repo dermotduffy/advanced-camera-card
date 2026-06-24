@@ -11,7 +11,7 @@ export class PTZControlsAction extends AdvancedCameraCardAction<PTZControlsActio
 
     // If `enabled` is explicit, use it. If only `type` is being changed, leave
     // `enabled` untouched (undefined = no change). Otherwise (neither set),
-    // toggle the current enabled value — this is the menu-button show/hide use
+    // toggle the current enabled value -- this is the menu-button show/hide use
     // case.
     const enabled =
       action.enabled ??

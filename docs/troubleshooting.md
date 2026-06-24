@@ -233,7 +233,7 @@ between clicking the download button and the download starting.
 - If you are using a custom `client_id` setting in your `frigate.yml` file (the
   configuration file for the Frigate backend itself), the card will auto-detect
   it from the camera entity. If auto-detection fails (e.g. no `camera_entity`
-  is configured), set it manually — see [Frigate engine
+  is configured), set it manually -- see [Frigate engine
   configuration](configuration/cameras/engine.md?id=frigate).
 - You must have the `Enable the media browser` option enabled for the Frigate
   integration, in order for media fetches to work for the card. Media fetches
@@ -305,7 +305,7 @@ Picture-in-Picture (PIP) uses the browser's [native video PIP
 API](https://caniuse.com/picture-in-picture) which floats the raw video element
 into a small window. This means:
 
-- **No card UI in the PIP window.** Only the video itself is shown — no menu,
+- **No card UI in the PIP window.** Only the video itself is shown -- no menu,
   status bar, timeline, or other card elements. The card remains fully
   functional on the dashboard behind it.
 - **Limited browser support.** Not all browsers support the PIP API. See
@@ -320,7 +320,7 @@ was explored using the experimental [Document Picture-in-Picture
 API](https://caniuse.com/mdn-api_documentpictureinpicture), however it proved
 unworkable: Home Assistant state updates cannot reach a card in a separate
 document, and browser-managed styles (`adoptedStyleSheets`) are cleared when
-elements move between documents — resulting in an unstyled, non-updating card.
+elements move between documents -- resulting in an unstyled, non-updating card.
 
 ### New version not working in Chrome
 

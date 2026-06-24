@@ -9,7 +9,7 @@ interface MediaLoadedInfoSinkConfig {
   // notification.
   getTargetID: () => string | null;
 
-  // Fires when the active info changes — i.e. when the active target's entry
+  // Fires when the active info changes -- i.e. when the active target's entry
   // transitions (load arrives, abort, or selection changes the active entry).
   // Loads for other targets are cached but do not fire the callback.
   callback?: (info: MediaLoadedInfo | null) => void;
@@ -28,7 +28,7 @@ interface MediaLoadedInfoSinkConfig {
  * user selects a slide whose media has already loaded, the sink immediately
  * exposes the cached entry.
  *
- * Lifecycle asymmetry — `callback` fires on:
+ * Lifecycle asymmetry -- `callback` fires on:
  *  - the active target's load arrival,
  *  - the active target's source aborting (with `null`), and
  *  - selection changing to / from a target whose active info differs.
@@ -46,7 +46,7 @@ export class MediaLoadedInfoSinkController implements ReactiveController {
   // stale abort can't blow away an entry that's since been overwritten.
   private _byTarget = new Map<string, MediaLoadedInfo>();
 
-  // The targetID whose info we last surfaced — drives `hostUpdated` change
+  // The targetID whose info we last surfaced -- drives `hostUpdated` change
   // detection. `_lastActiveInfo` records what the callback last saw, so we
   // don't fire it for no-op selection changes (e.g. selection changes but
   // both old and new are null/loaded with the same info reference).
@@ -67,7 +67,7 @@ export class MediaLoadedInfoSinkController implements ReactiveController {
   }
 
   public hostUpdated(): void {
-    // Detect selection changes — `getTargetID` is owned by the host and may
+    // Detect selection changes -- `getTargetID` is owned by the host and may
     // flip when its props change (carousel slide change, view change, etc.).
     const newID = this._config.getTargetID();
     if (newID !== this._lastActiveTargetID) {

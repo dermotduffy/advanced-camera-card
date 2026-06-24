@@ -61,7 +61,7 @@ export class HASSManager implements HASSManagerReadonlyInterface {
       );
 
       this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
-      this._api.getCameraManager().destroy();
+      void this._api.getCameraManager().destroy();
       this._api.getInitializationManager().uninitialize(InitializationAspect.VIEW);
       this._api
         .getInitializationManager()

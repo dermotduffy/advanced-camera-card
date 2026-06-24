@@ -32,9 +32,12 @@ export class ScreenfullFullScreenProvider
     }
 
     if (fullscreen) {
-      screenfull.request(this._api.getCardElementManager().getElement());
+      // A denied request (or an exit when not in fullscreen) leaves the UI
+      // consistent: the 'change' handler only fires on a real transition.
+      // Nothing to act on.
+      screenfull.request(this._api.getCardElementManager().getElement()).catch(() => {});
     } else {
-      screenfull.exit();
+      screenfull.exit().catch(() => {});
     }
   }
 }

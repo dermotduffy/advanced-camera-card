@@ -277,7 +277,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
         this._controller.setView(this.viewManagerEpoch ?? null),
       );
     } else {
-      this._controller.setView(this.viewManagerEpoch ?? null);
+      void this._controller.setView(this.viewManagerEpoch ?? null);
     }
   }
 

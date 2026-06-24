@@ -92,7 +92,7 @@ export class OverridesManager {
 
     const parseResult = advancedCameraCardConfigSchema.safeParse(output);
     if (!parseResult.success) {
-      // Surface one co-located failure object per Zod issue — path, the value
+      // Surface one co-located failure object per Zod issue -- path, the value
       // the user actually wrote, and the most informative "expected" field for
       // this issue code. Avoids dumping the full merged config (which is
       // mostly schema defaults the user never wrote) and keeps the reader from

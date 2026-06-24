@@ -106,6 +106,6 @@ export class AutomationsManager {
         --this._nestedAutomationExecutions;
       }
     };
-    runActions(automation.actions);
+    void runActions(automation.actions);
   }
 }

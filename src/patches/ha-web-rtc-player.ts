@@ -35,7 +35,7 @@ import {
 } from '../utils/media-info.js';
 import { ConstructableLitElement } from './types.js';
 
-customElements.whenDefined('ha-web-rtc-player').then(() => {
+void customElements.whenDefined('ha-web-rtc-player').then(() => {
   const HaWebRtcPlayer = customElements.get(
     'ha-web-rtc-player',
   ) as ConstructableLitElement;

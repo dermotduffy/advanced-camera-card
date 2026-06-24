@@ -56,7 +56,7 @@ export class MicrophoneActionsController {
     }
     this._callAnswered = answered;
     if (answered) {
-      this._unmuteIfConfigured('call');
+      void this._unmuteIfConfigured('call');
     } else {
       this._muteIfConfigured('call');
     }
@@ -106,7 +106,10 @@ export class MicrophoneActionsController {
       this._options?.microphoneManager &&
       this._options.autoUnmuteConditions?.includes(condition)
     ) {
-      await this._options.microphoneManager.unmute();
+      // A denied or missing microphone already shows in the UI: the menu
+      // microphone button switches to its forbidden icon. A failed auto-unmute
+      // has nothing more to act on.
+      await this._options.microphoneManager.unmute().catch(() => {});
     }
   }
 

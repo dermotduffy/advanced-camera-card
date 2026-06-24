@@ -63,7 +63,7 @@ export abstract class GeneratedTone implements Tone {
   // a stopped tone can never re-arm its loop.
   protected _scheduleNext(intervalSeconds: number): void {
     /* istanbul ignore next: defensive guard against a subclass calling
-       _scheduleNext after stop() — JS single-threading makes this unreachable
+       _scheduleNext after stop() -- JS single-threading makes this unreachable
        from the existing subclasses -- @preserve */
     if (!this._context) {
       return;

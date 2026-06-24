@@ -278,9 +278,9 @@ import {
   CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE,
   CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
+  CONF_VIEW_TRIGGERS_EVENT_HOLD_SECONDS,
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
-  CONF_VIEW_TRIGGERS_EVENT_HOLD_SECONDS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_FORCE_SECONDS,
   DOCS_URL,
@@ -294,7 +294,7 @@ import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
 import editorStyle from './scss/editor.scss';
 import type { CapabilityKey } from './types.js';
-import { arrayMove, prettifyTitle } from './utils/basic.js';
+import { arrayMove, errorToConsole, prettifyTitle } from './utils/basic.js';
 import { getCameraID } from './utils/camera.js';
 import { fireAdvancedCameraCardEvent } from './utils/fire-advanced-camera-card-event.js';
 import { getFolderID } from './utils/folder.js';
@@ -1255,9 +1255,13 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
 
   protected willUpdate(): void {
     if (!this._initialized) {
-      sideLoadHomeAssistantElements().then(() => {
-        this._initialized = true;
-      });
+      sideLoadHomeAssistantElements()
+        .then(() => {
+          this._initialized = true;
+        })
+        // A failure leaves the editor with degraded HA form elements and is
+        // retried on the next update; log it so the cause is at least visible.
+        .catch((e) => errorToConsole(e));
     }
   }
 

@@ -285,7 +285,7 @@ export class CallManager {
       restoreView &&
       (previousView.view !== 'live' || previousView.camera !== call.cameraID)
     ) {
-      viewManager.setViewByParametersWithExistingQuery({
+      void viewManager.setViewByParametersWithExistingQuery({
         baseView: previousView,
         force: true,
       });

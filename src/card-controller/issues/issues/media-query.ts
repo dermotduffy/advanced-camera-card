@@ -31,7 +31,7 @@ export class MediaQueryIssue extends AbstractErrorIssue {
       return false;
     }
     this._error = null;
-    this._api.getViewManager().setViewByParametersWithNewQuery();
+    void this._api.getViewManager().setViewByParametersWithNewQuery();
 
     // Exclusive retry. No other issue should attempt to retry until the next
     // evaluation cycle, when we'll know if this was successful.

@@ -90,16 +90,16 @@ export class AdvancedCameraCardViews extends LitElement {
     if (changedProps.has('viewManagerEpoch') || changedProps.has('config')) {
       const view = this.viewManagerEpoch?.manager.getView();
       if (view?.is('live') || this._shouldLivePreload()) {
-        import('./live/index.js');
+        void import('./live/index.js');
       }
       if (view?.isGalleryView()) {
-        import('./gallery/gallery.js');
+        void import('./gallery/gallery.js');
       } else if (view?.isViewerView()) {
-        import('./viewer/index.js');
+        void import('./viewer/index.js');
       } else if (view?.is('image')) {
-        import('./image.js');
+        void import('./image.js');
       } else if (view?.is('timeline')) {
-        import('./timeline.js');
+        void import('./timeline.js');
       }
     }
 

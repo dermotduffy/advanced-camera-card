@@ -91,7 +91,7 @@ automations:
 ### Fullscreen with display mode and substream switching
 
 This example adds a custom menu button that switches to single display mode,
-activates the HD substream, and enters card fullscreen — all in a single tap.
+activates the HD substream, and enters card fullscreen -- all in a single tap.
 An automation restores the grid layout and substream when fullscreen is exited.
 This is useful in [grid](configuration/live.md) layouts where the card's
 standard fullscreen button would show all cameras rather than a single HD
@@ -376,9 +376,9 @@ elements:
 
 The [`doorbell` profile](configuration/profiles.md?id=doorbell) turns a dashboard into a phone-like ringer when somebody presses the doorbell, by setting [`view.triggers.actions.trigger: call`](configuration/view.md?id=triggers) and auto-discovering [HA `event.*` entities](https://www.home-assistant.io/integrations/event/#device-class) with `device_class: doorbell` on the camera's device (Ring, UniFi Protect, Nest, DoorBird, Reolink, etc.). The intended deployment is a wall-mounted tablet sitting on the dashboard.
 
-A doorbell press is instantaneous, so the card synthesises a ring window from [`view.triggers.event_hold_seconds`](configuration/view.md?id=triggers) (default `30`s) — long enough for a typical phone-style answer window. `untrigger_delay_seconds` then lingers past that, same as for any stateful trigger.
+A doorbell press is instantaneous, so the card synthesises a ring window from [`view.triggers.event_hold_seconds`](configuration/view.md?id=triggers) (default `30`s) -- long enough for a typical phone-style answer window. `untrigger_delay_seconds` then lingers past that, same as for any stateful trigger.
 
-`triggers.motion`, `triggers.occupancy`, and `triggers.media_events` are off by default — only the explicit doorbell press triggers the call, so casual motion won't make the card ring.
+`triggers.motion`, `triggers.occupancy`, and `triggers.media_events` are off by default -- only the explicit doorbell press triggers the call, so casual motion won't make the card ring.
 
 ```yaml
 type: custom:advanced-camera-card
@@ -398,9 +398,9 @@ profiles:
 
 #### With a Zigbee (ZHA / deCONZ) doorbell button
 
-Zigbee buttons connected via ZHA or deCONZ typically don't expose a per-device entity — they fire raw HA bus events (`zha_event`, `deconz_event`) shared across every Zigbee device on the integration. The `doorbell` profile's auto-discovery doesn't cover this case; reuse the profile (it still wires up `trigger: call` / `untrigger: call` and the ring window) but opt out of auto-discovery per camera and add [`triggers.events`](configuration/cameras/README.md?id=events) with an `event_data` filter to pick out the right device.
+Zigbee buttons connected via ZHA or deCONZ typically don't expose a per-device entity -- they fire raw HA bus events (`zha_event`, `deconz_event`) shared across every Zigbee device on the integration. The `doorbell` profile's auto-discovery doesn't cover this case; reuse the profile (it still wires up `trigger: call` / `untrigger: call` and the ring window) but opt out of auto-discovery per camera and add [`triggers.events`](configuration/cameras/README.md?id=events) with an `event_data` filter to pick out the right device.
 
-You can copy the exact `device_ieee` (ZHA) or `id` (deCONZ) and command values straight out of **Developer tools → Events** in Home Assistant — listen to the event type, press the doorbell, and use whatever appears in the `data` payload.
+You can copy the exact `device_ieee` (ZHA) or `id` (deCONZ) and command values straight out of **Developer tools → Events** in Home Assistant -- listen to the event type, press the doorbell, and use whatever appears in the `data` payload.
 
 ```yaml
 type: custom:advanced-camera-card

@@ -43,7 +43,7 @@ export interface MediaLoadedInfo {
   mediaPlayerController?: MediaPlayerController;
   capabilities?: MediaLoadedCapabilities;
 
-  // Universal key identifying "what this media belongs to" — a camera ID for
+  // Universal key identifying "what this media belongs to" -- a camera ID for
   // live, a media ID for the viewer, or a sentinel for the image view.
   targetID?: string;
 }

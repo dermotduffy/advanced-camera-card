@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { MediaLoadIssue } from '../../../../src/card-controller/issues/issues/media-load';
 import { InternalCallbackActionConfig } from '../../../../src/config/schema/actions/custom/internal';
+import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../../../src/view/target-id';
 import { View } from '../../../../src/view/view';
 import { createCardAPI, createMediaLoadedInfo } from '../../../test-utils';
-import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../../../src/view/target-id';
 
 const createAPI = () => createCardAPI();
 
@@ -133,7 +133,7 @@ describe('MediaLoadIssue', () => {
       vi.advanceTimersByTime(10000);
       expect(issue.hasIssue()).toBe(true);
 
-      // Same target, different media view — issue stays active.
+      // Same target, different media view -- issue stays active.
       issue.detectDynamic({ targetID: 'camera-1', view: 'clip' });
       expect(issue.hasIssue()).toBe(true);
     });
@@ -145,7 +145,7 @@ describe('MediaLoadIssue', () => {
       vi.advanceTimersByTime(10000);
       expect(issue.hasIssue()).toBe(true);
 
-      // Switch to camera-2 which has no error — should deactivate and start
+      // Switch to camera-2 which has no error -- should deactivate and start
       // a fresh timer for the new target.
       issue.detectDynamic({ targetID: 'camera-2', view: 'live' });
       expect(issue.hasIssue()).toBe(false);
@@ -164,7 +164,7 @@ describe('MediaLoadIssue', () => {
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       expect(issue.hasIssue()).toBe(true);
 
-      // Switch to camera-2 which also has an error — should stay active.
+      // Switch to camera-2 which also has an error -- should stay active.
       issue.detectDynamic({ targetID: 'camera-2', view: 'live' });
       expect(issue.hasIssue()).toBe(true);
     });
@@ -456,7 +456,7 @@ describe('MediaLoadIssue', () => {
 
       issue.retry();
 
-      // Issue remains active — no new 10s grace period. The error stays
+      // Issue remains active -- no new 10s grace period. The error stays
       // visible while the provider re-attempts loading underneath.
       expect(issue.hasIssue()).toBe(true);
     });
@@ -542,9 +542,9 @@ describe('MediaLoadIssue', () => {
 
       issue.retry();
 
-      // After retry, the issue stays active and the errored target is
-      // preserved — no new 10s grace period. If media:loaded fires, the
-      // existing _handleMediaLoaded path will clear everything.
+      // After retry, the issue stays active and the errored target is preserved
+      // -- no new 10s grace period. If media:loaded fires, the existing
+      // _handleMediaLoaded path will clear everything.
       expect(issue.hasIssue()).toBe(true);
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       expect(issue.hasIssue()).toBe(true);
@@ -579,8 +579,8 @@ describe('MediaLoadIssue', () => {
       // Card detaches: timer must stop.
       issue.suspend();
 
-      // Full 10s later (plus margin) the timer has NOT matured — the user
-      // was offscreen and that time does not count against them.
+      // Full 10s later (plus margin) the timer has NOT matured -- the user was
+      // offscreen and that time does not count against them.
       vi.advanceTimersByTime(20000);
       expect(issue.hasIssue()).toBe(false);
       expect(onChange).not.toBeCalled();
@@ -594,7 +594,7 @@ describe('MediaLoadIssue', () => {
       vi.advanceTimersByTime(10000);
       expect(issue.hasIssue()).toBe(true);
 
-      // Card detaches — issue must remain visible on reattach.
+      // Card detaches -- issue must remain visible on reattach.
       issue.suspend();
 
       expect(issue.hasIssue()).toBe(true);
@@ -609,8 +609,8 @@ describe('MediaLoadIssue', () => {
       issue.suspend();
 
       // Reattach: the manager's resume() triggers evaluate() → detectDynamic.
-      // The target is still loading, so the timer arms with a fresh 10s
-      // window — not whatever was left when we suspended.
+      // The target is still loading, so the timer arms with a fresh 10s window
+      // -- not whatever was left when we suspended.
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
 
       vi.advanceTimersByTime(9999);

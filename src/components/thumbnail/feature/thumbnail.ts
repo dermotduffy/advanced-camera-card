@@ -62,7 +62,7 @@ export class AdvancedCameraCardThumbnailFeatureThumbnail extends LitElement {
       this._embedThumbnailTask?.status === TaskStatus.INITIAL &&
       entries.some((entry) => entry.isIntersecting)
     ) {
-      this._embedThumbnailTask?.run();
+      void this._embedThumbnailTask?.run();
     }
   }
 

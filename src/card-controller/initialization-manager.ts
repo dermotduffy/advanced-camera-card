@@ -80,7 +80,7 @@ export class InitializationManager {
     if (!this._shouldInitializeMandatory()) {
       return;
     }
-    /* async */ this.initializeMandatory();
+    void this.initializeMandatory();
   }
 
   private _shouldInitializeMandatory(): boolean {

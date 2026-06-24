@@ -1,7 +1,7 @@
 /**
  * Walk up `element`'s ancestor chain (through shadow boundaries) looking for
  * an ancestor with the given tag name. Returns true if one is found and that
- * same element also appears in the event's composedPath — indicating the event
+ * same element also appears in the event's composedPath -- indicating the event
  * originated from within the same subtree as the element.
  */
 export const isAncestorInEventPath = (

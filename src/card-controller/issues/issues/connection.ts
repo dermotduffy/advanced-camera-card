@@ -19,7 +19,7 @@ export class ConnectionIssue implements Issue {
   private _state: ConnectionState = 'ready';
 
   public detectDynamic(state: ConditionState): void {
-    // Before HASS is ever provided, leave state untouched — undefined hass is
+    // Before HASS is ever provided, leave state untouched -- undefined hass is
     // not a disconnection, just "not yet initialized".
     if (state.hass === undefined) {
       return;

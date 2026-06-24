@@ -501,7 +501,7 @@ describe('should handle ptz action', () => {
 
       // Emulate the stop being called while the action is running, but before
       // the *next* timer is scheduled.
-      let resolve: () => void;
+      let resolve: () => void = () => {};
       const promise: Promise<void> = new Promise((_resolve) => {
         resolve = _resolve;
       });
@@ -512,7 +512,7 @@ describe('should handle ptz action', () => {
 
       action.stop();
 
-      resolve!();
+      resolve();
       await vi.runOnlyPendingTimersAsync();
 
       // There should be no additional calls.
