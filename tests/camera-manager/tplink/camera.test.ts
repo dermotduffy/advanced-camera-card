@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CameraManagerEngine } from '../../../src/camera-manager/engine';
+import type { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { TPLinkCamera } from '../../../src/camera-manager/tplink/camera';
-import { ActionsExecutor } from '../../../src/card-controller/actions/types';
+import type { ActionsExecutor } from '../../../src/card-controller/actions/types';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
   createCameraConfig,

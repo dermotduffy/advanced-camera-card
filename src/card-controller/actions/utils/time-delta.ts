@@ -1,4 +1,4 @@
-import { TimeDelta } from '../../../config/schema/actions/custom/sleep';
+import type { TimeDelta } from '../../../config/schema/actions/custom/sleep';
 
 export const timeDeltaToSeconds = (timeDelta: TimeDelta): number => {
   return (

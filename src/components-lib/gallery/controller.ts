@@ -1,15 +1,15 @@
-import { ViewManagerEpoch } from '../../card-controller/view/types';
-import { AdvancedCameraCardView } from '../../config/schema/common/const';
+import type { ViewManagerEpoch } from '../../card-controller/view/types';
+import type { AdvancedCameraCardView } from '../../config/schema/common/const';
 import { THUMBNAIL_WIDTH_DEFAULT } from '../../config/schema/common/controls/thumbnails';
-import { MediaGalleryThumbnailsConfig } from '../../config/schema/media-gallery';
+import type { MediaGalleryThumbnailsConfig } from '../../config/schema/media-gallery';
 import { errorToConsole } from '../../utils/basic';
-import { ViewItem } from '../../view/item';
+import type { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import { QueryResults } from '../../view/query-results';
-import { UnifiedQuery } from '../../view/unified-query';
-import { UnifiedQueryRunner } from '../../view/unified-query-runner';
-import { View } from '../../view/view';
-import { GalleryColumnCountRoundMethod } from './gallery-core-controller';
+import type { UnifiedQuery } from '../../view/unified-query';
+import type { UnifiedQueryRunner } from '../../view/unified-query-runner';
+import type { View } from '../../view/view';
+import type { GalleryColumnCountRoundMethod } from './gallery-core-controller';
 
 interface GalleryViewContext {
   // The gallery view type the user navigated from (when in viewer). Used to

@@ -3,11 +3,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   compressRanges,
-  DateRange,
   ExpiringMemoryRangeSet,
-  ExpiringRange,
   MemoryRangeSet,
   rangesOverlap,
+  type DateRange,
+  type ExpiringRange,
 } from '../../src/camera-manager/range.js';
 
 describe('MemoryRangeSet', () => {

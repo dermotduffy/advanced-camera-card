@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 
 import { CustomTone } from '../../../../src/card-controller/call/tones/custom';
 

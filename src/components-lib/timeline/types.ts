@@ -1,11 +1,11 @@
-import { DateType, IdType, Timeline, TimelineWindow } from 'vis-timeline';
+import type { DateType, IdType, Timeline, TimelineWindow } from 'vis-timeline';
 
-import { CameraManager } from '../../camera-manager/manager';
-import { ViewItemManager } from '../../card-controller/view/item-manager';
-import { ViewManagerEpoch } from '../../card-controller/view/types';
-import { CameraConfig } from '../../config/schema/cameras';
-import { HomeAssistant } from '../../ha/types';
-import { ViewMedia } from '../../view/item';
+import type { CameraManager } from '../../camera-manager/manager';
+import type { ViewItemManager } from '../../card-controller/view/item-manager';
+import type { ViewManagerEpoch } from '../../card-controller/view/types';
+import type { CameraConfig } from '../../config/schema/cameras';
+import type { HomeAssistant } from '../../ha/types';
+import type { ViewMedia } from '../../view/item';
 
 // An event used to fetch data required for thumbnail rendering. See special
 // note in AdvancedCameraCardTimelineThumbnail on why this is necessary.

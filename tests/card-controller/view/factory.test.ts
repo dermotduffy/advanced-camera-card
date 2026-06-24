@@ -1,11 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { FoldersManager } from '../../../src/card-controller/folders/manager';
+import type { FoldersManager } from '../../../src/card-controller/folders/manager';
 import { ViewFactory } from '../../../src/card-controller/view/factory';
-import { ViewIncompatible, ViewModifier } from '../../../src/card-controller/view/types';
-import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
-import { ViewDisplayMode } from '../../../src/config/schema/common/display';
+import {
+  ViewIncompatible,
+  type ViewModifier,
+} from '../../../src/card-controller/view/types';
+import type { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
+import type { ViewDisplayMode } from '../../../src/config/schema/common/display';
 import { View } from '../../../src/view/view';
 import {
   createCameraManager,

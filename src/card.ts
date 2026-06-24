@@ -1,8 +1,14 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
 import 'web-dialog';
@@ -16,12 +22,12 @@ import { MenuButtonController } from './components-lib/menu-button-controller';
 import './components/effects/effects';
 import './components/elements.js';
 
-import { AdvancedCameraCardElements } from './components/elements.js';
+import type { AdvancedCameraCardElements } from './components/elements.js';
 
 import './components/loading.js';
 import './components/menu.js';
 
-import { AdvancedCameraCardMenu } from './components/menu.js';
+import type { AdvancedCameraCardMenu } from './components/menu.js';
 
 import './components/notification/block.js';
 
@@ -30,23 +36,23 @@ import { renderNotificationBlock } from './components/notification/block.js';
 import './components/notification/popup.js';
 import './components/overlay.js';
 
-import { AdvancedCameraCardOverlay } from './components/overlay.js';
+import type { AdvancedCameraCardOverlay } from './components/overlay.js';
 
 import './components/status-bar';
 import './components/thumbnail-carousel.js';
 import './components/views.js';
 
-import { AdvancedCameraCardViews } from './components/views.js';
-import { ConditionStateManagerGetEvent } from './condition-trigger/conditions/state-manager-via-event.js';
-import { StatusBarItem } from './config/schema/actions/types.js';
-import { MenuItem } from './config/schema/elements/custom/menu/types.js';
-import { AdvancedCameraCardConfig } from './config/schema/types.js';
-import { RawAdvancedCameraCardConfig } from './config/types.js';
+import type { AdvancedCameraCardViews } from './components/views.js';
+import type { ConditionStateManagerGetEvent } from './condition-trigger/conditions/state-manager-via-event.js';
+import type { StatusBarItem } from './config/schema/actions/types.js';
+import type { MenuItem } from './config/schema/elements/custom/menu/types.js';
+import type { AdvancedCameraCardConfig } from './config/schema/types.js';
+import type { RawAdvancedCameraCardConfig } from './config/types.js';
 import { REPO_URL } from './const.js';
-import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
+import type { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
-import { MediaLoadedInfoEventDetail } from './types.js';
+import type { MediaLoadedInfoEventDetail } from './types.js';
 import { hasAction } from './utils/action.js';
 import { getReleaseVersion } from './utils/diagnostics';
 

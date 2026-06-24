@@ -1,9 +1,9 @@
 import {
-  Entity,
   EntityCache,
-  EntityRegistryManager,
+  type Entity,
+  type EntityRegistryManager,
 } from '../../../../src/ha/registry/entity/types';
-import { HomeAssistant } from '../../../../src/ha/types';
+import type { HomeAssistant } from '../../../../src/ha/types';
 
 export class EntityRegistryManagerMock implements EntityRegistryManager {
   private _cache = new EntityCache();

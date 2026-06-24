@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { Capabilities } from '../../src/camera-manager/capabilities';
-import { AdvancedCameraCardView } from '../../src/config/schema/common/const';
+import type { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import { PTZMovementType } from '../../src/types';
 import {
   getPTZTarget,

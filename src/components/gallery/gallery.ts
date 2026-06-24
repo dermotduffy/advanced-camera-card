@@ -1,37 +1,37 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { CameraManager } from '../../camera-manager/manager.js';
-import { FoldersManager } from '../../card-controller/folders/manager.js';
-import { ViewItemManager } from '../../card-controller/view/item-manager.js';
+import type { CameraManager } from '../../camera-manager/manager.js';
+import type { FoldersManager } from '../../card-controller/folders/manager.js';
+import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context.js';
 import { RemoveContextViewModifier } from '../../card-controller/view/modifiers/remove-context.js';
-import { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { GalleryController } from '../../components-lib/gallery/controller.js';
 import {
-  FolderNavigationParamaters,
   getUpFolderItem,
   navigateToFolder,
   navigateToMedia,
   navigateUp,
+  type FolderNavigationParamaters,
 } from '../../components-lib/navigation.js';
-import { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types.js';
-import { MediaGalleryConfig } from '../../config/schema/media-gallery.js';
-import { CardWideConfig } from '../../config/schema/types.js';
+import type { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types.js';
+import type { MediaGalleryConfig } from '../../config/schema/media-gallery.js';
+import type { CardWideConfig } from '../../config/schema/types.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const.js';
-import { HomeAssistant } from '../../ha/types.js';
+import type { HomeAssistant } from '../../ha/types.js';
 import galleryStyle from '../../scss/gallery.scss';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
-import { ViewFolder, ViewItem } from '../../view/item.js';
+import type { ViewFolder, ViewItem } from '../../view/item.js';
 import { UnifiedQueryBuilder } from '../../view/unified-query-builder.js';
 import { UnifiedQueryRunner } from '../../view/unified-query-runner.js';
 import { getReviewedQueryFilterFromQuery } from '../../view/utils/query-filter.js';
@@ -44,7 +44,7 @@ import '../surround-basic.js';
 import '../thumbnail/thumbnail.js';
 import './gallery-core.js';
 
-import { GalleryExtendEvent } from './types.js';
+import type { GalleryExtendEvent } from './types.js';
 
 const GALLERY_FILTER_MENU_ICONS = {
   closed: 'mdi:filter-cog-outline',

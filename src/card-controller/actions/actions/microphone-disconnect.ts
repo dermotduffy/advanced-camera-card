@@ -1,5 +1,5 @@
-import { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
-import { CardActionsAPI } from '../../types';
+import type { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class MicrophoneDisconnectAction extends AdvancedCameraCardAction<GeneralActionConfig> {

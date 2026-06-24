@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { fireHASSEvent } from '../../src/ha/fire-hass-event.js';
-import { forwardHaptic, HapticType } from '../../src/ha/haptic.js';
+import { forwardHaptic, type HapticType } from '../../src/ha/haptic.js';
 
 vi.mock('../../src/ha/fire-hass-event.js', () => ({
   fireHASSEvent: vi.fn(),

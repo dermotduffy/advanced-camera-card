@@ -2,10 +2,10 @@ import cloneDeep from 'lodash-es/cloneDeep.js';
 import isEqual from 'lodash-es/isEqual.js';
 import omit from 'lodash-es/omit.js';
 
-import { EventQuery, MediaQuery, QueryType } from '../camera-manager/types.js';
-import { FolderQuery } from '../card-controller/folders/types.js';
+import { QueryType, type EventQuery, type MediaQuery } from '../camera-manager/types.js';
+import type { FolderQuery } from '../card-controller/folders/types.js';
 import { QuerySource } from '../query-source.js';
-import { ViewMediaType } from '../types.js';
+import type { ViewMediaType } from '../types.js';
 
 export type QueryNode = MediaQuery | FolderQuery;
 

@@ -1,14 +1,14 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { HAFoldersEngine } from '../../../../src/card-controller/folders/ha/engine';
-import { FolderQuery } from '../../../../src/card-controller/folders/types';
-import { FolderConfig, Matcher } from '../../../../src/config/schema/folders';
+import type { FolderQuery } from '../../../../src/card-controller/folders/types';
+import type { FolderConfig, Matcher } from '../../../../src/config/schema/folders';
 import { BrowseMediaViewFolder } from '../../../../src/ha/browse-media/item';
 import { browseMediaSchema } from '../../../../src/ha/browse-media/types';
 import { getMediaDownloadPath } from '../../../../src/ha/download';
 import { homeAssistantWSRequest } from '../../../../src/ha/ws-request';
 import { QuerySource } from '../../../../src/query-source';
-import { Endpoint } from '../../../../src/types';
+import type { Endpoint } from '../../../../src/types';
 import { ViewFolder, ViewMedia } from '../../../../src/view/item';
 import {
   createBrowseMedia,

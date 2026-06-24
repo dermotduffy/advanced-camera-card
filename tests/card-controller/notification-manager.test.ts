@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CardElementManager } from '../../src/card-controller/card-element-manager';
+import type { CardElementManager } from '../../src/card-controller/card-element-manager';
 import { NotificationManager } from '../../src/card-controller/notification-manager';
-import { CardNotificationAPI } from '../../src/card-controller/types';
+import type { CardNotificationAPI } from '../../src/card-controller/types';
 
 describe('NotificationManager', () => {
   const cardElementManager = mock<CardElementManager>();

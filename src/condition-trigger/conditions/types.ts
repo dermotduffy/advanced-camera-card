@@ -1,10 +1,10 @@
-import { IssuePresence } from '../../card-controller/issues/types';
-import { KeysState, MicrophoneState } from '../../card-controller/types';
-import { AdvancedCameraCardView } from '../../config/schema/common/const';
-import { ViewDisplayMode } from '../../config/schema/common/display';
-import { AdvancedCameraCardConfig } from '../../config/schema/types';
-import { HomeAssistant } from '../../ha/types';
-import { MediaLoadedInfo } from '../../types';
+import type { IssuePresence } from '../../card-controller/issues/types';
+import type { KeysState, MicrophoneState } from '../../card-controller/types';
+import type { AdvancedCameraCardView } from '../../config/schema/common/const';
+import type { ViewDisplayMode } from '../../config/schema/common/display';
+import type { AdvancedCameraCardConfig } from '../../config/schema/types';
+import type { HomeAssistant } from '../../ha/types';
+import type { MediaLoadedInfo } from '../../types';
 
 export interface ConditionState {
   call?: boolean;

@@ -1,11 +1,17 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
-
-import { Camera } from '../../../camera-manager/camera.js';
-import { HomeAssistant } from '../../../ha/types';
-import basicBlockStyle from '../../../scss/basic-block.scss';
 import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
+
+import type { Camera } from '../../../camera-manager/camera.js';
+import type { HomeAssistant } from '../../../ha/types';
+import basicBlockStyle from '../../../scss/basic-block.scss';
+import type {
   MediaPlayer,
   MediaPlayerController,
   MediaPlayerElement,

@@ -1,12 +1,18 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { handleControlAction } from '../../components-lib/notification/action.js';
 import {
   createNotificationFromText,
-  NotificationOptions,
+  type NotificationOptions,
 } from '../../components-lib/notification/factory.js';
-import { Notification } from '../../config/schema/actions/types.js';
+import type { Notification } from '../../config/schema/actions/types.js';
 import { localize } from '../../localize/localize.js';
 import notificationBlockStyle from '../../scss/notification-block.scss';
 import {

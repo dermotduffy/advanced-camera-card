@@ -1,21 +1,21 @@
-import { ViewContext } from 'view';
+import type { ViewContext } from 'view';
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CardController } from '../../../src/card-controller/controller';
-import { ViewFactory } from '../../../src/card-controller/view/factory';
+import type { CardController } from '../../../src/card-controller/controller';
+import type { ViewFactory } from '../../../src/card-controller/view/factory';
 import { SetQueryViewModifier } from '../../../src/card-controller/view/modifiers/set-query';
-import {
+import type {
   QueryExecutorOptions,
   ViewModifier,
 } from '../../../src/card-controller/view/types';
 import { ViewManager } from '../../../src/card-controller/view/view-manager';
-import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
-import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
+import type { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
+import type { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import { ViewMedia, ViewMediaType } from '../../../src/view/item';
 import { QueryResults } from '../../../src/view/query-results';
 import { UnifiedQuery } from '../../../src/view/unified-query';
-import { View } from '../../../src/view/view';
+import type { View } from '../../../src/view/view';
 import { createCardAPI, createEventQuery, createView } from '../../test-utils';
 
 const createInitializedCardAPI = (initialized?: boolean): CardController => {

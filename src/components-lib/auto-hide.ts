@@ -1,4 +1,4 @@
-import { AutoHideCondition } from '../config/schema/common/auto-hide';
+import type { AutoHideCondition } from '../config/schema/common/auto-hide';
 import { isBeingCasted } from '../utils/casting';
 
 // Whether each auto-hide condition is currently active.

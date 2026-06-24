@@ -1,6 +1,6 @@
-import { CallBase } from '../../../config/schema/condition-trigger/common/call';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator } from './types';
+import type { CallBase } from '../../../config/schema/condition-trigger/common/call';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator } from './types';
 
 export class CallConditionEvaluator implements ConditionEvaluator {
   private _condition: CallBase;

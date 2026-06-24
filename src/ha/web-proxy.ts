@@ -1,6 +1,9 @@
-import { EnabledProxyConfig, ResolvedProxyConfig } from '../config/schema/common/proxy';
-import { Endpoint } from '../types';
-import { HomeAssistant } from './types';
+import type {
+  EnabledProxyConfig,
+  ResolvedProxyConfig,
+} from '../config/schema/common/proxy';
+import type { Endpoint } from '../types';
+import type { HomeAssistant } from './types';
 
 export const HASS_WEB_PROXY_DOMAIN = 'hass_web_proxy';
 

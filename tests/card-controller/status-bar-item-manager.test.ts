@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
-import { StatusBarString } from '../../src/config/schema/actions/types';
+import type { StatusBarString } from '../../src/config/schema/actions/types';
 import { QueryResults } from '../../src/view/query-results';
 import {
   createCameraManager,

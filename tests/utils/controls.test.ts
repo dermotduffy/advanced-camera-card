@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
-  AdvancedCameraCardHTMLVideoElement,
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   setControlsOnVideo,
+  type AdvancedCameraCardHTMLVideoElement,
 } from '../../src/utils/controls.js';
 
 // @vitest-environment jsdom

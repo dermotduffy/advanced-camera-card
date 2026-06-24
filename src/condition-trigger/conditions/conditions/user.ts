@@ -1,5 +1,5 @@
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ConditionOfType } from './types';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator, ConditionOfType } from './types';
 
 export class UserConditionEvaluator implements ConditionEvaluator {
   private _condition: ConditionOfType<'user'>;

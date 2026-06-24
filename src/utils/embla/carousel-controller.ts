@@ -1,12 +1,15 @@
-import EmblaCarousel, { EmblaCarouselType } from 'embla-carousel';
+import EmblaCarousel, { type EmblaCarouselType } from 'embla-carousel';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
-import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins';
+import type {
+  CreatePluginType,
+  LoosePluginType,
+} from 'embla-carousel/components/Plugins';
 import { isEqual } from 'lodash-es';
 
-import { TransitionEffect } from '../../config/schema/common/transition-effect.js';
+import type { TransitionEffect } from '../../config/schema/common/transition-effect.js';
 import { getChildrenFromElement } from '../basic.js';
 import { fireAdvancedCameraCardEvent } from '../fire-advanced-camera-card-event';
-import { TextDirection } from '../text-direction';
+import type { TextDirection } from '../text-direction';
 
 export interface CarouselSelected {
   index: number;

@@ -1,14 +1,14 @@
-import { NonEmptyTuple } from 'type-fest';
+import type { NonEmptyTuple } from 'type-fest';
 
-import { ConditionState } from '../../condition-trigger/conditions/types';
-import { FolderConfig, HAFolderPathComponent } from '../../config/schema/folders';
-import { ResolvedMediaCache } from '../../ha/resolved-media';
-import { HomeAssistant } from '../../ha/types';
-import { BaseQuery, QueryFilters, QuerySource } from '../../query-source';
-import { Endpoint } from '../../types';
+import type { ConditionState } from '../../condition-trigger/conditions/types';
+import type { FolderConfig, HAFolderPathComponent } from '../../config/schema/folders';
+import type { ResolvedMediaCache } from '../../ha/resolved-media';
+import type { HomeAssistant } from '../../ha/types';
+import type { BaseQuery, QueryFilters, QuerySource } from '../../query-source';
+import type { Endpoint } from '../../types';
 import { AdvancedCameraCardError } from '../../types.js';
-import { ViewFolder, ViewItem } from '../../view/item';
-import { ViewItemCapabilities } from '../../view/types';
+import type { ViewFolder, ViewItem } from '../../view/item';
+import type { ViewItemCapabilities } from '../../view/types';
 
 // ====
 // Base

@@ -1,10 +1,10 @@
-import { HASS, renderTemplate } from 'ha-nunjucks/dist';
+import { renderTemplate, type HASS } from 'ha-nunjucks/dist';
 
-import { ConditionState } from '../../condition-trigger/conditions/types';
-import { TriggerData } from '../../condition-trigger/triggers/types';
-import { HomeAssistant } from '../../ha/types';
+import type { ConditionState } from '../../condition-trigger/conditions/types';
+import type { TriggerData } from '../../condition-trigger/triggers/types';
+import type { HomeAssistant } from '../../ha/types';
 import { isRecord } from '../../utils/basic';
-import { TemplateACCNamespace, TemplateMediaData } from './types';
+import type { TemplateACCNamespace, TemplateMediaData } from './types';
 
 interface TemplateContext {
   acc: TemplateACCNamespace;

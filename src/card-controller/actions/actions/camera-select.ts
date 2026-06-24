@@ -1,5 +1,5 @@
-import { CameraSelectActionConfig } from '../../../config/schema/actions/custom/camera-select';
-import { CardActionsAPI } from '../../types';
+import type { CameraSelectActionConfig } from '../../../config/schema/actions/custom/camera-select';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class CameraSelectAction extends AdvancedCameraCardAction<CameraSelectActionConfig> {

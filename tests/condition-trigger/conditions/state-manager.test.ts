@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
-import {
+import type {
   ConditionState,
   ConditionStateChange,
 } from '../../../src/condition-trigger/conditions/types';

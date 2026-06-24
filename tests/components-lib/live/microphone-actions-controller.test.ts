@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { MicrophoneManager } from '../../../src/card-controller/microphone-manager';
+import type { MicrophoneManager } from '../../../src/card-controller/microphone-manager';
 import { MicrophoneActionsController } from '../../../src/components-lib/live/microphone-actions-controller';
 import {
   callIntersectionHandler,

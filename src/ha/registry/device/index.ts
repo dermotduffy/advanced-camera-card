@@ -1,7 +1,12 @@
 import { errorToConsole } from '../../../utils/basic';
-import { HomeAssistant } from '../../types';
+import type { HomeAssistant } from '../../types';
 import { homeAssistantWSRequest } from '../../ws-request';
-import { Device, DeviceCache, DeviceList, deviceListSchema } from './types';
+import {
+  deviceListSchema,
+  type Device,
+  type DeviceCache,
+  type DeviceList,
+} from './types';
 
 export class DeviceRegistryManager {
   private _cache: DeviceCache;

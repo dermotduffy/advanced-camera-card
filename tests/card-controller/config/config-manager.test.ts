@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { z, ZodError } from 'zod';
+import { ZodError, type z } from 'zod';
 
 import { AutomationsManager } from '../../../src/card-controller/automations-manager';
 import { ConfigManager } from '../../../src/card-controller/config/config-manager';
@@ -7,8 +7,8 @@ import { setRemoteControlEntityFromConfig } from '../../../src/card-controller/c
 import { setKeyboardShortcutsFromConfig } from '../../../src/card-controller/config/load-keyboard-shortcuts';
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
-import { Automation } from '../../../src/config/schema/automations';
-import { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
+import type { Automation } from '../../../src/config/schema/automations';
+import type { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
 import { createGeneralAction } from '../../../src/utils/action';
 import { createCardAPI, createConfig, flushPromises } from '../../test-utils';

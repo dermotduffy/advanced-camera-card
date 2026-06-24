@@ -1,9 +1,9 @@
 import { assert, describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CameraManager } from '../../src/camera-manager/manager';
-import { CameraManagerStore } from '../../src/camera-manager/store';
-import { FoldersManager } from '../../src/card-controller/folders/manager';
+import type { CameraManager } from '../../src/camera-manager/manager';
+import type { CameraManagerStore } from '../../src/camera-manager/store';
+import type { FoldersManager } from '../../src/card-controller/folders/manager';
 import { UnifiedQueryBuilder } from '../../src/view/unified-query-builder';
 import { UnifiedQueryTransformer } from '../../src/view/unified-query-transformer';
 import {

@@ -1,11 +1,11 @@
 import { afterAll, assert, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { Capabilities } from '../../../src/camera-manager/capabilities';
-import { EventQuery, QueryType } from '../../../src/camera-manager/types';
+import { QueryType, type EventQuery } from '../../../src/camera-manager/types';
 import { applyViewModifiers } from '../../../src/card-controller/view/modifiers';
 import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
-import { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
-import { PerformanceConfig } from '../../../src/config/schema/performance';
+import type { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
+import type { PerformanceConfig } from '../../../src/config/schema/performance';
 import { QuerySource } from '../../../src/query-source';
 import { UnifiedQuery } from '../../../src/view/unified-query';
 import { View } from '../../../src/view/view';

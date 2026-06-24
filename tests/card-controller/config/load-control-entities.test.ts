@@ -6,7 +6,7 @@ import { TemplateRenderer } from '../../../src/card-controller/templates/index';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import {
   INTERNAL_CALLBACK_ACTION,
-  InternalCallbackActionConfig,
+  type InternalCallbackActionConfig,
 } from '../../../src/config/schema/actions/custom/internal';
 import { isAdvancedCameraCardCustomAction } from '../../../src/utils/action';
 import {

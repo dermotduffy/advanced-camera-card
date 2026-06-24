@@ -1,4 +1,4 @@
-import { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import { CompositeConditionEvaluator } from './composite';
 
 export class NotConditionEvaluator extends CompositeConditionEvaluator {

@@ -1,6 +1,6 @@
-import { InteractionBase } from '../../../config/schema/condition-trigger/common/interaction';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator } from './types';
+import type { InteractionBase } from '../../../config/schema/condition-trigger/common/interaction';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator } from './types';
 
 export class InteractionConditionEvaluator implements ConditionEvaluator {
   private _condition: InteractionBase;

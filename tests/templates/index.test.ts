@@ -2,8 +2,8 @@ import { renderTemplate } from 'ha-nunjucks';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TemplateRenderer } from '../../src/card-controller/templates';
-import { ConditionState } from '../../src/condition-trigger/conditions/types';
-import { TriggerData } from '../../src/condition-trigger/triggers/types';
+import type { ConditionState } from '../../src/condition-trigger/conditions/types';
+import type { TriggerData } from '../../src/condition-trigger/triggers/types';
 import { createHASS } from '../test-utils';
 
 // ha-nunjucks attempts to make websocket calls initially so mock it out.

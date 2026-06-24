@@ -9,7 +9,7 @@ import { ChimeTone } from '../../../src/card-controller/call/tones/chime';
 import { CustomTone } from '../../../src/card-controller/call/tones/custom';
 import { MelodyTone } from '../../../src/card-controller/call/tones/melody';
 import { WestminsterTone } from '../../../src/card-controller/call/tones/westminster';
-import { RingtoneConfig } from '../../../src/config/schema/live';
+import type { RingtoneConfig } from '../../../src/config/schema/live';
 
 // Each tone constructor returns a fresh `mock<>()` per `new` call; the mock
 // implementation persists across `vi.clearAllMocks()` (which only clears call

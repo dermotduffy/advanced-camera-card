@@ -6,7 +6,7 @@ import { sideLoadHomeAssistantElements } from '../ha/side-load-ha-elements';
 import { loadLanguages } from '../localize/localize';
 import { errorToConsole } from '../utils/basic';
 import { Initializer } from '../utils/initializer/initializer';
-import { CardInitializerAPI } from './types';
+import type { CardInitializerAPI } from './types';
 
 export enum InitializationAspect {
   LANGUAGES = 'languages',

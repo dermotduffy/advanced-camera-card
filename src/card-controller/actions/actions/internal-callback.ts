@@ -1,5 +1,5 @@
-import { InternalCallbackActionConfig } from '../../../config/schema/actions/custom/internal';
-import { CardActionsAPI } from '../../types';
+import type { InternalCallbackActionConfig } from '../../../config/schema/actions/custom/internal';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class InternalCallbackAction extends AdvancedCameraCardAction<InternalCallbackActionConfig> {

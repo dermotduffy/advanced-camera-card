@@ -1,20 +1,23 @@
-import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins';
+import type {
+  CreatePluginType,
+  LoosePluginType,
+} from 'embla-carousel/components/Plugins';
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
-import { TransitionEffect } from '../config/schema/common/transition-effect';
+import type { TransitionEffect } from '../config/schema/common/transition-effect';
 import carouselStyle from '../scss/carousel.scss';
 import {
   CarouselController,
-  CarouselDirection,
+  type CarouselDirection,
 } from '../utils/embla/carousel-controller';
 import { getTextDirection } from '../utils/text-direction';
 

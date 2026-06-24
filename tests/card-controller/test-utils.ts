@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
-import { mock, MockProxy } from 'vitest-mock-extended';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 
-import { SubscriptionHealthInterface } from '../../src/ha/connection/subscription-health-monitor';
+import type { SubscriptionHealthInterface } from '../../src/ha/connection/subscription-health-monitor';
 
 // A benign mocked event-subscription health surface: no failures, listeners
 // return a no-op unsubscribe. Tests configure `getFailures`/`retry` as needed.

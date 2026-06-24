@@ -1,5 +1,5 @@
-import { NotificationActionConfig } from '../../../config/schema/actions/types';
-import { CardActionsAPI } from '../../types';
+import type { NotificationActionConfig } from '../../../config/schema/actions/types';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class NotificationAction extends AdvancedCameraCardAction<NotificationActionConfig> {

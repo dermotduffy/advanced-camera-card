@@ -1,6 +1,6 @@
-import { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import { isTemplateTrue } from './is-template-true';
-import { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './types';
+import type { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './types';
 
 export class TemplateConditionEvaluator implements ConditionEvaluator {
   private _condition: ConditionOfType<'template'>;

@@ -1,11 +1,17 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  html,
+  LitElement,
+  unsafeCSS,
+  type CSSResultGroup,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { AutoHideState, isAutoHidden } from '../components-lib/auto-hide.js';
-import { NextPreviousControlConfig } from '../config/schema/common/controls/next-previous.js';
-import { Icon } from '../config/schema/common/icon.js';
-import { HomeAssistant } from '../ha/types.js';
+import { isAutoHidden, type AutoHideState } from '../components-lib/auto-hide.js';
+import type { NextPreviousControlConfig } from '../config/schema/common/controls/next-previous.js';
+import type { Icon } from '../config/schema/common/icon.js';
+import type { HomeAssistant } from '../ha/types.js';
 import controlStyle from '../scss/next-previous-control.scss';
 import { contentsChanged } from '../utils/basic.js';
 import { renderTask } from '../utils/task.js';

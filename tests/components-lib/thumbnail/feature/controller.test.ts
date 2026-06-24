@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 import { assert, describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CameraManager } from '../../../../src/camera-manager/manager';
+import type { CameraManager } from '../../../../src/camera-manager/manager';
 import { ThumbnailFeatureController } from '../../../../src/components-lib/thumbnail/feature/controller';
 import { ViewFolder } from '../../../../src/view/item';
 import { createFolder, TestViewMedia } from '../../../test-utils';

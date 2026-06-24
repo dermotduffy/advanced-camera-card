@@ -1,8 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { TemplateTrigger } from '../../../../src/condition-trigger/triggers/triggers/template';
-import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createHASS, createStateEntity } from '../../../test-utils';
 import { createTriggerEvaluatorContext } from './test-utils';
 

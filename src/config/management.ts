@@ -24,8 +24,11 @@ import {
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
 } from '../const';
 import { arrayify, isRecord } from '../utils/basic';
-import { Condition } from './schema/condition-trigger/conditions/types';
-import { RawAdvancedCameraCardConfig, RawAdvancedCameraCardConfigArray } from './types';
+import type { Condition } from './schema/condition-trigger/conditions/types';
+import type {
+  RawAdvancedCameraCardConfig,
+  RawAdvancedCameraCardConfigArray,
+} from './types';
 
 // *************************************************************************
 //                  General Config Management Functions

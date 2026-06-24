@@ -1,29 +1,29 @@
 import { Task } from '@lit-labs/task';
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
-import { Camera } from '../../../camera-manager/camera.js';
+import type { Camera } from '../../../camera-manager/camera.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get-technology-for-video-rtc.js';
 import { MediaLoadedInfoSourceController } from '../../../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../../../components-lib/media-player/video.js';
 import { createNotificationFromText } from '../../../components-lib/notification/factory.js';
-import { Notification } from '../../../config/schema/actions/types.js';
-import { CardWideConfig } from '../../../config/schema/types.js';
-import { HomeAssistant } from '../../../ha/types.js';
+import type { Notification } from '../../../config/schema/actions/types.js';
+import type { CardWideConfig } from '../../../config/schema/types.js';
+import type { HomeAssistant } from '../../../ha/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveWebRTCCardStyle from '../../../scss/live-webrtc-card.scss';
 import {
   AdvancedCameraCardError,
-  MediaPlayer,
-  MediaPlayerController,
+  type MediaPlayer,
+  type MediaPlayerController,
 } from '../../../types.js';
 import { mayHaveAudio } from '../../../utils/audio.js';
 import {
@@ -47,7 +47,7 @@ import { renderNotificationBlock } from '../../notification/block.js';
 import '../../progress-indicator.js';
 
 import { renderProgressIndicator } from '../../progress-indicator.js';
-import { VideoRTC } from './go2rtc/video-rtc.js';
+import type { VideoRTC } from './go2rtc/video-rtc.js';
 
 // Create a wrapper for AlexxIT's WebRTC card
 //  - https://github.com/AlexxIT/WebRTC

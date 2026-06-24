@@ -1,15 +1,15 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { KeyAssignerController } from '../components-lib/key-assigner-controller';
-import { KeyboardShortcut } from '../config/schema/view';
+import type { KeyboardShortcut } from '../config/schema/view';
 import { localize } from '../localize/localize';
 import keyAssignerStyle from '../scss/key-assigner.scss';
 

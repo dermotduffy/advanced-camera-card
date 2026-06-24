@@ -1,13 +1,13 @@
 import { format } from 'date-fns';
 
-import { CameraManager } from '../../../camera-manager/manager';
-import { CameraManagerCameraMetadata } from '../../../camera-manager/types';
+import type { CameraManager } from '../../../camera-manager/manager';
+import type { CameraManagerCameraMetadata } from '../../../camera-manager/types';
 import {
   brandsUrl,
   extractDomainFromBrandUrl,
   isBrandUrl,
 } from '../../../ha/brands-url';
-import { ViewItem } from '../../../view/item';
+import type { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 
 export class ThumbnailFeatureController {

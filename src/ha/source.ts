@@ -1,4 +1,4 @@
-import { HomeAssistant } from './types';
+import type { HomeAssistant } from './types';
 
 /**
  * `HASSSource` is the observer-pattern API that `HASSManager` exposes for any

@@ -1,14 +1,14 @@
-import { Connection } from 'home-assistant-js-websocket';
+import type { Connection } from 'home-assistant-js-websocket';
 
 import {
-  GetKeyCallback,
   KeyedSubscriptionManager,
+  type GetKeyCallback,
 } from '../../utils/concurrency/keyed-subscription-manager';
 import { RetryTimer } from '../../utils/retry-timer';
 import { isHassReady } from '../is-hass-ready';
-import { HASSSource, HASSUnlistenCallback } from '../source';
-import { HomeAssistant } from '../types';
-import { HASSWebSocketLiveness, HASSWebSocketOpenCallback } from './types';
+import type { HASSSource, HASSUnlistenCallback } from '../source';
+import type { HomeAssistant } from '../types';
+import type { HASSWebSocketLiveness, HASSWebSocketOpenCallback } from './types';
 
 const RETRY_BASE_SECONDS = 1;
 const RETRY_MAX_SECONDS = 300;

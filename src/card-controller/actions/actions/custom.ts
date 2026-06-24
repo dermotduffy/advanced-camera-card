@@ -1,6 +1,6 @@
-import { CustomActionConfig } from '../../../config/schema/actions/stock/custom';
+import type { CustomActionConfig } from '../../../config/schema/actions/stock/custom';
 import { fireHASSEvent } from '../../../ha/fire-hass-event';
-import { CardActionsAPI } from '../../types';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class CustomAction extends AdvancedCameraCardAction<CustomActionConfig> {

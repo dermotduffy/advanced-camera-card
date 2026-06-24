@@ -14,20 +14,20 @@ import {
   ReolinkCameraManagerEngine,
   ReolinkQueryResultsClassifier,
 } from '../../../src/camera-manager/reolink/engine-reolink';
-import { ReolinkEventQueryResults } from '../../../src/camera-manager/reolink/types';
+import type { ReolinkEventQueryResults } from '../../../src/camera-manager/reolink/types';
 import { CameraManagerStore } from '../../../src/camera-manager/store';
 import {
   CameraManagerRequestCache,
   Engine,
-  EventQuery,
   QueryResultsType,
-  QueryReturnType,
   QueryType,
+  type EventQuery,
+  type QueryReturnType,
 } from '../../../src/camera-manager/types';
-import { BrowseMedia, browseMediaSchema } from '../../../src/ha/browse-media/types';
+import { browseMediaSchema, type BrowseMedia } from '../../../src/ha/browse-media/types';
 import { BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
-import { DeviceRegistryManager } from '../../../src/ha/registry/device';
-import { EntityRegistryManager } from '../../../src/ha/registry/entity/types';
+import type { DeviceRegistryManager } from '../../../src/ha/registry/device';
+import type { EntityRegistryManager } from '../../../src/ha/registry/entity/types';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { homeAssistantWSRequest } from '../../../src/ha/ws-request';
 import { QuerySource } from '../../../src/query-source';

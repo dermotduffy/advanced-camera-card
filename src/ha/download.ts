@@ -1,7 +1,7 @@
-import { Endpoint } from '../types';
+import type { Endpoint } from '../types';
 import { canonicalizeHAURL } from './canonical-url';
-import { ResolvedMediaCache, resolveMedia } from './resolved-media';
-import { HomeAssistant } from './types';
+import { resolveMedia, type ResolvedMediaCache } from './resolved-media';
+import type { HomeAssistant } from './types';
 
 export const getMediaDownloadPath = async (
   hass: HomeAssistant,

@@ -1,16 +1,16 @@
-import { AdvancedCameraCardView } from '../../config/schema/common/const';
-import { ViewDisplayMode } from '../../config/schema/common/display';
-import { AdvancedCameraCardConfig } from '../../config/schema/types';
+import type { AdvancedCameraCardView } from '../../config/schema/common/const';
+import type { ViewDisplayMode } from '../../config/schema/common/display';
+import type { AdvancedCameraCardConfig } from '../../config/schema/types';
 import { resolveViewName } from '../../view/utils/resolve-default';
-import { View, ViewParameters } from '../../view/view';
+import { View, type ViewParameters } from '../../view/view';
 import {
   doesViewRequireCamera,
   getCameraIDsWithCapabilityForView,
   isViewSupportedByCamera,
 } from '../../view/view-support';
-import { CardViewAPI } from '../types';
+import type { CardViewAPI } from '../types';
 import { applyViewModifiers } from './modifiers';
-import { ViewFactoryOptions, ViewIncompatible } from './types';
+import { ViewIncompatible, type ViewFactoryOptions } from './types';
 
 interface ResolvedViewTarget {
   viewName: AdvancedCameraCardView;

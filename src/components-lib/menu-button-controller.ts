@@ -1,23 +1,23 @@
-import { StyleInfo } from 'lit/directives/style-map';
+import type { StyleInfo } from 'lit/directives/style-map';
 
-import { CameraManager } from '../camera-manager/manager';
-import { CallManager } from '../card-controller/call/manager';
-import { FoldersManager } from '../card-controller/folders/manager';
-import { FullscreenManager } from '../card-controller/fullscreen/fullscreen-manager';
-import { MediaPlayerManager } from '../card-controller/media-player-manager';
-import { MicrophoneManager } from '../card-controller/microphone-manager';
-import { PIPManager } from '../card-controller/pip-manager';
-import { ViewManager } from '../card-controller/view/view-manager';
+import type { CameraManager } from '../camera-manager/manager';
+import type { CallManager } from '../card-controller/call/manager';
+import type { FoldersManager } from '../card-controller/folders/manager';
+import type { FullscreenManager } from '../card-controller/fullscreen/fullscreen-manager';
+import type { MediaPlayerManager } from '../card-controller/media-player-manager';
+import type { MicrophoneManager } from '../card-controller/microphone-manager';
+import type { PIPManager } from '../card-controller/pip-manager';
+import type { ViewManager } from '../card-controller/view/view-manager';
 import {
-  AdvancedCameraCardView,
   VIEWS_USER_SPECIFIED,
+  type AdvancedCameraCardView,
 } from '../config/schema/common/const';
-import { MenuItem } from '../config/schema/elements/custom/menu/types';
-import { AdvancedCameraCardConfig } from '../config/schema/types';
+import type { MenuItem } from '../config/schema/elements/custom/menu/types';
+import type { AdvancedCameraCardConfig } from '../config/schema/types';
 import { getEntityTitle } from '../ha/get-entity-title';
-import { HomeAssistant } from '../ha/types';
+import type { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize.js';
-import { MediaLoadedInfo } from '../types';
+import type { MediaLoadedInfo } from '../types';
 import {
   createCallEndAction,
   createCallStartAction,
@@ -39,7 +39,7 @@ import { getPTZTarget } from '../utils/ptz';
 import { ViewItemClassifier } from '../view/item-classifier';
 import { getStreamCameraID, hasSubstream } from '../view/substream';
 import { resolveViewName } from '../view/utils/resolve-default';
-import { View } from '../view/view';
+import type { View } from '../view/view';
 import {
   getCameraIDsWithCapabilityForView,
   isViewSupported,

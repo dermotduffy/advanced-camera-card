@@ -1,8 +1,8 @@
 import { isEqual } from 'lodash-es';
 
-import { RemoteControlEntityPriority } from '../../config/schema/remote-control';
+import type { RemoteControlEntityPriority } from '../../config/schema/remote-control';
 import { createCameraAction, createInternalCallbackAction } from '../../utils/action';
-import { CardActionsAPI, CardConfigLoaderAPI, TaggedAutomation } from '../types';
+import type { CardActionsAPI, CardConfigLoaderAPI, TaggedAutomation } from '../types';
 
 export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
   const automationTag = setRemoteControlEntityFromConfig;

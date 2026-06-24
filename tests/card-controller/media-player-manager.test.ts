@@ -7,8 +7,8 @@ import {
   MEDIA_PLAYER_SUPPORT_STOP,
   MEDIA_PLAYER_SUPPORT_TURN_OFF,
 } from '../../src/const';
-import { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
-import { HomeAssistant } from '../../src/ha/types.js';
+import type { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
+import type { HomeAssistant } from '../../src/ha/types.js';
 import { ViewMediaType } from '../../src/view/item.js';
 import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {

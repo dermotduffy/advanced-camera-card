@@ -1,8 +1,8 @@
 import { createNotificationFromText } from '../../../components-lib/notification/factory.js';
 import { localize } from '../../../localize/localize.js';
 import { getContextFromError } from '../../../utils/error-context.js';
-import { CardIssueManagerAPI } from '../../types.js';
-import { IssueDescription } from '../types.js';
+import type { CardIssueManagerAPI } from '../../types.js';
+import type { IssueDescription } from '../types.js';
 import { AbstractErrorIssue } from './abstract-error-issue.js';
 
 declare module 'issue' {

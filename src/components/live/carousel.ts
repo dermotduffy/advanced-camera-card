@@ -1,41 +1,41 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { keyed } from 'lit/directives/keyed.js';
-import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
-import { CameraManager } from '../../camera-manager/manager.js';
-import { CameraManagerCameraMetadata } from '../../camera-manager/types.js';
-import { CallSession } from '../../card-controller/call/types.js';
-import { MicrophoneState } from '../../card-controller/types.js';
-import { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import type { CameraManager } from '../../camera-manager/manager.js';
+import type { CameraManagerCameraMetadata } from '../../camera-manager/types.js';
+import type { CallSession } from '../../card-controller/call/types.js';
+import type { MicrophoneState } from '../../card-controller/types.js';
+import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { resolveAutoHideState } from '../../components-lib/auto-hide.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import { MediaHeightController } from '../../components-lib/media-height-controller.js';
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
 import { PTZDragController } from '../../components-lib/ptz/drag-controller.js';
-import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
+import type { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
 import {
   ptzControlsDefaults,
-  PTZControlType,
+  type PTZControlType,
 } from '../../config/schema/common/controls/ptz.js';
-import { TransitionEffect } from '../../config/schema/common/transition-effect.js';
-import { LiveConfig } from '../../config/schema/live.js';
-import { CardWideConfig, configDefaults } from '../../config/schema/types.js';
-import { HomeAssistant } from '../../ha/types.js';
+import type { TransitionEffect } from '../../config/schema/common/transition-effect.js';
+import type { LiveConfig } from '../../config/schema/live.js';
+import { configDefaults, type CardWideConfig } from '../../config/schema/types.js';
+import type { HomeAssistant } from '../../ha/types.js';
 import liveCarouselStyle from '../../scss/live-carousel.scss';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
-import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
+import type { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { getTextDirection } from '../../utils/text-direction.js';
 import { getStreamCameraID } from '../../view/substream.js';
-import { View } from '../../view/view.js';
+import type { View } from '../../view/view.js';
 
 import '../call-controls.js';
 import '../carousel';

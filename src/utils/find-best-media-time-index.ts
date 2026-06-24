@@ -1,4 +1,4 @@
-import { ViewItem } from '../view/item';
+import type { ViewItem } from '../view/item';
 import { ViewItemClassifier } from '../view/item-classifier';
 
 /**

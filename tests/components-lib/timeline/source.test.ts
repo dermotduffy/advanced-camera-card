@@ -1,7 +1,7 @@
 import { add } from 'date-fns';
-import { NonEmptyTuple } from 'type-fest';
-import { DataSet } from 'vis-data';
-import { TimelineWindow } from 'vis-timeline';
+import type { NonEmptyTuple } from 'type-fest';
+import type { DataSet } from 'vis-data';
+import type { TimelineWindow } from 'vis-timeline';
 import {
   afterAll,
   assert,
@@ -14,30 +14,30 @@ import {
 } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CameraManager } from '../../../src/camera-manager/manager';
+import type { CameraManager } from '../../../src/camera-manager/manager';
 import {
   Engine,
-  EventQuery,
   QueryResultsType,
   QueryType,
-  RecordingSegment,
-  RecordingSegmentsQuery,
-  RecordingSegmentsQueryResults,
-  ReviewQuery,
+  type EventQuery,
+  type RecordingSegment,
+  type RecordingSegmentsQuery,
+  type RecordingSegmentsQueryResults,
+  type ReviewQuery,
 } from '../../../src/camera-manager/types';
-import { FoldersManager } from '../../../src/card-controller/folders/manager';
-import {
+import type { FoldersManager } from '../../../src/card-controller/folders/manager';
+import type {
   FolderPathComponent,
   FolderQuery,
 } from '../../../src/card-controller/folders/types';
 import {
-  AdvancedCameraCardTimelineItem,
   TimelineDataSource,
+  type AdvancedCameraCardTimelineItem,
 } from '../../../src/components-lib/timeline/source';
-import { ConditionStateManagerReadonlyInterface } from '../../../src/condition-trigger/conditions/types';
+import type { ConditionStateManagerReadonlyInterface } from '../../../src/condition-trigger/conditions/types';
 import { QuerySource } from '../../../src/query-source';
 import { ViewMediaType } from '../../../src/view/item';
-import { QueryNode, UnifiedQuery } from '../../../src/view/unified-query';
+import { UnifiedQuery, type QueryNode } from '../../../src/view/unified-query';
 import {
   createCameraManager,
   createFolder,

@@ -1,19 +1,22 @@
-import { NonEmptyTuple } from 'type-fest';
+import type { NonEmptyTuple } from 'type-fest';
 import { assert, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CameraManager } from '../../src/camera-manager/manager';
-import { EventQuery, QueryType } from '../../src/camera-manager/types';
-import { FoldersManager } from '../../src/card-controller/folders/manager';
-import { FolderPathComponent } from '../../src/card-controller/folders/types';
-import { ViewManagerEpoch, ViewModifier } from '../../src/card-controller/view/types';
+import type { CameraManager } from '../../src/camera-manager/manager';
+import { QueryType, type EventQuery } from '../../src/camera-manager/types';
+import type { FoldersManager } from '../../src/card-controller/folders/manager';
+import type { FolderPathComponent } from '../../src/card-controller/folders/types';
+import type {
+  ViewManagerEpoch,
+  ViewModifier,
+} from '../../src/card-controller/view/types';
 import {
-  FolderNavigationParamaters,
   getUpFolderItem,
-  MediaNavigationParamaters,
   navigateToFolder,
   navigateToMedia,
   navigateUp,
+  type FolderNavigationParamaters,
+  type MediaNavigationParamaters,
 } from '../../src/components-lib/navigation';
 import { QuerySource } from '../../src/query-source';
 import { ViewFolder, ViewMedia } from '../../src/view/item';

@@ -1,34 +1,34 @@
-import { HassEntity } from 'home-assistant-js-websocket';
+import type { HassEntity } from 'home-assistant-js-websocket';
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
-import { IssueTriggerEventData } from '../card-controller/issues/types.js';
+import type { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { UpdatingImageMediaPlayerController } from '../components-lib/media-player/updating-image.js';
 import { dataToContext } from '../components-lib/notification/data-to-context.js';
 import { SignedURLController } from '../components-lib/signed-url-controller.js';
-import { Notification } from '../config/schema/actions/types.js';
-import { CameraConfig } from '../config/schema/cameras.js';
-import { ImageMode, type ImageBaseConfig } from '../config/schema/common/image.js';
-import { EnabledProxyConfig } from '../config/schema/common/proxy.js';
+import type { Notification } from '../config/schema/actions/types.js';
+import type { CameraConfig } from '../config/schema/cameras.js';
+import { type ImageBaseConfig, type ImageMode } from '../config/schema/common/image.js';
+import type { EnabledProxyConfig } from '../config/schema/common/proxy.js';
 import { TROUBLESHOOTING_URL } from '../const.js';
 import { isHassDifferent } from '../ha/is-hass-different.js';
-import { HomeAssistant } from '../ha/types.js';
+import type { HomeAssistant } from '../ha/types.js';
 import defaultImage from '../images/iris-screensaver.jpg';
 import { localize } from '../localize/localize.js';
 import imageUpdatingPlayerStyle from '../scss/image-updating-player.scss';
-import { MediaPlayer, MediaPlayerController } from '../types.js';
+import type { MediaPlayer, MediaPlayerController } from '../types.js';
 import { contentsChanged } from '../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 import {
@@ -36,7 +36,7 @@ import {
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
 } from '../utils/media-info.js';
-import { View } from '../view/view.js';
+import type { View } from '../view/view.js';
 import { renderNotificationBlock } from './notification/block.js';
 
 // See TOKEN_CHANGE_INTERVAL in https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py .

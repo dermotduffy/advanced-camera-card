@@ -1,8 +1,8 @@
-import { Connection } from 'home-assistant-js-websocket';
+import type { Connection } from 'home-assistant-js-websocket';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import {
+import type {
   FrigateEventChange,
   FrigateReviewChange,
 } from '../../../src/camera-manager/frigate/types.js';
@@ -10,7 +10,7 @@ import {
   FrigateEventWatcher,
   FrigateReviewWatcher,
 } from '../../../src/camera-manager/frigate/watcher.js';
-import { HomeAssistant } from '../../../src/ha/types.js';
+import type { HomeAssistant } from '../../../src/ha/types.js';
 import { createHASS, createHASSSource, flushPromises } from '../../test-utils.js';
 
 const createEventChange = (): FrigateEventChange => {

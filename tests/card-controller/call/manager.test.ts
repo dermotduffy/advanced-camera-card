@@ -1,17 +1,17 @@
 // @vitest-environment jsdom
 
-import { PartialDeep } from 'type-fest';
+import type { PartialDeep } from 'type-fest';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CameraManagerStore } from '../../../src/camera-manager/store';
+import type { CameraManagerStore } from '../../../src/camera-manager/store';
 import { CallManager } from '../../../src/card-controller/call/manager';
 import { Ringtone } from '../../../src/card-controller/call/ringtone';
-import { CardController } from '../../../src/card-controller/controller';
+import type { CardController } from '../../../src/card-controller/controller';
 import { SubstreamViewModifier } from '../../../src/card-controller/view/modifiers/substream';
-import { ConditionStateChange } from '../../../src/condition-trigger/conditions/types';
-import { RingtoneConfig } from '../../../src/config/schema/live';
-import { AdvancedCameraCardConfig } from '../../../src/config/schema/types';
+import type { ConditionStateChange } from '../../../src/condition-trigger/conditions/types';
+import type { RingtoneConfig } from '../../../src/config/schema/live';
+import type { AdvancedCameraCardConfig } from '../../../src/config/schema/types';
 import { View } from '../../../src/view/view';
 import {
   createCameraConfig,

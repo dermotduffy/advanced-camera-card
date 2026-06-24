@@ -1,7 +1,7 @@
 import { MediaNotificationController } from '../../../components-lib/media/notification-controller';
-import { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
+import type { GeneralActionConfig } from '../../../config/schema/actions/custom/general';
 import { ViewItemClassifier } from '../../../view/item-classifier';
-import { CardActionsAPI } from '../../types';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class InfoAction extends AdvancedCameraCardAction<GeneralActionConfig> {

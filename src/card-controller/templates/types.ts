@@ -1,4 +1,4 @@
-import { AdvancedCameraCardConfig } from '../../config/schema/types';
+import type { AdvancedCameraCardConfig } from '../../config/schema/types';
 
 // The card state exposed via the `acc` namespace AND as the
 // `trigger.from_acc`/`to_acc` before/after snapshots (the card analogue of HA's

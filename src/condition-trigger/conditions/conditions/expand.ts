@@ -1,6 +1,6 @@
-import { ExpandBase } from '../../../config/schema/condition-trigger/common/expand';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator } from './types';
+import type { ExpandBase } from '../../../config/schema/condition-trigger/common/expand';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator } from './types';
 
 export class ExpandConditionEvaluator implements ConditionEvaluator {
   private _condition: ExpandBase;

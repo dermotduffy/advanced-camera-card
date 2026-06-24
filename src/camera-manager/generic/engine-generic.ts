@@ -1,39 +1,39 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
-import { CameraConfig } from '../../config/schema/cameras';
+import type { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
+import type { CameraConfig } from '../../config/schema/cameras';
 import { getEntityTitle } from '../../ha/get-entity-title';
-import { EntityRegistryManager } from '../../ha/registry/entity/types';
-import { HomeAssistant } from '../../ha/types';
-import { Endpoint } from '../../types';
-import { ViewMedia } from '../../view/item';
-import { ViewItemCapabilities } from '../../view/types';
+import type { EntityRegistryManager } from '../../ha/registry/entity/types';
+import type { HomeAssistant } from '../../ha/types';
+import type { Endpoint } from '../../types';
+import type { ViewMedia } from '../../view/item';
+import type { ViewItemCapabilities } from '../../view/types';
 import { Camera } from '../camera';
-import { CameraManagerEngine } from '../engine';
-import { CameraManagerReadOnlyConfigStore } from '../store';
+import type { CameraManagerEngine } from '../engine';
+import type { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraEventCallback,
-  CameraManagerCameraMetadata,
-  CameraQuery,
-  DefaultQueryParameters,
   Engine,
-  EngineOptions,
-  EventQuery,
-  EventQueryResultsMap,
-  MediaMetadataQuery,
-  MediaMetadataQueryResultsMap,
-  PartialEventQuery,
-  PartialRecordingQuery,
-  PartialRecordingSegmentsQuery,
-  PartialReviewQuery,
-  QueryReturnType,
-  QueryType,
-  RecordingQuery,
-  RecordingQueryResultsMap,
-  RecordingSegmentsQuery,
-  RecordingSegmentsQueryResultsMap,
-  ReviewQuery,
-  ReviewQueryResultsMap,
+  type CameraEventCallback,
+  type CameraManagerCameraMetadata,
+  type CameraQuery,
+  type DefaultQueryParameters,
+  type EngineOptions,
+  type EventQuery,
+  type EventQueryResultsMap,
+  type MediaMetadataQuery,
+  type MediaMetadataQueryResultsMap,
+  type PartialEventQuery,
+  type PartialRecordingQuery,
+  type PartialRecordingSegmentsQuery,
+  type PartialReviewQuery,
+  type QueryReturnType,
+  type QueryType,
+  type RecordingQuery,
+  type RecordingQueryResultsMap,
+  type RecordingSegmentsQuery,
+  type RecordingSegmentsQueryResultsMap,
+  type ReviewQuery,
+  type ReviewQueryResultsMap,
 } from '../types';
 import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';

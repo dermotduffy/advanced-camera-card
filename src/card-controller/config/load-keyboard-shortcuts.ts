@@ -1,7 +1,10 @@
-import { PTZAction } from '../../config/schema/actions/custom/ptz';
-import { KeyboardShortcuts, PTZKeyboardShortcutName } from '../../config/schema/view';
+import type { PTZAction } from '../../config/schema/actions/custom/ptz';
+import type {
+  KeyboardShortcuts,
+  PTZKeyboardShortcutName,
+} from '../../config/schema/view';
 import { createPTZMultiAction } from '../../utils/action';
-import { CardConfigLoaderAPI, TaggedAutomation } from '../types';
+import type { CardConfigLoaderAPI, TaggedAutomation } from '../types';
 
 export const setKeyboardShortcutsFromConfig = (api: CardConfigLoaderAPI) => {
   const automationTag = setKeyboardShortcutsFromConfig;

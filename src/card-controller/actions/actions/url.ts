@@ -1,5 +1,5 @@
-import { URLActionConfig } from '../../../config/schema/actions/stock/url';
-import { CardActionsAPI } from '../../types';
+import type { URLActionConfig } from '../../../config/schema/actions/stock/url';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class URLAction extends AdvancedCameraCardAction<URLActionConfig> {

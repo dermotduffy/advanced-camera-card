@@ -1,6 +1,6 @@
-import { HassEntity } from 'home-assistant-js-websocket';
+import type { HassEntity } from 'home-assistant-js-websocket';
 
-import { HassStateDifference, HomeAssistant } from './types';
+import type { HassStateDifference, HomeAssistant } from './types';
 
 /**
  * Get the difference between two hass objects.

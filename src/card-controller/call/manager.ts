@@ -1,13 +1,13 @@
 import { createNotificationFromText } from '../../components-lib/notification/factory';
-import { ConditionStateChange } from '../../condition-trigger/conditions/types';
+import type { ConditionStateChange } from '../../condition-trigger/conditions/types';
 import { localize } from '../../localize/localize';
 import { Timer } from '../../utils/timer';
 import { getStreamCameraID } from '../../view/substream';
-import { View } from '../../view/view';
-import { CardCallAPI } from '../types';
+import type { View } from '../../view/view';
+import type { CardCallAPI } from '../types';
 import { SubstreamViewModifier } from '../view/modifiers/substream';
 import { Ringtone } from './ringtone';
-import { CallSession } from './types';
+import type { CallSession } from './types';
 
 export class CallManager {
   private _api: CardCallAPI;

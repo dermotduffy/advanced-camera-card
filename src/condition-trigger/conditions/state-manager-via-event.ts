@@ -1,4 +1,4 @@
-import { ConditionStateManager } from './state-manager';
+import type { ConditionStateManager } from './state-manager';
 
 export class ConditionStateManagerGetEvent extends Event {
   public conditionStateManager?: ConditionStateManager;

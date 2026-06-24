@@ -1,5 +1,5 @@
 import { getHassDifferences } from './get-hass-differences';
-import { HomeAssistant } from './types';
+import type { HomeAssistant } from './types';
 
 /**
  * Determine if two hass objects are different for a list of entities.

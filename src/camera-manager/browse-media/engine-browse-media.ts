@@ -1,25 +1,25 @@
-import { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
-import { CameraConfig } from '../../config/schema/cameras';
+import type { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
+import type { CameraConfig } from '../../config/schema/cameras';
 import { BROWSE_MEDIA_CACHE_SECONDS } from '../../ha/browse-media/types';
-import { BrowseMediaWalker } from '../../ha/browse-media/walker';
+import type { BrowseMediaWalker } from '../../ha/browse-media/walker';
 import { getMediaDownloadPath } from '../../ha/download';
-import { EntityRegistryManager } from '../../ha/registry/entity/types';
-import { ResolvedMediaCache } from '../../ha/resolved-media';
-import { HomeAssistant } from '../../ha/types';
+import type { EntityRegistryManager } from '../../ha/registry/entity/types';
+import type { ResolvedMediaCache } from '../../ha/resolved-media';
+import type { HomeAssistant } from '../../ha/types';
 import { QuerySource } from '../../query-source.js';
-import { Endpoint } from '../../types';
-import { ViewMedia } from '../../view/item';
-import { ViewItemCapabilities } from '../../view/types';
-import { CameraManagerEngine } from '../engine';
+import type { Endpoint } from '../../types';
+import type { ViewMedia } from '../../view/item';
+import type { ViewItemCapabilities } from '../../view/types';
+import type { CameraManagerEngine } from '../engine';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
-import { CameraManagerReadOnlyConfigStore } from '../store';
+import type { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraEventCallback,
-  CameraManagerRequestCache,
-  CameraQuery,
-  EventQuery,
-  PartialEventQuery,
   QueryType,
+  type CameraEventCallback,
+  type CameraManagerRequestCache,
+  type CameraQuery,
+  type EventQuery,
+  type PartialEventQuery,
 } from '../types';
 
 /**

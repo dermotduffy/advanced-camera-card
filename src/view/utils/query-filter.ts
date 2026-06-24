@@ -1,7 +1,7 @@
-import { CameraMediaReviewedFilter } from '../../config/schema/cameras';
-import { ViewItem } from '../item';
+import type { CameraMediaReviewedFilter } from '../../config/schema/cameras';
+import type { ViewItem } from '../item';
 import { ViewItemClassifier } from '../item-classifier';
-import { UnifiedQuery } from '../unified-query';
+import type { UnifiedQuery } from '../unified-query';
 
 /**
  * Get the reviewed filter from a query for a specific item.

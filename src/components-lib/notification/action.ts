@@ -1,5 +1,5 @@
 import { dispatchActionExecutionRequest } from '../../card-controller/actions/utils/execution-request.js';
-import { NotificationControl } from '../../config/schema/actions/types.js';
+import type { NotificationControl } from '../../config/schema/actions/types.js';
 import {
   getActionConfigGivenAction,
   stopEventFromActivatingCardWideActions,

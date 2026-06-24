@@ -1,5 +1,5 @@
 import { ViewItemClassifier } from '../view/item-classifier';
-import { CardCameraURLAPI } from './types';
+import type { CardCameraURLAPI } from './types';
 
 export class CameraURLManager {
   private _api: CardCameraURLAPI;

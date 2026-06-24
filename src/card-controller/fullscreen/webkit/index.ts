@@ -1,8 +1,8 @@
-import { ConditionStateChange } from '../../../condition-trigger/conditions/types';
-import { WebkitHTMLVideoElement } from '../../../types';
+import type { ConditionStateChange } from '../../../condition-trigger/conditions/types';
+import type { WebkitHTMLVideoElement } from '../../../types';
 import { Timer } from '../../../utils/timer';
 import { FullscreenProviderBase } from '../provider';
-import { FullscreenProvider } from '../types';
+import type { FullscreenProvider } from '../types';
 
 const WEBKIT_PLAY_SECONDS = 0.5;
 

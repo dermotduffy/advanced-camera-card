@@ -1,7 +1,7 @@
-import { LitElement, PropertyValues, unsafeCSS } from 'lit';
+import { LitElement, unsafeCSS, type PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { EffectsManager } from '../../card-controller/effects/effects-manager';
+import type { EffectsManager } from '../../card-controller/effects/effects-manager';
 import effectsStyle from '../../scss/effects.scss';
 
 @customElement('advanced-camera-card-effects')

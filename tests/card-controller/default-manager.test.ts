@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CardController } from '../../src/card-controller/controller';
+import type { CardController } from '../../src/card-controller/controller';
 import { DefaultManager } from '../../src/card-controller/default-manager';
-import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher';
+import type { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher';
 import {
   callStateWatcherCallback,
   createCardAPI,

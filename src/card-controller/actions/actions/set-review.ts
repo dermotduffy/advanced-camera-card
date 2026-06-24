@@ -1,8 +1,8 @@
-import { SetReviewActionConfig } from '../../../config/schema/actions/custom/set-review';
+import type { SetReviewActionConfig } from '../../../config/schema/actions/custom/set-review';
 import { toggleReviewed } from '../../../utils/media-actions';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import { getReviewedQueryFilterFromQuery } from '../../../view/utils/query-filter';
-import { CardActionsAPI } from '../../types';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class SetReviewAction extends AdvancedCameraCardAction<SetReviewActionConfig> {

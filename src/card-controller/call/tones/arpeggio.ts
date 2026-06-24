@@ -1,4 +1,4 @@
-import { BellStrikeOptions, BellTone } from './bell';
+import { BellTone, type BellStrikeOptions } from './bell';
 
 const PLUCK: BellStrikeOptions = {
   sparklePeak: 0.05,

@@ -1,8 +1,8 @@
-import { HassConfig } from 'home-assistant-js-websocket';
+import type { HassConfig } from 'home-assistant-js-websocket';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { DeviceRegistryManager } from '../../src/ha/registry/device';
+import type { DeviceRegistryManager } from '../../src/ha/registry/device';
 import { homeAssistantWSRequest } from '../../src/ha/ws-request';
 import { getLanguage } from '../../src/localize/localize';
 import { getDiagnostics, getReleaseVersion } from '../../src/utils/diagnostics.js';

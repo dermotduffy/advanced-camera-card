@@ -1,8 +1,8 @@
-import { describe, expect, it, Mock, vi } from 'vitest';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { MediaLoadedTrigger } from '../../../../src/condition-trigger/triggers/triggers/media-loaded';
-import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createMediaLoadedInfo } from '../../../test-utils';
 import { createTriggerEvaluatorContext } from './test-utils';
 

@@ -1,5 +1,5 @@
-import { RecoverableHealthInterface, UnlistenCallback } from '../../health';
-import { HASSWebSocketSubscriptionStatus } from './subscription-manager';
+import type { RecoverableHealthInterface, UnlistenCallback } from '../../health';
+import type { HASSWebSocketSubscriptionStatus } from './subscription-manager';
 
 // One keyed subscription that is currently failing, with the most recent
 // rejection reason and attempt count.

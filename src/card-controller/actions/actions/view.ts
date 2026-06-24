@@ -1,5 +1,5 @@
-import { ViewActionConfig } from '../../../config/schema/actions/custom/view';
-import { CardActionsAPI } from '../../types';
+import type { ViewActionConfig } from '../../../config/schema/actions/custom/view';
+import type { CardActionsAPI } from '../../types';
 import { AdvancedCameraCardAction } from './base';
 
 export class ViewAction extends AdvancedCameraCardAction<ViewActionConfig> {

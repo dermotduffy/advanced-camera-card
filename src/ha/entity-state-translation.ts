@@ -1,8 +1,8 @@
-import { HassEntity } from 'home-assistant-js-websocket';
+import type { HassEntity } from 'home-assistant-js-websocket';
 
 import { computeDomain } from './compute-domain.js';
-import { Entity } from './registry/entity/types.js';
-import { HomeAssistant } from './types.js';
+import type { Entity } from './registry/entity/types.js';
+import type { HomeAssistant } from './types.js';
 
 /**
  * Get the translation of an entity state. Inspired by:

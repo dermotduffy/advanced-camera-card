@@ -1,9 +1,9 @@
-import { Notification } from '../../../config/schema/actions/types';
-import { SubscriptionHealthInterface } from '../../../ha/connection/subscription-health-monitor';
-import { UnlistenCallback } from '../../../health';
+import type { Notification } from '../../../config/schema/actions/types';
+import type { SubscriptionHealthInterface } from '../../../ha/connection/subscription-health-monitor';
+import type { UnlistenCallback } from '../../../health';
 import { localize } from '../../../localize/localize';
 import { createRetryControl } from '../retry-control';
-import { Issue, IssueDescription } from '../types';
+import type { Issue, IssueDescription } from '../types';
 
 const ISSUE_ICON = 'mdi:lan-disconnect';
 

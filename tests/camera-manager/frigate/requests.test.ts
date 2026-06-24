@@ -11,19 +11,19 @@ import {
   setReviewsReviewed,
 } from '../../../src/camera-manager/frigate/requests';
 import {
-  EventSummary,
   eventSummarySchema,
-  FrigateEvent,
   frigateEventsSchema,
-  FrigateReview,
   frigateReviewsSchema,
   ptzInfoSchema,
   recordingSegmentsSchema,
   recordingSummarySchema,
   retainResultSchema,
   reviewResultSchema,
+  type EventSummary,
+  type FrigateEvent,
+  type FrigateReview,
 } from '../../../src/camera-manager/frigate/types';
-import { RecordingSegment } from '../../../src/camera-manager/types';
+import type { RecordingSegment } from '../../../src/camera-manager/types';
 import { homeAssistantWSRequest } from '../../../src/ha/ws-request';
 import { createFrigateEvent, createHASS } from '../../test-utils';
 

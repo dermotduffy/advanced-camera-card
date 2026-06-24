@@ -1,17 +1,17 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import 'side-drawer';
 
-import { SideDrawer } from 'side-drawer';
+import type { SideDrawer } from 'side-drawer';
 
 import drawerInjectStyle from '../scss/drawer-inject.scss';
 import drawerStyle from '../scss/drawer.scss';

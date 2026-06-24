@@ -1,4 +1,4 @@
-import { ViewMedia } from '../../view/item';
+import type { ViewMedia } from '../../view/item';
 import {
   FrigateEventViewMedia,
   FrigateRecordingViewMedia,

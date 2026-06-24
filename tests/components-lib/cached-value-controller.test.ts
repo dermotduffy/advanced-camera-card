@@ -1,4 +1,4 @@
-import { ReactiveControllerHost } from 'lit';
+import type { ReactiveControllerHost } from 'lit';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 

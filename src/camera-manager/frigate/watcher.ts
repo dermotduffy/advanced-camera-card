@@ -1,12 +1,12 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { HASSConnectionSubscriptionManager } from '../../ha/connection/subscription-manager';
-import { HASSSource } from '../../ha/source';
+import type { HASSSource } from '../../ha/source';
 import {
-  FrigateEventChange,
   frigateEventChangeSchema,
-  FrigateReviewChange,
   frigateReviewChangeSchema,
+  type FrigateEventChange,
+  type FrigateReviewChange,
 } from './types';
 
 // Generic request interface for Frigate watchers

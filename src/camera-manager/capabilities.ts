@@ -1,10 +1,10 @@
 import {
-  CapabilitiesRaw,
-  CapabilityKey,
   capabilityKeys,
-  PTZCapabilities,
+  type CapabilitiesRaw,
+  type CapabilityKey,
+  type PTZCapabilities,
 } from '../types';
-import { CapabilitySearchKeys } from './types';
+import type { CapabilitySearchKeys } from './types';
 
 export class Capabilities {
   private _capabilities: CapabilitiesRaw;

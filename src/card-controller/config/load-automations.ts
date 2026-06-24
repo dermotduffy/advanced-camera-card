@@ -1,4 +1,4 @@
-import { CardConfigLoaderAPI } from '../types';
+import type { CardConfigLoaderAPI } from '../types';
 
 export const setAutomationsFromConfig = (api: CardConfigLoaderAPI): void => {
   api.getAutomationsManager().deleteAutomations();

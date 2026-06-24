@@ -1,16 +1,16 @@
 import { fromUnixTime } from 'date-fns';
 import { isEqual } from 'lodash-es';
 
-import { CameraConfig } from '../../config/schema/cameras';
-import { Severity } from '../../severity';
+import type { CameraConfig } from '../../config/schema/cameras';
+import type { Severity } from '../../severity';
 import {
-  EventViewMedia,
-  RecordingViewMedia,
-  ReviewViewMedia,
   ViewMedia,
   ViewMediaType,
+  type EventViewMedia,
+  type RecordingViewMedia,
+  type ReviewViewMedia,
 } from '../../view/item';
-import { FrigateEvent, FrigateRecording, FrigateReview } from './types';
+import type { FrigateEvent, FrigateRecording, FrigateReview } from './types';
 import {
   getEventMediaContentID,
   getEventThumbnailURL,

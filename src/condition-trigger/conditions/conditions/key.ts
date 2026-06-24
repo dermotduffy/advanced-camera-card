@@ -1,6 +1,6 @@
-import { KeyBase } from '../../../config/schema/condition-trigger/common/key';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator } from './types';
+import type { KeyBase } from '../../../config/schema/condition-trigger/common/key';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator } from './types';
 
 export class KeyConditionEvaluator implements ConditionEvaluator {
   private _condition: KeyBase;

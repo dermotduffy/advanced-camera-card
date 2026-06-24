@@ -1,8 +1,8 @@
-import { Task } from '@lit-labs/task';
-import { html, TemplateResult } from 'lit';
+import type { Task } from '@lit-labs/task';
+import { html, type TemplateResult } from 'lit';
 
 import { renderProgressIndicator } from '../components/progress-indicator';
-import { CardWideConfig } from '../config/schema/types';
+import type { CardWideConfig } from '../config/schema/types';
 import { errorToConsole } from './basic';
 
 /**

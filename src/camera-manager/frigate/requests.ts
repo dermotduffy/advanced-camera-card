@@ -1,24 +1,24 @@
-import { HomeAssistant } from '../../ha/types';
+import type { HomeAssistant } from '../../ha/types';
 import { homeAssistantWSRequest } from '../../ha/ws-request';
 import { localize } from '../../localize/localize';
 import { AdvancedCameraCardError } from '../../types';
-import { RecordingSegment } from '../types';
+import type { RecordingSegment } from '../types';
 import {
-  EventSummary,
   eventSummarySchema,
-  FrigateEvent,
   frigateEventsSchema,
-  FrigateReview,
   frigateReviewsSchema,
-  PTZInfo,
   ptzInfoSchema,
   recordingSegmentsSchema,
-  RecordingSummary,
   recordingSummarySchema,
-  RetainResult,
   retainResultSchema,
-  ReviewResult,
   reviewResultSchema,
+  type EventSummary,
+  type FrigateEvent,
+  type FrigateReview,
+  type PTZInfo,
+  type RecordingSummary,
+  type RetainResult,
+  type ReviewResult,
 } from './types';
 
 /**

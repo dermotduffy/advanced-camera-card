@@ -1,7 +1,7 @@
-import { TemplateRenderer } from '../../card-controller/templates';
-import { TimePeriod } from '../../config/schema/common/time-period';
+import type { TemplateRenderer } from '../../card-controller/templates';
+import type { TimePeriod } from '../../config/schema/common/time-period';
 import { isRecord } from '../../utils/basic';
-import { ConditionState } from '../conditions/types';
+import type { ConditionState } from '../conditions/types';
 
 // Parses a Home Assistant time-period value (a condition/trigger `for:`) to
 // seconds, matching HA's `cv.time_period`:

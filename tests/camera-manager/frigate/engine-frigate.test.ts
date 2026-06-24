@@ -22,7 +22,7 @@ import {
   retainEvent,
   setReviewsReviewed,
 } from '../../../src/camera-manager/frigate/requests';
-import {
+import type {
   FrigateEventQueryResults,
   FrigateRecordingQueryResults,
   FrigateReviewQueryResults,
@@ -33,10 +33,10 @@ import {
   QueryResultsType,
   QueryType,
 } from '../../../src/camera-manager/types';
-import { CameraConfig } from '../../../src/config/schema/cameras';
-import { RawAdvancedCameraCardConfig } from '../../../src/config/types';
+import type { CameraConfig } from '../../../src/config/schema/cameras';
+import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import { QuerySource } from '../../../src/query-source';
-import { Severity } from '../../../src/severity';
+import type { Severity } from '../../../src/severity';
 import { ViewMedia, ViewMediaType } from '../../../src/view/item';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {

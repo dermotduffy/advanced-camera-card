@@ -1,25 +1,28 @@
 import { uniq } from 'lodash-es';
 
-import { ActionsExecutor } from '../card-controller/actions/types';
-import { EventSubscriptionRequest } from '../card-controller/hass/event-watcher';
-import { HASSManagerReadonlyInterface } from '../card-controller/hass/types';
-import { PTZAction, PTZActionPhase } from '../config/schema/actions/custom/ptz';
-import { CameraConfig } from '../config/schema/cameras';
-import { HAEvent } from '../config/schema/common/ha-event';
-import { EnabledProxyConfig, resolveProxyConfig } from '../config/schema/common/proxy';
+import type { ActionsExecutor } from '../card-controller/actions/types';
+import type { EventSubscriptionRequest } from '../card-controller/hass/event-watcher';
+import type { HASSManagerReadonlyInterface } from '../card-controller/hass/types';
+import type { PTZAction, PTZActionPhase } from '../config/schema/actions/custom/ptz';
+import type { CameraConfig } from '../config/schema/cameras';
+import type { HAEvent } from '../config/schema/common/ha-event';
+import {
+  resolveProxyConfig,
+  type EnabledProxyConfig,
+} from '../config/schema/common/proxy';
 import { computeDomain } from '../ha/compute-domain';
 import { matchesEventContext, matchesEventData } from '../ha/event-match';
 import { getTriggerEventType } from '../ha/get-trigger-event-type';
-import { Entity, EntityRegistryManager } from '../ha/registry/entity/types';
-import { HassStateDifference, HomeAssistant } from '../ha/types';
+import type { Entity, EntityRegistryManager } from '../ha/registry/entity/types';
+import type { HassStateDifference, HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
-import { CapabilitiesRaw, CapabilityKey, Endpoint } from '../types';
+import type { CapabilitiesRaw, CapabilityKey, Endpoint } from '../types';
 import { arrayify } from '../utils/basic';
 import { liveProviderSupports2WayAudio } from '../utils/live-provider';
 import { Capabilities } from './capabilities';
-import { CameraManagerEngine } from './engine';
+import type { CameraManagerEngine } from './engine';
 import { CameraNoIDError } from './error';
-import {
+import type {
   CameraEndpoints,
   CameraEndpointsContext,
   CameraEventCallback,

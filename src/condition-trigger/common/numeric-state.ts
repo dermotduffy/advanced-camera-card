@@ -1,6 +1,6 @@
-import { TemplateRenderer } from '../../card-controller/templates';
-import { NumericStateBase } from '../../config/schema/condition-trigger/common/numeric-state';
-import { ConditionState } from '../conditions/types';
+import type { TemplateRenderer } from '../../card-controller/templates';
+import type { NumericStateBase } from '../../config/schema/condition-trigger/common/numeric-state';
+import type { ConditionState } from '../conditions/types';
 
 // The numeric value of `entityID` to compare: the rendered `value_template`,
 // else the `attribute`, else the state. Returns null when the entity is absent

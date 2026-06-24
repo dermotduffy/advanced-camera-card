@@ -1,13 +1,13 @@
-import { CSSResult, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import { html, LitElement, unsafeCSS, type CSSResult, type TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { CameraManager } from '../../camera-manager/manager.js';
-import { FoldersManager } from '../../card-controller/folders/manager.js';
-import { ViewItemManager } from '../../card-controller/view/item-manager.js';
-import { ViewManagerEpoch } from '../../card-controller/view/types.js';
-import { HomeAssistant } from '../../ha/types.js';
+import type { CameraManager } from '../../camera-manager/manager.js';
+import type { FoldersManager } from '../../card-controller/folders/manager.js';
+import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
+import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
+import type { HomeAssistant } from '../../ha/types.js';
 import thumbnailStyle from '../../scss/thumbnail.scss';
-import { ViewItem } from '../../view/item.js';
+import type { ViewItem } from '../../view/item.js';
 
 import './details.js';
 import './feature/feature.js';

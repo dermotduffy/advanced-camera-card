@@ -1,6 +1,6 @@
-import { ConditionState } from '../../conditions/types';
+import type { ConditionState } from '../../conditions/types';
 import { ConditionStateTriggerBase } from './condition-state-base';
-import { TriggerOfType } from './types';
+import type { TriggerOfType } from './types';
 
 export class ExpandTrigger extends ConditionStateTriggerBase<TriggerOfType<'expand'>> {
   protected _getValue(state: ConditionState): unknown {

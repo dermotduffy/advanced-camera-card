@@ -1,23 +1,23 @@
-import { ActionsExecutor } from '../../card-controller/actions/types';
-import {
+import type { ActionsExecutor } from '../../card-controller/actions/types';
+import type {
   PTZAction,
   PTZActionPhase,
   PTZBaseAction,
 } from '../../config/schema/actions/custom/ptz';
-import { DeviceRegistryManager } from '../../ha/registry/device/index';
-import { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
-import { HomeAssistant } from '../../ha/types';
+import type { DeviceRegistryManager } from '../../ha/registry/device/index';
+import type { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
+import type { HomeAssistant } from '../../ha/types';
 import {
-  CapabilitiesRaw,
-  Endpoint,
-  PTZCapabilities,
   PTZMovementType,
+  type CapabilitiesRaw,
+  type Endpoint,
+  type PTZCapabilities,
 } from '../../types';
 import { createSelectOptionAction } from '../../utils/action.js';
-import { Camera, CameraInitializationOptions } from '../camera';
+import type { Camera, CameraInitializationOptions } from '../camera';
 import { EntityCamera } from '../entity-camera';
 import { ReolinkInitializationError } from '../error';
-import { CameraEndpointsContext, CameraProxyConfig } from '../types';
+import type { CameraEndpointsContext, CameraProxyConfig } from '../types';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
 // Reolink channels are zero indexed.

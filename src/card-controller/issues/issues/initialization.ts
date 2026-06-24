@@ -1,8 +1,8 @@
 import { createNotificationFromError } from '../../../components-lib/notification/factory.js';
 import { localize } from '../../../localize/localize.js';
-import { CardIssueManagerAPI } from '../../types';
+import type { CardIssueManagerAPI } from '../../types';
 import { createRetryControl } from '../retry-control.js';
-import { IssueDescription } from '../types';
+import type { IssueDescription } from '../types';
 import { AbstractErrorIssue } from './abstract-error-issue.js';
 
 declare module 'issue' {

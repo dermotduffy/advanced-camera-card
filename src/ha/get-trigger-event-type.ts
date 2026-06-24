@@ -1,6 +1,6 @@
 import { computeDomain } from './compute-domain';
 import { isTriggeredState } from './is-triggered-state';
-import { HassStateDifference } from './types';
+import type { HassStateDifference } from './types';
 
 // New state must be a real timestamp: `unavailable` means the entity went
 // offline, `unknown` means it has no recorded fire -- neither is a fresh fire.

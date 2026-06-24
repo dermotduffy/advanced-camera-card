@@ -1,4 +1,4 @@
-import { ValidHassDomEvent } from './types';
+import type { ValidHassDomEvent } from './types';
 
 /**
  * Fire an event has per Home Assistant frontend specifications. All events

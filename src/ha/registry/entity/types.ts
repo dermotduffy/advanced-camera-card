@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { Cache } from '../../../cache/cache';
-import { HomeAssistant } from '../../types';
+import type { HomeAssistant } from '../../types';
 
 export const entitySchema = z.object({
   config_entry_id: z.string().nullable(),

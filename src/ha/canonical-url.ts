@@ -1,5 +1,5 @@
 import { isHARelativeURL } from './is-ha-relative-url';
-import { HomeAssistant } from './types';
+import type { HomeAssistant } from './types';
 
 /**
  * Ensure URLs use the correct HA URL (relevant for Chromecast where the default

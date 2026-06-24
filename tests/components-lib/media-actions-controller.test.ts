@@ -1,12 +1,12 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { MicrophoneState } from '../../src/card-controller/types';
+import type { MicrophoneState } from '../../src/card-controller/types';
 import {
   MediaActionsController,
-  MediaActionsControllerOptions,
+  type MediaActionsControllerOptions,
 } from '../../src/components-lib/media-actions-controller';
-import { MediaPlayerController, MediaPlayerElement } from '../../src/types';
+import type { MediaPlayerController, MediaPlayerElement } from '../../src/types';
 import {
   callIntersectionHandler,
   callMutationHandler,

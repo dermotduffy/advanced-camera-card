@@ -1,47 +1,51 @@
 import { add, differenceInSeconds, sub } from 'date-fns';
-import { LitElement } from 'lit';
+import type { LitElement } from 'lit';
 import { isEqual, throttle } from 'lodash-es';
-import { ViewContext } from 'view';
+import type { ViewContext } from 'view';
 import {
-  IdType,
   Timeline,
-  TimelineEventPropertiesResult,
-  TimelineFormatOption,
-  TimelineItem,
-  TimelineOptions,
-  TimelineOptionsCluster,
-  TimelineWindow,
+  type IdType,
+  type TimelineEventPropertiesResult,
+  type TimelineFormatOption,
+  type TimelineItem,
+  type TimelineOptions,
+  type TimelineOptionsCluster,
+  type TimelineWindow,
 } from 'vis-timeline';
 
-import { CameraManager } from '../../camera-manager/manager';
+import type { CameraManager } from '../../camera-manager/manager';
 import { rangesOverlap } from '../../camera-manager/range';
 import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/range-to-cache-friendly';
-import { FoldersManager } from '../../card-controller/folders/manager';
-import { ViewItemManager } from '../../card-controller/view/item-manager';
+import type { FoldersManager } from '../../card-controller/folders/manager';
+import type { ViewItemManager } from '../../card-controller/view/item-manager';
 import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context';
-import { ViewManagerEpoch } from '../../card-controller/view/types';
-import { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
-import { CameraConfig } from '../../config/schema/cameras';
-import { AdvancedCameraCardView } from '../../config/schema/common/const';
-import { ThumbnailsControlBaseConfig } from '../../config/schema/common/controls/thumbnails';
-import {
+import type { ViewManagerEpoch } from '../../card-controller/view/types';
+import type { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
+import type { CameraConfig } from '../../config/schema/cameras';
+import type { AdvancedCameraCardView } from '../../config/schema/common/const';
+import type { ThumbnailsControlBaseConfig } from '../../config/schema/common/controls/thumbnails';
+import type {
   TimelineCoreConfig,
   TimelinePanMode,
 } from '../../config/schema/common/controls/timeline';
 import { configDefaults } from '../../config/schema/types';
-import { HomeAssistant } from '../../ha/types';
+import type { HomeAssistant } from '../../ha/types';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action';
 import { formatDateAndTime, isHoverableDevice, isTruthy } from '../../utils/basic';
 import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
-import { ViewMedia } from '../../view/item';
+import type { ViewMedia } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 import { QueryResults } from '../../view/query-results';
-import { UnifiedQuery } from '../../view/unified-query';
+import type { UnifiedQuery } from '../../view/unified-query';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer';
 import { mergeViewContext } from '../../view/view';
-import { AdvancedCameraCardTimelineItem, TimelineDataSource } from './source';
-import { ExtendedTimeline, TimelineItemClickAction, TimelineRangeChange } from './types';
+import { TimelineDataSource, type AdvancedCameraCardTimelineItem } from './source';
+import type {
+  ExtendedTimeline,
+  TimelineItemClickAction,
+  TimelineRangeChange,
+} from './types';
 
 // An event used to fetch data required for thumbnail rendering. See special
 // note below on why this is necessary.

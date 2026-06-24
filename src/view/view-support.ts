@@ -1,7 +1,10 @@
-import { CameraManager } from '../camera-manager/manager';
-import { CapabilitySearchKeys, CapabilitySearchOptions } from '../camera-manager/types';
-import { FoldersManager } from '../card-controller/folders/manager';
-import { AdvancedCameraCardView } from '../config/schema/common/const';
+import type { CameraManager } from '../camera-manager/manager';
+import type {
+  CapabilitySearchKeys,
+  CapabilitySearchOptions,
+} from '../camera-manager/types';
+import type { FoldersManager } from '../card-controller/folders/manager';
+import type { AdvancedCameraCardView } from '../config/schema/common/const';
 
 type ViewSource = 'camera' | 'folder' | 'any';
 

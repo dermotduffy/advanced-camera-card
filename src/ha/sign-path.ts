@@ -1,5 +1,5 @@
-import { SignedPath, signedPathSchema, type Endpoint } from '../types';
-import { HomeAssistant } from './types';
+import { signedPathSchema, type Endpoint, type SignedPath } from '../types';
+import type { HomeAssistant } from './types';
 import { homeAssistantWSRequest } from './ws-request';
 
 /**

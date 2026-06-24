@@ -1,11 +1,11 @@
-import { HassEvent } from 'home-assistant-js-websocket';
+import type { HassEvent } from 'home-assistant-js-websocket';
 
 import {
-  SubscriptionHealthInterface,
   SubscriptionHealthMonitor,
+  type SubscriptionHealthInterface,
 } from '../../ha/connection/subscription-health-monitor';
 import { HASSConnectionSubscriptionManager } from '../../ha/connection/subscription-manager';
-import { HASSSource } from '../../ha/source';
+import type { HASSSource } from '../../ha/source';
 
 export interface EventSubscriptionRequest {
   event_type: string;

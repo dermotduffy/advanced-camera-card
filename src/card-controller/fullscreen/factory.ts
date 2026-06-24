@@ -1,9 +1,9 @@
 import screenfull from 'screenfull';
 
-import { WebkitHTMLVideoElement } from '../../types';
-import { CardFullscreenAPI } from '../types';
+import type { WebkitHTMLVideoElement } from '../../types';
+import type { CardFullscreenAPI } from '../types';
 import { ScreenfullFullScreenProvider } from './screenfull';
-import { FullscreenHandler, FullscreenProvider } from './types';
+import type { FullscreenHandler, FullscreenProvider } from './types';
 import { WebkitFullScreenProvider } from './webkit';
 
 export class FullscreenProviderFactory {

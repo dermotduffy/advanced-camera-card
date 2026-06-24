@@ -1,22 +1,22 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { Camera } from '../../../../camera-manager/camera.js';
+import type { Camera } from '../../../../camera-manager/camera.js';
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
 import { VideoMediaPlayerController } from '../../../../components-lib/media-player/video.js';
 import { SignedURLController } from '../../../../components-lib/signed-url-controller.js';
-import { MicrophoneConfig } from '../../../../config/schema/live.js';
-import { HomeAssistant } from '../../../../ha/types.js';
+import type { MicrophoneConfig } from '../../../../config/schema/live.js';
+import type { HomeAssistant } from '../../../../ha/types.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
-import { MediaPlayer, MediaPlayerController } from '../../../../types.js';
+import type { MediaPlayer, MediaPlayerController } from '../../../../types.js';
 import { renderNotificationBlockFromText } from '../../../notification/block.js';
 import { VideoRTC } from './video-rtc.js';
 

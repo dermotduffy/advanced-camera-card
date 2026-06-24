@@ -1,6 +1,6 @@
-import { TriggeredBase } from '../../../config/schema/condition-trigger/common/triggered';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator } from './types';
+import type { TriggeredBase } from '../../../config/schema/condition-trigger/common/triggered';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator } from './types';
 
 export class TriggeredConditionEvaluator implements ConditionEvaluator {
   private _condition: TriggeredBase;

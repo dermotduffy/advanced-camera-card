@@ -1,5 +1,5 @@
-import { SubstreamOffActionConfig } from '../../../config/schema/actions/custom/substream-off';
-import { CardActionsAPI } from '../../types';
+import type { SubstreamOffActionConfig } from '../../../config/schema/actions/custom/substream-off';
+import type { CardActionsAPI } from '../../types';
 import { SubstreamViewModifier } from '../../view/modifiers/substream';
 import { AdvancedCameraCardAction } from './base';
 

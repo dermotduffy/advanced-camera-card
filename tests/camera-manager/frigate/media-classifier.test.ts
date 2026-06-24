@@ -7,7 +7,7 @@ import {
   FrigateReviewViewMedia,
 } from '../../../src/camera-manager/frigate/media';
 import { FrigateViewMediaClassifier } from '../../../src/camera-manager/frigate/media-classifier';
-import { ViewMedia, ViewMediaType } from '../../../src/view/item';
+import { ViewMediaType, type ViewMedia } from '../../../src/view/item';
 import {
   createFrigateEvent,
   createFrigateRecording,

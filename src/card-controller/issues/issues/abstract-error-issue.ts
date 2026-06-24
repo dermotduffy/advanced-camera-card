@@ -1,4 +1,4 @@
-import { Issue, IssueDescription, IssueKey } from '../types.js';
+import type { Issue, IssueDescription, IssueKey } from '../types.js';
 
 // Shared base for issues whose only state is a single triggered error. Subclasses
 // define the key and how an error renders; the base handles trigger/reset and

@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MediaDimensionsContainerController } from '../../src/components-lib/media-dimensions-container-controller';
-import { CameraDimensionsConfig, Rotation } from '../../src/config/schema/cameras';
-import { MediaLoadedInfo } from '../../src/types';
+import type { CameraDimensionsConfig, Rotation } from '../../src/config/schema/cameras';
+import type { MediaLoadedInfo } from '../../src/types';
 import {
   callResizeHandler,
   createLitElement,

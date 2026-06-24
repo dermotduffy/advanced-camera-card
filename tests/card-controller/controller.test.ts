@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { mock, MockProxy } from 'vitest-mock-extended';
+import { mock, type MockProxy } from 'vitest-mock-extended';
 
 import { CameraManager } from '../../src/camera-manager/manager';
 import { ActionsManager } from '../../src/card-controller/actions/actions-manager';
@@ -9,7 +9,7 @@ import { CameraTriggersManager } from '../../src/card-controller/camera-triggers
 import { CameraURLManager } from '../../src/card-controller/camera-url-manager';
 import {
   CardElementManager,
-  CardHTMLElement,
+  type CardHTMLElement,
 } from '../../src/card-controller/card-element-manager';
 import { ConfigManager } from '../../src/card-controller/config/config-manager';
 import { CardController } from '../../src/card-controller/controller';
@@ -17,8 +17,8 @@ import { DefaultManager } from '../../src/card-controller/default-manager';
 import { ExpandManager } from '../../src/card-controller/expand-manager';
 import { FoldersManager } from '../../src/card-controller/folders/manager';
 import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager';
-import { EventWatcherSubscriptionInterface } from '../../src/card-controller/hass/event-watcher';
-import { HASSManager } from '../../src/card-controller/hass/hass-manager';
+import type { EventWatcherSubscriptionInterface } from '../../src/card-controller/hass/event-watcher';
+import type { HASSManager } from '../../src/card-controller/hass/hass-manager';
 import { InitializationManager } from '../../src/card-controller/initialization-manager';
 import { InteractionManager } from '../../src/card-controller/interaction-manager';
 import { IssueManager } from '../../src/card-controller/issues/issue-manager';

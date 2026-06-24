@@ -1,8 +1,8 @@
 import { hasConfigUpgradeFailures } from '../../../config/management.js';
 import { TROUBLESHOOTING_CONFIG_UPGRADE_FAILURE_URL } from '../../../const.js';
 import { localize } from '../../../localize/localize.js';
-import { CardIssueManagerAPI } from '../../types';
-import { Issue, IssueDescription } from '../types';
+import type { CardIssueManagerAPI } from '../../types';
+import type { Issue, IssueDescription } from '../types';
 
 // Raised when the configuration upgrade could not faithfully upgrade part of
 // the config.

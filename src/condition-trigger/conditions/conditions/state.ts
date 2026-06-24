@@ -1,7 +1,7 @@
 import { arrayify } from '../../../utils/basic';
 import { renderTimePeriodToSeconds } from '../../common/time-period';
-import { ConditionsEvaluationResult, ConditionState } from '../types';
-import { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './types';
+import type { ConditionsEvaluationResult, ConditionState } from '../types';
+import type { ConditionEvaluator, ConditionOfType, EvaluatorContext } from './types';
 
 // Resolve each expected value that names an entity present in `hass` to that
 // entity's current state, accepting either the literal or the resolved value

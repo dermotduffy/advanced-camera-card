@@ -1,4 +1,4 @@
-import { compute as computeScroll, Options } from 'compute-scroll-into-view';
+import { compute as computeScroll, type Options } from 'compute-scroll-into-view';
 
 // Alternative to the stock element.scrollIntoView that suppports limiting
 // scrolling to a boundary, rather than the entire browser root.

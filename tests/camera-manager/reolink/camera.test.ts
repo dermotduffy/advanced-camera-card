@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { CameraManagerEngine } from '../../../src/camera-manager/engine';
+import type { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { ReolinkCamera } from '../../../src/camera-manager/reolink/camera';
-import { CameraProxyConfig } from '../../../src/camera-manager/types';
-import { ActionsExecutor } from '../../../src/card-controller/actions/types';
-import { DeviceRegistryManager } from '../../../src/ha/registry/device';
-import { EntityRegistryManagerLive } from '../../../src/ha/registry/entity';
+import type { CameraProxyConfig } from '../../../src/camera-manager/types';
+import type { ActionsExecutor } from '../../../src/card-controller/actions/types';
+import type { DeviceRegistryManager } from '../../../src/ha/registry/device';
+import type { EntityRegistryManagerLive } from '../../../src/ha/registry/entity';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
   createCameraConfig,

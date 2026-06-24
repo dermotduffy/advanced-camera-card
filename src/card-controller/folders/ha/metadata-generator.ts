@@ -1,8 +1,8 @@
 import type parser from 'any-date-parser';
 import { parse } from 'date-fns';
 
-import { Parser } from '../../../config/schema/folders';
-import {
+import type { Parser } from '../../../config/schema/folders';
+import type {
   BrowseMedia,
   BrowseMediaMetadata,
   RichBrowseMedia,

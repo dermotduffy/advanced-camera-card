@@ -1,19 +1,24 @@
 import { assert, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import {
+import type {
   ViewManagerEpoch,
   ViewManagerInterface,
 } from '../../../src/card-controller/view/types';
 import { GalleryController } from '../../../src/components-lib/gallery/controller';
 import { THUMBNAIL_WIDTH_DEFAULT } from '../../../src/config/schema/common/controls/thumbnails';
-import { FolderConfig } from '../../../src/config/schema/folders';
-import { MediaGalleryThumbnailsConfig } from '../../../src/config/schema/media-gallery';
-import { ViewFolder, ViewItem, ViewMedia, ViewMediaType } from '../../../src/view/item';
-import { QueryResults } from '../../../src/view/query-results';
-import { UnifiedQuery } from '../../../src/view/unified-query';
-import { UnifiedQueryRunner } from '../../../src/view/unified-query-runner';
-import { View } from '../../../src/view/view';
+import type { FolderConfig } from '../../../src/config/schema/folders';
+import type { MediaGalleryThumbnailsConfig } from '../../../src/config/schema/media-gallery';
+import {
+  ViewFolder,
+  ViewMedia,
+  ViewMediaType,
+  type ViewItem,
+} from '../../../src/view/item';
+import type { QueryResults } from '../../../src/view/query-results';
+import type { UnifiedQuery } from '../../../src/view/unified-query';
+import type { UnifiedQueryRunner } from '../../../src/view/unified-query-runner';
+import type { View } from '../../../src/view/view';
 
 // @vitest-environment jsdom
 const createThumbnailConfig = (

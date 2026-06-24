@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import {
-  ExtendedMasonry,
-  MediaGridConstructorOptions,
   MediaGridController,
+  type ExtendedMasonry,
+  type MediaGridConstructorOptions,
 } from '../../src/components-lib/media-grid-controller';
 import {
   createSlot,

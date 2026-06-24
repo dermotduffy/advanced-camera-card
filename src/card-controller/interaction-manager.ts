@@ -1,7 +1,7 @@
 import { throttle } from 'lodash-es';
 
 import { Timer } from '../utils/timer';
-import { CardInteractionAPI } from './types';
+import type { CardInteractionAPI } from './types';
 
 export class InteractionManager {
   private _timer = new Timer();

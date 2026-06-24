@@ -1,28 +1,31 @@
 import {
-  CSSResultGroup,
   html,
   LitElement,
-  PropertyValues,
-  TemplateResult,
   unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { CameraManager } from '../camera-manager/manager.js';
-import { CallSession } from '../card-controller/call/types.js';
-import { FoldersManager } from '../card-controller/folders/manager.js';
-import { IssuePresence } from '../card-controller/issues/types.js';
-import { MicrophoneManager } from '../card-controller/microphone-manager.js';
-import { MicrophoneState } from '../card-controller/types.js';
-import { ViewItemManager } from '../card-controller/view/item-manager.js';
-import { ViewManagerEpoch } from '../card-controller/view/types.js';
-import { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types.js';
-import { AdvancedCameraCardConfig, CardWideConfig } from '../config/schema/types.js';
-import { RawAdvancedCameraCardConfig } from '../config/types.js';
-import { DeviceRegistryManager } from '../ha/registry/device/index.js';
-import { ResolvedMediaCache } from '../ha/resolved-media.js';
-import { HomeAssistant } from '../ha/types.js';
+import type { CameraManager } from '../camera-manager/manager.js';
+import type { CallSession } from '../card-controller/call/types.js';
+import type { FoldersManager } from '../card-controller/folders/manager.js';
+import type { IssuePresence } from '../card-controller/issues/types.js';
+import type { MicrophoneManager } from '../card-controller/microphone-manager.js';
+import type { MicrophoneState } from '../card-controller/types.js';
+import type { ViewItemManager } from '../card-controller/view/item-manager.js';
+import type { ViewManagerEpoch } from '../card-controller/view/types.js';
+import type { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types.js';
+import type {
+  AdvancedCameraCardConfig,
+  CardWideConfig,
+} from '../config/schema/types.js';
+import type { RawAdvancedCameraCardConfig } from '../config/types.js';
+import type { DeviceRegistryManager } from '../ha/registry/device/index.js';
+import type { ResolvedMediaCache } from '../ha/resolved-media.js';
+import type { HomeAssistant } from '../ha/types.js';
 import viewsStyle from '../scss/views.scss';
 import { contentsChanged } from '../utils/basic.js';
 
