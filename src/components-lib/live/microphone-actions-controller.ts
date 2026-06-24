@@ -56,7 +56,7 @@ export class MicrophoneActionsController {
     }
     this._callAnswered = answered;
     if (answered) {
-      this._unmuteIfConfigured('call');
+      void this._unmuteIfConfigured('call');
     } else {
       this._muteIfConfigured('call');
     }

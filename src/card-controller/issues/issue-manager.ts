@@ -172,9 +172,7 @@ export class IssueManager {
   // changes again), this block fires exactly once per IssueManager life.
   private _onStateChange(change: ConditionStateChange): void {
     if (change.change.initialized === true && change.new.hass) {
-      /* async */ this._stateManager
-        .detectStatic(change.new.hass)
-        .then(() => this.evaluate());
+      void this._stateManager.detectStatic(change.new.hass).then(() => this.evaluate());
     }
     this.evaluate();
   }

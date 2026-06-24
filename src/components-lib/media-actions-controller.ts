@@ -68,7 +68,7 @@ export class MediaActionsController {
   public setMicrophoneState(state: MicrophoneState): void {
     const previous = this._microphoneState;
     this._microphoneState = state;
-    this._microphoneStateChangeHandler(previous, state);
+    void this._microphoneStateChangeHandler(previous, state);
   }
 
   // Audio-out auto-mute/unmute driven by call answer: unmute when the call
@@ -85,10 +85,10 @@ export class MediaActionsController {
     this._callAnswered = answered;
     if (answered) {
       this._pendingCallStartAction = true;
-      this._applyPendingCallStartAction();
+      void this._applyPendingCallStartAction();
     } else {
       this._pendingCallStartAction = false;
-      this._muteTargetIfConfigured('call');
+      void this._muteTargetIfConfigured('call');
     }
   }
 

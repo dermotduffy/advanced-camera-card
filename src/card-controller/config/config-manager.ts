@@ -189,7 +189,7 @@ export class ConfigManager {
       (config) => [config.cameras, config.cameras_global],
       () => {
         this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
-        this._api.getCameraManager().destroy();
+        void this._api.getCameraManager().destroy();
       },
       true,
     );
@@ -203,7 +203,7 @@ export class ConfigManager {
       true,
     );
 
-    /* async */ this._initializeBackgroundAndUpdate(previousConfig);
+    void this._initializeBackgroundAndUpdate(previousConfig);
   }
 
   /**

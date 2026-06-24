@@ -60,7 +60,7 @@ export class AdvancedCameraCardLoading extends LitElement {
   }
 
   private _startEffect(effect: EffectName): void {
-    this.effectsManager?.startEffect(effect, { fadeIn: false });
+    void this.effectsManager?.startEffect(effect, { fadeIn: false });
     this._effectName = effect;
   }
 

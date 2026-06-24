@@ -32,9 +32,9 @@ export class ScreenfullFullScreenProvider
     }
 
     if (fullscreen) {
-      screenfull.request(this._api.getCardElementManager().getElement());
+      void screenfull.request(this._api.getCardElementManager().getElement());
     } else {
-      screenfull.exit();
+      void screenfull.exit();
     }
   }
 }

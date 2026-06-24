@@ -89,4 +89,23 @@ export default defineConfig([
       ],
     },
   },
+
+  // A fire-and-forget promise must be marked with `void` to show it is deliberate.
+  // To know which calls return a promise, this rule needs type information, so the
+  // `project` option below runs the TypeScript type-checker over source while linting.
+  // That makes linting source slower. Tests are excluded: they leave promises unawaited
+  // freely.
+  {
+    files: ['src/**/*.ts'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: __dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'error',
+    },
+  },
 ]);

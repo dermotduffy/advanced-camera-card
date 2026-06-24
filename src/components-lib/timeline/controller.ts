@@ -408,7 +408,7 @@ export class TimelineController {
         this._setTargetBarAppropriately(targetTime);
       }
 
-      this._throttledSetViewDuringRangeChange(targetTime, properties);
+      void this._throttledSetViewDuringRangeChange(targetTime, properties);
     }
   }
 

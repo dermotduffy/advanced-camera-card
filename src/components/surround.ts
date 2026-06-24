@@ -66,7 +66,7 @@ export class AdvancedCameraCardSurround extends LitElement {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected willUpdate(_changedProperties: PropertyValues): void {
     if (this.timelineConfig?.mode && this.timelineConfig.mode !== 'none') {
-      import('./timeline-core.js');
+      void import('./timeline-core.js');
     }
   }
 

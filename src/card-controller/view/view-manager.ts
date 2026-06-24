@@ -361,7 +361,7 @@ export class ViewManager implements ViewManagerInterface {
     if (!this._api.getQueryStringManager().hasViewRelatedActionsToRun()) {
       // This is not awaited to allow the initialization to complete before the
       // query is answered.
-      this.setViewDefaultWithNewQuery({ failSafe: true });
+      void this.setViewDefaultWithNewQuery({ failSafe: true });
     }
   };
 

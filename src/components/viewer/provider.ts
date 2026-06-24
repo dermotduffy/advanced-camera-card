@@ -157,11 +157,11 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       changedProps.has('resolvedMediaCache') ||
       changedProps.has('hass')
     ) {
-      this._resolveURL();
+      void this._resolveURL();
     }
 
     if (changedProps.has('viewerConfig') && this.viewerConfig?.zoomable) {
-      import('../zoomer.js');
+      void import('../zoomer.js');
     }
   }
 
@@ -290,7 +290,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
             .targetID=${mediaID}
             @click=${() => {
               if (this.viewerConfig?.snapshot_click_plays_clip) {
-                this._switchToRelatedClipView();
+                void this._switchToRelatedClipView();
               }
             }}
           ></advanced-camera-card-image-player>`}

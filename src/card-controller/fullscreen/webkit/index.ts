@@ -85,7 +85,7 @@ export class WebkitFullScreenProvider
     // clicking the 'X' which then fires this event). That's probably the rare
     // case though.
     this._playTimer.start(WEBKIT_PLAY_SECONDS, () => {
-      this._getVideoElement()?.play();
+      void this._getVideoElement()?.play();
     });
   };
 }

@@ -140,7 +140,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
       // VideoRTC owns the transition: it updates microphoneStream, swaps the
       // track on the pre-armed transceiver, and validates against stale async
       // completions before any reconnect fallback. Fire-and-forget is fine.
-      /* async */ this._player.setMicrophoneStream(this.microphoneStream ?? null);
+      void this._player.setMicrophoneStream(this.microphoneStream ?? null);
     }
   }
 

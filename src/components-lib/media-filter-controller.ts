@@ -260,7 +260,7 @@ export class MediaFilterController {
     const queryCameraIDs = query.getAllCameraIDs();
     const cameraID = queryCameraIDs.size === 1 ? [...queryCameraIDs][0] : undefined;
 
-    this._viewManager?.setViewByParametersWithExistingQuery({
+    void this._viewManager?.setViewByParametersWithExistingQuery({
       params: {
         query,
         // If single camera, set it as the active camera for menu navigation

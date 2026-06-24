@@ -1255,7 +1255,7 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
 
   protected willUpdate(): void {
     if (!this._initialized) {
-      sideLoadHomeAssistantElements().then(() => {
+      void sideLoadHomeAssistantElements().then(() => {
         this._initialized = true;
       });
     }

@@ -25,7 +25,7 @@ import { onAbort } from '../utils/abort-signal.js';
 import './ha-hls-player.js';
 import './ha-web-rtc-player.js';
 
-customElements.whenDefined('ha-camera-stream').then(() => {
+void customElements.whenDefined('ha-camera-stream').then(() => {
   // ========================================================================================
   // From:
   // - https://github.com/home-assistant/frontend/blob/dev/src/data/camera.ts
