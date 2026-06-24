@@ -28,6 +28,12 @@ jobs:
       - name: Lint
         run: yarn run lint
 
+      - name: Type-check
+        run: yarn run typecheck
+
+      - name: Check for dead exports
+        run: yarn run prune
+
       - name: Check formatting
         run: yarn run format-check
 
