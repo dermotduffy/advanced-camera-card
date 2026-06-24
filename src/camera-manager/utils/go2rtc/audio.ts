@@ -16,7 +16,7 @@ const getGo2RTCStreamMetadata = async (
       timeoutSeconds,
     });
   } catch (e) {
-    errorToConsole(e as Error);
+    errorToConsole(e);
     return null;
   }
 };

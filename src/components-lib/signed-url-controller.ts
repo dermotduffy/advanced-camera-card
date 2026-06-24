@@ -191,7 +191,7 @@ export class SignedURLController implements ReactiveController {
         },
       );
     } catch (e: unknown) {
-      errorToConsole(e as Error);
+      errorToConsole(e);
       return null;
     }
   }
@@ -207,7 +207,7 @@ export class SignedURLController implements ReactiveController {
         PROXY_URL_SIGN_EXPIRY_SECONDS,
       );
     } catch (e: unknown) {
-      errorToConsole(e as Error);
+      errorToConsole(e);
       return null;
     }
   }

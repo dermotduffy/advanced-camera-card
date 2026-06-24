@@ -114,6 +114,11 @@ describe('errorToConsole', () => {
     errorToConsole('string message');
     expect(spy).toHaveBeenCalledWith('string message');
   });
+  it('should do nothing given a falsy value', () => {
+    spy.mockClear();
+    errorToConsole(null);
+    expect(spy).not.toHaveBeenCalled();
+  });
 });
 
 // @vitest-environment jsdom

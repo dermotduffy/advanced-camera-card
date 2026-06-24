@@ -199,7 +199,7 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
         JSMPEG_URL_SIGN_EXPIRY_SECONDS,
       );
     } catch (e) {
-      errorToConsole(e as Error);
+      errorToConsole(e);
     }
     const address = response ? convertHTTPAdressToWebsocket(response) : null;
 
