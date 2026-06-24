@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { stringOrArray } from '../../../common/string-or-array';
 import { stateBaseSchema } from '../../common/state';
 import { conditionBaseSchema } from '../base';

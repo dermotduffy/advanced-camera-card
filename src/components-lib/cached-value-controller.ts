@@ -1,4 +1,5 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
+
 import { Timer } from '../utils/timer';
 
 export class CachedValueController<T> implements ReactiveController {

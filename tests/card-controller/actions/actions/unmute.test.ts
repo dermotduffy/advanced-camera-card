@@ -1,5 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { UnmuteAction } from '../../../../src/card-controller/actions/actions/unmute';
 import { MediaPlayerController } from '../../../../src/types';
 import { createCardAPI, createMediaLoadedInfo } from '../../../test-utils';

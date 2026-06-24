@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { z, ZodError } from 'zod';
+
 import { getParseError, getParseErrorPaths } from '../../../src/utils/zod/parse-errors';
 
 describe('getParseErrorPaths', () => {

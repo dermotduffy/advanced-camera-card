@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { regexpExtract } from '../../src/utils/regexp-extract';
 
 describe('regexpExtract', () => {

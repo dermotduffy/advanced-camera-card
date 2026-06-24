@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { WebkitFullScreenProvider } from '../../../../src/card-controller/fullscreen/webkit';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { MediaPlayerController, WebkitHTMLVideoElement } from '../../../../src/types';

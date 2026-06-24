@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import { DeviceRegistryManager } from '../../../../src/ha/registry/device';
 import { DeviceCache } from '../../../../src/ha/registry/device/types';
 import { homeAssistantWSRequest } from '../../../../src/ha/ws-request';

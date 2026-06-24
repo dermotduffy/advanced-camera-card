@@ -1,4 +1,5 @@
 import screenfull from 'screenfull';
+
 import { FullscreenProviderBase } from '../provider';
 import { FullscreenProvider } from '../types';
 

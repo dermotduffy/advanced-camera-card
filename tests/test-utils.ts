@@ -8,6 +8,7 @@ import { LitElement } from 'lit';
 import screenfull from 'screenfull';
 import { expect, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { Camera } from '../src/camera-manager/camera';
 import { Capabilities } from '../src/camera-manager/capabilities';
 import { CameraManagerEngine } from '../src/camera-manager/engine';

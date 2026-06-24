@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
-import { createCardAPI } from '../../../test-utils';
+
 import { MicrophoneUnmuteAction } from '../../../../src/card-controller/actions/actions/microphone-unmute';
+import { createCardAPI } from '../../../test-utils';
 
 it('should handle microphone_unmute action', async () => {
   const api = createCardAPI();

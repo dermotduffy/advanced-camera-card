@@ -7,10 +7,12 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import { KeyAssignerController } from '../components-lib/key-assigner-controller';
 import { KeyboardShortcut } from '../config/schema/view';
 import { localize } from '../localize/localize';
 import keyAssignerStyle from '../scss/key-assigner.scss';
+
 import './icon';
 
 @customElement('advanced-camera-card-key-assigner')

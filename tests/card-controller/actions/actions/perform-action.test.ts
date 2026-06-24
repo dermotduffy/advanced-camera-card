@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createCardAPI, createHASS } from '../../../test-utils';
+
 import { PerformActionAction } from '../../../../src/card-controller/actions/actions/perform-action';
+import { createCardAPI, createHASS } from '../../../test-utils';
 
 describe('PerformActionAction', () => {
   it('should perform action', async () => {

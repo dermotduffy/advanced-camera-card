@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { advancedCameraCardCustomActionsBaseSchema } from './base';
 import { PTZ_ACTION_PHASES, PTZ_ACTIONS } from './ptz';
 

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { LegacyResourceIssue } from '../../../../src/card-controller/issues/issues/legacy-resource';
 import { HomeAssistant } from '../../../../src/ha/types';
 import { createCardAPI, createHASS, createUser } from '../../../test-utils';

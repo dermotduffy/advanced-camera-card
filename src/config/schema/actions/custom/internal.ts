@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { advancedCameraCardCustomActionsBaseSchema } from './base';
 
 // An action that can be used internally to call a callback (it is not possible

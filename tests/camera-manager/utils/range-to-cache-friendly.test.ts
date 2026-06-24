@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { convertRangeToCacheFriendlyTimes } from '../../../src/camera-manager/utils/range-to-cache-friendly';
 
 describe('convertRangeToCacheFriendlyTimes', () => {

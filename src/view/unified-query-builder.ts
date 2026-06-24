@@ -1,4 +1,5 @@
 import { NonEmptyTuple } from 'type-fest';
+
 import { CameraManager } from '../camera-manager/manager';
 import {
   CapabilitySearchKeys,

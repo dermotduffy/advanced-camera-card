@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { screenBaseSchema } from '../../common/screen';
 import { conditionBaseSchema } from '../base';
 

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import { getHassDifferences } from '../../src/ha/get-hass-differences';
 import { isHassDifferent } from '../../src/ha/is-hass-different';
 import { createHASS, createStateEntity } from '../test-utils';

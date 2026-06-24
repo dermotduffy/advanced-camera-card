@@ -1,6 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
+
 import { handleControlAction } from '../../components-lib/notification/action.js';
 import { Notification } from '../../config/schema/actions/types.js';
 import { localize } from '../../localize/localize.js';

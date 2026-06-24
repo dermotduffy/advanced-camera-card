@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { performActionActionSchema } from '../actions/stock/perform-action';
 
 export const ptzCameraConfigDefaults = {

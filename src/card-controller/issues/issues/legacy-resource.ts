@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { TROUBLESHOOTING_LEGACY_RESOURCE_URL } from '../../../const.js';
 import { HomeAssistant } from '../../../ha/types';
 import { localize } from '../../../localize/localize';

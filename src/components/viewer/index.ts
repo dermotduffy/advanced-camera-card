@@ -7,6 +7,7 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import { CameraManager } from '../../camera-manager/manager.js';
 import { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
@@ -14,10 +15,13 @@ import { CardWideConfig } from '../../config/schema/types.js';
 import { ViewerConfig } from '../../config/schema/viewer.js';
 import { ResolvedMediaCache } from '../../ha/resolved-media.js';
 import { HomeAssistant } from '../../ha/types.js';
+
 import '../../patches/ha-hls-player.js';
+
 import viewerStyle from '../../scss/viewer.scss';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { renderNoMedia } from '../notification/no-media.js';
+
 import './grid';
 
 export interface MediaViewerViewContext {

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { viewBaseSchema } from '../../common/view';
 import { conditionBaseSchema } from '../base';
 

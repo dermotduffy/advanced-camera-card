@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { isCardInPanel } from '../../src/ha/panel';
 import { createLitElement } from '../test-utils';
 

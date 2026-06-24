@@ -1,4 +1,5 @@
 import { assert, describe, expect, it, vi } from 'vitest';
+
 import { AutomationsManager } from '../../../src/card-controller/automations-manager';
 import { setRemoteControlEntityFromConfig } from '../../../src/card-controller/config/load-control-entities';
 import { TemplateRenderer } from '../../../src/card-controller/templates/index';

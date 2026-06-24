@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { elementsBaseSchema } from '../base';
 
 // https://www.home-assistant.io/dashboards/picture-elements/#image-element

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { panSchema } from '../../common/pan';
 import { zoomSchema } from '../../common/zoom';
 import { advancedCameraCardCustomActionsBaseSchema } from './base';

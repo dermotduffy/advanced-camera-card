@@ -13,6 +13,7 @@ import {
   vi,
 } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { CameraManager } from '../../../src/camera-manager/manager';
 import {
   Engine,

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { ExpiringEqualityCache } from '../../src/cache/expiring-cache';
 
 describe('ExpiringEqualityCache', () => {

@@ -1,4 +1,5 @@
 import { ZodSchema } from 'zod';
+
 import { localize } from '../localize/localize';
 import { AdvancedCameraCardError, Endpoint } from '../types';
 import { homeAssistantGetSignedURLIfNecessary } from './sign-path';

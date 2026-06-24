@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { onAbort } from '../../src/utils/abort-signal';
 
 describe('onAbort', () => {

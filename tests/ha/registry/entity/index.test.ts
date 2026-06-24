@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import { EntityRegistryManagerLive } from '../../../../src/ha/registry/entity';
 import { EntityCache } from '../../../../src/ha/registry/entity/types';
 import { homeAssistantWSRequest } from '../../../../src/ha/ws-request';

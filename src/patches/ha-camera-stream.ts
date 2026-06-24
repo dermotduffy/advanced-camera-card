@@ -12,8 +12,11 @@
 import { css, CSSResultGroup, html, nothing, PropertyValues, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
+
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
+
 import '../components/image-player.js';
+
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 import {
   MediaLoadedInfo,
@@ -22,6 +25,7 @@ import {
   MediaPlayerController,
 } from '../types.js';
 import { onAbort } from '../utils/abort-signal.js';
+
 import './ha-hls-player.js';
 import './ha-web-rtc-player.js';
 

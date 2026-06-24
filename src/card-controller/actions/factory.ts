@@ -1,4 +1,5 @@
 import { ActionContext } from 'action';
+
 import { TriggerData } from '../../condition-trigger/triggers/types';
 import { INTERNAL_CALLBACK_ACTION } from '../../config/schema/actions/custom/internal';
 import { ActionConfig, AuxillaryActionConfig } from '../../config/schema/actions/types';

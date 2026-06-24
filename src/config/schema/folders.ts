@@ -1,5 +1,6 @@
 import { NonEmptyTuple } from 'type-fest';
 import { z } from 'zod';
+
 import { AdvancedCameraCardError } from '../../types';
 import { isTruthy } from '../../utils/basic';
 import { regexSchema } from './common/regex';

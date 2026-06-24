@@ -1,7 +1,9 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
+
 import fireworkBurstStyle from '../../scss/firework-burst.scss';
+
 import './firework-particle';
 
 const BASE_PARTICLE_COUNT = 36;

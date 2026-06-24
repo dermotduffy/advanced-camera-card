@@ -1,4 +1,5 @@
 import { HassEntity } from 'home-assistant-js-websocket';
+
 import { arrayify } from '../../../utils/basic';
 import { EntityStateTriggerBase } from './entity-state-base';
 import { TriggerOfType } from './types';

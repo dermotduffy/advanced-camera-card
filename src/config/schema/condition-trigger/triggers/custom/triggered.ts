@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { triggeredBaseSchema } from '../../common/triggered';
 import { triggerBaseSchema } from '../base';
 

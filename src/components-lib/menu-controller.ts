@@ -1,5 +1,6 @@
 import { LitElement } from 'lit';
 import { isEqual, orderBy } from 'lodash-es';
+
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
 import type { LockManagerEpoch } from '../card-controller/lock/types';
 import type { SubmenuInteraction } from '../components/submenu/types.js';

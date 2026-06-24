@@ -1,5 +1,6 @@
 import { add, sub } from 'date-fns';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import {
   compressRanges,
   DateRange,

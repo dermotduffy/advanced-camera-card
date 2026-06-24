@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { classifyMimeType } from '../../src/utils/mime-type';
 
 describe('classifyMimeType', () => {

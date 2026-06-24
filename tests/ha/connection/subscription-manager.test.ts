@@ -1,6 +1,7 @@
 import { Connection, STATE_RUNNING, STATE_STARTING } from 'home-assistant-js-websocket';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import {
   HASSConnectionSubscriptionManager,
   HASSWebSocketStatusCallback,

@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+
 import { View } from '../view/view';
 
 export const screenshotImage = (image: HTMLImageElement): string | null => {

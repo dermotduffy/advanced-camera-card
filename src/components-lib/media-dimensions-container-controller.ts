@@ -1,5 +1,6 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
 import { debounce } from 'lodash-es';
+
 import { CameraDimensionsConfig } from '../config/schema/cameras';
 import { MediaLoadedInfoEventDetail } from '../types';
 import { aspectRatioToString, setOrRemoveStyleProperty } from '../utils/basic';

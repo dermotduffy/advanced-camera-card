@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { StyleManager } from '../../src/card-controller/style-manager';
 import { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import { ThemeName } from '../../src/config/schema/view';

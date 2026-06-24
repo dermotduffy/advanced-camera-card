@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { EffectAction } from '../../../../src/card-controller/actions/actions/effect';
 import { createEffectAction } from '../../../../src/utils/action';
 import { createCardAPI } from '../../../test-utils';

@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+
 import { StatusBarController } from '../../src/components-lib/status-bar-controller';
 import {
   StatusBarConfig,

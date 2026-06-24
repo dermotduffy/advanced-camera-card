@@ -2,6 +2,7 @@ import { Task } from '@lit-labs/task';
 import { ReactiveControllerHost } from '@lit/reactive-element';
 import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { createFetchThumbnailTask } from '../../src/utils/thumbnail';
 import { createHASS, flushPromises } from '../test-utils';
 

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import type { LockManager } from '../../src/card-controller/lock/manager';
 import type { LockManagerEpoch } from '../../src/card-controller/lock/types';
 import { MenuController } from '../../src/components-lib/menu-controller.js';

@@ -1,4 +1,5 @@
 import { HASS, renderTemplate } from 'ha-nunjucks/dist';
+
 import { ConditionState } from '../../condition-trigger/conditions/types';
 import { TriggerData } from '../../condition-trigger/triggers/types';
 import { HomeAssistant } from '../../ha/types';

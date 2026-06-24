@@ -1,5 +1,6 @@
 import { LitElement } from 'lit';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import {
   GalleryColumnCountRoundMethod,
   GalleryCoreController,

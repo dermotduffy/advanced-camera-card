@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { getCameraID } from '../../src/utils/camera.js';
 import { createCameraConfig } from '../test-utils.js';
 

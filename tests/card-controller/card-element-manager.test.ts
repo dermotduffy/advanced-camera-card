@@ -1,5 +1,6 @@
 import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { CardElementManager } from '../../src/card-controller/card-element-manager';
 import { StateWatcher } from '../../src/card-controller/hass/state-watcher';
 import { QueryResults } from '../../src/view/query-results';

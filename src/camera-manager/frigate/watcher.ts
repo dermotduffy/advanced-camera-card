@@ -1,10 +1,11 @@
 import { z } from 'zod';
+
 import { HASSConnectionSubscriptionManager } from '../../ha/connection/subscription-manager';
 import { HASSSource } from '../../ha/source';
 import {
   FrigateEventChange,
-  FrigateReviewChange,
   frigateEventChangeSchema,
+  FrigateReviewChange,
   frigateReviewChangeSchema,
 } from './types';
 

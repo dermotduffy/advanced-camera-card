@@ -1,3 +1,4 @@
+import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import {
   CSSResultGroup,
   html,
@@ -8,12 +9,13 @@ import {
 } from 'lit';
 import { property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { isEqual } from 'lodash-es';
+
+import { grSelectElements } from '../scoped-elements/gr-select';
 import selectStyle from '../scss/select.scss';
 import { contentsChanged } from '../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
-import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
-import { grSelectElements } from '../scoped-elements/gr-select';
-import { isEqual } from 'lodash-es';
+
 import '../scoped-elements/gr-select';
 
 export interface SelectOption {

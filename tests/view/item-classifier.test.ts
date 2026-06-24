@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { ViewFolder, ViewMediaType } from '../../src/view/item';
 import { ViewItemClassifier } from '../../src/view/item-classifier';
 import { createFolder, TestViewMedia } from '../test-utils';

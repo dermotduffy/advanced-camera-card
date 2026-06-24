@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { dispatchActionExecutionRequest } from '../../../src/card-controller/actions/utils/execution-request';
 import { handleControlAction } from '../../../src/components-lib/notification/action';
 import { NotificationControl } from '../../../src/config/schema/actions/types';

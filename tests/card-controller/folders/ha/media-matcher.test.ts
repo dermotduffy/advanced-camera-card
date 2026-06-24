@@ -1,5 +1,7 @@
+import { sub } from 'date-fns';
 import { renderTemplate } from 'ha-nunjucks';
 import { describe, expect, it, vi } from 'vitest';
+
 import { MediaMatcher } from '../../../../src/card-controller/folders/ha/media-matcher';
 import { Matcher } from '../../../../src/config/schema/folders';
 import {
@@ -7,7 +9,6 @@ import {
   RichBrowseMedia,
 } from '../../../../src/ha/browse-media/types';
 import { createHASS } from '../../../test-utils';
-import { sub } from 'date-fns';
 
 vi.mock('ha-nunjucks');
 

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { KeyboardStateManager } from '../../src/card-controller/keyboard-state-manager';
 import { createCardAPI, createLitElement } from '../test-utils';
 

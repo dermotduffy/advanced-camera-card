@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import {
   FrigateEventViewMedia,
   FrigateRecordingViewMedia,

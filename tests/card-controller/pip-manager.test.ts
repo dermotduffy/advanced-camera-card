@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { CardController } from '../../src/card-controller/controller';
 import { PIPManager } from '../../src/card-controller/pip-manager';
 import { ConditionStateManager } from '../../src/condition-trigger/conditions/state-manager';

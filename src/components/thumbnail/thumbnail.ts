@@ -1,5 +1,6 @@
 import { CSSResult, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import { CameraManager } from '../../camera-manager/manager.js';
 import { FoldersManager } from '../../card-controller/folders/manager.js';
 import { ViewItemManager } from '../../card-controller/view/item-manager.js';
@@ -7,6 +8,7 @@ import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import thumbnailStyle from '../../scss/thumbnail.scss';
 import { ViewItem } from '../../view/item.js';
+
 import './details.js';
 import './feature/feature.js';
 import './feature/thumbnail.js';

@@ -2,8 +2,10 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { ClassInfo, classMap } from 'lit/directives/class-map.js';
 import { ref, Ref } from 'lit/directives/ref.js';
+
 import { CardWideConfig } from '../config/schema/types';
 import progressIndicatorStyle from '../scss/progress-indicator.scss';
+
 import './icon.js';
 
 type AdvancedCameraCardProgressIndicatorSize = 'tiny' | 'small' | 'medium' | 'large';

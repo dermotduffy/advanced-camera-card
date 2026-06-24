@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
 import { createHASS, createUser } from '../../../test-utils';
 import { createEvaluatorContext } from './test-utils';

@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { MediaHeightController } from '../../src/components-lib/media-height-controller';
 import {
   callMutationHandler,

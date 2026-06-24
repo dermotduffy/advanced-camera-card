@@ -1,4 +1,5 @@
 import { get, merge } from 'lodash-es';
+
 import { ConditionsManager } from '../../condition-trigger/conditions/conditions-manager';
 import { ConditionStateManagerReadonlyInterface } from '../../condition-trigger/conditions/types';
 import {

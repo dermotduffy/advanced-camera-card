@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import { mock, MockProxy } from 'vitest-mock-extended';
+
 import { SubscriptionHealthInterface } from '../../src/ha/connection/subscription-health-monitor';
 
 // A benign mocked event-subscription health surface: no failures, listeners

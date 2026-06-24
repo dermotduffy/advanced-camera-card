@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { AUTO_HIDE_CONDITIONS } from './common/auto-hide';
 import { BUTTON_SIZE_MIN, MENU_PRIORITY_DEFAULT } from './common/const';
 import { menuBaseSchema } from './elements/custom/menu/base';

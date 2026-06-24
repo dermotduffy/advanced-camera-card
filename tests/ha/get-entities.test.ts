@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { getEntitiesFromHASS } from '../../src/ha/get-entities';
 import { createHASS, createStateEntity } from '../test-utils';
 

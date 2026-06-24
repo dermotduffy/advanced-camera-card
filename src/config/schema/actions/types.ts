@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { linkSchema } from '../common/link';
 import { preprocessToArray } from '../common/preprocess-to-array';
 import { severitySchema } from '../common/severity';

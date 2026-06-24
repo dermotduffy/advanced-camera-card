@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import { ViewFactory } from '../../../src/card-controller/view/factory';
 import { ViewIncompatible, ViewModifier } from '../../../src/card-controller/view/types';

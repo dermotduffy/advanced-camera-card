@@ -7,8 +7,9 @@ import {
   TemplateResult,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { ZoomController } from '../components-lib/zoom/zoom-controller.js';
+
 import { PartialZoomSettings } from '../components-lib/zoom/types.js';
+import { ZoomController } from '../components-lib/zoom/zoom-controller.js';
 
 @customElement('advanced-camera-card-zoomer')
 export class AdvancedCameraCardZoomer extends LitElement {

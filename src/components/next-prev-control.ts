@@ -1,6 +1,7 @@
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+
 import { AutoHideState, isAutoHidden } from '../components-lib/auto-hide.js';
 import { NextPreviousControlConfig } from '../config/schema/common/controls/next-previous.js';
 import { Icon } from '../config/schema/common/icon.js';

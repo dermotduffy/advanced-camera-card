@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, it, vi } from 'vitest';
+
 import { log } from '../../src/utils/debug.js';
 
 describe('log', () => {

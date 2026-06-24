@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash-es';
+
 import { AdvancedCameraCardConfig } from '../config/schema/types';
 import { createGeneralAction } from '../utils/action';
 import { isActionAllowedBasedOnInteractionState } from '../utils/interaction-mode';

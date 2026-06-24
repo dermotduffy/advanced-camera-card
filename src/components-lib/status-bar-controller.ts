@@ -1,5 +1,6 @@
 import { LitElement } from 'lit';
 import { isEqual, orderBy } from 'lodash-es';
+
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request';
 import { ActionsConfig, StatusBarItem } from '../config/schema/actions/types';
 import { STATUS_BAR_PRIORITY_DEFAULT } from '../config/schema/common/const';

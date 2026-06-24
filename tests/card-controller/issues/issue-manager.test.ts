@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { CardController } from '../../../src/card-controller/controller';
 import {
   IssueManager,

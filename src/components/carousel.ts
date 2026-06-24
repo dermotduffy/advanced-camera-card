@@ -1,14 +1,15 @@
 import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins';
 import {
   CSSResultGroup,
+  html,
   LitElement,
   PropertyValues,
   TemplateResult,
-  html,
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { Ref, createRef, ref } from 'lit/directives/ref.js';
+import { createRef, Ref, ref } from 'lit/directives/ref.js';
+
 import { TransitionEffect } from '../config/schema/common/transition-effect';
 import carouselStyle from '../scss/carousel.scss';
 import {

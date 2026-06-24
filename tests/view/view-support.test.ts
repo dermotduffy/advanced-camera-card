@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { FoldersManager } from '../../src/card-controller/folders/manager';
 import { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import { CapabilityKey } from '../../src/types';

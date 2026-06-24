@@ -1,6 +1,7 @@
 import { html, render } from 'lit';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ActionHandlerInterface, actionHandler } from '../src/action-handler-directive';
+
+import { actionHandler, ActionHandlerInterface } from '../src/action-handler-directive';
 import { fireHASSEvent } from '../src/ha/fire-hass-event';
 import { ActionHandlerDetail } from '../src/ha/types';
 import { stopEventFromActivatingCardWideActions } from '../src/utils/action';

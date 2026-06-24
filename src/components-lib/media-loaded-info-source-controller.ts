@@ -1,5 +1,6 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
 import { isEqual, omit } from 'lodash-es';
+
 import {
   MediaLoadedInfo,
   MediaLoadedInfoEventDetail,

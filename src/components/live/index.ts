@@ -7,18 +7,22 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import { CameraManager } from '../../camera-manager/manager.js';
+import { CallSession } from '../../card-controller/call/types.js';
 import { MicrophoneManager } from '../../card-controller/microphone-manager.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
-import { CallSession } from '../../card-controller/call/types.js';
 import { MicrophoneActionsController } from '../../components-lib/live/microphone-actions-controller.js';
+
 import '../../components-lib/live/types.js';
+
 import { LiveConfig } from '../../config/schema/live.js';
 import { CardWideConfig } from '../../config/schema/types.js';
 import { HomeAssistant } from '../../ha/types.js';
 import basicBlockStyle from '../../scss/basic-block.scss';
 import { contentsChanged } from '../../utils/basic.js';
+
 import './grid.js';
 
 @customElement('advanced-camera-card-live')

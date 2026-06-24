@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { elementsBaseSchema } from '../../base';
 import { iconSchema } from '../../stock/icon';
 import { menuBaseSchema } from './base';

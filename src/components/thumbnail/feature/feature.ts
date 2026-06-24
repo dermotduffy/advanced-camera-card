@@ -1,13 +1,14 @@
 import {
   CSSResult,
+  html,
   LitElement,
   PropertyValues,
   TemplateResult,
-  html,
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+
 import { CameraManager } from '../../../camera-manager/manager';
 import { dispatchActionExecutionRequest } from '../../../card-controller/actions/utils/execution-request';
 import { ViewItemManager } from '../../../card-controller/view/item-manager';
@@ -32,6 +33,7 @@ import {
 } from '../../../utils/media-actions';
 import { ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
+
 import '../../icon.js';
 import './thumbnail.js';
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { EqualityCache } from '../../src/cache/equality-cache';
 
 interface TestCacheValue {

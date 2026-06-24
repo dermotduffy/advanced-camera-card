@@ -12,6 +12,7 @@ import {
   TimelineOptionsCluster,
   TimelineWindow,
 } from 'vis-timeline';
+
 import { CameraManager } from '../../camera-manager/manager';
 import { rangesOverlap } from '../../camera-manager/range';
 import { convertRangeToCacheFriendlyTimes } from '../../camera-manager/utils/range-to-cache-friendly';

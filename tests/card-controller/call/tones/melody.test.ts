@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it } from 'vitest';
+
 import { MelodyTone } from '../../../../src/card-controller/call/tones/melody';
 import { useAudioMocks } from './test-utils';
 

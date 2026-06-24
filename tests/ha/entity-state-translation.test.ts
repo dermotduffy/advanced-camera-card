@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { getEntityStateTranslation } from '../../src/ha/entity-state-translation';
 import { createHASS, createRegistryEntity, createStateEntity } from '../test-utils';
 

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { timePeriodSchema } from '../../common/time-period';
 
 // Fields shared by the `state` condition AND trigger.

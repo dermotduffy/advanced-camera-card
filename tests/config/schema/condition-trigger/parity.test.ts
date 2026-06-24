@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
+
 import { conditionUnion } from '../../../../src/config/schema/condition-trigger/conditions/types';
 import { triggerSchema } from '../../../../src/config/schema/condition-trigger/triggers/types';
 

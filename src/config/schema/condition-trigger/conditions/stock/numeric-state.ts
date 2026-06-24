@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { hasAboveOrBelow, numericStateBaseSchema } from '../../common/numeric-state';
 import { conditionBaseSchema } from '../base';
 import { entityConditionBaseSchema } from './entity-base';

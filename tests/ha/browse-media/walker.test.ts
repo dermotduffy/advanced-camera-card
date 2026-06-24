@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import {
   BrowseMedia,
   BrowseMediaCache,
-  RichBrowseMedia,
   browseMediaSchema,
+  RichBrowseMedia,
 } from '../../../src/ha/browse-media/types';
 import { BrowseMediaStep, BrowseMediaWalker } from '../../../src/ha/browse-media/walker';
 import { homeAssistantWSRequest } from '../../../src/ha/ws-request';

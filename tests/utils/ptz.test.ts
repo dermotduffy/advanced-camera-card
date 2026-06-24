@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { Capabilities } from '../../src/camera-manager/capabilities';
 import { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import { PTZMovementType } from '../../src/types';
@@ -8,13 +9,13 @@ import {
   ptzActionToCapabilityKey,
 } from '../../src/utils/ptz';
 import { QueryResults } from '../../src/view/query-results';
-import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../src/view/target-id';
 import * as targetId from '../../src/view/target-id';
+import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../src/view/target-id';
 import {
-  TestViewMedia,
   createCameraManager,
   createStore,
   createView,
+  TestViewMedia,
 } from '../test-utils';
 
 describe('getPTZTarget', () => {

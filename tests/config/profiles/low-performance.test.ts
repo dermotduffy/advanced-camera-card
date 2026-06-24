@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { LOW_PERFORMANCE_PROFILE } from '../../../src/config/profiles/low-performance';
 import { setProfiles } from '../../../src/config/profiles/set-profiles';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';

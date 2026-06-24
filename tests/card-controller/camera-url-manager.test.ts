@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { CameraURLManager } from '../../src/card-controller/camera-url-manager';
 import { CardCameraURLAPI } from '../../src/card-controller/types';
 import { Endpoint } from '../../src/types';

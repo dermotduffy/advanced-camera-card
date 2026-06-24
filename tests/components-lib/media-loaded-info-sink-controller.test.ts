@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { MediaLoadedInfoSinkController } from '../../src/components-lib/media-loaded-info-sink-controller';
 import {
   createLitElement,

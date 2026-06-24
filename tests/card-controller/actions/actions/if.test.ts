@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { IfAction } from '../../../../src/card-controller/actions/actions/if';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { createCardAPI } from '../../../test-utils';

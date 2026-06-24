@@ -1,5 +1,6 @@
 import { add } from 'date-fns';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import { InteractionManager } from '../../src/card-controller/interaction-manager';
 import { createCardAPI, createConfig, createLitElement } from '../test-utils';
 

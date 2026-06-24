@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { VideoMediaPlayerController } from '../../../src/components-lib/media-player/video';
 import {
   hideMediaControlsTemporarily,

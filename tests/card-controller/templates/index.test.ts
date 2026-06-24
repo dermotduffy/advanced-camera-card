@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { TemplateRenderer } from '../../../src/card-controller/templates/index';
 import { createConfig, createHASS, createStateEntity } from '../../test-utils';
 

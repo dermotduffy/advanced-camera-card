@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { Camera } from '../../src/camera-manager/camera.js';
 import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic.js';
 import { CameraProxyConfig } from '../../src/camera-manager/types.js';
@@ -13,8 +14,8 @@ import {
   createCameraConfig,
   createCapabilities,
   createHASS,
-  createHASSManager,
   createHASSEvent,
+  createHASSManager,
   createInitializedCamera,
   createRegistryEntity,
   createStateEntity,

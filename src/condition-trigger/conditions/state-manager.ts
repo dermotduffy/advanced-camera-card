@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash-es';
+
 import { SerialRunner } from '../../utils/concurrency/serial-runner';
 import {
   ConditionState,

@@ -1,6 +1,7 @@
 import { STATE_RUNNING, STATE_STARTING } from 'home-assistant-js-websocket';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import {
   InitializationAspect,
   InitializationManager,

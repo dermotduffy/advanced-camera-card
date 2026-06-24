@@ -1,4 +1,5 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
+
 import { MediaLoadedInfo, MediaLoadedInfoEventDetail } from '../types';
 import { onAbort } from '../utils/abort-signal';
 

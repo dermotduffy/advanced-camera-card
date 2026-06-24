@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { capabilityKeys } from '../../types';
 import { mediaLayoutConfigSchema } from './camera/media-layout';
 import { ptzCameraConfigDefaults, ptzCameraConfigSchema } from './camera/ptz';

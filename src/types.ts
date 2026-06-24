@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import type { EffectOptions } from './card-controller/effects/types';
 import type { LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from './ha/types';
 

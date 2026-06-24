@@ -2,6 +2,7 @@ import { Task } from '@lit-labs/task';
 import { html, render, TemplateResult } from 'lit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { renderProgressIndicator } from '../../src/components/progress-indicator';
 import { renderTask } from '../../src/utils/task';
 

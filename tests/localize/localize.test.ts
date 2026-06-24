@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { type MockProxy, mock } from 'vitest-mock-extended';
+import { mock, type MockProxy } from 'vitest-mock-extended';
+
 import type { HomeAssistant } from '../../src/ha/types';
 
 // localize.ts stores the active language and loaded translations in module-level

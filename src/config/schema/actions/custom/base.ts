@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { actionBaseSchema } from '../base';
 
 export const advancedCameraCardCustomActionsBaseSchema = actionBaseSchema.extend({

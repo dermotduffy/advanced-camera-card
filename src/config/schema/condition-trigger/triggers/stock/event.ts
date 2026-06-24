@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { haEventSchema } from '../../../common/ha-event';
 import { triggerBaseSchema } from '../base';
 

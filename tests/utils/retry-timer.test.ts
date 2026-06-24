@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import { RetryTimer } from '../../src/utils/retry-timer';
 
 // @vitest-environment jsdom

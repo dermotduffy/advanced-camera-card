@@ -1,8 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+
 import {
   AdvancedCameraCardHTMLVideoElement,
-  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   hideMediaControlsTemporarily,
+  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   setControlsOnVideo,
 } from '../../src/utils/controls.js';
 

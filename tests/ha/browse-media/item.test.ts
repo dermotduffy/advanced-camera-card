@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { describe, expect, it } from 'vitest';
+
 import {
   BrowseMediaEventViewMedia,
   BrowseMediaViewFolder,

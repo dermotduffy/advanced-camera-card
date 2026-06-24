@@ -1,5 +1,6 @@
 import { fromUnixTime } from 'date-fns';
 import { isEqual } from 'lodash-es';
+
 import { CameraConfig } from '../../config/schema/cameras';
 import { Severity } from '../../severity';
 import {

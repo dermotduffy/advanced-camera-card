@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+
 import { CameraManager } from '../../camera-manager/manager.js';
 import { FoldersManager } from '../../card-controller/folders/manager.js';
 import { ViewItemManager } from '../../card-controller/view/item-manager.js';
@@ -34,11 +35,15 @@ import { ViewFolder, ViewItem } from '../../view/item.js';
 import { UnifiedQueryBuilder } from '../../view/unified-query-builder.js';
 import { UnifiedQueryRunner } from '../../view/unified-query-runner.js';
 import { getReviewedQueryFilterFromQuery } from '../../view/utils/query-filter.js';
+
 import '../media-filter.js';
+
 import { renderNoMedia } from '../notification/no-media.js';
+
 import '../surround-basic.js';
 import '../thumbnail/thumbnail.js';
 import './gallery-core.js';
+
 import { GalleryExtendEvent } from './types.js';
 
 const GALLERY_FILTER_MENU_ICONS = {

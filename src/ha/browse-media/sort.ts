@@ -1,4 +1,5 @@
 import { orderBy } from 'lodash-es';
+
 import { BrowseMediaMetadata, RichBrowseMedia } from './types';
 
 // Unlike sorting of view items (see card-controller/view/sort.ts), for browse

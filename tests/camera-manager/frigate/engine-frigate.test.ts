@@ -1,4 +1,5 @@
 import { afterEach, assert, describe, expect, it, vi } from 'vitest';
+
 import { RecordingSegmentsCache } from '../../../src/camera-manager/cache';
 import { Camera } from '../../../src/camera-manager/camera';
 import {

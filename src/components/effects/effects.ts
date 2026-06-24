@@ -1,5 +1,6 @@
 import { LitElement, PropertyValues, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import { EffectsManager } from '../../card-controller/effects/effects-manager';
 import effectsStyle from '../../scss/effects.scss';
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { TemplateRenderer } from '../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { createTriggerEvaluator } from '../../../src/condition-trigger/triggers/factory';

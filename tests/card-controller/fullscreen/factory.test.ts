@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { FullscreenProviderFactory } from '../../../src/card-controller/fullscreen/factory';
 import { ScreenfullFullScreenProvider } from '../../../src/card-controller/fullscreen/screenfull';
 import { WebkitFullScreenProvider } from '../../../src/card-controller/fullscreen/webkit';

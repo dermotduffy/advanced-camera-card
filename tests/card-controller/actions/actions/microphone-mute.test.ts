@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { MicrophoneMuteAction } from '../../../../src/card-controller/actions/actions/microphone-mute';
 import { createCardAPI } from '../../../test-utils';
 

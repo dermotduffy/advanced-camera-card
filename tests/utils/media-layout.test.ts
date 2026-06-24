@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { updateElementStyleFromMediaLayoutConfig } from '../../src/utils/media-layout.js';
 
 // @vitest-environment jsdom

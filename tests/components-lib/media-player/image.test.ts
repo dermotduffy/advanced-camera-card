@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { ImageMediaPlayerController } from '../../../src/components-lib/media-player/image';
-import { createLitElement } from '../../test-utils';
 import { screenshotImage } from '../../../src/utils/screenshot';
+import { createLitElement } from '../../test-utils';
 
 vi.mock('../../../src/utils/screenshot.js');
 

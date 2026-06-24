@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { expandBaseSchema } from '../../common/expand';
 import { triggerBaseSchema } from '../base';
 

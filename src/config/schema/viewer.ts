@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { actionsSchema } from './actions/types';
 import { nextPreviousControlConfigSchema } from './common/controls/next-previous';
 import { ptzControlsConfigSchema, ptzControlsDefaults } from './common/controls/ptz';

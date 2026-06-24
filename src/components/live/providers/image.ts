@@ -1,6 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+
 import { Camera } from '../../../camera-manager/camera.js';
 import { HomeAssistant } from '../../../ha/types';
 import basicBlockStyle from '../../../scss/basic-block.scss';
@@ -9,6 +10,7 @@ import {
   MediaPlayerController,
   MediaPlayerElement,
 } from '../../../types.js';
+
 import '../../image-updating-player.js';
 
 @customElement('advanced-camera-card-live-image')

@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash-es';
+
 import { RemoteControlEntityPriority } from '../../config/schema/remote-control';
 import { createCameraAction, createInternalCallbackAction } from '../../utils/action';
 import { CardActionsAPI, CardConfigLoaderAPI, TaggedAutomation } from '../types';

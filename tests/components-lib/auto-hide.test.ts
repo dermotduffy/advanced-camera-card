@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { isAutoHidden, resolveAutoHideState } from '../../src/components-lib/auto-hide';
 
 describe('isAutoHidden', () => {

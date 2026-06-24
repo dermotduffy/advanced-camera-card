@@ -1,6 +1,7 @@
 import { add } from 'date-fns';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { Camera } from '../../src/camera-manager/camera.js';
 import { Capabilities } from '../../src/camera-manager/capabilities.js';
 import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
@@ -36,7 +37,6 @@ import { Endpoint, PTZMovementType } from '../../src/types.js';
 import { ViewFolder, ViewItem, ViewMedia } from '../../src/view/item.js';
 import { ViewItemCapabilities } from '../../src/view/types.js';
 import {
-  TestViewMedia,
   createCameraConfig,
   createCapabilities,
   createCardAPI,
@@ -45,6 +45,7 @@ import {
   createHASS,
   createInitializedCamera,
   generateViewMediaArray,
+  TestViewMedia,
 } from '../test-utils.js';
 
 describe('QueryClassifier', () => {

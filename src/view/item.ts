@@ -1,4 +1,5 @@
 import { clone } from 'lodash-es';
+
 import { FolderPathComponent } from '../card-controller/folders/types';
 import { FolderConfig } from '../config/schema/folders';
 import { Severity } from '../severity';

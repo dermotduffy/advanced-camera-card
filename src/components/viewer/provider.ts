@@ -9,6 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
+
 import { CameraManager } from '../../camera-manager/manager.js';
 import { QueryType } from '../../camera-manager/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
@@ -24,16 +25,21 @@ import { isHARelativeURL } from '../../ha/is-ha-relative-url.js';
 import { ResolvedMediaCache, resolveMedia } from '../../ha/resolved-media.js';
 import { HomeAssistant, ResolvedMedia } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
+
 import '../../patches/ha-hls-player.js';
+
 import viewerProviderStyle from '../../scss/viewer-provider.scss';
 import { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../../types.js';
 import { classifyMimeType } from '../../utils/mime-type.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { ViewMedia } from '../../view/item.js';
 import { UnifiedQueryTransformer } from '../../view/unified-query-transformer.js';
+
 import '../image-player.js';
+
 import { renderNotificationBlockFromText } from '../notification/block.js';
 import { renderProgressIndicator } from '../progress-indicator.js';
+
 import '../video-player.js';
 import './../media-dimensions-container';
 

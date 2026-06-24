@@ -1,6 +1,7 @@
 import { Connection } from 'home-assistant-js-websocket';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import {
   FrigateEventChange,
   FrigateReviewChange,
