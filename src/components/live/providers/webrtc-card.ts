@@ -8,6 +8,7 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+
 import { Camera } from '../../../camera-manager/camera.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get-technology-for-video-rtc.js';
@@ -38,9 +39,13 @@ import {
   dispatchMediaVolumeChangeEvent,
 } from '../../../utils/media-info.js';
 import { renderTask } from '../../../utils/task.js';
+
 import '../../notification/block.js';
+
 import { renderNotificationBlock } from '../../notification/block.js';
+
 import '../../progress-indicator.js';
+
 import { renderProgressIndicator } from '../../progress-indicator.js';
 import { VideoRTC } from './go2rtc/video-rtc.js';
 

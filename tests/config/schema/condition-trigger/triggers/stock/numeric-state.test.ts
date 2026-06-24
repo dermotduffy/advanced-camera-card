@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { numericStateTriggerSchema } from '../../../../../../src/config/schema/condition-trigger/triggers/stock/numeric-state';
 
 describe('numericStateTriggerSchema', () => {

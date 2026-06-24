@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { ExpandAction } from '../../../../src/card-controller/actions/actions/expand';
 import { createCardAPI } from '../../../test-utils';
 

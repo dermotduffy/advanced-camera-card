@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { isEqual } from 'lodash-es';
+
 import { FolderPathComponent } from '../../card-controller/folders/types';
 import { FolderConfig } from '../../config/schema/folders';
 import { formatDateAndTime } from '../../utils/basic';

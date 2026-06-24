@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { BrowseMediaCameraManagerEngine } from '../../../src/camera-manager/browse-media/engine-browse-media';
 import { CameraManagerReadOnlyConfigStore } from '../../../src/camera-manager/store';
 import {

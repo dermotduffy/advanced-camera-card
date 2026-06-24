@@ -1,5 +1,6 @@
 import screenfull from 'screenfull';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { ScreenfullFullScreenProvider } from '../../../../src/card-controller/fullscreen/screenfull';
 import { createCardAPI, flushPromises, setScreenfulEnabled } from '../../../test-utils';
 

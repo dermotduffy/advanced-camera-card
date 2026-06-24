@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { ResolvedMedia, resolvedMediaSchema } from '../../src/ha/types';
 import { homeAssistantWSRequest } from '../../src/ha/ws-request';
 import { createHASS } from '../test-utils';

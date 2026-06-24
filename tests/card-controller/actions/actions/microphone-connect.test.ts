@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { MicrophoneConnectAction } from '../../../../src/card-controller/actions/actions/microphone-connect';
 import { createCardAPI } from '../../../test-utils';
 

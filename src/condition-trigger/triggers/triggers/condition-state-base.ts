@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash-es';
+
 import { Trigger } from '../../../config/schema/condition-trigger/triggers/types';
 import { ConditionEvaluator } from '../../conditions/conditions/types';
 import { createConditionEvaluatorForTrigger } from '../../conditions/factory';

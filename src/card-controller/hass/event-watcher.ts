@@ -1,4 +1,5 @@
 import { HassEvent } from 'home-assistant-js-websocket';
+
 import {
   SubscriptionHealthInterface,
   SubscriptionHealthMonitor,

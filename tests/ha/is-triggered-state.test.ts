@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { isTriggeredState } from '../../src/ha/is-triggered-state';
 
 describe('isTriggeredState', () => {

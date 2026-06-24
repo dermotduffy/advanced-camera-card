@@ -1,4 +1,5 @@
 import { maxBy, throttle } from 'lodash-es';
+
 import { CameraEvent } from '../camera-manager/types';
 import { isTriggeredState } from '../ha/is-triggered-state';
 import { Timer } from '../utils/timer';

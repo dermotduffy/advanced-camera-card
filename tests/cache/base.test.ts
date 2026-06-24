@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { CacheBase } from '../../src/cache/base';
 
 describe('CacheBase', () => {

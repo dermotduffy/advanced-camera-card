@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { LRUCache } from '../../src/cache/lru';
 
 interface TestCacheValue {

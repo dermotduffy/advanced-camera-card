@@ -1,14 +1,15 @@
 import {
   CSSResultGroup,
+  html,
   LitElement,
+  nothing,
   PropertyValues,
   TemplateResult,
-  html,
-  nothing,
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+
 import { actionHandler } from '../action-handler-directive.js';
 import type { AutoHideState } from '../components-lib/auto-hide.js';
 import { StatusBarController } from '../components-lib/status-bar-controller';
@@ -17,6 +18,7 @@ import { StatusBarConfig } from '../config/schema/status-bar.js';
 import statusStyle from '../scss/status.scss';
 import { hasAction } from '../utils/action';
 import { contentsChanged } from '../utils/basic.js';
+
 import './icon.js';
 
 @customElement('advanced-camera-card-status-bar')

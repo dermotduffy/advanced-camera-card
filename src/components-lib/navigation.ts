@@ -1,4 +1,5 @@
 import { NonEmptyTuple } from 'type-fest';
+
 import { FolderPathComponent, FolderQuery } from '../card-controller/folders/types';
 import { ViewManagerEpoch, ViewModifier } from '../card-controller/view/types';
 import { localize } from '../localize/localize';

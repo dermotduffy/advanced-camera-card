@@ -1,5 +1,6 @@
 import { HassEntity } from 'home-assistant-js-websocket';
 import { isEqual } from 'lodash-es';
+
 import { arrayify } from '../../../utils/basic';
 import { Timer } from '../../../utils/timer';
 import { renderTimePeriodToSeconds } from '../../common/time-period';

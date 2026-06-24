@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { InfoAction } from '../../../../src/card-controller/actions/actions/info';
 import { QueryResults } from '../../../../src/view/query-results';
 import { View } from '../../../../src/view/view';

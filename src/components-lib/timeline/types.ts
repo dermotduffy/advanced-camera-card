@@ -1,4 +1,5 @@
 import { DateType, IdType, Timeline, TimelineWindow } from 'vis-timeline';
+
 import { CameraManager } from '../../camera-manager/manager';
 import { ViewItemManager } from '../../card-controller/view/item-manager';
 import { ViewManagerEpoch } from '../../card-controller/view/types';

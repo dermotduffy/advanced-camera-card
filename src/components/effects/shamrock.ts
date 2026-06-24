@@ -1,5 +1,6 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import shamrockStyle from '../../scss/shamrock.scss';
 
 @customElement('advanced-camera-card-shamrock')

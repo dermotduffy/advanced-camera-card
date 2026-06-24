@@ -1,7 +1,9 @@
 import { html, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
+
 import { BaseEffectComponent } from './base';
+
 import './shamrock';
 
 const SHAMROCK_COUNT = 10;

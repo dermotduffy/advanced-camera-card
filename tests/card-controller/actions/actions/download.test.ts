@@ -1,4 +1,5 @@
 import { expect, it, vi } from 'vitest';
+
 import { DownloadAction } from '../../../../src/card-controller/actions/actions/download';
 import { QueryResults } from '../../../../src/view/query-results';
 import { createCardAPI, createView, TestViewMedia } from '../../../test-utils';

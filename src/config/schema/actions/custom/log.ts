@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { advancedCameraCardCustomActionsBaseSchema } from './base';
 
 const LOG_ACTIONS_LEVELS = ['debug', 'info', 'warn', 'error'] as const;

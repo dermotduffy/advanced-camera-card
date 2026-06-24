@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { capEndDate } from '../../../src/camera-manager/utils/cap-end-date';
 
 describe('capEndDate', () => {

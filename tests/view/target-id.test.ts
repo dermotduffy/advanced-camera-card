@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { QueryResults } from '../../src/view/query-results';
 import {
   getViewTargetID,

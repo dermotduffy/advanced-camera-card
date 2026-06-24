@@ -1,8 +1,10 @@
 import { html, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
+
 import { Timer } from '../../utils/timer';
 import { BaseEffectComponent } from './base';
+
 import './firework-burst';
 
 const INITIAL_BURST_COUNT = 3;

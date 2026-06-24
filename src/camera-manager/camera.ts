@@ -1,4 +1,5 @@
 import { uniq } from 'lodash-es';
+
 import { ActionsExecutor } from '../card-controller/actions/types';
 import { EventSubscriptionRequest } from '../card-controller/hass/event-watcher';
 import { HASSManagerReadonlyInterface } from '../card-controller/hass/types';

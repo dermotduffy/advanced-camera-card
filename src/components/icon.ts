@@ -7,6 +7,7 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import { IconController } from '../components-lib/icon-controller';
 import { InternalIcon } from '../config/schema/common/icon.js';
 import { HomeAssistant } from '../ha/types';

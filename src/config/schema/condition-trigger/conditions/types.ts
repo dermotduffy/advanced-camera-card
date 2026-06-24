@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { isRecord } from '../../../../utils/basic';
 import { preprocessToArray } from '../../common/preprocess-to-array';
 import { conditionBaseSchema } from './base';

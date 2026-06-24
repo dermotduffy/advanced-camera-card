@@ -1,4 +1,5 @@
 import { LitElement, ReactiveControllerHost } from 'lit';
+
 import { ActionEventTarget } from '../action-handler-directive';
 import { isCardInPanel } from '../ha/panel';
 import { LovelaceCard } from '../ha/types';

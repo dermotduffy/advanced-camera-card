@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { dataToContext } from '../../../src/components-lib/notification/data-to-context';
 
 describe('dataToContext', () => {

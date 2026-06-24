@@ -1,4 +1,5 @@
 import { STATE_RUNNING } from 'home-assistant-js-websocket';
+
 import { HomeAssistant } from './types';
 
 // HA is "ready" when the WebSocket is connected AND integrations have finished

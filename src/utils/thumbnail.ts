@@ -1,5 +1,6 @@
 import { Task } from '@lit-labs/task';
 import { ReactiveControllerHost } from '@lit/reactive-element';
+
 import { HomeAssistant } from '../ha/types';
 
 // See: https://github.com/sindresorhus/is-absolute-url

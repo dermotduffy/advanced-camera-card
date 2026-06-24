@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { supports2WayAudio } from '../../../src/camera-manager/utils/go2rtc/audio';
 import { homeAssistantSignAndFetch } from '../../../src/ha/fetch';
 import { HomeAssistant } from '../../../src/ha/types';

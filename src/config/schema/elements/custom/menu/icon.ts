@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { iconSchema } from '../../stock/icon';
 import { menuBaseSchema } from './base';
 

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { viewDisplayModeSchema } from '../../../common/display';
 import { displayModeBaseSchema } from '../../common/display-mode';
 import { conditionBaseSchema } from '../base';

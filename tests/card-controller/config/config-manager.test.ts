@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ZodError, z } from 'zod';
+import { z, ZodError } from 'zod';
+
 import { AutomationsManager } from '../../../src/card-controller/automations-manager';
 import { ConfigManager } from '../../../src/card-controller/config/config-manager';
 import { setRemoteControlEntityFromConfig } from '../../../src/card-controller/config/load-control-entities';

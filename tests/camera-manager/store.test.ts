@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { Camera } from '../../src/camera-manager/camera.js';
 import { Capabilities } from '../../src/camera-manager/capabilities.js';
 import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
@@ -9,10 +10,10 @@ import { DeviceRegistryManager } from '../../src/ha/registry/device/index.js';
 import { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
 import { ResolvedMediaCache } from '../../src/ha/resolved-media.js';
 import {
-  TestViewMedia,
   createCameraConfig,
   createHASSManager,
   createInitializedCamera,
+  TestViewMedia,
 } from '../test-utils.js';
 
 describe('CameraManagerStore', async () => {

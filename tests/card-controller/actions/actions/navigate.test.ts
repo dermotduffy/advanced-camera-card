@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { NavigateAction } from '../../../../src/card-controller/actions/actions/navigate';
 import { createCardAPI } from '../../../test-utils';
 

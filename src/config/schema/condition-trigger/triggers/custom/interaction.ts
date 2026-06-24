@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { interactionBaseSchema } from '../../common/interaction';
 import { triggerBaseSchema } from '../base';
 

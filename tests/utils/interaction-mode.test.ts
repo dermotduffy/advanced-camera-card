@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { isActionAllowedBasedOnInteractionState } from '../../src/utils/interaction-mode';
 
 describe('isActionAllowedBasedOnInteractionState', () => {

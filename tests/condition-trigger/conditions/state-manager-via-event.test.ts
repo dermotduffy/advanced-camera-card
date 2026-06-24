@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import {
   ConditionStateManagerGetEvent,

@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { stateBaseSchema } from '../../common/state';
+
 import { stringOrArray } from '../../../common/string-or-array';
+import { stateBaseSchema } from '../../common/state';
 import { triggerBaseSchema } from '../base';
 import { entityTriggerBaseSchema } from './entity-base';
 

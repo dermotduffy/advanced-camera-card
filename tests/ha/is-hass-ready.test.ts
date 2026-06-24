@@ -1,5 +1,6 @@
 import { STATE_RUNNING } from 'home-assistant-js-websocket';
 import { describe, expect, it } from 'vitest';
+
 import { isHassReady } from '../../src/ha/is-hass-ready';
 import { createHASS } from '../test-utils';
 

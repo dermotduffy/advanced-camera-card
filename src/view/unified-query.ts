@@ -1,6 +1,7 @@
 import cloneDeep from 'lodash-es/cloneDeep.js';
 import isEqual from 'lodash-es/isEqual.js';
 import omit from 'lodash-es/omit.js';
+
 import { EventQuery, MediaQuery, QueryType } from '../camera-manager/types.js';
 import { FolderQuery } from '../card-controller/folders/types.js';
 import { QuerySource } from '../query-source.js';

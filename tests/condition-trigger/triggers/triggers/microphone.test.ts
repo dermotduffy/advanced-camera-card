@@ -1,4 +1,5 @@
 import { describe, expect, it, Mock, vi } from 'vitest';
+
 import { MicrophoneState } from '../../../../src/card-controller/types';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { MicrophoneTrigger } from '../../../../src/condition-trigger/triggers/triggers/microphone';

@@ -1,6 +1,7 @@
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
+
 import { actionHandler } from '../action-handler-directive.js';
 import type { LockManagerEpoch } from '../card-controller/lock/types';
 import type { AutoHideState } from '../components-lib/auto-hide.js';
@@ -13,6 +14,7 @@ import type { HomeAssistant } from '../ha/types.js';
 import menuStyle from '../scss/menu.scss';
 import { hasAction } from '../utils/action.js';
 import { contentsChanged } from '../utils/basic.js';
+
 import './icon.js';
 import './submenu/select-button.js';
 import './submenu/submenu-button';

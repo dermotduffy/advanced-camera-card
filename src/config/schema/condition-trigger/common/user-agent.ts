@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { regexSchema } from '../../common/regex';
 
 export const userAgentBaseSchema = z.object({

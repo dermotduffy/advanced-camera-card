@@ -2,9 +2,10 @@ import { noChange } from 'lit';
 import {
   AttributePart,
   Directive,
-  DirectiveParameters,
   directive,
+  DirectiveParameters,
 } from 'lit/directive.js';
+
 import { fireHASSEvent } from './ha/fire-hass-event.js';
 import { ActionHandlerDetail, ActionHandlerOptions } from './ha/types.js';
 import { stopEventFromActivatingCardWideActions } from './utils/action.js';

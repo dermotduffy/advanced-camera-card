@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
+
 import { CameraManager } from '../../camera-manager/manager.js';
 import { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
@@ -16,8 +17,11 @@ import { CardWideConfig } from '../../config/schema/types.js';
 import { ViewerConfig } from '../../config/schema/viewer.js';
 import { ResolvedMediaCache } from '../../ha/resolved-media.js';
 import { HomeAssistant } from '../../ha/types.js';
+
 import '../../patches/ha-hls-player.js';
+
 import basicBlockStyle from '../../scss/basic-block.scss';
+
 import './carousel';
 
 @customElement('advanced-camera-card-viewer-grid')

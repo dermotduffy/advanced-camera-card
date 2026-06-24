@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { stringOrArray } from '../../../common/string-or-array';
 
 // Shared by the stock `state`/`numeric_state` conditions: the card accepts both

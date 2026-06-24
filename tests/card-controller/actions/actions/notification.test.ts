@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { NotificationAction } from '../../../../src/card-controller/actions/actions/notification';
 import { createCardAPI } from '../../../test-utils';
 

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { keyBaseSchema } from '../../common/key';
 import { conditionBaseSchema } from '../base';
 

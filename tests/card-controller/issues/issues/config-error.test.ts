@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { ConfigErrorIssue } from '../../../../src/card-controller/issues/issues/config-error';
 
 describe('ConfigErrorIssue', () => {

@@ -1,6 +1,7 @@
 import { ViewContext } from 'view';
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { CardController } from '../../../src/card-controller/controller';
 import { ViewFactory } from '../../../src/card-controller/view/factory';
 import { SetQueryViewModifier } from '../../../src/card-controller/view/modifiers/set-query';

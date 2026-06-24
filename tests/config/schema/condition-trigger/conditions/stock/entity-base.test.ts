@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { entityConditionBaseSchema } from '../../../../../../src/config/schema/condition-trigger/conditions/stock/entity-base';
 
 describe('entityConditionBaseSchema', () => {

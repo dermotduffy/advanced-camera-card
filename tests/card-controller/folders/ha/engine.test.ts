@@ -1,4 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+
 import { HAFoldersEngine } from '../../../../src/card-controller/folders/ha/engine';
 import { FolderQuery } from '../../../../src/card-controller/folders/types';
 import { FolderConfig, Matcher } from '../../../../src/config/schema/folders';

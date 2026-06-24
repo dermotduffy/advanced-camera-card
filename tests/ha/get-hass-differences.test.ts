@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { getHassDifferences } from '../../src/ha/get-hass-differences';
 import { createHASS, createStateEntity } from '../test-utils';
 

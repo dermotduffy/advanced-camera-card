@@ -1,4 +1,5 @@
 import { HassEntity } from 'home-assistant-js-websocket';
+
 import { matchesNumericState, readNumericStateValue } from '../../common/numeric-state';
 import { ConditionState } from '../../conditions/types';
 import { EntityStateTriggerBase } from './entity-state-base';

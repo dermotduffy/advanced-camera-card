@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { stateIconSchema } from '../../stock/state-icon';
 import { menuBaseSchema } from './base';
 

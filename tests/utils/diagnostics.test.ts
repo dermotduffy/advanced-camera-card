@@ -1,6 +1,7 @@
 import { HassConfig } from 'home-assistant-js-websocket';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { DeviceRegistryManager } from '../../src/ha/registry/device';
 import { homeAssistantWSRequest } from '../../src/ha/ws-request';
 import { getLanguage } from '../../src/localize/localize';

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { getMediaDownloadPath } from '../../src/ha/download';
 import { ResolvedMediaCache, resolveMedia } from '../../src/ha/resolved-media.js';
 import { createHASS } from '../test-utils';

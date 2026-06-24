@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { userAgentConditionSchema } from '../../../../../../src/config/schema/condition-trigger/conditions/custom/user-agent';
 
 describe('userAgentConditionSchema', () => {

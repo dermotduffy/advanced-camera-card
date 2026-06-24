@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { createHASS, createHASSSource, createStateEntity } from '../../test-utils';
 

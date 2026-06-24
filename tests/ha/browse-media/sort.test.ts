@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
+
+import { sortMostRecentFirst } from '../../../src/ha/browse-media/sort';
 import {
   BrowseMediaMetadata,
   RichBrowseMedia,
 } from '../../../src/ha/browse-media/types';
 import { createBrowseMedia, createRichBrowseMedia } from '../../test-utils';
-import { sortMostRecentFirst } from '../../../src/ha/browse-media/sort';
 
 const createMetadata = (
   metadata: Partial<BrowseMediaMetadata>,

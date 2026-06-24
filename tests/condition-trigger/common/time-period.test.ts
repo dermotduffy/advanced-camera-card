@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { TemplateRenderer } from '../../../src/card-controller/templates';
 import { renderTimePeriodToSeconds } from '../../../src/condition-trigger/common/time-period';
 import { createHASS, createStateEntity } from '../../test-utils';

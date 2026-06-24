@@ -1,14 +1,15 @@
 import {
   CSSResultGroup,
+  html,
   LitElement,
   PropertyValues,
   TemplateResult,
-  html,
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { Ref, createRef, ref } from 'lit/directives/ref.js';
+import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import type { IdType } from 'vis-timeline/esnext';
+
 import { CameraManager } from '../camera-manager/manager';
 import { FoldersManager } from '../card-controller/folders/manager';
 import { ViewItemManager } from '../card-controller/view/item-manager';
@@ -27,10 +28,15 @@ import { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import timelineCoreStyle from '../scss/timeline-core.scss';
 import { contentsChanged } from '../utils/basic';
+
 import './date-picker.js';
+
 import { AdvancedCameraCardDatePicker, DatePickerEvent } from './date-picker.js';
+
 import './icon';
+
 import { renderNotificationBlockFromText } from './notification/block';
+
 import './thumbnail/thumbnail.js';
 
 /**

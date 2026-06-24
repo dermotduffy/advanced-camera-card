@@ -1,6 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
+
 import { actionHandler } from '../../action-handler-directive.js';
 import type { LockManagerEpoch } from '../../card-controller/lock/types';
 import { getEntityTitle } from '../../ha/get-entity-title.js';
@@ -11,7 +12,9 @@ import {
   stopEventFromActivatingCardWideActions,
 } from '../../utils/action.js';
 import { contentsChanged } from '../../utils/basic.js';
+
 import '../icon.js';
+
 import type { SubmenuInteraction, SubmenuItem } from './types.js';
 
 @customElement('advanced-camera-card-submenu')

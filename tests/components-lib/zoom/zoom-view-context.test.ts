@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { MergeContextViewModifier } from '../../../src/card-controller/view/modifiers/merge-context';
 import { ViewManager } from '../../../src/card-controller/view/view-manager';
 import {

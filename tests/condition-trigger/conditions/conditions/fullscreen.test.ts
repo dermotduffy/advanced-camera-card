@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
 import { fullscreenConditionSchema } from '../../../../src/config/schema/condition-trigger/conditions/custom/fullscreen';
 import { createEvaluatorContext } from './test-utils';

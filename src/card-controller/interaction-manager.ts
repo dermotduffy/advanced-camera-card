@@ -1,4 +1,5 @@
 import { throttle } from 'lodash-es';
+
 import { Timer } from '../utils/timer';
 import { CardInteractionAPI } from './types';
 

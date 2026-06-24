@@ -1,6 +1,7 @@
 import { NonEmptyTuple } from 'type-fest';
 import { assert, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { CameraManager } from '../../src/camera-manager/manager';
 import { EventQuery, QueryType } from '../../src/camera-manager/types';
 import { FoldersManager } from '../../src/card-controller/folders/manager';
@@ -8,8 +9,8 @@ import { FolderPathComponent } from '../../src/card-controller/folders/types';
 import { ViewManagerEpoch, ViewModifier } from '../../src/card-controller/view/types';
 import {
   FolderNavigationParamaters,
-  MediaNavigationParamaters,
   getUpFolderItem,
+  MediaNavigationParamaters,
   navigateToFolder,
   navigateToMedia,
   navigateUp,

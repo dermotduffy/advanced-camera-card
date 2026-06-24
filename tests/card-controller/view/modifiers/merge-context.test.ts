@@ -1,5 +1,6 @@
 import { ViewContext } from 'view';
 import { expect, it } from 'vitest';
+
 import { MergeContextViewModifier } from '../../../../src/card-controller/view/modifiers/merge-context';
 import { createView } from '../../../test-utils';
 

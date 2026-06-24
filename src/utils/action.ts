@@ -32,13 +32,13 @@ import { SubstreamOffActionConfig } from '../config/schema/actions/custom/substr
 import { SubstreamOnActionConfig } from '../config/schema/actions/custom/substream-on.js';
 import { ViewActionConfig } from '../config/schema/actions/custom/view.js';
 import { PerformActionActionConfig } from '../config/schema/actions/stock/perform-action.js';
-import type { Notification } from '../config/schema/actions/types.js';
 import {
   ActionConfig,
   Actions,
   AdvancedCameraCardCustomActionConfig,
   IfActionConfig,
   NotificationActionConfig,
+  type Notification,
 } from '../config/schema/actions/types.js';
 import { AdvancedCameraCardUserSpecifiedView } from '../config/schema/common/const.js';
 import { PTZControlType } from '../config/schema/common/controls/ptz.js';

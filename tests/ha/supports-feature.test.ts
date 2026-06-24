@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { supportsFeature } from '../../src/ha/supports-feature';
 import { createStateEntity } from '../test-utils';
 

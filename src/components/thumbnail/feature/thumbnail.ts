@@ -1,20 +1,21 @@
 import { Task, TaskStatus } from '@lit-labs/task';
 import {
   CSSResult,
+  html,
   LitElement,
   PropertyValues,
   TemplateResult,
-  html,
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import { HomeAssistant } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import thumbnailFeatureThumbnailStyle from '../../../scss/thumbnail-feature-thumbnail.scss';
 import { renderTask } from '../../../utils/task';
 import {
-  FetchThumbnailTaskArgs,
   createFetchThumbnailTask,
+  FetchThumbnailTaskArgs,
 } from '../../../utils/thumbnail';
 
 @customElement('advanced-camera-card-thumbnail-feature-thumbnail')

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { callTriggerSchema } from './custom/call';
 import { cameraTriggerSchema } from './custom/camera';
 import { configTriggerSchema } from './custom/config';

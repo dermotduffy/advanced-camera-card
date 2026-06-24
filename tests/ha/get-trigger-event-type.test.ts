@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { getTriggerEventType } from '../../src/ha/get-trigger-event-type';
 import { createStateEntity } from '../test-utils';
 

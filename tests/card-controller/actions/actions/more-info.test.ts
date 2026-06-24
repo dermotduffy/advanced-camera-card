@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { MoreInfoAction } from '../../../../src/card-controller/actions/actions/more-info';
 import { createCardAPI } from '../../../test-utils';
 

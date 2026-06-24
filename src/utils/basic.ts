@@ -6,6 +6,7 @@ import {
 } from 'date-fns';
 import { StyleInfo } from 'lit/directives/style-map';
 import { isEqualWith, mergeWith, round, uniq } from 'lodash-es';
+
 import { AdvancedCameraCardError } from '../types';
 
 /**

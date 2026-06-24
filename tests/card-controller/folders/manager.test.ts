@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { FoldersExecutor } from '../../../src/card-controller/folders/executor';
 import { FoldersManager } from '../../../src/card-controller/folders/manager';
 import { FolderQuery } from '../../../src/card-controller/folders/types';
 import { FolderConfig, FolderConfigWithoutID } from '../../../src/config/schema/folders';
-import { QuerySource } from '../../../src/query-source';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
+import { QuerySource } from '../../../src/query-source';
 import { Endpoint } from '../../../src/types';
 import { ViewFolder } from '../../../src/view/item';
 import { ViewItemCapabilities } from '../../../src/view/types';

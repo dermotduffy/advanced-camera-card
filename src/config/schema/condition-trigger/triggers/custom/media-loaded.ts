@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { mediaLoadedBaseSchema } from '../../common/media-loaded';
 import { triggerBaseSchema } from '../base';
 

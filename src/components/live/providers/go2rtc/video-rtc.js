@@ -1,3 +1,4 @@
+import { getTechnologyForVideoRTC } from '../../../../components-lib/live/utils/get-technology-for-video-rtc.js';
 import {
   addAudioTracksMuteStateListener,
   has2WayAudio,
@@ -14,7 +15,6 @@ import {
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
 } from '../../../../utils/media-info';
-import { getTechnologyForVideoRTC } from '../../../../components-lib/live/utils/get-technology-for-video-rtc.js';
 
 /**
  * VideoRTC v1.6.0 - Video player for go2rtc streaming application.

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { ExpandManager } from '../../src/card-controller/expand-manager';
 import { createCardAPI, createLitElement } from '../test-utils';
 

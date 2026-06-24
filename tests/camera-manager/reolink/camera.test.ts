@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { ReolinkCamera } from '../../../src/camera-manager/reolink/camera';
 import { CameraProxyConfig } from '../../../src/camera-manager/types';

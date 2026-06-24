@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+
 import { Timer } from '../../src/utils/timer';
 
 // @vitest-environment jsdom

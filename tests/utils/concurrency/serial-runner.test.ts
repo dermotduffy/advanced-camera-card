@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { SerialRunner } from '../../../src/utils/concurrency/serial-runner';
 
 describe('SerialRunner', () => {

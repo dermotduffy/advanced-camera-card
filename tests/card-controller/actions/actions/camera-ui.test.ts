@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { CameraUIAction } from '../../../../src/card-controller/actions/actions/camera-ui';
 import { createCardAPI } from '../../../test-utils';
 

@@ -1,4 +1,5 @@
 import { uniq } from 'lodash-es';
+
 import {
   EventSubscriptionRequest,
   EventWatcherSubscriptionInterface,

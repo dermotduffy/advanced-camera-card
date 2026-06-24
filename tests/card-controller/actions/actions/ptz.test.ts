@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+
 import { Capabilities } from '../../../../src/camera-manager/capabilities';
 import { PTZAction } from '../../../../src/card-controller/actions/actions/ptz';
 import { PTZMovementType } from '../../../../src/types';

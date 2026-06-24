@@ -1,5 +1,6 @@
 import { ActionContext } from 'action';
 import { z } from 'zod';
+
 import { TriggerData } from '../../condition-trigger/triggers/types.js';
 import {
   ActionConfig,

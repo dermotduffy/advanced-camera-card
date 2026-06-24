@@ -3,6 +3,7 @@
 import { PartialDeep } from 'type-fest';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import { CameraManagerStore } from '../../../src/camera-manager/store';
 import { CallManager } from '../../../src/card-controller/call/manager';
 import { Ringtone } from '../../../src/card-controller/call/ringtone';

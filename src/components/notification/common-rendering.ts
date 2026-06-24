@@ -1,5 +1,6 @@
 import { html, TemplateResult } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
+
 import { actionHandler } from '../../action-handler-directive.js';
 import {
   Notification,
@@ -10,6 +11,7 @@ import {
   hasAction,
   stopEventFromActivatingCardWideActions,
 } from '../../utils/action.js';
+
 import '../icon.js';
 
 export function renderDetail(

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { MediaLoadedInfoManager } from '../../src/card-controller/media-info-manager';
 import {
   createCardAPI,

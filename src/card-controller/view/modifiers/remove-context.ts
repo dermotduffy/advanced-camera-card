@@ -1,4 +1,5 @@
 import { ViewContext } from 'view';
+
 import { View } from '../../../view/view';
 import { ViewModifier } from '../types';
 

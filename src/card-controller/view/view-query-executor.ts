@@ -1,4 +1,5 @@
 import { sub } from 'date-fns';
+
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const';
 import { findBestMediaTimeIndex } from '../../utils/find-best-media-time-index';
 import { QueryResults } from '../../view/query-results';

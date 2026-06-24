@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { StatusBarAction } from '../../../../src/card-controller/actions/actions/status-bar';
 import { createCardAPI } from '../../../test-utils';
 

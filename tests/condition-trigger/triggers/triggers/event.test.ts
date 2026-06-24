@@ -1,5 +1,6 @@
 import { describe, expect, it, Mock, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import {
   EventSubscriptionRequest,
   EventWatcherSubscriptionInterface,

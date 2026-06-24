@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import { ConditionsManager } from '../../../src/condition-trigger/conditions/conditions-manager';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { createHASS, createStateEntity } from '../../test-utils';

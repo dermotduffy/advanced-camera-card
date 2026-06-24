@@ -1,6 +1,7 @@
 import { CSSResultGroup, html, TemplateResult, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+
 import checkCircleSVG from '../../images/check-circle.svg';
 import checkStyle from '../../scss/check.scss';
 import { BaseEffectComponent } from './base';

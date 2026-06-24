@@ -1,5 +1,6 @@
 import { isEqual, throttle } from 'lodash-es';
 import Masonry from 'masonry-layout';
+
 import { ViewDisplayConfig } from '../config/schema/common/display';
 import {
   forceReflow,

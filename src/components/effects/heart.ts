@@ -1,5 +1,6 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import heartStyle from '../../scss/heart.scss';
 
 @customElement('advanced-camera-card-heart')

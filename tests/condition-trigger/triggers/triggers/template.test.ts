@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { TemplateTrigger } from '../../../../src/condition-trigger/triggers/triggers/template';
 import { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';

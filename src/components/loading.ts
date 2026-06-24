@@ -1,8 +1,10 @@
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import loadingStyle from '../scss/loading.scss';
 import { EffectName, EffectsManagerInterface } from '../types';
 import { getReleaseVersion } from '../utils/diagnostics';
+
 import './icon';
 
 // Map of "MM-DD" to effect name for special dates.

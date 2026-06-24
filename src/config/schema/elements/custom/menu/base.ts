@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { MENU_PRIORITY_DEFAULT, MENU_PRIORITY_MAX } from '../../../common/const';
 
 export const menuBaseSchema = z.object({

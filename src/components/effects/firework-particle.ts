@@ -1,5 +1,6 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import fireworkParticleStyle from '../../scss/firework-particle.scss';
 
 @customElement('advanced-camera-card-firework-particle')

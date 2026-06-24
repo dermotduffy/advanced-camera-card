@@ -1,4 +1,5 @@
 import { HassEntity } from 'home-assistant-js-websocket';
+
 import { HassStateDifference, HomeAssistant } from './types';
 
 /**

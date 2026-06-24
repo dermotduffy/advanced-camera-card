@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { fireHASSEvent } from '../../src/ha/fire-hass-event';
 
 // @vitest-environment jsdom

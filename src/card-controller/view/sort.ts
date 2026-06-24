@@ -1,4 +1,5 @@
 import { orderBy, uniqBy } from 'lodash-es';
+
 import { ViewItem } from '../../view/item';
 import { ViewItemClassifier } from '../../view/item-classifier';
 

@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
+
 import { Capabilities } from '../../src/camera-manager/capabilities';
 import {
   CapabilityKey,
+  capabilityKeys,
   PTZCapabilities,
   PTZMovementType,
-  capabilityKeys,
 } from '../../src/types';
 
 describe('Capabilities', () => {

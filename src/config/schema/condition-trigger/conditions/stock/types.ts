@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { numericStateConditionSchema } from './numeric-state';
 import { screenConditionSchema } from './screen';
 import { stateConditionSchema } from './state';

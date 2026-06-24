@@ -1,4 +1,5 @@
 import { clamp } from 'lodash-es';
+
 import {
   PartialZoomSettings,
   ZOOM_DEFAULT_PAN_X,

@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
 import {
   generateScreenshotFilename,
   screenshotImage,
@@ -7,7 +8,7 @@ import {
 } from '../../src/utils/screenshot';
 import { QueryResults } from '../../src/view/query-results';
 import { View } from '../../src/view/view';
-import { TestViewMedia, createView } from '../test-utils';
+import { createView, TestViewMedia } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('screenshotVideo', () => {

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { enabledSchema } from '../common/enabled';
 
 // Universal trigger fields. Current the card does not support

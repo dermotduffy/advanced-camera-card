@@ -1,6 +1,5 @@
 import { localize } from '../localize/localize';
-import { AdvancedCameraCardError } from '../types';
-import { CardHelpers, LovelaceCardWithEditor } from '../types';
+import { AdvancedCameraCardError, CardHelpers, LovelaceCardWithEditor } from '../types';
 
 class HomeAssistantElementsLoadError extends AdvancedCameraCardError {
   constructor() {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { timeDeltaToSeconds } from '../../../../src/card-controller/actions/utils/time-delta';
 
 describe('timeDeltaToSeconds', () => {

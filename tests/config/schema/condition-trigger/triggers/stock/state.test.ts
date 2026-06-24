@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { stateTriggerSchema } from '../../../../../../src/config/schema/condition-trigger/triggers/stock/state';
 
 // Covers the card's own refinements (zod pass-through is trusted): HA makes
