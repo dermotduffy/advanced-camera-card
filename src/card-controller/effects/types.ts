@@ -3,7 +3,9 @@ export type EffectComponent = HTMLElement & {
   startFadeOut(): Promise<void>;
 };
 
-export type EffectModule = { default: new () => EffectComponent };
+export interface EffectModule {
+  default: new () => EffectComponent;
+}
 
 export interface EffectOptions {
   fadeIn?: boolean;

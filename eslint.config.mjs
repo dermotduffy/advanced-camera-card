@@ -64,6 +64,7 @@ export default defineConfig([
     rules: {
       curly: 'error',
       'local/no-em-dash': 'error',
+      '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-non-null-assertion': 'error',
       '@typescript-eslint/parameter-properties': 'error',
