@@ -14,6 +14,7 @@ import { cameraSelectActionConfigSchema } from './custom/camera-select';
 import { viewDisplayModeActionConfigSchema } from './custom/display-mode';
 import { effectActionConfigSchema } from './custom/effect';
 import { generalActionConfigSchema } from './custom/general';
+import { generatedActionConfigSchema } from './custom/generated-action';
 import { internalCallbackActionConfigSchema } from './custom/internal';
 import { logActionConfigSchema } from './custom/log';
 import { mediaPlayerActionConfigSchema } from './custom/media-player';
@@ -79,6 +80,7 @@ const advancedCameraCardCustomActionSchema = z.union([
   cameraSelectActionConfigSchema,
   effectActionConfigSchema,
   generalActionConfigSchema,
+  generatedActionConfigSchema,
   internalCallbackActionConfigSchema,
   logActionConfigSchema,
   mediaPlayerActionConfigSchema,

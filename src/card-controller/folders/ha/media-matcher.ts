@@ -14,11 +14,15 @@ import type {
 } from '../../../ha/browse-media/types';
 import type { HomeAssistant } from '../../../ha/types';
 import { regexpExtract } from '../../../utils/regexp-extract';
-import { TemplateRenderer } from '../../templates';
+import type { TemplateRenderer } from '../../templates';
 import { REGEXP_GROUP_VALUE_KEY } from './types';
 
 export class MediaMatcher {
-  private _templateRenderer = new TemplateRenderer();
+  private _templateRenderer: TemplateRenderer;
+
+  constructor(templateRenderer: TemplateRenderer) {
+    this._templateRenderer = templateRenderer;
+  }
 
   public match(
     hass: HomeAssistant,

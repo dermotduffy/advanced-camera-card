@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import { TemplateRenderer } from '../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { createTriggerEvaluator } from '../../../src/condition-trigger/triggers/factory';
 import { CallTrigger } from '../../../src/condition-trigger/triggers/triggers/call';
@@ -26,7 +25,7 @@ import type {
 } from '../../../src/condition-trigger/triggers/triggers/types';
 import { ViewTrigger } from '../../../src/condition-trigger/triggers/triggers/view';
 import type { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
-import { createHASSManager } from '../../test-utils';
+import { createHASSManager, createMockTemplateRenderer } from '../../test-utils';
 
 type TriggerEvaluatorConstructor = new (...args: never[]) => TriggerEvaluator;
 
@@ -34,7 +33,7 @@ type TriggerEvaluatorConstructor = new (...args: never[]) => TriggerEvaluator;
 describe('createTriggerEvaluator', () => {
   const context = (): TriggerEvaluatorContext => ({
     stateManager: new ConditionStateManager(),
-    templateRenderer: new TemplateRenderer(),
+    templateRenderer: createMockTemplateRenderer(),
     hassManager: createHASSManager(),
   });
 

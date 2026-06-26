@@ -4,6 +4,7 @@ import { mock } from 'vitest-mock-extended';
 import { FoldersExecutor } from '../../../src/card-controller/folders/executor';
 import type { HAFoldersEngine } from '../../../src/card-controller/folders/ha/engine';
 import type { FolderQuery } from '../../../src/card-controller/folders/types';
+import { TemplateManager } from '../../../src/card-controller/templates';
 import type { FolderConfig } from '../../../src/config/schema/folders';
 import { QuerySource } from '../../../src/query-source';
 import type { Endpoint } from '../../../src/types';
@@ -14,6 +15,8 @@ vi.mock('../../../src/card-controller/folders/ha/engine');
 vi.mock('../../../../src/utils/ha/download');
 
 describe('FoldersExecutor', () => {
+  const templateManager = new TemplateManager();
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -21,7 +24,7 @@ describe('FoldersExecutor', () => {
   describe('getItemCapabilities', () => {
     it('should not get capabilities for non-folder media', () => {
       const item = new TestViewMedia({ folder: null });
-      const executor = new FoldersExecutor();
+      const executor = new FoldersExecutor(templateManager);
 
       expect(executor.getItemCapabilities(item)).toBeNull();
     });
@@ -31,7 +34,7 @@ describe('FoldersExecutor', () => {
         type: 'UNKNOWN',
       } as unknown as FolderConfig;
       const item = new TestViewMedia({ folder });
-      const executor = new FoldersExecutor();
+      const executor = new FoldersExecutor(templateManager);
 
       expect(executor.getItemCapabilities(item)).toBeNull();
     });
@@ -47,7 +50,7 @@ describe('FoldersExecutor', () => {
       const haFolderEngine = mock<HAFoldersEngine>();
       haFolderEngine.getItemCapabilities.mockReturnValue(capabilities);
 
-      const executor = new FoldersExecutor({
+      const executor = new FoldersExecutor(templateManager, {
         ha: haFolderEngine,
       });
 
@@ -60,7 +63,7 @@ describe('FoldersExecutor', () => {
       const folder: FolderConfig = {
         type: 'UNKNOWN',
       } as unknown as FolderConfig;
-      const executor = new FoldersExecutor();
+      const executor = new FoldersExecutor(templateManager);
 
       expect(executor.getDefaultQueryParameters(folder)).toBeNull();
     });
@@ -75,7 +78,7 @@ describe('FoldersExecutor', () => {
       };
       haFolderEngine.getDefaultQueryParameters.mockReturnValue(expectedQuery);
 
-      const executor = new FoldersExecutor({
+      const executor = new FoldersExecutor(templateManager, {
         ha: haFolderEngine,
       });
 
@@ -89,7 +92,7 @@ describe('FoldersExecutor', () => {
         type: 'UNKNOWN',
       } as unknown as FolderConfig;
       const item = new TestViewMedia({ folder });
-      const executor = new FoldersExecutor();
+      const executor = new FoldersExecutor(templateManager);
 
       expect(await executor.getDownloadPath(createHASS(), item)).toBeNull();
     });
@@ -99,7 +102,7 @@ describe('FoldersExecutor', () => {
       const haFolderEngine = mock<HAFoldersEngine>();
       haFolderEngine.getDownloadPath.mockResolvedValue(endpoint);
 
-      const executor = new FoldersExecutor({
+      const executor = new FoldersExecutor(templateManager, {
         ha: haFolderEngine,
       });
       const item = new TestViewMedia({ folder: createFolder() });
@@ -113,7 +116,7 @@ describe('FoldersExecutor', () => {
         type: 'UNKNOWN',
       } as unknown as FolderConfig;
       const item = new TestViewMedia({ folder });
-      const executor = new FoldersExecutor();
+      const executor = new FoldersExecutor(templateManager);
 
       await executor.favorite(createHASS(), item, true);
 
@@ -122,7 +125,7 @@ describe('FoldersExecutor', () => {
 
     it('should favorite', async () => {
       const haFolderEngine = mock<HAFoldersEngine>();
-      const executor = new FoldersExecutor({
+      const executor = new FoldersExecutor(templateManager, {
         ha: haFolderEngine,
       });
 
@@ -147,7 +150,7 @@ describe('FoldersExecutor', () => {
 
       const haFolderEngine = mock<HAFoldersEngine>();
       haFolderEngine.generateChildFolderQuery.mockReturnValue(query);
-      const executor = new FoldersExecutor({ ha: haFolderEngine });
+      const executor = new FoldersExecutor(templateManager, { ha: haFolderEngine });
 
       expect(executor.generateChildFolderQuery(query, viewFolder)).toEqual(query);
       expect(haFolderEngine.generateChildFolderQuery).toBeCalledWith(query, viewFolder);
@@ -163,7 +166,7 @@ describe('FoldersExecutor', () => {
         path: [{ ha: { id: 'media-source://' } }],
       };
       const viewFolder = new ViewFolder(folder, []);
-      const executor = new FoldersExecutor();
+      const executor = new FoldersExecutor(templateManager);
 
       expect(executor.generateChildFolderQuery(query, viewFolder)).toBeNull();
     });
@@ -175,7 +178,7 @@ describe('FoldersExecutor', () => {
         folder: { type: 'UNKNOWN' },
       } as unknown as FolderQuery;
 
-      const executor = new FoldersExecutor();
+      const executor = new FoldersExecutor(templateManager);
 
       expect(await executor.expandFolder(createHASS(), query)).toBeNull();
     });
@@ -197,7 +200,7 @@ describe('FoldersExecutor', () => {
       const haFolderEngine = mock<HAFoldersEngine>();
       haFolderEngine.expandFolder.mockResolvedValue([folderItem, mediaItem, folderItem]);
 
-      const executor = new FoldersExecutor({
+      const executor = new FoldersExecutor(templateManager, {
         ha: haFolderEngine,
       });
       const hass = createHASS();
@@ -216,7 +219,7 @@ describe('FoldersExecutor', () => {
         type: 'UNKNOWN',
       } as unknown as FolderConfig;
       const query: FolderQuery = { source: QuerySource.Folder, folder, path: [{}] };
-      const executor = new FoldersExecutor();
+      const executor = new FoldersExecutor(templateManager);
 
       expect(executor.areResultsFresh(new Date(), query)).toBe(true);
     });
@@ -227,7 +230,7 @@ describe('FoldersExecutor', () => {
       const haFolderEngine = mock<HAFoldersEngine>();
       haFolderEngine.areResultsFresh.mockReturnValue(false);
 
-      const executor = new FoldersExecutor({
+      const executor = new FoldersExecutor(templateManager, {
         ha: haFolderEngine,
       });
 

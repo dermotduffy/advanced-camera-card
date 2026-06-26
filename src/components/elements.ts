@@ -10,7 +10,8 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { isEqual } from 'lodash-es';
 
 import type { IssueTriggerEventData } from '../card-controller/issues/types.js';
-import { TemplateRenderer } from '../card-controller/templates/index.js';
+import type { TemplateRenderer } from '../card-controller/templates/index.js';
+import { getTemplateRendererViaEvent } from '../card-controller/templates/renderer-via-event.js';
 import { ConditionsManager } from '../condition-trigger/conditions/conditions-manager.js';
 import { getConditionStateManagerViaEvent } from '../condition-trigger/conditions/state-manager-via-event.js';
 import type { ConditionStateManager } from '../condition-trigger/conditions/state-manager.js';
@@ -93,11 +94,13 @@ export class AdvancedCameraCardElementsCore extends LitElement {
   @property({ attribute: false })
   public conditionStateManager?: ConditionStateManager;
 
+  @property({ attribute: false })
+  public templateRenderer?: TemplateRenderer;
+
   @state()
   private _root: HuiConditionalElement | null = null;
 
   private _renderedElements?: PictureElements;
-  private _templateRenderer = new TemplateRenderer();
 
   /**
    * Create a transparent render root.
@@ -137,13 +140,11 @@ export class AdvancedCameraCardElementsCore extends LitElement {
       return;
     }
 
-    const elements = this._templateRenderer.renderRecursivelyAsType(
-      this.hass,
-      this.elements,
-      {
-        conditionState: this.conditionStateManager?.getState(),
-      },
-    );
+    const elements = this.templateRenderer
+      ? this.templateRenderer.renderRecursivelyAsType(this.hass, this.elements, {
+          conditionState: this.conditionStateManager?.getState(),
+        })
+      : this.elements;
 
     // Condition state changes won't change the actual rendered config unless
     // `elements` has a template, which is more likely does not. Avoid updating
@@ -215,6 +216,9 @@ export class AdvancedCameraCardElements extends LitElement {
 
   @property({ attribute: false })
   public conditionStateManager?: ConditionStateManager;
+
+  @property({ attribute: false })
+  public templateRenderer?: TemplateRenderer;
 
   private _addHandler(
     target: EventTarget,
@@ -298,6 +302,7 @@ export class AdvancedCameraCardElements extends LitElement {
       .conditionStateManager=${this.conditionStateManager}
       .hass=${this.hass}
       .elements=${this.elements}
+      .templateRenderer=${this.templateRenderer}
     >
     </advanced-camera-card-elements-core>`;
   }
@@ -316,6 +321,7 @@ export class AdvancedCameraCardElements extends LitElement {
 export class AdvancedCameraCardElementsConditional extends LitElement {
   private _config?: AdvancedCameraCardConditional;
   private _conditionManager: ConditionsManager | null = null;
+  private _templateRenderer: TemplateRenderer | null = null;
 
   // A note on hass as an update mechanism:
   //
@@ -361,12 +367,15 @@ export class AdvancedCameraCardElementsConditional extends LitElement {
 
   private _createConditionManager(): void {
     const conditionStateManager = getConditionStateManagerViaEvent(this);
-    if (!this._config || !conditionStateManager) {
+    const templateRenderer = getTemplateRendererViaEvent(this);
+    if (!this._config || !conditionStateManager || !templateRenderer) {
       return;
     }
+    this._templateRenderer = templateRenderer;
     this._conditionManager?.destroy();
     this._conditionManager = new ConditionsManager(
       this._config.conditions,
+      templateRenderer,
       conditionStateManager,
     );
     this._conditionManager.addListener(() => this.requestUpdate());
@@ -377,6 +386,7 @@ export class AdvancedCameraCardElementsConditional extends LitElement {
       return html` <advanced-camera-card-elements-core
         .hass=${this.hass}
         .elements=${this._config?.elements}
+        .templateRenderer=${this._templateRenderer}
       >
       </advanced-camera-card-elements-core>`;
     }

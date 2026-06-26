@@ -109,6 +109,33 @@ describe('AutomationsManager', () => {
     expect(api.getActionsManager().executeActions).toBeCalledTimes(2);
   });
 
+  it('should subscribe automations registered before initialization', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+    const isInitialized = vi.mocked(
+      api.getInitializationManager().isInitializedMandatory,
+    );
+    isInitialized.mockReturnValue(false);
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
+    const automationsManager = new AutomationsManager(api);
+    automationsManager.addAutomations([automation]);
+
+    // Registered before initialization: the triggers are not yet subscribed, so
+    // a matching change does nothing.
+    stateManager.setState({ fullscreen: true });
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
+
+    // Initialization completes and subscribes the dormant automations.
+    isInitialized.mockReturnValue(true);
+    automationsManager.subscribe();
+
+    stateManager.setState({ fullscreen: false });
+    stateManager.setState({ fullscreen: true });
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
+  });
+
   it('should run actions when the ongoing conditions hold', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);

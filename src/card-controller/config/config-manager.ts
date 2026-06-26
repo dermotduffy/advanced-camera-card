@@ -16,6 +16,7 @@ import type { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import { getParseError } from '../../utils/zod/parse-errors.js';
 import { InitializationAspect } from '../initialization-manager.js';
+import { TemplateManager } from '../templates';
 import type { CardConfigAPI } from '../types.js';
 import { ConfigParseError } from './error.js';
 import { setAutomationsFromConfig } from './load-automations.js';
@@ -35,6 +36,13 @@ export class ConfigManager {
   private _overriddenConfig: AdvancedCameraCardConfig | null = null;
   private _rawConfig: RawAdvancedCameraCardConfig | null = null;
   private _cardWideConfig: CardWideConfig | null = null;
+
+  // Whether the effective config contains a template, recomputed only when that
+  // config changes (see `_processOverrideConfig`). Lets callers (e.g.
+  // InitializationManager) decide whether the template renderer is needed
+  // without rescanning the whole config on every render.
+  private _hasTemplate = false;
+
   private _overridesManager = new OverridesManager(() => this._processOverrideConfig());
 
   constructor(api: CardConfigAPI) {
@@ -73,6 +81,10 @@ export class ConfigManager {
 
   public getConfig(): AdvancedCameraCardConfig | null {
     return this._overriddenConfig ?? this._config;
+  }
+
+  public hasTemplate(): boolean {
+    return this._hasTemplate;
   }
 
   public getCardWideConfig(): CardWideConfig | null {
@@ -129,6 +141,7 @@ export class ConfigManager {
 
     this._overridesManager.set(
       this._api.getConditionStateManager(),
+      this._api.getTemplateManager(),
       this._config.overrides,
     );
 
@@ -177,6 +190,7 @@ export class ConfigManager {
 
     const previousConfig = this._overriddenConfig;
     this._overriddenConfig = overriddenConfig;
+    this._hasTemplate = TemplateManager.dataContainsTemplate(overriddenConfig);
 
     setFoldersFromConfig(this._api);
     this._api.getStyleManager().updateFromConfig();

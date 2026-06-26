@@ -5,16 +5,17 @@ import type { ConditionState } from '../conditions/types';
 // `vol.Any(boolean, template)`): a boolean, or a template rendered against the
 // current state. Returns whether the trigger/condition is active.
 //
-// `enabledWithoutHass` is the fallback when a template `enabled` cannot be
-// rendered (no hass yet, e.g. at startup). It differs by caller because
-// "disabled" has opposite consequences: a disabled *trigger* simply does not
-// fire (so triggers fail closed -- pass `false`), whereas a disabled
-// *condition* is skipped (so the condition may evaluate to `true`)
+// `fallback` is the result used when a template `enabled` cannot be rendered
+// (no hass yet, or the renderer has not finished loading -- both happen at
+// startup). It differs by caller because "disabled" has opposite consequences:
+// a disabled *trigger* simply does not fire (so triggers fail closed -- pass
+// `false`), whereas a disabled *condition* is skipped (so the condition may
+// evaluate to `true`).
 export const isEnabled = (
   templateRenderer: TemplateRenderer,
   enabled?: boolean | string,
   state?: ConditionState,
-  enabledWithoutHass = true,
+  fallback = true,
 ): boolean => {
   if (enabled === undefined) {
     return true;
@@ -22,8 +23,8 @@ export const isEnabled = (
   if (typeof enabled === 'boolean') {
     return enabled;
   }
-  if (!state?.hass) {
-    return enabledWithoutHass;
+  if (!state?.hass || !templateRenderer.isLoaded()) {
+    return fallback;
   }
   return (
     templateRenderer.renderRecursively(state.hass, enabled, {

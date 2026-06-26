@@ -87,6 +87,9 @@ const outputEntryTemplate = {
     ) {
       return 'lang-[name]-[hash].js';
     }
+    if (chunk.facadeModuleId && chunk.facadeModuleId.match(/ha-nunjucks/)) {
+      return 'templates-[hash].js';
+    }
     return '[name]-[hash].js';
   },
   format: 'es',

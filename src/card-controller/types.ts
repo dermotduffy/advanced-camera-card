@@ -30,6 +30,7 @@ import type { PIPManager } from './pip-manager';
 import type { QueryStringManager } from './query-string-manager';
 import type { StatusBarItemManager } from './status-bar-item-manager';
 import type { StyleManager } from './style-manager';
+import type { TemplateManager } from './templates';
 import type { ViewItemManager } from './view/item-manager';
 import type { ViewManager } from './view/view-manager';
 
@@ -62,6 +63,7 @@ export interface CardActionsAPI {
   getIssueManager(): IssueManager;
   getStatusBarItemManager(): StatusBarItemManager;
   getCameraTriggersManager(): CameraTriggersManager;
+  getTemplateManager(): TemplateManager;
   getViewItemManager(): ViewItemManager;
   getViewManager(): ViewManager;
 }
@@ -75,6 +77,7 @@ export interface CardAutomationsAPI {
   getInitializationManager(): InitializationManager;
   getNotificationManager(): NotificationManager;
   getIssueManager(): IssueManager;
+  getTemplateManager(): TemplateManager;
 }
 
 export interface CardCallAPI {
@@ -123,6 +126,7 @@ export interface CardConfigAPI {
   getIssueManager(): IssueManager;
   getStatusBarItemManager(): StatusBarItemManager;
   getStyleManager(): StyleManager;
+  getTemplateManager(): TemplateManager;
   getViewManager(): ViewManager;
 }
 
@@ -184,6 +188,7 @@ export interface CardFoldersAPI {
   getConfigManager(): ConfigManager;
   getHASSManager(): HASSManager;
   getResolvedMediaCache(): ResolvedMediaCache;
+  getTemplateManager(): TemplateManager;
 }
 
 export interface CardFullscreenAPI {
@@ -220,6 +225,7 @@ export interface CardInitializerAPI {
   createMicrophoneManager(): void;
   getMicrophoneManager(): MicrophoneManager;
 
+  getAutomationsManager(): AutomationsManager;
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
@@ -231,6 +237,7 @@ export interface CardInitializerAPI {
   getQueryStringManager(): QueryStringManager;
   getResolvedMediaCache(): ResolvedMediaCache;
   getCameraTriggersManager(): CameraTriggersManager;
+  getTemplateManager(): TemplateManager;
   getViewManager(): ViewManager;
 }
 

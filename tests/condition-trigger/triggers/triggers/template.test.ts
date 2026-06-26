@@ -1,10 +1,25 @@
-import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type Mock,
+} from 'vitest';
 
+import { TemplateManager } from '../../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { TemplateTrigger } from '../../../../src/condition-trigger/triggers/triggers/template';
 import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createHASS, createStateEntity } from '../../../test-utils';
 import { createTriggerEvaluatorContext } from './test-utils';
+
+const templateManager = new TemplateManager();
+beforeAll(async () => {
+  await templateManager.loadRenderer();
+});
 
 const ENTITY_ONE = 'sensor.foo';
 const ENTITY_TWO = 'sensor.bar';
@@ -24,7 +39,7 @@ describe('TemplateTrigger', () => {
     const callback = vi.fn();
     const trigger = new TemplateTrigger(
       config,
-      createTriggerEvaluatorContext({ stateManager }),
+      createTriggerEvaluatorContext({ stateManager, templateRenderer: templateManager }),
     );
     return { trigger, stateManager, callback };
   };

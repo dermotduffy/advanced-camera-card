@@ -40,7 +40,7 @@ import { PIPManager } from './pip-manager';
 import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
-import { TemplateRenderer } from './templates';
+import { TemplateManager } from './templates';
 import type {
   CardActionsManagerAPI,
   CardAutomationsAPI,
@@ -110,8 +110,9 @@ export class CardController
   private _deviceRegistryManager = new DeviceRegistryManager(new DeviceCache());
   private _entityRegistryManager = new EntityRegistryManagerLive(new EntityCache());
   private _resolvedMediaCache = new ResolvedMediaCache();
+  private _templateManager = new TemplateManager();
 
-  private _actionsManager = new ActionsManager(this, new TemplateRenderer());
+  private _actionsManager = new ActionsManager(this);
   private _automationsManager = new AutomationsManager(this);
   private _callManager = new CallManager(this);
   private _cameraManager = new CameraManager(this);
@@ -304,6 +305,10 @@ export class CardController
 
   public getStyleManager(): StyleManager {
     return this._styleManager;
+  }
+
+  public getTemplateManager(): TemplateManager {
+    return this._templateManager;
   }
 
   public getCameraTriggersManager(): CameraTriggersManager {

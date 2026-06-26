@@ -6,7 +6,6 @@ import type {
   AuxillaryActionConfig,
   IfActionConfig,
 } from '../../../config/schema/actions/types';
-import { TemplateRenderer } from '../../templates/index';
 import type { CardActionsAPI } from '../../types';
 import type { ActionPrepareCallback } from '../types';
 import { BaseAction } from './base';
@@ -41,7 +40,7 @@ export class IfAction extends BaseAction<IfActionConfig> {
     await super.execute(api);
 
     const action = this._getAction();
-    const evaluatorContext = { templateRenderer: new TemplateRenderer() };
+    const evaluatorContext = { templateRenderer: api.getTemplateManager() };
     const state = api.getConditionStateManager().getState();
     const conditionsHold = action.if.every(
       (condition) =>
@@ -53,10 +52,7 @@ export class IfAction extends BaseAction<IfActionConfig> {
       return;
     }
 
-    // The branch renders per-step as it runs, so each action observes state an
-    // earlier branch action changed. The trigger data is forwarded so the
-    // branch can still resolve `trigger.*` templates.
-    await api.getActionsManager().executeActions({
+    await api.getActionsManager().executeNestedActions({
       actions: branch,
       config: this._config,
       triggerData: this._triggerData,

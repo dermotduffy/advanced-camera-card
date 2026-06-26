@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 
 import { HAFoldersEngine } from '../../../../src/card-controller/folders/ha/engine';
 import type { FolderQuery } from '../../../../src/card-controller/folders/types';
+import { TemplateManager } from '../../../../src/card-controller/templates';
 import type { FolderConfig, Matcher } from '../../../../src/config/schema/folders';
 import { BrowseMediaViewFolder } from '../../../../src/ha/browse-media/item';
 import { browseMediaSchema } from '../../../../src/ha/browse-media/types';
@@ -21,6 +22,8 @@ vi.mock('../../../../src/ha/download');
 vi.mock('../../../../src/ha/ws-request');
 
 describe('HAFoldersEngine', () => {
+  const templateManager = new TemplateManager();
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -28,7 +31,7 @@ describe('HAFoldersEngine', () => {
   describe('getItemCapabilities', () => {
     it('should not be able to download a folder', () => {
       const item = new ViewFolder(createFolder(), []);
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
 
       expect(engine.getItemCapabilities(item)).toEqual({
         canFavorite: false,
@@ -38,7 +41,7 @@ describe('HAFoldersEngine', () => {
 
     it('should be able to download a media item', () => {
       const item = new TestViewMedia({ folder: createFolder() });
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
 
       expect(engine.getItemCapabilities(item)).toEqual({
         canFavorite: false,
@@ -50,13 +53,13 @@ describe('HAFoldersEngine', () => {
   describe('getDownloadPath', () => {
     it('should return null if item is not a media item', async () => {
       const item = new ViewFolder(createFolder(), []);
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
       expect(await engine.getDownloadPath(createHASS(), item)).toBeNull();
     });
 
     it('should return a download path for a media item', async () => {
       const item = new TestViewMedia({ folder: createFolder() });
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
 
       const endpoint: Endpoint = { endpoint: '/media', sign: false };
       vi.mocked(getMediaDownloadPath).mockResolvedValue(endpoint);
@@ -67,7 +70,7 @@ describe('HAFoldersEngine', () => {
 
   describe('favorite', () => {
     it('should favorite', async () => {
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
       const item = new TestViewMedia({ folder: createFolder() });
 
       await engine.favorite(createHASS(), item, true);
@@ -81,14 +84,14 @@ describe('HAFoldersEngine', () => {
       const folder: FolderConfig = {
         type: 'UNKNOWN',
       } as unknown as FolderConfig;
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
 
       expect(engine.getDefaultQueryParameters(folder)).toBeNull();
     });
 
     it('should return default query parameters for ha folder config', () => {
       const folder = createFolder();
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
 
       expect(engine.getDefaultQueryParameters(folder)).toEqual({
         source: QuerySource.Folder,
@@ -104,7 +107,7 @@ describe('HAFoldersEngine', () => {
         source: QuerySource.Folder,
         folder: { type: 'UNKNOWN' },
       } as unknown as FolderQuery;
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
 
       expect(await engine.expandFolder(createHASS(), query)).toBeNull();
     });
@@ -134,7 +137,7 @@ describe('HAFoldersEngine', () => {
         }),
       );
 
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
       const results = await engine.expandFolder(createHASS(), query);
       expect(results?.length).toBe(2);
       expect(results?.[0]).toBeInstanceOf(ViewMedia);
@@ -174,7 +177,7 @@ describe('HAFoldersEngine', () => {
         )
         .mockResolvedValueOnce([]);
 
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
       const results = await engine.expandFolder(
         createHASS(),
         query,
@@ -219,7 +222,7 @@ describe('HAFoldersEngine', () => {
       );
 
       const hass = createHASS();
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
       await engine.expandFolder(hass, query);
 
       expect(homeAssistantWSRequest).toBeCalledWith(hass, browseMediaSchema, {
@@ -235,7 +238,7 @@ describe('HAFoldersEngine', () => {
         // There's no component in the query with an id to start from.
         path: [{ ha: {} }],
       };
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
       expect(await engine.expandFolder(createHASS(), query)).toBeNull();
     });
 
@@ -264,7 +267,7 @@ describe('HAFoldersEngine', () => {
         }),
       );
 
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
       const results = await engine.expandFolder(createHASS(), query);
 
       // Even though there are 2 children, the limit of 1 should trigger earlyExit.
@@ -329,7 +332,7 @@ describe('HAFoldersEngine', () => {
             }),
           );
 
-        const engine = new HAFoldersEngine();
+        const engine = new HAFoldersEngine(templateManager);
         const results = await engine.expandFolder(createHASS(), query);
         expect(results?.length).toBe(expectedMatches);
       });
@@ -338,7 +341,7 @@ describe('HAFoldersEngine', () => {
 
   describe('generateChildFolderQuery', () => {
     it('should return null if folder type is not ha', () => {
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
       const query: FolderQuery = {
         source: QuerySource.Folder,
         folder: { type: 'other' } as unknown as FolderConfig,
@@ -350,7 +353,7 @@ describe('HAFoldersEngine', () => {
     });
 
     it('should return null if folder has no id', () => {
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
       const query: FolderQuery = {
         source: QuerySource.Folder,
         folder: { type: 'ha', id: 'test' },
@@ -362,7 +365,7 @@ describe('HAFoldersEngine', () => {
     });
 
     it('should extend query with configured component', () => {
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
       const folderConfig: FolderConfig = {
         type: 'ha',
         id: 'test',
@@ -393,7 +396,7 @@ describe('HAFoldersEngine', () => {
     });
 
     it('should extend query with default component when no configuration exists', () => {
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
       const folderConfig: FolderConfig = { type: 'ha', id: 'test' };
       const query: FolderQuery = {
         source: QuerySource.Folder,
@@ -431,7 +434,7 @@ describe('HAFoldersEngine', () => {
       const now = new Date('2026-01-02T07:54:32Z');
       vi.setSystemTime(now);
 
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
       const query = { folder: { type: 'ha' } } as FolderQuery;
       const resultsTimestamp = new Date('2026-01-02T07:54:30Z');
 
@@ -442,7 +445,7 @@ describe('HAFoldersEngine', () => {
       const now = new Date('2026-01-02T07:54:32Z');
       vi.setSystemTime(now);
 
-      const engine = new HAFoldersEngine();
+      const engine = new HAFoldersEngine(templateManager);
       const query = { folder: { type: 'ha' } } as FolderQuery;
       const resultsTimestamp = new Date('2026-01-02T07:53:30Z');
 

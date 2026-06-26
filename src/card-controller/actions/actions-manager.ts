@@ -1,7 +1,6 @@
 import type { ActionContext } from 'action';
 import { z } from 'zod';
 
-import type { TriggerData } from '../../condition-trigger/triggers/types.js';
 import type {
   ActionConfig,
   Actions,
@@ -13,14 +12,9 @@ import {
   isAdvancedCameraCardCustomAction,
 } from '../../utils/action.js';
 import { allPromises, errorToConsole } from '../../utils/basic.js';
-import type { TemplateRenderer } from '../templates/index.js';
 import type { CardActionsManagerAPI } from '../types.js';
 import { ActionSet } from './actions/set.js';
-import type {
-  ActionPrepareCallback,
-  ActionsExecutionRequest,
-  ActionsExecutor,
-} from './types.js';
+import type { ActionsExecutionRequest, ActionsExecutor } from './types.js';
 
 const INTERACTIONS = ['tap', 'double_tap', 'hold', 'start_tap', 'end_tap'] as const;
 export type InteractionName = (typeof INTERACTIONS)[number];
@@ -38,11 +32,9 @@ export class ActionsManager implements ActionsExecutor {
   private _api: CardActionsManagerAPI;
   private _actionsInFlight: ActionSet[] = [];
   private _actionContext: ActionContext = {};
-  private _templateRenderer: TemplateRenderer | null;
 
-  constructor(api: CardActionsManagerAPI, templateRenderer?: TemplateRenderer) {
+  constructor(api: CardActionsManagerAPI) {
     this._api = api;
-    this._templateRenderer = templateRenderer ?? null;
   }
 
   /**
@@ -120,8 +112,13 @@ export class ActionsManager implements ActionsExecutor {
 
     await this.executeActions(
       { actions: action },
-      // Elements rendered by this card will already have rendered templates.
-      true,
+
+      // Don't render templates: the picture-elements chain (which may contain
+      // third-party elements we don't control) is rendered wholesale when the
+      // elements are built, so this action's templates are already resolved.
+      // Rendering again would re-evaluate any `{{ }}` that a first render
+      // produced.
+      false,
     );
   };
 
@@ -140,63 +137,54 @@ export class ActionsManager implements ActionsExecutor {
     await allPromises(this._actionsInFlight, (actionSet) => actionSet.stop());
   }
 
+  // The top-level entry point for running actions: it runs them and emits the
+  // user feedback (the haptic) for the gesture. Actions that run further
+  // actions (e.g. `if`, `generated_action`) must use `executeNestedActions`.
   public async executeActions(
     request: ActionsExecutionRequest,
     renderTemplates = true,
   ): Promise<void> {
-    // Lock filtering and the factory both classify on the raw (unrendered)
-    // discriminator (`action` / `advanced_camera_card_action`). A templated
-    // `advanced_camera_card_action` (permitted only by the loose custom-action
-    // schema) is left unresolved, matches no action type, and is dropped.
-    const allowedActions = this._api.getLockManager().getAllowedActions(request.actions);
-    if (!allowedActions.length) {
-      return;
-    }
-
-    // Each action prepares itself (via Action.prepare) just before it runs, so
-    // it observes what an earlier action may have changed. Skip when the caller
-    // opts out (the templates are already rendered) or there is no renderer.
-    const renderer = this._templateRenderer;
-    const actionPrepareCallback =
-      renderTemplates && renderer
-        ? this._createActionPrepareCallback(renderer, request.triggerData)
-        : undefined;
-
-    const actionSet = new ActionSet(this._actionContext, allowedActions, {
-      factoryOptions: {
-        config: request.config,
-        cardID: this._api.getConfigManager().getConfig()?.card_id,
-        triggerData: request?.triggerData,
-      },
-      actionPrepareCallback,
-    });
-
-    this._actionsInFlight.push(actionSet);
-
     try {
-      await actionSet.execute(this._api);
-      forwardHaptic('success');
+      // Only give success feedback when an action actually ran, so a gesture
+      // that did nothing (everything lock-filtered, or no action matched) stays
+      // silent.
+      if (await this._runActions(request, renderTemplates)) {
+        forwardHaptic('success');
+      }
     } catch (e) {
       errorToConsole(e);
       forwardHaptic('warning');
     }
-    this._actionsInFlight = this._actionsInFlight.filter((a) => a !== actionSet);
   }
 
-  private _createActionPrepareCallback(
-    renderer: TemplateRenderer,
-    triggerData?: TriggerData,
-  ): ActionPrepareCallback {
-    // Render against the state (incl. HASS) as it is *when the action runs* --
-    // fixed trigger context, fresh card/HASS state per step.
-    return <T>(value: T): T => {
-      const hass = this._api.getHASSManager().getHASS();
-      return hass
-        ? renderer.renderRecursivelyAsType(hass, value, {
-            conditionState: this._api.getConditionStateManager().getState(),
-            triggerData,
-          })
-        : value;
-    };
+  // Run actions as a nested part of an already-running action (e.g. an `if`
+  // branch, or the action a `generated_action` produces). Errors propagate to
+  // the top-level `executeActions` (i.e. there's no try/catch here
+  // intentionally).
+  public async executeNestedActions(request: ActionsExecutionRequest): Promise<void> {
+    await this._runActions(request, true);
+  }
+
+  private async _runActions(
+    request: ActionsExecutionRequest,
+    renderTemplates: boolean,
+  ): Promise<boolean> {
+    const actionSet = new ActionSet(this._actionContext, request.actions, {
+      factoryOptions: {
+        config: request.config,
+        cardID: this._api.getConfigManager().getConfig()?.card_id,
+        triggerData: request.triggerData,
+      },
+      renderTemplates,
+    });
+
+    // Track the set in-flight (including nested sets) so `uninitialize` can
+    // stop long-running actions on teardown.
+    this._actionsInFlight.push(actionSet);
+    try {
+      return await actionSet.execute(this._api);
+    } finally {
+      this._actionsInFlight = this._actionsInFlight.filter((a) => a !== actionSet);
+    }
   }
 }

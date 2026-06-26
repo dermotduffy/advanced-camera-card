@@ -1,6 +1,10 @@
 import type { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 
+import {
+  TemplateManager,
+  type TemplateRenderer,
+} from '../../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { NumericStateTrigger } from '../../../../src/condition-trigger/triggers/triggers/numeric-state';
 import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
@@ -15,6 +19,7 @@ const THRESHOLD = 'input_number.limit';
 describe('NumericStateTrigger', () => {
   const create = (
     config: TriggerOfType<'numeric_state'>,
+    templateRenderer?: TemplateRenderer,
   ): {
     trigger: NumericStateTrigger;
     stateManager: ConditionStateManager;
@@ -24,7 +29,9 @@ describe('NumericStateTrigger', () => {
     const callback = vi.fn();
     const trigger = new NumericStateTrigger(
       config,
-      createTriggerEvaluatorContext({ stateManager }),
+      createTriggerEvaluatorContext(
+        templateRenderer ? { stateManager, templateRenderer } : { stateManager },
+      ),
     );
     return { trigger, stateManager, callback };
   };
@@ -154,13 +161,19 @@ describe('NumericStateTrigger', () => {
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
-  it('should match the rendered value_template', () => {
-    const { trigger, stateManager, callback } = create({
-      trigger: 'numeric_state',
-      entity_id: SENSOR,
-      value_template: `{{ states('${SENSOR}') | float * 10 }}`,
-      above: 20,
-    });
+  it('should match the rendered value_template', async () => {
+    const templateManager = new TemplateManager();
+    await templateManager.loadRenderer();
+
+    const { trigger, stateManager, callback } = create(
+      {
+        trigger: 'numeric_state',
+        entity_id: SENSOR,
+        value_template: `{{ states('${SENSOR}') | float * 10 }}`,
+        above: 20,
+      },
+      templateManager,
+    );
     trigger.subscribe(callback);
 
     // Template value 1 * 10 = 10: arms.

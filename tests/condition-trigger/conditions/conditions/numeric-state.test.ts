@@ -1,7 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+import { TemplateManager } from '../../../../src/card-controller/templates';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
-import { createHASS, createStateEntity } from '../../../test-utils';
+import {
+  createHASS,
+  createMockTemplateRenderer,
+  createStateEntity,
+} from '../../../test-utils';
 import { createEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
@@ -122,7 +127,12 @@ describe('numeric state condition', () => {
     ).toBeFalsy();
   });
 
-  it('should compare the rendered value_template instead of the state', () => {
+  it('should compare the rendered value_template instead of the state', async () => {
+    // This case renders a real value_template, so load the lazily-imported
+    // engine for the synchronous renderer.
+    const templateManager = new TemplateManager();
+    await templateManager.loadRenderer();
+
     const evaluator = createConditionEvaluator(
       {
         condition: 'numeric_state' as const,
@@ -130,7 +140,7 @@ describe('numeric state condition', () => {
         value_template: '{{ 11 }}',
         above: 10,
       },
-      createEvaluatorContext(),
+      createEvaluatorContext({ templateRenderer: templateManager }),
     );
 
     // The entity state (0) would fail; the template value (11) passes.
@@ -139,6 +149,28 @@ describe('numeric state condition', () => {
         hass: createHASS({ 'sensor.foo': createStateEntity({ state: '0' }) }),
       }).result,
     ).toBeTruthy();
+  });
+
+  it('should not match a value_template until the renderer has loaded', () => {
+    const unloadedRenderer = createMockTemplateRenderer();
+    vi.mocked(unloadedRenderer).isLoaded.mockReturnValue(false);
+    const evaluator = createConditionEvaluator(
+      {
+        condition: 'numeric_state' as const,
+        entity_id: 'sensor.foo',
+        value_template: '{{ 11 }}',
+        above: 10,
+      },
+      createEvaluatorContext({ templateRenderer: unloadedRenderer }),
+    );
+
+    // The entity state (11) would pass, but the value_template cannot be
+    // evaluated before the renderer loads, so the condition does not match.
+    expect(
+      evaluator.evaluate({
+        hass: createHASS({ 'sensor.foo': createStateEntity({ state: '11' }) }),
+      }).result,
+    ).toBeFalsy();
   });
 
   it('should not match when the value is not numeric', () => {
