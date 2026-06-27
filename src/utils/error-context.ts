@@ -1,12 +1,11 @@
 import { AdvancedCameraCardError } from '../types.js';
+import { isRecord } from './basic.js';
 
-// Narrows an unknown error to its structured object `context` -- non-null and
-// of object type -- or null if the error is not an AdvancedCameraCardError or
-// has no usable context. Consolidates the instanceof + typeof + null-guard
-// dance that notification builders and error handlers would otherwise repeat.
-export const getContextFromError = (error: unknown): object | null =>
-  error instanceof AdvancedCameraCardError &&
-  typeof error.context === 'object' &&
-  error.context !== null
+// Narrows an unknown error to its structured object `context` -- a non-null
+// record -- or null if the error is not an AdvancedCameraCardError or has no
+// usable context. Consolidates the instanceof + null-guard dance that
+// notification builders and error handlers would otherwise repeat.
+export const getContextFromError = (error: unknown): Record<string, unknown> | null =>
+  error instanceof AdvancedCameraCardError && isRecord(error.context)
     ? error.context
     : null;

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { isRecord } from '../../../utils/basic';
 import { linkSchema } from '../common/link';
 import { preprocessToArray } from '../common/preprocess-to-array';
 import { severitySchema } from '../common/severity';
@@ -187,11 +188,15 @@ const notificationControlSchema = notificationBaseSchema.extend({
 });
 export type NotificationControl = z.infer<typeof notificationControlSchema>;
 
+// A context item is a preformatted string or a structured object that is
+// YAML-dumped at render time (see NotificationContextController).
+const notificationContextItemSchema = z.union([z.string(), z.custom<object>(isRecord)]);
+
 const notificationSchema = z.object({
   heading: notificationDetailSchema.optional(),
   body: notificationDetailSchema.optional(),
   metadata: notificationDetailSchema.array().optional(),
-  context: z.string().array().optional(),
+  context: notificationContextItemSchema.array().optional(),
   link: linkSchema.optional(),
   in_progress: z.boolean().optional(),
   controls: notificationControlSchema.array().optional(),

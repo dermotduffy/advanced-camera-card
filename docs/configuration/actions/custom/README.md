@@ -354,15 +354,15 @@ advanced_camera_card_action: notification
 
 ### `notification`
 
-| Parameter     | Description                                                                                                |
-| ------------- | ---------------------------------------------------------------------------------------------------------- |
-| `heading`     | An optional heading. Uses the same format as [`metadata`](README.md?id=metadata) below.                    |
-| `body`        | An optional body. Uses the same format as [`metadata`](README.md?id=metadata) below.                       |
-| `metadata`    | An optional list of metadata to show with the notification. See [`metadata`](README.md?id=metadata) below. |
-| `context`     | An optional list of preformatted text strings shown as a technical detail block (e.g. YAML).               |
-| `link`        | An optional link displayed below the body. See [`link`](#link) below.                                      |
-| `in_progress` | If `true`, shows a loading indicator.                                                                      |
-| `controls`    | An optional list of controls. See [`controls`](README.md?id=controls) below.                               |
+| Parameter     | Description                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `heading`     | An optional heading. Uses the same format as [`metadata`](README.md?id=metadata) below.                             |
+| `body`        | An optional body. Uses the same format as [`metadata`](README.md?id=metadata) below.                                |
+| `metadata`    | An optional list of metadata to show with the notification. See [`metadata`](README.md?id=metadata) below.          |
+| `context`     | An optional list of items shown as a technical detail block: strings are shown as-is, objects are rendered as YAML. |
+| `link`        | An optional link displayed below the body. See [`link`](#link) below.                                               |
+| `in_progress` | If `true`, shows a loading indicator.                                                                               |
+| `controls`    | An optional list of controls. See [`controls`](README.md?id=controls) below.                                        |
 
 ### Metadata
 

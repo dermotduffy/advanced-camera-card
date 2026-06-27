@@ -67,8 +67,7 @@ describe('createNotificationFromText', () => {
     const notification = createNotificationFromText('oops', {
       context: { detail: 'extra info' },
     });
-    expect(notification.context).toBeDefined();
-    expect(notification.context?.join(' ')).toContain('detail: extra info');
+    expect(notification.context).toEqual([{ detail: 'extra info' }]);
   });
 
   it('should omit context when not provided', () => {
@@ -136,8 +135,7 @@ describe('createNotificationFromError', () => {
     const error = new AdvancedCameraCardError('boom', { reason: 'network' });
     const notification = createNotificationFromError(error);
     assert(notification);
-    expect(notification.context).toBeDefined();
-    expect(notification.context?.join(' ')).toContain('reason: network');
+    expect(notification.context).toEqual([{ reason: 'network' }]);
   });
 
   it('should use explicit context option over AdvancedCameraCardError context', () => {
@@ -146,8 +144,7 @@ describe('createNotificationFromError', () => {
       context: { override: 'explicit' },
     });
     assert(notification);
-    expect(notification.context?.join(' ')).toContain('override: explicit');
-    expect(notification.context?.join(' ')).not.toContain('reason: network');
+    expect(notification.context).toEqual([{ override: 'explicit' }]);
   });
 
   it('should not include context when AdvancedCameraCardError has a non-object context', () => {
