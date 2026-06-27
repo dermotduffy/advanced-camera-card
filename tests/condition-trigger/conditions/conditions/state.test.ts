@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { TemplateManager } from '../../../../src/card-controller/templates';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
 import { createHASS, createStateEntity } from '../../../test-utils';
 import { createEvaluatorContext } from './test-utils';
@@ -335,7 +336,12 @@ describe('state condition', () => {
       ).toBeTruthy();
     });
 
-    it('should render a templated "for" before comparing', () => {
+    it('should render a templated "for" before comparing', async () => {
+      // This case renders a real templated `for`, so load the lazily-imported
+      // engine for the synchronous renderer.
+      const templateManager = new TemplateManager();
+      await templateManager.loadRenderer();
+
       const evaluator = createConditionEvaluator(
         {
           condition: 'state' as const,
@@ -343,7 +349,7 @@ describe('state condition', () => {
           state: 'on',
           for: "{{ states('input_number.delay') }}",
         },
-        createEvaluatorContext(),
+        createEvaluatorContext({ templateRenderer: templateManager }),
       );
 
       const evaluateHeldSince = (lastChanged: string): boolean =>

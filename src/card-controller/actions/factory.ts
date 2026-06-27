@@ -1,6 +1,7 @@
 import type { ActionContext } from 'action';
 
 import type { TriggerData } from '../../condition-trigger/triggers/types';
+import { GENERATED_ACTION } from '../../config/schema/actions/custom/generated-action';
 import { INTERNAL_CALLBACK_ACTION } from '../../config/schema/actions/custom/internal';
 import type {
   ActionConfig,
@@ -20,6 +21,7 @@ import { DownloadAction } from './actions/download';
 import { EffectAction } from './actions/effect';
 import { ExpandAction } from './actions/expand';
 import { FullscreenAction } from './actions/fullscreen';
+import { GeneratedAction } from './actions/generated-action';
 import { IfAction } from './actions/if';
 import { InfoAction } from './actions/info';
 import { InternalCallbackAction } from './actions/internal-callback';
@@ -199,6 +201,13 @@ export class ActionFactory {
         return new SetReviewAction(context, action, options?.config);
       case INTERNAL_CALLBACK_ACTION:
         return new InternalCallbackAction(context, action, options?.config);
+      case GENERATED_ACTION:
+        return new GeneratedAction(
+          context,
+          action,
+          options?.config,
+          options?.triggerData,
+        );
     }
 
     // Reached when the discriminator is not a known action type -- e.g. a

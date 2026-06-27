@@ -1,9 +1,17 @@
-import { describe, expect, it, vi, type Mock } from 'vitest';
+import { beforeAll, describe, expect, it, vi, type Mock } from 'vitest';
 
+import { TemplateManager } from '../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { TriggersManager } from '../../../src/condition-trigger/triggers/manager';
 import type { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
-import { createHASS, createHASSManager, createStateEntity } from '../../test-utils';
+import {
+  createHASS,
+  createHASSManager,
+  createMockTemplateRenderer,
+  createStateEntity,
+} from '../../test-utils';
+
+const templateManager = createMockTemplateRenderer();
 
 // @vitest-environment jsdom
 describe('TriggersManager', () => {
@@ -15,7 +23,13 @@ describe('TriggersManager', () => {
     listener: Mock;
   } => {
     const stateManager = new ConditionStateManager();
-    const manager = new TriggersManager(triggers, stateManager, createHASSManager());
+    const manager = new TriggersManager(
+      triggers,
+      stateManager,
+      createHASSManager(),
+      templateManager,
+    );
+    manager.subscribe();
     const listener = vi.fn();
     return { manager, stateManager, listener };
   };
@@ -90,8 +104,30 @@ describe('TriggersManager', () => {
     expect(listener).not.toHaveBeenCalled();
   });
 
+  it('should subscribe its evaluators only once', () => {
+    const { manager, stateManager, listener } = create([
+      { trigger: 'camera', cameras: ['front'] },
+    ]);
+    manager.addListener(listener);
+
+    // A repeat subscribe is ignored, so the evaluator is not attached twice and
+    // the listener fires once rather than once per subscription.
+    manager.subscribe();
+
+    stateManager.setState({ camera: 'front' });
+
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
   describe('enabled', () => {
     const ENABLED_TEMPLATE = '{{ is_state("binary_sensor.flag", "on") }}';
+
+    // These cases gate on a rendered `enabled` template, so use a real engine
+    // loaded for the synchronous renderer (rather than the shared mock).
+    const templateManager = new TemplateManager();
+    beforeAll(async () => {
+      await templateManager.loadRenderer();
+    });
 
     const createWithFlag = (
       enabled: string,
@@ -109,7 +145,9 @@ describe('TriggersManager', () => {
         [{ trigger: 'camera', cameras: ['front'], enabled }],
         stateManager,
         createHASSManager(),
+        templateManager,
       );
+      manager.subscribe();
       const listener = vi.fn();
       manager.addListener(listener);
       return { stateManager, listener };
@@ -172,7 +210,9 @@ describe('TriggersManager', () => {
         [{ trigger: 'camera', cameras: ['front', 'back'], enabled: ENABLED_TEMPLATE }],
         stateManager,
         createHASSManager(),
+        templateManager,
       );
+      manager.subscribe();
       const listener = vi.fn();
       manager.addListener(listener);
 

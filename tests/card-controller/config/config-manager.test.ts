@@ -894,4 +894,33 @@ describe('ConfigManager', () => {
       });
     });
   });
+
+  describe('hasTemplate', () => {
+    it('should report true when the config contains a template', () => {
+      const { manager } = createConfigManagerTestSetup();
+
+      manager.setConfig({
+        type: 'custom:advanced-camera-card',
+        cameras: [TEST_CAMERAS.OFFICE],
+        view: {
+          actions: {
+            tap_action: { action: 'navigate', navigation_path: '{{ acc.camera }}' },
+          },
+        },
+      });
+
+      expect(manager.hasTemplate()).toBe(true);
+    });
+
+    it('should report false when the config contains no template', () => {
+      const { manager } = createConfigManagerTestSetup();
+
+      manager.setConfig({
+        type: 'custom:advanced-camera-card',
+        cameras: [TEST_CAMERAS.OFFICE],
+      });
+
+      expect(manager.hasTemplate()).toBe(false);
+    });
+  });
 });

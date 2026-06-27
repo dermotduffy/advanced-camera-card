@@ -23,7 +23,7 @@ export class FoldersManager {
 
   constructor(api: CardFoldersAPI, executor?: FoldersExecutor) {
     this._api = api;
-    this._executor = executor ?? new FoldersExecutor();
+    this._executor = executor ?? new FoldersExecutor(this._api.getTemplateManager());
   }
 
   public deleteFolders(): void {

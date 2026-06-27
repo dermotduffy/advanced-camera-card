@@ -1,18 +1,20 @@
 import { sub } from 'date-fns';
-import { renderTemplate } from 'ha-nunjucks';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import { MediaMatcher } from '../../../../src/card-controller/folders/ha/media-matcher';
+import { TemplateManager } from '../../../../src/card-controller/templates';
 import type { Matcher } from '../../../../src/config/schema/folders';
 import type {
   BrowseMediaMetadata,
   RichBrowseMedia,
 } from '../../../../src/ha/browse-media/types';
-import { createHASS } from '../../../test-utils';
-
-vi.mock('ha-nunjucks');
+import { createHASS, createMockTemplateRenderer } from '../../../test-utils';
 
 describe('MediaMatcher', () => {
+  // A mock renderer for the matcher plumbing, which never renders templates.
+  // The `value_template` suite below uses its own real, loaded engine.
+  const templateManager = createMockTemplateRenderer();
+
   describe('match', () => {
     const createMediaItem = (
       title: string,
@@ -29,7 +31,7 @@ describe('MediaMatcher', () => {
     });
 
     it('should return false if foldersOnly is true and media.can_expand is false', () => {
-      const mediaMatcher = new MediaMatcher();
+      const mediaMatcher = new MediaMatcher(templateManager);
       const media = createMediaItem('Test File');
       expect(
         mediaMatcher.match(createHASS(), media, { matchers: [], foldersOnly: true }),
@@ -37,7 +39,7 @@ describe('MediaMatcher', () => {
     });
 
     it('should return true if foldersOnly is true and media.can_expand is true', () => {
-      const mediaMatcher = new MediaMatcher();
+      const mediaMatcher = new MediaMatcher(templateManager);
       const media = createMediaItem('Test Folder', true, 'directory');
       expect(
         mediaMatcher.match(createHASS(), media, { matchers: [], foldersOnly: true }),
@@ -45,13 +47,13 @@ describe('MediaMatcher', () => {
     });
 
     it('should return true if matchers array is empty', () => {
-      const mediaMatcher = new MediaMatcher();
+      const mediaMatcher = new MediaMatcher(templateManager);
       const media = createMediaItem('Test Media');
       expect(mediaMatcher.match(createHASS(), media, { matchers: [] })).toBe(true);
     });
 
     it('should return true if matchers array is undefined', () => {
-      const mediaMatcher = new MediaMatcher();
+      const mediaMatcher = new MediaMatcher(templateManager);
       const media = createMediaItem('Test Media');
       expect(mediaMatcher.match(createHASS(), media, { matchers: undefined })).toBe(
         true,
@@ -60,21 +62,21 @@ describe('MediaMatcher', () => {
 
     describe('with title matcher', () => {
       it('should return true when title matches exactly', () => {
-        const mediaMatcher = new MediaMatcher();
+        const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Exact Title');
         const matchers: Matcher[] = [{ type: 'title', title: 'Exact Title' }];
         expect(mediaMatcher.match(createHASS(), media, { matchers })).toBe(true);
       });
 
       it('should return false when title does not match exactly', () => {
-        const mediaMatcher = new MediaMatcher();
+        const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('DOES NOT MATCH');
         const matchers: Matcher[] = [{ type: 'title', title: 'Exact Title' }];
         expect(mediaMatcher.match(createHASS(), media, { matchers })).toBe(false);
       });
 
       it('should return true when title matches regexp and extracted value matches matcher.title', () => {
-        const mediaMatcher = new MediaMatcher();
+        const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Prefix-ImportantPart-Suffix');
         const matchers: Matcher[] = [
           {
@@ -87,7 +89,7 @@ describe('MediaMatcher', () => {
       });
 
       it('should return false when title matches regexp but extracted value does not match matcher.title', () => {
-        const mediaMatcher = new MediaMatcher();
+        const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Prefix-ImportantPart-Suffix');
         const matchers: Matcher[] = [
           {
@@ -100,7 +102,7 @@ describe('MediaMatcher', () => {
       });
 
       it('should return true when title matches regexp with an explicit title value', () => {
-        const mediaMatcher = new MediaMatcher();
+        const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Prefix-ImportantPart-Suffix');
         const matchers: Matcher[] = [
           {
@@ -113,7 +115,7 @@ describe('MediaMatcher', () => {
       });
 
       it('should return false when title does not match regexp', () => {
-        const mediaMatcher = new MediaMatcher();
+        const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Unrelated Title');
         const matchers: Matcher[] = [
           {
@@ -126,7 +128,7 @@ describe('MediaMatcher', () => {
       });
 
       it('should return false when regexp is provided but does not extract the required group', () => {
-        const mediaMatcher = new MediaMatcher();
+        const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Prefix-ImportantPart-Suffix');
         const matchers: Matcher[] = [
           {
@@ -139,7 +141,7 @@ describe('MediaMatcher', () => {
       });
 
       it('should return true when no regexp and no matcher.title (matches any title)', () => {
-        const mediaMatcher = new MediaMatcher();
+        const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Any Title Will Do');
         const matchers: Matcher[] = [{ type: 'title' }];
         expect(mediaMatcher.match(createHASS(), media, { matchers })).toBe(true);
@@ -147,42 +149,16 @@ describe('MediaMatcher', () => {
     });
 
     describe('with template matcher', () => {
-      it('should return true when template value matches', () => {
-        const mediaMatcher = new MediaMatcher();
-        const title = 'Any Title Will Do';
-        const media = createMediaItem(title);
-
-        vi.mocked(renderTemplate).mockReturnValue(true);
-
-        const matchers: Matcher[] = [
-          {
-            type: 'template',
-            value_template: '{{ acc.media.title == "Any Title Will Do" }}',
-          },
-        ];
-        const hass = createHASS();
-        expect(mediaMatcher.match(hass, media, { matchers })).toBe(true);
-
-        expect(renderTemplate).toHaveBeenCalledWith(
-          hass,
-          '{{ acc.media.title == "Any Title Will Do" }}',
-          {
-            acc: {
-              media: {
-                title,
-                is_folder: false,
-              },
-            },
-          },
-        );
+      // These matchers render, so use a real engine loaded for the synchronous
+      // renderer (rather than the shared mock).
+      const templateManager = new TemplateManager();
+      beforeAll(async () => {
+        await templateManager.loadRenderer();
       });
 
-      it('should return false when template value does not match', () => {
-        const mediaMatcher = new MediaMatcher();
-        const title = 'Any Title Will Do';
-        const media = createMediaItem(title);
-
-        vi.mocked(renderTemplate).mockReturnValue(false);
+      it('should return true when template value renders to true', () => {
+        const mediaMatcher = new MediaMatcher(templateManager);
+        const media = createMediaItem('Any Title Will Do');
 
         const matchers: Matcher[] = [
           {
@@ -190,27 +166,39 @@ describe('MediaMatcher', () => {
             value_template: '{{ acc.media.title == "Any Title Will Do" }}',
           },
         ];
-        const hass = createHASS();
-        expect(mediaMatcher.match(hass, media, { matchers })).toBe(false);
+        expect(mediaMatcher.match(createHASS(), media, { matchers })).toBe(true);
+      });
 
-        expect(renderTemplate).toHaveBeenCalledWith(
-          hass,
-          '{{ acc.media.title == "Any Title Will Do" }}',
+      it('should return true when template reads the is_folder media value', () => {
+        const mediaMatcher = new MediaMatcher(templateManager);
+        const media = createMediaItem('Test Folder', true, 'directory');
+
+        const matchers: Matcher[] = [
           {
-            acc: {
-              media: {
-                title,
-                is_folder: false,
-              },
-            },
+            type: 'template',
+            value_template: '{{ acc.media.is_folder }}',
           },
-        );
+        ];
+        expect(mediaMatcher.match(createHASS(), media, { matchers })).toBe(true);
+      });
+
+      it('should return false when template value renders to false', () => {
+        const mediaMatcher = new MediaMatcher(templateManager);
+        const media = createMediaItem('Any Title Will Do');
+
+        const matchers: Matcher[] = [
+          {
+            type: 'template',
+            value_template: '{{ acc.media.title == "Some Other Title" }}',
+          },
+        ];
+        expect(mediaMatcher.match(createHASS(), media, { matchers })).toBe(false);
       });
     });
 
     describe('with or matcher', () => {
       it('should return true if at least one sub-matcher matches', () => {
-        const mediaMatcher = new MediaMatcher();
+        const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Test Media');
         const matcher: Matcher = {
           type: 'or',
@@ -225,7 +213,7 @@ describe('MediaMatcher', () => {
       });
 
       it('should return false if no sub-matcher matches', () => {
-        const mediaMatcher = new MediaMatcher();
+        const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Test Media');
         const matcher: Matcher = {
           type: 'or',
@@ -242,7 +230,7 @@ describe('MediaMatcher', () => {
 
     describe('with date matcher', () => {
       it('should not match without metadata', () => {
-        const mediaMatcher = new MediaMatcher();
+        const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Test Media');
         const matcher: Matcher = {
           type: 'date',
@@ -279,7 +267,7 @@ describe('MediaMatcher', () => {
           },
         ],
       ])('should match with date more recent than matcher %s', (matcher: Matcher) => {
-        const mediaMatcher = new MediaMatcher();
+        const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Test Media');
         media._metadata = {
           startDate: sub(new Date(), { days: 1 }),
@@ -290,7 +278,7 @@ describe('MediaMatcher', () => {
       });
 
       it('should not match with date less recent than matcher', () => {
-        const mediaMatcher = new MediaMatcher();
+        const mediaMatcher = new MediaMatcher(templateManager);
         const media = createMediaItem('Test Media');
         media._metadata = {
           startDate: sub(new Date(), { days: 2 }),
@@ -306,7 +294,7 @@ describe('MediaMatcher', () => {
     });
 
     it('should return false if one of multiple matchers fails', () => {
-      const mediaMatcher = new MediaMatcher();
+      const mediaMatcher = new MediaMatcher(templateManager);
       const media = createMediaItem('Test Media One');
       const matchers: Matcher[] = [
         { type: 'title', title: 'Test Media One' }, // Pass
@@ -316,7 +304,7 @@ describe('MediaMatcher', () => {
     });
 
     it('should return true if all multiple matchers pass', () => {
-      const mediaMatcher = new MediaMatcher();
+      const mediaMatcher = new MediaMatcher(templateManager);
       const media = createMediaItem('Test Media One');
       const matchers: Matcher[] = [
         { type: 'title', title: 'Test Media One' },
@@ -330,7 +318,7 @@ describe('MediaMatcher', () => {
     });
 
     it('should ignore matchers of unknown types', () => {
-      const mediaMatcher = new MediaMatcher();
+      const mediaMatcher = new MediaMatcher(templateManager);
       const media = createMediaItem('Test Media');
 
       const matchers: Matcher[] = [{ type: 'unknownMatcherType' as 'title' }];

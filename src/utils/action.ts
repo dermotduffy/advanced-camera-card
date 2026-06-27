@@ -14,6 +14,11 @@ import type {
   GeneralActionConfig,
 } from '../config/schema/actions/custom/general.js';
 import {
+  GENERATED_ACTION,
+  type ActionGenerator,
+  type GeneratedActionConfig,
+} from '../config/schema/actions/custom/generated-action.js';
+import {
   INTERNAL_CALLBACK_ACTION,
   type InternalCallbackActionConfig,
 } from '../config/schema/actions/custom/internal.js';
@@ -88,6 +93,19 @@ export function createCameraAction(
     advanced_camera_card_action: 'camera_select',
     camera: camera,
     ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
+// An internal action that generates concrete action(s) when it runs. Used by
+// code-built automations that only know a value -- e.g. a camera id -- when the
+// action actually fires.
+export function createGeneratedAction(
+  generator: ActionGenerator,
+): GeneratedActionConfig {
+  return {
+    action: 'fire-dom-event',
+    advanced_camera_card_action: GENERATED_ACTION,
+    generator,
   };
 }
 

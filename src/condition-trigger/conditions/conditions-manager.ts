@@ -1,4 +1,4 @@
-import { TemplateRenderer } from '../../card-controller/templates';
+import type { TemplateRenderer } from '../../card-controller/templates';
 import type { Condition } from '../../config/schema/condition-trigger/conditions/types';
 import { isEnabled } from '../common/is-enabled';
 import type {
@@ -27,7 +27,7 @@ interface ManagedCondition {
  */
 export class ConditionsManager implements ConditionsManagerReadonlyInterface {
   private _stateManager: ConditionStateManagerReadonlyInterface | null;
-  private _templateRenderer = new TemplateRenderer();
+  private _templateRenderer: TemplateRenderer;
   private _conditions: ManagedCondition[];
 
   private _listeners: ConditionsListener[] = [];
@@ -36,9 +36,11 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
 
   constructor(
     conditions: Condition[],
+    templateRenderer: TemplateRenderer,
     stateManager?: ConditionStateManagerReadonlyInterface | null,
   ) {
-    const context = { templateRenderer: this._templateRenderer };
+    this._templateRenderer = templateRenderer;
+    const context = { templateRenderer };
     this._conditions = conditions.map((config) => ({
       config,
       evaluator: createConditionEvaluator(config, context),

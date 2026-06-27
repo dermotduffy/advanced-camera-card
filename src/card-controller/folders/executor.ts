@@ -8,6 +8,7 @@ import type { HomeAssistant } from '../../ha/types';
 import type { Endpoint } from '../../types';
 import type { ViewFolder, ViewItem } from '../../view/item';
 import type { ViewItemCapabilities } from '../../view/types';
+import type { TemplateRenderer } from '../templates';
 import { sortItems } from '../view/sort';
 import { HAFoldersEngine } from './ha/engine';
 import type {
@@ -20,8 +21,8 @@ import type {
 export class FoldersExecutor {
   private _ha: FoldersEngine;
 
-  constructor(engines?: { ha?: HAFoldersEngine }) {
-    this._ha = engines?.ha ?? new HAFoldersEngine();
+  constructor(templateRenderer: TemplateRenderer, engines?: { ha?: HAFoldersEngine }) {
+    this._ha = engines?.ha ?? new HAFoldersEngine(templateRenderer);
   }
 
   public getDefaultQueryParameters(folder: FolderConfig): FolderQuery | null {

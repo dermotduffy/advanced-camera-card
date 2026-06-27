@@ -13,6 +13,7 @@ export enum InitializationAspect {
   SIDE_LOAD_ELEMENTS = 'side-load-elements',
   CAMERAS = 'cameras',
   MICROPHONE_CONNECT = 'microphone-connect',
+  TEMPLATE_RENDERER = 'template-renderer',
   VIEW = 'view',
 
   // The initial triggering must happen after both the config is set (and
@@ -66,6 +67,9 @@ export class InitializationManager {
       InitializationAspect.CAMERAS,
       ...(this._api.getMicrophoneManager().shouldConnectOnInitialization()
         ? [InitializationAspect.MICROPHONE_CONNECT]
+        : []),
+      ...(this._api.getConfigManager().hasTemplate()
+        ? [InitializationAspect.TEMPLATE_RENDERER]
         : []),
       InitializationAspect.VIEW,
       InitializationAspect.INITIAL_TRIGGER,
@@ -166,6 +170,14 @@ export class InitializationManager {
               await this._api.getMicrophoneManager().connect();
             },
           }),
+
+          // Unrendered templates could cause correctness issues -- ensure the
+          // template rendered is loaded before it is needed.
+          ...(this._api.getConfigManager().hasTemplate() && {
+            [InitializationAspect.TEMPLATE_RENDERER]: async () => {
+              await this._api.getTemplateManager().loadRenderer();
+            },
+          }),
         }),
       ))
     ) {
@@ -200,6 +212,13 @@ export class InitializationManager {
     }
 
     this._everInitialized = true;
+
+    // Subscribe any automations now: the template renderer (a mandatory
+    // automation trigger evaluators can baseline pre-trigger (which potentially
+    // involves rendering templates). This must run before the `setState` below
+    // so that triggers watching `config`/`initialized` are attached in time to
+    // fire on *that* very change.
+    this._api.getAutomationsManager().subscribe();
 
     // When the card is initialized, both the initialization state (will never
     // change again), and the config are set in the condition state. The
@@ -245,6 +264,7 @@ export class InitializationManager {
     for (const aspect of [
       InitializationAspect.CAMERAS,
       InitializationAspect.MICROPHONE_CONNECT,
+      InitializationAspect.TEMPLATE_RENDERER,
       InitializationAspect.VIEW,
       InitializationAspect.INITIAL_TRIGGER,
     ]) {

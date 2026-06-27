@@ -1,7 +1,11 @@
 import { isEqual } from 'lodash-es';
 
 import type { RemoteControlEntityPriority } from '../../config/schema/remote-control';
-import { createCameraAction, createInternalCallbackAction } from '../../utils/action';
+import {
+  createCameraAction,
+  createGeneratedAction,
+  createInternalCallbackAction,
+} from '../../utils/action';
 import type { CardActionsAPI, CardConfigLoaderAPI, TaggedAutomation } from '../types';
 
 export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
@@ -72,7 +76,12 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
       actions: [
         cameraPriority === 'entity'
           ? // Set the currently selected camera to the state of the entity.
-            createCameraAction(`{{ hass.states["${cameraControlEntity}"].state }}`)
+            createGeneratedAction(({ api }) => {
+              const cameraID = api.getHASSManager().getHASS()?.states[
+                cameraControlEntity
+              ]?.state;
+              return cameraID ? createCameraAction(cameraID) : null;
+            })
           : // Set the selected option in the entity to the current camera ID.
             createInternalCallbackAction(async (api: CardActionsAPI) => {
               const camera = api.getViewManager().getView()?.camera ?? undefined;
@@ -89,8 +98,12 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
         },
       ],
       actions: [
-        // When the entity state changes, updated the selected option.
-        createCameraAction('{{ trigger.to_state.state }}'),
+        // When the entity state changes, select the camera named by the new
+        // state, using the exact value that caused the trigger.
+        createGeneratedAction(({ triggerData }) => {
+          const cameraID = triggerData?.to_state?.state;
+          return cameraID ? createCameraAction(cameraID) : null;
+        }),
       ],
       tag: automationTag,
     },

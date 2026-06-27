@@ -1,18 +1,24 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
+import { TemplateManager } from '../../../../src/card-controller/templates';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
 import { createHASS, createStateEntity } from '../../../test-utils';
 import { createEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
 describe('template condition', () => {
+  const templateManager = new TemplateManager();
+  beforeAll(async () => {
+    await templateManager.loadRenderer();
+  });
+
   it('should evaluate true when template evalutes to true', () => {
     const evaluator = createConditionEvaluator(
       {
         condition: 'template' as const,
         value_template: '{{ is_state("sensor.foo", "on") }}',
       },
-      createEvaluatorContext(),
+      createEvaluatorContext({ templateRenderer: templateManager }),
     );
 
     expect(evaluator.evaluate({}).result).toBeFalsy();
@@ -35,7 +41,7 @@ describe('template condition', () => {
         // This does not result in a boolean.
         value_template: '{{ hass.states["light.office"].state }}',
       },
-      createEvaluatorContext(),
+      createEvaluatorContext({ templateRenderer: templateManager }),
     );
 
     expect(
@@ -48,7 +54,7 @@ describe('template condition', () => {
   it('should accept a template rendering the string "true" for HA symmetry', () => {
     const evaluator = createConditionEvaluator(
       { condition: 'template' as const, value_template: '{{ "true" }}' },
-      createEvaluatorContext(),
+      createEvaluatorContext({ templateRenderer: templateManager }),
     );
 
     expect(evaluator.evaluate({ hass: createHASS({}) }).result).toBeTruthy();

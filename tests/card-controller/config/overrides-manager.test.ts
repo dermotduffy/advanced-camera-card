@@ -4,9 +4,11 @@ import { OverridesManager } from '../../../src/card-controller/config/overrides-
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import type { AdvancedCameraCardConfig } from '../../../src/config/schema/types';
 import { AdvancedCameraCardError } from '../../../src/types';
-import { createConfig } from '../../test-utils';
+import { createConfig, createMockTemplateRenderer } from '../../test-utils';
 
 describe('OverridesManager', () => {
+  const templateManager = createMockTemplateRenderer();
+
   it('should add overrides', () => {
     const config = createConfig({
       overrides: [
@@ -25,7 +27,7 @@ describe('OverridesManager', () => {
     });
 
     const manager = new OverridesManager(vi.fn());
-    manager.set(new ConditionStateManager(), config.overrides);
+    manager.set(new ConditionStateManager(), templateManager, config.overrides);
 
     expect(manager.hasOverrides()).toBe(true);
   });
@@ -49,11 +51,11 @@ describe('OverridesManager', () => {
 
     const stateManager = new ConditionStateManager();
     const manager = new OverridesManager(vi.fn());
-    manager.set(stateManager, config.overrides);
+    manager.set(stateManager, templateManager, config.overrides);
 
     expect(manager.getConfig(config).menu?.style).toBe('hidden');
 
-    manager.set(stateManager, []);
+    manager.set(stateManager, templateManager, []);
 
     stateManager.setState({ fullscreen: true });
     expect(manager.getConfig(config).menu?.style).toBe('hidden');
@@ -79,7 +81,7 @@ describe('OverridesManager', () => {
     });
 
     const manager = new OverridesManager(vi.fn());
-    manager.set(new ConditionStateManager(), config.overrides);
+    manager.set(new ConditionStateManager(), templateManager, config.overrides);
 
     expect(manager.getConfig(config)).toBe(config);
   });
@@ -104,7 +106,7 @@ describe('OverridesManager', () => {
     const callback = vi.fn();
     const stateManager = new ConditionStateManager();
     const manager = new OverridesManager(callback);
-    manager.set(stateManager, config.overrides);
+    manager.set(stateManager, templateManager, config.overrides);
 
     expect(manager.getConfig(config).menu?.style).toBe('hidden');
 
@@ -139,7 +141,7 @@ describe('OverridesManager', () => {
       stateManager.setState({ fullscreen: true });
 
       const manager = new OverridesManager(vi.fn());
-      manager.set(stateManager, config.overrides);
+      manager.set(stateManager, templateManager, config.overrides);
 
       const overriddenConfig = manager.getConfig(config);
 
@@ -174,7 +176,7 @@ describe('OverridesManager', () => {
       stateManager.setState({ fullscreen: true });
 
       const manager = new OverridesManager(vi.fn());
-      manager.set(stateManager, config.overrides);
+      manager.set(stateManager, templateManager, config.overrides);
 
       const overriddenConfig = manager.getConfig(config);
 
@@ -205,7 +207,7 @@ describe('OverridesManager', () => {
       stateManager.setState({ fullscreen: true });
 
       const manager = new OverridesManager(vi.fn());
-      manager.set(stateManager, config.overrides);
+      manager.set(stateManager, templateManager, config.overrides);
 
       const overriddenConfig = manager.getConfig(config);
 
@@ -240,7 +242,7 @@ describe('OverridesManager', () => {
       stateManager.setState({ fullscreen: true });
 
       const manager = new OverridesManager(vi.fn());
-      manager.set(stateManager, config.overrides);
+      manager.set(stateManager, templateManager, config.overrides);
 
       const overriddenConfig = manager.getConfig(config);
 
@@ -276,7 +278,7 @@ describe('OverridesManager', () => {
       stateManager.setState({ fullscreen: true });
 
       const manager = new OverridesManager(vi.fn());
-      manager.set(stateManager, config.overrides);
+      manager.set(stateManager, templateManager, config.overrides);
 
       const overriddenConfig = manager.getConfig(config);
 
@@ -310,7 +312,7 @@ describe('OverridesManager', () => {
       stateManager.setState({ fullscreen: true });
 
       const manager = new OverridesManager(vi.fn());
-      manager.set(stateManager, config.overrides);
+      manager.set(stateManager, templateManager, config.overrides);
 
       const overriddenConfig = manager.getConfig(config);
 
@@ -341,7 +343,7 @@ describe('OverridesManager', () => {
       stateManager.setState({ fullscreen: true });
 
       const manager = new OverridesManager(vi.fn());
-      manager.set(stateManager, config.overrides);
+      manager.set(stateManager, templateManager, config.overrides);
 
       let thrown: unknown = null;
       try {
@@ -442,7 +444,7 @@ describe('OverridesManager', () => {
 
     const stateManager = new ConditionStateManager();
     const manager = new OverridesManager(vi.fn());
-    manager.set(stateManager, config.overrides);
+    manager.set(stateManager, templateManager, config.overrides);
 
     expect(manager.getConfig(config).live.controls.thumbnails.mode).toBe('right');
 

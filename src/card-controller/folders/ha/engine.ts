@@ -29,6 +29,7 @@ import type { Endpoint } from '../../../types';
 import type { ViewFolder, ViewItem } from '../../../view/item';
 import { ViewItemClassifier } from '../../../view/item-classifier';
 import type { ViewItemCapabilities } from '../../../view/types';
+import type { TemplateRenderer } from '../../templates';
 import type {
   DownloadHelpers,
   EngineOptions,
@@ -46,14 +47,17 @@ export class HAFoldersEngine implements FoldersEngine {
   private _metadataGenerator: MetadataGenerator;
   private _mediaMatcher: MediaMatcher;
 
-  public constructor(options?: {
-    browseMediaManager?: BrowseMediaWalker;
-    metadataGenerator?: MetadataGenerator;
-    mediaMatcher?: MediaMatcher;
-  }) {
+  public constructor(
+    templateRenderer: TemplateRenderer,
+    options?: {
+      browseMediaManager?: BrowseMediaWalker;
+      metadataGenerator?: MetadataGenerator;
+      mediaMatcher?: MediaMatcher;
+    },
+  ) {
     this._browseMediaManager = options?.browseMediaManager ?? new BrowseMediaWalker();
     this._metadataGenerator = options?.metadataGenerator ?? new MetadataGenerator();
-    this._mediaMatcher = options?.mediaMatcher ?? new MediaMatcher();
+    this._mediaMatcher = options?.mediaMatcher ?? new MediaMatcher(templateRenderer);
   }
 
   public getItemCapabilities(item: ViewItem): ViewItemCapabilities | null {

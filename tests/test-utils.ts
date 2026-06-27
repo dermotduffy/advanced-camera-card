@@ -62,6 +62,7 @@ import type { PIPManager } from '../src/card-controller/pip-manager';
 import type { QueryStringManager } from '../src/card-controller/query-string-manager';
 import type { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
 import type { StyleManager } from '../src/card-controller/style-manager';
+import type { TemplateManager } from '../src/card-controller/templates';
 import type { ViewItemManager } from '../src/card-controller/view/item-manager';
 import type { ViewManager } from '../src/card-controller/view/view-manager';
 import type { SubmenuInteraction, SubmenuItem } from '../src/components/submenu/types';
@@ -749,6 +750,14 @@ export const createLitElement = (): LitElement => {
   return element;
 };
 
+export const createMockTemplateRenderer = (): TemplateManager => {
+  const renderer = mock<TemplateManager>();
+  renderer.isLoaded.mockReturnValue(true);
+  renderer.renderRecursively.mockImplementation((_hass, value) => value);
+  renderer.renderRecursivelyAsType.mockImplementation((_hass, value) => value);
+  return renderer;
+};
+
 export const createCardAPI = (): CardController => {
   const api = mock<CardController>();
 
@@ -784,6 +793,7 @@ export const createCardAPI = (): CardController => {
   api.getQueryStringManager.mockReturnValue(mock<QueryStringManager>());
   api.getStatusBarItemManager.mockReturnValue(mock<StatusBarItemManager>());
   api.getStyleManager.mockReturnValue(mock<StyleManager>());
+  api.getTemplateManager.mockReturnValue(mock<TemplateManager>());
   api.getCameraTriggersManager.mockReturnValue(mock<CameraTriggersManager>());
   api.getViewItemManager.mockReturnValue(mock<ViewItemManager>());
   api.getViewManager.mockReturnValue(mock<ViewManager>());
