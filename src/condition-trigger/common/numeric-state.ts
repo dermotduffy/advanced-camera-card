@@ -22,6 +22,11 @@ export const readNumericStateValue = (
 
   let rawValue: unknown;
   if (config.value_template) {
+    // Until the renderer has loaded the template cannot be evaluated; treat as
+    // non-numeric (so the match fails) rather than parsing a raw `{{…}}`.
+    if (!templateRenderer.isLoaded()) {
+      return null;
+    }
     rawValue = templateRenderer.renderRecursively(hass, config.value_template, {
       conditionState: state,
     });

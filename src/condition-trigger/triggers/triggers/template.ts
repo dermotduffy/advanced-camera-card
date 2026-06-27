@@ -69,6 +69,9 @@ export class TemplateTrigger implements TriggerEvaluator {
   private _render(state: ConditionState): boolean {
     return (
       !!state.hass &&
+      // Until the renderer has loaded the template cannot be evaluated; report
+      // not-true (matching a raw render) so no false rising edge is recorded.
+      this._context.templateRenderer.isLoaded() &&
       isTemplateTrue(
         this._context.templateRenderer.renderRecursively(
           state.hass,

@@ -1,8 +1,17 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { TemplateManager } from '../../../src/card-controller/templates';
 import { ConditionsManager } from '../../../src/condition-trigger/conditions/conditions-manager';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
-import { createHASS, createStateEntity } from '../../test-utils';
+import {
+  createHASS,
+  createMockTemplateRenderer,
+  createStateEntity,
+} from '../../test-utils';
+
+// A mock renderer for the orchestration tests, which never render templates.
+// The `enabled` template suite below uses its own real, loaded engine.
+const templateManager = createMockTemplateRenderer();
 
 // Per-condition-type evaluation is covered by tests/conditions/conditions/<type>.test.ts.
 // This file covers the manager's own orchestration: building/destroying evaluators,
@@ -23,6 +32,7 @@ describe('ConditionsManager', () => {
           fullscreen: true,
         },
       ],
+      templateManager,
       stateManager,
     );
 
@@ -40,6 +50,7 @@ describe('ConditionsManager', () => {
     const stateManager = new ConditionStateManager();
     const manager = new ConditionsManager(
       [{ condition: 'fullscreen' as const, fullscreen: true }],
+      templateManager,
       stateManager,
     );
 
@@ -71,9 +82,10 @@ describe('ConditionsManager', () => {
         matches: true,
       } as unknown as MediaQueryList);
 
-    const manager = new ConditionsManager([
-      { condition: 'screen' as const, media_query: 'whatever' },
-    ]);
+    const manager = new ConditionsManager(
+      [{ condition: 'screen' as const, media_query: 'whatever' }],
+      templateManager,
+    );
 
     const listener = vi.fn();
     manager.addListener(listener);
@@ -92,6 +104,7 @@ describe('ConditionsManager', () => {
       const stateManager = new ConditionStateManager();
       const manager = new ConditionsManager(
         [{ condition: 'fullscreen' as const, fullscreen: true }],
+        templateManager,
         stateManager,
       );
 
@@ -120,6 +133,7 @@ describe('ConditionsManager', () => {
       const stateManager = new ConditionStateManager();
       const manager = new ConditionsManager(
         [{ condition: 'fullscreen' as const, fullscreen: true }],
+        templateManager,
         stateManager,
       );
 
@@ -136,6 +150,7 @@ describe('ConditionsManager', () => {
       const stateManager = new ConditionStateManager();
       const manager = new ConditionsManager(
         [{ condition: 'fullscreen' as const, fullscreen: true }],
+        templateManager,
         stateManager,
       );
 
@@ -152,6 +167,7 @@ describe('ConditionsManager', () => {
       const stateManager = new ConditionStateManager();
       const manager = new ConditionsManager(
         [{ condition: 'view' as const, views: ['live'] }],
+        templateManager,
         stateManager,
       );
 
@@ -178,10 +194,18 @@ describe('ConditionsManager', () => {
   describe('enabled', () => {
     const ENABLED_TEMPLATE = '{{ is_state("binary_sensor.flag", "on") }}';
 
+    // These cases gate on a rendered `enabled` template, so use a real engine
+    // loaded for the synchronous renderer (rather than the shared mock).
+    const templateManager = new TemplateManager();
+    beforeAll(async () => {
+      await templateManager.loadRenderer();
+    });
+
     it('should ignore a disabled condition', () => {
       const stateManager = new ConditionStateManager();
       const manager = new ConditionsManager(
         [{ condition: 'fullscreen' as const, fullscreen: true, enabled: false }],
+        templateManager,
         stateManager,
       );
 
@@ -196,6 +220,7 @@ describe('ConditionsManager', () => {
       const stateManager = new ConditionStateManager();
       const manager = new ConditionsManager(
         [{ condition: 'fullscreen' as const, fullscreen: true, enabled: true }],
+        templateManager,
         stateManager,
       );
 
@@ -219,6 +244,7 @@ describe('ConditionsManager', () => {
             enabled: ENABLED_TEMPLATE,
           },
         ],
+        templateManager,
         stateManager,
       );
 
@@ -240,6 +266,7 @@ describe('ConditionsManager', () => {
             enabled: ENABLED_TEMPLATE,
           },
         ],
+        templateManager,
         stateManager,
       );
 
@@ -258,6 +285,7 @@ describe('ConditionsManager', () => {
             enabled: ENABLED_TEMPLATE,
           },
         ],
+        templateManager,
         stateManager,
       );
 
@@ -282,6 +310,7 @@ describe('ConditionsManager', () => {
             enabled: ENABLED_TEMPLATE,
           },
         ],
+        templateManager,
         stateManager,
       );
 

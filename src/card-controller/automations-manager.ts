@@ -4,7 +4,6 @@ import { TriggersManager } from '../condition-trigger/triggers/manager.js';
 import type { TriggerData } from '../condition-trigger/triggers/types.js';
 import type { Automation, AutomationActions } from '../config/schema/automations.js';
 import { localize } from '../localize/localize.js';
-import { TemplateRenderer } from './templates/index.js';
 import type { CardAutomationsAPI, TaggedAutomation } from './types.js';
 
 const MAX_NESTED_AUTOMATION_EXECUTIONS = 10;
@@ -32,12 +31,13 @@ export class AutomationsManager {
   }
 
   public addAutomations(automations: TaggedAutomation[]): void {
-    const context = { templateRenderer: new TemplateRenderer() };
+    const context = { templateRenderer: this._api.getTemplateManager() };
     for (const automation of automations) {
       const triggers = new TriggersManager(
         automation.triggers,
         this._api.getConditionStateManager(),
         this._api.getHASSManager(),
+        this._api.getTemplateManager(),
       );
 
       // The ongoing `conditions:` block is pull-evaluated at trigger time, so
@@ -49,6 +49,27 @@ export class AutomationsManager {
       );
       triggers.addListener((data) => this._execute(automation, conditions, data));
       this._automations.set(automation, triggers);
+
+      // When the card is already initialized (e.g. a runtime automation
+      // addition via configuration override), subscribe immediately. For
+      // "static" automations the InitializationManager subscribes every
+      // automation once initialization completes so that the trigger evaluators
+      // baseline their initial pre-trigger value against a card whose template
+      // renderer has loaded.
+      if (this._api.getInitializationManager().isInitializedMandatory()) {
+        triggers.subscribe();
+      }
+    }
+  }
+
+  /**
+   * Subscribe every registered automation's triggers. Called by the
+   * InitializationManager when initialization completes (idempotent, so
+   * automations subscribed eagerly on a runtime config change are unaffected).
+   */
+  public subscribe(): void {
+    for (const triggers of this._automations.values()) {
+      triggers.subscribe();
     }
   }
 

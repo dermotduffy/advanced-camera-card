@@ -1,5 +1,5 @@
 import type { HASSManagerReadonlyInterface } from '../../card-controller/hass/types';
-import { TemplateRenderer } from '../../card-controller/templates';
+import type { TemplateRenderer } from '../../card-controller/templates';
 import type { Trigger } from '../../config/schema/condition-trigger/triggers/types';
 import { isEnabled } from '../common/is-enabled';
 import type { ConditionStateManagerReadonlyInterface } from '../conditions/types';
@@ -27,27 +27,40 @@ export class TriggersManager {
   private _context: TriggerEvaluatorContext;
   private _triggers: ManagedTrigger[];
   private _listeners: TriggerCallback[] = [];
+  private _subscribed = false;
 
   constructor(
     triggers: Trigger[],
     stateManager: ConditionStateManagerReadonlyInterface,
     hassManager: HASSManagerReadonlyInterface,
+    templateRenderer: TemplateRenderer,
   ) {
     this._context = {
       stateManager,
-      templateRenderer: new TemplateRenderer(),
+      templateRenderer,
       hassManager,
     };
     this._triggers = triggers.map((config) => ({
       config,
       evaluator: createTriggerEvaluator(config, this._context),
     }));
+  }
 
-    // `enabled` is a live per-trigger gate (re-evaluated each time), UNLIKE
-    // HA's once-at-attach: a deliberate deviation to allow dynamic triggering.
+  /**
+   * Subscribe the evaluators to the state manager, establishing their
+   * pre-trigger baselines.
+   */
+  public subscribe(): void {
+    if (this._subscribed) {
+      return;
+    }
+    this._subscribed = true;
+
     this._triggers.forEach(({ config, evaluator }) =>
       evaluator.subscribe((data) => {
         if (
+          // `enabled` is a live per-trigger gate (re-evaluated each time), UNLIKE
+          // HA's once-at-attach: a deliberate deviation to allow dynamic triggering.
           isEnabled(
             this._context.templateRenderer,
             config.enabled,

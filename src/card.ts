@@ -43,6 +43,7 @@ import './components/status-bar';
 import './components/thumbnail-carousel.js';
 import './components/views.js';
 
+import type { TemplateRendererGetEvent } from './card-controller/templates/renderer-via-event.js';
 import type { AdvancedCameraCardViews } from './components/views.js';
 import type { ConditionStateManagerGetEvent } from './condition-trigger/conditions/state-manager-via-event.js';
 import type { StatusBarItem } from './config/schema/actions/types.js';
@@ -483,14 +484,20 @@ class AdvancedCameraCard extends LitElement {
             ${fullCardIssue ? renderNotificationBlock(fullCardIssue.notification) : ''}
           </div>
           ${this._renderMenuStatusContainer('bottom')}
-          ${this._config?.elements
+          ${this._config?.elements &&
+          this._controller.getInitializationManager().isInitializedMandatory()
             ? // Elements need to render after the main views so it can render 'on
-              // top'.
+              // top'. They are held until the card is initialized: the template
+              // renderer loads lazily as a mandatory init aspect (when the
+              // config uses templates), so rendering elements earlier could
+              // emit raw, unrendered templates or evaluate their visibility
+              // conditions before the renderer is available.
               html` <advanced-camera-card-elements
                 ${ref(this._refElements)}
                 .hass=${this._hass}
                 .elements=${this._config?.elements}
                 .conditionStateManager=${this._controller.getConditionStateManager()}
+                .templateRenderer=${this._controller.getTemplateManager()}
                 @advanced-camera-card:menu:add=${(ev: CustomEvent<MenuItem>) => {
                   this._menuButtonController.addDynamicMenuButton(ev.detail);
                   this.requestUpdate();
@@ -517,6 +524,11 @@ class AdvancedCameraCard extends LitElement {
                   ev: ConditionStateManagerGetEvent,
                 ) => {
                   ev.conditionStateManager = this._controller.getConditionStateManager();
+                }}
+                @advanced-camera-card:template-renderer:get=${(
+                  ev: TemplateRendererGetEvent,
+                ) => {
+                  ev.templateRenderer = this._controller.getTemplateManager();
                 }}
               >
               </advanced-camera-card-elements>`

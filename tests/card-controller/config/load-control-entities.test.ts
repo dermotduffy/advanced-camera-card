@@ -2,13 +2,23 @@ import { assert, describe, expect, it, vi } from 'vitest';
 
 import { AutomationsManager } from '../../../src/card-controller/automations-manager';
 import { setRemoteControlEntityFromConfig } from '../../../src/card-controller/config/load-control-entities';
-import { TemplateRenderer } from '../../../src/card-controller/templates/index';
+import type { CardController } from '../../../src/card-controller/controller';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
+import {
+  GENERATED_ACTION,
+  type ActionGenerator,
+  type GeneratedActionConfig,
+} from '../../../src/config/schema/actions/custom/generated-action';
 import {
   INTERNAL_CALLBACK_ACTION,
   type InternalCallbackActionConfig,
 } from '../../../src/config/schema/actions/custom/internal';
-import { isAdvancedCameraCardCustomAction } from '../../../src/utils/action';
+import type { ActionConfig } from '../../../src/config/schema/actions/types';
+import {
+  createCameraAction,
+  isAdvancedCameraCardCustomAction,
+} from '../../../src/utils/action';
+import { arrayify } from '../../../src/utils/basic';
 import {
   createCardAPI,
   createConfig,
@@ -17,6 +27,10 @@ import {
   createStore,
   createView,
 } from '../../test-utils';
+
+const isGeneratedAction = (action: ActionConfig): action is GeneratedActionConfig =>
+  'advanced_camera_card_action' in action &&
+  action.advanced_camera_card_action === GENERATED_ACTION;
 
 describe('setRemoteControlEntityFromConfig', () => {
   it('without control entity', () => {
@@ -94,8 +108,8 @@ describe('setRemoteControlEntityFromConfig', () => {
         actions: [
           {
             action: 'fire-dom-event',
-            advanced_camera_card_action: 'camera_select',
-            camera: '{{ trigger.to_state.state }}',
+            advanced_camera_card_action: '__GENERATED_ACTION__',
+            generator: expect.any(Function),
           },
         ],
         triggers: [
@@ -161,8 +175,8 @@ describe('setRemoteControlEntityFromConfig', () => {
         actions: [
           {
             action: 'fire-dom-event',
-            advanced_camera_card_action: 'camera_select',
-            camera: '{{ hass.states["input_select.camera"].state }}',
+            advanced_camera_card_action: '__GENERATED_ACTION__',
+            generator: expect.any(Function),
           },
         ],
         triggers: [
@@ -176,8 +190,8 @@ describe('setRemoteControlEntityFromConfig', () => {
         actions: [
           {
             action: 'fire-dom-event',
-            advanced_camera_card_action: 'camera_select',
-            camera: '{{ trigger.to_state.state }}',
+            advanced_camera_card_action: '__GENERATED_ACTION__',
+            generator: expect.any(Function),
           },
         ],
         triggers: [
@@ -623,8 +637,8 @@ describe('setRemoteControlEntityFromConfig', () => {
     });
   });
 
-  describe('should render the firing trigger into the camera action', () => {
-    it('should resolve the new entity state through the trigger template', () => {
+  describe('should wire the firing trigger into the camera action', () => {
+    it('should carry the new entity state to the camera-select action', () => {
       const api = createCardAPI();
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
@@ -638,10 +652,12 @@ describe('setRemoteControlEntityFromConfig', () => {
       );
 
       // Capture the automations the loader registers, then drive them through a
-      // real AutomationsManager so the state trigger actually fires and its
-      // `{{ trigger.to_state.state }}` template is rendered end to end (the
-      // other tests only string-match the literal, so a context mis-wire would
-      // silently break remote control).
+      // real AutomationsManager so the state trigger actually fires. The
+      // registered action is a generated action whose generator reads the
+      // firing trigger's `to_state` to pick the camera, so this verifies that
+      // the generator and the exact triggering value are wired through together
+      // (the other tests only string-match the registered action shape, so a
+      // context mis-wire would silently break remote control).
       setRemoteControlEntityFromConfig(api);
       const automations = vi.mocked(api.getAutomationsManager().addAutomations).mock
         .calls[0][0];
@@ -670,16 +686,92 @@ describe('setRemoteControlEntityFromConfig', () => {
         .mock.calls.at(-1)?.[0];
       assert(captured);
 
-      const rendered = new TemplateRenderer().renderRecursively(hass, captured.actions, {
-        triggerData: captured.triggerData,
-      });
-      expect(rendered).toEqual([
+      expect(captured.actions).toEqual([
         {
           action: 'fire-dom-event',
-          advanced_camera_card_action: 'camera_select',
-          camera: 'camera.two',
+          advanced_camera_card_action: '__GENERATED_ACTION__',
+          generator: expect.any(Function),
         },
       ]);
+      expect(captured.triggerData?.platform).toBe('state');
+      expect(captured.triggerData?.entity_id).toBe('input_select.camera');
+      expect(captured.triggerData?.to_state?.state).toBe('camera.two');
+
+      // Running the generated action's generator with the firing trigger
+      // selects the camera named by the new state.
+      const generated = arrayify(captured.actions)[0];
+      assert(isGeneratedAction(generated));
+      expect(generated.generator({ api, triggerData: captured.triggerData })).toEqual({
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'camera_select',
+        camera: 'camera.two',
+      });
+    });
+  });
+
+  describe('should generate a camera-select action only when a camera is named', () => {
+    // Register the automations for a given camera priority, then pull the
+    // generator off the generated action on the named trigger's automation.
+    const getGenerator = (
+      api: CardController,
+      cameraPriority: 'card' | 'entity',
+      triggerName: string,
+    ): ActionGenerator => {
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          remote_control: {
+            entities: {
+              camera: 'input_select.camera',
+              camera_priority: cameraPriority,
+            },
+          },
+        }),
+      );
+      setRemoteControlEntityFromConfig(api);
+      const automations = vi.mocked(api.getAutomationsManager().addAutomations).mock
+        .calls[0][0];
+      const automation = automations.find((candidate) =>
+        candidate.triggers.some((trigger) => trigger.trigger === triggerName),
+      );
+      assert(automation);
+      const action = arrayify(automation.actions)[0];
+      assert(isGeneratedAction(action));
+      return action.generator;
+    };
+
+    it('should select the camera named by the entity state on initialize', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
+        createHASS({
+          'input_select.camera': createStateEntity({ state: 'camera.kitchen' }),
+        }),
+      );
+
+      expect(getGenerator(api, 'entity', 'initialized')({ api })).toEqual(
+        createCameraAction('camera.kitchen'),
+      );
+    });
+
+    it('should generate nothing on initialize when the entity has no state', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS({}));
+
+      expect(getGenerator(api, 'entity', 'initialized')({ api })).toBeNull();
+    });
+
+    it('should generate nothing for a state trigger that carries no to_state', () => {
+      const api = createCardAPI();
+
+      expect(
+        getGenerator(
+          api,
+          'card',
+          'state',
+        )({
+          api,
+          triggerData: { platform: 'state', entity_id: 'input_select.camera' },
+        }),
+      ).toBeNull();
     });
   });
 });

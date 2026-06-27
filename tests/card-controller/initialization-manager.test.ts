@@ -139,6 +139,40 @@ describe('InitializationManager', () => {
       expect(manager.isInitialized(InitializationAspect.INITIAL_TRIGGER)).toBeTruthy();
     });
 
+    it('should load the template renderer for a templated config', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+      vi.mocked(api.getConfigManager().hasTemplate).mockReturnValue(true);
+      const loadRenderer = vi.mocked(api.getTemplateManager().loadRenderer);
+
+      const manager = new InitializationManager(api);
+
+      expect(manager.isInitialized(InitializationAspect.TEMPLATE_RENDERER)).toBeFalsy();
+
+      await manager.initializeMandatory();
+
+      expect(loadRenderer).toBeCalled();
+      expect(manager.isInitialized(InitializationAspect.TEMPLATE_RENDERER)).toBeTruthy();
+      expect(manager.isInitializedMandatory()).toBeTruthy();
+    });
+
+    it('should not load the template renderer for a config without templates', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+      vi.mocked(api.getConfigManager().hasTemplate).mockReturnValue(false);
+      const loadRenderer = vi.mocked(api.getTemplateManager().loadRenderer);
+
+      const manager = new InitializationManager(api);
+
+      await manager.initializeMandatory();
+
+      expect(loadRenderer).not.toBeCalled();
+      expect(manager.isInitialized(InitializationAspect.TEMPLATE_RENDERER)).toBeFalsy();
+      expect(manager.isInitializedMandatory()).toBeTruthy();
+    });
+
     it('should succeed with microphone if configured', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
@@ -279,6 +313,9 @@ describe('InitializationManager', () => {
     expect(initializer.uninitialize).toBeCalledWith(InitializationAspect.CAMERAS);
     expect(initializer.uninitialize).toBeCalledWith(
       InitializationAspect.MICROPHONE_CONNECT,
+    );
+    expect(initializer.uninitialize).toBeCalledWith(
+      InitializationAspect.TEMPLATE_RENDERER,
     );
     expect(initializer.uninitialize).toBeCalledWith(InitializationAspect.VIEW);
     expect(initializer.uninitialize).toBeCalledWith(

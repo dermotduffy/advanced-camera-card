@@ -35,7 +35,7 @@ describe('IfAction', () => {
 
     await action.execute(api);
 
-    expect(api.getActionsManager().executeActions).toBeCalledWith({
+    expect(api.getActionsManager().executeNestedActions).toBeCalledWith({
       actions: thenActions,
       config: undefined,
       triggerData: undefined,
@@ -59,7 +59,7 @@ describe('IfAction', () => {
 
     await action.execute(api);
 
-    expect(api.getActionsManager().executeActions).toBeCalledWith({
+    expect(api.getActionsManager().executeNestedActions).toBeCalledWith({
       actions: elseActions,
       config: undefined,
       triggerData: undefined,
@@ -82,6 +82,6 @@ describe('IfAction', () => {
 
     await action.execute(api);
 
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
+    expect(api.getActionsManager().executeNestedActions).not.toBeCalled();
   });
 });

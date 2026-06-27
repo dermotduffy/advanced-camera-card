@@ -32,6 +32,7 @@ import { PIPManager } from '../../src/card-controller/pip-manager';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
 import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../../src/card-controller/style-manager';
+import { TemplateManager } from '../../src/card-controller/templates';
 import { ViewItemManager } from '../../src/card-controller/view/item-manager';
 import { ViewManager } from '../../src/card-controller/view/view-manager';
 import { ConditionStateManager } from '../../src/condition-trigger/conditions/state-manager';
@@ -67,6 +68,7 @@ vi.mock('../../src/card-controller/issues/issue-manager');
 vi.mock('../../src/card-controller/query-string-manager');
 vi.mock('../../src/card-controller/status-bar-item-manager');
 vi.mock('../../src/card-controller/style-manager');
+vi.mock('../../src/card-controller/templates');
 vi.mock('../../src/card-controller/camera-triggers-manager');
 vi.mock('../../src/card-controller/view/item-manager');
 vi.mock('../../src/card-controller/view/view-manager');
@@ -317,6 +319,12 @@ describe('CardController', () => {
     it('should return getStyleManager', () => {
       expect(createController().getStyleManager()).toBe(
         vi.mocked(StyleManager).mock.instances[0],
+      );
+    });
+
+    it('should return getTemplateManager', () => {
+      expect(createController().getTemplateManager()).toBe(
+        vi.mocked(TemplateManager).mock.instances[0],
       );
     });
 

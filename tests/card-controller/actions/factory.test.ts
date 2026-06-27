@@ -13,6 +13,7 @@ import { DownloadAction } from '../../../src/card-controller/actions/actions/dow
 import { EffectAction } from '../../../src/card-controller/actions/actions/effect';
 import { ExpandAction } from '../../../src/card-controller/actions/actions/expand';
 import { FullscreenAction } from '../../../src/card-controller/actions/actions/fullscreen';
+import { GeneratedAction } from '../../../src/card-controller/actions/actions/generated-action';
 import { IfAction } from '../../../src/card-controller/actions/actions/if';
 import { InfoAction } from '../../../src/card-controller/actions/actions/info';
 import { InternalCallbackAction } from '../../../src/card-controller/actions/actions/internal-callback';
@@ -48,6 +49,7 @@ import { UnmuteAction } from '../../../src/card-controller/actions/actions/unmut
 import { URLAction } from '../../../src/card-controller/actions/actions/url';
 import { ViewAction } from '../../../src/card-controller/actions/actions/view';
 import { ActionFactory } from '../../../src/card-controller/actions/factory';
+import { GENERATED_ACTION } from '../../../src/config/schema/actions/custom/generated-action';
 import { INTERNAL_CALLBACK_ACTION } from '../../../src/config/schema/actions/custom/internal';
 import type { ActionConfig } from '../../../src/config/schema/actions/types';
 
@@ -202,6 +204,13 @@ describe('ActionFactory', () => {
           callback: vi.fn(),
         },
         InternalCallbackAction,
+      ],
+      [
+        {
+          advanced_camera_card_action: GENERATED_ACTION,
+          generator: vi.fn(),
+        },
+        GeneratedAction,
       ],
       [{ advanced_camera_card_action: 'reload' as const }, ReloadAction],
       [{ advanced_camera_card_action: 'set_review' as const }, SetReviewAction],

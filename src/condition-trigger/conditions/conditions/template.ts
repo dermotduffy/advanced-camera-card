@@ -15,6 +15,9 @@ export class TemplateConditionEvaluator implements ConditionEvaluator {
     return {
       result:
         !!newState?.hass &&
+        // Until the renderer has loaded the template cannot be evaluated; fail
+        // (rather than render a raw `{{…}}`), and re-evaluate once it loads.
+        this._context.templateRenderer.isLoaded() &&
         isTemplateTrue(
           this._context.templateRenderer.renderRecursively(
             newState.hass,

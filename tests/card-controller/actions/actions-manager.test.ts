@@ -8,7 +8,6 @@ import {
   it,
   vi,
 } from 'vitest';
-import { mock } from 'vitest-mock-extended';
 
 import {
   ActionsManager,
@@ -16,14 +15,20 @@ import {
   type InteractionName,
 } from '../../../src/card-controller/actions/actions-manager';
 import type { CardController } from '../../../src/card-controller/controller';
-import { TemplateRenderer } from '../../../src/card-controller/templates';
+import { TemplateManager } from '../../../src/card-controller/templates';
 import type { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import {
   createInternalCallbackAction,
   createLogAction,
 } from '../../../src/utils/action';
 import { arrayify } from '../../../src/utils/basic';
-import { createCardAPI, createConfig, createHASS, createView } from '../../test-utils';
+import {
+  createCardAPI,
+  createConfig,
+  createHASS,
+  createMockTemplateRenderer,
+  createView,
+} from '../../test-utils';
 
 const createAPI = (): CardController => {
   const api = createCardAPI();
@@ -337,10 +342,9 @@ describe('ActionsManager', () => {
     it('should render templates', async () => {
       const action = createLogAction('{{ acc.camera }}');
 
-      const templateRenderer = mock<TemplateRenderer>();
-      templateRenderer.renderRecursivelyAsType.mockReturnValue(action);
-
       const api = createAPI();
+      vi.mocked(api.getTemplateManager).mockReturnValue(createMockTemplateRenderer());
+
       const hass = createHASS();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
@@ -349,7 +353,7 @@ describe('ActionsManager', () => {
       };
       vi.mocked(api.getConditionStateManager().getState).mockReturnValue(conditionState);
 
-      const manager = new ActionsManager(api, templateRenderer);
+      const manager = new ActionsManager(api);
       const config = { entity: 'light.office' };
       const triggerData = {
         platform: 'acc',
@@ -361,10 +365,14 @@ describe('ActionsManager', () => {
 
       await manager.executeActions({ actions: action, config, triggerData });
 
-      expect(templateRenderer.renderRecursivelyAsType).toBeCalledWith(hass, action, {
-        conditionState,
-        triggerData,
-      });
+      expect(vi.mocked(api.getTemplateManager().renderRecursivelyAsType)).toBeCalledWith(
+        hass,
+        action,
+        {
+          conditionState,
+          triggerData,
+        },
+      );
     });
 
     it('should filter actions through the lock manager before rendering them', async () => {
@@ -377,20 +385,18 @@ describe('ActionsManager', () => {
         allowedRan();
       });
 
-      const templateRenderer = mock<TemplateRenderer>();
-      templateRenderer.renderRecursivelyAsType.mockReturnValue(allowedAction);
-
       const api = createAPI();
+      vi.mocked(api.getTemplateManager).mockReturnValue(createMockTemplateRenderer());
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getLockManager().getAllowedActions).mockReturnValue([allowedAction]);
 
-      const manager = new ActionsManager(api, templateRenderer);
+      const manager = new ActionsManager(api);
 
       await manager.executeActions({ actions: rawAction });
 
       // The lock manager sees the raw (unrendered) action; only the action it
       // returns is rendered and run.
-      expect(api.getLockManager().getAllowedActions).toBeCalledWith(rawAction);
+      expect(api.getLockManager().getAllowedActions).toBeCalledWith([rawAction]);
       expect(allowedRan).toBeCalled();
       expect(rawRan).not.toBeCalled();
     });
@@ -398,17 +404,16 @@ describe('ActionsManager', () => {
     it('should render each action against the state at its turn', async () => {
       let camera = 'first';
 
-      const templateRenderer = mock<TemplateRenderer>();
-      // Identity render -- assert on the render *inputs*, not a swapped output.
-      templateRenderer.renderRecursivelyAsType.mockImplementation((_hass, data) => data);
-
       const api = createAPI();
+      // The mock renderer passes values through, so assert on the render
+      // *inputs*, not a swapped output.
+      vi.mocked(api.getTemplateManager).mockReturnValue(createMockTemplateRenderer());
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConditionStateManager().getState).mockImplementation(() => ({
         camera,
       }));
 
-      const manager = new ActionsManager(api, templateRenderer);
+      const manager = new ActionsManager(api);
 
       await manager.executeActions({
         actions: [
@@ -423,13 +428,17 @@ describe('ActionsManager', () => {
 
       // Each action renders with the state as it is at its turn: the second
       // sees the camera the first action set.
-      expect(templateRenderer.renderRecursivelyAsType).toHaveBeenNthCalledWith(
+      expect(
+        vi.mocked(api.getTemplateManager().renderRecursivelyAsType),
+      ).toHaveBeenNthCalledWith(
         1,
         expect.anything(),
         expect.anything(),
         expect.objectContaining({ conditionState: { camera: 'first' } }),
       );
-      expect(templateRenderer.renderRecursivelyAsType).toHaveBeenNthCalledWith(
+      expect(
+        vi.mocked(api.getTemplateManager().renderRecursivelyAsType),
+      ).toHaveBeenNthCalledWith(
         2,
         expect.anything(),
         expect.anything(),
@@ -440,16 +449,14 @@ describe('ActionsManager', () => {
     it('should render against the hass available at each step', async () => {
       const ran: string[] = [];
 
-      const templateRenderer = mock<TemplateRenderer>();
-      templateRenderer.renderRecursivelyAsType.mockImplementation((_hass, data) => data);
-
       const api = createAPI();
+      vi.mocked(api.getTemplateManager).mockReturnValue(createMockTemplateRenderer());
       // No HASS for the first action's render; HASS thereafter.
       vi.mocked(api.getHASSManager().getHASS)
         .mockReturnValueOnce(null)
         .mockReturnValue(createHASS());
 
-      const manager = new ActionsManager(api, templateRenderer);
+      const manager = new ActionsManager(api);
 
       await manager.executeActions({
         actions: [
@@ -465,23 +472,27 @@ describe('ActionsManager', () => {
       // Both actions ran; only the second was rendered -- the first saw no
       // HASS, so HASS is read per action rather than captured once.
       expect(ran).toEqual(['one', 'two']);
-      expect(templateRenderer.renderRecursivelyAsType).toBeCalledTimes(1);
+      expect(
+        vi.mocked(api.getTemplateManager().renderRecursivelyAsType),
+      ).toBeCalledTimes(1);
     });
 
     it('should abort the remaining actions when one fails to render', async () => {
       const ran: string[] = [];
 
-      const templateRenderer = mock<TemplateRenderer>();
-      templateRenderer.renderRecursivelyAsType
+      const api = createAPI();
+      const renderer = createMockTemplateRenderer();
+      vi.mocked(api.getTemplateManager).mockReturnValue(renderer);
+
+      // The second action's render throws, to exercise a mid-sequence failure.
+      vi.mocked(renderer.renderRecursivelyAsType)
         .mockImplementationOnce((_hass, data) => data)
         .mockImplementationOnce(() => {
           throw new Error('bad template');
         });
-
-      const api = createAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
-      const manager = new ActionsManager(api, templateRenderer);
+      const manager = new ActionsManager(api);
       const warnSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
 
       await manager.executeActions({
@@ -511,7 +522,11 @@ describe('ActionsManager', () => {
         fullscreen: true,
       });
 
-      const manager = new ActionsManager(api, new TemplateRenderer());
+      // The if-action renders its own (non-branch) fields, so give it an
+      // identity renderer that passes the config through unchanged.
+      vi.mocked(api.getTemplateManager).mockReturnValue(createMockTemplateRenderer());
+
+      const manager = new ActionsManager(api);
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
 
       const thenAction = createLogAction('{{ trigger.entity_id }}');
@@ -527,7 +542,7 @@ describe('ActionsManager', () => {
       // The branch is left raw (template intact) and forwarded with the trigger
       // data, so the nested executor renders it per-step when it runs -- not
       // frozen against the state at the `if` step.
-      expect(api.getActionsManager().executeActions).toBeCalledWith({
+      expect(api.getActionsManager().executeNestedActions).toBeCalledWith({
         actions: [thenAction],
         config: undefined,
         triggerData: { platform: 'state', entity_id: 'binary_sensor.door' },
@@ -541,14 +556,20 @@ describe('ActionsManager', () => {
     it('should render if-action branch actions per-step', async () => {
       let camera = 'before';
 
+      // This case renders a real branch template, so load the lazily-imported
+      // engine for the synchronous renderer.
+      const templateManager = new TemplateManager();
+      await templateManager.loadRenderer();
+
       const api = createAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConditionStateManager().getState).mockImplementation(() => ({
         camera,
         fullscreen: true,
       }));
+      vi.mocked(api.getTemplateManager).mockReturnValue(templateManager);
 
-      const manager = new ActionsManager(api, new TemplateRenderer());
+      const manager = new ActionsManager(api);
       // The if-action's nested executor is the same (real) manager.
       vi.mocked(api.getActionsManager).mockReturnValue(manager);
 
@@ -578,7 +599,7 @@ describe('ActionsManager', () => {
       const api = createAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
-      const manager = new ActionsManager(api, new TemplateRenderer());
+      const manager = new ActionsManager(api);
       const warnSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
 
       await manager.executeActions({

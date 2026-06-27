@@ -16,6 +16,7 @@ import {
 import { localize } from '../../localize/localize';
 import { AdvancedCameraCardError } from '../../types';
 import { desparsifyArrays } from '../../utils/basic.js';
+import type { TemplateRenderer } from '../templates';
 
 type OverridesCallback = () => void;
 
@@ -40,12 +41,17 @@ export class OverridesManager {
 
   public set(
     stateManager: ConditionStateManagerReadonlyInterface,
+    templateRenderer: TemplateRenderer,
     overrides?: Override[],
   ): void {
     this._clear();
 
     overrides?.forEach((override) => {
-      const manager = new ConditionsManager(override.conditions, stateManager);
+      const manager = new ConditionsManager(
+        override.conditions,
+        templateRenderer,
+        stateManager,
+      );
       manager.addListener(this._callback);
       this._overrides.set(override, manager);
     });
