@@ -329,6 +329,16 @@ export const generateFloatApproximatelyEqualsCustomizer = (
   };
 };
 
+// For change-detection equality: a function's identity churns and is not
+// observable state, so two functions compare equal; a function appearing or
+// disappearing is still a real change. Only apply where a data field beside the
+// callback carries the meaningful change, not where a function's identity is
+// itself the state (e.g. a controller keyed by which element it wraps).
+export const ignoreFunctionIdentity = (a: unknown, b: unknown): boolean | undefined =>
+  typeof a === 'function' || typeof b === 'function'
+    ? typeof a === 'function' && typeof b === 'function'
+    : undefined;
+
 export const convertHTTPAdressToWebsocket = (url: string): string => {
   return url.replace(/^http/i, 'ws');
 };

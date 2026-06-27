@@ -28,6 +28,7 @@ import {
   createHASS,
   createMockTemplateRenderer,
   createView,
+  stubConnectedHomeAssistant,
 } from '../../test-utils';
 
 const createAPI = (): CardController => {
@@ -38,6 +39,7 @@ const createAPI = (): CardController => {
   return api;
 };
 
+// @vitest-environment jsdom
 describe('ActionsManager', () => {
   describe('getMergedActions', () => {
     const config = {
@@ -176,8 +178,13 @@ describe('ActionsManager', () => {
     });
   });
 
-  // @vitest-environment jsdom
   describe('handleInteractionEvent', () => {
+    // Templated actions render through ha-nunjucks, which polls (via setTimeout)
+    // for a connected `home-assistant` element until ready. Stubbing one makes
+    // it resolve synchronously, so no retry timer leaks past test teardown.
+    beforeAll(() => {
+      stubConnectedHomeAssistant();
+    });
     beforeEach(() => {
       vi.restoreAllMocks();
     });

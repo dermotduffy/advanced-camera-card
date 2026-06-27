@@ -18,6 +18,7 @@ import {
   generateFloatApproximatelyEqualsCustomizer,
   getChildrenFromElement,
   getDurationString,
+  ignoreFunctionIdentity,
   isHoverableDevice,
   isHTMLElement,
   isSuperset,
@@ -520,6 +521,26 @@ describe('generateFloatApproximatelyEqualsCustomizer', () => {
         generateFloatApproximatelyEqualsCustomizer(5)(1.00001, 1.00002),
       ).toBeFalsy();
     });
+  });
+});
+
+describe('ignoreFunctionIdentity', () => {
+  it('should treat two functions as equal regardless of identity', () => {
+    expect(
+      ignoreFunctionIdentity(
+        () => 1,
+        () => 2,
+      ),
+    ).toBe(true);
+  });
+  it('should treat a function appearing as a real change', () => {
+    expect(ignoreFunctionIdentity(() => 1, undefined)).toBe(false);
+  });
+  it('should treat a function disappearing as a real change', () => {
+    expect(ignoreFunctionIdentity(undefined, () => 1)).toBe(false);
+  });
+  it('should defer to default equality for non-functions', () => {
+    expect(ignoreFunctionIdentity(1, 2)).toBeUndefined();
   });
 });
 
