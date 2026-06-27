@@ -7,6 +7,7 @@ import {
   createHASS,
   createMockTemplateRenderer,
   createStateEntity,
+  stubConnectedHomeAssistant,
 } from '../../test-utils';
 
 // A mock renderer for the orchestration tests, which never render templates.
@@ -198,6 +199,7 @@ describe('ConditionsManager', () => {
     // loaded for the synchronous renderer (rather than the shared mock).
     const templateManager = new TemplateManager();
     beforeAll(async () => {
+      stubConnectedHomeAssistant();
       await templateManager.loadRenderer();
     });
 

@@ -758,6 +758,36 @@ export const createMockTemplateRenderer = (): TemplateManager => {
   return renderer;
 };
 
+// At import the real ha-nunjucks engine waits for a connected `home-assistant`
+// element before finishing initialization, retrying on a timer that can outlive
+// the test (and throw `document is not defined` once the environment is torn
+// down). Test suites that load the real engine call this first, in a jsdom
+// environment, so it initializes immediately as it does in a real Home
+// Assistant frontend. Idempotent.
+//
+// Workaround for an upstream bug; remove once it is fixed:
+// https://github.com/Nerwyn/ha-nunjucks/issues/11
+export const stubConnectedHomeAssistant = (): void => {
+  if (document.querySelector('home-assistant')) {
+    return;
+  }
+  const ha = document.createElement('home-assistant');
+  Object.assign(ha, {
+    hass: {
+      // The readiness gate the engine polls for.
+      connected: true,
+      connection: {
+        connected: true,
+        // Awaited by the engine's label-registry fetch during init.
+        sendMessagePromise: () => Promise.resolve([]),
+      },
+      language: 'en',
+      states: {},
+    },
+  });
+  document.body.appendChild(ha);
+};
+
 export const createCardAPI = (): CardController => {
   const api = mock<CardController>();
 

@@ -2,7 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TemplateManager } from '../../../../src/card-controller/templates';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
-import { createHASS, createStateEntity } from '../../../test-utils';
+import {
+  createHASS,
+  createStateEntity,
+  stubConnectedHomeAssistant,
+} from '../../../test-utils';
 import { createEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
@@ -340,6 +344,7 @@ describe('state condition', () => {
       // This case renders a real templated `for`, so load the lazily-imported
       // engine for the synchronous renderer.
       const templateManager = new TemplateManager();
+      stubConnectedHomeAssistant();
       await templateManager.loadRenderer();
 
       const evaluator = createConditionEvaluator(

@@ -8,7 +8,11 @@ import {
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { NumericStateTrigger } from '../../../../src/condition-trigger/triggers/triggers/numeric-state';
 import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
-import { createHASS, createStateEntity } from '../../../test-utils';
+import {
+  createHASS,
+  createStateEntity,
+  stubConnectedHomeAssistant,
+} from '../../../test-utils';
 import { createTriggerEvaluatorContext } from './test-utils';
 
 const SENSOR = 'sensor.temperature';
@@ -163,6 +167,7 @@ describe('NumericStateTrigger', () => {
 
   it('should match the rendered value_template', async () => {
     const templateManager = new TemplateManager();
+    stubConnectedHomeAssistant();
     await templateManager.loadRenderer();
 
     const { trigger, stateManager, callback } = create(
