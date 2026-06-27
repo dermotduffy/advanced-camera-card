@@ -35,7 +35,16 @@ const serveopts = {
  * @type {import('rollup').RollupOptions['plugins']}
  */
 const plugins = [
-  gitInfo.default({ enableBuildDate: true, updateVersion: false }),
+  gitInfo.default(
+    // Limit git-info to the project's own package.json. Without this it also
+    // rewrites any dependency's imported package.json into ESM, which then breaks
+    // the json() plugin downstream (ha-nunjucks imports its own package.json).
+    {
+      enableBuildDate: true,
+      updateVersion: false,
+      include: 'package.json',
+    },
+  ),
   styles({
     modules: false,
     // Behavior of inject mode, without actually injecting style

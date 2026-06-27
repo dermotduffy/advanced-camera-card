@@ -3,6 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { TemplateManager } from '../../../src/card-controller/templates/index';
 import { createConfig, createHASS, createStateEntity } from '../../test-utils';
 
+// ha-nunjucks reads `window`/`document` at import and renders via a
+// `window.haNunjucks` global, so the renderer needs a DOM environment.
+// @vitest-environment jsdom
 describe('TemplateManager', () => {
   describe('loadRenderer', () => {
     it('should render a template raw before the engine is loaded', () => {
