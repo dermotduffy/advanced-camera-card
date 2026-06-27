@@ -2662,7 +2662,7 @@ __metadata:
     eslint-config-airbnb-base: "npm:^15.0.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
-    ha-nunjucks: "npm:^1.3.0"
+    ha-nunjucks: "npm:~1.6.2"
     home-assistant-js-websocket: "npm:^9.4.0"
     js-yaml: "npm:^4.1.0"
     jsdom: "npm:^21.1.2"
@@ -5786,14 +5786,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ha-nunjucks@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "ha-nunjucks@npm:1.3.0"
+"ha-nunjucks@npm:~1.6.2":
+  version: 1.6.2
+  resolution: "ha-nunjucks@npm:1.6.2"
   dependencies:
     home-assistant-js-websocket: "npm:latest"
     nunjucks: "npm:latest"
+    slugify: "npm:latest"
     ts-py-datetime: "npm:latest"
-  checksum: 10c0/9c346ee9866f748b41d98dbefefd46ddb0a43f7d563e4456e000047e273e5441e5a15321ba8684325a81d746a9e9c32c5c0f4f1a58637291babebcae45329442
+  checksum: 10c0/f3953be5de5f27e7cf5c111bb9fc969e2e7a7732547c0549c88a5fed2480c12bdb058feff81e68059570831b1464cf26bf356df6f60dfcc904d16d2c6f844ee8
   languageName: node
   linkType: hard
 
@@ -10280,6 +10281,13 @@ __metadata:
   version: 5.1.0
   resolution: "slash@npm:5.1.0"
   checksum: 10c0/eb48b815caf0bdc390d0519d41b9e0556a14380f6799c72ba35caf03544d501d18befdeeef074bc9c052acf69654bc9e0d79d7f1de0866284137a40805299eb3
+  languageName: node
+  linkType: hard
+
+"slugify@npm:latest":
+  version: 1.6.9
+  resolution: "slugify@npm:1.6.9"
+  checksum: 10c0/8473c566ae00c5db26bfbf6182a4a9478ab3c912a9c926e1fdb410736a77228bfca4fdc5c755b46fafa7d2d9900de482fd7a9bd5e5c91128c4743c2c072d88da
   languageName: node
   linkType: hard
 
