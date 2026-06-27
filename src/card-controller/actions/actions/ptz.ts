@@ -54,7 +54,19 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
     }
 
     if (!this._action.ptz_action) {
-      if (ptzCapabilities.presets && ptzCapabilities.presets.length >= 1) {
+      // Honor an explicitly configured `home` preset (`ptz.presets.home`, or the
+      // legacy `ptz.actions_home`/`data_home` that migrate to it) before falling
+      // back to the first auto-detected preset. Engines that auto-detect presets
+      // (e.g. Reolink) populate `capabilities.presets` from a `select` entity,
+      // which would otherwise shadow the user's configured home action and always
+      // target `presets[0]`.
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/2525
+      if (ptzConfiguration.presets?.['home']) {
+        await api.getCameraManager().executePTZAction(ptzCameraID, 'preset', {
+          phase: this._action.ptz_phase,
+          preset: 'home',
+        });
+      } else if (ptzCapabilities.presets && ptzCapabilities.presets.length >= 1) {
         await api.getCameraManager().executePTZAction(ptzCameraID, 'preset', {
           phase: this._action.ptz_phase,
           preset: ptzCapabilities.presets[0],

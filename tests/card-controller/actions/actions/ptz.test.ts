@@ -204,6 +204,101 @@ describe('should handle ptz action', () => {
       );
     });
 
+    it('should call configured home preset in preference to first preset', async () => {
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/2525
+      const api = createCardAPI();
+      const store = createStore([
+        {
+          cameraID: 'camera.office',
+          config: createCameraConfig({
+            ptz: {
+              presets: {
+                home: {
+                  action: 'perform-action',
+                  perform_action: 'button.press',
+                  data: { entity_id: 'button.office_guard' },
+                },
+              },
+            },
+          }),
+          // An engine (e.g. Reolink) auto-detects presets that would otherwise
+          // shadow the configured home action.
+          capabilities: new Capabilities({
+            ptz: { presets: ['Staw', 'Piwnica'] },
+          }),
+        },
+      ]);
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
+      vi.mocked(api.getViewManager().getView).mockReturnValue(
+        createView({ camera: 'camera.office' }),
+      );
+
+      const action = new PTZAction(
+        {},
+        {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'ptz',
+        },
+      );
+
+      await action.execute(api);
+
+      expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+        'camera.office',
+        'preset',
+        {
+          phase: undefined,
+          preset: 'home',
+        },
+      );
+    });
+
+    it('should call first preset when no home preset is configured', async () => {
+      const api = createCardAPI();
+      const store = createStore([
+        {
+          cameraID: 'camera.office',
+          config: createCameraConfig({
+            ptz: {
+              presets: {
+                window: {
+                  action: 'perform-action',
+                  perform_action: 'button.press',
+                  data: { entity_id: 'button.office_window' },
+                },
+              },
+            },
+          }),
+          capabilities: new Capabilities({
+            ptz: { presets: ['Staw', 'Piwnica'] },
+          }),
+        },
+      ]);
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager(store));
+      vi.mocked(api.getViewManager().getView).mockReturnValue(
+        createView({ camera: 'camera.office' }),
+      );
+
+      const action = new PTZAction(
+        {},
+        {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'ptz',
+        },
+      );
+
+      await action.execute(api);
+
+      expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+        'camera.office',
+        'preset',
+        {
+          phase: undefined,
+          preset: 'Staw',
+        },
+      );
+    });
+
     it('should not call preset when there are no presets', async () => {
       const api = createCardAPI();
       const store = createStore([
