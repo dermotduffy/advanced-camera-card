@@ -30,10 +30,9 @@ export interface KeyedIssueDescription {
 
 // Map of currently active issues keyed by IssueKey, with each entry's value
 // being the issue's current rendered description. Stored as a Map (not just a
-// Set of keys) so that sub-state changes within an issue -- e.g.
-// ConnectionIssue swapping between 'lost' and 'starting' -- are reflected as
-// real value-level diffs to the condition state, triggering re-renders and any
-// user-defined conditions that depend on issue state.
+// Set of keys) so that sub-state changes within an issue -- e.g. ConnectionIssue
+// swapping between 'lost' and 'starting' -- surface as value-level diffs when
+// IssueManager compares presence between evaluations, triggering a re-render.
 export type IssuePresence = Map<IssueKey, IssueDescription>;
 export interface IssueReadOnlyState {
   hasFullCardIssue(): boolean;
