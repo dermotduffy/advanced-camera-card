@@ -2,13 +2,18 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 import { TemplateManager } from '../../../../src/card-controller/templates';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
-import { createHASS, createStateEntity } from '../../../test-utils';
+import {
+  createHASS,
+  createStateEntity,
+  stubConnectedHomeAssistant,
+} from '../../../test-utils';
 import { createEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
 describe('template condition', () => {
   const templateManager = new TemplateManager();
   beforeAll(async () => {
+    stubConnectedHomeAssistant();
     await templateManager.loadRenderer();
   });
 

@@ -20,6 +20,12 @@ The Advanced Camera Card uses
 Consult its documentation for the wide variety of different template values
 supported.
 
+> [!NOTE]
+> To keep the card lightweight, some template features are not available. If a
+> template feature you need is missing,
+> [open an issue](https://github.com/dermotduffy/advanced-camera-card/issues) to
+> request it.
+
 See [an example](../examples.md?id=accessing-home-assistant-state) that
 accesses Home Assistant state.
 

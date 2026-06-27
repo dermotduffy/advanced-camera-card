@@ -6,6 +6,7 @@ import {
   createHASS,
   createMockTemplateRenderer,
   createStateEntity,
+  stubConnectedHomeAssistant,
 } from '../../test-utils';
 
 // @vitest-environment jsdom
@@ -66,6 +67,7 @@ describe('renderTimePeriodToSeconds', () => {
     const templateManager = new TemplateManager();
 
     beforeAll(async () => {
+      stubConnectedHomeAssistant();
       await templateManager.loadRenderer();
     });
 

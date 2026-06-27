@@ -13,11 +13,16 @@ import { TemplateManager } from '../../../../src/card-controller/templates';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { TemplateTrigger } from '../../../../src/condition-trigger/triggers/triggers/template';
 import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
-import { createHASS, createStateEntity } from '../../../test-utils';
+import {
+  createHASS,
+  createStateEntity,
+  stubConnectedHomeAssistant,
+} from '../../../test-utils';
 import { createTriggerEvaluatorContext } from './test-utils';
 
 const templateManager = new TemplateManager();
 beforeAll(async () => {
+  stubConnectedHomeAssistant();
   await templateManager.loadRenderer();
 });
 
