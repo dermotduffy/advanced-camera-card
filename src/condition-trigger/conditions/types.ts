@@ -1,4 +1,3 @@
-import type { IssuePresence } from '../../card-controller/issues/types';
 import type { KeysState, MicrophoneState } from '../../card-controller/types';
 import type { AdvancedCameraCardView } from '../../config/schema/common/const';
 import type { ViewDisplayMode } from '../../config/schema/common/display';
@@ -6,6 +5,16 @@ import type { AdvancedCameraCardConfig } from '../../config/schema/types';
 import type { HomeAssistant } from '../../ha/types';
 import type { MediaLoadedInfo } from '../../types';
 
+// ConditionStateManager checks each written field with lodash isEqual. Prefer
+// plain immutable data: functions (callbacks) compare by identity, and opaque
+// objects get deep-walked through their enumerable state, which is rarely a
+// meaningful equality contract. Store such a value only when its reference is
+// the intended state (`mediaLoadedInfo`'s MediaPlayerController, which
+// consumers also reference-compare) or its identity is stable across writes
+// (`hass`'s methods).
+//
+// Counterexample: Rebuilding an equivalent function callback each write making
+// the field look changed when nothing observable did.
 export interface ConditionState {
   call?: boolean;
   camera?: string;
@@ -22,7 +31,6 @@ export interface ConditionState {
   mediaLoadedInfo?: MediaLoadedInfo | null;
   microphone?: MicrophoneState;
   panel?: boolean;
-  issues?: IssuePresence;
   hass?: HomeAssistant;
 
   // Generic media target identifier. See @view/target-id for details.

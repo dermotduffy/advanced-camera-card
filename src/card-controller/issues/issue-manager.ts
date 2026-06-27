@@ -1,6 +1,7 @@
 import type { IssueTriggerContext } from 'issue';
 
 import type { ConditionStateChange } from '../../condition-trigger/conditions/types';
+import { contentsChanged, ignoreFunctionIdentity } from '../../utils/basic';
 import { isActionAllowedBasedOnInteractionState } from '../../utils/interaction-mode';
 import { RetryTimer } from '../../utils/retry-timer';
 import type { CardIssueManagerAPI } from '../types';
@@ -8,6 +9,7 @@ import { IssueStateManager } from './state-manager';
 import type {
   Issue,
   IssueKey,
+  IssuePresence,
   IssueReadOnlyState,
   IssueTriggerContextKey,
 } from './types';
@@ -34,11 +36,9 @@ export class IssueManager {
   });
   private _suspended = false;
 
-  // Reentrancy guard: evaluate() calls setState() on the condition state
-  // manager, which fires listeners synchronously -- including the one
-  // registered in this constructor. Without this guard, detectDynamic()
-  // and presence computation would run twice per evaluation.
-  private _evaluating = false;
+  // The issue presence from the last evaluation, compared against on the next
+  // one to decide whether a re-render is needed.
+  private _lastPresence: IssuePresence = new Map();
 
   constructor(api: CardIssueManagerAPI) {
     this._api = api;
@@ -71,40 +71,42 @@ export class IssueManager {
     this.evaluate();
   }
 
-  // Evaluate all dynamic issues against current state, then react to any
-  // changes: notify, update condition state, and schedule retries.
+  // Evaluate all dynamic issues against current state, re-render the card if
+  // the issue presence changed, and schedule retries.
   //
-  // Detection of "anything changed" is delegated to the condition state
-  // manager: IssuePresence is a Map<IssueKey, IssueDescription>, so its
-  // deep equality check naturally catches both presence-set churn (issues
+  // IssuePresence is a Map<IssueKey, IssueDescription>, so comparing the new
+  // presence against the previous one catches both presence-set churn (issues
   // appearing/disappearing) and content-level churn (an issue swapping
-  // sub-states without changing its key, e.g. ConnectionIssue going from
-  // 'lost' to 'starting').
+  // sub-states without changing its key, e.g. ConnectionIssue going from 'lost'
+  // to 'starting').
   public evaluate(): void {
-    if (this._suspended || this._evaluating) {
+    if (this._suspended) {
       return;
     }
 
-    this._evaluating = true;
-    try {
-      const state = this._api.getConditionStateManager().getState();
-      this._stateManager.detectDynamic(state);
+    const state = this._api.getConditionStateManager().getState();
+    this._stateManager.detectDynamic(state);
 
-      if (
-        this._api.getConditionStateManager().setState({
-          issues: this._stateManager.getIssuePresence(),
-        })
-      ) {
-        // Re-render to show the change. The re-render also re-attempts
-        // initialization, which matters when a blocking notice like "Home
-        // Assistant is starting" clears and the card can finally initialize.
-        this._api.getCardElementManager().update();
-      }
+    // getIssuePresence() rebuilds notifications fresh each call, so a retry
+    // control embeds a new callback closure every time; ignore that identity
+    // churn so only an observable change in the issue set or its content
+    // triggers a re-render.
+    const presence = this._stateManager.getIssuePresence();
+    const changed = contentsChanged(
+      presence,
+      this._lastPresence,
+      ignoreFunctionIdentity,
+    );
+    this._lastPresence = presence;
 
-      this._scheduleRetryIfNeeded();
-    } finally {
-      this._evaluating = false;
+    if (changed) {
+      // Re-render to show the change. The re-render also re-attempts
+      // initialization, which matters when a blocking notice like "Home
+      // Assistant is starting" clears and the card can finally initialize.
+      this._api.getCardElementManager().update();
     }
+
+    this._scheduleRetryIfNeeded();
   }
 
   // Attempts a retry for the given issue. Pass `force = true` for user-

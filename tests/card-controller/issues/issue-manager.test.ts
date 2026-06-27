@@ -8,6 +8,7 @@ import {
   RETRY_EXPONENTIAL_BASE_SECONDS,
   RETRY_EXPONENTIAL_MAX_SECONDS,
 } from '../../../src/card-controller/issues/issue-manager';
+import { createRetryControl } from '../../../src/card-controller/issues/retry-control';
 import type {
   Issue,
   IssueDescription,
@@ -52,7 +53,6 @@ const createRetriableSetup = (options?: {
   issue: Issue;
 } => {
   const api = createCardAPI();
-  vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
   if (options?.hasInteraction !== undefined) {
     vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(
@@ -178,7 +178,6 @@ describe('IssueManager', () => {
   describe('trigger', () => {
     it('should trigger the issue and call evaluate', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
       const manager = new IssueManager(api);
 
@@ -192,17 +191,15 @@ describe('IssueManager', () => {
       expect(issue.trigger).toBeCalledWith({ error: expect.any(Error) });
     });
 
-    it('should update presence even when state was mutated before detectDynamic', () => {
+    it('should update the card even when state was mutated before detectDynamic', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
-      vi.mocked(api.getConditionStateManager().setState).mockReturnValue(true);
 
       const manager = new IssueManager(api);
 
       // hasIssue returns true from the start -- simulates trigger() having
       // already mutated state before detectDynamic snapshots. The before/after
       // check inside detectDynamic sees true→true (no transition), but the
-      // presence comparison against ConditionState must still detect the
+      // presence comparison against the last evaluation must still detect the
       // change.
       const description = createIssueDescription();
       const issue = createIssue('config_error', {
@@ -214,15 +211,11 @@ describe('IssueManager', () => {
 
       manager.trigger('config_error', { error: new Error('cfg') });
 
-      expect(api.getConditionStateManager().setState).toBeCalledWith({
-        issues: new Map([['config_error', description]]),
-      });
       expect(api.getCardElementManager().update).toBeCalled();
     });
 
     it('should never auto-popup on trigger -- non-full-card issues surface via the status-bar icon; user clicks to open', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
       const manager = new IssueManager(api);
 
@@ -261,7 +254,6 @@ describe('IssueManager', () => {
 
     it('should force retry even when needsRetry is false', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
       const manager = new IssueManager(api);
       const issue = createIssue('media_load', {
         retry: vi.fn().mockReturnValue(false),
@@ -275,10 +267,8 @@ describe('IssueManager', () => {
   });
 
   describe('evaluate', () => {
-    it('should update condition state and card when presence differs from state', () => {
+    it('should update the card when presence differs from the last evaluation', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
-      vi.mocked(api.getConditionStateManager().setState).mockReturnValue(true);
 
       const manager = new IssueManager(api);
       const description = createIssueDescription();
@@ -290,15 +280,28 @@ describe('IssueManager', () => {
 
       manager.evaluate();
 
-      expect(api.getConditionStateManager().setState).toBeCalledWith({
-        issues: new Map([['config_error', description]]),
-      });
       expect(api.getCardElementManager().update).toBeCalled();
     });
 
-    it('should sync presence to condition state without update when unchanged', () => {
+    it('should not write issue presence back into the condition state', () => {
+      // Locks in the fix: routing issue presence through ConditionState (which
+      // embeds churning callback closures) is what caused the re-render loop.
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
+
+      const manager = new IssueManager(api);
+      const issue = createIssue('config_error', {
+        hasIssue: vi.fn().mockReturnValue(true),
+        getIssue: vi.fn().mockReturnValue(createIssueDescription()),
+      });
+      manager.addIssue(issue);
+
+      manager.evaluate();
+
+      expect(api.getConditionStateManager().setState).not.toBeCalled();
+    });
+
+    it('should not update the card when there are no issues', () => {
+      const api = createCardAPI();
 
       const manager = new IssueManager(api);
       const issue = createIssue('config_error');
@@ -306,23 +309,15 @@ describe('IssueManager', () => {
 
       manager.evaluate();
 
-      expect(api.getConditionStateManager().setState).toBeCalledWith({
-        issues: new Map(),
-      });
       expect(api.getCardElementManager().update).not.toBeCalled();
     });
 
     it('should call update when an active issue swaps sub-states without changing the key set', () => {
       // Simulates ConnectionIssue going from 'lost' to 'starting': the presence
       // key set ({connection}) is identical, but the description value differs.
-      // Because IssuePresence is a Map<key, description>, the condition state
-      // diff sees the value-level change and fires listeners -- the
-      // IssueManager's own listener calls update().
+      // Because IssuePresence is a Map<key, description>, the presence diff sees
+      // the value-level change and requests a re-render.
       const api = createCardAPI();
-
-      // Real ConditionStateManager so its isEqual-based diff actually runs.
-      const stateManager = new ConditionStateManager();
-      vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
       const manager = new IssueManager(api);
       const getIssue = vi
@@ -350,8 +345,6 @@ describe('IssueManager', () => {
 
     it('should not call update when content is identical across evaluations', () => {
       const api = createCardAPI();
-      const stateManager = new ConditionStateManager();
-      vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
       const manager = new IssueManager(api);
       const issue = createIssue('connection', {
@@ -364,6 +357,34 @@ describe('IssueManager', () => {
       vi.mocked(api.getCardElementManager().update).mockClear();
 
       // Re-evaluate without any change.
+      manager.evaluate();
+
+      expect(api.getCardElementManager().update).not.toBeCalled();
+    });
+
+    it('should not request repeated updates as retry callback closures churn', () => {
+      // Regression: getIssuePresence() rebuilds notifications fresh each call,
+      // so a retry control embeds a new callback closure every evaluation. The
+      // presence diff must ignore that function-identity churn, otherwise every
+      // evaluation looks changed and the card re-renders endlessly.
+      const api = createCardAPI();
+
+      const manager = new IssueManager(api);
+      const issue = createIssue('media_load', {
+        hasIssue: vi.fn().mockReturnValue(true),
+        getIssue: vi.fn().mockImplementation(() =>
+          createIssueDescription({
+            notification: {
+              controls: [createRetryControl('media_load')],
+            },
+          }),
+        ),
+      });
+      manager.addIssue(issue);
+
+      manager.evaluate();
+      vi.mocked(api.getCardElementManager().update).mockClear();
+
       manager.evaluate();
 
       expect(api.getCardElementManager().update).not.toBeCalled();
@@ -385,32 +406,11 @@ describe('IssueManager', () => {
 
       expect(issue.detectDynamic).toBeCalled();
     });
-
-    it('should not re-enter evaluate when setState triggers listener', () => {
-      const api = createCardAPI();
-      const stateManager = new ConditionStateManager();
-      vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
-
-      const manager = new IssueManager(api);
-      const issue = createIssue('config_error', {
-        hasIssue: vi.fn().mockReturnValue(true),
-        detectDynamic: vi.fn(),
-      });
-      manager.addIssue(issue);
-
-      // Calling evaluate() will call setState() on the real
-      // ConditionStateManager, which fires listeners synchronously. The
-      // reentrancy guard must prevent detectDynamic from running twice.
-      manager.evaluate();
-
-      expect(issue.detectDynamic).toBeCalledTimes(1);
-    });
   });
 
   describe('showNotification', () => {
     it('should call setNotification when a notification is available', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
       const manager = new IssueManager(api);
 
       const notification = { body: { text: 'test notification' } };
@@ -436,7 +436,6 @@ describe('IssueManager', () => {
   describe('scheduled retries', () => {
     it('should not schedule a retry when no issue wants retry', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
 
       const manager = new IssueManager(api);
@@ -451,7 +450,6 @@ describe('IssueManager', () => {
 
     it('should not schedule a retry when config is null', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(null);
 
       const manager = new IssueManager(api);
@@ -735,7 +733,6 @@ describe('IssueManager', () => {
   describe('reset', () => {
     it('should reset a specific issue and re-evaluate', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
       const manager = new IssueManager(api);
 
@@ -753,7 +750,6 @@ describe('IssueManager', () => {
 
     it('should skip reset when targeted key has no active issue', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
       const manager = new IssueManager(api);
 
@@ -785,7 +781,6 @@ describe('IssueManager', () => {
 
     it('should gate evaluate while suspended', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
       const manager = new IssueManager(api);
       const issue = createIssue('config_error', {
@@ -802,7 +797,6 @@ describe('IssueManager', () => {
 
     it('should preserve issue state across suspend', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
       const manager = new IssueManager(api);
       const issue = createIssue('config_error', {
@@ -820,12 +814,11 @@ describe('IssueManager', () => {
 
     it('should resume evaluation on resume', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
-      vi.mocked(api.getConditionStateManager().setState).mockReturnValue(true);
 
       const manager = new IssueManager(api);
       const issue = createIssue('config_error', {
         hasIssue: vi.fn().mockReturnValue(true),
+        getIssue: vi.fn().mockReturnValue(createIssueDescription()),
         detectDynamic: vi.fn(),
       });
       manager.addIssue(issue);
@@ -839,7 +832,6 @@ describe('IssueManager', () => {
 
     it('should invoke Issue.suspend on timer-backed issues when suspended', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
       const manager = new IssueManager(api);
       const issue = createIssue('media_load', { suspend: vi.fn() });
@@ -852,7 +844,6 @@ describe('IssueManager', () => {
 
     it('should tolerate issues without a suspend hook', () => {
       const api = createCardAPI();
-      vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
 
       const manager = new IssueManager(api);
       // Plain Issue implementation -- no optional methods installed.
