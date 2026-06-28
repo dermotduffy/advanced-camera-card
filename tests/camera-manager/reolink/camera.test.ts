@@ -507,6 +507,47 @@ describe('ReolinkCamera', () => {
           zoomOut: ['continuous'],
         });
       });
+
+      it('should union configured presets with detected presets', async () => {
+        const config = createCameraConfig({
+          camera_entity: 'camera.office_reolink',
+          ptz: {
+            presets: {
+              home: {
+                action: 'perform-action',
+                perform_action: 'button.press',
+                target: { entity_id: 'button.office_guard' },
+              },
+            },
+          },
+        });
+        const camera = new ReolinkCamera(config, mock<CameraManagerEngine>());
+
+        await camera.initialize({
+          hassManager: createHASSManager({
+            hass: createHASS({
+              'select.office_reolink_ptz_preset': createStateEntity({
+                state: 'foo',
+                attributes: {
+                  options: ['preset-one', 'preset-two'],
+                },
+              }),
+            }),
+          }),
+          entityRegistryManager: ptzPopulatedEntityRegistryManager,
+          deviceRegistryManager: mock<DeviceRegistryManager>(),
+        });
+
+        expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
+          left: ['continuous'],
+          right: ['continuous'],
+          up: ['continuous'],
+          down: ['continuous'],
+          zoomIn: ['continuous'],
+          zoomOut: ['continuous'],
+          presets: ['home', 'preset-one', 'preset-two'],
+        });
+      });
     });
   });
 
