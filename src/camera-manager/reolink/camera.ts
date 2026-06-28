@@ -18,7 +18,7 @@ import type { Camera, CameraInitializationOptions } from '../camera';
 import { EntityCamera } from '../entity-camera';
 import { ReolinkInitializationError } from '../error';
 import type { CameraEndpointsContext, CameraProxyConfig } from '../types';
-import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
+import { getPTZCapabilitiesFromCameraConfig, mergePTZCapabilities } from '../utils/ptz';
 
 // Reolink channels are zero indexed.
 const REOLINK_DEFAULT_CHANNEL = 0;
@@ -194,8 +194,7 @@ export class ReolinkCamera extends EntityCamera {
       ? this._entitiesToCapabilities(hass, this._ptzEntities)
       : null;
 
-    const combinedPTZ: PTZCapabilities | null =
-      configPTZ || reolinkPTZ ? { ...reolinkPTZ, ...configPTZ } : null;
+    const combinedPTZ = mergePTZCapabilities(reolinkPTZ, configPTZ);
 
     return {
       ...(await super._getRawCapabilities(hass, options)),

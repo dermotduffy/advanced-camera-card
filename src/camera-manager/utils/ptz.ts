@@ -54,6 +54,32 @@ export const getConfiguredPTZMovementType = (
     : null;
 };
 
+// Combine engine-detected and configured PTZ capabilities. Configured movement
+// actions override their engine equivalents, but presets from both sources are
+// kept (configured first) so that configuring a preset does not erase the
+// auto-detected ones.
+export const mergePTZCapabilities = (
+  enginePTZ: PTZCapabilities | null,
+  configPTZ: PTZCapabilities | null,
+): PTZCapabilities | null => {
+  if (!enginePTZ && !configPTZ) {
+    return null;
+  }
+
+  const presets = [
+    ...(configPTZ?.presets ?? []),
+    ...(enginePTZ?.presets ?? []).filter(
+      (preset) => !configPTZ?.presets?.includes(preset),
+    ),
+  ];
+
+  return {
+    ...enginePTZ,
+    ...configPTZ,
+    ...(presets.length ? { presets } : {}),
+  };
+};
+
 export const getPTZCapabilitiesFromCameraConfig = (
   cameraConfig: CameraConfig,
 ): PTZCapabilities | null => {

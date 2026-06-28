@@ -9,7 +9,7 @@ import {
 } from '../../types';
 import type { CameraInitializationOptions } from '../camera';
 import { EntityCamera } from '../entity-camera';
-import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
+import { getPTZCapabilitiesFromCameraConfig, mergePTZCapabilities } from '../utils/ptz';
 
 interface TPLinkCameraInitializationOptions extends CameraInitializationOptions {
   entityRegistryManager: EntityRegistryManager;
@@ -43,8 +43,7 @@ export class TPLinkCamera extends EntityCamera {
       ? this._entitiesToCapabilities(this._ptzEntities)
       : null;
 
-    const combinedPTZ: PTZCapabilities | null =
-      configPTZ || tplinkPTZ ? { ...tplinkPTZ, ...configPTZ } : null;
+    const combinedPTZ = mergePTZCapabilities(tplinkPTZ, configPTZ);
 
     return {
       ...(await super._getRawCapabilities(hass, options)),

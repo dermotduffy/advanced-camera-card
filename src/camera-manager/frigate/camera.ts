@@ -21,7 +21,7 @@ import {
   getGo2RTCMetadataEndpoint,
   getGo2RTCStreamEndpoint,
 } from '../utils/go2rtc/endpoint';
-import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
+import { getPTZCapabilitiesFromCameraConfig, mergePTZCapabilities } from '../utils/ptz';
 import { getPTZInfo } from './requests';
 import {
   FRIGATE_SEVERITY_MAP,
@@ -217,8 +217,7 @@ export class FrigateCamera extends Camera {
 
     const frigatePTZ = await this._getPTZCapabilities(hass, config);
     const configPTZ = getPTZCapabilitiesFromCameraConfig(config);
-    const combinedPTZ: PTZCapabilities | null =
-      configPTZ || frigatePTZ ? { ...frigatePTZ, ...configPTZ } : null;
+    const combinedPTZ = mergePTZCapabilities(frigatePTZ, configPTZ);
 
     const birdseye = isBirdseye(config);
     return {
