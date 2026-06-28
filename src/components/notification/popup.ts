@@ -9,11 +9,11 @@ import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { handleControlAction } from '../../components-lib/notification/action.js';
+import { NotificationContextController } from '../../components-lib/notification/notification-context-controller.js';
+import { NotificationPopupController } from '../../components-lib/notification/notification-popup-controller.js';
 import type { Notification } from '../../config/schema/actions/types.js';
 import { localize } from '../../localize/localize.js';
 import notificationPopupStyle from '../../scss/notification-popup.scss';
-import { hasPopOutAnimationEnded } from '../../utils/animation.js';
-import { dispatchDismissNotificationEvent } from '../../utils/notification.js';
 import {
   renderControl,
   renderDetail,
@@ -26,39 +26,27 @@ export class AdvancedCameraCardNotification extends LitElement {
   public notification: Notification | null = null;
 
   private _refNotification: Ref<HTMLElement> = createRef();
-
-  public connectedCallback(): void {
-    super.connectedCallback();
-    window.addEventListener('click', this._handleOutsideInteraction);
-    window.addEventListener('focusin', this._handleOutsideInteraction);
-
-    // Escape is claimed in the capture phase: the popup is a modal surface and
-    // must consume Escape before non-modal background controls (e.g. the call
-    // controls) that also listen on `window`.
-    window.addEventListener('keydown', this._handleKeyDown, { capture: true });
-  }
-
-  public disconnectedCallback(): void {
-    window.removeEventListener('click', this._handleOutsideInteraction);
-    window.removeEventListener('focusin', this._handleOutsideInteraction);
-    window.removeEventListener('keydown', this._handleKeyDown, { capture: true });
-    super.disconnectedCallback();
-  }
+  private _popupController = new NotificationPopupController(
+    this,
+    () => this._refNotification.value ?? null,
+  );
+  private _contextController = new NotificationContextController(this);
 
   protected render(): TemplateResult | void {
     if (!this.notification) {
       return;
     }
 
+    const context = this._contextController.getContext(this.notification);
     const { heading, in_progress } = this.notification;
     const controls = this.notification.controls ?? [];
 
     return html`
-      <div class="backdrop" @click=${this._dismiss}></div>
+      <div class="backdrop" @click=${this._popupController.dismiss}></div>
       <div
         class="notification"
         ${ref(this._refNotification)}
-        @animationend=${this._handleAnimationEnd}
+        @animationend=${this._popupController.handleAnimationEnd}
       >
         ${controls.length || in_progress
           ? html`<div class="controls">
@@ -69,51 +57,23 @@ export class AdvancedCameraCardNotification extends LitElement {
                 : ''}
               ${controls.map((control) =>
                 renderControl(control, (ev, c) =>
-                  handleControlAction(ev, c, this, this._dismiss),
+                  handleControlAction(ev, c, this, this._popupController.dismiss),
                 ),
               )}
             </div>`
           : ''}
-        <div class="close" @click=${this._dismiss}>
+        <div class="close" @click=${this._popupController.dismiss}>
           <advanced-camera-card-icon
             .icon=${{ icon: 'mdi:close' }}
           ></advanced-camera-card-icon>
         </div>
         <div class="details">
           ${heading ? renderDetail(heading, 'heading') : ''}
-          ${renderNotificationBody(this.notification)}
+          ${renderNotificationBody(this.notification, context)}
         </div>
       </div>
     `;
   }
-
-  private _dismiss = (): void => {
-    this._refNotification.value?.classList.add('exiting');
-  };
-
-  private _handleAnimationEnd = (ev: AnimationEvent): void => {
-    if (hasPopOutAnimationEnded(ev)) {
-      dispatchDismissNotificationEvent(this);
-    }
-  };
-
-  private _handleOutsideInteraction = (ev: Event): void => {
-    if (!ev.composedPath().includes(this)) {
-      this._dismiss();
-    }
-  };
-
-  private _handleKeyDown = (ev: KeyboardEvent): void => {
-    if (ev.key === 'Escape') {
-      this._dismiss();
-
-      // `stopImmediatePropagation()` (not `stopPropagation()`) is required to
-      // block sibling `window` listeners -- `stopPropagation()` only stops
-      // propagation to other targets, not other listeners on `window` itself.
-      ev.stopImmediatePropagation();
-      ev.preventDefault();
-    }
-  };
 
   static get styles(): CSSResultGroup {
     return unsafeCSS(notificationPopupStyle);

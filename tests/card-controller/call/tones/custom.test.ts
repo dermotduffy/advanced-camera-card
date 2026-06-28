@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 
 import { CustomTone } from '../../../../src/card-controller/call/tones/custom';
+import { flushPromises } from '../../../test-utils';
 
 interface AudioMocks {
   // Each call to `new Audio(...)` is delegated to a real jsdom Audio element
@@ -109,8 +110,8 @@ describe('start', () => {
     const onFinished = vi.fn();
 
     new CustomTone('http://example/ring.mp3', 0).start(onFinished);
-    // Let the rejected promise settle.
-    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    await flushPromises();
 
     expect(onFinished).toBeCalled();
   });

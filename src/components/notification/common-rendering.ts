@@ -67,11 +67,11 @@ export function renderControl(
 }
 
 export function renderNotificationBody(
-  notification: Notification,
+  notification: Omit<Notification, 'context'>,
+  context: string[],
   bodyIconOverride?: TemplateResult,
 ): TemplateResult {
   const { body, link } = notification;
-  const context = notification.context ?? [];
   const metadata = notification.metadata ?? [];
   return html`
     ${metadata.map((detail) => renderDetail(detail, 'metadata'))}

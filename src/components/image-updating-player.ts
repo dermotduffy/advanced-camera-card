@@ -16,7 +16,6 @@ import type { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { UpdatingImageMediaPlayerController } from '../components-lib/media-player/updating-image.js';
-import { dataToContext } from '../components-lib/notification/data-to-context.js';
 import { SignedURLController } from '../components-lib/signed-url-controller.js';
 import type { Notification } from '../config/schema/actions/types.js';
 import type { CameraConfig } from '../config/schema/cameras.js';
@@ -418,7 +417,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
           icon: 'mdi:alert-circle',
         },
         link: { url: TROUBLESHOOTING_URL, title: localize('error.troubleshooting') },
-        context: this.proxyConfig ? dataToContext(this.proxyConfig) : undefined,
+        context: this.proxyConfig ? [this.proxyConfig] : undefined,
       };
     }
     if (this._imageLoadError) {
@@ -428,7 +427,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
           icon: 'mdi:alert-circle',
         },
         link: { url: TROUBLESHOOTING_URL, title: localize('error.troubleshooting') },
-        context: this.imageConfig ? dataToContext(this.imageConfig) : undefined,
+        context: this.imageConfig ? [this.imageConfig] : undefined,
       };
     }
     return null;

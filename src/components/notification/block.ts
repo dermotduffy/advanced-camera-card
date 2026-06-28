@@ -12,6 +12,7 @@ import {
   createNotificationFromText,
   type NotificationOptions,
 } from '../../components-lib/notification/factory.js';
+import { NotificationContextController } from '../../components-lib/notification/notification-context-controller.js';
 import type { Notification } from '../../config/schema/actions/types.js';
 import { localize } from '../../localize/localize.js';
 import notificationBlockStyle from '../../scss/notification-block.scss';
@@ -41,11 +42,14 @@ export class AdvancedCameraCardNotificationBlock extends LitElement {
   @property({ attribute: false })
   public notification: Notification | null = null;
 
+  private _contextController = new NotificationContextController(this);
+
   protected render(): TemplateResult | void {
     if (!this.notification) {
       return;
     }
 
+    const context = this._contextController.getContext(this.notification);
     const { heading, in_progress } = this.notification;
     const controls = this.notification.controls ?? [];
 
@@ -78,7 +82,11 @@ export class AdvancedCameraCardNotificationBlock extends LitElement {
                 : ''}
             </div>`
           : ''}
-        ${renderNotificationBody(this.notification, spinnerInBody ? spinner : undefined)}
+        ${renderNotificationBody(
+          this.notification,
+          context,
+          spinnerInBody ? spinner : undefined,
+        )}
       </div>
     `;
   }
