@@ -84,7 +84,7 @@ describe('ViewIncompatibleIssue', () => {
 
       const result = issue.getIssue();
       expect(result?.notification.context).toEqual([
-        expect.stringContaining('view: snapshot'),
+        { view: 'snapshot', camera: 'cam.office' },
       ]);
     });
 

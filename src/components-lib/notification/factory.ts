@@ -4,7 +4,6 @@ import type {
 } from '../../config/schema/actions/types.js';
 import type { Link } from '../../config/schema/common/link.js';
 import { getContextFromError } from '../../utils/error-context.js';
-import { dataToContext } from './data-to-context.js';
 
 const DEFAULT_ERROR_ICON = 'mdi:alert';
 
@@ -31,7 +30,7 @@ export const createNotificationFromText = (
   ...(options?.metadata && { metadata: options.metadata }),
   ...(options?.link && { link: options.link }),
   ...(options?.context && {
-    context: dataToContext(options.context),
+    context: [options.context],
   }),
   ...(options?.in_progress !== undefined && { in_progress: options.in_progress }),
 });

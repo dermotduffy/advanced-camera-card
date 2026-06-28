@@ -4,12 +4,14 @@ import { ResolvedMediaCache, resolveMedia } from '../../src/ha/resolved-media';
 import { resolvedMediaSchema, type ResolvedMedia } from '../../src/ha/types';
 import { homeAssistantWSRequest } from '../../src/ha/ws-request';
 import { errorToConsole } from '../../src/utils/basic';
+import type * as UtilsBasic from '../../src/utils/basic';
 import { createHASS } from '../test-utils';
 
 vi.mock('../../src/ha/ws-request', () => ({
   homeAssistantWSRequest: vi.fn(),
 }));
-vi.mock('../../src/utils/basic', () => ({
+vi.mock('../../src/utils/basic', async (importOriginal) => ({
+  ...(await importOriginal<typeof UtilsBasic>()),
   errorToConsole: vi.fn(),
 }));
 
