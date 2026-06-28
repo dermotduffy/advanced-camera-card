@@ -29,6 +29,21 @@
 - name: breaking
   description: Breaking Changes
   color: bfd4f2
+- name: fixed-pending-release
+  description: Fixed on `dev`, awaiting a release
+  color: 0e8a16
+- name: P0
+  description: Priority - blocker
+  color: b60205
+- name: P1
+  description: Priority - high
+  color: d93f0b
+- name: P2
+  description: Priority - medium
+  color: fbca04
+- name: P3
+  description: Priority - low
+  color: c2e0c6
 - name: help wanted
   description: Extra attention is needed
   color: 008672

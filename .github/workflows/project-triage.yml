@@ -1,0 +1,31 @@
+name: Project triage
+
+# yamllint disable-line rule:truthy
+on:
+  schedule:
+    - cron: '17 6 * * 1,4' # Mon & Thu, 06:17 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Log intended changes without writing'
+        type: boolean
+        default: true
+
+permissions:
+  issues: write # Apply the `fixed-pending-release` label.
+  contents: read
+
+jobs:
+  triage:
+    if: github.repository_owner == 'dermotduffy'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: volta-cli/action@v5
+      - name: Run triage
+        # Scheduled runs are always live; manual runs honour the dry_run input.
+        run: node .github/scripts/project-triage.mjs
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT_PAT: ${{ secrets.PROJECT_PAT }}
