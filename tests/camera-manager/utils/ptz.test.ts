@@ -4,8 +4,10 @@ import {
   getConfiguredPTZAction,
   getConfiguredPTZMovementType,
   getPTZCapabilitiesFromCameraConfig,
+  mergePTZCapabilities,
 } from '../../../src/camera-manager/utils/ptz';
 import type { PTZAction } from '../../../src/config/schema/actions/custom/ptz';
+import { PTZMovementType } from '../../../src/types';
 import { createCameraConfig } from '../../test-utils';
 
 const action = {
@@ -183,6 +185,67 @@ describe('getPTZCapabilitiesFromCameraConfig', () => {
       ),
     )?.toEqual({
       presets: ['window'],
+    });
+  });
+});
+
+describe('mergePTZCapabilities', () => {
+  it('should return null when both are null', () => {
+    expect(mergePTZCapabilities(null, null)).toBeNull();
+  });
+
+  it('should return engine capabilities when no config capabilities', () => {
+    expect(
+      mergePTZCapabilities(
+        { left: [PTZMovementType.Continuous], presets: ['Staw', 'Piwnica'] },
+        null,
+      ),
+    ).toEqual({
+      left: [PTZMovementType.Continuous],
+      presets: ['Staw', 'Piwnica'],
+    });
+  });
+
+  it('should return config capabilities when no engine capabilities', () => {
+    expect(mergePTZCapabilities(null, { presets: ['home'] })).toEqual({
+      presets: ['home'],
+    });
+  });
+
+  it('should union presets with configured presets first', () => {
+    expect(
+      mergePTZCapabilities(
+        { left: [PTZMovementType.Continuous], presets: ['Staw', 'Piwnica'] },
+        { presets: ['home'] },
+      ),
+    ).toEqual({
+      left: [PTZMovementType.Continuous],
+      presets: ['home', 'Staw', 'Piwnica'],
+    });
+  });
+
+  it('should not duplicate presets present in both sources', () => {
+    expect(
+      mergePTZCapabilities({ presets: ['home', 'Staw'] }, { presets: ['home'] }),
+    ).toEqual({
+      presets: ['home', 'Staw'],
+    });
+  });
+
+  it('should let configured movement actions override engine equivalents', () => {
+    expect(
+      mergePTZCapabilities(
+        { left: [PTZMovementType.Continuous] },
+        { left: [PTZMovementType.Relative] },
+      ),
+    ).toEqual({
+      left: [PTZMovementType.Relative],
+    });
+  });
+
+  it('should omit presets when neither source has any', () => {
+    expect(mergePTZCapabilities({ left: [PTZMovementType.Continuous] }, null)).toEqual({
+      left: [PTZMovementType.Continuous],
     });
   });
 });
