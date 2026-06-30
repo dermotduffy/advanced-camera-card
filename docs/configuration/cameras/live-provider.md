@@ -43,6 +43,38 @@ cameras:
 > [`capabilities.force`](./README.md?id=capabilities) to skip metadata
 > detection entirely.
 
+## `ha`
+
+The `ha` block configures use of the default Home Assistant (`ha`) live provider. It has no configuration options.
+
+```yaml
+cameras:
+  - camera_entity: camera.office
+    live_provider: ha
+```
+
+The native stream provider in Home Assistant dynamically chooses between HLS and
+WebRTC streams. It prefers the lowest-latency stream (WebRTC) and only falls
+back to HLS when that is the only way to get audio.
+
+| WebRTC stream | HLS Stream   | Muted?   | Resulting Stream Selection |
+| ------------- | ------------ | -------- | -------------------------- |
+| Has audio     | _Either_     | _Either_ | WebRTC (lowest latency)    |
+| Has no audio  | Has audio    | Yes      | WebRTC (lowest latency)    |
+| Has no audio  | Has audio    | No       | HLS (for audio)            |
+| Has no audio  | Has no audio | _Either_ | WebRTC (lowest latency)    |
+
+> [!NOTE]
+> When using the `ha` provider through Advanced Camera Card, streams are chosen
+> by the same logic as the table above (the logic Home Assistant uses). The one
+> difference is **when the choice is made**: the card re-runs the selection
+> whenever you unmute (whether from the card's mute button or the video's own
+> controls), whereas Home Assistant effectively fixes "muted" per dashboard card
+> and never re-selects after that. So for a camera whose low-latency stream has
+> **no audio**, unmuting in the card switches you to the audio-enabled stream,
+> which may take a moment to load and run with a little more latency That
+> audio-enabled stream will remain loaded thereafter.
+
 ## `image`
 
 All configuration is under:

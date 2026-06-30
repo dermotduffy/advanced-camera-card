@@ -55,7 +55,6 @@ export class AdvancedCameraCardLiveHA extends LitElement implements MediaPlayer 
       .hass=${this.hass}
       .stateObj=${cameraEntity ? this.hass.states[cameraEntity] : undefined}
       .controls=${this.controls}
-      .muted=${true}
       .targetID=${this.targetID}
     >
     </advanced-camera-card-ha-camera-stream>`;
