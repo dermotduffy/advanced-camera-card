@@ -58,6 +58,10 @@ export class UnifiedQuery {
     );
   }
 
+  public hasFolderQueries(folderID?: string): boolean {
+    return this.getFolderQueries(folderID).length > 0;
+  }
+
   public getNonMediaQueries(): QueryNode[] {
     return this._nodes.filter((node) => !this._isMediaQuery(node));
   }

@@ -51,6 +51,27 @@ describe('UnifiedQuery', () => {
       expect(clipsQueries).toHaveLength(1);
     });
 
+    it('should return true when a folder query matches the folder ID', () => {
+      const query = new UnifiedQuery();
+      query.addNode(createFolderQuery('clips'));
+
+      expect(query.hasFolderQueries('clips')).toBe(true);
+    });
+
+    it('should return false when no folder query matches the folder ID', () => {
+      const query = new UnifiedQuery();
+      query.addNode(createFolderQuery('clips'));
+
+      expect(query.hasFolderQueries('recordings')).toBe(false);
+    });
+
+    it('should return true when any folder query exists and no folder ID is given', () => {
+      const query = new UnifiedQuery();
+      query.addNode(createFolderQuery('clips'));
+
+      expect(query.hasFolderQueries()).toBe(true);
+    });
+
     it('should get all media types', () => {
       const query = new UnifiedQuery();
       query.addNode(createEventQuery('front', { hasClip: true }));

@@ -871,7 +871,7 @@ export class MenuButtonController {
 
     if (folders.length === 1) {
       const folderID = folders[0][0];
-      const isSelected = !!view?.query?.getFolderQueries(folderID).length;
+      const isSelected = !!view?.query?.hasFolderQueries(folderID);
       const folder = folders[0][1];
 
       return {
@@ -886,7 +886,7 @@ export class MenuButtonController {
     }
 
     const submenuItems = folders.map(([id, folder]) => {
-      const isSelected = !!view?.query?.getFolderQueries(id).length;
+      const isSelected = !!view?.query?.hasFolderQueries(id);
 
       return {
         enabled: true,
@@ -948,6 +948,23 @@ export class MenuButtonController {
     ]) {
       for (const action of arrayify(actionSet)) {
         if (!isAdvancedCameraCardCustomAction(action)) {
+          continue;
+        }
+
+        // Unlike other views, a folder action targets a specific folder, so
+        // emphasize it only when that folder is the one being viewed. Matching
+        // on the view name alone would emphasize every folder button at once.
+        // An action without a folder ID keeps the plain view-name match.
+        if (
+          action.advanced_camera_card_action === 'folder' ||
+          action.advanced_camera_card_action === 'folders'
+        ) {
+          const emphasized = action.folder
+            ? !!options?.view?.query?.hasFolderQueries(action.folder)
+            : !!options?.view?.is(action.advanced_camera_card_action);
+          if (emphasized) {
+            return this._getEmphasizedStyle();
+          }
           continue;
         }
 
