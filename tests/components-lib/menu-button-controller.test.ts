@@ -2699,6 +2699,70 @@ describe('MenuButtonController', () => {
       });
     });
 
+    // `folder` (single folder) and `folders` (gallery) actions both carry a
+    // folder ID and are emphasized identically, so exercise both.
+    it.each([['folder' as const], ['folders' as const]])(
+      'with a %s action, emphasizes only the button for the folder being viewed',
+      (action: 'folder' | 'folders') => {
+        const folder = createFolder({ id: 'folder-a' });
+        const folderNode: FolderQuery = {
+          source: QuerySource.Folder,
+          folder: folder,
+          path: [{ ha: { id: 'one' } }],
+        };
+        const view = createView({
+          view: action,
+          query: new UnifiedQuery().addNode(folderNode),
+        });
+
+        const viewedButton: MenuItem = {
+          ...dynamicButton,
+          icon: 'mdi:folder-a',
+          tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: action,
+            folder: 'folder-a',
+          },
+        };
+        const otherButton: MenuItem = {
+          ...dynamicButton,
+          icon: 'mdi:folder-b',
+          tap_action: {
+            action: 'fire-dom-event',
+            advanced_camera_card_action: action,
+            folder: 'folder-b',
+          },
+        };
+        controller.addDynamicMenuButton(viewedButton);
+        controller.addDynamicMenuButton(otherButton);
+
+        const buttons = calculateButtons(controller, { view: view });
+
+        expect(buttons).toContainEqual({
+          ...viewedButton,
+          style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+        });
+        expect(buttons).toContainEqual({
+          ...otherButton,
+          style: {},
+        });
+      },
+    );
+
+    it('with a folder action and no folder ID, emphasizes on the folder view', () => {
+      const button: MenuItem = {
+        ...dynamicButton,
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'folder' },
+      };
+      const view = createView({ view: 'folder' });
+      controller.addDynamicMenuButton(button);
+
+      expect(calculateButtons(controller, { view: view })).toContainEqual({
+        ...button,
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+      });
+    });
+
     it('with array of actions', () => {
       const button: MenuItem = {
         ...dynamicButton,
