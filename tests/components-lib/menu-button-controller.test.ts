@@ -2763,6 +2763,54 @@ describe('MenuButtonController', () => {
       });
     });
 
+    it('with a folder action, stays emphasized in the media viewer while its folder query remains', () => {
+      const folder = createFolder({ id: 'folder-a' });
+      const folderNode: FolderQuery = {
+        source: QuerySource.Folder,
+        folder: folder,
+        path: [{ ha: { id: 'one' } }],
+      };
+      // Opening a media item from a folder keeps the folder query but changes
+      // the view to the media viewer, so emphasis must follow the folder query
+      // rather than the view name.
+      const view = createView({
+        view: 'media',
+        query: new UnifiedQuery().addNode(folderNode),
+      });
+
+      const viewedButton: MenuItem = {
+        ...dynamicButton,
+        icon: 'mdi:folder-a',
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'folder',
+          folder: 'folder-a',
+        },
+      };
+      const otherButton: MenuItem = {
+        ...dynamicButton,
+        icon: 'mdi:folder-b',
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'folder',
+          folder: 'folder-b',
+        },
+      };
+      controller.addDynamicMenuButton(viewedButton);
+      controller.addDynamicMenuButton(otherButton);
+
+      const buttons = calculateButtons(controller, { view: view });
+
+      expect(buttons).toContainEqual({
+        ...viewedButton,
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+      });
+      expect(buttons).toContainEqual({
+        ...otherButton,
+        style: {},
+      });
+    });
+
     it('with array of actions', () => {
       const button: MenuItem = {
         ...dynamicButton,
