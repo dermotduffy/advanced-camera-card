@@ -6,11 +6,11 @@ import type { ReactiveController, ReactiveControllerHost } from 'lit';
 export const HA_CAMERA_STREAM_MUTE_CHANGE_EVENT =
   'advanced-camera-card:ha-camera-stream:mute-change';
 
-export interface HACameraStreamMuteChangeDetail {
+interface HACameraStreamMuteChangeDetail {
   muted: boolean;
 }
 
-export interface HAStreamMuteControllerOptions {
+interface HAStreamMuteControllerOptions {
   // Effective camera entity id of the currently displayed (possibly substream)
   // camera. A change resets the stream selection, since a reused element must
   // not inherit the previous camera's selection.
