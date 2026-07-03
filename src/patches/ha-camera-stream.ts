@@ -17,8 +17,9 @@ import {
   type CSSResultGroup,
   type PropertyValues,
 } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 
+import { HA_CAMERA_STREAM_MUTE_CHANGE_EVENT } from '../components-lib/live/ha-stream-mute-controller.js';
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 
 import '../components/image-player.js';
@@ -75,75 +76,43 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
     // The currently-visible stream type, refreshed in `updated()`.
     private _visibleStreamType: StreamType | null = null;
 
-    // -------- Audio / stream selection model (hacking around HA!) --------
-    //
-    // The HA frontend chooses between a camera's streams (e.g. low-latency
-    // WebRTC vs higher-latency HLS) from `muted`: when unmuted it switches to a
-    // stream that carries audio if the chosen one has none. HA sets `muted`
-    // statically per context (i.e. a stock card sets it once); the native
-    // <video> controls only toggle the video element's output -- so HA never
-    // re-selects in response to native video controls
-    //
-    // ACC's live view is interactive, with both external audio controls (i.e.
-    // menu buttons) and native video audio controls, so it must split the two
-    // roles HA conflates in the single `muted` variable:
-    //   - `this.muted` is a one-way stream-selection latch (as defined in the
-    //     HA frontend code that this builds on). It starts `true` (low-latency
-    //     WebRTC) and flips to `false` the first time the visible stream is
-    //     unmuted by any control, switching to the audio-capable stream (if
-    //     necessary). It never flips back, so a muted view keeps low latency
-    //     and an autoplay force-mute cannot downgrade the stream.
-    //   - `_outputMuted` is the stream's actual output mute state, mirrored
-    //     from the stream's `volumechange` event. The stream players bind to
-    //     this (not the latch), so a remount (e.g. lazy reload) restores the
-    //     real mute instead of the latch value -- otherwise a muted view could
-    //     return unmuted.
+    // HA chooses between a camera's low-latency and audio-carrying streams from
+    // `muted`, and never re-selects in response to the native <video> controls.
+    // ACC's live view is interactive, so the mute state is owned above this
+    // element, by HAStreamMuteController on `advanced-camera-card-live-ha`:
+    //   - `this.muted` (which stream HA selects) and `outputMute` (the player's
+    //     audio mute) are inputs from it.
+    //   - this element reports the visible player's real mute back up, on any
+    //     control changing it, via `HA_CAMERA_STREAM_MUTE_CHANGE_EVENT` (this
+    //     is unlike HA which does not surface native-control changes itself).
     //
     // See: https://github.com/dermotduffy/advanced-camera-card/issues/2479
-    // ----------------------------------------------------------------------
 
-    // The stream's true muted state.
-    @state()
-    private _streamMuted = true;
+    // The visible player's output mute.
+    @property({ attribute: false })
+    public outputMute = true;
 
-    // On any stream volume change: mirror it into `_streamMuted` (so a remount
-    // of an element can restore it), and latch `muted` to false the first time
-    // the stream becomes unmuted (switching to the audio-capable stream).
-    // Muting is never latched, i.e. unmuting can cause a stream switch, but
-    // muting cannot.
-    private _streamVolumeChangeHandler = (): void => {
-      const leafMuted =
+    // Report the visible player's real mute upward on any volume change (native
+    // or menu control) so the controller can react.
+    private _volumeChangeHandler = (): void => {
+      const muted =
         this._getVisibleMediaLoadedInfo()?.mediaPlayerController?.isMuted() ?? true;
-      this._streamMuted = leafMuted;
-
-      if (this.muted && !leafMuted) {
-        this.muted = false;
-      }
+      this.dispatchEvent(
+        new CustomEvent(HA_CAMERA_STREAM_MUTE_CHANGE_EVENT, {
+          detail: { muted },
+          bubbles: true,
+          composed: true,
+        }),
+      );
     };
 
     constructor() {
       super();
 
-      // Start muted: low-latency WebRTC (HaCameraStream defaults `muted` false,
-      // in ACC unmute is controlled by user-specified policy.
-      this.muted = true;
-
       this.addEventListener(
         'advanced-camera-card:media:volumechange',
-        this._streamVolumeChangeHandler,
+        this._volumeChangeHandler,
       );
-    }
-
-    public willUpdate(changedProps: PropertyValues): void {
-      super.willUpdate(changedProps);
-
-      // A new camera (entity) on a reused element must not inherit the previous
-      // camera's audio latch -- start muted on the low-latency stream again.
-      const previousStateObj = changedProps.get('stateObj');
-      if (previousStateObj && previousStateObj.entity_id !== this.stateObj?.entity_id) {
-        this.muted = true;
-        this._streamMuted = true;
-      }
     }
 
     // ========================================================================================
@@ -156,7 +125,7 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
       return this._getVisibleMediaLoadedInfo()?.mediaPlayerController ?? null;
     }
 
-    // The visible stream's leaf info, looked up by the live stream type.
+    // The visible stream's player info, looked up by the live stream type.
     private _getVisibleMediaLoadedInfo(): MediaLoadedInfo | null {
       return this._visibleStreamType
         ? this._mediaLoadedInfoPerStream[this._visibleStreamType] ?? null
@@ -167,7 +136,7 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
       stream: StreamType,
       ev: CustomEvent<MediaLoadedInfoEventDetail>,
     ) {
-      // Stop the inner-leaf event at the aggregator boundary; the visible
+      // Stop the inner-player event at the aggregator boundary; the visible
       // stream's info is republished via this aggregator's own source
       // controller in updated().
       ev.stopPropagation();
@@ -205,7 +174,7 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
           ?autoplay=${false}
           playsinline
           .allowExoPlayer=${this.allowExoPlayer}
-          .muted=${this._streamMuted}
+          .muted=${this.outputMute}
           .controls=${this.controls}
           .hass=${this.hass}
           .entityid=${this.stateObj.entity_id}
@@ -223,7 +192,7 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
         return html`<advanced-camera-card-ha-web-rtc-player
           ?autoplay=${false}
           playsinline
-          .muted=${this._streamMuted}
+          .muted=${this.outputMute}
           .controls=${this.controls}
           .hass=${this.hass}
           .entityid=${this.stateObj.entity_id}

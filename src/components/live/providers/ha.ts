@@ -9,6 +9,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { Camera } from '../../../camera-manager/camera.js';
+import { HAStreamMuteController } from '../../../components-lib/live/ha-stream-mute-controller.js';
 import type { HomeAssistant } from '../../../ha/types';
 
 import '../../../patches/ha-camera-stream';
@@ -37,7 +38,19 @@ export class AdvancedCameraCardLiveHA extends LitElement implements MediaPlayer 
   @property({ attribute: true, type: Boolean })
   public controls = false;
 
+  @property({ attribute: false })
+  public preferAudioStream = false;
+
   private _playerRef: Ref<MediaPlayerElement> = createRef();
+
+  // Owns the mute state for the underlying ha-camera-stream: it feeds `muted`
+  // (which is surprisingly used by HA to select WebRTC vs HLS streams) and
+  // `outputMute` (the actual player's audio output) into the element, seeded
+  // from the audio intent.
+  private _muteController = new HAStreamMuteController(this, {
+    getCameraEntityID: () => this.camera?.getConfig()?.camera_entity ?? null,
+    getPreferAudioStream: () => this.preferAudioStream,
+  });
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     await this.updateComplete;
@@ -56,6 +69,8 @@ export class AdvancedCameraCardLiveHA extends LitElement implements MediaPlayer 
       .stateObj=${cameraEntity ? this.hass.states[cameraEntity] : undefined}
       .controls=${this.controls}
       .targetID=${this.targetID}
+      .muted=${this._muteController.getIntendedMute()}
+      .outputMute=${this._muteController.getOutputMute()}
     >
     </advanced-camera-card-ha-camera-stream>`;
   }

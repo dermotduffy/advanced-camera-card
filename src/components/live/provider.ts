@@ -13,6 +13,7 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { Camera } from '../../camera-manager/camera.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
+import { isAudioIntendedOnLoad } from '../../components-lib/live/audio-intent.js';
 import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
 import type { PartialZoomSettings } from '../../components-lib/zoom/types.js';
@@ -335,6 +336,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
             .hass=${this.hass}
             .camera=${this.camera}
             .targetID=${this.targetID}
+            .preferAudioStream=${this.forceSelected &&
+            isAudioIntendedOnLoad(this.liveConfig?.auto_unmute ?? [])}
             ?controls=${this._getEffectiveBuiltinControls()}
             @advanced-camera-card:live:error=${(ev: Event) =>
               this._providerErrorHandler(ev)}
