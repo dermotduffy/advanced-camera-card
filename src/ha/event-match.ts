@@ -13,7 +13,7 @@ const isDict = (value: unknown): value is Record<string, unknown> =>
 // that Python's `bool` is a subtype of `int`, so `true`/`false` equal `1`/`0`
 // (and that equivalence propagates through nested lists/dicts). HA relies on
 // it, so we must too for byte-for-byte parity.
-const haEqual = (a: unknown, b: unknown): boolean =>
+export const haEqual = (a: unknown, b: unknown): boolean =>
   isEqualWith(a, b, (x, y) => {
     if (typeof x === 'boolean' && typeof y === 'number') {
       return Number(x) === y;

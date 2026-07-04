@@ -1,6 +1,7 @@
 import type { HassEntity } from 'home-assistant-js-websocket';
 
-import { arrayify } from '../../../utils/basic';
+import { haEqual } from '../../../ha/event-match';
+import { arrayifyWithFalsy } from '../../../utils/basic';
 import { EntityStateTriggerBase } from './entity-state-base';
 import type { TriggerOfType } from './types';
 
@@ -30,32 +31,42 @@ export class StateTrigger extends EntityStateTriggerBase<TriggerOfType<'state'>>
     );
   }
 
-  private _readValue(stateObj?: HassEntity): string | null {
+  // The state (a string) or, when `attribute` is set, the raw attribute value
+  // (any type). `null` is the "no value" sentinel for a missing entity or
+  // attribute; a genuine attribute value of `0`/`false`/`''` is a real value.
+  private _readValue(stateObj?: HassEntity): unknown {
     if (!stateObj) {
       return null;
     }
     const attribute = this._trigger.attribute;
     if (attribute !== undefined) {
-      const value = stateObj.attributes?.[attribute];
-      return value === undefined || value === null ? null : String(value);
+      // Own-property check (not `?.[]`) so inherited props like `toString` are
+      // not mistaken for attributes; HA collapses a missing key to `None`.
+      const attributes = stateObj.attributes;
+      return Object.prototype.hasOwnProperty.call(attributes, attribute)
+        ? attributes[attribute]
+        : null;
     }
     return stateObj.state;
   }
 
+  // Whether `value` is one of a constraint's values (a single value or a list),
+  // compared with HA's Python `==` (`haEqual`; for a string state this is plain
+  // equality). Falsy values (`0`/`false`/`''`) are kept as real values.
+  private _includes(constraint: unknown, value: unknown): boolean {
+    return arrayifyWithFalsy(constraint).some((v) => haEqual(v, value));
+  }
+
   // A value matches when it is in the positive set (`from`/`to`), or not in the
   // negative set (`not_from`/`not_to`); an absent or `null` constraint matches
-  // anything.
-  private _matches(
-    value: string | null,
-    positive?: string | string[] | null,
-    negative?: string | string[] | null,
-  ): boolean {
+  // anything. A `null` value (missing entity/attribute, HA's `None`) is itself a
+  // real value: it matches only a constraint whose set contains `null`.
+  private _matches(value: unknown, positive?: unknown, negative?: unknown): boolean {
     if (positive !== undefined && positive !== null) {
-      return value !== null && arrayify(positive).includes(value);
+      return this._includes(positive, value);
     }
     if (negative !== undefined && negative !== null) {
-      // An absent value (entity missing) is not in the set, so it matches.
-      return !(value !== null && arrayify(negative).includes(value));
+      return !this._includes(negative, value);
     }
     return true;
   }
@@ -70,7 +81,7 @@ export class StateTrigger extends EntityStateTriggerBase<TriggerOfType<'state'>>
     const newValue = this._readValue(newStateObj);
 
     // When watching an attribute, ignore changes that don't move it.
-    if (trigger.attribute !== undefined && oldValue === newValue) {
+    if (trigger.attribute !== undefined && haEqual(oldValue, newValue)) {
       return;
     }
 
@@ -81,13 +92,13 @@ export class StateTrigger extends EntityStateTriggerBase<TriggerOfType<'state'>>
       // from/to test the values but not that they *differ*, so an attribute-only
       // event (value unchanged) can still satisfy them. Require a genuine change
       // when a constraint is set; with none, trigger on those too.
-      !(hasStateConstraint && oldValue === newValue);
+      !(hasStateConstraint && haEqual(oldValue, newValue));
 
     if (!matches) {
       // Only a real change of the watched value cancels a pending `for:` hold;
       // an attribute-only change (value unchanged) must leave it running, just
       // as HA's `for:` keys off the state, not the whole state object.
-      if (oldValue !== newValue) {
+      if (!haEqual(oldValue, newValue)) {
         this._cancelForTimer(entityID);
       }
       return;

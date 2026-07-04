@@ -5,6 +5,7 @@ import {
   allPromises,
   arefloatsApproximatelyEqual,
   arrayify,
+  arrayifyWithFalsy,
   arrayMove,
   aspectRatioToStyle,
   contentsChanged,
@@ -66,6 +67,22 @@ describe('arrayify', () => {
   });
   it('should handle undefined', () => {
     expect(arrayify()).toEqual([]);
+  });
+});
+
+describe('arrayifyWithFalsy', () => {
+  it('should wrap a non-array in an array', () => {
+    expect(arrayifyWithFalsy(1)).toEqual([1]);
+  });
+  it('should return an existing array unchanged', () => {
+    const data = [1, 2, 3];
+    expect(arrayifyWithFalsy(data)).toBe(data);
+  });
+  it('should preserve falsy values instead of dropping them', () => {
+    expect(arrayifyWithFalsy(0)).toEqual([0]);
+    expect(arrayifyWithFalsy(false)).toEqual([false]);
+    expect(arrayifyWithFalsy('')).toEqual(['']);
+    expect(arrayifyWithFalsy(null)).toEqual([null]);
   });
 });
 

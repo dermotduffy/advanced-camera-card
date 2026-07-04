@@ -500,6 +500,16 @@ Matches a Home Assistant entity's state. Unlike most types, the **condition** an
 Both forms accept `entity` (or its `entity_id` alias) as a single entity or a
 list.
 
+Typing exactly mirrors Home Assistant behavior, but may be surprising:
+
+- When `attribute` is set, the match values (`state` / `state_not` for a
+  condition; `from` / `to` / `not_from` / `not_to` for a trigger) are compared
+  against the raw attribute value using Home Assistant's equality rules, so they
+  may be any type and _must_ be written with that type: `state: 50` matches a
+  numeric attribute of `50`, whereas `state: '50'` (a string) does not.
+  Additionally in this case, Home Assistant treats `true` as equalling `1`.
+- Without `attribute`, matching is strictly string-vs-string.
+
 ### As a condition
 
 ```yaml

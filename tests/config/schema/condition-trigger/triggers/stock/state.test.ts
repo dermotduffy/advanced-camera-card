@@ -26,4 +26,25 @@ describe('stateTriggerSchema', () => {
       }),
     ).toThrow();
   });
+
+  it('should accept a non-string to value when watching an attribute', () => {
+    expect(
+      stateTriggerSchema.parse({
+        trigger: 'state',
+        entity_id: 'sensor.battery',
+        attribute: 'battery_level',
+        to: 50,
+      }),
+    ).toMatchObject({ attribute: 'battery_level', to: 50 });
+  });
+
+  it('should reject a non-string to value without an attribute', () => {
+    expect(() =>
+      stateTriggerSchema.parse({
+        trigger: 'state',
+        entity_id: 'sensor.battery',
+        to: 50,
+      }),
+    ).toThrow();
+  });
 });
