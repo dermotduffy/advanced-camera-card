@@ -78,6 +78,11 @@ export type WebkitHTMLVideoElement = HTMLVideoElement & {
 export type FullscreenElement = HTMLElement;
 export type PIPElement = HTMLVideoElement;
 
+export type UnsubscribeCallback = () => void;
+
+// Reports each live/stalled transition of a player's media stream.
+export type LivenessCallback = (isLive: boolean) => void;
+
 export interface MediaPlayerController {
   play(): Promise<void>;
   pause(): Promise<void>;
@@ -91,6 +96,13 @@ export interface MediaPlayerController {
   isPaused(): boolean;
   getFullscreenElement(): FullscreenElement | null;
   getPIPElement(): PIPElement | null;
+
+  // Observe whether the player is actively delivering media, so a silent freeze
+  // (frames stop advancing while playing) can be detected. Optional:
+  // implemented only by players that can observe their own frame progress. The
+  // callback fires on each live/stalled transition; the returned callback stops
+  // the observation.
+  subscribeLiveness?(callback: LivenessCallback): UnsubscribeCallback;
 }
 
 export interface MediaPlayer {

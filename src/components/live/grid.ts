@@ -11,6 +11,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 
 import type { CameraManager } from '../../camera-manager/manager.js';
 import type { CallSession } from '../../card-controller/call/types.js';
+import type { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher.js';
 import type { MicrophoneState } from '../../card-controller/types.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import type { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
@@ -26,6 +27,9 @@ import './carousel.js';
 export class AdvancedCameraCardLiveGrid extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
+
+  @property({ attribute: false })
+  public stateWatcher?: StateWatcherSubscriptionInterface;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;
@@ -66,6 +70,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
         grid-id=${ifDefined(cameraID)}
         grid-width-factor=${ifDefined(gridWidthFactor)}
         .hass=${this.hass}
+        .stateWatcher=${this.stateWatcher}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .viewFilterCameraID=${cameraID}
         .liveConfig=${this.liveConfig}

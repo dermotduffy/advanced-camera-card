@@ -1,3 +1,4 @@
+import type { UnsubscribeCallback } from '../types';
 import type { HomeAssistant } from './types';
 
 /**
@@ -8,9 +9,7 @@ import type { HomeAssistant } from './types';
  */
 export type HASSListener = (hass: HomeAssistant, oldHass: HomeAssistant | null) => void;
 
-export type HASSUnlistenCallback = () => void;
-
 export interface HASSSource {
   getHASS(): HomeAssistant | null;
-  addListener(listener: HASSListener): HASSUnlistenCallback;
+  addListener(listener: HASSListener): UnsubscribeCallback;
 }

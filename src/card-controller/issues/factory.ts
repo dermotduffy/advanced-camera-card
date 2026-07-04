@@ -8,8 +8,8 @@ import { ConnectionIssue } from './issues/connection';
 import { EventSubscriptionIssue } from './issues/event-subscription';
 import { InitializationIssue } from './issues/initialization';
 import { LegacyResourceIssue } from './issues/legacy-resource';
-import { MediaLoadIssue } from './issues/media-load';
 import { MediaQueryIssue } from './issues/media-query';
+import { MediaUnavailableIssue } from './issues/media-unavailable';
 import { ViewIncompatibleIssue } from './issues/view-incompatible';
 
 export const createIssueManager = (
@@ -32,7 +32,7 @@ export const createIssueManager = (
   manager.addIssue(new InitializationIssue(api));
   manager.addIssue(new LegacyResourceIssue(changeCallback));
   manager.addIssue(new MediaQueryIssue(api));
-  manager.addIssue(new MediaLoadIssue(api, changeCallback));
+  manager.addIssue(new MediaUnavailableIssue(api, changeCallback));
 
   return manager;
 };

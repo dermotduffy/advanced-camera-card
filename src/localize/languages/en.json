@@ -806,7 +806,6 @@
     "jsmpeg_no_player": "Could not start JSMPEG player",
     "live_camera_no_endpoint": "Could not get camera endpoint for this live provider (incomplete configuration?)",
     "live_camera_not_found": "The configured camera_entity was not found",
-    "live_camera_unavailable": "Camera unavailable",
     "microphone_not_supported": "Microphone is not supported in this browser",
     "no_camera_engine": "Could not determine suitable engine for camera",
     "no_camera_entity": "Could not find camera entity",
@@ -857,13 +856,19 @@
       "text_both": "The legacy 'frigate-hass-card.js' resource is still registered, please either manually remove it or click the delete icon to automatically remove it. It will be removed in a future release",
       "text_only_legacy": "The legacy 'frigate-hass-card.js' resource must be replaced with 'advanced-camera-card.js'. It will be removed in a future release"
     },
-    "media_load": {
-      "heading": "Media not loading",
-      "text": "The media has not yet loaded. This could be for any number of reasons. For live views and if configured (and by default), there will be an image refreshing every second until the stream loads correctly or the media loading is retried"
-    },
     "media_query": {
       "heading": "Media query failed",
       "text": "An error occurred fetching media (e.g. thumbnails) for this view."
+    },
+    "media_unavailable": {
+      "heading": "Media unavailable",
+      "reasons": {
+        "entity_unavailable": "Camera entity unavailable",
+        "not_loading": "Media not loading",
+        "playback_error": "Playback error",
+        "stalled": "Stream stalled"
+      },
+      "text": "The media is not currently available. This can happen for several reasons, for example a camera becoming unavailable, a stream stalling or failing, or media that has not finished loading. The card keeps retrying automatically. For live views, a still image may be shown while a stream is loading (if configured, and by default)"
     },
     "troubleshooting_guide": "Troubleshooting guide",
     "view_incompatible": {

@@ -1,12 +1,13 @@
 import type { Connection } from 'home-assistant-js-websocket';
 
+import type { UnsubscribeCallback } from '../../types';
 import {
   KeyedSubscriptionManager,
   type GetKeyCallback,
 } from '../../utils/concurrency/keyed-subscription-manager';
 import { RetryTimer } from '../../utils/retry-timer';
 import { isHassReady } from '../is-hass-ready';
-import type { HASSSource, HASSUnlistenCallback } from '../source';
+import type { HASSSource } from '../source';
 import type { HomeAssistant } from '../types';
 import type { HASSWebSocketLiveness, HASSWebSocketOpenCallback } from './types';
 
@@ -117,7 +118,7 @@ export class HASSConnectionSubscriptionManager<K, R> {
   // subscribe/unsubscribe.
   private _requests = new Map<R, RequestRegistration<K, R>>();
 
-  private _unlistenCallback: HASSUnlistenCallback | null = null;
+  private _unlistenCallback: UnsubscribeCallback | null = null;
 
   constructor(getKeyCallback: GetKeyCallback<R, K>, source: HASSSource) {
     this._getKeyCallback = getKeyCallback;

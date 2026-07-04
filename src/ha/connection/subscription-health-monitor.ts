@@ -1,4 +1,5 @@
-import type { RecoverableHealthInterface, UnlistenCallback } from '../../health';
+import type { RecoverableHealthInterface } from '../../health';
+import type { UnsubscribeCallback } from '../../types';
 import type { HASSWebSocketSubscriptionStatus } from './subscription-manager';
 
 // One keyed subscription that is currently failing, with the most recent
@@ -76,7 +77,7 @@ export class SubscriptionHealthMonitor<K, R> implements SubscriptionHealthInterf
     return [...failing.values()];
   }
 
-  public addListener(listener: () => void): UnlistenCallback {
+  public addListener(listener: () => void): UnsubscribeCallback {
     this._listeners.add(listener);
     return () => {
       this._listeners.delete(listener);

@@ -1,7 +1,10 @@
 import type { IssueTriggerContext } from 'issue';
 
 import type { ConditionState } from '../../../condition-trigger/conditions/types.js';
-import type { Notification } from '../../../config/schema/actions/types.js';
+import type {
+  Notification,
+  NotificationDetail,
+} from '../../../config/schema/actions/types.js';
 import { TROUBLESHOOTING_MEDIA_URL } from '../../../const.js';
 import { localize } from '../../../localize/localize.js';
 import { Timer } from '../../../utils/timer.js';
@@ -11,19 +14,52 @@ import type { CardIssueManagerAPI } from '../../types.js';
 import { createRetryControl } from '../retry-control.js';
 import type { Issue, IssueDescription } from '../types.js';
 
+// Why the media_unavailable issue fired, so the notification and the reconnecting
+// placeholder can explain the specific cause rather than a generic message.
+export type MediaUnavailableIssueReason =
+  | 'entity_unavailable'
+  | 'not_loading'
+  | 'playback_error'
+  | 'stalled';
+
 declare module 'issue' {
   interface IssueTriggerContext {
-    media_load: { targetID: string };
+    media_unavailable: { targetID: string; reason: MediaUnavailableIssueReason };
   }
 }
 
 const MEDIA_LOADING_TIMEOUT_SECONDS = 10;
 
-export class MediaLoadIssue implements Issue {
-  public readonly key = 'media_load' as const;
+// The per-cause presentation (localization key + icon), shared by the
+// notification metadata and the reconnecting placeholder so each cause is
+// described in exactly one place.
+export const MEDIA_UNAVAILABLE_REASONS: Record<
+  MediaUnavailableIssueReason,
+  { localizationKey: string; icon: string }
+> = {
+  entity_unavailable: {
+    localizationKey: 'issues.media_unavailable.reasons.entity_unavailable',
+    icon: 'mdi:cctv-off',
+  },
+  not_loading: {
+    localizationKey: 'issues.media_unavailable.reasons.not_loading',
+    icon: 'mdi:progress-helper',
+  },
+  playback_error: {
+    localizationKey: 'issues.media_unavailable.reasons.playback_error',
+    icon: 'mdi:alert-circle',
+  },
+  stalled: {
+    localizationKey: 'issues.media_unavailable.reasons.stalled',
+    icon: 'mdi:motion-pause',
+  },
+};
+
+export class MediaUnavailableIssue implements Issue {
+  public readonly key = 'media_unavailable' as const;
 
   private _issueActive = false;
-  private _erroredTargetIDs = new Set<string>();
+  private _erroredTargets = new Map<string, MediaUnavailableIssueReason>();
 
   // Timer fires when a target has been loading too long without success.
   private _timer = new Timer();
@@ -41,8 +77,8 @@ export class MediaLoadIssue implements Issue {
   // Explicit trigger -- called when a component fires an issue:trigger event.
   // =========================================================================
 
-  public trigger(context: IssueTriggerContext['media_load']): void {
-    this._erroredTargetIDs.add(context.targetID);
+  public trigger(context: IssueTriggerContext['media_unavailable']): void {
+    this._erroredTargets.set(context.targetID, context.reason);
   }
 
   // =========================================================================
@@ -82,34 +118,48 @@ export class MediaLoadIssue implements Issue {
   }
 
   public getNotification(): Notification {
-    const targets = new Set(this._erroredTargetIDs);
-    if (this._timerTargetID) {
-      targets.add(this._timerTargetID);
+    const targets = new Map(this._erroredTargets);
+    // The pending-load timer's target is a slow initial load that has not yet
+    // errored.
+    if (this._timerTargetID && !targets.has(this._timerTargetID)) {
+      targets.set(this._timerTargetID, 'not_loading');
     }
 
     return {
       heading: {
-        text: localize('issues.media_load.heading'),
+        text: localize('issues.media_unavailable.heading'),
         icon: 'mdi:cctv-off',
         severity: 'high' as const,
       },
       body: {
-        text: localize('issues.media_load.text'),
+        text: localize('issues.media_unavailable.text'),
       },
       ...(targets.size && {
-        metadata: Array.from(targets).map((id) => ({
-          text:
-            id === IMAGE_VIEW_TARGET_ID_SENTINEL
-              ? localize('editor.image')
-              : this._api.getCameraManager().getCameraMetadata(id)?.title ?? id,
-          icon: id === IMAGE_VIEW_TARGET_ID_SENTINEL ? 'mdi:image' : 'mdi:cctv',
-        })),
+        metadata: Array.from(targets).map(([id, reason]) =>
+          this._getTargetDetail(id, reason),
+        ),
       }),
       link: {
         url: TROUBLESHOOTING_MEDIA_URL,
         title: localize('issues.troubleshooting_guide'),
       },
       controls: [createRetryControl(this.key)],
+    };
+  }
+
+  // A per-camera notification detail: the target's name and its specific cause
+  // (e.g. "Office: Stream stalled"), with that cause's icon.
+  private _getTargetDetail(
+    id: string,
+    reason: MediaUnavailableIssueReason,
+  ): NotificationDetail {
+    const isImage = id === IMAGE_VIEW_TARGET_ID_SENTINEL;
+    const name = isImage
+      ? localize('editor.image')
+      : this._api.getCameraManager().getCameraMetadata(id)?.title ?? id;
+    return {
+      text: `${name}: ${localize(MEDIA_UNAVAILABLE_REASONS[reason].localizationKey)}`,
+      icon: isImage ? 'mdi:image' : MEDIA_UNAVAILABLE_REASONS[reason].icon,
     };
   }
 
@@ -125,7 +175,7 @@ export class MediaLoadIssue implements Issue {
     // Build the set of targets to retry: all errored targets plus the
     // target the pending timer was tracking (so a user-initiated retry
     // works even before the timeout fires).
-    const retryTargets = new Set(this._erroredTargetIDs);
+    const retryTargets = new Set(this._erroredTargets.keys());
     if (this._timerTargetID) {
       retryTargets.add(this._timerTargetID);
     }
@@ -140,7 +190,7 @@ export class MediaLoadIssue implements Issue {
       mediaEpoch[id] = (mediaEpoch[id] ?? 0) + 1;
     }
 
-    // Intentionally keep _issueActive, _erroredTargetIDs, and the pending
+    // Intentionally keep _issueActive, _erroredTargets, and the pending
     // timer in place. The issue stays visible while the provider
     // re-attempts loading underneath. If the retry succeeds,
     // _handleMediaLoaded will clear everything when media:loaded fires. If
@@ -156,11 +206,11 @@ export class MediaLoadIssue implements Issue {
 
   public reset(): void {
     this._deactivate();
-    this._erroredTargetIDs.clear();
+    this._erroredTargets.clear();
   }
 
   // Stop the pending-load timer so offscreen time doesn't count toward the
-  // 10s threshold. Preserve _issueActive, _erroredTargetIDs, and
+  // 10s threshold. Preserve _issueActive, _erroredTargets, and
   // _timerTargetID: already-visible errors remain visible on reattach, and
   // retaining _timerTargetID lets the existing active/target-mismatch guard
   // in _handleMediaNotLoaded avoid spuriously deactivating the preserved
@@ -179,7 +229,7 @@ export class MediaLoadIssue implements Issue {
   private _handleMediaLoaded(state: ConditionState): void {
     this._deactivate();
     if (state.targetID) {
-      this._erroredTargetIDs.delete(state.targetID);
+      this._erroredTargets.delete(state.targetID);
     }
   }
 
@@ -215,7 +265,7 @@ export class MediaLoadIssue implements Issue {
         // Record the error on timeout so retry() knows which epoch to bump.
         // targetID is guaranteed non-null here -- the null case bails at the
         // top of _handleMediaNotLoaded.
-        this._erroredTargetIDs.add(targetID);
+        this._erroredTargets.set(targetID, 'not_loading');
         this._activate();
         this._onChange?.();
       });
@@ -223,7 +273,7 @@ export class MediaLoadIssue implements Issue {
   }
 
   private _hasError(state: ConditionState): boolean {
-    return !!state.targetID && this._erroredTargetIDs.has(state.targetID);
+    return !!state.targetID && this._erroredTargets.has(state.targetID);
   }
 
   private _activate(): void {

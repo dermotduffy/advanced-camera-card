@@ -10,6 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 
 import type { CameraManager } from '../../camera-manager/manager.js';
 import type { CallSession } from '../../card-controller/call/types.js';
+import type { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher.js';
 import type { MicrophoneManager } from '../../card-controller/microphone-manager.js';
 import type { MicrophoneState } from '../../card-controller/types.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
@@ -29,6 +30,9 @@ import './grid.js';
 export class AdvancedCameraCardLive extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
+
+  @property({ attribute: false })
+  public stateWatcher?: StateWatcherSubscriptionInterface;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;
@@ -106,6 +110,7 @@ export class AdvancedCameraCardLive extends LitElement {
     return html`
       <advanced-camera-card-live-grid
         .hass=${this.hass}
+        .stateWatcher=${this.stateWatcher}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .liveConfig=${this.liveConfig}
         .cardWideConfig=${this.cardWideConfig}

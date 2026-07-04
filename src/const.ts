@@ -8,7 +8,7 @@ export const TROUBLESHOOTING_CONFIG_UPGRADE_FAILURE_URL =
 export const TROUBLESHOOTING_LEGACY_RESOURCE_URL =
   `${TROUBLESHOOTING_URL}?id=legacy-dashboard-resource-detected` as const;
 export const TROUBLESHOOTING_MEDIA_URL =
-  `${TROUBLESHOOTING_URL}?id=media-does-not-load` as const;
+  `${TROUBLESHOOTING_URL}?id=media-unavailable` as const;
 
 export const CONF_AUTOMATIONS = 'automations' as const;
 

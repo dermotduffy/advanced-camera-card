@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { MediaLoadIssue } from '../../../../src/card-controller/issues/issues/media-load';
+import { MediaUnavailableIssue } from '../../../../src/card-controller/issues/issues/media-unavailable';
 import type { InternalCallbackActionConfig } from '../../../../src/config/schema/actions/custom/internal';
 import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../../../src/view/target-id';
 import type { View } from '../../../../src/view/view';
@@ -10,7 +10,7 @@ import { createCardAPI, createMediaLoadedInfo } from '../../../test-utils';
 const createAPI = () => createCardAPI();
 
 // @vitest-environment jsdom
-describe('MediaLoadIssue', () => {
+describe('MediaUnavailableIssue', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -20,8 +20,8 @@ describe('MediaLoadIssue', () => {
   });
 
   it('should have correct key', () => {
-    const issue = new MediaLoadIssue(createAPI());
-    expect(issue.key).toBe('media_load');
+    const issue = new MediaUnavailableIssue(createAPI());
+    expect(issue.key).toBe('media_unavailable');
   });
 
   describe('detectDynamic', () => {
@@ -35,7 +35,7 @@ describe('MediaLoadIssue', () => {
       ['review' as const],
     ])('should start timer when view is %s and not loaded', (view) => {
       const onChange = vi.fn();
-      const issue = new MediaLoadIssue(createAPI(), onChange);
+      const issue = new MediaUnavailableIssue(createAPI(), onChange);
 
       issue.detectDynamic({ targetID: 'target-1', view });
 
@@ -48,7 +48,7 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should not start timer when targetID is null (no provider rendering)', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       // Media view but no targetID, e.g. viewer showing "No media to display"
       // instead of mounting a provider.
@@ -60,7 +60,7 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should deactivate when targetID becomes null', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(10000);
@@ -72,7 +72,7 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should not start timer when view is not a media view', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       issue.detectDynamic({ view: 'timeline' });
 
@@ -82,7 +82,7 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should not start timer when view is undefined', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       issue.detectDynamic({});
 
@@ -92,7 +92,7 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should not start timer when media is loaded', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       issue.detectDynamic({ view: 'live', mediaLoadedInfo: createMediaLoadedInfo() });
 
@@ -102,7 +102,7 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should clear timeout when media loads', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(5000);
@@ -115,7 +115,7 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should clear timeout when view changes to a non-media view', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(5000);
@@ -128,7 +128,7 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should remain active across media views for the same target', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(10000);
@@ -140,7 +140,7 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should deactivate when target changes to non-errored target', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(10000);
@@ -157,10 +157,10 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should stay active when target changes to errored target', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
-      issue.trigger({ targetID: 'camera-1' });
-      issue.trigger({ targetID: 'camera-2' });
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      issue.trigger({ targetID: 'camera-2', reason: 'stalled' });
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       expect(issue.hasIssue()).toBe(true);
@@ -171,7 +171,7 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should clear timed-out state when media loads', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(10000);
@@ -183,7 +183,7 @@ describe('MediaLoadIssue', () => {
 
     it('should restart timer when target changes', () => {
       const onChange = vi.fn();
-      const issue = new MediaLoadIssue(createAPI(), onChange);
+      const issue = new MediaUnavailableIssue(createAPI(), onChange);
 
       issue.detectDynamic({
         targetID: 'camera-1',
@@ -209,7 +209,7 @@ describe('MediaLoadIssue', () => {
 
     it('should not restart timer for same target while running', () => {
       const onChange = vi.fn();
-      const issue = new MediaLoadIssue(createAPI(), onChange);
+      const issue = new MediaUnavailableIssue(createAPI(), onChange);
 
       issue.detectDynamic({
         targetID: 'camera-1',
@@ -231,7 +231,7 @@ describe('MediaLoadIssue', () => {
 
     it('should not restart timer when targetID is undefined and matches', () => {
       const onChange = vi.fn();
-      const issue = new MediaLoadIssue(createAPI(), onChange);
+      const issue = new MediaUnavailableIssue(createAPI(), onChange);
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(5000);
@@ -246,7 +246,7 @@ describe('MediaLoadIssue', () => {
 
     it('should not restart timer if already timed out', () => {
       const onChange = vi.fn();
-      const issue = new MediaLoadIssue(createAPI(), onChange);
+      const issue = new MediaUnavailableIssue(createAPI(), onChange);
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(10000);
@@ -261,9 +261,9 @@ describe('MediaLoadIssue', () => {
 
   describe('trigger', () => {
     it('should activate immediately when target has error and view is a media view', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
-      issue.trigger({ targetID: 'camera-1' });
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
       issue.detectDynamic({
         targetID: 'camera-1',
         view: 'live',
@@ -273,17 +273,17 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should not activate with only a trigger', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
-      issue.trigger({ targetID: 'camera-1' });
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
 
       expect(issue.hasIssue()).toBe(false);
     });
 
     it('should clear target error when media loads', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
-      issue.trigger({ targetID: 'camera-1' });
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
       issue.detectDynamic({
         targetID: 'camera-1',
         view: 'live',
@@ -310,9 +310,9 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should not activate for a different target', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
-      issue.trigger({ targetID: 'camera-1' });
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
       issue.detectDynamic({
         targetID: 'camera-2',
         view: 'live',
@@ -325,7 +325,7 @@ describe('MediaLoadIssue', () => {
 
   describe('getNotification', () => {
     it('should return notification regardless of active state', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       const notification = issue.getNotification();
       expect(notification).toEqual(
@@ -340,25 +340,18 @@ describe('MediaLoadIssue', () => {
       );
     });
 
-    it('should include metadata for errored targets', () => {
-      const issue = new MediaLoadIssue(createAPI());
-      issue.trigger({ targetID: 'camera.office' });
-
-      const notification = issue.getNotification();
-      expect(notification.metadata).toEqual([
-        expect.objectContaining({ text: 'camera.office', icon: 'mdi:cctv' }),
-      ]);
-    });
-
     it('should include the pending timer target in metadata', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       // Start a load timer (no explicit error yet, just slow-loading).
       issue.detectDynamic({ targetID: 'camera.garden', view: 'live' });
 
       const notification = issue.getNotification();
       expect(notification.metadata).toEqual([
-        expect.objectContaining({ text: 'camera.garden', icon: 'mdi:cctv' }),
+        expect.objectContaining({
+          text: 'camera.garden: Media not loading',
+          icon: 'mdi:progress-helper',
+        }),
       ]);
     });
 
@@ -368,28 +361,43 @@ describe('MediaLoadIssue', () => {
         title: 'Office',
         icon: { icon: 'mdi:cctv' },
       });
-      const issue = new MediaLoadIssue(api);
-      issue.trigger({ targetID: 'camera.office' });
+      const issue = new MediaUnavailableIssue(api);
+      issue.trigger({ targetID: 'camera.office', reason: 'stalled' });
 
       const notification = issue.getNotification();
       expect(notification.metadata).toEqual([
-        expect.objectContaining({ text: 'Office' }),
+        expect.objectContaining({ text: 'Office: Stream stalled' }),
       ]);
     });
 
     it('should use localized label and image icon for the image-view sentinel', () => {
-      const issue = new MediaLoadIssue(createAPI());
-      issue.trigger({ targetID: IMAGE_VIEW_TARGET_ID_SENTINEL });
+      const issue = new MediaUnavailableIssue(createAPI());
+      issue.trigger({ targetID: IMAGE_VIEW_TARGET_ID_SENTINEL, reason: 'stalled' });
 
       const notification = issue.getNotification();
       expect(notification.metadata).toEqual([
-        expect.objectContaining({ text: 'Image', icon: 'mdi:image' }),
+        expect.objectContaining({ text: 'Image: Stream stalled', icon: 'mdi:image' }),
+      ]);
+    });
+
+    it.each([
+      ['entity_unavailable' as const, 'Camera entity unavailable', 'mdi:cctv-off'],
+      ['not_loading' as const, 'Media not loading', 'mdi:progress-helper'],
+      ['playback_error' as const, 'Playback error', 'mdi:alert-circle'],
+      ['stalled' as const, 'Stream stalled', 'mdi:motion-pause'],
+    ])('should give the %s cause its own text and icon', (reason, text, icon) => {
+      const issue = new MediaUnavailableIssue(createAPI());
+      issue.trigger({ targetID: 'camera.office', reason });
+
+      const notification = issue.getNotification();
+      expect(notification.metadata).toEqual([
+        expect.objectContaining({ text: `camera.office: ${text}`, icon }),
       ]);
     });
 
     it('should include a retry control with wired callback', async () => {
       const api = createCardAPI();
-      const issue = new MediaLoadIssue(api);
+      const issue = new MediaUnavailableIssue(api);
 
       const control = issue.getNotification().controls?.[0];
       expect(control).toMatchObject({ icon: 'mdi:refresh', dismiss: true });
@@ -397,13 +405,13 @@ describe('MediaLoadIssue', () => {
       const tapAction = control?.actions?.tap_action as InternalCallbackActionConfig;
       await tapAction.callback(api);
 
-      expect(api.getIssueManager().retry).toBeCalledWith('media_load', true);
+      expect(api.getIssueManager().retry).toBeCalledWith('media_unavailable', true);
     });
   });
 
   describe('getIssue', () => {
     it('should return result when timed out', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(10000);
@@ -423,7 +431,7 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should return null when not timed out', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       expect(issue.getIssue()).toBeNull();
     });
@@ -431,7 +439,7 @@ describe('MediaLoadIssue', () => {
 
   describe('needsRetry', () => {
     it('should return true when issue is active', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(10000);
@@ -440,7 +448,7 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should return false when issue is not active', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       expect(issue.needsRetry()).toBe(false);
     });
@@ -449,7 +457,7 @@ describe('MediaLoadIssue', () => {
   describe('retry', () => {
     it('should keep issue active after retry so error stays visible', () => {
       const onChange = vi.fn();
-      const issue = new MediaLoadIssue(createAPI(), onChange);
+      const issue = new MediaUnavailableIssue(createAPI(), onChange);
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(10000);
@@ -464,7 +472,7 @@ describe('MediaLoadIssue', () => {
 
     it('should return false when no targets have errors', () => {
       const api = createAPI();
-      const issue = new MediaLoadIssue(api);
+      const issue = new MediaUnavailableIssue(api);
 
       expect(issue.retry()).toBe(false);
     });
@@ -472,10 +480,10 @@ describe('MediaLoadIssue', () => {
     it('should bump mediaEpoch for targets with errors and call setViewWithMergedContext', () => {
       const api = createAPI();
       vi.mocked(api.getViewManager().getView).mockReturnValue(mock<View>());
-      const issue = new MediaLoadIssue(api);
+      const issue = new MediaUnavailableIssue(api);
 
-      issue.trigger({ targetID: 'camera-1' });
-      issue.trigger({ targetID: 'media-1' });
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      issue.trigger({ targetID: 'media-1', reason: 'stalled' });
 
       const result = issue.retry();
 
@@ -488,9 +496,9 @@ describe('MediaLoadIssue', () => {
     it('should bump mediaEpoch for the image-view sentinel', () => {
       const api = createAPI();
       vi.mocked(api.getViewManager().getView).mockReturnValue(mock<View>());
-      const issue = new MediaLoadIssue(api);
+      const issue = new MediaUnavailableIssue(api);
 
-      issue.trigger({ targetID: IMAGE_VIEW_TARGET_ID_SENTINEL });
+      issue.trigger({ targetID: IMAGE_VIEW_TARGET_ID_SENTINEL, reason: 'stalled' });
 
       const result = issue.retry();
 
@@ -505,9 +513,9 @@ describe('MediaLoadIssue', () => {
       vi.mocked(api.getViewManager().getView).mockReturnValue(
         mock<View>({ context: { mediaEpoch: { 'camera-1': 5, 'camera-2': 3 } } }),
       );
-      const issue = new MediaLoadIssue(api);
+      const issue = new MediaUnavailableIssue(api);
 
-      issue.trigger({ targetID: 'camera-1' });
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
 
       const result = issue.retry();
 
@@ -520,7 +528,7 @@ describe('MediaLoadIssue', () => {
     it('should include pending timer target in retry', () => {
       const api = createAPI();
       vi.mocked(api.getViewManager().getView).mockReturnValue(mock<View>());
-      const issue = new MediaLoadIssue(api);
+      const issue = new MediaUnavailableIssue(api);
 
       // Start the timer for camera-1 (not yet timed out).
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
@@ -535,9 +543,9 @@ describe('MediaLoadIssue', () => {
     it('should keep errored targets and issue state after retry', () => {
       const api = createAPI();
       vi.mocked(api.getViewManager().getView).mockReturnValue(mock<View>());
-      const issue = new MediaLoadIssue(api);
+      const issue = new MediaUnavailableIssue(api);
 
-      issue.trigger({ targetID: 'camera-1' });
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       expect(issue.hasIssue()).toBe(true);
 
@@ -555,7 +563,7 @@ describe('MediaLoadIssue', () => {
   describe('reset', () => {
     it('should stop timer', () => {
       const onChange = vi.fn();
-      const issue = new MediaLoadIssue(createAPI(), onChange);
+      const issue = new MediaUnavailableIssue(createAPI(), onChange);
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       issue.reset();
@@ -570,7 +578,7 @@ describe('MediaLoadIssue', () => {
   describe('suspend', () => {
     it('should stop the pending-load timer so it cannot mature offscreen', () => {
       const onChange = vi.fn();
-      const issue = new MediaLoadIssue(createAPI(), onChange);
+      const issue = new MediaUnavailableIssue(createAPI(), onChange);
 
       // Enter loading state. Timer arms but has not yet fired.
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
@@ -588,7 +596,7 @@ describe('MediaLoadIssue', () => {
     });
 
     it('should preserve an already-active issue across suspend', () => {
-      const issue = new MediaLoadIssue(createAPI());
+      const issue = new MediaUnavailableIssue(createAPI());
 
       // Issue activates (timeout fires).
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
@@ -603,7 +611,7 @@ describe('MediaLoadIssue', () => {
 
     it('should rearm a fresh timer window on resume via detectDynamic', () => {
       const onChange = vi.fn();
-      const issue = new MediaLoadIssue(createAPI(), onChange);
+      const issue = new MediaUnavailableIssue(createAPI(), onChange);
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(5000);

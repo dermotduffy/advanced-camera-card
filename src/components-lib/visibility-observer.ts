@@ -1,5 +1,12 @@
 type VisibilityChangeHandler = (visible: boolean) => Promise<void> | void;
 
+export interface VisibilityObserverOptions {
+  // Also emit the first known visibility value, not only subsequent
+  // transitions. Consumers that need the current state on startup (rather than
+  // reacting only to changes) opt in; the default stays transition-only.
+  emitInitial?: boolean;
+}
+
 /**
  * Observes a root element's visibility, emitting a single boolean whenever it
  * transitions. The element is "visible" only when both:
@@ -25,9 +32,11 @@ export class VisibilityObserver {
     this._handleIntersection.bind(this),
   );
   private _onChange: VisibilityChangeHandler;
+  private _emitInitial: boolean;
 
-  constructor(onChange: VisibilityChangeHandler) {
+  constructor(onChange: VisibilityChangeHandler, options?: VisibilityObserverOptions) {
     this._onChange = onChange;
+    this._emitInitial = options?.emitInitial ?? false;
     document.addEventListener('visibilitychange', this._handleVisibility);
   }
 
@@ -76,8 +85,11 @@ export class VisibilityObserver {
 
     if (this._lastEmitted === null) {
       // First time we have an intersection value: this is the baseline. Record
-      // and return without emitting.
+      // it, and emit only if the consumer opted into the initial value.
       this._lastEmitted = visible;
+      if (this._emitInitial) {
+        await this._onChange(visible);
+      }
       return;
     }
     if (visible === this._lastEmitted) {

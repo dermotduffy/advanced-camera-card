@@ -1,15 +1,14 @@
 import type { TemplateRenderer } from '../../../card-controller/templates';
 import type { Condition } from '../../../config/schema/condition-trigger/conditions/types';
+import type { UnsubscribeCallback } from '../../../types';
 import type { ConditionsEvaluationResult, ConditionState } from '../types';
-
-export type ExternalInvalidationUnsubscribeCallback = () => void;
 
 // A source of change outside the card's `ConditionState` that can invalidate a
 // condition's result (currently only `screen`, via `matchMedia`). A condition
 // declares its sources so a reactive consumer knows what to watch; a pull
 // consumer ignores them.
 export interface ExternalInvalidationSource {
-  subscribe(callback: () => void): ExternalInvalidationUnsubscribeCallback;
+  subscribe(callback: () => void): UnsubscribeCallback;
 }
 
 /**

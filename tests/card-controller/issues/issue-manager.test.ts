@@ -74,7 +74,7 @@ const createRetriableSetup = (options?: {
 
   const manager = new IssueManager(api);
 
-  const issue = createIssue('media_load', {
+  const issue = createIssue('media_unavailable', {
     hasIssue: vi.fn().mockReturnValueOnce(false).mockReturnValue(true),
     needsRetry: vi.fn().mockReturnValue(true),
     retry: vi.fn().mockReturnValue(false),
@@ -240,7 +240,7 @@ describe('IssueManager', () => {
 
       // Start the timer via evaluate, then immediately retry.
       manager.evaluate();
-      manager.retry('media_load');
+      manager.retry('media_unavailable');
 
       expect(issue.retry).toBeCalled();
 
@@ -255,12 +255,12 @@ describe('IssueManager', () => {
     it('should force retry even when needsRetry is false', () => {
       const api = createCardAPI();
       const manager = new IssueManager(api);
-      const issue = createIssue('media_load', {
+      const issue = createIssue('media_unavailable', {
         retry: vi.fn().mockReturnValue(false),
       });
       manager.addIssue(issue);
 
-      manager.retry('media_load', true);
+      manager.retry('media_unavailable', true);
 
       expect(issue.retry).toBeCalled();
     });
@@ -370,12 +370,12 @@ describe('IssueManager', () => {
       const api = createCardAPI();
 
       const manager = new IssueManager(api);
-      const issue = createIssue('media_load', {
+      const issue = createIssue('media_unavailable', {
         hasIssue: vi.fn().mockReturnValue(true),
         getIssue: vi.fn().mockImplementation(() =>
           createIssueDescription({
             notification: {
-              controls: [createRetryControl('media_load')],
+              controls: [createRetryControl('media_unavailable')],
             },
           }),
         ),
@@ -454,7 +454,7 @@ describe('IssueManager', () => {
 
       const manager = new IssueManager(api);
 
-      const issue = createIssue('media_load', {
+      const issue = createIssue('media_unavailable', {
         hasIssue: vi.fn().mockReturnValueOnce(false).mockReturnValue(true),
         needsRetry: vi.fn().mockReturnValue(true),
         retry: vi.fn().mockReturnValue(false),
@@ -834,7 +834,7 @@ describe('IssueManager', () => {
       const api = createCardAPI();
 
       const manager = new IssueManager(api);
-      const issue = createIssue('media_load', { suspend: vi.fn() });
+      const issue = createIssue('media_unavailable', { suspend: vi.fn() });
       manager.addIssue(issue);
 
       manager.suspend();

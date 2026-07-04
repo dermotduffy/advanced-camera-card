@@ -463,7 +463,6 @@
     "jsmpeg_no_player": "No s'ha pogut iniciar el reproductor JSMPEG",
     "live_camera_no_endpoint": "No s'ha pogut obtenir el punt final de la càmera per a aquest proveïdor en directe (configuració incompleta?)",
     "live_camera_not_found": "No s'ha trobat la 'camera_entity' (entitat de la càmera) configurada",
-    "live_camera_unavailable": "Càmera no disponible",
     "no_camera_engine": "No s'ha pogut determinar el motor adequat per a la càmera",
     "no_camera_entity": "No s'ha pogut trobar l'entitat de la càmera",
     "no_camera_id": "No s'ha pogut determinar l'identificador de la càmera per a la següent càmera, és possible que hagis d'establir el paràmetre 'id' manualment",
@@ -475,6 +474,13 @@
     "upgrade_available": "Hi ha disponible una actualització automàtica de la configuració de la targeta; visiteu l'editor de targetes visuals",
     "webrtc_card_reported_error": "La targeta WebRTC ha informat d'un error",
     "webrtc_card_waiting": "S'està esperant que es carregui la targeta WebRTC ..."
+  },
+  "issues": {
+    "media_unavailable": {
+      "reasons": {
+        "entity_unavailable": "Càmera no disponible"
+      }
+    }
   },
   "media_filter": {
     "camera": "Càmera",

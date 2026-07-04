@@ -457,6 +457,7 @@ class AdvancedCameraCard extends LitElement {
             <advanced-camera-card-views
               ${ref(this._refViews)}
               .hass=${this._hass}
+              .stateWatcher=${this._controller.getHASSManager().getStateWatcher()}
               .viewManagerEpoch=${this._controller.getViewManager().getEpoch()}
               .cameraManager=${cameraManager}
               .foldersManager=${this._controller.getFoldersManager()}

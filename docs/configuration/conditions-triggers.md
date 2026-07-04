@@ -355,6 +355,13 @@ triggers:
 > the condition remains satisfied while any stream of the camera continues to
 > render.
 
+> [!NOTE]
+> When a live stream drops and the card reconnects automatically (for example
+> after a camera or backend restart), `media_loaded` briefly becomes `false`
+> while the stream reloads, then returns to `true` once media resumes.
+> Automations that react to `media_loaded` should tolerate this transient
+> transition.
+
 ## `microphone`
 
 Matches the microphone state. As a **condition**, true while the mute state

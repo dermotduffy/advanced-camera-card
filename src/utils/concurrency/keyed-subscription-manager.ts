@@ -1,7 +1,7 @@
 import PQueue from 'p-queue';
 
-type UnsubscribeCallback = () => Promise<void>;
-type SubscribeCallback = () => Promise<UnsubscribeCallback>;
+type AsyncUnsubscribeCallback = () => Promise<void>;
+type SubscribeCallback = () => Promise<AsyncUnsubscribeCallback>;
 
 /**
  * Extracts the key from a request. Used by `KeyedSubscriptionManager` and any
@@ -22,7 +22,7 @@ export type GetKeyCallback<R, K> = (request: R) => K;
  */
 export class KeyedSubscriptionManager<K, R> {
   private _requests: R[] = [];
-  private _unsubscribers = new Map<K, UnsubscribeCallback>();
+  private _unsubscribers = new Map<K, AsyncUnsubscribeCallback>();
   private _queues = new Map<K, PQueue>();
   private _getKeyCallback: GetKeyCallback<R, K>;
 

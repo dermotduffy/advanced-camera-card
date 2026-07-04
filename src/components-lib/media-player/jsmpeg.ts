@@ -1,12 +1,26 @@
 import type JSMpeg from '@cycjimmy/jsmpeg-player';
 import type { LitElement } from 'lit';
 
-import type { FullscreenElement, MediaPlayerController, PIPElement } from '../../types';
+import type {
+  FullscreenElement,
+  LivenessCallback,
+  MediaPlayerController,
+  PIPElement,
+  UnsubscribeCallback,
+} from '../../types';
+import { FrameStallWatchdog } from './frame-stall-watchdog';
 
 export class JSMPEGMediaPlayerController implements MediaPlayerController {
   private _host: LitElement;
   private _getJSMPEGVideoElementCallback: () => JSMpeg.VideoElement | null;
   private _getCanvasElementCallback: () => HTMLCanvasElement | null;
+
+  // Frames are fed by the provider via `notifyFrameDecoded` (JSMpeg's
+  // per-decode callback), so the source needs no explicit start/stop -- the
+  // watchdog's always-available defaults apply.
+  private _stallWatchdog = new FrameStallWatchdog({
+    shouldReportStall: () => !this.isPaused(),
+  });
 
   constructor(
     host: LitElement,
@@ -16,6 +30,15 @@ export class JSMPEGMediaPlayerController implements MediaPlayerController {
     this._host = host;
     this._getJSMPEGVideoElementCallback = _getJSMPEGVideoElementCallback;
     this._getCanvasElementCallback = _getCanvasElementCallback;
+  }
+
+  public subscribeLiveness(callback: LivenessCallback): UnsubscribeCallback {
+    return this._stallWatchdog.subscribe(callback);
+  }
+
+  // Called by the provider on every decoded frame (JSMpeg's `onVideoDecode`).
+  public notifyFrameDecoded(): void {
+    this._stallWatchdog.notifyFrame();
   }
 
   public async play(): Promise<void> {

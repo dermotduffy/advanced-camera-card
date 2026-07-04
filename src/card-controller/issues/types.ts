@@ -13,8 +13,8 @@ export type IssueKey =
   | 'event_subscription'
   | 'initialization'
   | 'legacy_resource'
-  | 'media_load'
   | 'media_query'
+  | 'media_unavailable'
   | 'view_incompatible';
 
 export interface IssueDescription {

@@ -354,7 +354,6 @@
     "jsmpeg_no_player": "Não foi possível iniciar o player JSMPEG",
     "live_camera_no_endpoint": "Não foi possível obter o endereço da câmera para este provedor ao vivo (configuração incompleta?)",
     "live_camera_not_found": "A entidade de câmera configurada não foi encontrada",
-    "live_camera_unavailable": "Câmera indisponível",
     "no_camera_engine": "Não foi possível determinar o motor adequado para a câmera",
     "no_camera_entity": "Não foi possível encontrar a entidade da câmera",
     "no_camera_id": "Não foi possível determinar o ID da câmera para a câmera a seguir, pode ser necessário definir o parâmetro 'id' manualmente",
@@ -364,6 +363,13 @@
     "upgrade_available": "Uma atualização automatizada da configuração do cartão está disponível, visite o editor visual do cartão",
     "webrtc_card_reported_error": "O cartão WebRTC relatou um erro",
     "webrtc_card_waiting": "Aguardando o cartão WebRTC carregar ..."
+  },
+  "issues": {
+    "media_unavailable": {
+      "reasons": {
+        "entity_unavailable": "Câmera indisponível"
+      }
+    }
   },
   "media_filter": {
     "camera": "Câmera",
