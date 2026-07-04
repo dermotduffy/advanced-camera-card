@@ -31,4 +31,30 @@ describe('stateConditionSchema', () => {
       }),
     ).toEqual({ condition: 'state', entity_id: 'binary_sensor.door', state_not: 'on' });
   });
+
+  it('should accept a non-string state value when matching an attribute', () => {
+    expect(
+      stateConditionSchema.parse({
+        condition: 'state',
+        entity_id: 'sensor.battery',
+        attribute: 'battery_level',
+        state: 50,
+      }),
+    ).toEqual({
+      condition: 'state',
+      entity_id: 'sensor.battery',
+      attribute: 'battery_level',
+      state: 50,
+    });
+  });
+
+  it('should reject a non-string state value without an attribute', () => {
+    expect(() =>
+      stateConditionSchema.parse({
+        condition: 'state',
+        entity_id: 'sensor.battery',
+        state: 50,
+      }),
+    ).toThrow();
+  });
 });

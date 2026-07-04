@@ -143,6 +143,21 @@ describe('StateTrigger', () => {
     expect(callback).toHaveBeenCalledTimes(2);
   });
 
+  it('should match a transition to an empty-string state', () => {
+    // HA compares `state == ''`; the empty string is a real value to match.
+    const { trigger, stateManager, callback } = create({
+      trigger: 'state',
+      entity_id: ENTITY,
+      to: '',
+    });
+    trigger.subscribe(callback);
+
+    setHass(stateManager, { [ENTITY]: { state: 'on' } });
+    expect(callback).not.toHaveBeenCalled();
+    setHass(stateManager, { [ENTITY]: { state: '' } });
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
   it('should fan out independently over a list of entities', () => {
     const { trigger, stateManager, callback } = create({
       trigger: 'state',
@@ -327,6 +342,140 @@ describe('StateTrigger', () => {
     setHass(stateManager, { [ENTITY]: { state: 'on' } });
     setHass(stateManager, { [ENTITY]: { state: 'off' } });
     expect(callback).not.toHaveBeenCalled();
+  });
+
+  describe('attribute matching by type', () => {
+    it('should match a numeric attribute against an unquoted number', () => {
+      const { trigger, stateManager, callback } = create({
+        trigger: 'state',
+        entity_id: ENTITY,
+        attribute: 'battery_level',
+        to: 50,
+      });
+      trigger.subscribe(callback);
+
+      setHass(stateManager, { [ENTITY]: { attributes: { battery_level: 20 } } });
+      expect(callback).not.toHaveBeenCalled();
+      setHass(stateManager, { [ENTITY]: { attributes: { battery_level: 50 } } });
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not match a numeric attribute against a stringified number', () => {
+      // `50 == "50"` is false in Home Assistant.
+      const { trigger, stateManager, callback } = create({
+        trigger: 'state',
+        entity_id: ENTITY,
+        attribute: 'battery_level',
+        to: '50',
+      });
+      trigger.subscribe(callback);
+
+      setHass(stateManager, { [ENTITY]: { attributes: { battery_level: 20 } } });
+      setHass(stateManager, { [ENTITY]: { attributes: { battery_level: 50 } } });
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should treat a boolean attribute as equal to its integer form', () => {
+      // Python's `bool` is a subtype of `int`, so `true == 1`.
+      const { trigger, stateManager, callback } = create({
+        trigger: 'state',
+        entity_id: ENTITY,
+        attribute: 'charging',
+        to: 1,
+      });
+      trigger.subscribe(callback);
+
+      setHass(stateManager, { [ENTITY]: { attributes: { charging: false } } });
+      expect(callback).not.toHaveBeenCalled();
+      setHass(stateManager, { [ENTITY]: { attributes: { charging: true } } });
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should match a list of numeric values by membership', () => {
+      const { trigger, stateManager, callback } = create({
+        trigger: 'state',
+        entity_id: ENTITY,
+        attribute: 'battery_level',
+        to: [50, 80],
+      });
+      trigger.subscribe(callback);
+
+      setHass(stateManager, { [ENTITY]: { attributes: { battery_level: 20 } } });
+      expect(callback).not.toHaveBeenCalled();
+      setHass(stateManager, { [ENTITY]: { attributes: { battery_level: 80 } } });
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should match a falsy attribute value of zero', () => {
+      // `0` is a real attribute value, not the "no value" sentinel, and must
+      // not be dropped (e.g. by `arrayify`).
+      const { trigger, stateManager, callback } = create({
+        trigger: 'state',
+        entity_id: ENTITY,
+        attribute: 'battery_level',
+        to: 0,
+      });
+      trigger.subscribe(callback);
+
+      setHass(stateManager, { [ENTITY]: { attributes: { battery_level: 5 } } });
+      expect(callback).not.toHaveBeenCalled();
+      setHass(stateManager, { [ENTITY]: { attributes: { battery_level: 0 } } });
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not trigger when the raw attribute value is unchanged', () => {
+      const { trigger, stateManager, callback } = create({
+        trigger: 'state',
+        entity_id: ENTITY,
+        attribute: 'battery_level',
+        to: 50,
+      });
+      trigger.subscribe(callback);
+
+      setHass(stateManager, {
+        [ENTITY]: { state: 'on', attributes: { battery_level: 50 } },
+      });
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      // The state changes but the watched numeric attribute does not -> ignored.
+      setHass(stateManager, {
+        [ENTITY]: { state: 'off', attributes: { battery_level: 50 } },
+      });
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should match a null attribute value via to: [null]', () => {
+      // HA collapses a missing/None attribute to `None`; `to: [null]` matches it.
+      const { trigger, stateManager, callback } = create({
+        trigger: 'state',
+        entity_id: ENTITY,
+        attribute: 'bar',
+        to: [null],
+      });
+      trigger.subscribe(callback);
+
+      setHass(stateManager, { [ENTITY]: { attributes: { bar: 'x' } } });
+      expect(callback).not.toHaveBeenCalled();
+      setHass(stateManager, { [ENTITY]: { attributes: { bar: null } } });
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should exclude a null attribute value via not_to: [null]', () => {
+      const { trigger, stateManager, callback } = create({
+        trigger: 'state',
+        entity_id: ENTITY,
+        attribute: 'bar',
+        not_to: [null],
+      });
+      trigger.subscribe(callback);
+
+      // To a real value -> fires.
+      setHass(stateManager, { [ENTITY]: { attributes: { bar: 'x' } } });
+      expect(callback).toHaveBeenCalledTimes(1);
+      // To null -> excluded.
+      setHass(stateManager, { [ENTITY]: { attributes: { bar: null } } });
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('should trigger without a to_state when the entity is removed', () => {

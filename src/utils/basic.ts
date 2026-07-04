@@ -42,13 +42,26 @@ export function arrayMove(target: unknown[], from: number, to: number): unknown[
 }
 
 /**
- * Convert a value to an array if it is not already one.
+ * Convert a value to an array if it is not already one, dropping falsy inputs
+ * (`undefined`/`null`/`0`/`false`/`''`) to an empty array. Use when an absent or
+ * empty value should become `[]`; use `arrayifyWithFalsy` when falsy values are
+ * significant and must be preserved.
  * @param value: A value (which may be an array).
  * @returns An array.
  */
 export const arrayify = <T>(value?: T | T[]): T[] => {
   return value ? (Array.isArray(value) ? value : [value]) : [];
 };
+
+/**
+ * Wrap a value in an array if it is not already one, preserving the value --
+ * including falsy ones like `0`, `false`, `''` and `null`. Contrast with
+ * `arrayify`, which instead drops all falsy inputs to `[]`.
+ * @param value A value (which may be an array).
+ * @returns An array.
+ */
+export const arrayifyWithFalsy = <T>(value: T | T[]): T[] =>
+  Array.isArray(value) ? value : [value];
 
 /**
  * Convert a value to an set if it is not already one.
