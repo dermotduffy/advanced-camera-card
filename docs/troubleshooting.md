@@ -60,9 +60,9 @@ To resolve it:
 
 The notification clears once the `__UPGRADE_FAILURE__` key is gone.
 
-### Media does not load
+### Media unavailable
 
-Media not loading? Permanent "loading circle"?
+Media not loading? Permanent "loading circle"? Live view frozen?
 
 Media failing to load is a relatively common error, but can be caused by any
 number of issues (e.g. installation problems, networking problems, video/codec
@@ -73,6 +73,26 @@ During a live stream load, the card will show a "loading circle" icon and, for
 cameras with a `camera_entity` configured, will show images refreshing once per
 second until the stream has fully loaded (unless `live.show_image_during_load`
 is set to false).
+
+The card attempts to recover from media playback issues. Some runtime failures
+are silent: the video input simply freezes on the last frame with no error (e.g.
+Frigate or camera restart, power loss, temporary network connectivity issue), so
+the card watches a playing stream for a loss of new frames and treats such a
+freeze as unavailable.
+
+While media is unavailable the loading indicator returns and an alert icon
+appears in the status bar. The card retries automatically with a back-off (and
+the notification offers a manual retry button). A live stream additionally
+reconnects on its own once its camera becomes available again.
+
+Reported reasons why media may be unavailable:
+
+| Reason                        | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Camera entity unavailable** | The camera's `camera_entity` reported `unavailable` in Home Assistant, e.g. the camera or its integration (such as Frigate) restarted, or the camera lost power or network. A short grace period is allowed before this is reported, and the card recovers automatically once the entity returns. Set [`always_error_if_entity_unavailable`](./configuration/cameras/README.md?id=cameras) to report it immediately instead. |
+| **Media not loading**         | The media did not finish loading within the expected time: a slow or failed initial load. Applies to live streams, the viewer, and image views.                                                                                                                                                                                                                                                                              |
+| **Playback error**            | The live provider reported an error while trying to play the stream.                                                                                                                                                                                                                                                                                                                                                         |
+| **Stream stalled**            | The stream loaded and was playing, but stopped delivering new frames with no error raised (a silent freeze). The card notices the lack of progress and reconnects.                                                                                                                                                                                                                                                           |
 
 Debugging steps:
 

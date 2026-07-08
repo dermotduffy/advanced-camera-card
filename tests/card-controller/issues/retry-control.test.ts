@@ -7,7 +7,7 @@ import { createCardAPI } from '../../test-utils';
 
 describe('createRetryControl', () => {
   it('should return a control with expected icon, tooltip, and dismiss', () => {
-    const control = createRetryControl('media_load');
+    const control = createRetryControl('media_unavailable');
 
     expect(control.icon).toBe('mdi:refresh');
     expect(control.tooltip).toBe('Retry');

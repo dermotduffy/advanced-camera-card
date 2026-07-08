@@ -60,6 +60,9 @@ describe('MediaLoadedInfoSourceController', () => {
       });
       expect(ev.detail.signal).toBeInstanceOf(AbortSignal);
       expect(ev.detail.signal.aborted).toBe(false);
+
+      // A fresh load omits `cached` (only a replay marks it true).
+      expect(ev.detail.cached).toBeUndefined();
     });
 
     it('should dedup structurally-equal info', () => {
@@ -176,6 +179,10 @@ describe('MediaLoadedInfoSourceController', () => {
       expect(firstSignal).not.toBe(secondSignal);
       expect(firstSignal.aborted).toBe(true);
       expect(secondSignal.aborted).toBe(false);
+
+      // The fresh load omits `cached`; the reconnect replay marks it `true`.
+      expect((handler.mock.calls[0][0] as CustomEvent).detail.cached).toBeUndefined();
+      expect((handler.mock.calls[1][0] as CustomEvent).detail.cached).toBe(true);
     });
 
     it('should be a no-op when there is nothing to re-dispatch', () => {

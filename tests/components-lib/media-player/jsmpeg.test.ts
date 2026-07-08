@@ -1,7 +1,8 @@
 import type JSMpeg from '@cycjimmy/jsmpeg-player';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
+import { FRAME_STALL_SECONDS } from '../../../src/components-lib/media-player/frame-stall-watchdog';
 import { JSMPEGMediaPlayerController } from '../../../src/components-lib/media-player/jsmpeg';
 import { createLitElement } from '../../test-utils';
 
@@ -259,5 +260,65 @@ describe('JSMPEGMediaPlayerController', () => {
     );
 
     expect(controller.getPIPElement()).toBeNull();
+  });
+
+  describe('subscribeLiveness', () => {
+    const STALL_MS = FRAME_STALL_SECONDS * 1000;
+
+    const setup = (options?: { paused?: boolean; hasPlayer?: boolean }) => {
+      let videoElement: JSMpeg.VideoElement | null = null;
+      if (options?.hasPlayer !== false) {
+        videoElement = mock<JSMpeg.VideoElement>();
+        videoElement.player = mock<JSMpeg.Player>();
+        videoElement.player.paused = options?.paused ?? false;
+      }
+      const controller = new JSMPEGMediaPlayerController(
+        createLitElement(),
+        () => videoElement,
+        () => mock<HTMLCanvasElement>(),
+      );
+      return { controller };
+    };
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should report a stall when frame decodes stop', () => {
+      const { controller } = setup();
+      const callback = vi.fn();
+
+      controller.subscribeLiveness(callback);
+      controller.notifyFrameDecoded();
+      vi.advanceTimersByTime(STALL_MS);
+
+      // The first decoded frame confirms live, then decodes stop -> stall.
+      expect(callback).toHaveBeenNthCalledWith(1, true);
+      expect(callback).toHaveBeenNthCalledWith(2, false);
+    });
+
+    it('should not report a stall while paused', () => {
+      const { controller } = setup({ paused: true });
+      const callback = vi.fn();
+
+      controller.subscribeLiveness(callback);
+      vi.advanceTimersByTime(STALL_MS);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should not report a stall without a player', () => {
+      const { controller } = setup({ hasPlayer: false });
+      const callback = vi.fn();
+
+      controller.subscribeLiveness(callback);
+      vi.advanceTimersByTime(STALL_MS);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
   });
 });

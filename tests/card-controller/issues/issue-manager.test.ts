@@ -8,6 +8,7 @@ import {
   RETRY_EXPONENTIAL_BASE_SECONDS,
   RETRY_EXPONENTIAL_MAX_SECONDS,
 } from '../../../src/card-controller/issues/issue-manager';
+import { MediaUnavailableIssue } from '../../../src/card-controller/issues/issues/media-unavailable';
 import { createRetryControl } from '../../../src/card-controller/issues/retry-control';
 import type {
   Issue,
@@ -20,6 +21,7 @@ import {
   createCardAPI,
   createConfig,
   createHASS,
+  createMediaLoadedInfo,
   flushPromises,
 } from '../../test-utils';
 
@@ -74,7 +76,7 @@ const createRetriableSetup = (options?: {
 
   const manager = new IssueManager(api);
 
-  const issue = createIssue('media_load', {
+  const issue = createIssue('media_unavailable', {
     hasIssue: vi.fn().mockReturnValueOnce(false).mockReturnValue(true),
     needsRetry: vi.fn().mockReturnValue(true),
     retry: vi.fn().mockReturnValue(false),
@@ -108,6 +110,35 @@ describe('IssueManager', () => {
     stateManager.setState({ view: 'live' });
 
     expect(issue.detectDynamic).toBeCalled();
+  });
+
+  it('should keep a liveness-triggered error active while its media still reads as loaded', () => {
+    // Regression: a runtime liveness loss (stall / provider error) fires a
+    // trigger while the (now frozen) media is still loaded. The trigger's
+    // synchronous evaluate must not clear the just-set error via the stale
+    // loaded state.
+    const api = createCardAPI();
+    const conditionStateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(conditionStateManager);
+
+    const manager = new IssueManager(api);
+    const issue = new MediaUnavailableIssue(api);
+    manager.addIssue(issue);
+
+    conditionStateManager.setState({
+      view: 'live',
+      targetID: 'camera.office',
+      mediaLoadedInfo: createMediaLoadedInfo({ targetID: 'camera.office' }),
+    });
+    expect(issue.hasIssue()).toBe(false);
+
+    manager.trigger('media_unavailable', {
+      targetID: 'camera.office',
+      reason: 'stalled',
+    });
+
+    expect(issue.hasIssue()).toBe(true);
+    expect(issue.needsRetry()).toBe(true);
   });
 
   describe('addIssue / getStateManager', () => {
@@ -240,7 +271,7 @@ describe('IssueManager', () => {
 
       // Start the timer via evaluate, then immediately retry.
       manager.evaluate();
-      manager.retry('media_load');
+      manager.retry('media_unavailable');
 
       expect(issue.retry).toBeCalled();
 
@@ -255,12 +286,12 @@ describe('IssueManager', () => {
     it('should force retry even when needsRetry is false', () => {
       const api = createCardAPI();
       const manager = new IssueManager(api);
-      const issue = createIssue('media_load', {
+      const issue = createIssue('media_unavailable', {
         retry: vi.fn().mockReturnValue(false),
       });
       manager.addIssue(issue);
 
-      manager.retry('media_load', true);
+      manager.retry('media_unavailable', true);
 
       expect(issue.retry).toBeCalled();
     });
@@ -370,12 +401,12 @@ describe('IssueManager', () => {
       const api = createCardAPI();
 
       const manager = new IssueManager(api);
-      const issue = createIssue('media_load', {
+      const issue = createIssue('media_unavailable', {
         hasIssue: vi.fn().mockReturnValue(true),
         getIssue: vi.fn().mockImplementation(() =>
           createIssueDescription({
             notification: {
-              controls: [createRetryControl('media_load')],
+              controls: [createRetryControl('media_unavailable')],
             },
           }),
         ),
@@ -454,7 +485,7 @@ describe('IssueManager', () => {
 
       const manager = new IssueManager(api);
 
-      const issue = createIssue('media_load', {
+      const issue = createIssue('media_unavailable', {
         hasIssue: vi.fn().mockReturnValueOnce(false).mockReturnValue(true),
         needsRetry: vi.fn().mockReturnValue(true),
         retry: vi.fn().mockReturnValue(false),
@@ -615,21 +646,31 @@ describe('IssueManager', () => {
     });
 
     it('should cap the backoff at the max delay', () => {
-      // Drive 5 pre-cap attempts (30, 60, 120, 240, 480 seconds), then assert
-      // the 6th attempt clamps to MAX instead of the would-be 960.
+      // Drive attempts through the exponential region (base, base*2, base*4,
+      // ...) until the delay reaches MAX, then assert the next attempt clamps to
+      // MAX instead of continuing to double, and stays there.
       vi.spyOn(Math, 'random').mockReturnValue(1);
       const { manager, issue } = createRetriableSetup({ retrySeconds: 'auto' });
       manager.evaluate();
 
-      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 1 * 1000);
-      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 2 * 1000);
-      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 4 * 1000);
-      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 8 * 1000);
-      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 16 * 1000);
-      expect(issue.retry).toBeCalledTimes(5);
+      let attempts = 0;
+      for (
+        let delaySeconds = RETRY_EXPONENTIAL_BASE_SECONDS;
+        delaySeconds < RETRY_EXPONENTIAL_MAX_SECONDS;
+        delaySeconds *= 2
+      ) {
+        vi.advanceTimersByTime(delaySeconds * 1000);
+        attempts++;
+      }
+      expect(issue.retry).toBeCalledTimes(attempts);
 
+      // The next attempt clamps to MAX instead of the would-be larger delay.
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_MAX_SECONDS * 1000);
-      expect(issue.retry).toBeCalledTimes(6);
+      expect(issue.retry).toBeCalledTimes(attempts + 1);
+
+      // And it stays capped at MAX rather than growing further.
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_MAX_SECONDS * 1000);
+      expect(issue.retry).toBeCalledTimes(attempts + 2);
     });
 
     it('should reset the attempt counter when the issue clears', () => {
@@ -834,7 +875,7 @@ describe('IssueManager', () => {
       const api = createCardAPI();
 
       const manager = new IssueManager(api);
-      const issue = createIssue('media_load', { suspend: vi.fn() });
+      const issue = createIssue('media_unavailable', { suspend: vi.fn() });
       manager.addIssue(issue);
 
       manager.suspend();

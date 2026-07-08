@@ -12,6 +12,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import type { CameraManager } from '../camera-manager/manager.js';
 import type { CallSession } from '../card-controller/call/types.js';
 import type { FoldersManager } from '../card-controller/folders/manager.js';
+import type { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher.js';
 import type { IssuePresence } from '../card-controller/issues/types.js';
 import type { MicrophoneManager } from '../card-controller/microphone-manager.js';
 import type { MicrophoneState } from '../card-controller/types.js';
@@ -38,6 +39,9 @@ import './diagnostics.js';
 export class AdvancedCameraCardViews extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
+
+  @property({ attribute: false })
+  public stateWatcher?: StateWatcherSubscriptionInterface;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;
@@ -242,6 +246,7 @@ export class AdvancedCameraCardViews extends LitElement {
           ? html`
               <advanced-camera-card-live
                 .hass=${this.hass}
+                .stateWatcher=${this.stateWatcher}
                 .viewManagerEpoch=${this.viewManagerEpoch}
                 .liveConfig=${this.config.live}
                 .cameraManager=${this.cameraManager}

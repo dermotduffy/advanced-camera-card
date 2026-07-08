@@ -114,9 +114,14 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
           // restart.
           reconnectInterval: 0,
           onVideoDecode: () => {
-            // This is the only callback that is called after the dimensions
-            // are available. It's called on every frame decode, so just
-            // ignore any subsequent calls.
+            // Called on every frame decode: feed the liveness watchdog so a
+            // silent freeze (decodes stop while the WebSocket stays open) is
+            // detected.
+            this._mediaPlayerController.notifyFrameDecoded();
+
+            // This is also the first callback called after the dimensions are
+            // available, so use the first call to resolve the player; ignore
+            // subsequent calls for that purpose.
             if (!videoDecoded && this._jsmpegCanvasElement) {
               videoDecoded = true;
               resolve(player);

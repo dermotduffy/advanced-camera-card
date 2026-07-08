@@ -1,7 +1,7 @@
 import type { Notification } from '../../../config/schema/actions/types';
 import type { SubscriptionHealthInterface } from '../../../ha/connection/subscription-health-monitor';
-import type { UnlistenCallback } from '../../../health';
 import { localize } from '../../../localize/localize';
+import type { UnsubscribeCallback } from '../../../types';
 import { createRetryControl } from '../retry-control';
 import type { Issue, IssueDescription } from '../types';
 
@@ -27,7 +27,7 @@ export class EventSubscriptionIssue implements Issue {
   public readonly key = 'event_subscription' as const;
 
   private _health: SubscriptionHealthInterface<string>;
-  private _unsubscribe: UnlistenCallback;
+  private _unsubscribe: UnsubscribeCallback;
 
   constructor(health: SubscriptionHealthInterface<string>, changeCallback: () => void) {
     this._health = health;

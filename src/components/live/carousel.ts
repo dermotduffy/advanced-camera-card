@@ -13,6 +13,7 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 import type { CameraManager } from '../../camera-manager/manager.js';
 import type { CameraManagerCameraMetadata } from '../../camera-manager/types.js';
 import type { CallSession } from '../../card-controller/call/types.js';
+import type { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher.js';
 import type { MicrophoneState } from '../../card-controller/types.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { resolveAutoHideState } from '../../components-lib/auto-hide.js';
@@ -59,6 +60,9 @@ interface CameraNeighbors {
 export class AdvancedCameraCardLiveCarousel extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
+
+  @property({ attribute: false })
+  public stateWatcher?: StateWatcherSubscriptionInterface;
 
   @property({ attribute: false })
   public viewManagerEpoch?: ViewManagerEpoch;
@@ -274,6 +278,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
             .label=${cameraMetadata?.title ?? ''}
             .liveConfig=${this.liveConfig}
             .hass=${this.hass}
+            .stateWatcher=${this.stateWatcher}
             .cardWideConfig=${this.cardWideConfig}
             .zoomSettings=${view?.context?.zoom?.[cameraID]?.requested}
             .zoom=${!this._isGesturesPTZActive(view, cameraID)}

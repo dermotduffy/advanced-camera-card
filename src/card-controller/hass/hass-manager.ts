@@ -1,6 +1,7 @@
 import { isHassReady } from '../../ha/is-hass-ready';
-import type { HASSListener, HASSUnlistenCallback } from '../../ha/source';
+import type { HASSListener } from '../../ha/source';
 import type { HomeAssistant } from '../../ha/types';
+import type { UnsubscribeCallback } from '../../types';
 import { log } from '../../utils/debug';
 import { InitializationAspect } from '../initialization-manager';
 import type { CardHASSAPI } from '../types';
@@ -39,7 +40,7 @@ export class HASSManager implements HASSManagerReadonlyInterface {
     return this._eventWatcher;
   }
 
-  public addListener(listener: HASSListener): HASSUnlistenCallback {
+  public addListener(listener: HASSListener): UnsubscribeCallback {
     this._hassListeners.add(listener);
     return () => {
       this._hassListeners.delete(listener);

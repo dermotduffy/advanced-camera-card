@@ -1,7 +1,5 @@
-import {
-  MediaQueryWatcher,
-  type MediaQueryWatcherUnsubscribeCallback,
-} from '../../common/media-query-watcher';
+import type { UnsubscribeCallback } from '../../../types';
+import { MediaQueryWatcher } from '../../common/media-query-watcher';
 import { buildCardTriggerData } from '../build-trigger-data';
 import type { TriggerCallback, TriggerEvaluator, TriggerOfType } from './types';
 
@@ -14,7 +12,7 @@ export class ScreenTrigger implements TriggerEvaluator {
 
   private _callback: TriggerCallback | null = null;
   private _watcher: MediaQueryWatcher | null = null;
-  private _unsubscribeCallback: MediaQueryWatcherUnsubscribeCallback | null = null;
+  private _unsubscribeCallback: UnsubscribeCallback | null = null;
   private _matched = false;
 
   constructor(trigger: TriggerOfType<'screen'>) {

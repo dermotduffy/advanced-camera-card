@@ -12,9 +12,11 @@ import { guard } from 'lit/directives/guard.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { Camera } from '../../camera-manager/camera.js';
+import type { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher.js';
+import { MEDIA_UNAVAILABLE_REASONS } from '../../card-controller/issues/issues/media-unavailable.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { isAudioIntendedOnLoad } from '../../components-lib/live/audio-intent.js';
-import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
+import { StreamLivenessController } from '../../components-lib/live/liveness/stream-liveness-controller.js';
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
 import type { PartialZoomSettings } from '../../components-lib/zoom/types.js';
 import type { LiveConfig } from '../../config/schema/live.js';
@@ -43,6 +45,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   @property({ attribute: false })
   public camera?: Camera;
+
+  @property({ attribute: false })
+  public stateWatcher?: StateWatcherSubscriptionInterface;
 
   // The BASE camera ID (camera property may be a substream)
   @property({ attribute: false })
@@ -84,17 +89,15 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     getTargetID: () => this.targetID ?? null,
   });
 
+  private _streamLivenessController = new StreamLivenessController(this, {
+    getTargetID: () => this.targetID ?? null,
+    getHASS: () => this.hass ?? null,
+    getCamera: () => this.camera ?? null,
+    getStateWatcher: () => this.stateWatcher ?? null,
+  });
+
   @state()
   private _zoomed = false;
-
-  @state()
-  private _hasProviderError = false;
-
-  // Whether the camera entity has ever been in a non-unavailable state. Used
-  // to suppress transient unavailability errors for entities that were
-  // previously working (e.g. during PTZ operations).
-  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2124
-  private _entityHasBeenAvailable = false;
 
   private _refProvider: Ref<MediaPlayerElement> = createRef();
 
@@ -128,25 +131,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       !!this.camera?.getConfig()?.camera_entity &&
       !!this.hass &&
       !!this.liveConfig?.show_image_during_load &&
-      !this._hasProviderError
+      this._streamLivenessController.isLive()
     );
-  }
-
-  public disconnectedCallback(): void {
-    this._entityHasBeenAvailable = false;
-    super.disconnectedCallback();
-  }
-
-  private _providerErrorHandler(ev: Event): void {
-    ev.stopPropagation();
-    this._hasProviderError = true;
-
-    if (this.targetID) {
-      fireAdvancedCameraCardEvent(this, 'issue:trigger', {
-        key: 'media_load' as const,
-        targetID: this.targetID,
-      });
-    }
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -168,8 +154,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     }
 
     if (changedProps.has('camera')) {
-      this._hasProviderError = false;
-      this._entityHasBeenAvailable = false;
+      this._streamLivenessController.reset();
 
       const provider = getResolvedLiveProvider(this.camera?.getConfig());
       if (provider === 'jsmpeg') {
@@ -248,50 +233,59 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       return;
     }
 
+    // If a card *re*-initializes (e.g. was already initialized and then there's
+    // a use of the editor to change the config), cameras will re-initialize in
+    // place, which means they might be asked to render (here) whilst not yet
+    // being initialized. This can cause spurious errors (e.g. lack of resolved
+    // endpoints). Instead, simply never render uninitialized cameras.
+    if (!this.camera.isInitialized()) {
+      return renderNotificationBlockFromText(
+        `${localize('error.awaiting_live')}${this.label ? `: ${this.label}` : ''}`,
+        { icon: 'mdi:progress-helper', in_progress: true },
+      );
+    }
+
     // Set title and ariaLabel from the provided label property.
     this.title = this.label;
     this.ariaLabel = this.label;
 
     const provider = getResolvedLiveProvider(this.camera?.getConfig());
 
+    // `ha`/`image` cannot stream without a camera entity, so validate that
+    // here. Entity *availability* (including the always_error immediate path)
+    // is owned by the liveness controller's EntityAvailabilityDetector and
+    // surfaces via getPlaceholder() below, for all providers.
     if (
       provider === 'ha' ||
       provider === 'image' ||
       (cameraConfig?.camera_entity && cameraConfig.always_error_if_entity_unavailable)
     ) {
       if (!cameraConfig?.camera_entity) {
-        dispatchLiveErrorEvent(this);
         return renderNotificationBlockFromText(localize('error.no_live_camera'), {
           icon: 'mdi:camera',
           context: cameraConfig,
         });
       }
-
-      const stateObj = this.hass.states[cameraConfig.camera_entity];
-      if (!stateObj) {
-        dispatchLiveErrorEvent(this);
+      if (!this.hass.states[cameraConfig.camera_entity]) {
         return renderNotificationBlockFromText(localize('error.live_camera_not_found'), {
           icon: 'mdi:camera',
           context: cameraConfig,
         });
       }
+    }
 
-      if (stateObj.state === 'unavailable') {
-        if (
-          !this._entityHasBeenAvailable ||
-          cameraConfig.always_error_if_entity_unavailable
-        ) {
-          dispatchLiveErrorEvent(this);
-          return renderNotificationBlockFromText(
-            `${localize('error.live_camera_unavailable')}${
-              this.label ? `: ${this.label}` : ''
-            }`,
-            { icon: 'mdi:cctv-off', in_progress: true },
-          );
-        }
-      } else {
-        this._entityHasBeenAvailable = true;
-      }
+    // A detector reports the stream is silently lost (the camera entity is
+    // unavailable, or the stream stalled): render a reconnecting placeholder,
+    // which unmounts the provider and unloads it via the existing media-loaded
+    // abort. The message names the specific cause.
+    const placeholder = this._streamLivenessController.getPlaceholder();
+    if (placeholder) {
+      const { localizationKey: textKey, icon } =
+        MEDIA_UNAVAILABLE_REASONS[placeholder.reason];
+      return renderNotificationBlockFromText(
+        `${localize(textKey)}${this.label ? `: ${this.label}` : ''}`,
+        { icon, in_progress: true },
+      );
     }
 
     const showImageDuringLoading = this._shouldShowImageDuringLoading();
@@ -314,8 +308,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               // so it should not be hidden.
               hidden: false,
             })}
-            @advanced-camera-card:live:error=${(ev: Event) =>
-              this._providerErrorHandler(ev)}
             @advanced-camera-card:media:loaded=${(ev: Event) => {
               // When the image is rendered as a placeholder behind another
               // provider, suppress its load event so it doesn't reach the
@@ -339,8 +331,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
             .preferAudioStream=${this.forceSelected &&
             isAudioIntendedOnLoad(this.liveConfig?.auto_unmute ?? [])}
             ?controls=${this._getEffectiveBuiltinControls()}
-            @advanced-camera-card:live:error=${(ev: Event) =>
-              this._providerErrorHandler(ev)}
           >
           </advanced-camera-card-live-ha>`
         : provider === 'go2rtc'
@@ -353,8 +343,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               .microphoneStream=${this.microphoneStream}
               .microphoneConfig=${this.liveConfig.microphone}
               ?controls=${this._getEffectiveBuiltinControls()}
-              @advanced-camera-card:live:error=${(ev: Event) =>
-                this._providerErrorHandler(ev)}
             >
             </advanced-camera-card-live-go2rtc>`
           : provider === 'webrtc-card'
@@ -366,8 +354,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                 .targetID=${this.targetID}
                 .cardWideConfig=${this.cardWideConfig}
                 ?controls=${this._getEffectiveBuiltinControls()}
-                @advanced-camera-card:live:error=${(ev: Event) =>
-                  this._providerErrorHandler(ev)}
               >
               </advanced-camera-card-live-webrtc-card>`
             : provider === 'jsmpeg'
@@ -378,8 +364,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                   .camera=${this.camera}
                   .targetID=${this.targetID}
                   .cardWideConfig=${this.cardWideConfig}
-                  @advanced-camera-card:live:error=${(ev: Event) =>
-                    this._providerErrorHandler(ev)}
                 >
                 </advanced-camera-card-live-jsmpeg>`
               : html``}
@@ -388,7 +372,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       ? html`<advanced-camera-card-icon
           title=${localize('error.awaiting_live')}
           .icon=${{ icon: 'mdi:progress-helper' }}
-          @click=${() => fireAdvancedCameraCardEvent(this, 'issue:notify', 'media_load')}
+          @click=${() =>
+            fireAdvancedCameraCardEvent(this, 'issue:notify', 'media_unavailable')}
         ></advanced-camera-card-icon>`
       : ''}`;
   }

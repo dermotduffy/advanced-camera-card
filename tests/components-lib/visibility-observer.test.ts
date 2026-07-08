@@ -220,4 +220,51 @@ describe('VisibilityObserver', () => {
       );
     });
   });
+
+  describe('emitInitial', () => {
+    it('should emit the initial visible value on the baseline callback', async () => {
+      const onChange = vi.fn();
+      const observer = new VisibilityObserver(onChange, { emitInitial: true });
+      observer.setRoot(createParent());
+
+      await callIntersectionHandler(true);
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(true);
+    });
+
+    it('should emit the initial hidden value on the baseline callback', async () => {
+      const onChange = vi.fn();
+      const observer = new VisibilityObserver(onChange, { emitInitial: true });
+      observer.setRoot(createParent());
+
+      await callIntersectionHandler(false);
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(false);
+    });
+
+    it('should not re-emit an unchanged state after the initial emit', async () => {
+      const onChange = vi.fn();
+      const observer = new VisibilityObserver(onChange, { emitInitial: true });
+      observer.setRoot(createParent());
+
+      await callIntersectionHandler(true);
+      await callIntersectionHandler(true);
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('should still emit subsequent transitions after the initial emit', async () => {
+      const onChange = vi.fn();
+      const observer = new VisibilityObserver(onChange, { emitInitial: true });
+      observer.setRoot(createParent());
+
+      await callIntersectionHandler(true);
+      await callIntersectionHandler(false);
+
+      expect(onChange).toHaveBeenNthCalledWith(1, true);
+      expect(onChange).toHaveBeenNthCalledWith(2, false);
+    });
+  });
 });

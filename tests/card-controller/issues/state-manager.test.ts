@@ -43,7 +43,7 @@ describe('IssueStateManager', () => {
 
     mockConfigUpgrade = mock<Issue>({ key: 'config_upgrade' });
     mockLegacyResource = mock<Issue>({ key: 'legacy_resource' });
-    mockMediaLoad = mock<Issue>({ key: 'media_load' });
+    mockMediaLoad = mock<Issue>({ key: 'media_unavailable' });
   });
 
   it('should register all provided issues on construction', () => {
@@ -52,7 +52,7 @@ describe('IssueStateManager', () => {
 
     expect(presence.has('config_upgrade')).toBe(false);
     expect(presence.has('legacy_resource')).toBe(false);
-    expect(presence.has('media_load')).toBe(false);
+    expect(presence.has('media_unavailable')).toBe(false);
   });
 
   describe('detectStatic', () => {
@@ -97,10 +97,13 @@ describe('IssueStateManager', () => {
     it('should call trigger on the matching issue', () => {
       const manager = createManager();
 
-      manager.trigger('media_load', { targetID: 'cam1' });
+      manager.trigger('media_unavailable', { targetID: 'cam1', reason: 'stalled' });
 
       assert(mockMediaLoad.trigger);
-      expect(mockMediaLoad.trigger).toBeCalledWith({ targetID: 'cam1' });
+      expect(mockMediaLoad.trigger).toBeCalledWith({
+        targetID: 'cam1',
+        reason: 'stalled',
+      });
     });
 
     it('should do nothing for unknown key', () => {
@@ -210,7 +213,7 @@ describe('IssueStateManager', () => {
 
       const manager = createManager();
 
-      expect(manager.getNotification('media_load')).toBe(notification);
+      expect(manager.getNotification('media_unavailable')).toBe(notification);
     });
 
     it('should return null for unknown key', () => {
@@ -297,7 +300,7 @@ describe('IssueStateManager', () => {
       vi.mocked(mockMediaLoad.needsRetry).mockReturnValue(true);
       vi.mocked(mockMediaLoad.retry).mockReturnValue(false);
 
-      createManager().retry('media_load');
+      createManager().retry('media_unavailable');
 
       expect(mockMediaLoad.retry).toBeCalled();
     });
@@ -306,7 +309,7 @@ describe('IssueStateManager', () => {
       assert(mockMediaLoad.needsRetry);
       vi.mocked(mockMediaLoad.needsRetry).mockReturnValue(false);
 
-      createManager().retry('media_load');
+      createManager().retry('media_unavailable');
 
       assert(mockMediaLoad.retry);
       expect(mockMediaLoad.retry).not.toBeCalled();
@@ -318,7 +321,7 @@ describe('IssueStateManager', () => {
       vi.mocked(mockMediaLoad.needsRetry).mockReturnValue(false);
       vi.mocked(mockMediaLoad.retry).mockReturnValue(false);
 
-      createManager().retry('media_load', true);
+      createManager().retry('media_unavailable', true);
 
       expect(mockMediaLoad.retry).toBeCalled();
     });
@@ -374,7 +377,7 @@ describe('IssueStateManager', () => {
       manager.detectDynamic({ view: 'live' });
 
       expect(spy).toBeCalledWith(
-        'Advanced Camera Card [issue=media_load]: Stream issue',
+        'Advanced Camera Card [issue=media_unavailable]: Stream issue',
       );
       spy.mockRestore();
     });
@@ -387,9 +390,11 @@ describe('IssueStateManager', () => {
       vi.mocked(mockMediaLoad.getIssue).mockReturnValue(result);
 
       const manager = createManager();
-      manager.trigger('media_load', { targetID: 'cam1' });
+      manager.trigger('media_unavailable', { targetID: 'cam1', reason: 'stalled' });
 
-      expect(spy).toBeCalledWith('Advanced Camera Card [issue=media_load]: Triggered');
+      expect(spy).toBeCalledWith(
+        'Advanced Camera Card [issue=media_unavailable]: Triggered',
+      );
       spy.mockRestore();
     });
 
@@ -398,7 +403,7 @@ describe('IssueStateManager', () => {
       vi.mocked(mockMediaLoad.getIssue).mockReturnValue(null);
 
       const manager = createManager();
-      manager.trigger('media_load', { targetID: 'cam1' });
+      manager.trigger('media_unavailable', { targetID: 'cam1', reason: 'stalled' });
 
       expect(spy).not.toBeCalled();
       spy.mockRestore();
@@ -503,7 +508,7 @@ describe('IssueStateManager', () => {
 
       const manager = createManager();
       manager.detectDynamic({ view: 'live' });
-      manager.reset('media_load');
+      manager.reset('media_unavailable');
       // After reset, the issue reports cleared on next detect, releasing the
       // dedupe.
       manager.detectDynamic({ view: 'live' });
@@ -518,7 +523,7 @@ describe('IssueStateManager', () => {
   describe('reset', () => {
     it('should reset a specific issue by key', () => {
       const manager = createManager();
-      manager.reset('media_load');
+      manager.reset('media_unavailable');
 
       assert(mockMediaLoad.reset);
       expect(mockMediaLoad.reset).toBeCalled();

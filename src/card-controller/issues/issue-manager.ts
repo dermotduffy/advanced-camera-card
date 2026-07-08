@@ -14,10 +14,10 @@ import type {
   IssueTriggerContextKey,
 } from './types';
 
-// Exponential backoff schedule for 'auto' retry. The base is set above the
-// per-media retry threshold (~10s) so the issue-level backoff kicks in *after*
-// lower-level recovery has had a chance to work, not in parallel with it.
-export const RETRY_EXPONENTIAL_BASE_SECONDS = 30;
+// Exponential backoff schedule for 'auto' retry. The first attempt fires
+// quickly so recovery is prompt, then the delay doubles (up to the max) so a
+// persistently-failing issue is not retried indefinitely at a tight interval.
+export const RETRY_EXPONENTIAL_BASE_SECONDS = 5;
 export const RETRY_EXPONENTIAL_MAX_SECONDS = 600;
 
 // Wraps the passive IssueStateManager with reaction logic. A single

@@ -347,7 +347,6 @@
     "jsmpeg_no_player": "Impossibile avviare JSMPEG Player",
     "live_camera_no_endpoint": "Impossibile ottenere l'endpoint della videocamera per questo provider live (configurazione incompleta?)",
     "live_camera_not_found": "La telecamera configurata non è stata trovata",
-    "live_camera_unavailable": "Telecamera non disponibile",
     "no_camera_engine": "Impossibile determinare il motore adatto per la fotocamera",
     "no_camera_entity": "Impossibile trovare l'entità fotocamera",
     "no_camera_id": "Impossibile determinare l'ID della telecamera , potrebbe essere necessario impostare manualmente il parametro 'ID'",
@@ -357,6 +356,13 @@
     "upgrade_available": "È disponibile un aggiornamento di configurazione della scheda automatizzato, visitare l'editor di schede visive",
     "webrtc_card_reported_error": "La scheda WebRTC ha riportato un errore",
     "webrtc_card_waiting": "Aspettando che la scheda WebRTC si carichi ..."
+  },
+  "issues": {
+    "media_unavailable": {
+      "reasons": {
+        "entity_unavailable": "Telecamera non disponibile"
+      }
+    }
   },
   "media_filter": {
     "camera": "Telecamera",

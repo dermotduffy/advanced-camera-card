@@ -1,10 +1,8 @@
 import type { TemplateRenderer } from '../../card-controller/templates';
 import type { Condition } from '../../config/schema/condition-trigger/conditions/types';
+import type { UnsubscribeCallback } from '../../types';
 import { isEnabled } from '../common/is-enabled';
-import type {
-  ConditionEvaluator,
-  ExternalInvalidationUnsubscribeCallback,
-} from './conditions/types';
+import type { ConditionEvaluator } from './conditions/types';
 import { createConditionEvaluator } from './factory';
 import type {
   ConditionsEvaluationResult,
@@ -32,7 +30,7 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
 
   private _listeners: ConditionsListener[] = [];
   private _evaluation: ConditionsEvaluationResult = { result: false };
-  private _unsubscribeCallbacks: ExternalInvalidationUnsubscribeCallback[] = [];
+  private _unsubscribeCallbacks: UnsubscribeCallback[] = [];
 
   constructor(
     conditions: Condition[],

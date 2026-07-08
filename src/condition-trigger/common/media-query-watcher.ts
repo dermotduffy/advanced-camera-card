@@ -1,4 +1,4 @@
-export type MediaQueryWatcherUnsubscribeCallback = () => void;
+import type { UnsubscribeCallback } from '../../types';
 
 // Watches a single CSS media query via `window.matchMedia`. The shared change
 // source for the `screen` condition and trigger, whose match state lives
@@ -16,7 +16,7 @@ export class MediaQueryWatcher {
     return window.matchMedia(this._query).matches;
   }
 
-  public subscribe(callback: () => void): MediaQueryWatcherUnsubscribeCallback {
+  public subscribe(callback: () => void): UnsubscribeCallback {
     this._callback = callback;
     this._mediaQuery = window.matchMedia(this._query);
     this._mediaQuery.addEventListener('change', this._handler);

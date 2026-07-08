@@ -526,8 +526,19 @@ export class VideoRTC extends HTMLElement {
 
     this.ws = new WebSocket(this.wsURL);
     this.ws.binaryType = 'arraybuffer';
-    this.ws.addEventListener('open', () => this.onopen());
-    this.ws.addEventListener('close', () => this.onclose());
+
+    // A socket superseded by teardown or reconnect while still connecting can
+    // still fire 'open'/'close' after `this.ws` was nulled or replaced. Ignore
+    // events from a socket that is no longer the active one -- otherwise a
+    // late 'open' dereferences a null `this.ws` (crash) and a late 'close'
+    // schedules a spurious reconnect.
+    const ws = this.ws;
+    ws.addEventListener('open', () => {
+      if (this.ws === ws) this.onopen();
+    });
+    ws.addEventListener('close', () => {
+      if (this.ws === ws) this.onclose();
+    });
 
     return true;
   }
@@ -628,6 +639,16 @@ export class VideoRTC extends HTMLElement {
     this.wsState = WebSocket.CONNECTING;
     this.ws = null;
 
+    // onconnect() refuses to run while a peer connection lingers, so both `ws`
+    // and `pc` need to be clearer so the scheduled reconnect can proceed
+    // instead of no-opping and leaving a stream permanently wedged.
+    if (this.pc) {
+      this.pc.close();
+      this.pc = null;
+      this.pcState = WebSocket.CLOSED;
+      this._microphoneTransceiver = null;
+    }
+
     // reconnect no more than once every X seconds
     const delay = Math.max(this.RECONNECT_TIMEOUT - (Date.now() - this.connectTS), 0);
 
@@ -694,7 +715,17 @@ export class VideoRTC extends HTMLElement {
           }
         }
 
-        if (!sb.updating && sb.buffered && sb.buffered.length) {
+        // For Advanced Camera Card: a queued `updateend` can fire after a
+        // teardown/remount has detached this SourceBuffer from the MediaSource,
+        // at which point reading `sb.buffered` throws InvalidStateError. The
+        // buffered-range trim is best-effort, so skip it once the source is no
+        // longer open.
+        if (
+          ms.readyState === 'open' &&
+          !sb.updating &&
+          sb.buffered &&
+          sb.buffered.length
+        ) {
           const end = sb.buffered.end(sb.buffered.length - 1);
           const start = end - 5;
           const start0 = sb.buffered.start(0);

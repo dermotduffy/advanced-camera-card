@@ -615,7 +615,6 @@
     "jsmpeg_no_player": "Impossible de démarrer le lecteur JSMPEG",
     "live_camera_no_endpoint": "Impossible d'obtenir le point de terminaison de la caméra pour ce fournisseur en direct (configuration incomplète ?)",
     "live_camera_not_found": "L'entité caméra configurée n'a pas été trouvée",
-    "live_camera_unavailable": "Caméra indisponible",
     "no_camera_engine": "Impossible de déterminer le moteur approprié pour la caméra",
     "no_camera_entity": "Impossible de trouver l'entité de caméra",
     "no_camera_id": "Impossible de déterminer l'identifiant de la caméra suivante. Il faudra peut-être définir le paramètre « ID » manuellement",
@@ -629,7 +628,10 @@
     "webrtc_card_waiting": "En attente du chargement de la carte WebRTC..."
   },
   "issues": {
-    "media_load": {
+    "media_unavailable": {
+      "reasons": {
+        "entity_unavailable": "Caméra indisponible"
+      },
       "text": "Le flux vidéo ou le média enregistré n'a pas encore été chargé. Cela peut être du à plusieurs raisons. La carte tentera de recharger automatiquement après un délai d'attente."
     },
     "view_incompatible": {

@@ -677,7 +677,6 @@
     "jsmpeg_no_player": "Nie można uruchomić odtwarzacza JSMPEG",
     "live_camera_no_endpoint": "Nie można uzyskać punktu końcowego kamery dla tego dostawcy (niepełna konfiguracja?)",
     "live_camera_not_found": "Skonfigurowana camera_entity nie została znaleziona",
-    "live_camera_unavailable": "Kamera niedostępna",
     "no_camera_engine": "Nie można określić odpowiedniego silnika dla kamery",
     "no_camera_entity": "Nie można znaleźć encji kamery",
     "no_camera_id": "Nie można określić ID kamery, może być konieczne ręczne ustawienie parametru 'id'",
@@ -692,7 +691,10 @@
     "webrtc_card_waiting": "Oczekiwanie na załadowanie karty WebRTC..."
   },
   "issues": {
-    "media_load": {
+    "media_unavailable": {
+      "reasons": {
+        "entity_unavailable": "Kamera niedostępna"
+      },
       "text": "Strumień wideo jeszcze się nie załadował. Może to wynikać z wielu przyczyn. Domyślnie będzie wyświetlany odświeżany obraz, dopóki strumień nie załaduje się poprawnie"
     },
     "view_incompatible": {

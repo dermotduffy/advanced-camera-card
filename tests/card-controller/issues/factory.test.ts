@@ -38,7 +38,7 @@ describe('createIssueManager', () => {
       'initialization',
       'legacy_resource',
       'media_query',
-      'media_load',
+      'media_unavailable',
       'view_incompatible',
     ] as const;
 
@@ -84,15 +84,19 @@ describe('createIssueManager', () => {
 
     const manager = createIssueManager(api, createSubscriptionHealth());
 
-    // Setting view starts the media_load timer (via the condition state
+    // Setting view starts the media_unavailable timer (via the condition state
     // listener → evaluate → detectDynamic).
     stateManager.setState({ targetID: 'camera-1', view: 'live' });
-    expect(manager.getStateManager().getIssuePresence().has('media_load')).toBe(false);
+    expect(manager.getStateManager().getIssuePresence().has('media_unavailable')).toBe(
+      false,
+    );
 
     // After the timeout, the changeCallback fires evaluate which
     // updates the card element.
     vi.advanceTimersByTime(10000);
 
-    expect(manager.getStateManager().getIssuePresence().has('media_load')).toBe(true);
+    expect(manager.getStateManager().getIssuePresence().has('media_unavailable')).toBe(
+      true,
+    );
   });
 });

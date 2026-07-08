@@ -1,6 +1,7 @@
 import { getHassDifferences } from '../../ha/get-hass-differences';
-import type { HASSSource, HASSUnlistenCallback } from '../../ha/source';
+import type { HASSSource } from '../../ha/source';
 import type { HassStateDifference, HomeAssistant } from '../../ha/types';
+import type { UnsubscribeCallback } from '../../types';
 
 type StateWatcherCallback = (difference: HassStateDifference) => void;
 
@@ -12,7 +13,7 @@ export interface StateWatcherSubscriptionInterface {
 export class StateWatcher implements StateWatcherSubscriptionInterface {
   private _source: HASSSource;
   private _watcherCallbacks = new Map<StateWatcherCallback, string[]>();
-  private _unlisten: HASSUnlistenCallback | null = null;
+  private _unlisten: UnsubscribeCallback | null = null;
 
   constructor(source: HASSSource) {
     this._source = source;

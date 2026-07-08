@@ -59,6 +59,12 @@ export type MediaLoadedInfoOwner = HTMLElement;
 export interface MediaLoadedInfoEventDetail {
   info: MediaLoadedInfo;
 
+  // Absent (the default, a fresh media load) unless `true`, which marks a
+  // replay: the source re-dispatched its last load on reconnect without the
+  // media actually reloading (e.g. preloaded camera in the background when
+  // brought to the foreground).
+  cached?: boolean;
+
   // Aborts when the source retires this media. The source aborts on host
   // disconnect, and when a subsequent `set()` arrives under a different
   // `targetID` (replacing this dispatch). Independent of DOM connectedness, so
@@ -78,6 +84,11 @@ export type WebkitHTMLVideoElement = HTMLVideoElement & {
 export type FullscreenElement = HTMLElement;
 export type PIPElement = HTMLVideoElement;
 
+export type UnsubscribeCallback = () => void;
+
+// Reports each live/stalled transition of a player's media stream.
+export type LivenessCallback = (isLive: boolean) => void;
+
 export interface MediaPlayerController {
   play(): Promise<void>;
   pause(): Promise<void>;
@@ -91,6 +102,13 @@ export interface MediaPlayerController {
   isPaused(): boolean;
   getFullscreenElement(): FullscreenElement | null;
   getPIPElement(): PIPElement | null;
+
+  // Observe whether the player is actively delivering media, so a silent freeze
+  // (frames stop advancing while playing) can be detected. Optional:
+  // implemented only by players that can observe their own frame progress. The
+  // callback fires on each live/stalled transition; the returned callback stops
+  // the observation.
+  subscribeLiveness?(callback: LivenessCallback): UnsubscribeCallback;
 }
 
 export interface MediaPlayer {

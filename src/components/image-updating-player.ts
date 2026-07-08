@@ -474,8 +474,9 @@ export class AdvancedCameraCardImageUpdatingPlayer
                   this,
                   'issue:trigger',
                   {
-                    key: 'media_load',
+                    key: 'media_unavailable',
                     targetID: this.targetID,
+                    reason: 'not_loading',
                   },
                 );
               }

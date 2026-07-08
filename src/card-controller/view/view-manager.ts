@@ -354,16 +354,26 @@ export class ViewManager implements ViewManagerInterface {
     );
   }
 
-  public initialize = async (): Promise<void> => {
+  // Returns whether view initialization succeeded. A `false` return leaves the
+  // view "aspect" uninitialized so a later initialization attempt retries --
+  // the default-view set can legitimately produce no view (e.g. it declines to
+  // run while the cameras are concurrently re-initializing), and treating that
+  // as initialized would leave the card without a view permanently.
+  public initialize = async (): Promise<boolean> => {
     // If the query string contains a view related action, we don't set any view
     // here and allow that action to be triggered by the next call of to execute
     // query actions (called at least once per render cycle).
     // Related: https://github.com/dermotduffy/advanced-camera-card/issues/1200
-    if (!this._api.getQueryStringManager().hasViewRelatedActionsToRun()) {
-      // This is not awaited to allow the initialization to complete before the
-      // query is answered.
-      void this.setViewDefaultWithNewQuery({ failSafe: true });
+    if (this._api.getQueryStringManager().hasViewRelatedActionsToRun()) {
+      return true;
     }
+
+    // This is not awaited to allow the initialization to complete before the
+    // query is answered. The view itself (without query results) is set
+    // synchronously before the query executes, so whether a view exists on
+    // return accurately reports success.
+    void this.setViewDefaultWithNewQuery({ failSafe: true });
+    return this.hasView();
   };
 
   private _setView(view: Readonly<View> | null): void {

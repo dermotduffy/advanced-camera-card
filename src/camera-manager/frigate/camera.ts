@@ -146,11 +146,13 @@ export class FrigateCamera extends Camera {
     if (!this._config.frigate.client_id) {
       const stateEntity = cameraEntity ? hass.states[cameraEntity] : undefined;
       const clientID = stateEntity?.attributes?.client_id;
-      if (typeof clientID === 'string' && clientID) {
-        this._config.frigate.client_id = clientID;
-      } else if (stateEntity?.state !== 'unavailable') {
-        this._config.frigate.client_id = 'frigate';
-      }
+
+      // Prefer the client_id the entity advertises. When it is unreadable (e.g.
+      // the entity is unavailable) assume the integration default:
+      // initialization runs once, so leaving client_id unresolved would leave
+      // the camera permanently without endpoints.
+      this._config.frigate.client_id =
+        typeof clientID === 'string' && clientID ? clientID : 'frigate';
     }
   }
 
@@ -262,34 +264,38 @@ export class FrigateCamera extends Camera {
     };
   }
 
-  protected override _getGo2RTCMetadataEndpoint(): Endpoint | null {
-    const stream = this._config.go2rtc?.stream ?? this._config.frigate.camera_name;
+  // Build a go2rtc endpoint from an explicitly-configured go2rtc URL, or
+  // otherwise from the Frigate integration's proxy under the given path (the
+  // integration exposes the go2rtc stream API under 'mse' and the metadata API
+  // under 'go2rtc'). Without either a configured URL or a resolved client_id
+  // there is no usable endpoint.
+  private _buildGo2RTCEndpoint(
+    path: 'go2rtc' | 'mse',
+    builder: (
+      cameraConfig: CameraConfig,
+      options: { url: string; stream?: string },
+    ) => Endpoint | null,
+  ): Endpoint | null {
     const url =
       this._config.go2rtc?.url ??
       (this._config.frigate.client_id
-        ? `/api/frigate/${this._config.frigate.client_id}/go2rtc`
+        ? `/api/frigate/${this._config.frigate.client_id}/${path}`
         : null);
     if (!url) {
       return null;
     }
-    return getGo2RTCMetadataEndpoint(this._config, { url, stream });
+    return builder(this._config, {
+      url,
+      stream: this._config.go2rtc?.stream ?? this._config.frigate.camera_name,
+    });
+  }
+
+  protected override _getGo2RTCMetadataEndpoint(): Endpoint | null {
+    return this._buildGo2RTCEndpoint('go2rtc', getGo2RTCMetadataEndpoint);
   }
 
   protected override _getGo2RTCStreamEndpoint(): Endpoint | null {
-    const stream = this._config.go2rtc?.stream ?? this._config.frigate.camera_name;
-    const url =
-      this._config.go2rtc?.url ??
-      // go2rtc is exposed by the Frigate integration under the 'mse' path.
-      (this._config.frigate.client_id
-        ? `/api/frigate/${this._config.frigate.client_id}/mse`
-        : null);
-    if (!url) {
-      return null;
-    }
-    return getGo2RTCStreamEndpoint(this._config, {
-      url,
-      stream,
-    });
+    return this._buildGo2RTCEndpoint('mse', getGo2RTCStreamEndpoint);
   }
 
   private _getJSMPEGEndpoint(): Endpoint | null {
