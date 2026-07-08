@@ -1,6 +1,6 @@
 type VisibilityChangeHandler = (visible: boolean) => Promise<void> | void;
 
-export interface VisibilityObserverOptions {
+interface VisibilityObserverOptions {
   // Also emit the first known visibility value, not only subsequent
   // transitions. Consumers that need the current state on startup (rather than
   // reacting only to changes) opt in; the default stays transition-only.

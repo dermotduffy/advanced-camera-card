@@ -19,7 +19,7 @@ import { ProviderErrorDetector } from './detectors/provider-error';
 //   state).
 // - `hard`: an authoritative failure (e.g. a provider error, or the user's
 //   always_error opt-in) that overrides even direct evidence of life.
-export type LivenessAuthority = 'hard' | 'direct' | 'indirect';
+type LivenessAuthority = 'hard' | 'direct' | 'indirect';
 
 export type LivenessVerdict =
   // No evidence: the detector is not observing, so it neither confirms nor
@@ -43,7 +43,7 @@ export type LivenessVerdict =
 
 // The reconnecting placeholder the wrapper renders in place of a frozen
 // provider, carrying the cause so it can show a cause-specific message.
-export interface LivenessPlaceholder {
+interface LivenessPlaceholder {
   reason: MediaUnavailableIssueReason;
 }
 

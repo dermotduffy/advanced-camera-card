@@ -27,7 +27,7 @@ export type MediaLoadedInfoChange =
   // The selected (current) target changed.
   | { type: 'select'; targetID: string | null };
 
-export type MediaLoadedInfoChangeCallback = (change: MediaLoadedInfoChange) => void;
+type MediaLoadedInfoChangeCallback = (change: MediaLoadedInfoChange) => void;
 
 export class MediaLoadedInfoManager {
   private _api: CardMediaLoadedAPI;
