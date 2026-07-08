@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MediaLoadedInfoManager } from '../../src/card-controller/media-info-manager';
+import { MediaLoadedInfoSourceController } from '../../src/components-lib/media-loaded-info-source-controller';
+import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import {
   createCardAPI,
+  createLitElement,
   createMediaLoadedInfo,
   createMediaLoadedInfoEvent,
 } from '../test-utils.js';
@@ -337,6 +340,67 @@ describe('MediaLoadedInfoManager', () => {
       manager.clear();
 
       expect(api.getConditionStateManager().setState).not.toBeCalled();
+    });
+  });
+
+  // The play/pause, mute and screenshot menu buttons render only while there is
+  // active info for the selected target. These tests wire the real source
+  // controller to the manager the way the card does and pin the invariants that
+  // keep the buttons stable: a transient host disconnect/reconnect under the
+  // same target restores the info, while a genuine target change drops it.
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2563
+  describe('active info stability across host disconnect and reconnect', () => {
+    const wire = (target: { id: string | null }) => {
+      const api = createCardAPI();
+      const manager = new MediaLoadedInfoManager(api);
+      const host = createLitElement();
+      host.addEventListener('advanced-camera-card:media:loaded', (ev) =>
+        manager.handleLoadEvent(ev as CustomEvent<MediaLoadedInfoEventDetail>),
+      );
+      const source = new MediaLoadedInfoSourceController(host, {
+        getTargetID: () => target.id,
+      });
+      return { api, manager, source };
+    };
+
+    it('should restore the active info when the player host transiently disconnects and reconnects', () => {
+      const target = { id: 'media-1' as string | null };
+      const { api, manager, source } = wire(target);
+
+      manager.setSelected('media-1');
+      source.set(createMediaLoadedInfo());
+      expect(manager.has()).toBe(true);
+
+      // The host disconnects and reconnects under the same targetID: the info
+      // is gone for an instant, then replayed on reconnect.
+      source.hostDisconnected();
+      expect(manager.has()).toBe(false);
+
+      source.hostConnected();
+
+      expect(manager.has()).toBe(true);
+      expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith({
+        mediaLoadedInfo: expect.objectContaining({ targetID: 'media-1' }),
+      });
+    });
+
+    it('should not restore the active info when the target genuinely changes', () => {
+      const target = { id: 'media-1' as string | null };
+      const { manager, source } = wire(target);
+
+      manager.setSelected('media-1');
+      source.set(createMediaLoadedInfo());
+      expect(manager.has()).toBe(true);
+
+      // The target actually changes across the disconnect/reconnect, so the
+      // reconnect discards the stale cache instead of replaying it -- the
+      // restore must not keep info alive when media really unloads.
+      target.id = 'media-2';
+      source.hostDisconnected();
+      source.hostConnected();
+
+      manager.setSelected('media-2');
+      expect(manager.has()).toBe(false);
     });
   });
 
