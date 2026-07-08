@@ -145,7 +145,9 @@ describe('start', () => {
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
-    expect(api.getConditionStateManager().setState).toBeCalledWith({ call: true });
+    expect(api.getConditionStateManager().setState).toBeCalledWith({
+      call: { active: true, answered: true },
+    });
   });
 
   it('should navigate to the live view when started from elsewhere', async () => {
@@ -367,8 +369,12 @@ describe('start', () => {
     expect(call?.cameraID).toBe('camera.garage');
     expect(call?.previousView?.view).toBe('live');
     expect(call?.previousView?.camera).toBe('camera.office');
-    expect(api.getConditionStateManager().setState).toBeCalledWith({ call: false });
-    expect(api.getConditionStateManager().setState).toBeCalledWith({ call: true });
+    expect(api.getConditionStateManager().setState).toBeCalledWith({
+      call: { active: false, answered: true },
+    });
+    expect(api.getConditionStateManager().setState).toBeCalledWith({
+      call: { active: true, answered: true },
+    });
   });
 
   it('should restart on the same camera with a different stream', async () => {
@@ -656,7 +662,9 @@ describe('end', () => {
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
-    expect(api.getConditionStateManager().setState).toBeCalledWith({ call: false });
+    expect(api.getConditionStateManager().setState).toBeCalledWith({
+      call: { active: false, answered: true },
+    });
   });
 
   it('should restore the pre-call substream when ending', async () => {
@@ -1085,7 +1093,9 @@ describe('initialize / uninitialize', () => {
     manager.uninitialize();
 
     expect(manager.isActive()).toBe(false);
-    expect(api.getConditionStateManager().setState).toBeCalledWith({ call: false });
+    expect(api.getConditionStateManager().setState).toBeCalledWith({
+      call: { active: false, answered: true },
+    });
   });
 
   it('should ignore further condition state changes after uninitialize', async () => {
@@ -1293,6 +1303,9 @@ describe('answer', () => {
     expect(after).not.toBe(before);
     expect(after?.cameraID).toBe(before?.cameraID);
     expect(after?.inbound).toBe(before?.inbound);
+    expect(api.getConditionStateManager().setState).toBeCalledWith({
+      call: { active: true, answered: true },
+    });
   });
 
   it('should stop the ringtone and unanswered timer on answer', async () => {
@@ -1564,7 +1577,7 @@ describe('unanswered timeout', () => {
   });
 });
 
-// `start()` calls `setState({ call: true })` to broadcast the new call status;
+// `start()` calls `setState({ call: { active: true, ... } })` to broadcast the new call status;
 // a listener that responds by navigating away will fire the manager's own
 // condition listener and end the call before `start()` returns. Verify the
 // post-setState re-read of the session prevents follow-up work (ringtone /
@@ -1591,10 +1604,10 @@ describe('session end during setState', () => {
     const listener = getConditionStateListener(api);
 
     vi.mocked(api.getConditionStateManager().setState).mockImplementation((state) => {
-      // Simulate a downstream listener that responds to `call: true` by
-      // navigating away. The manager's own listener then ends the call,
+      // Simulate a downstream listener that responds to `call: { active: true }`
+      // by navigating away. The manager's own listener then ends the call,
       // nulling the session before `start()` finishes.
-      if (state.call === true) {
+      if (state.call?.active === true) {
         listener({
           old: { camera: 'camera.office', view: 'live' },
           change: { view: 'clips' },

@@ -158,7 +158,7 @@ export class CallManager {
       modifiers: [new SubstreamViewModifier({ stream: callCameraID, camera: parentID })],
       force: true,
     });
-    this._api.getConditionStateManager().setState({ call: true });
+    this._api.getConditionStateManager().setState({ call: { active: true, answered } });
 
     // Re-read the session as the listeners triggered by `call: true` may have
     // already have changed the state.
@@ -208,6 +208,9 @@ export class CallManager {
     // change. The `update()` below forces card.ts to re-render and re-read
     // `getCall()`, propagating the new session to the carousel.
     this._call = { ...this._call, answered: true };
+    this._api
+      .getConditionStateManager()
+      .setState({ call: { active: true, answered: true } });
     this._api.getCardElementManager().update();
     return true;
   }
@@ -245,8 +248,11 @@ export class CallManager {
     this._ringtone.stop();
     this._unansweredTimer.stop();
     if (this._call) {
+      const answered = this._call.answered;
       this._call = null;
-      this._api.getConditionStateManager().setState({ call: false });
+      this._api
+        .getConditionStateManager()
+        .setState({ call: { active: false, answered } });
     }
     this._api
       .getConditionStateManager()
@@ -265,6 +271,7 @@ export class CallManager {
     }
     const call = this._call;
     const previousView = call.previousView;
+    const answered = call.answered;
 
     // Silence any ringtone before the navigation.
     this._ringtone.stop();
@@ -304,7 +311,7 @@ export class CallManager {
         force: true,
       });
     }
-    this._api.getConditionStateManager().setState({ call: false });
+    this._api.getConditionStateManager().setState({ call: { active: false, answered } });
     return true;
   }
 

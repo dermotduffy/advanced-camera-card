@@ -22,27 +22,67 @@ describe('CallTrigger', () => {
     const { stateManager, callback } = create({ trigger: 'call' });
 
     // Absent (undefined) is equivalent to false, so this is not a change.
-    stateManager.setState({ call: false });
+    stateManager.setState({ call: { active: false, answered: false } });
     expect(callback).not.toHaveBeenCalled();
 
-    stateManager.setState({ call: true });
+    stateManager.setState({ call: { active: true, answered: false } });
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
   it('should trigger only on changes to the given value', () => {
     const { stateManager, callback } = create({ trigger: 'call', call: true });
-    stateManager.setState({ call: true });
-    stateManager.setState({ call: false });
+    stateManager.setState({ call: { active: true, answered: false } });
+    stateManager.setState({ call: { active: false, answered: false } });
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
   it('should trigger on the falling edge to a false value', () => {
     const { stateManager, callback } = create({ trigger: 'call', call: false });
 
-    stateManager.setState({ call: true });
+    stateManager.setState({ call: { active: true, answered: false } });
     expect(callback).not.toHaveBeenCalled();
 
-    stateManager.setState({ call: false });
+    stateManager.setState({ call: { active: false, answered: false } });
     expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not fire on an answer when the trigger does not care about answered', () => {
+    const { stateManager, callback } = create({ trigger: 'call', call: true });
+
+    stateManager.setState({ call: { active: true, answered: false } });
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    // The call is answered mid-call -- `active` doesn't change, so a plain
+    // `call: true` trigger (no `answered`) must not fire again.
+    stateManager.setState({ call: { active: true, answered: true } });
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should fire on the answer transition when answered is specified', () => {
+    const { stateManager, callback } = create({
+      trigger: 'call',
+      call: true,
+      answered: true,
+    });
+
+    stateManager.setState({ call: { active: true, answered: false } });
+    expect(callback).not.toHaveBeenCalled();
+
+    stateManager.setState({ call: { active: true, answered: true } });
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should distinguish rejected (ended unanswered) from ended-after-answered', () => {
+    const rejected = create({ trigger: 'call', call: false, answered: false });
+    const hungUp = create({ trigger: 'call', call: false, answered: true });
+
+    rejected.stateManager.setState({ call: { active: true, answered: false } });
+    hungUp.stateManager.setState({ call: { active: true, answered: false } });
+
+    rejected.stateManager.setState({ call: { active: false, answered: false } });
+    hungUp.stateManager.setState({ call: { active: false, answered: false } });
+
+    expect(rejected.callback).toHaveBeenCalledTimes(1);
+    expect(hungUp.callback).not.toHaveBeenCalled();
   });
 });

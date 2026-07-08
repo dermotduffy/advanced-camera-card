@@ -10,8 +10,15 @@ export class CallConditionEvaluator implements ConditionEvaluator {
   }
 
   public evaluate(newState?: ConditionState): ConditionsEvaluationResult {
+    const call = newState?.call;
+    const activeMatches =
+      this._condition.call === undefined ||
+      this._condition.call === (call?.active ?? false);
+    const answeredMatches =
+      this._condition.answered === undefined ||
+      this._condition.answered === (call?.answered ?? false);
     return {
-      result: this._condition.call === (newState?.call ?? false),
+      result: activeMatches && answeredMatches,
     };
   }
 }

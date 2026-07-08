@@ -17,8 +17,12 @@ describe('call condition', () => {
     );
 
     expect(evaluator.evaluate({}).result).toBeFalsy();
-    expect(evaluator.evaluate({ call: true }).result).toBeTruthy();
-    expect(evaluator.evaluate({ call: false }).result).toBeFalsy();
+    expect(
+      evaluator.evaluate({ call: { active: true, answered: false } }).result,
+    ).toBeTruthy();
+    expect(
+      evaluator.evaluate({ call: { active: false, answered: false } }).result,
+    ).toBeFalsy();
   });
 
   it('should match when call is false', () => {
@@ -30,7 +34,56 @@ describe('call condition', () => {
     // With no state.call published, the bare condition matches `false`,
     // so `call: false` is satisfied.
     expect(evaluator.evaluate({}).result).toBeTruthy();
-    expect(evaluator.evaluate({ call: true }).result).toBeFalsy();
-    expect(evaluator.evaluate({ call: false }).result).toBeTruthy();
+    expect(
+      evaluator.evaluate({ call: { active: true, answered: false } }).result,
+    ).toBeFalsy();
+    expect(
+      evaluator.evaluate({ call: { active: false, answered: false } }).result,
+    ).toBeTruthy();
+  });
+
+  it('should additionally match on answered when specified', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'call' as const, call: true, answered: true },
+      createEvaluatorContext(),
+    );
+
+    expect(
+      evaluator.evaluate({ call: { active: true, answered: true } }).result,
+    ).toBeTruthy();
+    expect(
+      evaluator.evaluate({ call: { active: true, answered: false } }).result,
+    ).toBeFalsy();
+    expect(
+      evaluator.evaluate({ call: { active: false, answered: true } }).result,
+    ).toBeFalsy();
+  });
+
+  it('should treat absent call state as inactive and unanswered when answered is specified', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'call' as const, call: false, answered: false },
+      createEvaluatorContext(),
+    );
+
+    expect(evaluator.evaluate({}).result).toBeTruthy();
+  });
+
+  it('should match ended-while-unanswered (rejected) distinctly from ended-after-answered', () => {
+    const rejected = createConditionEvaluator(
+      { condition: 'call' as const, call: false, answered: false },
+      createEvaluatorContext(),
+    );
+    const hungUp = createConditionEvaluator(
+      { condition: 'call' as const, call: false, answered: true },
+      createEvaluatorContext(),
+    );
+
+    const endedUnanswered = { call: { active: false, answered: false } };
+    const endedAnswered = { call: { active: false, answered: true } };
+
+    expect(rejected.evaluate(endedUnanswered).result).toBeTruthy();
+    expect(rejected.evaluate(endedAnswered).result).toBeFalsy();
+    expect(hungUp.evaluate(endedUnanswered).result).toBeFalsy();
+    expect(hungUp.evaluate(endedAnswered).result).toBeTruthy();
   });
 });

@@ -94,9 +94,20 @@ conditions:
 
 ## `call`
 
-Matches whether a [two-way audio](../usage/2-way-audio.md) call is in progress.
-As a **condition**, true while the call state matches; as a **trigger**, fires
-when it becomes a match (e.g. `call: true` fires when a call starts).
+Matches whether a [two-way audio](../usage/2-way-audio.md) call is in progress,
+and optionally whether it has been answered. As a **condition**, true while the
+call state matches; as a **trigger**, fires when it becomes a match (e.g.
+`call: true` fires when a call starts).
+
+`answered` additionally matches whether the call was picked up:
+
+- `answered: true`: the call was answered.
+- `answered: false`: the call was never answered (rejected or timed out).
+- Omitted: matches either way.
+
+Omitting `answered` also means a `call: true` trigger fires only when the call
+starts, not when a ringing call is later answered. Add `answered: true` to fire
+on the answer.
 
 ```yaml
 # As a condition:
@@ -107,12 +118,23 @@ conditions:
 triggers:
   - trigger: call
     call: true
+
+  # Fires when a ringing call is answered.
+  - trigger: call
+    call: true
+    answered: true
+
+  # Fires when a call ends unanswered (rejected or timed out).
+  - trigger: call
+    call: false
+    answered: false
 ```
 
-| Parameter               | Description                                                                                    |
-| ----------------------- | ---------------------------------------------------------------------------------------------- |
-| `condition` / `trigger` | Must be `call`.                                                                                |
-| `call`                  | If `true` or `false`, matches when a two-way audio call is or is not in progress respectively. |
+| Parameter               | Description                                                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `condition` / `trigger` | Must be `call`.                                                                                                                                  |
+| `call`                  | If `true` or `false`, matches when a two-way audio call is or is not in progress respectively.                                                   |
+| `answered`              | If `true` or `false`, additionally requires the call to have or not have been answered respectively. Omit to match regardless of answered state. |
 
 ## `camera`
 
@@ -715,6 +737,7 @@ conditions:
         views: [live]
   - condition: call
     call: true
+    answered: true
   - condition: camera
     cameras:
       - camera.office
@@ -780,6 +803,7 @@ conditions:
 triggers:
   - trigger: call
     call: true
+    answered: true
   - trigger: camera
     cameras:
       - camera.office

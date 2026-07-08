@@ -16,7 +16,7 @@ import type { MediaLoadedInfo } from '../../types';
 // Counterexample: Rebuilding an equivalent function callback each write making
 // the field look changed when nothing observable did.
 export interface ConditionState {
-  call?: boolean;
+  call?: { active: boolean; answered: boolean };
   camera?: string;
   // The engaged substream for the selected camera (absent when the camera's own
   // stream is used).
