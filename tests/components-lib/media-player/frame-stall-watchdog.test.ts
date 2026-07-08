@@ -11,7 +11,7 @@ const STALL_MS = FRAME_STALL_SECONDS * 1000;
 const createConfig = (
   overrides?: Partial<FrameStallWatchdogConfig>,
 ): FrameStallWatchdogConfig => ({
-  shouldReportStall: vi.fn().mockReturnValue(true),
+  isPlaybackExpected: vi.fn().mockReturnValue(true),
   startSource: vi.fn().mockReturnValue(true),
   stopSource: vi.fn(),
   ...overrides,
@@ -53,7 +53,7 @@ describe('FrameStallWatchdog', () => {
     });
 
     it('should default to an always-available source needing no teardown', () => {
-      const watchdog = new FrameStallWatchdog({ shouldReportStall: () => true });
+      const watchdog = new FrameStallWatchdog({ isPlaybackExpected: () => true });
       const callback = vi.fn();
 
       const unsubscribe = watchdog.subscribe(callback);
@@ -109,7 +109,7 @@ describe('FrameStallWatchdog', () => {
 
     it('should not report stalled while the source is legitimately idle', () => {
       const config = createConfig({
-        shouldReportStall: vi.fn().mockReturnValue(false),
+        isPlaybackExpected: vi.fn().mockReturnValue(false),
       });
       const watchdog = new FrameStallWatchdog(config);
       const callback = vi.fn();
@@ -118,6 +118,29 @@ describe('FrameStallWatchdog', () => {
       vi.advanceTimersByTime(STALL_MS);
 
       expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should re-arm while idle so a freeze that becomes actionable later is caught', () => {
+      const isPlaybackExpected = vi.fn().mockReturnValue(false);
+      const config = createConfig({ isPlaybackExpected });
+      const watchdog = new FrameStallWatchdog(config);
+      const callback = vi.fn();
+
+      watchdog.subscribe(callback);
+
+      // Idle window: no stall reported, but the watchdog re-arms rather than
+      // stopping.
+      vi.advanceTimersByTime(STALL_MS);
+      expect(callback).not.toHaveBeenCalled();
+
+      // The source becomes actionable while still frozen (holding a frame), with
+      // no new frame to kick the timer. The re-armed timer catches the freeze on
+      // the next window.
+      isPlaybackExpected.mockReturnValue(true);
+      vi.advanceTimersByTime(STALL_MS);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(false);
     });
 
     it('should broadcast a stall to every subscriber', () => {
@@ -172,7 +195,7 @@ describe('FrameStallWatchdog', () => {
       vi.advanceTimersByTime(STALL_MS);
 
       expect(callback).not.toHaveBeenCalled();
-      expect(config.shouldReportStall).not.toHaveBeenCalled();
+      expect(config.isPlaybackExpected).not.toHaveBeenCalled();
     });
 
     it('should ignore notifyFrame when the source is unavailable', () => {

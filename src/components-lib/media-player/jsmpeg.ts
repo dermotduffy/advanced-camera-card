@@ -17,9 +17,10 @@ export class JSMPEGMediaPlayerController implements MediaPlayerController {
 
   // Frames are fed by the provider via `notifyFrameDecoded` (JSMpeg's
   // per-decode callback), so the source needs no explicit start/stop -- the
-  // watchdog's always-available defaults apply.
+  // watchdog's always-available defaults apply. Playback is expected whenever
+  // not paused; a decode gap for the frame-stall window is then a stall.
   private _stallWatchdog = new FrameStallWatchdog({
-    shouldReportStall: () => !this.isPaused(),
+    isPlaybackExpected: () => !this.isPaused(),
   });
 
   constructor(

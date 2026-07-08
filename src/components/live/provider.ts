@@ -233,6 +233,18 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       return;
     }
 
+    // If a card *re*-initializes (e.g. was already initialized and then there's
+    // a use of the editor to change the config), cameras will re-initialize in
+    // place, which means they might be asked to render (here) whilst not yet
+    // being initialized. This can cause spurious errors (e.g. lack of resolved
+    // endpoints). Instead, simply never render uninitialized cameras.
+    if (!this.camera.isInitialized()) {
+      return renderNotificationBlockFromText(
+        `${localize('error.awaiting_live')}${this.label ? `: ${this.label}` : ''}`,
+        { icon: 'mdi:progress-helper', in_progress: true },
+      );
+    }
+
     // Set title and ariaLabel from the provided label property.
     this.title = this.label;
     this.ariaLabel = this.label;

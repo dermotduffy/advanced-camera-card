@@ -289,6 +289,7 @@ export interface CardIssueManagerAPI {
   getConfigManager(): ConfigManager;
   getInitializationManager(): InitializationManager;
   getInteractionManager(): InteractionManager;
+  getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getNotificationManager(): NotificationManager;
   getViewManager(): ViewManager;
 }

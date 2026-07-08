@@ -5,7 +5,6 @@ import type { Camera } from '../../../../src/camera-manager/camera';
 import type { StateWatcherSubscriptionInterface } from '../../../../src/card-controller/hass/state-watcher';
 import { LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS } from '../../../../src/components-lib/live/liveness/detectors/entity-availability';
 import { StreamLivenessController } from '../../../../src/components-lib/live/liveness/stream-liveness-controller';
-import type { HassStateDifference } from '../../../../src/ha/types';
 import type { LivenessCallback, MediaPlayerController } from '../../../../src/types';
 import {
   callIntersectionHandler,
@@ -246,7 +245,10 @@ describe('StreamLivenessController', () => {
     // always_error lookup must tolerate a now-null camera and leave the
     // already-not-live verdict unchanged.
     currentCamera = null;
-    callStateWatcherCallback(stateWatcher, mock<HassStateDifference>());
+    callStateWatcherCallback(stateWatcher, {
+      entityID: 'camera.office',
+      newState: createStateEntity({ state: 'unavailable' }),
+    });
 
     expect(controller.isLive()).toBe(false);
   });

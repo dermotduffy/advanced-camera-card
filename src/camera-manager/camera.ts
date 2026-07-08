@@ -60,6 +60,7 @@ export class Camera {
   protected _eventCallback?: CameraEventCallback;
   protected _destroyCallbacks: DestroyCallback[] = [];
   protected _entity: Entity | null = null;
+  protected _initialized = false;
 
   constructor(
     config: CameraConfig,
@@ -77,6 +78,10 @@ export class Camera {
 
   public getEntity(): Entity | null {
     return this._entity;
+  }
+
+  public isInitialized(): boolean {
+    return this._initialized;
   }
 
   async initialize(options: CameraInitializationOptions): Promise<Camera> {
@@ -116,6 +121,7 @@ export class Camera {
       }
     }
 
+    this._initialized = true;
     return this;
   }
 

@@ -119,19 +119,23 @@ export class MediaPlayerLivenessDetector implements LivenessDetector {
       this._unsubscribeLiveness = player.subscribeLiveness((isLive) =>
         this._onLiveness(isLive),
       );
-    } else if (this._mediaPlayer) {
-      // The media is still mounted but not being watched, usually because this
-      // provider went off-screen (an off-screen video legitimately stops
-      // presenting frames), or because the loaded player exposes no liveness
-      // signal. Either way there is no current evidence, so report `unknown`
-      // rather than a stale `live`.
-      this._setVerdict({ state: 'unknown' });
+      return;
     }
-    // Otherwise the media itself is gone -- usually our own placeholder
-    // unmounting the frozen stream. Hold the last verdict: flipping a stall
-    // back to live here would clear the placeholder and remount into the same
-    // freeze. Recovery is instead the throttled media_unavailable retry, which
-    // replaces this whole provider with a fresh one.
+
+    // The media is gone because our own not-live placeholder unmounted the
+    // frozen stream: hold that verdict. Flipping back to live here would clear
+    // the placeholder and remount into the same freeze; recovery is instead the
+    // throttled media_unavailable retry, which replaces this whole provider.
+    if (!this._mediaPlayer && this._verdict.state === 'not_live') {
+      return;
+    }
+
+    // Otherwise there is no current evidence: the provider is off-screen (an
+    // off-screen video legitimately stops presenting frames) or exposes no
+    // liveness signal, or the media went away for an ordinary reason. Report
+    // `unknown` rather than leaving a stale `live` that would suppress other
+    // detectors (e.g. entity availability).
+    this._setVerdict({ state: 'unknown' });
   }
 
   private _onLiveness(isLive: boolean): void {

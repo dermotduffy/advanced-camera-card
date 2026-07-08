@@ -7,6 +7,7 @@ import type {
 } from '../../../config/schema/actions/types.js';
 import { TROUBLESHOOTING_MEDIA_URL } from '../../../const.js';
 import { localize } from '../../../localize/localize.js';
+import type { UnsubscribeCallback } from '../../../types.js';
 import { Timer } from '../../../utils/timer.js';
 import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../../view/target-id.js';
 import { isAnyMediaViewName } from '../../../view/view.js';
@@ -67,10 +68,23 @@ export class MediaUnavailableIssue implements Issue {
 
   private _api: CardIssueManagerAPI;
   private _onChange: (() => void) | null;
+  private _unsubscribeCallback: UnsubscribeCallback;
 
   constructor(api: CardIssueManagerAPI, onChange?: () => void) {
     this._api = api;
     this._onChange = onChange ?? null;
+
+    // Clear a target's error on a genuine media (re)load.
+    this._unsubscribeCallback = this._api
+      .getMediaLoadedInfoManager()
+      .subscribe((change) => {
+        // A reconnect replay (`cached`) did not actually reload the media, and
+        // unload / select changes are irrelevant here; only a genuine load
+        // clears the error.
+        if (change.type === 'load' && !change.cached) {
+          this._onMediaLoad(change.targetID);
+        }
+      });
   }
 
   // =========================================================================
@@ -91,10 +105,29 @@ export class MediaUnavailableIssue implements Issue {
       return;
     }
 
+    // A known error for the current target activates immediately, even if its
+    // (frozen) media still reads as loaded (it might be loaded but then
+    // reported a playback error that stops playback but leaves the player
+    // attached). Errors are cleared out-of-band by `_onMediaLoad` on a genuine
+    // reload.
+    if (this._hasError(state)) {
+      this._activate();
+      return;
+    }
+
     if (state.mediaLoadedInfo) {
-      this._handleMediaLoaded(state);
-    } else {
-      this._handleMediaNotLoaded(state);
+      // Loaded with no known error: healthy.
+      this._deactivate();
+      return;
+    }
+
+    this._handlePendingLoad(state);
+  }
+
+  // A genuine media (re)load for a target clears its error.
+  private _onMediaLoad(targetID: string): void {
+    if (this._erroredTargets.delete(targetID)) {
+      this._onChange?.();
     }
   }
 
@@ -192,9 +225,9 @@ export class MediaUnavailableIssue implements Issue {
 
     // Intentionally keep _issueActive, _erroredTargets, and the pending
     // timer in place. The issue stays visible while the provider
-    // re-attempts loading underneath. If the retry succeeds,
-    // _handleMediaLoaded will clear everything when media:loaded fires. If
-    // it fails silently (e.g. bogus stream name), the error stays visible
+    // re-attempts loading underneath. If the retry succeeds, the fresh media
+    // load clears everything (_onMediaLoad drops the errored target). If it
+    // fails silently (e.g. bogus stream name), the error stays visible
     // immediately -- no new 10s grace period.
     this._api.getViewManager().setViewWithMergedContext({ mediaEpoch });
     return false;
@@ -209,11 +242,16 @@ export class MediaUnavailableIssue implements Issue {
     this._erroredTargets.clear();
   }
 
+  // Stop reacting to media loads at end of life.
+  public destroy(): void {
+    this._unsubscribeCallback();
+  }
+
   // Stop the pending-load timer so offscreen time doesn't count toward the
   // 10s threshold. Preserve _issueActive, _erroredTargets, and
   // _timerTargetID: already-visible errors remain visible on reattach, and
   // retaining _timerTargetID lets the existing active/target-mismatch guard
-  // in _handleMediaNotLoaded avoid spuriously deactivating the preserved
+  // in _handlePendingLoad avoid spuriously deactivating the preserved
   // issue when the same target is still loading on resume. The timer is
   // re-armed with a fresh window by the next detectDynamic pass.
   public suspend(): void {
@@ -224,36 +262,20 @@ export class MediaUnavailableIssue implements Issue {
   // Private helpers.
   // =========================================================================
 
-  // Media loaded successfully: deactivate and clear the error for this target
-  // so it won't immediately re-trigger on the next evaluation.
-  private _handleMediaLoaded(state: ConditionState): void {
-    this._deactivate();
-    if (state.targetID) {
-      this._erroredTargets.delete(state.targetID);
-    }
-  }
-
-  // Media not yet loaded: activate immediately if there is a known provider
-  // error for this target, otherwise start a timeout to detect slow loads.
-  private _handleMediaNotLoaded(state: ConditionState): void {
-    // No targetID means no provider is actively rendering media (e.g. the
-    // viewer shows "No media to display" instead of showing a player). Don't
-    // start the timeout as there's nothing to wait for.
+  // Media not yet loaded and no known error: start (or keep) a timeout to catch
+  // a slow or failed initial load. No targetID means no provider is rendering
+  // media (e.g. the viewer shows "No media to display"), so there's nothing to
+  // wait for.
+  private _handlePendingLoad(state: ConditionState): void {
     if (!state.targetID) {
       this._deactivate();
       return;
     }
 
-    if (this._hasError(state)) {
-      this._activate();
-      return;
-    }
-
     const targetID = state.targetID;
 
-    // When the target changes to one without a known error, clear the active
-    // state so the new target gets its own timeout window instead of
-    // inheriting the previous target's error.
+    // When the target changes, clear the active state so the new target gets
+    // its own timeout window instead of inheriting the previous target's.
     if (this._issueActive && this._timerTargetID !== targetID) {
       this._deactivate();
     }
@@ -263,8 +285,6 @@ export class MediaUnavailableIssue implements Issue {
       this._timerTargetID = targetID;
       this._timer.start(MEDIA_LOADING_TIMEOUT_SECONDS, () => {
         // Record the error on timeout so retry() knows which epoch to bump.
-        // targetID is guaranteed non-null here -- the null case bails at the
-        // top of _handleMediaNotLoaded.
         this._erroredTargets.set(targetID, 'not_loading');
         this._activate();
         this._onChange?.();

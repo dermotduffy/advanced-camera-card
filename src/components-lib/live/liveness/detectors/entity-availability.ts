@@ -1,7 +1,7 @@
 import { isEqual } from 'lodash-es';
 
 import type { StateWatcherSubscriptionInterface } from '../../../../card-controller/hass/state-watcher';
-import type { HomeAssistant } from '../../../../ha/types';
+import type { HassStateDifference, HomeAssistant } from '../../../../ha/types';
 import { Timer } from '../../../../utils/timer';
 import type { LivenessDetector, LivenessVerdict } from '../stream-liveness-controller';
 
@@ -84,14 +84,23 @@ export class EntityAvailabilityDetector implements LivenessDetector {
     this._check();
   }
 
-  private _onEntityStateChange = (): void => this._check();
+  private _onEntityStateChange = (difference: HassStateDifference): void =>
+    // Trap: Evaluate the state carried by the event, not `getHASS()`: the
+    // StateWatcher fires synchronously from the card-level hass update, before
+    // the wrapper's `hass` prop (what `getHASS()` reads) has propagated via
+    // Lit, so re-reading it would still see the pre-change state and miss the
+    // transition.
+    this._evaluate(difference.newState.state);
 
   private _check(): void {
     const stateObj = this._watchedEntity
       ? this._config.getHASS()?.states[this._watchedEntity]
       : undefined;
+    this._evaluate(stateObj?.state);
+  }
 
-    if (stateObj?.state === 'unavailable') {
+  private _evaluate(state?: string): void {
+    if (state === 'unavailable') {
       if (this._config.isAlwaysError()) {
         // No grace time, and authoritative (overrides direct frame evidence):
         // the user opted into treating any unavailability as an error.

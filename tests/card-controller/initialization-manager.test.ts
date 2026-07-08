@@ -230,7 +230,7 @@ describe('InitializationManager', () => {
 
       // First call (languages/side-load) succeeds, second (cameras) fails.
       initializer.initializeMultipleIfNecessary
-        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce(true)
         .mockRejectedValueOnce(new Error('cameras failed'));
 
       await manager.initializeMandatory();
@@ -250,10 +250,12 @@ describe('InitializationManager', () => {
       const initializer = mock<Initializer>();
       const manager = new InitializationManager(api, initializer);
 
+      initializer.initializeMultipleIfNecessary.mockResolvedValue(true);
+
       // First initializeIfNecessary call (view) succeeds, second
       // (initial_trigger) fails.
       initializer.initializeIfNecessary
-        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce(true)
         .mockRejectedValueOnce(new Error('triggers failed'));
 
       await manager.initializeMandatory();
@@ -272,6 +274,7 @@ describe('InitializationManager', () => {
 
       const initializer = mock<Initializer>();
       const manager = new InitializationManager(api, initializer);
+      initializer.initializeMultipleIfNecessary.mockResolvedValue(true);
       initializer.initializeIfNecessary.mockRejectedValueOnce(
         new Error('view initialization failed'),
       );
@@ -282,6 +285,29 @@ describe('InitializationManager', () => {
       expect(api.getIssueManager().trigger).toBeCalledWith(
         'initialization',
         expect.objectContaining({ error: expect.any(Error) }),
+      );
+    });
+
+    it('should stop without an error when an aspect reports failure', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+      initializer.initializeMultipleIfNecessary.mockResolvedValue(true);
+
+      // An aspect that could not complete (e.g. the view when no view could be
+      // set) reports failure rather than throwing: the chain stops so a later
+      // attempt retries, and no initialization error is raised.
+      initializer.initializeIfNecessary.mockResolvedValueOnce(false);
+
+      await manager.initializeMandatory();
+
+      expect(manager.wasEverInitialized()).toBeFalsy();
+      expect(api.getIssueManager().trigger).not.toBeCalledWith(
+        'initialization',
+        expect.anything(),
       );
     });
 

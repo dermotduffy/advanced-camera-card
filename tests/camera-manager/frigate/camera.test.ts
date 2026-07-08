@@ -263,7 +263,7 @@ describe('FrigateCamera', () => {
         expect(camera.getConfig().frigate.client_id).toBe('remote_x');
       });
 
-      it('leaves client_id untouched when the camera entity is unavailable', async () => {
+      it('falls back to "frigate" when the camera entity is unavailable', async () => {
         const camera = new FrigateCamera(
           createCameraConfig({
             camera_entity: 'camera.front_door',
@@ -285,7 +285,7 @@ describe('FrigateCamera', () => {
           frigateEventWatcher: mock<FrigateEventWatcher>(),
           frigateReviewWatcher: mock<FrigateReviewWatcher>(),
         });
-        expect(camera.getConfig().frigate.client_id).toBeUndefined();
+        expect(camera.getConfig().frigate.client_id).toBe('frigate');
       });
     });
   });

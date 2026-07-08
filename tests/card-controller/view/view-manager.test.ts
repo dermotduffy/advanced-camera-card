@@ -732,7 +732,7 @@ describe('should initialize', () => {
       viewFactory: viewFactory,
     });
 
-    await manager.initialize();
+    expect(await manager.initialize()).toBe(true);
 
     expect(manager.getView()).toBe(view);
   });
@@ -745,7 +745,23 @@ describe('should initialize', () => {
       true,
     );
 
-    await manager.initialize();
+    expect(await manager.initialize()).toBe(true);
+
+    expect(manager.hasView()).toBeFalsy();
+  });
+
+  it('should report failure when no view could be set', async () => {
+    const viewFactory = mock<ViewFactory>();
+    viewFactory.getViewDefault.mockReturnValue(createView());
+
+    // Cameras not being initialized causes the default view set to decline to
+    // run, so initialization must report failure to allow a later retry.
+    const api = createInitializedCardAPI(false);
+    const manager = new ViewManager(api, {
+      viewFactory: viewFactory,
+    });
+
+    expect(await manager.initialize()).toBe(false);
 
     expect(manager.hasView()).toBeFalsy();
   });

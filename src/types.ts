@@ -59,6 +59,12 @@ export type MediaLoadedInfoOwner = HTMLElement;
 export interface MediaLoadedInfoEventDetail {
   info: MediaLoadedInfo;
 
+  // Absent (the default, a fresh media load) unless `true`, which marks a
+  // replay: the source re-dispatched its last load on reconnect without the
+  // media actually reloading (e.g. preloaded camera in the background when
+  // brought to the foreground).
+  cached?: boolean;
+
   // Aborts when the source retires this media. The source aborts on host
   // disconnect, and when a subsequent `set()` arrives under a different
   // `targetID` (replacing this dispatch). Independent of DOM connectedness, so

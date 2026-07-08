@@ -29,6 +29,38 @@ describe('Initializer', () => {
     expect(initializer.isInitialized('foo')).toBeTruthy();
   });
 
+  it('should not initialize when the initializer reports failure', async () => {
+    const initializer = new Initializer();
+
+    expect(await initializer.initializeIfNecessary('foo', async () => false)).toBe(
+      false,
+    );
+    expect(initializer.isInitialized('foo')).toBeFalsy();
+
+    expect(await initializer.initializeIfNecessary('foo', async () => true)).toBe(true);
+    expect(initializer.isInitialized('foo')).toBeTruthy();
+  });
+
+  it('should report whether all of multiple aspects initialized', async () => {
+    const initializer = new Initializer();
+
+    expect(
+      await initializer.initializeMultipleIfNecessary({
+        foo: async () => false,
+        bar: async () => {},
+      }),
+    ).toBe(false);
+    expect(initializer.isInitialized('foo')).toBeFalsy();
+    expect(initializer.isInitialized('bar')).toBeTruthy();
+
+    expect(
+      await initializer.initializeMultipleIfNecessary({
+        foo: async () => true,
+      }),
+    ).toBe(true);
+    expect(initializer.isInitialized('foo')).toBeTruthy();
+  });
+
   it('should not initialize with failed initializer', async () => {
     const initializer = new Initializer();
 
@@ -89,7 +121,7 @@ describe('Initializer', () => {
     initializer.uninitialize('foo');
 
     finishInitializer();
-    await initializing;
+    expect(await initializing).toBe(false);
 
     expect(initializer.isInitialized('foo')).toBeFalsy();
   });

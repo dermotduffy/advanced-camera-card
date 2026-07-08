@@ -84,7 +84,8 @@ export class MediaLoadedInfoSourceController implements ReactiveController {
     // flipped while we were disconnected. Replaying the cached info under a
     // stale targetID would misregister with the manager.
     if (this._lastSet.targetID === this._config.getTargetID()) {
-      this._dispatchLoad(this._lastSet);
+      // A reconnect replay of the last load, not a fresh media load.
+      this._dispatchLoad(this._lastSet, true);
     } else {
       this._lastSet = null;
     }
@@ -135,10 +136,11 @@ export class MediaLoadedInfoSourceController implements ReactiveController {
     this._abort = null;
   }
 
-  private _dispatchLoad(info: TargetedMediaLoadedInfo): void {
+  private _dispatchLoad(info: TargetedMediaLoadedInfo, cached?: boolean): void {
     this._abort = new AbortController();
     fireAdvancedCameraCardEvent<MediaLoadedInfoEventDetail>(this._host, 'media:loaded', {
       info,
+      cached,
       signal: this._abort.signal,
     });
   }

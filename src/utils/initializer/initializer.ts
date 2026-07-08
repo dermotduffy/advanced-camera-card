@@ -1,6 +1,9 @@
 import { allPromises } from '../basic';
 
-type InitializationCallback = () => Promise<void>;
+// An initializer returns `false` when it could not complete its work in this
+// attempt; the aspect is then left uninitialized so a later attempt retries.
+// Any other result marks the aspect initialized.
+type InitializationCallback = () => Promise<boolean | void>;
 
 /**
  * Manages initialization state and runs initializers.
@@ -21,31 +24,34 @@ export class Initializer {
 
   public async initializeMultipleIfNecessary(
     aspects: Record<string, InitializationCallback>,
-  ): Promise<void> {
-    await allPromises(
+  ): Promise<boolean> {
+    const results = await allPromises(
       Object.entries(aspects),
       async ([aspect, options]) => await this.initializeIfNecessary(aspect, options),
     );
+    return results.every(Boolean);
   }
 
+  // Returns whether the aspect is initialized once this attempt completes.
   public async initializeIfNecessary(
     aspect: string,
     initializer?: InitializationCallback,
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (this._initialized.has(aspect)) {
-      return;
+      return true;
     }
     const generation = this._generation.get(aspect) ?? 0;
-    if (initializer) {
-      await initializer();
+    if (initializer && (await initializer()) === false) {
+      return false;
     }
     // If `uninitialize()` ran while we were awaiting, a newer attempt has taken
     // over -- throw this result away (don't mark it initialized) so a stale
     // result can't leave the card stuck, and a fresh attempt runs next time.
     if ((this._generation.get(aspect) ?? 0) !== generation) {
-      return;
+      return false;
     }
     this._initialized.add(aspect);
+    return true;
   }
 
   public uninitialize(aspect: string): void {

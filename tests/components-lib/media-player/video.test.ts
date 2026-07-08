@@ -354,7 +354,9 @@ describe('VideoMediaPlayerController', () => {
       expect(callback).toHaveBeenNthCalledWith(2, false);
     });
 
-    it('should not report a stall while the video is paused', () => {
+    it('should not report a stall while a paused video still holds a frame', () => {
+      // A genuine user pause: paused with a current frame is idle, never
+      // reported -- not even after the stall window.
       const { video } = createVideo({ paused: true });
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
       const callback = vi.fn();
@@ -365,15 +367,23 @@ describe('VideoMediaPlayerController', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
-    it('should not report a stall while the video has no current media', () => {
-      const { video } = createVideo({ readyState: HTMLMediaElement.HAVE_METADATA });
+    it('should report a video stuck paused with no current frame', () => {
+      // The observed go2rtc failure: its internal reconnect leaves the <video>
+      // paused at readyState 0 (spinning). That is not a genuine pause -- there
+      // is no frame to pause on -- so playback is still expected and a missing
+      // frame is a stall.
+      const { video } = createVideo({
+        paused: true,
+        readyState: HTMLMediaElement.HAVE_NOTHING,
+      });
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
       const callback = vi.fn();
 
       controller.subscribeLiveness(callback);
       vi.advanceTimersByTime(STALL_MS);
 
-      expect(callback).not.toHaveBeenCalled();
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(false);
     });
 
     it('should report no stall when requestVideoFrameCallback is unavailable', () => {

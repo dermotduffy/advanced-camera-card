@@ -94,6 +94,7 @@ describe('Camera', () => {
         }),
         new GenericCameraManagerEngine(createHASSManager()),
       );
+      expect(camera.isInitialized()).toBe(false);
 
       const stateWatcher = mock<StateWatcherSubscriptionInterface>();
       await camera.initialize({
@@ -101,6 +102,7 @@ describe('Camera', () => {
         capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
       });
 
+      expect(camera.isInitialized()).toBe(true);
       expect(stateWatcher.subscribe).toBeCalledWith(expect.any(Function), [
         'camera.foo',
       ]);
@@ -128,6 +130,7 @@ describe('Camera', () => {
 
       expect(stateWatcher.subscribe).not.toBeCalled();
       expect(camera.getCapabilities()).toBeNull();
+      expect(camera.isInitialized()).toBe(false);
     });
 
     it('should set capabilities and use go2rtc metadata endpoint', async () => {

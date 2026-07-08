@@ -6,7 +6,7 @@ import {
   EntityAvailabilityDetector,
   LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS,
 } from '../../../../../src/components-lib/live/liveness/detectors/entity-availability';
-import type { HassStateDifference, HomeAssistant } from '../../../../../src/ha/types';
+import type { HomeAssistant } from '../../../../../src/ha/types';
 import {
   callStateWatcherCallback,
   createHASS,
@@ -48,8 +48,11 @@ const setup = (options?: {
   const setCameraEntity = (value: string | null): void => {
     currentEntity = value;
   };
-  const fireStateChange = (): void =>
-    callStateWatcherCallback(stateWatcher, mock<HassStateDifference>());
+  const fireStateChange = (state: string): void =>
+    callStateWatcherCallback(stateWatcher, {
+      entityID: entity ?? ENTITY,
+      newState: createStateEntity({ state }),
+    });
 
   return {
     detector,
@@ -91,11 +94,10 @@ describe('EntityAvailabilityDetector', () => {
   });
 
   it('should report not live after the grace window when the entity stays unavailable', () => {
-    const { detector, onChange, setEntityState, fireStateChange } = setup();
+    const { detector, onChange, fireStateChange } = setup();
     detector.subscribe();
 
-    setEntityState('unavailable');
-    fireStateChange();
+    fireStateChange('unavailable');
 
     // Still live during the grace window.
     expect(detector.getVerdict()).toEqual({ state: 'unknown' });
@@ -111,14 +113,12 @@ describe('EntityAvailabilityDetector', () => {
   });
 
   it('should tolerate an unavailable blip shorter than the grace window', () => {
-    const { detector, onChange, setEntityState, fireStateChange } = setup();
+    const { detector, onChange, fireStateChange } = setup();
     detector.subscribe();
 
-    setEntityState('unavailable');
-    fireStateChange();
+    fireStateChange('unavailable');
     vi.advanceTimersByTime(GRACE_MS - 1000);
-    setEntityState('streaming');
-    fireStateChange();
+    fireStateChange('streaming');
     vi.advanceTimersByTime(GRACE_MS);
 
     expect(detector.getVerdict()).toEqual({ state: 'unknown' });
@@ -126,13 +126,12 @@ describe('EntityAvailabilityDetector', () => {
   });
 
   it('should report not live immediately when always_error is set', () => {
-    const { detector, onChange, setEntityState, fireStateChange } = setup({
+    const { detector, onChange, fireStateChange } = setup({
       alwaysError: true,
     });
     detector.subscribe();
 
-    setEntityState('unavailable');
-    fireStateChange();
+    fireStateChange('unavailable');
 
     expect(detector.getVerdict()).toEqual({
       state: 'not_live',
@@ -143,27 +142,42 @@ describe('EntityAvailabilityDetector', () => {
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 
-  it('should report live again when the entity returns', () => {
-    const { detector, onChange, setEntityState, fireStateChange } = setup();
+  it('should act on the state from the event, not a lagging wrapper hass', () => {
+    const { detector, setEntityState, fireStateChange } = setup({ alwaysError: true });
     detector.subscribe();
-    setEntityState('unavailable');
-    fireStateChange();
+
+    // The wrapper's hass (what getHASS reads) has not yet propagated the change,
+    // so it still reports the pre-change available state, while the event carries
+    // the fresh unavailable state. The detector must act on the event.
+    setEntityState('streaming');
+    fireStateChange('unavailable');
+
+    expect(detector.getVerdict()).toEqual({
+      state: 'not_live',
+      authority: 'hard',
+      renderPlaceholder: true,
+      reason: 'entity_unavailable',
+    });
+  });
+
+  it('should report live again when the entity returns', () => {
+    const { detector, onChange, fireStateChange } = setup();
+    detector.subscribe();
+    fireStateChange('unavailable');
     vi.advanceTimersByTime(GRACE_MS);
     expect(detector.getVerdict().state).toBe('not_live');
     onChange.mockClear();
 
-    setEntityState('streaming');
-    fireStateChange();
+    fireStateChange('streaming');
 
     expect(detector.getVerdict()).toEqual({ state: 'unknown' });
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 
   it('should retain the verdict on unsubscribe and stop watching', () => {
-    const { detector, stateWatcher, setEntityState, fireStateChange } = setup();
+    const { detector, stateWatcher, fireStateChange } = setup();
     detector.subscribe();
-    setEntityState('unavailable');
-    fireStateChange();
+    fireStateChange('unavailable');
     vi.advanceTimersByTime(GRACE_MS);
 
     detector.unsubscribe();
@@ -180,10 +194,9 @@ describe('EntityAvailabilityDetector', () => {
   });
 
   it('should cancel the pending grace timer on unsubscribe', () => {
-    const { detector, onChange, setEntityState, fireStateChange } = setup();
+    const { detector, onChange, fireStateChange } = setup();
     detector.subscribe();
-    setEntityState('unavailable');
-    fireStateChange();
+    fireStateChange('unavailable');
 
     detector.unsubscribe();
     vi.advanceTimersByTime(GRACE_MS);
@@ -195,8 +208,7 @@ describe('EntityAvailabilityDetector', () => {
   it('should discard the verdict on reset', () => {
     const { detector, setEntityState, fireStateChange } = setup();
     detector.subscribe();
-    setEntityState('unavailable');
-    fireStateChange();
+    fireStateChange('unavailable');
     vi.advanceTimersByTime(GRACE_MS);
     expect(detector.getVerdict().state).toBe('not_live');
 
@@ -228,14 +240,13 @@ describe('EntityAvailabilityDetector', () => {
   });
 
   it('should not restart the grace timer while it is already running', () => {
-    const { detector, onChange, setEntityState, fireStateChange } = setup();
+    const { detector, onChange, fireStateChange } = setup();
     detector.subscribe();
 
-    setEntityState('unavailable');
-    fireStateChange();
+    fireStateChange('unavailable');
 
     // Still unavailable, grace timer already running
-    fireStateChange();
+    fireStateChange('unavailable');
     vi.advanceTimersByTime(GRACE_MS);
 
     expect(detector.getVerdict()).toEqual({
@@ -248,15 +259,14 @@ describe('EntityAvailabilityDetector', () => {
   });
 
   it('should stay not live on further unavailable events after the grace window', () => {
-    const { detector, onChange, setEntityState, fireStateChange } = setup();
+    const { detector, onChange, fireStateChange } = setup();
     detector.subscribe();
-    setEntityState('unavailable');
-    fireStateChange();
+    fireStateChange('unavailable');
     vi.advanceTimersByTime(GRACE_MS);
     onChange.mockClear();
 
     // Still unavailable, verdict already not live
-    fireStateChange();
+    fireStateChange('unavailable');
 
     expect(detector.getVerdict()).toEqual({
       state: 'not_live',

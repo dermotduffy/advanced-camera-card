@@ -2,12 +2,37 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { MediaUnavailableIssue } from '../../../../src/card-controller/issues/issues/media-unavailable';
+import type { MediaLoadedInfoChange } from '../../../../src/card-controller/media-info-manager';
 import type { InternalCallbackActionConfig } from '../../../../src/config/schema/actions/custom/internal';
 import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../../../src/view/target-id';
 import type { View } from '../../../../src/view/view';
 import { createCardAPI, createMediaLoadedInfo } from '../../../test-utils';
 
 const createAPI = () => createCardAPI();
+
+// Deliver a media change to the listener the issue registered with the
+// media-loaded manager.
+const fireMediaChange = (
+  api: ReturnType<typeof createAPI>,
+  change: MediaLoadedInfoChange,
+): void => {
+  vi.mocked(api.getMediaLoadedInfoManager().subscribe).mock.calls[0]?.[0]?.(change);
+};
+
+// Simulate a media (re)load for `targetID`. `cached` marks a reconnect replay
+// (a re-dispatch of the last load, not an actual reload).
+const fireMediaLoad = (
+  api: ReturnType<typeof createAPI>,
+  targetID: string,
+  cached = false,
+): void => {
+  fireMediaChange(api, {
+    type: 'load',
+    targetID,
+    info: createMediaLoadedInfo({ targetID }),
+    cached,
+  });
+};
 
 // @vitest-environment jsdom
 describe('MediaUnavailableIssue', () => {
@@ -280,33 +305,84 @@ describe('MediaUnavailableIssue', () => {
       expect(issue.hasIssue()).toBe(false);
     });
 
-    it('should clear target error when media loads', () => {
+    it('should clear a target error on a genuine media load', () => {
+      const api = createAPI();
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+      expect(issue.hasIssue()).toBe(true);
+
+      // A genuine (re)load for the target clears the error.
+      fireMediaLoad(api, 'camera-1');
+
+      // The error is gone, so this unloaded state falls back to the timer
+      // (would not activate until the timeout).
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+      expect(issue.hasIssue()).toBe(false);
+    });
+
+    it('should keep an errored target active while its media still reads as loaded', () => {
       const issue = new MediaUnavailableIssue(createAPI());
 
       issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+
+      // The (now frozen) media still reads as loaded, but the existing loaded
+      // level must not clear the error -- only a genuine media load does. The
+      // loaded media is the frozen stream a liveness detector just condemned.
       issue.detectDynamic({
         targetID: 'camera-1',
         view: 'live',
+        mediaLoadedInfo: createMediaLoadedInfo({ targetID: 'camera-1' }),
       });
 
       expect(issue.hasIssue()).toBe(true);
+    });
 
-      // Media loaded clears the error for this target.
-      issue.detectDynamic({
-        targetID: 'camera-1',
-        view: 'live',
-        mediaLoadedInfo: createMediaLoadedInfo(),
-      });
+    it('should not clear a target error when a different target loads', () => {
+      const api = createAPI();
+      const issue = new MediaUnavailableIssue(api);
 
-      // Target error was cleared by the successful load, so this unloaded state
-      // falls back to the timer (issue would not activate until after the
-      // timer is reached).
-      issue.detectDynamic({
-        targetID: 'camera-1',
-        view: 'live',
-      });
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
 
-      expect(issue.hasIssue()).toBe(false);
+      // A load for a different target must not clear camera-1's error.
+      fireMediaLoad(api, 'camera-2');
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+
+      expect(issue.hasIssue()).toBe(true);
+    });
+
+    it('should not clear a target error on a reconnect replay', () => {
+      const api = createAPI();
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+
+      fireMediaLoad(
+        api,
+        'camera-1',
+
+        // A cached replay (reconnect re-dispatch) did not actually reload the
+        // media, so it must not clear the error.
+        true,
+      );
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+
+      expect(issue.hasIssue()).toBe(true);
+    });
+
+    it('should not clear a target error on unload or select changes', () => {
+      const api = createAPI();
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+
+      // Only a genuine load clears; unload / select changes are irrelevant.
+      fireMediaChange(api, { type: 'unload', targetID: 'camera-1' });
+      fireMediaChange(api, { type: 'select', targetID: 'camera-1' });
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+
+      expect(issue.hasIssue()).toBe(true);
     });
 
     it('should not activate for a different target', () => {
@@ -552,8 +628,8 @@ describe('MediaUnavailableIssue', () => {
       issue.retry();
 
       // After retry, the issue stays active and the errored target is preserved
-      // -- no new 10s grace period. If media:loaded fires, the existing
-      // _handleMediaLoaded path will clear everything.
+      // -- no new 10s grace period. A genuine media load would clear everything
+      // (_onMediaLoad drops the errored target).
       expect(issue.hasIssue()).toBe(true);
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       expect(issue.hasIssue()).toBe(true);
@@ -572,6 +648,30 @@ describe('MediaUnavailableIssue', () => {
 
       expect(issue.hasIssue()).toBe(false);
       expect(onChange).not.toBeCalled();
+    });
+  });
+
+  describe('media loads', () => {
+    it('should notify onChange when a media load clears an error', () => {
+      const api = createAPI();
+      const onChange = vi.fn();
+      const issue = new MediaUnavailableIssue(api, onChange);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      fireMediaLoad(api, 'camera-1');
+
+      expect(onChange).toBeCalled();
+    });
+
+    it('should unsubscribe from media loads on destroy', () => {
+      const api = createAPI();
+      const unsubscribe = vi.fn();
+      vi.mocked(api.getMediaLoadedInfoManager().subscribe).mockReturnValue(unsubscribe);
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.destroy();
+
+      expect(unsubscribe).toBeCalled();
     });
   });
 

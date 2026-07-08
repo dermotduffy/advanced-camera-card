@@ -360,4 +360,116 @@ describe('MediaLoadedInfoManager', () => {
       expect(manager.getLastKnown()).toBeNull();
     });
   });
+
+  describe('subscribe', () => {
+    it('should notify of a fresh load, even for a non-selected target', () => {
+      const api = createCardAPI();
+      const manager = new MediaLoadedInfoManager(api);
+      const owner = document.createElement('div');
+      const info = createMediaLoadedInfo({ targetID: 'target-1' });
+      const listener = vi.fn();
+
+      manager.setSelected('target-2');
+      manager.subscribe(listener);
+      manager.set(info, owner);
+
+      expect(listener).toBeCalledWith({
+        type: 'load',
+        targetID: 'target-1',
+        info,
+        cached: false,
+      });
+    });
+
+    it('should mark a cached load', () => {
+      const api = createCardAPI();
+      const manager = new MediaLoadedInfoManager(api);
+      const owner = document.createElement('div');
+      const info = createMediaLoadedInfo({ targetID: 'target-1' });
+      const listener = vi.fn();
+
+      manager.subscribe(listener);
+      manager.set(info, owner, true);
+
+      expect(listener).toBeCalledWith({
+        type: 'load',
+        targetID: 'target-1',
+        info,
+        cached: true,
+      });
+    });
+
+    it('should notify of selection changes', () => {
+      const api = createCardAPI();
+      const manager = new MediaLoadedInfoManager(api);
+      const listener = vi.fn();
+
+      manager.subscribe(listener);
+      manager.setSelected('target-1');
+      manager.setSelected(null);
+
+      expect(listener).toBeCalledWith({ type: 'select', targetID: 'target-1' });
+      expect(listener).toBeCalledWith({ type: 'select', targetID: null });
+    });
+
+    it('should notify of an unload when a target is retired', () => {
+      const api = createCardAPI();
+      const manager = new MediaLoadedInfoManager(api);
+      const source = document.createElement('div');
+      const info = createMediaLoadedInfo({ targetID: 'target-1' });
+      const ac = new AbortController();
+      const listener = vi.fn();
+
+      manager.subscribe(listener);
+      manager.handleLoadEvent(
+        createMediaLoadedInfoEvent({ source, info, signal: ac.signal }),
+      );
+      ac.abort();
+
+      expect(listener).toBeCalledWith({ type: 'unload', targetID: 'target-1' });
+    });
+
+    it('should notify of an unload for each active target on clear', () => {
+      const api = createCardAPI();
+      const manager = new MediaLoadedInfoManager(api);
+      const owner = document.createElement('div');
+      const listener = vi.fn();
+
+      manager.set(createMediaLoadedInfo({ targetID: 'target-1' }), owner);
+      manager.set(createMediaLoadedInfo({ targetID: 'target-2' }), owner);
+      manager.subscribe(listener);
+      manager.clear();
+
+      expect(listener).toBeCalledWith({ type: 'unload', targetID: 'target-1' });
+      expect(listener).toBeCalledWith({ type: 'unload', targetID: 'target-2' });
+    });
+
+    it('should notify of unloads and a deselect on initialize', () => {
+      const api = createCardAPI();
+      const manager = new MediaLoadedInfoManager(api);
+      const owner = document.createElement('div');
+      const listener = vi.fn();
+
+      manager.setSelected('target-1');
+      manager.set(createMediaLoadedInfo({ targetID: 'target-1' }), owner);
+      manager.subscribe(listener);
+      manager.initialize();
+
+      expect(listener).toBeCalledWith({ type: 'unload', targetID: 'target-1' });
+      expect(listener).toBeCalledWith({ type: 'select', targetID: null });
+    });
+
+    it('should stop notifying after unsubscribe', () => {
+      const api = createCardAPI();
+      const manager = new MediaLoadedInfoManager(api);
+      const owner = document.createElement('div');
+      const info = createMediaLoadedInfo({ targetID: 'target-1' });
+      const listener = vi.fn();
+
+      manager.subscribe(listener)();
+      manager.set(info, owner);
+
+      expect(listener).not.toBeCalled();
+    });
+  });
 });

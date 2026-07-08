@@ -234,9 +234,10 @@ export class InitializationManager {
     this._api.getCardElementManager().update();
   }
 
-  private async _tryInitialize(fn: () => Promise<void>): Promise<boolean> {
+  private async _tryInitialize(fn: () => Promise<boolean>): Promise<boolean> {
+    let initialized = false;
     try {
-      await fn();
+      initialized = await fn();
     } catch (e: unknown) {
       if (e instanceof Error) {
         errorToConsole(e);
@@ -249,7 +250,7 @@ export class InitializationManager {
       return false;
     }
 
-    return true;
+    return initialized;
   }
 
   private _setInitializationIssue(error: unknown): void {

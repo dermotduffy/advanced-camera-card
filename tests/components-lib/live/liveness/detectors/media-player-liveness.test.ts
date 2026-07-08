@@ -199,6 +199,26 @@ describe('MediaPlayerLivenessDetector', () => {
     });
   });
 
+  it('should drop a confirmed-live verdict to unknown when the media unmounts externally', async () => {
+    const { detector, loadMedia } = setup();
+    const { player, fireMediaPlayerLiveness } = createPlayer();
+    const abort = new AbortController();
+    detector.subscribe();
+    loadMedia(player, abort.signal);
+
+    await callIntersectionHandler(true);
+    fireMediaPlayerLiveness(true);
+
+    expect(detector.getVerdict()).toEqual({ state: 'live', authority: 'direct' });
+
+    // The media unmounts while confirmed live (an ordinary unload, not our own
+    // not-live placeholder). Drop the stale `live` to `unknown` so it does not
+    // suppress other detectors (e.g. entity availability).
+    abort.abort();
+
+    expect(detector.getVerdict()).toEqual({ state: 'unknown' });
+  });
+
   it('should discard the verdict on reset', async () => {
     const { detector, loadMedia } = setup();
     const { player, unsubscribe, fireMediaPlayerLiveness } = createPlayer();

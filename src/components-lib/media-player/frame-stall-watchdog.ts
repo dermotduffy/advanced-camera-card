@@ -1,16 +1,18 @@
 import type { LivenessCallback, UnsubscribeCallback } from '../../types';
 import { Timer } from '../../utils/timer';
 
-// A playing stream that presents no new frame for this long is treated as
-// stalled (a silent freeze). Long enough that a low-frame-rate stream still
-// presents a frame within the window.
+// A stream that presents no new frame for this long while playback is expected
+// is treated as not live -- a silent freeze, or a source stuck without a frame
+// (buffering / reconnecting). Long enough that a low-frame-rate stream still
+// presents a frame within it, and that a brief in-place source swap / reconnect
+// resumes before it fires.
 export const FRAME_STALL_SECONDS = 10;
 
 export interface FrameStallWatchdogConfig {
-  // Whether a missing frame right now is a real stall. Returns false while the
-  // source is legitimately idle (e.g. paused / seeking / ended), so a paused
-  // stream is not reported as frozen.
-  shouldReportStall: () => boolean;
+  // Whether the source is expected to be presenting frames right now. Returns
+  // false while it is legitimately idle (paused / seeking / ended), so an idle
+  // stream is never reported as not live.
+  isPlaybackExpected: () => boolean;
 
   // Begin receiving frames (the caller wires its frame source to
   // `notifyFrame`). Returns false when no source is available -- then the stall
@@ -31,7 +33,7 @@ export interface FrameStallWatchdogConfig {
  *
  * Source-agnostic: the caller feeds frames from whatever it has (a video's
  * `requestVideoFrameCallback`, a jsmpeg decode callback, ...) and supplies the
- * `shouldReportStall` predicate. Multiple subscribers share one watchdog,
+ * `isPlaybackExpected` predicate. Multiple subscribers share one watchdog,
  * refcounted -- the source starts on the first subscriber and stops on the
  * last.
  */
@@ -101,9 +103,17 @@ export class FrameStallWatchdog {
   }
 
   private _onStall(): void {
-    if (this._config.shouldReportStall()) {
+    if (this._config.isPlaybackExpected()) {
+      // Playback expected but no frame arrived within the window: not live --
+      // a silent freeze, or a source stuck without a frame.
       this._setLive(false);
+      return;
     }
+
+    // Legitimately idle (paused / seeking / ended). Re-arm rather than stop: a
+    // source that later resumes already frozen delivers no frame to kick the
+    // timer, so a freeze that only becomes actionable later is still caught.
+    this._timer.start(FRAME_STALL_SECONDS, () => this._onStall());
   }
 
   private _setLive(isLive: boolean): void {
