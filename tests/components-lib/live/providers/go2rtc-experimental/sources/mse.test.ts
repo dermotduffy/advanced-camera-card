@@ -111,7 +111,7 @@ describe('MSEStreamSource', () => {
       instance.fireSourceOpen();
       vi.advanceTimersByTime(5 * 1000);
 
-      expect(failedCallback).toBeCalledWith('negotiation-timeout');
+      expect(failedCallback).toBeCalledWith('negotiation_timeout');
     });
 
     it('should not time out after a successful negotiation', () => {
@@ -166,7 +166,7 @@ describe('MSEStreamSource', () => {
       instance.fireSourceOpen();
       channel.receiveMessage({ type: 'error', value: 'mse: stream not found' });
 
-      expect(failedCallback).toBeCalledWith('server-error');
+      expect(failedCallback).toBeCalledWith('server_error');
 
       // The negotiation timer must have stopped.
       failedCallback.mockClear();
@@ -201,7 +201,7 @@ describe('MSEStreamSource', () => {
       instance.fireSourceOpen();
       channel.receiveMessage({ type: 'mse', value: 'video/mp4' });
 
-      expect(failedCallback).toBeCalledWith('media-error');
+      expect(failedCallback).toBeCalledWith('media_error');
     });
 
     it('should append binary data directly when idle', () => {
@@ -272,7 +272,7 @@ describe('MSEStreamSource', () => {
       expect(setupResult.failedCallback).not.toBeCalled();
 
       setupResult.channel.binaryCallback?.(new ArrayBuffer(1));
-      expect(setupResult.failedCallback).toBeCalledWith('buffer-overflow');
+      expect(setupResult.failedCallback).toBeCalledWith('buffer_overflow');
     });
   });
 
@@ -422,7 +422,7 @@ describe('MSEStreamSource', () => {
       setupResult.source.start();
       setupResult.video.dispatchEvent(new Event('error'));
 
-      expect(setupResult.failedCallback).toBeCalledWith('media-error');
+      expect(setupResult.failedCallback).toBeCalledWith('media_error');
     });
   });
 

@@ -1,6 +1,7 @@
 import { isEqual } from 'lodash-es';
 
 import { GO2RTC_MODES, type Go2RTCMode } from '../../../../config/schema/cameras';
+import type { CardWideConfig } from '../../../../config/schema/types';
 import type {
   MediaPlayerController,
   UntargetedMediaLoadedInfo,
@@ -13,6 +14,7 @@ import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
 } from '../../../../utils/controls';
+import { log } from '../../../../utils/debug';
 import { createMediaLoadedInfo } from '../../../../utils/media-info';
 import { RetryTimer } from '../../../../utils/retry-timer';
 import { convertToWebSocketURL } from '../../../../utils/websocket-url';
@@ -27,7 +29,12 @@ import {
   type WebRTCSourceFactory,
 } from './sources/factory';
 import type { MediaStreamFactory, WebRTCStreamSource } from './sources/webrtc';
-import type { Lane, StreamSource, StreamSourceContext } from './types';
+import type {
+  Lane,
+  StreamSource,
+  StreamSourceContext,
+  StreamSourceFailureReason,
+} from './types';
 import { getPreferredSource } from './utils/source-priority';
 
 // Preference order for modes that stream binary media over the WebSocket; the
@@ -50,11 +57,14 @@ const RECONNECT_MAX_ATTEMPTS = 3;
 interface Go2RTCSessionCallbacks {
   getControls: () => boolean;
   getMediaPlayerController: () => MediaPlayerController | null;
+  getCardWideConfig: () => CardWideConfig | null;
   mediaLoadedCallback: (info: UntargetedMediaLoadedInfo) => void;
 
   // The session has exhausted its own quick reconnects and cannot recover the
   // stream; a higher level should take over (e.g. the card's media-load retry).
-  errorCallback: () => void;
+  // The reason is the most recent source failure, or null when there is none
+  // (e.g. the socket dropped with no source having reported a cause).
+  errorCallback: (reason: StreamSourceFailureReason | null) => void;
 }
 
 // Injectable platform and factory seams for tests. Every field defaults to
@@ -124,6 +134,11 @@ export class Go2RTCSessionController {
   // so a retired stream's listener can never fire.
   private _audioTracksMuteStateUnsubscribeCallback: AudioTracksMuteStateCleanup = null;
 
+  // The most recent source failure on this connection, handed to the error
+  // callback when the session finally gives up so the card can name the cause.
+  // Null before any failure and after a healthy commit.
+  private _lastFailureReason: StreamSourceFailureReason | null = null;
+
   private _retryTimer = new RetryTimer(RECONNECT_INTERVAL_SECONDS);
 
   constructor(callbacks: Go2RTCSessionCallbacks, options?: Go2RTCSessionOptions) {
@@ -161,6 +176,7 @@ export class Go2RTCSessionController {
 
   public reset(): void {
     this._retryTimer.reset();
+    this._lastFailureReason = null;
 
     this._teardownLanes();
     this._channel?.close();
@@ -275,8 +291,10 @@ export class Go2RTCSessionController {
             this._handleBinaryLoaded(context, source);
           }
         },
-        failedCallback: () => {
+        failedCallback: (reason) => {
           if (source) {
+            this._lastFailureReason = reason;
+            this._logSourceFailure('binary', reason, mode);
             this._handleBinaryFailed(context, source);
           }
         },
@@ -354,8 +372,10 @@ export class Go2RTCSessionController {
             this._handleWebRTCLoaded(context, source, useOffscreenVideo, decodeVideo);
           }
         },
-        failedCallback: () => {
+        failedCallback: (reason) => {
           if (source) {
+            this._lastFailureReason = reason;
+            this._logSourceFailure('webrtc', reason);
             this._handleWebRTCFailed(context, source);
           }
         },
@@ -497,6 +517,19 @@ export class Go2RTCSessionController {
     source?.stop();
   }
 
+  // A source in one of the lanes failed.
+  private _logSourceFailure(
+    lane: Lane,
+    reason: StreamSourceFailureReason,
+    mode?: Go2RTCMode,
+  ): void {
+    log(this._callbacks.getCardWideConfig(), 'go2rtc-experimental source failed', {
+      lane,
+      ...(mode ? { mode } : {}),
+      reason,
+    });
+  }
+
   // ===========================================================================
   // Reconnect & escalation.
   // ===========================================================================
@@ -517,7 +550,7 @@ export class Go2RTCSessionController {
 
   private _reconnectOrEscalateError(context: ConnectionContext): void {
     if (this._retryTimer.getAttempts() >= RECONNECT_MAX_ATTEMPTS) {
-      this._callbacks.errorCallback();
+      this._callbacks.errorCallback(this._lastFailureReason);
       return;
     }
     this._retryTimer.schedule(() => this._connectChannel(context.url, context.video));
@@ -536,6 +569,7 @@ export class Go2RTCSessionController {
     dimensionsVideo?: HTMLVideoElement,
   ): void {
     this._retryTimer.reset();
+    this._lastFailureReason = null;
 
     if (this._callbacks.getControls()) {
       hideMediaControlsTemporarily(video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);

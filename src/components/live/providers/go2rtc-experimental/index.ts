@@ -11,11 +11,13 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { Camera } from '../../../../camera-manager/camera.js';
 import { Go2RTCSessionController } from '../../../../components-lib/live/providers/go2rtc-experimental/session-controller.js';
+import { mapFailureReasonToIssueReason } from '../../../../components-lib/live/providers/go2rtc-experimental/utils/failure-reason.js';
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
 import { MediaLoadedInfoSourceController } from '../../../../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../../../../components-lib/media-player/video.js';
 import { SignedURLController } from '../../../../components-lib/signed-url-controller.js';
 import type { MicrophoneConfig } from '../../../../config/schema/live.js';
+import type { CardWideConfig } from '../../../../config/schema/types.js';
 import type { HomeAssistant } from '../../../../ha/types.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCExperimentalStyle from '../../../../scss/live-go2rtc-experimental.scss';
@@ -47,6 +49,9 @@ export class AdvancedCameraCardGo2RTCExperimental
 
   @property({ attribute: false })
   public microphoneConfig?: MicrophoneConfig;
+
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
 
   @property({ attribute: true, type: Boolean })
   public controls = false;
@@ -81,11 +86,14 @@ export class AdvancedCameraCardGo2RTCExperimental
   private _session = new Go2RTCSessionController({
     getControls: () => this.controls,
     getMediaPlayerController: () => this._mediaPlayerController,
+    getCardWideConfig: () => this.cardWideConfig ?? null,
     mediaLoadedCallback: (info) => this._mediaLoadedInfoSourceController.set(info),
 
-    // The session could not recover the stream on its own; surface it so the
-    // card's media-load retry (reconnecting indicator, backoff, give-up) runs.
-    errorCallback: () => dispatchLiveErrorEvent(this),
+    // The session could not recover the stream on its own; surface it (with the
+    // failure's user-facing cause) so the card's media-load retry (reconnecting
+    // indicator, backoff, give-up) runs and can name why.
+    errorCallback: (reason) =>
+      dispatchLiveErrorEvent(this, mapFailureReasonToIssueReason(reason)),
   });
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {

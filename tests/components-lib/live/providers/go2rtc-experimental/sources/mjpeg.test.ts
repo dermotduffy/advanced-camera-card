@@ -56,7 +56,7 @@ describe('MJPEGStreamSource', () => {
     source.start();
     channel.receiveMessage({ type: 'error', value: 'mjpeg: stream not found' });
 
-    expect(failedCallback).toBeCalledWith('server-error');
+    expect(failedCallback).toBeCalledWith('server_error');
   });
 
   it('should ignore a server error for another mode', () => {

@@ -11,3 +11,14 @@ it('should dispatch live error event', () => {
   dispatchLiveErrorEvent(element);
   expect(handler).toBeCalled();
 });
+
+it('should forward the reason as the event detail', () => {
+  const element = document.createElement('div');
+  const handler = vi.fn();
+  element.addEventListener('advanced-camera-card:live:error', handler);
+
+  dispatchLiveErrorEvent(element, 'unsupported');
+  expect(handler).toHaveBeenCalledWith(
+    expect.objectContaining({ detail: 'unsupported' }),
+  );
+});

@@ -35,6 +35,22 @@ describe('ProviderErrorDetector', () => {
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 
+  it('should adopt the specific reason carried on the event', () => {
+    const host = createHostInDocument();
+    const detector = new ProviderErrorDetector(host, vi.fn());
+    detector.subscribe();
+
+    host.dispatchEvent(
+      new CustomEvent(LIVE_ERROR_EVENT, { bubbles: true, detail: 'unsupported' }),
+    );
+
+    expect(detector.getVerdict()).toEqual({
+      state: 'not_live',
+      authority: 'hard',
+      reason: 'unsupported',
+    });
+  });
+
   it('should notify only on the transition to not live', () => {
     const host = createHostInDocument();
     const onChange = vi.fn();

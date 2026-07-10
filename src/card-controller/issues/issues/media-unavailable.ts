@@ -21,7 +21,10 @@ export type MediaUnavailableIssueReason =
   | 'entity_unavailable'
   | 'not_loading'
   | 'playback_error'
-  | 'stalled';
+  | 'server_error'
+  | 'stalled'
+  | 'two_way_audio_error'
+  | 'unsupported';
 
 declare module 'issue' {
   interface IssueTriggerContext {
@@ -50,9 +53,21 @@ export const MEDIA_UNAVAILABLE_REASONS: Record<
     localizationKey: 'issues.media_unavailable.reasons.playback_error',
     icon: 'mdi:alert-circle',
   },
+  server_error: {
+    localizationKey: 'issues.media_unavailable.reasons.server_error',
+    icon: 'mdi:server-network-off',
+  },
   stalled: {
     localizationKey: 'issues.media_unavailable.reasons.stalled',
     icon: 'mdi:motion-pause',
+  },
+  two_way_audio_error: {
+    localizationKey: 'issues.media_unavailable.reasons.two_way_audio_error',
+    icon: 'mdi:microphone-off',
+  },
+  unsupported: {
+    localizationKey: 'issues.media_unavailable.reasons.unsupported',
+    icon: 'mdi:video-off-outline',
   },
 };
 

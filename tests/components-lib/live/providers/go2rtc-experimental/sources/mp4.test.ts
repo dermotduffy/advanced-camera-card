@@ -119,7 +119,7 @@ describe('MP4StreamSource', () => {
     source.start();
     channel.receiveMessage({ type: 'error', value: 'mp4: stream not found' });
 
-    expect(failedCallback).toBeCalledWith('server-error');
+    expect(failedCallback).toBeCalledWith('server_error');
   });
 
   it('should clear the decoder on stop', () => {

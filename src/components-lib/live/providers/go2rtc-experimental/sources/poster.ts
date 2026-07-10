@@ -35,7 +35,7 @@ export abstract class PosterStreamSource implements StreamSource {
 
     this._unsubscribe = this._context.channel.subscribeToMessages((message) => {
       if (isServerErrorForMode(message, this._mode)) {
-        this._context.callbacks.failedCallback('server-error');
+        this._context.callbacks.failedCallback('server_error');
       }
     });
     this._context.channel.setBinaryCallback((data) => this._handleFrame(data));

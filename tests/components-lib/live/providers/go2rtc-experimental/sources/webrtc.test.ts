@@ -143,7 +143,7 @@ describe('WebRTCStreamSource', () => {
       source.start();
       await flushPromises();
 
-      expect(failedCallback).toHaveBeenCalledWith('media-error');
+      expect(failedCallback).toHaveBeenCalledWith('media_error');
     });
 
     it('should ignore a negotiation error after the connection was replaced', async () => {
@@ -265,7 +265,7 @@ describe('WebRTCStreamSource', () => {
       source.start();
       channel.receiveMessage({ type: 'error', value: 'webrtc/offer: stream not found' });
 
-      expect(failedCallback).toHaveBeenCalledWith('server-error');
+      expect(failedCallback).toHaveBeenCalledWith('server_error');
     });
 
     it('should ignore server errors for other modes', () => {
@@ -304,7 +304,7 @@ describe('WebRTCStreamSource', () => {
       source.start();
       pc.fireConnectionStateChange('failed');
 
-      expect(failedCallback).toHaveBeenCalledWith('media-error');
+      expect(failedCallback).toHaveBeenCalledWith('media_error');
     });
 
     it('should not fail on a recoverable disconnect', () => {
@@ -321,7 +321,7 @@ describe('WebRTCStreamSource', () => {
       pc.fireConnectionStateChange('disconnected');
       pc.fireConnectionStateChange('failed');
 
-      expect(failedCallback).toHaveBeenCalledWith('media-error');
+      expect(failedCallback).toHaveBeenCalledWith('media_error');
     });
 
     it('should ignore intermediate connection states', () => {
@@ -371,7 +371,7 @@ describe('WebRTCStreamSource', () => {
       // Connected, but the real video never fires loadeddata.
       vi.advanceTimersByTime(5 * 1000);
 
-      expect(failedCallback).toHaveBeenCalledWith('connect-timeout');
+      expect(failedCallback).toHaveBeenCalledWith('connect_timeout');
     });
 
     it('should cancel the connect timeout once loaded', () => {
@@ -381,7 +381,7 @@ describe('WebRTCStreamSource', () => {
       video.dispatchEvent(new Event('loadeddata'));
       vi.advanceTimersByTime(5 * 1000);
 
-      expect(failedCallback).not.toHaveBeenCalledWith('connect-timeout');
+      expect(failedCallback).not.toHaveBeenCalledWith('connect_timeout');
     });
   });
 
@@ -510,7 +510,7 @@ describe('WebRTCStreamSource', () => {
         new FakeMediaStream([new FakeMediaStreamTrack('audio')]).asMediaStream(),
       );
 
-      expect(failedCallback).toHaveBeenCalledWith('2-way-audio-error');
+      expect(failedCallback).toHaveBeenCalledWith('two_way_audio_error');
     });
 
     it('should ignore a stale replaceTrack rejection after stop', async () => {

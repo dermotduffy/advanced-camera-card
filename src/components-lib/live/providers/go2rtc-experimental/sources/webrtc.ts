@@ -103,14 +103,14 @@ export class WebRTCStreamSource implements StreamSource {
     );
 
     this._connectTimer.start(WEBRTC_CONNECT_TIMEOUT_SECONDS, () =>
-      this._context.callbacks.failedCallback('connect-timeout'),
+      this._context.callbacks.failedCallback('connect_timeout'),
     );
 
     this._negotiate(pc).catch(() => {
       // A rejection from a superseded connection (e.g. after `stop`) is not
       // this source's concern.
       if (this._pc === pc) {
-        this._context.callbacks.failedCallback('media-error');
+        this._context.callbacks.failedCallback('media_error');
       }
     });
   }
@@ -195,7 +195,7 @@ export class WebRTCStreamSource implements StreamSource {
         this._microphoneStream === stream &&
         this._pc !== null;
       if (stillCurrent) {
-        this._context.callbacks.failedCallback('2-way-audio-error');
+        this._context.callbacks.failedCallback('two_way_audio_error');
       }
     }
   }
@@ -221,7 +221,7 @@ export class WebRTCStreamSource implements StreamSource {
     }
 
     if (isServerErrorForMode(message, 'webrtc')) {
-      this._context.callbacks.failedCallback('server-error');
+      this._context.callbacks.failedCallback('server_error');
       return;
     }
 
@@ -252,7 +252,7 @@ export class WebRTCStreamSource implements StreamSource {
       // turn a brief network hiccup into a needless reconnect; a disconnect
       // that never recovers stops delivering frames and is caught by the
       // frame-stall watchdog instead.
-      this._context.callbacks.failedCallback('media-error');
+      this._context.callbacks.failedCallback('media_error');
     }
   }
 

@@ -77,7 +77,7 @@ export class MSEStreamSource implements StreamSource {
   };
 
   private _errorHandler = (): void => {
-    this._context.callbacks.failedCallback('media-error');
+    this._context.callbacks.failedCallback('media_error');
   };
 
   constructor(context: StreamSourceContext, options?: MSEStreamSourceOptions) {
@@ -159,7 +159,7 @@ export class MSEStreamSource implements StreamSource {
 
     this._context.channel.send({ type: 'mse', value: convertToCodecString(codecs) });
     this._negotiationTimer.start(MSE_NEGOTIATION_TIMEOUT_SECONDS, () =>
-      this._context.callbacks.failedCallback('negotiation-timeout'),
+      this._context.callbacks.failedCallback('negotiation_timeout'),
     );
   }
 
@@ -169,7 +169,7 @@ export class MSEStreamSource implements StreamSource {
   ): void {
     if (isServerErrorForMode(message, 'mse')) {
       this._negotiationTimer.stop();
-      this._context.callbacks.failedCallback('server-error');
+      this._context.callbacks.failedCallback('server_error');
       return;
     }
 
@@ -193,7 +193,7 @@ export class MSEStreamSource implements StreamSource {
     try {
       sourceBuffer = mediaSource.addSourceBuffer(message.value);
     } catch {
-      this._context.callbacks.failedCallback('media-error');
+      this._context.callbacks.failedCallback('media_error');
       return;
     }
 
@@ -218,7 +218,7 @@ export class MSEStreamSource implements StreamSource {
   private _handleData(sourceBuffer: SourceBuffer, data: ArrayBuffer): void {
     if (sourceBuffer.updating || !this._pendingBuffer.isEmpty) {
       if (!this._pendingBuffer.push(data)) {
-        this._context.callbacks.failedCallback('buffer-overflow');
+        this._context.callbacks.failedCallback('buffer_overflow');
       }
       return;
     }

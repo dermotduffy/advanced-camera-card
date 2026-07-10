@@ -45,13 +45,13 @@ export interface StreamProfile {
   hasAACAudio: boolean;
 }
 
-type StreamSourceFailureReason =
-  | '2-way-audio-error'
-  | 'buffer-overflow'
-  | 'connect-timeout'
-  | 'media-error'
-  | 'negotiation-timeout'
-  | 'server-error'
+export type StreamSourceFailureReason =
+  | 'two_way_audio_error'
+  | 'buffer_overflow'
+  | 'connect_timeout'
+  | 'media_error'
+  | 'negotiation_timeout'
+  | 'server_error'
   | 'unsupported';
 
 interface StreamSourceCallbacks {

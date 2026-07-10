@@ -356,6 +356,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                 .targetID=${this.targetID}
                 .microphoneStream=${this.microphoneStream}
                 .microphoneConfig=${this.liveConfig.microphone}
+                .cardWideConfig=${this.cardWideConfig}
                 ?controls=${this._getEffectiveBuiltinControls()}
               >
               </advanced-camera-card-live-go2rtc-experimental>`

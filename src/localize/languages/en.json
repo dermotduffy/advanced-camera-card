@@ -866,7 +866,10 @@
         "entity_unavailable": "Camera entity unavailable",
         "not_loading": "Media not loading",
         "playback_error": "Playback error",
-        "stalled": "Stream stalled"
+        "server_error": "Streaming server error",
+        "stalled": "Stream stalled",
+        "two_way_audio_error": "Two-way audio error",
+        "unsupported": "Stream not supported"
       },
       "text": "The media is not currently available. This can happen for several reasons, for example a camera becoming unavailable, a stream stalling or failing, or media that has not finished loading. The card keeps retrying automatically. For live views, a still image may be shown while a stream is loading (if configured, and by default)"
     },
