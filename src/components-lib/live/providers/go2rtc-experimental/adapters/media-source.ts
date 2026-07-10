@@ -4,7 +4,7 @@
 //     on `video.src`.
 //   - ManagedMediaSource (Safari/iOS 17+; iOS had no MediaSource at all before
 //     then): attach via `video.srcObject`, and needs `disableRemotePlayback`.
-import type { UnsubscribeCallback } from '../types';
+import type { UnsubscribeCallback } from '../../../../../types';
 
 declare global {
   interface Window {

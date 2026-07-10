@@ -1,12 +1,15 @@
 import type { Go2RTCMode } from '../../../../../config/schema/cameras';
-import type { MediaLoadedCapabilities, MediaTechnology } from '../../../../../types';
+import type {
+  MediaLoadedCapabilities,
+  MediaTechnology,
+  UnsubscribeCallback,
+} from '../../../../../types';
 import { setControlsOnVideo } from '../../../../../utils/controls';
 import type {
   Go2RTCMessage,
   StreamProfile,
   StreamSource,
   StreamSourceContext,
-  UnsubscribeCallback,
 } from '../types';
 import { isServerErrorForMode } from '../utils/messages';
 

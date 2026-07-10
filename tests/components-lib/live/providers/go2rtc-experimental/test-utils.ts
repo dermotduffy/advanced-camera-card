@@ -9,8 +9,8 @@ import type {
   Go2RTCMessage,
   MessageCallback,
   StreamSourceChannel,
-  UnsubscribeCallback,
 } from '../../../../../src/components-lib/live/providers/go2rtc-experimental/types';
+import type { UnsubscribeCallback } from '../../../../../src/types';
 
 // ===========================================================================
 // User agents.

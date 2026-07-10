@@ -1,4 +1,8 @@
-import type { MediaLoadedCapabilities, MediaTechnology } from '../../../../../types';
+import type {
+  MediaLoadedCapabilities,
+  MediaTechnology,
+  UnsubscribeCallback,
+} from '../../../../../types';
 import { has2WayAudio, hasAudio } from '../../../../../utils/audio';
 import { Timer } from '../../../../../utils/timer';
 import {
@@ -11,7 +15,6 @@ import type {
   StreamProfile,
   StreamSource,
   StreamSourceContext,
-  UnsubscribeCallback,
 } from '../types';
 import { isServerErrorForMode } from '../utils/messages';
 import { sdpHasH265 } from '../utils/webrtc-sdp';

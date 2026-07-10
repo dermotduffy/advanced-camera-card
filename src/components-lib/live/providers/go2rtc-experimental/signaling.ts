@@ -1,9 +1,9 @@
+import type { UnsubscribeCallback } from '../../../../types';
 import {
   go2RTCMessageSchema,
   type BinaryCallback,
   type Go2RTCMessage,
   type MessageCallback,
-  type UnsubscribeCallback,
 } from './types';
 
 export type WebSocketFactory = (url: string) => WebSocket;

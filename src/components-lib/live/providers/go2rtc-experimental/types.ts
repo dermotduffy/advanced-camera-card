@@ -1,8 +1,10 @@
 import { z } from 'zod';
 
-import type { MediaLoadedCapabilities, MediaTechnology } from '../../../../types';
-
-export type UnsubscribeCallback = () => void;
+import type {
+  MediaLoadedCapabilities,
+  MediaTechnology,
+  UnsubscribeCallback,
+} from '../../../../types';
 
 // go2rtc control messages are JSON text frames of this shape; media flows as
 // separate binary frames.
