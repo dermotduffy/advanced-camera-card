@@ -6,7 +6,11 @@ import {
   MediaActionsController,
   type MediaActionsControllerOptions,
 } from '../../src/components-lib/media-actions-controller';
-import type { MediaPlayerController, MediaPlayerElement } from '../../src/types';
+import type {
+  MediaPlayerController,
+  MediaPlayerElement,
+  PlaybackControl,
+} from '../../src/types';
 import {
   callIntersectionHandler,
   callMutationHandler,
@@ -25,11 +29,25 @@ const getPlayer = (
   return element.querySelector(selector);
 };
 
+// play/pause live on the optional `playback` capability; mute/unmute on the
+// controller itself.
+const getActionSpy = (
+  controller: MediaPlayerController | null | undefined,
+  func: string,
+): unknown => {
+  if (func === 'play' || func === 'pause') {
+    return controller?.playback?.[func];
+  }
+  return func === 'mute' ? controller?.mute : controller?.unmute;
+};
+
 const createPlayerElement = (controller?: MediaPlayerController): MediaPlayerElement => {
   const player = document.createElement('video');
   player['getMediaPlayerController'] = vi
     .fn()
-    .mockResolvedValue(controller ?? mock<MediaPlayerController>());
+    .mockResolvedValue(
+      controller ?? mock<MediaPlayerController>({ playback: mock<PlaybackControl>() }),
+    );
   return player as unknown as MediaPlayerElement;
 };
 
@@ -84,7 +102,8 @@ describe('MediaActionsController', () => {
       await controller.setTarget(0, true);
 
       expect(
-        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
+          ?.play,
       ).not.toBeCalled();
     });
 
@@ -106,7 +125,9 @@ describe('MediaActionsController', () => {
       const parent = createParent({ children: createPlayerSlideNodes(1) });
       controller.setRoot(parent);
 
-      const mediaPlayerController = mock<MediaPlayerController>();
+      const mediaPlayerController = mock<MediaPlayerController>({
+        playback: mock<PlaybackControl>(),
+      });
 
       const newPlayer = createPlayerElement(mediaPlayerController);
       const newChild = document.createElement('div');
@@ -117,7 +138,7 @@ describe('MediaActionsController', () => {
 
       await controller.setTarget(1, true);
 
-      expect(mediaPlayerController.play).toBeCalled();
+      expect(mediaPlayerController.playback?.play).toBeCalled();
     });
   });
 
@@ -138,7 +159,8 @@ describe('MediaActionsController', () => {
       await controller.setTarget(0, true);
 
       expect(
-        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
+          ?.play,
       ).not.toBeCalled();
     });
   });
@@ -169,7 +191,10 @@ describe('MediaActionsController', () => {
         await controller.setTarget(0, true);
 
         expect(
-          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+          getActionSpy(
+            await getPlayer(children[0], 'video')?.getMediaPlayerController(),
+            func,
+          ),
         ).toBeCalledTimes(called ? 1 : 0);
       },
     );
@@ -187,13 +212,15 @@ describe('MediaActionsController', () => {
       await controller.setTarget(0, true);
 
       expect(
-        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
+          ?.play,
       ).toBeCalledTimes(1);
 
       await controller.setTarget(0, true);
 
       expect(
-        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
+          ?.play,
       ).toBeCalledTimes(1);
     });
 
@@ -212,7 +239,8 @@ describe('MediaActionsController', () => {
       await controller.setTarget(1, true);
 
       expect(
-        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.pause,
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
+          ?.pause,
       ).toBeCalled();
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
@@ -233,7 +261,8 @@ describe('MediaActionsController', () => {
       await controller.setTarget(0, false);
 
       expect(
-        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
+          ?.play,
       ).not.toBeCalled();
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
@@ -242,7 +271,8 @@ describe('MediaActionsController', () => {
       await controller.setTarget(0, true);
 
       expect(
-        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
+          ?.play,
       ).toBeCalled();
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
@@ -264,7 +294,8 @@ describe('MediaActionsController', () => {
     await controller.setTarget(0, true);
 
     expect(
-      (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+      (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
+        ?.play,
     ).toBeCalledTimes(1);
     expect(
       (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
@@ -279,7 +310,8 @@ describe('MediaActionsController', () => {
 
     // Play/Mute will not have been called again.
     expect(
-      (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+      (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
+        ?.play,
     ).toBeCalledTimes(1);
     expect(
       (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
@@ -300,7 +332,8 @@ describe('MediaActionsController', () => {
       await controller.setTarget(0, true);
 
       expect(
-        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
+          ?.play,
       ).toBeCalledTimes(1);
 
       getPlayer(children[0], 'video')?.dispatchEvent(
@@ -310,7 +343,8 @@ describe('MediaActionsController', () => {
       await flushPromises();
 
       expect(
-        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
+          ?.play,
       ).toBeCalledTimes(2);
     });
 
@@ -360,7 +394,8 @@ describe('MediaActionsController', () => {
       await flushPromises();
 
       expect(
-        (await getPlayer(children[9], 'video')?.getMediaPlayerController())?.play,
+        (await getPlayer(children[9], 'video')?.getMediaPlayerController())?.playback
+          ?.play,
       ).not.toBeCalled();
       expect(
         (await getPlayer(children[9], 'video')?.getMediaPlayerController())?.unmute,
@@ -381,7 +416,8 @@ describe('MediaActionsController', () => {
       await controller.setTarget(0, false);
 
       expect(
-        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
+          ?.play,
       ).toBeCalledTimes(1);
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
@@ -394,7 +430,8 @@ describe('MediaActionsController', () => {
       await flushPromises();
 
       expect(
-        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.play,
+        (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
+          ?.play,
       ).toBeCalledTimes(2);
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
@@ -429,7 +466,10 @@ describe('MediaActionsController', () => {
         await controller.setTarget(0, false);
 
         expect(
-          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+          getActionSpy(
+            await getPlayer(children[0], 'video')?.getMediaPlayerController(),
+            func,
+          ),
         ).toBeCalledTimes(called ? 1 : 0);
       },
     );
@@ -472,7 +512,10 @@ describe('MediaActionsController', () => {
         await callVisibilityHandler(true);
 
         expect(
-          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+          getActionSpy(
+            await getPlayer(children[0], 'video')?.getMediaPlayerController(),
+            func,
+          ),
         ).toBeCalledTimes(called ? 1 : 0);
       },
     );
@@ -514,7 +557,10 @@ describe('MediaActionsController', () => {
         await callVisibilityHandler(false);
 
         expect(
-          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+          getActionSpy(
+            await getPlayer(children[0], 'video')?.getMediaPlayerController(),
+            func,
+          ),
         ).toBeCalledTimes(called ? 1 : 0);
       },
     );
@@ -546,7 +592,10 @@ describe('MediaActionsController', () => {
 
         // Not configured to take action on selection.
         expect(
-          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+          getActionSpy(
+            await getPlayer(children[0], 'video')?.getMediaPlayerController(),
+            func,
+          ),
         ).not.toBeCalled();
 
         // There's always a first call to an intersection observer handler. In
@@ -557,7 +606,10 @@ describe('MediaActionsController', () => {
 
         // Not configured to take action on selection.
         expect(
-          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+          getActionSpy(
+            await getPlayer(children[0], 'video')?.getMediaPlayerController(),
+            func,
+          ),
         ).toBeCalledTimes(called ? 1 : 0);
       },
     );
@@ -589,7 +641,10 @@ describe('MediaActionsController', () => {
 
         // Not configured to take action on selection.
         expect(
-          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+          getActionSpy(
+            await getPlayer(children[0], 'video')?.getMediaPlayerController(),
+            func,
+          ),
         ).not.toBeCalled();
 
         // There's always a first call to an intersection observer handler. In
@@ -600,7 +655,10 @@ describe('MediaActionsController', () => {
 
         // Not configured to take action on selection.
         expect(
-          (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.[func],
+          getActionSpy(
+            await getPlayer(children[0], 'video')?.getMediaPlayerController(),
+            func,
+          ),
         ).toBeCalledTimes(called ? 1 : 0);
       },
     );

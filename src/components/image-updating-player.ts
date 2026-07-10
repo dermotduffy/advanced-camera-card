@@ -15,7 +15,7 @@ import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity
 import type { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
-import { UpdatingImageMediaPlayerController } from '../components-lib/media-player/updating-image.js';
+import { ImageMediaPlayerController } from '../components-lib/media-player/image.js';
 import { SignedURLController } from '../components-lib/signed-url-controller.js';
 import type { Notification } from '../config/schema/actions/types.js';
 import type { CameraConfig } from '../config/schema/cameras.js';
@@ -144,10 +144,19 @@ export class AdvancedCameraCardImageUpdatingPlayer
 
   private _boundVisibilityHandler = this._visibilityHandler.bind(this);
 
-  private _mediaPlayerController = new UpdatingImageMediaPlayerController(
+  // A poll-refreshed snapshot: the cached-value timer is the pausable update
+  // loop, and its cached URL is the screenshot.
+  private _mediaPlayerController = new ImageMediaPlayerController(
     this,
     () => this._refImage.value ?? null,
-    () => this._cachedValueController,
+    {
+      updateControl: {
+        start: () => this._cachedValueController.startTimer(),
+        stop: () => this._cachedValueController.stopTimer(),
+        isRunning: () => this._cachedValueController.hasTimer(),
+      },
+      screenshotProvider: async () => this._cachedValueController.getValue(),
+    },
   );
 
   private _mediaLoadedInfoSourceController = new MediaLoadedInfoSourceController(this, {

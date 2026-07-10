@@ -23,7 +23,11 @@ import type { MenuItem } from '../../src/config/schema/elements/custom/menu/type
 import type { AdvancedCameraCardConfig } from '../../src/config/schema/types.js';
 import type { HomeAssistant } from '../../src/ha/types.js';
 import { QuerySource } from '../../src/query-source';
-import { PTZMovementType, type MediaPlayerController } from '../../src/types.js';
+import {
+  PTZMovementType,
+  type MediaPlayerController,
+  type PlaybackControl,
+} from '../../src/types.js';
 import { createGeneralAction, createViewAction } from '../../src/utils/action.js';
 import { ViewMedia, ViewMediaType } from '../../src/view/item.js';
 import { QueryResults } from '../../src/view/query-results.js';
@@ -1901,7 +1905,9 @@ describe('MenuButtonController', () => {
   });
 
   it('should have pause button', () => {
-    const mediaPlayerController = mock<MediaPlayerController>();
+    const playback = mock<PlaybackControl>();
+    playback.isPaused.mockReturnValue(false);
+    const mediaPlayerController = mock<MediaPlayerController>({ playback });
     const buttons = calculateButtons(controller, {
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
@@ -1925,8 +1931,9 @@ describe('MenuButtonController', () => {
   });
 
   it('should have play button', () => {
-    const mediaPlayerController = mock<MediaPlayerController>();
-    mediaPlayerController.isPaused.mockReturnValue(true);
+    const playback = mock<PlaybackControl>();
+    playback.isPaused.mockReturnValue(true);
+    const mediaPlayerController = mock<MediaPlayerController>({ playback });
     const buttons = calculateButtons(controller, {
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {

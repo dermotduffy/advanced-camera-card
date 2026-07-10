@@ -23,6 +23,11 @@ export interface FrameStallWatchdogConfig {
   // Stop receiving frames. Defaults to a no-op, for a source that needs no
   // teardown.
   stopSource?: () => void;
+
+  // Seconds without a frame (while playback is expected) before a stall is
+  // reported. Defaults to FRAME_STALL_SECONDS; a slow source (e.g. a snapshot
+  // that refreshes every N seconds) needs a window at least as long as N.
+  stallAfterSeconds?: number;
 }
 
 /**
@@ -39,6 +44,7 @@ export interface FrameStallWatchdogConfig {
  */
 export class FrameStallWatchdog {
   private _config: FrameStallWatchdogConfig;
+  private _stallAfterSeconds: number;
 
   private _timer = new Timer();
   private _callbacks = new Set<LivenessCallback>();
@@ -51,6 +57,7 @@ export class FrameStallWatchdog {
 
   constructor(config: FrameStallWatchdogConfig) {
     this._config = config;
+    this._stallAfterSeconds = config.stallAfterSeconds ?? FRAME_STALL_SECONDS;
   }
 
   public subscribe(callback: LivenessCallback): UnsubscribeCallback {
@@ -74,7 +81,7 @@ export class FrameStallWatchdog {
     if (!this._sourceActive) {
       return;
     }
-    this._timer.start(FRAME_STALL_SECONDS, () => this._onStall());
+    this._timer.start(this._stallAfterSeconds, () => this._onStall());
 
     // Notify last: if this recovery notification prompts the final subscriber
     // to unsubscribe, `_stop` then clears the timer just armed instead of
@@ -90,7 +97,7 @@ export class FrameStallWatchdog {
     // watching begins is still detected. With no source there is nothing to
     // arm, so nothing is ever reported.
     if (this._sourceActive) {
-      this._timer.start(FRAME_STALL_SECONDS, () => this._onStall());
+      this._timer.start(this._stallAfterSeconds, () => this._onStall());
     }
   }
 
@@ -113,7 +120,7 @@ export class FrameStallWatchdog {
     // Legitimately idle (paused / seeking / ended). Re-arm rather than stop: a
     // source that later resumes already frozen delivers no frame to kick the
     // timer, so a freeze that only becomes actionable later is still caught.
-    this._timer.start(FRAME_STALL_SECONDS, () => this._onStall());
+    this._timer.start(this._stallAfterSeconds, () => this._onStall());
   }
 
   private _setLive(isLive: boolean): void {

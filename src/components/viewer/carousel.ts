@@ -443,17 +443,17 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
 
     const seekTimeInMedia = selectedMedia.includesTime(seek);
     this.toggleAttribute('unseekable', !seekTimeInMedia);
-    if (!seekTimeInMedia && !mediaPlayerController.isPaused()) {
-      void mediaPlayerController.pause();
-    } else if (seekTimeInMedia && mediaPlayerController.isPaused()) {
-      void mediaPlayerController.play();
+    if (!seekTimeInMedia && !mediaPlayerController.playback?.isPaused()) {
+      void mediaPlayerController.playback?.pause();
+    } else if (seekTimeInMedia && mediaPlayerController.playback?.isPaused()) {
+      void mediaPlayerController.playback?.play();
     }
 
     const seekTime =
       (await this.cameraManager?.getMediaSeekTime(selectedMedia, seek)) ?? null;
 
     if (seekTime !== null) {
-      void mediaPlayerController.seek(seekTime);
+      void mediaPlayerController.seek?.(seekTime);
     }
   }
 

@@ -21,7 +21,7 @@ describe('JSMPEGMediaPlayerController', () => {
       () => mock<HTMLCanvasElement>(),
     );
 
-    await controller.play();
+    await controller.playback.play();
 
     expect(videoElement.play).toBeCalled();
   });
@@ -35,7 +35,7 @@ describe('JSMPEGMediaPlayerController', () => {
       () => mock<HTMLCanvasElement>(),
     );
 
-    await controller.pause();
+    await controller.playback.pause();
 
     expect(videoElement.stop).toBeCalled();
   });
@@ -140,18 +140,6 @@ describe('JSMPEGMediaPlayerController', () => {
     });
   });
 
-  it('should ignore seek', async () => {
-    const controller = new JSMPEGMediaPlayerController(
-      createLitElement(),
-      () => mock<JSMpeg.VideoElement>(),
-      () => mock<HTMLCanvasElement>(),
-    );
-
-    await controller.seek(10);
-
-    // Currently no observable side effects.
-  });
-
   it('should ignore set controls', async () => {
     const controller = new JSMPEGMediaPlayerController(
       createLitElement(),
@@ -175,7 +163,7 @@ describe('JSMPEGMediaPlayerController', () => {
         () => mock<HTMLCanvasElement>(),
       );
 
-      expect(controller.isPaused()).toBeTruthy();
+      expect(controller.playback.isPaused()).toBeTruthy();
     });
 
     it('should return false when not paused', async () => {
@@ -189,7 +177,7 @@ describe('JSMPEGMediaPlayerController', () => {
         () => mock<HTMLCanvasElement>(),
       );
 
-      expect(controller.isPaused()).toBeFalsy();
+      expect(controller.playback.isPaused()).toBeFalsy();
     });
 
     it('should return true when no video', () => {
@@ -199,7 +187,7 @@ describe('JSMPEGMediaPlayerController', () => {
         () => mock<HTMLCanvasElement>(),
       );
 
-      expect(controller.isPaused()).toBeTruthy();
+      expect(controller.playback.isPaused()).toBeTruthy();
     });
   });
 

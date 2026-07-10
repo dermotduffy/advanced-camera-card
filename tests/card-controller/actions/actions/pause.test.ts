@@ -2,12 +2,14 @@ import { expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { PauseAction } from '../../../../src/card-controller/actions/actions/pause';
-import type { MediaPlayerController } from '../../../../src/types';
+import type { MediaPlayerController, PlaybackControl } from '../../../../src/types';
 import { createCardAPI, createMediaLoadedInfo } from '../../../test-utils';
 
 it('should handle pause action', async () => {
   const api = createCardAPI();
-  const mediaPlayerController = mock<MediaPlayerController>();
+  const mediaPlayerController = mock<MediaPlayerController>({
+    playback: mock<PlaybackControl>(),
+  });
   vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
     createMediaLoadedInfo({
       mediaPlayerController,
@@ -23,5 +25,5 @@ it('should handle pause action', async () => {
 
   await action.execute(api);
 
-  expect(mediaPlayerController.pause).toBeCalled();
+  expect(mediaPlayerController.playback?.pause).toBeCalled();
 });

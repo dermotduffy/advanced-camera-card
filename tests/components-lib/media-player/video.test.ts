@@ -78,7 +78,7 @@ describe('VideoMediaPlayerController', () => {
 
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-      await controller.play();
+      await controller.playback.play();
 
       expect(video.play).toBeCalled();
     });
@@ -90,7 +90,7 @@ describe('VideoMediaPlayerController', () => {
 
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-      await controller.play();
+      await controller.playback.play();
 
       expect(video.play).toBeCalledTimes(2);
       expect(video.muted).toBeTruthy();
@@ -103,7 +103,7 @@ describe('VideoMediaPlayerController', () => {
 
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-      await controller.play();
+      await controller.playback.play();
 
       expect(video.play).toBeCalledTimes(1);
       expect(video.muted).toBeTruthy();
@@ -116,7 +116,7 @@ describe('VideoMediaPlayerController', () => {
 
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-      await controller.play();
+      await controller.playback.play();
 
       expect(video.play).toBeCalledTimes(2);
       expect(video.muted).toBeTruthy();
@@ -125,7 +125,7 @@ describe('VideoMediaPlayerController', () => {
     it('should ignore calls without a video', async () => {
       const controller = new VideoMediaPlayerController(createLitElement(), () => null);
 
-      await controller.play();
+      await controller.playback.play();
 
       // Currently no observable side effects.
     });
@@ -135,7 +135,7 @@ describe('VideoMediaPlayerController', () => {
     const video = mock<HTMLVideoElement>();
     const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-    await controller.pause();
+    await controller.playback.pause();
 
     expect(video.pause).toBeCalled();
   });
@@ -263,9 +263,9 @@ describe('VideoMediaPlayerController', () => {
 
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-      await controller.pause();
+      await controller.playback.pause();
 
-      expect(controller.isPaused()).toBeTruthy();
+      expect(controller.playback.isPaused()).toBeTruthy();
     });
 
     it('should return false when not paused', async () => {
@@ -274,15 +274,15 @@ describe('VideoMediaPlayerController', () => {
 
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-      await controller.pause();
+      await controller.playback.pause();
 
-      expect(controller.isPaused()).toBeFalsy();
+      expect(controller.playback.isPaused()).toBeFalsy();
     });
 
     it('should return true when no video', () => {
       const controller = new VideoMediaPlayerController(createLitElement(), () => null);
 
-      expect(controller.isPaused()).toBeTruthy();
+      expect(controller.playback.isPaused()).toBeTruthy();
     });
   });
 
