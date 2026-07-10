@@ -141,6 +141,7 @@
       "live_providers": {
         "auto": "Automatic",
         "go2rtc": "go2rtc",
+        "go2rtc-experimental": "go2rtc (experimental)",
         "ha": "Home Assistant video stream (i.e. HLS, LL-HLS, WebRTC via HA)",
         "image": "Image",
         "jsmpeg": "JSMpeg",

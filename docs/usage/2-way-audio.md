@@ -16,7 +16,7 @@ challenging.
 ### Card requirements
 
 - Only Frigate cameras are supported.
-- Only the `go2rtc` live provider is supported.
+- Only the `go2rtc` and `go2rtc-experimental` live providers are supported.
 - Only the `webrtc` mode supports 2-way audio.
 
 If your setup supports 2-way audio but detection is intermittent on load:
