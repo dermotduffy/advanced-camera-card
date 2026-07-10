@@ -31,6 +31,7 @@ const LIVE_PROVIDERS = [
   'ha',
   'jsmpeg',
   'go2rtc',
+  'go2rtc-experimental',
   'webrtc-card',
 ] as const;
 export type LiveProvider = (typeof LIVE_PROVIDERS)[number];
@@ -40,12 +41,15 @@ const go2rtcConfigDefault = {
   metadata_fetch_timeout_seconds: 2,
 };
 
+export const GO2RTC_MODES = ['webrtc', 'mse', 'mp4', 'mjpeg'] as const;
+export type Go2RTCMode = (typeof GO2RTC_MODES)[number];
+
 const go2rtcConfigSchema = z.object({
   url: z
     .string()
     .transform((input) => input.replace(/\/+$/, ''))
     .optional(),
-  modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array().optional(),
+  modes: z.enum(GO2RTC_MODES).array().optional(),
   stream: z.string().optional(),
   metadata_fetch_timeout_seconds: z
     .number()

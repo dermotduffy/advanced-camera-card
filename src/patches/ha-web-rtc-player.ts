@@ -146,7 +146,7 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
         mediaPlayerController: this._mediaPlayerController,
         capabilities: {
           supportsPause: true,
-          hasAudio: hasAudio(this._videoEl, this._peerConnection),
+          hasAudio: hasAudio(this._videoEl, { pc: this._peerConnection }),
         },
         technology: ['webrtc'],
       });
@@ -164,7 +164,7 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
             mediaPlayerController: this._mediaPlayerController,
             capabilities: {
               supportsPause: true,
-              hasAudio: hasAudio(this._videoEl, this._peerConnection),
+              hasAudio: hasAudio(this._videoEl, { pc: this._peerConnection }),
             },
             technology: ['webrtc'],
           });

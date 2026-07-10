@@ -167,6 +167,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
         this._importPromises.push(import('./providers/image.js'));
       } else if (provider === 'go2rtc') {
         this._importPromises.push(import('./providers/go2rtc/index.js'));
+      } else if (provider === 'go2rtc-experimental') {
+        this._importPromises.push(import('./providers/go2rtc-experimental/index.js'));
       }
     }
   }
@@ -345,28 +347,40 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               ?controls=${this._getEffectiveBuiltinControls()}
             >
             </advanced-camera-card-live-go2rtc>`
-          : provider === 'webrtc-card'
-            ? html`<advanced-camera-card-live-webrtc-card
+          : provider === 'go2rtc-experimental'
+            ? html`<advanced-camera-card-live-go2rtc-experimental
                 ${ref(this._refProvider)}
                 class=${classMap(classes)}
                 .hass=${this.hass}
                 .camera=${this.camera}
                 .targetID=${this.targetID}
-                .cardWideConfig=${this.cardWideConfig}
+                .microphoneStream=${this.microphoneStream}
+                .microphoneConfig=${this.liveConfig.microphone}
                 ?controls=${this._getEffectiveBuiltinControls()}
               >
-              </advanced-camera-card-live-webrtc-card>`
-            : provider === 'jsmpeg'
-              ? html` <advanced-camera-card-live-jsmpeg
+              </advanced-camera-card-live-go2rtc-experimental>`
+            : provider === 'webrtc-card'
+              ? html`<advanced-camera-card-live-webrtc-card
                   ${ref(this._refProvider)}
                   class=${classMap(classes)}
                   .hass=${this.hass}
                   .camera=${this.camera}
                   .targetID=${this.targetID}
                   .cardWideConfig=${this.cardWideConfig}
+                  ?controls=${this._getEffectiveBuiltinControls()}
                 >
-                </advanced-camera-card-live-jsmpeg>`
-              : html``}
+                </advanced-camera-card-live-webrtc-card>`
+              : provider === 'jsmpeg'
+                ? html` <advanced-camera-card-live-jsmpeg
+                    ${ref(this._refProvider)}
+                    class=${classMap(classes)}
+                    .hass=${this.hass}
+                    .camera=${this.camera}
+                    .targetID=${this.targetID}
+                    .cardWideConfig=${this.cardWideConfig}
+                  >
+                  </advanced-camera-card-live-jsmpeg>`
+                : html``}
     `)}
     ${showLoadingIcon
       ? html`<advanced-camera-card-icon

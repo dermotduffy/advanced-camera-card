@@ -1,0 +1,15 @@
+@use 'media-layout.scss';
+
+:host {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+video {
+  @include media-layout.media-layout();
+
+  width: 100%;
+  height: 100%;
+  display: block;
+}

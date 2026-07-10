@@ -22,6 +22,13 @@ export const getResolvedLiveProvider = (
   return config?.live_provider ?? 'image';
 };
 
+// Live providers that stream from a go2rtc server and share the `go2rtc`
+// config block and endpoints.
+const GO2RTC_LIVE_PROVIDERS: readonly LiveProvider[] = ['go2rtc', 'go2rtc-experimental'];
+
+export const isGo2RTCLiveProvider = (provider: LiveProvider): boolean =>
+  GO2RTC_LIVE_PROVIDERS.includes(provider);
+
 export const liveProviderSupports2WayAudio = async (
   hass: HomeAssistant,
   config: CameraConfig,
@@ -29,7 +36,7 @@ export const liveProviderSupports2WayAudio = async (
   go2rtcMetadataEndpoint?: Endpoint | null,
   proxyConfig?: EnabledProxyConfig,
 ): Promise<boolean> => {
-  if (getResolvedLiveProvider(config) !== 'go2rtc') {
+  if (!isGo2RTCLiveProvider(getResolvedLiveProvider(config))) {
     return false;
   }
 

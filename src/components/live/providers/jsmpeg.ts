@@ -22,13 +22,14 @@ import type { HomeAssistant } from '../../../ha/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveJSMPEGStyle from '../../../scss/live-jsmpeg.scss';
 import type { MediaPlayer, MediaPlayerController } from '../../../types.js';
-import { convertHTTPAdressToWebsocket, errorToConsole } from '../../../utils/basic.js';
+import { errorToConsole } from '../../../utils/basic.js';
 import {
   createMediaLoadedInfo,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
 } from '../../../utils/media-info.js';
 import { Timer } from '../../../utils/timer.js';
+import { convertToWebSocketURL } from '../../../utils/websocket-url.js';
 
 import '../../notification/block.js';
 
@@ -211,7 +212,7 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     } catch (e) {
       errorToConsole(e);
     }
-    const address = response ? convertHTTPAdressToWebsocket(response) : null;
+    const address = response ? convertToWebSocketURL(response) : null;
 
     if (!address) {
       this._notification = createNotificationFromText(localize('error.failed_sign'), {
