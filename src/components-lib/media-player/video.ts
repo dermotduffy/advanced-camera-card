@@ -19,13 +19,20 @@ export class VideoMediaPlayerController implements MediaPlayerController {
   private _rvfcHandle: number | null = null;
   private _stallWatchdog = new FrameStallWatchdog({
     // Playback is expected unless the video is legitimately idle. Seeking /
-    // ended is idle. A paused video is idle only if it holds a current frame --
-    // a genuine user pause; paused with no current frame is not a real pause but
-    // a source mid-reconnect or buffering (nothing to pause on), so playback is
-    // still expected and a missing frame is a stall.
+    // ended is idle. A poster shown with no media loaded is a still-image
+    // surface (e.g. an MJPEG/MP4 poster slideshow) that never presents video
+    // frames, so no frame is ever expected -- distinct from a poster shown over
+    // real media (a loading placeholder), which is still watched. A paused
+    // video is idle only if it holds a current frame -- a genuine user pause;
+    // paused with no current frame is not a real pause but a source
+    // mid-reconnect or buffering (nothing to pause on), so playback is still
+    // expected and a missing frame is a stall.
     isPlaybackExpected: () => {
       const video = this._getVideoCallback();
       if (!video || video.seeking || video.ended) {
+        return false;
+      }
+      if (video.poster && !video.currentSrc && !video.srcObject) {
         return false;
       }
       return !video.paused || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA;
