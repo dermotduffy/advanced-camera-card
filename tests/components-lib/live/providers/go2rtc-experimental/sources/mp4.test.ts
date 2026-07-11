@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { MP4StreamSource } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/sources/mp4';
-import type { StreamSourceContext } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/types';
+import type {
+  ImageStreamTarget,
+  StreamSourceContext,
+} from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/types';
 import { FakeStreamSourceChannel } from '../test-utils';
 
 class FakeCanvasContext {
@@ -13,7 +16,9 @@ class FakeCanvas {
   public height = 0;
   public context: FakeCanvasContext | null = new FakeCanvasContext();
   public getContext = vi.fn(() => this.context);
-  public toDataURL = vi.fn(() => 'data:image/jpeg;base64,poster');
+  public toBlob = vi.fn((callback: (blob: Blob | null) => void) =>
+    callback(new Blob(['frame'], { type: 'image/jpeg' })),
+  );
 
   public asCanvas(): HTMLCanvasElement {
     return this as unknown as HTMLCanvasElement;
@@ -23,12 +28,12 @@ class FakeCanvas {
 // @vitest-environment jsdom
 describe('MP4StreamSource', () => {
   const setup = () => {
-    const video = document.createElement('video');
     const channel = new FakeStreamSourceChannel();
     const loadedCallback = vi.fn();
     const failedCallback = vi.fn();
-    const context: StreamSourceContext = {
-      video,
+    const showFrame = vi.fn();
+    const context: StreamSourceContext<ImageStreamTarget> = {
+      target: { kind: 'image', showFrame },
       channel,
       callbacks: { loadedCallback, failedCallback },
     };
@@ -46,8 +51,8 @@ describe('MP4StreamSource', () => {
       decoderVideo,
       failedCallback,
       loadedCallback,
+      showFrame,
       source,
-      video,
     };
   };
 
@@ -81,14 +86,17 @@ describe('MP4StreamSource', () => {
     expect(createVideoElement).toBeCalledTimes(1);
   });
 
-  it('should draw a decoded frame to the poster', () => {
-    const { source, channel, decoderVideo, canvas, video, loadedCallback } = setup();
+  it('should draw a decoded frame and show it as an image', () => {
+    const { source, channel, decoderVideo, canvas, showFrame, loadedCallback } = setup();
     source.start();
     channel.binaryCallback?.(frame());
     decoderVideo.dispatchEvent(new Event('loadeddata'));
 
     expect(canvas.context?.drawImage).toBeCalled();
-    expect(video.poster).toContain('data:image/jpeg;base64,poster');
+    expect(showFrame).toBeCalledTimes(1);
+    const shown = showFrame.mock.calls[0][0] as Blob;
+    expect(shown).toBeInstanceOf(Blob);
+    expect(shown.type).toBe('image/jpeg');
     expect(loadedCallback).toBeCalledTimes(1);
   });
 
@@ -104,14 +112,24 @@ describe('MP4StreamSource', () => {
     expect(loadedCallback).toBeCalledTimes(1);
   });
 
+  it('should not show a frame when the canvas produces no blob', () => {
+    const { source, channel, decoderVideo, canvas, showFrame } = setup();
+    canvas.toBlob = vi.fn((callback: (blob: Blob | null) => void) => callback(null));
+    source.start();
+    channel.binaryCallback?.(frame());
+    decoderVideo.dispatchEvent(new Event('loadeddata'));
+
+    expect(showFrame).not.toBeCalled();
+  });
+
   it('should do nothing when the canvas has no 2d context', () => {
-    const { source, channel, decoderVideo, canvas, video } = setup();
+    const { source, channel, decoderVideo, canvas, showFrame } = setup();
     canvas.context = null;
     source.start();
     channel.binaryCallback?.(frame());
     decoderVideo.dispatchEvent(new Event('loadeddata'));
 
-    expect(video.poster).toBe('');
+    expect(showFrame).not.toBeCalled();
   });
 
   it('should fail on a server error for mp4', () => {
@@ -139,10 +157,9 @@ describe('MP4StreamSource', () => {
   });
 
   it('should default to document element factories when none are injected', () => {
-    const contextVideo = document.createElement('video');
     const channel = new FakeStreamSourceChannel();
     const source = new MP4StreamSource({
-      video: contextVideo,
+      target: { kind: 'image', showFrame: vi.fn() },
       channel,
       callbacks: { loadedCallback: vi.fn(), failedCallback: vi.fn() },
     });

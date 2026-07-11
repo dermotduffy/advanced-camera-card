@@ -90,9 +90,10 @@ export type UnsubscribeCallback = () => void;
 export type LivenessCallback = (isLive: boolean) => void;
 
 // Control over a pausable playback loop. Optional on the player: present only
-// when the player owns a stream it can start and stop (e.g. a real video, a
-// poll-refresh loop). A push-fed or static image has no pausable loop and omits
-// it.
+// when the player owns a stream it can start and stop (e.g. a real video, or an
+// image refreshed on a timer). A static image, or one fed frames as they arrive
+// where the client has no control (e.g. MP4, MJPEG), has no pausable loop and
+// omits it.
 export interface PlaybackControl {
   play(): Promise<void>;
   pause(): Promise<void>;

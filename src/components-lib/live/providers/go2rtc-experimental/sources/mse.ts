@@ -15,6 +15,7 @@ import type {
   StreamProfile,
   StreamSource,
   StreamSourceContext,
+  VideoStreamTarget,
 } from '../types';
 import { BoundedBufferQueue } from '../utils/bounded-buffer-queue';
 import {
@@ -56,7 +57,7 @@ interface MSEStreamSourceOptions {
 }
 
 export class MSEStreamSource implements StreamSource {
-  private _context: StreamSourceContext;
+  private _context: StreamSourceContext<VideoStreamTarget>;
 
   private _createMediaSource: MediaSourceFactory;
   private _mediaSource: MediaSourceInterface | null = null;
@@ -83,7 +84,10 @@ export class MSEStreamSource implements StreamSource {
     this._context.callbacks.failedCallback('media_error');
   };
 
-  constructor(context: StreamSourceContext, options?: MSEStreamSourceOptions) {
+  constructor(
+    context: StreamSourceContext<VideoStreamTarget>,
+    options?: MSEStreamSourceOptions,
+  ) {
     this._context = context;
     this._createMediaSource = options?.createMediaSource ?? createBrowserMediaSource;
 
@@ -106,9 +110,9 @@ export class MSEStreamSource implements StreamSource {
         this._handleMessage(mediaSource, message),
       ),
     );
-    this._context.video.addEventListener('loadeddata', this._loadedHandler);
-    this._context.video.addEventListener('error', this._errorHandler);
-    mediaSource.attach(this._context.video);
+    this._context.target.video.addEventListener('loadeddata', this._loadedHandler);
+    this._context.target.video.addEventListener('error', this._errorHandler);
+    mediaSource.attach(this._context.target.video);
   }
 
   public stop(): void {
@@ -117,12 +121,12 @@ export class MSEStreamSource implements StreamSource {
     this._unsubscribeCallbacks.forEach((unsubscribe) => unsubscribe());
     this._unsubscribeCallbacks = [];
 
-    this._context.video.removeEventListener('loadeddata', this._loadedHandler);
-    this._context.video.removeEventListener('error', this._errorHandler);
+    this._context.target.video.removeEventListener('loadeddata', this._loadedHandler);
+    this._context.target.video.removeEventListener('error', this._errorHandler);
 
     this._context.channel.setBinaryCallback(null);
 
-    this._mediaSource?.detach(this._context.video);
+    this._mediaSource?.detach(this._context.target.video);
     this._mediaSource = null;
 
     this._sourceBuffer = null;
@@ -133,7 +137,7 @@ export class MSEStreamSource implements StreamSource {
   public getCapabilities(): MediaLoadedCapabilities {
     return {
       supportsPause: true,
-      hasAudio: hasAudio(this._context.video, { mseCodecs: this._codecs }),
+      hasAudio: hasAudio(this._context.target.video, { mseCodecs: this._codecs }),
       has2WayAudio: false,
     };
   }
@@ -257,7 +261,7 @@ export class MSEStreamSource implements StreamSource {
       return;
     }
 
-    const video = this._context.video;
+    const video = this._context.target.video;
     const end = sourceBuffer.buffered.end(sourceBuffer.buffered.length - 1);
     this._trimSourceBuffer(mediaSource, sourceBuffer, end);
 
@@ -289,7 +293,7 @@ export class MSEStreamSource implements StreamSource {
     sourceBuffer: SourceBuffer,
     end: number,
   ): void {
-    const video = this._context.video;
+    const video = this._context.target.video;
     const retainedStart = end - RETAINED_BUFFER_SECONDS;
     const bufferedStart = sourceBuffer.buffered.start(0);
 

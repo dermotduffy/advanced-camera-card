@@ -6,10 +6,17 @@
   display: block;
 }
 
-video {
+video,
+img {
   @include media-layout.media-layout();
 
   width: 100%;
   height: 100%;
   display: block;
+
+  // The inactive surface is `?hidden` in the template (only the committed one
+  // is shown).
+  &[hidden] {
+    display: none;
+  }
 }

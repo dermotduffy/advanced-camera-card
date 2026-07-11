@@ -6,6 +6,10 @@ import type {
   UnsubscribeCallback,
 } from '../../../../types';
 
+// ===========================================================================
+// Control messages
+// ===========================================================================
+
 // go2rtc control messages are JSON text frames of this shape; media flows as
 // separate binary frames.
 export const go2RTCMessageSchema = z.object({
@@ -21,6 +25,10 @@ export type Go2RTCMessage = z.infer<typeof go2RTCMessageSchema>;
 export type MessageCallback = (message: Go2RTCMessage) => void;
 export type BinaryCallback = (data: ArrayBuffer) => void;
 
+// ===========================================================================
+// Signaling channel
+// ===========================================================================
+
 // A session's two parallel delivery paths: 'binary' (MSE/MP4/MJPEG media over
 // the WebSocket) and 'webrtc' (media over the peer connection).
 export type Lane = 'binary' | 'webrtc';
@@ -32,6 +40,43 @@ export interface StreamSourceChannel {
   subscribeToMessages(callback: MessageCallback): UnsubscribeCallback;
   setBinaryCallback(callback: BinaryCallback | null): void;
 }
+
+// ===========================================================================
+// Render targets
+// ===========================================================================
+
+// Surface vs Target: A "target" is where a source (binary vs webrtc) puts its
+// frames for one mode: a <video> element, or an <img> element (via a showFrame
+// callback). The component adds a media-player controller to a target to make a
+// fuller "surface" (see SessionSurfaces in session-controller.ts); it hands a
+// source only the target, never the surface, so a source cannot reach the
+// controller.
+
+// What a source renders onto: the real <video> for modes the browser plays
+// (MSE, WebRTC), or an image sink fed decoded frames for modes presented as a
+// sequence of still images (MP4, MJPEG).
+export interface VideoStreamTarget {
+  kind: 'video';
+  video: HTMLVideoElement;
+}
+
+// A frame is handed over as a Blob rather than exposing the raw <img> so the
+// object-URL lifecycle (create, revoke the previous) stays owned by the image
+// surface, not each source.
+export interface ImageStreamTarget {
+  kind: 'image';
+  showFrame(frame: Blob): void;
+}
+
+type StreamSourceTarget = VideoStreamTarget | ImageStreamTarget;
+
+// Which of the two render surfaces media is shown on: the real <video> or the
+// <img>. Matches the `kind` of the corresponding stream target.
+export type SurfaceKind = 'video' | 'image';
+
+// ===========================================================================
+// Stream sources
+// ===========================================================================
 
 // Describes a source's negotiated media, used to arbitrate the MSE-vs-WebRTC
 // race. The bit-weighted comparison lives in `utils/source-priority.ts`.
@@ -56,13 +101,13 @@ export type StreamSourceFailureReason =
   | 'server_error'
   | 'unsupported';
 
-interface StreamSourceCallbacks {
+export interface StreamSourceCallbacks {
   loadedCallback: () => void;
   failedCallback: (reason: StreamSourceFailureReason) => void;
 }
 
-export interface StreamSourceContext {
-  video: HTMLVideoElement;
+export interface StreamSourceContext<T extends StreamSourceTarget = StreamSourceTarget> {
+  target: T;
   channel: StreamSourceChannel;
   callbacks: StreamSourceCallbacks;
 }

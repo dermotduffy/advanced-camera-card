@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MSEStreamSource } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/sources/mse';
-import type { StreamSourceContext } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/types';
+import type {
+  StreamSourceContext,
+  VideoStreamTarget,
+} from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/types';
 import {
   CHROME_USER_AGENT,
   createFakeMediaSourceFactory,
@@ -21,8 +24,8 @@ describe('MSEStreamSource', () => {
     const channel = new FakeStreamSourceChannel();
     const loadedCallback = vi.fn();
     const failedCallback = vi.fn();
-    const context: StreamSourceContext = {
-      video,
+    const context: StreamSourceContext<VideoStreamTarget> = {
+      target: { kind: 'video', video },
       channel,
       callbacks: { loadedCallback, failedCallback },
     };

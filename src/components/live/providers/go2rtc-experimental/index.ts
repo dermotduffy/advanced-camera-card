@@ -6,11 +6,17 @@ import {
   type PropertyValues,
   type TemplateResult,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { Camera } from '../../../../camera-manager/camera.js';
-import { Go2RTCSessionController } from '../../../../components-lib/live/providers/go2rtc-experimental/session-controller.js';
+import { ImageSurfaceController } from '../../../../components-lib/live/providers/go2rtc-experimental/image-surface-controller.js';
+import {
+  Go2RTCSessionController,
+  type SessionSurfaces,
+  type VideoSurface,
+} from '../../../../components-lib/live/providers/go2rtc-experimental/session-controller.js';
+import type { SurfaceKind } from '../../../../components-lib/live/providers/go2rtc-experimental/types.js';
 import { mapFailureReasonToIssueReason } from '../../../../components-lib/live/providers/go2rtc-experimental/utils/failure-reason.js';
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
 import { MediaLoadedInfoSourceController } from '../../../../components-lib/media-loaded-info-source-controller.js';
@@ -58,13 +64,57 @@ export class AdvancedCameraCardGo2RTCExperimental
 
   private _hasLiveError = false;
 
+  // ===========================================================================
+  // Surface: Video
+  // ===========================================================================
   private _refVideo: Ref<HTMLVideoElement> = createRef();
 
-  private _mediaPlayerController = new VideoMediaPlayerController(
+  private _videoMediaPlayerController = new VideoMediaPlayerController(
     this,
     () => this._refVideo.value ?? null,
     () => this.controls,
   );
+
+  private _videoSurface: VideoSurface = {
+    getElement: () => this._refVideo.value ?? null,
+    getMediaPlayer: () => this._videoMediaPlayerController,
+  };
+
+  // ===========================================================================
+  // Surface: Image
+  // ===========================================================================
+
+  private _refImage: Ref<HTMLImageElement> = createRef();
+
+  // A controller rather than a plain object (unlike the video surface): the
+  // image surface owns state, the object-URL lifecycle -- each frame's
+  // createObjectURL and revoking the previous one.
+  private _imageSurface = new ImageSurfaceController(
+    this,
+    () => this._refImage.value ?? null,
+    {
+      livenessOptions: {
+        isFrameExpected: () => true,
+      },
+    },
+  );
+
+  // ===========================================================================
+  // Surface Management
+  // ===========================================================================
+
+  // The surface currently showing committed media, or null before anything has
+  // committed (both surfaces hidden). Driven by the session's
+  // surfaceCommittedCallback.
+  @state()
+  private _activeSurface: SurfaceKind | null = null;
+
+  // Built once and kept stable: the session compares this object by identity,
+  // so handing it a new one will trigger a reconnect.
+  private _surfaces: SessionSurfaces = {
+    video: this._videoSurface,
+    image: this._imageSurface,
+  };
 
   private _signedURLController = new SignedURLController(this, () => {
     const endpoint = this.camera?.getEndpoints()?.go2rtc;
@@ -85,9 +135,12 @@ export class AdvancedCameraCardGo2RTCExperimental
 
   private _session = new Go2RTCSessionController({
     getControls: () => this.controls,
-    getMediaPlayerController: () => this._mediaPlayerController,
     getCardWideConfig: () => this.cardWideConfig ?? null,
     mediaLoadedCallback: (info) => this._mediaLoadedInfoSourceController.set(info),
+
+    surfaceCommittedCallback: (surface) => {
+      this._activeSurface = surface;
+    },
 
     // The session could not recover the stream on its own; surface it (with the
     // failure's user-facing cause) so the card's media-load retry (reconnecting
@@ -97,7 +150,9 @@ export class AdvancedCameraCardGo2RTCExperimental
   });
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
-    return this._mediaPlayerController;
+    return this._activeSurface === 'image'
+      ? this._imageSurface.getMediaPlayer()
+      : this._videoMediaPlayerController;
   }
 
   connectedCallback(): void {
@@ -112,14 +167,17 @@ export class AdvancedCameraCardGo2RTCExperimental
     // Tear down synchronously so streams (e.g. 2-way audio backchannels)
     // release immediately.
     this._session.reset();
+    this._activeSurface = null;
     super.disconnectedCallback();
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('camera')) {
       // The session is re-established by `updated()` once the new camera's
-      // signed URL resolves.
+      // signed URL resolves; the next commit picks the live surface. Blank the
+      // view meanwhile so the previous camera's last frame is not shown.
       this._session.reset();
+      this._activeSurface = null;
     }
 
     // Only treat a missing go2rtc endpoint as an error after the camera's
@@ -134,7 +192,8 @@ export class AdvancedCameraCardGo2RTCExperimental
     this._hasLiveError = hasLiveError;
 
     if (changedProps.has('controls')) {
-      this._mediaPlayerController.setControls(this.controls).catch(() => {});
+      // Only the video surface has native controls; the image surface has none.
+      this._videoMediaPlayerController.setControls(this.controls).catch(() => {});
     }
 
     if (changedProps.has('microphoneStream')) {
@@ -144,10 +203,13 @@ export class AdvancedCameraCardGo2RTCExperimental
   }
 
   protected updated(): void {
-    const video = this._refVideo.value ?? null;
     const url = this._signedURLController.getValue();
-    if (video && url) {
-      this._session.connect(url, video, this.camera?.getConfig()?.go2rtc?.modes);
+    if (url) {
+      this._session.connect(
+        url,
+        this._surfaces,
+        this.camera?.getConfig()?.go2rtc?.modes,
+      );
     }
   }
 
@@ -165,19 +227,27 @@ export class AdvancedCameraCardGo2RTCExperimental
       });
     }
 
+    // Both image and video surfaces are always rendered; only the committed one
+    // is shown (the other, and both before anything commits, are hidden). MSE
+    // and WebRTC play on the <video>; MP4 and MJPEG show frames on the <img>.
+    //
     // Muted is bound as a property: Chrome ignores the `muted` content
     // attribute on videos instantiated from cloned templates (as Lit does), so
     // an attribute would not actually start the video muted. Media may be
     // unmuted later in accordance with user configuration.
-    return html`<video
-      ${ref(this._refVideo)}
-      .muted=${true}
-      playsinline
-      preload="auto"
-      @play=${() => dispatchMediaPlayEvent(this)}
-      @pause=${() => dispatchMediaPauseEvent(this)}
-      @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
-    ></video>`;
+    return html`
+      <video
+        ${ref(this._refVideo)}
+        .muted=${true}
+        ?hidden=${this._activeSurface !== 'video'}
+        playsinline
+        preload="auto"
+        @play=${() => dispatchMediaPlayEvent(this)}
+        @pause=${() => dispatchMediaPauseEvent(this)}
+        @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
+      ></video>
+      <img ${ref(this._refImage)} ?hidden=${this._activeSurface !== 'image'} alt="" />
+    `;
   }
 
   static get styles(): CSSResultGroup {

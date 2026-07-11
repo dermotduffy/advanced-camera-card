@@ -1,12 +1,12 @@
 import { OffscreenVideo, type VideoElementFactory } from '../offscreen-video';
-import type { Go2RTCMessage, StreamSourceContext } from '../types';
+import type { Go2RTCMessage, ImageStreamTarget, StreamSourceContext } from '../types';
 import { arrayBufferToBase64 } from '../utils/base64';
 import {
   convertToCodecString,
   GO2RTC_CODECS,
   selectSupportedCodecs,
 } from '../utils/codecs';
-import { PosterStreamSource } from './poster';
+import { ImageFrameStreamSource } from './image-frame';
 
 type CanvasElementFactory = () => HTMLCanvasElement;
 
@@ -18,14 +18,17 @@ interface MP4StreamSourceOptions {
 // Each binary frame is a standalone MP4 holding one keyframe. Unlike JPEG it
 // cannot be shown directly, so it is decoded in an off-screen video and drawn
 // to a canvas to produce the image.
-export class MP4StreamSource extends PosterStreamSource {
+export class MP4StreamSource extends ImageFrameStreamSource {
   protected _mode = 'mp4' as const;
 
   private _decoder: OffscreenVideo;
   private _createCanvasElement: CanvasElementFactory;
   private _canvas: HTMLCanvasElement | null = null;
 
-  constructor(context: StreamSourceContext, options?: MP4StreamSourceOptions) {
+  constructor(
+    context: StreamSourceContext<ImageStreamTarget>,
+    options?: MP4StreamSourceOptions,
+  ) {
     super(context);
 
     const createVideo =
@@ -44,13 +47,17 @@ export class MP4StreamSource extends PosterStreamSource {
   }
 
   protected _getRequestMessage(): Go2RTCMessage {
+    // Codec support is probed on the decoder video, since that is what plays
+    // the incoming MP4 frames; the image surface onto which this is rendered
+    // has has no video element of its own.
+    const decoder = this._decoder.get();
     return {
       type: 'mp4',
       value: convertToCodecString(
         selectSupportedCodecs(
           GO2RTC_CODECS,
           { audio: false, video: true },
-          (mimeType) => !!this._context.video.canPlayType(mimeType),
+          (mimeType) => !!decoder.canPlayType(mimeType),
         ),
       ),
     };
@@ -81,6 +88,10 @@ export class MP4StreamSource extends PosterStreamSource {
     }
 
     context.drawImage(decoder, 0, 0, canvas.width, canvas.height);
-    this._showPoster(canvas.toDataURL('image/jpeg'));
+    canvas.toBlob((frame) => {
+      if (frame) {
+        this._showFrame(frame);
+      }
+    }, 'image/jpeg');
   }
 }

@@ -25,6 +25,7 @@ import { SignalingChannel, type WebSocketFactory } from './signaling';
 import {
   createBinarySource,
   createWebRTCSource,
+  type BinarySource,
   type BinarySourceFactory,
   type WebRTCSourceFactory,
 } from './sources/factory';
@@ -34,12 +35,14 @@ import type {
   StreamSource,
   StreamSourceContext,
   StreamSourceFailureReason,
+  SurfaceKind,
+  VideoStreamTarget,
 } from './types';
 import { getPreferredSource } from './utils/source-priority';
 
 // Preference order for modes that stream binary media over the WebSocket; the
 // protocol permits only one such mode per connection, tried in this order with
-// fallback (real video first w/MSE, then the poster-slideshow fallbacks).
+// fallback (real video first with MSE, then the MP4/MJPEG image fallbacks).
 // WebRTC is not here: it carries no WebSocket binary and runs in parallel with
 // the chosen binary mode. The configured modes select membership, not order.
 const BINARY_MODE_PRECEDENCE: readonly Go2RTCMode[] = ['mse', 'mp4', 'mjpeg'];
@@ -54,11 +57,39 @@ const BINARY_MODE_PRECEDENCE: readonly Go2RTCMode[] = ['mse', 'mp4', 'mjpeg'];
 const RECONNECT_INTERVAL_SECONDS = 2;
 const RECONNECT_MAX_ATTEMPTS = 3;
 
+// The two render surfaces the session commits onto. The component owns the
+// elements and the media-player controllers; the session drives which one is
+// live and reports it back via surfaceCommittedCallback.
+export interface VideoSurface {
+  getElement(): HTMLVideoElement | null;
+  getMediaPlayer(): MediaPlayerController;
+}
+
+export interface ImageSurface {
+  getElement(): HTMLImageElement | null;
+  getMediaPlayer(): MediaPlayerController;
+
+  // Frames are handed over as Blobs through this callback rather than the
+  // session setting `img.src` itself. The implementation (ImageSurfaceController)
+  // creates each frame's object URL and revokes the previous one; the session
+  // only ever holds Blobs, so it cannot leak URLs.
+  showFrame(frame: Blob): void;
+  reset(): void;
+}
+
+export interface SessionSurfaces {
+  video: VideoSurface;
+  image: ImageSurface;
+}
+
 interface Go2RTCSessionCallbacks {
   getControls: () => boolean;
-  getMediaPlayerController: () => MediaPlayerController | null;
   getCardWideConfig: () => CardWideConfig | null;
   mediaLoadedCallback: (info: UntargetedMediaLoadedInfo) => void;
+
+  // The lane that just committed is live on this surface (the component shows
+  // it and hides the other).
+  surfaceCommittedCallback: (surface: SurfaceKind) => void;
 
   // The session has exhausted its own quick reconnects and cannot recover the
   // stream; a higher level should take over (e.g. the card's media-load retry).
@@ -81,13 +112,14 @@ interface Go2RTCSessionOptions {
   userAgent?: string;
 }
 
-// Everything belonging to one WebSocket connection attempt. Handlers capture
-// this rather than reading session fields so a stale connection's events cannot
-// act on a newer connection.
+// One WebSocket connection attempt: its channel and URL, plus a reference to
+// the render surfaces to draw onto (the surfaces outlive any single attempt).
+// Handlers capture this rather than reading session fields so a stale
+// connection's events cannot act on a newer connection.
 interface ConnectionContext {
   channel: SignalingChannel;
   url: string;
-  video: HTMLVideoElement;
+  surfaces: SessionSurfaces;
 }
 
 // Coordinates one go2rtc streaming session. A "binary" lane (MSE, MP4/MJPEG)
@@ -101,12 +133,15 @@ export class Go2RTCSessionController {
 
   private _channel: SignalingChannel | null = null;
   private _url: string | null = null;
-  private _video: HTMLVideoElement | null = null;
+  private _surfaces: SessionSurfaces | null = null;
   private _modes: readonly Go2RTCMode[] = GO2RTC_MODES;
   private _microphoneStream: MediaStream | null = null;
 
-  // Binary lane.
-  private _binarySource: StreamSource | null = null;
+  // Binary lane: the active source paired with the surface it renders on (mse
+  // -> video, MP4/MJPEG -> image). Kept as one unit because the factory returns
+  // them together and they are read together when the source commits. Null when
+  // no binary source is running.
+  private _binary: BinarySource | null = null;
 
   // Queue of fallback modes not yet tried on this connection, in precedence
   // order. Starting a binary source consumes the head; teardown empties the
@@ -120,11 +155,16 @@ export class Go2RTCSessionController {
   // WebRTC lane races a binary lane.
   private _offscreenVideo: OffscreenVideo;
 
-  // The committed lane: the one whose media is live on the real video element
-  // and has reported as loaded; null before anything loads or once the lanes
-  // are torn down. Failure handling reads it to distinguish a committed (live)
-  // stream dying from a losing racer being dropped.
+  // The committed lane: the one whose media is live (on the video or image
+  // surface) and has reported as loaded; null before anything loads or once the
+  // lanes are torn down. Failure handling reads it to distinguish a committed
+  // (live) stream dying from a losing racer being dropped.
   private _committedLane: Lane | null = null;
+
+  // The surface currently showing committed media; null before anything commits
+  // or once torn down. On a surface switch (e.g. MSE falls back to MP4, or a
+  // WebRTC win over an MJPEG image) the outgoing surface is reset.
+  private _committedSurface: SurfaceKind | null = null;
 
   // Unsubscriber for the listener on the committed WebRTC stream's audio
   // tracks. Should a WebRTC track's mute state change after load, the listener
@@ -152,14 +192,18 @@ export class Go2RTCSessionController {
   // Public API.
   // ===========================================================================
 
-  public connect(url: string, video: HTMLVideoElement, modes?: Go2RTCMode[]): void {
+  // The `surfaces` object identifies the session target: the same object means
+  // "keep the established session" (so callers may invoke this on every render),
+  // a new object means "reset and reconnect". Callers must therefore hold one
+  // stable surfaces object for as long as the target is unchanged, and hand over
+  // a fresh one (or `reset()` first) if they ever remount the underlying
+  // elements.
+  public connect(url: string, surfaces: SessionSurfaces, modes?: Go2RTCMode[]): void {
     const normalizedModes: readonly Go2RTCMode[] = modes?.length ? modes : GO2RTC_MODES;
 
-    // Idempotent for an unchanged target so callers may invoke this on every
-    // render without disturbing an established session or a pending reconnect.
     if (
       this._url === url &&
-      this._video === video &&
+      this._surfaces === surfaces &&
       isEqual(this._modes, normalizedModes)
     ) {
       return;
@@ -168,10 +212,10 @@ export class Go2RTCSessionController {
     this.reset();
 
     this._url = url;
-    this._video = video;
+    this._surfaces = surfaces;
     this._modes = normalizedModes;
 
-    this._connectChannel(url, video);
+    this._connectChannel(url, surfaces);
   }
 
   public reset(): void {
@@ -182,16 +226,15 @@ export class Go2RTCSessionController {
     this._channel?.close();
     this._channel = null;
 
-    if (this._video) {
-      this._video.srcObject = null;
-      this._video.src = '';
-
-      // Clear any still frame left on the poster by an MP4/MJPEG source.
-      this._video.poster = '';
+    const video = this._surfaces?.video.getElement();
+    if (video) {
+      video.srcObject = null;
+      video.src = '';
     }
+    this._surfaces?.image.reset();
 
     this._url = null;
-    this._video = null;
+    this._surfaces = null;
   }
 
   public setMicrophoneStream(stream: MediaStream | null): void {
@@ -207,13 +250,14 @@ export class Go2RTCSessionController {
     this._teardownBinaryLane();
     this._teardownWebRTCLane();
     this._committedLane = null;
+    this._committedSurface = null;
   }
 
   // ===========================================================================
   // Signaling channel lifecycle.
   // ===========================================================================
 
-  private _connectChannel(url: string, video: HTMLVideoElement): void {
+  private _connectChannel(url: string, surfaces: SessionSurfaces): void {
     // The open/close callbacks reference `channel`, the very constant this
     // `new` expression is being assigned to. That is safe because the callbacks
     // fire on asynchronous WebSocket events, which cannot happen before the
@@ -221,8 +265,8 @@ export class Go2RTCSessionController {
     const channel: SignalingChannel = new SignalingChannel(
       convertToWebSocketURL(url),
       {
-        openCallback: () => this._handleOpen({ channel, url, video }),
-        disconnectCallback: () => this._handleClose({ channel, url, video }),
+        openCallback: () => this._handleOpen({ channel, url, surfaces }),
+        disconnectCallback: () => this._handleClose({ channel, url, surfaces }),
       },
       { createWebSocket: this._options?.createWebSocket },
     );
@@ -235,10 +279,10 @@ export class Go2RTCSessionController {
       this._modes.includes(mode),
     );
 
-    // A binary lane plays directly on the real video element, so while both
-    // lanes race, WebRTC decodes into a separate off-screen video element
-    // (see OffscreenVideo) where its stream can be evaluated. With no
-    // binary lane the real video element is available, so WebRTC attaches to it
+    // While a binary lane races, WebRTC decodes into a separate off-screen video
+    // element (see OffscreenVideo) where its stream can be evaluated without
+    // contending for the real <video> that an MSE binary lane plays on. With no
+    // binary lane the real video element is free, so WebRTC attaches to it
     // directly; that also avoids decoding into an element outside the document,
     // which has been implicated in Firefox WebRTC failures. See
     // https://github.com/dermotduffy/advanced-camera-card/issues/2222
@@ -277,21 +321,35 @@ export class Go2RTCSessionController {
       return;
     }
 
+    // No element to render onto (the surface was detached); abandon the lane.
+    const video = context.surfaces.video.getElement();
+    if (!video) {
+      return;
+    }
+
     // The callbacks capture the source's own identity so a retired source
     // (stopped, replaced or reset) cannot act on the session. The variable is
     // declared before the factory call so callbacks fired during construction
     // see null and are ignored.
     let source: StreamSource | null = null;
-    const sourceContext: StreamSourceContext = {
-      video: context.video,
-      channel: context.channel,
-      callbacks: {
+
+    const binarySource = (this._options?.createBinarySource ?? createBinarySource)(
+      mode,
+      {
+        video: { kind: 'video', video },
+        image: {
+          kind: 'image',
+          showFrame: (frame) => context.surfaces.image.showFrame(frame),
+        },
+      },
+      context.channel,
+      {
         loadedCallback: () => {
           if (source) {
             this._handleBinaryLoaded(context, source);
           }
         },
-        failedCallback: (reason) => {
+        failedCallback: (reason: StreamSourceFailureReason) => {
           if (source) {
             this._lastFailureReason = reason;
             this._logSourceFailure('binary', reason, mode);
@@ -299,41 +357,38 @@ export class Go2RTCSessionController {
           }
         },
       },
-    };
-
-    source = (this._options?.createBinarySource ?? createBinarySource)(
-      mode,
-      sourceContext,
       {
         createMediaSource: this._options?.createMediaSource,
         userAgent: this._options?.userAgent,
       },
     );
-    if (!source) {
+    if (!binarySource) {
       this._startNextBinarySource(context);
       return;
     }
 
-    this._binarySource = source;
+    source = binarySource.source;
+    this._binary = binarySource;
     source.start();
   }
 
   private _handleBinaryLoaded(context: ConnectionContext, source: StreamSource): void {
-    if (source !== this._binarySource) {
+    const binary = this._binary;
+    if (!binary || source !== binary.source) {
       return;
     }
 
     this._committedLane = 'binary';
-    this._reportCommittedLoad(context.video, source);
+    this._reportCommittedLoad(context, binary.surface, source);
   }
 
   private _handleBinaryFailed(context: ConnectionContext, source: StreamSource): void {
-    if (source !== this._binarySource) {
+    if (source !== this._binary?.source) {
       return;
     }
 
     source.stop();
-    this._binarySource = null;
+    this._binary = null;
 
     if (this._committedLane === 'binary') {
       this._committedLane = null;
@@ -344,9 +399,9 @@ export class Go2RTCSessionController {
 
   private _teardownBinaryLane(): void {
     // Clear the current-source identity before stopping, so any callback fired
-    // synchronously by stop() fails its `!== this._binarySource` guard.
-    const source = this._binarySource;
-    this._binarySource = null;
+    // synchronously by stop() fails its `!== this._binary?.source` guard.
+    const source = this._binary?.source;
+    this._binary = null;
     this._binaryModes = [];
 
     source?.stop();
@@ -360,11 +415,22 @@ export class Go2RTCSessionController {
     context: ConnectionContext,
     useOffscreenVideo: boolean,
   ): void {
-    const decodeVideo = useOffscreenVideo ? this._offscreenVideo.get() : context.video;
+    // While racing a binary lane, decode into the off-screen element; otherwise
+    // decode straight onto the real video (absent it, there is nothing to do).
+    let decodeVideo: HTMLVideoElement;
+    if (useOffscreenVideo) {
+      decodeVideo = this._offscreenVideo.get();
+    } else {
+      const video = context.surfaces.video.getElement();
+      if (!video) {
+        return;
+      }
+      decodeVideo = video;
+    }
 
     let source: WebRTCStreamSource | null = null;
-    const sourceContext: StreamSourceContext = {
-      video: decodeVideo,
+    const sourceContext: StreamSourceContext<VideoStreamTarget> = {
+      target: { kind: 'video', video: decodeVideo },
       channel: context.channel,
       callbacks: {
         loadedCallback: () => {
@@ -410,7 +476,7 @@ export class Go2RTCSessionController {
     }
 
     // There is video on both the 'binary' and 'webrtc' lane -- choose a winner.
-    const binary = this._binarySource;
+    const binary = this._binary?.source ?? null;
     const winner = binary
       ? getPreferredSource(source.getStreamProfile(), binary.getStreamProfile())
       : 'webrtc';
@@ -427,8 +493,9 @@ export class Go2RTCSessionController {
     // attached to that element (below) only after, never before.
     this._teardownBinaryLane();
     const stream = source.getMediaStream();
-    if (stream) {
-      context.video.srcObject = stream;
+    const video = context.surfaces.video.getElement();
+    if (video && stream) {
+      video.srcObject = stream;
     }
 
     // Report the media-loaded frame size from the off-screen video element
@@ -457,7 +524,10 @@ export class Go2RTCSessionController {
       // reconnect (which restarts every configured mode, letting a binary lane
       // take over) or escalate via the error callback.
       this._committedLane = null;
-      context.video.srcObject = null;
+      const video = context.surfaces.video.getElement();
+      if (video) {
+        video.srcObject = null;
+      }
 
       this._closeChannelAndReconnect(context);
     } else {
@@ -485,7 +555,7 @@ export class Go2RTCSessionController {
     this._channel = null;
 
     this._setupAudioMuteRedispatch(context, source);
-    this._reportCommittedLoad(context.video, source, dimensionsVideo);
+    this._reportCommittedLoad(context, 'video', source, dimensionsVideo);
   }
 
   private _setupAudioMuteRedispatch(
@@ -499,7 +569,7 @@ export class Go2RTCSessionController {
     // stream (and its dimensions) by the time any such change occurs.
     this._audioTracksMuteStateUnsubscribeCallback = addAudioTracksMuteStateListener(
       source.getPeerConnection(),
-      () => this._dispatchMediaLoaded(context.video, source),
+      () => this._dispatchMediaLoaded(context, 'video', source),
     );
   }
 
@@ -535,7 +605,7 @@ export class Go2RTCSessionController {
   // ===========================================================================
 
   private _maybeReconnectIfLanesDead(context: ConnectionContext): void {
-    if (!this._binarySource && !this._webRTCSource && !this._binaryModes.length) {
+    if (!this._binary && !this._webRTCSource && !this._binaryModes.length) {
       this._closeChannelAndReconnect(context);
     }
   }
@@ -553,7 +623,7 @@ export class Go2RTCSessionController {
       this._callbacks.errorCallback(this._lastFailureReason);
       return;
     }
-    this._retryTimer.schedule(() => this._connectChannel(context.url, context.video));
+    this._retryTimer.schedule(() => this._connectChannel(context.url, context.surfaces));
   }
 
   // ===========================================================================
@@ -561,35 +631,68 @@ export class Go2RTCSessionController {
   // ===========================================================================
 
   // A lane just committed with live media: the connection has proven healthy, so
-  // reset the fast-reconnect budget, briefly hide the controls so they do not
-  // flash over the freshly loaded media, then report the load.
+  // reset the fast-reconnect budget, hand the newly live surface to the
+  // component (resetting the one being left behind), briefly hide the video
+  // controls so they do not flash over the freshly loaded media, then report the
+  // load with the committed surface's controller.
   private _reportCommittedLoad(
-    video: HTMLVideoElement,
+    context: ConnectionContext,
+    surface: SurfaceKind,
     source: StreamSource,
     dimensionsVideo?: HTMLVideoElement,
   ): void {
     this._retryTimer.reset();
     this._lastFailureReason = null;
 
-    if (this._callbacks.getControls()) {
+    if (this._committedSurface && this._committedSurface !== surface) {
+      this._resetSurface(context, this._committedSurface);
+    }
+    this._committedSurface = surface;
+    this._callbacks.surfaceCommittedCallback(surface);
+
+    const video = context.surfaces.video.getElement();
+
+    if (surface === 'video' && this._callbacks.getControls() && video) {
       hideMediaControlsTemporarily(video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
     }
 
-    this._dispatchMediaLoaded(video, source, dimensionsVideo);
+    this._dispatchMediaLoaded(context, surface, source, dimensionsVideo);
+  }
+
+  private _resetSurface(context: ConnectionContext, surface: SurfaceKind): void {
+    if (surface === 'image') {
+      context.surfaces.image.reset();
+      return;
+    }
+    const video = context.surfaces.video.getElement();
+    if (video) {
+      video.srcObject = null;
+      video.src = '';
+    }
   }
 
   private _dispatchMediaLoaded(
-    video: HTMLVideoElement,
+    context: ConnectionContext,
+    surface: SurfaceKind,
     source: StreamSource,
-    // Element to read the frame size from; defaults to `video`. Differs only
-    // when `video` was just handed a stream and has not decoded a frame yet
-    // (WebRTC committed from the off-screen video), so its size must come from
-    // it.
+    // Element to read the frame size from; used only for the video surface and
+    // defaults to the video-surface element. Differs when that element was just
+    // handed a stream and has not decoded a frame yet (WebRTC committed from the
+    // off-screen video), so its size must come from that off-screen element.
     dimensionsVideo?: HTMLVideoElement,
   ): void {
-    const mediaPlayerController = this._callbacks.getMediaPlayerController();
-    const info = createMediaLoadedInfo(dimensionsVideo ?? video, {
-      ...(mediaPlayerController && { mediaPlayerController }),
+    const targetSurface =
+      surface === 'video' ? context.surfaces.video : context.surfaces.image;
+    const dimensionsElement =
+      surface === 'video'
+        ? dimensionsVideo ?? context.surfaces.video.getElement()
+        : context.surfaces.image.getElement();
+    if (!dimensionsElement) {
+      return;
+    }
+
+    const info = createMediaLoadedInfo(dimensionsElement, {
+      mediaPlayerController: targetSurface.getMediaPlayer(),
       capabilities: source.getCapabilities(),
       technology: source.getTechnology(),
     });

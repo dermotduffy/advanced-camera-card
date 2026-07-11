@@ -1,45 +1,50 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { MJPEGStreamSource } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/sources/mjpeg';
-import type { StreamSourceContext } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/types';
+import type {
+  ImageStreamTarget,
+  StreamSourceContext,
+} from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/types';
 import { FakeStreamSourceChannel } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('MJPEGStreamSource', () => {
   const setup = () => {
-    const video = document.createElement('video');
     const channel = new FakeStreamSourceChannel();
     const loadedCallback = vi.fn();
     const failedCallback = vi.fn();
+    const showFrame = vi.fn();
 
-    const context: StreamSourceContext = {
-      video,
+    const context: StreamSourceContext<ImageStreamTarget> = {
+      target: { kind: 'image', showFrame },
       channel,
       callbacks: { loadedCallback, failedCallback },
     };
     const source = new MJPEGStreamSource(context);
 
-    return { channel, failedCallback, loadedCallback, source, video };
+    return { channel, failedCallback, loadedCallback, showFrame, source };
   };
 
   const frame = (): ArrayBuffer => new TextEncoder().encode('Hi').buffer;
 
-  it('should disable controls and request the mjpeg stream on start', () => {
-    const { source, channel, video } = setup();
-    video.controls = true;
+  it('should request the mjpeg stream on start', () => {
+    const { source, channel } = setup();
     source.start();
 
-    expect(video.controls).toBe(false);
     expect(channel.sent).toEqual([{ type: 'mjpeg' }]);
     expect(channel.binaryCallback).not.toBeNull();
   });
 
-  it('should show each frame as a JPEG poster', () => {
-    const { source, channel, video } = setup();
+  it('should show each frame as a JPEG image', () => {
+    const { source, channel, showFrame } = setup();
     source.start();
     channel.binaryCallback?.(frame());
 
-    expect(video.poster).toContain('data:image/jpeg;base64,SGk=');
+    expect(showFrame).toBeCalledTimes(1);
+    const shown = showFrame.mock.calls[0][0] as Blob;
+    expect(shown).toBeInstanceOf(Blob);
+    expect(shown.type).toBe('image/jpeg');
+    expect(shown.size).toBe(2);
   });
 
   it('should report loaded only on the first frame', () => {

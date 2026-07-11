@@ -11,8 +11,8 @@ import type {
 import { screenshotImage } from '../../utils/screenshot';
 import { FrameStallWatchdog } from './frame-stall-watchdog';
 
-// A pausable update loop the controller owns (e.g. a poll-refresh timer). Its
-// presence makes the image player pausable.
+// A pausable update loop the controller owns (e.g. an image refreshed on a
+// timer). Its presence makes the image player pausable.
 export interface ImageUpdateControl {
   start(): void;
   stop(): void;
@@ -20,16 +20,18 @@ export interface ImageUpdateControl {
 }
 
 // Liveness for an image stream: each <img> `load` is a frame; a gap longer than
-// the window while frames are expected is a stall. Poll and push both use this,
-// differing only in the window (a poll must allow at least its refresh interval).
-export interface ImageLivenessOptions {
+// the window while frames are expected is a stall. `stallWindowSeconds`
+// defaults to the standard frame-stall window (suits a push-fed stream); a
+// timer-refreshed image may set a different one, should be at least its refresh
+// interval.
+interface ImageLivenessOptions {
   isFrameExpected: () => boolean;
-  stallWindowSeconds: number;
+  stallWindowSeconds?: number;
 }
 
-// Obtaining a screenshot. Defaults to drawing the current <img>; a poll-based
-// image source can hand back its cached URL instead.
-export type ImageScreenshotProvider = () => Promise<string | null>;
+// Obtaining a screenshot. Defaults to drawing the current <img>; an image
+// refreshed on a timer can hand back its cached URL instead.
+type ImageScreenshotProvider = () => Promise<string | null>;
 
 interface ImageMediaPlayerControllerOptions {
   updateControl?: ImageUpdateControl;
@@ -37,16 +39,7 @@ interface ImageMediaPlayerControllerOptions {
   screenshotProvider?: ImageScreenshotProvider;
 }
 
-// One image player, composed from optional capabilities:
-//   - `updateControl` -> a pausable loop (poll). Without it the image is not
-//     pausable and `playback` is absent.
-//   - `livenessOptions` -> frame observation via the <img> `load` event (poll or
-//     push).
-//     Without it `subscribeLiveness` is absent, so the capability is not falsely
-//     advertised to the liveness detector.
-//   - `screenshotProvider` -> an alternate screenshot source (e.g. poll's
-//     cached URL).
-// A static image supplies none of them.
+// Image player composed from opt-in capabilities.
 export class ImageMediaPlayerController implements MediaPlayerController {
   private _host: LitElement;
   private _getImageCallback: () => HTMLImageElement | null;

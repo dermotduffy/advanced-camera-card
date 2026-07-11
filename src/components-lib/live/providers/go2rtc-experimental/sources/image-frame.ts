@@ -4,27 +4,27 @@ import type {
   MediaTechnology,
   UnsubscribeCallback,
 } from '../../../../../types';
-import { setControlsOnVideo } from '../../../../../utils/controls';
 import type {
   Go2RTCMessage,
+  ImageStreamTarget,
   StreamProfile,
   StreamSource,
   StreamSourceContext,
 } from '../types';
 import { isServerErrorForMode } from '../utils/messages';
 
-// Base for the modes that present a stream as a sequence of still images on the
-// video's `poster` (MJPEG, MP4): both receive binary frames and turn each into
-// a `data:` URL poster, differing only in the request message and the per-frame
+// Base for the modes that present a stream as a sequence of still images fed to
+// the image surface (MJPEG, MP4): both receive binary frames and turn each into
+// a single-image Blob, differing only in the request message and the per-frame
 // conversion. These are last-resort fallbacks: no audio, no "real" playback.
-export abstract class PosterStreamSource implements StreamSource {
-  protected _context: StreamSourceContext;
+export abstract class ImageFrameStreamSource implements StreamSource {
+  protected _context: StreamSourceContext<ImageStreamTarget>;
 
   private _loaded = false;
 
   private _unsubscribe: UnsubscribeCallback | null = null;
 
-  constructor(context: StreamSourceContext) {
+  constructor(context: StreamSourceContext<ImageStreamTarget>) {
     this._context = context;
   }
 
@@ -33,9 +33,6 @@ export abstract class PosterStreamSource implements StreamSource {
   protected abstract _handleFrame(data: ArrayBuffer): void;
 
   public start(): void {
-    // Image based streams have no meaningful playback controls.
-    setControlsOnVideo(this._context.video, false);
-
     this._unsubscribe = this._context.channel.subscribeToMessages((message) => {
       if (isServerErrorForMode(message, this._mode)) {
         this._context.callbacks.failedCallback('server_error');
@@ -66,8 +63,8 @@ export abstract class PosterStreamSource implements StreamSource {
   }
 
   // Show a rendered frame and, on the first one, report the stream loaded.
-  protected _showPoster(dataURL: string): void {
-    this._context.video.poster = dataURL;
+  protected _showFrame(frame: Blob): void {
+    this._context.target.showFrame(frame);
 
     if (!this._loaded) {
       this._loaded = true;

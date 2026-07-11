@@ -15,6 +15,7 @@ import type {
   StreamProfile,
   StreamSource,
   StreamSourceContext,
+  VideoStreamTarget,
 } from '../types';
 import { isServerErrorForMode } from '../utils/messages';
 import { sdpHasH265 } from '../utils/webrtc-sdp';
@@ -44,7 +45,7 @@ interface WebRTCStreamSourceOptions {
 }
 
 export class WebRTCStreamSource implements StreamSource {
-  private _context: StreamSourceContext;
+  private _context: StreamSourceContext<VideoStreamTarget>;
   private _stream: MediaStream | null = null;
   private _pc: RTCPeerConnection | null = null;
 
@@ -63,7 +64,10 @@ export class WebRTCStreamSource implements StreamSource {
     this._context.callbacks.loadedCallback();
   };
 
-  constructor(context: StreamSourceContext, options?: WebRTCStreamSourceOptions) {
+  constructor(
+    context: StreamSourceContext<VideoStreamTarget>,
+    options?: WebRTCStreamSourceOptions,
+  ) {
     this._context = context;
     this._createPeerConnection =
       options?.createPeerConnection ?? createBrowserPeerConnection;
@@ -124,7 +128,7 @@ export class WebRTCStreamSource implements StreamSource {
     this._unsubscribeCallbacks.forEach((unsubscribe) => unsubscribe());
     this._unsubscribeCallbacks = [];
 
-    this._context.video.removeEventListener('loadeddata', this._loadedHandler);
+    this._context.target.video.removeEventListener('loadeddata', this._loadedHandler);
     if (this._pc) {
       // pc.close() does not stop the sender's tracks, so the outbound microphone
       // track keeps running. That is deliberate: MicrophoneManager owns the mic
@@ -137,7 +141,7 @@ export class WebRTCStreamSource implements StreamSource {
 
     // The transceiver belonged to the now-closed peer connection.
     this._microphoneTransceiver = null;
-    this._context.video.srcObject = null;
+    this._context.target.video.srcObject = null;
     this._stream = null;
   }
 
@@ -152,7 +156,7 @@ export class WebRTCStreamSource implements StreamSource {
   public getCapabilities(): MediaLoadedCapabilities {
     return {
       supportsPause: true,
-      hasAudio: hasAudio(this._context.video, { pc: this._pc }),
+      hasAudio: hasAudio(this._context.target.video, { pc: this._pc }),
       has2WayAudio: has2WayAudio(this._pc),
     };
   }
@@ -272,9 +276,9 @@ export class WebRTCStreamSource implements StreamSource {
     const stream = this._createMediaStream(tracks);
     this._stream = stream;
 
-    this._context.video.addEventListener('loadeddata', this._loadedHandler, {
+    this._context.target.video.addEventListener('loadeddata', this._loadedHandler, {
       once: true,
     });
-    this._context.video.srcObject = stream;
+    this._context.target.video.srcObject = stream;
   }
 }

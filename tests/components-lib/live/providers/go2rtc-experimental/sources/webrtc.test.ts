@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { WebRTCStreamSource } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/sources/webrtc';
-import type { StreamSourceContext } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/types';
+import type {
+  StreamSourceContext,
+  VideoStreamTarget,
+} from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/types';
 import { flushPromises } from '../../../../../test-utils';
 import {
   FakeMediaStream,
@@ -18,8 +21,8 @@ describe('WebRTCStreamSource', () => {
     const loadedCallback = vi.fn();
     const failedCallback = vi.fn();
 
-    const context: StreamSourceContext = {
-      video,
+    const context: StreamSourceContext<VideoStreamTarget> = {
+      target: { kind: 'video', video },
       channel,
       callbacks: { loadedCallback, failedCallback },
     };
@@ -349,7 +352,7 @@ describe('WebRTCStreamSource', () => {
       const pc = new FakeRTCPeerConnection();
       const source = new WebRTCStreamSource(
         {
-          video,
+          target: { kind: 'video', video },
           channel,
           callbacks: { loadedCallback: vi.fn(), failedCallback: vi.fn() },
         },
