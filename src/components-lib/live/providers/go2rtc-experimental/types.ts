@@ -117,6 +117,7 @@ export interface StreamSourceContext<T extends StreamSourceTarget = StreamSource
 // readiness or failure via callbacks; connection management and failure
 // recovery belong to the session not the source.
 export interface StreamSource {
+  // Single-use: start() begins the source and stop() tears it down for good.
   start(): void;
   stop(): void;
 

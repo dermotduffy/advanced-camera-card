@@ -186,6 +186,17 @@ describe('WebRTCStreamSource', () => {
       expect(channel.sent).toContainEqual({ type: 'webrtc/candidate', value: '' });
     });
 
+    it('should not send a candidate after stop', () => {
+      const { source, channel, pc } = setup();
+      source.start();
+      source.stop();
+
+      const sentBefore = channel.sent.length;
+      pc.fireIceCandidate('candidate:1 1 udp 2 1.2.3.4 5 typ host');
+
+      expect(channel.sent).toHaveLength(sentBefore);
+    });
+
     it('should apply the server answer', () => {
       const { source, channel, pc } = setup();
       source.start();

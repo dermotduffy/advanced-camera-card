@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MJPEGStreamSource } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/sources/mjpeg';
 import type {
@@ -107,6 +107,42 @@ describe('MJPEGStreamSource', () => {
       hasH265Video: false,
       hasAudio: false,
       hasAACAudio: false,
+    });
+  });
+
+  describe('first-frame timeout', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should fail when no frame arrives within the timeout', () => {
+      const { source, failedCallback } = setup();
+      source.start();
+      vi.advanceTimersByTime(5 * 1000);
+
+      expect(failedCallback).toBeCalledWith('connect_timeout');
+    });
+
+    it('should not fail once a frame has arrived', () => {
+      const { source, channel, failedCallback } = setup();
+      source.start();
+      channel.binaryCallback?.(frame());
+      vi.advanceTimersByTime(5 * 1000);
+
+      expect(failedCallback).not.toBeCalled();
+    });
+
+    it('should not fail after stop', () => {
+      const { source, failedCallback } = setup();
+      source.start();
+      source.stop();
+      vi.advanceTimersByTime(5 * 1000);
+
+      expect(failedCallback).not.toBeCalled();
     });
   });
 });

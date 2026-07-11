@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MP4StreamSource } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/sources/mp4';
 import type {
@@ -57,6 +57,14 @@ describe('MP4StreamSource', () => {
   };
 
   const frame = (): ArrayBuffer => new TextEncoder().encode('Hi').buffer;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
 
   it('should request the mp4 stream on start', () => {
     const { source, channel } = setup();
@@ -148,6 +156,48 @@ describe('MP4StreamSource', () => {
 
     expect(decoderVideo.hasAttribute('src')).toBe(false);
     expect(channel.binaryCallback).toBeNull();
+  });
+
+  it('should not show a frame decoded after stop', () => {
+    const { source, channel, decoderVideo, showFrame } = setup();
+    source.start();
+    channel.binaryCallback?.(frame());
+    source.stop();
+
+    // A frame whose decode completes after stop() must not reach the image
+    // surface.
+    decoderVideo.dispatchEvent(new Event('loadeddata'));
+
+    expect(showFrame).not.toBeCalled();
+  });
+
+  describe('first-frame timeout', () => {
+    it('should fail when no frame arrives within the timeout', () => {
+      const { source, failedCallback } = setup();
+      source.start();
+      vi.advanceTimersByTime(5 * 1000);
+
+      expect(failedCallback).toBeCalledWith('connect_timeout');
+    });
+
+    it('should not fail once a frame has been drawn', () => {
+      const { source, channel, decoderVideo, failedCallback } = setup();
+      source.start();
+      channel.binaryCallback?.(frame());
+      decoderVideo.dispatchEvent(new Event('loadeddata'));
+      vi.advanceTimersByTime(5 * 1000);
+
+      expect(failedCallback).not.toBeCalled();
+    });
+
+    it('should not fail after stop', () => {
+      const { source, failedCallback } = setup();
+      source.start();
+      source.stop();
+      vi.advanceTimersByTime(5 * 1000);
+
+      expect(failedCallback).not.toBeCalled();
+    });
   });
 
   it('should report mp4 technology', () => {

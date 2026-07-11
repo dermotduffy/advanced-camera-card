@@ -93,6 +93,13 @@ export class WebRTCStreamSource implements StreamSource {
     pc.addTransceiver('audio', { direction: 'recvonly' });
 
     pc.addEventListener('icecandidate', (ev) => {
+      // A late candidate from a superseded connection (e.g. after stop(), if
+      // WebRTC has lost the race) must not send on the channel a binary lane
+      // may still be using.
+      if (this._pc !== pc) {
+        return;
+      }
+
       // An empty value signals end-of-candidates, which the server accepts.
       this._context.channel.send({
         type: 'webrtc/candidate',

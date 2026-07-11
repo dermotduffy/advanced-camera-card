@@ -166,6 +166,12 @@ export class Go2RTCSessionController {
   // WebRTC win over an MJPEG image) the outgoing surface is reset.
   private _committedSurface: SurfaceKind | null = null;
 
+  // The source whose media is committed; null before anything commits or once
+  // torn down. A source can re-report loaded (e.g. a <video> re-fires
+  // loadeddata on a mid-stream resolution change), so this distinguishes a
+  // fresh commit from a repeated load.
+  private _committedSource: StreamSource | null = null;
+
   // Unsubscriber for the listener on the committed WebRTC stream's audio
   // tracks. Should a WebRTC track's mute state change after load, the listener
   // sends the card a fresh media-loaded info so its audio capabilities reflect
@@ -251,6 +257,7 @@ export class Go2RTCSessionController {
     this._teardownWebRTCLane();
     this._committedLane = null;
     this._committedSurface = null;
+    this._committedSource = null;
   }
 
   // ===========================================================================
@@ -641,6 +648,16 @@ export class Go2RTCSessionController {
     source: StreamSource,
     dimensionsVideo?: HTMLVideoElement,
   ): void {
+    if (source === this._committedSource) {
+      // The same source re-reporting (e.g. a mid-stream resolution change
+      // re-fires the video's loadeddata): the surface and controls are already
+      // set up, so only refresh the reported media dimensions. Re-running the
+      // control hide would leak its loadstart listener on each repeat.
+      this._dispatchMediaLoaded(context, surface, source, dimensionsVideo);
+      return;
+    }
+    this._committedSource = source;
+
     this._retryTimer.reset();
     this._lastFailureReason = null;
 

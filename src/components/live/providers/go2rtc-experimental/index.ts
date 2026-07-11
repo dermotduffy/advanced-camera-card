@@ -210,6 +210,14 @@ export class AdvancedCameraCardGo2RTCExperimental
         this._surfaces,
         this.camera?.getConfig()?.go2rtc?.modes,
       );
+    } else {
+      // No usable URL: a signing/proxy error, or no go2rtc endpoint (which
+      // includes endpoints still loading). The render omits the surfaces, so
+      // drop the session -- otherwise a later URL, even an identical unsigned
+      // endpoint, would be skipped by connect()'s identity check and leave the
+      // session bound to the removed elements.
+      this._session.reset();
+      this._activeSurface = null;
     }
   }
 

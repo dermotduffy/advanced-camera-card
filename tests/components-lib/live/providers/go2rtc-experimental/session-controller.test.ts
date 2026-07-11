@@ -447,6 +447,38 @@ describe('Go2RTCSessionController', () => {
       vi.advanceTimersByTime(2 * 1000);
       expect(video.controls).toBe(true);
     });
+
+    it('should refresh dimensions but not re-commit when the same source reloads', () => {
+      const {
+        session,
+        surfaces,
+        video,
+        websockets,
+        binaryContexts,
+        mediaLoadedCallback,
+        surfaceCommittedCallback,
+      } = setup();
+      session.connect('http://host/api/ws?src=camera', surfaces, ['mse']);
+      websockets[0].fireOpen();
+
+      Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+      Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+      binaryContexts[0].callbacks.loadedCallback();
+
+      // A mid-stream resolution change re-fires loadeddata with new dimensions.
+      Object.defineProperty(video, 'videoWidth', { value: 1920, configurable: true });
+      Object.defineProperty(video, 'videoHeight', { value: 1080, configurable: true });
+      binaryContexts[0].callbacks.loadedCallback();
+
+      // Committed once, but the reload refreshed the reported dimensions.
+      expect(surfaceCommittedCallback).toBeCalledTimes(1);
+      expect(mediaLoadedCallback.mock.calls[0][0]).toEqual(
+        expect.objectContaining({ width: 640, height: 480 }),
+      );
+      expect(mediaLoadedCallback.mock.calls[1][0]).toEqual(
+        expect.objectContaining({ width: 1920, height: 1080 }),
+      );
+    });
   });
 
   describe('webrtc as only source', () => {

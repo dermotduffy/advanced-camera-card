@@ -4,6 +4,7 @@ import type {
   MediaTechnology,
   UnsubscribeCallback,
 } from '../../../../../types';
+import { Timer } from '../../../../../utils/timer';
 import type {
   Go2RTCMessage,
   ImageStreamTarget,
@@ -13,6 +14,12 @@ import type {
 } from '../types';
 import { isServerErrorForMode } from '../utils/messages';
 
+// Fail if no frame arrives within this window. The channel is open and the mode
+// was requested, but the server may send neither a frame nor an error, so
+// without this the source would hang silently instead of failing over. Mirrors
+// the MSE negotiation and WebRTC connect timeouts.
+const FIRST_FRAME_TIMEOUT_SECONDS = 5;
+
 // Base for the modes that present a stream as a sequence of still images fed to
 // the image surface (MJPEG, MP4): both receive binary frames and turn each into
 // a single-image Blob, differing only in the request message and the per-frame
@@ -21,6 +28,9 @@ export abstract class ImageFrameStreamSource implements StreamSource {
   protected _context: StreamSourceContext<ImageStreamTarget>;
 
   private _loaded = false;
+  private _stopped = false;
+
+  private _firstFrameTimer = new Timer();
 
   private _unsubscribe: UnsubscribeCallback | null = null;
 
@@ -33,6 +43,13 @@ export abstract class ImageFrameStreamSource implements StreamSource {
   protected abstract _handleFrame(data: ArrayBuffer): void;
 
   public start(): void {
+    // Arm before wiring up the channel: a synchronous channel could deliver the
+    // first frame during send(), which must be able to stop an already-armed
+    // timer rather than have start() arm one that never stops.
+    this._firstFrameTimer.start(FIRST_FRAME_TIMEOUT_SECONDS, () =>
+      this._context.callbacks.failedCallback('connect_timeout'),
+    );
+
     this._unsubscribe = this._context.channel.subscribeToMessages((message) => {
       if (isServerErrorForMode(message, this._mode)) {
         this._context.callbacks.failedCallback('server_error');
@@ -43,6 +60,8 @@ export abstract class ImageFrameStreamSource implements StreamSource {
   }
 
   public stop(): void {
+    this._stopped = true;
+    this._firstFrameTimer.stop();
     this._unsubscribe?.();
     this._unsubscribe = null;
     this._context.channel.setBinaryCallback(null);
@@ -64,10 +83,18 @@ export abstract class ImageFrameStreamSource implements StreamSource {
 
   // Show a rendered frame and, on the first one, report the stream loaded.
   protected _showFrame(frame: Blob): void {
+    // MP4 turns each frame into a Blob asynchronously (canvas.toBlob), so a
+    // frame can arrive here after stop(). Drop it so a stopped source never
+    // writes to the shared image surface or reports a stale load.
+    if (this._stopped) {
+      return;
+    }
+
     this._context.target.showFrame(frame);
 
     if (!this._loaded) {
       this._loaded = true;
+      this._firstFrameTimer.stop();
       this._context.callbacks.loadedCallback();
     }
   }
