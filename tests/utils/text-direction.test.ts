@@ -23,4 +23,25 @@ describe('getTextDirection', () => {
 
     expect(getTextDirection(element)).toBe('ltr');
   });
+
+  it('should return ltr for a null element', () => {
+    expect(() => getTextDirection(null)).not.toThrow();
+    expect(getTextDirection(null)).toBe('ltr');
+  });
+
+  it('should return ltr for an undefined element', () => {
+    expect(() => getTextDirection(undefined)).not.toThrow();
+    expect(getTextDirection(undefined)).toBe('ltr');
+  });
+
+  it('should return ltr for an element with no document view', () => {
+    // A document created via `createHTMLDocument` has no browsing context, so
+    // its `defaultView` is null -- mirroring a disconnected element on mobile
+    // whose view has been torn down. `getComputedStyle` would throw here.
+    const element = document.implementation.createHTMLDocument('').createElement('div');
+    element.style.direction = 'rtl';
+
+    expect(() => getTextDirection(element)).not.toThrow();
+    expect(getTextDirection(element)).toBe('ltr');
+  });
 });
