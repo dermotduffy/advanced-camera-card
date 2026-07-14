@@ -241,6 +241,7 @@ export class FakeMediaSourceInstance implements MediaSourceInterface {
   public attach = vi.fn();
   public detach = vi.fn();
   public setLiveSeekableRange = vi.fn();
+  public isOpen = vi.fn<[], boolean>(() => true);
   public isTypeSupported = vi.fn<[string], boolean>(() => true);
   public addSourceBuffer = vi.fn<[string], SourceBuffer>(() =>
     this.sourceBuffer.asSourceBuffer(),

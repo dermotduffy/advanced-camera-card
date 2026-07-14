@@ -5,6 +5,7 @@ import type {
   ImageStreamTarget,
   StreamSourceContext,
 } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/types';
+import { flushPromises } from '../../../../../test-utils';
 import { FakeStreamSourceChannel } from '../test-utils';
 
 class FakeCanvasContext {
@@ -31,7 +32,7 @@ describe('MP4StreamSource', () => {
     const channel = new FakeStreamSourceChannel();
     const loadedCallback = vi.fn();
     const failedCallback = vi.fn();
-    const showFrame = vi.fn();
+    const showFrame = vi.fn<[Blob], Promise<void>>(() => Promise.resolve());
     const context: StreamSourceContext<ImageStreamTarget> = {
       target: { kind: 'image', showFrame },
       channel,
@@ -94,11 +95,12 @@ describe('MP4StreamSource', () => {
     expect(createVideoElement).toBeCalledTimes(1);
   });
 
-  it('should draw a decoded frame and show it as an image', () => {
+  it('should draw a decoded frame and show it as an image', async () => {
     const { source, channel, decoderVideo, canvas, showFrame, loadedCallback } = setup();
     source.start();
     channel.binaryCallback?.(frame());
     decoderVideo.dispatchEvent(new Event('loadeddata'));
+    await flushPromises();
 
     expect(canvas.context?.drawImage).toBeCalled();
     expect(showFrame).toBeCalledTimes(1);
@@ -108,7 +110,7 @@ describe('MP4StreamSource', () => {
     expect(loadedCallback).toBeCalledTimes(1);
   });
 
-  it('should report loaded only on the first drawn frame', () => {
+  it('should report loaded only on the first drawn frame', async () => {
     const { source, channel, decoderVideo, loadedCallback } = setup();
     source.start();
 
@@ -116,6 +118,7 @@ describe('MP4StreamSource', () => {
 
     decoderVideo.dispatchEvent(new Event('loadeddata'));
     decoderVideo.dispatchEvent(new Event('loadeddata'));
+    await flushPromises();
 
     expect(loadedCallback).toBeCalledTimes(1);
   });

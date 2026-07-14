@@ -90,7 +90,8 @@ export class MP4StreamSource extends ImageFrameStreamSource {
     context.drawImage(decoder, 0, 0, canvas.width, canvas.height);
     canvas.toBlob((frame) => {
       if (frame) {
-        this._showFrame(frame);
+        /* istanbul ignore next: This never rejects; the catch satisfies the no-floating-promises -- @preserve */
+        this._showFrame(frame).catch(() => {});
       }
     }, 'image/jpeg');
   }

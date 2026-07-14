@@ -21,6 +21,13 @@ const ALL_CHROME_CODECS =
 describe('MSEStreamSource', () => {
   const setup = (options?: { userAgent?: string; unsupported?: boolean }) => {
     const video = document.createElement('video');
+    // jsdom reports a fresh <video> as paused; live playback is the default
+    // state under test, and the live-edge logic only runs while playing.
+    Object.defineProperty(video, 'paused', {
+      configurable: true,
+      writable: true,
+      value: false,
+    });
     const channel = new FakeStreamSourceChannel();
     const loadedCallback = vi.fn();
     const failedCallback = vi.fn();
@@ -300,6 +307,22 @@ describe('MSEStreamSource', () => {
       expect(setupResult.instance.setLiveSeekableRange).not.toBeCalled();
     });
 
+    it('should not trim after the media source has closed', () => {
+      const setupResult = setup();
+      negotiate(setupResult);
+      const sourceBuffer = setupResult.instance.sourceBuffer;
+      sourceBuffer.buffered = createTimeRanges([[0, 20]]);
+      setupResult.video.currentTime = 19;
+
+      // A queued updateend fires after the source detaches on reconnect: its
+      // duration is NaN, so remove() would throw. The trim must be skipped.
+      setupResult.instance.isOpen.mockReturnValue(false);
+      sourceBuffer.fireUpdateEnd();
+
+      expect(sourceBuffer.remove).not.toBeCalled();
+      expect(setupResult.instance.setLiveSeekableRange).not.toBeCalled();
+    });
+
     it('should trim media behind the retained window', () => {
       const setupResult = setup();
       negotiate(setupResult);
@@ -308,8 +331,9 @@ describe('MSEStreamSource', () => {
       setupResult.video.currentTime = 19;
       sourceBuffer.fireUpdateEnd();
 
-      expect(sourceBuffer.remove).toBeCalledWith(0, 15);
-      expect(setupResult.instance.setLiveSeekableRange).toBeCalledWith(15, 20);
+      // Retains the last 15s (end 20 -> retainedStart 5).
+      expect(sourceBuffer.remove).toBeCalledWith(0, 5);
+      expect(setupResult.instance.setLiveSeekableRange).toBeCalledWith(5, 20);
     });
 
     it('should not trim when all media is within the retained window', () => {
@@ -323,7 +347,7 @@ describe('MSEStreamSource', () => {
       expect(sourceBuffer.remove).not.toBeCalled();
     });
 
-    it('should snap playback into the retained window', () => {
+    it('should not move the playhead when it falls behind the window', () => {
       const setupResult = setup();
       negotiate(setupResult);
       const sourceBuffer = setupResult.instance.sourceBuffer;
@@ -331,7 +355,9 @@ describe('MSEStreamSource', () => {
       setupResult.video.currentTime = 2;
       sourceBuffer.fireUpdateEnd();
 
-      expect(setupResult.video.currentTime).toBe(15);
+      // The trim no longer snaps the playhead forward; a playhead behind the
+      // window is caught up by rate (or, on resume, a jump), not dragged.
+      expect(setupResult.video.currentTime).toBe(2);
     });
 
     it('should raise the playback rate when lag rises above the stream norm', () => {
@@ -376,38 +402,102 @@ describe('MSEStreamSource', () => {
       expect(setupResult.video.playbackRate).toBe(1);
     });
 
-    it('should jump to the live edge on WebKit instead of changing the rate', () => {
+    it('should seek forward to the hold-back on WebKit instead of changing the rate', () => {
       const setupResult = setup({ userAgent: SAFARI_17_USER_AGENT });
       negotiate(setupResult);
       const sourceBuffer = setupResult.instance.sourceBuffer;
-      sourceBuffer.buffered = createTimeRanges([[12, 20]]);
-      setupResult.video.currentTime = 16;
+      sourceBuffer.buffered = createTimeRanges([[10, 20]]);
+      setupResult.video.currentTime = 13;
       sourceBuffer.fireUpdateEnd();
 
-      expect(setupResult.video.currentTime).toBe(19.25);
+      // Default GOP 1s -> hold-back 3s; a 7s lag is far behind, so seek to
+      // bufferedEnd - 3 rather than changing the rate.
+      expect(setupResult.video.currentTime).toBe(17);
       expect(setupResult.video.playbackRate).toBe(1);
     });
 
-    it('should respect the jump cooldown on WebKit', () => {
+    it('should seek back to the hold-back when starving at the live edge on WebKit', () => {
       const setupResult = setup({ userAgent: SAFARI_17_USER_AGENT });
       negotiate(setupResult);
       const sourceBuffer = setupResult.instance.sourceBuffer;
-      sourceBuffer.buffered = createTimeRanges([[12, 20]]);
-      setupResult.video.currentTime = 16;
+      sourceBuffer.buffered = createTimeRanges([[10, 20]]);
+      setupResult.video.currentTime = 19.5;
       sourceBuffer.fireUpdateEnd();
 
-      expect(setupResult.video.currentTime).toBe(19.25);
+      // Within a GOP of the edge -> seek back to bufferedEnd - hold-back.
+      expect(setupResult.video.currentTime).toBe(17);
+    });
+
+    it('should respect the forward-seek cooldown on WebKit', () => {
+      const setupResult = setup({ userAgent: SAFARI_17_USER_AGENT });
+      negotiate(setupResult);
+      const sourceBuffer = setupResult.instance.sourceBuffer;
+      sourceBuffer.buffered = createTimeRanges([[10, 20]]);
+      setupResult.video.currentTime = 13;
+      sourceBuffer.fireUpdateEnd();
+
+      expect(setupResult.video.currentTime).toBe(17);
 
       // Fall behind again immediately: within the cooldown there is no second
-      // jump.
-      setupResult.video.currentTime = 16;
+      // seek.
+      setupResult.video.currentTime = 13;
       sourceBuffer.fireUpdateEnd();
-      expect(setupResult.video.currentTime).toBe(16);
+      expect(setupResult.video.currentTime).toBe(13);
 
-      // After the cooldown the jump resumes.
+      // After the cooldown the forward seek resumes.
       vi.advanceTimersByTime(6 * 1000);
       sourceBuffer.fireUpdateEnd();
+      expect(setupResult.video.currentTime).toBe(17);
+    });
+
+    it('should trim but not chase the live edge while paused', () => {
+      const setupResult = setup();
+      negotiate(setupResult);
+      Object.defineProperty(setupResult.video, 'paused', {
+        configurable: true,
+        value: true,
+      });
+      const sourceBuffer = setupResult.instance.sourceBuffer;
+      sourceBuffer.buffered = createTimeRanges([[0, 20]]);
+      setupResult.video.currentTime = 2;
+      setupResult.video.playbackRate = 1;
+      sourceBuffer.fireUpdateEnd();
+
+      // Trim still bounds memory, but the playhead and rate are left untouched.
+      expect(sourceBuffer.remove).toBeCalled();
+      expect(setupResult.video.currentTime).toBe(2);
+      expect(setupResult.video.playbackRate).toBe(1);
+    });
+
+    it('should jump to the live edge on resume', () => {
+      const setupResult = setup();
+      negotiate(setupResult);
+      setupResult.instance.sourceBuffer.buffered = createTimeRanges([[10, 20]]);
+      setupResult.video.currentTime = 12;
+      setupResult.video.dispatchEvent(new Event('play'));
+
+      // Jumps to bufferedEnd - 0.75.
       expect(setupResult.video.currentTime).toBe(19.25);
+    });
+
+    it('should not jump on resume when already near the live edge', () => {
+      const setupResult = setup();
+      negotiate(setupResult);
+      setupResult.instance.sourceBuffer.buffered = createTimeRanges([[10, 20]]);
+      setupResult.video.currentTime = 19.5;
+      setupResult.video.dispatchEvent(new Event('play'));
+
+      // Lag (0.5s) is under the resume threshold, so the playhead is left alone.
+      expect(setupResult.video.currentTime).toBe(19.5);
+    });
+
+    it('should ignore resume before any media is buffered', () => {
+      const setupResult = setup();
+      negotiate(setupResult);
+      setupResult.video.currentTime = 5;
+      setupResult.video.dispatchEvent(new Event('play'));
+
+      expect(setupResult.video.currentTime).toBe(5);
     });
   });
 

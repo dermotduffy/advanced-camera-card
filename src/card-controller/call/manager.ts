@@ -1,6 +1,7 @@
 import { createNotificationFromText } from '../../components-lib/notification/factory';
 import type { ConditionStateChange } from '../../condition-trigger/conditions/types';
 import { localize } from '../../localize/localize';
+import { Generation } from '../../utils/concurrency/generation';
 import { Timer } from '../../utils/timer';
 import { getStreamCameraID } from '../../view/substream';
 import type { View } from '../../view/view';
@@ -22,7 +23,7 @@ export class CallManager {
   // resumed tail leaks audio onto the shared lock from an instance the user
   // can no longer see or control, and may install state into a fresh
   // lifecycle from a request that belongs to the previous one.
-  private _initEpoch = 0;
+  private _initGeneration = new Generation();
 
   constructor(api: CardCallAPI) {
     this._api = api;
@@ -103,7 +104,7 @@ export class CallManager {
       return false;
     }
 
-    const initEpoch = this._initEpoch;
+    const initGeneration = this._initGeneration.current();
     const microphoneConnected = await this._connectMicrophone();
     // If the init/uninit lifecycle advanced while the microphone connect was
     // in flight, this request belongs to a previous lifecycle -- the view we
@@ -111,7 +112,7 @@ export class CallManager {
     // clean teardown path for state we'd install here. Bail before touching
     // `_call`, the ringtone lock, or surfacing a notification onto a torn-down
     // NotificationManager.
-    if (initEpoch !== this._initEpoch) {
+    if (!this._initGeneration.isCurrent(initGeneration)) {
       return false;
     }
     if (!microphoneConnected) {
@@ -241,7 +242,7 @@ export class CallManager {
   //
   // Safe to re-initialize afterwards via `initialize()`.
   public uninitialize(): void {
-    this._initEpoch++;
+    this._initGeneration.invalidate();
     this._ringtone.stop();
     this._unansweredTimer.stop();
     if (this._call) {

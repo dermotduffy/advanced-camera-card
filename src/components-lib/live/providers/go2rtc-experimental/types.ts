@@ -62,10 +62,12 @@ export interface VideoStreamTarget {
 
 // A frame is handed over as a Blob rather than exposing the raw <img> so the
 // object-URL lifecycle (create, revoke the previous) stays owned by the image
-// surface, not each source.
+// surface, not each source. The returned promise resolves once the frame has
+// decoded, so a source can defer reporting itself loaded until the surface has
+// real dimensions.
 export interface ImageStreamTarget {
   kind: 'image';
-  showFrame(frame: Blob): void;
+  showFrame(frame: Blob): Promise<void>;
 }
 
 type StreamSourceTarget = VideoStreamTarget | ImageStreamTarget;

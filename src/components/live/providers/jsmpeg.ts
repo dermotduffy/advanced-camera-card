@@ -14,7 +14,7 @@ import type { Camera } from '../../../camera-manager/camera.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import { MediaLoadedInfoSourceController } from '../../../components-lib/media-loaded-info-source-controller.js';
 import { JSMPEGMediaPlayerController } from '../../../components-lib/media-player/jsmpeg.js';
-import { createNotificationFromText } from '../../../components-lib/notification/factory.js';
+import { createMediaNotification } from '../../../components-lib/notification/media.js';
 import type { Notification } from '../../../config/schema/actions/types.js';
 import type { CardWideConfig } from '../../../config/schema/types.js';
 import { homeAssistantGetSignedURLIfNecessary } from '../../../ha/sign-path.js';
@@ -58,6 +58,10 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
+
+  // The camera's title, shown in error messages to identify the camera.
+  @property({ attribute: false })
+  public cameraTitle?: string;
 
   @state()
   private _notification: Notification | null = null;
@@ -194,10 +198,11 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
 
     const endpoint = this.camera?.getEndpoints()?.jsmpeg;
     if (!endpoint) {
-      this._notification = createNotificationFromText(
-        localize('error.live_camera_no_endpoint'),
-        { context: this.camera?.getConfig() },
-      );
+      this._notification = createMediaNotification({
+        title: localize('error.configuration_error'),
+        detail: localize('error.live_camera_no_endpoint'),
+        targetTitle: this.cameraTitle,
+      });
       dispatchLiveErrorEvent(this);
       return;
     }
@@ -215,8 +220,9 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
     const address = response ? convertToWebSocketURL(response) : null;
 
     if (!address) {
-      this._notification = createNotificationFromText(localize('error.failed_sign'), {
-        context: this.camera?.getConfig(),
+      this._notification = createMediaNotification({
+        title: localize('error.failed_sign'),
+        targetTitle: this.cameraTitle,
       });
       dispatchLiveErrorEvent(this);
       return;
@@ -239,10 +245,10 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
 
       if (!this._jsmpegVideoPlayer || !this._jsmpegCanvasElement) {
         if (!this._notification) {
-          this._notification = createNotificationFromText(
-            localize('error.jsmpeg_no_player'),
-            { context: this.camera?.getConfig() },
-          );
+          this._notification = createMediaNotification({
+            title: localize('error.jsmpeg_no_player'),
+            targetTitle: this.cameraTitle,
+          });
           dispatchLiveErrorEvent(this);
         }
         return;

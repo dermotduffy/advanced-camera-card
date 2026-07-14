@@ -16,7 +16,8 @@ import { query } from 'lit/decorators/query.js';
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../components-lib/media-player/video.js';
-import { renderNotificationBlockFromText } from '../components/notification/block.js';
+import { renderMediaNotification } from '../components/notification/media.js';
+import { localize } from '../localize/localize.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 import type { MediaPlayer, MediaPlayerController } from '../types.js';
 import { mayHaveAudio } from '../utils/audio.js';
@@ -72,8 +73,10 @@ void customElements.whenDefined('ha-hls-player').then(() => {
       if (this._error) {
         if (this._errorIsFatal) {
           dispatchLiveErrorEvent(this);
-          return renderNotificationBlockFromText(this._error, {
-            metadata: [{ text: this.entityid, icon: 'mdi:cctv' }],
+          return renderMediaNotification({
+            title: localize('issues.media_unavailable.reasons.playback_error'),
+            detail: this._error,
+            targetTitle: this.entityid,
           });
         } else {
           errorToConsole(this._error, console.error);

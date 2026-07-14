@@ -32,6 +32,9 @@ export interface MediaSourceInterface {
   // an open-ended live source.
   setLiveSeekableRange(startSeconds: number, endSeconds: number): void;
 
+  // Whether the source is still attached and accepting SourceBuffer operations.
+  isOpen(): boolean;
+
   // Whether a codec MIME string is playable.
   isTypeSupported(mimeType: string): boolean;
 }
@@ -61,6 +64,10 @@ abstract class MediaSourceInstanceBase implements MediaSourceInterface {
 
   public setLiveSeekableRange(startSeconds: number, endSeconds: number): void {
     this._mediaSource.setLiveSeekableRange(startSeconds, endSeconds);
+  }
+
+  public isOpen(): boolean {
+    return this._mediaSource.readyState === 'open';
   }
 }
 

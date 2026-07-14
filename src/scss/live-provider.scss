@@ -4,8 +4,24 @@
   position: relative;
 }
 
+// Until loaded media or a snapshot sizes the frame (the `sized` attribute),
+// nothing gives it a size, so reserve a default ratio to stop it collapsing.
+// Real media is never letterboxed into this ratio: the attribute is set the
+// moment it sizes the frame.
+:host(:not([sized])) {
+  aspect-ratio: 16 / 9;
+}
+
 .hidden {
   display: none;
+}
+
+// Fills the frame with a loading or error status when neither media nor a
+// snapshot is present (a provider renders only its own media, so the frame
+// would otherwise be blank).
+.fill {
+  position: absolute;
+  inset: 0;
 }
 
 advanced-camera-card-icon {

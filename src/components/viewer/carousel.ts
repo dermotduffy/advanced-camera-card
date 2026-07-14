@@ -38,7 +38,7 @@ import type { ViewMedia } from '../../view/item.js';
 import '../carousel';
 import '../next-prev-control.js';
 
-import { renderNoMedia } from '../notification/no-media.js';
+import { renderNoMediaNotification } from '../notification/media.js';
 
 import '../ptz.js';
 import './provider.js';
@@ -321,13 +321,15 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
   protected render(): TemplateResult | void {
     const mediaCount = this._media?.length ?? 0;
     if (!this._media || !mediaCount) {
-      return renderNoMedia({
-        cameraID:
-          this.viewFilterCameraID ??
-          this.viewManagerEpoch?.manager.getView()?.camera ??
-          null,
-        cameraManager: this.cameraManager ?? null,
-      });
+      return renderNoMediaNotification(
+        {
+          cameraID:
+            this.viewFilterCameraID ??
+            this.viewManagerEpoch?.manager.getView()?.camera ??
+            null,
+        },
+        this.cameraManager,
+      );
     }
 
     if (!this.hass || !this.cameraManager || this._selected === null) {

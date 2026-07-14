@@ -10,6 +10,7 @@ export class MJPEGStreamSource extends ImageFrameStreamSource {
   }
 
   protected _handleFrame(data: ArrayBuffer): void {
-    this._showFrame(new Blob([data], { type: 'image/jpeg' }));
+    /* istanbul ignore next: This never rejects; the catch satisfies the no-floating-promises -- @preserve */
+    this._showFrame(new Blob([data], { type: 'image/jpeg' })).catch(() => {});
   }
 }

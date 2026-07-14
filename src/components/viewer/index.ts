@@ -20,7 +20,7 @@ import '../../patches/ha-hls-player.js';
 
 import viewerStyle from '../../scss/viewer.scss';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
-import { renderNoMedia } from '../notification/no-media.js';
+import { renderNoMediaNotification } from '../notification/media.js';
 
 import './grid';
 
@@ -84,11 +84,13 @@ export class AdvancedCameraCardViewer extends LitElement {
       // Directly render an error message (instead of dispatching it upwards)
       // to preserve the mini-timeline if the user pans into an area with no
       // media.
-      return renderNoMedia({
-        cameraID: this.viewManagerEpoch.manager.getView()?.camera ?? null,
-        cameraManager: this.cameraManager ?? null,
-        loading: !!this.viewManagerEpoch.manager.getView()?.context?.loading?.query,
-      });
+      return renderNoMediaNotification(
+        {
+          cameraID: this.viewManagerEpoch.manager.getView()?.camera ?? null,
+          inProgress: !!this.viewManagerEpoch.manager.getView()?.context?.loading?.query,
+        },
+        this.cameraManager,
+      );
     }
 
     return html` <advanced-camera-card-viewer-grid

@@ -23,7 +23,8 @@ import {
   getCodecsForUserAgent,
   selectSupportedCodecs,
 } from '../utils/codecs';
-import { LiveEdgeTracker, type LiveEdgeAction } from '../utils/live-edge-tracker';
+import { LiveEdgeTracker } from '../utils/live-edge-tracker';
+import type { LiveEdgeAction } from '../utils/live-edge-tracker/types';
 import { isServerErrorForMode } from '../utils/messages';
 import { isWebKitUserAgent } from '../utils/user-agent';
 
@@ -37,8 +38,18 @@ import { isWebKitUserAgent } from '../utils/user-agent';
 // negotiation timeout has no counterpart there and is added by this
 // implementation.
 
-// Seconds of media retained behind the live edge; older media is trimmed.
-const RETAINED_BUFFER_SECONDS = 5;
+// Seconds of media retained behind the live edge; older media is trimmed. This
+// bounds memory even across a long pause (the buffer never grows past this
+// window), so a paused stream can hold its frame indefinitely.
+const RETAINED_BUFFER_SECONDS = 15;
+
+// On resume, if the playhead is more than this far behind the live edge, jump
+// forward to rejoin live rather than replaying the buffered-behind media.
+const LIVE_EDGE_RESUME_LAG_SECONDS = 1;
+
+// Where a live-edge jump lands, as a gap behind the buffered end (a small
+// cushion so playback does not immediately starve at the very edge).
+const LIVE_EDGE_JUMP_OFFSET_SECONDS = 0.75;
 
 // Bound on media staged while the SourceBuffer is busy; a stream that outruns
 // this is unrecoverable without a reconnect.
@@ -84,6 +95,19 @@ export class MSEStreamSource implements StreamSource {
     this._context.callbacks.failedCallback('media_error');
   };
 
+  // On resume, rejoin the very live edge.
+  private _playHandler = (): void => {
+    const sourceBuffer = this._sourceBuffer;
+    if (!sourceBuffer?.buffered.length) {
+      return;
+    }
+    const video = this._context.target.video;
+    const end = sourceBuffer.buffered.end(sourceBuffer.buffered.length - 1);
+    if (end - video.currentTime > LIVE_EDGE_RESUME_LAG_SECONDS) {
+      video.currentTime = end - LIVE_EDGE_JUMP_OFFSET_SECONDS;
+    }
+  };
+
   constructor(
     context: StreamSourceContext<VideoStreamTarget>,
     options?: MSEStreamSourceOptions,
@@ -112,6 +136,8 @@ export class MSEStreamSource implements StreamSource {
     );
     this._context.target.video.addEventListener('loadeddata', this._loadedHandler);
     this._context.target.video.addEventListener('error', this._errorHandler);
+    this._context.target.video.addEventListener('play', this._playHandler);
+
     mediaSource.attach(this._context.target.video);
   }
 
@@ -123,6 +149,7 @@ export class MSEStreamSource implements StreamSource {
 
     this._context.target.video.removeEventListener('loadeddata', this._loadedHandler);
     this._context.target.video.removeEventListener('error', this._errorHandler);
+    this._context.target.video.removeEventListener('play', this._playHandler);
 
     this._context.channel.setBinaryCallback(null);
 
@@ -251,6 +278,12 @@ export class MSEStreamSource implements StreamSource {
       return;
     }
 
+    // A queued updateend can fire after a reconnect or teardown has closed the
+    // MediaSource (detached from the video).
+    if (!mediaSource.isOpen()) {
+      return;
+    }
+
     const pending = this._pendingBuffer.shift();
     if (pending) {
       this._append(sourceBuffer, pending);
@@ -264,6 +297,14 @@ export class MSEStreamSource implements StreamSource {
     const video = this._context.target.video;
     const end = sourceBuffer.buffered.end(sourceBuffer.buffered.length - 1);
     this._trimSourceBuffer(mediaSource, sourceBuffer, end);
+
+    // While paused the user is holding a frame: leave the playhead alone (the
+    // trim above still bounds memory) and do not sample the growing lag, which
+    // would otherwise bias the catch-up rate once playback resumes. Resuming
+    // jumps back to the live edge (see the play handler).
+    if (video.paused) {
+      return;
+    }
 
     // Keep playback tracking the live edge as new media arrives.
     this._applyLiveEdgeAction(
@@ -286,24 +327,21 @@ export class MSEStreamSource implements StreamSource {
   }
 
   // Keep only the most recent RETAINED_BUFFER_SECONDS of media, trimming older
-  // media and re-declaring the seekable range; snap the playhead forward if it
-  // fell out of the retained window (e.g. after a background tab).
+  // media and re-declaring the seekable range. The playhead is never snapped
+  // here: while playing the live-edge tracker keeps it near the edge, and while
+  // paused it is left holding its frame (a playhead that falls past the lag
+  // bound is handled by a reconnect, not by dragging it forward).
   private _trimSourceBuffer(
     mediaSource: MediaSourceInterface,
     sourceBuffer: SourceBuffer,
     end: number,
   ): void {
-    const video = this._context.target.video;
     const retainedStart = end - RETAINED_BUFFER_SECONDS;
     const bufferedStart = sourceBuffer.buffered.start(0);
 
     if (retainedStart > bufferedStart) {
       sourceBuffer.remove(bufferedStart, retainedStart);
       mediaSource.setLiveSeekableRange(retainedStart, end);
-    }
-
-    if (video.currentTime < retainedStart) {
-      video.currentTime = retainedStart;
     }
   }
 }

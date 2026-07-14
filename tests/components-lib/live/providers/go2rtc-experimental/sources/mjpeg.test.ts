@@ -5,6 +5,7 @@ import type {
   ImageStreamTarget,
   StreamSourceContext,
 } from '../../../../../../src/components-lib/live/providers/go2rtc-experimental/types';
+import { flushPromises } from '../../../../../test-utils';
 import { FakeStreamSourceChannel } from '../test-utils';
 
 // @vitest-environment jsdom
@@ -13,7 +14,7 @@ describe('MJPEGStreamSource', () => {
     const channel = new FakeStreamSourceChannel();
     const loadedCallback = vi.fn();
     const failedCallback = vi.fn();
-    const showFrame = vi.fn();
+    const showFrame = vi.fn<[Blob], Promise<void>>(() => Promise.resolve());
 
     const context: StreamSourceContext<ImageStreamTarget> = {
       target: { kind: 'image', showFrame },
@@ -47,13 +48,34 @@ describe('MJPEGStreamSource', () => {
     expect(shown.size).toBe(2);
   });
 
-  it('should report loaded only on the first frame', () => {
+  it('should report loaded only on the first frame', async () => {
     const { source, channel, loadedCallback } = setup();
     source.start();
     channel.binaryCallback?.(frame());
     channel.binaryCallback?.(frame());
+    await flushPromises();
 
     expect(loadedCallback).toBeCalledTimes(1);
+  });
+
+  it('should not report loaded when stopped before the first frame decodes', async () => {
+    const { source, channel, loadedCallback, showFrame } = setup();
+    let resolveDecode: () => void = () => {};
+    showFrame.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveDecode = resolve;
+      }),
+    );
+    source.start();
+    channel.binaryCallback?.(frame());
+
+    // Stop before the frame's decode resolves; the deferred loaded report must
+    // then be dropped.
+    source.stop();
+    resolveDecode();
+    await flushPromises();
+
+    expect(loadedCallback).not.toBeCalled();
   });
 
   it('should fail on a server error for mjpeg', () => {

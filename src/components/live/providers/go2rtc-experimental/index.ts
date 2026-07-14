@@ -10,6 +10,10 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { Camera } from '../../../../camera-manager/camera.js';
+import {
+  MEDIA_UNAVAILABLE_REASONS,
+  type MediaUnavailableIssueReason,
+} from '../../../../card-controller/issues/issues/media-unavailable.js';
 import { ImageSurfaceController } from '../../../../components-lib/live/providers/go2rtc-experimental/image-surface-controller.js';
 import {
   Go2RTCSessionController,
@@ -33,7 +37,7 @@ import {
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
 } from '../../../../utils/media-info.js';
-import { renderNotificationBlockFromText } from '../../../notification/block.js';
+import { renderMediaNotification } from '../../../notification/media.js';
 
 @customElement('advanced-camera-card-live-go2rtc-experimental')
 export class AdvancedCameraCardGo2RTCExperimental
@@ -58,6 +62,10 @@ export class AdvancedCameraCardGo2RTCExperimental
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
+
+  // The camera's title, shown in error messages to identify the camera.
+  @property({ attribute: false })
+  public cameraTitle?: string;
 
   @property({ attribute: true, type: Boolean })
   public controls = false;
@@ -109,6 +117,9 @@ export class AdvancedCameraCardGo2RTCExperimental
   @state()
   private _activeSurface: SurfaceKind | null = null;
 
+  @state()
+  private _streamError: MediaUnavailableIssueReason | null = null;
+
   // Built once and kept stable: the session compares this object by identity,
   // so handing it a new one will trigger a reconnect.
   private _surfaces: SessionSurfaces = {
@@ -140,13 +151,19 @@ export class AdvancedCameraCardGo2RTCExperimental
 
     surfaceCommittedCallback: (surface) => {
       this._activeSurface = surface;
+
+      // A commit means the stream recovered: drop any prior error.
+      this._streamError = null;
     },
 
     // The session could not recover the stream on its own; surface it (with the
     // failure's user-facing cause) so the card's media-load retry (reconnecting
-    // indicator, backoff, give-up) runs and can name why.
-    errorCallback: (reason) =>
-      dispatchLiveErrorEvent(this, mapFailureReasonToIssueReason(reason)),
+    // indicator, backoff, give-up) runs and can name why. The provider renders
+    // the error itself (below); the event drives the liveness verdict + retry.
+    errorCallback: (reason) => {
+      this._streamError = mapFailureReasonToIssueReason(reason);
+      dispatchLiveErrorEvent(this, this._streamError);
+    },
   });
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
@@ -178,6 +195,7 @@ export class AdvancedCameraCardGo2RTCExperimental
       // view meanwhile so the previous camera's last frame is not shown.
       this._session.reset();
       this._activeSurface = null;
+      this._streamError = null;
     }
 
     // Only treat a missing go2rtc endpoint as an error after the camera's
@@ -224,14 +242,25 @@ export class AdvancedCameraCardGo2RTCExperimental
   protected render(): TemplateResult | void {
     const error = this._signedURLController.getError();
     if (error) {
-      return renderNotificationBlockFromText(
-        localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign'),
-        { context: this.camera?.getConfig() },
-      );
+      return renderMediaNotification({
+        title: localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign'),
+        targetTitle: this.cameraTitle,
+      });
     }
     if (!this.camera?.getEndpoints()?.go2rtc) {
-      return renderNotificationBlockFromText(localize('error.live_camera_no_endpoint'), {
-        context: this.camera?.getConfig(),
+      return renderMediaNotification({
+        title: localize('error.configuration_error'),
+        detail: localize('error.live_camera_no_endpoint'),
+        targetTitle: this.cameraTitle,
+      });
+    }
+    if (this._streamError) {
+      // A stream-level failure the session gave up on: the provider must render
+      // its own error (marked in-progress, since the card keeps retrying).
+      return renderMediaNotification({
+        icon: MEDIA_UNAVAILABLE_REASONS[this._streamError].icon,
+        title: localize(MEDIA_UNAVAILABLE_REASONS[this._streamError].localizationKey),
+        targetTitle: this.cameraTitle,
       });
     }
 

@@ -72,8 +72,9 @@ export interface ImageSurface {
   // Frames are handed over as Blobs through this callback rather than the
   // session setting `img.src` itself. The implementation (ImageSurfaceController)
   // creates each frame's object URL and revokes the previous one; the session
-  // only ever holds Blobs, so it cannot leak URLs.
-  showFrame(frame: Blob): void;
+  // only ever holds Blobs, so it cannot leak URLs. The returned promise resolves
+  // once the frame has decoded (real dimensions are then available).
+  showFrame(frame: Blob): Promise<void>;
   reset(): void;
 }
 

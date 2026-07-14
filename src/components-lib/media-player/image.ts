@@ -135,7 +135,9 @@ export class ImageMediaPlayerController implements MediaPlayerController {
     if (!image) {
       return false;
     }
-    this._loadListener = (): void => this._stallWatchdog?.notifyFrame();
+    this._loadListener = (): void => {
+      this._stallWatchdog?.notifyFrame();
+    };
     image.addEventListener('load', this._loadListener);
     return true;
   }

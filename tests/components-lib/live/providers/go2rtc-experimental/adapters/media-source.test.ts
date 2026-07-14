@@ -18,6 +18,7 @@ class FakeMediaSource extends EventTarget {
 class FakeManagedMediaSource extends EventTarget {
   public addSourceBuffer = vi.fn();
   public setLiveSeekableRange = vi.fn();
+  public readyState: 'closed' | 'open' | 'ended' = 'closed';
   public static isTypeSupported = vi.fn<[string], boolean>(() => true);
 }
 
@@ -203,6 +204,23 @@ describe('media-source', () => {
       const mediaSource = video.srcObject;
       assert(mediaSource instanceof FakeManagedMediaSource);
       expect(mediaSource.setLiveSeekableRange).toBeCalledWith(10, 20);
+    });
+
+    it('should report open only while the media source readyState is open', () => {
+      stubManagedMediaSource();
+
+      const instance = createBrowserMediaSource();
+      const video = document.createElement('video');
+      instance?.attach(video);
+
+      const mediaSource = video.srcObject;
+      assert(mediaSource instanceof FakeManagedMediaSource);
+
+      mediaSource.readyState = 'open';
+      expect(instance?.isOpen()).toBe(true);
+
+      mediaSource.readyState = 'closed';
+      expect(instance?.isOpen()).toBe(false);
     });
   });
 });

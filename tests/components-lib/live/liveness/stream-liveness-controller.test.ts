@@ -89,7 +89,7 @@ describe('StreamLivenessController', () => {
     const { controller } = setup();
 
     expect(controller.isLive()).toBe(true);
-    expect(controller.getPlaceholder()).toBeNull();
+    expect(controller.getFailure()).toBeNull();
   });
 
   it('should aggregate a detector losing liveness only after host connect', () => {
@@ -123,9 +123,13 @@ describe('StreamLivenessController', () => {
 
     failViaProviderError();
 
-    // Provider-error is not-live but does not want a placeholder.
+    // Provider-error is not-live but does not want a placeholder; its cause is
+    // still available for a wrapper that fills the frame itself.
     expect(controller.isLive()).toBe(false);
-    expect(controller.getPlaceholder()).toBeNull();
+    expect(controller.getFailure()).toEqual({
+      reason: 'playback_error',
+      renderPlaceholder: false,
+    });
   });
 
   it('should not fire the issue without a target', () => {
@@ -154,7 +158,10 @@ describe('StreamLivenessController', () => {
     fireMediaPlayerLiveness(false);
 
     expect(controller.isLive()).toBe(false);
-    expect(controller.getPlaceholder()).toEqual({ reason: 'stalled' });
+    expect(controller.getFailure()).toEqual({
+      reason: 'stalled',
+      renderPlaceholder: true,
+    });
     expect(issueTriggers).toEqual([
       { key: 'media_unavailable', targetID: 'camera.office', reason: 'stalled' },
     ]);
@@ -232,7 +239,10 @@ describe('StreamLivenessController', () => {
     controller.hostConnected();
 
     expect(controller.isLive()).toBe(false);
-    expect(controller.getPlaceholder()).toEqual({ reason: 'entity_unavailable' });
+    expect(controller.getFailure()).toEqual({
+      reason: 'entity_unavailable',
+      renderPlaceholder: true,
+    });
     expect(issueTriggers).toEqual([
       {
         key: 'media_unavailable',
@@ -298,7 +308,7 @@ describe('StreamLivenessController', () => {
 
     // Direct frame evidence outranks the entity proxy: no teardown, no issue.
     expect(controller.isLive()).toBe(true);
-    expect(controller.getPlaceholder()).toBeNull();
+    expect(controller.getFailure()).toBeNull();
     expect(issueTriggers).toEqual([]);
 
     vi.useRealTimers();
@@ -343,6 +353,9 @@ describe('StreamLivenessController', () => {
     // The always_error opt-in is authoritative: an unavailable entity overrides
     // even confirmed frames.
     expect(controller.isLive()).toBe(false);
-    expect(controller.getPlaceholder()).toEqual({ reason: 'entity_unavailable' });
+    expect(controller.getFailure()).toEqual({
+      reason: 'entity_unavailable',
+      renderPlaceholder: true,
+    });
   });
 });

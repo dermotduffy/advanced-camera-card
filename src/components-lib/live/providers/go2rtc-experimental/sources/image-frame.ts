@@ -82,7 +82,7 @@ export abstract class ImageFrameStreamSource implements StreamSource {
   }
 
   // Show a rendered frame and, on the first one, report the stream loaded.
-  protected _showFrame(frame: Blob): void {
+  protected async _showFrame(frame: Blob): Promise<void> {
     // MP4 turns each frame into a Blob asynchronously (canvas.toBlob), so a
     // frame can arrive here after stop(). Drop it so a stopped source never
     // writes to the shared image surface or reports a stale load.
@@ -90,11 +90,20 @@ export abstract class ImageFrameStreamSource implements StreamSource {
       return;
     }
 
-    this._context.target.showFrame(frame);
+    const decoded = this._context.target.showFrame(frame);
 
-    if (!this._loaded) {
-      this._loaded = true;
-      this._firstFrameTimer.stop();
+    if (this._loaded) {
+      return;
+    }
+    this._loaded = true;
+    this._firstFrameTimer.stop();
+
+    // Report loaded only once the frame has decoded: the media-loaded info is
+    // built by reading the <img> dimensions, and an <img> whose src was just
+    // set still reports 0x0 (which is rejected as invalid), so reporting
+    // synchronously would leave the media stuck "not loading".
+    await decoded;
+    if (!this._stopped) {
       this._context.callbacks.loadedCallback();
     }
   }
