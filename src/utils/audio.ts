@@ -25,15 +25,17 @@ export const mayHaveAudio = (video: HTMLVideoElement & AudioProperties): boolean
 
 /**
  * Determine if audio is available for a go2rtc stream.
- * @param pc The RTCPeerConnection (for WebRTC streams).
- * @param mseCodecs The negotiated MSE codecs string (for MSE streams).
  * @param video The video element (fallback for browser-based detection).
+ * @param options.pc The RTCPeerConnection (for WebRTC streams).
+ * @param options.mseCodecs The negotiated MSE codecs string (for MSE streams).
  * @returns True if audio is available.
  */
 export const hasAudio = (
   video: HTMLVideoElement & AudioProperties,
-  pc?: RTCPeerConnection | null,
-  mseCodecs?: string,
+  options?: {
+    pc?: RTCPeerConnection | null;
+    mseCodecs?: string | null;
+  },
 ): boolean => {
   // For WebRTC: Check if there's an audio receiver with an active track. We
   // check that the track is not muted because muted means no media data is
@@ -43,15 +45,17 @@ export const hasAudio = (
   // (e.g. WebRTC failed, fell back to MSE) will have receivers with muted
   // tracks that don't reflect actual media availability.
   // See: https://github.com/dermotduffy/advanced-camera-card/issues/2417
-  if (pc && pc.connectionState === 'connected') {
-    const receivers = pc.getReceivers();
+  if (options?.pc && options.pc.connectionState === 'connected') {
+    const receivers = options.pc.getReceivers();
     if (receivers.length > 0) {
       return receivers.some(
         (receiver) => receiver.track?.kind === 'audio' && !receiver.track?.muted,
       );
     }
   }
+
   // For MSE: Check negotiated codecs for audio codecs
+  const mseCodecs = options?.mseCodecs;
   if (mseCodecs) {
     return (
       mseCodecs.includes('mp4a') ||
@@ -59,6 +63,7 @@ export const hasAudio = (
       mseCodecs.includes('flac')
     );
   }
+
   // Fallback to browser-based detection (unreliable in Chrome)
   return mayHaveAudio(video);
 };

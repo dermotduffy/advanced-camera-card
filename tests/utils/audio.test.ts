@@ -99,7 +99,7 @@ describe('hasAudio', () => {
         createMockReceiver('video'),
         createMockReceiver('audio', false),
       ]);
-      expect(hasAudio(createMockVideo(), pc, '')).toBe(true);
+      expect(hasAudio(createMockVideo(), { pc })).toBe(true);
     });
 
     it('should not detect audio when audio receiver is muted', () => {
@@ -107,19 +107,19 @@ describe('hasAudio', () => {
         createMockReceiver('video'),
         createMockReceiver('audio', true),
       ]);
-      expect(hasAudio(createMockVideo(), pc, '')).toBe(false);
+      expect(hasAudio(createMockVideo(), { pc })).toBe(false);
     });
 
     it('should not detect audio when only video receivers exist', () => {
       const pc = createMockPeerConnection([createMockReceiver('video')]);
-      expect(hasAudio(createMockVideo(), pc, '')).toBe(false);
+      expect(hasAudio(createMockVideo(), { pc })).toBe(false);
     });
 
     it('should fall back to mayHaveAudio when no receivers yet', () => {
       const pc = createMockPeerConnection([]);
       // Empty receivers means connection not established, falls back to mayHaveAudio
       // With no properties set on video, mayHaveAudio returns true (generous default)
-      expect(hasAudio(createMockVideo(), pc, '')).toBe(true);
+      expect(hasAudio(createMockVideo(), { pc })).toBe(true);
     });
 
     it('should ignore receivers when connection is not established', () => {
@@ -127,47 +127,51 @@ describe('hasAudio', () => {
 
       // Stale connection with muted receiver should fall through to
       // mayHaveAudio (generous default returns true)
-      expect(hasAudio(createMockVideo(), pc, '')).toBe(true);
+      expect(hasAudio(createMockVideo(), { pc })).toBe(true);
     });
 
     it('should fall through to mseCodecs when connection is not established', () => {
       const pc = createMockPeerConnection([createMockReceiver('audio', true)], 'new');
 
       // Stale WebRTC connection but MSE has audio codecs
-      expect(hasAudio(createMockVideo(), pc, 'avc1.640029,flac')).toBe(true);
+      expect(hasAudio(createMockVideo(), { pc, mseCodecs: 'avc1.640029,flac' })).toBe(
+        true,
+      );
     });
   });
 
   describe('MSE codec detection', () => {
     it('should detect audio when mseCodecs contains mp4a', () => {
-      expect(hasAudio(createMockVideo(), null, 'avc1.640029,mp4a.40.2')).toBe(true);
+      expect(hasAudio(createMockVideo(), { mseCodecs: 'avc1.640029,mp4a.40.2' })).toBe(
+        true,
+      );
     });
 
     it('should detect audio when mseCodecs contains opus', () => {
-      expect(hasAudio(createMockVideo(), null, 'avc1.640029,opus')).toBe(true);
+      expect(hasAudio(createMockVideo(), { mseCodecs: 'avc1.640029,opus' })).toBe(true);
     });
 
     it('should detect audio when mseCodecs contains flac', () => {
-      expect(hasAudio(createMockVideo(), null, 'avc1.640029,flac')).toBe(true);
+      expect(hasAudio(createMockVideo(), { mseCodecs: 'avc1.640029,flac' })).toBe(true);
     });
 
     it('should not detect audio when mseCodecs contains only video codecs', () => {
-      expect(hasAudio(createMockVideo(), null, 'avc1.640029,hvc1.1.6.L153.B0')).toBe(
-        false,
-      );
+      expect(
+        hasAudio(createMockVideo(), { mseCodecs: 'avc1.640029,hvc1.1.6.L153.B0' }),
+      ).toBe(false);
     });
   });
 
   describe('fallback to mayHaveAudio', () => {
     it('should fall back to mayHaveAudio when no SDP or mseCodecs', () => {
       // With no properties set, mayHaveAudio returns true (generous default)
-      expect(hasAudio(createMockVideo(), null, '')).toBe(true);
+      expect(hasAudio(createMockVideo())).toBe(true);
     });
 
     it('should use mayHaveAudio when mozHasAudio is false', () => {
       const video = createMockVideo();
       video.mozHasAudio = false;
-      expect(hasAudio(video, null, '')).toBe(false);
+      expect(hasAudio(video)).toBe(false);
     });
   });
 });

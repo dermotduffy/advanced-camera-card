@@ -275,7 +275,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
             .microphoneStream=${microphoneStream}
             .camera=${resolvedCamera}
             .targetID=${cameraID}
-            .label=${cameraMetadata?.title ?? ''}
+            .cameraTitle=${cameraMetadata?.title}
             .liveConfig=${this.liveConfig}
             .hass=${this.hass}
             .stateWatcher=${this.stateWatcher}
@@ -284,6 +284,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
             .zoom=${!this._isGesturesPTZActive(view, cameraID)}
             .forceSelected=${isSelectedSlide}
             .locked=${this.locked}
+            .suppressLoadingImage=${mediaEpoch > 0}
             @advanced-camera-card:zoom:change=${(
               ev: CustomEvent<ZoomSettingsObserved>,
             ) =>

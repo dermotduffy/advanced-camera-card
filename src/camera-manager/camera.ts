@@ -18,7 +18,10 @@ import type { HassStateDifference, HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import type { CapabilitiesRaw, CapabilityKey, Endpoint } from '../types';
 import { arrayify } from '../utils/basic';
-import { liveProviderSupports2WayAudio } from '../utils/live-provider';
+import {
+  isGo2RTCLiveProvider,
+  liveProviderSupports2WayAudio,
+} from '../utils/live-provider';
 import { Capabilities } from './capabilities';
 import type { CameraManagerEngine } from './engine';
 import { CameraNoIDError } from './error';
@@ -345,9 +348,10 @@ export class Camera {
       ...resolveProxyConfig(this._config.proxy),
       live:
         this._config.proxy.live === 'auto'
-          ? // Live is proxied if the live provider is go2rtc and if a go2rtc
-            // URL is manually set.
-            this._config.live_provider === 'go2rtc' && !!this._config.go2rtc?.url
+          ? // Live is proxied if the live provider streams from go2rtc and a
+            // go2rtc URL is manually set.
+            isGo2RTCLiveProvider(this._config.live_provider) &&
+            !!this._config.go2rtc?.url
           : this._config.proxy.live,
       media: this._config.proxy.media === 'auto' ? false : this._config.proxy.media,
     };

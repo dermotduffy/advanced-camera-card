@@ -28,6 +28,9 @@ const createVideo = (options?: {
   seeking?: boolean;
   ended?: boolean;
   rvfc?: boolean;
+  poster?: string;
+  currentSrc?: string;
+  srcObject?: MediaStream | null;
 }): {
   video: HTMLVideoElement;
   deliverFrame: () => void;
@@ -41,6 +44,9 @@ const createVideo = (options?: {
   define('paused', options?.paused ?? false);
   define('seeking', options?.seeking ?? false);
   define('ended', options?.ended ?? false);
+  define('poster', options?.poster ?? '');
+  define('currentSrc', options?.currentSrc ?? '');
+  define('srcObject', options?.srcObject ?? null);
 
   let frameCallback: (() => void) | null = null;
   const cancel = vi.fn();
@@ -72,7 +78,7 @@ describe('VideoMediaPlayerController', () => {
 
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-      await controller.play();
+      await controller.playback.play();
 
       expect(video.play).toBeCalled();
     });
@@ -84,7 +90,7 @@ describe('VideoMediaPlayerController', () => {
 
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-      await controller.play();
+      await controller.playback.play();
 
       expect(video.play).toBeCalledTimes(2);
       expect(video.muted).toBeTruthy();
@@ -97,7 +103,7 @@ describe('VideoMediaPlayerController', () => {
 
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-      await controller.play();
+      await controller.playback.play();
 
       expect(video.play).toBeCalledTimes(1);
       expect(video.muted).toBeTruthy();
@@ -110,7 +116,7 @@ describe('VideoMediaPlayerController', () => {
 
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-      await controller.play();
+      await controller.playback.play();
 
       expect(video.play).toBeCalledTimes(2);
       expect(video.muted).toBeTruthy();
@@ -119,7 +125,7 @@ describe('VideoMediaPlayerController', () => {
     it('should ignore calls without a video', async () => {
       const controller = new VideoMediaPlayerController(createLitElement(), () => null);
 
-      await controller.play();
+      await controller.playback.play();
 
       // Currently no observable side effects.
     });
@@ -129,7 +135,7 @@ describe('VideoMediaPlayerController', () => {
     const video = mock<HTMLVideoElement>();
     const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-    await controller.pause();
+    await controller.playback.pause();
 
     expect(video.pause).toBeCalled();
   });
@@ -257,9 +263,9 @@ describe('VideoMediaPlayerController', () => {
 
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-      await controller.pause();
+      await controller.playback.pause();
 
-      expect(controller.isPaused()).toBeTruthy();
+      expect(controller.playback.isPaused()).toBeTruthy();
     });
 
     it('should return false when not paused', async () => {
@@ -268,15 +274,15 @@ describe('VideoMediaPlayerController', () => {
 
       const controller = new VideoMediaPlayerController(createLitElement(), () => video);
 
-      await controller.pause();
+      await controller.playback.pause();
 
-      expect(controller.isPaused()).toBeFalsy();
+      expect(controller.playback.isPaused()).toBeFalsy();
     });
 
     it('should return true when no video', () => {
       const controller = new VideoMediaPlayerController(createLitElement(), () => null);
 
-      expect(controller.isPaused()).toBeTruthy();
+      expect(controller.playback.isPaused()).toBeTruthy();
     });
   });
 
@@ -383,6 +389,58 @@ describe('VideoMediaPlayerController', () => {
       vi.advanceTimersByTime(STALL_MS);
 
       expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(false);
+    });
+
+    it('should not report a stall for a poster shown with no media loaded', () => {
+      // A still-image surface (an MJPEG/MP4 poster slideshow): a poster with no
+      // media never presents video frames, so a missing frame is not a stall.
+      const { video } = createVideo({
+        poster: 'data:image/jpeg;base64,xxx',
+        paused: true,
+        readyState: HTMLMediaElement.HAVE_NOTHING,
+      });
+      const controller = new VideoMediaPlayerController(createLitElement(), () => video);
+      const callback = vi.fn();
+
+      controller.subscribeLiveness(callback);
+      vi.advanceTimersByTime(STALL_MS);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should still watch a poster shown over media loaded from a src', () => {
+      // A loading placeholder over real media (e.g. an HLS player): playback is
+      // expected, so a missing frame is still a stall.
+      const { video } = createVideo({
+        poster: 'data:image/jpeg;base64,xxx',
+        currentSrc: 'blob:http://localhost/stream',
+        paused: true,
+        readyState: HTMLMediaElement.HAVE_NOTHING,
+      });
+      const controller = new VideoMediaPlayerController(createLitElement(), () => video);
+      const callback = vi.fn();
+
+      controller.subscribeLiveness(callback);
+      vi.advanceTimersByTime(STALL_MS);
+
+      expect(callback).toHaveBeenCalledWith(false);
+    });
+
+    it('should still watch a poster shown over a media stream', () => {
+      // A loading placeholder over a live stream (e.g. an HA WebRTC player).
+      const { video } = createVideo({
+        poster: 'data:image/jpeg;base64,xxx',
+        srcObject: mock<MediaStream>(),
+        paused: true,
+        readyState: HTMLMediaElement.HAVE_NOTHING,
+      });
+      const controller = new VideoMediaPlayerController(createLitElement(), () => video);
+      const callback = vi.fn();
+
+      controller.subscribeLiveness(callback);
+      vi.advanceTimersByTime(STALL_MS);
+
       expect(callback).toHaveBeenCalledWith(false);
     });
 

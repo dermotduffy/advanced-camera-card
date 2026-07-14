@@ -34,7 +34,7 @@ import { getResolvedLiveProvider } from '../../utils/live-provider.js';
 
 import '../icon.js';
 
-import { renderNotificationBlockFromText } from '../notification/block.js';
+import { renderMediaNotification } from '../notification/media.js';
 
 import './../media-dimensions-container';
 
@@ -56,9 +56,10 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   @property({ attribute: false })
   public liveConfig?: LiveConfig;
 
-  // Label that is used for ARIA support and as tooltip.
+  // The camera's title, used for ARIA support, as tooltip, and to identify the
+  // camera in error messages.
   @property({ attribute: false })
-  public label = '';
+  public cameraTitle?: string;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -84,6 +85,12 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   // media element.
   @property({ attribute: false })
   public locked?: boolean;
+
+  // When true, suppress the loading snapshot (show_image_during_load). Set on a
+  // media reload after a failure so the snapshot doesn't flash back in on every
+  // retry; a first load still shows it.
+  @property({ attribute: false })
+  public suppressLoadingImage = false;
 
   private _mediaLoadedInfoSinkController = new MediaLoadedInfoSinkController(this, {
     getTargetID: () => this.targetID ?? null,
@@ -127,6 +134,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
    */
   private _shouldShowImageDuringLoading(): boolean {
     return (
+      !this.suppressLoadingImage &&
       !this._mediaLoadedInfoSinkController.has() &&
       !!this.camera?.getConfig()?.camera_entity &&
       !!this.hass &&
@@ -167,6 +175,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
         this._importPromises.push(import('./providers/image.js'));
       } else if (provider === 'go2rtc') {
         this._importPromises.push(import('./providers/go2rtc/index.js'));
+      } else if (provider === 'go2rtc-experimental') {
+        this._importPromises.push(import('./providers/go2rtc-experimental/index.js'));
       }
     }
   }
@@ -239,57 +249,70 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     // being initialized. This can cause spurious errors (e.g. lack of resolved
     // endpoints). Instead, simply never render uninitialized cameras.
     if (!this.camera.isInitialized()) {
-      return renderNotificationBlockFromText(
-        `${localize('error.awaiting_live')}${this.label ? `: ${this.label}` : ''}`,
-        { icon: 'mdi:progress-helper', in_progress: true },
-      );
+      return renderMediaNotification({
+        icon: 'mdi:progress-helper',
+        title: localize('error.awaiting_live'),
+        targetTitle: this.cameraTitle,
+      });
     }
 
     // Set title and ariaLabel from the provided label property.
-    this.title = this.label;
-    this.ariaLabel = this.label;
+    this.title = this.cameraTitle ?? '';
+    this.ariaLabel = this.cameraTitle ?? '';
 
     const provider = getResolvedLiveProvider(this.camera?.getConfig());
 
     // `ha`/`image` cannot stream without a camera entity, so validate that
     // here. Entity *availability* (including the always_error immediate path)
     // is owned by the liveness controller's EntityAvailabilityDetector and
-    // surfaces via getPlaceholder() below, for all providers.
+    // surfaces via getFailure() below, for all providers.
     if (
       provider === 'ha' ||
       provider === 'image' ||
       (cameraConfig?.camera_entity && cameraConfig.always_error_if_entity_unavailable)
     ) {
       if (!cameraConfig?.camera_entity) {
-        return renderNotificationBlockFromText(localize('error.no_live_camera'), {
+        return renderMediaNotification({
           icon: 'mdi:camera',
-          context: cameraConfig,
+          title: localize('error.configuration_error'),
+          detail: localize('error.no_live_camera'),
+          targetTitle: this.cameraTitle,
         });
       }
       if (!this.hass.states[cameraConfig.camera_entity]) {
-        return renderNotificationBlockFromText(localize('error.live_camera_not_found'), {
+        return renderMediaNotification({
           icon: 'mdi:camera',
-          context: cameraConfig,
+          title: localize('error.configuration_error'),
+          detail: localize('error.live_camera_not_found'),
+          targetTitle: this.cameraTitle,
         });
       }
     }
+
+    const failure = this._streamLivenessController.getFailure();
 
     // A detector reports the stream is silently lost (the camera entity is
     // unavailable, or the stream stalled): render a reconnecting placeholder,
     // which unmounts the provider and unloads it via the existing media-loaded
     // abort. The message names the specific cause.
-    const placeholder = this._streamLivenessController.getPlaceholder();
-    if (placeholder) {
+    if (failure?.renderPlaceholder) {
       const { localizationKey: textKey, icon } =
-        MEDIA_UNAVAILABLE_REASONS[placeholder.reason];
-      return renderNotificationBlockFromText(
-        `${localize(textKey)}${this.label ? `: ${this.label}` : ''}`,
-        { icon, in_progress: true },
-      );
+        MEDIA_UNAVAILABLE_REASONS[failure.reason];
+      return renderMediaNotification({
+        icon,
+        title: localize(textKey),
+        targetTitle: this.cameraTitle,
+      });
     }
 
     const showImageDuringLoading = this._shouldShowImageDuringLoading();
-    const showLoadingIcon = !this._mediaLoadedInfoSinkController.has();
+    const mediaLoaded = this._mediaLoadedInfoSinkController.has();
+
+    // Loaded media or a snapshot gives the frame a size; mark the host `sized`
+    // when one is present. In its absence CSS reserves an aspect ratio so the
+    // frame (whose loading/error fill is absolutely positioned) doesn't
+    // collapse.
+    this.toggleAttribute('sized', mediaLoaded || showImageDuringLoading);
 
     const classes = {
       hidden: showImageDuringLoading,
@@ -302,6 +325,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
             .hass=${this.hass}
             .camera=${this.camera}
             .targetID=${this.targetID}
+            .cameraTitle=${this.cameraTitle}
             class=${classMap({
               ...classes,
               // The image provider is providing the temporary loading image,
@@ -340,42 +364,75 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               .hass=${this.hass}
               .camera=${this.camera}
               .targetID=${this.targetID}
+              .cameraTitle=${this.cameraTitle}
               .microphoneStream=${this.microphoneStream}
               .microphoneConfig=${this.liveConfig.microphone}
               ?controls=${this._getEffectiveBuiltinControls()}
             >
             </advanced-camera-card-live-go2rtc>`
-          : provider === 'webrtc-card'
-            ? html`<advanced-camera-card-live-webrtc-card
+          : provider === 'go2rtc-experimental'
+            ? html`<advanced-camera-card-live-go2rtc-experimental
                 ${ref(this._refProvider)}
                 class=${classMap(classes)}
                 .hass=${this.hass}
                 .camera=${this.camera}
                 .targetID=${this.targetID}
+                .cameraTitle=${this.cameraTitle}
+                .microphoneStream=${this.microphoneStream}
+                .microphoneConfig=${this.liveConfig.microphone}
                 .cardWideConfig=${this.cardWideConfig}
                 ?controls=${this._getEffectiveBuiltinControls()}
               >
-              </advanced-camera-card-live-webrtc-card>`
-            : provider === 'jsmpeg'
-              ? html` <advanced-camera-card-live-jsmpeg
+              </advanced-camera-card-live-go2rtc-experimental>`
+            : provider === 'webrtc-card'
+              ? html`<advanced-camera-card-live-webrtc-card
                   ${ref(this._refProvider)}
                   class=${classMap(classes)}
                   .hass=${this.hass}
                   .camera=${this.camera}
                   .targetID=${this.targetID}
+                  .cameraTitle=${this.cameraTitle}
                   .cardWideConfig=${this.cardWideConfig}
+                  ?controls=${this._getEffectiveBuiltinControls()}
                 >
-                </advanced-camera-card-live-jsmpeg>`
-              : html``}
+                </advanced-camera-card-live-webrtc-card>`
+              : provider === 'jsmpeg'
+                ? html` <advanced-camera-card-live-jsmpeg
+                    ${ref(this._refProvider)}
+                    class=${classMap(classes)}
+                    .hass=${this.hass}
+                    .camera=${this.camera}
+                    .targetID=${this.targetID}
+                    .cameraTitle=${this.cameraTitle}
+                    .cardWideConfig=${this.cardWideConfig}
+                  >
+                  </advanced-camera-card-live-jsmpeg>`
+                : html``}
     `)}
-    ${showLoadingIcon
-      ? html`<advanced-camera-card-icon
-          title=${localize('error.awaiting_live')}
-          .icon=${{ icon: 'mdi:progress-helper' }}
-          @click=${() =>
-            fireAdvancedCameraCardEvent(this, 'issue:notify', 'media_unavailable')}
-        ></advanced-camera-card-icon>`
-      : ''}`;
+    ${failure || mediaLoaded ? '' : this._renderLoadingOverlay(showImageDuringLoading)}`;
+  }
+
+  // The loading status drawn on top of the mounted provider while its media has
+  // not loaded: a subtle corner spinner over a snapshot that is already filling
+  // the frame, or a full "waiting for live" state. The cases that render nothing
+  // (a failure, or media already loaded) are handled at the call site.
+  private _renderLoadingOverlay(showImageDuringLoading: boolean): TemplateResult {
+    if (showImageDuringLoading) {
+      return html`<advanced-camera-card-icon
+        title=${localize('error.awaiting_live')}
+        .icon=${{ icon: 'mdi:progress-helper' }}
+        @click=${() =>
+          fireAdvancedCameraCardEvent(this, 'issue:notify', 'media_unavailable')}
+      ></advanced-camera-card-icon>`;
+    }
+
+    return html`<div class="fill">
+      ${renderMediaNotification({
+        icon: 'mdi:progress-helper',
+        title: localize('error.awaiting_live'),
+        targetTitle: this.cameraTitle,
+      })}
+    </div>`;
   }
 
   static get styles(): CSSResultGroup {

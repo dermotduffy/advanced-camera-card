@@ -6,6 +6,7 @@ import type {
   LivenessCallback,
   MediaPlayerController,
   PIPElement,
+  PlaybackControl,
   UnsubscribeCallback,
 } from '../../types';
 import { FrameStallWatchdog } from './frame-stall-watchdog';
@@ -20,7 +21,7 @@ export class JSMPEGMediaPlayerController implements MediaPlayerController {
   // watchdog's always-available defaults apply. Playback is expected whenever
   // not paused; a decode gap for the frame-stall window is then a stall.
   private _stallWatchdog = new FrameStallWatchdog({
-    isPlaybackExpected: () => !this.isPaused(),
+    isPlaybackExpected: () => !this.playback.isPaused(),
   });
 
   constructor(
@@ -42,15 +43,22 @@ export class JSMPEGMediaPlayerController implements MediaPlayerController {
     this._stallWatchdog.notifyFrame();
   }
 
-  public async play(): Promise<void> {
-    await this._host.updateComplete;
-    return this._getJSMPEGVideoElementCallback()?.play();
-  }
+  // JSMpeg decodes a live stream it can start and stop.
+  public readonly playback: PlaybackControl = {
+    play: async (): Promise<void> => {
+      await this._host.updateComplete;
+      return this._getJSMPEGVideoElementCallback()?.play();
+    },
 
-  public async pause(): Promise<void> {
-    await this._host.updateComplete;
-    return this._getJSMPEGVideoElementCallback()?.stop();
-  }
+    pause: async (): Promise<void> => {
+      await this._host.updateComplete;
+      return this._getJSMPEGVideoElementCallback()?.stop();
+    },
+
+    isPaused: (): boolean => {
+      return this._getJSMPEGVideoElementCallback()?.player?.paused ?? true;
+    },
+  };
 
   public async mute(): Promise<void> {
     await this._host.updateComplete;
@@ -74,17 +82,8 @@ export class JSMPEGMediaPlayerController implements MediaPlayerController {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async seek(_seconds: number): Promise<void> {
-    // JSMPEG does not support seeking.
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async setControls(_controls: boolean): Promise<void> {
     // Not implemented.
-  }
-
-  public isPaused(): boolean {
-    return this._getJSMPEGVideoElementCallback()?.player?.paused ?? true;
   }
 
   public async getScreenshotURL(): Promise<string | null> {

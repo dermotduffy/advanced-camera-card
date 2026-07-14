@@ -148,7 +148,7 @@ export class MediaActionsController {
     }
   }
   private async _play(index: number): Promise<void> {
-    await (await this._children[index]?.getMediaPlayerController())?.play();
+    await (await this._children[index]?.getMediaPlayerController())?.playback?.play();
   }
   private async _unmuteTargetIfConfigured(
     condition: AutoUnmuteCondition,
@@ -204,7 +204,7 @@ export class MediaActionsController {
     }
   }
   private async _pause(index: number): Promise<void> {
-    await (await this._children[index]?.getMediaPlayerController())?.pause();
+    await (await this._children[index]?.getMediaPlayerController())?.playback?.pause();
   }
 
   private async _muteAllIfConfigured(condition: AutoMuteCondition): Promise<void> {

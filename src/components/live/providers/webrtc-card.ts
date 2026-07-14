@@ -14,24 +14,19 @@ import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispa
 import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get-technology-for-video-rtc.js';
 import { MediaLoadedInfoSourceController } from '../../../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../../../components-lib/media-player/video.js';
-import { createNotificationFromText } from '../../../components-lib/notification/factory.js';
+import { createMediaNotification } from '../../../components-lib/notification/media.js';
 import type { Notification } from '../../../config/schema/actions/types.js';
 import type { CardWideConfig } from '../../../config/schema/types.js';
 import type { HomeAssistant } from '../../../ha/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveWebRTCCardStyle from '../../../scss/live-webrtc-card.scss';
-import {
-  AdvancedCameraCardError,
-  type MediaPlayer,
-  type MediaPlayerController,
-} from '../../../types.js';
+import type { MediaPlayer, MediaPlayerController } from '../../../types.js';
 import { mayHaveAudio } from '../../../utils/audio.js';
 import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   setControlsOnVideo,
 } from '../../../utils/controls.js';
-import { getContextFromError } from '../../../utils/error-context.js';
 import {
   createMediaLoadedInfo,
   dispatchMediaPauseEvent,
@@ -62,6 +57,10 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
+
+  // The camera's title, shown in error messages to identify the camera.
+  @property({ attribute: false })
+  public cameraTitle?: string;
 
   @property({ attribute: true, type: Boolean })
   public controls = false;
@@ -169,15 +168,11 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
       try {
         webrtcElement = this._createWebRTC();
       } catch (e) {
-        const context = getContextFromError(e);
-        this._notification = createNotificationFromText(
-          e instanceof AdvancedCameraCardError
-            ? e.message
-            : localize('error.webrtc_card_reported_error') + ': ' + (e as Error).message,
-          {
-            ...(context && { context }),
-          },
-        );
+        this._notification = createMediaNotification({
+          title: localize('error.webrtc_card_reported_error'),
+          detail: e instanceof Error ? e.message : String(e),
+          targetTitle: this.cameraTitle,
+        });
         dispatchLiveErrorEvent(this);
         return;
       }

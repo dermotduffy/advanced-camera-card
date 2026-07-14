@@ -89,19 +89,35 @@ export type UnsubscribeCallback = () => void;
 // Reports each live/stalled transition of a player's media stream.
 export type LivenessCallback = (isLive: boolean) => void;
 
-export interface MediaPlayerController {
+// Control over a pausable playback loop. Optional on the player: present only
+// when the player owns a stream it can start and stop (e.g. a real video, or an
+// image refreshed on a timer). A static image, or one fed frames as they arrive
+// where the client has no control (e.g. MP4, MJPEG), has no pausable loop and
+// omits it.
+export interface PlaybackControl {
   play(): Promise<void>;
   pause(): Promise<void>;
+  isPaused(): boolean;
+}
+
+export interface MediaPlayerController {
   mute(): Promise<void>;
   unmute(): Promise<void>;
   isMuted(): boolean;
-  seek(seconds: number): Promise<void>;
   getScreenshotURL(): Promise<string | null>;
+
   // If no value for controls if specified, the player should use the default.
   setControls(controls?: boolean): Promise<void>;
-  isPaused(): boolean;
   getFullscreenElement(): FullscreenElement | null;
   getPIPElement(): PIPElement | null;
+
+  // Jump to a time position, if the media has a seekable timeline. Optional:
+  // implemented only by players over seekable media.
+  seek?(seconds: number): Promise<void>;
+
+  // Start/pause the media, if it is pausable. Optional: implemented only by
+  // players that own a pausable playback loop.
+  playback?: PlaybackControl;
 
   // Observe whether the player is actively delivering media, so a silent freeze
   // (frames stop advancing while playing) can be detected. Optional:

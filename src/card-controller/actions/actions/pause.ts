@@ -6,6 +6,9 @@ export class PauseAction extends AdvancedCameraCardAction<GeneralActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    await api.getMediaLoadedInfoManager().get()?.mediaPlayerController?.pause();
+    await api
+      .getMediaLoadedInfoManager()
+      .get()
+      ?.mediaPlayerController?.playback?.pause();
   }
 }

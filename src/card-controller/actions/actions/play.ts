@@ -6,6 +6,6 @@ export class PlayAction extends AdvancedCameraCardAction<GeneralActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    await api.getMediaLoadedInfoManager().get()?.mediaPlayerController?.play();
+    await api.getMediaLoadedInfoManager().get()?.mediaPlayerController?.playback?.play();
   }
 }

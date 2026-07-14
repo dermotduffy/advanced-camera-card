@@ -41,10 +41,19 @@ export type LivenessVerdict =
       renderPlaceholder?: boolean;
     };
 
-// The reconnecting placeholder the wrapper renders in place of a frozen
-// provider, carrying the cause so it can show a cause-specific message.
-interface LivenessPlaceholder {
+// The wrapper-facing projection of the internal LivenessVerdict: it keeps the
+// detector-internal `authority` from leaking out and collapses `unknown` into
+// "no failure", so a consumer sees only a confirmed failure (with its cause) or
+// nothing. Modeled as the failure rather than a `live` flag because a stream
+// that is merely still connecting is not a failure yet is not playing either, so
+// a positive `live` boolean would misleadingly read as "media is playing".
+interface StreamFailure {
   reason: MediaUnavailableIssueReason;
+
+  // Whether the wrapper should replace the provider with a reconnecting
+  // placeholder (a silent freeze, e.g. an unavailable camera). False when the
+  // provider renders its own error and should stay mounted.
+  renderPlaceholder: boolean;
 }
 
 export interface LivenessDetector {
@@ -116,17 +125,15 @@ export class StreamLivenessController implements ReactiveController {
   }
 
   public isLive(): boolean {
-    return this._getVerdict().state !== 'not_live';
+    return !this.getFailure();
   }
 
-  // The reconnecting placeholder to render in place of the (frozen) provider,
-  // carrying the cause so the wrapper can show a cause-specific message. Null
-  // when the provider should stay mounted (live, or a provider error that
-  // renders its own error).
-  public getPlaceholder(): LivenessPlaceholder | null {
+  // The stream's confirmed liveness failure, or null when there is none (the
+  // stream is live, or still connecting).
+  public getFailure(): StreamFailure | null {
     const verdict = this._getVerdict();
-    return verdict.state === 'not_live' && verdict.renderPlaceholder
-      ? { reason: verdict.reason }
+    return verdict.state === 'not_live'
+      ? { reason: verdict.reason, renderPlaceholder: !!verdict.renderPlaceholder }
       : null;
   }
 

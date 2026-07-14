@@ -382,7 +382,6 @@
     "awaiting_media": "Warte auf Medium ...",
     "camera_initialization": "Kamera-Initialisierung fehlgeschlagen",
     "camera_initialization_reolink": "Konnte Reolink-Kamera nicht initialisieren",
-    "configuration": "Konfiguration überprüfen",
     "duplicate_folder_id": "Doppelte Ordner-ID für den folgen Ordner, benutzte Parameter 'id' um Ordner eindeutig zu identifizieren",
     "failed_proxy": "Konnte mich nicht über Home Assistant verbinden",
     "fetching_diagnostics": "Rufe Diagnosedaten ab",

@@ -16,7 +16,8 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../components-lib/media-player/video.js';
-import { renderNotificationBlockFromText } from '../components/notification/block.js';
+import { renderMediaNotification } from '../components/notification/media.js';
+import { localize } from '../localize/localize.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 import type { MediaPlayer, MediaPlayerController } from '../types.js';
 import {
@@ -112,8 +113,10 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
     protected render(): TemplateResult | void {
       if (this._error) {
         dispatchLiveErrorEvent(this);
-        return renderNotificationBlockFromText(this._error, {
-          metadata: [{ text: this.entityid, icon: 'mdi:cctv' }],
+        return renderMediaNotification({
+          title: localize('issues.media_unavailable.reasons.playback_error'),
+          detail: this._error,
+          targetTitle: this.entityid,
         });
       }
       return html`
@@ -146,7 +149,7 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
         mediaPlayerController: this._mediaPlayerController,
         capabilities: {
           supportsPause: true,
-          hasAudio: hasAudio(this._videoEl, this._peerConnection),
+          hasAudio: hasAudio(this._videoEl, { pc: this._peerConnection }),
         },
         technology: ['webrtc'],
       });
@@ -164,7 +167,7 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
             mediaPlayerController: this._mediaPlayerController,
             capabilities: {
               supportsPause: true,
-              hasAudio: hasAudio(this._videoEl, this._peerConnection),
+              hasAudio: hasAudio(this._videoEl, { pc: this._peerConnection }),
             },
             technology: ['webrtc'],
           });

@@ -5,6 +5,7 @@ import type {
   LivenessCallback,
   MediaPlayerController,
   PIPElement,
+  PlaybackControl,
   UnsubscribeCallback,
 } from '../../types';
 import { hideMediaControlsTemporarily, setControlsOnVideo } from '../../utils/controls';
@@ -19,13 +20,20 @@ export class VideoMediaPlayerController implements MediaPlayerController {
   private _rvfcHandle: number | null = null;
   private _stallWatchdog = new FrameStallWatchdog({
     // Playback is expected unless the video is legitimately idle. Seeking /
-    // ended is idle. A paused video is idle only if it holds a current frame --
-    // a genuine user pause; paused with no current frame is not a real pause but
-    // a source mid-reconnect or buffering (nothing to pause on), so playback is
-    // still expected and a missing frame is a stall.
+    // ended is idle. A poster shown with no media loaded is a still-image
+    // surface (e.g. an MJPEG/MP4 poster slideshow) that never presents video
+    // frames, so no frame is ever expected -- distinct from a poster shown over
+    // real media (a loading placeholder), which is still watched. A paused
+    // video is idle only if it holds a current frame -- a genuine user pause;
+    // paused with no current frame is not a real pause but a source
+    // mid-reconnect or buffering (nothing to pause on), so playback is still
+    // expected and a missing frame is a stall.
     isPlaybackExpected: () => {
       const video = this._getVideoCallback();
       if (!video || video.seeking || video.ended) {
+        return false;
+      }
+      if (video.poster && !video.currentSrc && !video.srcObject) {
         return false;
       }
       return !video.paused || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA;
@@ -44,36 +52,42 @@ export class VideoMediaPlayerController implements MediaPlayerController {
     this._getControlsDefaultCallback = getControlsDefaultCallback ?? null;
   }
 
-  public async play(): Promise<void> {
-    await this._host.updateComplete;
+  public readonly playback: PlaybackControl = {
+    play: async (): Promise<void> => {
+      await this._host.updateComplete;
 
-    const video = this._getVideoCallback();
-    if (!video?.play) {
-      return;
-    }
+      const video = this._getVideoCallback();
+      if (!video?.play) {
+        return;
+      }
 
-    // If the play call fails, and the media is not already muted, mute it first
-    // and then try again. This works around some browsers that prevent
-    // auto-play unless the video is muted.
-    try {
-      await video.play();
-    } catch (err: unknown) {
-      if ((err as Error).name === 'NotAllowedError' && !this.isMuted()) {
-        await this.mute();
-        try {
-          await video.play();
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (e) {
-          // Pass.
+      // If the play call fails, and the media is not already muted, mute it
+      // first and then try again. This works around some browsers that prevent
+      // auto-play unless the video is muted.
+      try {
+        await video.play();
+      } catch (err: unknown) {
+        if ((err as Error).name === 'NotAllowedError' && !this.isMuted()) {
+          await this.mute();
+          try {
+            await video.play();
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          } catch (e) {
+            // Pass.
+          }
         }
       }
-    }
-  }
+    },
 
-  public async pause(): Promise<void> {
-    await this._host.updateComplete;
-    this._getVideoCallback()?.pause();
-  }
+    pause: async (): Promise<void> => {
+      await this._host.updateComplete;
+      this._getVideoCallback()?.pause();
+    },
+
+    isPaused: (): boolean => {
+      return this._getVideoCallback()?.paused ?? true;
+    },
+  };
 
   public async mute(): Promise<void> {
     await this._host.updateComplete;
@@ -117,10 +131,6 @@ export class VideoMediaPlayerController implements MediaPlayerController {
     if (video && value !== undefined) {
       setControlsOnVideo(video, value);
     }
-  }
-
-  public isPaused(): boolean {
-    return this._getVideoCallback()?.paused ?? true;
   }
 
   public async getScreenshotURL(): Promise<string | null> {

@@ -713,7 +713,7 @@ export class MenuButtonController {
       currentMediaLoadedInfo.mediaPlayerController &&
       currentMediaLoadedInfo.capabilities?.supportsPause
     ) {
-      const paused = currentMediaLoadedInfo.mediaPlayerController?.isPaused();
+      const paused = currentMediaLoadedInfo.mediaPlayerController?.playback?.isPaused();
       return {
         icon: paused ? 'mdi:play' : 'mdi:pause',
         ...config.menu.buttons.play,

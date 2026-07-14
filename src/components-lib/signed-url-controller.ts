@@ -10,6 +10,7 @@ import {
 } from '../ha/web-proxy.js';
 import type { Endpoint } from '../types.js';
 import { errorToConsole } from '../utils/basic.js';
+import { Generation } from '../utils/concurrency/generation.js';
 
 const PROXY_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 
@@ -40,11 +41,11 @@ export class SignedURLController implements ReactiveController {
 
   // Caching and race-condition state.
   // The targetURL and proxy config are tracked to detect when inputs change and
-  // invalidate the cache. The requestID tracks the most recent valid fetch, to
-  // ensure that older, slower in-flight requests do not overwrite newer ones.
+  // invalidate the cache. The request generation tracks the most recent valid
+  // fetch, so older, slower in-flight requests do not overwrite newer ones.
   private _targetURL: string | null = null;
   private _targetProxyConfig: EnabledProxyConfig | null = null;
-  private _requestID = 0;
+  private _requestGeneration = new Generation();
 
   constructor(
     host: ReactiveControllerHost,
@@ -74,7 +75,7 @@ export class SignedURLController implements ReactiveController {
   }
 
   public hostDisconnected(): void {
-    ++this._requestID;
+    this._requestGeneration.invalidate();
     this._value = null;
     this._error = null;
     this._cachedAt = null;
@@ -88,7 +89,7 @@ export class SignedURLController implements ReactiveController {
     if (!hass || !endpoint || (!proxyConfig?.enabled && !endpoint.sign)) {
       // Invalidate any in-flight async work so a stale proxy/sign result cannot
       // repopulate the controller after inputs have been cleared or disabled.
-      ++this._requestID;
+      this._requestGeneration.invalidate();
       this._value = null;
       this._error = null;
       this._targetURL = null;
@@ -137,7 +138,7 @@ export class SignedURLController implements ReactiveController {
     // Mark as in-flight so the `!this._cachedAt` guard above prevents
     // subsequent hostUpdate() calls from restarting the async work.
     this._cachedAt = null;
-    const requestID = ++this._requestID;
+    const requestID = this._requestGeneration.next();
 
     const resolvedEndpoint = await this._proxy(
       hass,
@@ -146,7 +147,7 @@ export class SignedURLController implements ReactiveController {
       proxyConfig,
       proxyEndpointOptions,
     );
-    if (this._isStale(requestID)) {
+    if (!this._requestGeneration.isCurrent(requestID)) {
       return;
     }
     if (!resolvedEndpoint) {
@@ -155,7 +156,7 @@ export class SignedURLController implements ReactiveController {
     }
 
     const signedURL = await this._sign(hass, resolvedEndpoint);
-    if (this._isStale(requestID)) {
+    if (!this._requestGeneration.isCurrent(requestID)) {
       return;
     }
     if (!signedURL) {
@@ -211,10 +212,6 @@ export class SignedURLController implements ReactiveController {
       errorToConsole(e);
       return null;
     }
-  }
-
-  private _isStale(requestID: number): boolean {
-    return this._requestID !== requestID;
   }
 
   private _applySuccess(url: string): void {

@@ -2596,6 +2596,10 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         label: localize('config.cameras.live_providers.go2rtc'),
       },
       {
+        value: 'go2rtc-experimental',
+        label: localize('config.cameras.live_providers.go2rtc-experimental'),
+      },
+      {
         value: 'webrtc-card',
         label: localize('config.cameras.live_providers.webrtc-card'),
       },

@@ -352,10 +352,6 @@ export const ignoreFunctionIdentity = (a: unknown, b: unknown): boolean | undefi
     ? typeof a === 'function' && typeof b === 'function'
     : undefined;
 
-export const convertHTTPAdressToWebsocket = (url: string): string => {
-  return url.replace(/^http/i, 'ws');
-};
-
 export const forceReflow = (element: HTMLElement): void => {
   // Force reflow by measuring the height.
   void element.offsetHeight;

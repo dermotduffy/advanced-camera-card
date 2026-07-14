@@ -654,7 +654,6 @@
     "awaiting_media": "Oczekiwanie na załadowanie mediów",
     "camera_initialization": "Inicjalizacja kamery nie powiodła się",
     "camera_initialization_reolink": "Nie można zainicjować kamery Reolink",
-    "configuration": "Sprawdź konfigurację",
     "could_not_create_elements": "Nie można wyrenderować elementów obrazu",
     "diagnostics": "Diagnostyka karty. Przejrzyj pod kątem poufnych informacji przed udostępnieniem",
     "download_no_media": "Brak mediów do pobrania",

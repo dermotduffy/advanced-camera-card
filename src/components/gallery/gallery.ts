@@ -38,7 +38,7 @@ import { getReviewedQueryFilterFromQuery } from '../../view/utils/query-filter.j
 
 import '../media-filter.js';
 
-import { renderNoMedia } from '../notification/no-media.js';
+import { renderNoMediaNotification } from '../notification/media.js';
 
 import '../surround-basic.js';
 import '../thumbnail/thumbnail.js';
@@ -219,11 +219,13 @@ export class AdvancedCameraCardGallery extends LitElement {
             </advanced-camera-card-media-filter>`
           : ''}
         ${!hasItems
-          ? renderNoMedia({
-              cameraID: this.viewManagerEpoch?.manager.getView()?.camera ?? null,
-              cameraManager: this.cameraManager ?? null,
-              loading: isLoading,
-            })
+          ? renderNoMediaNotification(
+              {
+                cameraID: this.viewManagerEpoch?.manager.getView()?.camera ?? null,
+                inProgress: isLoading,
+              },
+              this.cameraManager,
+            )
           : html`<advanced-camera-card-gallery-core
               .hass=${this.hass}
               .columnWidth=${this._controller.getColumnWidth(

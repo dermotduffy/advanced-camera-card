@@ -7,6 +7,7 @@ import type { CameraProxyConfig } from '../../src/camera-manager/types.js';
 import type { EventWatcherSubscriptionInterface } from '../../src/card-controller/hass/event-watcher.js';
 import type { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { liveProviderSupports2WayAudio } from '../../src/utils/live-provider.js';
+import type * as LiveProviderUtils from '../../src/utils/live-provider.js';
 import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {
   callEventWatcherCallback,
@@ -21,7 +22,12 @@ import {
   createStateEntity,
 } from '../test-utils.js';
 
-vi.mock('../../src/utils/live-provider.js');
+// Partially mock to keep the real pure helpers (e.g. `isGo2RTCLiveProvider`
+// used by `getProxyConfig`) while mocking the async metadata fetch.
+vi.mock('../../src/utils/live-provider.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof LiveProviderUtils>()),
+  liveProviderSupports2WayAudio: vi.fn(),
+}));
 
 describe('Camera', () => {
   it('should get config', async () => {
@@ -1063,6 +1069,31 @@ describe('Camera', () => {
         {
           dynamic: true,
           live: false,
+          media: false,
+          ssl_verification: true,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+      [
+        'when go2rtc-experimental has no url',
+        { live_provider: 'go2rtc-experimental' },
+        {
+          dynamic: true,
+          live: false,
+          media: false,
+          ssl_verification: true,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+      [
+        'when go2rtc-experimental has a url',
+        {
+          live_provider: 'go2rtc-experimental',
+          go2rtc: { url: 'http://localhost:1984' },
+        },
+        {
+          dynamic: true,
+          live: true,
           media: false,
           ssl_verification: true,
           ssl_ciphers: 'default' as const,

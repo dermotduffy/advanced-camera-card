@@ -12,16 +12,17 @@ import { live } from 'lit/directives/live.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
+import type { MediaUnavailableIssueReason } from '../card-controller/issues/issues/media-unavailable.js';
 import type { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
-import { UpdatingImageMediaPlayerController } from '../components-lib/media-player/updating-image.js';
+import { ImageMediaPlayerController } from '../components-lib/media-player/image.js';
+import { createMediaNotification } from '../components-lib/notification/media.js';
 import { SignedURLController } from '../components-lib/signed-url-controller.js';
 import type { Notification } from '../config/schema/actions/types.js';
 import type { CameraConfig } from '../config/schema/cameras.js';
 import { type ImageBaseConfig, type ImageMode } from '../config/schema/common/image.js';
 import type { EnabledProxyConfig } from '../config/schema/common/proxy.js';
-import { TROUBLESHOOTING_URL } from '../const.js';
 import { isHassDifferent } from '../ha/is-hass-different.js';
 import type { HomeAssistant } from '../ha/types.js';
 import defaultImage from '../images/iris-screensaver.jpg';
@@ -37,6 +38,14 @@ import {
 } from '../utils/media-info.js';
 import type { View } from '../view/view.js';
 import { renderNotificationBlock } from './notification/block.js';
+
+declare global {
+  interface HTMLElementEventMap {
+    // A private signal to the immediate parent that the media failed.
+    // Non-bubbling.
+    'advanced-camera-card:image-updating-player:error': CustomEvent<MediaUnavailableIssueReason>;
+  }
+}
 
 // See TOKEN_CHANGE_INTERVAL in https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py .
 const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
@@ -91,6 +100,10 @@ export class AdvancedCameraCardImageUpdatingPlayer
   @property({ attribute: false })
   public targetID?: string;
 
+  // The camera's title, shown in error messages to identify the camera.
+  @property({ attribute: false })
+  public cameraTitle?: string;
+
   @property({ attribute: false, hasChanged: contentsChanged })
   public proxyConfig?: EnabledProxyConfig;
 
@@ -102,6 +115,10 @@ export class AdvancedCameraCardImageUpdatingPlayer
 
   @state()
   private _imageLoadError = false;
+
+  // Tracks the signed/proxy error so it is reported once on the transition into
+  // failure, not on every update.
+  private _hasSignError = false;
 
   private _refImage: Ref<HTMLImageElement> = createRef();
 
@@ -144,10 +161,19 @@ export class AdvancedCameraCardImageUpdatingPlayer
 
   private _boundVisibilityHandler = this._visibilityHandler.bind(this);
 
-  private _mediaPlayerController = new UpdatingImageMediaPlayerController(
+  // A poll-refreshed snapshot: the cached-value timer is the pausable update
+  // loop, and its cached URL is the screenshot.
+  private _mediaPlayerController = new ImageMediaPlayerController(
     this,
     () => this._refImage.value ?? null,
-    () => this._cachedValueController,
+    {
+      updateControl: {
+        start: () => this._cachedValueController.startTimer(),
+        stop: () => this._cachedValueController.stopTimer(),
+        isRunning: () => this._cachedValueController.hasTimer(),
+      },
+      screenshotProvider: async () => this._cachedValueController.getValue(),
+    },
   );
 
   private _mediaLoadedInfoSourceController = new MediaLoadedInfoSourceController(this, {
@@ -218,6 +244,19 @@ export class AdvancedCameraCardImageUpdatingPlayer
     if (!this._cachedValueController?.getValue()) {
       this._cachedValueController?.updateValue();
     }
+
+    const hasSignError = !!this._signedURLController.getError();
+    if (hasSignError && !this._hasSignError) {
+      this._dispatchError('server_error');
+    }
+    this._hasSignError = hasSignError;
+  }
+
+  private _dispatchError(reason: MediaUnavailableIssueReason): void {
+    fireAdvancedCameraCardEvent(this, 'image-updating-player:error', reason, {
+      bubbles: false,
+      composed: false,
+    });
   }
 
   /**
@@ -411,24 +450,16 @@ export class AdvancedCameraCardImageUpdatingPlayer
   private _getDisplayNotification(): Notification | null {
     const error = this._signedURLController.getError();
     if (error) {
-      return {
-        heading: {
-          text: localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign'),
-          icon: 'mdi:alert-circle',
-        },
-        link: { url: TROUBLESHOOTING_URL, title: localize('error.troubleshooting') },
-        context: this.proxyConfig ? [this.proxyConfig] : undefined,
-      };
+      return createMediaNotification({
+        title: localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign'),
+        targetTitle: this.cameraTitle,
+      });
     }
     if (this._imageLoadError) {
-      return {
-        heading: {
-          text: localize('error.image_load_error'),
-          icon: 'mdi:alert-circle',
-        },
-        link: { url: TROUBLESHOOTING_URL, title: localize('error.troubleshooting') },
-        context: this.imageConfig ? [this.imageConfig] : undefined,
-      };
+      return createMediaNotification({
+        title: localize('error.image_load_error'),
+        targetTitle: this.cameraTitle,
+      });
     }
     return null;
   }
@@ -468,6 +499,11 @@ export class AdvancedCameraCardImageUpdatingPlayer
                 this._forceSafeImage(true);
               } else if (mode === 'url') {
                 this._imageLoadError = true;
+
+                // Report the failure to the parent. A live context marks the
+                // stream not-live so its wrapper stops covering the error with a
+                // loading overlay; the plain image view ignores it.
+                this._dispatchError('not_loading');
               }
               if (this.targetID) {
                 fireAdvancedCameraCardEvent<IssueTriggerEventData>(

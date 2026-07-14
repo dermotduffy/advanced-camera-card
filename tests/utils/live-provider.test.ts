@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as go2rtcAudio from '../../src/camera-manager/utils/go2rtc/audio';
 import {
   getResolvedLiveProvider,
+  isGo2RTCLiveProvider,
   liveProviderSupports2WayAudio,
 } from '../../src/utils/live-provider';
 import { createCameraConfig, createHASS } from '../test-utils';
@@ -66,6 +67,20 @@ describe('live-provider utils', () => {
     });
   });
 
+  describe('isGo2RTCLiveProvider', () => {
+    it('should return true for go2rtc', () => {
+      expect(isGo2RTCLiveProvider('go2rtc')).toBe(true);
+    });
+
+    it('should return true for go2rtc-experimental', () => {
+      expect(isGo2RTCLiveProvider('go2rtc-experimental')).toBe(true);
+    });
+
+    it('should return false for other providers', () => {
+      expect(isGo2RTCLiveProvider('ha')).toBe(false);
+    });
+  });
+
   describe('liveProviderSupports2WayAudio', () => {
     it('should return false if resolved provider is not go2rtc', async () => {
       const config = createCameraConfig({
@@ -99,6 +114,21 @@ describe('live-provider utils', () => {
         undefined,
         undefined,
       );
+    });
+
+    it('should support 2-way audio for the experimental provider', async () => {
+      const config = createCameraConfig({
+        live_provider: 'go2rtc-experimental',
+      });
+      const hass = createHASS();
+      vi.mocked(go2rtcAudio.supports2WayAudio).mockResolvedValue(true);
+
+      const result = await liveProviderSupports2WayAudio(
+        hass,
+        config,
+        config.go2rtc.metadata_fetch_timeout_seconds,
+      );
+      expect(result).toBe(true);
     });
 
     it('should pass metadata fetch timeout through to go2rtc detection', async () => {

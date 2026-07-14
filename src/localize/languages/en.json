@@ -141,6 +141,7 @@
       "live_providers": {
         "auto": "Automatic",
         "go2rtc": "go2rtc",
+        "go2rtc-experimental": "go2rtc (experimental implementation)",
         "ha": "Home Assistant video stream (i.e. HLS, LL-HLS, WebRTC via HA)",
         "image": "Image",
         "jsmpeg": "JSMpeg",
@@ -781,7 +782,7 @@
     "call_no_two_way_audio": "This camera does not support two-way audio.",
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
-    "configuration": "Check configuration",
+    "configuration_error": "Configuration error",
     "could_not_create_elements": "Could not create picture elements",
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",
     "download_failed": "Download failed",
@@ -866,7 +867,10 @@
         "entity_unavailable": "Camera entity unavailable",
         "not_loading": "Media not loading",
         "playback_error": "Playback error",
-        "stalled": "Stream stalled"
+        "server_error": "Streaming server error",
+        "stalled": "Stream stalled",
+        "two_way_audio_error": "Two-way audio error",
+        "unsupported": "Stream not supported"
       },
       "text": "The media is not currently available. This can happen for several reasons, for example a camera becoming unavailable, a stream stalling or failing, or media that has not finished loading. The card keeps retrying automatically. For live views, a still image may be shown while a stream is loading (if configured, and by default)"
     },

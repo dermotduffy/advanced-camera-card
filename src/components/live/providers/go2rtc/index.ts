@@ -17,7 +17,7 @@ import type { HomeAssistant } from '../../../../ha/types.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
 import type { MediaPlayer, MediaPlayerController } from '../../../../types.js';
-import { renderNotificationBlockFromText } from '../../../notification/block.js';
+import { renderMediaNotification } from '../../../notification/media.js';
 import { VideoRTC } from './video-rtc.js';
 
 customElements.define('advanced-camera-card-live-go2rtc-player', VideoRTC);
@@ -39,6 +39,10 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
 
   @property({ attribute: false })
   public microphoneConfig?: MicrophoneConfig;
+
+  // The camera's title, shown in error messages to identify the camera.
+  @property({ attribute: false })
+  public cameraTitle?: string;
 
   @property({ attribute: true, type: Boolean })
   public controls = false;
@@ -148,14 +152,16 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   protected render(): TemplateResult | void {
     const error = this._signedURLController.getError();
     if (error) {
-      return renderNotificationBlockFromText(
-        localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign'),
-        { context: this.camera?.getConfig() },
-      );
+      return renderMediaNotification({
+        title: localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign'),
+        targetTitle: this.cameraTitle,
+      });
     }
     if (!this.camera?.getEndpoints()?.go2rtc) {
-      return renderNotificationBlockFromText(localize('error.live_camera_no_endpoint'), {
-        context: this.camera?.getConfig(),
+      return renderMediaNotification({
+        title: localize('error.configuration_error'),
+        detail: localize('error.live_camera_no_endpoint'),
+        targetTitle: this.cameraTitle,
       });
     }
     return html`${this._player}`;
