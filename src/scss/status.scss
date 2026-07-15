@@ -70,8 +70,9 @@
   pointer-events: auto;
 }
 
-img.item,
-advanced-camera-card-icon.item {
+// Preserve image aspect ratio. Must not apply to icons to avoid intrinsic-width
+// related issues on icon rendering in Safari.
+img.item {
   display: block;
 
   // To ensure images render somewhat reasonably looking their height is kept to
