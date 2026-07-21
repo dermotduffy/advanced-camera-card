@@ -46,15 +46,16 @@
         },
         "disable": "Disable",
         "disable_except": "Disable except",
-        "editor_label": "Camera capabilities",
+        "editor_label": "Capabilities",
         "force": "Force"
       },
       "cast": {
         "dashboard": {
           "dashboard_path": "Dashboard path",
+          "editor_label": "Dashboard",
           "view_path": "View path"
         },
-        "editor_label": "Cast options",
+        "editor_label": "Casting",
         "method": "Cast method",
         "methods": {
           "dashboard": "Dashboard",
@@ -64,11 +65,11 @@
       "dependencies": {
         "all_cameras": "Show events for all cameras with this camera",
         "cameras": "Show events for specific cameras with this camera",
-        "editor_label": "Dependency options"
+        "editor_label": "Dependencies"
       },
       "dimensions": {
         "aspect_ratio": "Static aspect ratio",
-        "editor_label": "Camera dimensions",
+        "editor_label": "Dimensions",
         "layout": {
           "editor_label": "Camera Layout",
           "fit": "Layout fit",
@@ -78,6 +79,7 @@
             "fill": "Media is stretched to fill the card"
           },
           "pan": {
+            "editor_label": "Layout Pan",
             "x": "Pan horizontal percentage",
             "y": "Pan vertical percentage"
           },
@@ -103,19 +105,26 @@
           "90": "90 degrees clockwise"
         }
       },
+      "engine": "Camera engine",
       "engines": {
-        "editor_label": "Camera engine options"
+        "auto": "Automatic",
+        "editor_label": "Engine",
+        "frigate": "Frigate",
+        "generic": "Generic",
+        "motioneye": "MotionEye",
+        "reolink": "Reolink",
+        "tplink": "TP-Link"
       },
       "frigate": {
         "camera_name": "Frigate camera name (autodetected from entity)",
         "client_id": "Frigate client id (for >1 Frigate server)",
-        "editor_label": "Frigate options",
+        "editor_label": "Frigate",
         "labels": "Frigate labels/object filters",
         "url": "Frigate server URL",
         "zones": "Frigate zones"
       },
       "go2rtc": {
-        "editor_label": "go2rtc Options",
+        "editor_label": "go2rtc",
         "metadata_fetch_timeout_seconds": "Metadata fetch timeout in seconds",
         "modes": {
           "editor_label": "go2rtc Modes",
@@ -130,13 +139,13 @@
       "icon": "Icon for this camera (autodetected from entity)",
       "id": "Unique ID for this camera in this card",
       "image": {
-        "editor_label": "Image Options",
+        "editor_label": "Image",
         "refresh_seconds": "Seconds between live image refreshes (0=never)",
         "url": "Image URL to use instead of camera entity snapshot"
       },
       "live_provider": "Live view provider for this camera",
       "live_provider_options": {
-        "editor_label": "Live provider options"
+        "editor_label": "Live Provider"
       },
       "live_providers": {
         "auto": "Automatic",
@@ -148,7 +157,7 @@
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
       "media": {
-        "editor_label": "Default Media",
+        "editor_label": "Media",
         "events_type": "Events media subtype",
         "folders": "Folder IDs",
         "reviewed": "Review status filter",
@@ -160,24 +169,26 @@
         "type": "Default media type"
       },
       "motioneye": {
-        "editor_label": "MotionEye options",
+        "editor_label": "MotionEye",
         "images": {
           "directory_pattern": "Images directory pattern",
+          "editor_label": "Images",
           "file_pattern": "Images file pattern"
         },
         "movies": {
           "directory_pattern": "Movies directory pattern",
+          "editor_label": "Movies",
           "file_pattern": "Movies file pattern"
         },
         "url": "MotionEye UI URL"
       },
       "proxy": {
-        "editor_label": "Camera proxying",
+        "editor_label": "Proxying",
         "live": "Live proxying",
         "media": "Media proxying"
       },
       "reolink": {
-        "editor_label": "Reolink options",
+        "editor_label": "Reolink",
         "media_resolution": {
           "editor_label": "Media Resolution",
           "high": "High Resolution",
@@ -187,15 +198,15 @@
       },
       "title": "Title for this camera (autodetected from entity)",
       "triggers": {
-        "editor_label": "Trigger options",
+        "doorbell": "Trigger by auto-detecting doorbell event entities",
+        "editor_label": "Triggers",
         "entities": "Trigger from other entities",
         "events": {
-          "add_new_event": "Add new event trigger",
+          "add_new_event": "Add event trigger",
           "editor_label": "Home Assistant Events",
           "event_data": "Event data filter",
           "event_type": "Event type"
         },
-        "doorbell": "Trigger by auto-detecting doorbell event entities",
         "media_events": {
           "clips": "Events with new clips",
           "editor_label": "Trigger Media Events",
@@ -210,7 +221,7 @@
         }
       },
       "webrtc_card": {
-        "editor_label": "WebRTC Card Options",
+        "editor_label": "WebRTC Card",
         "entity": "WebRTC Card Camera Entity",
         "url": "WebRTC Card Camera URL"
       }
@@ -241,6 +252,36 @@
             "icons": "Icons",
             "none": "None",
             "thumbnails": "Thumbnails"
+          }
+        },
+        "ptz": {
+          "editor_label": "PTZ",
+          "hide_home": "Hide home & preset controls",
+          "hide_pan_tilt": "Hide pan & tilt control",
+          "hide_type": "Hide type toggle button",
+          "hide_zoom": "Hide zoom control",
+          "mode": "Mode",
+          "modes": {
+            "auto": "Automatic",
+            "off": "Off",
+            "on": "On"
+          },
+          "orientation": "Orientation",
+          "orientations": {
+            "horizontal": "Horizontal",
+            "vertical": "Vertical"
+          },
+          "position": "Position",
+          "positions": {
+            "bottom-left": "Bottom left",
+            "bottom-right": "Bottom right",
+            "top-left": "Top left",
+            "top-right": "Top right"
+          },
+          "type": "Default type",
+          "types": {
+            "buttons": "Buttons",
+            "gestures": "Gestures"
           }
         },
         "thumbnails": {
@@ -306,6 +347,7 @@
         "entity_parameters": "Query parameters added to the entity-based picture URLs (e.g. width=1920&height=1080)",
         "mode": "Image mode",
         "modes": {
+          "auto": "Automatically chosen based on configuration",
           "camera": "Home Assistant camera snapshot of camera entity",
           "default": "Default embedded image",
           "entity": "Entity with entity_picture attribute",
@@ -371,6 +413,10 @@
           "stack": "Stacked & clustered events"
         },
         "window_seconds": "Default timeline window length in seconds"
+      },
+      "transition_effects": {
+        "none": "No transition",
+        "slide": "Slide transition"
       }
     },
     "dimensions": {
@@ -397,6 +443,9 @@
         "ha": "Home Assistant Media Folder"
       }
     },
+    "image": {
+      "zoomable": "Whether the image can be zoomed and panned"
+    },
     "live": {
       "auto_mute": "Automatically mute live cameras",
       "auto_pause": "Automatically pause live cameras",
@@ -413,6 +462,7 @@
           "mute_microphone": "Mute microphone",
           "reject": "Reject call",
           "ringtone": {
+            "editor_label": "Ringtone",
             "repeat": "Ringtone repeats per inbound call (0=indefinite)",
             "type": "Ringtone for inbound calls",
             "types": {
@@ -430,36 +480,7 @@
           "unmute_audio": "Unmute audio",
           "unmute_microphone": "Unmute microphone"
         },
-        "editor_label": "Live Controls",
-        "ptz": {
-          "editor_label": "PTZ",
-          "hide_home": "Hide home & preset controls",
-          "hide_pan_tilt": "Hide pan & tilt control",
-          "hide_type": "Hide type toggle button",
-          "hide_zoom": "Hide zoom control",
-          "mode": "Mode",
-          "modes": {
-            "off": "Off",
-            "on": "On"
-          },
-          "orientation": "Orientation",
-          "orientations": {
-            "horizontal": "Horizontal",
-            "vertical": "Vertical"
-          },
-          "position": "Position",
-          "positions": {
-            "bottom-left": "Bottom left",
-            "bottom-right": "Bottom right",
-            "top-left": "Top left",
-            "top-right": "Top right"
-          },
-          "type": "Default type",
-          "types": {
-            "buttons": "Buttons",
-            "gestures": "Gestures"
-          }
-        }
+        "editor_label": "Live Controls"
       },
       "draggable": "Live cameras view can be dragged/swiped",
       "lazy_load": "Live cameras are lazily loaded",
@@ -489,10 +510,6 @@
       "lazy_load": "Media Viewer media is lazily loaded in carousel",
       "snapshot_click_plays_clip": "Clicking on a snapshot plays a related clip",
       "transition_effect": "Media Viewer transition effect",
-      "transition_effects": {
-        "none": "No transition",
-        "slide": "Slide transition"
-      },
       "zoomable": "Media Viewer can be zoomed/panned"
     },
     "menu": {
@@ -524,6 +541,7 @@
         "gallery": "Gallery",
         "icon": "Icon",
         "image": "Image",
+        "inert": "Button non-interactive",
         "info": "Info",
         "iris": "Iris / Default View / Unhide menu",
         "live": "Live",
@@ -542,6 +560,7 @@
         "screenshot": "Screenshot",
         "set_review": "Set review status",
         "snapshots": "Snapshots",
+        "state_color": "Color button by entity state",
         "substreams": "Substream(s)",
         "timeline": "Timeline",
         "type": "Button type",
@@ -568,7 +587,7 @@
       }
     },
     "overrides": {
-      "info": "This card has manually specified overrides that may override values shown in the visual editor. Consult the code editor to view or modify them"
+      "info": "Conditional overrides are active and may supersede values shown here. Edit them in the code editor"
     },
     "performance": {
       "features": {
@@ -584,7 +603,7 @@
         "box_shadow": "Shadows",
         "editor_label": "Style Options"
       },
-      "warning": "This card is in low profile mode, so defaults have changed to optimize performance"
+      "warning": "Low performance profile is active: defaults are optimized to reduce load"
     },
     "profiles": {
       "casting": "Casting",
@@ -596,6 +615,11 @@
     "remote_control": {
       "entities": {
         "camera": "Input Select entity to control camera",
+        "camera_priorities": {
+          "card": "Card",
+          "entity": "Entity"
+        },
+        "camera_priority": "Which camera selection takes priority",
         "editor_label": "Remote Control Entities"
       }
     },
@@ -606,6 +630,7 @@
         "enabled": "Item enabled",
         "engine": "Camera engine",
         "issues": "Issues",
+        "permanent": "Item keeps status bar shown",
         "priority": "Item priority",
         "resolution": "Resolution",
         "severity": "Severity",
@@ -676,7 +701,8 @@
             "default": "Change to or update default view",
             "live": "Change to or update live view",
             "media": "Change to the relevant media view for new media",
-            "none": "No action"
+            "none": "No action",
+            "update": "Update the current view"
           },
           "untrigger": "Untrigger action",
           "untriggers": {
@@ -686,9 +712,9 @@
           }
         },
         "editor_label": "Trigger behavior",
+        "event_hold_seconds": "Seconds to hold a momentary trigger (e.g. a doorbell press, an HA bus event) visible before the post-end untrigger delay",
         "filter_selected_camera": "Only trigger on selected camera",
         "show_trigger_status": "Show pulsing border when triggered",
-        "event_hold_seconds": "Seconds to hold a momentary trigger (e.g. a doorbell press, an HA bus event) visible before the post-end untrigger delay",
         "untrigger_delay_seconds": "Seconds delay after trigger state change before untrigger",
         "untrigger_force_seconds": "Seconds before forced untrigger"
       },
@@ -697,6 +723,7 @@
         "clip": "Most recent clip",
         "clips": "Clips gallery",
         "current": "Current view",
+        "diagnostics": "Diagnostics",
         "folder": "Folder media",
         "folders": "Folders gallery",
         "gallery": "Default media gallery",
@@ -718,13 +745,15 @@
     "single": "Show single media viewer"
   },
   "editor": {
-    "add_new_camera": "Add new camera",
-    "add_new_folder": "Add new folder",
+    "add_new_camera": "Add camera",
+    "back": "Back",
+    "edit": "Edit",
+    "add_new_folder": "Add folder",
     "camera": "Camera",
     "cameras": "Cameras",
     "cameras_secondary": "What cameras to render on this card",
     "delete": "Delete",
-    "dimensions": "Card dimensions",
+    "dimensions": "Dimensions",
     "dimensions_secondary": "Card dimensions & shape options",
     "docs": "Documentation",
     "folders": "Folders",
@@ -736,16 +765,14 @@
     "media_gallery": "Media gallery",
     "media_gallery_secondary": "Media gallery options",
     "media_viewer": "Media viewer",
-    "media_viewer_secondary": "Viewer for static media (clips, snapshots or recordings)",
+    "media_viewer_secondary": "Viewer for static media",
     "menu": "Menu",
     "menu_secondary": "Menu look & feel options",
     "move_down": "Move down",
     "move_up": "Move up",
-    "overrides": "Overrides are active",
-    "overrides_secondary": "Dynamic configuration overrides detected",
     "performance": "Performance",
     "performance_secondary": "Card performance options",
-    "profiles": "Configuration profiles",
+    "profiles": "Profiles",
     "profiles_secondary": "Choose pre-configured sets of defaults",
     "remote_control": "Remote Control",
     "remote_control_secondary": "Options for remote controlling the card",
@@ -775,11 +802,11 @@
   "error": {
     "awaiting_live": "Waiting for live stream to load...",
     "awaiting_media": "Waiting for media to load",
-    "call_unavailable_heading": "Two-way audio unavailable",
     "call_invalid_target": "The requested camera or stream is not available to call.",
     "call_microphone_forbidden": "Microphone access has been denied for this page. Update your browser permissions and try again.",
     "call_microphone_unsupported": "Microphone access is not available in this browser (e.g. requires HTTPS).",
     "call_no_two_way_audio": "This camera does not support two-way audio.",
+    "call_unavailable_heading": "Two-way audio unavailable",
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
     "configuration_error": "Configuration error",
@@ -828,7 +855,7 @@
     },
     "config_upgrade": {
       "heading": "Configuration upgrade available",
-      "text": "A configuration upgrade is available. To upgrade, edit this card (Dashboard pencil icon \u2192 Three-dot menu \u2192 Edit) and click the 'Automatic Upgrade' button in the card editor"
+      "text": "A configuration upgrade is available. To upgrade, edit this card (Dashboard pencil icon → Three-dot menu → Edit) and click the 'Automatic Upgrade' button in the card editor"
     },
     "config_upgrade_failure": {
       "heading": "Configuration could not be fully upgraded",

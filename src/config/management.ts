@@ -1,5 +1,6 @@
 import { cloneDeep, get, isEqual, set, unset } from 'lodash-es';
 
+import { arrayify, arrayMove, isRecord } from '../utils/basic';
 import {
   CONF_AUTOMATIONS,
   CONF_CAMERAS,
@@ -22,8 +23,7 @@ import {
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_UNTRIGGER_DELAY_SECONDS,
-} from '../const';
-import { arrayify, isRecord } from '../utils/basic';
+} from './const';
 import type { Condition } from './schema/condition-trigger/conditions/types';
 import type {
   RawAdvancedCameraCardConfig,
@@ -70,7 +70,7 @@ export const getConfigValue = (
  */
 export const deleteConfigValue = (
   obj: RawAdvancedCameraCardConfig,
-  path: string,
+  path: string | (string | number)[],
 ): void => {
   unset(obj, path);
 };
@@ -84,15 +84,88 @@ export const copyConfig = <T>(obj: T): T => {
   return cloneDeep(obj);
 };
 
-/**
- * Given an array path, return a true path.
- * @param path The array path (should have a '#').
- * @param index The numeric array index to use.
- * @returns The true config path.
- */
-export const getArrayConfigPath = (path: string, index: number): string => {
-  return path.replace('#', `[${index.toString()}]`);
+// Apply an in-place mutation to the array at `arrayPath`, returning whether the
+// mutation reported a change.
+const mutateConfigArray = (
+  obj: RawAdvancedCameraCardConfig,
+  arrayPath: string | (string | number)[],
+  mutator: (array: unknown[]) => boolean,
+): boolean => {
+  const array = getConfigValue(obj, arrayPath);
+  return Array.isArray(array) && mutator(array);
 };
+
+/**
+ * Append an item to a configuration array. The array is created when the
+ * configuration does not have one at that path yet.
+ * @param obj The configuration to modify.
+ * @param arrayPath The configuration path of the array.
+ * @param item The item to append.
+ * @returns `true` if the configuration was modified.
+ */
+export const addConfigArrayItem = (
+  obj: RawAdvancedCameraCardConfig,
+  arrayPath: string | (string | number)[],
+  item: unknown,
+): boolean => {
+  const array = getConfigValue(obj, arrayPath);
+  if (!Array.isArray(array)) {
+    setConfigValue(obj, arrayPath, [item]);
+    return true;
+  }
+  array.push(item);
+  return true;
+};
+
+/**
+ * Move an item within a configuration array.
+ * @param obj The configuration to modify.
+ * @param arrayPath The configuration path of the array.
+ * @param fromIndex The index of the item to move.
+ * @param toIndex The index to move the item to.
+ * @returns `true` if the configuration was modified.
+ */
+export const moveConfigArrayItem = (
+  obj: RawAdvancedCameraCardConfig,
+  arrayPath: string | (string | number)[],
+  fromIndex: number,
+  toIndex: number,
+): boolean =>
+  mutateConfigArray(obj, arrayPath, (array) => {
+    if (
+      !Number.isInteger(fromIndex) ||
+      !Number.isInteger(toIndex) ||
+      fromIndex === toIndex ||
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= array.length ||
+      toIndex >= array.length
+    ) {
+      return false;
+    }
+    arrayMove(array, fromIndex, toIndex);
+    return true;
+  });
+
+/**
+ * Delete an item from a configuration array.
+ * @param obj The configuration to modify.
+ * @param arrayPath The configuration path of the array.
+ * @param index The index of the item to delete.
+ * @returns `true` if the configuration was modified.
+ */
+export const deleteConfigArrayItem = (
+  obj: RawAdvancedCameraCardConfig,
+  arrayPath: string | (string | number)[],
+  index: number,
+): boolean =>
+  mutateConfigArray(obj, arrayPath, (array) => {
+    if (!Number.isInteger(index) || index < 0 || index >= array.length) {
+      return false;
+    }
+    array.splice(index, 1);
+    return true;
+  });
 
 // *************************************************************************
 //                  Upgrade Related Functions
@@ -1424,16 +1497,24 @@ const frigateCardToAdvancedCameraCardStyleTransform = (data: unknown): unknown =
 // Legacy `triggers.events: string[]` (Frigate engine media-availability filter)
 // was renamed to `triggers.media_events` to free up `triggers.events` for the
 // new HA-bus-event trigger list (object shape). Distinguish old from new by
-// element type: an all-string array is legacy; any non-string element marks
-// the new shape and must not be touched. If `media_events` already exists we
-// refuse to overwrite it -- but we still drop the legacy `events` (otherwise
-// it would fail the new schema, which expects objects).
+// element type: an array holding at least one string is legacy; any non-string
+// element marks the new shape and must not be touched. An empty list says
+// nothing about which of the two it is, and is valid under the new schema, so
+// it is left alone -- a user who deletes their last event trigger is not
+// offered an upgrade that would rename the key underneath them. If
+// `media_events` already exists we refuse to overwrite it -- but we still drop
+// the legacy `events` (otherwise it would fail the new schema, which expects
+// objects).
 const triggersEventsToMediaEventsTransform = (triggers: unknown): unknown => {
   if (!isRecord(triggers)) {
     return undefined;
   }
   const events = triggers['events'];
-  if (!Array.isArray(events) || events.some((x) => typeof x !== 'string')) {
+  if (
+    !Array.isArray(events) ||
+    !events.length ||
+    events.some((x) => typeof x !== 'string')
+  ) {
     return undefined;
   }
   const result = { ...triggers };

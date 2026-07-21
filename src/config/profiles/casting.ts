@@ -10,7 +10,7 @@ import {
   CONF_MENU_BUTTONS_MEDIA_PLAYER,
   CONF_MENU_BUTTONS_MUTE,
   CONF_MENU_BUTTONS_PLAY,
-} from '../../const.js';
+} from '../const.js';
 
 export const CASTING_PROFILE = {
   [CONF_LIVE_CONTROLS_BUILTIN]: false,

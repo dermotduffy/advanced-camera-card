@@ -1,29 +1,18 @@
 import type { HassEntity } from 'home-assistant-js-websocket';
 
-import frigateSVG from '../camera-manager/frigate/assets/frigate.svg';
-import motioneyeSVG from '../camera-manager/motioneye/assets/motioneye.svg';
-import reolinkSVG from '../camera-manager/reolink/assets/reolink.svg';
-import tplinkSVG from '../camera-manager/tplink/assets/tplink.svg';
 import type { Icon } from '../config/schema/common/icon';
+import { CUSTOM_ICON_NAMES, CUSTOM_ICONSET_PREFIX } from '../ha/custom-icons';
 import type { HomeAssistant } from '../ha/types';
-import irisSVG from '../images/iris.svg';
 
 export class IconController {
-  public getCustomIcon(icon?: Icon): string | null {
-    switch (icon?.icon) {
-      case 'frigate':
-        return frigateSVG;
-      case 'motioneye':
-        return motioneyeSVG;
-      case 'reolink':
-        return reolinkSVG;
-      case 'tplink':
-        return tplinkSVG;
-      case 'iris':
-        return irisSVG;
-      default:
-        return null;
-    }
+  public getIconName(icon?: Icon): string | null {
+    const name = icon?.icon ?? null;
+
+    // Bare legacy names (`frigate`) resolve to the same icon as the iconset
+    // form (`advanced-camera-card:frigate`).
+    return name && CUSTOM_ICON_NAMES.includes(name)
+      ? `${CUSTOM_ICONSET_PREFIX}:${name}`
+      : name;
   }
 
   public createStateObjectForStateBadge(

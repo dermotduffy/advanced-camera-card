@@ -1,7 +1,8 @@
 import type { PTZAction } from '../../config/schema/actions/custom/ptz';
-import type {
-  KeyboardShortcuts,
-  PTZKeyboardShortcutName,
+import {
+  PTZ_KEYBOARD_SHORTCUTS,
+  type KeyboardShortcuts,
+  type PTZKeyboardShortcutName,
 } from '../../config/schema/view';
 import { createPTZMultiAction } from '../../utils/action';
 import type { CardConfigLoaderAPI, TaggedAutomation } from '../types';
@@ -38,7 +39,6 @@ const ptzKeyboardShortcutToPTZAction = (
     case 'ptz_zoom_out':
       return 'zoom_out';
   }
-  /* istanbul ignore next: No (current) way to reach this code -- @preserve */
   return null;
 };
 
@@ -52,14 +52,9 @@ const convertKeyboardShortcutsToAutomations = (
 
   const automations: TaggedAutomation[] = [];
 
-  for (const name of [
-    'ptz_down',
-    'ptz_left',
-    'ptz_right',
-    'ptz_up',
-    'ptz_zoom_in',
-    'ptz_zoom_out',
-  ] as const) {
+  // `ptz_home` has no start/stop action, so it maps to a null action here and
+  // is handled separately below.
+  for (const name of PTZ_KEYBOARD_SHORTCUTS) {
     const shortcut = shortcuts[name];
     const ptzAction = ptzKeyboardShortcutToPTZAction(name);
     if (!shortcut || !ptzAction) {

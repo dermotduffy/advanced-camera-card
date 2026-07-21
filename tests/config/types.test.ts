@@ -503,7 +503,6 @@ describe('config defaults', () => {
         format: {
           '24h': true,
         },
-        pan_mode: 'pan',
         show_recordings: true,
         style: 'stack',
         window_seconds: 3600,

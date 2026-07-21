@@ -3,7 +3,6 @@ import {
   LitElement,
   unsafeCSS,
   type CSSResultGroup,
-  type PropertyValues,
   type TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -31,27 +30,9 @@ export class AdvancedCameraCardIcon extends LitElement {
   public allowOverrideNonActiveStyles = false;
 
   private _controller = new IconController();
-  private _svg: HTMLElement | null = null;
-
-  protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('icon')) {
-      const customIcon = this._controller.getCustomIcon(this.icon);
-      if (customIcon) {
-        const svgElement = document.createElement('svg');
-        svgElement.innerHTML = customIcon;
-        this._svg = svgElement;
-      } else {
-        this._svg = null;
-      }
-    }
-  }
 
   protected render(): TemplateResult {
-    if (this._svg) {
-      // Use SVG objects (rather than <img>) to ensure styling applies
-      // correctly.
-      return html`${this._svg}`;
-    }
+    const iconName = this._controller.getIconName(this.icon);
     if (this.hass && this.icon?.entity) {
       const stateObj = this._controller.createStateObjectForStateBadge(
         this.hass,
@@ -65,12 +46,12 @@ export class AdvancedCameraCardIcon extends LitElement {
           .stateColor=${this.icon.stateColor ?? true}
           .hass=${this.hass}
           .stateObj=${stateObj}
-          .overrideIcon=${this.icon.icon}
+          .overrideIcon=${iconName ?? undefined}
         ></state-badge>`;
       }
     }
-    if (this.icon?.icon) {
-      return html`<ha-icon icon="${this.icon.icon}"></ha-icon>`;
+    if (iconName) {
+      return html`<ha-icon icon="${iconName}"></ha-icon>`;
     }
     if (this.icon?.fallback) {
       return html`<ha-icon icon="${this.icon.fallback}"></ha-icon>`;

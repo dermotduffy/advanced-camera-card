@@ -9,6 +9,10 @@
 
   pointer-events: none;
 
+  // The rotating icon's bounding box oscillates as it turns; clip it here so
+  // it cannot grow ancestor scrollable overflow (flickering scrollbars).
+  overflow: hidden;
+
   background-color: var(--advanced-camera-card-loading-background-color);
   color: var(--advanced-camera-card-loading-foreground-color);
 
@@ -20,10 +24,20 @@
   opacity: 0;
 }
 
+// The hidden element stays mounted: without this the icon would rotate
+// invisibly forever.
+:host([loaded]) advanced-camera-card-icon {
+  animation: none;
+}
+
 advanced-camera-card-icon {
+  // The icon's own box sets the size; the inner `ha-icon` machinery sizes
+  // itself from `--mdc-icon-size`, which needs a definite box to fill.
+  --mdc-icon-size: 100%;
+
   margin-bottom: 20px;
   height: 25%;
-  width: auto;
+  aspect-ratio: 1;
   animation: rotate 8s linear infinite;
 }
 

@@ -1,4 +1,5 @@
-import { POP_OUT_ANIMATION_NAME } from '../const.js';
+// The name of the exit keyframe defined in `scss/pop-animation.scss`.
+export const POP_OUT_ANIMATION_NAME = 'pop-out';
 
 /**
  * Whether `ev` marks the end of a pop-out (exit) animation on the element the

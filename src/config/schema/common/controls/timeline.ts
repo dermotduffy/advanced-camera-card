@@ -5,7 +5,6 @@ export const timelineCoreConfigDefault = {
   window_seconds: 60 * 60,
   show_recordings: true,
   style: 'stack' as const,
-  pan_mode: 'pan' as const,
   format: {
     '24h': true,
   },
@@ -34,14 +33,17 @@ export const timelineCoreConfigSchema = z.object({
     .optional()
     .default(timelineCoreConfigDefault.show_recordings),
   style: z.enum(['stack', 'ribbon']).optional().default(timelineCoreConfigDefault.style),
-  pan_mode: timelinePanModeSchema.optional().default(timelineCoreConfigDefault.pan_mode),
   format: timelineFormatSchema.optional().default(timelineCoreConfigDefault.format),
 });
-export type TimelineCoreConfig = z.infer<typeof timelineCoreConfigSchema>;
+type TimelineCoreConfig = z.infer<typeof timelineCoreConfigSchema>;
 
 export const miniTimelineConfigDefault = {
   ...timelineCoreConfigDefault,
   mode: 'none' as const,
+
+  // The non-`pan` modes seek within playing media, so `pan_mode` only applies
+  // to a mini timeline shown alongside media.
+  pan_mode: 'pan' as const,
 
   // Mini-timeline defaults to ribbon style.
   style: 'ribbon' as const,
@@ -49,6 +51,13 @@ export const miniTimelineConfigDefault = {
 
 export const miniTimelineConfigSchema = timelineCoreConfigSchema.extend({
   mode: z.enum(['none', 'above', 'below']).default(miniTimelineConfigDefault.mode),
+  pan_mode: timelinePanModeSchema.optional().default(miniTimelineConfigDefault.pan_mode),
   style: timelineCoreConfigSchema.shape.style.default(miniTimelineConfigDefault.style),
 });
 export type MiniTimelineControlConfig = z.infer<typeof miniTimelineConfigSchema>;
+
+// The config consumed by the shared `timeline-core` component: the core fields,
+// plus the mini-only extras (`pan_mode` etc.) made optional since the full
+// timeline omits them.
+export type TimelineCoreComponentConfig = TimelineCoreConfig &
+  Partial<MiniTimelineControlConfig>;

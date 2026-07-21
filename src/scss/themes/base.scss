@@ -301,6 +301,22 @@
     transparent 20%
   );
 
+  /********
+   * Editor
+   ********/
+  --advanced-camera-card-editor-doc-link-color: var(--secondary-text-color);
+  --advanced-camera-card-editor-doc-link-hover-color: var(
+    --advanced-camera-card-foreground-primary
+  );
+  --advanced-camera-card-editor-doc-link-hover-background: var(
+    --secondary-background-color
+  );
+  --advanced-camera-card-editor-secondary-text-color: var(--secondary-text-color);
+
+  // Home Assistant's amber `--warning-color`, not the card's own
+  // `--advanced-camera-card-warning-color`.
+  --advanced-camera-card-editor-warning-color: var(--warning-color);
+
   /**************
    * Notification (block)
    **************/

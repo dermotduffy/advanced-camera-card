@@ -1,0 +1,12 @@
+// A section renders its own panel, so it carries the rules for the panel's
+// frame and body. The editor around it positions the sections themselves.
+@use './editor-expander-body.scss';
+
+// Content the section was given ends its body; without this it sits flush
+// against the section's bottom edge.
+.values > advanced-camera-card-editor-cameras,
+.values > advanced-camera-card-editor-folders,
+.values > advanced-camera-card-editor-keyboard-shortcuts {
+  display: block;
+  margin-bottom: 10px;
+}

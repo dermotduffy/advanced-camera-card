@@ -84,7 +84,6 @@
     "rollup-plugin-git-info": "^1.0.0",
     "rollup-plugin-serve": "^1.1.1",
     "rollup-plugin-styler": "^1.8.0",
-    "rollup-plugin-svgo": "^2.0.0",
     "rollup-plugin-visualizer": "^5.12.0",
     "sass": "patch:sass@npm%3A1.77.4#~/.yarn/patches/sass-npm-1.77.4-13b6910aea.patch",
     "semantic-release": "^24.1.1",

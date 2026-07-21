@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-import { MEDIA_CHUNK_SIZE_DEFAULT, MEDIA_CHUNK_SIZE_MAX } from '../../const';
+import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const';
+
+// The largest media fetch chunk size the configuration accepts.
+export const MEDIA_CHUNK_SIZE_MAX = 1000;
 
 export const performanceConfigDefault = {
   features: {

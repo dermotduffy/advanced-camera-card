@@ -13,6 +13,23 @@ export class KeyAssignerController implements ReactiveController {
     this._host.addController(this);
   }
 
+  /**
+   * Show the shortcut the assigner has been given. Nothing is reported back:
+   * the value came from outside, and reporting it would have the owner store a
+   * shortcut the user never assigned.
+   * @param value The shortcut, or null when nothing is assigned.
+   */
+  public showValue(value: KeyboardShortcut | null): void {
+    if (!isEqual(value, this._value)) {
+      this._value = value;
+      this._host.requestUpdate();
+    }
+  }
+
+  /**
+   * Assign a shortcut, as the user, and report it.
+   * @param value The shortcut, or null to unassign.
+   */
   public setValue(value: KeyboardShortcut | null): void {
     if (!isEqual(value, this._value)) {
       this._value = value;

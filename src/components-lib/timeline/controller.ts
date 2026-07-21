@@ -25,7 +25,7 @@ import type { CameraConfig } from '../../config/schema/cameras';
 import type { AdvancedCameraCardView } from '../../config/schema/common/const';
 import type { ThumbnailsControlBaseConfig } from '../../config/schema/common/controls/thumbnails';
 import type {
-  TimelineCoreConfig,
+  TimelineCoreComponentConfig,
   TimelinePanMode,
 } from '../../config/schema/common/controls/timeline';
 import { configDefaults } from '../../config/schema/types';
@@ -67,7 +67,7 @@ interface TimelineControllerOptions {
   conditionStateManager?: ConditionStateManagerReadonlyInterface;
   foldersManager?: FoldersManager;
   viewItemManager?: ViewItemManager;
-  timelineConfig?: TimelineCoreConfig;
+  timelineConfig?: TimelineCoreComponentConfig;
   mini?: boolean;
   thumbnailConfig?: ThumbnailsControlBaseConfig;
   query?: UnifiedQuery;
@@ -89,7 +89,7 @@ export class TimelineController {
 
   private _viewItemManager: ViewItemManager | null = null;
   private _viewManagerEpoch: ViewManagerEpoch | null = null;
-  private _timelineConfig: TimelineCoreConfig | null = null;
+  private _timelineConfig: TimelineCoreComponentConfig | null = null;
 
   private _mini = false;
 

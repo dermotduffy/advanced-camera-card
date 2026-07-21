@@ -1,16 +1,17 @@
 import type { CameraConfig } from '../config/schema/cameras';
 import type { AdvancedCameraCardConfig } from '../config/schema/types';
-import {
-  MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
-  MEDIA_PLAYER_SUPPORT_STOP,
-  MEDIA_PLAYER_SUPPORT_TURN_OFF,
-} from '../const';
 import type { Entity } from '../ha/registry/entity/types';
 import { supportsFeature } from '../ha/supports-feature';
 import { errorToConsole } from '../utils/basic';
 import type { ViewMedia } from '../view/item';
 import { ViewItemClassifier } from '../view/item-classifier';
 import type { CardMediaPlayerAPI } from './types';
+
+// Media player support bitmask flags. Taken from:
+// https://github.com/home-assistant/frontend/blob/a759767d794f02527d127802831e68d3caf0cb7a/src/data/media-player.ts#L82
+export const MEDIA_PLAYER_SUPPORT_TURN_OFF = 256;
+export const MEDIA_PLAYER_SUPPORT_STOP = 4096;
+export const MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA = 131072;
 
 export class MediaPlayerManager {
   private _mediaPlayers: string[] = [];

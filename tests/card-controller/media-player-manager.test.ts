@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { MediaPlayerManager } from '../../src/card-controller/media-player-manager.js';
 import {
   MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
   MEDIA_PLAYER_SUPPORT_STOP,
   MEDIA_PLAYER_SUPPORT_TURN_OFF,
-} from '../../src/const';
+  MediaPlayerManager,
+} from '../../src/card-controller/media-player-manager.js';
 import type { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
 import type { HomeAssistant } from '../../src/ha/types.js';
 import { ViewMediaType } from '../../src/view/item.js';

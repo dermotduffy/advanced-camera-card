@@ -7,17 +7,11 @@
 }
 
 ha-icon,
-state-badge,
-svg {
+state-badge {
   display: block;
   height: 100%;
   width: 100%;
   box-sizing: border-box;
-}
-
-svg path {
-  // !important is necessary to overcome the fill set on the path itself.
-  fill: currentColor !important;
 }
 
 :host([allow-override-non-active-styles]) state-badge {

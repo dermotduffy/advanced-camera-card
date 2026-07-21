@@ -144,7 +144,7 @@ export class MenuButtonController {
 
   private _getIrisButton(config: AdvancedCameraCardConfig): MenuItem {
     return {
-      icon: 'iris',
+      icon: 'advanced-camera-card:iris',
       ...config.menu.buttons.iris,
       type: 'custom:advanced-camera-card-menu-icon',
       title: localize('config.menu.buttons.iris'),

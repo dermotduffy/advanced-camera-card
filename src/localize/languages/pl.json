@@ -195,6 +195,29 @@
             "thumbnails": "Miniatury"
           }
         },
+        "ptz": {
+          "editor_label": "PTZ",
+          "hide_home": "Ukryj przyciski Start i presetów",
+          "hide_pan_tilt": "Ukryj sterowanie obrotem (Pan & Tilt)",
+          "hide_zoom": "Ukryj sterowanie przybliżeniem (Zoom)",
+          "mode": "Tryb",
+          "modes": {
+            "off": "Wyłączony",
+            "on": "Włączony"
+          },
+          "orientation": "Orientacja",
+          "orientations": {
+            "horizontal": "Pozioma",
+            "vertical": "Pionowa"
+          },
+          "position": "Pozycja",
+          "positions": {
+            "bottom-left": "Dół, lewo",
+            "bottom-right": "Dół, prawo",
+            "top-left": "Góra, lewo",
+            "top-right": "Góra, prawo"
+          }
+        },
         "thumbnails": {
           "editor_label": "Miniatury",
           "events_media_types": {
@@ -312,6 +335,10 @@
           "stack": "Zdarzenia ułożone w stos i grupowane"
         },
         "window_seconds": "Domyślna długość widoku osi czasu (sekundy)"
+      },
+      "transition_effects": {
+        "none": "Brak przejścia",
+        "slide": "Przesunięcie (Slide)"
       }
     },
     "dimensions": {
@@ -344,30 +371,7 @@
       "auto_play": "Automatycznie odtwarzaj kamery na żywo",
       "auto_unmute": "Automatycznie włącz dźwięk kamer na żywo",
       "controls": {
-        "editor_label": "Sterowanie na żywo",
-        "ptz": {
-          "editor_label": "PTZ",
-          "hide_home": "Ukryj przyciski Start i presetów",
-          "hide_pan_tilt": "Ukryj sterowanie obrotem (Pan & Tilt)",
-          "hide_zoom": "Ukryj sterowanie przybliżeniem (Zoom)",
-          "mode": "Tryb",
-          "modes": {
-            "off": "Wyłączony",
-            "on": "Włączony"
-          },
-          "orientation": "Orientacja",
-          "orientations": {
-            "horizontal": "Pozioma",
-            "vertical": "Pionowa"
-          },
-          "position": "Pozycja",
-          "positions": {
-            "bottom-left": "Dół, lewo",
-            "bottom-right": "Dół, prawo",
-            "top-left": "Góra, lewo",
-            "top-right": "Góra, prawo"
-          }
-        }
+        "editor_label": "Sterowanie na żywo"
       },
       "draggable": "Widok kamer można przeciągać",
       "lazy_load": "Kamery ładowane leniwie (na żądanie)",
@@ -395,10 +399,6 @@
       "lazy_load": "Media ładowane leniwie w karuzeli",
       "snapshot_click_plays_clip": "Kliknięcie w zrzut odtwarza powiązany klip",
       "transition_effect": "Efekt przejścia przeglądarki mediów",
-      "transition_effects": {
-        "none": "Brak przejścia",
-        "slide": "Przesunięcie (Slide)"
-      },
       "zoomable": "Przeglądarkę mediów można przybliżać/przesuwać"
     },
     "menu": {

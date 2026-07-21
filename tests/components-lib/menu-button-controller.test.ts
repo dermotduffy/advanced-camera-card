@@ -107,7 +107,7 @@ describe('MenuButtonController', () => {
       expect(buttons).toContainEqual({
         alignment: 'matching',
         state_color: true,
-        icon: 'iris',
+        icon: 'advanced-camera-card:iris',
         enabled: true,
         permanent: true,
         priority: 50,
@@ -126,7 +126,7 @@ describe('MenuButtonController', () => {
       expect(buttons).toContainEqual({
         alignment: 'matching',
         state_color: true,
-        icon: 'iris',
+        icon: 'advanced-camera-card:iris',
         enabled: true,
         permanent: true,
         priority: 50,

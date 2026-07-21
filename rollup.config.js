@@ -8,8 +8,10 @@ import typescript from '@rollup/plugin-typescript';
 import gitInfo from 'rollup-plugin-git-info';
 import serve from 'rollup-plugin-serve';
 import styles from 'rollup-plugin-styler';
-import svgo from 'rollup-plugin-svgo';
 import { visualizer } from 'rollup-plugin-visualizer';
+
+import { cleanDist } from './scripts/clean-dist-plugin.js';
+import { svgPath } from './scripts/svg-path-plugin.js';
 
 const watch = process.env.ROLLUP_WATCH === 'true' || process.env.ROLLUP_WATCH === '1';
 const dev = watch || process.env.DEV === 'true' || process.env.DEV === '1';
@@ -35,6 +37,7 @@ const serveopts = {
  * @type {import('rollup').RollupOptions['plugins']}
  */
 const plugins = [
+  cleanDist(),
   gitInfo.default(
     // Limit git-info to the project's own package.json. Without this it also
     // rewrites any dependency's imported package.json into ESM, which then breaks
@@ -54,7 +57,7 @@ const plugins = [
       includePaths: ['./node_modules/'],
     },
   }),
-  svgo(),
+  svgPath(),
   image({ exclude: '**/*.svg' }),
   nodeResolve({
     browser: true,

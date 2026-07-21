@@ -4,41 +4,28 @@ import { IconController } from '../../src/components-lib/icon-controller';
 import { createHASS, createStateEntity } from '../test-utils';
 
 describe('IconController', () => {
-  describe('should get custom icon', () => {
-    it('should return frigate SVG for frigate icon', () => {
-      expect(new IconController().getCustomIcon({ icon: 'frigate' })).toMatch(
-        /frigate.svg$/,
-      );
+  describe('should get icon name', () => {
+    it.each(['frigate', 'iris', 'motioneye', 'reolink', 'tplink'])(
+      'should prefix the bare legacy name %s',
+      (name) => {
+        expect(new IconController().getIconName({ icon: name })).toBe(
+          `advanced-camera-card:${name}`,
+        );
+      },
+    );
+
+    it('should leave an iconset-prefixed name untouched', () => {
+      expect(
+        new IconController().getIconName({ icon: 'advanced-camera-card:frigate' }),
+      ).toBe('advanced-camera-card:frigate');
     });
 
-    it('should return motioneye SVG for motioneye icon', () => {
-      expect(new IconController().getCustomIcon({ icon: 'motioneye' })).toMatch(
-        /motioneye.svg$/,
-      );
+    it('should leave an mdi name untouched', () => {
+      expect(new IconController().getIconName({ icon: 'mdi:car' })).toBe('mdi:car');
     });
 
-    it('should return reolink SVG for reolink icon', () => {
-      expect(new IconController().getCustomIcon({ icon: 'reolink' })).toMatch(
-        /reolink.svg$/,
-      );
-    });
-
-    it('should return tplink SVG for tplink icon', () => {
-      expect(new IconController().getCustomIcon({ icon: 'tplink' })).toMatch(
-        /tplink.svg$/,
-      );
-    });
-
-    it('should return iris SVG for iris icon', () => {
-      expect(new IconController().getCustomIcon({ icon: 'iris' })).toMatch(/iris.svg$/);
-    });
-
-    it('should return null for mdi icon', () => {
-      expect(new IconController().getCustomIcon({ icon: 'mdi:car' })).toBeNull();
-    });
-
-    it('should return null for undefined icon', () => {
-      expect(new IconController().getCustomIcon()).toBeNull();
+    it('should return null for an undefined icon', () => {
+      expect(new IconController().getIconName()).toBeNull();
     });
   });
 

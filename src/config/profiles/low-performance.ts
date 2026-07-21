@@ -40,7 +40,7 @@ import {
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_TIMELINE_SHOW_RECORDINGS,
   CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
-} from '../../const.js';
+} from '../const.js';
 
 export const LOW_PERFORMANCE_PROFILE = {
   // Disable thumbnail carousels.

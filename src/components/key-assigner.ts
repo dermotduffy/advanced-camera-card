@@ -27,7 +27,7 @@ export class AdvancedCameraCardKeyAssigner extends LitElement {
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('value')) {
-      this._controller.setValue(this.value ?? null);
+      this._controller.showValue(this.value ?? null);
     }
   }
 
@@ -44,6 +44,7 @@ export class AdvancedCameraCardKeyAssigner extends LitElement {
 
     return html`
       <div class="label">${this.label}</div>
+      <div class="buttons">
       <ha-button
         title="${localize('key_assigner.assign')}"
         aria-label="${localize('key_assigner.assign')}"
@@ -71,6 +72,7 @@ export class AdvancedCameraCardKeyAssigner extends LitElement {
             </ha-button>`
           : ''
       }
+      </div>
       <div class="key-row">
         ${this.value?.ctrl ? renderKey(localize('key_assigner.modifiers.ctrl')) : ''}
         ${this.value?.shift ? renderKey(localize('key_assigner.modifiers.shift')) : ''}

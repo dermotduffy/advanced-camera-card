@@ -1,0 +1,45 @@
+// The content the editor renders inside an expander body.
+//
+// Every editor component that renders such content does so in its own shadow
+// root, which the editor's own stylesheet cannot reach, so each includes these
+// rules itself. The theme variables they use need no such treatment: custom
+// properties inherit across shadow boundaries from the editor element.
+
+:host {
+  display: block;
+}
+
+// A single-column grid rather than block layout: the `minmax(0, 1fr)` column
+// lets children shrink below their intrinsic minimum width, so a form field
+// with long unbreakable content (an entity ID, a select option) clamps to the
+// panel width instead of overflowing it horizontally.
+@mixin shrinkable-column {
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr);
+}
+
+// No background or border of its own: the body is the panel's own surface, so
+// the margins around the form read as part of it rather than as a frame around
+// it.
+.values {
+  @include shrinkable-column;
+}
+
+// The blocks stacked in a body all take the same inset, so their outlines line
+// up with each other and none touches the body edge. It is applied to each
+// block rather than as body padding because a form's own fields cannot be
+// reached from outside its shadow DOM, so the form element itself has to carry
+// the spacing.
+.values ha-form,
+.values ha-expansion-panel {
+  display: block;
+  margin: 10px;
+}
+
+// De-emphasized to the same degree Home Assistant de-emphasizes the icons on
+// the panels `ha-form` renders, so the panels the editor builds itself sit
+// alongside them without standing out.
+advanced-camera-card-icon[slot='leading-icon'] {
+  color: var(--advanced-camera-card-editor-secondary-text-color);
+}
