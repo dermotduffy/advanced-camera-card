@@ -163,6 +163,10 @@
         "clustering_threshold": "Il conteggio degli eventi in cui sono raggruppati (0 = nessun clustering)",
         "show_recordings": "Mostra registrazioni",
         "window_seconds": "La lunghezza predefinita della vista della sequenza temporale in secondi"
+      },
+      "transition_effects": {
+        "none": "Nessuna transizione",
+        "slide": "Transizione diapositiva"
       }
     },
     "dimensions": {
@@ -199,11 +203,7 @@
       },
       "draggable": "Il visualizzatore multimediale può essere trascinato oppure può scorrere",
       "lazy_load": "Il media Viewer viene caricato pigramente nel carosello",
-      "transition_effect": "Effetto di transizione del visualizzatore multimediale",
-      "transition_effects": {
-        "none": "Nessuna transizione",
-        "slide": "Transizione diapositiva"
-      }
+      "transition_effect": "Effetto di transizione del visualizzatore multimediale"
     },
     "menu": {
       "alignment": "Allineamento dei menu",

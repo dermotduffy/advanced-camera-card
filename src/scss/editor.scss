@@ -1,145 +1,34 @@
+@use './themes/base.scss';
 @use './button.scss';
 
-.option {
-  padding: 8px 4px;
-  cursor: pointer;
+// A hidden form rendered only to pre-load `ha-form`/`ha-selector`'s lazily
+// imported element types.
+.selector-sideload {
+  display: none;
 }
-.option.option-overrides .title {
-  color: var(--warning-color);
-}
-.row {
-  display: flex;
-  margin-bottom: -14px;
-  pointer-events: none;
-}
-.title {
-  padding-left: 16px;
-  margin-top: -6px;
-  pointer-events: none;
-}
-.title.warning {
-  color: var(--warning-color);
-}
-.secondary {
-  padding-left: 40px;
-  color: var(--secondary-text-color);
-  pointer-events: none;
-}
-.values {
-  background: var(--secondary-background-color);
-  display: grid;
 
-  grid-template-columns: minmax(0, 1fr);
+// Card-state notice banners sit above the section stack.
+.card-config > ha-alert {
+  display: block;
+  margin-bottom: 8px;
 }
-// Space submenus from the next top-level options.
-.values + .option,
-.submenu + .option {
-  margin-top: 10px;
+
+// Each top-level section is an HA expansion panel. An open section draws its
+// own outline, which would otherwise sit directly against the neighbouring
+// sections, so every section is spaced whether it is open or not: a gap that
+// appeared only on opening would move the sections below as the panel grew.
+// The margins of two adjacent sections collapse together, so the gap is the
+// same wherever it falls.
+.section {
+  display: block;
+
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
+
 .action-buttons {
   display: flex;
   flex-wrap: wrap;
-}
-
-.submenu-header {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-
-  cursor: pointer;
-}
-.submenu.selected > .submenu-header {
-  background-color: var(--primary-color);
-  color: var(--primary-text-color);
-}
-
-.submenu-header * {
-  flex-basis: auto;
-
-  // Only allow clicks on the header.
-  pointer-events: none;
-}
-.submenu-header .new {
-  font-style: italic;
-}
-.submenu:not(.selected) > .submenu-header .new {
-  color: var(--secondary-text-color, 'black');
-}
-
-.submenu-header advanced-camera-card-icon {
-  margin-right: 15px;
-}
-
-.submenu.selected {
-  border: 1px solid var(--primary-color);
-}
-
-// Nested menus should shrink width.
-.submenu {
-  width: calc(100% - 10px * 2);
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 10px;
-}
-
-// Add a margin above a submenu unless it's another submenu.
-.submenu:first-child,
-:not(.submenu) + .submenu {
-  margin-top: 10px;
-}
-
-.submenu .values .controls {
-  display: inline-block;
-  margin-left: auto;
-  margin-right: 0px;
-  margin-bottom: 5px;
-  margin-top: 5px;
-}
-.submenu .values .controls ha-icon-button {
-  --ha-icon-button-size: 32px;
-  --mdc-icon-size: calc(var(--ha-icon-button-size) / 2);
-}
-span.info {
-  padding: 10px;
-}
-
-ha-selector {
-  padding: 10px;
-  border: 1px solid var(--divider-color);
-}
-
-.doc-link-row {
-  display: flex;
-  align-items: center;
-  padding: 10px 10px 10px 14px;
-
-  border-bottom: 1px solid var(--divider-color);
-
-  text-decoration: none;
-  font-style: italic;
-
-  color: var(--secondary-text-color);
-  cursor: help;
-
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
-
-  opacity: 0.7;
-}
-.doc-link-row:hover {
-  background-color: var(--secondary-background-color);
-  color: var(--primary-color);
-  opacity: 1;
-}
-.doc-link-row ha-icon:first-child {
-  margin-right: 15px;
-}
-.doc-link-row div {
-  flex: 1;
-  padding-left: 0;
-  margin-top: 0;
-  pointer-events: none;
 }
 
 ha-button {

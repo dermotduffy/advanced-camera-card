@@ -1,15 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  addConfigArrayItem,
   copyConfig,
   createRangedTransform,
+  deleteConfigArrayItem,
   deleteConfigValue,
   deleteTransform,
   deleteWithOverrides,
-  getArrayConfigPath,
   getConfigValue,
   hasConfigUpgradeFailures,
   isConfigUpgradeable,
+  moveConfigArrayItem,
   moveConfigValue,
   setConfigValue,
   upgradeArrayOfObjects,
@@ -88,8 +90,98 @@ describe('general functions', () => {
     expect(copy).not.toBe(target);
   });
 
-  it('should get array config path', () => {
-    expect(getArrayConfigPath('a.#.b', 10)).toBe('a.[10].b');
+  describe('addConfigArrayItem', () => {
+    it('should append an item', () => {
+      const config = { cameras: [{ id: 'a' }] };
+      expect(addConfigArrayItem(config, 'cameras', { id: 'b' })).toBe(true);
+      expect(config.cameras).toEqual([{ id: 'a' }, { id: 'b' }]);
+    });
+
+    it('should append at a segment-array path', () => {
+      const config = { cameras: [{ triggers: { events: [{ a: 1 }] } }] };
+      expect(
+        addConfigArrayItem(config, ['cameras', 0, 'triggers', 'events'], { b: 2 }),
+      ).toBe(true);
+      expect(config.cameras[0].triggers.events).toEqual([{ a: 1 }, { b: 2 }]);
+    });
+
+    it('should create the array when the configuration has none', () => {
+      const config = {};
+      expect(addConfigArrayItem(config, 'cameras', { id: 'a' })).toBe(true);
+      expect(config).toEqual({ cameras: [{ id: 'a' }] });
+    });
+
+    it('should replace a value that is not an array', () => {
+      const config = { cameras: 'junk' };
+      expect(addConfigArrayItem(config, 'cameras', { id: 'a' })).toBe(true);
+      expect(config).toEqual({ cameras: [{ id: 'a' }] });
+    });
+  });
+
+  describe('moveConfigArrayItem', () => {
+    it('should move an item at a segment-array path', () => {
+      const config = { cameras: [{ triggers: { events: [{ a: 1 }, { b: 2 }] } }] };
+      expect(
+        moveConfigArrayItem(config, ['cameras', 0, 'triggers', 'events'], 0, 1),
+      ).toBe(true);
+      expect(config.cameras[0].triggers.events).toEqual([{ b: 2 }, { a: 1 }]);
+    });
+
+    it('should move an item in place and report a change', () => {
+      const config = { cameras: [{ id: 'a' }, { id: 'b' }] };
+      expect(moveConfigArrayItem(config, 'cameras', 0, 1)).toBe(true);
+      expect(config).toEqual({ cameras: [{ id: 'b' }, { id: 'a' }] });
+    });
+
+    it('should return false when the path is not an array', () => {
+      const config = { cameras: 'nope' };
+      expect(moveConfigArrayItem(config, 'cameras', 0, 1)).toBe(false);
+      expect(config).toEqual({ cameras: 'nope' });
+    });
+
+    it.each([
+      ['same index', 0, 0],
+      ['from out of bounds', 2, 0],
+      ['to out of bounds', 0, 2],
+      ['negative from', -1, 0],
+      ['negative to', 0, -1],
+      ['non-integer from', 0.5, 1],
+      ['non-integer to', 0, Number.NaN],
+    ])(
+      'should return false and not modify for an impossible move (%s)',
+      (_name, from, to) => {
+        const config = { cameras: [{ id: 'a' }, { id: 'b' }] };
+        expect(moveConfigArrayItem(config, 'cameras', from, to)).toBe(false);
+        expect(config).toEqual({ cameras: [{ id: 'a' }, { id: 'b' }] });
+      },
+    );
+  });
+
+  describe('deleteConfigArrayItem', () => {
+    it('should delete an item in place and report a change', () => {
+      const config = { cameras: [{ id: 'a' }, { id: 'b' }] };
+      expect(deleteConfigArrayItem(config, 'cameras', 0)).toBe(true);
+      expect(config).toEqual({ cameras: [{ id: 'b' }] });
+    });
+
+    it('should return false when the path is not an array', () => {
+      const config = { cameras: 'nope' };
+      expect(deleteConfigArrayItem(config, 'cameras', 0)).toBe(false);
+      expect(config).toEqual({ cameras: 'nope' });
+    });
+
+    it.each([
+      ['out of bounds', 1],
+      ['negative', -1],
+      ['non-integer', 0.5],
+    ])(
+      'should return false and not modify for an impossible delete (%s)',
+      (_name, index) => {
+        const config = { cameras: [{ id: 'a' }] };
+        expect(deleteConfigArrayItem(config, 'cameras', index)).toBe(false);
+        expect(config).toEqual({ cameras: [{ id: 'a' }] });
+      },
+    );
   });
 });
 
@@ -5220,14 +5312,27 @@ describe('should handle version specific upgrades', () => {
         postUpgradeChecks(config);
       });
 
-      it('should migrate an empty legacy array', () => {
+      it('should leave an empty array alone', () => {
+        // An empty list says nothing about which of the two shapes it is, and
+        // is valid under the new schema. Claiming it would rename the key of a
+        // user who has simply deleted their last event trigger.
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office', triggers: { events: [] } }],
         };
-        expect(upgradeConfig(config)).toBeTruthy();
-        expect(config.cameras[0].triggers).toEqual({ media_events: [] });
-        postUpgradeChecks(config);
+        upgradeConfig(config);
+        expect(config.cameras[0].triggers).toEqual({ events: [] });
+      });
+
+      it('should not report an upgrade for an empty array', () => {
+        // Otherwise the editor offers an upgrade to a user who has only
+        // deleted their last event trigger.
+        expect(
+          isConfigUpgradeable({
+            type: 'custom:advanced-camera-card',
+            cameras: [{ camera_entity: 'camera.office', triggers: { events: [] } }],
+          }),
+        ).toBeFalsy();
       });
 
       it('should leave the new object-array shape untouched', () => {

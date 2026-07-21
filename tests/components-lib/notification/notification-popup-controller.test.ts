@@ -1,7 +1,7 @@
 import { describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import { NotificationPopupController } from '../../../src/components-lib/notification/notification-popup-controller';
-import { POP_OUT_ANIMATION_NAME } from '../../../src/const';
+import { POP_OUT_ANIMATION_NAME } from '../../../src/utils/animation';
 import { createLitElement } from '../../test-utils';
 
 // @vitest-environment jsdom

@@ -183,7 +183,7 @@ menu:
       enabled: true
       inert: false
       alignment: matching
-      icon: iris
+      icon: advanced-camera-card:iris
     live:
       priority: 50
       enabled: true

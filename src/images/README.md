@@ -19,7 +19,7 @@
 $ convert -strip -interlace Plane -quality 85% -scale 492x277 iris-screensaver-original.jpg iris-screensaver.jpg
 ```
 
-## iris.svg / iris-outline.svg
+## icons/iris.svg / iris-background.svg
 
 **Link**: https://pictogrammers.com/library/mdi/icon/camera-iris/
 
@@ -27,8 +27,13 @@ $ convert -strip -interlace Plane -quality 85% -scale 492x277 iris-screensaver-o
 
 **Image Formatting Process**:
 
-- Outline addded manually
-- Opacity adjustmented manually
+- `icons/iris.svg`: single-path variant for the card's custom iconset
+- `iris-background.svg`: outline / opacity adjusted manually
+
+## icons/{frigate,motioneye,reolink,tplink}.svg
+
+**Description**: Vendor logos, flattened to single-path monochrome silhouettes
+for the card's custom iconset.
 
 ## check-circle.svg
 

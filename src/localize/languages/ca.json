@@ -129,6 +129,29 @@
             "thumbnails": "Miniatures"
           }
         },
+        "ptz": {
+          "editor_label": "PTZ",
+          "hide_home": "Amaga el control de casa",
+          "hide_pan_tilt": "Amaga el control d'escombratge i inclinació",
+          "hide_zoom": "Amaga el control de zoom",
+          "mode": "Mode",
+          "modes": {
+            "off": "Desactivat",
+            "on": "Activat"
+          },
+          "orientation": "Orientació",
+          "orientations": {
+            "horizontal": "Horitzontal",
+            "vertical": "Vertical"
+          },
+          "position": "Posició",
+          "positions": {
+            "bottom-left": "Inferior esquerra",
+            "bottom-right": "Inferior dreta",
+            "top-left": "Superior left",
+            "top-right": "Superior dreta"
+          }
+        },
         "thumbnails": {
           "editor_label": "Miniatures",
           "mode": "Mode de miniatures",
@@ -204,6 +227,10 @@
           "stack": "Esdeveniments apilats i agrupats"
         },
         "window_seconds": "La durada predeterminada de la visualització de la línia de temps en segons"
+      },
+      "transition_effects": {
+        "none": "Sense transició",
+        "slide": "Transició de diapositives"
       }
     },
     "dimensions": {
@@ -221,30 +248,7 @@
       "auto_play": "Reprodueix automàticament les càmeres en directe",
       "auto_unmute": "Activa automàticament el so de les càmeres en directe",
       "controls": {
-        "editor_label": "Controls del directe",
-        "ptz": {
-          "editor_label": "PTZ",
-          "hide_home": "Amaga el control de casa",
-          "hide_pan_tilt": "Amaga el control d'escombratge i inclinació",
-          "hide_zoom": "Amaga el control de zoom",
-          "mode": "Mode",
-          "modes": {
-            "off": "Desactivat",
-            "on": "Activat"
-          },
-          "orientation": "Orientació",
-          "orientations": {
-            "horizontal": "Horitzontal",
-            "vertical": "Vertical"
-          },
-          "position": "Posició",
-          "positions": {
-            "bottom-left": "Inferior esquerra",
-            "bottom-right": "Inferior dreta",
-            "top-left": "Superior left",
-            "top-right": "Superior dreta"
-          }
-        }
+        "editor_label": "Controls del directe"
       },
       "draggable": "La vista de càmeres en directe es pot arrossegar/lliscar",
       "lazy_load": "Les càmeres en directe es carreguen amb mandra",
@@ -272,10 +276,6 @@
       "lazy_load": "El contingut multimèdia del visualitzador multimèdia es carreguen amb mandra al carrusel",
       "snapshot_click_plays_clip": "Si feu clic a una instantània, es reprodueix un clip relacionat",
       "transition_effect": "Efecte de transició del visualitzador multimèdia",
-      "transition_effects": {
-        "none": "Sense transició",
-        "slide": "Transició de diapositives"
-      },
       "zoomable": "El visualitzador de mitjans es pot ampliar/escombrar"
     },
     "menu": {

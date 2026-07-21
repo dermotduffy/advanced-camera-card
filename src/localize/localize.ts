@@ -91,7 +91,16 @@ export function localize(string: string, search = '', replace = ''): string {
   } catch (_e) {}
 
   if (!translated) {
-    translated = string.split('.').reduce((o, i) => o[i], languages[DEFAULT_LANG]);
+    try {
+      translated = string.split('.').reduce((o, i) => o[i], languages[DEFAULT_LANG]);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_e) {}
+  }
+
+  // Fall back to the key itself: a missing translation shows as its (self-
+  // describing) key rather than throwing and blanking the entire component.
+  if (!translated) {
+    return string;
   }
 
   if (search !== '' && replace !== '') {

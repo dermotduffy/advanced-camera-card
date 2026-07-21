@@ -1,0 +1,19 @@
+// The keyboard shortcuts panel renders editor body content into its own shadow
+// root, so it carries the shared body rules alongside its own.
+@use './editor-expander-body.scss';
+
+// The key assigners are rows of a shared three-column table (label, buttons,
+// assigned keys): the columns are defined here and each assigner joins them
+// with a subgrid, so the rows align across components.
+.values {
+  // `minmax(0, 1fr)` rather than `1fr`: the keys column must be able to
+  // shrink below its content so long key combinations wrap instead of
+  // overflowing.
+  grid-template-columns: max-content max-content minmax(0, 1fr);
+}
+
+// Content other than the assigners (the documentation link, the shortcuts
+// form) spans the whole row.
+.values > *:not(advanced-camera-card-key-assigner) {
+  grid-column: 1 / -1;
+}

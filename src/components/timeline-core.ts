@@ -22,7 +22,7 @@ import {
 } from '../components-lib/timeline/types';
 import type { ConditionStateManagerReadonlyInterface } from '../condition-trigger/conditions/types';
 import type { ThumbnailsControlBaseConfig } from '../config/schema/common/controls/thumbnails';
-import type { TimelineCoreConfig } from '../config/schema/common/controls/timeline';
+import type { TimelineCoreComponentConfig } from '../config/schema/common/controls/timeline';
 import type { CardWideConfig } from '../config/schema/types';
 import type { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
@@ -115,7 +115,7 @@ export class AdvancedCameraCardTimelineCore extends LitElement {
   public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  public timelineConfig?: TimelineCoreConfig;
+  public timelineConfig?: TimelineCoreComponentConfig;
 
   @property({ attribute: false })
   public thumbnailConfig?: ThumbnailsControlBaseConfig;

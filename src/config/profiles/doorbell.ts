@@ -4,7 +4,7 @@ import {
   CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
   CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
-} from '../../const.js';
+} from '../const.js';
 
 export const DOORBELL_PROFILE = {
   // Auto-discover HA `event.*` entities with `device_class: doorbell` on each

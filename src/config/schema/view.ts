@@ -37,14 +37,17 @@ const keyboardShortcutsSchema = z.object({
 });
 export type KeyboardShortcuts = z.infer<typeof keyboardShortcutsSchema>;
 
-export type PTZKeyboardShortcutName =
-  | 'ptz_down'
-  | 'ptz_home'
-  | 'ptz_left'
-  | 'ptz_right'
-  | 'ptz_up'
-  | 'ptz_zoom_in'
-  | 'ptz_zoom_out';
+export type PTZKeyboardShortcutName = Exclude<keyof KeyboardShortcuts, 'enabled'>;
+
+export const PTZ_KEYBOARD_SHORTCUTS: readonly PTZKeyboardShortcutName[] = [
+  'ptz_left',
+  'ptz_right',
+  'ptz_up',
+  'ptz_down',
+  'ptz_zoom_in',
+  'ptz_zoom_out',
+  'ptz_home',
+];
 
 const interactionModeDefault = 'inactive' as const;
 

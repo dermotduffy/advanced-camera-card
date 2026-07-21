@@ -54,6 +54,7 @@ import type {
   RawAdvancedCameraCardConfig,
 } from './config/types.js';
 import { REPO_URL } from './const.js';
+import { registerCustomIconset } from './ha/custom-icons.js';
 import type { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
@@ -104,6 +105,8 @@ console.info(
   documentationURL: REPO_URL,
   getEntitySuggestion: ConfigManager.getEntitySuggestion,
 });
+
+registerCustomIconset();
 
 // Expose currently-connected card instances on `window.advancedCameraCards` for
 // console-based debugging and user support. `??=` so a double-loaded card

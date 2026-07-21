@@ -1,5 +1,8 @@
 declare module '*.scss';
-declare module '*.svg';
+declare module '*.svg' {
+  const icon: { path: string; viewBox: string };
+  export default icon;
+}
 declare module '*.jpg';
 declare module 'view' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type

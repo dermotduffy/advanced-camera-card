@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitest/config';
 
+import { svgPath } from './scripts/svg-path-plugin.js';
+
 const EXCLUSIONS = [
   '.eslintrc.cjs',
   'docs/**',
@@ -21,6 +23,7 @@ const INCLUSIONS = ['tests/**/*.test.ts'];
 
 // ts-prune-ignore-next
 export default defineConfig({
+  plugins: [svgPath()],
   test: {
     server: {
       deps: {

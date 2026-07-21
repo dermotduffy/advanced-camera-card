@@ -178,6 +178,29 @@
             "thumbnails": "Vignettes"
           }
         },
+        "ptz": {
+          "editor_label": "PTZ",
+          "hide_home": "Cacher le bouton position d'origine",
+          "hide_pan_tilt": "Cacher les boutons panoramiques/inclinaison",
+          "hide_zoom": "Cacher le bouton de zoom",
+          "mode": "Mode",
+          "modes": {
+            "off": "Désactivé",
+            "on": "Activé"
+          },
+          "orientation": "Orientation",
+          "orientations": {
+            "horizontal": "Horizontale",
+            "vertical": "Verticale"
+          },
+          "position": "Position",
+          "positions": {
+            "bottom-left": "En bas à gauche",
+            "bottom-right": "En bas à droite",
+            "top-left": "En haut à gauche",
+            "top-right": "En haut à droite"
+          }
+        },
         "thumbnails": {
           "editor_label": "Vignettes",
           "mode": "Mode vignettes",
@@ -284,6 +307,10 @@
           "stack": "Événements empilés et groupés"
         },
         "window_seconds": "Durée par défaut de la vue chronologique en secondes"
+      },
+      "transition_effects": {
+        "none": "Pas de transition",
+        "slide": "Transition de diapositive"
       }
     },
     "dimensions": {
@@ -302,30 +329,7 @@
       "auto_play": "Lire automatiquement les caméras en direct",
       "auto_unmute": "Activer automatiquement le son des caméras en direct",
       "controls": {
-        "editor_label": "Contrôles en direct",
-        "ptz": {
-          "editor_label": "PTZ",
-          "hide_home": "Cacher le bouton position d'origine",
-          "hide_pan_tilt": "Cacher les boutons panoramiques/inclinaison",
-          "hide_zoom": "Cacher le bouton de zoom",
-          "mode": "Mode",
-          "modes": {
-            "off": "Désactivé",
-            "on": "Activé"
-          },
-          "orientation": "Orientation",
-          "orientations": {
-            "horizontal": "Horizontale",
-            "vertical": "Verticale"
-          },
-          "position": "Position",
-          "positions": {
-            "bottom-left": "En bas à gauche",
-            "bottom-right": "En bas à droite",
-            "top-left": "En haut à gauche",
-            "top-right": "En haut à droite"
-          }
-        }
+        "editor_label": "Contrôles en direct"
       },
       "draggable": "La vue des caméras en direct peut être déplacée/glissée",
       "lazy_load": "Les caméras en direct sont chargeés en différé",
@@ -353,10 +357,6 @@
       "lazy_load": "Les médias Media Viewer sont chargés en différé dans le carrousel",
       "snapshot_click_plays_clip": "Cliquer sur un instantané lit l'extrait associé",
       "transition_effect": "Effet de transition de la visionneuse multimédia",
-      "transition_effects": {
-        "none": "Pas de transition",
-        "slide": "Transition de diapositive"
-      },
       "zoomable": "La visionneuse multimédia peut être zoomée/panoramique"
     },
     "menu": {

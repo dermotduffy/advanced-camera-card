@@ -81,7 +81,7 @@ export class AdvancedCameraCardLoading extends LitElement {
 
   protected render(): TemplateResult {
     return html`<advanced-camera-card-icon
-        .icon=${{ icon: 'iris' }}
+        .icon=${{ icon: 'advanced-camera-card:iris' }}
       ></advanced-camera-card-icon
       ><span>${getReleaseVersion()}</span>`;
   }

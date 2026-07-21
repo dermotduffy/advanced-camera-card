@@ -163,6 +163,10 @@
         "clustering_threshold": "A contagem de eventos nos quais eles são agrupados (0 = sem agrupamento)",
         "show_recordings": "Mostrar gravações",
         "window_seconds": "A duração padrão da visualização da linha do tempo em segundos"
+      },
+      "transition_effects": {
+        "none": "Sem transição",
+        "slide": "Transição de slides"
       }
     },
     "dimensions": {
@@ -200,11 +204,7 @@
       "draggable": "Visualizador de eventos pode ser arrastado/deslizado",
       "lazy_load": "A mídia do Visualizador de eventos é carregada lentamente no carrossel",
       "snapshot_click_plays_clip": "Clicar em um instantâneo reproduz um clipe relacionado",
-      "transition_effect": "Efeito de transição do Visualizador de eventos",
-      "transition_effects": {
-        "none": "Sem transição",
-        "slide": "Transição de slides"
-      }
+      "transition_effect": "Efeito de transição do Visualizador de eventos"
     },
     "menu": {
       "alignment": "Alinhamento do menu",

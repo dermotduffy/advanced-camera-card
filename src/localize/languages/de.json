@@ -97,7 +97,29 @@
     "common": {
       "controls": {
         "builtin": "Eingebettete Video Bedienelemente",
-        "thumbnails": {},
+        "ptz": {
+          "editor_label": "PTZ",
+          "hide_home": "Verstecke Start & Vorlagen Bedienung",
+          "hide_pan_tilt": "Verstecke Pan & Tilt Steuerung",
+          "hide_zoom": "Verstecke Zoom-Steuerung",
+          "mode": "Modus",
+          "modes": {
+            "off": "Aus",
+            "on": "An"
+          },
+          "orientation": "Ausrichtung",
+          "orientations": {
+            "horizontal": "Horizontal",
+            "vertical": "Vertikal"
+          },
+          "position": "Position",
+          "positions": {
+            "bottom-left": "Unten links",
+            "bottom-right": "Oben rechts",
+            "top-left": "Unten links",
+            "top-right": "Oben rechts"
+          }
+        },
         "timeline": {
           "format": {
             "24h": "24h Uhr",
@@ -191,31 +213,6 @@
       }
     },
     "live": {
-      "controls": {
-        "ptz": {
-          "editor_label": "PTZ",
-          "hide_home": "Verstecke Start & Vorlagen Bedienung",
-          "hide_pan_tilt": "Verstecke Pan & Tilt Steuerung",
-          "hide_zoom": "Verstecke Zoom-Steuerung",
-          "mode": "Modus",
-          "modes": {
-            "off": "Aus",
-            "on": "An"
-          },
-          "orientation": "Ausrichtung",
-          "orientations": {
-            "horizontal": "Horizontal",
-            "vertical": "Vertikal"
-          },
-          "position": "Position",
-          "positions": {
-            "bottom-left": "Unten links",
-            "bottom-right": "Oben rechts",
-            "top-left": "Unten links",
-            "top-right": "Oben rechts"
-          }
-        }
-      },
       "microphone": {
         "always_connected": "Mikrofon immer verbunden lassen",
         "disconnect_seconds": "Sekunden nach denen das Mikrofon getrennt wird (0=niemals)",

@@ -254,3 +254,111 @@ export const resolvedMediaSchema = z.object({
   mime_type: z.string(),
 });
 export type ResolvedMedia = z.infer<typeof resolvedMediaSchema>;
+
+// *************************************************************************
+//                     Home Assistant form types.
+// *************************************************************************
+// Home Assistant does not publish frontend types as a package, so the subset
+// of the `ha-form` schema and `ha-selector` configuration shapes used by this
+// card are declared here. They must remain structurally compatible with:
+// https://github.com/home-assistant/frontend/blob/dev/src/components/ha-form/types.ts
+// https://github.com/home-assistant/frontend/blob/dev/src/data/selector.ts
+
+interface HAEntitySelector {
+  entity: {
+    domain?: string;
+    multiple?: boolean;
+  };
+}
+
+export interface HASelectSelectorOption {
+  value: unknown;
+  label: string;
+}
+
+export interface HASelectSelector {
+  select: {
+    mode?: 'dropdown' | 'list';
+    multiple?: boolean;
+    custom_value?: boolean;
+    options: string[] | HASelectSelectorOption[];
+  };
+}
+
+interface HAStringSelector {
+  text: {
+    type?: string;
+  };
+}
+
+export interface HANumberSelector {
+  number: {
+    min?: number;
+    max?: number;
+    mode?: 'box' | 'slider';
+    step?: number;
+  };
+}
+
+interface HABooleanSelector {
+  boolean: Record<string, never>;
+}
+
+interface HAIconSelector {
+  icon: Record<string, never>;
+}
+
+interface HAObjectSelector {
+  object: Record<string, never>;
+}
+
+type HASelector =
+  | HABooleanSelector
+  | HAEntitySelector
+  | HAIconSelector
+  | HANumberSelector
+  | HAObjectSelector
+  | HASelectSelector
+  | HAStringSelector;
+
+interface StockHAFormBaseSchema {
+  name: string;
+}
+
+interface StockHAFormSelectorSchema extends StockHAFormBaseSchema {
+  selector: HASelector;
+}
+
+interface StockHAFormExpandableSchema extends StockHAFormBaseSchema {
+  type: 'expandable';
+  title?: string;
+  icon?: string;
+  schema: readonly HAFormSchema[];
+}
+
+// Extensions layered onto the stock shapes; not part of `ha-form` itself.
+interface CardHAFormSchemaExtensions {
+  // Override the standard path-derived label, e.g. to point shared fields at
+  // `config.common.*` rather than duplicating keys under each section.
+  label?: string;
+}
+
+export interface HAFormSelectorSchema
+  extends StockHAFormSelectorSchema,
+    CardHAFormSchemaExtensions {}
+
+export interface HAFormExpandableSchema
+  extends Omit<StockHAFormExpandableSchema, 'name'>,
+    CardHAFormSchemaExtensions {
+  // hass-frontend requires `name`, but `ha-form`'s runtime treats a missing name
+  // as a flattened, visual-only group (the `!item.name` paths in ha-form.ts).
+  // Relaxed to optional here for nameless grouping, e.g. an "Engine" group over
+  // the top-level `frigate`/`motioneye` camera keys.
+  name?: string;
+
+  // Explicit documentation-link key, for a nameless group whose link cannot be
+  // derived from a configuration path.
+  docPath?: string;
+}
+
+export type HAFormSchema = HAFormSelectorSchema | HAFormExpandableSchema;

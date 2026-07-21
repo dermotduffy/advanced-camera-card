@@ -40,6 +40,35 @@ describe('KeyAssignerController', () => {
     });
   });
 
+  describe('should show a value without reporting it', () => {
+    it('should adopt the value it is given', () => {
+      const element = createLitElement();
+      const controller = new KeyAssignerController(element);
+      const listener = vi.fn();
+      element.addEventListener('value-changed', listener);
+
+      controller.showValue({ key: 'ArrowLeft' });
+
+      expect(controller.getValue()).toEqual({ key: 'ArrowLeft' });
+      expect(element.requestUpdate).toHaveBeenCalled();
+
+      // The value came from outside: reporting it back would have the owner
+      // store a shortcut the user never assigned.
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing for the value it already has', () => {
+      const element = createLitElement();
+      const controller = new KeyAssignerController(element);
+      controller.showValue({ key: 'ArrowLeft' });
+      vi.mocked(element.requestUpdate).mockClear();
+
+      controller.showValue({ key: 'ArrowLeft' });
+
+      expect(element.requestUpdate).not.toHaveBeenCalled();
+    });
+  });
+
   describe('should manage assignment state', () => {
     it('should not be assigned to start', () => {
       const element = createLitElement();

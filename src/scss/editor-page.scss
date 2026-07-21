@@ -1,0 +1,36 @@
+// The editor for one item of a list, shown in place of the list, headed as
+// Home Assistant heads the editor for a sub-element of a card.
+@use './editor-expander-body.scss';
+
+// The shared body rules set `:host { display: block }`, which outranks the
+// browser's default styling of the `hidden` attribute, so the page is hidden
+// explicitly. A page is hidden while it stays mounted under a page opened on
+// top of it, keeping its expanded panels expanded for when it returns.
+:host([hidden]) {
+  display: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+
+  margin: 8px 10px;
+}
+
+.heading {
+  overflow: hidden;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  font-size: var(--ha-font-size-l, 1.125rem);
+}
+
+// The page's blocks (the item's forms, then any list of its own) are spaced
+// as Home Assistant spaces the blocks within a form, so a list below a form
+// reads at the same distance as one form group below another.
+::slotted(*:not(:last-child)) {
+  display: block;
+
+  margin-bottom: 24px;
+}

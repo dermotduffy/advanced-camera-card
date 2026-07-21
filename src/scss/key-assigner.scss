@@ -1,12 +1,29 @@
+// Fade content out over the last `$distance` of the element's width. The
+// prefixed property covers Safari before 15.4 and Chrome before 120.
+@mixin fade-out-right($distance: 20px) {
+  $gradient: linear-gradient(
+    to right,
+    black calc(100% - #{$distance}),
+    transparent 100%
+  );
+
+  -webkit-mask-image: $gradient;
+  mask-image: $gradient;
+}
+
+// Each assigner is one row of the columns its parent grid defines (label,
+// buttons, assigned keys), so the rows align like a table across components.
 :host {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   align-items: center;
 
-  // Values match other HA editor components.
+  // Values match other HA editor components. A minimum rather than a fixed
+  // height: a long key combination may wrap onto multiple lines.
   padding: 10px;
-  height: 56px;
-  border: 1px solid var(--divider-color);
+  min-height: 56px;
+  box-sizing: border-box;
 }
 
 :host([assigning]) ha-button.assign span,
@@ -15,7 +32,7 @@
 
   @keyframes pulse {
     50% {
-      color: var(--warning-color);
+      color: var(--advanced-camera-card-editor-warning-color);
     }
   }
 }
@@ -30,16 +47,27 @@ advanced-camera-card-icon {
 }
 
 div.label {
-  width: 100px;
   margin-left: 4px;
 }
 
-div.key-row {
-  flex: 1;
-
+div.buttons {
   display: flex;
-  justify-content: center;
   align-items: center;
+}
+
+div.key-row {
+  display: flex;
+  align-items: center;
+
+  // A long key combination wraps rather than overflowing the row. When even a
+  // single key is wider than the row (a very narrow editor), wrapping cannot
+  // help, so the overflow is clipped and faded out at the edge rather than
+  // spilling out of the panel.
+  flex-wrap: wrap;
+  row-gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+  @include fade-out-right;
 
   padding-left: 10px;
   padding-right: 10px;
@@ -49,7 +77,6 @@ div.key {
   display: flex;
   align-items: center;
 
-  height: 90%;
   width: min-content;
 
   margin-left: 5px;
@@ -57,32 +84,25 @@ div.key {
 }
 
 div.key-inner {
-  height: 100%;
-  width: 100%;
-
-  padding-top: 2px;
-  padding-bottom: 2px;
-  padding-left: 4px;
-  padding-right: 4px;
-
-  border: 2px;
-  border-radius: 4px;
-  border-style: outset;
-  border-color: var(--divider-color);
-
-  font-family: monospace;
-  text-transform: capitalize;
-}
-
-div.unassigned {
-  font-style: italic;
-}
-
-div.key + div.key:before {
   display: flex;
   align-items: center;
+  justify-content: center;
 
-  margin-right: 5px;
+  min-width: 24px;
 
-  content: ' + ';
+  padding: 4px 8px;
+
+  background-color: var(--secondary-background-color);
+  border: 1px solid var(--advanced-camera-card-divider-color);
+  border-radius: 4px;
+
+  // The darker lower edge reads as the side of a raised keycap.
+  box-shadow: var(
+    --advanced-camera-card-box-shadow-override,
+    inset 0 -2px 0 var(--advanced-camera-card-divider-color)
+  );
+
+  font-family: monospace;
+  font-size: 0.9em;
+  text-transform: capitalize;
 }

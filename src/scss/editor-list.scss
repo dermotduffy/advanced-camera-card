@@ -1,0 +1,66 @@
+// A list of configuration items as rows, styled as Home Assistant styles the
+// editable lists in its own editors.
+@use './editor-expander-body.scss';
+
+// Whatever precedes the list draws a line of its own (a documentation link's
+// lower border, a form's fields), which the rows' own borders would otherwise
+// sit directly against.
+:host {
+  padding-top: 8px;
+}
+
+ha-md-list {
+  gap: 8px;
+
+  padding: 0 10px;
+}
+
+ha-md-list-item {
+  border: 1px solid var(--advanced-camera-card-divider-color);
+  border-radius: var(--ha-border-radius-md, 8px);
+
+  --ha-md-list-item-gap: 8px;
+  --md-list-item-top-space: 0;
+  --md-list-item-bottom-space: 0;
+  --md-list-item-leading-space: 12px;
+  --md-list-item-trailing-space: 4px;
+  --md-list-item-one-line-container-height: 48px;
+  --md-list-item-two-line-container-height: 56px;
+}
+
+// Sized and de-emphasized as Home Assistant sizes the controls on the rows of
+// its own editable lists: 36px buttons rather than the 48px default, against a
+// 48px row.
+.handle,
+ha-md-list-item advanced-camera-card-icon[slot='start'] {
+  color: var(--advanced-camera-card-editor-secondary-text-color);
+}
+
+.handle {
+  cursor: move; // Fallback where the grab cursor is unsupported.
+  cursor: grab;
+}
+
+// The handle is what a drag is started from, so nothing inside it may become
+// the target of the pointer instead.
+.handle > * {
+  pointer-events: none;
+}
+
+ha-icon-button {
+  --ha-icon-button-size: 36px;
+
+  color: var(--advanced-camera-card-editor-secondary-text-color);
+}
+
+.title,
+.description {
+  overflow: hidden;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.add {
+  margin: 8px 10px;
+}

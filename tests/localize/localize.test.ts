@@ -244,12 +244,12 @@ describe('localize', () => {
     expect(localize('common.advanced_camera_card', '', '')).toBe('Advanced Camera Card');
   });
 
-  it('should throw for completely missing key', async () => {
+  it('should return the key for completely missing key', async () => {
     const { localize } = await importFresh();
 
-    // The first reduce throws (caught), the English fallback also throws
-    // (uncaught), so this will throw a TypeError.
-    expect(() => localize('nonexistent.deeply.nested.key')).toThrow();
+    expect(localize('nonexistent.deeply.nested.key')).toBe(
+      'nonexistent.deeply.nested.key',
+    );
   });
 
   it('should return translated value for single-segment key', async () => {
