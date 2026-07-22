@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import { CallConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/call';
 import { CameraConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/camera';
 import { DisplayModeConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/display-mode';
 import { ExpandConditionEvaluator } from '../../../src/condition-trigger/conditions/conditions/expand';
@@ -19,7 +18,6 @@ type ConditionEvaluatorConstructor = new (...args: never[]) => ConditionEvaluato
 
 describe('createConditionEvaluatorForTrigger', () => {
   it.each<[Trigger, ConditionEvaluatorConstructor]>([
-    [{ trigger: 'call', call: true }, CallConditionEvaluator],
     [{ trigger: 'camera', cameras: ['front'] }, CameraConditionEvaluator],
     [{ trigger: 'display_mode', display_mode: 'single' }, DisplayModeConditionEvaluator],
     [{ trigger: 'expand', expand: true }, ExpandConditionEvaluator],
@@ -40,6 +38,7 @@ describe('createConditionEvaluatorForTrigger', () => {
   it.each<[string, Trigger]>([
     ['a valueless trigger fires on any change', { trigger: 'fullscreen' }],
     ['config has no matching condition', { trigger: 'config', paths: ['menu.style'] }],
+    ['call matches the change itself', { trigger: 'call', from: 'ringing' }],
     [
       'stock triggers evaluate themselves',
       { trigger: 'state', entity_id: 'binary_sensor.x' },

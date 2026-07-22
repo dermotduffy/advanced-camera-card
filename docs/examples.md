@@ -423,6 +423,85 @@ profiles:
   - doorbell
 ```
 
+### Alerting the rest of the house
+
+A wall tablet only helps whoever is standing in front of it. This example uses
+the [`call` trigger](configuration/conditions-triggers.md?id=call) to drive an
+`input_boolean` that a normal Home Assistant automation can watch, so the rest of
+the house "rings" too -- and, crucially, **stops** ringing the moment somebody deals
+with the caller.
+
+The card knows things Home Assistant cannot see on its own: whether anyone
+actually picked the call up, and whether it was answered or dismissed. Each
+phase change gets its own automation.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.front_door
+    live_provider: go2rtc
+    go2rtc:
+      modes:
+        - webrtc
+profiles:
+  - doorbell
+automations:
+  # It started ringing: ring the rest of the house and light the porch so the
+  # visitor is actually visible on camera.
+  - triggers:
+      - trigger: call
+        to: ringing
+    actions:
+      - action: perform-action
+        perform_action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.doorbell_ringing
+      - action: perform-action
+        perform_action: light.turn_on
+        target:
+          entity_id: light.porch
+
+  # Somebody answered on the tablet: silence every other device immediately.
+  # `from: ringing` keeps this from firing when *you* start an outbound call.
+  - triggers:
+      - trigger: call
+        from: ringing
+        to: answered
+    actions:
+      - action: perform-action
+        perform_action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.doorbell_ringing
+
+  # Nobody picked up, or somebody rejected it: stop ringing, and announce that
+  # a visitor was missed.
+  - triggers:
+      - trigger: call
+        from: ringing
+        to: idle
+    actions:
+      - action: perform-action
+        perform_action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.doorbell_ringing
+      - action: perform-action
+        perform_action: notify.mobile_app_phone
+        data:
+          message: Somebody was at the front door and nobody answered.
+
+  # The conversation ended. Only fires for calls that were actually answered,
+  # so an unanswered ring never turns the porch light off early.
+  - triggers:
+      - trigger: call
+        from: answered
+        to: idle
+    actions:
+      - action: perform-action
+        perform_action: light.turn_off
+        target:
+          entity_id: light.porch
+```
+
 ## Events from other cameras
 
 `dependencies.cameras` allows events/recordings for other cameras to be shown

@@ -42,7 +42,7 @@ describe('createTriggerEvaluator', () => {
     [{ trigger: 'state', entity_id: 'binary_sensor.x' }, StateTrigger],
     [{ trigger: 'numeric_state', entity_id: 'sensor.x', above: 5 }, NumericStateTrigger],
     [{ trigger: 'template', value_template: '{{ true }}' }, TemplateTrigger],
-    [{ trigger: 'call', call: true }, CallTrigger],
+    [{ trigger: 'call', to: 'answered' }, CallTrigger],
     [{ trigger: 'camera', cameras: ['front'] }, CameraTrigger],
     [{ trigger: 'config' }, ConfigTrigger],
     [{ trigger: 'display_mode', display_mode: 'single' }, DisplayModeTrigger],

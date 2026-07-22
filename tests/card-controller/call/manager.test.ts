@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import type { PartialDeep } from 'type-fest';
-import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
+import { assert, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import type { CameraManagerStore } from '../../../src/camera-manager/store';
@@ -9,10 +9,14 @@ import { CallManager } from '../../../src/card-controller/call/manager';
 import { Ringtone } from '../../../src/card-controller/call/ringtone';
 import type { CardController } from '../../../src/card-controller/controller';
 import { SubstreamViewModifier } from '../../../src/card-controller/view/modifiers/substream';
+import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import type { ConditionStateChange } from '../../../src/condition-trigger/conditions/types';
+import { CallTrigger } from '../../../src/condition-trigger/triggers/triggers/call';
+import type { TriggerOfType } from '../../../src/condition-trigger/triggers/triggers/types';
 import type { RingtoneConfig } from '../../../src/config/schema/live';
 import type { AdvancedCameraCardConfig } from '../../../src/config/schema/types';
 import { View } from '../../../src/view/view';
+import { createTriggerEvaluatorContext } from '../../condition-trigger/triggers/triggers/test-utils';
 import {
   createCameraConfig,
   createCameraManager,
@@ -145,7 +149,6 @@ describe('start', () => {
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
-    expect(api.getConditionStateManager().setState).toBeCalledWith({ call: true });
   });
 
   it('should navigate to the live view when started from elsewhere', async () => {
@@ -367,8 +370,6 @@ describe('start', () => {
     expect(call?.cameraID).toBe('camera.garage');
     expect(call?.previousView?.view).toBe('live');
     expect(call?.previousView?.camera).toBe('camera.office');
-    expect(api.getConditionStateManager().setState).toBeCalledWith({ call: false });
-    expect(api.getConditionStateManager().setState).toBeCalledWith({ call: true });
   });
 
   it('should restart on the same camera with a different stream', async () => {
@@ -656,7 +657,6 @@ describe('end', () => {
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
-    expect(api.getConditionStateManager().setState).toBeCalledWith({ call: false });
   });
 
   it('should restore the pre-call substream when ending', async () => {
@@ -1085,7 +1085,6 @@ describe('initialize / uninitialize', () => {
     manager.uninitialize();
 
     expect(manager.isActive()).toBe(false);
-    expect(api.getConditionStateManager().setState).toBeCalledWith({ call: false });
   });
 
   it('should ignore further condition state changes after uninitialize', async () => {
@@ -1564,7 +1563,7 @@ describe('unanswered timeout', () => {
   });
 });
 
-// `start()` calls `setState({ call: true })` to broadcast the new call status;
+// `start()` calls `setState()` to broadcast the new call phase;
 // a listener that responds by navigating away will fire the manager's own
 // condition listener and end the call before `start()` returns. Verify the
 // post-setState re-read of the session prevents follow-up work (ringtone /
@@ -1591,10 +1590,10 @@ describe('session end during setState', () => {
     const listener = getConditionStateListener(api);
 
     vi.mocked(api.getConditionStateManager().setState).mockImplementation((state) => {
-      // Simulate a downstream listener that responds to `call: true` by
+      // Simulate a downstream listener that responds to the inbound ring by
       // navigating away. The manager's own listener then ends the call,
       // nulling the session before `start()` finishes.
-      if (state.call === true) {
+      if (state.call === 'ringing') {
         listener({
           old: { camera: 'camera.office', view: 'live' },
           change: { view: 'clips' },
@@ -1681,5 +1680,189 @@ describe('uninitialize during in-flight start', () => {
 
     expect(await startPromise).toBe(false);
     expect(api.getNotificationManager().setNotification).not.toBeCalled();
+  });
+});
+
+// The phase the manager publishes is what automations actually react to, so
+// these drive a real ConditionStateManager and a real CallTrigger and assert
+// the transitions an automation would fire on, rather than that `setState` was
+// called.
+describe('published phase transitions in condition state', () => {
+  const createAPIWithRealStateManager = (options?: {
+    config?: PartialDeep<AdvancedCameraCardConfig>;
+    store?: CameraManagerStore;
+  }): { api: CardController; stateManager: ConditionStateManager } => {
+    const stateManager = new ConditionStateManager();
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      ...options,
+    });
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+    return { api, stateManager };
+  };
+
+  const watch = (
+    stateManager: ConditionStateManager,
+    trigger: TriggerOfType<'call'>,
+  ): Mock => {
+    const callback = vi.fn();
+    new CallTrigger(trigger, createTriggerEvaluatorContext({ stateManager })).subscribe(
+      callback,
+    );
+    return callback;
+  };
+
+  it('should fire a ringing trigger when an inbound call starts', async () => {
+    const { api, stateManager } = createAPIWithRealStateManager();
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    const ringing = watch(stateManager, { trigger: 'call', to: 'ringing' });
+    const answered = watch(stateManager, { trigger: 'call', to: 'answered' });
+
+    expect(await manager.start({ inbound: true })).toBe(true);
+
+    expect(ringing).toHaveBeenCalledTimes(1);
+    expect(answered).not.toHaveBeenCalled();
+  });
+
+  it('should fire an answered trigger when an outbound call starts', async () => {
+    const { api, stateManager } = createAPIWithRealStateManager();
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    const ringing = watch(stateManager, { trigger: 'call', to: 'ringing' });
+    const answered = watch(stateManager, { trigger: 'call', to: 'answered' });
+
+    // Outbound calls are answered by construction, so they never ring.
+    expect(await manager.start()).toBe(true);
+
+    expect(answered).toHaveBeenCalledTimes(1);
+    expect(ringing).not.toHaveBeenCalled();
+  });
+
+  it('should fire an end trigger when an outbound call ends', async () => {
+    const { api, stateManager } = createAPIWithRealStateManager();
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    const ended = watch(stateManager, { trigger: 'call', to: 'idle' });
+
+    expect(await manager.start()).toBe(true);
+    expect(manager.end()).toBe(true);
+
+    expect(ended).toHaveBeenCalledTimes(1);
+  });
+
+  it('should fire an answer trigger only for an inbound call that was answered', async () => {
+    const { api, stateManager } = createAPIWithRealStateManager();
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    const answered = watch(stateManager, {
+      trigger: 'call',
+      from: 'ringing',
+      to: 'answered',
+    });
+
+    expect(await manager.start({ inbound: true })).toBe(true);
+    expect(answered).not.toHaveBeenCalled();
+
+    expect(manager.answer()).toBe(true);
+
+    expect(answered).toHaveBeenCalledTimes(1);
+  });
+
+  it('should fire a reject trigger when an unanswered call times out', async () => {
+    vi.useFakeTimers();
+    const { api, stateManager } = createAPIWithRealStateManager({
+      config: { live: { controls: { call: { unanswered_timeout_seconds: 60 } } } },
+    });
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    const rejected = watch(stateManager, {
+      trigger: 'call',
+      from: 'ringing',
+      to: 'idle',
+    });
+    const hungUp = watch(stateManager, {
+      trigger: 'call',
+      from: 'answered',
+      to: 'idle',
+    });
+
+    expect(await manager.start({ inbound: true })).toBe(true);
+    vi.advanceTimersByTime(60_000);
+
+    expect(rejected).toHaveBeenCalledTimes(1);
+    expect(hungUp).not.toHaveBeenCalled();
+  });
+
+  it('should fire a hangup trigger, not a reject, when an answered call ends', async () => {
+    const { api, stateManager } = createAPIWithRealStateManager();
+    const manager = new CallManager(api);
+    manager.initialize();
+    const rejected = watch(stateManager, {
+      trigger: 'call',
+      from: 'ringing',
+      to: 'idle',
+    });
+    const hungUp = watch(stateManager, {
+      trigger: 'call',
+      from: 'answered',
+      to: 'idle',
+    });
+
+    expect(await manager.start({ inbound: true })).toBe(true);
+    expect(manager.answer()).toBe(true);
+    expect(manager.end()).toBe(true);
+
+    expect(hungUp).toHaveBeenCalledTimes(1);
+    expect(rejected).not.toHaveBeenCalled();
+  });
+
+  it('should fire a reject trigger when a ringing call is superseded', async () => {
+    const { api, stateManager } = createAPIWithRealStateManager({
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.garage',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+      ]),
+    });
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    const rejected = watch(stateManager, {
+      trigger: 'call',
+      from: 'ringing',
+      to: 'idle',
+    });
+    const ringing = watch(stateManager, { trigger: 'call', to: 'ringing' });
+
+    expect(await manager.start({ inbound: true })).toBe(true);
+    expect(await manager.start({ inbound: true, cameraID: 'camera.garage' })).toBe(true);
+
+    // The superseded ring is observably ended before the replacement rings, so
+    // an automation sees idle in between rather than one continuous call.
+    expect(rejected).toHaveBeenCalledTimes(1);
+    expect(ringing).toHaveBeenCalledTimes(2);
+  });
+
+  it('should publish idle when uninitialized during a call', async () => {
+    const { api, stateManager } = createAPIWithRealStateManager();
+    const manager = new CallManager(api);
+    manager.initialize();
+    const ended = watch(stateManager, { trigger: 'call', to: 'idle' });
+
+    expect(await manager.start({ inbound: true })).toBe(true);
+    manager.uninitialize();
+
+    expect(ended).toHaveBeenCalledTimes(1);
   });
 });
