@@ -53,7 +53,7 @@ describe('computeFormLabel', () => {
         { name: 'title', selector: { text: {} } },
         { path: [] },
       ),
-    ).toBe('Title for this camera (autodetected from entity)');
+    ).toBe('Title (autodetected)');
   });
 
   it('should order nested container paths into configuration order', () => {
@@ -72,7 +72,7 @@ describe('computeFormLabel', () => {
         createForm([], [{ formPath: ['menu_style'], configPath: ['menu', 'style'] }]),
         { name: 'menu_style', selector: { text: {} } },
       ),
-    ).toBe('Menu style');
+    ).toBe('Style');
   });
 
   it('should localize a field that reads and writes itself where it sits', () => {

@@ -4,6 +4,7 @@ import type {
   HASelectSelectorOption,
 } from '../../../../../ha/types';
 import { localize } from '../../../../../localize/localize';
+import { createGrid } from '../grid';
 import { createNumberSelector, createSelectSelector } from '../selectors';
 
 /**
@@ -59,16 +60,18 @@ export const getNextPreviousSchema = (options?: {
     title: localize('config.common.controls.next_previous.editor_label'),
     icon: 'mdi:arrow-right-bold-circle',
     schema: [
-      {
-        name: 'style',
-        label: localize('config.common.controls.next_previous.style'),
-        selector: createSelectSelector(styleOptions),
-      },
-      {
-        name: 'size',
-        label: localize('config.common.controls.next_previous.size'),
-        selector: createNumberSelector({ min: BUTTON_SIZE_MIN }),
-      },
+      createGrid([
+        {
+          name: 'style',
+          label: localize('config.common.controls.next_previous.style'),
+          selector: createSelectSelector(styleOptions),
+        },
+        {
+          name: 'size',
+          label: localize('config.common.controls.next_previous.size'),
+          selector: createNumberSelector({ min: BUTTON_SIZE_MIN }),
+        },
+      ]),
       {
         name: 'auto_hide',
         label: localize('config.common.controls.next_previous.auto_hide'),

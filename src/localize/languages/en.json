@@ -80,29 +80,29 @@
           },
           "pan": {
             "editor_label": "Layout Pan",
-            "x": "Pan horizontal percentage",
-            "y": "Pan vertical percentage"
+            "x": "Horizontal %",
+            "y": "Vertical %"
           },
           "position": {
             "editor_label": "Layout Cover Position",
-            "x": "Horizontal placement percentage",
-            "y": "Vertical placement percentage"
+            "x": "Horizontal %",
+            "y": "Vertical %"
           },
           "view_box": {
-            "bottom": "Bottom inset percentage",
+            "bottom": "Bottom inset %",
             "editor_label": "Layout View Box",
-            "left": "Left inset percentage",
-            "right": "Right inset percentage",
-            "top": "Top inset percentage"
+            "left": "Left inset %",
+            "right": "Right inset %",
+            "top": "Top inset %"
           },
           "zoom": "Zoom factor"
         },
         "rotation": "Rotation",
         "rotations": {
-          "0": "No rotation",
-          "180": "180 degrees clockwise",
-          "270": "270 degrees clockwise",
-          "90": "90 degrees clockwise"
+          "0": "None",
+          "90": "90° clockwise",
+          "180": "180° clockwise",
+          "270": "270° clockwise"
         }
       },
       "engine": "Camera engine",
@@ -133,10 +133,10 @@
           "mse": "Media Source Extensions (MSE)",
           "webrtc": "Web Real-Time Communication (WebRTC)"
         },
-        "stream": "go2rtc stream name",
-        "url": "go2rtc URL"
+        "stream": "Stream name",
+        "url": "URL"
       },
-      "icon": "Icon for this camera (autodetected from entity)",
+      "icon": "Icon (autodetected)",
       "id": "Unique ID for this camera in this card",
       "image": {
         "editor_label": "Image",
@@ -158,7 +158,7 @@
       },
       "media": {
         "editor_label": "Media",
-        "events_type": "Events media subtype",
+        "events_type": "Events subtype",
         "folders": "Folder IDs",
         "reviewed": "Review status filter",
         "revieweds": {
@@ -166,26 +166,26 @@
           "reviewed": "Only reviewed",
           "unreviewed": "Only unreviewed"
         },
-        "type": "Default media type"
+        "type": "Default type"
       },
       "motioneye": {
         "editor_label": "MotionEye",
         "images": {
-          "directory_pattern": "Images directory pattern",
+          "directory_pattern": "Directory pattern",
           "editor_label": "Images",
-          "file_pattern": "Images file pattern"
+          "file_pattern": "File pattern"
         },
         "movies": {
-          "directory_pattern": "Movies directory pattern",
+          "directory_pattern": "Directory pattern",
           "editor_label": "Movies",
-          "file_pattern": "Movies file pattern"
+          "file_pattern": "File pattern"
         },
         "url": "MotionEye UI URL"
       },
       "proxy": {
         "editor_label": "Proxying",
-        "live": "Live proxying",
-        "media": "Media proxying"
+        "live": "Live",
+        "media": "Media"
       },
       "reolink": {
         "editor_label": "Reolink",
@@ -196,7 +196,7 @@
         },
         "url": "Reolink UI URL"
       },
-      "title": "Title for this camera (autodetected from entity)",
+      "title": "Title (autodetected)",
       "triggers": {
         "doorbell": "Trigger by auto-detecting doorbell event entities",
         "editor_label": "Triggers",
@@ -243,10 +243,10 @@
           }
         },
         "next_previous": {
-          "auto_hide": "Automatically hide next & previous controls",
+          "auto_hide": "Automatically hide",
           "editor_label": "Next & Previous",
-          "size": "Next & previous control size in pixels",
-          "style": "Next & previous control style",
+          "size": "Size in pixels",
+          "style": "Style",
           "styles": {
             "chevrons": "Chevrons",
             "icons": "Icons",
@@ -256,10 +256,10 @@
         },
         "ptz": {
           "editor_label": "PTZ",
-          "hide_home": "Hide home & preset controls",
-          "hide_pan_tilt": "Hide pan & tilt control",
-          "hide_type": "Hide type toggle button",
-          "hide_zoom": "Hide zoom control",
+          "hide_home": "Hide home & presets",
+          "hide_pan_tilt": "Hide pan & tilt",
+          "hide_type": "Hide type toggle",
+          "hide_zoom": "Hide zoom",
           "mode": "Mode",
           "modes": {
             "auto": "Automatic",
@@ -286,21 +286,21 @@
         },
         "thumbnails": {
           "editor_label": "Thumbnails",
-          "mode": "Thumbnails mode",
+          "mode": "Mode",
           "modes": {
-            "above": "Thumbnails above",
-            "below": "Thumbnails below",
-            "left": "Thumbnails in a drawer to the left",
-            "none": "No thumbnails",
-            "right": "Thumbnails in a drawer to the right"
+            "above": "Above",
+            "below": "Below",
+            "left": "Left drawer",
+            "none": "None",
+            "right": "Right drawer"
           },
-          "show_details": "Show details with thumbnails",
-          "show_download_control": "Show download control on thumbnails",
-          "show_favorite_control": "Show favorite control on thumbnails",
-          "show_info_control": "Show info control on thumbnails",
-          "show_review_control": "Show review control on thumbnails",
-          "show_timeline_control": "Show timeline control on thumbnails",
-          "size": "Thumbnails size in pixels"
+          "show_details": "Show details",
+          "show_download_control": "Show download control",
+          "show_favorite_control": "Show favorite control",
+          "show_info_control": "Show info control",
+          "show_review_control": "Show review control",
+          "show_timeline_control": "Show timeline control",
+          "size": "Size in pixels"
         },
         "timeline": {
           "editor_label": "Mini Timeline",
@@ -326,8 +326,8 @@
       },
       "display": {
         "editor_label": "Display",
-        "grid_columns": "Exact number of grid columns",
-        "grid_max_columns": "Maximum number of grid columns",
+        "grid_columns": "Exact grid columns",
+        "grid_max_columns": "Maximum grid columns",
         "grid_selected_position": "Position of selected media in grid",
         "grid_selected_positions": {
           "default": "Selected item in default position",
@@ -383,25 +383,25 @@
         "reviews": "Reviews"
       },
       "proxy": {
-        "dynamic": "Dynamic proxying",
+        "dynamic": "Dynamic",
         "modes": {
-          "auto": "Proxying automatically configured",
-          "false": "Proxying disabled",
-          "true": "Proxying enabled"
+          "auto": "Automatic",
+          "false": "Disabled",
+          "true": "Enabled"
         },
         "ssl_ciphers": {
-          "auto": "SSL ciphers automatically configured",
-          "default": "Default SSL ciphers",
+          "auto": "Automatic",
+          "default": "Default",
           "editor_label": "SSL ciphers",
-          "insecure": "Insecure SSL ciphers",
-          "intermediate": "Intermediate SSL ciphers",
-          "modern": "Modern SSL ciphers"
+          "insecure": "Insecure",
+          "intermediate": "Intermediate",
+          "modern": "Modern"
         },
         "ssl_verification": {
-          "auto": "SSL verification automatically configured",
+          "auto": "Automatic",
           "editor_label": "SSL verification",
-          "false": "SSL verification disabled",
-          "true": "SSL verification enabled"
+          "false": "Disabled",
+          "true": "Enabled"
         }
       },
       "timeline": {
@@ -420,12 +420,12 @@
       }
     },
     "dimensions": {
-      "aspect_ratio": "Default aspect ratio (e.g. '16:9')",
+      "aspect_ratio": "Ratio (e.g. '16:9')",
       "aspect_ratio_mode": "Aspect ratio mode",
       "aspect_ratio_modes": {
-        "dynamic": "Aspect ratio adjusts to media",
-        "static": "Static aspect ratio",
-        "unconstrained": "Unconstrained aspect ratio"
+        "dynamic": "Dynamic",
+        "static": "Static",
+        "unconstrained": "Unconstrained"
       },
       "height": "Card height in CSS units (e.g. '500px')"
     },
@@ -438,16 +438,16 @@
         "path_info": "Additional path matching functionality is available in the text editor",
         "url": "URL of media folder"
       },
-      "icon": "Icon for this folder",
-      "id": "Unique ID for this folder in this card",
-      "title": "Title for this folder",
-      "type": "Folder type",
+      "icon": "Icon",
+      "id": "Unique ID",
+      "title": "Title",
+      "type": "Type",
       "types": {
         "ha": "Home Assistant Media Folder"
       }
     },
     "image": {
-      "zoomable": "Whether the image can be zoomed and panned"
+      "zoomable": "Zoomable/Pannable"
     },
     "live": {
       "auto_mute": "Automatically mute live cameras",
@@ -467,7 +467,7 @@
           "ringtone": {
             "editor_label": "Ringtone",
             "repeat": "Ringtone repeats per inbound call (0=indefinite)",
-            "type": "Ringtone for inbound calls",
+            "type": "Type",
             "types": {
               "arpeggio": "Arpeggio",
               "chime": "Chime",
@@ -476,7 +476,7 @@
               "none": "None",
               "westminster": "Westminster"
             },
-            "url": "Custom ringtone URL"
+            "url": "Custom URL"
           },
           "start": "Start 2-way audio call",
           "unanswered_timeout_seconds": "Seconds before ending unanswered inbound calls (0=never)",
@@ -485,7 +485,7 @@
         },
         "editor_label": "Live Controls"
       },
-      "draggable": "Live cameras view can be dragged/swiped",
+      "draggable": "Draggable",
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
       "microphone": {
@@ -499,7 +499,7 @@
       "preload": "Preload live view in the background",
       "show_image_during_load": "Show still image while the live stream is loading",
       "transition_effect": "Live camera transition effect",
-      "zoomable": "Live cameras can be zoomed/panned"
+      "zoomable": "Zoomable/Pannable"
     },
     "media_viewer": {
       "auto_mute": "Automatically mute media",
@@ -509,27 +509,27 @@
       "controls": {
         "editor_label": "Media Viewer Controls"
       },
-      "draggable": "Media Viewer can be dragged/swiped",
+      "draggable": "Draggable",
       "lazy_load": "Media Viewer media is lazily loaded in carousel",
       "snapshot_click_plays_clip": "Clicking on a snapshot plays a related clip",
       "transition_effect": "Media Viewer transition effect",
-      "zoomable": "Media Viewer can be zoomed/panned"
+      "zoomable": "Zoomable/Pannable"
     },
     "menu": {
-      "alignment": "Menu alignment",
+      "alignment": "Alignment",
       "alignments": {
-        "bottom": "Aligned to the bottom",
-        "left": "Aligned to the left",
-        "right": "Aligned to the right",
-        "top": "Aligned to the top"
+        "bottom": "Bottom",
+        "left": "Left",
+        "right": "Right",
+        "top": "Top"
       },
-      "auto_hide": "Conditions under which the menu auto-hides",
-      "button_size": "Menu button size in pixels",
+      "auto_hide": "Auto-hide conditions",
+      "button_size": "Button size in pixels",
       "buttons": {
-        "alignment": "Button alignment",
+        "alignment": "Alignment",
         "alignments": {
-          "matching": "Matching the menu alignment",
-          "opposing": "Opposing the menu alignment"
+          "matching": "Matching",
+          "opposing": "Opposing"
         },
         "call": "Call / Two-way audio",
         "camera_ui": "Camera user interface",
@@ -538,14 +538,14 @@
         "display_mode": "Display mode",
         "download": "Download",
         "editor_label": "Menu buttons",
-        "enabled": "Button enabled",
+        "enabled": "Enabled",
         "expand": "Expand",
         "folders": "Folders",
         "fullscreen": "Fullscreen",
         "gallery": "Gallery",
         "icon": "Icon",
         "image": "Image",
-        "inert": "Button non-interactive",
+        "inert": "Non-interactive",
         "info": "Info",
         "iris": "Iris / Default View / Unhide menu",
         "live": "Live",
@@ -553,7 +553,7 @@
         "media_player": "Send to media player",
         "microphone": "Microphone",
         "mute": "Mute / Unmute",
-        "permanent": "Show when the menu is hidden",
+        "permanent": "Show when menu hidden",
         "pip": "Picture in Picture",
         "play": "Play / Pause",
         "priority": "Priority",
@@ -564,7 +564,7 @@
         "screenshot": "Screenshot",
         "set_review": "Set review status",
         "snapshots": "Snapshots",
-        "state_color": "Color button by entity state",
+        "state_color": "Color by entity state",
         "substreams": "Substream(s)",
         "timeline": "Timeline",
         "type": "Button type",
@@ -573,21 +573,21 @@
           "toggle": "Toggle"
         }
       },
-      "position": "Menu position",
+      "position": "Position",
       "positions": {
-        "bottom": "Positioned on the bottom",
-        "left": "Positioned on the left",
-        "right": "Positioned on the right",
-        "top": "Positioned on the top"
+        "bottom": "Bottom",
+        "left": "Left",
+        "right": "Right",
+        "top": "Top"
       },
-      "style": "Menu style",
+      "style": "Style",
       "styles": {
-        "hidden": "Hidden menu",
-        "hover": "Hover menu",
-        "hover-card": "Hover menu (card-wide)",
-        "none": "No menu",
-        "outside": "Outside menu",
-        "overlay": "Overlay menu"
+        "hidden": "Hidden",
+        "hover": "Hover",
+        "hover-card": "Hover (card-wide)",
+        "none": "None",
+        "outside": "Outside",
+        "overlay": "Overlay"
       }
     },
     "overrides": {
@@ -595,11 +595,11 @@
     },
     "performance": {
       "features": {
-        "animated_progress_indicator": "Animated Progress Indicator",
-        "card_loading_effects": "Card Loading Effects",
-        "card_loading_indicator": "Card Loading Indicator",
+        "animated_progress_indicator": "Animated progress",
+        "card_loading_effects": "Loading effects",
+        "card_loading_indicator": "Loading indicator",
         "editor_label": "Feature Options",
-        "max_simultaneous_engine_requests": "Max simultaneous camera engine requests",
+        "max_simultaneous_engine_requests": "Parallel engine requests",
         "media_chunk_size": "Media chunk size"
       },
       "style": {
@@ -628,37 +628,37 @@
       }
     },
     "status_bar": {
-      "auto_hide": "Conditions under which the status bar auto-hides",
-      "height": "Status bar height in pixels",
+      "auto_hide": "Auto-hide conditions",
+      "height": "Height in pixels",
       "items": {
-        "enabled": "Item enabled",
+        "enabled": "Enabled",
         "engine": "Camera engine",
         "issues": "Issues",
-        "permanent": "Item keeps status bar shown",
-        "priority": "Item priority",
+        "permanent": "Keeps bar shown",
+        "priority": "Priority",
         "resolution": "Resolution",
         "severity": "Severity",
         "technology": "Technology",
         "title": "Title"
       },
-      "popup_seconds": "Status bar popup seconds",
-      "position": "Status bar position",
+      "popup_seconds": "Popup seconds",
+      "position": "Position",
       "positions": {
-        "bottom": "Positioned on the bottom",
-        "top": "Positioned on the top"
+        "bottom": "Bottom",
+        "top": "Top"
       },
-      "style": "Status bar style",
+      "style": "Style",
       "styles": {
-        "hover": "Hover status bar",
-        "hover-card": "Hover status bar (card-wide)",
-        "none": "No status bar",
-        "outside": "Outside status bar",
-        "overlay": "Overlay status bar",
-        "popup": "Popup status bar"
+        "hover": "Hover",
+        "hover-card": "Hover (card-wide)",
+        "none": "None",
+        "outside": "Outside",
+        "overlay": "Overlay",
+        "popup": "Popup"
       }
     },
     "view": {
-      "camera_select": "View for newly selected cameras",
+      "camera_select": "View on camera select",
       "default": "Default view",
       "default_cycle_camera": "Cycle through cameras when default view updates",
       "default_reset": {
@@ -699,20 +699,20 @@
         "actions": {
           "editor_label": "Trigger actions",
           "interaction_mode": "How to handle actions when the card has human interaction",
-          "trigger": "Trigger action",
+          "trigger": "Trigger",
           "triggers": {
-            "call": "Start a 2-way audio call",
-            "default": "Change to or update default view",
-            "live": "Change to or update live view",
-            "media": "Change to the relevant media view for new media",
-            "none": "No action",
-            "update": "Update the current view"
+            "call": "Start call",
+            "default": "Default view",
+            "live": "Live view",
+            "media": "Media view",
+            "none": "None",
+            "update": "Update view"
           },
-          "untrigger": "Untrigger action",
+          "untrigger": "Untrigger",
           "untriggers": {
-            "call": "End a 2-way audio call",
-            "default": "Change to default view/camera",
-            "none": "No action"
+            "call": "End call",
+            "default": "Default view",
+            "none": "None"
           }
         },
         "editor_label": "Trigger behavior",

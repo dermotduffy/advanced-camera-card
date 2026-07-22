@@ -373,7 +373,7 @@ export interface HAFormExpandableSchema
 // Fields laid out in columns rather than one per row. A grid is nameless like
 // any other visual-only grouping, so the fields within it are stored where they
 // would be without it.
-interface HAFormGridSchema
+export interface HAFormGridSchema
   extends Omit<StockHAFormGridSchema, 'name'>,
     CardHAFormSchemaExtensions {
   name?: string;
@@ -394,3 +394,13 @@ export type HAFormSchema =
 export const isFormFieldSchema = (
   schema: HAFormSchema,
 ): schema is HAFormSelectorSchema => 'selector' in schema;
+
+/**
+ * Whether a field takes a number. Recognized by the key naming the kind of
+ * selector, which is all a selector carries to tell it apart by.
+ * @param selector The field's selector.
+ * @returns `true` for a number.
+ */
+export const isNumberFieldSelector = (
+  selector: HASelector,
+): selector is HANumberSelector => 'number' in selector;

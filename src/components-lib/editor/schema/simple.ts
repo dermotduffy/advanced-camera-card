@@ -4,6 +4,7 @@ import type { RawAdvancedCameraCardConfig } from '../../../config/types';
 import { localize } from '../../../localize/localize';
 import type { ConfigChange, ConfigPath, EditorForm, FieldBinding } from '../types';
 import { getCameraSimpleFields } from './cameras';
+import { createGrid } from './common/grid';
 import { createSelectSelector } from './common/selectors';
 import { getAspectRatioModeOptions } from './dimensions';
 import {
@@ -74,14 +75,16 @@ export const getSimpleMenuForms = (): EditorForm[] => [
   {
     basePath: [],
     schema: [
-      {
-        name: 'menu_style',
-        selector: createSelectSelector(getMenuStyleOptions()),
-      },
-      {
-        name: 'menu_position',
-        selector: createSelectSelector(getMenuPositionOptions()),
-      },
+      createGrid([
+        {
+          name: 'menu_style',
+          selector: createSelectSelector(getMenuStyleOptions()),
+        },
+        {
+          name: 'menu_position',
+          selector: createSelectSelector(getMenuPositionOptions()),
+        },
+      ]),
       {
         name: 'menu_buttons',
         label: localize('config.menu.buttons.editor_label'),
@@ -110,22 +113,16 @@ export const getSimpleTopLevelForms = (): EditorForm[] => [
         name: 'default_view',
         selector: createSelectSelector(getViewModeOptions()),
       },
-
-      // The ratio only means anything alongside the mode that uses it, so the
-      // two are shown together.
-      {
-        type: 'grid',
-        schema: [
-          {
-            name: 'aspect_ratio_mode',
-            selector: createSelectSelector(getAspectRatioModeOptions()),
-          },
-          {
-            name: 'aspect_ratio',
-            selector: { text: {} },
-          },
-        ],
-      },
+      createGrid([
+        {
+          name: 'aspect_ratio_mode',
+          selector: createSelectSelector(getAspectRatioModeOptions()),
+        },
+        {
+          name: 'aspect_ratio',
+          selector: { text: {} },
+        },
+      ]),
       getProfilesField(),
     ],
     bindings: [
