@@ -7,7 +7,6 @@ import type {
   PTZControlsConfig,
   PTZControlType,
 } from '../../config/schema/common/controls/ptz.js';
-import type { HomeAssistant } from '../../ha/types.js';
 import type { Interaction } from '../../types.js';
 import {
   createPTZControlsAction,
@@ -20,7 +19,6 @@ export class PTZController {
   private _host: HTMLElement;
 
   private _config: PTZControlsConfig | null = null;
-  private _hass: HomeAssistant | null = null;
   private _cameraManager: CameraManager | null = null;
   private _cameraID: string | null = null;
 

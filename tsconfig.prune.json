@@ -1,0 +1,11 @@
+{
+  // ts-prune analyzes with its own bundled TypeScript 4.5, which predates the
+  // "bundler" resolution mode. It does not recognize the value and falls back to a
+  // mode that cannot resolve directory imports, which makes every index.ts barrel
+  // look unimported and its exports look unused. Give it a mode it understands.
+  // Related: https://github.com/dermotduffy/advanced-camera-card/issues/2593
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "node"
+  }
+}

@@ -7,7 +7,6 @@ import type { HomeAssistant } from '../../../../src/ha/types';
 
 export class EntityRegistryManagerMock implements EntityRegistryManager {
   private _cache = new EntityCache();
-  private _fetchedEntityList = false;
 
   constructor(data?: Entity[]) {
     data?.forEach((entity) => {

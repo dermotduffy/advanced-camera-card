@@ -192,7 +192,7 @@
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "rollup": "rollup -c",
-    "prune": "ts-prune --error",
+    "prune": "ts-prune --error -p tsconfig.prune.json",
     "test": "vitest run",
     "coverage": "vitest run --coverage"
   },

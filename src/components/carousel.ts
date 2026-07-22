@@ -1,7 +1,3 @@
-import type {
-  CreatePluginType,
-  LoosePluginType,
-} from 'embla-carousel/components/Plugins';
 import {
   html,
   LitElement,
@@ -18,13 +14,9 @@ import carouselStyle from '../scss/carousel.scss';
 import {
   CarouselController,
   type CarouselDirection,
+  type EmblaCarouselPlugins,
 } from '../utils/embla/carousel-controller';
 import { getTextDirection } from '../utils/text-direction';
-
-export type EmblaCarouselPlugins = CreatePluginType<
-  LoosePluginType,
-  Record<string, unknown>
->[];
 
 @customElement('advanced-camera-card-carousel')
 export class AdvancedCameraCardCarousel extends LitElement {

@@ -1,4 +1,4 @@
-import type { StyleInfo } from 'lit/directives/style-map';
+import type { StyleInfo } from 'lit/directives/style-map.js';
 
 import { configDefaults, type AdvancedCameraCardConfig } from '../config/schema/types';
 import type { ThemeConfig, ThemeName } from '../config/schema/view';
