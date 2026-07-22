@@ -373,7 +373,7 @@ export interface HAFormExpandableSchema
 // Fields laid out in columns rather than one per row. A grid is nameless like
 // any other visual-only grouping, so the fields within it are stored where they
 // would be without it.
-export interface HAFormGridSchema
+interface HAFormGridSchema
   extends Omit<StockHAFormGridSchema, 'name'>,
     CardHAFormSchemaExtensions {
   name?: string;
