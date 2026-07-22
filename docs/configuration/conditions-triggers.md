@@ -25,12 +25,14 @@ _"when this becomes true"_. A few types are restricted to one role (`config` is
 trigger-only; the composites and `user` / `user_agent` are condition-only), as
 noted at the top of each type below.
 
-For the card-state types (`camera`, `view`, `fullscreen`, `expand`, `call`,
+For the card-state types (`camera`, `view`, `fullscreen`, `expand`,
 `display_mode`, `media_loaded`, `microphone`, `interaction`, `triggered`) a
 trigger's value is **optional**: give it a value to fire only when the state
 changes _to_ that value, or **omit it to fire on any change**. (The stock `state`
 trigger behaves the same way when `from`/`to` are omitted). As a condition the
-value keeps its usual per-type meaning, as described below.
+value keeps its usual per-type meaning, as described below. `call` is the
+exception: its trigger matches a change by where it started and ended, using
+`from`/`to` like the stock `state` trigger.
 
 ```yaml
 # A trigger initiates an automation; conditions are then checked.
@@ -94,25 +96,56 @@ conditions:
 
 ## `call`
 
-Matches whether a [two-way audio](../usage/2-way-audio.md) call is in progress.
-As a **condition**, true while the call state matches; as a **trigger**, fires
-when it becomes a match (e.g. `call: true` fires when a call starts).
+Matches the phase of a [two-way audio](../usage/2-way-audio.md) call. A call is
+in one of three phases:
+
+| Phase      | Meaning                                                       |
+| ---------- | ------------------------------------------------------------- |
+| `idle`     | No call is in progress.                                       |
+| `ringing`  | An inbound call is ringing and has not been answered.         |
+| `answered` | A call is in progress. An outbound call starts in this phase. |
+
+As a **condition**, true while the call is in a matching phase. As a **trigger**,
+fires when the phase _changes_, optionally limited to changes that start at
+`from` and end at `to`. This is what separates answering a call from rejecting
+one: both leave `ringing`, but they arrive at different phases.
 
 ```yaml
 # As a condition:
 conditions:
   - condition: call
-    call: true
+    call: [ringing, answered]
 # As a trigger:
 triggers:
+  # An inbound call was answered.
   - trigger: call
-    call: true
+    from: ringing
+    to: answered
+  # A ringing call ended without being answered (rejected, timed out, or the
+  # user navigated away).
+  - trigger: call
+    from: ringing
+    to: idle
+  # An answered call was hung up.
+  - trigger: call
+    from: answered
+    to: idle
+  # A ringing call was either answered or rejected.
+  - trigger: call
+    from: ringing
 ```
 
-| Parameter               | Description                                                                                    |
-| ----------------------- | ---------------------------------------------------------------------------------------------- |
-| `condition` / `trigger` | Must be `call`.                                                                                |
-| `call`                  | If `true` or `false`, matches when a two-way audio call is or is not in progress respectively. |
+| Parameter               | Description                                                                                                                                     |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` / `trigger` | Must be `call`.                                                                                                                                 |
+| `call`                  | Condition only. A phase, or a list of phases any of which match.                                                                                |
+| `from`                  | Trigger only. Restricts firing to changes that start at this phase, or any phase in a list. If omitted, the phase changed from may be anything. |
+| `to`                    | Trigger only. Restricts firing to changes that end at this phase, or any phase in a list. If omitted, the phase changed to may be anything.     |
+
+?> An outbound call is answered as soon as it connects, so it moves from `idle`
+straight to `answered` without ever ringing. A trigger with `to: answered` and no
+`from` will therefore also fire when the user starts an outbound call. Add
+`from: ringing` to match only inbound calls that were answered.
 
 ## `camera`
 
@@ -721,7 +754,7 @@ conditions:
       - condition: view
         views: [live]
   - condition: call
-    call: true
+    call: [ringing, answered]
   - condition: camera
     cameras:
       - camera.office
@@ -786,7 +819,8 @@ conditions:
 ```yaml
 triggers:
   - trigger: call
-    call: true
+    from: ringing
+    to: answered
   - trigger: camera
     cameras:
       - camera.office

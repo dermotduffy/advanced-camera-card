@@ -1,6 +1,7 @@
 import type { KeysState, MicrophoneState } from '../../card-controller/types';
 import type { AdvancedCameraCardView } from '../../config/schema/common/const';
 import type { ViewDisplayMode } from '../../config/schema/common/display';
+import type { CallPhase } from '../../config/schema/condition-trigger/common/call';
 import type { AdvancedCameraCardConfig } from '../../config/schema/types';
 import type { HomeAssistant } from '../../ha/types';
 import type { MediaLoadedInfo } from '../../types';
@@ -16,7 +17,7 @@ import type { MediaLoadedInfo } from '../../types';
 // Counterexample: Rebuilding an equivalent function callback each write making
 // the field look changed when nothing observable did.
 export interface ConditionState {
-  call?: boolean;
+  call?: CallPhase;
   camera?: string;
   // The engaged substream for the selected camera (absent when the camera's own
   // stream is used).

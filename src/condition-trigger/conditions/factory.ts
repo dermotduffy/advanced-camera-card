@@ -87,11 +87,12 @@ const triggerHasConditionValue = (trigger: Trigger): boolean =>
   Object.keys(trigger).some((key) => key !== 'trigger' && key !== 'enabled');
 
 // Build the condition evaluator a card trigger checks its changes against, or
-// null if it has none -- it then fires on any change of its watched state. A
-// trigger has no condition when it carries no value (the any-change form) or
-// when it is trigger-only (`config`). Otherwise the trigger and its condition
-// share a base schema, so an evaluator (typed on that base) is built directly
-// from the trigger -- no discriminator-swap.
+// null if it has none. A trigger has no condition when it carries no value (the
+// any-change form) or is trigger-only (`config`) -- both then fire on any change
+// of the watched state -- or when it matches the transition itself rather than
+// its result (`call`), which does its own filtering. Otherwise the trigger and
+// its condition share a base schema, so an evaluator (typed on that base) is
+// built directly from the trigger -- no discriminator-swap.
 export const createConditionEvaluatorForTrigger = (
   trigger: Trigger,
 ): ConditionEvaluator | null => {
@@ -114,8 +115,6 @@ export const createConditionEvaluatorForTrigger = (
   }
 
   switch (trigger.trigger) {
-    case 'call':
-      return new CallConditionEvaluator(trigger);
     case 'camera':
       return new CameraConditionEvaluator(trigger);
     case 'display_mode':
@@ -139,8 +138,9 @@ export const createConditionEvaluatorForTrigger = (
     case 'config':
       return null;
     default:
-      // Stock triggers (`state`/`numeric_state`/`template`) evaluate themselves
-      // and never reuse a card condition through this path.
+      // Only `call` reaches here. It matches the transition rather than its
+      // result, so it builds its own `from`/`to` evaluators from the call
+      // condition.
       return null;
   }
 };

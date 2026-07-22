@@ -1,4 +1,5 @@
 import type { CallBase } from '../../../config/schema/condition-trigger/common/call';
+import { arrayify } from '../../../utils/basic';
 import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import type { ConditionEvaluator } from './types';
 
@@ -11,7 +12,7 @@ export class CallConditionEvaluator implements ConditionEvaluator {
 
   public evaluate(newState?: ConditionState): ConditionsEvaluationResult {
     return {
-      result: this._condition.call === (newState?.call ?? false),
+      result: arrayify(this._condition.call).includes(newState?.call ?? 'idle'),
     };
   }
 }

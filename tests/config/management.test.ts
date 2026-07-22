@@ -3982,7 +3982,7 @@ describe('should handle version specific upgrades', () => {
     });
 
     describe('microphone.connected -> call condition', () => {
-      it('should rewrite connected:true -> call:true in an automation', () => {
+      it('should rewrite connected:true into an active-phase trigger in an automation', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4000,12 +4000,14 @@ describe('should handle version specific upgrades', () => {
         };
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config.automations[0]).toEqual(
-          expect.objectContaining({ triggers: [{ trigger: 'call', call: true }] }),
+          expect.objectContaining({
+            triggers: [{ trigger: 'call', to: ['ringing', 'answered'] }],
+          }),
         );
         postUpgradeChecks(config);
       });
 
-      it('should rewrite connected:false -> call:false', () => {
+      it('should rewrite connected:false into an idle-phase trigger', () => {
         const config = {
           type: 'custom:advanced-camera-card',
           cameras: [{ camera_entity: 'camera.office' }],
@@ -4023,7 +4025,7 @@ describe('should handle version specific upgrades', () => {
         };
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config.automations[0]).toEqual(
-          expect.objectContaining({ triggers: [{ trigger: 'call', call: false }] }),
+          expect.objectContaining({ triggers: [{ trigger: 'call', to: 'idle' }] }),
         );
         postUpgradeChecks(config);
       });
@@ -4074,7 +4076,7 @@ describe('should handle version specific upgrades', () => {
           {
             condition: 'and',
             conditions: [
-              { condition: 'call', call: true },
+              { condition: 'call', call: ['ringing', 'answered'] },
               { condition: 'microphone', muted: false },
             ],
           },
@@ -4123,7 +4125,7 @@ describe('should handle version specific upgrades', () => {
                 conditions: [
                   {
                     condition: 'not',
-                    conditions: [{ condition: 'call', call: true }],
+                    conditions: [{ condition: 'call', call: ['ringing', 'answered'] }],
                   },
                 ],
               },
@@ -4153,10 +4155,64 @@ describe('should handle version specific upgrades', () => {
         };
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config.elements[0].conditions).toEqual([
-          { condition: 'call', call: true },
+          { condition: 'call', call: ['ringing', 'answered'] },
         ]);
         expect(config.overrides[0].conditions).toEqual([
-          { condition: 'call', call: false },
+          { condition: 'call', call: 'idle' },
+        ]);
+        postUpgradeChecks(config);
+      });
+
+      it('should keep a disabled condition disabled through to the trigger', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [{ condition: 'microphone', connected: true, enabled: false }],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual(
+          expect.objectContaining({
+            triggers: [{ trigger: 'call', to: ['ringing', 'answered'], enabled: false }],
+          }),
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('should keep a disabled condition disabled when split into an AND', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          overrides: [
+            {
+              conditions: [
+                {
+                  condition: 'microphone',
+                  connected: true,
+                  muted: false,
+                  enabled: false,
+                },
+              ],
+              merge: {},
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.overrides[0].conditions).toEqual([
+          {
+            condition: 'and',
+            conditions: [
+              { condition: 'call', call: ['ringing', 'answered'] },
+              { condition: 'microphone', muted: false },
+            ],
+            enabled: false,
+          },
         ]);
         postUpgradeChecks(config);
       });
@@ -4182,13 +4238,55 @@ describe('should handle version specific upgrades', () => {
         // Running upgradeConfig again should not change anything.
         expect(upgradeConfig(config)).toBeFalsy();
         expect(config.automations[0]).toEqual(
-          expect.objectContaining({ triggers: [{ trigger: 'call', call: true }] }),
+          expect.objectContaining({
+            triggers: [{ trigger: 'call', to: ['ringing', 'answered'] }],
+          }),
         );
         postUpgradeChecks(config);
       });
     });
 
     describe('automation conditions -> triggers', () => {
+      it('should promote a state condition to a trigger and keep its other fields', () => {
+        const config = {
+          type: 'custom:advanced-camera-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          automations: [
+            {
+              conditions: [
+                {
+                  condition: 'state',
+                  entity_id: 'binary_sensor.motion',
+                  state: 'on',
+                  attribute: 'friendly_name',
+                  for: '00:01:00',
+                  enabled: false,
+                },
+              ],
+              actions: [
+                { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.automations[0]).toEqual(
+          expect.objectContaining({
+            triggers: [
+              {
+                trigger: 'state',
+                entity_id: 'binary_sensor.motion',
+                to: 'on',
+                attribute: 'friendly_name',
+                for: '00:01:00',
+                enabled: false,
+              },
+            ],
+          }),
+        );
+        postUpgradeChecks(config);
+      });
+
       it('should flatten a composite condition into trigger leaves and keep the composite', () => {
         const config = {
           type: 'custom:advanced-camera-card',

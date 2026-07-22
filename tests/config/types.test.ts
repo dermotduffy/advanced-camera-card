@@ -891,7 +891,7 @@ describe('config defaults', () => {
   it('should include all conditions', () => {
     const conditions = [
       { condition: 'and', conditions: [{ condition: 'initialized' }] },
-      { condition: 'call', call: true },
+      { condition: 'call', call: ['ringing', 'answered'] },
       { condition: 'camera', cameras: ['camera.office'] },
       { condition: 'display_mode', display_mode: 'single' },
       { condition: 'expand', expand: true },

@@ -591,6 +591,17 @@ const rewriteConditionAsTrigger = (condition: unknown): unknown => {
   }
   const kind = condition['condition'];
 
+  // Only the renamed fields are consumed; anything else the condition carries
+  // (`enabled`, and the fields it already shares with its trigger) is preserved,
+  // so promoting never silently discards user configuration.
+  const withoutKeys = (...keys: string[]): Record<string, unknown> => {
+    const rest = { ...condition };
+    for (const key of keys) {
+      delete rest[key];
+    }
+    return rest;
+  };
+
   // A `state` condition maps onto the HA state trigger (`state` -> `to`,
   // `state_not` -> `not_to`). A discriminator-less condition is the bare
   // picture-element state form -- the only condition that may omit `condition`.
@@ -598,19 +609,28 @@ const rewriteConditionAsTrigger = (condition: unknown): unknown => {
     const entityId = condition['entity_id'] ?? condition['entity'];
     return {
       trigger: 'state',
+      ...withoutKeys('condition', 'entity', 'entity_id', 'state', 'state_not'),
       ...(entityId !== undefined && { entity_id: entityId }),
       ...(condition['state'] !== undefined && { to: condition['state'] }),
       ...(condition['state_not'] !== undefined && { not_to: condition['state_not'] }),
     };
   }
 
+  // A `call` condition describes a phase; as a trigger it is the arrival at
+  // that phase.
+  if (kind === 'call') {
+    return {
+      trigger: 'call',
+      ...withoutKeys('condition', 'call'),
+      ...(condition['call'] !== undefined && { to: condition['call'] }),
+    };
+  }
+
   // Every other condition -- the stock `numeric_state`/`template` and all the
   // card-specific kinds -- shares its field names with the matching trigger
-  // (only `state` involves internal field renames), so promoting is just a
-  // discriminator swap.
-  const rest = { ...condition };
-  delete rest['condition'];
-  return { trigger: kind, ...rest };
+  // (only `state` and `call` involve internal field renames), so promoting is
+  // just a discriminator swap.
+  return { trigger: kind, ...withoutKeys('condition') };
 };
 
 /**
@@ -1427,19 +1447,33 @@ const microphoneConnectedToCallTransform = (data: unknown): boolean => {
   }
   const muted = data['muted'];
 
+  // Survives the rebuild below: a condition the user had switched off must not
+  // come back switched on.
+  const enabled = data['enabled'];
+
+  // A connected microphone meant a call was underway, which is either of the
+  // two active phases; a disconnected one meant no call at all.
+  // This needs to be revisited: https://github.com/dermotduffy/advanced-camera-card/issues/2590
+  const call = connected ? ['ringing', 'answered'] : 'idle';
+
   for (const key of Object.keys(data)) {
     delete data[key];
   }
 
   if (typeof muted === 'boolean') {
+    // `enabled` goes on the composite, disabling both halves together exactly
+    // as it disabled the single condition it replaces.
     data['condition'] = 'and';
     data['conditions'] = [
-      { condition: 'call', call: connected },
+      { condition: 'call', call: call },
       { condition: 'microphone', muted: muted },
     ];
   } else {
     data['condition'] = 'call';
-    data['call'] = connected;
+    data['call'] = call;
+  }
+  if (enabled !== undefined) {
+    data['enabled'] = enabled;
   }
   return true;
 };
