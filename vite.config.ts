@@ -21,7 +21,6 @@ const EXCLUSIONS = [
 
 const INCLUSIONS = ['tests/**/*.test.ts'];
 
-// ts-prune-ignore-next
 export default defineConfig({
   plugins: [svgPath()],
   test: {

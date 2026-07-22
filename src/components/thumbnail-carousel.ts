@@ -37,7 +37,7 @@ import { getReviewedQueryFilterFromQuery } from '../view/utils/query-filter.js';
 import './carousel.js';
 import './thumbnail/thumbnail.js';
 
-export interface ThumbnailMediaSelect {
+interface ThumbnailMediaSelect {
   media: ViewMedia;
 }
 

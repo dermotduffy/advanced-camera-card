@@ -394,7 +394,7 @@ export class AdvancedCameraCardElementsConditional extends LitElement {
 }
 
 // A base class for rendering menu icons / menu state icons.
-export class AdvancedCameraCardElementsBaseItem<ConfigType> extends LitElement {
+class AdvancedCameraCardElementsBaseItem<ConfigType> extends LitElement {
   protected _eventCategory: string;
 
   constructor(eventCategory: string) {
@@ -432,7 +432,7 @@ export class AdvancedCameraCardElementsBaseItem<ConfigType> extends LitElement {
   }
 }
 
-export class AdvancedCameraCardElementsBaseMenuItem<
+class AdvancedCameraCardElementsBaseMenuItem<
   ConfigType,
 > extends AdvancedCameraCardElementsBaseItem<ConfigType> {
   constructor() {
@@ -452,7 +452,7 @@ export class AdvancedCameraCardElementsMenuSubmenu extends AdvancedCameraCardEle
 @customElement('advanced-camera-card-menu-submenu-select')
 export class AdvancedCameraCardElementsMenuSubmenuSelect extends AdvancedCameraCardElementsBaseMenuItem<MenuSubmenuSelect> {}
 
-export class AdvancedCameraCardElementsBaseStatusBarItem<
+class AdvancedCameraCardElementsBaseStatusBarItem<
   ConfigType,
 > extends AdvancedCameraCardElementsBaseItem<ConfigType> {
   constructor() {
