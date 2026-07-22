@@ -1,3 +1,5 @@
+import type { ConfigPath } from './types';
+
 /**
  * Convert the container path `ha-form` passes to `computeLabel`/`computeHelper`
  * into configuration order. `ha-form` builds the path by appending each
@@ -16,7 +18,7 @@ export const getFormContainerPath = (options?: { path?: string[] }): string[] =>
  * @param path The configuration path segments.
  * @returns The path segments without array indices.
  */
-export const stripArrayIndices = (path: (string | number)[]): string[] =>
+export const stripArrayIndices = (path: ConfigPath): string[] =>
   path.filter(
     (segment): segment is string =>
       typeof segment === 'string' && !/^\d+$/.test(segment),

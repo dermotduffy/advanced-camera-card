@@ -1,11 +1,15 @@
 import { BUTTON_SIZE_MIN, MENU_PRIORITY_MAX } from '../../../config/schema/common/const';
-import type { HAFormExpandableSchema, HAFormSchema } from '../../../ha/types';
+import type {
+  HAFormExpandableSchema,
+  HAFormSchema,
+  HASelectSelectorOption,
+} from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import type { EditorForm } from '../types';
 import { createNumberSelector, createSelectSelector } from './common/selectors';
 
 // The menu buttons in their display order.
-const MENU_BUTTONS = [
+export const MENU_BUTTONS = [
   // Iris menu button is first.
   'iris',
 
@@ -37,6 +41,40 @@ const MENU_BUTTONS = [
   'snapshots',
   'substreams',
   'timeline',
+];
+
+/**
+ * Get the options for choosing a menu button.
+ * @returns The menu buttons, in display order.
+ */
+export const getMenuButtonOptions = (): HASelectSelectorOption[] =>
+  MENU_BUTTONS.map((button) => ({
+    value: button,
+    label: localize(`config.menu.buttons.${button}`),
+  }));
+
+/**
+ * Get the options for the menu style.
+ * @returns The menu style options.
+ */
+export const getMenuStyleOptions = (): HASelectSelectorOption[] => [
+  { value: 'none', label: localize('config.menu.styles.none') },
+  { value: 'hidden', label: localize('config.menu.styles.hidden') },
+  { value: 'overlay', label: localize('config.menu.styles.overlay') },
+  { value: 'hover', label: localize('config.menu.styles.hover') },
+  { value: 'hover-card', label: localize('config.menu.styles.hover-card') },
+  { value: 'outside', label: localize('config.menu.styles.outside') },
+];
+
+/**
+ * Get the options for the menu position.
+ * @returns The menu position options.
+ */
+export const getMenuPositionOptions = (): HASelectSelectorOption[] => [
+  { value: 'left', label: localize('config.menu.positions.left') },
+  { value: 'right', label: localize('config.menu.positions.right') },
+  { value: 'top', label: localize('config.menu.positions.top') },
+  { value: 'bottom', label: localize('config.menu.positions.bottom') },
 ];
 
 // The microphone button alone carries a `type` (momentary vs toggle).
@@ -116,23 +154,11 @@ export const getMenuSectionForms = (): EditorForm[] => [
     schema: [
       {
         name: 'style',
-        selector: createSelectSelector([
-          { value: 'none', label: localize('config.menu.styles.none') },
-          { value: 'hidden', label: localize('config.menu.styles.hidden') },
-          { value: 'overlay', label: localize('config.menu.styles.overlay') },
-          { value: 'hover', label: localize('config.menu.styles.hover') },
-          { value: 'hover-card', label: localize('config.menu.styles.hover-card') },
-          { value: 'outside', label: localize('config.menu.styles.outside') },
-        ]),
+        selector: createSelectSelector(getMenuStyleOptions()),
       },
       {
         name: 'position',
-        selector: createSelectSelector([
-          { value: 'left', label: localize('config.menu.positions.left') },
-          { value: 'right', label: localize('config.menu.positions.right') },
-          { value: 'top', label: localize('config.menu.positions.top') },
-          { value: 'bottom', label: localize('config.menu.positions.bottom') },
-        ]),
+        selector: createSelectSelector(getMenuPositionOptions()),
       },
       {
         name: 'alignment',

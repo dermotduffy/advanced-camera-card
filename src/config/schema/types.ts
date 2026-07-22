@@ -6,6 +6,7 @@ import { cameraConfigDefault, cameraConfigSchema, camerasConfigSchema } from './
 import { cardIDRegex } from './common/const';
 import { debugConfigDefault, debugConfigSchema, type DebugConfig } from './debug';
 import { dimensionsConfigSchema } from './dimensions';
+import { editorConfigSchema } from './editor';
 import { pictureElementsSchema } from './elements/types';
 import { foldersConfigSchema } from './folders';
 import { imageConfigDefault, imageConfigSchema } from './image';
@@ -51,6 +52,7 @@ export const advancedCameraCardConfigSchema = z.object({
   timeline: timelineConfigSchema,
   performance: performanceConfigSchema,
   debug: debugConfigSchema,
+  editor: editorConfigSchema.optional(),
   automations: automationsSchema.optional(),
 
   profiles: profilesSchema,

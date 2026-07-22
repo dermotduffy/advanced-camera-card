@@ -7,6 +7,7 @@
     - [`engine`](engine.md)
   - [`conditions` / `triggers`](../conditions-triggers.md)
   - [`dimensions`](../dimensions.md)
+  - [`editor`](../editor.md)
   - [`folders`](../folders.md)
   - [`elements`](../elements/README.md)
   - [`image`](../image.md)

@@ -31,7 +31,7 @@ describe('getDocLinkPath', () => {
     expect(
       getDocLinkPath(['cameras', 2], {
         type: 'expandable',
-        docPath: 'cameras.engine',
+        docPath: ['cameras', 'engine'],
         schema: [],
       }),
     ).toEqual(['cameras', 'engine']);
@@ -39,6 +39,12 @@ describe('getDocLinkPath', () => {
 
   it('should not link a group that has neither a name nor a path', () => {
     expect(getDocLinkPath(['cameras'], { type: 'expandable', schema: [] })).toBeNull();
+  });
+
+  it('should not link a grid', () => {
+    // A grid only lays out the fields within it, and documentation is linked
+    // for what a group of settings is, not for how it is arranged.
+    expect(getDocLinkPath(['dimensions'], { type: 'grid', schema: [] })).toBeNull();
   });
 
   it('should order nested container paths into configuration order', () => {

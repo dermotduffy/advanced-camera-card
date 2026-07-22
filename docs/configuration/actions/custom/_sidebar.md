@@ -7,6 +7,7 @@
   - [`cameras`](../../cameras/README.md)
   - [`conditions` / `triggers`](../../conditions-triggers.md)
   - [`dimensions`](../../dimensions.md)
+  - [`editor`](../../editor.md)
   - [`elements`](../../elements/README.md)
   - [`folders`](../../folders.md)
   - [`image`](../../image.md)

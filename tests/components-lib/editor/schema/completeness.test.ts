@@ -1,14 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
-import { forEachFieldRecursively } from '../../../../src/components-lib/editor/form-data';
+import {
+  forEachFieldRecursively,
+  getFormConfigPaths,
+} from '../../../../src/components-lib/editor/form-data';
 import {
   getCameraSchema,
   getCameraTriggersSchema,
   getTriggerEventSchema,
 } from '../../../../src/components-lib/editor/schema/cameras';
 import { getDimensionsSectionForms } from '../../../../src/components-lib/editor/schema/dimensions';
+import { getEditorModeForms } from '../../../../src/components-lib/editor/schema/editor-mode';
 import { getFolderSchema } from '../../../../src/components-lib/editor/schema/folders';
+import { getFullEditorForms } from '../../../../src/components-lib/editor/schema/full';
 import { getImageSectionForms } from '../../../../src/components-lib/editor/schema/image';
 import { getLiveSectionForms } from '../../../../src/components-lib/editor/schema/live';
 import { getMediaGallerySectionForms } from '../../../../src/components-lib/editor/schema/media-gallery';
@@ -17,13 +22,23 @@ import { getMenuSectionForms } from '../../../../src/components-lib/editor/schem
 import { getPerformanceSectionForms } from '../../../../src/components-lib/editor/schema/performance';
 import { getProfilesSectionForms } from '../../../../src/components-lib/editor/schema/profiles';
 import { getRemoteControlSectionForms } from '../../../../src/components-lib/editor/schema/remote-control';
+import {
+  getSimpleCameraForms,
+  getSimpleMenuForms,
+  getSimpleTopLevelForms,
+} from '../../../../src/components-lib/editor/schema/simple';
 import { getStatusBarSectionForms } from '../../../../src/components-lib/editor/schema/status-bar';
 import { getTimelineSectionForms } from '../../../../src/components-lib/editor/schema/timeline';
 import {
   getViewKeyboardShortcutsSectionForms,
   getViewSectionForms,
 } from '../../../../src/components-lib/editor/schema/view';
-import type { EditorForm } from '../../../../src/components-lib/editor/types';
+import {
+  findBinding,
+  isComputedFieldBinding,
+  type ConfigPath,
+  type EditorForm,
+} from '../../../../src/components-lib/editor/types';
 import { advancedCameraCardConfigSchema } from '../../../../src/config/schema/types';
 import { PTZ_KEYBOARD_SHORTCUTS } from '../../../../src/config/schema/view';
 import type { HAFormSelectorSchema } from '../../../../src/ha/types';
@@ -128,6 +143,26 @@ const SECTION_FORMS: Record<string, EditorForm[]> = {
   ],
 };
 
+// The forms that are not a section of the configuration: the switch between the
+// editors, and the simple editor, which gathers its fields from across the
+// configuration and binds each to where its setting is stored. Their names are
+// the editor's own, so a failure says which set of forms it came from. Every
+// path they address is one a section covers too, so they add nothing to
+// direction 2 and everything to direction 1.
+const UNSECTIONED_FORMS: Record<string, EditorForm[]> = {
+  editor_mode: getEditorModeForms(),
+  simple_top_level: getSimpleTopLevelForms(),
+  simple_menu: getSimpleMenuForms(),
+
+  // The camera form is the array item at index 0, as the array sections above.
+  simple_cameras: getSimpleCameraForms(0),
+};
+
+const ALL_FORMS: Record<string, EditorForm[]> = {
+  ...SECTION_FORMS,
+  ...UNSECTIONED_FORMS,
+};
+
 // `z.core.$ZodType` is zod v4's base schema type for introspection: it is what
 // `.unwrap()` and `ZodArray.element` return, and what every schema (including
 // the config root) is assignable to. The classic `z.ZodType` is a subtype with
@@ -156,7 +191,7 @@ const unwrap = (schema: z.core.$ZodType): z.core.$ZodType => {
 
 // Resolve a configuration path to its zod leaf schema, or null if the path
 // does not exist in the configuration schema.
-const resolvePath = (path: (string | number)[]): z.core.$ZodType | null => {
+const resolvePath = (path: ConfigPath): z.core.$ZodType | null => {
   let current: z.core.$ZodType = advancedCameraCardConfigSchema;
   for (const segment of path) {
     current = unwrap(current);
@@ -204,7 +239,7 @@ const enumValues = (schema: z.core.$ZodType): unknown[] | null => {
 // True if a config path lies inside a subtree the editor forms do not own
 // (YAML-only, or rendered by a custom widget), so the completeness walk skips
 // it.
-const isPruned = (path: (string | number)[]): boolean => {
+const isPruned = (path: ConfigPath): boolean => {
   const key = path.join('.');
   return [...EDITOR_CUSTOM_WIDGETS, ...EDITOR_EXCLUDED].some(
     (prefix) => key === prefix || key.startsWith(`${prefix}.`),
@@ -216,7 +251,7 @@ const isPruned = (path: (string | number)[]): boolean => {
 // as leaves), pruning the subtrees the editor does not own.
 const enumerateConfigLeavesRecursively = (
   schema: z.core.$ZodType,
-  prefix: (string | number)[] = [],
+  prefix: ConfigPath = [],
 ): string[] => {
   if (prefix.length && isPruned(prefix)) {
     return [];
@@ -235,62 +270,109 @@ const enumerateConfigLeavesRecursively = (
   return [prefix.join('.')];
 };
 
-// Every configuration path the editor forms currently cover.
-const coveredPaths = new Set<string>();
-for (const forms of Object.values(SECTION_FORMS)) {
-  for (const form of forms) {
-    forEachFieldRecursively(form.schema, (path) => {
-      // Array sections carry a numeric index in `basePath` (`['folders', 0]`);
-      // strip it so covered paths match the index-free enumerated leaves.
-      const key = [...form.basePath, ...path]
-        .filter((segment) => typeof segment !== 'number')
-        .join('.');
-      coveredPaths.add(key);
-    });
-  }
+// Every configuration path the editor forms currently cover. Array sections
+// carry a numeric index (`['folders', 0]`); strip it so covered paths match the
+// index-free enumerated leaves.
+const coveredPaths = new Set(
+  Object.values(ALL_FORMS)
+    .flat()
+    .flatMap(getFormConfigPaths)
+    .map((path) => path.filter((segment) => typeof segment !== 'number').join('.')),
+);
+
+// One check per configuration path a field addresses. A field that reads and
+// writes itself addresses more than one, and its selector deliberately does not
+// match how the value is stored (a switch for a named mode, a list of names for
+// one boolean per menu button), so only the existence of its paths is checked.
+interface FieldCheck {
+  section: string;
+  path: ConfigPath;
+  field: HAFormSelectorSchema;
+  checkSelector: boolean;
 }
 
+const getFieldChecks = (): FieldCheck[] => {
+  const checks: FieldCheck[] = [];
+  for (const [section, forms] of Object.entries(ALL_FORMS)) {
+    for (const form of forms) {
+      forEachFieldRecursively(form.schema, (formPath, field) => {
+        const binding = findBinding(form, formPath);
+        const computed = !!binding && isComputedFieldBinding(binding);
+        const paths = !binding
+          ? [[...form.basePath, ...formPath]]
+          : isComputedFieldBinding(binding)
+            ? binding.configPaths
+            : [binding.configPath];
+
+        checks.push(
+          ...paths.map((path) => ({ section, path, field, checkSelector: !computed })),
+        );
+      });
+    }
+  }
+  return checks;
+};
+
 describe('editor schema completeness', () => {
+  // The derivation asks `getFullEditorForms` what the full editor shows, while
+  // this harness walks the sections it is given above. The two must describe
+  // the same editor, or a section could be checked here and invisible to the
+  // derivation, or the reverse.
+  it('should check every form the full editor shows', () => {
+    const walked = new Set(
+      Object.entries(ALL_FORMS)
+        .filter(([section]) => !(section in UNSECTIONED_FORMS))
+        .flatMap(([, forms]) => forms)
+        .flatMap(getFormConfigPaths)
+        .map((path) => path.join('.')),
+    );
+
+    for (const path of getFullEditorForms().flatMap(getFormConfigPaths)) {
+      expect(walked, `${path.join('.')} is shown but not checked`).toContain(
+        path.join('.'),
+      );
+    }
+  });
+
   // Direction 1: every editor field path is a real configuration key.
   describe('every form field resolves to a matching configuration key', () => {
-    for (const [section, forms] of Object.entries(SECTION_FORMS)) {
-      for (const form of forms) {
-        forEachFieldRecursively(form.schema, (path, field) => {
-          const fullPath = [...form.basePath, ...path];
-          const key = fullPath.join('.');
+    for (const { section, path, field, checkSelector } of getFieldChecks()) {
+      const key = path.join('.');
 
-          it(`${section}: ${key}`, () => {
-            const resolved = resolvePath(fullPath);
-            expect(resolved, `path ${key} is not in the config schema`).not.toBeNull();
+      it(`${section}: ${key}`, () => {
+        const resolved = resolvePath(path);
+        expect(resolved, `path ${key} is not in the config schema`).not.toBeNull();
 
-            // Direction 1b: the selector kind matches the zod type where the
-            // type is unambiguous (number/boolean/enum).
-            const kind = selectorKind(field);
-            if (resolved instanceof z.ZodNumber) {
-              expect(kind, `${key} should use a number selector`).toBe('number');
-            } else if (resolved instanceof z.ZodBoolean) {
-              expect(kind, `${key} should use a boolean selector`).toBe('boolean');
-            } else {
-              const values = resolved ? enumValues(resolved) : null;
-              if (values) {
-                expect(kind, `${key} should use a select selector`).toBe('select');
-                // Direction 1c: the dropdown offers every enum value.
-                if ('select' in field.selector) {
-                  const options = field.selector.select.options.map((option) =>
-                    typeof option === 'object' ? option.value : option,
-                  );
-                  for (const value of values) {
-                    expect(
-                      options,
-                      `${key} dropdown is missing enum value ${String(value)}`,
-                    ).toContain(value);
-                  }
-                }
+        if (!checkSelector) {
+          return;
+        }
+
+        // Direction 1b: the selector kind matches the zod type where the
+        // type is unambiguous (number/boolean/enum).
+        const kind = selectorKind(field);
+        if (resolved instanceof z.ZodNumber) {
+          expect(kind, `${key} should use a number selector`).toBe('number');
+        } else if (resolved instanceof z.ZodBoolean) {
+          expect(kind, `${key} should use a boolean selector`).toBe('boolean');
+        } else {
+          const values = resolved ? enumValues(resolved) : null;
+          if (values) {
+            expect(kind, `${key} should use a select selector`).toBe('select');
+            // Direction 1c: the dropdown offers every enum value.
+            if ('select' in field.selector) {
+              const options = field.selector.select.options.map((option) =>
+                typeof option === 'object' ? option.value : option,
+              );
+              for (const value of values) {
+                expect(
+                  options,
+                  `${key} dropdown is missing enum value ${String(value)}`,
+                ).toContain(value);
               }
             }
-          });
-        });
-      }
+          }
+        }
+      });
     }
   });
 

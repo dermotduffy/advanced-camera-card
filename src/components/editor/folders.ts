@@ -64,7 +64,7 @@ export class AdvancedCameraCardEditorFolders extends LitElement {
         >
           ${renderForms(
             this.hass,
-            this._controller.getFormContexts({ kind: 'folder', index }),
+            this._controller.getFormContexts({ kind: 'full-folder', index }),
           )}
           <ha-alert alert-type="info">
             ${localize('config.folders.ha.path_info')}

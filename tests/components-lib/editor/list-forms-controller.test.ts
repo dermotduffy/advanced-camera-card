@@ -87,15 +87,18 @@ describe('ListFormsController', () => {
   describe('should build the forms of an item', () => {
     it('should have no contexts before it is given any input', () => {
       const { controller } = createController();
-      expect(controller.getFormContexts({ kind: 'camera', index: 0 })).toEqual([]);
+      expect(controller.getFormContexts({ kind: 'full-camera', index: 0 })).toEqual([]);
     });
 
     it.each([
-      [{ kind: 'camera' as const, index: 1 }, ['cameras', 1]],
-      [{ kind: 'folder' as const, index: 2 }, ['folders', 2]],
-      [{ kind: 'camera-triggers' as const, cameraIndex: 1 }, ['cameras', 1, 'triggers']],
+      [{ kind: 'full-camera' as const, index: 1 }, ['cameras', 1]],
+      [{ kind: 'full-folder' as const, index: 2 }, ['folders', 2]],
       [
-        { kind: 'camera-event' as const, cameraIndex: 1, eventIndex: 3 },
+        { kind: 'full-camera-triggers' as const, cameraIndex: 1 },
+        ['cameras', 1, 'triggers'],
+      ],
+      [
+        { kind: 'full-camera-event' as const, cameraIndex: 1, eventIndex: 3 },
         ['cameras', 1, 'triggers', 'events', 3],
       ],
     ])('should build the forms for %j', (request, basePath) => {
@@ -109,7 +112,7 @@ describe('ListFormsController', () => {
 
     it('should keep the forms of an item across configuration changes', () => {
       const { controller } = createController();
-      const request = { kind: 'camera' as const, index: 0 };
+      const request = { kind: 'full-camera' as const, index: 0 };
       controller.setInput({ config: {}, defaults: {}, options: OPTIONS });
       const before = controller.getFormContexts(request)[0].form;
 
@@ -124,7 +127,7 @@ describe('ListFormsController', () => {
 
     it('should keep the same contexts when nothing changed', () => {
       const { controller } = createController();
-      const request = { kind: 'camera' as const, index: 0 };
+      const request = { kind: 'full-camera' as const, index: 0 };
       const input = { config: {}, defaults: {}, options: OPTIONS };
       controller.setInput(input);
       const before = controller.getFormContexts(request);
@@ -138,8 +141,8 @@ describe('ListFormsController', () => {
       const { controller, listener } = createController();
       controller.setInput({ config: {}, defaults: {}, options: OPTIONS });
 
-      const camera = controller.getFormContexts({ kind: 'camera', index: 0 });
-      const folder = controller.getFormContexts({ kind: 'folder', index: 0 });
+      const camera = controller.getFormContexts({ kind: 'full-camera', index: 0 });
+      const folder = controller.getFormContexts({ kind: 'full-folder', index: 0 });
       expect(camera[0]).not.toBe(folder[0]);
 
       folder[0].valueChanged(
@@ -156,7 +159,7 @@ describe('ListFormsController', () => {
 
     it('should rebuild the forms when the values its selectors offer change', () => {
       const { controller } = createController();
-      const request = { kind: 'camera' as const, index: 0 };
+      const request = { kind: 'full-camera' as const, index: 0 };
       controller.setInput({ config: {}, defaults: {}, options: OPTIONS });
       const before = controller.getFormContexts(request)[0].form;
 
@@ -180,7 +183,7 @@ describe('ListFormsController', () => {
       controller.setInput({ config: {}, defaults: {}, options: OPTIONS });
 
       controller
-        .getFormContexts({ kind: 'camera', index: 2 })[0]
+        .getFormContexts({ kind: 'full-camera', index: 2 })[0]
         .valueChanged(
           new CustomEvent('value-changed', { detail: { value: { id: 'front' } } }),
         );

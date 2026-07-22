@@ -17,6 +17,7 @@ import {
 } from '../../components-lib/editor/titles';
 import type { ConfigPath } from '../../components-lib/editor/types';
 import { CONF_CAMERAS } from '../../config/const';
+import type { EditorMode } from '../../config/schema/editor';
 import type { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
 import editorExpanderBodyStyle from '../../scss/editor-expander-body.scss';
@@ -44,6 +45,11 @@ export class AdvancedCameraCardEditorCameras extends LitElement {
 
   @property({ attribute: false })
   public input?: FormsInput;
+
+  // Which editor this list is part of. The simple editor shows fewer of a
+  // camera's settings, and none of its triggers.
+  @property()
+  public mode?: EditorMode;
 
   private _pagesController = new ListPagesController(this);
   private _formsController = new ListFormsController(this, (path) =>
@@ -103,8 +109,7 @@ export class AdvancedCameraCardEditorCameras extends LitElement {
 
   private _renderCamera(index: number, hidden: boolean): TemplateResult {
     const camera = this._formsController.getList(CAMERAS_PATH)[index];
-    const eventsPath: ConfigPath = [CONF_CAMERAS, index, 'triggers', 'events'];
-    const events = this._formsController.getList(eventsPath);
+    const fullMode = this.mode !== 'simple';
 
     return html`
       <advanced-camera-card-editor-page
@@ -114,29 +119,40 @@ export class AdvancedCameraCardEditorCameras extends LitElement {
       >
         ${renderForms(
           this.hass,
-          this._formsController.getFormContexts({ kind: 'camera', index }),
+          this._formsController.getFormContexts(
+            fullMode ? { kind: 'full-camera', index } : { kind: 'simple-camera', index },
+          ),
         )}
-        <ha-expansion-panel
-          outlined
-          .header=${localize('config.cameras.triggers.editor_label')}
-        >
-          <advanced-camera-card-icon
-            slot="leading-icon"
-            .icon=${{ icon: 'mdi:magnify-scan' }}
-          ></advanced-camera-card-icon>
-          ${this._renderContained(html`
-            ${renderDocumentation([CONF_CAMERAS, 'triggers'])}
-            ${renderForms(
-              this.hass,
-              this._formsController.getFormContexts({
-                kind: 'camera-triggers',
-                cameraIndex: index,
-              }),
-            )}
-            ${this._renderEvents(eventsPath, events)}
-          `)}
-        </ha-expansion-panel>
+        ${fullMode ? this._renderTriggers(index) : nothing}
       </advanced-camera-card-editor-page>
+    `;
+  }
+
+  private _renderTriggers(index: number): TemplateResult {
+    const eventsPath: ConfigPath = [CONF_CAMERAS, index, 'triggers', 'events'];
+    const events = this._formsController.getList(eventsPath);
+
+    return html`
+      <ha-expansion-panel
+        outlined
+        .header=${localize('config.cameras.triggers.editor_label')}
+      >
+        <advanced-camera-card-icon
+          slot="leading-icon"
+          .icon=${{ icon: 'mdi:magnify-scan' }}
+        ></advanced-camera-card-icon>
+        ${this._renderContained(html`
+          ${renderDocumentation([CONF_CAMERAS, 'triggers'])}
+          ${renderForms(
+            this.hass,
+            this._formsController.getFormContexts({
+              kind: 'full-camera-triggers',
+              cameraIndex: index,
+            }),
+          )}
+          ${this._renderEvents(eventsPath, events)}
+        `)}
+      </ha-expansion-panel>
     `;
   }
 
@@ -216,7 +232,7 @@ export class AdvancedCameraCardEditorCameras extends LitElement {
         ${renderForms(
           this.hass,
           this._formsController.getFormContexts({
-            kind: 'camera-event',
+            kind: 'full-camera-event',
             cameraIndex,
             eventIndex,
           }),

@@ -1,11 +1,13 @@
 import { assert, describe, expect, it } from 'vitest';
 
 import { getForms } from '../../../../src/components-lib/editor/schema/registry';
+import type { ConfigPath } from '../../../../src/components-lib/editor/types';
+import { isFormFieldSchema } from '../../../../src/ha/types';
 
 const OPTIONS = { cameras: [], folders: [] };
 
 // Every section the editor offers, and where its first form edits.
-const SECTIONS: [string, (string | number)[]][] = [
+const SECTIONS: [string, ConfigPath][] = [
   ['dimensions', ['dimensions']],
   ['image', ['image']],
   ['live', ['live']],
@@ -24,7 +26,7 @@ const SECTIONS: [string, (string | number)[]][] = [
 describe('getForms', () => {
   describe('should build the forms of a section', () => {
     it.each(SECTIONS)('should build the %s section', (name, basePath) => {
-      const forms = getForms({ kind: 'section', name }, OPTIONS);
+      const forms = getForms({ kind: 'full-section', name }, OPTIONS);
 
       expect(forms.length).toBeGreaterThan(0);
       expect(forms[0].basePath).toEqual(basePath);
@@ -32,7 +34,9 @@ describe('getForms', () => {
     });
 
     it('should build no forms for a section it does not know', () => {
-      expect(getForms({ kind: 'section', name: 'nonexistent' }, OPTIONS)).toEqual([]);
+      expect(getForms({ kind: 'full-section', name: 'nonexistent' }, OPTIONS)).toEqual(
+        [],
+      );
     });
   });
 
@@ -45,7 +49,7 @@ describe('getForms', () => {
 
     const getDependencyOptions = (index: number): unknown => {
       const [form] = getForms(
-        { kind: 'camera', index },
+        { kind: 'full-camera', index },
         { ...OPTIONS, cameras: CAMERAS },
       );
       const dependencies = form.schema.find(
@@ -55,7 +59,7 @@ describe('getForms', () => {
       const cameras = dependencies.schema.find(
         (field) => 'name' in field && field.name === 'cameras',
       );
-      assert(cameras && 'selector' in cameras && 'select' in cameras.selector);
+      assert(cameras && isFormFieldSchema(cameras) && 'select' in cameras.selector);
       return cameras.selector.select?.options;
     };
 
@@ -70,13 +74,23 @@ describe('getForms', () => {
     });
   });
 
-  describe('should build the forms of a list item', () => {
+  // Every request other than a section, which is named rather than being a
+  // request of its own and is covered above. Each edits one place in the
+  // configuration, so each builds a single form.
+  describe('should build the forms of every other request', () => {
     it.each([
-      [{ kind: 'camera' as const, index: 2 }, ['cameras', 2]],
-      [{ kind: 'folder' as const, index: 1 }, ['folders', 1]],
-      [{ kind: 'camera-triggers' as const, cameraIndex: 2 }, ['cameras', 2, 'triggers']],
+      [{ kind: 'editor-mode' as const }, ['editor']],
+      [{ kind: 'simple-top-level' as const }, []],
+      [{ kind: 'simple-menu' as const }, []],
+      [{ kind: 'simple-camera' as const, index: 3 }, ['cameras', 3]],
+      [{ kind: 'full-camera' as const, index: 2 }, ['cameras', 2]],
+      [{ kind: 'full-folder' as const, index: 1 }, ['folders', 1]],
       [
-        { kind: 'camera-event' as const, cameraIndex: 2, eventIndex: 4 },
+        { kind: 'full-camera-triggers' as const, cameraIndex: 2 },
+        ['cameras', 2, 'triggers'],
+      ],
+      [
+        { kind: 'full-camera-event' as const, cameraIndex: 2, eventIndex: 4 },
         ['cameras', 2, 'triggers', 'events', 4],
       ],
     ])('should build the forms for %j', (request, basePath) => {

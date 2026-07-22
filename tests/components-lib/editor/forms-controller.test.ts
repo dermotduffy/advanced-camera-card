@@ -5,7 +5,7 @@ import { FormsController } from '../../../src/components-lib/editor/forms-contro
 
 const OPTIONS = { cameras: [], folders: [] };
 const INPUT = { config: {}, defaults: {}, options: OPTIONS };
-const MENU = { kind: 'section' as const, name: 'menu' };
+const MENU = { kind: 'full-section' as const, name: 'menu' };
 
 const createController = () => {
   const onChanges = vi.fn();
@@ -35,7 +35,7 @@ describe('FormsController', () => {
     const { controller } = createController();
     controller.setInput(MENU, INPUT);
 
-    controller.setInput({ kind: 'section', name: 'timeline' }, INPUT);
+    controller.setInput({ kind: 'full-section', name: 'timeline' }, INPUT);
 
     expect(controller.getContexts()[0].form.basePath).toEqual(['timeline']);
   });
@@ -62,7 +62,7 @@ describe('FormsController', () => {
 
   it('should build the forms again when the values its selectors offer change', () => {
     const { controller } = createController();
-    const request = { kind: 'camera' as const, index: 0 };
+    const request = { kind: 'full-camera' as const, index: 0 };
     controller.setInput(request, INPUT);
     const before = controller.getContexts()[0].form;
 
@@ -84,7 +84,7 @@ describe('FormsController', () => {
 
   it('should keep the forms it has when a rebuild produces the same ones', () => {
     const { controller } = createController();
-    const request = { kind: 'camera' as const, index: 0 };
+    const request = { kind: 'full-camera' as const, index: 0 };
     const cameras = [
       { value: 'camera.one', label: 'One' },
       { value: 'camera.two', label: 'Two' },
@@ -188,7 +188,7 @@ describe('FormsController', () => {
 
     // The dimensions section has a single form, so the last of the menu
     // section's forms no longer exists once it is asked for.
-    controller.setInput({ kind: 'section', name: 'dimensions' }, INPUT);
+    controller.setInput({ kind: 'full-section', name: 'dimensions' }, INPUT);
     last.valueChanged(
       new CustomEvent('value-changed', { detail: { value: { style: 'outside' } } }),
     );

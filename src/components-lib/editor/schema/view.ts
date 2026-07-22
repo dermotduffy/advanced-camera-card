@@ -4,7 +4,11 @@ import type { EditorForm } from '../types';
 import { getInteractionModeOptions } from './common/interaction-mode';
 import { createNumberSelector, createSelectSelector } from './common/selectors';
 
-const getViewModeOptions = (): HASelectSelectorOption[] => [
+/**
+ * Get the options for choosing a view.
+ * @returns The view options.
+ */
+export const getViewModeOptions = (): HASelectSelectorOption[] => [
   { value: 'auto', label: localize('config.view.views.auto') },
   { value: 'clip', label: localize('config.view.views.clip') },
   { value: 'clips', label: localize('config.view.views.clips') },

@@ -181,6 +181,44 @@ describe('EditorController', () => {
       const { controller } = createController();
       expect(controller.getNotices()).toEqual([]);
     });
+
+    it('should say when the simple editor does not have full coverage', () => {
+      const { controller } = createController();
+      controller.setConfig({
+        cameras: [{ camera_entity: 'camera.office' }],
+        view: { dim: true },
+        editor: { mode: 'simple' },
+      });
+
+      expect(controller.getNotices()).toEqual([
+        { type: 'info', message: localize('editor.simple_coverage') },
+      ]);
+    });
+
+    it.each([
+      [
+        'the simple editor shows everything set',
+        { cameras: [{ camera_entity: 'camera.office' }], editor: { mode: 'simple' } },
+      ],
+      [
+        'the full editor is in use',
+        { cameras: [{ camera_entity: 'camera.office' }], view: { dim: true } },
+      ],
+    ])('should have no coverage notice when %s', (_case, config) => {
+      const { controller } = createController();
+      controller.setConfig(config);
+      expect(controller.getNotices()).toEqual([]);
+    });
+
+    it.each([
+      [{ cameras: [{ camera_entity: 'camera.office' }] }, 'simple' as const],
+      [{ cameras: [], view: { dim: true } }, 'full' as const],
+      [{ cameras: [], editor: { mode: 'full' } }, 'full' as const],
+    ])('should choose the editor for %j', (config, mode) => {
+      const { controller } = createController();
+      controller.setConfig(config);
+      expect(controller.getEditorMode()).toBe(mode);
+    });
   });
 
   describe('should describe what a section needs', () => {

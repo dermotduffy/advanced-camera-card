@@ -8,6 +8,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 
 import { getDocURL } from '../../components-lib/editor/doc-links';
+import type { ConfigPath } from '../../components-lib/editor/types';
 import { localize } from '../../localize/localize';
 import editorDocLinkStyle from '../../scss/editor-doc-link.scss';
 
@@ -48,9 +49,7 @@ export class AdvancedCameraCardEditorDocLink extends LitElement {
  * @param path The configuration path.
  * @returns A rendered template, or null when the path has no documentation.
  */
-export const renderDocumentation = (
-  path: (string | number)[],
-): TemplateResult | null => {
+export const renderDocumentation = (path: ConfigPath): TemplateResult | null => {
   const url = getDocURL(path);
   return url
     ? html`<advanced-camera-card-editor-doc-link

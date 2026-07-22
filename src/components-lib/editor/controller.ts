@@ -11,6 +11,7 @@ import {
   upgradeConfig,
 } from '../../config/management';
 import { setProfiles } from '../../config/profiles/set-profiles';
+import type { EditorMode } from '../../config/schema/editor';
 import { profilesSchema, type ProfileType } from '../../config/schema/profiles';
 import { configDefaults } from '../../config/schema/types';
 import type {
@@ -27,6 +28,7 @@ import { getFolderID } from '../../utils/folder';
 import { applyConfigChanges } from './form-data';
 import type { FormsInput } from './forms-controller';
 import type { EditorIntent } from './intents';
+import { deriveEditorMode, getEditorMode } from './mode';
 import type { FormRequestOptions } from './schema/registry';
 import { getEditorCameraTitle, getEditorFolderTitle } from './titles';
 
@@ -69,6 +71,9 @@ export class EditorController implements ReactiveController {
   // The parsed configuration profiles (empty when unset or invalid).
   private _profiles: ProfileType[] = [];
 
+  // Which editor the configuration asks for, or suits.
+  private _editorMode: EditorMode = 'simple';
+
   constructor(host: EditorControllerHost) {
     this._host = host;
     host.addController(this);
@@ -103,6 +108,7 @@ export class EditorController implements ReactiveController {
   private _applyConfig(config: RawAdvancedCameraCardConfig): void {
     this._config = config;
     this._configUpgradeable = isConfigUpgradeable(config);
+    this._editorMode = getEditorMode(config);
 
     // The defaults are rebuilt from scratch so that removing (or breaking) a
     // profile also removes its adjusted defaults.
@@ -129,11 +135,25 @@ export class EditorController implements ReactiveController {
     if (Array.isArray(overrides) && overrides.length) {
       notices.push({ type: 'info', message: localize('config.overrides.info') });
     }
+
+    // The simple editor can be asked for by a configuration that sets more than
+    // it shows, so tell the user those settings are still in effect.
+    if (
+      this._config &&
+      this._editorMode === 'simple' &&
+      deriveEditorMode(this._config) === 'full'
+    ) {
+      notices.push({ type: 'info', message: localize('editor.simple_coverage') });
+    }
     return notices;
   }
 
   public getConfig(): RawAdvancedCameraCardConfig | null {
     return this._config;
+  }
+
+  public getEditorMode(): EditorMode {
+    return this._editorMode;
   }
 
   public getDefaults(): RawAdvancedCameraCardConfig {
