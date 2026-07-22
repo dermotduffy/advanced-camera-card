@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/knip/schema-jsonc.json",
+
+  // Vendored docsify assets, loaded by `<script src>` tags in `docs/index.html`.
+  "ignore": ["docs/js/**"],
+
+  // A TypeScript language-service plugin supplied by the `runem.lit-plugin` editor
+  // extension rather than by `package.json`.
+  "ignoreUnresolved": ["ts-lit-plugin"],
+
+  "ignoreDependencies": [
+    // Ambient module declarations in `src/declarations.d.ts` that other modules
+    // augment to add view/issue/action context properties. They are import
+    // specifiers but not packages.
+    "view",
+    "issue",
+    "action",
+
+    // Reached through the string-based `compat.extends()` call in
+    // `eslint.config.mjs`, which knip cannot follow.
+    "@typescript-eslint/eslint-plugin",
+    "eslint-config-prettier",
+
+    // Referenced from the `release` block in `package.json`.
+    "@semantic-release/github",
+    "conventional-changelog-conventionalcommits",
+  ],
+}
