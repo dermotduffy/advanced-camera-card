@@ -1,4 +1,4 @@
-import type { StyleInfo } from 'lit/directives/style-map';
+import type { StyleInfo } from 'lit/directives/style-map.js';
 
 import type { CameraManager } from '../camera-manager/manager';
 import type { CallManager } from '../card-controller/call/manager';

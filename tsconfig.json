@@ -2,11 +2,12 @@
   "compilerOptions": {
     "target": "es2021",
     "module": "es2020",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "verbatimModuleSyntax": true,
+    "isolatedModules": true,
     "lib": ["es2021", "dom", "dom.iterable"],
     "noEmit": true,
-    "noErrorTruncation": false,
+    "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
@@ -15,8 +16,11 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "experimentalDecorators": true,
+    // Lit's @property installs an accessor on the prototype. Class field
+    // semantics would define an own property on each instance that shadows it,
+    // so property writes would no longer trigger a render.
+    "useDefineForClassFields": false,
     "esModuleInterop": true,
-    "sourceMap": true,
     "plugins": [
       {
         "name": "ts-lit-plugin",

@@ -1,9 +1,8 @@
-import EmblaCarousel, { type EmblaCarouselType } from 'embla-carousel';
+import EmblaCarousel, {
+  type EmblaCarouselType,
+  type EmblaPluginType,
+} from 'embla-carousel';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
-import type {
-  CreatePluginType,
-  LoosePluginType,
-} from 'embla-carousel/components/Plugins';
 import { isEqual } from 'lodash-es';
 
 import type { TransitionEffect } from '../../config/schema/common/transition-effect.js';
@@ -16,7 +15,7 @@ export interface CarouselSelected {
   element: HTMLElement;
 }
 
-type EmblaCarouselPlugins = CreatePluginType<LoosePluginType, Record<string, unknown>>[];
+export type EmblaCarouselPlugins = EmblaPluginType[];
 
 export type CarouselDirection = 'vertical' | 'horizontal';
 

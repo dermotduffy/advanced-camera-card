@@ -18,7 +18,6 @@ export class StatusBarItemManager {
     this._api = api;
   }
 
-  private _items: StatusBarItem[] = [];
   private _dynamicItems: StatusBarItem[] = [];
 
   public addDynamicStatusBarItem(item: StatusBarItem): void {
