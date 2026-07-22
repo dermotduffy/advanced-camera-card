@@ -14,6 +14,7 @@ import type {
 } from '../../components-lib/editor/forms-controller';
 import type { FormRequest } from '../../components-lib/editor/schema/registry';
 import { SectionController } from '../../components-lib/editor/section-controller';
+import type { ConfigPath } from '../../components-lib/editor/types';
 import type { HomeAssistant } from '../../ha/types';
 import editorSectionStyle from '../../scss/editor-section.scss';
 import { renderDocumentation } from './doc-link';
@@ -47,7 +48,7 @@ export class AdvancedCameraCardEditorSection extends LitElement {
   // The path whose documentation the section links to; the section's own forms
   // supply the links for everything within them.
   @property({ attribute: false })
-  public documentationPath?: (string | number)[];
+  public docPath?: ConfigPath;
 
   // Content shown after the section's schema forms, of which there may be
   // none. Called only once the section has been opened, and in the render that
@@ -96,7 +97,7 @@ export class AdvancedCameraCardEditorSection extends LitElement {
         @expanded-will-change=${this._stopPropagation}
         @expanded-changed=${this._stopPropagation}
       >
-        ${this.documentationPath ? renderDocumentation(this.documentationPath) : nothing}
+        ${this.docPath ? renderDocumentation(this.docPath) : nothing}
         ${renderForms(this.hass, this._controller.getContexts())}
         ${this.renderCustomContent?.() ?? nothing}
       </div>

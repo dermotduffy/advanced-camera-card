@@ -28,7 +28,7 @@ describe('SectionController', () => {
   it('should build the forms of the requested section', () => {
     const { controller } = createController();
 
-    controller.setInput({ kind: 'section', name: 'menu' }, INPUT);
+    controller.setInput({ kind: 'full-section', name: 'menu' }, INPUT);
 
     const contexts = controller.getContexts();
     expect(contexts.length).toBeGreaterThan(0);
@@ -39,7 +39,7 @@ describe('SectionController', () => {
     const { host, controller } = createController();
     const listener = vi.fn();
     host.addEventListener('advanced-camera-card:editor:intent', listener);
-    controller.setInput({ kind: 'section', name: 'menu' }, INPUT);
+    controller.setInput({ kind: 'full-section', name: 'menu' }, INPUT);
 
     controller
       .getContexts()[0]

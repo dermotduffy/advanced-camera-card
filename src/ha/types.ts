@@ -336,6 +336,15 @@ interface StockHAFormExpandableSchema extends StockHAFormBaseSchema {
   schema: readonly HAFormSchema[];
 }
 
+interface StockHAFormGridSchema extends StockHAFormBaseSchema {
+  type: 'grid';
+
+  // The width below which the columns fall back to one per row.
+  column_min_width?: string;
+
+  schema: readonly HAFormSchema[];
+}
+
 // Extensions layered onto the stock shapes; not part of `ha-form` itself.
 interface CardHAFormSchemaExtensions {
   // Override the standard path-derived label, e.g. to point shared fields at
@@ -356,9 +365,32 @@ export interface HAFormExpandableSchema
   // the top-level `frigate`/`motioneye` camera keys.
   name?: string;
 
-  // Explicit documentation-link key, for a nameless group whose link cannot be
+  // Explicit documentation-link path, for a nameless group whose link cannot be
   // derived from a configuration path.
-  docPath?: string;
+  docPath?: string[];
 }
 
-export type HAFormSchema = HAFormSelectorSchema | HAFormExpandableSchema;
+// Fields laid out in columns rather than one per row. A grid is nameless like
+// any other visual-only grouping, so the fields within it are stored where they
+// would be without it.
+export interface HAFormGridSchema
+  extends Omit<StockHAFormGridSchema, 'name'>,
+    CardHAFormSchemaExtensions {
+  name?: string;
+}
+
+export type HAFormSchema =
+  | HAFormSelectorSchema
+  | HAFormExpandableSchema
+  | HAFormGridSchema;
+
+/**
+ * Whether a form node is a field the user fills in, rather than a container of
+ * further nodes. Recognized by the selector it carries, since `ha-form` gives a
+ * field nothing else to tell it apart by.
+ * @param schema The node's schema.
+ * @returns `true` for a field.
+ */
+export const isFormFieldSchema = (
+  schema: HAFormSchema,
+): schema is HAFormSelectorSchema => 'selector' in schema;

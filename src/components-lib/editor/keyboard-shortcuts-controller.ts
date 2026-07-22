@@ -10,7 +10,10 @@ import type { ConfigChange, ConfigPath } from './types';
 
 type KeyboardShortcutsControllerHost = ReactiveControllerHost & EventTarget;
 
-const FORM_REQUEST: FormRequest = { kind: 'section', name: 'view.keyboard_shortcuts' };
+const FORM_REQUEST: FormRequest = {
+  kind: 'full-section',
+  name: 'view.keyboard_shortcuts',
+};
 
 /**
  * The keyboard shortcuts panel: the settings that apply to all the shortcuts,

@@ -70,6 +70,35 @@ const getMediaLayoutSchema = (): HAFormExpandableSchema => ({
   ],
 });
 
+/**
+ * Get the camera fields the simple editor shows: the entity, how it is
+ * streamed, and how it is presented.
+ * @returns The camera fields.
+ */
+export const getCameraSimpleFields = (): HAFormSchema[] => [
+  { name: 'camera_entity', selector: { entity: { domain: 'camera' } } },
+  {
+    name: 'live_provider',
+    selector: createSelectSelector([
+      { value: 'auto', label: localize('config.cameras.live_providers.auto') },
+      { value: 'ha', label: localize('config.cameras.live_providers.ha') },
+      { value: 'image', label: localize('config.cameras.live_providers.image') },
+      { value: 'jsmpeg', label: localize('config.cameras.live_providers.jsmpeg') },
+      { value: 'go2rtc', label: localize('config.cameras.live_providers.go2rtc') },
+      {
+        value: 'go2rtc-experimental',
+        label: localize('config.cameras.live_providers.go2rtc-experimental'),
+      },
+      {
+        value: 'webrtc-card',
+        label: localize('config.cameras.live_providers.webrtc-card'),
+      },
+    ]),
+  },
+  { name: 'title', selector: { text: {} } },
+  { name: 'icon', selector: { icon: {} } },
+];
+
 interface CameraSchemaOptions {
   otherCameras: HASelectSelectorOption[];
   folders: HASelectSelectorOption[];
@@ -89,27 +118,7 @@ export const getCameraSchema = (options: CameraSchemaOptions): HAFormSchema[] =>
   }));
 
   return [
-    { name: 'camera_entity', selector: { entity: { domain: 'camera' } } },
-    {
-      name: 'live_provider',
-      selector: createSelectSelector([
-        { value: 'auto', label: localize('config.cameras.live_providers.auto') },
-        { value: 'ha', label: localize('config.cameras.live_providers.ha') },
-        { value: 'image', label: localize('config.cameras.live_providers.image') },
-        { value: 'jsmpeg', label: localize('config.cameras.live_providers.jsmpeg') },
-        { value: 'go2rtc', label: localize('config.cameras.live_providers.go2rtc') },
-        {
-          value: 'go2rtc-experimental',
-          label: localize('config.cameras.live_providers.go2rtc-experimental'),
-        },
-        {
-          value: 'webrtc-card',
-          label: localize('config.cameras.live_providers.webrtc-card'),
-        },
-      ]),
-    },
-    { name: 'title', selector: { text: {} } },
-    { name: 'icon', selector: { icon: {} } },
+    ...getCameraSimpleFields(),
     { name: 'id', selector: { text: {} } },
     { name: 'always_error_if_entity_unavailable', selector: { boolean: {} } },
 
@@ -210,7 +219,7 @@ export const getCameraSchema = (options: CameraSchemaOptions): HAFormSchema[] =>
       type: 'expandable',
       title: localize('config.cameras.engines.editor_label'),
       icon: 'mdi:engine',
-      docPath: 'cameras.engine',
+      docPath: ['cameras', 'engine'],
       schema: [
         {
           name: 'engine',
@@ -295,7 +304,7 @@ export const getCameraSchema = (options: CameraSchemaOptions): HAFormSchema[] =>
       type: 'expandable',
       title: localize('config.cameras.live_provider_options.editor_label'),
       icon: 'mdi:cctv',
-      docPath: 'cameras.live_provider',
+      docPath: ['cameras', 'live_provider'],
       schema: [
         {
           name: 'go2rtc',

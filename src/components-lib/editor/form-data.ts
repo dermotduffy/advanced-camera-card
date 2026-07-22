@@ -7,9 +7,14 @@ import {
   setConfigValue,
 } from '../../config/management';
 import type { RawAdvancedCameraCardConfig } from '../../config/types';
-import type { HAFormSchema, HAFormSelectorSchema } from '../../ha/types';
+import {
+  isFormFieldSchema,
+  type HAFormSchema,
+  type HAFormSelectorSchema,
+} from '../../ha/types';
 import { isRecord } from '../../utils/basic';
 import {
+  findBinding,
   isComputedFieldBinding,
   type ConfigChange,
   type ConfigPath,
@@ -30,7 +35,7 @@ export const forEachFieldRecursively = (
 ): void => {
   const recurse = (items: readonly HAFormSchema[], prefix: string[]): void => {
     for (const item of items) {
-      if ('selector' in item) {
+      if (isFormFieldSchema(item)) {
         callback([...prefix, item.name], item);
       } else {
         // A nameless expandable is a visual-only grouping, so it is not added
@@ -42,8 +47,27 @@ export const forEachFieldRecursively = (
   recurse(schema, []);
 };
 
-const findBinding = (form: EditorForm, formPath: string[]): FieldBinding | undefined =>
-  form.bindings?.find((binding) => isEqual(binding.formPath, formPath));
+/**
+ * Get the configuration paths a form's fields address: those a binding names,
+ * or, for an unbound field, its position within the form beneath the form's
+ * base path.
+ * @param form The form.
+ * @returns The absolute configuration paths, in field order.
+ */
+export const getFormConfigPaths = (form: EditorForm): ConfigPath[] => {
+  const paths: ConfigPath[] = [];
+  forEachFieldRecursively(form.schema, (path) => {
+    const binding = findBinding(form, path);
+    if (!binding) {
+      paths.push([...form.basePath, ...path]);
+    } else if (isComputedFieldBinding(binding)) {
+      paths.push(...binding.configPaths);
+    } else {
+      paths.push(binding.configPath);
+    }
+  });
+  return paths;
+};
 
 // The value to show for a bound field. A computed binding works its own value
 // out; otherwise the configured value is shown, and only a missing value falls

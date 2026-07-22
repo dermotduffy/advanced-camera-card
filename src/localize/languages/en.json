@@ -429,6 +429,9 @@
       },
       "height": "Card height in CSS units (e.g. '500px')"
     },
+    "editor": {
+      "mode": "Full editor"
+    },
     "folders": {
       "ha": {
         "editor_label": "Home Assistant Media Folder Options",
@@ -534,6 +537,7 @@
         "clips": "Clips",
         "display_mode": "Display mode",
         "download": "Download",
+        "editor_label": "Menu buttons",
         "enabled": "Button enabled",
         "expand": "Expand",
         "folders": "Folders",
@@ -768,14 +772,13 @@
     "media_viewer_secondary": "Viewer for static media",
     "menu": "Menu",
     "menu_secondary": "Menu look & feel options",
-    "move_down": "Move down",
-    "move_up": "Move up",
     "performance": "Performance",
     "performance_secondary": "Card performance options",
     "profiles": "Profiles",
     "profiles_secondary": "Choose pre-configured sets of defaults",
     "remote_control": "Remote Control",
     "remote_control_secondary": "Options for remote controlling the card",
+    "simple_coverage": "This card has settings the simple editor does not show. Turn on the full editor to see them",
     "status_bar": "Status bar",
     "status_bar_secondary": "Status bar look & feel options",
     "timeline": "Timeline",
@@ -841,7 +844,6 @@
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
     "no_camera_or_media_for_timeline": "No camera or media available for timeline",
     "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
-    "reconnecting": "Reconnecting",
     "too_many_automations": "Too many nested automation calls, please check your configuration for loops",
     "troubleshooting": "Check troubleshooting",
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",
@@ -850,8 +852,7 @@
   },
   "issues": {
     "config_error": {
-      "heading": "Configuration error",
-      "text": "An error occurred evaluating the card configuration"
+      "heading": "Configuration error"
     },
     "config_upgrade": {
       "heading": "Configuration upgrade available",
@@ -885,8 +886,7 @@
       "text_only_legacy": "The legacy 'frigate-hass-card.js' resource must be replaced with 'advanced-camera-card.js'. It will be removed in a future release"
     },
     "media_query": {
-      "heading": "Media query failed",
-      "text": "An error occurred fetching media (e.g. thumbnails) for this view."
+      "heading": "Media query failed"
     },
     "media_unavailable": {
       "heading": "Media unavailable",

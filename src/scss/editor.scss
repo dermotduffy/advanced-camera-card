@@ -13,6 +13,40 @@
   margin-bottom: 8px;
 }
 
+// The switch between the editors, set apart from what it switches: it is a
+// control over the editor rather than one of the card settings below it. Its
+// icon sits beside the form so the row reads as one of the editor's rows, each
+// of which carries an icon.
+.mode {
+  display: flex;
+  align-items: center;
+
+  margin-bottom: 8px;
+  padding: 0 10px 8px;
+
+  border-bottom: 1px solid var(--advanced-camera-card-divider-color);
+}
+
+// Spaced and de-emphasized to match the icons on the sections below. The form
+// insets its own label, so the gap here is the remainder of that spacing.
+.mode advanced-camera-card-icon {
+  margin-right: 8px;
+
+  color: var(--advanced-camera-card-editor-secondary-text-color);
+}
+
+.mode ha-form {
+  flex: 1;
+}
+
+// The simple editor's settings that are not in a section. They are inset to
+// line up with the sections above, whose outlines the panels draw themselves.
+.settings ha-form {
+  display: block;
+
+  margin: 8px 10px;
+}
+
 // Each top-level section is an HA expansion panel. An open section draws its
 // own outline, which would otherwise sit directly against the neighbouring
 // sections, so every section is spaced whether it is open or not: a gap that

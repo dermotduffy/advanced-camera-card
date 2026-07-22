@@ -173,7 +173,7 @@ export class FormsController {
         schema: HAFormSchema,
         _data?: unknown,
         options?: { path?: string[] },
-      ) => computeFormLabel(form.basePath, schema, options),
+      ) => computeFormLabel(form, schema, options),
 
       // Caution: `ha-form` types the helper as a string, but interpolates it
       // into a Lit template, so a template renders as-is; should a future Home

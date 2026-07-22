@@ -1,3 +1,5 @@
+import { isEqual } from 'lodash-es';
+
 import type { RawAdvancedCameraCardConfig } from '../../config/types';
 import type { HAFormSchema } from '../../ha/types';
 
@@ -38,6 +40,11 @@ interface PathFieldBinding {
 interface ComputedFieldBinding {
   formPath: string[];
 
+  // Every configuration path the field stands for. Stated rather than worked
+  // out from the functions below, which cannot be inspected, so that what the
+  // form as a whole addresses is still answerable.
+  configPaths: ConfigPath[];
+
   // The value to show for the field, given the whole configuration and the
   // configuration defaults.
   read: (
@@ -60,6 +67,18 @@ interface ComputedFieldBinding {
 export const isComputedFieldBinding = (
   binding: FieldBinding,
 ): binding is ComputedFieldBinding => 'read' in binding;
+
+/**
+ * Get the binding for a field of a form, if it has one.
+ * @param form The form.
+ * @param formPath The field's path within the form's own data.
+ * @returns The binding, or undefined for a field stored where it sits.
+ */
+export const findBinding = (
+  form: EditorForm,
+  formPath: string[],
+): FieldBinding | undefined =>
+  form.bindings?.find((binding) => isEqual(binding.formPath, formPath));
 
 // One `ha-form` for part of a section. A section splits into more than one of
 // these when its fields live at different configuration paths, since each form

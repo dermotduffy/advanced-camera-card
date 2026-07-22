@@ -5,6 +5,7 @@
   - [`cameras`](../../cameras/README.md)
   - [`conditions` / `triggers`](../../conditions-triggers.md)
   - [`dimensions`](../../dimensions.md)
+  - [`editor`](../../editor.md)
   - [`elements`](../../elements/README.md)
     - [Custom Actions](../custom/README.md)
     - [Stock Actions](README.md)

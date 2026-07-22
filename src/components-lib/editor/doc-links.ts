@@ -1,6 +1,7 @@
 import { DOCS_URL } from '../../const';
-import type { HAFormSchema } from '../../ha/types';
+import { isFormFieldSchema, type HAFormSchema } from '../../ha/types';
 import { getFormContainerPath, stripArrayIndices } from './paths';
+import type { ConfigPath } from './types';
 
 // Documentation links keyed by configuration path (without array indices).
 // Sections and expandable groups with an entry here render a documentation
@@ -51,7 +52,6 @@ const DOC_LINKS: Record<string, string> = {
   'media_viewer.display': 'configuration/media-viewer?id=display',
   menu: 'configuration/menu',
   'menu.buttons': 'configuration/menu?id=buttons',
-  options: 'configuration/README',
   performance: 'configuration/performance',
   'performance.features': 'configuration/performance?id=features',
   'performance.style': 'configuration/performance?id=style',
@@ -77,7 +77,7 @@ const DOC_LINKS: Record<string, string> = {
  * @returns A full documentation URL, or null if the path has no documentation
  * link.
  */
-export const getDocURL = (path: (string | number)[]): string | null => {
+export const getDocURL = (path: ConfigPath): string | null => {
   const docPath = DOC_LINKS[stripArrayIndices(path).join('.')];
   return docPath ? `${DOCS_URL}/#/${docPath}` : null;
 };
@@ -90,22 +90,22 @@ export const getDocURL = (path: (string | number)[]): string | null => {
  * @returns The configuration path to link to, or null for no link.
  */
 export const getDocLinkPath = (
-  basePath: (string | number)[],
+  basePath: ConfigPath,
   schema: HAFormSchema,
   options?: { path?: string[] },
-): (string | number)[] | null => {
+): ConfigPath | null => {
   // Documentation links attach to containers (sections/groups), never to
   // individual fields.
-  if ('selector' in schema) {
+  if (isFormFieldSchema(schema)) {
     return null;
   }
 
   // A nameless group (an editor-only grouping such as "Engines") carries an
   // explicit `docPath`; a named group derives its path from the configuration
   // path.
-  return schema.docPath
-    ? schema.docPath.split('.')
-    : schema.name
-      ? [...basePath, ...getFormContainerPath(options), schema.name]
-      : null;
+  const docPath = schema.type === 'expandable' ? schema.docPath : null;
+  return (
+    docPath ??
+    (schema.name ? [...basePath, ...getFormContainerPath(options), schema.name] : null)
+  );
 };

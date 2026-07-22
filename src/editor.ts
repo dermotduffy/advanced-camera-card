@@ -16,9 +16,16 @@ import './components/editor/section.js';
 import './components/icon.js';
 
 import { EditorController } from './components-lib/editor/controller.js';
-import type { FormsInput } from './components-lib/editor/forms-controller.js';
+import {
+  FormsController,
+  type FormsInput,
+} from './components-lib/editor/forms-controller.js';
 import type { EditorIntent } from './components-lib/editor/intents.js';
 import type { FormRequest } from './components-lib/editor/schema/registry.js';
+import type { ConfigChange, ConfigPath } from './components-lib/editor/types.js';
+import { renderDocumentation } from './components/editor/doc-link.js';
+import { renderForms } from './components/editor/form.js';
+import { CONF_CAMERAS } from './config/const.js';
 import type { RawAdvancedCameraCardConfig } from './config/types.js';
 import type { HAFormSchema, HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
@@ -29,6 +36,12 @@ interface EditorSection {
   icon: string;
   name: string;
   description: string;
+
+  // The forms the section shows, absent for a section that has none of its own.
+  request?: FormRequest;
+
+  // The path whose documentation the section links to.
+  docPath?: ConfigPath;
 
   // The part of the section a schema cannot express: a list the user adds to
   // and reorders, or a key assigned by pressing it. A section whose whole
@@ -133,6 +146,33 @@ const SECTIONS: Record<string, EditorSection> = {
   },
 };
 
+// The two parts of the simple editor with more behind them than a handful of
+// controls: a list of cameras to add to and drill into, and a menu whose
+// buttons are a longer list than everything else in the editor put together.
+// The rest of its settings are shown as they are, below.
+const SIMPLE_SECTIONS: EditorSection[] = [
+  {
+    icon: 'video',
+    name: localize('editor.cameras'),
+    description: localize('editor.cameras_secondary'),
+    docPath: [CONF_CAMERAS],
+    renderCustomContent: (hass, input) => html`
+      <advanced-camera-card-editor-cameras
+        mode="simple"
+        .hass=${hass}
+        .input=${input}
+      ></advanced-camera-card-editor-cameras>
+    `,
+  },
+  {
+    icon: 'menu',
+    name: localize('editor.menu'),
+    description: localize('editor.menu_secondary'),
+    request: { kind: 'simple-menu' },
+    docPath: ['menu'],
+  },
+];
+
 /**
  * Used to side-load lazily-loaded selectors the editor will use.
  * See {@link AdvancedCameraCardEditor._renderSelectorSideload}.
@@ -146,8 +186,12 @@ const SELECTOR_SIDELOAD_SCHEMA: HAFormSchema[] = [
   { name: 'entity', selector: { entity: {} } },
   { name: 'object', selector: { object: {} } },
   { name: 'sideload', type: 'expandable', title: '', schema: [] },
+  { name: 'sideload-grid', type: 'grid', schema: [] },
 ];
 const SELECTOR_SIDELOAD_DATA = {};
+
+const MODE_REQUEST: FormRequest = { kind: 'editor-mode' };
+const SIMPLE_TOP_LEVEL_REQUEST: FormRequest = { kind: 'simple-top-level' };
 
 @customElement('advanced-camera-card-editor')
 export class AdvancedCameraCardEditor extends LitElement implements LovelaceCardEditor {
@@ -155,6 +199,20 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
   public hass?: HomeAssistant;
 
   private _controller = new EditorController(this);
+
+  // The forms the editor renders itself rather than within a full editor
+  // section: the switch between the editors, which belongs to neither of them,
+  // and the simple editor's remaining settings, which are shown as they are.
+  private _modeFormsController = this._createFormsController();
+  private _simpleFormsController = this._createFormsController();
+
+  private _createFormsController(): FormsController {
+    return new FormsController(
+      (changes: ConfigChange[]) =>
+        this._controller.applyIntent({ type: 'changes', changes }),
+      (path) => renderDocumentation(path),
+    );
+  }
 
   public setConfig(config: RawAdvancedCameraCardConfig): void {
     this._controller.setConfig(config);
@@ -186,32 +244,70 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
         @advanced-camera-card:editor:intent=${(ev: CustomEvent<EditorIntent>) =>
           this._controller.applyIntent(ev.detail)}
       >
-        ${this._renderNotices()}
-        ${Object.keys(SECTIONS).map((name) => this._renderSection(name, hass, input))}
+        ${[this._renderNotices(), this._renderModeSwitch(hass, input)]}
+        ${this._controller.getEditorMode() === 'simple'
+          ? this._renderSimple(hass, input)
+          : this._renderFull(hass, input)}
         ${this._renderActionButtons()}
       </div>
     `;
   }
 
+  private _renderModeSwitch(hass: HomeAssistant, input: FormsInput): TemplateResult {
+    this._modeFormsController.setInput(MODE_REQUEST, input);
+    return html`
+      <div class="mode">
+        <advanced-camera-card-icon
+          .icon=${{ icon: 'mdi:tune' }}
+        ></advanced-camera-card-icon>
+        ${renderForms(hass, this._modeFormsController.getContexts())}
+      </div>
+    `;
+  }
+
+  private _renderSimple(hass: HomeAssistant, input: FormsInput): TemplateResult {
+    this._simpleFormsController.setInput(SIMPLE_TOP_LEVEL_REQUEST, input);
+    return html`
+      ${SIMPLE_SECTIONS.map((section) => this._renderSection(section, hass, input))}
+      <div class="settings">
+        ${renderForms(hass, this._simpleFormsController.getContexts())}
+      </div>
+    `;
+  }
+
+  private _renderFull(hass: HomeAssistant, input: FormsInput): TemplateResult {
+    return html`
+      ${Object.entries(SECTIONS).map(([name, section]) =>
+        this._renderSection(
+          {
+            ...section,
+            request: { kind: 'full-section', name },
+            docPath: [name],
+          },
+          hass,
+          input,
+        ),
+      )}
+    `;
+  }
+
   private _renderSection(
-    name: string,
+    section: EditorSection,
     hass: HomeAssistant,
     input: FormsInput,
   ): TemplateResult {
-    const section = SECTIONS[name];
-    const request: FormRequest = { kind: 'section', name };
     const renderCustomContent = section.renderCustomContent;
 
     return html`
       <advanced-camera-card-editor-section
         class="section"
         .hass=${hass}
-        .request=${request}
+        .request=${section.request}
         .input=${input}
         .icon=${`mdi:${section.icon}`}
         .heading=${section.name}
         .description=${section.description}
-        .documentationPath=${[name]}
+        .docPath=${section.docPath}
         .renderCustomContent=${renderCustomContent
           ? () => renderCustomContent(hass, input)
           : undefined}

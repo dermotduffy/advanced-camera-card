@@ -5,6 +5,7 @@ import {
   computeConfigChanges,
   computeDisplayedData,
   forEachFieldRecursively,
+  getFormConfigPaths,
 } from '../../../src/components-lib/editor/form-data';
 import type { ConfigChange, EditorForm } from '../../../src/components-lib/editor/types';
 import { getConfigValue } from '../../../src/config/management';
@@ -58,6 +59,23 @@ describe('forEachFieldRecursively', () => {
     expect(visited).toEqual([['style']]);
   });
 
+  it('should not add a grid to the path', () => {
+    const visited: string[][] = [];
+    forEachFieldRecursively(
+      [
+        {
+          type: 'grid',
+          schema: [
+            { name: 'aspect_ratio_mode', selector: { text: {} } },
+            { name: 'aspect_ratio', selector: { text: {} } },
+          ],
+        },
+      ],
+      (path) => visited.push(path),
+    );
+    expect(visited).toEqual([['aspect_ratio_mode'], ['aspect_ratio']]);
+  });
+
   it('should visit every leaf field with its relative path', () => {
     const visited: [string[], string][] = [];
     forEachFieldRecursively(SCHEMA, (path, field) => visited.push([path, field.name]));
@@ -68,6 +86,52 @@ describe('forEachFieldRecursively', () => {
       [['controls', 'size'], 'size'],
       [['controls', 'thumbnails', 'mode'], 'mode'],
       [['modes'], 'modes'],
+    ]);
+  });
+});
+
+describe('getFormConfigPaths', () => {
+  it('should place an unbound field beneath the base path', () => {
+    expect(getFormConfigPaths(createForm())).toEqual([
+      ['live', 'title'],
+      ['live', 'preload'],
+      ['live', 'controls', 'wheel'],
+      ['live', 'controls', 'size'],
+      ['live', 'controls', 'thumbnails', 'mode'],
+      ['live', 'modes'],
+    ]);
+  });
+
+  it('should use the path a binding names', () => {
+    expect(
+      getFormConfigPaths({
+        basePath: [],
+        schema: [{ name: 'menu_style', selector: { text: {} } }],
+        bindings: [{ formPath: ['menu_style'], configPath: ['menu', 'style'] }],
+      }),
+    ).toEqual([['menu', 'style']]);
+  });
+
+  it('should use every path a field that reads and writes itself declares', () => {
+    expect(
+      getFormConfigPaths({
+        basePath: [],
+        schema: [{ name: 'buttons', selector: { select: { options: [] } } }],
+        bindings: [
+          {
+            formPath: ['buttons'],
+            configPaths: [
+              ['menu', 'buttons', 'cameras', 'enabled'],
+              ['menu', 'buttons', 'timeline', 'enabled'],
+            ],
+            read: () => [],
+            write: () => [],
+          },
+        ],
+      }),
+    ).toEqual([
+      ['menu', 'buttons', 'cameras', 'enabled'],
+      ['menu', 'buttons', 'timeline', 'enabled'],
     ]);
   });
 });
@@ -435,6 +499,7 @@ describe('field bindings', () => {
       bindings: [
         {
           formPath: ['buttons'],
+          configPaths: BUTTONS.map((button) => ['menu', 'buttons', button, 'enabled']),
           read: (config, defaults) =>
             BUTTONS.filter((button) => isEnabled(config, defaults, button)),
           write: (value, config, defaults) => {
