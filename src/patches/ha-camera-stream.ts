@@ -19,7 +19,9 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
+import type { MediaUnavailableIssueReason } from '../card-controller/issues/issues/media-unavailable.js';
 import { HA_CAMERA_STREAM_MUTE_CHANGE_EVENT } from '../components-lib/live/ha-stream-mute-controller.js';
+import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 
 import '../components/image-player.js';
@@ -35,6 +37,15 @@ import { onAbort } from '../utils/abort-signal.js';
 
 import './ha-hls-player.js';
 import './ha-web-rtc-player.js';
+
+// A failure reported by one of the inner players. Its existence is the failure;
+// `reason` is present only when the player named a specific cause. `dispatched`
+// records whether it has already been announced, so a stream that fails again
+// after recovering is announced again.
+interface StreamError {
+  reason?: MediaUnavailableIssueReason;
+  dispatched: boolean;
+}
 
 void customElements.whenDefined('ha-camera-stream').then(() => {
   // ========================================================================================
@@ -72,6 +83,15 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
         getTargetID: () => this.targetID ?? null,
       },
     );
+
+    // An inner player that fails renders its own error, but a hidden one is in
+    // a `display: none` subtree and its failure says nothing about the stream
+    // the user is watching. Errors are therefore captured per type here
+    // (`stopPropagation` in `_captureInnerError`) and only re-dispatched once
+    // the failing type is the visible one, which also covers HA later promoting
+    // a previously-hidden stream. See:
+    // https://github.com/dermotduffy/advanced-camera-card/issues/2583
+    private _errorPerStream: Partial<Record<StreamType, StreamError>> = {};
 
     // The currently-visible stream type, refreshed in `updated()`.
     private _visibleStreamType: StreamType | null = null;
@@ -141,11 +161,26 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
       // controller in updated().
       ev.stopPropagation();
       this._mediaLoadedInfoPerStream[stream] = ev.detail.info;
+
+      // Media playing is proof this stream recovered.
+      delete this._errorPerStream[stream];
+
       onAbort(ev.detail.signal, () => {
         if (this._mediaLoadedInfoPerStream[stream] === ev.detail.info) {
           delete this._mediaLoadedInfoPerStream[stream];
         }
       });
+      this.requestUpdate();
+    }
+
+    private _captureInnerError(
+      stream: StreamType,
+      ev: CustomEvent<MediaUnavailableIssueReason | undefined>,
+    ) {
+      // Stop the inner-player event at the aggregator boundary; it is
+      // re-dispatched from updated() only if this stream is the visible one.
+      ev.stopPropagation();
+      this._errorPerStream[stream] = { reason: ev.detail, dispatched: false };
       this.requestUpdate();
     }
 
@@ -183,6 +218,9 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
           @advanced-camera-card:media:loaded=${(
             ev: CustomEvent<MediaLoadedInfoEventDetail>,
           ) => this._captureInnerLoad(STREAM_TYPE_HLS, ev)}
+          @advanced-camera-card:live:error=${(
+            ev: CustomEvent<MediaUnavailableIssueReason | undefined>,
+          ) => this._captureInnerError(STREAM_TYPE_HLS, ev)}
           @streams=${this._handleHlsStreams}
           class="player ${stream.visible ? '' : 'hidden'}"
         ></advanced-camera-card-ha-hls-player>`;
@@ -201,6 +239,9 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
           @advanced-camera-card:media:loaded=${(
             ev: CustomEvent<MediaLoadedInfoEventDetail>,
           ) => this._captureInnerLoad(STREAM_TYPE_WEB_RTC, ev)}
+          @advanced-camera-card:live:error=${(
+            ev: CustomEvent<MediaUnavailableIssueReason | undefined>,
+          ) => this._captureInnerError(STREAM_TYPE_WEB_RTC, ev)}
           @streams=${this._handleWebRtcStreams}
           class="player ${stream.visible ? '' : 'hidden'}"
         ></advanced-camera-card-ha-web-rtc-player>`;
@@ -244,6 +285,34 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
           },
         });
       }
+
+      this._discardErrorsOnEntityChange(changedProps);
+      this._dispatchVisibleStreamError();
+    }
+
+    // A different camera entity restarts the inner players from scratch (HA
+    // clears their errors), so previously-recorded failures no longer describe
+    // what is playing and must not suppress a fresh one.
+    private _discardErrorsOnEntityChange(changedProps: PropertyValues): void {
+      const previousStateObj = changedProps.get('stateObj');
+      if (!previousStateObj || previousStateObj.entity_id === this.stateObj?.entity_id) {
+        return;
+      }
+      this._errorPerStream = {};
+    }
+
+    // Surface the visible stream's failure (if any) as this element's own
+    // error. The decision belongs here rather than in `_captureInnerError`
+    // because the visible type is only known once `_streams()` has been
+    // re-evaluated for this update.
+    private _dispatchVisibleStreamError(): void {
+      const stream = this._visibleStreamType;
+      const error = stream ? this._errorPerStream[stream] : null;
+      if (!error || error.dispatched) {
+        return;
+      }
+      error.dispatched = true;
+      dispatchLiveErrorEvent(this, error.reason);
     }
 
     static get styles(): CSSResultGroup {
