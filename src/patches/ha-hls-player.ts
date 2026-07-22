@@ -9,7 +9,14 @@
 // available as compilation time.
 // ====================================================================
 
-import { css, html, unsafeCSS, type CSSResultGroup, type TemplateResult } from 'lit';
+import {
+  css,
+  html,
+  unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
 
@@ -61,6 +68,8 @@ void customElements.whenDefined('ha-hls-player').then(() => {
       },
     );
 
+    private _lastErrored = false;
+
     public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
       return this._mediaPlayerController;
     }
@@ -72,7 +81,6 @@ void customElements.whenDefined('ha-hls-player').then(() => {
     protected render(): TemplateResult {
       if (this._error) {
         if (this._errorIsFatal) {
-          dispatchLiveErrorEvent(this);
           return renderMediaNotification({
             title: localize('issues.media_unavailable.reasons.playback_error'),
             detail: this._error,
@@ -104,6 +112,28 @@ void customElements.whenDefined('ha-hls-player').then(() => {
           @pause=${() => dispatchMediaPauseEvent(this)}
         ></video>
       `;
+    }
+
+    protected updated(changedProps: PropertyValues): void {
+      // A new entity is a different stream, so an earlier failure no longer
+      // describes it. Cleared before the superclass runs, because that is what
+      // restarts the stream and may raise the new entity's first failure in
+      // this same update.
+      if (changedProps.has('entityid')) {
+        this._lastErrored = false;
+      }
+
+      super.updated(changedProps);
+
+      // Announce each transition into fatal failure. The error is cleared
+      // whenever the stream is restarted, so a player can fail more than once
+      // and every failure must be reported. Non-fatal errors are recoverable
+      // and are only logged (see render()).
+      const errored = !!this._error && this._errorIsFatal;
+      if (errored && !this._lastErrored) {
+        dispatchLiveErrorEvent(this);
+      }
+      this._lastErrored = errored;
     }
 
     private _loadedDataHandler(ev: Event) {

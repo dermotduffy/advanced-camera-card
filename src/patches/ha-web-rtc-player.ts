@@ -9,7 +9,14 @@
 // available as compilation time.
 // ====================================================================
 
-import { css, html, unsafeCSS, type CSSResultGroup, type TemplateResult } from 'lit';
+import {
+  css,
+  html,
+  unsafeCSS,
+  type CSSResultGroup,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 
@@ -63,6 +70,8 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
 
     protected _audioTracksMuteStateCleanup: AudioTracksMuteStateCleanup = null;
 
+    private _lastErrored = false;
+
     public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
       return this._mediaPlayerController;
     }
@@ -112,7 +121,6 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
     // =====================================================================================
     protected render(): TemplateResult | void {
       if (this._error) {
-        dispatchLiveErrorEvent(this);
         return renderMediaNotification({
           title: localize('issues.media_unavailable.reasons.playback_error'),
           detail: this._error,
@@ -141,6 +149,26 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
           @pause=${() => dispatchMediaPauseEvent(this)}
         ></video>
       `;
+    }
+
+    protected updated(changedProps: PropertyValues): void {
+      // A new entity is a different stream, so an earlier failure no longer
+      // describes it. The restart may already have raised the new entity's
+      // first failure by this point, so this must not gate on the error itself.
+      if (changedProps.has('entityid')) {
+        this._lastErrored = false;
+      }
+
+      super.updated(changedProps);
+
+      // Announce each transition into failure. The error is cleared whenever
+      // the stream is restarted (on reconnection, or an entity change), so a
+      // player can fail more than once and every failure must be reported.
+      const errored = !!this._error;
+      if (errored && !this._lastErrored) {
+        dispatchLiveErrorEvent(this);
+      }
+      this._lastErrored = errored;
     }
 
     private _loadedDataHandler(ev: Event) {
