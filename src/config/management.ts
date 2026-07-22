@@ -1428,56 +1428,6 @@ const frigateCardToAdvancedCameraCardTransform = (
   return modified;
 };
 
-/**
- * Migrate a `condition: microphone` condition with the (removed) `connected`
- * field into a `condition: call` node. Operates on a single condition object in
- * place. When both `connected` and `muted` are present, splits into a
- * two-condition `and` (the only way to preserve both semantics now that
- * `connected` no longer lives on `microphone`).
- *
- * @returns `true` if the node was modified.
- */
-const microphoneConnectedToCallTransform = (data: unknown): boolean => {
-  if (!isRecord(data) || data['condition'] !== 'microphone') {
-    return false;
-  }
-  const connected = data['connected'];
-  if (typeof connected !== 'boolean') {
-    return false;
-  }
-  const muted = data['muted'];
-
-  // Survives the rebuild below: a condition the user had switched off must not
-  // come back switched on.
-  const enabled = data['enabled'];
-
-  // A connected microphone meant a call was underway, which is either of the
-  // two active phases; a disconnected one meant no call at all.
-  // This needs to be revisited: https://github.com/dermotduffy/advanced-camera-card/issues/2590
-  const call = connected ? ['ringing', 'answered'] : 'idle';
-
-  for (const key of Object.keys(data)) {
-    delete data[key];
-  }
-
-  if (typeof muted === 'boolean') {
-    // `enabled` goes on the composite, disabling both halves together exactly
-    // as it disabled the single condition it replaces.
-    data['condition'] = 'and';
-    data['conditions'] = [
-      { condition: 'call', call: call },
-      { condition: 'microphone', muted: muted },
-    ];
-  } else {
-    data['condition'] = 'call';
-    data['call'] = call;
-  }
-  if (enabled !== undefined) {
-    data['enabled'] = enabled;
-  }
-  return true;
-};
-
 // Unify the legacy trio `live_substream_{on,off,select}` into the new
 // `substream_{on,off}` pair. `live_substream_select` carried the substream ID
 // in its `camera` field; that field becomes `stream` on `substream_on`.
@@ -1747,22 +1697,6 @@ const UPGRADES = [
     CONF_CAMERAS,
     upgradeWithOverrides('ptz', ptzIncorrectDataToWebRTCDataTransform),
   ),
-
-  // microphone.connected -> call condition migration. Conditions live under
-  // overrides, elements, and automations.
-  upgradeArrayOfObjects(CONF_OVERRIDES, (override) =>
-    upgradeObjectRecursively(microphoneConnectedToCallTransform)(override),
-  ),
-  (data: unknown): boolean => {
-    return upgradeObjectRecursively(microphoneConnectedToCallTransform)(
-      typeof data === 'object' && data ? data[CONF_ELEMENTS] : {},
-    );
-  },
-  (data: unknown): boolean => {
-    return upgradeObjectRecursively(microphoneConnectedToCallTransform)(
-      typeof data === 'object' && data ? data[CONF_AUTOMATIONS] : {},
-    );
-  },
 
   // Unify `live_substream_{on,off,select}` actions. Walked over the entire
   // tree because card actions can appear anywhere (menu buttons, elements,

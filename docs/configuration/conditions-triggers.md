@@ -397,24 +397,44 @@ triggers:
 
 ## `microphone`
 
-Matches the microphone state. As a **condition**, true while the mute state
-matches; as a **trigger**, fires when it becomes a match.
+Matches the microphone state. As a **condition**, true while every parameter
+given matches; as a **trigger**, fires when it becomes a match.
 
 ```yaml
 # As a condition:
 conditions:
   - condition: microphone
+    connected: true
     muted: true
 # As a trigger:
 triggers:
   - trigger: microphone
+    connected: true
     muted: true
 ```
 
-| Parameter               | Description                                                                         |
-| ----------------------- | ----------------------------------------------------------------------------------- |
-| `condition` / `trigger` | Must be `microphone`.                                                               |
-| `muted`                 | If `true` or `false`, matches when the microphone is muted or unmuted respectively. |
+| Parameter               | Description                                                                                                                       |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` / `trigger` | Must be `microphone`.                                                                                                             |
+| `connected`             | If `true` or `false`, matches when the card does or does not hold an open microphone stream from the browser. See the note below. |
+| `muted`                 | If `true` or `false`, matches when the microphone is muted or unmuted respectively.                                               |
+
+> [!NOTE]
+> The `connected` parameter is about **browser microphone access**, not about
+> calls. It is `true` while the card holds an open microphone stream from the
+> browser -- the same state that lights your browser's "microphone in use"
+> indicator (e.g. useful for showing privacy indicators).
+>
+> A [two-way audio](../usage/2-way-audio.md) call opens the microphone, but so do
+> several things that involve no call at all: setting
+> [`live.microphone.always_connected`](live.md?id=microphone), or a
+> [`microphone_connect`](actions/custom/README.md?id=microphone_connect) or
+> [`microphone_unmute`](actions/custom/README.md?id=microphone_unmute) action. It
+> closes again after
+> [`live.microphone.disconnect_seconds`](live.md?id=microphone) of disuse, or on
+> a `microphone_disconnect` action.
+>
+> To match a call in progress, use [`call`](#call) instead.
 
 ## `not`
 
@@ -777,6 +797,7 @@ conditions:
   - condition: media_loaded
     media_loaded: true
   - condition: microphone
+    connected: true
     muted: true
   - not:
       - condition: fullscreen
@@ -854,6 +875,7 @@ triggers:
   - trigger: media_loaded
     media_loaded: true
   - trigger: microphone
+    connected: true
     muted: true
   - trigger: numeric_state
     entity_id: sensor.office_temperature

@@ -11,7 +11,11 @@ export class MicrophoneConditionEvaluator implements ConditionEvaluator {
 
   public evaluate(newState?: ConditionState): ConditionsEvaluationResult {
     return {
-      result: newState?.microphone?.muted === this._condition.muted,
+      result:
+        (this._condition.connected === undefined ||
+          newState?.microphone?.connected === this._condition.connected) &&
+        (this._condition.muted === undefined ||
+          newState?.microphone?.muted === this._condition.muted),
     };
   }
 }

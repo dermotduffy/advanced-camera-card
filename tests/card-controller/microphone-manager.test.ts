@@ -245,6 +245,159 @@ describe('MicrophoneManager', () => {
     expect(api.getCardElementManager().update).toBeCalledTimes(1);
   });
 
+  describe('should stay connected while in use', () => {
+    const disconnectSeconds = 10;
+
+    const createManagerWithDisconnectSeconds = (): MicrophoneManager => {
+      const api = createCardAPI();
+      vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+        createMockStream(),
+      );
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          live: {
+            microphone: {
+              always_connected: false,
+              disconnect_seconds: disconnectSeconds,
+            },
+          },
+        }),
+      );
+      return new MicrophoneManager(api);
+    };
+
+    it('should not automatically disconnect while a user is registered', async () => {
+      vi.useFakeTimers();
+
+      const manager = createManagerWithDisconnectSeconds();
+      await manager.connect();
+      manager.startUsing();
+
+      vi.advanceTimersByTime(disconnectSeconds * 1000);
+
+      expect(manager.isConnected()).toBeTruthy();
+    });
+
+    it('should not automatically disconnect when a user is registered before connection', async () => {
+      vi.useFakeTimers();
+
+      const manager = createManagerWithDisconnectSeconds();
+      manager.startUsing();
+      await manager.connect();
+
+      vi.advanceTimersByTime(disconnectSeconds * 1000);
+
+      expect(manager.isConnected()).toBeTruthy();
+    });
+
+    it('should not automatically disconnect on mute or unmute while in use', async () => {
+      vi.useFakeTimers();
+
+      const manager = createManagerWithDisconnectSeconds();
+      await manager.connect();
+      manager.startUsing();
+
+      await manager.unmute();
+      manager.mute();
+      vi.advanceTimersByTime(disconnectSeconds * 1000);
+
+      expect(manager.isConnected()).toBeTruthy();
+    });
+
+    it('should restart the countdown in full when use stops', async () => {
+      vi.useFakeTimers();
+
+      const manager = createManagerWithDisconnectSeconds();
+      await manager.connect();
+      manager.startUsing();
+
+      vi.advanceTimersByTime(disconnectSeconds * 1000);
+      manager.stopUsing();
+
+      vi.advanceTimersByTime(disconnectSeconds * 1000 - 1);
+      expect(manager.isConnected()).toBeTruthy();
+
+      vi.advanceTimersByTime(1);
+      expect(manager.isConnected()).toBeFalsy();
+    });
+
+    it('should become idle on a single stop no matter how often use was started', async () => {
+      vi.useFakeTimers();
+
+      const manager = createManagerWithDisconnectSeconds();
+      await manager.connect();
+      manager.startUsing();
+      manager.startUsing();
+
+      manager.stopUsing();
+      vi.advanceTimersByTime(disconnectSeconds * 1000);
+
+      expect(manager.isConnected()).toBeFalsy();
+    });
+
+    it('should restart the countdown when stopped without having been in use', async () => {
+      vi.useFakeTimers();
+
+      const manager = createManagerWithDisconnectSeconds();
+      await manager.connect();
+
+      vi.advanceTimersByTime((disconnectSeconds * 1000) / 2);
+      manager.stopUsing();
+
+      vi.advanceTimersByTime((disconnectSeconds * 1000) / 2);
+      expect(manager.isConnected()).toBeTruthy();
+
+      vi.advanceTimersByTime((disconnectSeconds * 1000) / 2);
+      expect(manager.isConnected()).toBeFalsy();
+    });
+
+    it('should not reconnect after an explicit disconnect while in use', async () => {
+      vi.useFakeTimers();
+
+      const manager = createManagerWithDisconnectSeconds();
+      await manager.connect();
+      manager.startUsing();
+      manager.disconnect();
+
+      vi.advanceTimersByTime(disconnectSeconds * 1000);
+
+      expect(manager.isConnected()).toBeFalsy();
+    });
+  });
+
+  it('should not disconnect after being explicitly disconnected and reconnected', async () => {
+    vi.useFakeTimers();
+
+    const disconnectSeconds = 10;
+    const api = createCardAPI();
+    const manager = new MicrophoneManager(api);
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+      createMockStream(),
+    );
+
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        live: {
+          microphone: {
+            always_connected: false,
+            disconnect_seconds: disconnectSeconds,
+          },
+        },
+      }),
+    );
+
+    await manager.connect();
+
+    vi.advanceTimersByTime((disconnectSeconds * 1000) / 2);
+    manager.disconnect();
+    await manager.connect();
+
+    // The countdown from the first connection must not survive the disconnect
+    // and cut the second one short.
+    vi.advanceTimersByTime((disconnectSeconds * 1000) / 2);
+    expect(manager.isConnected()).toBeTruthy();
+  });
+
   describe('should require initialization', async () => {
     it('should require when configured and supported', async () => {
       const api = createCardAPI();

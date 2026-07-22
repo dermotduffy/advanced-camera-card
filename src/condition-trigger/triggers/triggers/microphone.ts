@@ -2,12 +2,23 @@ import type { ConditionState } from '../../conditions/types';
 import { ConditionStateTriggerBase } from './condition-state-base';
 import type { TriggerOfType } from './types';
 
-// Triggers when the microphone mute state changes: to the given value if `muted`
-// is set, or on any change if it is omitted.
+// Triggers when the microphone connection or mute state changes: to the given
+// values if `connected` / `muted` are set, or on any change if both are
+// omitted.
 export class MicrophoneTrigger extends ConditionStateTriggerBase<
   TriggerOfType<'microphone'>
 > {
   protected _getValue(state: ConditionState): unknown {
-    return state.microphone?.muted;
+    const unconstrained =
+      this._trigger.connected === undefined && this._trigger.muted === undefined;
+
+    return {
+      ...((unconstrained || this._trigger.connected !== undefined) && {
+        connected: state.microphone?.connected,
+      }),
+      ...((unconstrained || this._trigger.muted !== undefined) && {
+        muted: state.microphone?.muted,
+      }),
+    };
   }
 }
