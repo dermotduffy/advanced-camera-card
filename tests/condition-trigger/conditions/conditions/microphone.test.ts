@@ -44,4 +44,74 @@ describe('microphone condition', () => {
       evaluator.evaluate({ microphone: createMicrophoneState({ muted: false }) }).result,
     ).toBeTruthy();
   });
+
+  it('should match when connected is true', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'microphone' as const, connected: true },
+      createEvaluatorContext(),
+    );
+
+    expect(evaluator.evaluate({}).result).toBeFalsy();
+    expect(
+      evaluator.evaluate({ microphone: createMicrophoneState({ connected: true }) })
+        .result,
+    ).toBeTruthy();
+    expect(
+      evaluator.evaluate({ microphone: createMicrophoneState({ connected: false }) })
+        .result,
+    ).toBeFalsy();
+  });
+
+  it('should match when connected is false', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'microphone' as const, connected: false },
+      createEvaluatorContext(),
+    );
+
+    expect(evaluator.evaluate({}).result).toBeFalsy();
+    expect(
+      evaluator.evaluate({ microphone: createMicrophoneState({ connected: true }) })
+        .result,
+    ).toBeFalsy();
+    expect(
+      evaluator.evaluate({ microphone: createMicrophoneState({ connected: false }) })
+        .result,
+    ).toBeTruthy();
+  });
+
+  it('should require both connected and muted to match when both are given', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'microphone' as const, connected: true, muted: false },
+      createEvaluatorContext(),
+    );
+
+    expect(
+      evaluator.evaluate({
+        microphone: createMicrophoneState({ connected: true, muted: false }),
+      }).result,
+    ).toBeTruthy();
+    expect(
+      evaluator.evaluate({
+        microphone: createMicrophoneState({ connected: true, muted: true }),
+      }).result,
+    ).toBeFalsy();
+    expect(
+      evaluator.evaluate({
+        microphone: createMicrophoneState({ connected: false, muted: false }),
+      }).result,
+    ).toBeFalsy();
+  });
+
+  it('should match any microphone state when neither parameter is given', () => {
+    const evaluator = createConditionEvaluator(
+      { condition: 'microphone' as const },
+      createEvaluatorContext(),
+    );
+
+    expect(evaluator.evaluate({}).result).toBeTruthy();
+    expect(
+      evaluator.evaluate({ microphone: createMicrophoneState({ connected: true }) })
+        .result,
+    ).toBeTruthy();
+  });
 });

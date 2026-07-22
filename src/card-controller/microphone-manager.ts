@@ -25,6 +25,10 @@ export class MicrophoneManager {
   // it's created it will have the right mute status.
   private _desireMute = true;
 
+  // Whether something is actively using the microphone, and so when the
+  // connection can safely be closed.
+  private _inUse = false;
+
   constructor(api: CardMicrophoneAPI) {
     this._api = api;
   }
@@ -73,10 +77,26 @@ export class MicrophoneManager {
   }
 
   public disconnect(): void {
+    this._timer.stop();
     this._stream?.getTracks().forEach((track) => track.stop());
 
     this._stream = undefined;
     this._setState();
+  }
+
+  // Marks the microphone as in use (e.g. by an in-progress call). It stays
+  // connected regardless of `disconnect_seconds` until `stopUsing`, since
+  // stopping the tracks under a user would silently cut their audio.
+  public startUsing(): void {
+    this._inUse = true;
+    this._timer.stop();
+  }
+
+  // Marks the microphone as no longer in use. It is idle again, so the
+  // disconnect countdown restarts from the full `disconnect_seconds`.
+  public stopUsing(): void {
+    this._inUse = false;
+    this._startDisconnectTimer();
   }
 
   public getStream(): MediaStream | undefined {
@@ -130,7 +150,7 @@ export class MicrophoneManager {
   private _startDisconnectTimer(): void {
     const microphoneConfig = this._api.getConfigManager().getConfig()?.live.microphone;
 
-    if (microphoneConfig?.always_connected) {
+    if (microphoneConfig?.always_connected || this._inUse) {
       return;
     }
 

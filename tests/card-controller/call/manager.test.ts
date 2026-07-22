@@ -1386,6 +1386,75 @@ describe('answer', () => {
   });
 });
 
+describe('microphone usage', () => {
+  it('should mark the microphone in use for the duration of the call', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+
+    expect(await manager.start()).toBe(true);
+
+    expect(api.getMicrophoneManager().startUsing).toBeCalledTimes(1);
+    expect(api.getMicrophoneManager().stopUsing).not.toBeCalled();
+
+    manager.end();
+
+    expect(api.getMicrophoneManager().stopUsing).toBeCalledTimes(1);
+  });
+
+  it('should not mark the microphone in use when the start is aborted', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+    });
+    vi.mocked(api.getMicrophoneManager().connect).mockRejectedValue(new Error());
+
+    expect(await new CallManager(api).start()).toBe(false);
+
+    expect(api.getMicrophoneManager().startUsing).not.toBeCalled();
+  });
+
+  it('should keep the microphone in use when a call supersedes another', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.garage',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+      ]),
+    });
+    const manager = new CallManager(api);
+
+    expect(await manager.start()).toBe(true);
+    expect(await manager.start({ cameraID: 'camera.garage' })).toBe(true);
+
+    expect(api.getMicrophoneManager().startUsing).toBeCalledTimes(2);
+    expect(api.getMicrophoneManager().stopUsing).toBeCalledTimes(1);
+  });
+
+  it('should mark the microphone unused on uninitialization', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+
+    expect(await manager.start()).toBe(true);
+    manager.uninitialize();
+
+    expect(api.getMicrophoneManager().stopUsing).toBeCalledTimes(1);
+  });
+
+  it('should not mark the microphone unused when uninitializing without a call', () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+
+    new CallManager(api).uninitialize();
+
+    expect(api.getMicrophoneManager().stopUsing).not.toBeCalled();
+  });
+});
+
 // Ringtone integration: started only for inbound + unanswered + a configured
 // ringtone other than 'none'; stopped on end / uninitialize.
 describe('ringtone', () => {
@@ -1610,7 +1679,7 @@ describe('session end during setState', () => {
   });
 });
 
-describe('uninitialize during in-flight start', () => {
+describe('state changes during in-flight start', () => {
   it('should not install a session or ring when uninitialized mid-await', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
@@ -1658,6 +1727,46 @@ describe('uninitialize during in-flight start', () => {
     expect(await startPromise).toBe(false);
     expect(getRingtone().start).not.toBeCalled();
     expect(manager.isActive()).toBe(false);
+  });
+
+  it('should supersede a session installed by another start mid-await', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+      store: createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+        {
+          cameraID: 'camera.garage',
+          capabilities: createCapabilities({ live: true, '2-way-audio': true }),
+        },
+      ]),
+    });
+    let resolveConnect: () => void = () => {};
+    vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveConnect = resolve;
+      }),
+    );
+    const manager = new CallManager(api);
+    manager.initialize();
+
+    // Both requests read the (absent) session before either can install one.
+    const first = manager.start();
+    const second = manager.start({ cameraID: 'camera.garage' });
+    resolveConnect();
+
+    expect(await first).toBe(true);
+    expect(await second).toBe(true);
+
+    // The second request must end the first request's session rather than
+    // overwrite it, leaving exactly one live session and no stranded microphone
+    // marking.
+    expect(manager.getCall()?.cameraID).toBe('camera.garage');
+    expect(api.getMicrophoneManager().startUsing).toBeCalledTimes(2);
+    expect(api.getMicrophoneManager().stopUsing).toBeCalledTimes(1);
   });
 
   it('should suppress the microphone-failure notification when uninitialized mid-await', async () => {

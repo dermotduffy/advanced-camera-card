@@ -89,7 +89,7 @@ export class CallManager {
     // the call runs on the parent camera itself.
     const callCameraID = targetID === parentID ? undefined : targetID;
 
-    const existingCall = this._call;
+    let existingCall = this._call;
     if (
       existingCall &&
       existingCall.cameraID === parentID &&
@@ -119,6 +119,13 @@ export class CallManager {
       this._notifyError('error.call_microphone_forbidden', inbound);
       return false;
     }
+
+    // Re-read: another `start()` may have installed a session while the
+    // microphone connect was in flight. Acting on the reading from before the
+    // await would skip the supersede handling below, leaving that session's
+    // microphone marking and view state stranded with nothing able to undo
+    // them.
+    existingCall = this._call;
 
     // Store the previous view so it can be restored later. A call superseding
     // another inherits the earlier call's previous view -- the user never left
@@ -151,6 +158,10 @@ export class CallManager {
       inbound,
       answered,
     };
+
+    // The microphone's own idle timeout knows nothing about calls, so without
+    // this the tracks would be stopped mid-conversation.
+    this._api.getMicrophoneManager().startUsing();
 
     this._api.getViewManager().setViewByParameters({
       ...(needsNavigation && {
@@ -250,6 +261,7 @@ export class CallManager {
     this._unansweredTimer.stop();
     if (this._call) {
       this._call = null;
+      this._api.getMicrophoneManager().stopUsing();
       this._api.getConditionStateManager().setState({ call: 'idle' });
     }
     this._api
@@ -278,6 +290,10 @@ export class CallManager {
     // the resulting condition-state change must not see this (now-ending) call
     // and recurse.
     this._call = null;
+
+    // The call no longer needs the microphone, so the normal
+    // `disconnect_seconds` countdown restarts from here.
+    this._api.getMicrophoneManager().stopUsing();
 
     const viewManager = this._api.getViewManager();
 
