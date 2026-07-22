@@ -1,6 +1,7 @@
 import type { HASelectSelectorOption } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import type { EditorForm } from '../types';
+import { createGrid } from './common/grid';
 import { getInteractionModeOptions } from './common/interaction-mode';
 import { createNumberSelector, createSelectSelector } from './common/selectors';
 
@@ -38,17 +39,19 @@ export const getViewSectionForms = (): EditorForm[] => [
   {
     basePath: ['view'],
     schema: [
-      {
-        name: 'default',
-        selector: createSelectSelector(getViewModeOptions()),
-      },
-      {
-        name: 'camera_select',
-        selector: createSelectSelector([
-          ...getViewModeOptions(),
-          { value: 'current', label: localize('config.view.views.current') },
-        ]),
-      },
+      createGrid([
+        {
+          name: 'default',
+          selector: createSelectSelector(getViewModeOptions()),
+        },
+        {
+          name: 'camera_select',
+          selector: createSelectSelector([
+            ...getViewModeOptions(),
+            { value: 'current', label: localize('config.view.views.current') },
+          ]),
+        },
+      ]),
       {
         name: 'dim',
         selector: { boolean: {} },
@@ -135,54 +138,56 @@ export const getViewSectionForms = (): EditorForm[] => [
             title: localize('config.view.triggers.actions.editor_label'),
             icon: 'mdi:cogs',
             schema: [
-              {
-                name: 'trigger',
-                label: localize('config.view.triggers.actions.trigger'),
-                selector: createSelectSelector([
-                  {
-                    value: 'call',
-                    label: localize('config.view.triggers.actions.triggers.call'),
-                  },
-                  {
-                    value: 'default',
-                    label: localize('config.view.triggers.actions.triggers.default'),
-                  },
-                  {
-                    value: 'live',
-                    label: localize('config.view.triggers.actions.triggers.live'),
-                  },
-                  {
-                    value: 'media',
-                    label: localize('config.view.triggers.actions.triggers.media'),
-                  },
-                  {
-                    value: 'none',
-                    label: localize('config.view.triggers.actions.triggers.none'),
-                  },
-                  {
-                    value: 'update',
-                    label: localize('config.view.triggers.actions.triggers.update'),
-                  },
-                ]),
-              },
-              {
-                name: 'untrigger',
-                label: localize('config.view.triggers.actions.untrigger'),
-                selector: createSelectSelector([
-                  {
-                    value: 'call',
-                    label: localize('config.view.triggers.actions.untriggers.call'),
-                  },
-                  {
-                    value: 'default',
-                    label: localize('config.view.triggers.actions.untriggers.default'),
-                  },
-                  {
-                    value: 'none',
-                    label: localize('config.view.triggers.actions.untriggers.none'),
-                  },
-                ]),
-              },
+              createGrid([
+                {
+                  name: 'trigger',
+                  label: localize('config.view.triggers.actions.trigger'),
+                  selector: createSelectSelector([
+                    {
+                      value: 'call',
+                      label: localize('config.view.triggers.actions.triggers.call'),
+                    },
+                    {
+                      value: 'default',
+                      label: localize('config.view.triggers.actions.triggers.default'),
+                    },
+                    {
+                      value: 'live',
+                      label: localize('config.view.triggers.actions.triggers.live'),
+                    },
+                    {
+                      value: 'media',
+                      label: localize('config.view.triggers.actions.triggers.media'),
+                    },
+                    {
+                      value: 'none',
+                      label: localize('config.view.triggers.actions.triggers.none'),
+                    },
+                    {
+                      value: 'update',
+                      label: localize('config.view.triggers.actions.triggers.update'),
+                    },
+                  ]),
+                },
+                {
+                  name: 'untrigger',
+                  label: localize('config.view.triggers.actions.untrigger'),
+                  selector: createSelectSelector([
+                    {
+                      value: 'call',
+                      label: localize('config.view.triggers.actions.untriggers.call'),
+                    },
+                    {
+                      value: 'default',
+                      label: localize('config.view.triggers.actions.untriggers.default'),
+                    },
+                    {
+                      value: 'none',
+                      label: localize('config.view.triggers.actions.untriggers.none'),
+                    },
+                  ]),
+                },
+              ]),
               {
                 name: 'interaction_mode',
                 label: localize('config.view.triggers.actions.interaction_mode'),

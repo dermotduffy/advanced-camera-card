@@ -6,6 +6,7 @@ import { getPTZSchema } from './common/controls/ptz';
 import { getThumbnailsSchema } from './common/controls/thumbnails';
 import { getMiniTimelineSchema } from './common/controls/timeline';
 import { getDisplaySchema } from './common/display';
+import { createGrid } from './common/grid';
 import {
   getMediaActionNegativeOptions,
   getMediaActionPositiveOptions,
@@ -68,8 +69,10 @@ export const getMediaViewerSectionForms = (): EditorForm[] => [
           multiple: true,
         }),
       },
-      { name: 'draggable', selector: { boolean: {} } },
-      { name: 'zoomable', selector: { boolean: {} } },
+      createGrid([
+        { name: 'draggable', selector: { boolean: {} } },
+        { name: 'zoomable', selector: { boolean: {} } },
+      ]),
       { name: 'lazy_load', selector: { boolean: {} } },
       getTransitionEffectSchema(),
       { name: 'snapshot_click_plays_clip', selector: { boolean: {} } },

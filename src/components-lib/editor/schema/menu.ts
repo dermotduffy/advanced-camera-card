@@ -6,6 +6,7 @@ import type {
 } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import type { EditorForm } from '../types';
+import { createGrid } from './common/grid';
 import { createNumberSelector, createSelectSelector } from './common/selectors';
 
 // The menu buttons in their display order.
@@ -96,50 +97,56 @@ const getMenuButtonSchema = (
   title: localize(`config.menu.buttons.${button}`),
   icon: 'mdi:gesture-tap-button',
   schema: [
-    {
-      name: 'enabled',
-      label: localize('config.menu.buttons.enabled'),
-      selector: { boolean: {} },
-    },
-    {
-      name: 'alignment',
-      label: localize('config.menu.buttons.alignment'),
-      selector: createSelectSelector([
-        {
-          value: 'matching',
-          label: localize('config.menu.buttons.alignments.matching'),
-        },
-        {
-          value: 'opposing',
-          label: localize('config.menu.buttons.alignments.opposing'),
-        },
-      ]),
-    },
-    {
-      name: 'permanent',
-      label: localize('config.menu.buttons.permanent'),
-      selector: { boolean: {} },
-    },
-    {
-      name: 'priority',
-      label: localize('config.menu.buttons.priority'),
-      selector: createNumberSelector({ max: MENU_PRIORITY_MAX }),
-    },
+    createGrid([
+      {
+        name: 'enabled',
+        label: localize('config.menu.buttons.enabled'),
+        selector: { boolean: {} },
+      },
+      {
+        name: 'permanent',
+        label: localize('config.menu.buttons.permanent'),
+        selector: { boolean: {} },
+      },
+    ]),
+    createGrid([
+      {
+        name: 'alignment',
+        label: localize('config.menu.buttons.alignment'),
+        selector: createSelectSelector([
+          {
+            value: 'matching',
+            label: localize('config.menu.buttons.alignments.matching'),
+          },
+          {
+            value: 'opposing',
+            label: localize('config.menu.buttons.alignments.opposing'),
+          },
+        ]),
+      },
+      {
+        name: 'priority',
+        label: localize('config.menu.buttons.priority'),
+        selector: createNumberSelector({ max: MENU_PRIORITY_MAX }),
+      },
+    ]),
     {
       name: 'icon',
       label: localize('config.menu.buttons.icon'),
       selector: { icon: {} },
     },
-    {
-      name: 'state_color',
-      label: localize('config.menu.buttons.state_color'),
-      selector: { boolean: {} },
-    },
-    {
-      name: 'inert',
-      label: localize('config.menu.buttons.inert'),
-      selector: { boolean: {} },
-    },
+    createGrid([
+      {
+        name: 'state_color',
+        label: localize('config.menu.buttons.state_color'),
+        selector: { boolean: {} },
+      },
+      {
+        name: 'inert',
+        label: localize('config.menu.buttons.inert'),
+        selector: { boolean: {} },
+      },
+    ]),
     ...extraSchema,
   ],
 });
@@ -152,23 +159,25 @@ export const getMenuSectionForms = (): EditorForm[] => [
   {
     basePath: ['menu'],
     schema: [
-      {
-        name: 'style',
-        selector: createSelectSelector(getMenuStyleOptions()),
-      },
-      {
-        name: 'position',
-        selector: createSelectSelector(getMenuPositionOptions()),
-      },
-      {
-        name: 'alignment',
-        selector: createSelectSelector([
-          { value: 'left', label: localize('config.menu.alignments.left') },
-          { value: 'right', label: localize('config.menu.alignments.right') },
-          { value: 'top', label: localize('config.menu.alignments.top') },
-          { value: 'bottom', label: localize('config.menu.alignments.bottom') },
-        ]),
-      },
+      createGrid([
+        {
+          name: 'style',
+          selector: createSelectSelector(getMenuStyleOptions()),
+        },
+        {
+          name: 'position',
+          selector: createSelectSelector(getMenuPositionOptions()),
+        },
+        {
+          name: 'alignment',
+          selector: createSelectSelector([
+            { value: 'left', label: localize('config.menu.alignments.left') },
+            { value: 'right', label: localize('config.menu.alignments.right') },
+            { value: 'top', label: localize('config.menu.alignments.top') },
+            { value: 'bottom', label: localize('config.menu.alignments.bottom') },
+          ]),
+        },
+      ]),
       {
         name: 'auto_hide',
         selector: createSelectSelector(

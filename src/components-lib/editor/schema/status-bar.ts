@@ -3,6 +3,7 @@ import { STATUS_BAR_HEIGHT_MIN } from '../../../config/schema/status-bar';
 import type { HAFormExpandableSchema } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import type { EditorForm } from '../types';
+import { createGrid } from './common/grid';
 import { createNumberSelector, createSelectSelector } from './common/selectors';
 
 const STATUS_BAR_ITEMS = [
@@ -20,21 +21,23 @@ const getStatusBarItemSchema = (item: string): HAFormExpandableSchema => ({
   title: localize(`config.status_bar.items.${item}`),
   icon: 'mdi:feature-search',
   schema: [
-    {
-      name: 'enabled',
-      label: localize('config.status_bar.items.enabled'),
-      selector: { boolean: {} },
-    },
-    {
-      name: 'permanent',
-      label: localize('config.status_bar.items.permanent'),
-      selector: { boolean: {} },
-    },
-    {
-      name: 'priority',
-      label: localize('config.status_bar.items.priority'),
-      selector: createNumberSelector({ max: STATUS_BAR_PRIORITY_MAX }),
-    },
+    createGrid([
+      {
+        name: 'enabled',
+        label: localize('config.status_bar.items.enabled'),
+        selector: { boolean: {} },
+      },
+      {
+        name: 'permanent',
+        label: localize('config.status_bar.items.permanent'),
+        selector: { boolean: {} },
+      },
+      {
+        name: 'priority',
+        label: localize('config.status_bar.items.priority'),
+        selector: createNumberSelector({ max: STATUS_BAR_PRIORITY_MAX }),
+      },
+    ]),
   ],
 });
 
@@ -46,27 +49,29 @@ export const getStatusBarSectionForms = (): EditorForm[] => [
   {
     basePath: ['status_bar'],
     schema: [
-      {
-        name: 'style',
-        selector: createSelectSelector([
-          { value: 'hover', label: localize('config.status_bar.styles.hover') },
-          {
-            value: 'hover-card',
-            label: localize('config.status_bar.styles.hover-card'),
-          },
-          { value: 'none', label: localize('config.status_bar.styles.none') },
-          { value: 'outside', label: localize('config.status_bar.styles.outside') },
-          { value: 'overlay', label: localize('config.status_bar.styles.overlay') },
-          { value: 'popup', label: localize('config.status_bar.styles.popup') },
-        ]),
-      },
-      {
-        name: 'position',
-        selector: createSelectSelector([
-          { value: 'top', label: localize('config.status_bar.positions.top') },
-          { value: 'bottom', label: localize('config.status_bar.positions.bottom') },
-        ]),
-      },
+      createGrid([
+        {
+          name: 'style',
+          selector: createSelectSelector([
+            { value: 'hover', label: localize('config.status_bar.styles.hover') },
+            {
+              value: 'hover-card',
+              label: localize('config.status_bar.styles.hover-card'),
+            },
+            { value: 'none', label: localize('config.status_bar.styles.none') },
+            { value: 'outside', label: localize('config.status_bar.styles.outside') },
+            { value: 'overlay', label: localize('config.status_bar.styles.overlay') },
+            { value: 'popup', label: localize('config.status_bar.styles.popup') },
+          ]),
+        },
+        {
+          name: 'position',
+          selector: createSelectSelector([
+            { value: 'top', label: localize('config.status_bar.positions.top') },
+            { value: 'bottom', label: localize('config.status_bar.positions.bottom') },
+          ]),
+        },
+      ]),
       {
         name: 'auto_hide',
         selector: createSelectSelector(
@@ -83,14 +88,16 @@ export const getStatusBarSectionForms = (): EditorForm[] => [
           { multiple: true },
         ),
       },
-      {
-        name: 'height',
-        selector: createNumberSelector({ min: STATUS_BAR_HEIGHT_MIN }),
-      },
-      {
-        name: 'popup_seconds',
-        selector: createNumberSelector({ min: 0, max: 60 }),
-      },
+      createGrid([
+        {
+          name: 'height',
+          selector: createNumberSelector({ min: STATUS_BAR_HEIGHT_MIN }),
+        },
+        {
+          name: 'popup_seconds',
+          selector: createNumberSelector({ min: 0, max: 60 }),
+        },
+      ]),
     ],
   },
   {

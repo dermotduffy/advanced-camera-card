@@ -7,6 +7,7 @@ import { getPTZSchema } from './common/controls/ptz';
 import { getThumbnailsSchema } from './common/controls/thumbnails';
 import { getMiniTimelineSchema } from './common/controls/timeline';
 import { getDisplaySchema } from './common/display';
+import { createGrid } from './common/grid';
 import {
   getLiveAutoMuteOptions,
   getLiveAutoUnmuteOptions,
@@ -31,36 +32,38 @@ const getCallSchema = (): HAFormExpandableSchema => ({
       title: localize('config.live.controls.call.ringtone.editor_label'),
       icon: 'mdi:music-note',
       schema: [
-        {
-          name: 'type',
-          selector: createSelectSelector([
-            {
-              value: 'none',
-              label: localize('config.live.controls.call.ringtone.types.none'),
-            },
-            {
-              value: 'chime',
-              label: localize('config.live.controls.call.ringtone.types.chime'),
-            },
-            {
-              value: 'westminster',
-              label: localize('config.live.controls.call.ringtone.types.westminster'),
-            },
-            {
-              value: 'arpeggio',
-              label: localize('config.live.controls.call.ringtone.types.arpeggio'),
-            },
-            {
-              value: 'melody',
-              label: localize('config.live.controls.call.ringtone.types.melody'),
-            },
-            {
-              value: 'custom',
-              label: localize('config.live.controls.call.ringtone.types.custom'),
-            },
-          ]),
-        },
-        { name: 'url', selector: { text: {} } },
+        createGrid([
+          {
+            name: 'type',
+            selector: createSelectSelector([
+              {
+                value: 'none',
+                label: localize('config.live.controls.call.ringtone.types.none'),
+              },
+              {
+                value: 'chime',
+                label: localize('config.live.controls.call.ringtone.types.chime'),
+              },
+              {
+                value: 'westminster',
+                label: localize('config.live.controls.call.ringtone.types.westminster'),
+              },
+              {
+                value: 'arpeggio',
+                label: localize('config.live.controls.call.ringtone.types.arpeggio'),
+              },
+              {
+                value: 'melody',
+                label: localize('config.live.controls.call.ringtone.types.melody'),
+              },
+              {
+                value: 'custom',
+                label: localize('config.live.controls.call.ringtone.types.custom'),
+              },
+            ]),
+          },
+          { name: 'url', selector: { text: {} } },
+        ]),
         { name: 'repeat', selector: createNumberSelector({ min: 0 }) },
       ],
     },
@@ -125,8 +128,10 @@ export const getLiveSectionForms = (): EditorForm[] => [
     basePath: ['live'],
     schema: [
       { name: 'preload', selector: { boolean: {} } },
-      { name: 'draggable', selector: { boolean: {} } },
-      { name: 'zoomable', selector: { boolean: {} } },
+      createGrid([
+        { name: 'draggable', selector: { boolean: {} } },
+        { name: 'zoomable', selector: { boolean: {} } },
+      ]),
       { name: 'lazy_load', selector: { boolean: {} } },
       {
         name: 'lazy_unload',

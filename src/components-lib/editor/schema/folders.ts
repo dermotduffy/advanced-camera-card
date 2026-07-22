@@ -1,5 +1,6 @@
 import type { HAFormSchema } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
+import { createGrid } from './common/grid';
 import { createSelectSelector } from './common/selectors';
 
 /**
@@ -8,24 +9,28 @@ import { createSelectSelector } from './common/selectors';
  * @returns The form schema for one folder.
  */
 export const getFolderSchema = (): HAFormSchema[] => [
-  {
-    name: 'type',
-    selector: createSelectSelector([
-      { value: 'ha', label: localize('config.folders.types.ha') },
-    ]),
-  },
-  {
-    name: 'title',
-    selector: { text: {} },
-  },
-  {
-    name: 'icon',
-    selector: { icon: {} },
-  },
-  {
-    name: 'id',
-    selector: { text: {} },
-  },
+  createGrid([
+    {
+      name: 'type',
+      selector: createSelectSelector([
+        { value: 'ha', label: localize('config.folders.types.ha') },
+      ]),
+    },
+    {
+      name: 'id',
+      selector: { text: {} },
+    },
+  ]),
+  createGrid([
+    {
+      name: 'title',
+      selector: { text: {} },
+    },
+    {
+      name: 'icon',
+      selector: { icon: {} },
+    },
+  ]),
   {
     name: 'ha',
     type: 'expandable',

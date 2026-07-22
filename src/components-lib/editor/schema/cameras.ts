@@ -5,6 +5,7 @@ import type {
 } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
 import { capabilityKeys } from '../../../types';
+import { createGrid } from './common/grid';
 import { getImageFieldsSchema } from './common/image';
 import { getProxySchema } from './common/proxy';
 import { createNumberSelector, createSelectSelector } from './common/selectors';
@@ -39,8 +40,10 @@ const getMediaLayoutSchema = (): HAFormExpandableSchema => ({
       type: 'expandable',
       title: localize('config.cameras.dimensions.layout.position.editor_label'),
       schema: [
-        { name: 'x', selector: percentageSelector },
-        { name: 'y', selector: percentageSelector },
+        createGrid([
+          { name: 'x', selector: percentageSelector },
+          { name: 'y', selector: percentageSelector },
+        ]),
       ],
     },
     {
@@ -48,10 +51,12 @@ const getMediaLayoutSchema = (): HAFormExpandableSchema => ({
       type: 'expandable',
       title: localize('config.cameras.dimensions.layout.view_box.editor_label'),
       schema: [
-        { name: 'top', selector: percentageSelector },
-        { name: 'bottom', selector: percentageSelector },
-        { name: 'left', selector: percentageSelector },
-        { name: 'right', selector: percentageSelector },
+        createGrid([
+          { name: 'top', selector: percentageSelector },
+          { name: 'bottom', selector: percentageSelector },
+          { name: 'left', selector: percentageSelector },
+          { name: 'right', selector: percentageSelector },
+        ]),
       ],
     },
     {
@@ -59,8 +64,10 @@ const getMediaLayoutSchema = (): HAFormExpandableSchema => ({
       type: 'expandable',
       title: localize('config.cameras.dimensions.layout.pan.editor_label'),
       schema: [
-        { name: 'x', selector: percentageSelector },
-        { name: 'y', selector: percentageSelector },
+        createGrid([
+          { name: 'x', selector: percentageSelector },
+          { name: 'y', selector: percentageSelector },
+        ]),
       ],
     },
     {
@@ -95,8 +102,10 @@ export const getCameraSimpleFields = (): HAFormSchema[] => [
       },
     ]),
   },
-  { name: 'title', selector: { text: {} } },
-  { name: 'icon', selector: { icon: {} } },
+  createGrid([
+    { name: 'title', selector: { text: {} } },
+    { name: 'icon', selector: { icon: {} } },
+  ]),
 ];
 
 interface CameraSchemaOptions {
@@ -174,8 +183,10 @@ export const getCameraSchema = (options: CameraSchemaOptions): HAFormSchema[] =>
           type: 'expandable',
           title: localize('config.cameras.cast.dashboard.editor_label'),
           schema: [
-            { name: 'dashboard_path', selector: { text: {} } },
-            { name: 'view_path', selector: { text: {} } },
+            createGrid([
+              { name: 'dashboard_path', selector: { text: {} } },
+              { name: 'view_path', selector: { text: {} } },
+            ]),
           ],
         },
       ],
@@ -199,16 +210,24 @@ export const getCameraSchema = (options: CameraSchemaOptions): HAFormSchema[] =>
       title: localize('config.cameras.dimensions.editor_label'),
       icon: 'mdi:aspect-ratio',
       schema: [
-        { name: 'aspect_ratio', selector: { text: {} } },
-        {
-          name: 'rotation',
-          selector: createSelectSelector([
-            { value: 0, label: localize('config.cameras.dimensions.rotations.0') },
-            { value: 90, label: localize('config.cameras.dimensions.rotations.90') },
-            { value: 180, label: localize('config.cameras.dimensions.rotations.180') },
-            { value: 270, label: localize('config.cameras.dimensions.rotations.270') },
-          ]),
-        },
+        createGrid([
+          { name: 'aspect_ratio', selector: { text: {} } },
+          {
+            name: 'rotation',
+            selector: createSelectSelector([
+              { value: 0, label: localize('config.cameras.dimensions.rotations.0') },
+              { value: 90, label: localize('config.cameras.dimensions.rotations.90') },
+              {
+                value: 180,
+                label: localize('config.cameras.dimensions.rotations.180'),
+              },
+              {
+                value: 270,
+                label: localize('config.cameras.dimensions.rotations.270'),
+              },
+            ]),
+          },
+        ]),
         getMediaLayoutSchema(),
       ],
     },
@@ -258,8 +277,10 @@ export const getCameraSchema = (options: CameraSchemaOptions): HAFormSchema[] =>
               type: 'expandable',
               title: localize('config.cameras.motioneye.images.editor_label'),
               schema: [
-                { name: 'directory_pattern', selector: { text: {} } },
-                { name: 'file_pattern', selector: { text: {} } },
+                createGrid([
+                  { name: 'directory_pattern', selector: { text: {} } },
+                  { name: 'file_pattern', selector: { text: {} } },
+                ]),
               ],
             },
             {
@@ -267,8 +288,10 @@ export const getCameraSchema = (options: CameraSchemaOptions): HAFormSchema[] =>
               type: 'expandable',
               title: localize('config.cameras.motioneye.movies.editor_label'),
               schema: [
-                { name: 'directory_pattern', selector: { text: {} } },
-                { name: 'file_pattern', selector: { text: {} } },
+                createGrid([
+                  { name: 'directory_pattern', selector: { text: {} } },
+                  { name: 'file_pattern', selector: { text: {} } },
+                ]),
               ],
             },
           ],
@@ -331,8 +354,10 @@ export const getCameraSchema = (options: CameraSchemaOptions): HAFormSchema[] =>
                 { multiple: true },
               ),
             },
-            { name: 'stream', selector: { text: {} } },
-            { name: 'url', selector: { text: {} } },
+            createGrid([
+              { name: 'stream', selector: { text: {} } },
+              { name: 'url', selector: { text: {} } },
+            ]),
             { name: 'metadata_fetch_timeout_seconds', selector: createNumberSelector() },
           ],
         },
@@ -361,33 +386,38 @@ export const getCameraSchema = (options: CameraSchemaOptions): HAFormSchema[] =>
       title: localize('config.cameras.media.editor_label'),
       icon: 'mdi:play-box-outline',
       schema: [
-        {
-          name: 'type',
-          selector: createSelectSelector([
-            { value: 'auto', label: localize('config.common.media_types.auto') },
-            { value: 'reviews', label: localize('config.common.media_types.reviews') },
-            { value: 'events', label: localize('config.common.media_types.events') },
-            {
-              value: 'recordings',
-              label: localize('config.common.media_types.recordings'),
-            },
-            { value: 'folder', label: localize('config.common.media_types.folder') },
-          ]),
-        },
-        {
-          name: 'events_type',
-          selector: createSelectSelector([
-            { value: 'all', label: localize('config.common.events_media_types.all') },
-            {
-              value: 'clips',
-              label: localize('config.common.events_media_types.clips'),
-            },
-            {
-              value: 'snapshots',
-              label: localize('config.common.events_media_types.snapshots'),
-            },
-          ]),
-        },
+        createGrid([
+          {
+            name: 'type',
+            selector: createSelectSelector([
+              { value: 'auto', label: localize('config.common.media_types.auto') },
+              {
+                value: 'reviews',
+                label: localize('config.common.media_types.reviews'),
+              },
+              { value: 'events', label: localize('config.common.media_types.events') },
+              {
+                value: 'recordings',
+                label: localize('config.common.media_types.recordings'),
+              },
+              { value: 'folder', label: localize('config.common.media_types.folder') },
+            ]),
+          },
+          {
+            name: 'events_type',
+            selector: createSelectSelector([
+              { value: 'all', label: localize('config.common.events_media_types.all') },
+              {
+                value: 'clips',
+                label: localize('config.common.events_media_types.clips'),
+              },
+              {
+                value: 'snapshots',
+                label: localize('config.common.events_media_types.snapshots'),
+              },
+            ]),
+          },
+        ]),
         {
           name: 'reviewed',
           selector: createSelectSelector([

@@ -1,5 +1,6 @@
 import type { HAFormExpandableSchema } from '../../../../ha/types';
 import { localize } from '../../../../localize/localize';
+import { createGrid } from './grid';
 import { createNumberSelector, createSelectSelector } from './selectors';
 
 /**
@@ -43,15 +44,17 @@ export const getDisplaySchema = (): HAFormExpandableSchema => ({
       label: localize('config.common.display.grid_selected_width_factor'),
       selector: createNumberSelector({ min: 0 }),
     },
-    {
-      name: 'grid_columns',
-      label: localize('config.common.display.grid_columns'),
-      selector: createNumberSelector({ min: 0 }),
-    },
-    {
-      name: 'grid_max_columns',
-      label: localize('config.common.display.grid_max_columns'),
-      selector: createNumberSelector({ min: 0 }),
-    },
+    createGrid([
+      {
+        name: 'grid_columns',
+        label: localize('config.common.display.grid_columns'),
+        selector: createNumberSelector({ min: 0 }),
+      },
+      {
+        name: 'grid_max_columns',
+        label: localize('config.common.display.grid_max_columns'),
+        selector: createNumberSelector({ min: 0 }),
+      },
+    ]),
   ],
 });
