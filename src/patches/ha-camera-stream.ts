@@ -56,8 +56,10 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
   // - https://github.com/home-assistant/frontend/blob/dev/src/common/entity/compute_state_name.ts
   // - https://github.com/home-assistant/frontend/blob/dev/src/common/entity/compute_object_id.ts
   // ========================================================================================
-  const computeMJPEGStreamUrl = (entity: CameraEntity): string =>
-    `/api/camera_proxy_stream/${entity.entity_id}?token=${entity.attributes.access_token}`;
+  const computeMJPEGStreamUrl = (entity: CameraEntity): string | undefined =>
+    entity.attributes.access_token
+      ? `/api/camera_proxy_stream/${entity.entity_id}?token=${entity.attributes.access_token}`
+      : undefined;
 
   const STREAM_TYPE_HLS = 'hls';
   const STREAM_TYPE_WEB_RTC = 'web_rtc';
@@ -188,15 +190,23 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
         return nothing;
       }
       if (stream.type === STREAM_TYPE_MJPEG) {
+        // A missing `access_token` (e.g. transient token rotation) yields no
+        // URL; render nothing rather than a broken `token=undefined` image.
+        const url =
+          typeof this._connected == 'undefined' || this._connected
+            ? computeMJPEGStreamUrl(this.stateObj)
+            : this._posterUrl;
+        if (!url) {
+          return nothing;
+        }
+
         return html`
           <advanced-camera-card-image-player
             .targetID=${this.targetID}
             @advanced-camera-card:media:loaded=${(
               ev: CustomEvent<MediaLoadedInfoEventDetail>,
             ) => this._captureInnerLoad(STREAM_TYPE_MJPEG, ev)}
-            url=${typeof this._connected == 'undefined' || this._connected
-              ? computeMJPEGStreamUrl(this.stateObj)
-              : this._posterUrl || ''}
+            url=${url}
             technology="mjpeg"
             class="player"
           ></advanced-camera-card-image-player>
