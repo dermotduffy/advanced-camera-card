@@ -194,7 +194,7 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
             @advanced-camera-card:media:loaded=${(
               ev: CustomEvent<MediaLoadedInfoEventDetail>,
             ) => this._captureInnerLoad(STREAM_TYPE_MJPEG, ev)}
-            src=${typeof this._connected == 'undefined' || this._connected
+            url=${typeof this._connected == 'undefined' || this._connected
               ? computeMJPEGStreamUrl(this.stateObj)
               : this._posterUrl || ''}
             technology="mjpeg"
