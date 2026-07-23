@@ -5,6 +5,10 @@ import type { Camera } from '../../../../src/camera-manager/camera';
 import type { StateWatcherSubscriptionInterface } from '../../../../src/card-controller/hass/state-watcher';
 import { LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS } from '../../../../src/components-lib/live/liveness/detectors/entity-availability';
 import { StreamLivenessController } from '../../../../src/components-lib/live/liveness/stream-liveness-controller';
+import {
+  dispatchLiveErrorEvent,
+  type LiveError,
+} from '../../../../src/components-lib/live/utils/dispatch-live-error';
 import type { LivenessCallback, MediaPlayerController } from '../../../../src/types';
 import {
   callIntersectionHandler,
@@ -18,7 +22,6 @@ import {
   IntersectionObserverMock,
 } from '../../../test-utils';
 
-const LIVE_ERROR_EVENT = 'advanced-camera-card:live:error';
 const ISSUE_TRIGGER_EVENT = 'advanced-camera-card:issue:trigger';
 
 const setup = (options?: { targetID?: string | null }) => {
@@ -38,8 +41,8 @@ const setup = (options?: { targetID?: string | null }) => {
     issueTriggers.push((ev as CustomEvent).detail),
   );
 
-  const failViaProviderError = (): void => {
-    host.dispatchEvent(new Event(LIVE_ERROR_EVENT, { bubbles: true }));
+  const failViaProviderError = (error?: LiveError): void => {
+    dispatchLiveErrorEvent(host, error);
   };
 
   return { host, controller, issueTriggers, failViaProviderError };
@@ -130,6 +133,27 @@ describe('StreamLivenessController', () => {
       reason: 'playback_error',
       renderPlaceholder: false,
     });
+  });
+
+  it("should carry the provider's error description into the failure and the issue", () => {
+    const { controller, issueTriggers, failViaProviderError } = setup();
+    controller.hostConnected();
+
+    failViaProviderError({ detail: 'Failed to start WebRTC stream: no candidates' });
+
+    expect(controller.getFailure()).toEqual({
+      reason: 'playback_error',
+      description: 'Failed to start WebRTC stream: no candidates',
+      renderPlaceholder: false,
+    });
+    expect(issueTriggers).toEqual([
+      {
+        key: 'media_unavailable',
+        targetID: 'camera.office',
+        reason: 'playback_error',
+        description: 'Failed to start WebRTC stream: no candidates',
+      },
+    ]);
   });
 
   it('should not fire the issue without a target', () => {

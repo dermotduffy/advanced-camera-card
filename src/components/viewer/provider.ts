@@ -14,7 +14,10 @@ import type { CameraManager } from '../../camera-manager/manager.js';
 import { QueryType } from '../../camera-manager/types.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
-import { SignedURLController } from '../../components-lib/signed-url-controller.js';
+import {
+  getSignedURLErrorText,
+  SignedURLController,
+} from '../../components-lib/signed-url-controller.js';
 import type { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
 import type { CameraConfig } from '../../config/schema/cameras.js';
@@ -24,7 +27,6 @@ import { canonicalizeHAURL } from '../../ha/canonical-url.js';
 import { isHARelativeURL } from '../../ha/is-ha-relative-url.js';
 import { resolveMedia, type ResolvedMediaCache } from '../../ha/resolved-media.js';
 import type { HomeAssistant, ResolvedMedia } from '../../ha/types.js';
-import { localize } from '../../localize/localize.js';
 
 import '../../patches/ha-hls-player.js';
 
@@ -243,12 +245,9 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     const error = this._signedURLController.getError();
     if (error) {
       const contentID = this.media?.getContentID();
-      return renderNotificationBlockFromText(
-        localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign'),
-        {
-          ...(contentID && { metadata: [{ text: contentID, icon: 'mdi:identifier' }] }),
-        },
-      );
+      return renderNotificationBlockFromText(getSignedURLErrorText(error), {
+        ...(contentID && { metadata: [{ text: contentID, icon: 'mdi:identifier' }] }),
+      });
     }
 
     const url = this._signedURLController.getValue();

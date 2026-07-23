@@ -18,7 +18,10 @@ import { CachedValueController } from '../components-lib/cached-value-controller
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { ImageMediaPlayerController } from '../components-lib/media-player/image.js';
 import { createMediaNotification } from '../components-lib/notification/media.js';
-import { SignedURLController } from '../components-lib/signed-url-controller.js';
+import {
+  getSignedURLErrorText,
+  SignedURLController,
+} from '../components-lib/signed-url-controller.js';
 import type { Notification } from '../config/schema/actions/types.js';
 import type { CameraConfig } from '../config/schema/cameras.js';
 import { type ImageBaseConfig, type ImageMode } from '../config/schema/common/image.js';
@@ -451,7 +454,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
     const error = this._signedURLController.getError();
     if (error) {
       return createMediaNotification({
-        title: localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign'),
+        title: getSignedURLErrorText(error),
         targetTitle: this.cameraTitle,
       });
     }

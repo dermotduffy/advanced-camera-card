@@ -35,6 +35,10 @@ export type LivenessVerdict =
       authority: LivenessAuthority;
       reason: MediaUnavailableIssueReason;
 
+      // Free text naming the specific failure, when the detector's source knew
+      // it. Omitted when only the categorical reason is known.
+      description?: string;
+
       // Whether the wrapper should replace the provider with a reconnecting
       // placeholder (a silent freeze, e.g. an unavailable camera). Omitted when
       // the provider renders its own error and should stay mounted.
@@ -49,6 +53,9 @@ export type LivenessVerdict =
 // a positive `live` boolean would misleadingly read as "media is playing".
 interface StreamFailure {
   reason: MediaUnavailableIssueReason;
+
+  // Free text naming the specific failure, when known.
+  description?: string;
 
   // Whether the wrapper should replace the provider with a reconnecting
   // placeholder (a silent freeze, e.g. an unavailable camera). False when the
@@ -133,7 +140,11 @@ export class StreamLivenessController implements ReactiveController {
   public getFailure(): StreamFailure | null {
     const verdict = this._getVerdict();
     return verdict.state === 'not_live'
-      ? { reason: verdict.reason, renderPlaceholder: !!verdict.renderPlaceholder }
+      ? {
+          reason: verdict.reason,
+          description: verdict.description,
+          renderPlaceholder: !!verdict.renderPlaceholder,
+        }
       : null;
   }
 
@@ -170,14 +181,17 @@ export class StreamLivenessController implements ReactiveController {
   private _onDetectorChange(): void {
     const verdict = this._getVerdict();
     if (verdict.state === 'not_live') {
-      this._triggerMediaUnavailableIssue(verdict.reason);
+      this._triggerMediaUnavailableIssue(verdict.reason, verdict.description);
     }
     this._host.requestUpdate();
   }
 
   // Tell the issue framework this target's media is not loaded, surfacing the
   // media_unavailable issue (status bar + retry) and its throttled reload.
-  private _triggerMediaUnavailableIssue(reason: MediaUnavailableIssueReason): void {
+  private _triggerMediaUnavailableIssue(
+    reason: MediaUnavailableIssueReason,
+    description?: string,
+  ): void {
     const targetID = this._config.getTargetID();
     if (!targetID) {
       return;
@@ -186,6 +200,7 @@ export class StreamLivenessController implements ReactiveController {
       key: 'media_unavailable',
       targetID,
       reason,
+      description,
     });
   }
 }

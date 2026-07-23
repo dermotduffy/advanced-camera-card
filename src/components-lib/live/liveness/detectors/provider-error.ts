@@ -1,4 +1,4 @@
-import type { MediaUnavailableIssueReason } from '../../../../card-controller/issues/issues/media-unavailable';
+import type { LiveError } from '../../utils/dispatch-live-error';
 import type { LivenessDetector, LivenessVerdict } from '../stream-liveness-controller';
 
 const LIVE_ERROR_EVENT = 'advanced-camera-card:live:error';
@@ -39,9 +39,7 @@ export class ProviderErrorDetector implements LivenessDetector {
     return this._verdict;
   }
 
-  private _handler = (
-    ev: CustomEvent<MediaUnavailableIssueReason | undefined>,
-  ): void => {
+  private _handler = (ev: CustomEvent<LiveError>): void => {
     ev.stopPropagation();
     if (this._verdict.state !== 'not_live') {
       // Authoritative: an explicit provider error overrides even direct frame
@@ -50,7 +48,8 @@ export class ProviderErrorDetector implements LivenessDetector {
       this._verdict = {
         state: 'not_live',
         authority: 'hard',
-        reason: ev.detail ?? 'playback_error',
+        reason: ev.detail.reason ?? 'playback_error',
+        description: ev.detail.detail,
       };
       this._onChange();
     }

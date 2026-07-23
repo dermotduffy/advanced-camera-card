@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { ProviderErrorDetector } from '../../../../../src/components-lib/live/liveness/detectors/provider-error';
+import { dispatchLiveErrorEvent } from '../../../../../src/components-lib/live/utils/dispatch-live-error';
 
 const LIVE_ERROR_EVENT = 'advanced-camera-card:live:error';
 
@@ -24,7 +25,7 @@ describe('ProviderErrorDetector', () => {
     const detector = new ProviderErrorDetector(host, onChange);
     detector.subscribe();
 
-    host.dispatchEvent(new Event(LIVE_ERROR_EVENT, { bubbles: true }));
+    dispatchLiveErrorEvent(host);
 
     // not_live but no renderPlaceholder: the provider renders its own error.
     expect(detector.getVerdict()).toEqual({
@@ -35,19 +36,21 @@ describe('ProviderErrorDetector', () => {
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 
-  it('should adopt the specific reason carried on the event', () => {
+  it('should adopt the specific reason and description carried on the event', () => {
     const host = createHostInDocument();
     const detector = new ProviderErrorDetector(host, vi.fn());
     detector.subscribe();
 
-    host.dispatchEvent(
-      new CustomEvent(LIVE_ERROR_EVENT, { bubbles: true, detail: 'unsupported' }),
-    );
+    dispatchLiveErrorEvent(host, {
+      reason: 'unsupported',
+      detail: 'Codec not supported',
+    });
 
     expect(detector.getVerdict()).toEqual({
       state: 'not_live',
       authority: 'hard',
       reason: 'unsupported',
+      description: 'Codec not supported',
     });
   });
 
@@ -57,8 +60,8 @@ describe('ProviderErrorDetector', () => {
     const detector = new ProviderErrorDetector(host, onChange);
     detector.subscribe();
 
-    host.dispatchEvent(new Event(LIVE_ERROR_EVENT, { bubbles: true }));
-    host.dispatchEvent(new Event(LIVE_ERROR_EVENT, { bubbles: true }));
+    dispatchLiveErrorEvent(host);
+    dispatchLiveErrorEvent(host);
 
     expect(onChange).toHaveBeenCalledTimes(1);
   });
@@ -70,7 +73,7 @@ describe('ProviderErrorDetector', () => {
     const detector = new ProviderErrorDetector(host, vi.fn());
     detector.subscribe();
 
-    host.dispatchEvent(new Event(LIVE_ERROR_EVENT, { bubbles: true }));
+    dispatchLiveErrorEvent(host);
 
     expect(parentListener).not.toHaveBeenCalled();
 
@@ -81,7 +84,7 @@ describe('ProviderErrorDetector', () => {
     const host = createHostInDocument();
     const detector = new ProviderErrorDetector(host, vi.fn());
     detector.subscribe();
-    host.dispatchEvent(new Event(LIVE_ERROR_EVENT, { bubbles: true }));
+    dispatchLiveErrorEvent(host);
     expect(detector.getVerdict().state).toBe('not_live');
 
     detector.reset();
@@ -96,7 +99,7 @@ describe('ProviderErrorDetector', () => {
     detector.subscribe();
     detector.unsubscribe();
 
-    host.dispatchEvent(new Event(LIVE_ERROR_EVENT, { bubbles: true }));
+    dispatchLiveErrorEvent(host);
 
     expect(detector.getVerdict().state).toBe('unknown');
     expect(onChange).not.toHaveBeenCalled();

@@ -2,7 +2,10 @@ import type { ReactiveControllerHost } from 'lit';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { SignedURLController } from '../../src/components-lib/signed-url-controller';
+import {
+  getSignedURLErrorText,
+  SignedURLController,
+} from '../../src/components-lib/signed-url-controller';
 import { homeAssistantGetSignedURLIfNecessary } from '../../src/ha/sign-path';
 import { createProxiedEndpointIfNecessary } from '../../src/ha/web-proxy';
 import type { Endpoint } from '../../src/types';
@@ -995,5 +998,15 @@ describe('SignedURLController', () => {
     await flushPromises();
 
     expect(host.requestUpdate).not.toBeCalled();
+  });
+});
+
+describe('getSignedURLErrorText', () => {
+  it('should describe a signing failure', () => {
+    expect(getSignedURLErrorText('sign')).toBe('Could not sign Home Assistant URL');
+  });
+
+  it('should describe a proxy failure', () => {
+    expect(getSignedURLErrorText('proxy')).toBe('Could not proxy via Home Assistant');
   });
 });

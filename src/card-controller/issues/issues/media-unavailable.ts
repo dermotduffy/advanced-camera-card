@@ -28,8 +28,21 @@ export type MediaUnavailableIssueReason =
 
 declare module 'issue' {
   interface IssueTriggerContext {
-    media_unavailable: { targetID: string; reason: MediaUnavailableIssueReason };
+    media_unavailable: {
+      targetID: string;
+      reason: MediaUnavailableIssueReason;
+
+      // Free text naming the specific failure (e.g. the message a player
+      // reported), when the trigger source knew it.
+      description?: string;
+    };
   }
+}
+
+// What is known about one target's failure.
+interface TargetError {
+  reason: MediaUnavailableIssueReason;
+  description?: string;
 }
 
 const MEDIA_LOADING_TIMEOUT_SECONDS = 10;
@@ -75,7 +88,7 @@ export class MediaUnavailableIssue implements Issue {
   public readonly key = 'media_unavailable' as const;
 
   private _issueActive = false;
-  private _erroredTargets = new Map<string, MediaUnavailableIssueReason>();
+  private _erroredTargets = new Map<string, TargetError>();
 
   // Timer fires when a target has been loading too long without success.
   private _timer = new Timer();
@@ -107,7 +120,10 @@ export class MediaUnavailableIssue implements Issue {
   // =========================================================================
 
   public trigger(context: IssueTriggerContext['media_unavailable']): void {
-    this._erroredTargets.set(context.targetID, context.reason);
+    this._erroredTargets.set(context.targetID, {
+      reason: context.reason,
+      description: context.description,
+    });
   }
 
   // =========================================================================
@@ -168,10 +184,23 @@ export class MediaUnavailableIssue implements Issue {
   public getNotification(): Notification {
     const targets = new Map(this._erroredTargets);
     // The pending-load timer's target is a slow initial load that has not yet
-    // errored.
-    if (this._timerTargetID && !targets.has(this._timerTargetID)) {
-      targets.set(this._timerTargetID, 'not_loading');
+    // errored. Gate on the timer still running: once it is stopped (a hard error
+    // on another target took over, or the view moved on), _timerTargetID lingers
+    // and would otherwise paint a stale "not loading" line for a target that has
+    // since loaded.
+    if (
+      this._timerTargetID &&
+      this._timer.isRunning() &&
+      !targets.has(this._timerTargetID)
+    ) {
+      targets.set(this._timerTargetID, { reason: 'not_loading' });
     }
+
+    // The free-text causes go in the context block rather than on the metadata
+    // lines, which stay short enough to scan when several cameras fail at once.
+    const context = Array.from(targets)
+      .filter(([, error]) => error.description)
+      .map(([id, error]) => `${this._getTargetName(id)}: ${error.description}`);
 
     return {
       heading: {
@@ -183,10 +212,11 @@ export class MediaUnavailableIssue implements Issue {
         text: localize('issues.media_unavailable.text'),
       },
       ...(targets.size && {
-        metadata: Array.from(targets).map(([id, reason]) =>
-          this._getTargetDetail(id, reason),
+        metadata: Array.from(targets).map(([id, error]) =>
+          this._getTargetDetail(id, error.reason),
         ),
       }),
+      ...(context.length && { context }),
       link: {
         url: TROUBLESHOOTING_MEDIA_URL,
         title: localize('issues.troubleshooting_guide'),
@@ -202,13 +232,20 @@ export class MediaUnavailableIssue implements Issue {
     reason: MediaUnavailableIssueReason,
   ): NotificationDetail {
     const isImage = id === IMAGE_VIEW_TARGET_ID_SENTINEL;
-    const name = isImage
-      ? localize('editor.image')
-      : this._api.getCameraManager().getCameraMetadata(id)?.title ?? id;
     return {
-      text: `${name}: ${localize(MEDIA_UNAVAILABLE_REASONS[reason].localizationKey)}`,
+      text: `${this._getTargetName(id)}: ${localize(
+        MEDIA_UNAVAILABLE_REASONS[reason].localizationKey,
+      )}`,
       icon: isImage ? 'mdi:image' : MEDIA_UNAVAILABLE_REASONS[reason].icon,
     };
+  }
+
+  // The user-facing name of a target: a camera's title, or the label for the
+  // image view (which may have no camera behind it).
+  private _getTargetName(id: string): string {
+    return id === IMAGE_VIEW_TARGET_ID_SENTINEL
+      ? localize('editor.image')
+      : this._api.getCameraManager().getCameraMetadata(id)?.title ?? id;
   }
 
   // =========================================================================
@@ -300,7 +337,7 @@ export class MediaUnavailableIssue implements Issue {
       this._timerTargetID = targetID;
       this._timer.start(MEDIA_LOADING_TIMEOUT_SECONDS, () => {
         // Record the error on timeout so retry() knows which epoch to bump.
-        this._erroredTargets.set(targetID, 'not_loading');
+        this._erroredTargets.set(targetID, { reason: 'not_loading' });
         this._activate();
         this._onChange?.();
       });
