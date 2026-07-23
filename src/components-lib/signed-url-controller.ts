@@ -8,6 +8,7 @@ import {
   createProxiedEndpointIfNecessary,
   type CreateProxiedEndpointOptions,
 } from '../ha/web-proxy.js';
+import { localize } from '../localize/localize.js';
 import type { Endpoint } from '../types.js';
 import { errorToConsole } from '../utils/basic.js';
 import { Generation } from '../utils/concurrency/generation.js';
@@ -29,6 +30,11 @@ interface SignedURLControllerOptions {
 }
 
 type SignedURLErrorType = 'sign' | 'proxy';
+
+// The user-facing description of a signed-URL failure, so every surface that
+// reports one names it identically.
+export const getSignedURLErrorText = (error: SignedURLErrorType): string =>
+  localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign');
 
 export class SignedURLController implements ReactiveController {
   private _host: ReactiveControllerHost;

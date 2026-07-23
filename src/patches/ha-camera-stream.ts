@@ -19,9 +19,11 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import type { MediaUnavailableIssueReason } from '../card-controller/issues/issues/media-unavailable.js';
 import { HA_CAMERA_STREAM_MUTE_CHANGE_EVENT } from '../components-lib/live/ha-stream-mute-controller.js';
-import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
+import {
+  dispatchLiveErrorEvent,
+  type LiveError,
+} from '../components-lib/live/utils/dispatch-live-error.js';
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 
 import '../components/image-player.js';
@@ -39,11 +41,11 @@ import './ha-hls-player.js';
 import './ha-web-rtc-player.js';
 
 // A failure reported by one of the inner players. Its existence is the failure;
-// `reason` is present only when the player named a specific cause. `dispatched`
-// records whether it has already been announced, so a stream that fails again
-// after recovering is announced again.
+// `error` carries whatever the player knew about it. `dispatched` records
+// whether it has already been announced, so a stream that fails again after
+// recovering is announced again.
 interface StreamError {
-  reason?: MediaUnavailableIssueReason;
+  error: LiveError;
   dispatched: boolean;
 }
 
@@ -173,14 +175,11 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
       this.requestUpdate();
     }
 
-    private _captureInnerError(
-      stream: StreamType,
-      ev: CustomEvent<MediaUnavailableIssueReason | undefined>,
-    ) {
+    private _captureInnerError(stream: StreamType, ev: CustomEvent<LiveError>) {
       // Stop the inner-player event at the aggregator boundary; it is
       // re-dispatched from updated() only if this stream is the visible one.
       ev.stopPropagation();
-      this._errorPerStream[stream] = { reason: ev.detail, dispatched: false };
+      this._errorPerStream[stream] = { error: ev.detail, dispatched: false };
       this.requestUpdate();
     }
 
@@ -218,9 +217,8 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
           @advanced-camera-card:media:loaded=${(
             ev: CustomEvent<MediaLoadedInfoEventDetail>,
           ) => this._captureInnerLoad(STREAM_TYPE_HLS, ev)}
-          @advanced-camera-card:live:error=${(
-            ev: CustomEvent<MediaUnavailableIssueReason | undefined>,
-          ) => this._captureInnerError(STREAM_TYPE_HLS, ev)}
+          @advanced-camera-card:live:error=${(ev: CustomEvent<LiveError>) =>
+            this._captureInnerError(STREAM_TYPE_HLS, ev)}
           @streams=${this._handleHlsStreams}
           class="player ${stream.visible ? '' : 'hidden'}"
         ></advanced-camera-card-ha-hls-player>`;
@@ -239,9 +237,8 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
           @advanced-camera-card:media:loaded=${(
             ev: CustomEvent<MediaLoadedInfoEventDetail>,
           ) => this._captureInnerLoad(STREAM_TYPE_WEB_RTC, ev)}
-          @advanced-camera-card:live:error=${(
-            ev: CustomEvent<MediaUnavailableIssueReason | undefined>,
-          ) => this._captureInnerError(STREAM_TYPE_WEB_RTC, ev)}
+          @advanced-camera-card:live:error=${(ev: CustomEvent<LiveError>) =>
+            this._captureInnerError(STREAM_TYPE_WEB_RTC, ev)}
           @streams=${this._handleWebRtcStreams}
           class="player ${stream.visible ? '' : 'hidden'}"
         ></advanced-camera-card-ha-web-rtc-player>`;
@@ -307,12 +304,12 @@ void customElements.whenDefined('ha-camera-stream').then(() => {
     // re-evaluated for this update.
     private _dispatchVisibleStreamError(): void {
       const stream = this._visibleStreamType;
-      const error = stream ? this._errorPerStream[stream] : null;
-      if (!error || error.dispatched) {
+      const streamError = stream ? this._errorPerStream[stream] : null;
+      if (!streamError || streamError.dispatched) {
         return;
       }
-      error.dispatched = true;
-      dispatchLiveErrorEvent(this, error.reason);
+      streamError.dispatched = true;
+      dispatchLiveErrorEvent(this, streamError.error);
     }
 
     static get styles(): CSSResultGroup {

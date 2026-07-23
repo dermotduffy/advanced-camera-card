@@ -166,7 +166,7 @@ void customElements.whenDefined('ha-web-rtc-player').then(() => {
       // player can fail more than once and every failure must be reported.
       const errored = !!this._error;
       if (errored && !this._lastErrored) {
-        dispatchLiveErrorEvent(this);
+        dispatchLiveErrorEvent(this, { detail: this._error });
       }
       this._lastErrored = errored;
     }

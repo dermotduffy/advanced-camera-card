@@ -25,7 +25,10 @@ import { mapFailureReasonToIssueReason } from '../../../../components-lib/live/p
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
 import { MediaLoadedInfoSourceController } from '../../../../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../../../../components-lib/media-player/video.js';
-import { SignedURLController } from '../../../../components-lib/signed-url-controller.js';
+import {
+  getSignedURLErrorText,
+  SignedURLController,
+} from '../../../../components-lib/signed-url-controller.js';
 import type { MicrophoneConfig } from '../../../../config/schema/live.js';
 import type { CardWideConfig } from '../../../../config/schema/types.js';
 import type { HomeAssistant } from '../../../../ha/types.js';
@@ -162,7 +165,7 @@ export class AdvancedCameraCardGo2RTCExperimental
     // the error itself (below); the event drives the liveness verdict + retry.
     errorCallback: (reason) => {
       this._streamError = mapFailureReasonToIssueReason(reason);
-      dispatchLiveErrorEvent(this, this._streamError);
+      dispatchLiveErrorEvent(this, { reason: this._streamError });
     },
   });
 
@@ -243,7 +246,7 @@ export class AdvancedCameraCardGo2RTCExperimental
     const error = this._signedURLController.getError();
     if (error) {
       return renderMediaNotification({
-        title: localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign'),
+        title: getSignedURLErrorText(error),
         targetTitle: this.cameraTitle,
       });
     }

@@ -61,7 +61,7 @@ export class AdvancedCameraCardLiveImage extends LitElement implements MediaPlay
         .proxyConfig=${this.camera?.getLiveProxyConfig()}
         @advanced-camera-card:image-updating-player:error=${(
           ev: CustomEvent<MediaUnavailableIssueReason>,
-        ) => dispatchLiveErrorEvent(this, ev.detail)}
+        ) => dispatchLiveErrorEvent(this, { reason: ev.detail })}
       >
       </advanced-camera-card-image-updating-player>
     `;

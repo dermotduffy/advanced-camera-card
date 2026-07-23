@@ -11,7 +11,10 @@ import { customElement, property } from 'lit/decorators.js';
 import type { Camera } from '../../../../camera-manager/camera.js';
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
 import { VideoMediaPlayerController } from '../../../../components-lib/media-player/video.js';
-import { SignedURLController } from '../../../../components-lib/signed-url-controller.js';
+import {
+  getSignedURLErrorText,
+  SignedURLController,
+} from '../../../../components-lib/signed-url-controller.js';
 import type { MicrophoneConfig } from '../../../../config/schema/live.js';
 import type { HomeAssistant } from '../../../../ha/types.js';
 import { localize } from '../../../../localize/localize.js';
@@ -153,7 +156,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     const error = this._signedURLController.getError();
     if (error) {
       return renderMediaNotification({
-        title: localize(error === 'proxy' ? 'error.failed_proxy' : 'error.failed_sign'),
+        title: getSignedURLErrorText(error),
         targetTitle: this.cameraTitle,
       });
     }

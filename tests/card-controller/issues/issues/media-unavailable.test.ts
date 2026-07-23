@@ -431,6 +431,29 @@ describe('MediaUnavailableIssue', () => {
       ]);
     });
 
+    it('should drop a stale pending-timer target once its timer has stopped', () => {
+      const issue = new MediaUnavailableIssue(createAPI());
+
+      // A slow load arms the pending timer for camera.garden.
+      issue.detectDynamic({ targetID: 'camera.garden', view: 'live' });
+
+      // The view moves to a different target that already has a hard error.
+      // That path activates immediately and stops the timer, but the stale
+      // _timerTargetID (camera.garden) lingers.
+      issue.trigger({ targetID: 'camera.office', reason: 'playback_error' });
+      issue.detectDynamic({ targetID: 'camera.office', view: 'live' });
+
+      // Only the real error shows; the stale, no-longer-running pending target
+      // must not paint a "not loading" line.
+      const notification = issue.getNotification();
+      expect(notification.metadata).not.toContainEqual(
+        expect.objectContaining({ text: 'camera.garden: Media not loading' }),
+      );
+      expect(notification.metadata).toEqual([
+        expect.objectContaining({ text: 'camera.office: Playback error' }),
+      ]);
+    });
+
     it('should use camera title when available', () => {
       const api = createAPI();
       vi.mocked(api.getCameraManager().getCameraMetadata).mockReturnValue({
@@ -469,6 +492,37 @@ describe('MediaUnavailableIssue', () => {
       expect(notification.metadata).toEqual([
         expect.objectContaining({ text: `camera.office: ${text}`, icon }),
       ]);
+    });
+
+    it('should render the free-text cause as context, keyed by camera title', () => {
+      const api = createAPI();
+      vi.mocked(api.getCameraManager().getCameraMetadata).mockReturnValue({
+        title: 'Office',
+        icon: { icon: 'mdi:cctv' },
+      });
+      const issue = new MediaUnavailableIssue(api);
+      issue.trigger({
+        targetID: 'camera.office',
+        reason: 'playback_error',
+        description: 'Failed to start WebRTC stream: no candidates',
+      });
+
+      const notification = issue.getNotification();
+
+      // The metadata line stays scannable; the long cause sits below it.
+      expect(notification.metadata).toEqual([
+        expect.objectContaining({ text: 'Office: Playback error' }),
+      ]);
+      expect(notification.context).toEqual([
+        'Office: Failed to start WebRTC stream: no candidates',
+      ]);
+    });
+
+    it('should omit context for targets without a free-text cause', () => {
+      const issue = new MediaUnavailableIssue(createAPI());
+      issue.trigger({ targetID: 'camera.office', reason: 'stalled' });
+
+      expect(issue.getNotification().context).toBeUndefined();
     });
 
     it('should include a retry control with wired callback', async () => {

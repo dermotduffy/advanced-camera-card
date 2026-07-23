@@ -131,7 +131,7 @@ void customElements.whenDefined('ha-hls-player').then(() => {
       // and are only logged (see render()).
       const errored = !!this._error && this._errorIsFatal;
       if (errored && !this._lastErrored) {
-        dispatchLiveErrorEvent(this);
+        dispatchLiveErrorEvent(this, { detail: this._error });
       }
       this._lastErrored = errored;
     }
