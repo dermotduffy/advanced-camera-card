@@ -502,6 +502,67 @@ automations:
           entity_id: light.porch
 ```
 
+### Doorbells that stop ringing when two-way audio connects
+
+> [!WARNING]
+> This example is only relevant to those doorbells with a design flaw
+> that prevents the doorbell being rung whilst a 2-way channel is enabled. This
+> means simply watching the stream, when you might _in future_ hold a 2-way
+> conversation on that stream, can disable the actual whole point of a doorbell --
+> to ring!
+
+The fix is to split the camera:
+
+- A plain, view-only stream you normally watch (with **no** backchannel)
+- A second camera carrying the two-way stream, listed as a
+  [dependency](configuration/cameras/README.md?id=dependencies) of the first
+  camera. The card only engages the two-way stream -- and therefore the
+  backchannel -- when you start a call, and automatically drops it again on
+  hang-up. The doorbell keeps ringing until you actually choose to answer.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  # The camera you normally watch: a view-only stream you have configured to
+  # not have a backchannel, so opening the card does not disturb the doorbell.
+  - camera_entity: camera.front_doorbell
+    id: doorbell
+    live_provider: go2rtc
+    go2rtc:
+      modes: [webrtc]
+      # Stream with NO backchannel source
+      stream: front_doorbell
+    dependencies:
+      # The two-way dependent camera (below) only used during a call
+      cameras: [doorbell_2way]
+  # The two-way camera. Never watched on its own: the call button engages it as
+  # a substream for the duration of a call, then drops it on hang-up.
+  - camera_entity: camera.front_doorbell
+    id: doorbell_2way
+    live_provider: go2rtc
+    go2rtc:
+      modes: [webrtc]
+      # The two-way go2rtc stream (carries the backchannel)
+      stream: front_doorbell_2way
+    capabilities:
+      # This camera exists only to supply the call's two-way audio. Disabling
+      # everything except `2-way-audio` keeps it out of the camera menu and the
+      # substream selector, while still letting the call button target it.
+      disable_except:
+        - 2-way-audio
+profiles:
+  - doorbell
+```
+
+> [!IMPORTANT]
+> This only works if the _view-only_ stream genuinely has no backchannel source
+> in your `go2rtc` config -- otherwise `go2rtc` may still take over the doorbell
+> the moment that stream is opened. Test the view-only camera on its own first:
+> if the doorbell stops ringing with just that camera configured, that stream is
+> the culprit. If you can't produce a clean one-way `go2rtc` stream, try setting
+> the view-only camera to `live_provider: ha` (HLS / receive-only WebRTC, which
+> never offers a backchannel) instead.
+
 ## Events from other cameras
 
 `dependencies.cameras` allows events/recordings for other cameras to be shown
