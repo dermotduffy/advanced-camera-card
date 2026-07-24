@@ -221,6 +221,30 @@ describe('IssueStateManager', () => {
     });
   });
 
+  describe('canRetryNow', () => {
+    it('should return false when no issue can retry now', () => {
+      expect(createManager().canRetryNow()).toBe(false);
+    });
+
+    it('should return true when an issue reports it can retry now', () => {
+      assert(mockMediaLoad.canRetryNow);
+      vi.mocked(mockMediaLoad.canRetryNow).mockReturnValue(true);
+
+      expect(createManager().canRetryNow()).toBe(true);
+    });
+
+    it('should fall back to needsRetry for an issue that does not implement canRetryNow', () => {
+      const issue: Issue = {
+        key: 'media_query',
+        hasIssue: () => true,
+        getIssue: () => null,
+        needsRetry: () => true,
+      };
+
+      expect(createManager([issue]).canRetryNow()).toBe(true);
+    });
+  });
+
   describe('retry', () => {
     it('should call retry on issues that want retry with non-exclusive result', () => {
       assert(mockMediaLoad.needsRetry);

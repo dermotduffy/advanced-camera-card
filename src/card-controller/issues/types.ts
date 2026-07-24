@@ -72,9 +72,15 @@ export interface Issue {
   // depends on transient state (e.g. no current error to show).
   getNotification?(): Notification | null;
 
-  // Whether this issue wants the manager to schedule a retry. Gates
-  // scheduled retries; user-initiated (forced) retries bypass this check.
+  // Whether this issue has an unresolved problem that needs retry. The manager
+  // keeps the backoff counter alive while this is true and clears it once the
+  // problem resolves. Stays true across an in-flight retry (see canRetryNow).
   needsRetry?(): boolean;
+
+  // Whether a retry can run right now. False while one is already in flight, so
+  // the manager waits without resetting the backoff. Forced (user-initiated)
+  // retries bypass it. Defaults to needsRetry() when not implemented.
+  canRetryNow?(): boolean;
 
   // Called by the manager when a retry is due. Returns true to stop the retry
   // loop (exclusive), false to allow subsequent issues to also retry.

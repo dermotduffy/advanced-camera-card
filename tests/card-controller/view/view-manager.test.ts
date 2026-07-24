@@ -579,6 +579,31 @@ describe('should handle exceptions', () => {
         .mock.calls.filter(([key]) => key === 'media_query').length,
     ).toBe(2);
   });
+
+  it('should not reset media_query on the retry dispatch, keeping the error visible', async () => {
+    const error = new Error();
+    const viewFactory = mock<ViewFactory>();
+    viewFactory.getViewByParameters.mockReturnValue(createView());
+    const viewQueryExecutor = mock<ViewQueryExecutor>();
+    viewQueryExecutor.getNewQueryModifiers.mockRejectedValue(error);
+
+    const api = createInitializedCardAPI();
+    const manager = new ViewManager(api, {
+      viewFactory,
+      viewQueryExecutor,
+    });
+
+    await manager.setViewByParametersWithNewQuery({ intent: 'retry' });
+
+    // A retry re-runs the same failing query, so the existing error must not be
+    // cleared up front (it would blink away and back); the failure just
+    // re-triggers it.
+    expect(api.getIssueManager().reset).not.toBeCalledWith('media_query');
+    expect(api.getIssueManager().trigger).toBeCalledWith(
+      'media_query',
+      expect.objectContaining({ error }),
+    );
+  });
 });
 
 describe('hasMajorMediaChange', () => {

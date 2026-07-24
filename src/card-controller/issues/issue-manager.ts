@@ -187,7 +187,19 @@ export class IssueManager {
 
   private _scheduleRetryIfNeeded(): void {
     if (!this._stateManager.needsRetry()) {
+      // No issue still has a failing problem, so reset the backoff: a future
+      // failure should start again from the base delay.
       this._retryTimer.reset();
+      return;
+    }
+    if (!this._stateManager.canRetryNow()) {
+      // An issue still has a failing problem but cannot retry right now. Cancel
+      // the pending timer so it does not fire a retry the issue cannot take --
+      // but do not reset(), which is reserved for the resolved case above.
+      // Consequently no retry is scheduled here; scheduling resumes on a later
+      // evaluate() (any condition-state change re-runs this), once the issue
+      // reports it can retry again or has resolved.
+      this._retryTimer.cancel();
       return;
     }
     if (this._retryTimer.isRunning()) {

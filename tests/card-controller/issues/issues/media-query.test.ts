@@ -1,9 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { CardController } from '../../../../src/card-controller/controller';
 import { MediaQueryIssue } from '../../../../src/card-controller/issues/issues/media-query';
 import type { InternalCallbackActionConfig } from '../../../../src/config/schema/actions/custom/internal';
-import { createCardAPI } from '../../../test-utils';
+import { createCardAPI, flushPromises } from '../../../test-utils';
 
 const createIssue = (): {
   issue: MediaQueryIssue;
@@ -106,25 +106,121 @@ describe('MediaQueryIssue', () => {
     });
   });
 
+  describe('canRetryNow', () => {
+    it('should return false when not triggered', () => {
+      const { issue } = createIssue();
+
+      expect(issue.canRetryNow()).toBe(false);
+    });
+
+    it('should return true when triggered but false while a retry is in flight', () => {
+      const { issue } = createIssue();
+      issue.trigger({ error: new Error('query failed') });
+
+      expect(issue.canRetryNow()).toBe(true);
+
+      issue.retry();
+
+      expect(issue.canRetryNow()).toBe(false);
+    });
+  });
+
   describe('retry', () => {
-    it('should return requery action and clear error and needsRetry', () => {
+    it('should re-run the query with the retry intent and keep the error present', () => {
       const { issue, api } = createIssue();
       issue.trigger({ error: new Error('query failed') });
 
       const result = issue.retry();
 
       expect(result).toEqual(true);
-      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalled();
-      expect(issue.needsRetry()).toBe(false);
-      expect(issue.hasIssue()).toBe(false);
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+        intent: 'retry',
+      });
+
+      // The error persists across the retry so the issue stays visible and the
+      // problem stays unresolved, but no further retry can be dispatched until
+      // this in-flight attempt resolves.
+      expect(issue.hasIssue()).toBe(true);
+      expect(issue.needsRetry()).toBe(true);
+      expect(issue.canRetryNow()).toBe(false);
     });
 
-    it('should return null when needsRetry is false', () => {
+    it('should allow a retry again once a fresh failure is reported via trigger', () => {
+      const { issue } = createIssue();
+      issue.trigger({ error: new Error('query failed') });
+      issue.retry();
+      expect(issue.canRetryNow()).toBe(false);
+
+      // The failure is reported out-of-band via trigger (the normal path), which
+      // ends the in-flight attempt.
+      issue.trigger({ error: new Error('query failed again') });
+
+      expect(issue.canRetryNow()).toBe(true);
+    });
+
+    it('should fully resolve when the in-flight attempt succeeds', () => {
+      const { issue } = createIssue();
+      issue.trigger({ error: new Error('query failed') });
+      issue.retry();
+
+      // A success clears the issue via reset.
+      issue.reset();
+
+      expect(issue.hasIssue()).toBe(false);
+      expect(issue.needsRetry()).toBe(false);
+      expect(issue.canRetryNow()).toBe(false);
+    });
+
+    it('should return null when there is no error to retry', () => {
       const { issue } = createIssue();
 
       const result = issue.retry();
 
       expect(result).toBe(false);
+    });
+
+    it('should not dispatch a second query when a retry is already in flight', () => {
+      const { issue, api } = createIssue();
+      issue.trigger({ error: new Error('query failed') });
+
+      issue.retry();
+      // A forced retry (e.g. the user tapping retry) while the first is in
+      // flight must not start a competing query.
+      const result = issue.retry();
+
+      expect(result).toBe(true);
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledTimes(1);
+    });
+
+    it('should stop treating the retry as in flight once the query settles without an outcome', async () => {
+      const { issue, api } = createIssue();
+      vi.mocked(
+        api.getViewManager().setViewByParametersWithNewQuery,
+      ).mockResolvedValue();
+      issue.trigger({ error: new Error('query failed') });
+
+      issue.retry();
+      expect(issue.canRetryNow()).toBe(false);
+
+      // The query resolved without reporting a trigger/reset outcome; the
+      // in-flight flag must still clear so a further retry can be dispatched.
+      await flushPromises();
+
+      expect(issue.canRetryNow()).toBe(true);
+    });
+
+    it('should stop treating the retry as in flight when the query rejects', async () => {
+      const { issue, api } = createIssue();
+      vi.mocked(api.getViewManager().setViewByParametersWithNewQuery).mockRejectedValue(
+        new Error('boom'),
+      );
+      issue.trigger({ error: new Error('query failed') });
+
+      issue.retry();
+
+      await flushPromises();
+
+      expect(issue.canRetryNow()).toBe(true);
     });
   });
 

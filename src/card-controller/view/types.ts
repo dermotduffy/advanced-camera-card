@@ -50,6 +50,12 @@ export interface ViewFactoryOptions {
   // user-facing locks (e.g. an active call ending).
   force?: boolean;
 
+  // Why this view change is being made. 'retry' marks a re-run of a previously
+  // failed query and, unlike a navigation, does not clear the existing error(s)
+  // up front: it persists until this attempt resolves. Defaults to
+  // 'navigation'.
+  intent?: 'navigation' | 'retry';
+
   // Options for the query executor that control how a query is executed and the
   // result selected.
   queryExecutorOptions?: QueryExecutorOptions;

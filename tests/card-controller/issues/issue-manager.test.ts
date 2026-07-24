@@ -771,6 +771,57 @@ describe('IssueManager', () => {
     });
   });
 
+  describe('in-flight retry', () => {
+    it('should hold the backoff and not arm a timer while a retry is in flight', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      const api = createCardAPI();
+      const config = createConfig();
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue({
+        ...config,
+        view: {
+          ...config.view,
+          issues: { interaction_mode: 'all', retry_seconds: 'auto' },
+        },
+      });
+      const manager = new IssueManager(api);
+
+      const canRetryNow = vi.fn().mockReturnValue(true);
+      const issue = createIssue('media_query', {
+        hasIssue: vi.fn().mockReturnValue(true),
+        needsRetry: vi.fn().mockReturnValue(true),
+        canRetryNow,
+        retry: vi.fn().mockReturnValue(false),
+      });
+      manager.addIssue(issue);
+
+      manager.evaluate();
+
+      // First attempt fires at the base delay, advancing the backoff to
+      // attempt 1.
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
+      expect(issue.retry).toBeCalledTimes(1);
+
+      // The attempt is now in flight: the problem is still unresolved
+      // (needsRetry) but cannot be retried right now (canRetryNow). The running
+      // timer is cancelled and no further attempt fires, however long we wait.
+      canRetryNow.mockReturnValue(false);
+      manager.evaluate();
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_MAX_SECONDS * 1000);
+      expect(issue.retry).toBeCalledTimes(1);
+
+      // The attempt fails and becomes retryable again. Because the backoff was
+      // preserved, the next delay is the attempt-1 step (base*2), not base.
+      canRetryNow.mockReturnValue(true);
+      manager.evaluate();
+
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
+      expect(issue.retry).toBeCalledTimes(1);
+
+      vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 2 * 0.75 * 1000);
+      expect(issue.retry).toBeCalledTimes(2);
+    });
+  });
+
   describe('reset', () => {
     it('should reset a specific issue and re-evaluate', () => {
       const api = createCardAPI();

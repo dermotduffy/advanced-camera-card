@@ -218,10 +218,6 @@ export class ViewManager implements ViewManagerInterface {
         },
       });
       this._api.getIssueManager().reset('view_incompatible');
-      // A new query is about to run, so any stale media_query error from a
-      // previous attempt is no longer meaningful. If this new query also
-      // fails, it will re-trigger below.
-      this._api.getIssueManager().reset('media_query');
     } catch (e) {
       if (!this._view) {
         initialView = this._getFailSafeView(viewFactoryFunc);
@@ -231,6 +227,15 @@ export class ViewManager implements ViewManagerInterface {
 
     if (!initialView || !this._isAllowedToSetView(initialView, options)) {
       return;
+    }
+
+    // A new query is about to run and is allowed to commit, so any stale
+    // media_query error from a previous attempt is no longer meaningful (on
+    // failure it re-triggers below). A retry is the exception: it re-runs the
+    // same failing query, so its error must persist until this attempt resolves
+    // rather than being cleared here and re-appearing on the next failure.
+    if (options?.intent !== 'retry') {
+      this._api.getIssueManager().reset('media_query');
     }
 
     if (this._view && this._shouldAdoptQueryAndResults(initialView)) {
