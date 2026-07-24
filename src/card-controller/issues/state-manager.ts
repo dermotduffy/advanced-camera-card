@@ -114,13 +114,17 @@ export class IssueStateManager implements IssueReadOnlyState {
     return [...this._issues.values()].some((issue) => issue.needsRetry?.());
   }
 
+  public canRetryNow(): boolean {
+    return [...this._issues.values()].some((issue) => this._canRetryNow(issue));
+  }
+
   public retry(key?: IssueKey, force?: boolean): void {
     const issues = key
       ? [this._issues.get(key)].filter(isTruthy)
       : [...this._issues.values()];
 
     for (const issue of issues) {
-      if (!force && !issue.needsRetry?.()) {
+      if (!force && !this._canRetryNow(issue)) {
         continue;
       }
       if (issue.retry?.()) {
@@ -161,6 +165,12 @@ export class IssueStateManager implements IssueReadOnlyState {
   // =========================================================================
   // Private helpers.
   // =========================================================================
+
+  // An issue that does not implement canRetryNow falls back to needsRetry, so
+  // issues with no in-flight concept can be retried whenever they need one.
+  private _canRetryNow(issue: Issue): boolean {
+    return issue.canRetryNow?.() ?? issue.needsRetry?.() ?? false;
+  }
 
   private _logIfNew(issue: Issue): void {
     const description = issue.getIssue();
