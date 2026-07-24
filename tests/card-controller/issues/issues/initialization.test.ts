@@ -81,7 +81,7 @@ describe('InitializationIssue', () => {
   });
 
   describe('detectDynamic', () => {
-    it('should clear the issue when initialization is now mandatory', () => {
+    it('should clear the issue when mandatory init completes', () => {
       const issue = new InitializationIssue(createAPI(true));
       issue.trigger({ error: new Error('init failed') });
       expect(issue.hasIssue()).toBe(true);
@@ -92,7 +92,7 @@ describe('InitializationIssue', () => {
       expect(issue.getIssue()).toBeNull();
     });
 
-    it('should keep the issue when initialization is still not mandatory', () => {
+    it('should keep the issue when mandatory init is not complete', () => {
       const issue = new InitializationIssue(createAPI(false));
       issue.trigger({ error: new Error('init failed') });
 
@@ -101,14 +101,26 @@ describe('InitializationIssue', () => {
       expect(issue.hasIssue()).toBe(true);
     });
 
-    it('should do nothing when not failed', () => {
+    it('should do nothing when mandatory init is not complete', () => {
       const api = createAPI(false);
       const issue = new InitializationIssue(api);
 
       issue.detectDynamic();
 
       expect(issue.hasIssue()).toBe(false);
-      expect(api.getInitializationManager().isInitializedMandatory).not.toBeCalled();
+    });
+
+    it('should end an in-flight retry when mandatory init completes', () => {
+      const api = createAPI(true);
+      const issue = new InitializationIssue(api);
+      issue.trigger({ error: new Error('init failed') });
+      issue.retry();
+      expect(issue.needsRetry()).toBe(true);
+
+      issue.detectDynamic();
+
+      expect(issue.needsRetry()).toBe(false);
+      expect(issue.canRetryNow()).toBe(false);
     });
   });
 
@@ -123,6 +135,49 @@ describe('InitializationIssue', () => {
       const issue = new InitializationIssue(createAPI());
       expect(issue.needsRetry()).toBe(false);
     });
+
+    it('should stay true across an in-flight retry so the backoff is not reset', () => {
+      const issue = new InitializationIssue(createAPI());
+      issue.trigger({ error: new Error('init failed') });
+
+      issue.retry();
+
+      expect(issue.hasIssue()).toBe(false);
+      expect(issue.needsRetry()).toBe(true);
+    });
+
+    it('should become true again after a fresh failure re-triggers', () => {
+      const issue = new InitializationIssue(createAPI());
+      issue.trigger({ error: new Error('init failed') });
+      issue.retry();
+
+      issue.trigger({ error: new Error('init failed again') });
+
+      expect(issue.needsRetry()).toBe(true);
+      expect(issue.canRetryNow()).toBe(true);
+    });
+  });
+
+  describe('canRetryNow', () => {
+    it('should return false when not failed', () => {
+      const issue = new InitializationIssue(createAPI());
+      expect(issue.canRetryNow()).toBe(false);
+    });
+
+    it('should return true when failed and not in flight', () => {
+      const issue = new InitializationIssue(createAPI());
+      issue.trigger({ error: new Error('init failed') });
+      expect(issue.canRetryNow()).toBe(true);
+    });
+
+    it('should return false while a retry is in flight', () => {
+      const issue = new InitializationIssue(createAPI());
+      issue.trigger({ error: new Error('init failed') });
+
+      issue.retry();
+
+      expect(issue.canRetryNow()).toBe(false);
+    });
   });
 
   describe('retry', () => {
@@ -135,9 +190,23 @@ describe('InitializationIssue', () => {
 
       expect(result).toBe(false);
       expect(issue.hasIssue()).toBe(false);
-      expect(issue.needsRetry()).toBe(false);
       expect(api.getInitializationManager().uninitializeMandatory).toBeCalled();
       expect(api.getCameraManager().destroy).toBeCalled();
+    });
+
+    it('should be a no-op while a retry is already in flight', () => {
+      const api = createAPI();
+      const issue = new InitializationIssue(api);
+      issue.trigger({ error: new Error('init failed') });
+      issue.retry();
+      vi.mocked(api.getInitializationManager().uninitializeMandatory).mockClear();
+      vi.mocked(api.getCameraManager().destroy).mockClear();
+
+      const result = issue.retry();
+
+      expect(result).toBe(false);
+      expect(api.getInitializationManager().uninitializeMandatory).not.toBeCalled();
+      expect(api.getCameraManager().destroy).not.toBeCalled();
     });
   });
 
@@ -150,5 +219,16 @@ describe('InitializationIssue', () => {
 
     expect(issue.hasIssue()).toBe(false);
     expect(issue.getIssue()).toBeNull();
+  });
+
+  it('should end an in-flight retry after reset', () => {
+    const issue = new InitializationIssue(createAPI());
+    issue.trigger({ error: new Error('oops') });
+    issue.retry();
+    expect(issue.needsRetry()).toBe(true);
+
+    issue.reset();
+
+    expect(issue.needsRetry()).toBe(false);
   });
 });
