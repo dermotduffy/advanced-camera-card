@@ -60,14 +60,10 @@ export class MediaGridController {
   // If the order in which the observers are declared changes, the unittest must
   // be updated in triggerResizeObserver and triggerMutationObserver.
   private _hostMutationObserver = new MutationObserver(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    (_mutations: MutationRecord[], _observer: MutationObserver) =>
-      this._calculateGridContentsFromHost(),
+    this._hostMutationHandler.bind(this),
   );
   private _cellMutationObserver = new MutationObserver(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    (_mutations: MutationRecord[], _observer: MutationObserver) =>
-      this._calculateGridContentsFromHost(),
+    this._cellMutationHandler.bind(this),
   );
   private _hostResizeObserver = new ResizeObserver(this._hostResizeHandler.bind(this));
   private _cellResizeObserver = new ResizeObserver(this._cellResizeHandler.bind(this));
@@ -88,9 +84,9 @@ export class MediaGridController {
     // Need to separately listen for slotchanges since mutation observer will
     // not be called for shadom DOM slotted changes.
     if (host instanceof HTMLSlotElement) {
-      host.addEventListener('slotchange', this._calculateGridContentsFromHost);
+      host.addEventListener('slotchange', this._setGridContentsFromHost);
     }
-    this._calculateGridContentsFromHost();
+    this._setGridContentsFromHost();
   }
 
   public destroy(): void {
@@ -101,7 +97,7 @@ export class MediaGridController {
     this._cellMutationObserver.disconnect();
 
     if (this._host instanceof HTMLSlotElement) {
-      this._host.removeEventListener('slotchange', this._calculateGridContentsFromHost);
+      this._host.removeEventListener('slotchange', this._setGridContentsFromHost);
     }
 
     this._masonry?.destroy?.();
@@ -116,7 +112,11 @@ export class MediaGridController {
   public setDisplayConfig(displayConfig: ViewDisplayConfig | null): void {
     if (!isEqual(displayConfig, this._displayConfig)) {
       this._displayConfig = displayConfig;
-      this._calculateGridContentsFromHost();
+
+      // The cells are unchanged, but the config drives both their order and
+      // their size.
+      this._sortItemsInGrid();
+      this._applyCellSize();
     }
   }
 
@@ -133,30 +133,39 @@ export class MediaGridController {
   }
 
   private _sortItemsInGrid(): void {
-    const existingItems = this._masonry?.items;
-    const selectedItem = existingItems?.find(
-      (item) => item.element.getAttribute(this._idAttribute) === this._selected,
+    const masonry = this._masonry;
+    if (!masonry) {
+      return;
+    }
+
+    // Implementation note: With the latest version of the Masonry library
+    // (4.2.2) using the prepended() and appended() methods in quick succession
+    // causes the layout to not show the newly added items. Instead, access the
+    // items in place and swap them around.
+    //
+    // Order is always derived from the grid contents rather than from the
+    // current item order, which may be the result of an earlier sort against a
+    // different selection or `grid_selected_position`.
+    const cells = [...this._gridContents.values()];
+    const sortedItems = [...masonry.items].sort(
+      (a, b) => cells.indexOf(a.element) - cells.indexOf(b.element),
     );
 
     // If `grid_selected_position` is set to 'first' or 'last', move the
     // selected item to the start or end of the list respectively.
-    if (
-      !!this._displayConfig?.grid_selected_position &&
-      ['first', 'last'].includes(this._displayConfig.grid_selected_position) &&
-      existingItems &&
-      selectedItem &&
-      this._masonry
-    ) {
-      // Implementation note: With the latest version of the Masonry library
-      // (4.2.2) using the prepended() and appended() methods in quick succession
-      // causes the layout to not show the newly added items. Instead, access
-      // the items in place and swap them around.
-      const otherItems = existingItems?.filter((item) => item !== selectedItem);
-      const newItems =
-        this._displayConfig.grid_selected_position === 'first'
+    const selectedPosition = this._displayConfig?.grid_selected_position;
+    const selectedItem = sortedItems.find(
+      (item) => item.element.getAttribute(this._idAttribute) === this._selected,
+    );
+
+    if (selectedItem && (selectedPosition === 'first' || selectedPosition === 'last')) {
+      const otherItems = sortedItems.filter((item) => item !== selectedItem);
+      masonry.items =
+        selectedPosition === 'first'
           ? [selectedItem, ...otherItems]
           : [...otherItems, selectedItem];
-      this._masonry.items = newItems;
+    } else {
+      masonry.items = sortedItems;
     }
   }
 
@@ -199,7 +208,7 @@ export class MediaGridController {
     this._masonry?.layout?.();
   }
 
-  private _calculateGridContentsFromHost = (): void => {
+  private _setGridContentsFromHost = (): void => {
     const children = getChildrenFromElement(this._host);
     const gridContents: MediaGridContents = new Map();
     for (const child of children) {
@@ -210,7 +219,25 @@ export class MediaGridController {
     this._setGridContents(gridContents);
   };
 
+  private _hasSameCells(gridContents: MediaGridContents): boolean {
+    if (gridContents.size !== this._gridContents.size) {
+      return false;
+    }
+
+    const existingCells = [...this._gridContents];
+    return [...gridContents].every(
+      ([id, element], index) =>
+        existingCells[index][0] === id && existingCells[index][1] === element,
+    );
+  }
+
   private _setGridContents(gridContents: MediaGridContents): void {
+    // Rebuilding Masonry resets the container height and clears every cell
+    // position, so only do it when the cells themselves change.
+    if (this._masonry && this._hasSameCells(gridContents)) {
+      return;
+    }
+
     this._gridContents = gridContents;
 
     if (this._selected !== null && !this._gridContents.has(this._selected)) {
@@ -222,7 +249,8 @@ export class MediaGridController {
       this._addChildEventListeners(element);
     }
 
-    this._setColumnSizeStyles();
+    // Size the cells before Masonry measures them.
+    this._setCellSizeStyles();
     this._createMasonry();
 
     // Observe grid elements for size or id changes.
@@ -238,8 +266,41 @@ export class MediaGridController {
 
     this._sortItemsInGrid();
     this._updateSelectedStylesOnElements();
-    this._updateWidthFactorStyles();
+
+    // A rebuilt grid has no cell positions at all, so lay it out immediately: a
+    // throttled layout may be deferred, leaving the card collapsed until it
+    // runs.
+    this._forceLayout();
+  }
+
+  private _setCellSizeStyles(): void {
     this._setColumnSizeStyles();
+    this._updateWidthFactorStyles();
+  }
+
+  // Apply a changed cell size to the existing grid. Masonry is updated in place
+  // rather than recreated: a destroy resets the container height to 0, which
+  // can cause an ancestor scrollbar to appear/disappear, changing the available
+  // width and triggering an infinite resize oscillation.
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2306
+  private _applyCellSize(): void {
+    this._setCellSizeStyles();
+    this._masonry?.option?.({ columnWidth: this._getColumnSize() });
+    this._throttledLayout();
+  }
+
+  private _hostMutationHandler(): void {
+    this._setGridContentsFromHost();
+  }
+
+  private _cellMutationHandler(mutations: MutationRecord[]): void {
+    // A changed id changes which cell is which, so the grid must be rebuilt. A
+    // changed width factor only changes how the cells are sized.
+    if (mutations.some((mutation) => mutation.attributeName === this._idAttribute)) {
+      this._setGridContentsFromHost();
+    } else {
+      this._applyCellSize();
+    }
   }
 
   private _hostResizeHandler(): void {
@@ -249,16 +310,7 @@ export class MediaGridController {
     // height may change during the layout.
     if (dimensions.width !== this._hostWidth) {
       this._hostWidth = dimensions.width;
-
-      // Reset the column CSS sizes first.
-      this._setColumnSizeStyles();
-
-      // Update the column width on the existing Masonry instance rather than
-      // destroying and recreating it. A destroy resets the container height to
-      // 0, which can cause an ancestor scrollbar to appear/disappear, changing
-      // the available width and triggering an infinite resize oscillation.
-      this._masonry?.option?.({ columnWidth: this._getColumnSize() });
-      this._throttledLayout();
+      this._applyCellSize();
     }
   }
 
@@ -295,7 +347,6 @@ export class MediaGridController {
       gutter: MEDIA_GRID_HORIZONTAL_GUTTER_WIDTH,
     }) as ExtendedMasonry;
     this._masonry.addItems?.([...this._gridContents.values()]);
-    this._throttledLayout();
   }
 
   private _handleSelectGridCellEvent = (ev: Event): void => {

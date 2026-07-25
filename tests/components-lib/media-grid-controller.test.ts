@@ -65,11 +65,17 @@ const createController = (host: HTMLElement, options?: MediaGridConstructorOptio
   return new MediaGridController(host, options);
 };
 
-const triggerMutationObserver = (hostOrCell: 'cell' | 'host'): void => {
+const triggerMutationObserver = (
+  hostOrCell: 'cell' | 'host',
+  attributeName?: string,
+): void => {
   const mutationObserverTrigger = vi.mocked(global.MutationObserver).mock.calls[
     hostOrCell === 'host' ? 0 : 1
   ][0];
-  mutationObserverTrigger([], mock<MutationObserver>());
+  mutationObserverTrigger(
+    attributeName ? [mock<MutationRecord>({ attributeName: attributeName })] : [],
+    mock<MutationObserver>(),
+  );
 };
 
 const triggerResizeObserver = (hostOrCell: 'cell' | 'host'): void => {
@@ -287,7 +293,7 @@ describe('MediaGridController', () => {
     children[1].setAttribute('test-id', 'beta');
     children[2].setAttribute('test-id', 'gamma');
 
-    triggerMutationObserver('cell');
+    triggerMutationObserver('cell', 'test-id');
 
     expect(controller.getGridContents()).toEqual(
       new Map([
@@ -358,11 +364,10 @@ describe('MediaGridController', () => {
     const controller = createController(parent);
     controller.setDisplayConfig({ mode: 'grid', grid_columns: 2 });
 
-    // Will have been called once on construction, and then again when the
-    // number of columns changes.
-    expect(Masonry).toBeCalledTimes(2);
-    expect(Masonry).toBeCalledWith(
-      parent,
+    // The cells are unchanged, so the new column width is applied to the
+    // existing Masonry instance rather than by constructing a new one.
+    expect(Masonry).toBeCalledTimes(1);
+    expect(masonry.option).toBeCalledWith(
       expect.objectContaining({
         columnWidth: 1499,
       }),
@@ -370,6 +375,52 @@ describe('MediaGridController', () => {
     expect(
       parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
     ).toBe('1499px');
+  });
+
+  it('should not rebuild the grid when the cells are unchanged', () => {
+    const slot = createSlot();
+    createSlotHost({ slot: slot, children: createChildren() });
+    createController(slot);
+
+    expect(Masonry).toBeCalledTimes(1);
+    expect(masonry.destroy).not.toBeCalled();
+
+    slot.dispatchEvent(new Event('slotchange'));
+
+    expect(Masonry).toBeCalledTimes(1);
+    expect(masonry.destroy).not.toBeCalled();
+  });
+
+  it('should rebuild the grid and lay it out when the cells change', () => {
+    const slot = createSlot();
+    const host = createSlotHost({ slot: slot, children: createChildren() });
+    createController(slot);
+
+    expect(Masonry).toBeCalledTimes(1);
+
+    host.replaceChildren(...createChildren());
+    slot.dispatchEvent(new Event('slotchange'));
+
+    expect(Masonry).toBeCalledTimes(2);
+    expect(masonry.destroy).toBeCalledTimes(1);
+
+    // A rebuild leaves the cells unpositioned, so the layout must not be left
+    // to the throttle.
+    expect(masonry.layout).toBeCalled();
+  });
+
+  it('should rebuild the grid when the number of cells changes', () => {
+    const slot = createSlot();
+    const host = createSlotHost({ slot: slot, children: createChildren() });
+    createController(slot);
+
+    expect(Masonry).toBeCalledTimes(1);
+
+    host.append(...createChildren(['new-cell']));
+    slot.dispatchEvent(new Event('slotchange'));
+
+    expect(Masonry).toBeCalledTimes(2);
+    expect(masonry.destroy).toBeCalledTimes(1);
   });
 
   it('should respect selected width factor', () => {
@@ -535,6 +586,53 @@ describe('MediaGridController', () => {
         { element: children[1] },
       ]);
     });
+
+    it('should order from the grid contents rather than the previous sort', () => {
+      const children = createChildren(['0', '1', '2']);
+      const parent = createParent({ children: children });
+
+      // Simulate wrapped children in masonry object.
+      masonry.items = children.map((child) => ({ element: child }));
+
+      const controller = createController(parent);
+      controller.setDisplayConfig({ mode: 'grid', grid_selected_position: 'last' });
+
+      controller.selectCell('0');
+      expect(masonry.items).toEqual([
+        { element: children[1] },
+        { element: children[2] },
+        { element: children[0] },
+      ]);
+
+      // The unselected cells return to their configured order rather than
+      // keeping the order the previous sort left them in.
+      controller.selectCell('1');
+      expect(masonry.items).toEqual([
+        { element: children[0] },
+        { element: children[2] },
+        { element: children[1] },
+      ]);
+
+      // Returning to 'default' restores the configured order entirely.
+      controller.setDisplayConfig({ mode: 'grid', grid_selected_position: 'default' });
+      expect(masonry.items).toEqual([
+        { element: children[0] },
+        { element: children[1] },
+        { element: children[2] },
+      ]);
+    });
+
+    it('should not sort a destroyed grid', () => {
+      const children = createChildren(['0', '1', '2']);
+      const parent = createParent({ children: children });
+      const controller = createController(parent);
+
+      controller.destroy();
+
+      expect(() =>
+        controller.setDisplayConfig({ mode: 'grid', grid_selected_position: 'first' }),
+      ).not.toThrow();
+    });
   });
 
   describe('should set width factor styles correctly', () => {
@@ -568,7 +666,7 @@ describe('MediaGridController', () => {
 
       // Set the attribute.
       children[0].setAttribute('grid-width-factor', '4');
-      triggerMutationObserver('cell');
+      triggerMutationObserver('cell', 'grid-width-factor');
 
       expect(
         children[0].style.getPropertyValue('--advanced-camera-card-grid-width-factor'),
@@ -587,7 +685,7 @@ describe('MediaGridController', () => {
 
       // Remove the attribute.
       children[0].removeAttribute('grid-width-factor');
-      triggerMutationObserver('cell');
+      triggerMutationObserver('cell', 'grid-width-factor');
 
       expect(
         children[0].style.getPropertyValue('--advanced-camera-card-grid-width-factor'),
