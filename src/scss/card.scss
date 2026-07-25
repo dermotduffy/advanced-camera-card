@@ -90,6 +90,10 @@ div.main::-webkit-scrollbar {
   display: none;
 }
 
+// Styling that must win over theme styling uses the `#ha-card` id selector
+// instead of this element selector, which a theme can match with the same
+// specificity and beat on order (e.g. a `ha-card { background: ... }` rule
+// injected by card-mod).
 ha-card {
   display: flex;
   flex-direction: column;
@@ -125,8 +129,6 @@ ha-card {
   margin: 0;
 }
 
-// Need to use an id selector here to overcome theme styling that may
-// incorrectly apply to ha-card style.
 :host(:fullscreen) #ha-card {
   @include fullscreen-ha-card;
 }
@@ -176,6 +178,20 @@ web-dialog::part(dialog) {
   // Fixes to render the dialog correctly in Safari.
   border-radius: 0px;
   background: transparent;
+}
+
+// The card renders inside the dialog when expanded, leaving the opaque
+// background on `:host` behind in the dashboard. Without the background, a view
+// that does not fill the dialog (e.g. the timeline) shows the dashboard through
+// the gap.
+//
+// The card is a flex item of the dialog, and a flex item is by default at least
+// as tall as its own content. A view taller than the dialog is allowed to be
+// (e.g. a grid of many cameras) would overflow it, so the minimum is removed
+// and the card shrinks to the dialog instead, leaving the view to scroll.
+:host([expanded]) #ha-card {
+  background-color: var(--advanced-camera-card-background);
+  min-height: 0;
 }
 
 /*******************
