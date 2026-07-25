@@ -21,31 +21,31 @@ export class StyleManager {
     const card = this._api.getCardElementManager().getElement();
     const view = this._api.getViewManager().getView();
 
+    // A grid shows several media items at once, so no single item describes it.
+    const isSingleMediaView = !view?.isGrid() && !!view?.isAnyMediaView();
+
     // When a new media loads, set the aspect ratio for when the card is
     // expanded/popped-up. This is based exclusively on last media content,
     // as dimension configuration does not apply in fullscreen or expanded mode.
     const lastKnown = this._api.getMediaLoadedInfoManager().getLastKnown();
     card.style.setProperty(
       '--advanced-camera-card-expand-aspect-ratio',
-      view?.isAnyMediaView() && lastKnown
+      isSingleMediaView && lastKnown
         ? `${lastKnown.width} / ${lastKnown.height}`
         : 'unset',
     );
-    // Non-media may have no intrinsic dimensions (or multiple media items in a
-    // grid) and so we need to explicit request the dialog to use all available
-    // space.
-    const isGrid = view?.isGrid();
+    // Non-media and grids have no intrinsic width, so the dialog is asked to
+    // use all the width available.
     card.style.setProperty(
       '--advanced-camera-card-expand-width',
-      !isGrid && view?.isAnyMediaView()
-        ? 'none'
-        : 'var(--advanced-camera-card-expand-max-width)',
+      isSingleMediaView ? 'none' : 'var(--advanced-camera-card-expand-max-width)',
     );
+    // Non-media (e.g. the gallery) has no intrinsic height and fills the
+    // dialog. Media sizes the dialog to itself, up to the maximum height. A
+    // grid is media: it is as tall as the items it packs.
     card.style.setProperty(
       '--advanced-camera-card-expand-height',
-      !isGrid && view?.isAnyMediaView()
-        ? 'none'
-        : 'var(--advanced-camera-card-expand-max-height)',
+      view?.isAnyMediaView() ? 'none' : 'var(--advanced-camera-card-expand-max-height)',
     );
   }
 

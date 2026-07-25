@@ -416,7 +416,7 @@ export class MediaGridController {
       Math.floor(this._hostWidth / MEDIA_GRID_DEFAULT_IDEAL_CELL_WIDTH),
     );
     if (idealColumns > 1) {
-      return idealColumns;
+      return this._clampColumnsToDemand(idealColumns);
     }
 
     // If not, get a multi-column view using the minimum cell width.
@@ -425,7 +425,49 @@ export class MediaGridController {
     );
 
     // Last result use at least 1 column.
-    return Math.max(1, minColumns);
+    return this._clampColumnsToDemand(Math.max(1, minColumns));
+  }
+
+  private _clampColumnsToDemand(columns: number): number {
+    // Extra columns sit empty and make every item narrower than it needs to be.
+    // At least 1 column is used, as the grid may be empty.
+    return Math.max(1, Math.min(columns, this._getDemandedColumns()));
+  }
+
+  // The number of columns the grid items need: one or more per item, plus room
+  // for any one of them to be selected.
+  private _getDemandedColumns(): number {
+    let demand = 0;
+    let selectionAllowance = 0;
+
+    for (const element of this._gridContents.values()) {
+      const attribute = Number(element.getAttribute(this._widthFactorAttribute));
+
+      // An absent or invalid attribute means the item is one column wide.
+      const widthFactor = attribute > 0 ? attribute : 1;
+
+      // Width factors may be fractional, but an item occupies whole columns:
+      // two half-width items need two columns, not one.
+      const columns = Math.ceil(widthFactor);
+      demand += columns;
+
+      selectionAllowance = Math.max(
+        selectionAllowance,
+        Math.ceil(widthFactor * this._getSelectedWidthFactor()) - columns,
+      );
+    }
+
+    // The space a selection needs is reserved for any item, so that selecting
+    // one does not change the column count and resize the whole grid. A lone
+    // item cannot be wider than the grid, so it needs no reservation.
+    return demand + (this._gridContents.size > 1 ? selectionAllowance : 0);
+  }
+
+  private _getSelectedWidthFactor(): number {
+    return (
+      this._displayConfig?.grid_selected_width_factor ??
+      MEDIA_GRID_DEFAULT_SELECTED_WIDTH_FACTOR
+    );
   }
 
   private _setColumnSizeStyles(): void {
@@ -436,10 +478,7 @@ export class MediaGridController {
 
     this._host.style.setProperty(
       '--advanced-camera-card-grid-selected-width-factor',
-      `${
-        this._displayConfig?.grid_selected_width_factor ??
-        MEDIA_GRID_DEFAULT_SELECTED_WIDTH_FACTOR
-      }`,
+      `${this._getSelectedWidthFactor()}`,
     );
   }
 }

@@ -423,6 +423,190 @@ describe('MediaGridController', () => {
     expect(masonry.destroy).toBeCalledTimes(1);
   });
 
+  it('should not use more columns than the items ask for', () => {
+    const parent = createParent({ children: createChildren(['0']), width: 3000 });
+    createController(parent);
+
+    // The lone item takes the whole grid. Sizing from the width alone would
+    // give it 1 of 5 columns, with the other 4 left empty.
+    expect(Masonry).toBeCalledWith(
+      parent,
+      expect.objectContaining({
+        columnWidth: 3000,
+      }),
+    );
+    expect(
+      parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
+    ).toBe('3000px');
+  });
+
+  it('should not use more columns than the items ask for on a narrow host', () => {
+    const parent = createParent({ children: createChildren(['0']) });
+    createController(parent);
+
+    // Sizing from the width alone would give the lone item half of a default
+    // width card.
+    expect(Masonry).toBeCalledWith(
+      parent,
+      expect.objectContaining({
+        columnWidth: 492,
+      }),
+    );
+    expect(
+      parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
+    ).toBe('492px');
+  });
+
+  it('should use a single column when there are no items', () => {
+    const parent = createParent({ width: 3000 });
+    createController(parent);
+
+    expect(Masonry).toBeCalledWith(
+      parent,
+      expect.objectContaining({
+        columnWidth: 3000,
+      }),
+    );
+    expect(
+      parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
+    ).toBe('3000px');
+  });
+
+  it('should respect exact columns even with fewer items', () => {
+    const parent = createParent({ children: createChildren(['0']), width: 3000 });
+    const controller = createController(parent);
+    controller.setDisplayConfig({ mode: 'grid', grid_columns: 4 });
+
+    expect(masonry.option).toBeCalledWith(
+      expect.objectContaining({
+        columnWidth: 749,
+      }),
+    );
+    expect(
+      parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
+    ).toBe('749px');
+  });
+
+  it('should size columns so a selected item and its siblings fit a single row', () => {
+    const parent = createParent({
+      children: createChildren(['0', '1', '2']),
+      width: 3000,
+    });
+    createController(parent, { selected: '1' });
+
+    // The items ask for 4 columns: 2 for the selection (the default
+    // `grid_selected_width_factor`) and 1 for each of its siblings.
+    expect(Masonry).toBeCalledWith(
+      parent,
+      expect.objectContaining({
+        columnWidth: 749,
+      }),
+    );
+
+    const selectedWidth = 2 * 749;
+    expect(selectedWidth + 749 + 749).toBeLessThanOrEqual(3000);
+  });
+
+  it('should give a lone selected item the whole grid', () => {
+    const parent = createParent({ children: createChildren(['0']), width: 3000 });
+    createController(parent, { selected: '0' });
+
+    // A selection is normally reserved extra columns, but a lone item cannot be
+    // wider than the grid and so cannot use them.
+    expect(Masonry).toBeCalledWith(
+      parent,
+      expect.objectContaining({
+        columnWidth: 3000,
+      }),
+    );
+  });
+
+  it('should count a custom selected width factor towards the columns asked for', () => {
+    const parent = createParent({
+      children: createChildren(['0', '1', '2']),
+      width: 3000,
+    });
+    const controller = createController(parent, { selected: '1' });
+    controller.setDisplayConfig({ mode: 'grid', grid_selected_width_factor: 3 });
+
+    // 3 columns for the selection and 1 for each sibling exhausts the 5
+    // columns the width allows.
+    expect(masonry.option).toBeCalledWith(
+      expect.objectContaining({
+        columnWidth: 599,
+      }),
+    );
+    expect(
+      parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
+    ).toBe('599px');
+  });
+
+  it('should count item width factors towards the columns asked for', () => {
+    const children = createChildren(['0', '1', '2']);
+    children[0].setAttribute('grid-width-factor', '2');
+    const parent = createParent({ children: children, width: 4200 });
+    createController(parent);
+
+    // The items span 4 columns, and the widest needs 2 more when selected.
+    // Ignoring the width factor would give 4 columns of 1049px.
+    expect(Masonry).toBeCalledWith(
+      parent,
+      expect.objectContaining({
+        columnWidth: 699,
+      }),
+    );
+  });
+
+  it('should give an item that is narrower than a column a column of its own', () => {
+    const children = createChildren(['0', '1', '2']);
+    for (const child of children) {
+      child.setAttribute('grid-width-factor', '0.5');
+    }
+    const parent = createParent({ children: children, width: 1800 });
+    createController(parent, { selected: '0' });
+
+    // Each item asks for one column: the selection fills exactly one at 0.5 x
+    // 2, and a half-width sibling still occupies a whole one.
+    expect(Masonry).toBeCalledWith(
+      parent,
+      expect.objectContaining({
+        columnWidth: 599,
+      }),
+    );
+  });
+
+  it('should not resize columns when a selection is made or removed', () => {
+    const children = createChildren(['0', '1', '2']);
+    const parent = createParent({ children: children, width: 3000 });
+    const controller = createController(parent);
+
+    // Room for a selection is reserved whether or not there is one, so the
+    // three items ask for 4 columns either way.
+    expect(Masonry).toBeCalledWith(
+      parent,
+      expect.objectContaining({
+        columnWidth: 749,
+      }),
+    );
+
+    vi.mocked(masonry.option)?.mockClear();
+    controller.selectCell('1');
+
+    // Selecting an item would otherwise resize the items the user did not
+    // interact with.
+    expect(masonry.option).not.toBeCalled();
+    expect(
+      parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
+    ).toBe('749px');
+
+    controller.unselectAll();
+
+    expect(masonry.option).not.toBeCalled();
+    expect(
+      parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
+    ).toBe('749px');
+  });
+
   it('should respect selected width factor', () => {
     const parent = createParent({ children: createChildren(), width: 2000 });
     const controller = createController(parent);
@@ -511,10 +695,10 @@ describe('MediaGridController', () => {
     // Masonry should not be recreated, but column width should be updated
     // via option() and layout should be called.
     expect(Masonry).not.toBeCalled();
-    expect(masonry.option).toBeCalledWith({ columnWidth: 599 });
+    expect(masonry.option).toBeCalledWith({ columnWidth: 749 });
     expect(
       parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
-    ).toBe('599px');
+    ).toBe('749px');
     expect(masonry.layout).toBeCalled();
 
     // Clear mock state.

@@ -133,7 +133,32 @@ describe('StyleManager', () => {
 
       expect(
         element.style.getPropertyValue('--advanced-camera-card-expand-aspect-ratio'),
-      ).toBe('800 / 600');
+      ).toBe('unset');
+      expect(element.style.getPropertyValue('--advanced-camera-card-expand-width')).toBe(
+        'var(--advanced-camera-card-expand-max-width)',
+      );
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-expand-height'),
+      ).toBe('none');
+    });
+
+    it('with a non-media view', () => {
+      const api = createCardAPI();
+      const element = document.createElement('div');
+      vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+      const view = createView({ view: 'timeline' });
+      vi.mocked(api.getViewManager().getView).mockReturnValue(view);
+      vi.mocked(api.getMediaLoadedInfoManager().getLastKnown).mockReturnValue({
+        width: 800,
+        height: 600,
+      });
+      const manager = new StyleManager(api);
+
+      manager.setExpandedMode();
+
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-expand-aspect-ratio'),
+      ).toBe('unset');
       expect(element.style.getPropertyValue('--advanced-camera-card-expand-width')).toBe(
         'var(--advanced-camera-card-expand-max-width)',
       );
