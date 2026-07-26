@@ -12,11 +12,21 @@ opt <color:#43a047>**""live.microphone.always_connected""**</color> is enabled
   Mic --> User : Microphone access granted
 end
 
-User -> Card : Start a call
-note over User, Card
-  Via Call menu button or <color:#43a047>**""call_start""**</color> action.
-  Needs a camera that supports 2-way audio
-end note
+alt Outbound call
+  User -> Card : Start a call
+  note over User, Card
+    Via Call menu button or <color:#43a047>**""call_start""**</color> action.
+    Needs a camera that supports 2-way audio
+  end note
+else Inbound call
+  Guest -> Card : Rings
+  note over Card
+    Via a <color:#43a047>**""view.triggers.actions.trigger: call""**</color> trigger, e.g. a doorbell.
+    The card rings (<color:#43a047>**""live.controls.call.ringtone""**</color>) until answered,
+    rejected, or <color:#43a047>**""live.controls.call.unanswered_timeout_seconds""**</color> elapses
+  end note
+  User -> Card : Answer the call
+end
 
 opt <color:#43a047>**""live.microphone.always_connected""**</color> not enabled
   Card -> Mic : Microphone connection attempted (muted)
@@ -25,8 +35,9 @@ opt <color:#43a047>**""live.microphone.always_connected""**</color> not enabled
 end
 
 note over User, Mic
-  The microphone must connect for the call to proceed --
-  if access is denied or unsupported, the call does not start
+  The microphone is connected when the call is answered -- immediately
+  for an outbound call. An inbound call rings without it, so a doorbell
+  can ring even where microphone access needs a tap to be granted
 end note
 
 Card --> User : You hear the caller

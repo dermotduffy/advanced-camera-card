@@ -6,6 +6,6 @@ export class CallAnswerAction extends AdvancedCameraCardAction<CallAnswerActionC
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
-    api.getCallManager().answer();
+    await api.getCallManager().answer();
   }
 }

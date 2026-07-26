@@ -544,6 +544,53 @@ describe('start', () => {
     expect(api.getViewManager().setViewByParameters).not.toBeCalled();
     expect(api.getNotificationManager().setNotification).toBeCalled();
   });
+
+  it('should ring an inbound call without connecting the microphone', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+      config: { live: { controls: { call: { ringtone: { type: 'chime' } } } } },
+    });
+    vi.mocked(api.getMicrophoneManager().connect).mockRejectedValue(new Error());
+    const manager = new CallManager(api);
+
+    // The microphone is only needed once the call is answered, so a connect
+    // that would fail must not stop the call from ringing.
+    expect(await manager.start({ inbound: true })).toBe(true);
+
+    expect(api.getMicrophoneManager().connect).not.toBeCalled();
+    expect(getRingtone().start).toBeCalled();
+  });
+
+  it('should ring an inbound call when the microphone is forbidden', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneForbidden: true,
+      config: { live: { controls: { call: { ringtone: { type: 'chime' } } } } },
+    });
+    const manager = new CallManager(api);
+
+    // An earlier denial must not silence a doorbell: the ring needs no
+    // microphone, and answering retries the connect.
+    expect(await manager.start({ inbound: true })).toBe(true);
+
+    expect(getRingtone().start).toBeCalled();
+  });
+
+  it('should abort an inbound call when the microphone is unsupported', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneSupported: false,
+      config: { live: { controls: { call: { ringtone: { type: 'chime' } } } } },
+    });
+    const manager = new CallManager(api);
+
+    // Unlike a denial, a browser without microphone support cannot start
+    // supporting it while the page is loaded, so the call can never be taken.
+    expect(await manager.start({ inbound: true })).toBe(false);
+
+    expect(getRingtone().start).not.toBeCalled();
+  });
 });
 
 // An inbound start request must not displace a call the user cares about
@@ -571,7 +618,7 @@ describe('inbound supersede policy', () => {
     manager.initialize();
     expect(await manager.start({ inbound: true })).toBe(true);
 
-    expect(manager.answer()).toBe(true);
+    expect(await manager.answer()).toBe(true);
     expect(manager.getCall()?.answered).toBe(true);
 
     expect(await manager.start({ cameraID: 'camera.garage', inbound: true })).toBe(
@@ -626,7 +673,7 @@ describe('inbound supersede policy', () => {
     const manager = new CallManager(api);
     manager.initialize();
     expect(await manager.start({ inbound: true })).toBe(true);
-    expect(manager.answer()).toBe(true);
+    expect(await manager.answer()).toBe(true);
 
     expect(await manager.start({ cameraID: 'camera.garage' })).toBe(true);
 
@@ -838,7 +885,7 @@ describe('endIf', () => {
       const manager = new CallManager(api);
       manager.initialize();
       expect(await manager.start({ inbound: true })).toBe(true);
-      expect(manager.answer()).toBe(true);
+      expect(await manager.answer()).toBe(true);
       expect(manager.getCall()?.answered).toBe(true);
 
       expect(manager.endIf({ answered: false })).toBe(false);
@@ -1109,11 +1156,11 @@ describe('initialize / uninitialize', () => {
   });
 });
 
-// `inbound: true` suppresses each of the preflight/validation notifications.
-// Every path that would call `_notifyError` is exercised under both the
-// non-inbound case (notification surfaced) and the inbound case (silent). The
-// non-inbound coverage already lives in the `start` describe above; here we
-// assert the inbound paths stay silent.
+// `inbound: true` suppresses each of the preflight/validation notifications an
+// inbound start can still reach. The non-inbound coverage (notification
+// surfaced) already lives in the `start` describe above; here we assert the
+// inbound paths stay silent. The forbidden-microphone check is deliberately
+// absent -- an inbound start no longer reaches it at all.
 describe('inbound option', () => {
   it('should suppress notification when the camera lacks live capability', async () => {
     const api = createAPI({
@@ -1136,29 +1183,6 @@ describe('inbound option', () => {
       view: createView({ camera: 'camera.office' }),
       microphoneSupported: false,
     });
-
-    expect(await new CallManager(api).start({ inbound: true })).toBe(false);
-
-    expect(api.getNotificationManager().setNotification).not.toBeCalled();
-  });
-
-  it('should suppress notification when the microphone is forbidden', async () => {
-    const api = createAPI({
-      view: createView({ camera: 'camera.office' }),
-      microphoneForbidden: true,
-    });
-
-    expect(await new CallManager(api).start({ inbound: true })).toBe(false);
-
-    expect(api.getNotificationManager().setNotification).not.toBeCalled();
-  });
-
-  it('should suppress notification when microphone connect rejects', async () => {
-    const api = createAPI({
-      view: createView({ camera: 'camera.office' }),
-      microphoneConnected: false,
-    });
-    vi.mocked(api.getMicrophoneManager().connect).mockRejectedValue(new Error('denied'));
 
     expect(await new CallManager(api).start({ inbound: true })).toBe(false);
 
@@ -1249,11 +1273,11 @@ describe('answer', () => {
     expect(getRingtone().start).toBeCalled();
   });
 
-  it('should no-op when no call is active', () => {
+  it('should no-op when no call is active', async () => {
     const api = createAPI();
     const manager = new CallManager(api);
 
-    expect(manager.answer()).toBe(false);
+    expect(await manager.answer()).toBe(false);
   });
 
   it('should no-op when the call is already answered', async () => {
@@ -1264,11 +1288,11 @@ describe('answer', () => {
     const manager = new CallManager(api);
     manager.initialize();
     expect(await manager.start({ inbound: true })).toBe(true);
-    expect(manager.answer()).toBe(true);
+    expect(await manager.answer()).toBe(true);
     vi.mocked(getRingtone().stop).mockClear();
     vi.mocked(api.getCardElementManager().update).mockClear();
 
-    expect(manager.answer()).toBe(false);
+    expect(await manager.answer()).toBe(false);
 
     expect(getRingtone().stop).not.toBeCalled();
     expect(api.getCardElementManager().update).not.toBeCalled();
@@ -1284,7 +1308,7 @@ describe('answer', () => {
     expect(await manager.start({ inbound: true })).toBe(true);
     const before = manager.getCall();
 
-    expect(manager.answer()).toBe(true);
+    expect(await manager.answer()).toBe(true);
 
     const after = manager.getCall();
     expect(after?.answered).toBe(true);
@@ -1315,7 +1339,7 @@ describe('answer', () => {
       expect(await manager.start({ inbound: true })).toBe(true);
       vi.mocked(getRingtone().stop).mockClear();
 
-      expect(manager.answer()).toBe(true);
+      expect(await manager.answer()).toBe(true);
 
       expect(getRingtone().stop).toBeCalled();
 
@@ -1328,6 +1352,68 @@ describe('answer', () => {
     }
   });
 
+  it('should connect the microphone on answer', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+      config: inboundConfig,
+    });
+    vi.mocked(api.getMicrophoneManager().connect).mockResolvedValue();
+    const manager = new CallManager(api);
+    manager.initialize();
+    expect(await manager.start({ inbound: true })).toBe(true);
+
+    expect(await manager.answer()).toBe(true);
+
+    expect(api.getMicrophoneManager().connect).toBeCalled();
+  });
+
+  it('should silence the ringtone before the microphone connect', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+      config: inboundConfig,
+    });
+    let resolveConnect: () => void = () => {};
+    vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveConnect = resolve;
+      }),
+    );
+    const manager = new CallManager(api);
+    manager.initialize();
+    expect(await manager.start({ inbound: true })).toBe(true);
+    vi.mocked(getRingtone().stop).mockClear();
+
+    const answerPromise = manager.answer();
+
+    // The user has acknowledged the ring, so it must stop without waiting for a
+    // microphone permission prompt to be dealt with.
+    expect(getRingtone().stop).toBeCalled();
+
+    resolveConnect();
+    expect(await answerPromise).toBe(true);
+  });
+
+  it('should leave the call ringing when the microphone connect fails', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      microphoneConnected: false,
+      config: inboundConfig,
+    });
+    vi.mocked(api.getMicrophoneManager().connect).mockRejectedValue(new Error('denied'));
+    const manager = new CallManager(api);
+    manager.initialize();
+    expect(await manager.start({ inbound: true })).toBe(true);
+
+    expect(await manager.answer()).toBe(false);
+
+    // Answering is an explicit user gesture, so the failure is surfaced and the
+    // call remains answerable.
+    expect(api.getNotificationManager().setNotification).toBeCalled();
+    expect(manager.getCall()?.answered).toBe(false);
+  });
+
   it('should force a card re-render on answer', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
@@ -1338,7 +1424,7 @@ describe('answer', () => {
     expect(await manager.start({ inbound: true })).toBe(true);
     vi.mocked(api.getCardElementManager().update).mockClear();
 
-    expect(manager.answer()).toBe(true);
+    expect(await manager.answer()).toBe(true);
 
     // The card subtree depends on `getCall().answered`, which the manager
     // mutates outside the view-manager epoch -- so `update()` is what drives
@@ -1353,7 +1439,7 @@ describe('answer', () => {
     expect(await manager.start()).toBe(true);
 
     // Outbound starts answered, so `answer()` is a no-op.
-    expect(manager.answer()).toBe(false);
+    expect(await manager.answer()).toBe(false);
     expect(manager.getCall()?.answered).toBe(true);
   });
 
@@ -1593,7 +1679,7 @@ describe('unanswered timeout', () => {
     manager.initialize();
     expect(await manager.start({ inbound: true })).toBe(true);
 
-    expect(manager.answer()).toBe(true);
+    expect(await manager.answer()).toBe(true);
     vi.advanceTimersByTime(60_000);
 
     expect(manager.isActive()).toBe(true);
@@ -1680,11 +1766,10 @@ describe('session end during setState', () => {
 });
 
 describe('state changes during in-flight start', () => {
-  it('should not install a session or ring when uninitialized mid-await', async () => {
+  it('should not install a session when uninitialized mid-await', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
       microphoneConnected: false,
-      config: { live: { controls: { call: { ringtone: { type: 'chime' } } } } },
     });
     let resolveConnect: () => void = () => {};
     vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
@@ -1695,20 +1780,19 @@ describe('state changes during in-flight start', () => {
     const manager = new CallManager(api);
     manager.initialize();
 
-    const startPromise = manager.start({ inbound: true });
+    const startPromise = manager.start();
     manager.uninitialize();
     resolveConnect();
 
     expect(await startPromise).toBe(false);
-    expect(getRingtone().start).not.toBeCalled();
     expect(manager.isActive()).toBe(false);
+    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
   });
 
-  it('should not install a session or ring when uninitialized and re-initialized mid-await', async () => {
+  it('should not install a session when uninitialized and re-initialized mid-await', async () => {
     const api = createAPI({
       view: createView({ camera: 'camera.office' }),
       microphoneConnected: false,
-      config: { live: { controls: { call: { ringtone: { type: 'chime' } } } } },
     });
     let resolveConnect: () => void = () => {};
     vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
@@ -1719,14 +1803,14 @@ describe('state changes during in-flight start', () => {
     const manager = new CallManager(api);
     manager.initialize();
 
-    const startPromise = manager.start({ inbound: true });
+    const startPromise = manager.start();
     manager.uninitialize();
     manager.initialize();
     resolveConnect();
 
     expect(await startPromise).toBe(false);
-    expect(getRingtone().start).not.toBeCalled();
     expect(manager.isActive()).toBe(false);
+    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
   });
 
   it('should supersede a session installed by another start mid-await', async () => {
@@ -1789,6 +1873,84 @@ describe('state changes during in-flight start', () => {
 
     expect(await startPromise).toBe(false);
     expect(api.getNotificationManager().setNotification).not.toBeCalled();
+  });
+});
+
+// Answering an inbound call is where its microphone is connected, so the same
+// mid-await state changes that `start()` guards against apply here too.
+describe('state changes during in-flight answer', () => {
+  const inboundConfig = {
+    live: { controls: { call: { ringtone: { type: 'chime' as const } } } },
+  };
+
+  // Starts a ringing inbound call whose subsequent `answer()` will suspend on
+  // the microphone connect until the returned settler is invoked.
+  const createRingingCall = async (
+    api: CardController,
+  ): Promise<{
+    manager: CallManager;
+    resolveConnect: () => void;
+    rejectConnect: (reason: unknown) => void;
+  }> => {
+    const manager = new CallManager(api);
+    manager.initialize();
+    expect(await manager.start({ inbound: true })).toBe(true);
+
+    vi.mocked(api.getMicrophoneManager().isConnected).mockReturnValue(false);
+    let resolveConnect: () => void = () => {};
+    let rejectConnect: (reason: unknown) => void = () => {};
+    vi.mocked(api.getMicrophoneManager().connect).mockReturnValue(
+      new Promise<void>((resolve, reject) => {
+        resolveConnect = resolve;
+        rejectConnect = reject;
+      }),
+    );
+    return { manager, resolveConnect, rejectConnect };
+  };
+
+  it('should not answer when uninitialized mid-await', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      config: inboundConfig,
+    });
+    const { manager, resolveConnect } = await createRingingCall(api);
+
+    const answerPromise = manager.answer();
+    manager.uninitialize();
+    resolveConnect();
+
+    expect(await answerPromise).toBe(false);
+    expect(manager.isActive()).toBe(false);
+  });
+
+  it('should suppress the microphone-failure notification when uninitialized mid-await', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      config: inboundConfig,
+    });
+    const { manager, rejectConnect } = await createRingingCall(api);
+
+    const answerPromise = manager.answer();
+    manager.uninitialize();
+    rejectConnect(new Error('denied'));
+
+    expect(await answerPromise).toBe(false);
+    expect(api.getNotificationManager().setNotification).not.toBeCalled();
+  });
+
+  it('should not answer a session that ended mid-await', async () => {
+    const api = createAPI({
+      view: createView({ camera: 'camera.office' }),
+      config: inboundConfig,
+    });
+    const { manager, resolveConnect } = await createRingingCall(api);
+
+    const answerPromise = manager.answer();
+    expect(manager.end()).toBe(true);
+    resolveConnect();
+
+    expect(await answerPromise).toBe(false);
+    expect(manager.isActive()).toBe(false);
   });
 });
 
@@ -1877,7 +2039,7 @@ describe('published phase transitions in condition state', () => {
     expect(await manager.start({ inbound: true })).toBe(true);
     expect(answered).not.toHaveBeenCalled();
 
-    expect(manager.answer()).toBe(true);
+    expect(await manager.answer()).toBe(true);
 
     expect(answered).toHaveBeenCalledTimes(1);
   });
@@ -1924,7 +2086,7 @@ describe('published phase transitions in condition state', () => {
     });
 
     expect(await manager.start({ inbound: true })).toBe(true);
-    expect(manager.answer()).toBe(true);
+    expect(await manager.answer()).toBe(true);
     expect(manager.end()).toBe(true);
 
     expect(hungUp).toHaveBeenCalledTimes(1);
