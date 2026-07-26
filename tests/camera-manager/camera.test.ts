@@ -8,19 +8,18 @@ import type { EventWatcherSubscriptionInterface } from '../../src/card-controlle
 import type { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { liveProviderSupports2WayAudio } from '../../src/utils/live-provider.js';
 import type * as LiveProviderUtils from '../../src/utils/live-provider.js';
+import { createCameraConfig } from '../config/test-utils';
 import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {
   callEventWatcherCallback,
   callStateWatcherCallback,
-  createCameraConfig,
-  createCapabilities,
   createHASS,
   createHASSEvent,
   createHASSManager,
-  createInitializedCamera,
   createRegistryEntity,
   createStateEntity,
 } from '../test-utils.js';
+import { createCapabilities, createInitializedCamera } from './test-utils';
 
 // Partially mock to keep the real pure helpers (e.g. `isGo2RTCLiveProvider`
 // used by `getProxyConfig`) while mocking the async metadata fetch.

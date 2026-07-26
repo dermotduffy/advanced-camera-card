@@ -9,7 +9,8 @@ import type { FolderConfig } from '../../../src/config/schema/folders';
 import { QuerySource } from '../../../src/query-source';
 import type { Endpoint } from '../../../src/types';
 import { ViewFolder } from '../../../src/view/item';
-import { createFolder, createHASS, TestViewMedia } from '../../test-utils';
+import { createFolder, createHASS } from '../../test-utils';
+import { TestViewMedia } from '../../view/test-utils';
 
 vi.mock('../../../src/card-controller/folders/ha/engine');
 vi.mock('../../../../src/utils/ha/download');

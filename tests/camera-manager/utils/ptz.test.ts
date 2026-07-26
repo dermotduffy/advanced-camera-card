@@ -8,7 +8,7 @@ import {
 } from '../../../src/camera-manager/utils/ptz';
 import type { PTZAction } from '../../../src/config/schema/actions/custom/ptz';
 import { PTZMovementType } from '../../../src/types';
-import { createCameraConfig } from '../../test-utils';
+import { createCameraConfig } from '../../config/test-utils';
 
 const action = {
   action: 'perform-action' as const,

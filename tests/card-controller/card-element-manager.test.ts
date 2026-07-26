@@ -11,9 +11,8 @@ import {
   createCardAPI,
   createCardHTMLElement,
   createStateEntity,
-  createView,
-  TestViewMedia,
 } from '../test-utils';
+import { createView, TestViewMedia } from '../view/test-utils';
 
 // @vitest-environment jsdom
 describe('CardElementManager', () => {

@@ -5,7 +5,7 @@ import { MergeContextViewModifier } from '../../../../src/card-controller/view/m
 import { SetQueryViewModifier } from '../../../../src/card-controller/view/modifiers/set-query';
 import { QueryResults } from '../../../../src/view/query-results';
 import { UnifiedQuery } from '../../../../src/view/unified-query';
-import { createView } from '../../../test-utils';
+import { createView } from '../../../view/test-utils';
 
 it('should apply view modifiers', () => {
   const view = createView();

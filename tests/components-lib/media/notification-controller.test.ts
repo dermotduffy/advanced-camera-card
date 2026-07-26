@@ -15,7 +15,8 @@ import type { NotificationControl } from '../../../src/config/schema/actions/typ
 import { formatDateAndTime } from '../../../src/utils/basic';
 import { downloadMedia, navigateToTimeline } from '../../../src/utils/media-actions';
 import { ViewFolder, ViewMediaType } from '../../../src/view/item';
-import { createCardAPI, createFolder, TestViewMedia } from '../../test-utils';
+import { createCardAPI, createFolder } from '../../test-utils';
+import { TestViewMedia } from '../../view/test-utils';
 
 vi.mock('../../../src/utils/media-actions', async (importOriginal) => ({
   ...((await importOriginal()) as object),

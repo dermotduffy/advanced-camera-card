@@ -16,16 +16,15 @@ import type { TriggerOfType } from '../../../src/condition-trigger/triggers/trig
 import type { RingtoneConfig } from '../../../src/config/schema/live';
 import type { AdvancedCameraCardConfig } from '../../../src/config/schema/types';
 import { View } from '../../../src/view/view';
-import { createTriggerEvaluatorContext } from '../../condition-trigger/triggers/triggers/test-utils';
-import { createConfig } from '../../config/test-utils';
 import {
-  createCameraConfig,
   createCameraManager,
   createCapabilities,
-  createCardAPI,
   createStore,
-  createView,
-} from '../../test-utils';
+} from '../../camera-manager/test-utils';
+import { createTriggerEvaluatorContext } from '../../condition-trigger/triggers/triggers/test-utils';
+import { createCameraConfig, createConfig } from '../../config/test-utils';
+import { createCardAPI } from '../../test-utils';
+import { createView } from '../../view/test-utils';
 
 // Replace Ringtone with a fresh `mock<Ringtone>()` per construction so each
 // CallManager gets an isolated, type-safe ringtone we can assert on. The

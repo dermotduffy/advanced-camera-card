@@ -1,3 +1,4 @@
+import { cameraConfigSchema, type CameraConfig } from '../../src/config/schema/cameras';
 import {
   performanceConfigSchema,
   type PerformanceConfig,
@@ -26,4 +27,8 @@ export const createConfig = (
 
 export const createPerformanceConfig = (config: unknown): PerformanceConfig => {
   return performanceConfigSchema.parse(config);
+};
+
+export const createCameraConfig = (config?: unknown): CameraConfig => {
+  return cameraConfigSchema.parse(config ?? {});
 };

@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { InfoAction } from '../../../../src/card-controller/actions/actions/info';
 import { QueryResults } from '../../../../src/view/query-results';
 import { View } from '../../../../src/view/view';
-import { createCardAPI, TestViewMedia } from '../../../test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { TestViewMedia } from '../../../view/test-utils';
 
 describe('InfoAction', () => {
   it('should handle info action with media', async () => {

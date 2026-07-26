@@ -4,16 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EventWatcher } from '../../../src/card-controller/hass/event-watcher';
 import { HASSManager } from '../../../src/card-controller/hass/hass-manager';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
-import { createConfig } from '../../config/test-utils';
-import {
-  createCameraConfig,
-  createCameraManager,
-  createCardAPI,
-  createHASS,
-  createStateEntity,
-  createStore,
-  createView,
-} from '../../test-utils';
+import { createCameraManager, createStore } from '../../camera-manager/test-utils';
+import { createCameraConfig, createConfig } from '../../config/test-utils';
+import { createCardAPI, createHASS, createStateEntity } from '../../test-utils';
+import { createView } from '../../view/test-utils';
 
 describe('HASSManager', () => {
   beforeEach(() => {

@@ -4,7 +4,7 @@ import { mock } from 'vitest-mock-extended';
 import type { CameraManager } from '../../../src/camera-manager/manager';
 import type { FoldersManager } from '../../../src/card-controller/folders/manager';
 import { resolveViewName } from '../../../src/view/utils/resolve-default';
-import { createStore } from '../../test-utils';
+import { createStore } from '../../camera-manager/test-utils';
 
 describe('resolveViewName', () => {
   it('should return the view name directly if not auto', () => {

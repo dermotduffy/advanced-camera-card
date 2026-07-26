@@ -5,14 +5,10 @@ import { Engine, QueryResultsType, QueryType } from '../../../src/camera-manager
 import type { CameraConfig } from '../../../src/config/schema/cameras';
 import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import { QuerySource } from '../../../src/query-source';
-import {
-  createCameraConfig,
-  createHASS,
-  createHASSManager,
-  createStateEntity,
-  createStore,
-  TestViewMedia,
-} from '../../test-utils';
+import { createCameraConfig } from '../../config/test-utils';
+import { createHASS, createHASSManager, createStateEntity } from '../../test-utils';
+import { TestViewMedia } from '../../view/test-utils';
+import { createStore } from '../test-utils';
 
 const createEngine = (): GenericCameraManagerEngine => {
   return new GenericCameraManagerEngine(createHASSManager());

@@ -19,14 +19,10 @@ import {
   isAdvancedCameraCardCustomAction,
 } from '../../../src/utils/action';
 import { arrayify } from '../../../src/utils/basic';
+import { createStore } from '../../camera-manager/test-utils';
 import { createConfig } from '../../config/test-utils';
-import {
-  createCardAPI,
-  createHASS,
-  createStateEntity,
-  createStore,
-  createView,
-} from '../../test-utils';
+import { createCardAPI, createHASS, createStateEntity } from '../../test-utils';
+import { createView } from '../../view/test-utils';
 
 const isGeneratedAction = (action: ActionConfig): action is GeneratedActionConfig =>
   'advanced_camera_card_action' in action &&

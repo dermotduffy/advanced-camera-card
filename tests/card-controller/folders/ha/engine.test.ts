@@ -11,12 +11,8 @@ import { homeAssistantWSRequest } from '../../../../src/ha/ws-request';
 import { QuerySource } from '../../../../src/query-source';
 import type { Endpoint } from '../../../../src/types';
 import { ViewFolder, ViewMedia } from '../../../../src/view/item';
-import {
-  createBrowseMedia,
-  createFolder,
-  createHASS,
-  TestViewMedia,
-} from '../../../test-utils';
+import { createBrowseMedia, createFolder, createHASS } from '../../../test-utils';
+import { TestViewMedia } from '../../../view/test-utils';
 
 vi.mock('../../../../src/ha/download');
 vi.mock('../../../../src/ha/ws-request');

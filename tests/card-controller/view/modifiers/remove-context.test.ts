@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 
 import { RemoveContextViewModifier } from '../../../../src/card-controller/view/modifiers/remove-context';
-import { createView } from '../../../test-utils';
+import { createView } from '../../../view/test-utils';
 
 it('should remove context property', () => {
   const modifier = new RemoveContextViewModifier(['timeline']);

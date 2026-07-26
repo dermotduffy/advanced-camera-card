@@ -7,9 +7,9 @@ import type { CameraProxyConfig } from '../../../src/camera-manager/types';
 import type { ActionsExecutor } from '../../../src/card-controller/actions/types';
 import type { DeviceRegistryManager } from '../../../src/ha/registry/device';
 import type { EntityRegistryManagerLive } from '../../../src/ha/registry/entity';
+import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
-  createCameraConfig,
   createHASS,
   createHASSManager,
   createRegistryEntity,

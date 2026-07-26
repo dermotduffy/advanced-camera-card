@@ -4,12 +4,9 @@ import { mock } from 'vitest-mock-extended';
 import type { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { TPLinkCamera } from '../../../src/camera-manager/tplink/camera';
 import type { ActionsExecutor } from '../../../src/card-controller/actions/types';
+import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
-import {
-  createCameraConfig,
-  createHASSManager,
-  createRegistryEntity,
-} from '../../test-utils';
+import { createHASSManager, createRegistryEntity } from '../../test-utils';
 
 describe('TPLinkCamera', () => {
   // Entity patterns from: https://github.com/dermotduffy/advanced-camera-card/issues/2183

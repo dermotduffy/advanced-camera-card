@@ -5,12 +5,8 @@ import { ViewItemManager } from '../../../src/card-controller/view/item-manager'
 import { homeAssistantGetSignedURLIfNecessary } from '../../../src/ha/sign-path.js';
 import { downloadURL } from '../../../src/utils/download';
 import { ViewFolder, ViewMediaType } from '../../../src/view/item';
-import {
-  createCardAPI,
-  createFolder,
-  createHASS,
-  TestViewMedia,
-} from '../../test-utils';
+import { createCardAPI, createFolder, createHASS } from '../../test-utils';
+import { TestViewMedia } from '../../view/test-utils';
 
 vi.mock('../../../src/utils/download');
 vi.mock('../../../src/ha/sign-path.js');

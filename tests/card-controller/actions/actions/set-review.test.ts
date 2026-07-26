@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { SetReviewAction } from '../../../../src/card-controller/actions/actions/set-review';
 import { ViewMediaType } from '../../../../src/view/item';
 import { QueryResults } from '../../../../src/view/query-results';
-import { createCardAPI, createView, TestViewMedia } from '../../../test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView, TestViewMedia } from '../../../view/test-utils';
 
 describe('SetReviewAction', () => {
   it('should toggle item reviewed state', async () => {

@@ -2,7 +2,8 @@ import { expect, it, vi } from 'vitest';
 
 import { DownloadAction } from '../../../../src/card-controller/actions/actions/download';
 import { QueryResults } from '../../../../src/view/query-results';
-import { createCardAPI, createView, TestViewMedia } from '../../../test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView, TestViewMedia } from '../../../view/test-utils';
 
 it('should handle download action with selected media', async () => {
   const api = createCardAPI();

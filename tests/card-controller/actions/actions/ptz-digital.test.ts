@@ -6,7 +6,8 @@ import type {
   ZoomSettingsObserved,
 } from '../../../../src/components-lib/zoom/types';
 import type { PTZAction } from '../../../../src/config/schema/actions/custom/ptz';
-import { createCardAPI, createView } from '../../../test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView } from '../../../view/test-utils';
 
 describe('should handle ptz digital action', () => {
   const defaultSettings = {

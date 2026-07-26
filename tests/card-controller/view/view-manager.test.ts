@@ -16,7 +16,8 @@ import { ViewMedia, ViewMediaType } from '../../../src/view/item';
 import { QueryResults } from '../../../src/view/query-results';
 import { UnifiedQuery } from '../../../src/view/unified-query';
 import type { View } from '../../../src/view/view';
-import { createCardAPI, createEventQuery, createView } from '../../test-utils';
+import { createCardAPI } from '../../test-utils';
+import { createEventQuery, createView } from '../../view/test-utils';
 
 const createInitializedCardAPI = (initialized?: boolean): CardController => {
   const api = createCardAPI();

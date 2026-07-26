@@ -3,12 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { Capabilities } from '../../../../src/camera-manager/capabilities';
 import { PTZMultiAction } from '../../../../src/card-controller/actions/actions/ptz-multi';
 import { PTZMovementType } from '../../../../src/types';
-import {
-  createCameraManager,
-  createCardAPI,
-  createStore,
-  createView,
-} from '../../../test-utils';
+import { createCameraManager, createStore } from '../../../camera-manager/test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView } from '../../../view/test-utils';
 
 describe('should handle ptz multi action', () => {
   describe.each([

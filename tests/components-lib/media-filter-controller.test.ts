@@ -32,14 +32,10 @@ import {
 import { QuerySource } from '../../src/query-source';
 import type { Severity } from '../../src/severity';
 import { UnifiedQuery } from '../../src/view/unified-query';
-import { createPerformanceConfig } from '../config/test-utils';
-import {
-  createCameraConfig,
-  createCameraManager,
-  createLitElement,
-  createStore,
-  createView,
-} from '../test-utils';
+import { createCameraManager, createStore } from '../camera-manager/test-utils';
+import { createCameraConfig, createPerformanceConfig } from '../config/test-utils';
+import { createLitElement } from '../test-utils';
+import { createView } from '../view/test-utils';
 
 const createCameraStore = (options?: { capabilities: Capabilities }) => {
   return createStore([

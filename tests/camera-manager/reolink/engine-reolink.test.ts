@@ -31,15 +31,10 @@ import type { EntityRegistryManager } from '../../../src/ha/registry/entity/type
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { homeAssistantWSRequest } from '../../../src/ha/ws-request';
 import { QuerySource } from '../../../src/query-source';
+import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
-import {
-  createCameraConfig,
-  createHASS,
-  createHASSManager,
-  createInitializedCamera,
-  createRegistryEntity,
-  createStore,
-} from '../../test-utils';
+import { createHASS, createHASSManager, createRegistryEntity } from '../../test-utils';
+import { createInitializedCamera, createStore } from '../test-utils';
 
 vi.mock('../../../src/ha/ws-request');
 

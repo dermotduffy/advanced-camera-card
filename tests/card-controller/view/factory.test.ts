@@ -10,15 +10,14 @@ import {
 import type { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import type { ViewDisplayMode } from '../../../src/config/schema/common/display';
 import { View } from '../../../src/view/view';
-import { createConfig } from '../../config/test-utils';
 import {
   createCameraManager,
   createCapabilities,
-  createCardAPI,
-  createFolder,
   createStore,
-  createView,
-} from '../../test-utils';
+} from '../../camera-manager/test-utils';
+import { createConfig } from '../../config/test-utils';
+import { createCardAPI, createFolder } from '../../test-utils';
+import { createView } from '../../view/test-utils';
 import { createPopulatedAPI } from './test-utils';
 
 describe('getViewDefault', () => {

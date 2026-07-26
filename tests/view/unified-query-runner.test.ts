@@ -8,7 +8,7 @@ import { QuerySource } from '../../src/query-source';
 import type { ViewMedia } from '../../src/view/item';
 import { UnifiedQuery } from '../../src/view/unified-query';
 import { UnifiedQueryRunner } from '../../src/view/unified-query-runner';
-import { createEventQuery, createFolderQuery } from '../test-utils';
+import { createEventQuery, createFolderQuery } from './test-utils';
 
 describe('UnifiedQueryRunner', () => {
   describe('execute', () => {

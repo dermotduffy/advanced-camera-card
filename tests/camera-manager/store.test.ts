@@ -9,12 +9,10 @@ import { Engine } from '../../src/camera-manager/types.js';
 import type { DeviceRegistryManager } from '../../src/ha/registry/device/index.js';
 import type { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
 import type { ResolvedMediaCache } from '../../src/ha/resolved-media.js';
-import {
-  createCameraConfig,
-  createHASSManager,
-  createInitializedCamera,
-  TestViewMedia,
-} from '../test-utils.js';
+import { createCameraConfig } from '../config/test-utils';
+import { createHASSManager } from '../test-utils.js';
+import { TestViewMedia } from '../view/test-utils';
+import { createInitializedCamera } from './test-utils';
 
 describe('CameraManagerStore', async () => {
   const configVisible = createCameraConfig({

@@ -4,7 +4,8 @@ import { StyleManager } from '../../src/card-controller/style-manager';
 import type { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import type { ThemeName } from '../../src/config/schema/view';
 import { createConfig } from '../config/test-utils';
-import { createCardAPI, createView } from '../test-utils';
+import { createCardAPI } from '../test-utils';
+import { createView } from '../view/test-utils';
 
 // @vitest-environment jsdom
 describe('StyleManager', () => {

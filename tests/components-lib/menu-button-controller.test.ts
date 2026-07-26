@@ -37,20 +37,20 @@ import {
   isViewSupported,
 } from '../../src/view/view-support.js';
 import type { View } from '../../src/view/view.js';
-import { createConfig } from '../config/test-utils';
 import {
-  createCameraConfig,
   createCameraManager,
   createCapabilities,
+  createStore,
+} from '../camera-manager/test-utils';
+import { createCameraConfig, createConfig } from '../config/test-utils';
+import {
   createFolder,
   createHASS,
   createMediaCapabilities,
   createMediaLoadedInfo,
   createStateEntity,
-  createStore,
-  createView,
-  TestViewMedia,
 } from '../test-utils.js';
+import { createView, TestViewMedia } from '../view/test-utils';
 
 vi.mock('../../src/view/view-support.js');
 vi.mock('../../src/utils/media-player-controller.js');

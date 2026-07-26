@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { renderNoMediaNotification } from '../../../src/components/notification/media';
-import { createCameraManager, createStore } from '../../test-utils';
+import { createCameraManager, createStore } from '../../camera-manager/test-utils';
 
 // @vitest-environment jsdom
 describe('renderNoMediaNotification', () => {

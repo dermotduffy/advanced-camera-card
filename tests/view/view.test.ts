@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { QueryResults } from '../../src/view/query-results';
 import { UnifiedQuery } from '../../src/view/unified-query';
-import { createView } from '../test-utils';
+import { createView } from './test-utils';
 
 describe('View Basics', () => {
   it('should construct from parameters', () => {

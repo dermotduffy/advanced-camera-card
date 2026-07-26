@@ -26,15 +26,15 @@ import type {
   EntityRegistryManager,
 } from '../../../src/ha/registry/entity/types';
 import { ViewMediaType } from '../../../src/view/item';
+import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
-  createCameraConfig,
-  createCapabilities,
   createHASS,
   createHASSManager,
   createRegistryEntity,
   createStateEntity,
 } from '../../test-utils';
+import { createCapabilities } from '../test-utils';
 
 vi.mock('../../../src/camera-manager/frigate/requests');
 

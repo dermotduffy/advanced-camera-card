@@ -13,12 +13,8 @@ import { QuerySource } from '../../../src/query-source';
 import type { Endpoint } from '../../../src/types';
 import { ViewFolder } from '../../../src/view/item';
 import type { ViewItemCapabilities } from '../../../src/view/types';
-import {
-  createCardAPI,
-  createFolder,
-  createHASS,
-  TestViewMedia,
-} from '../../test-utils';
+import { createCardAPI, createFolder, createHASS } from '../../test-utils';
+import { TestViewMedia } from '../../view/test-utils';
 
 describe('FoldersManager', () => {
   it('should initialize with no folders', () => {

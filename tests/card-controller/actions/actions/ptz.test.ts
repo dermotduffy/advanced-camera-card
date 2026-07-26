@@ -3,13 +3,10 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Capabilities } from '../../../../src/camera-manager/capabilities';
 import { PTZAction } from '../../../../src/card-controller/actions/actions/ptz';
 import { PTZMovementType } from '../../../../src/types';
-import {
-  createCameraConfig,
-  createCameraManager,
-  createCardAPI,
-  createStore,
-  createView,
-} from '../../../test-utils';
+import { createCameraManager, createStore } from '../../../camera-manager/test-utils';
+import { createCameraConfig } from '../../../config/test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView } from '../../../view/test-utils';
 
 describe('should handle ptz action', () => {
   it('should execute simple action', async () => {

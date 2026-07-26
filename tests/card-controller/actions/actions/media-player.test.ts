@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { MediaPlayerAction } from '../../../../src/card-controller/actions/actions/media-player';
-import { createCardAPI, createView, createViewWithMedia } from '../../../test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView, createViewWithMedia } from '../../../view/test-utils';
 
 afterEach(() => {
   vi.resetAllMocks();

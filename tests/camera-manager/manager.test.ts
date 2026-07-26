@@ -36,17 +36,10 @@ import { QuerySource } from '../../src/query-source.js';
 import { PTZMovementType, type Endpoint } from '../../src/types.js';
 import { ViewFolder, type ViewItem, type ViewMedia } from '../../src/view/item.js';
 import type { ViewItemCapabilities } from '../../src/view/types.js';
-import { createConfig } from '../config/test-utils';
-import {
-  createCameraConfig,
-  createCapabilities,
-  createCardAPI,
-  createFolder,
-  createHASS,
-  createInitializedCamera,
-  generateViewMediaArray,
-  TestViewMedia,
-} from '../test-utils.js';
+import { createCameraConfig, createConfig } from '../config/test-utils';
+import { createCardAPI, createFolder, createHASS } from '../test-utils.js';
+import { generateViewMediaArray, TestViewMedia } from '../view/test-utils';
+import { createCapabilities, createInitializedCamera } from './test-utils';
 
 describe('QueryClassifier', () => {
   it('should classify event query', () => {

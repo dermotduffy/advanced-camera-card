@@ -8,7 +8,11 @@ import {
   type PTZControlsConfig,
 } from '../../../src/config/schema/common/controls/ptz';
 import { PTZMovementType } from '../../../src/types';
-import { createCameraManager, createCapabilities, createStore } from '../../test-utils';
+import {
+  createCameraManager,
+  createCapabilities,
+  createStore,
+} from '../../camera-manager/test-utils';
 
 const createConfig = (config?: Partial<PTZControlsConfig>): PTZControlsConfig => {
   return ptzControlsConfigSchema.parse({

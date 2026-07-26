@@ -2,7 +2,8 @@ import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ViewFolder, type ViewItem } from '../../src/view/item';
 import { QueryResults } from '../../src/view/query-results';
-import { createFolder, generateViewMediaArray, TestViewMedia } from '../test-utils';
+import { createFolder } from '../test-utils';
+import { generateViewMediaArray, TestViewMedia } from './test-utils';
 
 describe('dispatchViewContextChangeEvent', () => {
   beforeEach(() => {

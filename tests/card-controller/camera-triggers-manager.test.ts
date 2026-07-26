@@ -6,18 +6,19 @@ import { CameraTriggersManager } from '../../src/card-controller/camera-triggers
 import type { CardController } from '../../src/card-controller/controller';
 import type { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import { triggersSchema, type TriggersOptions } from '../../src/config/schema/view';
-import { createConfig } from '../config/test-utils';
 import {
-  createCameraConfig,
   createCameraManager,
   createCapabilities,
+  createStore,
+} from '../camera-manager/test-utils';
+import { createCameraConfig, createConfig } from '../config/test-utils';
+import {
   createCardAPI,
   createHASS,
   createStateEntity,
-  createStore,
-  createView,
   flushPromises,
 } from '../test-utils';
+import { createView } from '../view/test-utils';
 
 vi.mock('lodash-es', async () => ({
   ...(await vi.importActual('lodash-es')),

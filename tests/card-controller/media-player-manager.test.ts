@@ -10,18 +10,16 @@ import {
 import type { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
 import type { HomeAssistant } from '../../src/ha/types.js';
 import { ViewMediaType } from '../../src/view/item.js';
-import { createConfig } from '../config/test-utils';
+import { createCameraManager, createStore } from '../camera-manager/test-utils';
+import { createCameraConfig, createConfig } from '../config/test-utils';
 import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {
-  createCameraConfig,
-  createCameraManager,
   createCardAPI,
   createHASS,
   createRegistryEntity,
   createStateEntity,
-  createStore,
-  TestViewMedia,
 } from '../test-utils.js';
+import { TestViewMedia } from '../view/test-utils';
 
 const createHASSWithMediaPlayers = (): HomeAssistant => {
   const attributesSupported = {

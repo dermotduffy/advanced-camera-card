@@ -27,9 +27,9 @@ import {
   createCardAPI,
   createHASS,
   createMockTemplateRenderer,
-  createView,
   stubConnectedHomeAssistant,
 } from '../../test-utils';
+import { createView } from '../../view/test-utils';
 
 const createAPI = (): CardController => {
   const api = createCardAPI();

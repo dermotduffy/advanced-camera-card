@@ -9,17 +9,18 @@ import type { PerformanceConfig } from '../../../src/config/schema/performance';
 import { QuerySource } from '../../../src/query-source';
 import { UnifiedQuery } from '../../../src/view/unified-query';
 import { View } from '../../../src/view/view';
-import { createConfig, createPerformanceConfig } from '../../config/test-utils';
 import {
-  createCameraConfig,
   createCameraManager,
   createCapabilities,
-  createCardAPI,
   createStore,
-  createView,
-  isEventQuery,
-  TestViewMedia,
-} from '../../test-utils';
+} from '../../camera-manager/test-utils';
+import {
+  createCameraConfig,
+  createConfig,
+  createPerformanceConfig,
+} from '../../config/test-utils';
+import { createCardAPI } from '../../test-utils';
+import { createView, isEventQuery, TestViewMedia } from '../../view/test-utils';
 import { createPopulatedAPI } from './test-utils';
 
 describe('ViewQueryExecutor', () => {

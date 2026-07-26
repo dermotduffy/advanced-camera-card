@@ -22,12 +22,8 @@ import { QuerySource } from '../../src/query-source';
 import { ViewFolder, ViewMedia } from '../../src/view/item';
 import { UnifiedQuery } from '../../src/view/unified-query';
 import { UnifiedQueryBuilder } from '../../src/view/unified-query-builder';
-import {
-  createCardAPI,
-  createFolder,
-  createView,
-  createViewWithMedia,
-} from '../test-utils';
+import { createCardAPI, createFolder } from '../test-utils';
+import { createView, createViewWithMedia } from '../view/test-utils';
 
 const createFolderQuery = (
   folder: ReturnType<typeof createFolder>,

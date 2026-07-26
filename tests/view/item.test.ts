@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ViewFolder, ViewMedia, ViewMediaType } from '../../src/view/item';
-import { createFolder, TestViewMedia } from '../test-utils';
+import { createFolder } from '../test-utils';
+import { TestViewMedia } from './test-utils';
 
 describe('ViewMedia', () => {
   beforeEach(() => {
