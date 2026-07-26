@@ -3,7 +3,7 @@
 <!-- markdownlint-disable no-inline-html -->
 
 [![GitHub Release](https://img.shields.io/github/release/dermotduffy/advanced-camera-card.svg?style=flat-square)](https://github.com/dermotduffy/advanced-camera-card/releases)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/dermotduffy/advanced-camera-card/build.yml?style=flat-square)](https://github.com/dermotduffy/advanced-camera-card/actions/workflows/build.yml)
+[![CI Status](https://img.shields.io/github/actions/workflow/status/dermotduffy/advanced-camera-card/ci.yml?style=flat-square)](https://github.com/dermotduffy/advanced-camera-card/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/dermotduffy/advanced-camera-card.svg?style=flat-square)](LICENSE)
 [![HACS](https://img.shields.io/badge/HACS-default-orange.svg?style=flat-square)](https://hacs.xyz)
 [![Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86&style=flat-square)](https://github.com/sponsors/dermotduffy)

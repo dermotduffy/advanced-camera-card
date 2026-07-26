@@ -1,5 +1,5 @@
 ---
-name: 'Build'
+name: 'CI'
 
 on:
   push:
