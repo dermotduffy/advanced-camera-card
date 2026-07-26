@@ -570,10 +570,10 @@ By default on-screen controls will appear mid-card to handle a call. Setting
 controls so the call can be driven via some other mechanism. In this example,
 the card is configured to allow calls to be driven from the menu instead.
 
-This wires up the menu equivalents of every overlay control. The menu `call`
-button starts, ends, and (while ringing) rejects calls, but it cannot _answer_
-an inbound ring -- so a conditional answer button is added that appears only
-while ringing.
+The single menu `call` button handles the whole call: it starts a call, answers
+an inbound ring (hold to reject it instead), and hangs up. It is shown by
+default, so only the microphone and audio buttons need enabling below to cover
+the full functionality of the (in this example: disabled) call controls.
 
 ```yaml
 type: custom:advanced-camera-card
@@ -595,9 +595,6 @@ menu:
   # controls stay reachable.
   auto_hide: []
   buttons:
-    # Starts a call, and becomes a hang-up button for the duration of a call.
-    call:
-      enabled: true
     # Mutes/unmutes your outbound microphone during a call.
     microphone:
       enabled: true
@@ -605,20 +602,6 @@ menu:
     # Mutes/unmutes the inbound (caller's) audio during a call.
     mute:
       enabled: true
-elements:
-  # The menu `call` button cannot answer an inbound (ringing) call, so this
-  # answer button is shown only while ringing to provide that control.
-  - type: custom:advanced-camera-card-conditional
-    conditions:
-      - condition: call
-        call: ringing
-    elements:
-      - type: custom:advanced-camera-card-menu-icon
-        icon: mdi:phone
-        title: Answer call
-        tap_action:
-          action: custom:advanced-camera-card-action
-          advanced_camera_card_action: call_answer
 ```
 
 ## Events from other cameras

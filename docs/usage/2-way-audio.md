@@ -53,6 +53,12 @@ enabled by default and appears in the `live` view whenever the selected camera
   [`view.triggers.actions.trigger: call`](../configuration/view.md?id=trigger-action-configuration)
   trigger -- e.g. a doorbell) open the overlay in a ringing state with only
   two buttons: a red **Reject** and a green **Answer**.
+- The **call** menu button itself tracks the call state: tap it to start or
+  answer a call and to hang up an active one, and while an inbound call is
+  ringing **hold** it to reject. This lets you drive the whole call from the
+  menu when the standard call controls are hidden with
+  [`live.controls.call.enabled: false`](../configuration/live.md?id=call) -- see
+  [Driving calls from the menu](../examples.md?id=driving-calls-from-the-menu).
 - When a call is answered (outbound calls are answered by definition) the
   inbound audio is unmuted automatically, so the caller can be heard. The
   microphone stays muted by default (push-to-talk) -- tap the microphone button
