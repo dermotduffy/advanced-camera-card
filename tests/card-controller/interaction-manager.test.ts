@@ -5,10 +5,6 @@ import { InteractionManager } from '../../src/card-controller/interaction-manage
 import { createConfig } from '../config/test-utils';
 import { createCardAPI, createLitElement } from '../test-utils';
 
-vi.mock('lodash-es', () => ({
-  throttle: vi.fn((fn) => Object.assign(fn, { cancel: vi.fn() })),
-}));
-
 // @vitest-environment jsdom
 describe('InteractionManager', () => {
   const start = new Date('2023-09-24T20:20:00');

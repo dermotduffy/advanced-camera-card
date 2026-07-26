@@ -21,13 +21,6 @@ import {
   ResizeObserverMock,
 } from '../../test-utils';
 
-vi.mock('lodash-es', async () => {
-  return {
-    ...(await vi.importActual('lodash-es')),
-    throttle: vi.fn((fn) => fn),
-  };
-});
-
 vi.mock('../../../src/utils/sleep');
 vi.mock('../../../src/utils/scroll');
 
