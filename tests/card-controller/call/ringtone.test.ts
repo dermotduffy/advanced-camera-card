@@ -12,20 +12,32 @@ import type { RingtoneConfig } from '../../../src/config/schema/live';
 // Each tone constructor returns a fresh `mock<>()` per `new` call; the mock
 // implementation persists across `vi.clearAllMocks()` (which only clears call
 // records, not implementations) so tests don't need per-test re-installation.
+// The implementations must be callable with `new`, so they cannot be arrow
+// functions.
 vi.mock('../../../src/card-controller/call/tones/chime', () => ({
-  ChimeTone: vi.fn().mockImplementation(() => mock<ChimeTone>()),
+  ChimeTone: vi.fn().mockImplementation(function () {
+    return mock<ChimeTone>();
+  }),
 }));
 vi.mock('../../../src/card-controller/call/tones/westminster', () => ({
-  WestminsterTone: vi.fn().mockImplementation(() => mock<WestminsterTone>()),
+  WestminsterTone: vi.fn().mockImplementation(function () {
+    return mock<WestminsterTone>();
+  }),
 }));
 vi.mock('../../../src/card-controller/call/tones/arpeggio', () => ({
-  ArpeggioTone: vi.fn().mockImplementation(() => mock<ArpeggioTone>()),
+  ArpeggioTone: vi.fn().mockImplementation(function () {
+    return mock<ArpeggioTone>();
+  }),
 }));
 vi.mock('../../../src/card-controller/call/tones/melody', () => ({
-  MelodyTone: vi.fn().mockImplementation(() => mock<MelodyTone>()),
+  MelodyTone: vi.fn().mockImplementation(function () {
+    return mock<MelodyTone>();
+  }),
 }));
 vi.mock('../../../src/card-controller/call/tones/custom', () => ({
-  CustomTone: vi.fn().mockImplementation(() => mock<CustomTone>()),
+  CustomTone: vi.fn().mockImplementation(function () {
+    return mock<CustomTone>();
+  }),
 }));
 
 // Returns the most recently constructed instance of a mocked class.
@@ -187,7 +199,7 @@ describe('lock', () => {
 describe('natural finish', () => {
   it('should release the lock when the tone fires its finished handler', () => {
     let finishedHandler: (() => void) | undefined;
-    vi.mocked(ChimeTone).mockImplementationOnce(() => {
+    vi.mocked(ChimeTone).mockImplementationOnce(function () {
       const tone = mock<ChimeTone>();
       vi.mocked(tone.start).mockImplementation((handler) => {
         finishedHandler = handler;

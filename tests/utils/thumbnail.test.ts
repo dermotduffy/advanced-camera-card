@@ -71,7 +71,11 @@ describe('thumbnail utilities', () => {
     });
     vi.stubGlobal(
       'FileReader',
-      vi.fn(() => mockFileReader),
+      // The source calls `new FileReader()`, and a mock implementation must be
+      // callable with `new`, so it cannot be an arrow function.
+      vi.fn(function () {
+        return mockFileReader;
+      }),
     );
 
     createFetchThumbnailTask(
@@ -129,7 +133,9 @@ describe('thumbnail utilities', () => {
     const mockFileReader = mock<FileReader>();
     vi.stubGlobal(
       'FileReader',
-      vi.fn(() => mockFileReader),
+      vi.fn(function () {
+        return mockFileReader;
+      }),
     );
 
     createFetchThumbnailTask(
@@ -166,7 +172,9 @@ describe('thumbnail utilities', () => {
     });
     vi.stubGlobal(
       'FileReader',
-      vi.fn(() => mockFileReader),
+      vi.fn(function () {
+        return mockFileReader;
+      }),
     );
 
     createFetchThumbnailTask(

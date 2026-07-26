@@ -11,6 +11,7 @@ vi.mock('../../../src/card-controller/fullscreen/factory');
 describe('FullscreenManager', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should initialize', () => {

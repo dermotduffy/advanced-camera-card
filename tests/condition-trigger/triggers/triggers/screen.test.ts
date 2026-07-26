@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi, type Mock } from 'vitest';
 
 import { ScreenTrigger } from '../../../../src/condition-trigger/triggers/triggers/screen';
 import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
+import { stubMatchMedia } from '../../../test-utils';
 
 // @vitest-environment jsdom
 describe('ScreenTrigger', () => {
@@ -10,7 +11,7 @@ describe('ScreenTrigger', () => {
   const removeEventListener = vi.fn();
 
   const mockMatchMedia = (): void => {
-    vi.spyOn(window, 'matchMedia').mockImplementation(
+    stubMatchMedia().mockImplementation(
       () =>
         ({
           get matches(): boolean {

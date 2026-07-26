@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
+import { stubMatchMedia } from '../../../test-utils';
 import { createEvaluatorContext } from './test-utils';
 
 // @vitest-environment jsdom
@@ -10,7 +11,7 @@ describe('screen condition', () => {
   });
 
   it('should evaluate the media query', () => {
-    vi.spyOn(window, 'matchMedia').mockReturnValue({
+    stubMatchMedia().mockReturnValue({
       matches: true,
     } as unknown as MediaQueryList);
 
@@ -30,7 +31,7 @@ describe('screen condition', () => {
   });
 
   it('should not match or expose a source without a media query', () => {
-    const matchMedia = vi.spyOn(window, 'matchMedia');
+    const matchMedia = stubMatchMedia();
     const evaluator = createConditionEvaluator(
       { condition: 'screen' as const },
       createEvaluatorContext(),

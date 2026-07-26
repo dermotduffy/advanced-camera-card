@@ -5,28 +5,43 @@ import type { EffectComponent } from '../../../src/card-controller/effects/types
 import type { EffectName } from '../../../src/types';
 import { flushPromises } from '../../test-utils';
 
+// The source constructs each effect component with `new`, and a mock
+// implementation must be callable with `new`, so it cannot be an arrow
+// function.
 vi.mock('../../../src/components/effects/fireworks', () => ({
-  AdvancedCameraCardEffectFireworks: vi.fn(() => createMockEffectComponent()),
+  AdvancedCameraCardEffectFireworks: vi.fn(function () {
+    return createMockEffectComponent();
+  }),
 }));
 
 vi.mock('../../../src/components/effects/check', () => ({
-  AdvancedCameraCardEffectCheck: vi.fn(() => createMockEffectComponent()),
+  AdvancedCameraCardEffectCheck: vi.fn(function () {
+    return createMockEffectComponent();
+  }),
 }));
 
 vi.mock('../../../src/components/effects/ghost', () => ({
-  AdvancedCameraCardEffectGhost: vi.fn(() => createMockEffectComponent()),
+  AdvancedCameraCardEffectGhost: vi.fn(function () {
+    return createMockEffectComponent();
+  }),
 }));
 
 vi.mock('../../../src/components/effects/hearts', () => ({
-  AdvancedCameraCardEffectHearts: vi.fn(() => createMockEffectComponent()),
+  AdvancedCameraCardEffectHearts: vi.fn(function () {
+    return createMockEffectComponent();
+  }),
 }));
 
 vi.mock('../../../src/components/effects/shamrocks', () => ({
-  AdvancedCameraCardEffectShamrocks: vi.fn(() => createMockEffectComponent()),
+  AdvancedCameraCardEffectShamrocks: vi.fn(function () {
+    return createMockEffectComponent();
+  }),
 }));
 
 vi.mock('../../../src/components/effects/snow', () => ({
-  AdvancedCameraCardEffectSnow: vi.fn(() => createMockEffectComponent()),
+  AdvancedCameraCardEffectSnow: vi.fn(function () {
+    return createMockEffectComponent();
+  }),
 }));
 
 const createMockEffectComponent = (): EffectComponent => {

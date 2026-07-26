@@ -7,7 +7,7 @@ class FakeMediaSource extends EventTarget {
 
   public addSourceBuffer = vi.fn();
   public setLiveSeekableRange = vi.fn();
-  public static isTypeSupported = vi.fn<[string], boolean>(() => true);
+  public static isTypeSupported = vi.fn<(mimeType: string) => boolean>(() => true);
 
   constructor() {
     super();
@@ -19,7 +19,7 @@ class FakeManagedMediaSource extends EventTarget {
   public addSourceBuffer = vi.fn();
   public setLiveSeekableRange = vi.fn();
   public readyState: 'closed' | 'open' | 'ended' = 'closed';
-  public static isTypeSupported = vi.fn<[string], boolean>(() => true);
+  public static isTypeSupported = vi.fn<(mimeType: string) => boolean>(() => true);
 }
 
 const createObjectURL = vi.fn(() => 'blob:fake-url');

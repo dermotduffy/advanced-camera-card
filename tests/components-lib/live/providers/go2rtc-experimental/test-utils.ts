@@ -125,7 +125,7 @@ class FakeRTCTransceiver {
   public currentDirection: string;
   public sender: {
     track: FakeMediaStreamTrack | null;
-    replaceTrack: Mock<[MediaStreamTrack | null], Promise<void>>;
+    replaceTrack: Mock<(track: MediaStreamTrack | null) => Promise<void>>;
   };
   public receiver: { track: FakeMediaStreamTrack };
 
@@ -134,7 +134,7 @@ class FakeRTCTransceiver {
     this.currentDirection = direction;
     this.sender = {
       track,
-      replaceTrack: vi.fn<[MediaStreamTrack | null], Promise<void>>(() =>
+      replaceTrack: vi.fn<(track: MediaStreamTrack | null) => Promise<void>>(() =>
         Promise.resolve(),
       ),
     };
@@ -241,9 +241,9 @@ export class FakeMediaSourceInstance implements MediaSourceInterface {
   public attach = vi.fn();
   public detach = vi.fn();
   public setLiveSeekableRange = vi.fn();
-  public isOpen = vi.fn<[], boolean>(() => true);
-  public isTypeSupported = vi.fn<[string], boolean>(() => true);
-  public addSourceBuffer = vi.fn<[string], SourceBuffer>(() =>
+  public isOpen = vi.fn<() => boolean>(() => true);
+  public isTypeSupported = vi.fn<(mimeType: string) => boolean>(() => true);
+  public addSourceBuffer = vi.fn<(mimeType: string) => SourceBuffer>(() =>
     this.sourceBuffer.asSourceBuffer(),
   );
 

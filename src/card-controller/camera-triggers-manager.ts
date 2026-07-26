@@ -242,14 +242,14 @@ export class CameraTriggersManager {
       } else if (ev.fidelity === 'high' && triggerAction === 'media') {
         // Choose the most appropriate media view based on what's available.
         // Priority: review > clip > snapshot
+        /* istanbul ignore next: the `null` case is unreachable due to `skipViewAction` above -- @preserve */
         const view = ev.review
           ? 'review'
           : ev.clip
             ? 'clip'
             : ev.snapshot
               ? 'snapshot'
-              : /* istanbul ignore next: unreachable due to `skipViewAction` above -- @preserve */
-                null;
+              : null;
 
         /* istanbul ignore next: unreachable due to `skipViewAction` above -- @preserve */
         if (view) {

@@ -29,9 +29,13 @@ import {
 
 // Replace Ringtone with a fresh `mock<Ringtone>()` per construction so each
 // CallManager gets an isolated, type-safe ringtone we can assert on. The
-// real Ringtone creates an AudioContext, which we never want in tests.
+// real Ringtone creates an AudioContext, which we never want in tests. The
+// implementation must be callable with `new`, so it cannot be an arrow
+// function.
 vi.mock('../../../src/card-controller/call/ringtone', () => ({
-  Ringtone: vi.fn().mockImplementation(() => mock<Ringtone>()),
+  Ringtone: vi.fn().mockImplementation(function () {
+    return mock<Ringtone>();
+  }),
 }));
 
 // Each test creates a new CallManager which constructs a new Ringtone, so the

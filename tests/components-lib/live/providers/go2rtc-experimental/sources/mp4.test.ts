@@ -32,7 +32,7 @@ describe('MP4StreamSource', () => {
     const channel = new FakeStreamSourceChannel();
     const loadedCallback = vi.fn();
     const failedCallback = vi.fn();
-    const showFrame = vi.fn<[Blob], Promise<void>>(() => Promise.resolve());
+    const showFrame = vi.fn<(blob: Blob) => Promise<void>>(() => Promise.resolve());
     const context: StreamSourceContext<ImageStreamTarget> = {
       target: { kind: 'image', showFrame },
       channel,
@@ -65,6 +65,7 @@ describe('MP4StreamSource', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it('should request the mp4 stream on start', () => {
@@ -216,6 +217,12 @@ describe('MP4StreamSource', () => {
       channel,
       callbacks: { loadedCallback: vi.fn(), failedCallback: vi.fn() },
     });
+
+    // This is the only test that reaches a real canvas element. jsdom does not
+    // implement `getContext` and writes an error to the console when it is
+    // called; the source treats a missing context as nothing to draw to avoid
+    // console spam.
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
 
     const createElement = vi.spyOn(document, 'createElement');
     source.start();

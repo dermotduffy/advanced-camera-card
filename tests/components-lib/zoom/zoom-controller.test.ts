@@ -2,7 +2,7 @@ import Panzoom, {
   type PanzoomEventDetail,
   type PanzoomObject,
 } from '@dermotduffy/panzoom';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { mock, mockClear } from 'vitest-mock-extended';
 
 import { ZoomController } from '../../../src/components-lib/zoom/zoom-controller';
@@ -11,6 +11,7 @@ import {
   createTouchEvent,
   requestAnimationFrameMock,
   ResizeObserverMock,
+  stubMatchMedia,
 } from '../../test-utils';
 
 vi.mock('@dermotduffy/panzoom');
@@ -37,7 +38,7 @@ const setElementToDefaultCardSize = (element: HTMLElement, multiple?: number): v
 
 // @vitest-environment jsdom
 describe('ZoomController', () => {
-  const mediaSpy = vi.spyOn(window, 'matchMedia');
+  let mediaSpy: Mock;
 
   const createMockPanZoom = (): PanzoomObject => {
     const panzoom = mock<PanzoomObject>();
@@ -60,6 +61,7 @@ describe('ZoomController', () => {
   beforeEach(() => {
     vi.mocked(Panzoom).mockReset();
     vi.mocked(global.ResizeObserver).mockClear();
+    mediaSpy = stubMatchMedia();
     mediaSpy.mockReturnValue(<MediaQueryList>{ matches: true });
   });
 

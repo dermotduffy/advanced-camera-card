@@ -10,7 +10,7 @@ import { mock, type MockProxy } from 'vitest-mock-extended';
 // over the same observable state.
 interface AudioMocks {
   audioContext: MockProxy<AudioContext>;
-  audioContextCtor: Mock<[], MockProxy<AudioContext>>;
+  audioContextCtor: Mock<() => MockProxy<AudioContext>>;
 
   // Filled in the order `createOscillator()` / `createGain()` were called.
   oscillators: MockProxy<OscillatorNode>[];
@@ -73,7 +73,11 @@ export const useAudioMocks = (): AudioMocks => {
       configurable: true,
     });
 
-    audio.audioContextCtor = vi.fn(() => audio.audioContext);
+    // The source calls `new AudioContext()`, and a mock implementation must be
+    // callable with `new`, so it cannot be an arrow function.
+    audio.audioContextCtor = vi.fn(function () {
+      return audio.audioContext;
+    });
     vi.stubGlobal('AudioContext', audio.audioContextCtor);
   });
 

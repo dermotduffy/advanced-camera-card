@@ -6,7 +6,7 @@ import {
 } from 'home-assistant-js-websocket';
 import type { LitElement } from 'lit';
 import screenfull from 'screenfull';
-import { expect, vi } from 'vitest';
+import { expect, onTestFinished, vi, type Mock } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 import { Camera } from '../src/camera-manager/camera';
@@ -577,23 +577,35 @@ export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewVi
   }
 }
 
-export const ResizeObserverMock = vi.fn(() => ({
-  disconnect: vi.fn(),
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-}));
+// jsdom does not implement `window.matchMedia`, so it has to be installed
+// before a test can control what it returns. Must be called from inside a test
+// or a test hook, as the stub is removed once the test finishes.
+export const stubMatchMedia = (): Mock => {
+  const matchMedia = vi.fn();
+  vi.stubGlobal('matchMedia', matchMedia);
+  onTestFinished(() => {
+    // There is no singular unstubGlobal.
+    Reflect.deleteProperty(globalThis, 'matchMedia');
+  });
+  return matchMedia;
+};
 
-export const IntersectionObserverMock = vi.fn(() => ({
-  disconnect: vi.fn(),
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-}));
+// A mock implementation must be callable with `new`, so it cannot be an arrow
+// function.
+const createObserverMock = () =>
+  vi.fn(function () {
+    return {
+      disconnect: vi.fn(),
+      observe: vi.fn(),
+      unobserve: vi.fn(),
+    };
+  });
 
-export const MutationObserverMock = vi.fn(() => ({
-  disconnect: vi.fn(),
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-}));
+export const ResizeObserverMock = createObserverMock();
+
+export const IntersectionObserverMock = createObserverMock();
+
+export const MutationObserverMock = createObserverMock();
 
 export const requestAnimationFrameMock = (callback: FrameRequestCallback) => {
   callback(new Date().getTime());
@@ -650,6 +662,7 @@ export const callVisibilityHandler = async (visible: boolean): Promise<void> => 
   Object.defineProperty(document, 'visibilityState', {
     value: visible ? 'visible' : 'hidden',
     writable: true,
+    configurable: true,
   });
 
   const mock = vi.mocked(global.document.addEventListener).mock;

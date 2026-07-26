@@ -100,7 +100,7 @@ describe('Go2RTCSessionController', () => {
     cardWideConfig?: CardWideConfig | null;
   }) => {
     const websockets: FakeWebSocket[] = [];
-    const createWebSocket = vi.fn<[string], WebSocket>(() => {
+    const createWebSocket = vi.fn<(url: string) => WebSocket>(() => {
       const websocket = new FakeWebSocket();
       websockets.push(websocket);
       return websocket.asWebSocket();
@@ -1060,7 +1060,7 @@ describe('Go2RTCSessionController', () => {
 
     it('should ignore callbacks fired while a binary source is constructed', () => {
       const websockets: FakeWebSocket[] = [];
-      const createWebSocket = vi.fn<[string], WebSocket>(() => {
+      const createWebSocket = vi.fn<(url: string) => WebSocket>(() => {
         const websocket = new FakeWebSocket();
         websockets.push(websocket);
         return websocket.asWebSocket();
@@ -1095,7 +1095,7 @@ describe('Go2RTCSessionController', () => {
 
     it('should ignore callbacks fired while a WebRTC source is constructed', () => {
       const websockets: FakeWebSocket[] = [];
-      const createWebSocket = vi.fn<[string], WebSocket>(() => {
+      const createWebSocket = vi.fn<(url: string) => WebSocket>(() => {
         const websocket = new FakeWebSocket();
         websockets.push(websocket);
         return websocket.asWebSocket();
@@ -1129,7 +1129,7 @@ describe('Go2RTCSessionController', () => {
 
     it('should use the default binary source factory when none is injected', () => {
       const websockets: FakeWebSocket[] = [];
-      const createWebSocket = vi.fn<[string], WebSocket>(() => {
+      const createWebSocket = vi.fn<(url: string) => WebSocket>(() => {
         const websocket = new FakeWebSocket();
         websockets.push(websocket);
         return websocket.asWebSocket();
@@ -1160,7 +1160,7 @@ describe('Go2RTCSessionController', () => {
     it('should use the default WebRTC source factory when none is injected', () => {
       vi.stubGlobal('RTCPeerConnection', FakeRTCPeerConnection);
       const websockets: FakeWebSocket[] = [];
-      const createWebSocket = vi.fn<[string], WebSocket>(() => {
+      const createWebSocket = vi.fn<(url: string) => WebSocket>(() => {
         const websocket = new FakeWebSocket();
         websockets.push(websocket);
         return websocket.asWebSocket();
@@ -1187,7 +1187,7 @@ describe('Go2RTCSessionController', () => {
 
     it('should create an off-screen video with the default factory when none is injected', () => {
       const websockets: FakeWebSocket[] = [];
-      const createWebSocket = vi.fn<[string], WebSocket>(() => {
+      const createWebSocket = vi.fn<(url: string) => WebSocket>(() => {
         const websocket = new FakeWebSocket();
         websockets.push(websocket);
         return websocket.asWebSocket();

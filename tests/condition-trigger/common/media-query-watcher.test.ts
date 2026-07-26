@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { MediaQueryWatcher } from '../../../src/condition-trigger/common/media-query-watcher';
+import { stubMatchMedia } from '../../test-utils';
 
 // @vitest-environment jsdom
 describe('MediaQueryWatcher', () => {
@@ -9,7 +10,7 @@ describe('MediaQueryWatcher', () => {
   });
 
   it('should report whether the query matches', () => {
-    vi.spyOn(window, 'matchMedia').mockReturnValue({
+    stubMatchMedia().mockReturnValue({
       matches: true,
     } as unknown as MediaQueryList);
 
@@ -18,7 +19,7 @@ describe('MediaQueryWatcher', () => {
 
   it('should invoke the callback on a media-query change', () => {
     const addEventListener = vi.fn();
-    vi.spyOn(window, 'matchMedia').mockReturnValue({
+    stubMatchMedia().mockReturnValue({
       addEventListener,
       removeEventListener: vi.fn(),
     } as unknown as MediaQueryList);
@@ -35,7 +36,7 @@ describe('MediaQueryWatcher', () => {
   it('should stop listening and ignore changes after teardown', () => {
     const addEventListener = vi.fn();
     const removeEventListener = vi.fn();
-    vi.spyOn(window, 'matchMedia').mockReturnValue({
+    stubMatchMedia().mockReturnValue({
       addEventListener,
       removeEventListener,
     } as unknown as MediaQueryList);
