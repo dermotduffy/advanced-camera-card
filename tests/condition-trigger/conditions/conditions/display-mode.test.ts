@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
 import { createEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('display mode condition', () => {
   it('should match a display mode condition', () => {
     const evaluator = createConditionEvaluator(

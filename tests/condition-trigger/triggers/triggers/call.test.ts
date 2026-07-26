@@ -5,7 +5,6 @@ import { CallTrigger } from '../../../../src/condition-trigger/triggers/triggers
 import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createTriggerEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('CallTrigger', () => {
   const create = (
     trigger: TriggerOfType<'call'>,

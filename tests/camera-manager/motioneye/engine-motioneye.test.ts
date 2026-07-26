@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { endOfDay, startOfDay } from 'date-fns';
 import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 import { mock, type MockProxy } from 'vitest-mock-extended';

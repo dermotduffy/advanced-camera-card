@@ -596,7 +596,6 @@ describe('getActionName', () => {
   });
 });
 
-// @vitest-environment jsdom
 describe('stopEventFromActivatingCardWideActions', () => {
   it('should stop event from propogating', () => {
     const event = mock<Event>();

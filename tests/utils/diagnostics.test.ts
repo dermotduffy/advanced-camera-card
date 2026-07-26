@@ -26,7 +26,6 @@ describe('getReleaseVersion', () => {
   });
 });
 
-// @vitest-environment jsdom
 describe('getDiagnostics', () => {
   const now = new Date('2023-10-01T21:53Z');
   const hass = createHASS();

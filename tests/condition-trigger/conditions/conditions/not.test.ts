@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
 import { createEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('not condition', () => {
   afterEach(() => {
     vi.restoreAllMocks();

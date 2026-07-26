@@ -13,7 +13,6 @@ import { customSchema } from '../../src/config/schema/elements/stock/custom';
 import { conditionalSchema } from '../../src/config/schema/elements/types';
 import { createConfig } from '../test-utils';
 
-// @vitest-environment jsdom
 describe('config defaults', () => {
   it('should be as expected', () => {
     expect(createConfig()).toEqual({

@@ -4,7 +4,6 @@ import { createConditionEvaluator } from '../../../../src/condition-trigger/cond
 import { interactionConditionSchema } from '../../../../src/config/schema/condition-trigger/conditions/custom/interaction';
 import { createEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('interaction condition', () => {
   it('should match an interaction condition', () => {
     const evaluator = createConditionEvaluator(

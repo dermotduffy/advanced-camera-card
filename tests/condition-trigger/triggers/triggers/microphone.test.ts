@@ -6,7 +6,6 @@ import { MicrophoneTrigger } from '../../../../src/condition-trigger/triggers/tr
 import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createTriggerEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('MicrophoneTrigger', () => {
   const createMicrophoneState = (state: Partial<MicrophoneState>): MicrophoneState => ({
     connected: false,

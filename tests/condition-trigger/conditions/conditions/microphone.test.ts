@@ -4,7 +4,6 @@ import type { MicrophoneState } from '../../../../src/card-controller/types';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
 import { createEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('microphone condition', () => {
   const createMicrophoneState = (state: Partial<MicrophoneState>): MicrophoneState => {
     return {

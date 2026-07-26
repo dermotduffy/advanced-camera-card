@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
 import { createEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('initialized condition', () => {
   it('should match an initialized condition', () => {
     const evaluator = createConditionEvaluator(

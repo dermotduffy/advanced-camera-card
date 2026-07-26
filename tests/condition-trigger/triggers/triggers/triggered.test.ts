@@ -5,7 +5,6 @@ import { TriggeredTrigger } from '../../../../src/condition-trigger/triggers/tri
 import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createTriggerEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('TriggeredTrigger', () => {
   const create = (
     trigger: TriggerOfType<'triggered'>,

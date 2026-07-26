@@ -4,7 +4,6 @@ import { createConditionEvaluator } from '../../../../src/condition-trigger/cond
 import { fullscreenConditionSchema } from '../../../../src/config/schema/condition-trigger/conditions/custom/fullscreen';
 import { createEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('fullscreen condition', () => {
   it('should match a fullscreen condition', () => {
     const evaluator = createConditionEvaluator(

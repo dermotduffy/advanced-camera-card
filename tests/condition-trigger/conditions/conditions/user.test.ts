@@ -4,7 +4,6 @@ import { createConditionEvaluator } from '../../../../src/condition-trigger/cond
 import { createHASS, createUser } from '../../../test-utils';
 import { createEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('user condition', () => {
   it('should match a user condition', () => {
     const evaluator = createConditionEvaluator(

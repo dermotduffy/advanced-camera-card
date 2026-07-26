@@ -29,7 +29,6 @@ import { createHASSManager, createMockTemplateRenderer } from '../../test-utils'
 
 type TriggerEvaluatorConstructor = new (...args: never[]) => TriggerEvaluator;
 
-// @vitest-environment jsdom
 describe('createTriggerEvaluator', () => {
   const context = (): TriggerEvaluatorContext => ({
     stateManager: new ConditionStateManager(),
