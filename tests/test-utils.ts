@@ -381,6 +381,7 @@ export const createCapabilities = (capabilities?: CapabilitiesRaw): Capabilities
     recordings: false,
     seek: false,
     snapshots: false,
+    trigger: true,
     ...capabilities,
   });
 };

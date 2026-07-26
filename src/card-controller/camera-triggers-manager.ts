@@ -71,6 +71,13 @@ export class CameraTriggersManager {
       .getCameraManager()
       .getStore()
       .getCameras()) {
+      // A camera without the trigger capability never subscribes to its
+      // configured trigger entities, so its already-on entities must not
+      // synthesize a trigger here either.
+      if (!camera.getCapabilities()?.has('trigger')) {
+        continue;
+      }
+
       for (const entityID of camera.getConfig().triggers.entities) {
         if (isTriggeredState(hass?.states[entityID]?.state)) {
           triggered = true;
