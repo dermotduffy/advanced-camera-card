@@ -16,13 +16,13 @@ export class CallManager {
   private _ringtone = new Ringtone();
   private _unansweredTimer = new Timer();
 
-  // Identifies the current init/uninit cycle so an in-flight `start()`
-  // resuming from its microphone-connect await can detect that its CallManager
-  // was torn down -- or torn down and re-initialized -- while it was suspended
-  // and bail before installing a session or ringtone. Without this guard the
-  // resumed tail leaks audio onto the shared lock from an instance the user
-  // can no longer see or control, and may install state into a fresh
-  // lifecycle from a request that belongs to the previous one.
+  // Identifies the current init/uninit cycle so an in-flight `start()` or
+  // `answer()` resuming from its microphone-connect await can detect that its
+  // CallManager was torn down -- or torn down and re-initialized -- while it
+  // was suspended, and bail before installing a session or a ringtone. Without
+  // this guard the resumed tail leaks audio onto the shared lock from an
+  // instance the user can no longer see or control, and may install state into
+  // a fresh lifecycle from a request that belongs to the previous one.
   private _initGeneration = new Generation();
 
   constructor(api: CardCallAPI) {
@@ -104,19 +104,12 @@ export class CallManager {
       return false;
     }
 
-    const initGeneration = this._initGeneration.current();
-    const microphoneConnected = await this._connectMicrophone();
-    // If the init/uninit lifecycle advanced while the microphone connect was
-    // in flight, this request belongs to a previous lifecycle -- the view we
-    // captured may be stale, the triggering context is gone, and there is no
-    // clean teardown path for state we'd install here. Bail before touching
-    // `_call`, the ringtone lock, or surfacing a notification onto a torn-down
-    // NotificationManager.
-    if (!this._initGeneration.isCurrent(initGeneration)) {
-      return false;
-    }
-    if (!microphoneConnected) {
-      this._notifyError('error.call_microphone_forbidden', inbound);
+    // An inbound call has no use for the microphone until it is answered, and
+    // it arrives without the user gesture that browsers may require before
+    // granting microphone access -- so connecting here would let a refusal stop
+    // the call from ever ringing. The connect is deferred to `answer()`. An
+    // outbound call is answered by construction and needs it immediately.
+    if (!inbound && !(await this._connectMicrophone())) {
       return false;
     }
 
@@ -208,20 +201,39 @@ export class CallManager {
     return this._end(true);
   }
 
-  // Marks an inbound ringing call as answered: stops the ringtone, cancels
-  // the unanswered timer, and lets the normal call controls take over.
-  // No-op (returns false) if there is no call or it's already answered;
-  // rejecting a ringing call uses `end()` (same teardown).
-  public answer(): boolean {
-    if (!this._call || this._call.answered) {
+  // Marks an inbound ringing call as answered: connects the microphone, stops
+  // the ringtone, cancels the unanswered timer, and lets the normal call
+  // controls take over. Returns true iff the call was answered. No-op (returns
+  // false) if there is no call or it's already answered; rejecting a ringing
+  // call uses `end()` (same teardown).
+  public async answer(): Promise<boolean> {
+    const call = this._call;
+    if (!call || call.answered) {
       return false;
     }
+
+    // The user has acknowledged the ring, so silence it before the microphone
+    // connect, which may put a browser permission prompt on screen.
     this._ringtone.stop();
+
+    // An inbound call rings without the microphone, so this is where it is
+    // connected -- under the user gesture that answering provides. The call is
+    // left ringing on failure so it can be answered again.
+    if (!(await this._connectMicrophone())) {
+      return false;
+    }
+
+    // The call may have ended, or been superseded by another, while the
+    // microphone connect was in flight -- there is then nothing left to answer.
+    if (this._call !== call) {
+      return false;
+    }
+
     this._unansweredTimer.stop();
     // Replace (don't mutate) so Lit identity checks downstream pick up the
     // change. The `update()` below forces card.ts to re-render and re-read
     // `getCall()`, propagating the new session to the carousel.
-    this._call = { ...this._call, answered: true };
+    this._call = { ...call, answered: true };
     this._api.getConditionStateManager().setState({ call: 'answered' });
     this._api.getCardElementManager().update();
     return true;
@@ -377,7 +389,11 @@ export class CallManager {
       return false;
     }
 
-    if (microphoneManager.isForbidden()) {
+    // An earlier microphone denial does not stop an inbound call: the ring
+    // needs no microphone, and `answer()` retries the connect -- succeeding
+    // there clears the denial, and failing there reports it. An outbound call
+    // needs the microphone immediately, so a known denial ends it here.
+    if (!inbound && microphoneManager.isForbidden()) {
       this._notifyError('error.call_microphone_forbidden', inbound);
       return false;
     }
@@ -385,17 +401,37 @@ export class CallManager {
     return true;
   }
 
+  // Connects the microphone for a call. Returns true iff it is connected and
+  // this request still belongs to the current init/uninit lifecycle. A connect
+  // failure is surfaced as a notification.
   private async _connectMicrophone(): Promise<boolean> {
     const microphoneManager = this._api.getMicrophoneManager();
     if (microphoneManager.isConnected()) {
       return true;
     }
+
+    const initGeneration = this._initGeneration.current();
+    let connected = false;
     try {
       await microphoneManager.connect();
-      return true;
+      connected = true;
     } catch {
+      // Reported below, once this request is known to still be the current one.
+    }
+
+    // If the init/uninit lifecycle advanced while the connect was in flight,
+    // this request belongs to a previous lifecycle: the state it would act on
+    // is gone, and a notification would be surfaced onto a torn-down
+    // NotificationManager.
+    if (!this._initGeneration.isCurrent(initGeneration)) {
       return false;
     }
+
+    if (!connected) {
+      this._notifyError('error.call_microphone_forbidden', false);
+      return false;
+    }
+    return true;
   }
 
   private _hasCallCapability(cameraID: string): boolean {
