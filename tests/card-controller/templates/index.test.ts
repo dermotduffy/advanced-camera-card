@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { TemplateManager } from '../../../src/card-controller/templates/index';
+import { createConfig } from '../../config/test-utils';
 import {
-  createConfig,
   createHASS,
   createStateEntity,
   stubConnectedHomeAssistant,

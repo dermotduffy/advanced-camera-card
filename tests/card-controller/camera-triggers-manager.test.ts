@@ -6,12 +6,12 @@ import { CameraTriggersManager } from '../../src/card-controller/camera-triggers
 import type { CardController } from '../../src/card-controller/controller';
 import type { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import { triggersSchema, type TriggersOptions } from '../../src/config/schema/view';
+import { createConfig } from '../config/test-utils';
 import {
   createCameraConfig,
   createCameraManager,
   createCapabilities,
   createCardAPI,
-  createConfig,
   createHASS,
   createStateEntity,
   createStore,

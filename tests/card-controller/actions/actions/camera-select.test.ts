@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { CameraSelectAction } from '../../../../src/card-controller/actions/actions/camera-select';
-import { createCardAPI, createConfig, createView } from '../../../test-utils';
+import { createConfig } from '../../../config/test-utils';
+import { createCardAPI, createView } from '../../../test-utils';
 
 describe('should handle camera_select action', () => {
   it('with valid camera and view', async () => {

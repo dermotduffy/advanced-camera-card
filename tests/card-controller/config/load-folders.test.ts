@@ -3,7 +3,8 @@ import { mock } from 'vitest-mock-extended';
 
 import { setFoldersFromConfig } from '../../../src/card-controller/config/load-folders';
 import type { FoldersManager } from '../../../src/card-controller/folders/manager';
-import { createCardAPI, createConfig, createFolder } from '../../test-utils';
+import { createConfig } from '../../config/test-utils';
+import { createCardAPI, createFolder } from '../../test-utils';
 
 describe('setFoldersFromConfig', () => {
   it('should replace folders', () => {

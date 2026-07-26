@@ -4,7 +4,8 @@ import { mock } from 'vitest-mock-extended';
 import type { CardController } from '../../src/card-controller/controller';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
 import { SubstreamViewModifier } from '../../src/card-controller/view/modifiers/substream';
-import { createCardAPI, createConfig } from '../test-utils';
+import { createConfig } from '../config/test-utils';
+import { createCardAPI } from '../test-utils';
 
 const setQueryString = (qs: string): void => {
   const location: Location = mock<Location>();

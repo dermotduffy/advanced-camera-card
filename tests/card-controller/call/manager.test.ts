@@ -17,12 +17,12 @@ import type { RingtoneConfig } from '../../../src/config/schema/live';
 import type { AdvancedCameraCardConfig } from '../../../src/config/schema/types';
 import { View } from '../../../src/view/view';
 import { createTriggerEvaluatorContext } from '../../condition-trigger/triggers/triggers/test-utils';
+import { createConfig } from '../../config/test-utils';
 import {
   createCameraConfig,
   createCameraManager,
   createCapabilities,
   createCardAPI,
-  createConfig,
   createStore,
   createView,
 } from '../../test-utils';

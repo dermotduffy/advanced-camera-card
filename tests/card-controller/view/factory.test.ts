@@ -10,11 +10,11 @@ import {
 import type { AdvancedCameraCardView } from '../../../src/config/schema/common/const';
 import type { ViewDisplayMode } from '../../../src/config/schema/common/display';
 import { View } from '../../../src/view/view';
+import { createConfig } from '../../config/test-utils';
 import {
   createCameraManager,
   createCapabilities,
   createCardAPI,
-  createConfig,
   createFolder,
   createStore,
   createView,

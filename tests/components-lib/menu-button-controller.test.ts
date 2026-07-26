@@ -37,11 +37,11 @@ import {
   isViewSupported,
 } from '../../src/view/view-support.js';
 import type { View } from '../../src/view/view.js';
+import { createConfig } from '../config/test-utils';
 import {
   createCameraConfig,
   createCameraManager,
   createCapabilities,
-  createConfig,
   createFolder,
   createHASS,
   createMediaCapabilities,

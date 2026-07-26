@@ -19,9 +19,9 @@ import {
   isAdvancedCameraCardCustomAction,
 } from '../../../src/utils/action';
 import { arrayify } from '../../../src/utils/basic';
+import { createConfig } from '../../config/test-utils';
 import {
   createCardAPI,
-  createConfig,
   createHASS,
   createStateEntity,
   createStore,

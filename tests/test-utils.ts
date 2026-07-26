@@ -69,15 +69,6 @@ import type { SubmenuInteraction, SubmenuItem } from '../src/components/submenu/
 import type { ConditionStateManager } from '../src/condition-trigger/conditions/state-manager';
 import { cameraConfigSchema, type CameraConfig } from '../src/config/schema/cameras';
 import type { FolderConfig } from '../src/config/schema/folders';
-import {
-  performanceConfigSchema,
-  type PerformanceConfig,
-} from '../src/config/schema/performance';
-import {
-  advancedCameraCardConfigSchema,
-  type AdvancedCameraCardConfig,
-} from '../src/config/schema/types';
-import type { RawAdvancedCameraCardConfig } from '../src/config/types';
 import type {
   BrowseMedia,
   BrowseMediaMetadata,
@@ -107,22 +98,6 @@ import { View, type ViewParameters } from '../src/view/view';
 
 export const createCameraConfig = (config?: unknown): CameraConfig => {
   return cameraConfigSchema.parse(config ?? {});
-};
-
-export const createRawConfig = (
-  config?: Partial<RawAdvancedCameraCardConfig>,
-): RawAdvancedCameraCardConfig => {
-  return {
-    type: 'advanced-camera-card',
-    cameras: [{}],
-    ...config,
-  };
-};
-
-export const createConfig = (
-  config?: RawAdvancedCameraCardConfig,
-): AdvancedCameraCardConfig => {
-  return advancedCameraCardConfigSchema.parse(createRawConfig(config));
 };
 
 export const createInitializedCamera = async (
@@ -431,10 +406,6 @@ export const createMediaLoadedInfoEvent = (options?: {
     Object.defineProperty(ev, 'composedPath', { value: () => [options.source] });
   }
   return ev;
-};
-
-export const createPerformanceConfig = (config: unknown): PerformanceConfig => {
-  return performanceConfigSchema.parse(config);
 };
 
 export const generateViewMediaArray = (options?: {

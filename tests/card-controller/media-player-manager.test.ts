@@ -10,12 +10,12 @@ import {
 import type { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
 import type { HomeAssistant } from '../../src/ha/types.js';
 import { ViewMediaType } from '../../src/view/item.js';
+import { createConfig } from '../config/test-utils';
 import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {
   createCameraConfig,
   createCameraManager,
   createCardAPI,
-  createConfig,
   createHASS,
   createRegistryEntity,
   createStateEntity,

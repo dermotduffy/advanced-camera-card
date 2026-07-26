@@ -2,7 +2,8 @@ import { add } from 'date-fns';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { InteractionManager } from '../../src/card-controller/interaction-manager';
-import { createCardAPI, createConfig, createLitElement } from '../test-utils';
+import { createConfig } from '../config/test-utils';
+import { createCardAPI, createLitElement } from '../test-utils';
 
 vi.mock('lodash-es', () => ({
   throttle: vi.fn((fn) => Object.assign(fn, { cancel: vi.fn() })),

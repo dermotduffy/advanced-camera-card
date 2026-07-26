@@ -11,7 +11,7 @@ import { conditionSchema } from '../../src/config/schema/condition-trigger/condi
 import { dimensionsConfigSchema } from '../../src/config/schema/dimensions';
 import { customSchema } from '../../src/config/schema/elements/stock/custom';
 import { conditionalSchema } from '../../src/config/schema/elements/types';
-import { createConfig } from '../test-utils';
+import { createConfig } from './test-utils';
 
 describe('config defaults', () => {
   it('should be as expected', () => {

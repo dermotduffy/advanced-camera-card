@@ -2,11 +2,11 @@ import { vi } from 'vitest';
 
 import type { CardController } from '../../../src/card-controller/controller';
 import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
+import { createConfig } from '../../config/test-utils';
 import {
   createCameraManager,
   createCapabilities,
   createCardAPI,
-  createConfig,
   createStore,
 } from '../../test-utils';
 

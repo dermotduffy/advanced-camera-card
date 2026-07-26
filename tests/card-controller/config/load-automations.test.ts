@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { setAutomationsFromConfig } from '../../../src/card-controller/config/load-automations';
-import { createCardAPI, createConfig } from '../../test-utils';
+import { createConfig } from '../../config/test-utils';
+import { createCardAPI } from '../../test-utils';
 
 describe('setAutomationsFromConfig', () => {
   it('without config', () => {

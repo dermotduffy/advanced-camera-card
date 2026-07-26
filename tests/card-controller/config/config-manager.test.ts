@@ -11,9 +11,9 @@ import type { Automation } from '../../../src/config/schema/automations';
 import type { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
 import { createGeneralAction } from '../../../src/utils/action';
+import { createConfig } from '../../config/test-utils';
 import {
   createCardAPI,
-  createConfig,
   createHASS,
   createStateEntity,
   flushPromises,

@@ -9,13 +9,12 @@ import type { PerformanceConfig } from '../../../src/config/schema/performance';
 import { QuerySource } from '../../../src/query-source';
 import { UnifiedQuery } from '../../../src/view/unified-query';
 import { View } from '../../../src/view/view';
+import { createConfig, createPerformanceConfig } from '../../config/test-utils';
 import {
   createCameraConfig,
   createCameraManager,
   createCapabilities,
   createCardAPI,
-  createConfig,
-  createPerformanceConfig,
   createStore,
   createView,
   isEventQuery,

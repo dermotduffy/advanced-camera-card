@@ -36,11 +36,11 @@ import { QuerySource } from '../../src/query-source.js';
 import { PTZMovementType, type Endpoint } from '../../src/types.js';
 import { ViewFolder, type ViewItem, type ViewMedia } from '../../src/view/item.js';
 import type { ViewItemCapabilities } from '../../src/view/types.js';
+import { createConfig } from '../config/test-utils';
 import {
   createCameraConfig,
   createCapabilities,
   createCardAPI,
-  createConfig,
   createFolder,
   createHASS,
   createInitializedCamera,

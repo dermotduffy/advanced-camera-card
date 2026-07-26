@@ -5,11 +5,11 @@ import { CardElementManager } from '../../src/card-controller/card-element-manag
 import type { StateWatcher } from '../../src/card-controller/hass/state-watcher';
 import { QueryResults } from '../../src/view/query-results';
 import { View } from '../../src/view/view';
+import { createConfig } from '../config/test-utils';
 import {
   callStateWatcherCallback,
   createCardAPI,
   createCardHTMLElement,
-  createConfig,
   createStateEntity,
   createView,
   TestViewMedia,

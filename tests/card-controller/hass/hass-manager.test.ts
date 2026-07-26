@@ -4,11 +4,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EventWatcher } from '../../../src/card-controller/hass/event-watcher';
 import { HASSManager } from '../../../src/card-controller/hass/hass-manager';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
+import { createConfig } from '../../config/test-utils';
 import {
   createCameraConfig,
   createCameraManager,
   createCardAPI,
-  createConfig,
   createHASS,
   createStateEntity,
   createStore,

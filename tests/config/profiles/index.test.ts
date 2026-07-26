@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { setProfiles } from '../../../src/config/profiles/set-profiles';
 import type { ProfileType } from '../../../src/config/schema/profiles';
-import { createConfig } from '../../test-utils';
+import { createConfig } from '../test-utils';
 
 describe('setProfiles', () => {
   it('should handle failed parse', () => {

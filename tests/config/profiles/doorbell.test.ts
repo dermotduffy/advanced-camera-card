@@ -4,7 +4,7 @@ import { copyConfig } from '../../../src/config/management';
 import { DOORBELL_PROFILE } from '../../../src/config/profiles/doorbell';
 import { setProfiles } from '../../../src/config/profiles/set-profiles';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
-import { createRawConfig } from '../../test-utils';
+import { createRawConfig } from '../test-utils';
 
 it('should contain expected defaults', () => {
   expect(DOORBELL_PROFILE).toEqual({

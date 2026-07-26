@@ -4,10 +4,10 @@ import { mock } from 'vitest-mock-extended';
 import type { CardController } from '../../src/card-controller/controller';
 import { DefaultManager } from '../../src/card-controller/default-manager';
 import type { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher';
+import { createConfig } from '../config/test-utils';
 import {
   callStateWatcherCallback,
   createCardAPI,
-  createConfig,
   createHASS,
   createStateEntity,
 } from '../test-utils';

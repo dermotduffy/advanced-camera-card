@@ -10,7 +10,8 @@ import { ConditionStateManager } from '../../src/condition-trigger/conditions/st
 import { sideLoadHomeAssistantElements } from '../../src/ha/side-load-ha-elements.js';
 import { loadLanguages } from '../../src/localize/localize';
 import type { Initializer } from '../../src/utils/initializer/initializer';
-import { createCardAPI, createConfig, createHASS } from '../test-utils';
+import { createConfig } from '../config/test-utils';
+import { createCardAPI, createHASS } from '../test-utils';
 
 vi.mock('../../src/localize/localize.js');
 vi.mock('../../src/ha/side-load-ha-elements.js');

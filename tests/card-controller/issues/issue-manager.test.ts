@@ -17,9 +17,9 @@ import type {
 } from '../../../src/card-controller/issues/types';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import type { InteractionMode } from '../../../src/config/schema/view';
+import { createConfig } from '../../config/test-utils';
 import {
   createCardAPI,
-  createConfig,
   createHASS,
   createMediaLoadedInfo,
   flushPromises,

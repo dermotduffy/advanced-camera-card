@@ -32,11 +32,11 @@ import {
 import { QuerySource } from '../../src/query-source';
 import type { Severity } from '../../src/severity';
 import { UnifiedQuery } from '../../src/view/unified-query';
+import { createPerformanceConfig } from '../config/test-utils';
 import {
   createCameraConfig,
   createCameraManager,
   createLitElement,
-  createPerformanceConfig,
   createStore,
   createView,
 } from '../test-utils';

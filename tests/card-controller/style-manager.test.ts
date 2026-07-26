@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StyleManager } from '../../src/card-controller/style-manager';
 import type { AdvancedCameraCardView } from '../../src/config/schema/common/const';
 import type { ThemeName } from '../../src/config/schema/view';
-import { createCardAPI, createConfig, createView } from '../test-utils';
+import { createConfig } from '../config/test-utils';
+import { createCardAPI, createView } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('StyleManager', () => {
