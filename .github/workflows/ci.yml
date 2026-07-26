@@ -1,5 +1,5 @@
 ---
-name: 'Build'
+name: 'CI'
 
 on:
   push:
@@ -12,8 +12,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Test build
+  check:
+    name: Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,8 +37,34 @@ jobs:
       - name: Check formatting
         run: yarn run format-check
 
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node and Yarn
+        uses: volta-cli/action@v5
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
       - name: Test & Coverage
         run: yarn run coverage
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node and Yarn
+        uses: volta-cli/action@v5
+
+      - name: Install dependencies
+        run: yarn install --immutable
 
       - name: Build
         run: yarn run build
