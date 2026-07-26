@@ -84,10 +84,11 @@ jobs:
           name: advanced-camera-card
           path: dist/*.js
 
-      # When this issue is fixed, it would be useful to upload visualizations:
-      # https://github.com/actions/upload-artifact/issues/14
-      # - name: Upload visualizations
-      #   uses: actions/upload-artifact@v7
-      #   with:
-      #     name: advanced-camera-card
-      #     path: visualizations/*.html
+      # Uploaded unarchived so the self-contained treemap can be viewed directly
+      # in the browser rather than downloaded and unzipped. The artifact is
+      # named after the file, as `name` is ignored when `archive` is false.
+      - name: Upload bundle visualization
+        uses: actions/upload-artifact@v7
+        with:
+          path: visualizations/treemap.html
+          archive: false
