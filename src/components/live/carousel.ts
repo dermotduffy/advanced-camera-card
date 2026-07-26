@@ -435,7 +435,8 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       !gesturesPTZActive &&
       !this.locked;
 
-    const isCallActive = this.call?.cameraID === carouselCameraID;
+    const isCallControlsActive =
+      this.liveConfig.controls.call.enabled && this.call?.cameraID === carouselCameraID;
     const callMediaPlayerController =
       this._mediaLoadedInfoSinkController.get()?.mediaPlayerController ?? null;
 
@@ -470,7 +471,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       >
       </advanced-camera-card-ptz>
       <advanced-camera-card-call-controls
-        .active=${isCallActive}
+        .active=${isCallControlsActive}
         .answered=${this.call?.answered ?? true}
         .microphoneState=${this.microphoneState}
         .muted=${callMediaPlayerController?.isMuted()}

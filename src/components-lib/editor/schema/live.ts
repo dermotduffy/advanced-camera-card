@@ -25,6 +25,7 @@ const getCallSchema = (): HAFormExpandableSchema => ({
   title: localize('config.live.controls.call.editor_label'),
   icon: 'mdi:phone',
   schema: [
+    { name: 'enabled', selector: { boolean: {} } },
     { name: 'lock', selector: { boolean: {} } },
     {
       name: 'ringtone',

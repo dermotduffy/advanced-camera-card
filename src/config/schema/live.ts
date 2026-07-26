@@ -50,6 +50,7 @@ export type RingtoneConfig = z.infer<typeof ringtoneConfigSchema>;
 
 const callConfigDefault = {
   button_size: 40,
+  enabled: true,
   lock: true,
   ringtone: { ...ringtoneConfigDefault },
   unanswered_timeout_seconds: 60,
@@ -57,6 +58,7 @@ const callConfigDefault = {
 
 const callConfigSchema = z.object({
   button_size: z.number().min(BUTTON_SIZE_MIN).default(callConfigDefault.button_size),
+  enabled: z.boolean().default(callConfigDefault.enabled),
   lock: z.boolean().default(callConfigDefault.lock),
   ringtone: ringtoneConfigSchema.default(callConfigDefault.ringtone),
 

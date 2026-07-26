@@ -459,6 +459,7 @@
           "answer": "Answer call",
           "button_size": "Call control button size",
           "editor_label": "Two-way audio call",
+          "enabled": "Show on-screen call controls",
           "end": "End 2-way audio call",
           "lock": "Lock UI during an active call",
           "mute_audio": "Mute audio",

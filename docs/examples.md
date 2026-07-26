@@ -563,6 +563,64 @@ profiles:
 > the view-only camera to `live_provider: ha` (HLS / receive-only WebRTC, which
 > never offers a backchannel) instead.
 
+### Driving calls from the menu
+
+By default on-screen controls will appear mid-card to handle a call. Setting
+[`live.controls.call.enabled: false`](configuration/live.md?id=call) hides those
+controls so the call can be driven via some other mechanism. In this example,
+the card is configured to allow calls to be driven from the menu instead.
+
+This wires up the menu equivalents of every overlay control. The menu `call`
+button starts, ends, and (while ringing) rejects calls, but it cannot _answer_
+an inbound ring -- so a conditional answer button is added that appears only
+while ringing.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.front_door
+    live_provider: go2rtc
+    go2rtc:
+      modes:
+        - webrtc
+profiles:
+  - doorbell
+live:
+  controls:
+    call:
+      # Hide the on-screen call controls overlay -- the menu drives the call.
+      enabled: false
+menu:
+  # The menu hides during a call by default; keep it visible so its call
+  # controls stay reachable.
+  auto_hide: []
+  buttons:
+    # Starts a call, and becomes a hang-up button for the duration of a call.
+    call:
+      enabled: true
+    # Mutes/unmutes your outbound microphone during a call.
+    microphone:
+      enabled: true
+      type: toggle
+    # Mutes/unmutes the inbound (caller's) audio during a call.
+    mute:
+      enabled: true
+elements:
+  # The menu `call` button cannot answer an inbound (ringing) call, so this
+  # answer button is shown only while ringing to provide that control.
+  - type: custom:advanced-camera-card-conditional
+    conditions:
+      - condition: call
+        call: ringing
+    elements:
+      - type: custom:advanced-camera-card-menu-icon
+        icon: mdi:phone
+        title: Answer call
+        tap_action:
+          action: custom:advanced-camera-card-action
+          advanced_camera_card_action: call_answer
+```
+
 ## Events from other cameras
 
 `dependencies.cameras` allows events/recordings for other cameras to be shown

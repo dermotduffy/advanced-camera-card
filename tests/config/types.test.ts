@@ -99,6 +99,7 @@ describe('config defaults', () => {
           builtin: true,
           call: {
             button_size: 40,
+            enabled: true,
             lock: true,
             ringtone: { type: 'chime', repeat: 0 },
             unanswered_timeout_seconds: 60,
@@ -1846,6 +1847,20 @@ it('should not require title controls to specify all options', () => {
       },
     }),
   ).toBeTruthy();
+});
+
+it('should allow the on-screen call controls overlay to be disabled', () => {
+  const config = createConfig({
+    cameras: [{}],
+    live: {
+      controls: {
+        call: {
+          enabled: false,
+        },
+      },
+    },
+  });
+  expect(config.live.controls.call.enabled).toBe(false);
 });
 
 it('should strip trailing slashes from go2rtc url', () => {
