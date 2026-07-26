@@ -19,6 +19,7 @@ import type { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize.js';
 import type { MediaLoadedInfo } from '../types';
 import {
+  createCallAnswerAction,
   createCallEndAction,
   createCallStartAction,
   createCameraAction,
@@ -507,15 +508,26 @@ export class MenuButtonController {
       return null;
     }
 
-    // In a call: a single hang-up button, regardless of target count.
-    if (callManager?.isActive()) {
+    // In a call, a single button regardless of target count. An unanswered
+    // inbound call (ringing) answers; an answered or outbound call hangs up.
+    const call = callManager?.getCall();
+    if (call) {
+      const ringing = call.inbound && !call.answered;
       return {
-        icon: 'mdi:phone-hangup',
-        title: localize('config.live.controls.call.end'),
-        style: this._getEmphasizedStyle(true),
+        icon: ringing ? 'mdi:phone-ring' : 'mdi:phone-hangup',
+        title: ringing
+          ? localize('config.live.controls.call.answer')
+          : localize('config.live.controls.call.end'),
+        style: ringing
+          ? this._getPulsingStyle(
+              'var(--advanced-camera-card-menu-button-positive-color)',
+            )
+          : this._getEmphasizedStyle(true),
         ...config.menu.buttons.call,
         type: 'custom:advanced-camera-card-menu-icon',
-        tap_action: createCallEndAction(),
+        tap_action: ringing ? createCallAnswerAction() : createCallEndAction(),
+        // While ringing, tap answers and hold rejects.
+        ...(ringing && { hold_action: createCallEndAction() }),
       };
     }
 
@@ -915,13 +927,25 @@ export class MenuButtonController {
    */
   private _getEmphasizedStyle(critical?: boolean): StyleInfo {
     if (critical) {
-      return {
-        animation: 'pulse 3s infinite',
-        color: 'var(--advanced-camera-card-menu-button-critical-color)',
-      };
+      return this._getPulsingStyle(
+        'var(--advanced-camera-card-menu-button-critical-color)',
+      );
     }
     return {
       color: 'var(--advanced-camera-card-menu-button-active-color)',
+    };
+  }
+
+  /**
+   * Get a pulsing style in the given color, e.g. to draw attention to a
+   * critical or a ringing button.
+   * @param color The CSS color to pulse.
+   * @returns A StyleInfo.
+   */
+  private _getPulsingStyle(color: string): StyleInfo {
+    return {
+      animation: 'pulse 3s infinite',
+      color,
     };
   }
 

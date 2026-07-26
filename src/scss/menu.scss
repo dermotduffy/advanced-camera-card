@@ -141,3 +141,19 @@ div.opposing {
 
 // Further theme related styling is dynamically applied by `menu.ts`, see
 // `_renderPerInstanceStyle`.
+
+/*****************
+ * Pulse animation
+ *****************/
+
+// Referenced by the inline `animation` on emphasized button styles in
+// `menu-button-controller` (e.g. the ringing call button).
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

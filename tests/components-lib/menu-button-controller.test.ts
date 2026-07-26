@@ -1289,7 +1289,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('when a call is active', () => {
+    it('when an answered call is active', () => {
       const cameraManager = createCameraManager(
         createStore([
           {
@@ -1299,7 +1299,12 @@ describe('MenuButtonController', () => {
         ]),
       );
       const callManager = mock<CallManager>();
-      vi.mocked(callManager.isActive).mockReturnValue(true);
+      vi.mocked(callManager.getCall).mockReturnValue({
+        cameraID: 'camera-1',
+        inbound: false,
+        answered: true,
+        previousView: createView({ camera: 'camera-1' }),
+      });
       const buttons = calculateButtons(controller, {
         cameraManager,
         callManager,
@@ -1320,6 +1325,53 @@ describe('MenuButtonController', () => {
           color: 'var(--advanced-camera-card-menu-button-critical-color)',
         },
         tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'call_end',
+        },
+      });
+    });
+
+    it('when an inbound call is ringing', () => {
+      const cameraManager = createCameraManager(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ '2-way-audio': true }),
+          },
+        ]),
+      );
+      const callManager = mock<CallManager>();
+      vi.mocked(callManager.getCall).mockReturnValue({
+        cameraID: 'camera-1',
+        inbound: true,
+        answered: false,
+        previousView: createView({ camera: 'camera-1' }),
+      });
+
+      const buttons = calculateButtons(controller, {
+        cameraManager,
+        callManager,
+        view: createView({ camera: 'camera-1' }),
+      });
+
+      expect(buttons).toContainEqual({
+        alignment: 'matching',
+        state_color: true,
+        permanent: false,
+        icon: 'mdi:phone-ring',
+        enabled: true,
+        priority: 50,
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Answer call',
+        style: {
+          animation: 'pulse 3s infinite',
+          color: 'var(--advanced-camera-card-menu-button-positive-color)',
+        },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'call_answer',
+        },
+        hold_action: {
           action: 'fire-dom-event',
           advanced_camera_card_action: 'call_end',
         },

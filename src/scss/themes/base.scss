@@ -105,6 +105,11 @@
     var(--advanced-camera-card-warning-color)
   );
 
+  // The color of a positive icon in the menu (e.g. answer an inbound call).
+  --advanced-camera-card-menu-button-positive-color: var(
+    --advanced-camera-card-success-color
+  );
+
   // The background color of the button "circles" in the menu.
   --advanced-camera-card-menu-button-background: color-mix(
     in oklab,
