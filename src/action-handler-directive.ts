@@ -171,9 +171,14 @@ export const actionHandler = directive(
       return noChange;
     }
 
-    // istanbul ignore next -- @preserve Required by Lit Directive API but never called (update() is used instead)
+    // Required by Lit Directive API but never called (update() is used instead).
+    // The start/stop form of the coverage hint is used because the `next` form
+    // applies to whatever immediately follows the comment, which here is
+    // another comment.
+    /* v8 ignore start -- @preserve */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     render(_options?: AdvancedCameraCardActionHandlerOptions) {}
+    /* v8 ignore stop -- @preserve */
   },
 );
 

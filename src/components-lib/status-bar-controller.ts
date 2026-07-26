@@ -122,7 +122,7 @@ export class StatusBarController {
   }
 
   private _getSufficientValue(item: StatusBarItem): string | null {
-    /* istanbul ignore else: cannot happen -- @preserve */
+    /* v8 ignore else: cannot happen -- @preserve */
     if (item.type === 'custom:advanced-camera-card-status-bar-icon') {
       return item.icon;
     } else if (item.type === 'custom:advanced-camera-card-status-bar-string') {

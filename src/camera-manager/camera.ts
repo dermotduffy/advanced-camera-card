@@ -104,6 +104,14 @@ export class Camera {
       this._capabilities ??
       (await this._buildCapabilities(hass, options));
 
+    // The else path is tested, but the `v8` coverage provider miscounts it: a
+    // missing `else` is given the count of the `if` statement minus the count
+    // of its body, and the engine only counts code after an `await` for the
+    // calls that actually paused there. Calls that took an earlier `??` value
+    // above skipped the `await`, which makes the first number the smaller one
+    // and the result negative.
+    // See: https://github.com/AriPerkkio/ast-v8-to-istanbul/issues/148
+    /* v8 ignore else -- @preserve */
     if (this._capabilities.has('trigger')) {
       await this._getTriggerEntities(hass, options);
       this._config.triggers.entities = uniq(this._config.triggers.entities);

@@ -123,10 +123,6 @@ export class ZoomController {
       config?.zoom ?? ZOOM_DEFAULT_SCALE,
     );
 
-    // The ZOOM_DEFAULT_SCALE fallback is not reachable: without a zoom value a
-    // default of 1 is assumed in _convertPercentToXYPan, which returns null at
-    // the default zoom, leaving `converted` unset.
-    /* istanbul ignore next @preserve */
     const startScale = config?.zoom ?? ZOOM_DEFAULT_SCALE;
 
     this._panzoom = Panzoom(this._element, {
@@ -243,23 +239,19 @@ export class ZoomController {
     // used fully specified by this object. It's kept as-is for completeness.
     return (
       arefloatsApproximatelyEqual(
-        /* istanbul ignore next @preserve */
         a.zoom ?? ZOOM_DEFAULT_SCALE,
-        /* istanbul ignore next @preserve */
         b.zoom ?? ZOOM_DEFAULT_SCALE,
         ZOOM_PRECISION,
       ) &&
       arefloatsApproximatelyEqual(
-        /* istanbul ignore next @preserve */
         a.pan?.x ?? ZOOM_DEFAULT_PAN_X,
-        /* istanbul ignore next @preserve */
         b.pan?.x ?? ZOOM_DEFAULT_PAN_X,
         ZOOM_PRECISION,
       ) &&
       arefloatsApproximatelyEqual(
-        /* istanbul ignore next @preserve */
+        /* v8 ignore next @preserve */
         a.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
-        /* istanbul ignore next @preserve */
+        /* v8 ignore next @preserve */
         b.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
         ZOOM_PRECISION,
       )
@@ -436,7 +428,7 @@ export class ZoomController {
     // The ZOOM_DEFAULT_SCALE fallback cannot be reached: when
     // this._defaultSettings.zoom is undefined, convertedDefault ends up null
     // above and this function has already returned.
-    /* istanbul ignore next @preserve */
+    /* v8 ignore next @preserve */
     const defaultScale = this._defaultSettings.zoom ?? ZOOM_DEFAULT_SCALE;
 
     return (

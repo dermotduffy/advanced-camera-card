@@ -353,7 +353,6 @@ export class MediaGridController {
     const eventPath = ev.composedPath();
 
     for (const [id, element] of this._gridContents.entries()) {
-      /* istanbul ignore else: the else path cannot be reached -- @preserve */
       if (eventPath.includes(element)) {
         if (this._selected !== id) {
           // Fire the request but do not mutate local state. The authoritative

@@ -293,7 +293,7 @@ export class ViewManager implements ViewManagerInterface {
       return;
     }
 
-    /* istanbul ignore if: the if path cannot be reached as the view is set
+    /* v8 ignore if: the if path cannot be reached as the view is set
     above -- @preserve */
     if (!this._view) {
       return;

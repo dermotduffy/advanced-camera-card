@@ -35,7 +35,7 @@ export class LatestValueRunner<T> {
       this._running = true;
       // The drain loop cannot reject (the operation's errors are caught within
       // it); the catch only satisfies the no-floating-promises rule.
-      /* istanbul ignore next -- @preserve */
+      /* v8 ignore next -- @preserve */
       this._drain().catch(() => {});
     }
     return ran;

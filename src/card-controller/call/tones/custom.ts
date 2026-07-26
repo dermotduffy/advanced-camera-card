@@ -51,7 +51,7 @@ export class CustomTone implements Tone {
   }
 
   private _handleEnded = (): void => {
-    /* istanbul ignore next: stop() removes this listener before nulling
+    /* v8 ignore next: stop() removes this listener before nulling
        _audio, so the handler can't fire with a null _audio -- @preserve */
     if (!this._audio) {
       return;
@@ -64,7 +64,7 @@ export class CustomTone implements Tone {
   };
 
   private _playAudio(): void {
-    /* istanbul ignore next: callers (start, _handleEnded) only invoke
+    /* v8 ignore next: callers (start, _handleEnded) only invoke
        _playAudio when _audio is non-null -- @preserve */
     if (!this._audio) {
       return;

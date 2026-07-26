@@ -227,7 +227,7 @@ export class ViewQueryExecutor {
       const now = new Date();
       const liveConfig = this._api.getConfigManager().getConfig()?.live;
 
-      /* istanbul ignore if: this if branch cannot be reached as if the config is
+      /* v8 ignore if: this if branch cannot be reached as if the config is
          empty this function is never called -- @preserve */
       if (!liveConfig) {
         return [];

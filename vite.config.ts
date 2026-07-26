@@ -128,8 +128,12 @@ export default defineConfig({
     coverage: {
       exclude: EXCLUSIONS,
 
-      // Favor istanbul for coverage over v8 due to better accuracy.
-      provider: 'istanbul',
+      // 'v8' reads coverage from the JavaScript engine, so it runs about twice
+      // as fast as 'istanbul', which has to rewrite every source file first.
+      // Known gap: 'istanbul' will flag a default parameter value that no test
+      // ever falls back on -- 'v8' will not, but it is not worth the
+      // significant performance slowdown to cover this rare case.
+      provider: 'v8',
       thresholds: {
         perFile: true,
         'src/**/*.ts': {

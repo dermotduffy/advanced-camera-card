@@ -163,7 +163,7 @@ export class ConfigManager {
   }
 
   private _processOverrideConfig(): void {
-    /* istanbul ignore if: No (current) way to reach this code -- @preserve */
+    /* v8 ignore if: No (current) way to reach this code -- @preserve */
     if (!this._config) {
       return;
     }

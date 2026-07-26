@@ -429,7 +429,7 @@ export class FrigateCameraManagerEngine
       instanceID: string,
       cameraIDs?: Set<string>,
     ): Promise<void> => {
-      /* istanbul ignore next: defensive guard, instances.get() always returns
+      /* v8 ignore next: defensive guard, instances.get() always returns
          a value when iterating instances.keys() -- @preserve */
       if (!cameraIDs?.size) {
         return;
@@ -508,7 +508,7 @@ export class FrigateCameraManagerEngine
       instanceID: string,
       cameraIDs?: Set<string>,
     ): Promise<void> => {
-      /* istanbul ignore next: defensive guard, instances.get() always returns
+      /* v8 ignore next: defensive guard, instances.get() always returns
          a value when iterating instances.keys() -- @preserve */
       if (!cameraIDs?.size) {
         return;
@@ -1032,7 +1032,7 @@ export class FrigateCameraManagerEngine
       }
 
       for (const result of recordings.values()) {
-        /* istanbul ignore next: this engine's getRecordings() always produces
+        /* v8 ignore next: this engine's getRecordings() always produces
            FrigateRecordingQueryResults -- @preserve */
         if (!FrigateQueryResultsClassifier.isFrigateRecordingQueryResults(result)) {
           continue;
@@ -1102,7 +1102,7 @@ export class FrigateCameraManagerEngine
     }
 
     for (const [query, result] of results) {
-      /* istanbul ignore next: this engine's getRecordings() always produces
+      /* v8 ignore next: this engine's getRecordings() always produces
          FrigateRecordingQueryResults -- @preserve */
       if (!FrigateQueryResultsClassifier.isFrigateRecordingQueryResults(result)) {
         continue;
