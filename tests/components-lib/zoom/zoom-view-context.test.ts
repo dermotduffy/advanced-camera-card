@@ -57,7 +57,6 @@ describe('generateViewContextForZoom', () => {
   });
 });
 
-// @vitest-environment jsdom
 describe('handleZoomSettingsObservedEvent', () => {
   it('should reject observed zoom settings without viewManager ', () => {
     handleZoomSettingsObservedEvent(

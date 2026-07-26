@@ -15,7 +15,6 @@ import { createCardAPI, createConfig, createHASS } from '../test-utils';
 vi.mock('../../src/localize/localize.js');
 vi.mock('../../src/ha/side-load-ha-elements.js');
 
-// @vitest-environment jsdom
 describe('InitializationManager', () => {
   beforeEach(async () => {
     vi.resetAllMocks();

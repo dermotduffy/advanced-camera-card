@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { SignalingChannel } from '../../../../../src/components-lib/live/providers/go2rtc-experimental/signaling';
 import { FakeWebSocket } from './test-utils';
 
-// @vitest-environment jsdom
 describe('SignalingChannel', () => {
   const setup = (options?: {
     openCallback?: () => void;

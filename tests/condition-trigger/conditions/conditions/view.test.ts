@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
 import { createEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('view condition', () => {
   it('should match a named view', () => {
     const evaluator = createConditionEvaluator(

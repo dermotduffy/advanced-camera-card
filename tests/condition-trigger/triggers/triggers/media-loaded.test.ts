@@ -6,7 +6,6 @@ import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/t
 import { createMediaLoadedInfo } from '../../../test-utils';
 import { createTriggerEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('MediaLoadedTrigger', () => {
   const create = (
     trigger: TriggerOfType<'media_loaded'>,

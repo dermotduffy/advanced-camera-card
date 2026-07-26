@@ -5,7 +5,6 @@ import { ExpandTrigger } from '../../../../src/condition-trigger/triggers/trigge
 import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createTriggerEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('ExpandTrigger', () => {
   const create = (
     trigger: TriggerOfType<'expand'>,

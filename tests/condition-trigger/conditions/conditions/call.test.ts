@@ -4,7 +4,6 @@ import { createConditionEvaluator } from '../../../../src/condition-trigger/cond
 import { callConditionSchema } from '../../../../src/config/schema/condition-trigger/conditions/custom/call';
 import { createEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('call condition', () => {
   it('should require a value', () => {
     expect(() => callConditionSchema.parse({ condition: 'call' })).toThrow();

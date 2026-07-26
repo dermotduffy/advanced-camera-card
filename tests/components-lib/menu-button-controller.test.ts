@@ -85,7 +85,6 @@ const calculateButtons = (
   );
 };
 
-// @vitest-environment jsdom
 describe('MenuButtonController', () => {
   let controller: MenuButtonController;
   const dynamicButton: MenuItem = {

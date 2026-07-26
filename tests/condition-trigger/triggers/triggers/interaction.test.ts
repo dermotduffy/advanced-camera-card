@@ -5,7 +5,6 @@ import { InteractionTrigger } from '../../../../src/condition-trigger/triggers/t
 import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createTriggerEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('InteractionTrigger', () => {
   const create = (
     trigger: TriggerOfType<'interaction'>,

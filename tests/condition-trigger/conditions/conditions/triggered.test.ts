@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { createConditionEvaluator } from '../../../../src/condition-trigger/conditions/factory';
 import { createEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('triggered condition', () => {
   it('should match any triggered camera when no list is given', () => {
     const evaluator = createConditionEvaluator(

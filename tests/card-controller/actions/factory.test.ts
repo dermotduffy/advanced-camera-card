@@ -53,7 +53,6 @@ import { GENERATED_ACTION } from '../../../src/config/schema/actions/custom/gene
 import { INTERNAL_CALLBACK_ACTION } from '../../../src/config/schema/actions/custom/internal';
 import type { ActionConfig } from '../../../src/config/schema/actions/types';
 
-// @vitest-environment jsdom
 describe('ActionFactory', () => {
   it('should return null for mismatched card-id', () => {
     const factory = new ActionFactory();

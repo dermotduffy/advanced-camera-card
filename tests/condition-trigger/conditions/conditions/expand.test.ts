@@ -4,7 +4,6 @@ import { createConditionEvaluator } from '../../../../src/condition-trigger/cond
 import { expandConditionSchema } from '../../../../src/config/schema/condition-trigger/conditions/custom/expand';
 import { createEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('expand condition', () => {
   it('should match an expand condition', () => {
     const evaluator = createConditionEvaluator(

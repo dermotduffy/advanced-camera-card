@@ -6,7 +6,6 @@ import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/t
 import { createConfig } from '../../../test-utils';
 import { createTriggerEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('CameraTrigger', () => {
   const create = (
     trigger: TriggerOfType<'camera'>,

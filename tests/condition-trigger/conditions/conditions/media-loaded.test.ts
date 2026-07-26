@@ -5,7 +5,6 @@ import { mediaLoadedConditionSchema } from '../../../../src/config/schema/condit
 import { createMediaLoadedInfo } from '../../../test-utils';
 import { createEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('media loaded condition', () => {
   it('should match a media loaded condition', () => {
     const evaluator = createConditionEvaluator(

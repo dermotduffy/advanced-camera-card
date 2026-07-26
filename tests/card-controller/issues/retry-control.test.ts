@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 
 import { createRetryControl } from '../../../src/card-controller/issues/retry-control';

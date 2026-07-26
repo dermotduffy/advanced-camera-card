@@ -5,7 +5,6 @@ import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/t
 import { ViewTrigger } from '../../../../src/condition-trigger/triggers/triggers/view';
 import { createTriggerEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('ViewTrigger', () => {
   const create = (
     trigger: TriggerOfType<'view'>,

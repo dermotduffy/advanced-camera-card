@@ -5,7 +5,6 @@ import { FullscreenTrigger } from '../../../../src/condition-trigger/triggers/tr
 import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
 import { createTriggerEvaluatorContext } from './test-utils';
 
-// @vitest-environment jsdom
 describe('FullscreenTrigger', () => {
   const create = (
     trigger: TriggerOfType<'fullscreen'>,

@@ -80,7 +80,6 @@ const fireMessage = (hass: HomeAssistant, data: unknown, n = 0): void => {
   mock.calls[n][0](data);
 };
 
-// @vitest-environment jsdom
 describe('FrigateEventWatcher', () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -226,7 +225,6 @@ describe('FrigateEventWatcher', () => {
   });
 });
 
-// @vitest-environment jsdom
 describe('FrigateReviewWatcher', () => {
   afterEach(() => {
     vi.restoreAllMocks();
