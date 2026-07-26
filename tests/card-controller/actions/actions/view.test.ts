@@ -28,7 +28,7 @@ describe('should handle view action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith(
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
           view: viewName,
@@ -53,7 +53,7 @@ describe('should handle folder view action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith(
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
           view: viewName,

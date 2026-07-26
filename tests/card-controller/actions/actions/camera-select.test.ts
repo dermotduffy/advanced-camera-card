@@ -21,7 +21,7 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith(
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
           view: 'live',
@@ -51,7 +51,7 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toHaveBeenCalled();
   });
 
   it('without config', async () => {
@@ -74,7 +74,7 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith(
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
           view: 'timeline',
@@ -112,7 +112,7 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith(
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
           view: 'clips',
@@ -141,7 +141,7 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith(
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
           view: 'live',
@@ -169,7 +169,7 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toHaveBeenCalled();
   });
 
   it('without a current view', async () => {
@@ -186,6 +186,6 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toHaveBeenCalled();
   });
 });

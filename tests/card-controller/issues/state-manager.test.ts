@@ -65,9 +65,9 @@ describe('IssueStateManager', () => {
       assert(mockConfigUpgrade.detectStatic);
       assert(mockLegacyResource.detectStatic);
       assert(mockMediaLoad.detectStatic);
-      expect(mockConfigUpgrade.detectStatic).toBeCalledWith(hass);
-      expect(mockLegacyResource.detectStatic).toBeCalledWith(hass);
-      expect(mockMediaLoad.detectStatic).toBeCalledWith(hass);
+      expect(mockConfigUpgrade.detectStatic).toHaveBeenCalledWith(hass);
+      expect(mockLegacyResource.detectStatic).toHaveBeenCalledWith(hass);
+      expect(mockMediaLoad.detectStatic).toHaveBeenCalledWith(hass);
     });
 
     it('should isolate a failing issue and continue detecting the rest', async () => {
@@ -87,8 +87,8 @@ describe('IssueStateManager', () => {
       await expect(manager.detectStatic(hass)).resolves.toBeUndefined();
 
       // Detection continued to the final issue despite the two earlier failures.
-      expect(mockMediaLoad.detectStatic).toBeCalledWith(hass);
-      expect(spy).toBeCalledTimes(2);
+      expect(mockMediaLoad.detectStatic).toHaveBeenCalledWith(hass);
+      expect(spy).toHaveBeenCalledTimes(2);
       spy.mockRestore();
     });
   });
@@ -100,7 +100,7 @@ describe('IssueStateManager', () => {
       manager.trigger('media_unavailable', { targetID: 'cam1', reason: 'stalled' });
 
       assert(mockMediaLoad.trigger);
-      expect(mockMediaLoad.trigger).toBeCalledWith({
+      expect(mockMediaLoad.trigger).toHaveBeenCalledWith({
         targetID: 'cam1',
         reason: 'stalled',
       });
@@ -112,7 +112,7 @@ describe('IssueStateManager', () => {
       manager.trigger('unknown' as never, {} as never);
 
       assert(mockMediaLoad.trigger);
-      expect(mockMediaLoad.trigger).not.toBeCalled();
+      expect(mockMediaLoad.trigger).not.toHaveBeenCalled();
     });
   });
 
@@ -123,7 +123,7 @@ describe('IssueStateManager', () => {
       manager.detectDynamic({ view: 'live' });
 
       assert(mockMediaLoad.detectDynamic);
-      expect(mockMediaLoad.detectDynamic).toBeCalledWith({ view: 'live' });
+      expect(mockMediaLoad.detectDynamic).toHaveBeenCalledWith({ view: 'live' });
     });
   });
 
@@ -255,7 +255,7 @@ describe('IssueStateManager', () => {
       const manager = createManager();
       manager.retry();
 
-      expect(mockMediaLoad.retry).toBeCalled();
+      expect(mockMediaLoad.retry).toHaveBeenCalled();
     });
 
     it('should call retry on issues that want retry with exclusive result', () => {
@@ -266,7 +266,7 @@ describe('IssueStateManager', () => {
 
       createManager().retry();
 
-      expect(mockMediaLoad.retry).toBeCalled();
+      expect(mockMediaLoad.retry).toHaveBeenCalled();
     });
 
     it('should not call retry on issues that do not want retry', () => {
@@ -277,7 +277,7 @@ describe('IssueStateManager', () => {
       manager.retry();
 
       assert(mockMediaLoad.retry);
-      expect(mockMediaLoad.retry).not.toBeCalled();
+      expect(mockMediaLoad.retry).not.toHaveBeenCalled();
     });
 
     it('should stop after exclusive result and not call retry on subsequent issues', () => {
@@ -293,9 +293,9 @@ describe('IssueStateManager', () => {
       const manager = createManager();
       manager.retry();
 
-      expect(mockConfigUpgrade.retry).toBeCalled();
+      expect(mockConfigUpgrade.retry).toHaveBeenCalled();
       assert(mockMediaLoad.retry);
-      expect(mockMediaLoad.retry).not.toBeCalled();
+      expect(mockMediaLoad.retry).not.toHaveBeenCalled();
     });
 
     it('should continue after non-exclusive result and call retry on subsequent issues', () => {
@@ -312,8 +312,8 @@ describe('IssueStateManager', () => {
       const manager = createManager();
       manager.retry();
 
-      expect(mockConfigUpgrade.retry).toBeCalled();
-      expect(mockMediaLoad.retry).toBeCalled();
+      expect(mockConfigUpgrade.retry).toHaveBeenCalled();
+      expect(mockMediaLoad.retry).toHaveBeenCalled();
     });
   });
 
@@ -326,7 +326,7 @@ describe('IssueStateManager', () => {
 
       createManager().retry('media_unavailable');
 
-      expect(mockMediaLoad.retry).toBeCalled();
+      expect(mockMediaLoad.retry).toHaveBeenCalled();
     });
 
     it('should not call retry on the matching issue when needsRetry is false', () => {
@@ -336,7 +336,7 @@ describe('IssueStateManager', () => {
       createManager().retry('media_unavailable');
 
       assert(mockMediaLoad.retry);
-      expect(mockMediaLoad.retry).not.toBeCalled();
+      expect(mockMediaLoad.retry).not.toHaveBeenCalled();
     });
 
     it('should call retry when force is true even if needsRetry is false', () => {
@@ -347,14 +347,14 @@ describe('IssueStateManager', () => {
 
       createManager().retry('media_unavailable', true);
 
-      expect(mockMediaLoad.retry).toBeCalled();
+      expect(mockMediaLoad.retry).toHaveBeenCalled();
     });
 
     it('should do nothing for unknown key', () => {
       createManager().retry('unknown' as never);
 
       assert(mockMediaLoad.retry);
-      expect(mockMediaLoad.retry).not.toBeCalled();
+      expect(mockMediaLoad.retry).not.toHaveBeenCalled();
     });
   });
 
@@ -383,7 +383,7 @@ describe('IssueStateManager', () => {
       const manager = createManager();
       await manager.detectStatic(createHASS());
 
-      expect(spy).toBeCalledWith(
+      expect(spy).toHaveBeenCalledWith(
         'Advanced Camera Card [issue=legacy_resource]: Legacy issue',
       );
       spy.mockRestore();
@@ -400,7 +400,7 @@ describe('IssueStateManager', () => {
       const manager = createManager();
       manager.detectDynamic({ view: 'live' });
 
-      expect(spy).toBeCalledWith(
+      expect(spy).toHaveBeenCalledWith(
         'Advanced Camera Card [issue=media_unavailable]: Stream issue',
       );
       spy.mockRestore();
@@ -416,7 +416,7 @@ describe('IssueStateManager', () => {
       const manager = createManager();
       manager.trigger('media_unavailable', { targetID: 'cam1', reason: 'stalled' });
 
-      expect(spy).toBeCalledWith(
+      expect(spy).toHaveBeenCalledWith(
         'Advanced Camera Card [issue=media_unavailable]: Triggered',
       );
       spy.mockRestore();
@@ -429,7 +429,7 @@ describe('IssueStateManager', () => {
       const manager = createManager();
       manager.trigger('media_unavailable', { targetID: 'cam1', reason: 'stalled' });
 
-      expect(spy).not.toBeCalled();
+      expect(spy).not.toHaveBeenCalled();
       spy.mockRestore();
     });
 
@@ -439,7 +439,7 @@ describe('IssueStateManager', () => {
       const manager = createManager();
       manager.trigger('unknown' as never, {} as never);
 
-      expect(spy).not.toBeCalled();
+      expect(spy).not.toHaveBeenCalled();
       spy.mockRestore();
     });
 
@@ -455,7 +455,7 @@ describe('IssueStateManager', () => {
       await manager.detectStatic(createHASS());
       await manager.detectStatic(createHASS());
 
-      expect(spy).toBeCalledTimes(1);
+      expect(spy).toHaveBeenCalledTimes(1);
       spy.mockRestore();
     });
 
@@ -466,7 +466,7 @@ describe('IssueStateManager', () => {
       const manager = createManager();
       await manager.detectStatic(createHASS());
 
-      expect(spy).not.toBeCalled();
+      expect(spy).not.toHaveBeenCalled();
       spy.mockRestore();
     });
 
@@ -482,7 +482,7 @@ describe('IssueStateManager', () => {
       const manager = createManager();
       await manager.detectStatic(createHASS());
 
-      expect(spy).not.toBeCalled();
+      expect(spy).not.toHaveBeenCalled();
       spy.mockRestore();
     });
 
@@ -507,7 +507,7 @@ describe('IssueStateManager', () => {
       // Re-activate with a different payload → log Second.
       await manager.detectStatic(createHASS());
 
-      expect(spy).toBeCalledTimes(2);
+      expect(spy).toHaveBeenCalledTimes(2);
       expect(spy).toHaveBeenNthCalledWith(
         1,
         'Advanced Camera Card [issue=legacy_resource]: First',
@@ -539,7 +539,7 @@ describe('IssueStateManager', () => {
       // Then it re-activates (e.g. new trigger arrives).
       manager.detectDynamic({ view: 'live' });
 
-      expect(spy).toBeCalledTimes(2);
+      expect(spy).toHaveBeenCalledTimes(2);
       spy.mockRestore();
     });
   });
@@ -550,9 +550,9 @@ describe('IssueStateManager', () => {
       manager.reset('media_unavailable');
 
       assert(mockMediaLoad.reset);
-      expect(mockMediaLoad.reset).toBeCalled();
+      expect(mockMediaLoad.reset).toHaveBeenCalled();
       assert(mockConfigUpgrade.reset);
-      expect(mockConfigUpgrade.reset).not.toBeCalled();
+      expect(mockConfigUpgrade.reset).not.toHaveBeenCalled();
     });
 
     it('should reset all issues when no key is given', () => {
@@ -562,9 +562,9 @@ describe('IssueStateManager', () => {
       assert(mockConfigUpgrade.reset);
       assert(mockLegacyResource.reset);
       assert(mockMediaLoad.reset);
-      expect(mockConfigUpgrade.reset).toBeCalled();
-      expect(mockLegacyResource.reset).toBeCalled();
-      expect(mockMediaLoad.reset).toBeCalled();
+      expect(mockConfigUpgrade.reset).toHaveBeenCalled();
+      expect(mockLegacyResource.reset).toHaveBeenCalled();
+      expect(mockMediaLoad.reset).toHaveBeenCalled();
     });
 
     it('should do nothing for unknown key', () => {
@@ -572,7 +572,7 @@ describe('IssueStateManager', () => {
       manager.reset('unknown' as never);
 
       assert(mockMediaLoad.reset);
-      expect(mockMediaLoad.reset).not.toBeCalled();
+      expect(mockMediaLoad.reset).not.toHaveBeenCalled();
     });
   });
 
@@ -584,9 +584,9 @@ describe('IssueStateManager', () => {
       assert(mockConfigUpgrade.suspend);
       assert(mockLegacyResource.suspend);
       assert(mockMediaLoad.suspend);
-      expect(mockConfigUpgrade.suspend).toBeCalled();
-      expect(mockLegacyResource.suspend).toBeCalled();
-      expect(mockMediaLoad.suspend).toBeCalled();
+      expect(mockConfigUpgrade.suspend).toHaveBeenCalled();
+      expect(mockLegacyResource.suspend).toHaveBeenCalled();
+      expect(mockMediaLoad.suspend).toHaveBeenCalled();
     });
   });
 
@@ -598,16 +598,16 @@ describe('IssueStateManager', () => {
       assert(mockConfigUpgrade.reset);
       assert(mockLegacyResource.reset);
       assert(mockMediaLoad.reset);
-      expect(mockConfigUpgrade.reset).toBeCalled();
-      expect(mockLegacyResource.reset).toBeCalled();
-      expect(mockMediaLoad.reset).toBeCalled();
+      expect(mockConfigUpgrade.reset).toHaveBeenCalled();
+      expect(mockLegacyResource.reset).toHaveBeenCalled();
+      expect(mockMediaLoad.reset).toHaveBeenCalled();
 
       assert(mockConfigUpgrade.destroy);
       assert(mockLegacyResource.destroy);
       assert(mockMediaLoad.destroy);
-      expect(mockConfigUpgrade.destroy).toBeCalled();
-      expect(mockLegacyResource.destroy).toBeCalled();
-      expect(mockMediaLoad.destroy).toBeCalled();
+      expect(mockConfigUpgrade.destroy).toHaveBeenCalled();
+      expect(mockLegacyResource.destroy).toHaveBeenCalled();
+      expect(mockMediaLoad.destroy).toHaveBeenCalled();
 
       expect(manager.getIssuePresence().size).toBe(0);
     });

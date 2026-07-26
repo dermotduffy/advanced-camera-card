@@ -9,10 +9,10 @@ describe('log', () => {
   });
   it('should do nothing without debug logging set', () => {
     log({}, 'foo');
-    expect(spy).not.toBeCalled();
+    expect(spy).not.toHaveBeenCalled();
   });
   it('should log debug when appropriately configured', () => {
     log({ debug: { logging: true } }, 'foo');
-    expect(spy).toBeCalledWith('foo');
+    expect(spy).toHaveBeenCalledWith('foo');
   });
 });

@@ -46,7 +46,7 @@ describe('frigate requests', () => {
     expect(await getRecordingsSummary(hass, 'clientID', 'camera.office')).toBe(
       recordingSummary,
     );
-    expect(homeAssistantWSRequest).toBeCalledWith(
+    expect(homeAssistantWSRequest).toHaveBeenCalledWith(
       hass,
       recordingSummarySchema,
       expect.objectContaining({
@@ -77,7 +77,7 @@ describe('frigate requests', () => {
         before: 0,
       }),
     ).toBe(recordingSegments);
-    expect(homeAssistantWSRequest).toBeCalledWith(
+    expect(homeAssistantWSRequest).toHaveBeenCalledWith(
       hass,
       recordingSegmentsSchema,
       expect.objectContaining({
@@ -101,7 +101,7 @@ describe('frigate requests', () => {
       const hass = createHASS();
       retainEvent(hass, 'clientID', 'eventID', true);
 
-      expect(homeAssistantWSRequest).toBeCalledWith(
+      expect(homeAssistantWSRequest).toHaveBeenCalledWith(
         hass,
         retainResultSchema,
         expect.objectContaining({
@@ -121,10 +121,10 @@ describe('frigate requests', () => {
       });
 
       const hass = createHASS();
-      await expect(retainEvent(hass, 'clientID', 'eventID', true)).rejects.toThrowError(
+      await expect(retainEvent(hass, 'clientID', 'eventID', true)).rejects.toThrow(
         /Could not retain event/,
       );
-      expect(homeAssistantWSRequest).toBeCalledWith(
+      expect(homeAssistantWSRequest).toHaveBeenCalledWith(
         hass,
         retainResultSchema,
         expect.objectContaining({
@@ -157,7 +157,7 @@ describe('frigate requests', () => {
         favorites: true,
       }),
     ).toBe(events);
-    expect(homeAssistantWSRequest).toBeCalledWith(
+    expect(homeAssistantWSRequest).toHaveBeenCalledWith(
       hass,
       frigateEventsSchema,
       expect.objectContaining({
@@ -193,7 +193,7 @@ describe('frigate requests', () => {
 
     vi.mocked(homeAssistantWSRequest).mockResolvedValue(eventSummary);
     expect(await getEventSummary(hass, 'clientID')).toBe(eventSummary);
-    expect(homeAssistantWSRequest).toBeCalledWith(
+    expect(homeAssistantWSRequest).toHaveBeenCalledWith(
       hass,
       eventSummarySchema,
       expect.objectContaining({
@@ -216,7 +216,7 @@ describe('frigate requests', () => {
     const hass = createHASS();
     vi.mocked(homeAssistantWSRequest).mockResolvedValue(ptzInfo);
     expect(await getPTZInfo(hass, 'clientID', 'camera.office')).toBe(ptzInfo);
-    expect(homeAssistantWSRequest).toBeCalledWith(
+    expect(homeAssistantWSRequest).toHaveBeenCalledWith(
       hass,
       ptzInfoSchema,
       expect.objectContaining({
@@ -259,7 +259,7 @@ describe('frigate requests', () => {
         reviewed: false,
       }),
     ).toBe(reviews);
-    expect(homeAssistantWSRequest).toBeCalledWith(
+    expect(homeAssistantWSRequest).toHaveBeenCalledWith(
       hass,
       frigateReviewsSchema,
       expect.objectContaining({
@@ -288,7 +288,7 @@ describe('frigate requests', () => {
       const hass = createHASS();
       setReviewsReviewed(hass, 'clientID', ['review_id'], true);
 
-      expect(homeAssistantWSRequest).toBeCalledWith(
+      expect(homeAssistantWSRequest).toHaveBeenCalledWith(
         hass,
         reviewResultSchema,
         expect.objectContaining({
@@ -309,8 +309,8 @@ describe('frigate requests', () => {
       const hass = createHASS();
       await expect(
         setReviewsReviewed(hass, 'clientID', ['review_id'], true),
-      ).rejects.toThrowError(/Failed to receive response from Home Assistant/);
-      expect(homeAssistantWSRequest).toBeCalledWith(
+      ).rejects.toThrow(/Failed to receive response from Home Assistant/);
+      expect(homeAssistantWSRequest).toHaveBeenCalledWith(
         hass,
         reviewResultSchema,
         expect.objectContaining({

@@ -44,7 +44,7 @@ describe('should handle base action', () => {
 
     await action.execute(api);
 
-    expect(confirm).not.toBeCalled();
+    expect(confirm).not.toHaveBeenCalled();
   });
 
   it('should continue execution when confirmed', async () => {
@@ -61,7 +61,7 @@ describe('should handle base action', () => {
 
     await action.execute(api);
 
-    expect(confirm).toBeCalled();
+    expect(confirm).toHaveBeenCalled();
   });
 
   it('should abort execution when not confirmed', async () => {
@@ -76,7 +76,7 @@ describe('should handle base action', () => {
 
     vi.mocked(confirm).mockReturnValue(false);
 
-    expect(async () => await action.execute(api)).rejects.toThrowError(/Aborted action/);
+    expect(async () => await action.execute(api)).rejects.toThrow(/Aborted action/);
   });
 
   it('should not confirm when exempted', async () => {
@@ -100,7 +100,7 @@ describe('should handle base action', () => {
 
     await action.execute(api);
 
-    expect(confirm).not.toBeCalled();
+    expect(confirm).not.toHaveBeenCalled();
   });
 
   describe('should show correct confirmation text', () => {
@@ -121,7 +121,7 @@ describe('should handle base action', () => {
 
       await action.execute(api);
 
-      expect(confirm).toBeCalledWith(
+      expect(confirm).toHaveBeenCalledWith(
         'Are you sure you want to perform this action: more-info',
       );
     });
@@ -143,7 +143,7 @@ describe('should handle base action', () => {
 
       await action.execute(api);
 
-      expect(confirm).toBeCalledWith(
+      expect(confirm).toHaveBeenCalledWith(
         'Are you sure you want to perform this action: clips',
       );
     });
@@ -167,7 +167,7 @@ describe('should handle base action', () => {
 
       await action.execute(api);
 
-      expect(confirm).toBeCalledWith('Test text');
+      expect(confirm).toHaveBeenCalledWith('Test text');
     });
   });
 });

@@ -26,8 +26,8 @@ describe('KeyAssignerController', () => {
 
       expect(controller.hasValue()).toBeTruthy();
       expect(controller.getValue()).toEqual({ key: 'ArrowLeft' });
-      expect(element.requestUpdate).toBeCalled();
-      expect(valueChangeHandler).toBeCalledWith(
+      expect(element.requestUpdate).toHaveBeenCalled();
+      expect(valueChangeHandler).toHaveBeenCalledWith(
         expect.objectContaining({
           detail: { value: { key: 'ArrowLeft' } },
         }),
@@ -35,8 +35,8 @@ describe('KeyAssignerController', () => {
 
       // Set again with the same value.
       controller.setValue({ key: 'ArrowLeft' });
-      expect(element.requestUpdate).toBeCalledTimes(1);
-      expect(valueChangeHandler).toBeCalledTimes(1);
+      expect(element.requestUpdate).toHaveBeenCalledTimes(1);
+      expect(valueChangeHandler).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -81,7 +81,7 @@ describe('KeyAssignerController', () => {
       const element = createLitElement();
       const controller = new KeyAssignerController(element);
       controller.toggleAssigning();
-      expect(element.requestUpdate).toBeCalled();
+      expect(element.requestUpdate).toHaveBeenCalled();
       expect(controller.isAssigning()).toBeTruthy();
       expect(element.getAttribute('assigning')).toBe('');
 

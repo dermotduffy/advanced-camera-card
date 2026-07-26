@@ -40,7 +40,9 @@ describe('WebkitFullScreenProvider', () => {
 
     provider.connect();
 
-    expect(api.getConditionStateManager().addListener).toBeCalledWith(expect.anything());
+    expect(api.getConditionStateManager().addListener).toHaveBeenCalledWith(
+      expect.anything(),
+    );
   });
 
   it('should disconnect', () => {
@@ -49,7 +51,7 @@ describe('WebkitFullScreenProvider', () => {
 
     provider.disconnect();
 
-    expect(api.getConditionStateManager().removeListener).toBeCalledWith(
+    expect(api.getConditionStateManager().removeListener).toHaveBeenCalledWith(
       expect.anything(),
     );
   });
@@ -110,7 +112,7 @@ describe('WebkitFullScreenProvider', () => {
 
       provider.setFullscreen(true);
 
-      expect(element.webkitEnterFullscreen).toBeCalled();
+      expect(element.webkitEnterFullscreen).toHaveBeenCalled();
     });
 
     it('should exit fullscreen if fullscreen is true', () => {
@@ -130,7 +132,7 @@ describe('WebkitFullScreenProvider', () => {
 
       provider.setFullscreen(false);
 
-      expect(element.webkitExitFullscreen).toBeCalled();
+      expect(element.webkitExitFullscreen).toHaveBeenCalled();
     });
 
     it('should take no action if not supported', () => {
@@ -152,8 +154,8 @@ describe('WebkitFullScreenProvider', () => {
       provider.setFullscreen(true);
       provider.setFullscreen(false);
 
-      expect(element.webkitEnterFullscreen).not.toBeCalled();
-      expect(element.webkitExitFullscreen).not.toBeCalled();
+      expect(element.webkitEnterFullscreen).not.toHaveBeenCalled();
+      expect(element.webkitExitFullscreen).not.toHaveBeenCalled();
     });
 
     it('should take no action if element is not a video', () => {
@@ -175,8 +177,8 @@ describe('WebkitFullScreenProvider', () => {
       provider.setFullscreen(true);
       provider.setFullscreen(false);
 
-      expect(element.webkitEnterFullscreen).not.toBeCalled();
-      expect(element.webkitExitFullscreen).not.toBeCalled();
+      expect(element.webkitEnterFullscreen).not.toHaveBeenCalled();
+      expect(element.webkitExitFullscreen).not.toHaveBeenCalled();
     });
   });
 
@@ -205,7 +207,7 @@ describe('WebkitFullScreenProvider', () => {
 
           element_1.dispatchEvent(new Event(event));
 
-          expect(handler).toBeCalledTimes(1);
+          expect(handler).toHaveBeenCalledTimes(1);
 
           const element_2 = createWebkitVideoElement();
           const mediaPlayerController_2 = mock<MediaPlayerController>();
@@ -218,12 +220,12 @@ describe('WebkitFullScreenProvider', () => {
 
           element_2.dispatchEvent(new Event(event));
 
-          expect(handler).toBeCalledTimes(2);
+          expect(handler).toHaveBeenCalledTimes(2);
 
           // Events on the old element should be ignored.
           element_1.dispatchEvent(new Event(event));
 
-          expect(handler).toBeCalledTimes(2);
+          expect(handler).toHaveBeenCalledTimes(2);
 
           // Test the media loaded info changing, but the player not changing.
           stateManager.setState({
@@ -233,7 +235,7 @@ describe('WebkitFullScreenProvider', () => {
           // Events on the new element should still be handled.
           element_2.dispatchEvent(new Event(event));
 
-          expect(handler).toBeCalledTimes(3);
+          expect(handler).toHaveBeenCalledTimes(3);
         },
       );
     });
@@ -265,11 +267,11 @@ describe('WebkitFullScreenProvider', () => {
 
     element.dispatchEvent(new Event('webkitendfullscreen'));
 
-    expect(element.play).not.toBeCalled();
+    expect(element.play).not.toHaveBeenCalled();
 
     vi.runOnlyPendingTimers();
 
-    expect(element.play).toBeCalled();
+    expect(element.play).toHaveBeenCalled();
   });
 
   it('should swallow a rejected video replay after fullscreen ends', async () => {
@@ -295,6 +297,6 @@ describe('WebkitFullScreenProvider', () => {
     vi.runOnlyPendingTimers();
     await flushPromises();
 
-    expect(element.play).toBeCalled();
+    expect(element.play).toHaveBeenCalled();
   });
 });

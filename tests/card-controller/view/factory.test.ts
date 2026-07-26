@@ -50,7 +50,7 @@ describe('getViewDefault', () => {
     );
 
     const factory = new ViewFactory(api);
-    expect(() => factory.getViewDefault()).toThrowError(ViewIncompatible);
+    expect(() => factory.getViewDefault()).toThrow(ViewIncompatible);
   });
 
   it('should use folders view as default when folders exist without cameras', () => {
@@ -244,7 +244,7 @@ describe('getViewByParameters', () => {
           view: 'snapshots',
         },
       }),
-    ).toThrowError(ViewIncompatible);
+    ).toThrow(ViewIncompatible);
   });
 
   describe('should handle no camera for view with failsafe', () => {
@@ -324,7 +324,7 @@ describe('getViewByParameters', () => {
             view: 'snapshots',
           },
         }),
-      ).toThrowError(ViewIncompatible);
+      ).toThrow(ViewIncompatible);
     });
 
     it('should choose live view with failsafe', () => {
@@ -372,7 +372,7 @@ describe('getViewByParameters', () => {
             view: 'snapshots',
           },
         }),
-      ).toThrowError(ViewIncompatible);
+      ).toThrow(ViewIncompatible);
     });
   });
 

@@ -34,7 +34,7 @@ describe('should handle screenshot action', async () => {
 
     await action.execute(api);
 
-    expect(downloadURL).toBeCalledWith('screenshot-url', 'screenshot.jpg');
+    expect(downloadURL).toHaveBeenCalledWith('screenshot-url', 'screenshot.jpg');
   });
 
   it('should handle screenshot action without screenshot URL', async () => {
@@ -58,6 +58,6 @@ describe('should handle screenshot action', async () => {
 
     await action.execute(api);
 
-    expect(downloadURL).not.toBeCalled();
+    expect(downloadURL).not.toHaveBeenCalled();
   });
 });

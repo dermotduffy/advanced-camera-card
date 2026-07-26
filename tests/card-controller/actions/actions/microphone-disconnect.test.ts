@@ -15,5 +15,5 @@ it('should handle microphone_disconnect action', async () => {
 
   await action.execute(api);
 
-  expect(api.getMicrophoneManager().disconnect).toBeCalled();
+  expect(api.getMicrophoneManager().disconnect).toHaveBeenCalled();
 });

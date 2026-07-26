@@ -41,7 +41,7 @@ describe('MJPEGStreamSource', () => {
     source.start();
     channel.binaryCallback?.(frame());
 
-    expect(showFrame).toBeCalledTimes(1);
+    expect(showFrame).toHaveBeenCalledTimes(1);
     const shown = showFrame.mock.calls[0][0] as Blob;
     expect(shown).toBeInstanceOf(Blob);
     expect(shown.type).toBe('image/jpeg');
@@ -55,7 +55,7 @@ describe('MJPEGStreamSource', () => {
     channel.binaryCallback?.(frame());
     await flushPromises();
 
-    expect(loadedCallback).toBeCalledTimes(1);
+    expect(loadedCallback).toHaveBeenCalledTimes(1);
   });
 
   it('should not report loaded when stopped before the first frame decodes', async () => {
@@ -75,7 +75,7 @@ describe('MJPEGStreamSource', () => {
     resolveDecode();
     await flushPromises();
 
-    expect(loadedCallback).not.toBeCalled();
+    expect(loadedCallback).not.toHaveBeenCalled();
   });
 
   it('should fail on a server error for mjpeg', () => {
@@ -83,7 +83,7 @@ describe('MJPEGStreamSource', () => {
     source.start();
     channel.receiveMessage({ type: 'error', value: 'mjpeg: stream not found' });
 
-    expect(failedCallback).toBeCalledWith('server_error');
+    expect(failedCallback).toHaveBeenCalledWith('server_error');
   });
 
   it('should ignore a server error for another mode', () => {
@@ -91,7 +91,7 @@ describe('MJPEGStreamSource', () => {
     source.start();
     channel.receiveMessage({ type: 'error', value: 'mse: stream not found' });
 
-    expect(failedCallback).not.toBeCalled();
+    expect(failedCallback).not.toHaveBeenCalled();
   });
 
   it('should stop cleanly', () => {
@@ -146,7 +146,7 @@ describe('MJPEGStreamSource', () => {
       source.start();
       vi.advanceTimersByTime(5 * 1000);
 
-      expect(failedCallback).toBeCalledWith('connect_timeout');
+      expect(failedCallback).toHaveBeenCalledWith('connect_timeout');
     });
 
     it('should not fail once a frame has arrived', () => {
@@ -155,7 +155,7 @@ describe('MJPEGStreamSource', () => {
       channel.binaryCallback?.(frame());
       vi.advanceTimersByTime(5 * 1000);
 
-      expect(failedCallback).not.toBeCalled();
+      expect(failedCallback).not.toHaveBeenCalled();
     });
 
     it('should not fail after stop', () => {
@@ -164,7 +164,7 @@ describe('MJPEGStreamSource', () => {
       source.stop();
       vi.advanceTimersByTime(5 * 1000);
 
-      expect(failedCallback).not.toBeCalled();
+      expect(failedCallback).not.toHaveBeenCalled();
     });
   });
 });

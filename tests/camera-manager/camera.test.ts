@@ -79,7 +79,7 @@ describe('Camera', () => {
       createCameraConfig(),
       new GenericCameraManagerEngine(createHASSManager()),
     );
-    expect(() => camera.getID()).toThrowError(
+    expect(() => camera.getID()).toThrow(
       'Could not determine camera id for the following ' +
         "camera, may need to set 'id' parameter manually",
     );
@@ -108,13 +108,13 @@ describe('Camera', () => {
       });
 
       expect(camera.isInitialized()).toBe(true);
-      expect(stateWatcher.subscribe).toBeCalledWith(expect.any(Function), [
+      expect(stateWatcher.subscribe).toHaveBeenCalledWith(expect.any(Function), [
         'camera.foo',
       ]);
 
       await camera.destroy();
 
-      expect(stateWatcher.unsubscribe).toBeCalled();
+      expect(stateWatcher.unsubscribe).toHaveBeenCalled();
     });
 
     it('should skip initialization when hass is unavailable', async () => {
@@ -133,7 +133,7 @@ describe('Camera', () => {
         capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
       });
 
-      expect(stateWatcher.subscribe).not.toBeCalled();
+      expect(stateWatcher.subscribe).not.toHaveBeenCalled();
       expect(camera.getCapabilities()).toBeNull();
       expect(camera.isInitialized()).toBe(false);
     });
@@ -629,7 +629,7 @@ describe('Camera', () => {
 
         it('should subscribe to discovered doorbell entities for state changes', async () => {
           const { stateWatcher } = await initializeDoorbellCamera();
-          expect(stateWatcher.subscribe).toBeCalledWith(expect.any(Function), [
+          expect(stateWatcher.subscribe).toHaveBeenCalledWith(expect.any(Function), [
             'event.front_door_doorbell',
           ]);
         });
@@ -670,7 +670,7 @@ describe('Camera', () => {
           capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
         });
 
-        expect(stateWatcher.subscribe).toBeCalled();
+        expect(stateWatcher.subscribe).toHaveBeenCalled();
 
         const diff = {
           entityID: 'sensor.force_update',
@@ -679,7 +679,7 @@ describe('Camera', () => {
         };
         callStateWatcherCallback(stateWatcher, diff);
 
-        expect(eventCallback).toBeCalledWith({
+        expect(eventCallback).toHaveBeenCalledWith({
           cameraID: 'camera_1',
           id: 'sensor.force_update',
           type: eventType,
@@ -706,7 +706,7 @@ describe('Camera', () => {
         capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
       });
 
-      expect(eventWatcher.subscribe).toBeCalledTimes(1);
+      expect(eventWatcher.subscribe).toHaveBeenCalledTimes(1);
       const request = vi.mocked(eventWatcher.subscribe).mock.calls[0][0];
       expect(request.event_type).toBe('zha_event');
       expect(request.matcher).toBeUndefined();
@@ -716,14 +716,14 @@ describe('Camera', () => {
         createHASSEvent('zha_event', { command: 'press' }),
       );
 
-      expect(eventCallback).toBeCalledWith({
+      expect(eventCallback).toHaveBeenCalledWith({
         cameraID: 'camera_1',
         id: 'event:zha_event',
         type: 'momentary',
       });
 
       await camera.destroy();
-      expect(eventWatcher.unsubscribe).toBeCalled();
+      expect(eventWatcher.unsubscribe).toHaveBeenCalled();
     });
 
     it('should attach a context-only matcher when only a context filter is set', async () => {
@@ -774,7 +774,7 @@ describe('Camera', () => {
         capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
       });
 
-      expect(eventWatcher.subscribe).toBeCalledTimes(2);
+      expect(eventWatcher.subscribe).toHaveBeenCalledTimes(2);
       expect(vi.mocked(eventWatcher.subscribe).mock.calls[0][0].event_type).toBe(
         'zha_event',
       );
@@ -827,7 +827,7 @@ describe('Camera', () => {
         capabilityOptions: { capabilities: createCapabilities({ trigger: false }) },
       });
 
-      expect(eventWatcher.subscribe).not.toBeCalled();
+      expect(eventWatcher.subscribe).not.toHaveBeenCalled();
     });
 
     it('should not dispatch when the helper returns null', async () => {
@@ -859,7 +859,7 @@ describe('Camera', () => {
         newState: createStateEntity({ state: '2026-05-24T12:00:05.123+00:00' }),
       });
 
-      expect(eventCallback).not.toBeCalled();
+      expect(eventCallback).not.toHaveBeenCalled();
     });
 
     it('should dispatch a momentary event for an event entity fire', async () => {
@@ -891,8 +891,8 @@ describe('Camera', () => {
         newState: createStateEntity({ state: '2026-05-24T12:00:05.123+00:00' }),
       });
 
-      expect(eventCallback).toBeCalledTimes(1);
-      expect(eventCallback).toBeCalledWith({
+      expect(eventCallback).toHaveBeenCalledTimes(1);
+      expect(eventCallback).toHaveBeenCalledWith({
         cameraID: 'camera_1',
         id: 'event.front_door_doorbell',
         type: 'momentary',
@@ -920,7 +920,7 @@ describe('Camera', () => {
         capabilityOptions: { capabilities: createCapabilities({ trigger: false }) },
       });
 
-      expect(stateWatcher.subscribe).not.toBeCalled();
+      expect(stateWatcher.subscribe).not.toHaveBeenCalled();
     });
   });
 

@@ -135,7 +135,7 @@ describe('FoldersExecutor', () => {
 
       await executor.favorite(hass, item, true);
 
-      expect(haFolderEngine.favorite).toBeCalledWith(hass, item, true);
+      expect(haFolderEngine.favorite).toHaveBeenCalledWith(hass, item, true);
     });
   });
 
@@ -154,7 +154,10 @@ describe('FoldersExecutor', () => {
       const executor = new FoldersExecutor(templateManager, { ha: haFolderEngine });
 
       expect(executor.generateChildFolderQuery(query, viewFolder)).toEqual(query);
-      expect(haFolderEngine.generateChildFolderQuery).toBeCalledWith(query, viewFolder);
+      expect(haFolderEngine.generateChildFolderQuery).toHaveBeenCalledWith(
+        query,
+        viewFolder,
+      );
     });
 
     it('should return null for non-existent folder engine', () => {

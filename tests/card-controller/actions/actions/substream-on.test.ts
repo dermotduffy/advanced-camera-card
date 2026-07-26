@@ -181,6 +181,6 @@ describe('SubstreamOnAction', () => {
 
     await new SubstreamOnAction({}, createSubstreamOnAction()).execute(api);
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 });

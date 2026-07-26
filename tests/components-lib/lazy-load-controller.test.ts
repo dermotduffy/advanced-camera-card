@@ -58,14 +58,14 @@ describe('LazyLoadController', () => {
   it('should add controller to host', () => {
     const host = createLitElement();
     const controller = new LazyLoadController(host);
-    expect(host.addController).toBeCalledWith(controller);
+    expect(host.addController).toHaveBeenCalledWith(controller);
   });
 
   it('should remove controller from host', () => {
     const host = createLitElement();
     const controller = new LazyLoadController(host);
     controller.removeController();
-    expect(host.removeController).toBeCalledWith(controller);
+    expect(host.removeController).toHaveBeenCalledWith(controller);
   });
 
   it('should remove handlers and listeners on destroy', () => {
@@ -81,8 +81,8 @@ describe('LazyLoadController', () => {
 
     controller.destroy();
 
-    expect(getMockIntersectionObserver()?.disconnect).toBeCalled();
-    expect(global.document.removeEventListener).toBeCalledWith(
+    expect(getMockIntersectionObserver()?.disconnect).toHaveBeenCalled();
+    expect(global.document.removeEventListener).toHaveBeenCalledWith(
       'visibilitychange',
       expect.anything(),
     );
@@ -90,7 +90,7 @@ describe('LazyLoadController', () => {
 
     callVisibilityHandler(true);
     callIntersectionHandler(true);
-    expect(listener).not.toBeCalled();
+    expect(listener).not.toHaveBeenCalled();
   });
 
   describe('should set configuration', () => {
@@ -100,12 +100,12 @@ describe('LazyLoadController', () => {
       controller.addListener(listener);
 
       expect(controller.isLoaded()).toBe(false);
-      expect(listener).not.toBeCalled();
+      expect(listener).not.toHaveBeenCalled();
 
       controller.setConfiguration({ lazyLoad: false });
 
       expect(controller.isLoaded()).toBe(true);
-      expect(listener).toBeCalled();
+      expect(listener).toHaveBeenCalled();
     });
 
     it('should re-evaluate unload when conditions change while loaded', () => {
@@ -206,8 +206,8 @@ describe('LazyLoadController', () => {
       expect(controller.isLoaded()).toBe(false);
 
       // Should also stop observing.
-      expect(getMockIntersectionObserver()?.disconnect).toBeCalled();
-      expect(global.document.removeEventListener).toBeCalledWith(
+      expect(getMockIntersectionObserver()?.disconnect).toHaveBeenCalled();
+      expect(global.document.removeEventListener).toHaveBeenCalledWith(
         'visibilitychange',
         expect.anything(),
       );
@@ -383,19 +383,19 @@ describe('LazyLoadController', () => {
     callIntersectionHandler(true);
     callVisibilityHandler(true);
     expect(listener).toHaveBeenLastCalledWith(true);
-    expect(listener).toBeCalledTimes(1);
+    expect(listener).toHaveBeenCalledTimes(1);
 
     callIntersectionHandler(false);
     expect(listener).toHaveBeenLastCalledWith(false);
-    expect(listener).toBeCalledTimes(2);
+    expect(listener).toHaveBeenCalledTimes(2);
 
     callIntersectionHandler(true);
     expect(listener).toHaveBeenLastCalledWith(true);
-    expect(listener).toBeCalledTimes(3);
+    expect(listener).toHaveBeenCalledTimes(3);
 
     controller.removeListener(listener);
 
     callIntersectionHandler(false);
-    expect(listener).toBeCalledTimes(3);
+    expect(listener).toHaveBeenCalledTimes(3);
   });
 });

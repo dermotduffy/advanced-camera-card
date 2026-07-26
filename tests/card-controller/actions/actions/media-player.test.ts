@@ -24,7 +24,9 @@ describe('should handle media_player action', () => {
 
     await action.execute(api);
 
-    expect(api.getMediaPlayerManager().stop).toBeCalledWith('this_is_a_media_player');
+    expect(api.getMediaPlayerManager().stop).toHaveBeenCalledWith(
+      'this_is_a_media_player',
+    );
   });
 
   it('to play live', async () => {
@@ -48,7 +50,7 @@ describe('should handle media_player action', () => {
 
     await action.execute(api);
 
-    expect(api.getMediaPlayerManager().playLive).toBeCalledWith(
+    expect(api.getMediaPlayerManager().playLive).toHaveBeenCalledWith(
       'this_is_a_media_player',
       'camera',
     );
@@ -75,7 +77,7 @@ describe('should handle media_player action', () => {
 
     await action.execute(api);
 
-    expect(api.getMediaPlayerManager().playMedia).toBeCalledWith(
+    expect(api.getMediaPlayerManager().playMedia).toHaveBeenCalledWith(
       'this_is_a_media_player',
       view.queryResults?.getSelectedResult(),
     );
@@ -101,7 +103,7 @@ describe('should handle media_player action', () => {
 
     await action.execute(api);
 
-    expect(api.getMediaPlayerManager().playMedia).not.toBeCalled();
+    expect(api.getMediaPlayerManager().playMedia).not.toHaveBeenCalled();
   });
 
   it('to not play live without camera', async () => {
@@ -125,6 +127,6 @@ describe('should handle media_player action', () => {
 
     await action.execute(api);
 
-    expect(api.getMediaPlayerManager().playLive).not.toBeCalled();
+    expect(api.getMediaPlayerManager().playLive).not.toHaveBeenCalled();
   });
 });

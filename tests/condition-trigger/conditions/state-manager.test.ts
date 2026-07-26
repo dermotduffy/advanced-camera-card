@@ -42,13 +42,13 @@ describe('ConditionStateManager', () => {
       };
 
       expect(manager.setState(state)).toBe(true);
-      expect(listener).toBeCalledTimes(1);
+      expect(listener).toHaveBeenCalledTimes(1);
 
       expect(manager.setState(state)).toBe(false);
-      expect(listener).toBeCalledTimes(1);
+      expect(listener).toHaveBeenCalledTimes(1);
 
       expect(manager.setState({ ...state })).toBe(false);
-      expect(listener).toBeCalledTimes(1);
+      expect(listener).toHaveBeenCalledTimes(1);
 
       expect(
         manager.setState({
@@ -57,10 +57,10 @@ describe('ConditionStateManager', () => {
           }),
         }),
       ).toBe(true);
-      expect(listener).toBeCalledTimes(2);
+      expect(listener).toHaveBeenCalledTimes(2);
 
       expect(manager.setState({ fullscreen: true })).toBe(false);
-      expect(listener).toBeCalledTimes(2);
+      expect(listener).toHaveBeenCalledTimes(2);
 
       expect(
         manager.setState({
@@ -69,13 +69,13 @@ describe('ConditionStateManager', () => {
           }),
         }),
       ).toBe(true);
-      expect(listener).toBeCalledTimes(3);
+      expect(listener).toHaveBeenCalledTimes(3);
 
       expect(manager.setState({ fullscreen: false })).toBe(true);
-      expect(listener).toBeCalledTimes(4);
+      expect(listener).toHaveBeenCalledTimes(4);
 
       expect(manager.setState({ fullscreen: false })).toBe(false);
-      expect(listener).toBeCalledTimes(4);
+      expect(listener).toHaveBeenCalledTimes(4);
 
       expect(
         manager.setState({
@@ -84,7 +84,7 @@ describe('ConditionStateManager', () => {
           }),
         }),
       ).toBe(true);
-      expect(listener).toBeCalledTimes(5);
+      expect(listener).toHaveBeenCalledTimes(5);
     });
   });
 
@@ -138,7 +138,7 @@ describe('ConditionStateManager', () => {
 
     manager.setState({ expand: true });
 
-    expect(listener).toBeCalledWith({
+    expect(listener).toHaveBeenCalledWith({
       old: { fullscreen: true },
       change: { expand: true },
       new: { fullscreen: true, expand: true },
@@ -155,6 +155,6 @@ describe('ConditionStateManager', () => {
     const state = { fullscreen: true };
     manager.setState(state);
 
-    expect(listener).not.toBeCalled();
+    expect(listener).not.toHaveBeenCalled();
   });
 });

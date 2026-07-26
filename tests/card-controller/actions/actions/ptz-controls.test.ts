@@ -20,7 +20,7 @@ describe('PTZControlsAction', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith({
+    expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
       ptzControls: { enabled: true, type: 'buttons' },
     });
   });
@@ -41,7 +41,7 @@ describe('PTZControlsAction', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith({
+    expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
       ptzControls: { enabled: false },
     });
   });
@@ -59,7 +59,7 @@ describe('PTZControlsAction', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith({
+    expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
       ptzControls: {},
     });
   });
@@ -78,7 +78,7 @@ describe('PTZControlsAction', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith({
+    expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
       ptzControls: { type: 'gestures' },
     });
   });
@@ -100,7 +100,7 @@ describe('PTZControlsAction', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith({
+    expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
       ptzControls: { type: 'buttons' },
     });
   });

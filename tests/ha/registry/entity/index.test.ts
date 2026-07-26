@@ -34,10 +34,10 @@ describe('EntityRegistryManager', () => {
       vi.mocked(hass.callWS).mockResolvedValueOnce(testEntity);
 
       expect(await manager.getEntity(hass, 'test')).toEqual(testEntity);
-      expect(hass.callWS).toBeCalledTimes(1);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
 
       expect(await manager.getEntity(hass, 'test')).toEqual(testEntity);
-      expect(hass.callWS).toBeCalledTimes(1);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
     });
 
     it('should return null when entity does not exist', async () => {
@@ -47,7 +47,7 @@ describe('EntityRegistryManager', () => {
       const manager = new EntityRegistryManagerLive(new EntityCache());
       expect(await manager.getEntity(hass, 'missing')).toBeNull();
 
-      expect(console.warn).toBeCalledWith(
+      expect(console.warn).toHaveBeenCalledWith(
         expect.any(AdvancedCameraCardError),
         expect.anything(),
       );
@@ -73,7 +73,7 @@ describe('EntityRegistryManager', () => {
       ]),
     );
 
-    expect(console.warn).toBeCalledWith(
+    expect(console.warn).toHaveBeenCalledWith(
       expect.any(AdvancedCameraCardError),
       expect.anything(),
     );
@@ -89,16 +89,16 @@ describe('EntityRegistryManager', () => {
 
       await manager.fetchEntityList(hass);
 
-      expect(hass.callWS).toBeCalledTimes(1);
-      expect(hass.callWS).toBeCalledWith({
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
+      expect(hass.callWS).toHaveBeenCalledWith({
         type: 'config/entity_registry/list',
       });
 
       expect(await manager.getEntity(hass, 'cached')).toEqual(entity);
-      expect(hass.callWS).toBeCalledTimes(1);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
 
       await manager.fetchEntityList(hass);
-      expect(hass.callWS).toBeCalledTimes(1);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
     });
 
     it('should log to console on error', async () => {
@@ -109,7 +109,7 @@ describe('EntityRegistryManager', () => {
 
       await manager.fetchEntityList(hass);
 
-      expect(console.warn).toBeCalledWith(
+      expect(console.warn).toHaveBeenCalledWith(
         expect.any(AdvancedCameraCardError),
         expect.anything(),
       );

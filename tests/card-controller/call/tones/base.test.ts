@@ -18,7 +18,7 @@ describe('start', () => {
   it('should construct an AudioContext and play one iteration', () => {
     new ChimeTone(0).start();
 
-    expect(audio.audioContextCtor).toBeCalledTimes(1);
+    expect(audio.audioContextCtor).toHaveBeenCalledTimes(1);
     expect(audio.oscillators).toHaveLength(ITERATION_OSCILLATORS);
   });
 
@@ -28,7 +28,7 @@ describe('start', () => {
     tone.start();
     tone.start();
 
-    expect(audio.audioContextCtor).toBeCalledTimes(1);
+    expect(audio.audioContextCtor).toHaveBeenCalledTimes(1);
     expect(audio.oscillators).toHaveLength(ITERATION_OSCILLATORS);
   });
 
@@ -40,7 +40,7 @@ describe('start', () => {
 
     new ChimeTone(0).start(onFinished);
 
-    expect(onFinished).toBeCalled();
+    expect(onFinished).toHaveBeenCalled();
     expect(audio.oscillators).toHaveLength(0);
   });
 });
@@ -52,7 +52,7 @@ describe('stop', () => {
 
     tone.stop();
 
-    expect(audio.audioContext.close).toBeCalled();
+    expect(audio.audioContext.close).toHaveBeenCalled();
   });
 
   it('should not fire finishedHandler on external stop', () => {
@@ -62,7 +62,7 @@ describe('stop', () => {
 
     tone.stop();
 
-    expect(onFinished).not.toBeCalled();
+    expect(onFinished).not.toHaveBeenCalled();
   });
 
   it('should swallow AudioContext.close rejections silently', () => {
@@ -91,7 +91,7 @@ describe('repeat counter', () => {
       vi.advanceTimersByTime(ITERATION_INTERVAL_MS);
       expect(audio.oscillators).toHaveLength(ITERATION_OSCILLATORS * i);
     }
-    expect(audio.audioContext.close).not.toBeCalled();
+    expect(audio.audioContext.close).not.toHaveBeenCalled();
   });
 
   it('should play exactly `repeat` iterations and then finish', () => {
@@ -110,8 +110,8 @@ describe('repeat counter', () => {
     // decay tail, then fires the finished handler and stops.
     vi.advanceTimersByTime(ITERATION_INTERVAL_MS);
     expect(audio.oscillators).toHaveLength(ITERATION_OSCILLATORS * 3);
-    expect(onFinished).toBeCalledTimes(1);
-    expect(audio.audioContext.close).toBeCalled();
+    expect(onFinished).toHaveBeenCalledTimes(1);
+    expect(audio.audioContext.close).toHaveBeenCalled();
   });
 
   it('should not fire finishedHandler when stopped mid-sequence', () => {
@@ -124,6 +124,6 @@ describe('repeat counter', () => {
     // Even if any stale scheduled work fires, finishedHandler stays silent.
     vi.advanceTimersByTime(ITERATION_INTERVAL_MS * 10);
 
-    expect(onFinished).not.toBeCalled();
+    expect(onFinished).not.toHaveBeenCalled();
   });
 });

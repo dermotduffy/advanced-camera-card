@@ -55,7 +55,7 @@ describe('TemplateManager', () => {
 
       manager.renderRecursively(createHASS(), '{{ acc.camera }}');
 
-      expect(loadRenderer).toBeCalled();
+      expect(loadRenderer).toHaveBeenCalled();
     });
 
     it('should swallow a load failure when priming on an unloaded render', () => {

@@ -111,11 +111,11 @@ describe('OverridesManager', () => {
 
     expect(manager.getConfig(config).menu?.style).toBe('hidden');
 
-    expect(callback).not.toBeCalled();
+    expect(callback).not.toHaveBeenCalled();
 
     stateManager.setState({ fullscreen: true });
 
-    expect(callback).toBeCalledTimes(1);
+    expect(callback).toHaveBeenCalledTimes(1);
   });
 
   describe('should handle override merge', () => {

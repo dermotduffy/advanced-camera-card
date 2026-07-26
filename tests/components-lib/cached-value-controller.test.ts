@@ -41,7 +41,7 @@ describe('CachedValueController', () => {
     controller.hostUpdate();
 
     // Should not restart since refreshSeconds hasn't changed
-    expect(startTimerSpy).not.toBeCalled();
+    expect(startTimerSpy).not.toHaveBeenCalled();
   });
 
   it('should construct', () => {
@@ -69,28 +69,28 @@ describe('CachedValueController', () => {
     );
 
     controller.startTimer();
-    expect(startCallback).toBeCalled();
+    expect(startCallback).toHaveBeenCalled();
 
     callback.mockReturnValue(3);
     vi.runOnlyPendingTimers();
-    expect(callback).toBeCalled();
-    expect(host.requestUpdate).toBeCalled();
+    expect(callback).toHaveBeenCalled();
+    expect(host.requestUpdate).toHaveBeenCalled();
     expect(controller.getValue()).toBe(3);
 
     callback.mockReturnValue(4);
     vi.runOnlyPendingTimers();
-    expect(callback).toBeCalled();
-    expect(host.requestUpdate).toBeCalled();
+    expect(callback).toHaveBeenCalled();
+    expect(host.requestUpdate).toHaveBeenCalled();
     expect(controller.getValue()).toBe(4);
 
     expect(controller.hasTimer()).toBeTruthy();
 
     controller.stopTimer();
-    expect(stopCallback).toBeCalled();
+    expect(stopCallback).toHaveBeenCalled();
 
     callback.mockReset();
     vi.runOnlyPendingTimers();
-    expect(callback).not.toBeCalled();
+    expect(callback).not.toHaveBeenCalled();
   });
 
   it('should clear value', () => {
@@ -125,12 +125,12 @@ describe('CachedValueController', () => {
 
     controller.hostConnected();
     expect(controller.getValue()).equal(43);
-    expect(startCallback).toBeCalled();
-    expect(host.requestUpdate).toBeCalled();
+    expect(startCallback).toHaveBeenCalled();
+    expect(host.requestUpdate).toHaveBeenCalled();
 
     controller.hostDisconnected();
     expect(controller.getValue()).toBeNull();
-    expect(stopCallback).toBeCalled();
+    expect(stopCallback).toHaveBeenCalled();
   });
 
   it('should call timer tick callback on each tick before updateValue', () => {
@@ -199,10 +199,10 @@ describe('CachedValueController', () => {
     // it shouldn't fire at 15 seconds.
     callback.mockClear();
     vi.advanceTimersByTime(15 * 1000);
-    expect(callback).not.toBeCalled();
+    expect(callback).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(5 * 1000);
-    expect(callback).toBeCalled();
+    expect(callback).toHaveBeenCalled();
 
     // Now set it to null -> stops timer
     refreshSeconds = null;

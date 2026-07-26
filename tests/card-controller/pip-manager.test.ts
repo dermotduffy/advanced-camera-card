@@ -92,7 +92,7 @@ describe('PIPManager', () => {
 
       manager.initialize();
 
-      expect(api.getConditionStateManager().addListener).toBeCalledWith(
+      expect(api.getConditionStateManager().addListener).toHaveBeenCalledWith(
         expect.anything(),
       );
     });
@@ -105,7 +105,7 @@ describe('PIPManager', () => {
 
       manager.uninitialize();
 
-      expect(api.getConditionStateManager().removeListener).toBeCalledWith(
+      expect(api.getConditionStateManager().removeListener).toHaveBeenCalledWith(
         expect.anything(),
       );
     });
@@ -130,8 +130,14 @@ describe('PIPManager', () => {
 
       manager.uninitialize();
 
-      expect(removeSpy).toBeCalledWith('enterpictureinpicture', expect.any(Function));
-      expect(removeSpy).toBeCalledWith('leavepictureinpicture', expect.any(Function));
+      expect(removeSpy).toHaveBeenCalledWith(
+        'enterpictureinpicture',
+        expect.any(Function),
+      );
+      expect(removeSpy).toHaveBeenCalledWith(
+        'leavepictureinpicture',
+        expect.any(Function),
+      );
     });
   });
 
@@ -187,7 +193,7 @@ describe('PIPManager', () => {
       const { manager } = setupWithVideo(api);
 
       expect(manager.isAvailable()).toBe(true);
-      expect(api.getCardElementManager().update).toBeCalled();
+      expect(api.getCardElementManager().update).toHaveBeenCalled();
     });
 
     it('removes listeners when the media element changes', () => {
@@ -203,8 +209,14 @@ describe('PIPManager', () => {
         }),
       });
 
-      expect(removeSpy).toBeCalledWith('enterpictureinpicture', expect.any(Function));
-      expect(removeSpy).toBeCalledWith('leavepictureinpicture', expect.any(Function));
+      expect(removeSpy).toHaveBeenCalledWith(
+        'enterpictureinpicture',
+        expect.any(Function),
+      );
+      expect(removeSpy).toHaveBeenCalledWith(
+        'leavepictureinpicture',
+        expect.any(Function),
+      );
     });
 
     it('does not re-track when element is unchanged', () => {
@@ -216,7 +228,10 @@ describe('PIPManager', () => {
 
       stateManager.setState({ interaction: true });
 
-      expect(addSpy).not.toBeCalledWith('enterpictureinpicture', expect.any(Function));
+      expect(addSpy).not.toHaveBeenCalledWith(
+        'enterpictureinpicture',
+        expect.any(Function),
+      );
     });
 
     it('clears video element when media is unloaded', () => {
@@ -250,7 +265,7 @@ describe('PIPManager', () => {
         mediaLoadedInfo: createMediaLoadedInfo(),
       });
 
-      expect(exitPIP).toBeCalled();
+      expect(exitPIP).toHaveBeenCalled();
     });
 
     it('handles exitPictureInPicture rejection gracefully', async () => {
@@ -270,7 +285,7 @@ describe('PIPManager', () => {
         mediaLoadedInfo: createMediaLoadedInfo(),
       });
 
-      expect(exitPIP).toBeCalled();
+      expect(exitPIP).toHaveBeenCalled();
 
       // Ensure the rejection is caught and does not throw.
       await flushPromises();
@@ -296,7 +311,7 @@ describe('PIPManager', () => {
         }),
       });
 
-      expect(exitPIP).not.toBeCalled();
+      expect(exitPIP).not.toHaveBeenCalled();
     });
   });
 
@@ -310,7 +325,7 @@ describe('PIPManager', () => {
       video.dispatchEvent(new Event('enterpictureinpicture'));
 
       expect(manager.isInPIP()).toBe(true);
-      expect(api.getCardElementManager().update).toBeCalled();
+      expect(api.getCardElementManager().update).toHaveBeenCalled();
     });
 
     it('updates card when PIP is exited via leavepictureinpicture', () => {
@@ -337,7 +352,7 @@ describe('PIPManager', () => {
 
       await manager.togglePIP();
 
-      expect(video.requestPictureInPicture).toBeCalled();
+      expect(video.requestPictureInPicture).toHaveBeenCalled();
     });
 
     it('exits PIP when currently in PIP', async () => {
@@ -354,8 +369,8 @@ describe('PIPManager', () => {
 
       await manager.togglePIP();
 
-      expect(document.exitPictureInPicture).toBeCalled();
-      expect(video.requestPictureInPicture).not.toBeCalled();
+      expect(document.exitPictureInPicture).toHaveBeenCalled();
+      expect(video.requestPictureInPicture).not.toHaveBeenCalled();
     });
 
     it('does not enter PIP when no video is available', async () => {
@@ -364,7 +379,7 @@ describe('PIPManager', () => {
 
       await manager.togglePIP();
 
-      expect(api.getCardElementManager().update).not.toBeCalled();
+      expect(api.getCardElementManager().update).not.toHaveBeenCalled();
     });
   });
 });

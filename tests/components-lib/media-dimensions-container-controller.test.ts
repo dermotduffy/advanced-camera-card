@@ -52,8 +52,8 @@ describe('MediaDimensionsContainerController', () => {
     const observer = getResizeObserver();
 
     // No resize observer should be created.
-    expect(observer?.observe).not.toBeCalled();
-    expect(eventListener).not.toBeCalled();
+    expect(observer?.observe).not.toHaveBeenCalled();
+    expect(eventListener).not.toHaveBeenCalled();
   });
 
   describe('should connect and disconnect', () => {
@@ -62,14 +62,14 @@ describe('MediaDimensionsContainerController', () => {
       const controller = new MediaDimensionsContainerController(host);
 
       const observer = getResizeObserver();
-      expect(observer?.observe).toBeCalledTimes(0);
+      expect(observer?.observe).toHaveBeenCalledTimes(0);
 
       controller.hostConnected();
-      expect(observer?.observe).toBeCalledWith(host);
-      expect(observer?.observe).toBeCalledTimes(1);
+      expect(observer?.observe).toHaveBeenCalledWith(host);
+      expect(observer?.observe).toHaveBeenCalledTimes(1);
 
       controller.hostDisconnected();
-      expect(observer?.disconnect).toBeCalled();
+      expect(observer?.disconnect).toHaveBeenCalled();
     });
 
     it('should connect and disconnect with a container when host is connected', () => {
@@ -85,13 +85,13 @@ describe('MediaDimensionsContainerController', () => {
       const container = createLitElement();
       controller.setContainers(container);
 
-      expect(observer?.observe).not.toBeCalled();
+      expect(observer?.observe).not.toHaveBeenCalled();
 
       controller.hostDisconnected();
-      expect(observer?.disconnect).toBeCalled();
+      expect(observer?.disconnect).toHaveBeenCalled();
 
       controller.hostConnected();
-      expect(observer?.observe).toBeCalledWith(host);
+      expect(observer?.observe).toHaveBeenCalledWith(host);
     });
   });
 

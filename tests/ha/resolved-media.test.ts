@@ -58,7 +58,7 @@ describe('resolveMedia', () => {
     const cache = new ResolvedMediaCache();
     const result = await resolveMedia(hass, mediaContentID, cache);
 
-    expect(homeAssistantWSRequest).toBeCalledWith(
+    expect(homeAssistantWSRequest).toHaveBeenCalledWith(
       hass,
       resolvedMediaSchema,
       expect.objectContaining({
@@ -77,7 +77,7 @@ describe('resolveMedia', () => {
     const cache = new ResolvedMediaCache();
     const result = await resolveMedia(createHASS(), mediaContentID, cache);
     expect(result).toBeNull();
-    expect(errorToConsole).toBeCalledWith(error);
+    expect(errorToConsole).toHaveBeenCalledWith(error);
   });
 
   it('does not cache null results', async () => {

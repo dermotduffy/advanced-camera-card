@@ -19,7 +19,7 @@ describe('MediaLoadedInfoSinkController', () => {
       getTargetID: () => 'target-1',
     });
 
-    expect(host.addController).toBeCalledWith(controller);
+    expect(host.addController).toHaveBeenCalledWith(controller);
   });
 
   it('should default to an empty info', () => {
@@ -89,8 +89,8 @@ describe('MediaLoadedInfoSinkController', () => {
       selected = 'target-B';
       controller.hostUpdated();
 
-      expect(callback).toBeCalledWith(infoB);
-      expect(host.requestUpdate).toBeCalled();
+      expect(callback).toHaveBeenCalledWith(infoB);
+      expect(host.requestUpdate).toHaveBeenCalled();
     });
 
     it('should not fire callback for non-selected target loads', () => {
@@ -110,8 +110,8 @@ describe('MediaLoadedInfoSinkController', () => {
         }),
       );
 
-      expect(callback).not.toBeCalled();
-      expect(host.requestUpdate).not.toBeCalled();
+      expect(callback).not.toHaveBeenCalled();
+      expect(host.requestUpdate).not.toHaveBeenCalled();
     });
 
     it('should fire callback for selected target loads', () => {
@@ -127,8 +127,8 @@ describe('MediaLoadedInfoSinkController', () => {
       const info = createMediaLoadedInfo({ targetID: 'target-A' });
       host.dispatchEvent(createMediaLoadedInfoEvent({ info }));
 
-      expect(callback).toBeCalledWith(info);
-      expect(host.requestUpdate).toBeCalled();
+      expect(callback).toHaveBeenCalledWith(info);
+      expect(host.requestUpdate).toHaveBeenCalled();
     });
 
     it('should not re-fire callback when hostUpdated runs without a targetID change', () => {
@@ -148,7 +148,7 @@ describe('MediaLoadedInfoSinkController', () => {
       controller.hostUpdated();
       controller.hostUpdated();
 
-      expect(callback).not.toBeCalled();
+      expect(callback).not.toHaveBeenCalled();
     });
 
     it('should not fire callback when selection switches between empty targets', () => {
@@ -167,7 +167,7 @@ describe('MediaLoadedInfoSinkController', () => {
       selected = 'target-B';
       controller.hostUpdated();
 
-      expect(callback).not.toBeCalled();
+      expect(callback).not.toHaveBeenCalled();
     });
 
     it('should ignore events whose info has no targetID', () => {
@@ -186,7 +186,7 @@ describe('MediaLoadedInfoSinkController', () => {
         }),
       );
 
-      expect(callback).not.toBeCalled();
+      expect(callback).not.toHaveBeenCalled();
       expect(controller.get()).toBeNull();
     });
   });
@@ -231,8 +231,8 @@ describe('MediaLoadedInfoSinkController', () => {
 
       controller.hostDisconnected();
 
-      expect(callback).not.toBeCalled();
-      expect(host.requestUpdate).not.toBeCalled();
+      expect(callback).not.toHaveBeenCalled();
+      expect(host.requestUpdate).not.toHaveBeenCalled();
       expect(controller.get()).toBeNull();
     });
   });
@@ -259,8 +259,8 @@ describe('MediaLoadedInfoSinkController', () => {
       ac.abort();
 
       expect(controller.get()).toBeNull();
-      expect(callback).toBeCalledWith(null);
-      expect(host.requestUpdate).toBeCalled();
+      expect(callback).toHaveBeenCalledWith(null);
+      expect(host.requestUpdate).toHaveBeenCalled();
     });
 
     it('should not fire callback when an unselected target aborts', () => {
@@ -290,7 +290,7 @@ describe('MediaLoadedInfoSinkController', () => {
 
       acB.abort();
 
-      expect(callback).not.toBeCalled();
+      expect(callback).not.toHaveBeenCalled();
     });
 
     it('should not clobber a newer entry when an older signal aborts', () => {

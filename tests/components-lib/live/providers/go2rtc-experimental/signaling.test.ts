@@ -29,7 +29,7 @@ describe('SignalingChannel', () => {
     const { channel, createWebSocket, websockets } = setup();
     channel.connect();
 
-    expect(createWebSocket).toBeCalledWith('ws://host/api/ws?src=camera');
+    expect(createWebSocket).toHaveBeenCalledWith('ws://host/api/ws?src=camera');
     expect(websockets[0].binaryType).toBe('arraybuffer');
   });
 
@@ -38,7 +38,7 @@ describe('SignalingChannel', () => {
     channel.connect();
     channel.connect();
 
-    expect(createWebSocket).toBeCalledTimes(1);
+    expect(createWebSocket).toHaveBeenCalledTimes(1);
   });
 
   it('should report open state and call the open callback', () => {
@@ -51,7 +51,7 @@ describe('SignalingChannel', () => {
     websockets[0].fireOpen();
 
     expect(channel.isOpen()).toBe(true);
-    expect(openCallback).toBeCalled();
+    expect(openCallback).toHaveBeenCalled();
   });
 
   it('should tolerate an absent open callback', () => {
@@ -66,7 +66,7 @@ describe('SignalingChannel', () => {
     channel.connect();
     channel.send({ type: 'mse', value: 'codecs' });
 
-    expect(websockets[0].send).not.toBeCalled();
+    expect(websockets[0].send).not.toHaveBeenCalled();
   });
 
   it('should send JSON once open', () => {
@@ -86,7 +86,7 @@ describe('SignalingChannel', () => {
     channel.connect();
     websockets[0].fireMessage('{"type":"mse","value":"video/mp4"}');
 
-    expect(callback).toBeCalledWith({ type: 'mse', value: 'video/mp4' });
+    expect(callback).toHaveBeenCalledWith({ type: 'mse', value: 'video/mp4' });
   });
 
   it('should stop dispatching after unsubscribe', () => {
@@ -97,7 +97,7 @@ describe('SignalingChannel', () => {
     unsubscribe();
     websockets[0].fireMessage('{"type":"mse"}');
 
-    expect(callback).not.toBeCalled();
+    expect(callback).not.toHaveBeenCalled();
   });
 
   it('should dispatch to remaining subscribers when one unsubscribes during dispatch', () => {
@@ -111,8 +111,8 @@ describe('SignalingChannel', () => {
     channel.connect();
     websockets[0].fireMessage('{"type":"mse"}');
 
-    expect(unsubscribeDuringDispatch).toBeCalledTimes(1);
-    expect(secondCallback).toBeCalledTimes(1);
+    expect(unsubscribeDuringDispatch).toHaveBeenCalledTimes(1);
+    expect(secondCallback).toHaveBeenCalledTimes(1);
   });
 
   it('should ignore invalid JSON', () => {
@@ -122,7 +122,7 @@ describe('SignalingChannel', () => {
     channel.connect();
     websockets[0].fireMessage('NOT JSON');
 
-    expect(callback).not.toBeCalled();
+    expect(callback).not.toHaveBeenCalled();
   });
 
   it('should ignore malformed messages', () => {
@@ -132,7 +132,7 @@ describe('SignalingChannel', () => {
     channel.connect();
     websockets[0].fireMessage('{"type":6}');
 
-    expect(callback).not.toBeCalled();
+    expect(callback).not.toHaveBeenCalled();
   });
 
   it('should ignore unexpected data types', () => {
@@ -142,7 +142,7 @@ describe('SignalingChannel', () => {
     channel.connect();
     websockets[0].fireMessage(42);
 
-    expect(callback).not.toBeCalled();
+    expect(callback).not.toHaveBeenCalled();
   });
 
   it('should route binary data to the binary callback', () => {
@@ -153,7 +153,7 @@ describe('SignalingChannel', () => {
     const data = new ArrayBuffer(8);
     websockets[0].fireMessage(data);
 
-    expect(binaryCallback).toBeCalledWith(data);
+    expect(binaryCallback).toHaveBeenCalledWith(data);
   });
 
   it('should drop binary data without a binary callback', () => {
@@ -171,7 +171,7 @@ describe('SignalingChannel', () => {
     channel.connect();
     websockets[0].fireMessage(new ArrayBuffer(8));
 
-    expect(binaryCallback).not.toBeCalled();
+    expect(binaryCallback).not.toHaveBeenCalled();
   });
 
   it('should close the underlying websocket without firing the disconnect callback', () => {
@@ -181,9 +181,9 @@ describe('SignalingChannel', () => {
     websockets[0].fireOpen();
     channel.close();
 
-    expect(websockets[0].close).toBeCalled();
+    expect(websockets[0].close).toHaveBeenCalled();
     expect(channel.isOpen()).toBe(false);
-    expect(disconnectCallback).not.toBeCalled();
+    expect(disconnectCallback).not.toHaveBeenCalled();
   });
 
   it('should tolerate closing when never connected', () => {
@@ -205,9 +205,9 @@ describe('SignalingChannel', () => {
     websockets[0].fireMessage('{"type":"mse"}');
     websockets[0].fireClose();
 
-    expect(openCallback).not.toBeCalled();
-    expect(messageCallback).not.toBeCalled();
-    expect(disconnectCallback).not.toBeCalled();
+    expect(openCallback).not.toHaveBeenCalled();
+    expect(messageCallback).not.toHaveBeenCalled();
+    expect(disconnectCallback).not.toHaveBeenCalled();
   });
 
   it('should fire the disconnect callback on unexpected closure', () => {
@@ -217,7 +217,7 @@ describe('SignalingChannel', () => {
     websockets[0].fireOpen();
     websockets[0].fireClose();
 
-    expect(disconnectCallback).toBeCalledTimes(1);
+    expect(disconnectCallback).toHaveBeenCalledTimes(1);
     expect(channel.isOpen()).toBe(false);
   });
 
@@ -234,7 +234,7 @@ describe('SignalingChannel', () => {
     websockets[0].fireClose();
     channel.connect();
 
-    expect(createWebSocket).toBeCalledTimes(2);
+    expect(createWebSocket).toHaveBeenCalledTimes(2);
   });
 
   it('should construct a real websocket by default', () => {

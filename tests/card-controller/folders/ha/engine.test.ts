@@ -139,11 +139,11 @@ describe('HAFoldersEngine', () => {
       expect(results?.[0]).toBeInstanceOf(ViewMedia);
       expect(results?.[1]).toBeInstanceOf(ViewFolder);
 
-      expect(homeAssistantWSRequest).toBeCalledTimes(1);
+      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(1);
 
       // Expanding the folder again should use the cache.
       await engine.expandFolder(createHASS(), query);
-      expect(homeAssistantWSRequest).toBeCalledTimes(1);
+      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(1);
     });
 
     it('should expand folder without cache when requested', async () => {
@@ -186,11 +186,11 @@ describe('HAFoldersEngine', () => {
       expect(results?.[0]).toBeInstanceOf(ViewMedia);
       expect(results?.[1]).toBeInstanceOf(ViewFolder);
 
-      expect(homeAssistantWSRequest).toBeCalledTimes(1);
+      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(1);
 
       // Expanding the folder again should use the cache.
       await engine.expandFolder(createHASS(), query);
-      expect(homeAssistantWSRequest).toBeCalledTimes(2);
+      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(2);
     });
 
     it('should use id from browsemedia in folder in query', async () => {
@@ -221,7 +221,7 @@ describe('HAFoldersEngine', () => {
       const engine = new HAFoldersEngine(templateManager);
       await engine.expandFolder(hass, query);
 
-      expect(homeAssistantWSRequest).toBeCalledWith(hass, browseMediaSchema, {
+      expect(homeAssistantWSRequest).toHaveBeenCalledWith(hass, browseMediaSchema, {
         type: 'media_source/browse_media',
         media_content_id: 'media-source://id',
       });

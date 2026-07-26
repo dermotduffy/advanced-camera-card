@@ -24,7 +24,7 @@ it('should handle download action with selected media', async () => {
 
   await action.execute(api);
 
-  expect(api.getViewItemManager().download).toBeCalledWith(selectedMedia);
+  expect(api.getViewItemManager().download).toHaveBeenCalledWith(selectedMedia);
 });
 
 it('should handle download action without selected media', async () => {
@@ -41,5 +41,5 @@ it('should handle download action without selected media', async () => {
 
   await action.execute(api);
 
-  expect(api.getViewItemManager().download).not.toBeCalled();
+  expect(api.getViewItemManager().download).not.toHaveBeenCalled();
 });

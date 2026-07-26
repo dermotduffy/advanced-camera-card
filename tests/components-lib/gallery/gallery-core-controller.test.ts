@@ -59,7 +59,7 @@ describe('GalleryCoreController', () => {
     const host = createLitElement();
     const controller = createController({ host });
     expect(controller).toBeInstanceOf(GalleryCoreController);
-    expect(host.addController).toBeCalledWith(controller);
+    expect(host.addController).toHaveBeenCalledWith(controller);
   });
 
   it('should remove controller', () => {
@@ -67,7 +67,7 @@ describe('GalleryCoreController', () => {
     const controller = createController({ host });
     expect(controller).toBeInstanceOf(GalleryCoreController);
     controller.removeController();
-    expect(host.removeController).toBeCalledWith(controller);
+    expect(host.removeController).toHaveBeenCalledWith(controller);
   });
 
   it('should remove controller', () => {
@@ -75,7 +75,7 @@ describe('GalleryCoreController', () => {
     const controller = createController({ host });
     expect(controller).toBeInstanceOf(GalleryCoreController);
     controller.removeController();
-    expect(host.removeController).toBeCalledWith(controller);
+    expect(host.removeController).toHaveBeenCalledWith(controller);
   });
 
   describe('should observe sentintel when host updated', () => {
@@ -93,10 +93,10 @@ describe('GalleryCoreController', () => {
 
       expect(
         vi.mocked(IntersectionObserver).mock.results[0].value.disconnect,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
       expect(
         vi.mocked(IntersectionObserver).mock.results[0].value.observe,
-      ).toBeCalledWith(sentinel);
+      ).toHaveBeenCalledWith(sentinel);
     });
 
     it('should disconnect when sentinel changes to null', () => {
@@ -118,10 +118,10 @@ describe('GalleryCoreController', () => {
 
       expect(
         vi.mocked(IntersectionObserver).mock.results[0].value.disconnect,
-      ).toBeCalledTimes(2);
+      ).toHaveBeenCalledTimes(2);
       expect(
         vi.mocked(IntersectionObserver).mock.results[0].value.observe,
-      ).toBeCalledTimes(1);
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should skip disconnect/observe when sentinel is unchanged', () => {
@@ -140,10 +140,10 @@ describe('GalleryCoreController', () => {
       // Only called once despite two hostUpdated() calls.
       expect(
         vi.mocked(IntersectionObserver).mock.results[0].value.disconnect,
-      ).toBeCalledTimes(1);
+      ).toHaveBeenCalledTimes(1);
       expect(
         vi.mocked(IntersectionObserver).mock.results[0].value.observe,
-      ).toBeCalledTimes(1);
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should not observe when sentinel is null from the start', () => {
@@ -159,10 +159,10 @@ describe('GalleryCoreController', () => {
 
       expect(
         vi.mocked(IntersectionObserver).mock.results[0].value.disconnect,
-      ).not.toBeCalled();
+      ).not.toHaveBeenCalled();
       expect(
         vi.mocked(IntersectionObserver).mock.results[0].value.observe,
-      ).not.toBeCalled();
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -173,15 +173,17 @@ describe('GalleryCoreController', () => {
 
     controller.hostConnected();
 
-    expect(vi.mocked(ResizeObserver).mock.results[0].value.observe).toBeCalledWith(host);
-    expect(host.addEventListener).toBeCalledWith('wheel', expect.anything(), {
+    expect(vi.mocked(ResizeObserver).mock.results[0].value.observe).toHaveBeenCalledWith(
+      host,
+    );
+    expect(host.addEventListener).toHaveBeenCalledWith('wheel', expect.anything(), {
       passive: true,
     });
-    expect(host.addEventListener).toBeCalledWith('touchstart', expect.anything(), {
+    expect(host.addEventListener).toHaveBeenCalledWith('touchstart', expect.anything(), {
       passive: true,
     });
-    expect(host.addEventListener).toBeCalledWith('touchend', expect.anything());
-    expect(host.requestUpdate).toBeCalled();
+    expect(host.addEventListener).toHaveBeenCalledWith('touchend', expect.anything());
+    expect(host.requestUpdate).toHaveBeenCalled();
   });
 
   it('should detach listeners on disconnect', () => {
@@ -191,13 +193,18 @@ describe('GalleryCoreController', () => {
 
     controller.hostDisconnected();
 
-    expect(vi.mocked(ResizeObserver).mock.results[0].value.disconnect).toBeCalled();
+    expect(
+      vi.mocked(ResizeObserver).mock.results[0].value.disconnect,
+    ).toHaveBeenCalled();
     expect(
       vi.mocked(IntersectionObserver).mock.results[0].value.disconnect,
-    ).toBeCalled();
-    expect(host.removeEventListener).toBeCalledWith('wheel', expect.anything());
-    expect(host.removeEventListener).toBeCalledWith('touchstart', expect.anything());
-    expect(host.removeEventListener).toBeCalledWith('touchend', expect.anything());
+    ).toHaveBeenCalled();
+    expect(host.removeEventListener).toHaveBeenCalledWith('wheel', expect.anything());
+    expect(host.removeEventListener).toHaveBeenCalledWith(
+      'touchstart',
+      expect.anything(),
+    );
+    expect(host.removeEventListener).toHaveBeenCalledWith('touchend', expect.anything());
   });
 
   describe('should set the number of columns', () => {
@@ -408,7 +415,7 @@ describe('GalleryCoreController', () => {
           );
 
           await flushPromises();
-          expect(showLoaderTop).not.toBeCalled();
+          expect(showLoaderTop).not.toHaveBeenCalled();
         });
 
         it('should not extend up with touch when when not at top of component', async () => {
@@ -435,7 +442,7 @@ describe('GalleryCoreController', () => {
           );
 
           await flushPromises();
-          expect(showLoaderTop).not.toBeCalled();
+          expect(showLoaderTop).not.toHaveBeenCalled();
         });
 
         it('should not extend up with touch when touches moved downwards', async () => {
@@ -461,7 +468,7 @@ describe('GalleryCoreController', () => {
           );
 
           await flushPromises();
-          expect(showLoaderTop).not.toBeCalled();
+          expect(showLoaderTop).not.toHaveBeenCalled();
         });
       });
 
@@ -600,7 +607,7 @@ describe('GalleryCoreController', () => {
         });
         controller.updateContents();
 
-        expect(scrollIntoView).toBeCalledWith(selectedChild, {
+        expect(scrollIntoView).toHaveBeenCalledWith(selectedChild, {
           boundary: host,
           block: 'center',
         });
@@ -628,7 +635,7 @@ describe('GalleryCoreController', () => {
         controller.updateContents();
         controller.updateContents();
 
-        expect(scrollIntoView).toBeCalledTimes(1);
+        expect(scrollIntoView).toHaveBeenCalledTimes(1);
       });
 
       it('should do nothing without a selected element', async () => {
@@ -648,7 +655,7 @@ describe('GalleryCoreController', () => {
         });
         controller.updateContents();
 
-        expect(scrollIntoView).not.toBeCalled();
+        expect(scrollIntoView).not.toHaveBeenCalled();
       });
     });
 
@@ -667,7 +674,7 @@ describe('GalleryCoreController', () => {
 
       controller.updateContents();
 
-      expect(showSentinelBottom).toBeCalledWith(true);
+      expect(showSentinelBottom).toHaveBeenCalledWith(true);
     });
 
     it('should do nothing without slot', async () => {
@@ -684,8 +691,8 @@ describe('GalleryCoreController', () => {
 
       controller.updateContents();
 
-      expect(showSentinelBottom).not.toBeCalled();
-      expect(scrollIntoView).not.toBeCalled();
+      expect(showSentinelBottom).not.toHaveBeenCalled();
+      expect(scrollIntoView).not.toHaveBeenCalled();
     });
   });
 });

@@ -600,6 +600,6 @@ describe('stopEventFromActivatingCardWideActions', () => {
   it('should stop event from propogating', () => {
     const event = mock<Event>();
     stopEventFromActivatingCardWideActions(event);
-    expect(event.stopPropagation).toBeCalled();
+    expect(event.stopPropagation).toHaveBeenCalled();
   });
 });

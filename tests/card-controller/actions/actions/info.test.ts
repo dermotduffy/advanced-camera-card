@@ -30,7 +30,7 @@ describe('InfoAction', () => {
 
     await action.execute(api);
 
-    expect(api.getNotificationManager().setNotification).toBeCalled();
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalled();
   });
 
   it('should not handle info action without media', async () => {
@@ -47,6 +47,6 @@ describe('InfoAction', () => {
 
     await action.execute(api);
 
-    expect(api.getNotificationManager().setNotification).not.toBeCalled();
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
   });
 });

@@ -44,7 +44,7 @@ describe('BrowseMediaWalker', () => {
       },
     ]);
 
-    expect(homeAssistantWSRequest).toBeCalledWith(hass, browseMediaSchema, {
+    expect(homeAssistantWSRequest).toHaveBeenCalledWith(hass, browseMediaSchema, {
       type: 'media_source/browse_media',
       media_content_id: 'media/parent',
     });
@@ -80,7 +80,7 @@ describe('BrowseMediaWalker', () => {
 
     const result = await walker.walk(hass, steps);
 
-    expect(homeAssistantWSRequest).toBeCalledWith(hass, browseMediaSchema, {
+    expect(homeAssistantWSRequest).toHaveBeenCalledWith(hass, browseMediaSchema, {
       type: 'media_source/browse_media',
       media_content_id: 'media/parent',
     });
@@ -330,8 +330,8 @@ describe('BrowseMediaWalker', () => {
     const result = await walker.walk(hass, steps);
 
     expect(result).toEqual([child_1]);
-    expect(homeAssistantWSRequest).toBeCalledTimes(1);
-    expect(homeAssistantWSRequest).toBeCalledWith(hass, browseMediaSchema, {
+    expect(homeAssistantWSRequest).toHaveBeenCalledTimes(1);
+    expect(homeAssistantWSRequest).toHaveBeenCalledWith(hass, browseMediaSchema, {
       type: 'media_source/browse_media',
       media_content_id: 'media/parent-1',
     });
@@ -418,14 +418,14 @@ describe('BrowseMediaWalker', () => {
       child,
     ]);
 
-    expect(homeAssistantWSRequest).toBeCalledTimes(1);
+    expect(homeAssistantWSRequest).toHaveBeenCalledTimes(1);
     expect(cache.has('media/parent')).toBe(true);
     expect(cache.get('media/parent')).toEqual(parent);
 
     expect(await walker.walk(hass, [{ targets: ['media/parent'] }], { cache })).toEqual([
       child,
     ]);
-    expect(homeAssistantWSRequest).toBeCalledTimes(1);
+    expect(homeAssistantWSRequest).toHaveBeenCalledTimes(1);
   });
 
   it('should process multiple targets and combine their children', async () => {

@@ -87,7 +87,7 @@ describe('media-source', () => {
       const instance = createBrowserMediaSource();
 
       expect(instance?.isTypeSupported('video/mp4')).toBe(false);
-      expect(FakeManagedMediaSource.isTypeSupported).toBeCalledWith('video/mp4');
+      expect(FakeManagedMediaSource.isTypeSupported).toHaveBeenCalledWith('video/mp4');
     });
   });
 
@@ -99,7 +99,7 @@ describe('media-source', () => {
       const video = document.createElement('video');
       instance?.attach(video);
 
-      expect(createObjectURL).toBeCalledTimes(1);
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
       expect(video.src).toContain('blob:fake-url');
       expect(video.srcObject).toBeNull();
     });
@@ -111,15 +111,15 @@ describe('media-source', () => {
       const video = document.createElement('video');
       instance?.attach(video);
 
-      expect(revokeObjectURL).not.toBeCalled();
+      expect(revokeObjectURL).not.toHaveBeenCalled();
 
       FakeMediaSource.instances[0].dispatchEvent(new Event('sourceopen'));
 
-      expect(revokeObjectURL).toBeCalledWith('blob:fake-url');
+      expect(revokeObjectURL).toHaveBeenCalledWith('blob:fake-url');
 
       instance?.detach(video);
 
-      expect(revokeObjectURL).toBeCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledTimes(1);
     });
 
     it('should delegate isTypeSupported to MediaSource', () => {
@@ -129,7 +129,7 @@ describe('media-source', () => {
       const instance = createBrowserMediaSource();
 
       expect(instance?.isTypeSupported('video/mp4')).toBe(false);
-      expect(FakeMediaSource.isTypeSupported).toBeCalledWith('video/mp4');
+      expect(FakeMediaSource.isTypeSupported).toHaveBeenCalledWith('video/mp4');
     });
 
     it('should detach by clearing src and revoking the object URL', () => {
@@ -140,7 +140,7 @@ describe('media-source', () => {
       instance?.attach(video);
       instance?.detach(video);
 
-      expect(revokeObjectURL).toBeCalledWith('blob:fake-url');
+      expect(revokeObjectURL).toHaveBeenCalledWith('blob:fake-url');
       expect(video.getAttribute('src')).toBe('');
     });
 
@@ -153,7 +153,7 @@ describe('media-source', () => {
       instance?.detach(video);
       instance?.detach(video);
 
-      expect(revokeObjectURL).toBeCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -170,12 +170,12 @@ describe('media-source', () => {
       const mediaSource = video.srcObject;
       assert(mediaSource instanceof FakeManagedMediaSource);
       mediaSource.dispatchEvent(new Event('sourceopen'));
-      expect(callback).toBeCalledTimes(1);
+      expect(callback).toHaveBeenCalledTimes(1);
 
       unsubscribe?.();
 
       mediaSource.dispatchEvent(new Event('sourceopen'));
-      expect(callback).toBeCalledTimes(1);
+      expect(callback).toHaveBeenCalledTimes(1);
     });
 
     it('should delegate addSourceBuffer', () => {
@@ -188,7 +188,7 @@ describe('media-source', () => {
 
       const mediaSource = video.srcObject;
       assert(mediaSource instanceof FakeManagedMediaSource);
-      expect(mediaSource.addSourceBuffer).toBeCalledWith(
+      expect(mediaSource.addSourceBuffer).toHaveBeenCalledWith(
         'video/mp4; codecs="avc1.640029"',
       );
     });
@@ -203,7 +203,7 @@ describe('media-source', () => {
 
       const mediaSource = video.srcObject;
       assert(mediaSource instanceof FakeManagedMediaSource);
-      expect(mediaSource.setLiveSeekableRange).toBeCalledWith(10, 20);
+      expect(mediaSource.setLiveSeekableRange).toHaveBeenCalledWith(10, 20);
     });
 
     it('should report open only while the media source readyState is open', () => {

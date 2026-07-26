@@ -142,7 +142,7 @@ describe('CameraManagerStore', async () => {
 
     expect(store.getCameraCount()).toBe(0);
     for (const camera of cameras) {
-      expect(camera.destroy).toBeCalled();
+      expect(camera.destroy).toHaveBeenCalled();
     }
   });
 
@@ -379,10 +379,10 @@ describe('CameraManagerStore', async () => {
     expect(store.getCamera('camera-3')).toBe(camera_3_new);
     expect(store.getCamera('camera-4')).toBe(camera_4);
 
-    expect(camera_1.destroy).toBeCalled();
-    expect(camera_2.destroy).not.toBeCalled();
-    expect(camera_3.destroy).toBeCalled();
-    expect(camera_3_new.destroy).not.toBeCalled();
-    expect(camera_4.destroy).not.toBeCalled();
+    expect(camera_1.destroy).toHaveBeenCalled();
+    expect(camera_2.destroy).not.toHaveBeenCalled();
+    expect(camera_3.destroy).toHaveBeenCalled();
+    expect(camera_3_new.destroy).not.toHaveBeenCalled();
+    expect(camera_4.destroy).not.toHaveBeenCalled();
   });
 });

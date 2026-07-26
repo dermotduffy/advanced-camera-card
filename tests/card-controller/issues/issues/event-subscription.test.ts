@@ -19,7 +19,7 @@ describe('EventSubscriptionIssue', () => {
 
     new EventSubscriptionIssue(health, changeCallback);
 
-    expect(health.addListener).toBeCalledWith(changeCallback);
+    expect(health.addListener).toHaveBeenCalledWith(changeCallback);
   });
 
   it('should have no issue when there are no failures', () => {
@@ -65,7 +65,7 @@ describe('EventSubscriptionIssue', () => {
     const issue = new EventSubscriptionIssue(health, vi.fn());
 
     expect(issue.retry()).toBe(true);
-    expect(health.retry).toBeCalledTimes(1);
+    expect(health.retry).toHaveBeenCalledTimes(1);
   });
 
   it('should not opt into IssueManager-scheduled retries', () => {
@@ -84,6 +84,6 @@ describe('EventSubscriptionIssue', () => {
 
     issue.destroy();
 
-    expect(unsubscribe).toBeCalledTimes(1);
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 });

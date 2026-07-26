@@ -31,7 +31,7 @@ describe('ConfigUpgradeFailureIssue', () => {
     await issue.detectStatic();
 
     expect(issue.hasIssue()).toBe(true);
-    expect(hasConfigUpgradeFailures).toBeCalledWith(rawConfig);
+    expect(hasConfigUpgradeFailures).toHaveBeenCalledWith(rawConfig);
     expect(issue.getIssue()).toEqual(
       expect.objectContaining({
         icon: 'mdi:update',

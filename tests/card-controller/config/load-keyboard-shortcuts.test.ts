@@ -11,10 +11,10 @@ describe('setKeyboardShortcutsFromConfig', () => {
     const api = createCardAPI();
     setKeyboardShortcutsFromConfig(api);
 
-    expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(
+    expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalledWith(
       setKeyboardShortcutsFromConfig,
     );
-    expect(api.getAutomationsManager().addAutomations).not.toBeCalled();
+    expect(api.getAutomationsManager().addAutomations).not.toHaveBeenCalled();
   });
 
   it('with shortcuts disabled', () => {
@@ -30,10 +30,10 @@ describe('setKeyboardShortcutsFromConfig', () => {
     );
     setKeyboardShortcutsFromConfig(api);
 
-    expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(
+    expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalledWith(
       setKeyboardShortcutsFromConfig,
     );
-    expect(api.getAutomationsManager().addAutomations).not.toBeCalled();
+    expect(api.getAutomationsManager().addAutomations).not.toHaveBeenCalled();
   });
 
   describe('PTZ shortcuts', () => {
@@ -67,10 +67,10 @@ describe('setKeyboardShortcutsFromConfig', () => {
 
         setKeyboardShortcutsFromConfig(api);
 
-        expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(
+        expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalledWith(
           setKeyboardShortcutsFromConfig,
         );
-        expect(api.getAutomationsManager().addAutomations).toBeCalledWith([
+        expect(api.getAutomationsManager().addAutomations).toHaveBeenCalledWith([
           {
             actions: [
               {
@@ -120,10 +120,10 @@ describe('setKeyboardShortcutsFromConfig', () => {
 
         setKeyboardShortcutsFromConfig(api);
 
-        expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(
+        expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalledWith(
           setKeyboardShortcutsFromConfig,
         );
-        expect(api.getAutomationsManager().addAutomations).toBeCalledWith(
+        expect(api.getAutomationsManager().addAutomations).toHaveBeenCalledWith(
           expect.arrayContaining([
             {
               actions: [

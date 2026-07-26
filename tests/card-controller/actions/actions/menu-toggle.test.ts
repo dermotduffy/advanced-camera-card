@@ -15,5 +15,5 @@ it('should handle menu toggle action', async () => {
 
   await action.execute(api);
 
-  expect(api.getCardElementManager().toggleMenu).toBeCalled();
+  expect(api.getCardElementManager().toggleMenu).toHaveBeenCalled();
 });

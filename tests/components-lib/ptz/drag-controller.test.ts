@@ -45,7 +45,7 @@ describe('PTZDragController', () => {
   it('should register as a controller on the host', () => {
     const host = createLitElement();
     new PTZDragController(host);
-    expect(host.addController).toBeCalled();
+    expect(host.addController).toHaveBeenCalled();
   });
 
   describe('activation', () => {
@@ -56,7 +56,7 @@ describe('PTZDragController', () => {
       const element = document.createElement('div');
       controller.activateIfNecessary(element);
 
-      expect(host.requestUpdate).toBeCalled();
+      expect(host.requestUpdate).toHaveBeenCalled();
     });
 
     it('should set cursor and touch-action styles on the element', () => {
@@ -93,7 +93,7 @@ describe('PTZDragController', () => {
       controller.activateIfNecessary(element);
       controller.activateIfNecessary(element);
 
-      expect(createGesture).toBeCalledTimes(1);
+      expect(createGesture).toHaveBeenCalledTimes(1);
     });
 
     it('should create gesture with drag, pinch, and wheel actions', () => {
@@ -102,7 +102,7 @@ describe('PTZDragController', () => {
 
       controller.activateIfNecessary(document.createElement('div'));
 
-      expect(createGesture).toBeCalled();
+      expect(createGesture).toHaveBeenCalled();
     });
   });
 
@@ -117,7 +117,7 @@ describe('PTZDragController', () => {
 
       controller.deactivateIfNecessary();
 
-      expect(host.requestUpdate).toBeCalled();
+      expect(host.requestUpdate).toHaveBeenCalled();
     });
 
     it('should destroy the gesture recognizer', () => {
@@ -127,7 +127,7 @@ describe('PTZDragController', () => {
       controller.activateIfNecessary(document.createElement('div'));
       controller.deactivateIfNecessary();
 
-      expect(destroy).toBeCalled();
+      expect(destroy).toHaveBeenCalled();
     });
 
     it('should not deactivate when not active', () => {
@@ -136,7 +136,7 @@ describe('PTZDragController', () => {
 
       controller.deactivateIfNecessary();
 
-      expect(host.requestUpdate).not.toBeCalled();
+      expect(host.requestUpdate).not.toHaveBeenCalled();
     });
 
     it('should stop active directions on deactivation', () => {
@@ -154,11 +154,11 @@ describe('PTZDragController', () => {
 
       controller.deactivateIfNecessary();
 
-      expect(dispatchActionExecutionRequest).toBeCalledWith(
+      expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
         host,
         ptzAction('left', 'stop'),
       );
-      expect(dispatchActionExecutionRequest).toBeCalledWith(
+      expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
         host,
         ptzAction('down', 'stop'),
       );
@@ -175,7 +175,7 @@ describe('PTZDragController', () => {
 
       controller.deactivateIfNecessary();
 
-      expect(dispatchActionExecutionRequest).toBeCalledWith(
+      expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
         host,
         ptzAction('zoom_in', 'stop'),
       );
@@ -190,7 +190,7 @@ describe('PTZDragController', () => {
       controller.activateIfNecessary(document.createElement('div'));
       controller.hostDisconnected();
 
-      expect(destroy).toBeCalled();
+      expect(destroy).toHaveBeenCalled();
     });
   });
 
@@ -208,7 +208,7 @@ describe('PTZDragController', () => {
           movement: [110, 0],
         });
 
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('left', 'start'),
         );
@@ -226,7 +226,7 @@ describe('PTZDragController', () => {
           movement: [-110, 0],
         });
 
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('right', 'start'),
         );
@@ -244,7 +244,7 @@ describe('PTZDragController', () => {
           movement: [0, 110],
         });
 
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('up', 'start'),
         );
@@ -262,7 +262,7 @@ describe('PTZDragController', () => {
           movement: [0, -110],
         });
 
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('down', 'start'),
         );
@@ -280,11 +280,11 @@ describe('PTZDragController', () => {
           movement: [110, -110],
         });
 
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('left', 'start'),
         );
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('down', 'start'),
         );
@@ -309,7 +309,7 @@ describe('PTZDragController', () => {
           movement: [120, 0],
         });
 
-        expect(dispatchActionExecutionRequest).not.toBeCalled();
+        expect(dispatchActionExecutionRequest).not.toHaveBeenCalled();
       });
 
       it('should stop old and start new on X direction reversal', () => {
@@ -331,11 +331,11 @@ describe('PTZDragController', () => {
           movement: [-110, 0],
         });
 
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('left', 'stop'),
         );
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('right', 'start'),
         );
@@ -360,11 +360,11 @@ describe('PTZDragController', () => {
           movement: [0, -110],
         });
 
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('up', 'stop'),
         );
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('down', 'start'),
         );
@@ -390,15 +390,15 @@ describe('PTZDragController', () => {
           movement: [0, 0],
         });
 
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('left', 'stop'),
         );
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('up', 'stop'),
         );
-        expect(dispatchActionExecutionRequest).toBeCalledTimes(2);
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledTimes(2);
       });
 
       it('should stop active directions on drag end', () => {
@@ -420,11 +420,11 @@ describe('PTZDragController', () => {
           movement: [110, -110],
         });
 
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('left', 'stop'),
         );
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('down', 'stop'),
         );
@@ -450,8 +450,8 @@ describe('PTZDragController', () => {
         });
 
         // Only the stop is dispatched, not a relative action.
-        expect(dispatchActionExecutionRequest).toBeCalledTimes(1);
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledTimes(1);
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('left', 'stop'),
         );
@@ -471,7 +471,7 @@ describe('PTZDragController', () => {
           movement: [30, -20],
         });
 
-        expect(dispatchActionExecutionRequest).not.toBeCalled();
+        expect(dispatchActionExecutionRequest).not.toHaveBeenCalled();
       });
 
       it('should dispatch relative left and down on small drag end', () => {
@@ -491,8 +491,14 @@ describe('PTZDragController', () => {
           movement: [30, -20],
         });
 
-        expect(dispatchActionExecutionRequest).toBeCalledWith(host, ptzAction('left'));
-        expect(dispatchActionExecutionRequest).toBeCalledWith(host, ptzAction('down'));
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
+          host,
+          ptzAction('left'),
+        );
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
+          host,
+          ptzAction('down'),
+        );
       });
 
       it('should dispatch relative right and up on small drag end', () => {
@@ -512,8 +518,14 @@ describe('PTZDragController', () => {
           movement: [-30, 20],
         });
 
-        expect(dispatchActionExecutionRequest).toBeCalledWith(host, ptzAction('right'));
-        expect(dispatchActionExecutionRequest).toBeCalledWith(host, ptzAction('up'));
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
+          host,
+          ptzAction('right'),
+        );
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
+          host,
+          ptzAction('up'),
+        );
       });
 
       it('should not dispatch relative on zero movement', () => {
@@ -528,7 +540,7 @@ describe('PTZDragController', () => {
           movement: [0, 0],
         });
 
-        expect(dispatchActionExecutionRequest).not.toBeCalled();
+        expect(dispatchActionExecutionRequest).not.toHaveBeenCalled();
       });
     });
 
@@ -545,7 +557,7 @@ describe('PTZDragController', () => {
           movement: [80, 80],
         });
 
-        expect(dispatchActionExecutionRequest).not.toBeCalled();
+        expect(dispatchActionExecutionRequest).not.toHaveBeenCalled();
       });
 
       it('should stop active continuous directions when pinch starts', () => {
@@ -567,7 +579,7 @@ describe('PTZDragController', () => {
           movement: [120, 0],
         });
 
-        expect(dispatchActionExecutionRequest).toBeCalledWith(
+        expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
           host,
           ptzAction('left', 'stop'),
         );
@@ -593,7 +605,7 @@ describe('PTZDragController', () => {
           movement: [110, 0],
         });
 
-        expect(dispatchActionExecutionRequest).not.toBeCalled();
+        expect(dispatchActionExecutionRequest).not.toHaveBeenCalled();
       });
 
       it('should resume drag handling after poisoned gesture ends', () => {
@@ -616,7 +628,7 @@ describe('PTZDragController', () => {
           movement: [80, 0],
         });
 
-        expect(dispatchActionExecutionRequest).not.toBeCalled();
+        expect(dispatchActionExecutionRequest).not.toHaveBeenCalled();
       });
     });
 
@@ -632,7 +644,7 @@ describe('PTZDragController', () => {
         movement: [0, 0],
       });
 
-      expect(dispatchActionExecutionRequest).not.toBeCalled();
+      expect(dispatchActionExecutionRequest).not.toHaveBeenCalled();
     });
   });
 
@@ -645,7 +657,7 @@ describe('PTZDragController', () => {
 
       getHandlers().onPinch({ direction: [1], last: false });
 
-      expect(dispatchActionExecutionRequest).toBeCalledWith(
+      expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
         host,
         ptzAction('zoom_in', 'start'),
       );
@@ -659,7 +671,7 @@ describe('PTZDragController', () => {
 
       getHandlers().onPinch({ direction: [-1], last: false });
 
-      expect(dispatchActionExecutionRequest).toBeCalledWith(
+      expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
         host,
         ptzAction('zoom_out', 'start'),
       );
@@ -676,11 +688,11 @@ describe('PTZDragController', () => {
 
       getHandlers().onPinch({ direction: [-1], last: false });
 
-      expect(dispatchActionExecutionRequest).toBeCalledWith(
+      expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
         host,
         ptzAction('zoom_in', 'stop'),
       );
-      expect(dispatchActionExecutionRequest).toBeCalledWith(
+      expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
         host,
         ptzAction('zoom_out', 'start'),
       );
@@ -697,7 +709,7 @@ describe('PTZDragController', () => {
 
       getHandlers().onPinch({ direction: [1], last: true });
 
-      expect(dispatchActionExecutionRequest).toBeCalledWith(
+      expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
         host,
         ptzAction('zoom_in', 'stop'),
       );
@@ -711,7 +723,7 @@ describe('PTZDragController', () => {
 
       getHandlers().onPinch({ direction: [0], last: false });
 
-      expect(dispatchActionExecutionRequest).not.toBeCalled();
+      expect(dispatchActionExecutionRequest).not.toHaveBeenCalled();
     });
 
     it('should not re-dispatch when zoom direction is unchanged', () => {
@@ -725,7 +737,7 @@ describe('PTZDragController', () => {
 
       getHandlers().onPinch({ direction: [1], last: false });
 
-      expect(dispatchActionExecutionRequest).not.toBeCalled();
+      expect(dispatchActionExecutionRequest).not.toHaveBeenCalled();
     });
   });
 
@@ -738,7 +750,10 @@ describe('PTZDragController', () => {
 
       getHandlers().onWheel({ delta: [0, 100] });
 
-      expect(dispatchActionExecutionRequest).toBeCalledWith(host, ptzAction('zoom_out'));
+      expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
+        host,
+        ptzAction('zoom_out'),
+      );
     });
 
     it('should dispatch zoom_in on scroll up', () => {
@@ -749,7 +764,10 @@ describe('PTZDragController', () => {
 
       getHandlers().onWheel({ delta: [0, -100] });
 
-      expect(dispatchActionExecutionRequest).toBeCalledWith(host, ptzAction('zoom_in'));
+      expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(
+        host,
+        ptzAction('zoom_in'),
+      );
     });
 
     it('should not dispatch on zero delta', () => {
@@ -760,7 +778,7 @@ describe('PTZDragController', () => {
 
       getHandlers().onWheel({ delta: [0, 0] });
 
-      expect(dispatchActionExecutionRequest).not.toBeCalled();
+      expect(dispatchActionExecutionRequest).not.toHaveBeenCalled();
     });
   });
 

@@ -23,7 +23,7 @@ describe('should handle navigate action', () => {
     await action.execute(createCardAPI());
 
     expect(history.length).toBe(historyLength + 1);
-    expect(handler).toBeCalledWith(
+    expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({
         detail: { replace: false },
       }),
@@ -49,7 +49,7 @@ describe('should handle navigate action', () => {
     await action.execute(createCardAPI());
 
     expect(history.length).toBe(historyLength);
-    expect(handler).toBeCalledWith(
+    expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({
         detail: { replace: true },
       }),

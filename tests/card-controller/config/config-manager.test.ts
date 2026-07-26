@@ -122,7 +122,7 @@ describe('ConfigManager', () => {
   describe('should handle error when', () => {
     it('should handle no input', () => {
       const manager = new ConfigManager(createCardAPI());
-      expect(() => manager.setConfig()).toThrowError(/Invalid configuration/);
+      expect(() => manager.setConfig()).toThrow(/Invalid configuration/);
     });
 
     it('should handle invalid configuration', () => {
@@ -132,7 +132,7 @@ describe('ConfigManager', () => {
         .mockReturnValue({ success: false, error: new ZodError([]) });
 
       const manager = new ConfigManager(createCardAPI());
-      expect(() => manager.setConfig({})).toThrowError(
+      expect(() => manager.setConfig({})).toThrow(
         'Invalid configuration: No location hint available (bad or missing type?)',
       );
 
@@ -141,7 +141,7 @@ describe('ConfigManager', () => {
 
     it('should handle invalid configuration with hint', () => {
       const manager = new ConfigManager(createCardAPI());
-      expect(() => manager.setConfig({})).toThrowError(
+      expect(() => manager.setConfig({})).toThrow(
         'Invalid configuration: [\n "type"\n]',
       );
     });
@@ -154,7 +154,7 @@ describe('ConfigManager', () => {
           type: 'custom:frigate-card',
           cameras: 'WILL_NOT_PARSE',
         }),
-      ).toThrowError(
+      ).toThrow(
         'An automated card configuration upgrade is ' +
           'available, please visit the visual card editor. ' +
           'Invalid configuration: [\n "cameras"\n]',
@@ -190,17 +190,17 @@ describe('ConfigManager', () => {
     expect(manager.getConfig()?.menu.alignment).toBe('left');
 
     // Verify appropriate API calls are made.
-    expect(api.getConditionStateManager().setState).toBeCalledWith({
+    expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
       view: undefined,
       displayMode: undefined,
       camera: undefined,
     });
-    expect(api.getIssueManager().reset).toBeCalledWith('config_error');
-    expect(api.getMediaLoadedInfoManager().clear).toBeCalled();
-    expect(api.getViewManager().reset).toBeCalled();
-    expect(api.getAutomationsManager().addAutomations).toBeCalled();
-    expect(api.getStyleManager().updateFromConfig).toBeCalled();
-    expect(api.getCardElementManager().update).toBeCalled();
+    expect(api.getIssueManager().reset).toHaveBeenCalledWith('config_error');
+    expect(api.getMediaLoadedInfoManager().clear).toHaveBeenCalled();
+    expect(api.getViewManager().reset).toHaveBeenCalled();
+    expect(api.getAutomationsManager().addAutomations).toHaveBeenCalled();
+    expect(api.getStyleManager().updateFromConfig).toHaveBeenCalled();
+    expect(api.getCardElementManager().update).toHaveBeenCalled();
   });
 
   it('should apply profiles', () => {
@@ -243,12 +243,12 @@ describe('ConfigManager', () => {
     };
 
     manager.setConfig(config);
-    expect(api.getViewManager().reset).toBeCalled();
+    expect(api.getViewManager().reset).toHaveBeenCalled();
 
     vi.mocked(api.getViewManager().reset).mockClear();
 
     manager.setConfig(config);
-    expect(api.getViewManager().reset).not.toBeCalled();
+    expect(api.getViewManager().reset).not.toHaveBeenCalled();
   });
 
   it('should get card wide config', () => {
@@ -321,7 +321,7 @@ describe('ConfigManager', () => {
       const configAfter = manager.getConfig();
 
       expect(configAfter).toEqual(configBefore);
-      expect(api.getStyleManager().updateFromConfig).toBeCalledTimes(1);
+      expect(api.getStyleManager().updateFromConfig).toHaveBeenCalledTimes(1);
     });
 
     it('should honor override', () => {
@@ -372,7 +372,7 @@ describe('ConfigManager', () => {
 
       stateManager.setState({ fullscreen: true });
       expect(manager.getConfig()).not.toBeNull();
-      expect(api.getIssueManager().trigger).toBeCalledWith(
+      expect(api.getIssueManager().trigger).toHaveBeenCalledWith(
         'config_error',
         expect.objectContaining({ error: expect.any(Error) }),
       );
@@ -502,9 +502,11 @@ describe('ConfigManager', () => {
 
         await flushPromises();
 
-        expect(api.getDefaultManager().initializeIfNecessary).toBeCalledTimes(1);
-        expect(api.getMediaPlayerManager().initializeIfNecessary).toBeCalledTimes(1);
-        expect(listener).not.toBeCalledWith(
+        expect(api.getDefaultManager().initializeIfNecessary).toHaveBeenCalledTimes(1);
+        expect(api.getMediaPlayerManager().initializeIfNecessary).toHaveBeenCalledTimes(
+          1,
+        );
+        expect(listener).not.toHaveBeenCalledWith(
           expect.objectContaining({ change: { config: expect.anything() } }),
         );
 
@@ -515,11 +517,13 @@ describe('ConfigManager', () => {
 
         await flushPromises();
 
-        expect(api.getDefaultManager().initializeIfNecessary).toBeCalledTimes(2);
-        expect(api.getMediaPlayerManager().initializeIfNecessary).toBeCalledTimes(2);
+        expect(api.getDefaultManager().initializeIfNecessary).toHaveBeenCalledTimes(2);
+        expect(api.getMediaPlayerManager().initializeIfNecessary).toHaveBeenCalledTimes(
+          2,
+        );
 
         // Should set the config condition state.
-        expect(listener).toBeCalledWith(
+        expect(listener).toHaveBeenCalledWith(
           expect.objectContaining({ change: { config: expect.anything() } }),
         );
       });
@@ -616,7 +620,7 @@ describe('ConfigManager', () => {
         await flushPromises();
 
         // Verify delete was called when override triggered
-        expect(api.getFoldersManager().deleteFolders).toBeCalled();
+        expect(api.getFoldersManager().deleteFolders).toHaveBeenCalled();
 
         // Verify folder 'f' is no longer present after override
         // Since the override removes folders, the folders passed should no

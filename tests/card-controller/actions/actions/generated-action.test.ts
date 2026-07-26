@@ -17,7 +17,7 @@ describe('GeneratedAction', () => {
 
     await action.execute(api);
 
-    expect(api.getActionsManager().executeNestedActions).toBeCalledWith({
+    expect(api.getActionsManager().executeNestedActions).toHaveBeenCalledWith({
       actions: generated,
       config: undefined,
       triggerData: undefined,
@@ -37,7 +37,7 @@ describe('GeneratedAction', () => {
 
     await action.execute(api);
 
-    expect(api.getActionsManager().executeNestedActions).toBeCalledWith({
+    expect(api.getActionsManager().executeNestedActions).toHaveBeenCalledWith({
       actions: generated,
       config: undefined,
       triggerData: undefined,
@@ -53,7 +53,7 @@ describe('GeneratedAction', () => {
 
     await action.execute(api);
 
-    expect(api.getActionsManager().executeNestedActions).not.toBeCalled();
+    expect(api.getActionsManager().executeNestedActions).not.toHaveBeenCalled();
   });
 
   it('should pass the api and trigger data to the generator', async () => {
@@ -72,6 +72,6 @@ describe('GeneratedAction', () => {
 
     await action.execute(api);
 
-    expect(generator).toBeCalledWith({ api, triggerData });
+    expect(generator).toHaveBeenCalledWith({ api, triggerData });
   });
 });

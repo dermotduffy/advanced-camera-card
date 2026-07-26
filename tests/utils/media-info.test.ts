@@ -89,7 +89,7 @@ describe('dispatchMediaVolumeChangeEvent', () => {
     div.addEventListener('advanced-camera-card:media:volumechange', handler);
 
     dispatchMediaVolumeChangeEvent(div);
-    expect(handler).toBeCalled();
+    expect(handler).toHaveBeenCalled();
   });
 });
 
@@ -101,7 +101,7 @@ describe('dispatchMediaPlayEvent', () => {
     div.addEventListener('advanced-camera-card:media:play', handler);
 
     dispatchMediaPlayEvent(div);
-    expect(handler).toBeCalled();
+    expect(handler).toHaveBeenCalled();
   });
 });
 
@@ -113,7 +113,7 @@ describe('dispatchMediaPauseEvent', () => {
     div.addEventListener('advanced-camera-card:media:pause', handler);
 
     dispatchMediaPauseEvent(div);
-    expect(handler).toBeCalled();
+    expect(handler).toHaveBeenCalled();
   });
 });
 

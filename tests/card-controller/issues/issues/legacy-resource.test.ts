@@ -179,14 +179,14 @@ describe('LegacyResourceIssue', () => {
       const result = await issue.fix(hass);
 
       expect(result).toBe(true);
-      expect(hass.callWS).toBeCalledWith(
+      expect(hass.callWS).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'lovelace/resources/delete',
           resource_id: '1',
         }),
       );
       expect(issue.hasIssue()).toBe(false);
-      expect(onChange).toBeCalled();
+      expect(onChange).toHaveBeenCalled();
     });
 
     it('should not fix when only legacy resource exists', async () => {
@@ -238,7 +238,7 @@ describe('LegacyResourceIssue', () => {
 
       const result = await issue.fix(hass);
       expect(result).toBe(false);
-      expect(onChange).not.toBeCalled();
+      expect(onChange).not.toHaveBeenCalled();
     });
 
     it('should return false when the verification fetch silently fails after a successful delete', async () => {
@@ -272,7 +272,7 @@ describe('LegacyResourceIssue', () => {
       const result = await issue.fix(hass);
 
       expect(result).toBe(false);
-      expect(onChange).not.toBeCalled();
+      expect(onChange).not.toHaveBeenCalled();
     });
 
     it('should return false when re-detection still finds legacy resource', async () => {
@@ -314,7 +314,7 @@ describe('LegacyResourceIssue', () => {
       const result = await issue.fix(hass);
 
       expect(result).toBe(false);
-      expect(onChange).not.toBeCalled();
+      expect(onChange).not.toHaveBeenCalled();
     });
 
     it('should fix multiple legacy resources', async () => {
@@ -437,7 +437,7 @@ describe('LegacyResourceIssue', () => {
 
       await callback?.(api);
 
-      expect(hass.callWS).toBeCalledWith(
+      expect(hass.callWS).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'lovelace/resources/delete',
         }),

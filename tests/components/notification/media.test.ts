@@ -23,7 +23,7 @@ describe('renderNoMediaNotification', () => {
     expect(
       renderNoMediaNotification({ cameraID: 'camera.office' }, cameraManager),
     ).toBeTruthy();
-    expect(cameraManager.getCameraMetadata).toBeCalledWith('camera.office');
+    expect(cameraManager.getCameraMetadata).toHaveBeenCalledWith('camera.office');
   });
 
   it('should fall back to the raw camera ID when metadata has no title', () => {
@@ -42,13 +42,13 @@ describe('renderNoMediaNotification', () => {
     vi.mocked(cameraManager.getCameraMetadata).mockReturnValue(null);
 
     expect(renderNoMediaNotification({ cameraID: null }, cameraManager)).toBeTruthy();
-    expect(cameraManager.getCameraMetadata).toBeCalledWith('camera.default');
+    expect(cameraManager.getCameraMetadata).toHaveBeenCalledWith('camera.default');
   });
 
   it('should not resolve a title when no camera is resolvable', () => {
     const cameraManager = createCameraManager(createStore());
 
     expect(renderNoMediaNotification({ cameraID: null }, cameraManager)).toBeTruthy();
-    expect(cameraManager.getCameraMetadata).not.toBeCalled();
+    expect(cameraManager.getCameraMetadata).not.toHaveBeenCalled();
   });
 });

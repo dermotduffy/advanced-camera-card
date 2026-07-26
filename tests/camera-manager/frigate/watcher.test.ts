@@ -93,7 +93,7 @@ describe('FrigateEventWatcher', () => {
     watcher.subscribe({ instanceID: 'frigate', callback: vi.fn() });
     await flushPromises();
 
-    expect(hass.connection.subscribeMessage).toBeCalledWith(
+    expect(hass.connection.subscribeMessage).toHaveBeenCalledWith(
       expect.any(Function),
       expect.objectContaining({
         type: 'frigate/events/subscribe',
@@ -116,7 +116,7 @@ describe('FrigateEventWatcher', () => {
     watcher.unsubscribe(request);
     await flushPromises();
 
-    expect(unsub).toBeCalledTimes(1);
+    expect(unsub).toHaveBeenCalledTimes(1);
   });
 
   it('should drop messages from an old-connection subscription after a swap', async () => {
@@ -140,7 +140,7 @@ describe('FrigateEventWatcher', () => {
     await flushPromises();
 
     oldDispatcher(JSON.stringify(createEventChange()));
-    expect(callback).not.toBeCalled();
+    expect(callback).not.toHaveBeenCalled();
   });
 
   describe('should call handler', () => {
@@ -156,8 +156,8 @@ describe('FrigateEventWatcher', () => {
       await flushPromises();
       fireMessage(hass, 'NOT_JSON');
 
-      expect(callback).not.toBeCalled();
-      expect(spy).toBeCalledWith(
+      expect(callback).not.toHaveBeenCalled();
+      expect(spy).toHaveBeenCalledWith(
         'Received non-JSON payload from subscription: frigate/events/subscribe',
         'NOT_JSON',
       );
@@ -176,8 +176,8 @@ describe('FrigateEventWatcher', () => {
       const data = JSON.stringify({});
       fireMessage(hass, data);
 
-      expect(callback).not.toBeCalled();
-      expect(spy).toBeCalledWith(
+      expect(callback).not.toHaveBeenCalled();
+      expect(spy).toHaveBeenCalledWith(
         'Received malformed message from subscription: frigate/events/subscribe',
         data,
       );
@@ -194,7 +194,7 @@ describe('FrigateEventWatcher', () => {
       const eventChange = createEventChange();
       fireMessage(hass, JSON.stringify(eventChange));
 
-      expect(callback).toBeCalledWith(eventChange);
+      expect(callback).toHaveBeenCalledWith(eventChange);
     });
 
     it('with a matcher', async () => {
@@ -219,8 +219,8 @@ describe('FrigateEventWatcher', () => {
       const eventChange = createEventChange();
       fireMessage(hass, JSON.stringify(eventChange));
 
-      expect(non_matching_callback).not.toBeCalledWith(eventChange);
-      expect(matching_callback).toBeCalledWith(eventChange);
+      expect(non_matching_callback).not.toHaveBeenCalledWith(eventChange);
+      expect(matching_callback).toHaveBeenCalledWith(eventChange);
     });
   });
 });
@@ -239,7 +239,7 @@ describe('FrigateReviewWatcher', () => {
     watcher.subscribe({ instanceID: 'frigate', callback });
     await flushPromises();
 
-    expect(hass.connection.subscribeMessage).toBeCalledWith(
+    expect(hass.connection.subscribeMessage).toHaveBeenCalledWith(
       expect.any(Function),
       expect.objectContaining({
         type: 'frigate/reviews/subscribe',
@@ -249,6 +249,6 @@ describe('FrigateReviewWatcher', () => {
     const reviewChange = createReviewChange();
     fireMessage(hass, JSON.stringify(reviewChange));
 
-    expect(callback).toBeCalledWith(reviewChange);
+    expect(callback).toHaveBeenCalledWith(reviewChange);
   });
 });

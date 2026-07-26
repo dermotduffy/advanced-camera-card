@@ -47,11 +47,11 @@ describe('HASSManager', () => {
 
       const hass1 = createHASS();
       manager.setHASS(hass1);
-      expect(listener).toBeCalledWith(hass1, null);
+      expect(listener).toHaveBeenCalledWith(hass1, null);
 
       const hass2 = createHASS();
       manager.setHASS(hass2);
-      expect(listener).toBeCalledWith(hass2, hass1);
+      expect(listener).toHaveBeenCalledWith(hass2, hass1);
     });
 
     it('should call listeners in insertion order on every fan-out', () => {
@@ -73,7 +73,7 @@ describe('HASSManager', () => {
       unlisten();
       manager.setHASS(createHASS());
 
-      expect(listener).not.toBeCalled();
+      expect(listener).not.toHaveBeenCalled();
     });
 
     it('should not fan out on null/undefined hass', () => {
@@ -84,7 +84,7 @@ describe('HASSManager', () => {
       manager.setHASS(null);
       manager.setHASS();
 
-      expect(listener).not.toBeCalled();
+      expect(listener).not.toHaveBeenCalled();
     });
 
     it('should expose current hass via getHASS for source consumers', () => {
@@ -122,10 +122,12 @@ describe('HASSManager', () => {
       // Cameras and view should be uninitialized so they get re-subscribed
       // to event sources (e.g. Frigate WebSocket events) on the next
       // render cycle.
-      expect(api.getInitializationManager().uninitialize).toBeCalledWith('cameras');
-      expect(api.getCameraManager().destroy).toBeCalled();
-      expect(api.getInitializationManager().uninitialize).toBeCalledWith('view');
-      expect(api.getInitializationManager().uninitialize).toBeCalledWith(
+      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
+        'cameras',
+      );
+      expect(api.getCameraManager().destroy).toHaveBeenCalled();
+      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith('view');
+      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
         'initial-trigger',
       );
     });
@@ -141,8 +143,8 @@ describe('HASSManager', () => {
       manager.setHASS(startingHASS);
 
       // No reinit yet -- HA isn't fully ready.
-      expect(api.getInitializationManager().uninitialize).not.toBeCalled();
-      expect(api.getCameraManager().destroy).not.toBeCalled();
+      expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalled();
+      expect(api.getCameraManager().destroy).not.toHaveBeenCalled();
 
       // HA finishes booting.
       const readyHASS = createHASS();
@@ -150,10 +152,12 @@ describe('HASSManager', () => {
       readyHASS.config.state = STATE_RUNNING;
       manager.setHASS(readyHASS);
 
-      expect(api.getInitializationManager().uninitialize).toBeCalledWith('cameras');
-      expect(api.getCameraManager().destroy).toBeCalled();
-      expect(api.getInitializationManager().uninitialize).toBeCalledWith('view');
-      expect(api.getInitializationManager().uninitialize).toBeCalledWith(
+      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
+        'cameras',
+      );
+      expect(api.getCameraManager().destroy).toHaveBeenCalled();
+      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith('view');
+      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
         'initial-trigger',
       );
     });
@@ -172,8 +176,8 @@ describe('HASSManager', () => {
       manager.setHASS(startingHASS);
 
       // WS came back but integrations still loading -- wait for RUNNING.
-      expect(api.getInitializationManager().uninitialize).not.toBeCalled();
-      expect(api.getCameraManager().destroy).not.toBeCalled();
+      expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalled();
+      expect(api.getCameraManager().destroy).not.toHaveBeenCalled();
     });
 
     it('should not reinitialize on first hass set (no previous hass)', () => {
@@ -188,8 +192,8 @@ describe('HASSManager', () => {
       // First-ever hass set -- there's no "previous not-ready state" to
       // transition from, so the normal first-load init flow applies and we must
       // not blow away cameras.
-      expect(api.getInitializationManager().uninitialize).not.toBeCalled();
-      expect(api.getCameraManager().destroy).not.toBeCalled();
+      expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalled();
+      expect(api.getCameraManager().destroy).not.toHaveBeenCalled();
     });
 
     it('should not reinitialize on ready → ready (no transition)', () => {
@@ -206,8 +210,8 @@ describe('HASSManager', () => {
       anotherReadyHASS.config.state = STATE_RUNNING;
       manager.setHASS(anotherReadyHASS);
 
-      expect(api.getInitializationManager().uninitialize).not.toBeCalled();
-      expect(api.getCameraManager().destroy).not.toBeCalled();
+      expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalled();
+      expect(api.getCameraManager().destroy).not.toHaveBeenCalled();
     });
 
     it('should not crash when hass is null', () => {
@@ -251,7 +255,7 @@ describe('HASSManager', () => {
 
       manager.setHASS(hass);
 
-      expect(api.getViewManager().setViewDefault).not.toBeCalled();
+      expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
     });
 
     it('should not set default view when there is card interaction', () => {
@@ -274,7 +278,7 @@ describe('HASSManager', () => {
 
       manager.setHASS(hass);
 
-      expect(api.getViewManager().setViewDefault).not.toBeCalled();
+      expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
     });
   });
 });

@@ -67,7 +67,7 @@ describe('MicrophoneManager', () => {
     expect(manager.isConnected()).toBeTruthy();
     expect(manager.getStream()).toBe(stream);
     expect(manager.isMuted()).toBeTruthy();
-    expect(api.getCardElementManager().update).toBeCalled();
+    expect(api.getCardElementManager().update).toHaveBeenCalled();
   });
 
   it('should be unsupported without browser support', () => {
@@ -101,7 +101,7 @@ describe('MicrophoneManager', () => {
 
     expect(manager.isConnected()).toBeFalsy();
     expect(manager.isForbidden()).toBeTruthy();
-    expect(api.getCardElementManager().update).toBeCalled();
+    expect(api.getCardElementManager().update).toHaveBeenCalled();
   });
 
   it('should mute and unmute', async () => {
@@ -113,15 +113,15 @@ describe('MicrophoneManager', () => {
 
     await manager.connect();
     expect(manager.isMuted()).toBeTruthy();
-    expect(api.getCardElementManager().update).toBeCalledTimes(1);
+    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
 
     manager.mute();
     expect(manager.isMuted()).toBeTruthy();
-    expect(api.getCardElementManager().update).toBeCalledTimes(2);
+    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(2);
 
     await manager.unmute();
     expect(manager.isMuted()).toBeFalsy();
-    expect(api.getCardElementManager().update).toBeCalledTimes(3);
+    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(3);
   });
 
   it('should not unmute when microphone forbidden', async () => {
@@ -132,11 +132,11 @@ describe('MicrophoneManager', () => {
     await expect(manager.connect()).rejects.toThrow(Error);
 
     expect(manager.isMuted()).toBeTruthy();
-    expect(api.getCardElementManager().update).toBeCalledTimes(1);
+    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
 
     await manager.unmute();
     expect(manager.isMuted()).toBeTruthy();
-    expect(api.getCardElementManager().update).toBeCalledTimes(1);
+    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
   });
 
   it('should not unmute when not supported', async () => {
@@ -164,7 +164,7 @@ describe('MicrophoneManager', () => {
     expect(manager.isConnected()).toBeTruthy();
     expect(manager.isMuted()).toBeFalsy();
 
-    expect(api.getCardElementManager().update).toBeCalled();
+    expect(api.getCardElementManager().update).toHaveBeenCalled();
   });
 
   it('should disconnect', async () => {
@@ -177,11 +177,11 @@ describe('MicrophoneManager', () => {
 
     await manager.connect();
     expect(manager.isConnected()).toBeTruthy();
-    expect(api.getCardElementManager().update).toBeCalledTimes(1);
+    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
 
     manager.disconnect();
     expect(manager.isConnected()).toBeFalsy();
-    expect(api.getCardElementManager().update).toBeCalledTimes(2);
+    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(2);
   });
 
   it('should automatically disconnect', async () => {
@@ -207,12 +207,12 @@ describe('MicrophoneManager', () => {
 
     await manager.connect();
     expect(manager.isConnected()).toBeTruthy();
-    expect(api.getCardElementManager().update).toBeCalledTimes(1);
+    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
 
     vi.advanceTimersByTime(disconnectSeconds * 1000);
 
     expect(manager.isConnected()).toBeFalsy();
-    expect(api.getCardElementManager().update).toBeCalledTimes(2);
+    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(2);
   });
 
   it('should not automatically disconnect when always connected', async () => {
@@ -238,12 +238,12 @@ describe('MicrophoneManager', () => {
 
     await manager.connect();
     expect(manager.isConnected()).toBeTruthy();
-    expect(api.getCardElementManager().update).toBeCalledTimes(1);
+    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
 
     vi.advanceTimersByTime(disconnectSeconds * 1000);
 
     expect(manager.isConnected()).toBeTruthy();
-    expect(api.getCardElementManager().update).toBeCalledTimes(1);
+    expect(api.getCardElementManager().update).toHaveBeenCalledTimes(1);
   });
 
   describe('should stay connected while in use', () => {
@@ -456,7 +456,7 @@ describe('MicrophoneManager', () => {
     const manager = new MicrophoneManager(api);
 
     manager.initialize();
-    expect(api.getConditionStateManager().setState).toBeCalledWith({
+    expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
       microphone: { connected: false, muted: true, forbidden: false, stream: undefined },
     });
   });
@@ -467,7 +467,7 @@ describe('MicrophoneManager', () => {
     const stream = createMockStream();
     vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
 
-    expect(api.getConditionStateManager().setState).not.toBeCalled();
+    expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
 
     await manager.connect();
 

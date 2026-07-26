@@ -88,7 +88,7 @@ describe('MenuController', () => {
       vi.mocked(host.requestUpdate).mockClear();
 
       controller.setLockManagerEpoch(createLock(true, true));
-      expect(host.requestUpdate).toBeCalledTimes(1);
+      expect(host.requestUpdate).toHaveBeenCalledTimes(1);
     });
 
     it('should not trigger update when lock epoch is unchanged', () => {
@@ -99,7 +99,7 @@ describe('MenuController', () => {
       vi.mocked(host.requestUpdate).mockClear();
 
       controller.setLockManagerEpoch({ manager: lock.manager, locked: lock.locked });
-      expect(host.requestUpdate).not.toBeCalled();
+      expect(host.requestUpdate).not.toHaveBeenCalled();
     });
 
     it('should reflect lock state in shouldButtonBeInert', () => {
@@ -406,7 +406,7 @@ describe('MenuController', () => {
       ];
 
       controller.setButtons(buttons);
-      expect(host.requestUpdate).toBeCalledTimes(1);
+      expect(host.requestUpdate).toHaveBeenCalledTimes(1);
 
       controller.setButtons([
         {
@@ -414,7 +414,7 @@ describe('MenuController', () => {
           icon: 'mdi:cow',
         },
       ]);
-      expect(host.requestUpdate).toBeCalledTimes(1);
+      expect(host.requestUpdate).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -535,7 +535,7 @@ describe('MenuController', () => {
 
       const controller = new MenuController(host);
       controller.handleAction(createInteractionActionEvent('tap'));
-      expect(handler).not.toBeCalled();
+      expect(handler).not.toHaveBeenCalled();
     });
 
     it('should execute simple action in non-hidden menu', () => {
@@ -546,7 +546,7 @@ describe('MenuController', () => {
       const controller = new MenuController(host);
 
       controller.handleAction(createInteractionActionEvent('tap'), tapActionConfig);
-      expect(handler).toBeCalledWith(
+      expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({
           detail: { actions: [action], config: tapActionConfig },
         }),
@@ -564,7 +564,7 @@ describe('MenuController', () => {
       controller.handleAction(
         createSubmenuInteractionActionEvent('tap', tapActionConfig as SubmenuItem),
       );
-      expect(handler).toBeCalledWith(
+      expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({
           detail: { actions: [action], config: tapActionConfig },
         }),
@@ -580,7 +580,7 @@ describe('MenuController', () => {
 
       controller.handleAction(createInteractionActionEvent('tap'), tapActionConfigMulti);
 
-      expect(handler).toBeCalledWith(
+      expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({
           detail: { actions: [action, action, action], config: tapActionConfigMulti },
         }),

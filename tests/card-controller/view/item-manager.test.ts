@@ -91,7 +91,7 @@ describe('ViewItemManager', () => {
       vi.mocked(homeAssistantGetSignedURLIfNecessary).mockRejectedValue(signError);
 
       expect(await manager.download(item)).toBe(false);
-      expect(api.getNotificationManager().setNotification).toBeCalledWith(
+      expect(api.getNotificationManager().setNotification).toHaveBeenCalledWith(
         expect.objectContaining({
           heading: expect.objectContaining({
             text: 'Download failed',
@@ -122,7 +122,7 @@ describe('ViewItemManager', () => {
       );
 
       expect(await manager.download(item)).toBe(true);
-      expect(downloadURL).toBeCalledWith(
+      expect(downloadURL).toHaveBeenCalledWith(
         'http://foo/signed-url',
         'camera-office_id.mp4',
       );
@@ -145,7 +145,7 @@ describe('ViewItemManager', () => {
       );
 
       expect(await manager.download(item)).toBe(true);
-      expect(downloadURL).toBeCalledWith('http://foo/signed-url', 'media_id.mp4');
+      expect(downloadURL).toHaveBeenCalledWith('http://foo/signed-url', 'media_id.mp4');
     });
 
     it('should download media without signing', async () => {
@@ -161,7 +161,7 @@ describe('ViewItemManager', () => {
       });
 
       expect(await manager.download(item)).toBe(true);
-      expect(downloadURL).toBeCalledWith('foo', 'camera-office_id.mp4');
+      expect(downloadURL).toHaveBeenCalledWith('foo', 'camera-office_id.mp4');
     });
 
     it('should download media without camera or folder', async () => {
@@ -172,7 +172,7 @@ describe('ViewItemManager', () => {
       const item = new TestViewMedia({ cameraID: null, folder: null });
 
       expect(await manager.download(item)).toBe(false);
-      expect(api.getNotificationManager().setNotification).toBeCalledWith(
+      expect(api.getNotificationManager().setNotification).toHaveBeenCalledWith(
         expect.objectContaining({
           heading: expect.objectContaining({
             text: 'Download failed',
@@ -199,7 +199,7 @@ describe('ViewItemManager', () => {
         });
 
         expect(await manager.download(item)).toBe(true);
-        expect(downloadURL).toBeCalledWith('foo', 'camera.mp4');
+        expect(downloadURL).toHaveBeenCalledWith('foo', 'camera.mp4');
       });
 
       it('should generate filename for media with start time', async () => {
@@ -219,7 +219,7 @@ describe('ViewItemManager', () => {
 
         // Use format() to generate expected filename timestamp (formats in local time)
         const expectedFilename = `camera_id_${format(startTime, 'yyyy-MM-dd-HH-mm-ss')}.mp4`;
-        expect(downloadURL).toBeCalledWith('foo', expectedFilename);
+        expect(downloadURL).toHaveBeenCalledWith('foo', expectedFilename);
       });
 
       it('should generate filename for snapshot', async () => {
@@ -235,7 +235,7 @@ describe('ViewItemManager', () => {
         });
 
         expect(await manager.download(item)).toBe(true);
-        expect(downloadURL).toBeCalledWith('foo', 'camera_id.jpg');
+        expect(downloadURL).toHaveBeenCalledWith('foo', 'camera_id.jpg');
       });
 
       it('should generate filename for folder without title', async () => {
@@ -251,7 +251,7 @@ describe('ViewItemManager', () => {
         });
 
         expect(await manager.download(item)).toBe(true);
-        expect(downloadURL).toBeCalledWith('foo', 'media');
+        expect(downloadURL).toHaveBeenCalledWith('foo', 'media');
       });
 
       it('should generate filename for folder with title', async () => {
@@ -267,7 +267,7 @@ describe('ViewItemManager', () => {
         });
 
         expect(await manager.download(item)).toBe(true);
-        expect(downloadURL).toBeCalledWith('foo', 'title');
+        expect(downloadURL).toHaveBeenCalledWith('foo', 'title');
       });
     });
   });
@@ -284,7 +284,7 @@ describe('ViewItemManager', () => {
 
       await manager.favorite(item, true);
 
-      expect(api.getCameraManager().favoriteMedia).toBeCalledWith(item, true);
+      expect(api.getCameraManager().favoriteMedia).toHaveBeenCalledWith(item, true);
     });
 
     it('should favorite folder media', async () => {
@@ -298,7 +298,7 @@ describe('ViewItemManager', () => {
 
       await manager.favorite(item, true);
 
-      expect(api.getFoldersManager().favorite).toBeCalledWith(item, true);
+      expect(api.getFoldersManager().favorite).toHaveBeenCalledWith(item, true);
     });
   });
 
@@ -314,7 +314,7 @@ describe('ViewItemManager', () => {
 
       await manager.reviewMedia(item, true);
 
-      expect(api.getCameraManager().reviewMedia).toBeCalledWith(item, true);
+      expect(api.getCameraManager().reviewMedia).toHaveBeenCalledWith(item, true);
     });
 
     it('should not review non-review media', async () => {
@@ -328,7 +328,7 @@ describe('ViewItemManager', () => {
 
       await manager.reviewMedia(item, true);
 
-      expect(api.getCameraManager().reviewMedia).not.toBeCalled();
+      expect(api.getCameraManager().reviewMedia).not.toHaveBeenCalled();
     });
   });
 });

@@ -29,7 +29,7 @@ describe('handleControlAction', () => {
     const host = document.createElement('div');
     handleControlAction(ev, createControl(), host);
 
-    expect(stopEventFromActivatingCardWideActions).toBeCalledWith(ev);
+    expect(stopEventFromActivatingCardWideActions).toHaveBeenCalledWith(ev);
   });
 
   it('should dispatch action when getActionConfigGivenAction returns an action', () => {
@@ -42,7 +42,7 @@ describe('handleControlAction', () => {
 
     handleControlAction(ev, control, host);
 
-    expect(dispatchActionExecutionRequest).toBeCalledWith(host, {
+    expect(dispatchActionExecutionRequest).toHaveBeenCalledWith(host, {
       actions: [action],
     });
   });
@@ -55,7 +55,7 @@ describe('handleControlAction', () => {
 
     handleControlAction(ev, createControl(), host);
 
-    expect(dispatchActionExecutionRequest).not.toBeCalled();
+    expect(dispatchActionExecutionRequest).not.toHaveBeenCalled();
   });
 
   it('should call onDismiss when dismiss is not false', () => {
@@ -67,7 +67,7 @@ describe('handleControlAction', () => {
 
     handleControlAction(ev, createControl({ dismiss: true }), host, onDismiss);
 
-    expect(onDismiss).toBeCalled();
+    expect(onDismiss).toHaveBeenCalled();
   });
 
   it('should not call onDismiss when dismiss is false', () => {
@@ -79,7 +79,7 @@ describe('handleControlAction', () => {
 
     handleControlAction(ev, createControl({ dismiss: false }), host, onDismiss);
 
-    expect(onDismiss).not.toBeCalled();
+    expect(onDismiss).not.toHaveBeenCalled();
   });
 
   it('should not call onDismiss when no onDismiss is provided', () => {

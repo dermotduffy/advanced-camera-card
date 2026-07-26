@@ -80,7 +80,7 @@ describe('TPLinkCamera', () => {
             hassManager: createHASSManager(),
             entityRegistryManager: new EntityRegistryManagerMock(),
           }),
-      ).rejects.toThrowError('Could not find camera entity');
+      ).rejects.toThrow('Could not find camera entity');
     });
 
     it('without a matching entity in registry', async () => {
@@ -95,7 +95,7 @@ describe('TPLinkCamera', () => {
             hassManager: createHASSManager(),
             entityRegistryManager: new EntityRegistryManagerMock(),
           }),
-      ).rejects.toThrowError('Could not find camera entity');
+      ).rejects.toThrow('Could not find camera entity');
     });
 
     it('successfully with webrtc_card.entity fallback', async () => {
@@ -201,7 +201,7 @@ describe('TPLinkCamera', () => {
         await camera.executePTZAction(executor, 'left', { phase: 'start' }),
       ).toBeFalsy();
 
-      expect(executor.executeActions).not.toBeCalled();
+      expect(executor.executeActions).not.toHaveBeenCalled();
     });
 
     it('should ignore zoom actions (not supported by TPLink)', async () => {
@@ -223,7 +223,7 @@ describe('TPLinkCamera', () => {
         await camera.executePTZAction(executor, 'zoom_out', { phase: 'start' }),
       ).toBeFalsy();
 
-      expect(executor.executeActions).not.toBeCalled();
+      expect(executor.executeActions).not.toHaveBeenCalled();
     });
 
     it('should ignore preset actions (not supported by TPLink)', async () => {
@@ -242,7 +242,7 @@ describe('TPLinkCamera', () => {
         await camera.executePTZAction(executor, 'preset', { preset: 'home' }),
       ).toBeFalsy();
 
-      expect(executor.executeActions).not.toBeCalled();
+      expect(executor.executeActions).not.toHaveBeenCalled();
     });
 
     it('should handle stop phase (no-op for TPLink)', async () => {
@@ -262,7 +262,7 @@ describe('TPLinkCamera', () => {
         await camera.executePTZAction(executor, 'left', { phase: 'stop' }),
       ).toBeTruthy();
 
-      expect(executor.executeActions).not.toBeCalled();
+      expect(executor.executeActions).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -350,7 +350,7 @@ describe('TPLinkCamera', () => {
       const executor = mock<ActionsExecutor>();
       await camera.executePTZAction(executor, 'left', { phase: 'start' });
 
-      expect(executor.executeActions).toBeCalledTimes(1);
+      expect(executor.executeActions).toHaveBeenCalledTimes(1);
       expect(executor.executeActions).toHaveBeenLastCalledWith({
         actions: {
           action: 'perform-action',

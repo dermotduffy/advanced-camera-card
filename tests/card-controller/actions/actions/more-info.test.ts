@@ -24,7 +24,7 @@ describe('should handle more-info action', () => {
 
     await action.execute(api);
 
-    expect(handler).toBeCalledWith(
+    expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({
         detail: { entityId: 'light.office' },
       }),
@@ -51,7 +51,7 @@ describe('should handle more-info action', () => {
 
     await action.execute(api);
 
-    expect(handler).toBeCalledWith(
+    expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({
         detail: { entityId: 'light.office' },
       }),
@@ -76,6 +76,6 @@ describe('should handle more-info action', () => {
 
     await action.execute(api);
 
-    expect(handler).not.toBeCalled();
+    expect(handler).not.toHaveBeenCalled();
   });
 });

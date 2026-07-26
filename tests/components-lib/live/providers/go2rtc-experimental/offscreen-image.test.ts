@@ -16,7 +16,7 @@ describe('OffscreenImage', () => {
     const offscreen = new OffscreenImage(create);
 
     expect(offscreen.get()).toBe(offscreen.get());
-    expect(create).toBeCalledTimes(1);
+    expect(create).toHaveBeenCalledTimes(1);
   });
 
   it('should create an image with the default factory when none is injected', () => {
@@ -43,7 +43,7 @@ describe('OffscreenImage', () => {
     offscreen.clear();
     offscreen.get();
 
-    expect(create).toBeCalledTimes(2);
+    expect(create).toHaveBeenCalledTimes(2);
   });
 
   it('should tolerate clear when no image is held', () => {

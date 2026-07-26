@@ -9,8 +9,8 @@ describe('setAutomationsFromConfig', () => {
     const api = createCardAPI();
     setAutomationsFromConfig(api);
 
-    expect(api.getAutomationsManager().deleteAutomations).toBeCalled();
-    expect(api.getAutomationsManager().addAutomations).toBeCalledWith([]);
+    expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalled();
+    expect(api.getAutomationsManager().addAutomations).toHaveBeenCalledWith([]);
   });
 
   it('with config', () => {
@@ -34,7 +34,7 @@ describe('setAutomationsFromConfig', () => {
 
     setAutomationsFromConfig(api);
 
-    expect(api.getAutomationsManager().deleteAutomations).toBeCalled();
-    expect(api.getAutomationsManager().addAutomations).toBeCalledWith(automations);
+    expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalled();
+    expect(api.getAutomationsManager().addAutomations).toHaveBeenCalledWith(automations);
   });
 });

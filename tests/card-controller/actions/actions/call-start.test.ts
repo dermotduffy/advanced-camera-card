@@ -15,7 +15,7 @@ it('should handle call_start action without a camera or stream', async () => {
 
   await action.execute(api);
 
-  expect(api.getCallManager().start).toBeCalledWith({
+  expect(api.getCallManager().start).toHaveBeenCalledWith({
     cameraID: undefined,
     streamID: undefined,
   });
@@ -35,7 +35,7 @@ it('should handle call_start action with a camera and stream', async () => {
 
   await action.execute(api);
 
-  expect(api.getCallManager().start).toBeCalledWith({
+  expect(api.getCallManager().start).toHaveBeenCalledWith({
     cameraID: 'camera.front',
     streamID: 'camera.front_doorbell',
   });

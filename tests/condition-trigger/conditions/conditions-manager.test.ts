@@ -45,7 +45,7 @@ describe('ConditionsManager', () => {
       hass: createHASS({ 'sensor.foo': createStateEntity({ state: '11' }) }),
     });
 
-    expect(listener).not.toBeCalled();
+    expect(listener).not.toHaveBeenCalled();
   });
 
   it('should forward the triggering state change to listeners', () => {
@@ -94,11 +94,11 @@ describe('ConditionsManager', () => {
 
     // Fire the media-query change; the manager re-evaluates and notifies.
     addEventListener.mock.calls[0][1]();
-    expect(listener).toBeCalledWith({ result: true }, undefined);
+    expect(listener).toHaveBeenCalledWith({ result: true }, undefined);
 
     // Destroy tears the subscription down.
     manager.destroy();
-    expect(removeEventListener).toBeCalled();
+    expect(removeEventListener).toHaveBeenCalled();
   });
 
   describe('should handle listeners correctly', () => {
@@ -115,20 +115,20 @@ describe('ConditionsManager', () => {
 
       stateManager.setState({ fullscreen: true });
 
-      expect(listener).toBeCalledWith({ result: true }, expect.anything());
-      expect(listener).toBeCalledTimes(1);
+      expect(listener).toHaveBeenCalledWith({ result: true }, expect.anything());
+      expect(listener).toHaveBeenCalledTimes(1);
 
       stateManager.setState({ fullscreen: false });
-      expect(listener).toBeCalledWith({ result: false }, expect.anything());
-      expect(listener).toBeCalledTimes(2);
+      expect(listener).toHaveBeenCalledWith({ result: false }, expect.anything());
+      expect(listener).toHaveBeenCalledTimes(2);
 
       // Re-add the same listener (will still only be called once).
       manager.addListener(listener);
 
       stateManager.setState({ fullscreen: true });
 
-      expect(listener).toBeCalledWith({ result: true }, expect.anything());
-      expect(listener).toBeCalledTimes(3);
+      expect(listener).toHaveBeenCalledWith({ result: true }, expect.anything());
+      expect(listener).toHaveBeenCalledTimes(3);
     });
 
     it('should remove listener', () => {
@@ -145,7 +145,7 @@ describe('ConditionsManager', () => {
 
       stateManager.setState({ fullscreen: true });
 
-      expect(listener).not.toBeCalled();
+      expect(listener).not.toHaveBeenCalled();
     });
 
     it('should remove listener on destroy', () => {
@@ -162,7 +162,7 @@ describe('ConditionsManager', () => {
 
       stateManager.setState({ fullscreen: true });
 
-      expect(listener).not.toBeCalled();
+      expect(listener).not.toHaveBeenCalled();
     });
 
     it('should not call listeners when the condition result does not change', () => {
@@ -177,19 +177,19 @@ describe('ConditionsManager', () => {
       manager.addListener(listener);
 
       stateManager.setState({ view: 'live' });
-      expect(listener).toBeCalledTimes(1);
+      expect(listener).toHaveBeenCalledTimes(1);
 
       stateManager.setState({ view: 'clip' });
-      expect(listener).toBeCalledTimes(2);
+      expect(listener).toHaveBeenCalledTimes(2);
 
       stateManager.setState({ view: 'clip' });
-      expect(listener).toBeCalledTimes(2);
+      expect(listener).toHaveBeenCalledTimes(2);
 
       stateManager.setState({ view: 'live' });
-      expect(listener).toBeCalledTimes(3);
+      expect(listener).toHaveBeenCalledTimes(3);
 
       stateManager.setState({ view: 'live' });
-      expect(listener).toBeCalledTimes(3);
+      expect(listener).toHaveBeenCalledTimes(3);
     });
   });
 

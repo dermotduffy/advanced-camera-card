@@ -25,7 +25,7 @@ describe('homeAssistantSignPath', () => {
     expect(await homeAssistantSignPath(hass, unsignedPath, expires)).toEqual(
       'hass:signed/path',
     );
-    expect(hass.callWS).toBeCalledWith({
+    expect(hass.callWS).toHaveBeenCalledWith({
       type: 'auth/sign_path',
       path: unsignedPath,
       expires,
@@ -36,7 +36,7 @@ describe('homeAssistantSignPath', () => {
     const hass = createHASS();
     vi.mocked(hass.callWS).mockResolvedValue(null);
 
-    await expect(homeAssistantSignPath(hass, 'unsigned/path', 42)).rejects.toThrowError(
+    await expect(homeAssistantSignPath(hass, 'unsigned/path', 42)).rejects.toThrow(
       AdvancedCameraCardError,
     );
   });
@@ -88,8 +88,8 @@ describe('homeAssistantSignEndpoint', () => {
     vi.mocked(hass.callWS).mockRejectedValue(new Error('connection lost'));
 
     const endpoint = { endpoint: 'http://example.com', sign: true };
-    await expect(
-      homeAssistantGetSignedURLIfNecessary(hass, endpoint),
-    ).rejects.toThrowError(AdvancedCameraCardError);
+    await expect(homeAssistantGetSignedURLIfNecessary(hass, endpoint)).rejects.toThrow(
+      AdvancedCameraCardError,
+    );
   });
 });

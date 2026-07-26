@@ -88,7 +88,7 @@ describe('handleZoomSettingsObservedEvent', () => {
       viewManager,
     );
 
-    expect(viewManager.setViewByParameters).not.toBeCalled();
+    expect(viewManager.setViewByParameters).not.toHaveBeenCalled();
   });
 
   it('should handle observed zoom settings ', () => {
@@ -106,13 +106,13 @@ describe('handleZoomSettingsObservedEvent', () => {
       viewManager,
       'target',
     );
-    expect(viewManager.setViewByParameters).toBeCalledWith(
+    expect(viewManager.setViewByParameters).toHaveBeenCalledWith(
       expect.objectContaining({
         modifiers: [expect.any(MergeContextViewModifier)],
       }),
     );
 
-    expect(MergeContextViewModifier).toBeCalledWith({
+    expect(MergeContextViewModifier).toHaveBeenCalledWith({
       zoom: {
         target: {
           observed: { pan: { x: 1, y: 2 }, zoom: 3, isDefault: true, unzoomed: true },

@@ -39,7 +39,7 @@ describe('should handle ptz multi action', () => {
 
       await action.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
         'camera.office',
         'left',
         {
@@ -47,7 +47,7 @@ describe('should handle ptz multi action', () => {
           preset: undefined,
         },
       );
-      expect(api.getViewManager().setViewWithMergedContext).not.toBeCalled();
+      expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
     });
 
     it('should use digital ptz when camera does not have ptz support', async () => {
@@ -76,7 +76,7 @@ describe('should handle ptz multi action', () => {
 
       await action.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).not.toBeCalled();
+      expect(api.getCameraManager().executePTZAction).not.toHaveBeenCalled();
       expect(api.getViewManager().setViewWithMergedContext).toHaveBeenLastCalledWith({
         zoom: {
           'camera.office': {
@@ -114,8 +114,8 @@ describe('should handle ptz multi action', () => {
 
     await action.execute(api);
 
-    expect(api.getCameraManager().executePTZAction).not.toBeCalled();
-    expect(api.getViewManager().setViewWithMergedContext).not.toBeCalled();
+    expect(api.getCameraManager().executePTZAction).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
   });
 
   it('should do nothing with a media-less view without an explicit target_id', async () => {
@@ -143,7 +143,7 @@ describe('should handle ptz multi action', () => {
 
     await action.execute(api);
 
-    expect(api.getCameraManager().executePTZAction).not.toBeCalled();
-    expect(api.getViewManager().setViewWithMergedContext).not.toBeCalled();
+    expect(api.getCameraManager().executePTZAction).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
   });
 });

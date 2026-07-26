@@ -34,15 +34,15 @@ describe('DeviceRegistryManager', () => {
       vi.mocked(hass.callWS).mockResolvedValueOnce([testDevice]);
 
       expect(await manager.getDevice(hass, 'test')).toEqual(testDevice);
-      expect(hass.callWS).toBeCalledTimes(1);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
 
       expect(await manager.getDevice(hass, 'test')).toEqual(testDevice);
-      expect(hass.callWS).toBeCalledTimes(1);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
 
       expect(await manager.getDevice(hass, 'missing')).toBeNull();
 
       // The fetch call is called exactly once.
-      expect(hass.callWS).toBeCalledTimes(1);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
     });
 
     it('should return null when fetch fails', async () => {
@@ -52,7 +52,7 @@ describe('DeviceRegistryManager', () => {
       const manager = new DeviceRegistryManager(new DeviceCache());
       expect(await manager.getDevice(hass, 'test')).toBeNull();
 
-      expect(console.warn).toBeCalledWith(
+      expect(console.warn).toHaveBeenCalledWith(
         expect.any(AdvancedCameraCardError),
         expect.anything(),
       );

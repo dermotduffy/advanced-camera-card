@@ -215,7 +215,7 @@ describe('ActionsManager', () => {
       await manager.handleInteractionEvent(
         new CustomEvent<Interaction>('event', { detail: { action: 'tap' } }),
       );
-      expect(consoleSpy).toBeCalled();
+      expect(consoleSpy).toHaveBeenCalled();
     });
 
     describe('should handle unexpected interactions', () => {
@@ -246,7 +246,7 @@ describe('ActionsManager', () => {
               detail: { action: interaction as unknown as InteractionName },
             }),
           );
-          expect(consoleSpy).not.toBeCalled();
+          expect(consoleSpy).not.toHaveBeenCalled();
         },
       );
     });
@@ -271,7 +271,7 @@ describe('ActionsManager', () => {
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
       await manager.handleCustomActionEvent(event);
-      expect(consoleSpy).toBeCalled();
+      expect(consoleSpy).toHaveBeenCalled();
     });
 
     it('should not handle generic event', async () => {
@@ -292,7 +292,7 @@ describe('ActionsManager', () => {
 
       await manager.handleCustomActionEvent(event);
 
-      expect(handler).not.toBeCalled();
+      expect(handler).not.toHaveBeenCalled();
     });
 
     it('should not handle event without detail', async () => {
@@ -300,7 +300,7 @@ describe('ActionsManager', () => {
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
       await manager.handleCustomActionEvent(new Event('ll-custom'));
-      expect(consoleSpy).not.toBeCalled();
+      expect(consoleSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -319,7 +319,7 @@ describe('ActionsManager', () => {
           detail: { actions: createLogAction('Hello, world!') },
         }),
       );
-      expect(consoleSpy).toBeCalled();
+      expect(consoleSpy).toHaveBeenCalled();
     });
   });
 
@@ -334,7 +334,7 @@ describe('ActionsManager', () => {
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
       await manager.executeActions({ actions: createLogAction('Hello, world!') });
-      expect(consoleSpy).toBeCalled();
+      expect(consoleSpy).toHaveBeenCalled();
     });
 
     it('should execute actions', async () => {
@@ -343,7 +343,7 @@ describe('ActionsManager', () => {
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
       await manager.executeActions({ actions: createLogAction('Hello, world!') });
-      expect(consoleSpy).toBeCalled();
+      expect(consoleSpy).toHaveBeenCalled();
     });
 
     it('should render templates', async () => {
@@ -372,14 +372,12 @@ describe('ActionsManager', () => {
 
       await manager.executeActions({ actions: action, config, triggerData });
 
-      expect(vi.mocked(api.getTemplateManager().renderRecursivelyAsType)).toBeCalledWith(
-        hass,
-        action,
-        {
-          conditionState,
-          triggerData,
-        },
-      );
+      expect(
+        vi.mocked(api.getTemplateManager().renderRecursivelyAsType),
+      ).toHaveBeenCalledWith(hass, action, {
+        conditionState,
+        triggerData,
+      });
     });
 
     it('should filter actions through the lock manager before rendering them', async () => {
@@ -403,9 +401,9 @@ describe('ActionsManager', () => {
 
       // The lock manager sees the raw (unrendered) action; only the action it
       // returns is rendered and run.
-      expect(api.getLockManager().getAllowedActions).toBeCalledWith([rawAction]);
-      expect(allowedRan).toBeCalled();
-      expect(rawRan).not.toBeCalled();
+      expect(api.getLockManager().getAllowedActions).toHaveBeenCalledWith([rawAction]);
+      expect(allowedRan).toHaveBeenCalled();
+      expect(rawRan).not.toHaveBeenCalled();
     });
 
     it('should render each action against the state at its turn', async () => {
@@ -481,7 +479,7 @@ describe('ActionsManager', () => {
       expect(ran).toEqual(['one', 'two']);
       expect(
         vi.mocked(api.getTemplateManager().renderRecursivelyAsType),
-      ).toBeCalledTimes(1);
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should abort the remaining actions when one fails to render', async () => {
@@ -519,7 +517,7 @@ describe('ActionsManager', () => {
       // The first action ran; the second's render threw, aborting the rest. The
       // error was caught by executeActions().
       expect(ran).toEqual(['first']);
-      expect(warnSpy).toBeCalled();
+      expect(warnSpy).toHaveBeenCalled();
     });
 
     it('should hand an if-action branch to the executor unrendered, with the trigger data', async () => {
@@ -549,7 +547,7 @@ describe('ActionsManager', () => {
       // The branch is left raw (template intact) and forwarded with the trigger
       // data, so the nested executor renders it per-step when it runs -- not
       // frozen against the state at the `if` step.
-      expect(api.getActionsManager().executeNestedActions).toBeCalledWith({
+      expect(api.getActionsManager().executeNestedActions).toHaveBeenCalledWith({
         actions: [thenAction],
         config: undefined,
         triggerData: { platform: 'state', entity_id: 'binary_sensor.door' },
@@ -557,7 +555,7 @@ describe('ActionsManager', () => {
 
       // The log action is handed to the (mocked) nested executor, not run here,
       // so it must not actually log.
-      expect(consoleSpy).not.toBeCalled();
+      expect(consoleSpy).not.toHaveBeenCalled();
     });
 
     it('should render if-action branch actions per-step', async () => {
@@ -633,7 +631,7 @@ describe('ActionsManager', () => {
 
       await manager.executeActions({ actions: createLogAction('Blocked') });
 
-      expect(consoleSpy).not.toBeCalled();
+      expect(consoleSpy).not.toHaveBeenCalled();
     });
 
     describe('should forward haptics', () => {
@@ -651,7 +649,9 @@ describe('ActionsManager', () => {
 
         await manager.executeActions({ actions: { action: 'none' } });
 
-        expect(handler).toBeCalledWith(expect.objectContaining({ detail: 'success' }));
+        expect(handler).toHaveBeenCalledWith(
+          expect.objectContaining({ detail: 'success' }),
+        );
       });
 
       it('should forward warning haptic', async () => {
@@ -669,7 +669,9 @@ describe('ActionsManager', () => {
           actions: { action: 'none', confirmation: true },
         });
 
-        expect(handler).toBeCalledWith(expect.objectContaining({ detail: 'warning' }));
+        expect(handler).toHaveBeenCalledWith(
+          expect.objectContaining({ detail: 'warning' }),
+        );
       });
     });
   });
@@ -712,7 +714,7 @@ describe('ActionsManager', () => {
       await promise;
 
       // Action set will not continue.
-      expect(consoleSpy).not.toBeCalled();
+      expect(consoleSpy).not.toHaveBeenCalled();
     });
   });
 });

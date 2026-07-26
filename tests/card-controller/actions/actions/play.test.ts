@@ -25,5 +25,5 @@ it('should handle play action', async () => {
 
   await action.execute(api);
 
-  expect(mediaPlayerController.playback?.play).toBeCalled();
+  expect(mediaPlayerController.playback?.play).toHaveBeenCalled();
 });

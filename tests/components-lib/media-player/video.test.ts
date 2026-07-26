@@ -80,7 +80,7 @@ describe('VideoMediaPlayerController', () => {
 
       await controller.playback.play();
 
-      expect(video.play).toBeCalled();
+      expect(video.play).toHaveBeenCalled();
     });
 
     it('should mute if not allowed to play and unmuted', async () => {
@@ -92,7 +92,7 @@ describe('VideoMediaPlayerController', () => {
 
       await controller.playback.play();
 
-      expect(video.play).toBeCalledTimes(2);
+      expect(video.play).toHaveBeenCalledTimes(2);
       expect(video.muted).toBeTruthy();
     });
 
@@ -105,7 +105,7 @@ describe('VideoMediaPlayerController', () => {
 
       await controller.playback.play();
 
-      expect(video.play).toBeCalledTimes(1);
+      expect(video.play).toHaveBeenCalledTimes(1);
       expect(video.muted).toBeTruthy();
     });
 
@@ -118,7 +118,7 @@ describe('VideoMediaPlayerController', () => {
 
       await controller.playback.play();
 
-      expect(video.play).toBeCalledTimes(2);
+      expect(video.play).toHaveBeenCalledTimes(2);
       expect(video.muted).toBeTruthy();
     });
 
@@ -137,7 +137,7 @@ describe('VideoMediaPlayerController', () => {
 
     await controller.playback.pause();
 
-    expect(video.pause).toBeCalled();
+    expect(video.pause).toHaveBeenCalled();
   });
 
   describe('should mute', async () => {
@@ -211,7 +211,7 @@ describe('VideoMediaPlayerController', () => {
 
       await controller.seek(10);
 
-      expect(hideMediaControlsTemporarily).toBeCalled();
+      expect(hideMediaControlsTemporarily).toHaveBeenCalled();
       expect(video.currentTime).toBe(10);
     });
 
@@ -231,7 +231,7 @@ describe('VideoMediaPlayerController', () => {
 
       await controller.setControls(true);
 
-      expect(setControlsOnVideo).toBeCalledWith(video, true);
+      expect(setControlsOnVideo).toHaveBeenCalledWith(video, true);
     });
 
     it('should set controls to default', async () => {
@@ -244,7 +244,7 @@ describe('VideoMediaPlayerController', () => {
 
       await controller.setControls();
 
-      expect(setControlsOnVideo).toBeCalledWith(video, true);
+      expect(setControlsOnVideo).toHaveBeenCalledWith(video, true);
     });
 
     it('should ignore calls without a default or value', async () => {
@@ -252,7 +252,7 @@ describe('VideoMediaPlayerController', () => {
 
       await controller.setControls(true);
 
-      expect(setControlsOnVideo).not.toBeCalled();
+      expect(setControlsOnVideo).not.toHaveBeenCalled();
     });
   });
 

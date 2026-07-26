@@ -46,21 +46,21 @@ describe('DefaultManager', () => {
       const manager = new DefaultManager(api);
       await manager.initialize();
 
-      expect(api.getViewManager().setViewDefault).not.toBeCalled();
+      expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
 
       vi.runOnlyPendingTimers();
 
-      expect(api.getViewManager().setViewDefault).not.toBeCalled();
+      expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
 
       vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(false);
       vi.runOnlyPendingTimers();
 
-      expect(api.getViewManager().setViewDefault).toBeCalledTimes(1);
+      expect(api.getViewManager().setViewDefault).toHaveBeenCalledTimes(1);
 
       manager.uninitialize();
       vi.runOnlyPendingTimers();
 
-      expect(api.getViewManager().setViewDefault).toBeCalledTimes(1);
+      expect(api.getViewManager().setViewDefault).toHaveBeenCalledTimes(1);
     });
 
     it('should not set default view when not configured', () => {
@@ -82,11 +82,11 @@ describe('DefaultManager', () => {
       const manager = new DefaultManager(api);
       manager.initialize();
 
-      expect(api.getViewManager().setViewDefault).not.toBeCalled();
+      expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
 
       vi.runOnlyPendingTimers();
 
-      expect(api.getViewManager().setViewDefault).not.toBeCalled();
+      expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
     });
 
     it('should restart timer when reconfigured', async () => {
@@ -108,14 +108,14 @@ describe('DefaultManager', () => {
       const manager = new DefaultManager(api);
 
       await manager.initialize();
-      expect(api.getViewManager().setViewDefault).not.toBeCalled();
+      expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
 
       await manager.initialize();
-      expect(api.getViewManager().setViewDefault).not.toBeCalled();
+      expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
 
       vi.runOnlyPendingTimers();
 
-      expect(api.getViewManager().setViewDefault).toBeCalled();
+      expect(api.getViewManager().setViewDefault).toHaveBeenCalled();
     });
   });
 
@@ -146,7 +146,7 @@ describe('DefaultManager', () => {
       newState: createStateEntity({ state: 'on' }),
     });
 
-    expect(api.getViewManager().setViewDefault).toBeCalled();
+    expect(api.getViewManager().setViewDefault).toHaveBeenCalled();
   });
 
   describe('interaction based', () => {
@@ -166,7 +166,7 @@ describe('DefaultManager', () => {
       const manager = new DefaultManager(api);
       await manager.initialize();
 
-      expect(api.getAutomationsManager().addAutomations).not.toBeCalled();
+      expect(api.getAutomationsManager().addAutomations).not.toHaveBeenCalled();
     });
 
     it('should register automation on initialization', async () => {
@@ -185,7 +185,7 @@ describe('DefaultManager', () => {
       const manager = new DefaultManager(api);
       await manager.initialize();
 
-      expect(api.getAutomationsManager().addAutomations).toBeCalledWith([
+      expect(api.getAutomationsManager().addAutomations).toHaveBeenCalledWith([
         {
           actions: [
             {
@@ -209,7 +209,9 @@ describe('DefaultManager', () => {
       const manager = new DefaultManager(api);
       manager.uninitialize();
 
-      expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(manager);
+      expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalledWith(
+        manager,
+      );
     });
   });
 
@@ -241,18 +243,18 @@ describe('DefaultManager', () => {
     await manager.initializeIfNecessary(null);
 
     vi.runOnlyPendingTimers();
-    expect(api.getViewManager().setViewDefault).toBeCalledTimes(1);
+    expect(api.getViewManager().setViewDefault).toHaveBeenCalledTimes(1);
 
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(configOff);
     await manager.initializeIfNecessary(configOn);
 
     vi.runOnlyPendingTimers();
-    expect(api.getViewManager().setViewDefault).toBeCalledTimes(1);
+    expect(api.getViewManager().setViewDefault).toHaveBeenCalledTimes(1);
 
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(configOff);
     await manager.initializeIfNecessary(configOff);
 
     vi.runOnlyPendingTimers();
-    expect(api.getViewManager().setViewDefault).toBeCalledTimes(1);
+    expect(api.getViewManager().setViewDefault).toHaveBeenCalledTimes(1);
   });
 });

@@ -10,7 +10,7 @@ describe('fireAdvancedCameraCardEvent', () => {
     element.addEventListener('advanced-camera-card:foo', handler);
 
     fireAdvancedCameraCardEvent(element, 'foo');
-    expect(handler).toBeCalled();
+    expect(handler).toHaveBeenCalled();
   });
 
   it('should fire event with data', () => {
@@ -22,6 +22,6 @@ describe('fireAdvancedCameraCardEvent', () => {
 
     element.addEventListener('advanced-camera-card:foo', handler);
     fireAdvancedCameraCardEvent(element, 'foo', data);
-    expect(handler).toBeCalled();
+    expect(handler).toHaveBeenCalled();
   });
 });

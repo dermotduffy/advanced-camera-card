@@ -59,25 +59,25 @@ describe('factory dispatch', () => {
   it('should construct a ChimeTone for type "chime"', () => {
     new Ringtone(new Set()).start({ type: 'chime', repeat: 3 });
 
-    expect(ChimeTone).toBeCalledWith(3);
+    expect(ChimeTone).toHaveBeenCalledWith(3);
   });
 
   it('should construct a WestminsterTone for type "westminster"', () => {
     new Ringtone(new Set()).start({ type: 'westminster', repeat: 2 });
 
-    expect(WestminsterTone).toBeCalledWith(2);
+    expect(WestminsterTone).toHaveBeenCalledWith(2);
   });
 
   it('should construct an ArpeggioTone for type "arpeggio"', () => {
     new Ringtone(new Set()).start({ type: 'arpeggio', repeat: 1 });
 
-    expect(ArpeggioTone).toBeCalledWith(1);
+    expect(ArpeggioTone).toHaveBeenCalledWith(1);
   });
 
   it('should construct a MelodyTone for type "melody"', () => {
     new Ringtone(new Set()).start({ type: 'melody', repeat: 5 });
 
-    expect(MelodyTone).toBeCalledWith(5);
+    expect(MelodyTone).toHaveBeenCalledWith(5);
   });
 
   it('should construct a CustomTone for type "custom" with a URL', () => {
@@ -87,7 +87,7 @@ describe('factory dispatch', () => {
       repeat: 0,
     });
 
-    expect(CustomTone).toBeCalledWith('http://localhost/ring.mp3', 0);
+    expect(CustomTone).toHaveBeenCalledWith('http://localhost/ring.mp3', 0);
   });
 
   it('should construct no tone for type "custom" without a URL', () => {
@@ -95,7 +95,7 @@ describe('factory dispatch', () => {
 
     ringtone.start({ type: 'custom', repeat: 0 });
 
-    expect(CustomTone).not.toBeCalled();
+    expect(CustomTone).not.toHaveBeenCalled();
     expect(ringtone.isPlaying()).toBe(false);
   });
 
@@ -104,7 +104,7 @@ describe('factory dispatch', () => {
 
     ringtone.start({ type: 'none', repeat: 0 });
 
-    expect(ChimeTone).not.toBeCalled();
+    expect(ChimeTone).not.toHaveBeenCalled();
     expect(ringtone.isPlaying()).toBe(false);
   });
 });
@@ -115,7 +115,7 @@ describe('start', () => {
 
     ringtone.start(chimeConfig);
 
-    expect(lastInstance(vi.mocked(ChimeTone)).start).toBeCalled();
+    expect(lastInstance(vi.mocked(ChimeTone)).start).toHaveBeenCalled();
     expect(ringtone.isPlaying()).toBe(true);
   });
 
@@ -125,8 +125,8 @@ describe('start', () => {
     ringtone.start(chimeConfig);
     ringtone.start(chimeConfig);
 
-    expect(ChimeTone).toBeCalledTimes(1);
-    expect(lastInstance(vi.mocked(ChimeTone)).start).toBeCalledTimes(1);
+    expect(ChimeTone).toHaveBeenCalledTimes(1);
+    expect(lastInstance(vi.mocked(ChimeTone)).start).toHaveBeenCalledTimes(1);
   });
 
   it('should claim the lock when a tone starts', () => {
@@ -158,7 +158,7 @@ describe('lock', () => {
     vi.mocked(ChimeTone).mockClear();
     second.start(chimeConfig);
 
-    expect(ChimeTone).not.toBeCalled();
+    expect(ChimeTone).not.toHaveBeenCalled();
     expect(second.isPlaying()).toBe(false);
     expect(first.isPlaying()).toBe(true);
   });
@@ -171,11 +171,11 @@ describe('lock', () => {
     first.start(chimeConfig);
     const firstTone = lastInstance(vi.mocked(ChimeTone));
     first.stop();
-    expect(firstTone.stop).toBeCalled();
+    expect(firstTone.stop).toHaveBeenCalled();
 
     second.start(chimeConfig);
 
-    expect(lastInstance(vi.mocked(ChimeTone)).start).toBeCalled();
+    expect(lastInstance(vi.mocked(ChimeTone)).start).toHaveBeenCalled();
     expect(second.isPlaying()).toBe(true);
   });
 
@@ -227,7 +227,7 @@ describe('stop', () => {
     ringtone.start(chimeConfig);
     ringtone.stop();
 
-    expect(lastInstance(vi.mocked(ChimeTone)).stop).toBeCalled();
+    expect(lastInstance(vi.mocked(ChimeTone)).stop).toHaveBeenCalled();
     expect(lock.has(ringtone)).toBe(false);
     expect(ringtone.isPlaying()).toBe(false);
   });
@@ -250,7 +250,7 @@ describe('default lock', () => {
     vi.mocked(ChimeTone).mockClear();
     second.start(chimeConfig);
 
-    expect(ChimeTone).not.toBeCalled();
+    expect(ChimeTone).not.toHaveBeenCalled();
     first.stop();
   });
 });

@@ -35,7 +35,7 @@ describe('CameraURLManager', () => {
 
     const windowSpy = vi.spyOn(window, 'open').mockReturnValue(null);
     manager.openURL();
-    expect(windowSpy).toBeCalledWith('http://frigate');
+    expect(windowSpy).toHaveBeenCalledWith('http://frigate');
   });
 
   it('should not get URL without view', () => {
@@ -44,7 +44,7 @@ describe('CameraURLManager', () => {
 
     const windowSpy = vi.spyOn(window, 'open').mockReturnValue(null);
     manager.openURL();
-    expect(windowSpy).not.toBeCalled();
+    expect(windowSpy).not.toHaveBeenCalled();
   });
 
   it('should not get URL without cameraManager endpoints', () => {

@@ -79,7 +79,9 @@ describe('navigateUp', () => {
 
     navigateUp(options);
 
-    expect(api.getViewManager().setViewByParametersWithExistingQuery).not.toBeCalled();
+    expect(
+      api.getViewManager().setViewByParametersWithExistingQuery,
+    ).not.toHaveBeenCalled();
   });
 
   it('should ignore folder query without parent to go up to', () => {
@@ -105,7 +107,9 @@ describe('navigateUp', () => {
 
     navigateUp(options);
 
-    expect(api.getViewManager().setViewByParametersWithExistingQuery).not.toBeCalled();
+    expect(
+      api.getViewManager().setViewByParametersWithExistingQuery,
+    ).not.toHaveBeenCalled();
   });
 
   it('should go up in the folder hierarchy', () => {
@@ -135,7 +139,9 @@ describe('navigateUp', () => {
 
     navigateUp(options);
 
-    expect(api.getViewManager().setViewByParametersWithExistingQuery).toBeCalledWith({
+    expect(
+      api.getViewManager().setViewByParametersWithExistingQuery,
+    ).toHaveBeenCalledWith({
       params: {
         query: expect.any(UnifiedQuery),
       },
@@ -216,7 +222,9 @@ describe('navigateToFolder', () => {
     const item = new ViewFolder(folder, [{ ha: { id: 'root' } }]);
     navigateToFolder(item, options);
 
-    expect(api.getViewManager().setViewByParametersWithExistingQuery).toBeCalledWith({
+    expect(
+      api.getViewManager().setViewByParametersWithExistingQuery,
+    ).toHaveBeenCalledWith({
       params: {
         query: expect.any(UnifiedQuery),
       },
@@ -313,7 +321,7 @@ describe('navigateToMedia', () => {
 
     navigateToMedia(media, options);
 
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith(
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith(
       expect.objectContaining({
         params: expect.objectContaining({
           view: 'media',
@@ -360,7 +368,7 @@ describe('navigateToMedia', () => {
 
     navigateToMedia(media, options);
 
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith(
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith(
       expect.objectContaining({
         params: expect.objectContaining({
           view: 'media',
@@ -387,7 +395,7 @@ describe('navigateToMedia', () => {
 
     navigateToMedia(media, options);
 
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith(
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith(
       expect.objectContaining({
         modifiers: [modifier],
       }),
@@ -408,7 +416,7 @@ describe('navigateToMedia', () => {
 
     navigateToMedia(media, options);
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 
   it('should do nothing if view is missing', () => {
@@ -424,6 +432,6 @@ describe('navigateToMedia', () => {
 
     navigateToMedia(media, options);
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 });

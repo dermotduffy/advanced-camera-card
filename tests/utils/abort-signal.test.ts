@@ -8,10 +8,10 @@ describe('onAbort', () => {
     const cb = vi.fn();
     onAbort(ac.signal, cb);
 
-    expect(cb).not.toBeCalled();
+    expect(cb).not.toHaveBeenCalled();
 
     ac.abort();
-    expect(cb).toBeCalledTimes(1);
+    expect(cb).toHaveBeenCalledTimes(1);
   });
 
   it('should call the callback synchronously if the signal is already aborted', () => {
@@ -21,7 +21,7 @@ describe('onAbort', () => {
     const cb = vi.fn();
     onAbort(ac.signal, cb);
 
-    expect(cb).toBeCalledTimes(1);
+    expect(cb).toHaveBeenCalledTimes(1);
   });
 
   it('should fire only once even if the signal aborts repeatedly', () => {
@@ -35,6 +35,6 @@ describe('onAbort', () => {
     // no-op too.
     ac.signal.dispatchEvent(new Event('abort'));
 
-    expect(cb).toBeCalledTimes(1);
+    expect(cb).toHaveBeenCalledTimes(1);
   });
 });

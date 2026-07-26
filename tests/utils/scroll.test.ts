@@ -27,7 +27,7 @@ describe('scrollIntoView', () => {
 
     scrollIntoView(element, options);
 
-    expect(computeScroll).toBeCalledWith(element, options);
+    expect(computeScroll).toHaveBeenCalledWith(element, options);
     expect(element.scrollTop).toBe(42);
     expect(element.scrollLeft).toBe(142);
   });

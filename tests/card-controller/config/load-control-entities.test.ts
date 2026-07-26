@@ -33,8 +33,8 @@ describe('setRemoteControlEntityFromConfig', () => {
     const api = createCardAPI();
     setRemoteControlEntityFromConfig(api);
 
-    expect(api.getAutomationsManager().deleteAutomations).toBeCalled();
-    expect(api.getAutomationsManager().addAutomations).not.toBeCalled();
+    expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalled();
+    expect(api.getAutomationsManager().addAutomations).not.toHaveBeenCalled();
   });
 
   it('with control entity and card priority', () => {
@@ -52,8 +52,8 @@ describe('setRemoteControlEntityFromConfig', () => {
 
     setRemoteControlEntityFromConfig(api);
 
-    expect(api.getAutomationsManager().deleteAutomations).toBeCalled();
-    expect(api.getAutomationsManager().addAutomations).toBeCalledWith([
+    expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalled();
+    expect(api.getAutomationsManager().addAutomations).toHaveBeenCalledWith([
       {
         actions: [
           {
@@ -134,8 +134,8 @@ describe('setRemoteControlEntityFromConfig', () => {
 
     setRemoteControlEntityFromConfig(api);
 
-    expect(api.getAutomationsManager().deleteAutomations).toBeCalled();
-    expect(api.getAutomationsManager().addAutomations).toBeCalledWith([
+    expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalled();
+    expect(api.getAutomationsManager().addAutomations).toHaveBeenCalledWith([
       {
         actions: [
           {
@@ -236,7 +236,7 @@ describe('setRemoteControlEntityFromConfig', () => {
       );
 
       addOptionsAction.callback(api);
-      expect(hass.callService).toBeCalledWith(
+      expect(hass.callService).toHaveBeenCalledWith(
         'input_select',
         'set_options',
         {
@@ -286,7 +286,7 @@ describe('setRemoteControlEntityFromConfig', () => {
       );
 
       addOptionsAction.callback(api);
-      expect(hass.callService).not.toBeCalled();
+      expect(hass.callService).not.toHaveBeenCalled();
     });
 
     it('should not throw when hass is undefined setting options', () => {
@@ -367,7 +367,7 @@ describe('setRemoteControlEntityFromConfig', () => {
       );
 
       await cameraSyncAction.callback(api);
-      expect(hass.callService).toBeCalledWith(
+      expect(hass.callService).toHaveBeenCalledWith(
         'input_select',
         'select_option',
         {
@@ -421,7 +421,7 @@ describe('setRemoteControlEntityFromConfig', () => {
       cameraSyncAction.callback(api);
 
       // Should NOT call select_option since entity already shows camera.one
-      expect(hass.callService).not.toBeCalled();
+      expect(hass.callService).not.toHaveBeenCalled();
     });
 
     it('should not select option when camera is undefined', () => {
@@ -458,7 +458,7 @@ describe('setRemoteControlEntityFromConfig', () => {
       cameraSyncAction.callback(api);
 
       // Should NOT call select_option since camera is undefined
-      expect(hass.callService).not.toBeCalled();
+      expect(hass.callService).not.toHaveBeenCalled();
     });
 
     it('should not select option when view exists but has no camera', () => {
@@ -492,13 +492,13 @@ describe('setRemoteControlEntityFromConfig', () => {
       const cameraSyncAction = vi.mocked(api.getAutomationsManager().addAutomations).mock
         .calls[0][0][1].actions?.[0] as InternalCallbackActionConfig;
       cameraSyncAction.callback(api);
-      expect(hass.callService).not.toBeCalled();
+      expect(hass.callService).not.toHaveBeenCalled();
 
       // Also test the 'initialized' condition callback (automation index 2)
       const initializedSyncAction = vi.mocked(api.getAutomationsManager().addAutomations)
         .mock.calls[0][0][2].actions?.[0] as InternalCallbackActionConfig;
       initializedSyncAction.callback(api);
-      expect(hass.callService).not.toBeCalled();
+      expect(hass.callService).not.toHaveBeenCalled();
     });
 
     it('should not throw when hass is undefined', async () => {
@@ -570,7 +570,7 @@ describe('setRemoteControlEntityFromConfig', () => {
       );
 
       await cameraSyncAction.callback(api);
-      expect(hass.callService).toBeCalledWith(
+      expect(hass.callService).toHaveBeenCalledWith(
         'input_select',
         'select_option',
         {
@@ -620,7 +620,7 @@ describe('setRemoteControlEntityFromConfig', () => {
       expect(initAction.advanced_camera_card_action).toBe(INTERNAL_CALLBACK_ACTION);
 
       await initAction.callback(api);
-      expect(hass.callService).toBeCalledWith(
+      expect(hass.callService).toHaveBeenCalledWith(
         'input_select',
         'select_option',
         {

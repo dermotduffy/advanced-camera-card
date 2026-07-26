@@ -15,7 +15,7 @@ describe('fireHASSEvent', () => {
 
     fireHASSEvent(target, type, detail);
 
-    expect(handler).toBeCalledWith(
+    expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({
         detail,
       }),

@@ -19,15 +19,15 @@ describe('ArpeggioTone', () => {
 
     // G5 (783.99) at t=0.
     expect(audio.oscillators[1].frequency.value).toBe(783.99);
-    expect(audio.oscillators[1].start).toBeCalledWith(0);
+    expect(audio.oscillators[1].start).toHaveBeenCalledWith(0);
 
     // E5 (659.25) at t=0.25.
     expect(audio.oscillators[4].frequency.value).toBe(659.25);
-    expect(audio.oscillators[4].start).toBeCalledWith(0.25);
+    expect(audio.oscillators[4].start).toHaveBeenCalledWith(0.25);
 
     // C5 (523.25) at t=0.5.
     expect(audio.oscillators[7].frequency.value).toBe(523.25);
-    expect(audio.oscillators[7].start).toBeCalledWith(0.5);
+    expect(audio.oscillators[7].start).toHaveBeenCalledWith(0.5);
   });
 
   it('should use the lighter PLUCK envelope for every strike', () => {
@@ -36,15 +36,15 @@ describe('ArpeggioTone', () => {
     // Sparkle / fundamental / hum peaks for every strike.
     for (let strike = 0; strike < 3; strike++) {
       const i = strike * 3;
-      expect(audio.gainParams[i].linearRampToValueAtTime).toBeCalledWith(
+      expect(audio.gainParams[i].linearRampToValueAtTime).toHaveBeenCalledWith(
         0.05,
         expect.any(Number),
       );
-      expect(audio.gainParams[i + 1].linearRampToValueAtTime).toBeCalledWith(
+      expect(audio.gainParams[i + 1].linearRampToValueAtTime).toHaveBeenCalledWith(
         0.13,
         expect.any(Number),
       );
-      expect(audio.gainParams[i + 2].linearRampToValueAtTime).toBeCalledWith(
+      expect(audio.gainParams[i + 2].linearRampToValueAtTime).toHaveBeenCalledWith(
         0.04,
         expect.any(Number),
       );

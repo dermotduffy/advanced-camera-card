@@ -109,7 +109,7 @@ describe('IssueManager', () => {
 
     stateManager.setState({ view: 'live' });
 
-    expect(issue.detectDynamic).toBeCalled();
+    expect(issue.detectDynamic).toHaveBeenCalled();
   });
 
   it('should keep a liveness-triggered error active while its media still reads as loaded', () => {
@@ -170,7 +170,7 @@ describe('IssueManager', () => {
       conditionStateManager.setState({ initialized: true });
       await flushPromises();
 
-      expect(detectStatic).toBeCalledWith(hass);
+      expect(detectStatic).toHaveBeenCalledWith(hass);
     });
 
     it('should not run static detection when hass is unset', () => {
@@ -185,7 +185,7 @@ describe('IssueManager', () => {
 
       conditionStateManager.setState({ initialized: true });
 
-      expect(detectStatic).not.toBeCalled();
+      expect(detectStatic).not.toHaveBeenCalled();
     });
 
     it('should not run static detection on unrelated state changes', () => {
@@ -202,7 +202,7 @@ describe('IssueManager', () => {
       conditionStateManager.setState({ hass });
       conditionStateManager.setState({ view: 'live' });
 
-      expect(detectStatic).not.toBeCalled();
+      expect(detectStatic).not.toHaveBeenCalled();
     });
   });
 
@@ -219,7 +219,7 @@ describe('IssueManager', () => {
 
       manager.trigger('config_error', { error: new Error('cfg') });
 
-      expect(issue.trigger).toBeCalledWith({ error: expect.any(Error) });
+      expect(issue.trigger).toHaveBeenCalledWith({ error: expect.any(Error) });
     });
 
     it('should update the card even when state was mutated before detectDynamic', () => {
@@ -242,7 +242,7 @@ describe('IssueManager', () => {
 
       manager.trigger('config_error', { error: new Error('cfg') });
 
-      expect(api.getCardElementManager().update).toBeCalled();
+      expect(api.getCardElementManager().update).toHaveBeenCalled();
     });
 
     it('should never auto-popup on trigger -- non-full-card issues surface via the status-bar icon; user clicks to open', () => {
@@ -261,7 +261,7 @@ describe('IssueManager', () => {
 
       manager.trigger('view_incompatible', { error: new Error('mismatch') });
 
-      expect(api.getNotificationManager().setNotification).not.toBeCalled();
+      expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
     });
   });
 
@@ -273,14 +273,14 @@ describe('IssueManager', () => {
       manager.evaluate();
       manager.retry('media_unavailable');
 
-      expect(issue.retry).toBeCalled();
+      expect(issue.retry).toHaveBeenCalled();
 
       // Timer should have been reset -- advancing less than retrySeconds should
       // not fire it again.
       assert(issue.retry);
       vi.mocked(issue.retry).mockClear();
       vi.advanceTimersByTime(500);
-      expect(issue.retry).not.toBeCalled();
+      expect(issue.retry).not.toHaveBeenCalled();
     });
 
     it('should force retry even when needsRetry is false', () => {
@@ -293,7 +293,7 @@ describe('IssueManager', () => {
 
       manager.retry('media_unavailable', true);
 
-      expect(issue.retry).toBeCalled();
+      expect(issue.retry).toHaveBeenCalled();
     });
   });
 
@@ -311,7 +311,7 @@ describe('IssueManager', () => {
 
       manager.evaluate();
 
-      expect(api.getCardElementManager().update).toBeCalled();
+      expect(api.getCardElementManager().update).toHaveBeenCalled();
     });
 
     it('should not write issue presence back into the condition state', () => {
@@ -328,7 +328,7 @@ describe('IssueManager', () => {
 
       manager.evaluate();
 
-      expect(api.getConditionStateManager().setState).not.toBeCalled();
+      expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
     });
 
     it('should not update the card when there are no issues', () => {
@@ -340,7 +340,7 @@ describe('IssueManager', () => {
 
       manager.evaluate();
 
-      expect(api.getCardElementManager().update).not.toBeCalled();
+      expect(api.getCardElementManager().update).not.toHaveBeenCalled();
     });
 
     it('should call update when an active issue swaps sub-states without changing the key set', () => {
@@ -371,7 +371,7 @@ describe('IssueManager', () => {
       );
       manager.evaluate();
 
-      expect(api.getCardElementManager().update).toBeCalled();
+      expect(api.getCardElementManager().update).toHaveBeenCalled();
     });
 
     it('should not call update when content is identical across evaluations', () => {
@@ -390,7 +390,7 @@ describe('IssueManager', () => {
       // Re-evaluate without any change.
       manager.evaluate();
 
-      expect(api.getCardElementManager().update).not.toBeCalled();
+      expect(api.getCardElementManager().update).not.toHaveBeenCalled();
     });
 
     it('should not request repeated updates as retry callback closures churn', () => {
@@ -418,7 +418,7 @@ describe('IssueManager', () => {
 
       manager.evaluate();
 
-      expect(api.getCardElementManager().update).not.toBeCalled();
+      expect(api.getCardElementManager().update).not.toHaveBeenCalled();
     });
 
     it('should trigger evaluate from listener on condition state manager', () => {
@@ -435,7 +435,7 @@ describe('IssueManager', () => {
 
       stateManager.setState({ view: 'live' });
 
-      expect(issue.detectDynamic).toBeCalled();
+      expect(issue.detectDynamic).toHaveBeenCalled();
     });
   });
 
@@ -452,7 +452,9 @@ describe('IssueManager', () => {
 
       manager.showNotification('media_query');
 
-      expect(api.getNotificationManager().setNotification).toBeCalledWith(notification);
+      expect(api.getNotificationManager().setNotification).toHaveBeenCalledWith(
+        notification,
+      );
     });
 
     it('should not call setNotification when no notification exists for key', () => {
@@ -460,7 +462,9 @@ describe('IssueManager', () => {
 
       manager.showNotification('initialization');
 
-      expect(createCardAPI().getNotificationManager().setNotification).not.toBeCalled();
+      expect(
+        createCardAPI().getNotificationManager().setNotification,
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -476,7 +480,7 @@ describe('IssueManager', () => {
       manager.evaluate();
       vi.runAllTimers();
 
-      expect(api.getViewManager().setViewWithMergedContext).not.toBeCalled();
+      expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
     });
 
     it('should not schedule a retry when config is null', () => {
@@ -495,7 +499,7 @@ describe('IssueManager', () => {
       manager.evaluate();
       vi.runAllTimers();
 
-      expect(issue.retry).not.toBeCalled();
+      expect(issue.retry).not.toHaveBeenCalled();
     });
 
     it('should not schedule a retry when retry_seconds is 0', () => {
@@ -504,7 +508,7 @@ describe('IssueManager', () => {
       manager.evaluate();
       vi.runAllTimers();
 
-      expect(issue.retry).not.toBeCalled();
+      expect(issue.retry).not.toHaveBeenCalled();
     });
 
     it('should schedule a retry when an issue wants retry and retry_seconds > 0', () => {
@@ -513,7 +517,7 @@ describe('IssueManager', () => {
       manager.evaluate();
       vi.advanceTimersByTime(5000);
 
-      expect(issue.retry).toBeCalled();
+      expect(issue.retry).toHaveBeenCalled();
     });
 
     it('should call retry on the issue when the timer fires', () => {
@@ -522,7 +526,7 @@ describe('IssueManager', () => {
       manager.evaluate();
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
 
-      expect(issue.retry).toBeCalled();
+      expect(issue.retry).toHaveBeenCalled();
     });
 
     it('should not schedule a second timer if one is already running', () => {
@@ -533,7 +537,7 @@ describe('IssueManager', () => {
 
       vi.advanceTimersByTime(10000);
 
-      expect(issue.retry).toBeCalledTimes(1);
+      expect(issue.retry).toHaveBeenCalledTimes(1);
     });
 
     it('should stop repeated timer when needsRetry becomes false', () => {
@@ -541,16 +545,16 @@ describe('IssueManager', () => {
 
       manager.evaluate();
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
-      expect(issue.retry).toBeCalledTimes(1);
+      expect(issue.retry).toHaveBeenCalledTimes(1);
 
       assert(issue.needsRetry);
       vi.mocked(issue.needsRetry).mockReturnValue(false);
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
 
-      expect(issue.retry).toBeCalledTimes(1);
+      expect(issue.retry).toHaveBeenCalledTimes(1);
 
       vi.advanceTimersByTime(5000);
-      expect(issue.retry).toBeCalledTimes(1);
+      expect(issue.retry).toHaveBeenCalledTimes(1);
     });
 
     it('should skip scheduled retry when user is interacting and mode is inactive', () => {
@@ -561,7 +565,7 @@ describe('IssueManager', () => {
       manager.evaluate();
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
 
-      expect(issue.retry).not.toBeCalled();
+      expect(issue.retry).not.toHaveBeenCalled();
     });
 
     it('should allow scheduled retry when user is not interacting and mode is inactive', () => {
@@ -572,7 +576,7 @@ describe('IssueManager', () => {
       manager.evaluate();
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
 
-      expect(issue.retry).toBeCalled();
+      expect(issue.retry).toHaveBeenCalled();
     });
 
     it('should allow scheduled retry when mode is all regardless of interaction', () => {
@@ -584,7 +588,7 @@ describe('IssueManager', () => {
       manager.evaluate();
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
 
-      expect(issue.retry).toBeCalled();
+      expect(issue.retry).toHaveBeenCalled();
     });
 
     it('should retry on next interval after interaction ends', () => {
@@ -594,11 +598,11 @@ describe('IssueManager', () => {
 
       manager.evaluate();
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
-      expect(issue.retry).not.toBeCalled();
+      expect(issue.retry).not.toHaveBeenCalled();
 
       vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(false);
       vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000);
-      expect(issue.retry).toBeCalled();
+      expect(issue.retry).toHaveBeenCalled();
     });
   });
 
@@ -610,10 +614,10 @@ describe('IssueManager', () => {
       manager.evaluate();
 
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.5 * 1000 - 1);
-      expect(issue.retry).not.toBeCalled();
+      expect(issue.retry).not.toHaveBeenCalled();
 
       vi.advanceTimersByTime(1);
-      expect(issue.retry).toBeCalledTimes(1);
+      expect(issue.retry).toHaveBeenCalledTimes(1);
     });
 
     it('should schedule the first retry at the upper bound when jitter is max', () => {
@@ -623,10 +627,10 @@ describe('IssueManager', () => {
       manager.evaluate();
 
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 1.0 * 1000 - 1);
-      expect(issue.retry).not.toBeCalled();
+      expect(issue.retry).not.toHaveBeenCalled();
 
       vi.advanceTimersByTime(1);
-      expect(issue.retry).toBeCalledTimes(1);
+      expect(issue.retry).toHaveBeenCalledTimes(1);
     });
 
     it('should double the base delay on each successive attempt', () => {
@@ -636,13 +640,13 @@ describe('IssueManager', () => {
       manager.evaluate();
 
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
-      expect(issue.retry).toBeCalledTimes(1);
+      expect(issue.retry).toHaveBeenCalledTimes(1);
 
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 2 * 0.75 * 1000);
-      expect(issue.retry).toBeCalledTimes(2);
+      expect(issue.retry).toHaveBeenCalledTimes(2);
 
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 4 * 0.75 * 1000);
-      expect(issue.retry).toBeCalledTimes(3);
+      expect(issue.retry).toHaveBeenCalledTimes(3);
     });
 
     it('should cap the backoff at the max delay', () => {
@@ -662,15 +666,15 @@ describe('IssueManager', () => {
         vi.advanceTimersByTime(delaySeconds * 1000);
         attempts++;
       }
-      expect(issue.retry).toBeCalledTimes(attempts);
+      expect(issue.retry).toHaveBeenCalledTimes(attempts);
 
       // The next attempt clamps to MAX instead of the would-be larger delay.
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_MAX_SECONDS * 1000);
-      expect(issue.retry).toBeCalledTimes(attempts + 1);
+      expect(issue.retry).toHaveBeenCalledTimes(attempts + 1);
 
       // And it stays capped at MAX rather than growing further.
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_MAX_SECONDS * 1000);
-      expect(issue.retry).toBeCalledTimes(attempts + 2);
+      expect(issue.retry).toHaveBeenCalledTimes(attempts + 2);
     });
 
     it('should reset the attempt counter when the issue clears', () => {
@@ -681,14 +685,14 @@ describe('IssueManager', () => {
       // Run two retries -- second delay should be 2x the first.
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 2 * 0.75 * 1000);
-      expect(issue.retry).toBeCalledTimes(2);
+      expect(issue.retry).toHaveBeenCalledTimes(2);
 
       // Clear the issue: needsRetry returns false. The next timer fire sees
       // it cleared and resets the attempt counter.
       assert(issue.needsRetry);
       vi.mocked(issue.needsRetry).mockReturnValue(false);
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 4 * 0.75 * 1000);
-      expect(issue.retry).toBeCalledTimes(2);
+      expect(issue.retry).toHaveBeenCalledTimes(2);
 
       // Re-arm: needsRetry returns true again, evaluate to re-schedule.
       vi.mocked(issue.needsRetry).mockReturnValue(true);
@@ -697,7 +701,7 @@ describe('IssueManager', () => {
       // Next delay should be back at the base (attempt 0), not continuing
       // from where we left off.
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
-      expect(issue.retry).toBeCalledTimes(3);
+      expect(issue.retry).toHaveBeenCalledTimes(3);
     });
 
     it('should not grow the delay while retries are gated by user interaction', () => {
@@ -717,13 +721,13 @@ describe('IssueManager', () => {
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
-      expect(issue.retry).not.toBeCalled();
+      expect(issue.retry).not.toHaveBeenCalled();
 
       // Clear the interaction. The next firing -- still at the base delay -- is
       // now allowed and the retry runs.
       vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(false);
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
-      expect(issue.retry).toBeCalledTimes(1);
+      expect(issue.retry).toHaveBeenCalledTimes(1);
     });
 
     it('should reset the attempt counter when retries are disabled and re-enabled', () => {
@@ -736,7 +740,7 @@ describe('IssueManager', () => {
 
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 2 * 0.75 * 1000);
-      expect(issue.retry).toBeCalledTimes(2);
+      expect(issue.retry).toHaveBeenCalledTimes(2);
 
       // Disable retries via config.
       const config = createConfig();
@@ -751,7 +755,7 @@ describe('IssueManager', () => {
       // Let the pending timer fire. The retry runs (#3), then evaluate sees
       // retry_seconds=0 and resets _retryAttempt.
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 4 * 0.75 * 1000);
-      expect(issue.retry).toBeCalledTimes(3);
+      expect(issue.retry).toHaveBeenCalledTimes(3);
 
       // Re-enable.
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue({
@@ -767,7 +771,7 @@ describe('IssueManager', () => {
       // delay BASE * 8 * 0.75 = 180s. With the reset, it's BASE * 0.75 = 22.5s,
       // so advancing only the base interval triggers the next retry.
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
-      expect(issue.retry).toBeCalledTimes(4);
+      expect(issue.retry).toHaveBeenCalledTimes(4);
     });
   });
 
@@ -799,7 +803,7 @@ describe('IssueManager', () => {
       // First attempt fires at the base delay, advancing the backoff to
       // attempt 1.
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
-      expect(issue.retry).toBeCalledTimes(1);
+      expect(issue.retry).toHaveBeenCalledTimes(1);
 
       // The attempt is now in flight: the problem is still unresolved
       // (needsRetry) but cannot be retried right now (canRetryNow). The running
@@ -807,7 +811,7 @@ describe('IssueManager', () => {
       canRetryNow.mockReturnValue(false);
       manager.evaluate();
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_MAX_SECONDS * 1000);
-      expect(issue.retry).toBeCalledTimes(1);
+      expect(issue.retry).toHaveBeenCalledTimes(1);
 
       // The attempt fails and becomes retryable again. Because the backoff was
       // preserved, the next delay is the attempt-1 step (base*2), not base.
@@ -815,10 +819,10 @@ describe('IssueManager', () => {
       manager.evaluate();
 
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 0.75 * 1000);
-      expect(issue.retry).toBeCalledTimes(1);
+      expect(issue.retry).toHaveBeenCalledTimes(1);
 
       vi.advanceTimersByTime(RETRY_EXPONENTIAL_BASE_SECONDS * 2 * 0.75 * 1000);
-      expect(issue.retry).toBeCalledTimes(2);
+      expect(issue.retry).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -837,7 +841,7 @@ describe('IssueManager', () => {
 
       manager.reset('config_error');
 
-      expect(issue.reset).toBeCalled();
+      expect(issue.reset).toHaveBeenCalled();
     });
 
     it('should skip reset when targeted key has no active issue', () => {
@@ -854,8 +858,8 @@ describe('IssueManager', () => {
 
       manager.reset('config_error');
 
-      expect(issue.reset).not.toBeCalled();
-      expect(issue.detectDynamic).not.toBeCalled();
+      expect(issue.reset).not.toHaveBeenCalled();
+      expect(issue.detectDynamic).not.toHaveBeenCalled();
     });
   });
 
@@ -868,7 +872,7 @@ describe('IssueManager', () => {
 
       vi.advanceTimersByTime(5000);
 
-      expect(issue.retry).not.toBeCalled();
+      expect(issue.retry).not.toHaveBeenCalled();
     });
 
     it('should gate evaluate while suspended', () => {
@@ -884,7 +888,7 @@ describe('IssueManager', () => {
       manager.suspend();
       manager.evaluate();
 
-      expect(issue.detectDynamic).not.toBeCalled();
+      expect(issue.detectDynamic).not.toHaveBeenCalled();
     });
 
     it('should preserve issue state across suspend', () => {
@@ -918,8 +922,8 @@ describe('IssueManager', () => {
       manager.suspend();
       manager.resume();
 
-      expect(issue.detectDynamic).toBeCalled();
-      expect(api.getCardElementManager().update).toBeCalled();
+      expect(issue.detectDynamic).toHaveBeenCalled();
+      expect(api.getCardElementManager().update).toHaveBeenCalled();
     });
 
     it('should invoke Issue.suspend on timer-backed issues when suspended', () => {
@@ -931,7 +935,7 @@ describe('IssueManager', () => {
 
       manager.suspend();
 
-      expect(issue.suspend).toBeCalled();
+      expect(issue.suspend).toHaveBeenCalled();
     });
 
     it('should tolerate issues without a suspend hook', () => {
@@ -961,8 +965,8 @@ describe('IssueManager', () => {
 
       vi.advanceTimersByTime(5000);
 
-      expect(issue.retry).not.toBeCalled();
-      expect(issue.reset).toBeCalled();
+      expect(issue.retry).not.toHaveBeenCalled();
+      expect(issue.reset).toHaveBeenCalled();
     });
   });
 });

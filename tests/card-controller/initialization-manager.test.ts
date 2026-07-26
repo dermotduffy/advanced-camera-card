@@ -79,9 +79,9 @@ describe('InitializationManager', () => {
 
       await manager.initializeMandatory();
 
-      expect(initializer.initializeMultipleIfNecessary).not.toBeCalled();
-      expect(initializer.initializeIfNecessary).not.toBeCalled();
-      expect(api.getIssueManager().trigger).not.toBeCalled();
+      expect(initializer.initializeMultipleIfNecessary).not.toHaveBeenCalled();
+      expect(initializer.initializeIfNecessary).not.toHaveBeenCalled();
+      expect(api.getIssueManager().trigger).not.toHaveBeenCalled();
       expect(manager.wasEverInitialized()).toBeFalsy();
     });
 
@@ -111,16 +111,16 @@ describe('InitializationManager', () => {
 
       await manager.initializeMandatory();
 
-      expect(loadLanguages).toBeCalled();
-      expect(sideLoadHomeAssistantElements).toBeCalled();
-      expect(api.getCameraManager().initializeCamerasFromConfig).toBeCalled();
-      expect(api.getViewManager().initialize).toBeCalled();
-      expect(api.getMicrophoneManager().connect).not.toBeCalled();
-      expect(api.getCardElementManager().update).toBeCalled();
+      expect(loadLanguages).toHaveBeenCalled();
+      expect(sideLoadHomeAssistantElements).toHaveBeenCalled();
+      expect(api.getCameraManager().initializeCamerasFromConfig).toHaveBeenCalled();
+      expect(api.getViewManager().initialize).toHaveBeenCalled();
+      expect(api.getMicrophoneManager().connect).not.toHaveBeenCalled();
+      expect(api.getCardElementManager().update).toHaveBeenCalled();
 
       expect(manager.wasEverInitialized()).toBeTruthy();
 
-      expect(stateListener).toBeCalledWith(
+      expect(stateListener).toHaveBeenCalledWith(
         expect.objectContaining({
           change: {
             initialized: true,
@@ -152,7 +152,7 @@ describe('InitializationManager', () => {
 
       await manager.initializeMandatory();
 
-      expect(loadRenderer).toBeCalled();
+      expect(loadRenderer).toHaveBeenCalled();
       expect(manager.isInitialized(InitializationAspect.TEMPLATE_RENDERER)).toBeTruthy();
       expect(manager.isInitializedMandatory()).toBeTruthy();
     });
@@ -168,7 +168,7 @@ describe('InitializationManager', () => {
 
       await manager.initializeMandatory();
 
-      expect(loadRenderer).not.toBeCalled();
+      expect(loadRenderer).not.toHaveBeenCalled();
       expect(manager.isInitialized(InitializationAspect.TEMPLATE_RENDERER)).toBeFalsy();
       expect(manager.isInitializedMandatory()).toBeTruthy();
     });
@@ -185,7 +185,7 @@ describe('InitializationManager', () => {
 
       await manager.initializeMandatory();
 
-      expect(api.getMicrophoneManager().connect).toBeCalled();
+      expect(api.getMicrophoneManager().connect).toHaveBeenCalled();
     });
 
     it('should handle message set during initialization', async () => {
@@ -203,7 +203,7 @@ describe('InitializationManager', () => {
 
       await manager.initializeMandatory();
 
-      expect(api.getViewManager().initialize).not.toBeCalled();
+      expect(api.getViewManager().initialize).not.toHaveBeenCalled();
     });
 
     it('should handle languages and side load elements in progress', async () => {
@@ -236,7 +236,7 @@ describe('InitializationManager', () => {
       await manager.initializeMandatory();
 
       expect(manager.wasEverInitialized()).toBeFalsy();
-      expect(api.getIssueManager().trigger).toBeCalledWith(
+      expect(api.getIssueManager().trigger).toHaveBeenCalledWith(
         'initialization',
         expect.objectContaining({ error: expect.any(Error) }),
       );
@@ -261,7 +261,7 @@ describe('InitializationManager', () => {
       await manager.initializeMandatory();
 
       expect(manager.wasEverInitialized()).toBeFalsy();
-      expect(api.getIssueManager().trigger).toBeCalledWith(
+      expect(api.getIssueManager().trigger).toHaveBeenCalledWith(
         'initialization',
         expect.objectContaining({ error: expect.any(Error) }),
       );
@@ -282,7 +282,7 @@ describe('InitializationManager', () => {
       await manager.initializeMandatory();
 
       expect(manager.wasEverInitialized()).toBeFalsy();
-      expect(api.getIssueManager().trigger).toBeCalledWith(
+      expect(api.getIssueManager().trigger).toHaveBeenCalledWith(
         'initialization',
         expect.objectContaining({ error: expect.any(Error) }),
       );
@@ -305,7 +305,7 @@ describe('InitializationManager', () => {
       await manager.initializeMandatory();
 
       expect(manager.wasEverInitialized()).toBeFalsy();
-      expect(api.getIssueManager().trigger).not.toBeCalledWith(
+      expect(api.getIssueManager().trigger).not.toHaveBeenCalledWith(
         'initialization',
         expect.anything(),
       );
@@ -323,7 +323,7 @@ describe('InitializationManager', () => {
       await manager.initializeMandatory();
 
       expect(manager.wasEverInitialized()).toBeFalsy();
-      expect(api.getIssueManager().trigger).toBeCalledWith(
+      expect(api.getIssueManager().trigger).toHaveBeenCalledWith(
         'initialization',
         expect.objectContaining({ error: 'string error' }),
       );
@@ -336,15 +336,15 @@ describe('InitializationManager', () => {
 
     manager.uninitializeMandatory();
 
-    expect(initializer.uninitialize).toBeCalledWith(InitializationAspect.CAMERAS);
-    expect(initializer.uninitialize).toBeCalledWith(
+    expect(initializer.uninitialize).toHaveBeenCalledWith(InitializationAspect.CAMERAS);
+    expect(initializer.uninitialize).toHaveBeenCalledWith(
       InitializationAspect.MICROPHONE_CONNECT,
     );
-    expect(initializer.uninitialize).toBeCalledWith(
+    expect(initializer.uninitialize).toHaveBeenCalledWith(
       InitializationAspect.TEMPLATE_RENDERER,
     );
-    expect(initializer.uninitialize).toBeCalledWith(InitializationAspect.VIEW);
-    expect(initializer.uninitialize).toBeCalledWith(
+    expect(initializer.uninitialize).toHaveBeenCalledWith(InitializationAspect.VIEW);
+    expect(initializer.uninitialize).toHaveBeenCalledWith(
       InitializationAspect.INITIAL_TRIGGER,
     );
   });
@@ -355,7 +355,7 @@ describe('InitializationManager', () => {
 
     manager.uninitialize(InitializationAspect.CAMERAS);
 
-    expect(initializer.uninitialize).toBeCalledWith(InitializationAspect.CAMERAS);
+    expect(initializer.uninitialize).toHaveBeenCalledWith(InitializationAspect.CAMERAS);
   });
 
   describe('should decide whether to trigger initialization', () => {
@@ -380,7 +380,7 @@ describe('InitializationManager', () => {
 
       manager.triggerInitialization();
 
-      expect(initializer.initializeMultipleIfNecessary).toBeCalled();
+      expect(initializer.initializeMultipleIfNecessary).toHaveBeenCalled();
     });
 
     it('should not initialize without config', () => {
@@ -391,7 +391,7 @@ describe('InitializationManager', () => {
 
       manager.triggerInitialization();
 
-      expect(initializer.initializeMultipleIfNecessary).not.toBeCalled();
+      expect(initializer.initializeMultipleIfNecessary).not.toHaveBeenCalled();
     });
 
     it('should not initialize when the element is disconnected', () => {
@@ -402,7 +402,7 @@ describe('InitializationManager', () => {
 
       manager.triggerInitialization();
 
-      expect(initializer.initializeMultipleIfNecessary).not.toBeCalled();
+      expect(initializer.initializeMultipleIfNecessary).not.toHaveBeenCalled();
     });
 
     it('should not initialize when hass is not ready', () => {
@@ -416,7 +416,7 @@ describe('InitializationManager', () => {
 
       manager.triggerInitialization();
 
-      expect(initializer.initializeMultipleIfNecessary).not.toBeCalled();
+      expect(initializer.initializeMultipleIfNecessary).not.toHaveBeenCalled();
     });
 
     it('should not initialize when already initialized', () => {
@@ -426,7 +426,7 @@ describe('InitializationManager', () => {
 
       manager.triggerInitialization();
 
-      expect(initializer.initializeMultipleIfNecessary).not.toBeCalled();
+      expect(initializer.initializeMultipleIfNecessary).not.toHaveBeenCalled();
     });
 
     it('should not initialize while a full-card issue is shown', () => {
@@ -439,7 +439,7 @@ describe('InitializationManager', () => {
 
       manager.triggerInitialization();
 
-      expect(initializer.initializeMultipleIfNecessary).not.toBeCalled();
+      expect(initializer.initializeMultipleIfNecessary).not.toHaveBeenCalled();
     });
   });
 });

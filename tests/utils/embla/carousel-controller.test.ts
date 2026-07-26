@@ -74,7 +74,7 @@ describe('CarouselController', () => {
 
     carousel.destroy();
 
-    expect(getEmblaApi()?.destroy).toBeCalled();
+    expect(getEmblaApi()?.destroy).toHaveBeenCalled();
   });
 
   it('should destroy with slot', () => {
@@ -84,7 +84,7 @@ describe('CarouselController', () => {
 
     carousel.destroy();
 
-    expect(getEmblaApi()?.destroy).toBeCalled();
+    expect(getEmblaApi()?.destroy).toHaveBeenCalled();
   });
 
   it('should get slide by index', () => {
@@ -123,7 +123,7 @@ describe('CarouselController', () => {
 
     carousel.selectSlide(4);
 
-    expect(getEmblaApi()?.scrollTo).toBeCalledWith(4, false);
+    expect(getEmblaApi()?.scrollTo).toHaveBeenCalledWith(4, false);
   });
 
   it('should not select non-existent slide', () => {
@@ -135,7 +135,7 @@ describe('CarouselController', () => {
     carousel.selectSlide(11);
 
     // Should not call scrollTo because index is out of bounds.
-    expect(getEmblaApi()?.scrollTo).not.toBeCalled();
+    expect(getEmblaApi()?.scrollTo).not.toHaveBeenCalled();
   });
 
   it('should dispatch select event', () => {
@@ -150,7 +150,7 @@ describe('CarouselController', () => {
     getEmblaApi()?.slideNodes.mockReturnValue(children);
     callEmblaHandler(getEmblaApi(), 'select');
 
-    expect(selectHandler).toBeCalledWith(
+    expect(selectHandler).toHaveBeenCalledWith(
       expect.objectContaining({
         detail: {
           index: 6,
@@ -174,7 +174,7 @@ describe('CarouselController', () => {
     callEmblaHandler(getEmblaApi(), 'select');
     callEmblaHandler(getEmblaApi(), 'settle');
 
-    expect(selectHandler).not.toBeCalled();
+    expect(selectHandler).not.toHaveBeenCalled();
   });
 
   it('should honor creation options', () => {
@@ -192,7 +192,7 @@ describe('CarouselController', () => {
       textDirection: 'rtl',
     });
 
-    expect(EmblaCarousel).toBeCalledWith(
+    expect(EmblaCarousel).toHaveBeenCalledWith(
       root,
       {
         slides: children,
@@ -241,8 +241,8 @@ describe('CarouselController', () => {
     expect(emblaApi).toBeTruthy();
 
     carousel.setDragEnabled(false);
-    expect(emblaApi?.reInit).not.toBeCalled();
-    expect(emblaApi?.destroy).not.toBeCalled();
+    expect(emblaApi?.reInit).not.toHaveBeenCalled();
+    expect(emblaApi?.destroy).not.toHaveBeenCalled();
   });
 
   it('should include wheel plugin when slides > 1', () => {
@@ -251,7 +251,7 @@ describe('CarouselController', () => {
     const parent = createParent({ children: children });
     new CarouselController(root, parent);
 
-    expect(EmblaCarousel).toBeCalledWith(
+    expect(EmblaCarousel).toHaveBeenCalledWith(
       root,
       expect.anything(),
       expect.arrayContaining([
@@ -269,7 +269,7 @@ describe('CarouselController', () => {
     new CarouselController(root, parent, { wheelScrolling: false });
 
     // Verify WheelGesturesPlugin is NOT present
-    expect(EmblaCarousel).toBeCalledWith(
+    expect(EmblaCarousel).toHaveBeenCalledWith(
       root,
       expect.anything(),
       expect.not.arrayContaining([
@@ -286,7 +286,7 @@ describe('CarouselController', () => {
     const parent = createParent({ children: children });
     new CarouselController(root, parent);
 
-    expect(EmblaCarousel).toBeCalledTimes(1);
+    expect(EmblaCarousel).toHaveBeenCalledTimes(1);
 
     const originalEmblaApi = getEmblaApi();
     expect(originalEmblaApi).toBeTruthy();
@@ -297,12 +297,12 @@ describe('CarouselController', () => {
     callMutationHandler();
 
     // Should call reInit instead of destroy/recreate
-    expect(originalEmblaApi?.reInit).toBeCalledWith({
+    expect(originalEmblaApi?.reInit).toHaveBeenCalledWith({
       slides: [...children, newChild],
     });
 
     // Should still be same carousel instance (no new creation)
-    expect(EmblaCarousel).toBeCalledTimes(1);
+    expect(EmblaCarousel).toHaveBeenCalledTimes(1);
   });
 
   it('should not recreate carousel when children have not changed', () => {
@@ -311,7 +311,7 @@ describe('CarouselController', () => {
     const parent = createParent({ children: children });
     new CarouselController(root, parent);
 
-    expect(EmblaCarousel).toBeCalledTimes(1);
+    expect(EmblaCarousel).toHaveBeenCalledTimes(1);
 
     const originalEmblaApi = getEmblaApi();
     expect(originalEmblaApi).toBeTruthy();
@@ -319,10 +319,10 @@ describe('CarouselController', () => {
     originalEmblaApi?.slideNodes.mockReturnValue(children);
     callMutationHandler();
 
-    expect(originalEmblaApi?.destroy).not.toBeCalled();
+    expect(originalEmblaApi?.destroy).not.toHaveBeenCalled();
     expect(getEmblaApi()).toBe(originalEmblaApi);
 
-    expect(EmblaCarousel).toBeCalledTimes(1);
+    expect(EmblaCarousel).toHaveBeenCalledTimes(1);
   });
 
   it('should reinit carousel when children are added to slot', () => {
@@ -332,7 +332,7 @@ describe('CarouselController', () => {
 
     new CarouselController(host, slot);
 
-    expect(EmblaCarousel).toBeCalledTimes(1);
+    expect(EmblaCarousel).toHaveBeenCalledTimes(1);
 
     const originalEmblaApi = getEmblaApi();
     expect(originalEmblaApi).toBeTruthy();
@@ -344,11 +344,11 @@ describe('CarouselController', () => {
     slot.dispatchEvent(new Event('slotchange'));
 
     // Should call reInit instead of destroy/recreate
-    expect(originalEmblaApi?.reInit).toBeCalledWith({
+    expect(originalEmblaApi?.reInit).toHaveBeenCalledWith({
       slides: [...children, newChild],
     });
 
     // Should still be same carousel instance (no new creation)
-    expect(EmblaCarousel).toBeCalledTimes(1);
+    expect(EmblaCarousel).toHaveBeenCalledTimes(1);
   });
 });

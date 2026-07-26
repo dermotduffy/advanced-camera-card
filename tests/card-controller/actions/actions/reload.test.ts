@@ -25,6 +25,6 @@ describe('should handle reload action', async () => {
 
     await action.execute(api);
 
-    expect(location.reload).toBeCalledTimes(1);
+    expect(location.reload).toHaveBeenCalledTimes(1);
   });
 });

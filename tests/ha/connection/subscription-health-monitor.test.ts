@@ -82,15 +82,15 @@ describe('SubscriptionHealthMonitor', () => {
 
     // Healthy -> failing: one notification.
     monitor.update(status('failing', request, 'zha_event', { failureCount: 1 }));
-    expect(listener).toBeCalledTimes(1);
+    expect(listener).toHaveBeenCalledTimes(1);
 
     // Still failing (next attempt, same key): no membership change, no notify.
     monitor.update(status('failing', request, 'zha_event', { failureCount: 2 }));
-    expect(listener).toBeCalledTimes(1);
+    expect(listener).toHaveBeenCalledTimes(1);
 
     // Failing -> healthy: one more notification.
     monitor.update(status('subscribed', request, 'zha_event'));
-    expect(listener).toBeCalledTimes(2);
+    expect(listener).toHaveBeenCalledTimes(2);
   });
 
   it('should stop notifying after the returned unsubscribe is called', () => {
@@ -101,7 +101,7 @@ describe('SubscriptionHealthMonitor', () => {
     remove();
     monitor.update(status('failing', { id: 'a' }, 'zha_event', { failureCount: 1 }));
 
-    expect(listener).not.toBeCalled();
+    expect(listener).not.toHaveBeenCalled();
   });
 
   it('should retry one request per failing key and leave healthy keys alone', () => {
@@ -120,7 +120,7 @@ describe('SubscriptionHealthMonitor', () => {
 
     // Exactly one retry, for one of the failing key's requests; never the
     // healthy key.
-    expect(retry).toBeCalledTimes(1);
+    expect(retry).toHaveBeenCalledTimes(1);
     expect([failingA, failingB]).toContainEqual(retry.mock.calls[0][0]);
   });
 
@@ -136,8 +136,8 @@ describe('SubscriptionHealthMonitor', () => {
 
     monitor.retry();
 
-    expect(retry).toBeCalledTimes(1);
-    expect(retry).toBeCalledWith(failing);
+    expect(retry).toHaveBeenCalledTimes(1);
+    expect(retry).toHaveBeenCalledWith(failing);
   });
 
   it('should retry one request for each distinct failing key', () => {
@@ -151,7 +151,7 @@ describe('SubscriptionHealthMonitor', () => {
 
     monitor.retry();
 
-    expect(retry).toBeCalledTimes(2);
+    expect(retry).toHaveBeenCalledTimes(2);
     expect(retry.mock.calls.map((c) => c[0])).toEqual(expect.arrayContaining([a, b]));
   });
 
@@ -162,7 +162,7 @@ describe('SubscriptionHealthMonitor', () => {
 
     monitor.update(status('unsubscribed', { id: 'a' }, 'zha_event'));
 
-    expect(listener).not.toBeCalled();
+    expect(listener).not.toHaveBeenCalled();
     expect(monitor.getFailures()).toEqual([]);
   });
 });

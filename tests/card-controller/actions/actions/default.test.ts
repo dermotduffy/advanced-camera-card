@@ -15,5 +15,5 @@ it('should handle default action', async () => {
 
   await action.execute(api);
 
-  expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+  expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalled();
 });

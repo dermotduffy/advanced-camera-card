@@ -61,7 +61,7 @@ describe('CardElementManager', () => {
 
     manager.scrollReset();
 
-    expect(callback).toBeCalled();
+    expect(callback).toHaveBeenCalled();
   });
 
   it('should toggle menu', () => {
@@ -75,7 +75,7 @@ describe('CardElementManager', () => {
 
     manager.toggleMenu();
 
-    expect(callback).toBeCalled();
+    expect(callback).toHaveBeenCalled();
   });
 
   it('should update', () => {
@@ -88,7 +88,7 @@ describe('CardElementManager', () => {
     );
 
     manager.update();
-    expect(element.requestUpdate).toBeCalled();
+    expect(element.requestUpdate).toHaveBeenCalled();
   });
 
   it('should get hasUpdated', () => {
@@ -123,45 +123,48 @@ describe('CardElementManager', () => {
 
     expect(element.getAttribute('panel')).toBeNull();
     expect(element.getAttribute('casted')).toBeNull();
-    expect(api.getFullscreenManager().connect).toBeCalled();
+    expect(api.getFullscreenManager().connect).toHaveBeenCalled();
 
-    expect(addEventListener).toBeCalledWith(
+    expect(addEventListener).toHaveBeenCalledWith(
       'mousemove',
       api.getInteractionManager().reportInteraction,
     );
-    expect(addEventListener).toBeCalledWith(
+    expect(addEventListener).toHaveBeenCalledWith(
       'll-custom',
       api.getActionsManager().handleCustomActionEvent,
     );
-    expect(addEventListener).toBeCalledWith(
+    expect(addEventListener).toHaveBeenCalledWith(
       'action',
       api.getActionsManager().handleInteractionEvent,
     );
-    expect(addEventListener).toBeCalledWith(
+    expect(addEventListener).toHaveBeenCalledWith(
       'action',
       api.getInteractionManager().reportInteraction,
     );
-    expect(addEventListener).toBeCalledWith(
+    expect(addEventListener).toHaveBeenCalledWith(
       'touchstart',
       api.getInteractionManager().reportInteraction,
     );
-    expect(addEventListener).toBeCalledWith(
+    expect(addEventListener).toHaveBeenCalledWith(
       'touchmove',
       api.getInteractionManager().reportInteraction,
     );
-    expect(windowAddEventListener).toBeCalledWith('location-changed', expect.anything());
-    expect(windowAddEventListener).toBeCalledWith('popstate', expect.anything());
-    expect(windowAddEventListener).toBeCalledWith(
+    expect(windowAddEventListener).toHaveBeenCalledWith(
+      'location-changed',
+      expect.anything(),
+    );
+    expect(windowAddEventListener).toHaveBeenCalledWith('popstate', expect.anything());
+    expect(windowAddEventListener).toHaveBeenCalledWith(
       'advanced-camera-card:editor:diagnostics',
       expect.anything(),
     );
 
-    expect(api.getInteractionManager().initialize).toBeCalled();
-    expect(api.getFullscreenManager().initialize).toBeCalled();
-    expect(api.getExpandManager().initialize).toBeCalled();
-    expect(api.getMediaLoadedInfoManager().initialize).toBeCalled();
-    expect(api.getMicrophoneManager().initialize).toBeCalled();
-    expect(api.getCallManager().initialize).toBeCalled();
+    expect(api.getInteractionManager().initialize).toHaveBeenCalled();
+    expect(api.getFullscreenManager().initialize).toHaveBeenCalled();
+    expect(api.getExpandManager().initialize).toHaveBeenCalled();
+    expect(api.getMediaLoadedInfoManager().initialize).toHaveBeenCalled();
+    expect(api.getMicrophoneManager().initialize).toHaveBeenCalled();
+    expect(api.getCallManager().initialize).toHaveBeenCalled();
   });
 
   it('should disconnect', () => {
@@ -187,49 +190,52 @@ describe('CardElementManager', () => {
 
     expect(element.getAttribute('panel')).toBeNull();
     expect(element.getAttribute('casted')).toBeNull();
-    expect(api.getMediaLoadedInfoManager().clear).toBeCalled();
-    expect(api.getFullscreenManager().disconnect).toBeCalled();
+    expect(api.getMediaLoadedInfoManager().clear).toHaveBeenCalled();
+    expect(api.getFullscreenManager().disconnect).toHaveBeenCalled();
 
-    expect(removeEventListener).toBeCalledWith(
+    expect(removeEventListener).toHaveBeenCalledWith(
       'mousemove',
       api.getInteractionManager().reportInteraction,
     );
-    expect(removeEventListener).toBeCalledWith(
+    expect(removeEventListener).toHaveBeenCalledWith(
       'll-custom',
       api.getActionsManager().handleCustomActionEvent,
     );
-    expect(removeEventListener).toBeCalledWith(
+    expect(removeEventListener).toHaveBeenCalledWith(
       'action',
       api.getActionsManager().handleInteractionEvent,
     );
-    expect(removeEventListener).toBeCalledWith(
+    expect(removeEventListener).toHaveBeenCalledWith(
       'action',
       api.getInteractionManager().reportInteraction,
     );
-    expect(removeEventListener).toBeCalledWith(
+    expect(removeEventListener).toHaveBeenCalledWith(
       'touchstart',
       api.getInteractionManager().reportInteraction,
     );
-    expect(removeEventListener).toBeCalledWith(
+    expect(removeEventListener).toHaveBeenCalledWith(
       'touchmove',
       api.getInteractionManager().reportInteraction,
     );
-    expect(windowRemoveEventListener).toBeCalledWith(
+    expect(windowRemoveEventListener).toHaveBeenCalledWith(
       'location-changed',
       expect.anything(),
     );
-    expect(windowRemoveEventListener).toBeCalledWith('popstate', expect.anything());
-    expect(windowRemoveEventListener).toBeCalledWith(
+    expect(windowRemoveEventListener).toHaveBeenCalledWith(
+      'popstate',
+      expect.anything(),
+    );
+    expect(windowRemoveEventListener).toHaveBeenCalledWith(
       'advanced-camera-card:editor:diagnostics',
       expect.anything(),
     );
 
-    expect(api.getMediaLoadedInfoManager().clear).toBeCalled();
-    expect(api.getFullscreenManager().disconnect).toBeCalled();
-    expect(api.getKeyboardStateManager().uninitialize).toBeCalled();
-    expect(api.getActionsManager().uninitialize).toBeCalled();
-    expect(api.getCallManager().uninitialize).toBeCalled();
-    expect(api.getInitializationManager().uninitialize).toBeCalledWith('cameras');
+    expect(api.getMediaLoadedInfoManager().clear).toHaveBeenCalled();
+    expect(api.getFullscreenManager().disconnect).toHaveBeenCalled();
+    expect(api.getKeyboardStateManager().uninitialize).toHaveBeenCalled();
+    expect(api.getActionsManager().uninitialize).toHaveBeenCalled();
+    expect(api.getCallManager().uninitialize).toHaveBeenCalled();
+    expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith('cameras');
   });
 
   describe('should update card when', () => {
@@ -262,7 +268,7 @@ describe('CardElementManager', () => {
       };
       callStateWatcherCallback(stateWatcher, diff);
 
-      expect(element.requestUpdate).toBeCalled();
+      expect(element.requestUpdate).toHaveBeenCalled();
     });
 
     it('media player entity changes', () => {
@@ -290,7 +296,7 @@ describe('CardElementManager', () => {
       };
       callStateWatcherCallback(stateWatcher, diff);
 
-      expect(element.requestUpdate).toBeCalled();
+      expect(element.requestUpdate).toHaveBeenCalled();
     });
 
     it('selected media review status changes', () => {
@@ -324,7 +330,7 @@ describe('CardElementManager', () => {
         }),
       );
 
-      expect(element.requestUpdate).toBeCalled();
+      expect(element.requestUpdate).toHaveBeenCalled();
     });
 
     it('non-selected media review status changes does not update', () => {
@@ -360,7 +366,7 @@ describe('CardElementManager', () => {
       );
 
       // Should NOT update because the reviewed item is not the selected item.
-      expect(element.requestUpdate).not.toBeCalled();
+      expect(element.requestUpdate).not.toHaveBeenCalled();
     });
   });
 
@@ -405,7 +411,7 @@ describe('CardElementManager', () => {
 
       fireFromDialog(dialog);
 
-      expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+      expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith({
         params: { view: 'diagnostics' },
       });
     });
@@ -430,7 +436,7 @@ describe('CardElementManager', () => {
 
       fireFromDialog(dialog);
 
-      expect(api.getViewManager().setViewDefault).toBeCalled();
+      expect(api.getViewManager().setViewDefault).toHaveBeenCalled();
     });
 
     it('does not set view to diagnostics if card is not in editor', () => {
@@ -451,7 +457,7 @@ describe('CardElementManager', () => {
       document.body.append(otherDialog);
       fireFromDialog(otherDialog);
 
-      expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+      expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
     });
   });
 });

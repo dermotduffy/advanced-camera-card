@@ -118,7 +118,7 @@ describe('CameraTriggersManager', () => {
     });
 
     expect(manager.isTriggered()).toBeTruthy();
-    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
   });
 
   it('should not trigger if there is no config', async () => {
@@ -157,7 +157,7 @@ describe('CameraTriggersManager', () => {
       });
 
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
         queryExecutorOptions: { useCache: false },
       });
     });
@@ -182,7 +182,7 @@ describe('CameraTriggersManager', () => {
       });
 
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledWith({
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalledWith({
         params: {
           camera: 'camera_1',
         },
@@ -209,7 +209,7 @@ describe('CameraTriggersManager', () => {
       });
 
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
         params: {
           view: 'live',
           camera: 'camera_1',
@@ -258,10 +258,12 @@ describe('CameraTriggersManager', () => {
           if (!viewName) {
             expect(
               api.getViewManager().setViewByParametersWithNewQuery,
-            ).not.toBeCalled();
+            ).not.toHaveBeenCalled();
           } else {
             expect(manager.isTriggered()).toBeTruthy();
-            expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+            expect(
+              api.getViewManager().setViewByParametersWithNewQuery,
+            ).toHaveBeenCalledWith({
               params: {
                 camera: 'camera_1',
                 view: viewName,
@@ -292,8 +294,10 @@ describe('CameraTriggersManager', () => {
       });
 
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
-      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
+      expect(
+        api.getViewManager().setViewByParametersWithNewQuery,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle trigger action set to call', async () => {
@@ -314,11 +318,13 @@ describe('CameraTriggersManager', () => {
       expect(manager.isTriggered()).toBeTruthy();
       // `start()` is called with the triggered camera and the inbound flag --
       // view navigation is delegated to CallManager itself.
-      expect(api.getCallManager().start).toBeCalledWith({
+      expect(api.getCallManager().start).toHaveBeenCalledWith({
         cameraID: 'camera_1',
         inbound: true,
       });
-      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+      expect(
+        api.getViewManager().setViewByParametersWithNewQuery,
+      ).not.toHaveBeenCalled();
     });
 
     it('should start a call on a high-fidelity event with no media', async () => {
@@ -339,7 +345,7 @@ describe('CameraTriggersManager', () => {
         fidelity: 'high',
       });
 
-      expect(api.getCallManager().start).toBeCalledWith({
+      expect(api.getCallManager().start).toHaveBeenCalledWith({
         cameraID: 'camera_1',
         inbound: true,
       });
@@ -377,8 +383,10 @@ describe('CameraTriggersManager', () => {
 
       expect(manager.isTriggered()).toBeFalsy();
 
-      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
-      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
+      expect(
+        api.getViewManager().setViewByParametersWithNewQuery,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle untrigger action set to default', async () => {
@@ -411,7 +419,7 @@ describe('CameraTriggersManager', () => {
 
       expect(manager.isTriggered()).toBeFalsy();
 
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalled();
     });
 
     it('should handle untrigger action set to call', async () => {
@@ -438,12 +446,12 @@ describe('CameraTriggersManager', () => {
       await flushPromises();
 
       expect(manager.isTriggered()).toBeFalsy();
-      expect(api.getCallManager().endIf).toBeCalledWith({
+      expect(api.getCallManager().endIf).toHaveBeenCalledWith({
         cameraID: 'camera_1',
         inbound: true,
         answered: false,
       });
-      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
     });
 
     it('should handle untrigger call with no state', async () => {
@@ -456,7 +464,7 @@ describe('CameraTriggersManager', () => {
         type: 'end',
       });
 
-      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
     });
 
     it('should not untrigger if other sources are still active', async () => {
@@ -532,7 +540,7 @@ describe('CameraTriggersManager', () => {
 
       // Should still be triggered because the second 'new' event should have cancelled the first timer.
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
     });
 
     it('should untrigger each camera independently', async () => {
@@ -581,7 +589,7 @@ describe('CameraTriggersManager', () => {
       await flushPromises();
 
       // Camera 1 untriggered: setViewDefaultWithNewQuery is called.
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledTimes(1);
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalledTimes(1);
       // Camera 2 is still triggered.
       expect(manager.getTriggeredCameraIDs()).toEqual(new Set(['camera_2']));
 
@@ -597,7 +605,7 @@ describe('CameraTriggersManager', () => {
       await flushPromises();
 
       // Camera 2 untriggered: setViewDefaultWithNewQuery is called again.
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledTimes(2);
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalledTimes(2);
       expect(manager.getTriggeredCameraIDs()).toEqual(new Set());
     });
 
@@ -697,7 +705,7 @@ describe('CameraTriggersManager', () => {
       await flushPromises();
 
       expect(manager.isTriggered()).toBeFalsy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalled();
     });
 
     it('should force untrigger when untrigger_force_seconds expires', async () => {
@@ -719,7 +727,7 @@ describe('CameraTriggersManager', () => {
       await flushPromises();
 
       expect(manager.isTriggered()).toBeFalsy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledTimes(1);
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalledTimes(1);
     });
 
     it('should not reset force timer on source update', async () => {
@@ -751,7 +759,7 @@ describe('CameraTriggersManager', () => {
       vi.advanceTimersByTime(100);
       await flushPromises();
       expect(manager.isTriggered()).toBeFalsy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledTimes(1);
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalledTimes(1);
     });
 
     it('should force untrigger all sources when one force timer expires', async () => {
@@ -778,7 +786,7 @@ describe('CameraTriggersManager', () => {
       await flushPromises();
 
       expect(manager.isTriggered()).toBeFalsy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledTimes(1);
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalledTimes(1);
     });
 
     it('should not extend force timer when a second source triggers later', async () => {
@@ -810,7 +818,7 @@ describe('CameraTriggersManager', () => {
       vi.advanceTimersByTime(100);
       await flushPromises();
       expect(manager.isTriggered()).toBeFalsy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledTimes(1);
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalledTimes(1);
     });
 
     it('should auto-untrigger after the delay on a momentary event', async () => {
@@ -828,14 +836,14 @@ describe('CameraTriggersManager', () => {
       });
 
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
 
       vi.setSystemTime(add(start, { seconds: 10 }));
       vi.runOnlyPendingTimers();
       await flushPromises();
 
       expect(manager.isTriggered()).toBeFalsy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalled();
     });
 
     it('should auto-untrigger immediately on a momentary event when delay is 0', async () => {
@@ -855,7 +863,7 @@ describe('CameraTriggersManager', () => {
       await flushPromises();
 
       expect(manager.isTriggered()).toBeFalsy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalled();
     });
 
     it('should not auto-untrigger from a momentary event while a continuous source remains active', async () => {
@@ -886,7 +894,7 @@ describe('CameraTriggersManager', () => {
 
       // Continuous source keeps the trigger alive.
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
     });
 
     it('should add event_hold_seconds on top of untrigger_delay_seconds for momentary events', async () => {
@@ -916,7 +924,7 @@ describe('CameraTriggersManager', () => {
       vi.advanceTimersByTime(1_000);
       await flushPromises();
       expect(manager.isTriggered()).toBeFalsy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalled();
     });
 
     it('should not apply event_hold_seconds to non-momentary events', async () => {
@@ -1019,8 +1027,10 @@ describe('CameraTriggersManager', () => {
         fidelity: 'high',
       });
 
-      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
-      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
+      expect(
+        api.getViewManager().setViewByParametersWithNewQuery,
+      ).not.toHaveBeenCalled();
     });
 
     it('should ignore high-fidelity events when default view is not live', async () => {
@@ -1044,8 +1054,10 @@ describe('CameraTriggersManager', () => {
         fidelity: 'high',
       });
 
-      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
-      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
+      expect(
+        api.getViewManager().setViewByParametersWithNewQuery,
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -1064,8 +1076,8 @@ describe('CameraTriggersManager', () => {
 
     expect(manager.isTriggered()).toBeTruthy();
 
-    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
-    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toHaveBeenCalled();
 
     await manager.handleCameraEvent({
       cameraID: 'camera_1',
@@ -1078,8 +1090,8 @@ describe('CameraTriggersManager', () => {
 
     expect(manager.isTriggered()).toBeFalsy();
 
-    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
-    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toHaveBeenCalled();
   });
 
   it('should take no actions when actions are set to none', async () => {
@@ -1099,8 +1111,8 @@ describe('CameraTriggersManager', () => {
       type: 'new',
     });
     expect(manager.isTriggered()).toBeTruthy();
-    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
-    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toHaveBeenCalled();
 
     await manager.handleCameraEvent({
       cameraID: 'camera_1',
@@ -1112,8 +1124,8 @@ describe('CameraTriggersManager', () => {
     vi.runOnlyPendingTimers();
 
     expect(manager.isTriggered()).toBeFalsy();
-    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
-    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toHaveBeenCalled();
   });
 
   it('should take actions with human interactions when interaction mode is active', async () => {
@@ -1137,7 +1149,7 @@ describe('CameraTriggersManager', () => {
     });
 
     expect(manager.isTriggered()).toBeTruthy();
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
       params: {
         view: 'live' as const,
         camera: 'camera_1' as const,
@@ -1156,7 +1168,7 @@ describe('CameraTriggersManager', () => {
 
     expect(manager.isTriggered()).toBeFalsy();
 
-    expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalled();
   });
 
   it('should report multiple triggered cameras', async () => {
@@ -1355,7 +1367,7 @@ describe('CameraTriggersManager', () => {
       await flushPromises();
 
       expect(manager.isTriggered()).toBeFalsy();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalled();
     });
   });
 
@@ -1476,7 +1488,9 @@ describe('CameraTriggersManager', () => {
 
       expect(result).toBeTruthy();
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledTimes(1);
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledTimes(
+        1,
+      );
     });
 
     it('should prioritize the first triggered camera action at startup', async () => {
@@ -1523,7 +1537,9 @@ describe('CameraTriggersManager', () => {
 
       expect(result).toBeTruthy();
       expect(manager.getTriggeredCameraIDs()).toEqual(new Set(['camera_1', 'camera_2']));
-      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledTimes(1);
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledTimes(
+        1,
+      );
       expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
         params: {
           view: 'live',
@@ -1565,8 +1581,10 @@ describe('CameraTriggersManager', () => {
       expect(result).toBeTruthy();
       // ...but the camera was filtered out, so no trigger state/action was applied.
       expect(manager.isTriggered()).toBeFalsy();
-      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(
+        api.getViewManager().setViewByParametersWithNewQuery,
+      ).not.toHaveBeenCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toHaveBeenCalled();
     });
 
     it('should not trigger a camera without the trigger capability', async () => {
@@ -1675,7 +1693,7 @@ describe('CameraTriggersManager', () => {
     });
 
     expect(manager.isTriggered()).toBeTruthy();
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
       params: {
         view: 'live' as const,
         camera: 'camera_1' as const,
@@ -1694,7 +1712,7 @@ describe('CameraTriggersManager', () => {
 
     expect(manager.isTriggered()).toBeFalsy();
 
-    expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalled();
   });
 
   it('should ignore untrigger actions during non-allowable interaction but still untrigger camera', async () => {

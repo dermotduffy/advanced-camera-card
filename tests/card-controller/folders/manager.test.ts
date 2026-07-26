@@ -70,7 +70,7 @@ describe('FoldersManager', () => {
       const folder_1 = createFolder({ id: 'DUP' });
       const folder_2 = createFolder({ id: 'DUP' });
 
-      expect(() => manager.addFolders([folder_1, folder_2])).toThrowError(
+      expect(() => manager.addFolders([folder_1, folder_2])).toThrow(
         /Duplicate folder id/,
       );
     });
@@ -115,7 +115,7 @@ describe('FoldersManager', () => {
       executor.getDefaultQueryParameters.mockReturnValue(query);
 
       expect(manager.getDefaultQueryParameters(folder)).toEqual(query);
-      expect(executor.getDefaultQueryParameters).toBeCalledWith(folder);
+      expect(executor.getDefaultQueryParameters).toHaveBeenCalledWith(folder);
     });
 
     it('should fallback to default folder if none provided', () => {
@@ -129,7 +129,9 @@ describe('FoldersManager', () => {
       executor.getDefaultQueryParameters.mockReturnValue(query);
 
       expect(manager.getDefaultQueryParameters()).toEqual(query);
-      expect(executor.getDefaultQueryParameters).toBeCalledWith(manager.getFolder());
+      expect(executor.getDefaultQueryParameters).toHaveBeenCalledWith(
+        manager.getFolder(),
+      );
     });
   });
 
@@ -182,7 +184,7 @@ describe('FoldersManager', () => {
       const manager = new FoldersManager(createCardAPI(), executor);
 
       expect(manager.generateChildFolderQuery(query, viewFolder)).toEqual(query);
-      expect(executor.generateChildFolderQuery).toBeCalledWith(query, viewFolder);
+      expect(executor.generateChildFolderQuery).toHaveBeenCalledWith(query, viewFolder);
     });
   });
 
@@ -211,7 +213,7 @@ describe('FoldersManager', () => {
         media,
       ]);
 
-      expect(executor.expandFolder).toBeCalledWith(
+      expect(executor.expandFolder).toHaveBeenCalledWith(
         hass,
         query,
         conditionState,
@@ -233,7 +235,7 @@ describe('FoldersManager', () => {
         }),
       ).toBeNull();
 
-      expect(executor.expandFolder).not.toBeCalled();
+      expect(executor.expandFolder).not.toHaveBeenCalled();
     });
 
     it('should return null for query with unsupported filters', async () => {
@@ -253,7 +255,7 @@ describe('FoldersManager', () => {
       };
 
       expect(await manager.expandFolder(query)).toBeNull();
-      expect(executor.expandFolder).not.toBeCalled();
+      expect(executor.expandFolder).not.toHaveBeenCalled();
     });
   });
 
@@ -271,7 +273,7 @@ describe('FoldersManager', () => {
       const manager = new FoldersManager(api, executor);
 
       expect(manager.getItemCapabilities(item)).toEqual(capabilities);
-      expect(executor.getItemCapabilities).toBeCalledWith(item);
+      expect(executor.getItemCapabilities).toHaveBeenCalledWith(item);
     });
   });
 
@@ -290,7 +292,7 @@ describe('FoldersManager', () => {
 
       const manager = new FoldersManager(api, executor);
       expect(await manager.getDownloadPath(item)).toEqual(endpoint);
-      expect(executor.getDownloadPath).toBeCalledWith(hass, item, {
+      expect(executor.getDownloadPath).toHaveBeenCalledWith(hass, item, {
         resolvedMediaCache: cache,
       });
     });
@@ -307,7 +309,7 @@ describe('FoldersManager', () => {
 
       const manager = new FoldersManager(api, executor);
       await manager.favorite(item, true);
-      expect(executor.favorite).toBeCalledWith(hass, item, true);
+      expect(executor.favorite).toHaveBeenCalledWith(hass, item, true);
     });
   });
 

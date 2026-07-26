@@ -35,7 +35,7 @@ describe('EventWatcher', () => {
     watcher.subscribe({ event_type: 'zha_event', callback: vi.fn() });
     await flushPromises();
 
-    expect(hass.connection.subscribeEvents).toBeCalledTimes(1);
+    expect(hass.connection.subscribeEvents).toHaveBeenCalledTimes(1);
     expect(vi.mocked(hass.connection.subscribeEvents).mock.calls[0][1]).toBe(
       'zha_event',
     );
@@ -50,7 +50,7 @@ describe('EventWatcher', () => {
     watcher.subscribe({ event_type: 'zha_event', callback: vi.fn() });
     await flushPromises();
 
-    expect(hass.connection.subscribeEvents).toBeCalledTimes(1);
+    expect(hass.connection.subscribeEvents).toHaveBeenCalledTimes(1);
   });
 
   it('should open separate WS subscriptions for distinct event_types', async () => {
@@ -62,7 +62,7 @@ describe('EventWatcher', () => {
     watcher.subscribe({ event_type: 'deconz_event', callback: vi.fn() });
     await flushPromises();
 
-    expect(hass.connection.subscribeEvents).toBeCalledTimes(2);
+    expect(hass.connection.subscribeEvents).toHaveBeenCalledTimes(2);
   });
 
   it('should dispatch to every subscriber whose event_type matches', async () => {
@@ -79,8 +79,8 @@ describe('EventWatcher', () => {
 
     fireEvent(hass, event);
 
-    expect(cb1).toBeCalledWith(event);
-    expect(cb2).toBeCalledWith(event);
+    expect(cb1).toHaveBeenCalledWith(event);
+    expect(cb2).toHaveBeenCalledWith(event);
   });
 
   it('should gate dispatch on the request matcher when provided', async () => {
@@ -98,9 +98,9 @@ describe('EventWatcher', () => {
     fireEvent(hass, matching);
     fireEvent(hass, nonMatching);
 
-    expect(matcher).toBeCalledTimes(2);
-    expect(cb).toBeCalledTimes(1);
-    expect(cb).toBeCalledWith(matching);
+    expect(matcher).toHaveBeenCalledTimes(2);
+    expect(cb).toHaveBeenCalledTimes(1);
+    expect(cb).toHaveBeenCalledWith(matching);
   });
 
   it('should tear down the WS subscription only when the last subscriber unsubscribes', async () => {
@@ -118,11 +118,11 @@ describe('EventWatcher', () => {
 
     watcher.unsubscribe(req1);
     await flushPromises();
-    expect(unsub).not.toBeCalled();
+    expect(unsub).not.toHaveBeenCalled();
 
     watcher.unsubscribe(req2);
     await flushPromises();
-    expect(unsub).toBeCalledTimes(1);
+    expect(unsub).toHaveBeenCalledTimes(1);
   });
 
   it('should drop events from an old-connection subscription after a swap', async () => {
@@ -147,7 +147,7 @@ describe('EventWatcher', () => {
     // Old dispatcher fires: guard.isConnected() is now false, callback must NOT
     // receive the event.
     oldDispatcher?.(createHASSEvent('zha_event', { command: 'press' }));
-    expect(cb).not.toBeCalled();
+    expect(cb).not.toHaveBeenCalled();
   });
 
   it('should not dispatch to a subscriber that registers mid-dispatch', async () => {
@@ -164,8 +164,8 @@ describe('EventWatcher', () => {
 
     fireEvent(hass, createHASSEvent('zha_event', { command: 'press' }));
 
-    expect(reentrantCallback).toBeCalledTimes(1);
-    expect(lateCallback).not.toBeCalled();
+    expect(reentrantCallback).toHaveBeenCalledTimes(1);
+    expect(lateCallback).not.toHaveBeenCalled();
   });
 
   describe('subscription health monitoring', () => {

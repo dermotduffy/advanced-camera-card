@@ -23,8 +23,8 @@ describe('downloadURL', () => {
     downloadURL('http://foo/url.mp4');
 
     expect(link.href).toBe('http://foo/url.mp4');
-    expect(link.setAttribute).toBeCalledWith('download', 'download');
-    expect(link.click).toBeCalled();
+    expect(link.setAttribute).toHaveBeenCalledWith('download', 'download');
+    expect(link.click).toHaveBeenCalled();
   });
 
   it('should download data URL via link', () => {
@@ -36,8 +36,8 @@ describe('downloadURL', () => {
     downloadURL('data:text/plain;charset=utf-8;base64,VEhJUyBJUyBEQVRB');
 
     expect(link.href).toBe('data:text/plain;charset=utf-8;base64,VEhJUyBJUyBEQVRB');
-    expect(link.setAttribute).toBeCalledWith('download', 'download');
-    expect(link.click).toBeCalled();
+    expect(link.setAttribute).toHaveBeenCalledWith('download', 'download');
+    expect(link.click).toHaveBeenCalled();
   });
 
   it('should download different origin via window.open', () => {
@@ -50,6 +50,6 @@ describe('downloadURL', () => {
     const windowSpy = vi.spyOn(window, 'open').mockReturnValue(null);
 
     downloadURL('http://bar/url.mp4');
-    expect(windowSpy).toBeCalledWith('http://bar/url.mp4', '_blank');
+    expect(windowSpy).toHaveBeenCalledWith('http://bar/url.mp4', '_blank');
   });
 });

@@ -40,7 +40,7 @@ describe('AutomationsManager', () => {
 
       stateManager.setState({ fullscreen: true });
 
-      expect(api.getActionsManager().executeActions).not.toBeCalled();
+      expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
     });
 
     it('should do nothing without being initialized', () => {
@@ -57,7 +57,7 @@ describe('AutomationsManager', () => {
 
       stateManager.setState({ fullscreen: true });
 
-      expect(api.getActionsManager().executeActions).not.toBeCalled();
+      expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
     });
 
     it('should do nothing when an issue is present', () => {
@@ -78,7 +78,7 @@ describe('AutomationsManager', () => {
 
       stateManager.setState({ fullscreen: true });
 
-      expect(api.getActionsManager().executeActions).not.toBeCalled();
+      expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
     });
   });
 
@@ -96,17 +96,17 @@ describe('AutomationsManager', () => {
 
     stateManager.setState({ fullscreen: true });
 
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(1);
 
     // It does not re-trigger while its source stays in the same state.
     stateManager.setState({ fullscreen: true });
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(1);
 
     stateManager.setState({ fullscreen: false });
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(1);
 
     stateManager.setState({ fullscreen: true });
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(2);
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(2);
   });
 
   it('should subscribe automations registered before initialization', () => {
@@ -125,7 +125,7 @@ describe('AutomationsManager', () => {
     // Registered before initialization: the triggers are not yet subscribed, so
     // a matching change does nothing.
     stateManager.setState({ fullscreen: true });
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
 
     // Initialization completes and subscribes the dormant automations.
     isInitialized.mockReturnValue(true);
@@ -133,7 +133,7 @@ describe('AutomationsManager', () => {
 
     stateManager.setState({ fullscreen: false });
     stateManager.setState({ fullscreen: true });
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(1);
   });
 
   it('should run actions when the ongoing conditions hold', () => {
@@ -158,7 +158,7 @@ describe('AutomationsManager', () => {
     stateManager.setState({ expand: true });
     stateManager.setState({ fullscreen: true });
 
-    expect(api.getActionsManager().executeActions).toBeCalledWith({
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledWith({
       actions: actions,
       triggerData: { platform: 'acc', type: 'fullscreen' },
     });
@@ -186,7 +186,7 @@ describe('AutomationsManager', () => {
     // nothing runs.
     stateManager.setState({ fullscreen: true });
 
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
   });
 
   it('should do nothing when the actions are empty', () => {
@@ -208,7 +208,7 @@ describe('AutomationsManager', () => {
 
     stateManager.setState({ fullscreen: true });
 
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
   });
 
   it('should prevent automation loops', () => {
@@ -245,7 +245,7 @@ describe('AutomationsManager', () => {
 
     stateManager.setState({ camera: camera });
 
-    expect(api.getNotificationManager().setNotification).toBeCalledWith({
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalledWith({
       heading: {
         text: 'Too many nested automation calls, please check your configuration for loops',
         icon: 'mdi:alert',
@@ -253,7 +253,7 @@ describe('AutomationsManager', () => {
       },
     });
 
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(10);
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(10);
   });
 
   it('should reset the nested-execution counter after an overflow', async () => {
@@ -284,7 +284,7 @@ describe('AutomationsManager', () => {
     );
 
     stateManager.setState({ camera: camera });
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(10);
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(10);
 
     // The counter is decremented on the microtasks that resume after each
     // awaited execution, so let them drain before the next batch.
@@ -296,7 +296,7 @@ describe('AutomationsManager', () => {
     // again -- only possible if the counter returned to zero. A leaked counter
     // (overflow returning without decrementing) would cut this batch short.
     stateManager.setState({ camera: 'three' });
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(10);
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(10);
   });
 
   it('should execute actions on a matching HA bus event trigger', () => {
@@ -321,13 +321,13 @@ describe('AutomationsManager', () => {
       },
     ]);
 
-    expect(eventWatcher.subscribe).toBeCalledTimes(1);
+    expect(eventWatcher.subscribe).toHaveBeenCalledTimes(1);
 
     // Simulate an event arrival.
     const event = createHASSEvent('zha_event', { command: 'press' });
     vi.mocked(eventWatcher.subscribe).mock.calls[0][0].callback(event);
 
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(1);
     expect(
       vi.mocked(api.getActionsManager().executeActions).mock.calls[0][0].triggerData,
     ).toEqual({ platform: 'event', event });
@@ -356,23 +356,23 @@ describe('AutomationsManager', () => {
     ]);
 
     stateManager.setState({ fullscreen: true });
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(1);
 
     // Delete the fullscreen automation.
     automationsManager.deleteAutomations('fullscreen');
 
     stateManager.setState({ fullscreen: false });
     stateManager.setState({ fullscreen: true });
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(1);
 
     stateManager.setState({ expand: true });
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(2);
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(2);
 
     // Delete all automations.
     automationsManager.deleteAutomations();
 
     stateManager.setState({ expand: false });
     stateManager.setState({ expand: true });
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(2);
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledTimes(2);
   });
 });

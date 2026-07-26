@@ -22,5 +22,5 @@ it('should handle sleep action', async () => {
 
   await action.execute(api);
 
-  expect(sleep).toBeCalledWith(5.2);
+  expect(sleep).toHaveBeenCalledWith(5.2);
 });

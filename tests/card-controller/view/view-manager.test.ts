@@ -45,17 +45,17 @@ describe('should act correctly when view is set', () => {
 
     expect(manager.getView()).toBe(view);
     expect(manager.hasView()).toBeTruthy();
-    expect(api.getMediaLoadedInfoManager().setSelected).toBeCalledWith('camera');
-    expect(api.getCardElementManager().scrollReset).toBeCalled();
-    expect(api.getStyleManager().setExpandedMode).toBeCalled();
-    expect(api.getConditionStateManager()?.setState).toBeCalledWith({
+    expect(api.getMediaLoadedInfoManager().setSelected).toHaveBeenCalledWith('camera');
+    expect(api.getCardElementManager().scrollReset).toHaveBeenCalled();
+    expect(api.getStyleManager().setExpandedMode).toHaveBeenCalled();
+    expect(api.getConditionStateManager()?.setState).toHaveBeenCalledWith({
       view: 'live',
       camera: 'camera',
       displayMode: 'grid',
       targetID: 'camera',
       substreamID: undefined,
     });
-    expect(api.getCardElementManager().update).toBeCalled();
+    expect(api.getCardElementManager().update).toHaveBeenCalled();
   });
 
   it('should set the engaged substream in condition state', () => {
@@ -71,7 +71,7 @@ describe('should act correctly when view is set', () => {
     const api = createInitializedCardAPI();
     new ViewManager(api, { viewFactory: factory }).setViewDefault();
 
-    expect(api.getConditionStateManager()?.setState).toBeCalledWith(
+    expect(api.getConditionStateManager()?.setState).toHaveBeenCalledWith(
       expect.objectContaining({ substreamID: 'substream' }),
     );
   });
@@ -103,7 +103,7 @@ describe('should act correctly when view is set', () => {
     expect(manager.getView()).toBe(view_2);
 
     // Same view name, so scrolling should not happen.
-    expect(api.getCardElementManager().scrollReset).not.toBeCalled();
+    expect(api.getCardElementManager().scrollReset).not.toHaveBeenCalled();
   });
 });
 
@@ -342,7 +342,7 @@ it('should set view by parameters with an explicitly provided existing query', a
   await manager.setViewByParametersWithExistingQuery({ params: { query } });
 
   // An explicitly-passed query is used as-is rather than the base view's.
-  expect(viewFactory.getViewByParameters).toBeCalledWith(
+  expect(viewFactory.getViewByParameters).toHaveBeenCalledWith(
     expect.objectContaining({ params: expect.objectContaining({ query }) }),
   );
 });
@@ -363,7 +363,7 @@ it('should clear the query when an explicit null query is passed', async () => {
 
   // An explicit `null` is respected (clears the query), not overridden by the
   // base view's query.
-  expect(viewFactory.getViewByParameters).toBeCalledWith(
+  expect(viewFactory.getViewByParameters).toHaveBeenCalledWith(
     expect.objectContaining({ params: expect.objectContaining({ query: null }) }),
   );
 });
@@ -385,13 +385,13 @@ describe('should handle exceptions', () => {
 
     expect(manager.hasView()).toBeTruthy();
     expect(manager.getView()).toBe(failSafeView);
-    expect(viewFactory.getViewDefault).toBeCalledWith(
+    expect(viewFactory.getViewDefault).toHaveBeenCalledWith(
       expect.objectContaining({ baseView: null, failSafe: true }),
     );
-    expect(api.getIssueManager().trigger).toBeCalledWith('view_incompatible', {
+    expect(api.getIssueManager().trigger).toHaveBeenCalledWith('view_incompatible', {
       error,
     });
-    expect(api.getNotificationManager().setNotification).not.toBeCalled();
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
   });
 
   it('should not retry with failSafe when existing view in sync calls', () => {
@@ -410,8 +410,8 @@ describe('should handle exceptions', () => {
     manager.setViewDefault();
 
     expect(manager.getView()).toBe(existingView);
-    expect(viewFactory.getViewDefault).toBeCalledTimes(2);
-    expect(api.getIssueManager().trigger).toBeCalledWith('view_incompatible', {
+    expect(viewFactory.getViewDefault).toHaveBeenCalledTimes(2);
+    expect(api.getIssueManager().trigger).toHaveBeenCalledWith('view_incompatible', {
       error,
     });
   });
@@ -431,13 +431,13 @@ describe('should handle exceptions', () => {
     await manager.setViewDefaultWithNewQuery();
 
     expect(manager.hasView()).toBeTruthy();
-    expect(viewFactory.getViewDefault).toBeCalledWith(
+    expect(viewFactory.getViewDefault).toHaveBeenCalledWith(
       expect.objectContaining({ baseView: null, failSafe: true }),
     );
-    expect(api.getIssueManager().trigger).toBeCalledWith('view_incompatible', {
+    expect(api.getIssueManager().trigger).toHaveBeenCalledWith('view_incompatible', {
       error,
     });
-    expect(api.getNotificationManager().setNotification).not.toBeCalled();
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
   });
 
   it('should not retry with failSafe when existing view in async calls', async () => {
@@ -456,8 +456,8 @@ describe('should handle exceptions', () => {
     await manager.setViewDefaultWithNewQuery();
 
     expect(manager.getView()).not.toBeNull();
-    expect(viewFactory.getViewDefault).toBeCalledTimes(2);
-    expect(api.getIssueManager().trigger).toBeCalledWith('view_incompatible', {
+    expect(viewFactory.getViewDefault).toHaveBeenCalledTimes(2);
+    expect(api.getIssueManager().trigger).toHaveBeenCalledWith('view_incompatible', {
       error,
     });
   });
@@ -470,7 +470,7 @@ describe('should handle exceptions', () => {
     const manager = new ViewManager(api, { viewFactory });
     manager.setViewDefault();
 
-    expect(api.getIssueManager().reset).toBeCalledWith('view_incompatible');
+    expect(api.getIssueManager().reset).toHaveBeenCalledWith('view_incompatible');
   });
 
   it('should return null when failSafe view factory also throws', () => {
@@ -484,7 +484,7 @@ describe('should handle exceptions', () => {
     manager.setViewDefault();
 
     expect(manager.hasView()).toBeFalsy();
-    expect(viewFactory.getViewDefault).toBeCalledTimes(2);
+    expect(viewFactory.getViewDefault).toHaveBeenCalledTimes(2);
   });
 
   it('should handle viewQueryExecutor exceptions in async calls', async () => {
@@ -506,7 +506,7 @@ describe('should handle exceptions', () => {
     expect(manager.hasView()).toBeTruthy();
 
     // But an error will also be generated.
-    expect(api.getIssueManager().trigger).toBeCalledWith(
+    expect(api.getIssueManager().trigger).toHaveBeenCalledWith(
       'media_query',
       expect.objectContaining({ error }),
     );
@@ -525,7 +525,7 @@ describe('should handle exceptions', () => {
     const manager = new ViewManager(api, { viewFactory });
     manager.setViewByParameters();
 
-    expect(api.getIssueManager().reset).toBeCalledWith('media_query');
+    expect(api.getIssueManager().reset).toHaveBeenCalledWith('media_query');
   });
 
   it('should tolerate the view being reset during a failing async query', async () => {
@@ -551,7 +551,7 @@ describe('should handle exceptions', () => {
     await manager.setViewDefaultWithNewQuery();
 
     expect(manager.getView()).toBeNull();
-    expect(api.getIssueManager().trigger).toBeCalledWith(
+    expect(api.getIssueManager().trigger).toHaveBeenCalledWith(
       'media_query',
       expect.objectContaining({ error }),
     );
@@ -573,7 +573,7 @@ describe('should handle exceptions', () => {
 
     // Reset is called twice: once at dispatch (supersedes any prior error)
     // and once after success (clears on confirmed success).
-    expect(api.getIssueManager().reset).toBeCalledWith('media_query');
+    expect(api.getIssueManager().reset).toHaveBeenCalledWith('media_query');
     expect(
       vi
         .mocked(api.getIssueManager().reset)
@@ -599,8 +599,8 @@ describe('should handle exceptions', () => {
     // A retry re-runs the same failing query, so the existing error must not be
     // cleared up front (it would blink away and back); the failure just
     // re-triggers it.
-    expect(api.getIssueManager().reset).not.toBeCalledWith('media_query');
-    expect(api.getIssueManager().trigger).toBeCalledWith(
+    expect(api.getIssueManager().reset).not.toHaveBeenCalledWith('media_query');
+    expect(api.getIssueManager().trigger).toHaveBeenCalledWith(
       'media_query',
       expect.objectContaining({ error }),
     );
@@ -820,7 +820,7 @@ describe('should apply async view modifications', () => {
     expect(manager.getView()?.query).toBe(query);
     expect(manager.getView()?.queryResults).toBe(queryResults);
     expect(manager.getView()?.context?.loading?.query).toBeUndefined();
-    expect(api.getIssueManager().reset).toBeCalledWith('media_query');
+    expect(api.getIssueManager().reset).toHaveBeenCalledWith('media_query');
   });
 
   it('should not apply modifications if there is a major media change', async () => {
