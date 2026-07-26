@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
 
+import { copyConfig } from '../../../src/config/management';
 import { DOORBELL_PROFILE } from '../../../src/config/profiles/doorbell';
 import { setProfiles } from '../../../src/config/profiles/set-profiles';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
@@ -17,7 +18,10 @@ it('should contain expected defaults', () => {
 
 it('should be parseable after application', () => {
   const rawInputConfig = createRawConfig();
-  const parsedConfig = advancedCameraCardConfigSchema.parse(rawInputConfig);
+  // `setProfiles` writes into the config it is given, and Zod hands out a
+  // single shared instance of each default object, so the parse result must be
+  // cloned before it is mutated.
+  const parsedConfig = copyConfig(advancedCameraCardConfigSchema.parse(rawInputConfig));
 
   setProfiles(rawInputConfig, parsedConfig, ['doorbell']);
 

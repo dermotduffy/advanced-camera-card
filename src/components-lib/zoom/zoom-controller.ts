@@ -123,6 +123,12 @@ export class ZoomController {
       config?.zoom ?? ZOOM_DEFAULT_SCALE,
     );
 
+    // The ZOOM_DEFAULT_SCALE fallback is not reachable: without a zoom value a
+    // default of 1 is assumed in _convertPercentToXYPan, which returns null at
+    // the default zoom, leaving `converted` unset.
+    /* istanbul ignore next @preserve */
+    const startScale = config?.zoom ?? ZOOM_DEFAULT_SCALE;
+
     this._panzoom = Panzoom(this._element, {
       contain: 'outside',
       maxScale: 10,
@@ -140,16 +146,7 @@ export class ZoomController {
       // Set the initial pan/zoom values to avoid an initial unzoomed view.
       ...(config && converted && { startX: converted.x }),
       ...(config && converted && { startY: converted.y }),
-      ...(config &&
-        converted && {
-          startScale:
-            config.zoom ??
-            // This is not reachable as without a zoom value, a default of 1 is
-            // assumed in _convertPercentToXYPan, which will return null @
-            // default zoom, and so this cannot be reached in practice.
-            /* istanbul ignore next @preserve */
-            ZOOM_DEFAULT_SCALE,
-        }),
+      ...(config && converted && { startScale }),
     });
 
     const registerListeners = (
@@ -436,18 +433,16 @@ export class ZoomController {
       return true;
     }
 
+    // The ZOOM_DEFAULT_SCALE fallback cannot be reached: when
+    // this._defaultSettings.zoom is undefined, convertedDefault ends up null
+    // above and this function has already returned.
+    /* istanbul ignore next @preserve */
+    const defaultScale = this._defaultSettings.zoom ?? ZOOM_DEFAULT_SCALE;
+
     return (
       arefloatsApproximatelyEqual(x, convertedDefault.x) &&
       arefloatsApproximatelyEqual(y, convertedDefault.y) &&
-      arefloatsApproximatelyEqual(
-        scale,
-        this._defaultSettings.zoom ??
-          // The ZOOM_DEFAULT_SCALE clause below cannot be reached since when
-          // this._defaultConfig.zoom is undefined, convertedDefault will end up
-          // null above and this function will have already returned.
-          /* istanbul ignore next @preserve */
-          ZOOM_DEFAULT_SCALE,
-      )
+      arefloatsApproximatelyEqual(scale, defaultScale)
     );
   }
 

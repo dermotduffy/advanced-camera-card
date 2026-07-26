@@ -101,11 +101,10 @@ export class MediaHeightController {
   }
 
   private _initializeRoot(): void {
+    /* istanbul ignore next: the absent-root path cannot be reached as root will
+    always exist by the time the mutation observer is observing -- @preserve */
     const children = [
-      ...(this._root?.querySelectorAll<HTMLElement>(this._selector) ??
-        /* istanbul ignore next: this path cannot be reached as root will always
-        exist by the time the mutation observer is observing -- @preserve */
-        []),
+      ...(this._root?.querySelectorAll<HTMLElement>(this._selector) ?? []),
     ];
     if (isEqual(children, this._children)) {
       return;

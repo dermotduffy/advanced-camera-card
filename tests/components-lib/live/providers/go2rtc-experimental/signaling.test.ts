@@ -9,7 +9,7 @@ describe('SignalingChannel', () => {
     disconnectCallback?: () => void;
   }) => {
     const websockets: FakeWebSocket[] = [];
-    const createWebSocket = vi.fn<[string], WebSocket>(() => {
+    const createWebSocket = vi.fn<(url: string) => WebSocket>(() => {
       const websocket = new FakeWebSocket();
       websockets.push(websocket);
       return websocket.asWebSocket();
@@ -238,7 +238,11 @@ describe('SignalingChannel', () => {
   });
 
   it('should construct a real websocket by default', () => {
-    const webSocketConstructor = vi.fn(() => new FakeWebSocket().asWebSocket());
+    // A mock implementation must be callable with `new`, so it cannot be an
+    // arrow function.
+    const webSocketConstructor = vi.fn(function () {
+      return new FakeWebSocket().asWebSocket();
+    });
     vi.stubGlobal('WebSocket', webSocketConstructor);
     const channel = new SignalingChannel('ws://host/api/ws', {});
     channel.connect();

@@ -24,8 +24,10 @@ vi.mock('lodash-es', async () => ({
 }));
 
 const masonry = mock<ExtendedMasonry>();
+// The source calls `new Masonry(...)`, and a mock implementation must be
+// callable with `new`, so it cannot be an arrow function.
 vi.mock('masonry-layout', () => ({
-  default: vi.fn().mockImplementation(() => {
+  default: vi.fn().mockImplementation(function () {
     return masonry;
   }),
 }));

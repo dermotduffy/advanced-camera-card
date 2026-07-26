@@ -14,7 +14,7 @@ describe('MJPEGStreamSource', () => {
     const channel = new FakeStreamSourceChannel();
     const loadedCallback = vi.fn();
     const failedCallback = vi.fn();
-    const showFrame = vi.fn<[Blob], Promise<void>>(() => Promise.resolve());
+    const showFrame = vi.fn<(blob: Blob) => Promise<void>>(() => Promise.resolve());
 
     const context: StreamSourceContext<ImageStreamTarget> = {
       target: { kind: 'image', showFrame },

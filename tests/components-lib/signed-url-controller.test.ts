@@ -23,6 +23,7 @@ const createEndpoint = (url: string, sign?: boolean): Endpoint => ({
 describe('SignedURLController', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should initialize correctly', () => {

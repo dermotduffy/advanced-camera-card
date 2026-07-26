@@ -208,6 +208,7 @@ describe('FrigateQueryResultsClassifier', () => {
 describe('FrigateCameraManagerEngine', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('getEngineType', () => {

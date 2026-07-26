@@ -35,11 +35,13 @@ describe('LazyLoadController', () => {
     Object.defineProperty(document, 'visibilityState', {
       value: 'visible',
       writable: true,
+      configurable: true,
     });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be unloaded by default', () => {
@@ -281,6 +283,7 @@ describe('LazyLoadController', () => {
       Object.defineProperty(document, 'visibilityState', {
         value: 'hidden',
         writable: true,
+        configurable: true,
       });
 
       const controller = new LazyLoadController(createLitElement());

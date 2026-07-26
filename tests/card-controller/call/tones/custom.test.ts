@@ -8,7 +8,7 @@ interface AudioMocks {
   // and pushed here in construction order, so tests can dispatch real events
   // and read real properties (`loop`, `currentTime`, etc.) on the instances.
   instances: HTMLAudioElement[];
-  ctor: Mock<[string?], HTMLAudioElement>;
+  ctor: Mock<(url?: string) => HTMLAudioElement>;
 }
 
 // Uses real jsdom HTMLAudioElement instances and only stubs the parts jsdom
@@ -33,7 +33,10 @@ const useAudioElementMocks = (): AudioMocks => {
     vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
 
     const RealAudio = window.Audio;
-    handle.ctor = vi.fn((url?: string) => {
+
+    // The source calls `new Audio(...)`, and a mock implementation must be
+    // callable with `new`, so it cannot be an arrow function.
+    handle.ctor = vi.fn(function (url?: string) {
       const audio = new RealAudio(url);
       handle.instances.push(audio);
       return audio;

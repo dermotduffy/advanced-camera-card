@@ -32,7 +32,7 @@ import {
   setOrRemoveAttribute,
   setOrRemoveStyleProperty,
 } from '../../src/utils/basic.js';
-import { createSlot, createSlotHost } from '../test-utils.js';
+import { createSlot, createSlotHost, stubMatchMedia } from '../test-utils.js';
 
 describe('prettifyTitle', () => {
   it('should return undefined when passed undefined', () => {
@@ -146,11 +146,11 @@ describe('isHoverableDevice', () => {
   });
 
   it('should return hoverable', () => {
-    vi.spyOn(window, 'matchMedia').mockReturnValue(<MediaQueryList>{ matches: true });
+    stubMatchMedia().mockReturnValue(<MediaQueryList>{ matches: true });
     expect(isHoverableDevice()).toBeTruthy();
   });
   it('should return not hoverable', () => {
-    vi.spyOn(window, 'matchMedia').mockReturnValue(<MediaQueryList>{ matches: false });
+    stubMatchMedia().mockReturnValue(<MediaQueryList>{ matches: false });
     expect(isHoverableDevice()).toBeFalsy();
   });
 });

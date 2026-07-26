@@ -8,6 +8,7 @@ import {
   createMockTemplateRenderer,
   createStateEntity,
   stubConnectedHomeAssistant,
+  stubMatchMedia,
 } from '../../test-utils';
 
 // A mock renderer for the orchestration tests, which never render templates.
@@ -71,7 +72,7 @@ describe('ConditionsManager', () => {
   it('should re-evaluate and notify when a subscribed condition source changes', () => {
     const addEventListener = vi.fn();
     const removeEventListener = vi.fn();
-    vi.spyOn(window, 'matchMedia')
+    stubMatchMedia()
       .mockReturnValueOnce({
         addEventListener: addEventListener,
         removeEventListener: removeEventListener,

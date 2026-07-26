@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ActionSet } from '../../../../src/card-controller/actions/actions/set';
 import { createLogAction } from '../../../../src/utils/action';
@@ -6,6 +6,10 @@ import { arrayify } from '../../../../src/utils/basic';
 import { createCardAPI } from '../../../test-utils';
 
 describe('ActionSet', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   const createAPI = () => {
     const api = createCardAPI();
     vi.mocked(api.getLockManager().getAllowedActions).mockImplementation((actions) =>
