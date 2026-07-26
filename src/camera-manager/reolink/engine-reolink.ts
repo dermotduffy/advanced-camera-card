@@ -90,7 +90,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     media: BrowseMedia,
     parent?: RichBrowseMedia<BrowseMediaMetadata>,
   ): BrowseMediaMetadata | null {
-    /* istanbul ignore next: This situation cannot happen as the directory would
+    /* v8 ignore next: This situation cannot happen as the directory would
     be rejected by _reolinkDirectoryMetadataGenerator if there was no start date
     -- @preserve */
     if (!parent?._metadata?.startDate || media.media_class !== MEDIA_CLASS_VIDEO) {
@@ -375,7 +375,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
         engineOptions,
       );
       for (const dayDirectory of directories ?? []) {
-        /* istanbul ignore next: This situation cannot happen as the directory
+        /* v8 ignore next: This situation cannot happen as the directory
         will not match without metadata -- @preserve */
         if (dayDirectory._metadata?.startDate) {
           days.add(formatDate(dayDirectory._metadata.startDate));

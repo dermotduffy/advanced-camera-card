@@ -39,7 +39,7 @@ export class ViewItemManager {
     try {
       await this._download(item);
     } catch (error: unknown) {
-      /* istanbul ignore if: catch always provides a non-null error -- @preserve */
+      /* v8 ignore if: catch always provides a non-null error -- @preserve */
       if (error == null) {
         return false;
       }
@@ -58,7 +58,7 @@ export class ViewItemManager {
     if (source === ViewMediaSource.Camera && ViewItemClassifier.isMedia(item)) {
       return await this._api.getCameraManager().favoriteMedia(item, favorite);
     }
-    /* istanbul ignore else: this path cannot be reached -- @preserve */
+    /* v8 ignore else: this path cannot be reached -- @preserve */
     if (source === ViewMediaSource.Folder) {
       return this._api.getFoldersManager().favorite(item, favorite);
     }
@@ -78,7 +78,6 @@ export class ViewItemManager {
       return ViewMediaSource.Folder;
     }
 
-    /* istanbul ignore next: this path cannot be reached -- @preserve */
     return null;
   }
 
@@ -133,12 +132,12 @@ export class ViewItemManager {
       );
     }
 
-    /* istanbul ignore else: this path cannot be reached -- @preserve */
+    /* v8 ignore else: this path cannot be reached -- @preserve */
     if (ViewItemClassifier.isFolder(item)) {
       return toFilename(item.getTitle() ?? 'media');
     }
 
-    /* istanbul ignore next: this path cannot be reached -- @preserve */
+    /* v8 ignore next: this path cannot be reached -- @preserve */
     return 'download';
   }
 }

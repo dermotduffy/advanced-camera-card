@@ -239,7 +239,7 @@ export class ReolinkCamera extends EntityCamera {
       reolinkPTZCapabilities.presets = ptzPresetsEntityState.attributes.options;
     }
 
-    /* istanbul ignore next: this path cannot be reached as ptzEntities will
+    /* v8 ignore next: this path cannot be reached as ptzEntities will
     always have contents when this function is called  -- @preserve */
     return Object.keys(reolinkPTZCapabilities).length ? reolinkPTZCapabilities : null;
   }
@@ -248,7 +248,7 @@ export class ReolinkCamera extends EntityCamera {
     hass: HomeAssistant,
     entityRegistry: EntityRegistryManager,
   ): Promise<PTZEntities | null> {
-    /* istanbul ignore next: this path cannot be reached as an exception is
+    /* v8 ignore next: this path cannot be reached as an exception is
        thrown in initialize() if this value is not found -- @preserve */
     if (!this._reolinkHostID) {
       return null;

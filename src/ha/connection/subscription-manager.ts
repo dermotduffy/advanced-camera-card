@@ -204,7 +204,7 @@ export class HASSConnectionSubscriptionManager<K, R> {
   }
 
   private _listenToHASS(): void {
-    /* istanbul ignore if: only called when transitioning from zero to one
+    /* v8 ignore if: only called when transitioning from zero to one
        request, so `_unlistenCallback` is always null here -- @preserve */
     if (this._unlistenCallback) {
       return;
@@ -296,14 +296,14 @@ export class HASSConnectionSubscriptionManager<K, R> {
   private _runScheduledRetry(request: R): void {
     const registration = this._requests.get(request);
 
-    /* istanbul ignore if: unsubscribe() and `_endEra()` both stop the timer
+    /* v8 ignore if: unsubscribe() and `_endEra()` both stop the timer
        before tearing down state, so by the time we get here the request is
        still alive and the era is still ready -- @preserve */
     if (!registration || !this._connection) {
       return;
     }
 
-    /* istanbul ignore if: the timer can only fire while its token is null (set
+    /* v8 ignore if: the timer can only fire while its token is null (set
        null by the catch that scheduled this timer) -- @preserve */
     if (registration.token != null) {
       return;

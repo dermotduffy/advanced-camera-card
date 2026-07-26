@@ -187,7 +187,7 @@ export class CameraManager {
     const engines: Map<Engine, CameraManagerEngine> = new Map();
     const hass = this._api.getHASSManager().getHASS();
 
-    /* istanbul ignore if: the if path cannot be reached -- @preserve */
+    /* v8 ignore if: the if path cannot be reached -- @preserve */
     if (!hass) {
       return output;
     }
@@ -225,7 +225,7 @@ export class CameraManager {
     const initializationStartTime = new Date();
     const hass = this._api.getHASSManager().getHASS();
 
-    /* istanbul ignore if: the if path cannot be reached -- @preserve */
+    /* v8 ignore if: the if path cannot be reached -- @preserve */
     if (!hass) {
       return;
     }
@@ -366,7 +366,7 @@ export class CameraManager {
 
     for (const [engine, cameraIDs] of engines) {
       let queries: CameraQuery[] | null = null;
-      /* istanbul ignore else: the else path cannot be reached -- @preserve */
+      /* v8 ignore else: the else path cannot be reached -- @preserve */
       if (CameraQueryClassifier.isEventQuery(partialQuery)) {
         queries = engine.generateDefaultEventQuery(this._store, cameraIDs, partialQuery);
       } else if (CameraQueryClassifier.isRecordingQuery(partialQuery)) {
@@ -540,7 +540,7 @@ export class CameraManager {
     for (const query of queries) {
       const newChunkQuery = { ...query };
 
-      /* istanbul ignore else: the else path cannot be reached -- @preserve */
+      /* v8 ignore else: the else path cannot be reached -- @preserve */
       if (direction === 'later') {
         const latestResult = getTimeFromResults('latest');
         if (latestResult) {
@@ -728,7 +728,7 @@ export class CameraManager {
     ): Promise<void> => {
       let engineResult: Map<QT, QueryReturnType<QT>> | null = null;
 
-      /* istanbul ignore else: the else path cannot be reached -- @preserve */
+      /* v8 ignore else: the else path cannot be reached -- @preserve */
       if (CameraQueryClassifier.isEventQuery(query)) {
         engineResult = (await engine.getEvents(
           hass,
@@ -825,7 +825,7 @@ export class CameraManager {
 
       if (engine) {
         let media: ViewMedia[] | null = null;
-        /* istanbul ignore else: the else path cannot be reached -- @preserve */
+        /* v8 ignore else: the else path cannot be reached -- @preserve */
         if (
           CameraQueryClassifier.isEventQuery(query) &&
           QueryResultClassifier.isEventQueryResult(result)

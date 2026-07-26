@@ -99,7 +99,7 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
       setInProgressForThisTarget(ptzCameraID, this._context, 'ptz', this);
 
       const singleStep = async (): Promise<void> => {
-        /* istanbul ignore else: the else path cannot be reached as ptz_action
+        /* v8 ignore else: the else path cannot be reached as ptz_action
         being present is checked above -- @preserve */
         if (action.ptz_action) {
           await api.getCameraManager().executePTZAction(ptzCameraID, action.ptz_action, {
@@ -133,7 +133,7 @@ export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
       });
 
       this._timer.start(ptzConfiguration.c2r_delay_between_calls_seconds, async () => {
-        /* istanbul ignore else: the else path cannot be reached as ptz_action
+        /* v8 ignore else: the else path cannot be reached as ptz_action
         being present is checked above -- @preserve */
         if (action.ptz_action) {
           await api.getCameraManager().executePTZAction(ptzCameraID, action.ptz_action, {

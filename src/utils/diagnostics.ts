@@ -24,12 +24,12 @@ interface IntegrationDiagnostics {
 export const getReleaseVersion = (): string => {
   const releaseVersion: string = '__ADVANCED_CAMERA_CARD_RELEASE_VERSION__';
 
-  /* istanbul ignore if: depends on rollup substitution -- @preserve */
+  /* v8 ignore if: depends on rollup substitution -- @preserve */
   if (releaseVersion === 'pkg') {
     return pkg.version;
   }
 
-  /* istanbul ignore if: depends on rollup substitution -- @preserve */
+  /* v8 ignore if: depends on rollup substitution -- @preserve */
   if (releaseVersion === 'dev') {
     return `dev+${pkg['gitAbbrevHash']}`;
   }

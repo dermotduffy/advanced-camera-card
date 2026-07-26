@@ -130,7 +130,7 @@ export class PTZDragController implements ReactiveController {
   }
 
   private _restoreGestureStyles(): void {
-    /* istanbul ignore next: only called when gesture is active -- @preserve */
+    /* v8 ignore next: only called when gesture is active -- @preserve */
     if (this._gestureElement) {
       this._gestureElement.style.cursor = this._savedCursor;
       this._gestureElement.style.touchAction = this._savedTouchAction;
@@ -138,7 +138,7 @@ export class PTZDragController implements ReactiveController {
   }
 
   private _setCursor(grabbing: boolean): void {
-    /* istanbul ignore next: only called when gesture is active -- @preserve  */
+    /* v8 ignore next: only called when gesture is active -- @preserve  */
     if (this._gestureElement) {
       this._gestureElement.style.cursor = grabbing ? CURSOR_GRABBING : CURSOR_GRAB;
     }
@@ -238,7 +238,7 @@ export class PTZDragController implements ReactiveController {
   };
 
   private _dispatch(action: PTZAction | null, phase?: PTZActionPhase): void {
-    /* istanbul ignore next: all call sites guard against this -- @preserve */
+    /* v8 ignore next: all call sites guard against this -- @preserve */
     if (!action) {
       return;
     }

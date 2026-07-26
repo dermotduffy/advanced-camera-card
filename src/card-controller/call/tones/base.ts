@@ -53,7 +53,7 @@ export abstract class GeneratedTone implements Tone {
   // Current AudioContext time. Subclasses only read this from inside `_play()`
   // where the context is always set.
   protected get _currentTime(): number {
-    /* istanbul ignore next: _currentTime is only read by subclasses from
+    /* v8 ignore next: _currentTime is only read by subclasses from
        _play() during an active context -- @preserve */
     return this._context?.currentTime ?? 0;
   }
@@ -62,7 +62,7 @@ export abstract class GeneratedTone implements Tone {
   // of their pattern to loop. No-ops if the context has already been closed so
   // a stopped tone can never re-arm its loop.
   protected _scheduleNext(intervalSeconds: number): void {
-    /* istanbul ignore next: defensive guard against a subclass calling
+    /* v8 ignore next: defensive guard against a subclass calling
        _scheduleNext after stop() -- JS single-threading makes this unreachable
        from the existing subclasses -- @preserve */
     if (!this._context) {
@@ -78,7 +78,7 @@ export abstract class GeneratedTone implements Tone {
       return;
     }
     this._timer.start(intervalSeconds, () => {
-      /* istanbul ignore next: Timer.stop() cancels pending callbacks, so this
+      /* v8 ignore next: Timer.stop() cancels pending callbacks, so this
          re-entry guard is unreachable in practice -- @preserve */
       if (!this._context) {
         return;
@@ -89,7 +89,7 @@ export abstract class GeneratedTone implements Tone {
 
   // Plays one note: a smooth tone that rises to peak volume and then fades.
   protected _playNote(freq: number, when: number, envelope: ToneEnvelope): void {
-    /* istanbul ignore next: _playNote is only called by subclasses from
+    /* v8 ignore next: _playNote is only called by subclasses from
        _play() during an active context -- @preserve */
     if (!this._context) {
       return;

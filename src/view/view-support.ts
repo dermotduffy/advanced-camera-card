@@ -108,7 +108,7 @@ export const getCameraIDsWithCapabilityForView = (
   };
   const capability = requirements.mediaCapabilities;
 
-  /* istanbul ignore next: this path is currently unreachable given the mapping
+  /* v8 ignore next: this path is currently unreachable given the mapping
   in VIEW_REQUIREMENTS includes mediaCapabilities for all camera or 'any'
   related views -- @preserve */
   if (!capability) {

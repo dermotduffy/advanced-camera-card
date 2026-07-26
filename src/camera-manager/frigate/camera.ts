@@ -489,7 +489,7 @@ export class FrigateCamera extends Camera {
       return;
     }
 
-    /* istanbul ignore next -- exercising the matcher is not possible when the
+    /* v8 ignore next -- exercising the matcher is not possible when the
     test uses an event watcher -- @preserve */
     const request: FrigateWatcherRequest<FrigateEventChange> = {
       instanceID: config.frigate.client_id,
@@ -573,7 +573,7 @@ export class FrigateCamera extends Camera {
       return;
     }
 
-    /* istanbul ignore next -- exercising the matcher is not possible when the
+    /* v8 ignore next -- exercising the matcher is not possible when the
     test uses a review watcher -- @preserve */
     const request: FrigateWatcherRequest<FrigateReviewChange> = {
       instanceID: config.frigate.client_id,

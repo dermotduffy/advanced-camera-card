@@ -54,7 +54,7 @@ export const MediaTypeSpec = {
  * Note on code coverage: Throughout this class, _buildBaseQueryNode and similar
  * methods return null only when cameraIDs is empty. Public methods guard
  * against empty cameraIDs before calling these internal methods, making the
- * null branches unreachable. Istanbul ignore comments reference this note.
+ * null branches unreachable. Coverage ignore comments reference this note.
  */
 export class UnifiedQueryBuilder {
   private _cameraManager: CameraManager;
@@ -132,7 +132,7 @@ export class UnifiedQueryBuilder {
       new UnifiedQuery(),
       this._buildRecordingsQueryNode(cameraIDs, options),
     );
-    /* istanbul ignore next: see class note on code coverage -- @preserve */
+    /* v8 ignore next: see class note on code coverage -- @preserve */
     return query.hasNodes() ? query : null;
   }
 
@@ -229,14 +229,13 @@ export class UnifiedQueryBuilder {
     if (effectiveCameraIDs.size) {
       for (const mediaType of effectiveMediaTypes) {
         const node = this._buildFilterQueryNode(mediaType, effectiveCameraIDs, options);
-        /* istanbul ignore next: see class note on code coverage -- @preserve */
+        /* v8 ignore next: see class note on code coverage -- @preserve */
         if (node) {
           query.addNode(node);
         }
       }
     }
 
-    /* istanbul ignore next: see class note on code coverage -- @preserve */
     return query.hasNodes() ? query : null;
   }
 
