@@ -104,7 +104,7 @@ describe('MediaActionsController', () => {
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
           ?.play,
-      ).not.toBeCalled();
+      ).not.toHaveBeenCalled();
     });
 
     it('should do nothing on resetting same root', () => {
@@ -138,7 +138,7 @@ describe('MediaActionsController', () => {
 
       await controller.setTarget(1, true);
 
-      expect(mediaPlayerController.playback?.play).toBeCalled();
+      expect(mediaPlayerController.playback?.play).toHaveBeenCalled();
     });
   });
 
@@ -161,7 +161,7 @@ describe('MediaActionsController', () => {
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
           ?.play,
-      ).not.toBeCalled();
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -195,7 +195,7 @@ describe('MediaActionsController', () => {
             await getPlayer(children[0], 'video')?.getMediaPlayerController(),
             func,
           ),
-        ).toBeCalledTimes(called ? 1 : 0);
+        ).toHaveBeenCalledTimes(called ? 1 : 0);
       },
     );
 
@@ -214,14 +214,14 @@ describe('MediaActionsController', () => {
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
           ?.play,
-      ).toBeCalledTimes(1);
+      ).toHaveBeenCalledTimes(1);
 
       await controller.setTarget(0, true);
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
           ?.play,
-      ).toBeCalledTimes(1);
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should unselect before selecting a new target', async () => {
@@ -241,10 +241,10 @@ describe('MediaActionsController', () => {
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
           ?.pause,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
     });
 
     it('should select after target was previously visible', async () => {
@@ -263,20 +263,20 @@ describe('MediaActionsController', () => {
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
           ?.play,
-      ).not.toBeCalled();
+      ).not.toHaveBeenCalled();
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-      ).not.toBeCalled();
+      ).not.toHaveBeenCalled();
 
       await controller.setTarget(0, true);
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
           ?.play,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
     });
   });
 
@@ -296,10 +296,10 @@ describe('MediaActionsController', () => {
     expect(
       (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
         ?.play,
-    ).toBeCalledTimes(1);
+    ).toHaveBeenCalledTimes(1);
     expect(
       (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-    ).toBeCalledTimes(1);
+    ).toHaveBeenCalledTimes(1);
 
     controller.unsetTarget();
 
@@ -312,10 +312,10 @@ describe('MediaActionsController', () => {
     expect(
       (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
         ?.play,
-    ).toBeCalledTimes(1);
+    ).toHaveBeenCalledTimes(1);
     expect(
       (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-    ).toBeCalledTimes(1);
+    ).toHaveBeenCalledTimes(1);
   });
 
   describe('should respond to media loaded', () => {
@@ -334,7 +334,7 @@ describe('MediaActionsController', () => {
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
           ?.play,
-      ).toBeCalledTimes(1);
+      ).toHaveBeenCalledTimes(1);
 
       getPlayer(children[0], 'video')?.dispatchEvent(
         new Event('advanced-camera-card:media:loaded'),
@@ -345,7 +345,7 @@ describe('MediaActionsController', () => {
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
           ?.play,
-      ).toBeCalledTimes(2);
+      ).toHaveBeenCalledTimes(2);
     });
 
     it('should unmute after media load', async () => {
@@ -361,7 +361,7 @@ describe('MediaActionsController', () => {
       await controller.setTarget(0, true);
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-      ).toBeCalledTimes(1);
+      ).toHaveBeenCalledTimes(1);
 
       getPlayer(children[0], 'video')?.dispatchEvent(
         new Event('advanced-camera-card:media:loaded'),
@@ -371,7 +371,7 @@ describe('MediaActionsController', () => {
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-      ).toBeCalledTimes(2);
+      ).toHaveBeenCalledTimes(2);
     });
 
     it('should take no action on unrelated media load', async () => {
@@ -396,10 +396,10 @@ describe('MediaActionsController', () => {
       expect(
         (await getPlayer(children[9], 'video')?.getMediaPlayerController())?.playback
           ?.play,
-      ).not.toBeCalled();
+      ).not.toHaveBeenCalled();
       expect(
         (await getPlayer(children[9], 'video')?.getMediaPlayerController())?.unmute,
-      ).not.toBeCalled();
+      ).not.toHaveBeenCalled();
     });
 
     it('should play and unmute on unselected but targeted media load', async () => {
@@ -418,10 +418,10 @@ describe('MediaActionsController', () => {
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
           ?.play,
-      ).toBeCalledTimes(1);
+      ).toHaveBeenCalledTimes(1);
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-      ).toBeCalledTimes(1);
+      ).toHaveBeenCalledTimes(1);
 
       getPlayer(children[0], 'video')?.dispatchEvent(
         new Event('advanced-camera-card:media:loaded'),
@@ -432,10 +432,10 @@ describe('MediaActionsController', () => {
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.playback
           ?.play,
-      ).toBeCalledTimes(2);
+      ).toHaveBeenCalledTimes(2);
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-      ).toBeCalledTimes(2);
+      ).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -470,7 +470,7 @@ describe('MediaActionsController', () => {
             await getPlayer(children[0], 'video')?.getMediaPlayerController(),
             func,
           ),
-        ).toBeCalledTimes(called ? 1 : 0);
+        ).toHaveBeenCalledTimes(called ? 1 : 0);
       },
     );
   });
@@ -516,7 +516,7 @@ describe('MediaActionsController', () => {
             await getPlayer(children[0], 'video')?.getMediaPlayerController(),
             func,
           ),
-        ).toBeCalledTimes(called ? 1 : 0);
+        ).toHaveBeenCalledTimes(called ? 1 : 0);
       },
     );
   });
@@ -561,7 +561,7 @@ describe('MediaActionsController', () => {
             await getPlayer(children[0], 'video')?.getMediaPlayerController(),
             func,
           ),
-        ).toBeCalledTimes(called ? 1 : 0);
+        ).toHaveBeenCalledTimes(called ? 1 : 0);
       },
     );
   });
@@ -596,7 +596,7 @@ describe('MediaActionsController', () => {
             await getPlayer(children[0], 'video')?.getMediaPlayerController(),
             func,
           ),
-        ).not.toBeCalled();
+        ).not.toHaveBeenCalled();
 
         // There's always a first call to an intersection observer handler. In
         // this case the MediaActionsController ignores it.
@@ -610,7 +610,7 @@ describe('MediaActionsController', () => {
             await getPlayer(children[0], 'video')?.getMediaPlayerController(),
             func,
           ),
-        ).toBeCalledTimes(called ? 1 : 0);
+        ).toHaveBeenCalledTimes(called ? 1 : 0);
       },
     );
   });
@@ -645,7 +645,7 @@ describe('MediaActionsController', () => {
             await getPlayer(children[0], 'video')?.getMediaPlayerController(),
             func,
           ),
-        ).not.toBeCalled();
+        ).not.toHaveBeenCalled();
 
         // There's always a first call to an intersection observer handler. In
         // this case the MediaActionsController ignores it.
@@ -659,7 +659,7 @@ describe('MediaActionsController', () => {
             await getPlayer(children[0], 'video')?.getMediaPlayerController(),
             func,
           ),
-        ).toBeCalledTimes(called ? 1 : 0);
+        ).toHaveBeenCalledTimes(called ? 1 : 0);
       },
     );
   });
@@ -702,7 +702,7 @@ describe('MediaActionsController', () => {
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
     });
 
     it('should mute after delay after microphone muted', async () => {
@@ -725,7 +725,7 @@ describe('MediaActionsController', () => {
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
     });
 
     it('should not mute after delay after microphone muted', async () => {
@@ -748,7 +748,7 @@ describe('MediaActionsController', () => {
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
-      ).not.toBeCalled();
+      ).not.toHaveBeenCalled();
     });
 
     it('should not act on the initial microphone state', async () => {
@@ -767,7 +767,7 @@ describe('MediaActionsController', () => {
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-      ).not.toBeCalled();
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -790,7 +790,7 @@ describe('MediaActionsController', () => {
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
     });
 
     it('should mute the target on call end', async () => {
@@ -811,7 +811,7 @@ describe('MediaActionsController', () => {
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
     });
 
     it('should not act on the initial call state', async () => {
@@ -831,7 +831,7 @@ describe('MediaActionsController', () => {
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.mute,
-      ).not.toBeCalled();
+      ).not.toHaveBeenCalled();
     });
 
     it('should not act when call is not a configured condition', async () => {
@@ -851,7 +851,7 @@ describe('MediaActionsController', () => {
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-      ).not.toBeCalled();
+      ).not.toHaveBeenCalled();
     });
 
     it('should apply the call-answer unmute when the target arrives after the call', async () => {
@@ -871,13 +871,13 @@ describe('MediaActionsController', () => {
       await flushPromises();
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-      ).not.toBeCalled();
+      ).not.toHaveBeenCalled();
 
       await controller.setTarget(0, true);
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
     });
 
     it('should unmute when the call is already answered on the first call-state signal', async () => {
@@ -900,7 +900,7 @@ describe('MediaActionsController', () => {
 
       expect(
         (await getPlayer(children[0], 'video')?.getMediaPlayerController())?.unmute,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
     });
 
     it('should defer the call-answer unmute until the media player is ready', async () => {
@@ -928,7 +928,7 @@ describe('MediaActionsController', () => {
       // The call is answered while the player is still not ready: no unmute yet.
       controller.setCallAnswered(true);
       await flushPromises();
-      expect(mediaPlayerController.unmute).not.toBeCalled();
+      expect(mediaPlayerController.unmute).not.toHaveBeenCalled();
 
       // Once the media loads the deferred unmute is applied -- exactly once,
       // so a later reload cannot clobber a manual mute made during the call.
@@ -936,7 +936,7 @@ describe('MediaActionsController', () => {
       await flushPromises();
       player.dispatchEvent(new Event('advanced-camera-card:media:loaded'));
       await flushPromises();
-      expect(mediaPlayerController.unmute).toBeCalledTimes(1);
+      expect(mediaPlayerController.unmute).toHaveBeenCalledTimes(1);
     });
   });
 });

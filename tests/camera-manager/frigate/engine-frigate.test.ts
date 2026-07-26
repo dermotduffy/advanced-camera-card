@@ -38,17 +38,17 @@ import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import { QuerySource } from '../../../src/query-source';
 import type { Severity } from '../../../src/severity';
 import { ViewMedia, ViewMediaType } from '../../../src/view/item';
+import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
-  createCameraConfig,
   createFrigateEvent,
   createFrigateRecording,
   createFrigateReview,
   createHASS,
   createHASSManager,
-  createStore,
-  TestViewMedia,
 } from '../../test-utils';
+import { TestViewMedia } from '../../view/test-utils';
+import { createStore } from '../test-utils';
 
 vi.mock('../../../src/camera-manager/frigate/requests');
 

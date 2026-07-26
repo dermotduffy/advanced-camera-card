@@ -7,13 +7,13 @@ import { createSubstreamOnAction } from '../../../../src/utils/action';
 import { getStreamCameraID } from '../../../../src/view/substream';
 import type { View } from '../../../../src/view/view';
 import {
-  createCameraConfig,
   createCameraManager,
   createCapabilities,
-  createCardAPI,
   createStore,
-  createView,
-} from '../../../test-utils';
+} from '../../../camera-manager/test-utils';
+import { createCameraConfig } from '../../../config/test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView } from '../../../view/test-utils';
 
 // A store where `camera.office` has one substream dependency, `camera.kitchen`.
 const createStoreWithSubstreams = (): CameraManagerStore =>
@@ -181,6 +181,6 @@ describe('SubstreamOnAction', () => {
 
     await new SubstreamOnAction({}, createSubstreamOnAction()).execute(api);
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 });

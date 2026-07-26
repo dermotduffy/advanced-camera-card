@@ -15,5 +15,5 @@ it('should handle microphone_unmute action', async () => {
 
   await action.execute(api);
 
-  expect(api.getMicrophoneManager().unmute).toBeCalled();
+  expect(api.getMicrophoneManager().unmute).toHaveBeenCalled();
 });

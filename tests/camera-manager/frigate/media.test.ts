@@ -7,8 +7,8 @@ import {
   FrigateViewMediaFactory,
 } from '../../../src/camera-manager/frigate/media';
 import { ViewMediaType } from '../../../src/view/item';
+import { createCameraConfig } from '../../config/test-utils';
 import {
-  createCameraConfig,
   createFrigateEvent,
   createFrigateRecording,
   createFrigateReview,

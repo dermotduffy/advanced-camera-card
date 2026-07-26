@@ -36,17 +36,10 @@ import { QuerySource } from '../../src/query-source.js';
 import { PTZMovementType, type Endpoint } from '../../src/types.js';
 import { ViewFolder, type ViewItem, type ViewMedia } from '../../src/view/item.js';
 import type { ViewItemCapabilities } from '../../src/view/types.js';
-import {
-  createCameraConfig,
-  createCapabilities,
-  createCardAPI,
-  createConfig,
-  createFolder,
-  createHASS,
-  createInitializedCamera,
-  generateViewMediaArray,
-  TestViewMedia,
-} from '../test-utils.js';
+import { createCameraConfig, createConfig } from '../config/test-utils';
+import { createCardAPI, createFolder, createHASS } from '../test-utils.js';
+import { generateViewMediaArray, TestViewMedia } from '../view/test-utils';
+import { createCapabilities, createInitializedCamera } from './test-utils';
 
 describe('QueryClassifier', () => {
   it('should classify event query', () => {
@@ -481,7 +474,7 @@ describe('CameraManager', () => {
         type: 'new',
       };
       eventCallback?.(cameraEvent);
-      expect(api.getCameraTriggersManager().handleCameraEvent).toBeCalledWith(
+      expect(api.getCameraTriggersManager().handleCameraEvent).toHaveBeenCalledWith(
         cameraEvent,
       );
     });
@@ -505,7 +498,7 @@ describe('CameraManager', () => {
           ]);
 
           await manager.initializeCamerasFromConfig();
-          expect(api.getEntityRegistryManager().fetchEntityList).toBeCalled();
+          expect(api.getEntityRegistryManager().fetchEntityList).toHaveBeenCalled();
         },
       );
 
@@ -516,7 +509,7 @@ describe('CameraManager', () => {
         const manager = createCameraManager(api);
 
         await manager.initializeCamerasFromConfig();
-        expect(api.getEntityRegistryManager().fetchEntityList).not.toBeCalled();
+        expect(api.getEntityRegistryManager().fetchEntityList).not.toHaveBeenCalled();
       });
     });
 
@@ -710,7 +703,7 @@ describe('CameraManager', () => {
       const results = new Map([[baseEventQuery, baseEventQueryResults]]);
       engine.getEvents.mockResolvedValue(results);
       expect(await manager.getEvents(baseEventQuery, engineOptions)).toEqual(results);
-      expect(engine.getEvents).toBeCalledWith(
+      expect(engine.getEvents).toHaveBeenCalledWith(
         hass,
         expect.anything(),
         baseEventQuery,
@@ -743,7 +736,12 @@ describe('CameraManager', () => {
 
       await manager.reviewMedia(media, true);
 
-      expect(engine.reviewMedia).toBeCalledWith(hass, expect.anything(), media, true);
+      expect(engine.reviewMedia).toHaveBeenCalledWith(
+        hass,
+        expect.anything(),
+        media,
+        true,
+      );
     });
   });
 
@@ -1210,7 +1208,7 @@ describe('CameraManager', () => {
       const manager = createCameraManager(createCardAPI(), engine);
       manager.favoriteMedia(new TestViewMedia(), true);
 
-      expect(engine.favoriteMedia).not.toBeCalled();
+      expect(engine.favoriteMedia).not.toHaveBeenCalled();
     });
 
     it('should succeed', async () => {
@@ -1225,7 +1223,12 @@ describe('CameraManager', () => {
 
       const media = new TestViewMedia({ cameraID: 'id' });
       manager.favoriteMedia(media, true);
-      expect(engine.favoriteMedia).toBeCalledWith(hass, expect.anything(), media, true);
+      expect(engine.favoriteMedia).toHaveBeenCalledWith(
+        hass,
+        expect.anything(),
+        media,
+        true,
+      );
     });
   });
 
@@ -1396,7 +1399,7 @@ describe('CameraManager', () => {
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
       manager.executePTZAction('another', 'left');
 
-      expect(api.getActionsManager().executeActions).toBeCalledWith({
+      expect(api.getActionsManager().executeActions).toHaveBeenCalledWith({
         actions: action,
       });
     });
@@ -1425,7 +1428,9 @@ describe('CameraManager', () => {
 
       manager.executePTZAction('another', 'left');
 
-      expect(api.getActionsManager().executeActions).toBeCalledWith({ actions: action });
+      expect(api.getActionsManager().executeActions).toHaveBeenCalledWith({
+        actions: action,
+      });
     });
 
     describe('with rotation', () => {
@@ -1544,7 +1549,7 @@ describe('CameraManager', () => {
             preset: presetAction,
           };
 
-          expect(api.getActionsManager().executeActions).toBeCalledWith({
+          expect(api.getActionsManager().executeActions).toHaveBeenCalledWith({
             actions: expectedActionMap[expectedAction],
           });
         },
@@ -1657,7 +1662,7 @@ describe('CameraManager', () => {
       });
       expect(await manager.getMediaSeekTime(media, middleTime)).toBe(42);
 
-      expect(engine.getMediaSeekTime).toBeCalledWith(
+      expect(engine.getMediaSeekTime).toHaveBeenCalledWith(
         expect.anything(),
         expect.anything(),
         media,

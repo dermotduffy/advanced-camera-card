@@ -3,7 +3,7 @@ import { describe, expect, it, vi, type Mock } from 'vitest';
 import { ConditionStateManager } from '../../../../src/condition-trigger/conditions/state-manager';
 import { ConfigTrigger } from '../../../../src/condition-trigger/triggers/triggers/config';
 import type { TriggerOfType } from '../../../../src/condition-trigger/triggers/triggers/types';
-import { createConfig } from '../../../test-utils';
+import { createConfig } from '../../../config/test-utils';
 import { createTriggerEvaluatorContext } from './test-utils';
 
 describe('ConfigTrigger', () => {

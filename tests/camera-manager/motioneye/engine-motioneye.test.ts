@@ -22,9 +22,9 @@ import {
 import type { Entity } from '../../../src/ha/registry/entity/types';
 import { ResolvedMediaCache } from '../../../src/ha/resolved-media';
 import { QuerySource } from '../../../src/query-source';
+import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
-  createCameraConfig,
   createHASS,
   createHASSManager,
   createRegistryEntity,

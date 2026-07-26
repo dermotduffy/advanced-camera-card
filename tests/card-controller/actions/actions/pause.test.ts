@@ -25,5 +25,5 @@ it('should handle pause action', async () => {
 
   await action.execute(api);
 
-  expect(mediaPlayerController.playback?.pause).toBeCalled();
+  expect(mediaPlayerController.playback?.pause).toHaveBeenCalled();
 });

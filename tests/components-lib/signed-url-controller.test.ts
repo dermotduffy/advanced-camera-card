@@ -30,7 +30,7 @@ describe('SignedURLController', () => {
     const host = mock<ReactiveControllerHost>();
     const controller = new SignedURLController(host, () => ({}));
 
-    expect(host.addController).toBeCalledWith(controller);
+    expect(host.addController).toHaveBeenCalledWith(controller);
     expect(controller.getValue()).toBeNull();
   });
 
@@ -65,7 +65,7 @@ describe('SignedURLController', () => {
 
     expect(controller.getValue()).toBeNull();
 
-    expect(createProxiedEndpointIfNecessary).toBeCalledWith(
+    expect(createProxiedEndpointIfNecessary).toHaveBeenCalledWith(
       hass,
       { endpoint: 'http://test-url.com/', sign: false },
       proxyConfig,
@@ -74,9 +74,9 @@ describe('SignedURLController', () => {
 
     await flushPromises();
 
-    expect(homeAssistantGetSignedURLIfNecessary).toBeCalled();
+    expect(homeAssistantGetSignedURLIfNecessary).toHaveBeenCalled();
     expect(controller.getValue()).toBe('http://signed-proxied-url.com');
-    expect(host.requestUpdate).toBeCalled();
+    expect(host.requestUpdate).toHaveBeenCalled();
   });
 
   it('should not fetch if inputs are missing', async () => {
@@ -86,7 +86,7 @@ describe('SignedURLController', () => {
     controller.hostUpdate();
     await flushPromises();
 
-    expect(createProxiedEndpointIfNecessary).not.toBeCalled();
+    expect(createProxiedEndpointIfNecessary).not.toHaveBeenCalled();
     expect(controller.getValue()).toBeNull();
   });
 
@@ -102,7 +102,7 @@ describe('SignedURLController', () => {
     controller.hostUpdate();
     await flushPromises();
 
-    expect(createProxiedEndpointIfNecessary).not.toBeCalled();
+    expect(createProxiedEndpointIfNecessary).not.toHaveBeenCalled();
     expect(controller.getValue()).toBe('http://test-url.com');
   });
 
@@ -208,7 +208,7 @@ describe('SignedURLController', () => {
     await flushPromises();
 
     expect(controller.getValue()).toBeNull();
-    expect(valueChangeCallback).not.toBeCalled();
+    expect(valueChangeCallback).not.toHaveBeenCalled();
   });
 
   it('should not call valueChangeCallback on null signed URL', async () => {
@@ -243,7 +243,7 @@ describe('SignedURLController', () => {
     await flushPromises();
 
     expect(controller.getValue()).toBeNull();
-    expect(valueChangeCallback).not.toBeCalled();
+    expect(valueChangeCallback).not.toHaveBeenCalled();
   });
 
   it('should ignore successful fetch if inputs become invalid', async () => {
@@ -281,7 +281,7 @@ describe('SignedURLController', () => {
     await flushPromises();
 
     expect(controller.getValue()).toBeNull();
-    expect(host.requestUpdate).not.toBeCalled();
+    expect(host.requestUpdate).not.toHaveBeenCalled();
   });
 
   it('should invalidate cache if input changes', async () => {
@@ -401,7 +401,7 @@ describe('SignedURLController', () => {
 
     expect(controller.getValue()).toBeNull();
     expect(controller.getError()).toBe('proxy');
-    expect(host.requestUpdate).toBeCalledTimes(1);
+    expect(host.requestUpdate).toHaveBeenCalledTimes(1);
   });
 
   it('should not retry after sign error with same inputs', async () => {
@@ -677,7 +677,7 @@ describe('SignedURLController', () => {
     rejectProxy?.(new Error('fail'));
     await flushPromises();
 
-    expect(host.requestUpdate).not.toBeCalled();
+    expect(host.requestUpdate).not.toHaveBeenCalled();
   });
 
   it('should clear value if proxy endpoint is null', async () => {
@@ -704,7 +704,7 @@ describe('SignedURLController', () => {
 
     expect(controller.getValue()).toBeNull();
     expect(controller.getError()).toBe('proxy');
-    expect(host.requestUpdate).toBeCalled();
+    expect(host.requestUpdate).toHaveBeenCalled();
   });
 
   it('should not retry after proxy error with same inputs', async () => {
@@ -881,7 +881,7 @@ describe('SignedURLController', () => {
     await flushPromises();
 
     expect(controller.getValue()).toBeNull();
-    expect(host.requestUpdate).not.toBeCalled();
+    expect(host.requestUpdate).not.toHaveBeenCalled();
   });
 
   it('should ignore stale null signed URL after request ID changed', async () => {
@@ -925,7 +925,7 @@ describe('SignedURLController', () => {
     await flushPromises();
 
     // Stale result should be discarded.
-    expect(host.requestUpdate).not.toBeCalled();
+    expect(host.requestUpdate).not.toHaveBeenCalled();
   });
 
   it('should sign endpoint without proxying when sign is set', async () => {
@@ -946,10 +946,10 @@ describe('SignedURLController', () => {
     controller.hostUpdate();
     await flushPromises();
 
-    expect(createProxiedEndpointIfNecessary).not.toBeCalled();
-    expect(homeAssistantGetSignedURLIfNecessary).toBeCalled();
+    expect(createProxiedEndpointIfNecessary).not.toHaveBeenCalled();
+    expect(homeAssistantGetSignedURLIfNecessary).toHaveBeenCalled();
     expect(controller.getValue()).toBe('http://ha.local/api/some/endpoint?authSig=abc');
-    expect(host.requestUpdate).toBeCalled();
+    expect(host.requestUpdate).toHaveBeenCalled();
   });
 
   it('should return url directly when sign is false and proxy is disabled', () => {
@@ -998,7 +998,7 @@ describe('SignedURLController', () => {
     resolveProxy?.(null);
     await flushPromises();
 
-    expect(host.requestUpdate).not.toBeCalled();
+    expect(host.requestUpdate).not.toHaveBeenCalled();
   });
 });
 

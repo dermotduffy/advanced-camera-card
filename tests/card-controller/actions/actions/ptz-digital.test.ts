@@ -6,7 +6,8 @@ import type {
   ZoomSettingsObserved,
 } from '../../../../src/components-lib/zoom/types';
 import type { PTZAction } from '../../../../src/config/schema/actions/custom/ptz';
-import { createCardAPI, createView } from '../../../test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView } from '../../../view/test-utils';
 
 describe('should handle ptz digital action', () => {
   const defaultSettings = {
@@ -47,7 +48,7 @@ describe('should handle ptz digital action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith({
+    expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
       zoom: {
         camera: {
           observed: undefined,
@@ -77,7 +78,7 @@ describe('should handle ptz digital action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith({
+    expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
       zoom: {
         camera: {
           observed: undefined,
@@ -101,7 +102,7 @@ describe('should handle ptz digital action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewWithMergedContext).not.toBeCalledWith();
+    expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalledWith();
   });
 
   it('should do nothing without a camera', async () => {
@@ -125,7 +126,7 @@ describe('should handle ptz digital action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewWithMergedContext).not.toBeCalled();
+    expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
   });
 
   describe('should honor ptz_action', () => {
@@ -338,7 +339,7 @@ describe('should handle ptz digital action', () => {
 
         await action.execute(api);
 
-        expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith({
+        expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
           zoom: {
             camera: {
               observed: undefined,
@@ -428,12 +429,12 @@ describe('should handle ptz digital action', () => {
           },
         },
       });
-      expect(api.getViewManager().setViewWithMergedContext).toBeCalledTimes(2);
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledTimes(2);
 
       action.stop();
       vi.runOnlyPendingTimers();
 
-      expect(api.getViewManager().setViewWithMergedContext).toBeCalledTimes(2);
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledTimes(2);
     });
 
     it('stop', async () => {
@@ -463,7 +464,7 @@ describe('should handle ptz digital action', () => {
           },
         },
       });
-      expect(api.getViewManager().setViewWithMergedContext).toBeCalledTimes(1);
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledTimes(1);
 
       const stopAction = new PTZDigitalAction(context, {
         action: 'fire-dom-event',
@@ -474,7 +475,7 @@ describe('should handle ptz digital action', () => {
 
       vi.runOnlyPendingTimers();
 
-      expect(api.getViewManager().setViewWithMergedContext).toBeCalledTimes(1);
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -14,7 +14,7 @@ import {
 import { ViewMediaType, type ViewItem } from '../../src/view/item';
 import type { QueryResults } from '../../src/view/query-results';
 import type { View } from '../../src/view/view';
-import { TestViewMedia } from '../test-utils';
+import { TestViewMedia } from '../view/test-utils';
 
 describe('MediaActions', () => {
   describe('toggleReviewed', () => {

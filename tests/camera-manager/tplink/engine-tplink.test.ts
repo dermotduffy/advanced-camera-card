@@ -2,13 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import { TPLinkCameraManagerEngine } from '../../../src/camera-manager/tplink/engine-tplink';
 import { Engine } from '../../../src/camera-manager/types';
+import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
-import {
-  createCameraConfig,
-  createHASS,
-  createHASSManager,
-  createRegistryEntity,
-} from '../../test-utils';
+import { createHASS, createHASSManager, createRegistryEntity } from '../../test-utils';
 
 const createEngine = (options?: {
   entityRegistryManager?: EntityRegistryManagerMock;

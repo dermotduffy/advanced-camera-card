@@ -18,5 +18,5 @@ it('should handle internal callback action', async () => {
 
   await action.execute(api);
 
-  expect(callback).toBeCalledWith(api);
+  expect(callback).toHaveBeenCalledWith(api);
 });

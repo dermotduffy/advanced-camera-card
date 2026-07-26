@@ -5,7 +5,7 @@ import {
   getViewTargetID,
   IMAGE_VIEW_TARGET_ID_SENTINEL,
 } from '../../src/view/target-id';
-import { createView, generateViewMediaArray } from '../test-utils';
+import { createView, generateViewMediaArray } from './test-utils';
 
 describe('getViewTargetID', () => {
   describe('live', () => {

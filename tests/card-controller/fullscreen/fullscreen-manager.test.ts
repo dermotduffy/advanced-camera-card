@@ -19,7 +19,7 @@ describe('FullscreenManager', () => {
     const manager = new FullscreenManager(api, mock<FullscreenProvider>());
 
     manager.initialize();
-    expect(api.getConditionStateManager().setState).toBeCalledWith({
+    expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
       fullscreen: false,
     });
   });
@@ -49,7 +49,7 @@ describe('FullscreenManager', () => {
 
       manager.toggleFullscreen();
 
-      expect(provider.setFullscreen).toBeCalledWith(expected);
+      expect(provider.setFullscreen).toHaveBeenCalledWith(expected);
     });
   });
 
@@ -60,7 +60,7 @@ describe('FullscreenManager', () => {
 
       manager.setFullscreen(fullscreen);
 
-      expect(provider.setFullscreen).toBeCalledWith(fullscreen);
+      expect(provider.setFullscreen).toHaveBeenCalledWith(fullscreen);
     });
   });
 
@@ -70,7 +70,7 @@ describe('FullscreenManager', () => {
 
     manager.connect();
 
-    expect(provider.connect).toBeCalled();
+    expect(provider.connect).toHaveBeenCalled();
   });
 
   it('should disconnect', () => {
@@ -79,7 +79,7 @@ describe('FullscreenManager', () => {
 
     manager.disconnect();
 
-    expect(provider.disconnect).toBeCalled();
+    expect(provider.disconnect).toHaveBeenCalled();
   });
 
   describe('should confirm whether fullscreen is supported', () => {
@@ -137,7 +137,7 @@ describe('FullscreenManager', () => {
 
       handler();
 
-      expect(api.getConditionStateManager().setState).toBeCalledWith({
+      expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
         fullscreen: fullscreen,
       });
     });
@@ -148,6 +148,9 @@ describe('FullscreenManager', () => {
 
     new FullscreenManager(api);
 
-    expect(FullscreenProviderFactory.create).toBeCalledWith(api, expect.anything());
+    expect(FullscreenProviderFactory.create).toHaveBeenCalledWith(
+      api,
+      expect.anything(),
+    );
   });
 });

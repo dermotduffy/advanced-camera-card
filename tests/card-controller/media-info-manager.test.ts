@@ -22,7 +22,7 @@ describe('MediaLoadedInfoManager', () => {
 
     manager.initialize();
 
-    expect(api.getConditionStateManager().setState).toBeCalledWith({
+    expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
       mediaLoadedInfo: null,
     });
   });
@@ -40,11 +40,11 @@ describe('MediaLoadedInfoManager', () => {
 
       expect(manager.has()).toBeTruthy();
       expect(manager.get()).toBe(info);
-      expect(api.getConditionStateManager().setState).toBeCalledWith({
+      expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
         mediaLoadedInfo: info,
       });
-      expect(api.getStyleManager().setExpandedMode).toBeCalled();
-      expect(api.getCardElementManager().update).toBeCalled();
+      expect(api.getStyleManager().setExpandedMode).toHaveBeenCalled();
+      expect(api.getCardElementManager().update).toHaveBeenCalled();
     });
 
     it('should cache info for non-selected targets without side effects', () => {
@@ -57,15 +57,15 @@ describe('MediaLoadedInfoManager', () => {
 
       expect(manager.has()).toBeFalsy();
       expect(manager.get()).toBeNull();
-      expect(api.getConditionStateManager().setState).not.toBeCalled();
-      expect(api.getStyleManager().setExpandedMode).not.toBeCalled();
-      expect(api.getCardElementManager().update).not.toBeCalled();
+      expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
+      expect(api.getStyleManager().setExpandedMode).not.toHaveBeenCalled();
+      expect(api.getCardElementManager().update).not.toHaveBeenCalled();
 
       manager.setSelected('target-1');
 
       expect(manager.has()).toBeTruthy();
       expect(manager.get()).toBe(info);
-      expect(api.getConditionStateManager().setState).toBeCalledWith({
+      expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
         mediaLoadedInfo: info,
       });
     });
@@ -86,9 +86,9 @@ describe('MediaLoadedInfoManager', () => {
 
       expect(manager.has()).toBeFalsy();
       expect(manager.get()).toBeNull();
-      expect(api.getConditionStateManager().setState).not.toBeCalled();
-      expect(api.getStyleManager().setExpandedMode).not.toBeCalled();
-      expect(api.getCardElementManager().update).not.toBeCalled();
+      expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
+      expect(api.getStyleManager().setExpandedMode).not.toHaveBeenCalled();
+      expect(api.getCardElementManager().update).not.toHaveBeenCalled();
     });
 
     it('should reject info without a targetID', () => {
@@ -134,7 +134,7 @@ describe('MediaLoadedInfoManager', () => {
       vi.clearAllMocks();
       manager.setSelected('target-1');
 
-      expect(api.getConditionStateManager().setState).not.toBeCalled();
+      expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
     });
 
     it('should emit null condition state when selecting a target with no info', () => {
@@ -143,7 +143,7 @@ describe('MediaLoadedInfoManager', () => {
 
       manager.setSelected('target-1');
 
-      expect(api.getConditionStateManager().setState).toBeCalledWith({
+      expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
         mediaLoadedInfo: null,
       });
     });
@@ -199,7 +199,7 @@ describe('MediaLoadedInfoManager', () => {
       );
 
       expect(manager.get()).toBe(info);
-      expect(api.getConditionStateManager().setState).toBeCalledWith({
+      expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
         mediaLoadedInfo: info,
       });
     });
@@ -299,7 +299,7 @@ describe('MediaLoadedInfoManager', () => {
 
       ac.abort();
 
-      expect(api.getConditionStateManager().setState).not.toBeCalled();
+      expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
     });
   });
 
@@ -317,7 +317,7 @@ describe('MediaLoadedInfoManager', () => {
       manager.clear();
 
       expect(manager.has()).toBeFalsy();
-      expect(api.getConditionStateManager().setState).toBeCalledWith({
+      expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
         mediaLoadedInfo: null,
       });
     });
@@ -328,7 +328,7 @@ describe('MediaLoadedInfoManager', () => {
 
       manager.clear();
 
-      expect(api.getConditionStateManager().setState).not.toBeCalled();
+      expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
     });
 
     it('should not fire condition state when the selected target has no info', () => {
@@ -339,7 +339,7 @@ describe('MediaLoadedInfoManager', () => {
       vi.clearAllMocks();
       manager.clear();
 
-      expect(api.getConditionStateManager().setState).not.toBeCalled();
+      expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
     });
   });
 
@@ -437,7 +437,7 @@ describe('MediaLoadedInfoManager', () => {
       manager.subscribe(listener);
       manager.set(info, owner);
 
-      expect(listener).toBeCalledWith({
+      expect(listener).toHaveBeenCalledWith({
         type: 'load',
         targetID: 'target-1',
         info,
@@ -455,7 +455,7 @@ describe('MediaLoadedInfoManager', () => {
       manager.subscribe(listener);
       manager.set(info, owner, true);
 
-      expect(listener).toBeCalledWith({
+      expect(listener).toHaveBeenCalledWith({
         type: 'load',
         targetID: 'target-1',
         info,
@@ -472,8 +472,8 @@ describe('MediaLoadedInfoManager', () => {
       manager.setSelected('target-1');
       manager.setSelected(null);
 
-      expect(listener).toBeCalledWith({ type: 'select', targetID: 'target-1' });
-      expect(listener).toBeCalledWith({ type: 'select', targetID: null });
+      expect(listener).toHaveBeenCalledWith({ type: 'select', targetID: 'target-1' });
+      expect(listener).toHaveBeenCalledWith({ type: 'select', targetID: null });
     });
 
     it('should notify of an unload when a target is retired', () => {
@@ -490,7 +490,7 @@ describe('MediaLoadedInfoManager', () => {
       );
       ac.abort();
 
-      expect(listener).toBeCalledWith({ type: 'unload', targetID: 'target-1' });
+      expect(listener).toHaveBeenCalledWith({ type: 'unload', targetID: 'target-1' });
     });
 
     it('should notify of an unload for each active target on clear', () => {
@@ -504,8 +504,8 @@ describe('MediaLoadedInfoManager', () => {
       manager.subscribe(listener);
       manager.clear();
 
-      expect(listener).toBeCalledWith({ type: 'unload', targetID: 'target-1' });
-      expect(listener).toBeCalledWith({ type: 'unload', targetID: 'target-2' });
+      expect(listener).toHaveBeenCalledWith({ type: 'unload', targetID: 'target-1' });
+      expect(listener).toHaveBeenCalledWith({ type: 'unload', targetID: 'target-2' });
     });
 
     it('should notify of unloads and a deselect on initialize', () => {
@@ -519,8 +519,8 @@ describe('MediaLoadedInfoManager', () => {
       manager.subscribe(listener);
       manager.initialize();
 
-      expect(listener).toBeCalledWith({ type: 'unload', targetID: 'target-1' });
-      expect(listener).toBeCalledWith({ type: 'select', targetID: null });
+      expect(listener).toHaveBeenCalledWith({ type: 'unload', targetID: 'target-1' });
+      expect(listener).toHaveBeenCalledWith({ type: 'select', targetID: null });
     });
 
     it('should stop notifying after unsubscribe', () => {
@@ -533,7 +533,7 @@ describe('MediaLoadedInfoManager', () => {
       manager.subscribe(listener)();
       manager.set(info, owner);
 
-      expect(listener).not.toBeCalled();
+      expect(listener).not.toHaveBeenCalled();
     });
   });
 });

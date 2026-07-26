@@ -15,8 +15,8 @@ import {
   getReviewTitle,
 } from '../../../src/camera-manager/frigate/util';
 import type { CameraConfig } from '../../../src/config/schema/cameras';
+import { createCameraConfig } from '../../config/test-utils';
 import {
-  createCameraConfig,
   createFrigateEvent,
   createFrigateRecording,
   createFrigateReview,

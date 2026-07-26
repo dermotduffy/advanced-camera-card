@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { ViewFolder, ViewMediaType } from '../../src/view/item';
 import { ViewItemClassifier } from '../../src/view/item-classifier';
-import { createFolder, TestViewMedia } from '../test-utils';
+import { createFolder } from '../test-utils';
+import { TestViewMedia } from './test-utils';
 
 describe('ViewItemClassifier', () => {
   it('isMedia', () => {

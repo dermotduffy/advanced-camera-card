@@ -3,12 +3,9 @@ import { mock } from 'vitest-mock-extended';
 
 import type { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { MotionEyeCamera } from '../../../src/camera-manager/motioneye/camera';
+import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
-import {
-  createCameraConfig,
-  createHASSManager,
-  createRegistryEntity,
-} from '../../test-utils';
+import { createHASSManager, createRegistryEntity } from '../../test-utils';
 
 const cameraEntity = createRegistryEntity({
   entity_id: 'camera.motioneye',

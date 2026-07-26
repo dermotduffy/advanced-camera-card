@@ -41,7 +41,7 @@ describe('ScreenfullFullScreenProvider', () => {
 
       provider.connect();
 
-      expect(on).toBeCalledWith('change', expect.anything());
+      expect(on).toHaveBeenCalledWith('change', expect.anything());
     });
 
     it('should not connect if not enabled', () => {
@@ -52,7 +52,7 @@ describe('ScreenfullFullScreenProvider', () => {
 
       provider.connect();
 
-      expect(on).not.toBeCalled();
+      expect(on).not.toHaveBeenCalled();
     });
   });
 
@@ -65,7 +65,7 @@ describe('ScreenfullFullScreenProvider', () => {
 
       provider.disconnect();
 
-      expect(off).toBeCalledWith('change', expect.anything());
+      expect(off).toHaveBeenCalledWith('change', expect.anything());
     });
 
     it('should not disconnect if not enabled', () => {
@@ -76,7 +76,7 @@ describe('ScreenfullFullScreenProvider', () => {
 
       provider.disconnect();
 
-      expect(off).not.toBeCalled();
+      expect(off).not.toHaveBeenCalled();
     });
   });
 
@@ -138,7 +138,7 @@ describe('ScreenfullFullScreenProvider', () => {
 
       provider.setFullscreen(true);
 
-      expect(screenfull.request).toBeCalledWith(element);
+      expect(screenfull.request).toHaveBeenCalledWith(element);
     });
 
     it('should exit fullscreen if fullscreen is false', () => {
@@ -148,7 +148,7 @@ describe('ScreenfullFullScreenProvider', () => {
 
       provider.setFullscreen(false);
 
-      expect(screenfull.exit).toBeCalled();
+      expect(screenfull.exit).toHaveBeenCalled();
     });
 
     it('should take no action if not supported', () => {
@@ -162,8 +162,8 @@ describe('ScreenfullFullScreenProvider', () => {
       provider.setFullscreen(true);
       provider.setFullscreen(false);
 
-      expect(screenfull.request).not.toBeCalled();
-      expect(screenfull.exit).not.toBeCalled();
+      expect(screenfull.request).not.toHaveBeenCalled();
+      expect(screenfull.exit).not.toHaveBeenCalled();
     });
 
     it('should swallow a rejected fullscreen request', async () => {
@@ -177,7 +177,7 @@ describe('ScreenfullFullScreenProvider', () => {
       provider.setFullscreen(true);
       await flushPromises();
 
-      expect(screenfull.request).toBeCalledWith(element);
+      expect(screenfull.request).toHaveBeenCalledWith(element);
     });
 
     it('should swallow a rejected fullscreen exit', async () => {
@@ -188,7 +188,7 @@ describe('ScreenfullFullScreenProvider', () => {
       provider.setFullscreen(false);
       await flushPromises();
 
-      expect(screenfull.exit).toBeCalled();
+      expect(screenfull.exit).toHaveBeenCalled();
     });
   });
 });

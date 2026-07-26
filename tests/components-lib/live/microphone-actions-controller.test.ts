@@ -53,8 +53,8 @@ describe('MicrophoneActionsController', () => {
 
       await controller.setSelectedCamera('camera-1');
 
-      expect(microphoneManager.unmute).toBeCalledTimes(1);
-      expect(microphoneManager.mute).not.toBeCalled();
+      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
+      expect(microphoneManager.mute).not.toHaveBeenCalled();
     });
 
     it('should swallow a rejected auto-unmute so a denied microphone does not surface', async () => {
@@ -67,7 +67,7 @@ describe('MicrophoneActionsController', () => {
       });
 
       await expect(controller.setSelectedCamera('camera-1')).resolves.toBeUndefined();
-      expect(microphoneManager.unmute).toBeCalledTimes(1);
+      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
     });
 
     it('should mute on unselected when transitioning to a new camera', async () => {
@@ -81,7 +81,7 @@ describe('MicrophoneActionsController', () => {
       await controller.setSelectedCamera('camera-1');
       await controller.setSelectedCamera('camera-2');
 
-      expect(microphoneManager.mute).toBeCalledTimes(1);
+      expect(microphoneManager.mute).toHaveBeenCalledTimes(1);
     });
 
     it('should sequence mute-then-unmute deterministically on transition', async () => {
@@ -128,7 +128,7 @@ describe('MicrophoneActionsController', () => {
       await controller.setSelectedCamera('camera-1');
       await controller.setSelectedCamera('camera-1');
 
-      expect(microphoneManager.unmute).toBeCalledTimes(1);
+      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
     });
 
     it('should fire unselected only when transitioning from a camera to none', async () => {
@@ -147,8 +147,8 @@ describe('MicrophoneActionsController', () => {
 
       await controller.setSelectedCamera(null);
 
-      expect(microphoneManager.mute).toBeCalledTimes(1);
-      expect(microphoneManager.unmute).not.toBeCalled();
+      expect(microphoneManager.mute).toHaveBeenCalledTimes(1);
+      expect(microphoneManager.unmute).not.toHaveBeenCalled();
     });
 
     it('should not fire unselected on the very first selection (no previous)', async () => {
@@ -162,8 +162,8 @@ describe('MicrophoneActionsController', () => {
 
       await controller.setSelectedCamera('camera-1');
 
-      expect(microphoneManager.mute).not.toBeCalled();
-      expect(microphoneManager.unmute).toBeCalledTimes(1);
+      expect(microphoneManager.mute).not.toHaveBeenCalled();
+      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
     });
 
     it('should not fire when condition arrays are empty', async () => {
@@ -178,8 +178,8 @@ describe('MicrophoneActionsController', () => {
       await controller.setSelectedCamera('camera-1');
       await controller.setSelectedCamera('camera-2');
 
-      expect(microphoneManager.mute).not.toBeCalled();
-      expect(microphoneManager.unmute).not.toBeCalled();
+      expect(microphoneManager.mute).not.toHaveBeenCalled();
+      expect(microphoneManager.unmute).not.toHaveBeenCalled();
     });
 
     it('should not crash when conditions configured but no microphone manager is passed', async () => {
@@ -212,7 +212,7 @@ describe('MicrophoneActionsController', () => {
 
       await callVisibilityHandler(false);
 
-      expect(microphoneManager.mute).toBeCalledTimes(1);
+      expect(microphoneManager.mute).toHaveBeenCalledTimes(1);
     });
 
     it('should unmute on visible when the live root is intersecting', async () => {
@@ -233,7 +233,7 @@ describe('MicrophoneActionsController', () => {
 
       await callVisibilityHandler(true);
 
-      expect(microphoneManager.unmute).toBeCalledTimes(1);
+      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
     });
 
     it('should not unmute on tab visible when the live root is hidden', async () => {
@@ -254,7 +254,7 @@ describe('MicrophoneActionsController', () => {
       await callVisibilityHandler(false);
       await callVisibilityHandler(true);
 
-      expect(microphoneManager.unmute).not.toBeCalled();
+      expect(microphoneManager.unmute).not.toHaveBeenCalled();
     });
   });
 
@@ -273,7 +273,7 @@ describe('MicrophoneActionsController', () => {
       await callIntersectionHandler(true);
       await callIntersectionHandler(false);
 
-      expect(microphoneManager.mute).toBeCalledTimes(1);
+      expect(microphoneManager.mute).toHaveBeenCalledTimes(1);
     });
 
     it('should unmute when the live root scrolls back into view', async () => {
@@ -288,7 +288,7 @@ describe('MicrophoneActionsController', () => {
       await callIntersectionHandler(false);
       await callIntersectionHandler(true);
 
-      expect(microphoneManager.unmute).toBeCalledTimes(1);
+      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
     });
 
     it('should ignore the very first intersection callback (baseline)', async () => {
@@ -303,8 +303,8 @@ describe('MicrophoneActionsController', () => {
 
       await callIntersectionHandler(false);
 
-      expect(microphoneManager.mute).not.toBeCalled();
-      expect(microphoneManager.unmute).not.toBeCalled();
+      expect(microphoneManager.mute).not.toHaveBeenCalled();
+      expect(microphoneManager.unmute).not.toHaveBeenCalled();
     });
   });
 
@@ -320,7 +320,7 @@ describe('MicrophoneActionsController', () => {
       controller.setCallAnswered(false);
       controller.setCallAnswered(true);
 
-      expect(microphoneManager.unmute).toBeCalledTimes(1);
+      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
     });
 
     it('should unmute when the call is already answered on first notification', () => {
@@ -336,7 +336,7 @@ describe('MicrophoneActionsController', () => {
       // already answered. The initial state must not be swallowed as a baseline.
       controller.setCallAnswered(true);
 
-      expect(microphoneManager.unmute).toBeCalledTimes(1);
+      expect(microphoneManager.unmute).toHaveBeenCalledTimes(1);
     });
 
     it('should mute on call end when call is a configured mute condition', () => {
@@ -350,7 +350,7 @@ describe('MicrophoneActionsController', () => {
       controller.setCallAnswered(true);
       controller.setCallAnswered(false);
 
-      expect(microphoneManager.mute).toBeCalledTimes(1);
+      expect(microphoneManager.mute).toHaveBeenCalledTimes(1);
     });
 
     it('should not act on the initial call state', () => {
@@ -364,8 +364,8 @@ describe('MicrophoneActionsController', () => {
 
       controller.setCallAnswered(false);
 
-      expect(microphoneManager.mute).not.toBeCalled();
-      expect(microphoneManager.unmute).not.toBeCalled();
+      expect(microphoneManager.mute).not.toHaveBeenCalled();
+      expect(microphoneManager.unmute).not.toHaveBeenCalled();
     });
 
     it('should not act on call answer when call is not a configured condition', () => {
@@ -379,7 +379,7 @@ describe('MicrophoneActionsController', () => {
       controller.setCallAnswered(false);
       controller.setCallAnswered(true);
 
-      expect(microphoneManager.unmute).not.toBeCalled();
+      expect(microphoneManager.unmute).not.toHaveBeenCalled();
     });
   });
 

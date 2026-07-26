@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CameraURLManager } from '../../src/card-controller/camera-url-manager';
 import type { CardCameraURLAPI } from '../../src/card-controller/types';
 import type { Endpoint } from '../../src/types';
-import { createCardAPI, createViewWithMedia } from '../test-utils';
+import { createCardAPI } from '../test-utils';
+import { createViewWithMedia } from '../view/test-utils';
 
 const createAPIWithMedia = (): CardCameraURLAPI => {
   const api = createCardAPI();
@@ -34,7 +35,7 @@ describe('CameraURLManager', () => {
 
     const windowSpy = vi.spyOn(window, 'open').mockReturnValue(null);
     manager.openURL();
-    expect(windowSpy).toBeCalledWith('http://frigate');
+    expect(windowSpy).toHaveBeenCalledWith('http://frigate');
   });
 
   it('should not get URL without view', () => {
@@ -43,7 +44,7 @@ describe('CameraURLManager', () => {
 
     const windowSpy = vi.spyOn(window, 'open').mockReturnValue(null);
     manager.openURL();
-    expect(windowSpy).not.toBeCalled();
+    expect(windowSpy).not.toHaveBeenCalled();
   });
 
   it('should not get URL without cameraManager endpoints', () => {

@@ -27,7 +27,7 @@ describe('KeyboardStateManager', () => {
     element.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
 
     // Duplicate keydown should not re-set the state.
-    expect(api.getConditionStateManager().setState).toBeCalledTimes(1);
+    expect(api.getConditionStateManager().setState).toHaveBeenCalledTimes(1);
   });
 
   it('should set state on keyup', () => {
@@ -40,12 +40,12 @@ describe('KeyboardStateManager', () => {
     element.dispatchEvent(new KeyboardEvent('keyup', { key: 'a' }));
 
     // Key not held down in the first place should not update the state.
-    expect(api.getConditionStateManager().setState).not.toBeCalled();
+    expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
 
     element.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
     element.dispatchEvent(new KeyboardEvent('keyup', { key: 'a' }));
 
-    expect(api.getConditionStateManager().setState).toBeCalledTimes(2);
+    expect(api.getConditionStateManager().setState).toHaveBeenCalledTimes(2);
     expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith({
       keys: {
         a: { state: 'up', ctrl: false, alt: false, meta: false, shift: false },
@@ -61,12 +61,12 @@ describe('KeyboardStateManager', () => {
     manager.initialize();
 
     element.dispatchEvent(new FocusEvent('blur'));
-    expect(api.getConditionStateManager().setState).not.toBeCalled();
+    expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
 
     element.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
     element.dispatchEvent(new FocusEvent('blur'));
 
-    expect(api.getConditionStateManager().setState).toBeCalledTimes(2);
+    expect(api.getConditionStateManager().setState).toHaveBeenCalledTimes(2);
     expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith({
       keys: {},
     });
@@ -82,7 +82,7 @@ describe('KeyboardStateManager', () => {
 
     element.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
 
-    expect(api.getConditionStateManager().setState).not.toBeCalled();
+    expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
   });
 
   it('should clear held keys on uninitialize', () => {
@@ -97,7 +97,7 @@ describe('KeyboardStateManager', () => {
 
     manager.uninitialize();
 
-    expect(api.getConditionStateManager().setState).toBeCalledWith({ keys: {} });
+    expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({ keys: {} });
   });
 
   it('should not set state on uninitialize when no keys held', () => {
@@ -108,6 +108,6 @@ describe('KeyboardStateManager', () => {
     manager.initialize();
     manager.uninitialize();
 
-    expect(api.getConditionStateManager().setState).not.toBeCalled();
+    expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
   });
 });

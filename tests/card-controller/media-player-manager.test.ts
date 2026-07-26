@@ -10,18 +10,16 @@ import {
 import type { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
 import type { HomeAssistant } from '../../src/ha/types.js';
 import { ViewMediaType } from '../../src/view/item.js';
+import { createCameraManager, createStore } from '../camera-manager/test-utils';
+import { createCameraConfig, createConfig } from '../config/test-utils';
 import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {
-  createCameraConfig,
-  createCameraManager,
   createCardAPI,
-  createConfig,
   createHASS,
   createRegistryEntity,
   createStateEntity,
-  createStore,
-  TestViewMedia,
 } from '../test-utils.js';
+import { TestViewMedia } from '../view/test-utils';
 
 const createHASSWithMediaPlayers = (): HomeAssistant => {
   const attributesSupported = {
@@ -152,7 +150,7 @@ describe('MediaPlayerManager', () => {
         'media_player.ok3',
       ]);
       expect(manager.hasMediaPlayers()).toBeTruthy();
-      expect(spy).toBeCalled();
+      expect(spy).toHaveBeenCalled();
     });
 
     it('should reinitialize when there is a config change', async () => {
@@ -210,7 +208,7 @@ describe('MediaPlayerManager', () => {
 
       await manager.stop('media_player.foo');
 
-      expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
+      expect(api.getHASSManager().getHASS()?.callService).toHaveBeenCalledWith(
         'media_player',
         'media_stop',
         {
@@ -236,7 +234,7 @@ describe('MediaPlayerManager', () => {
 
       await manager.stop('media_player.foo');
 
-      expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
+      expect(api.getHASSManager().getHASS()?.callService).toHaveBeenCalledWith(
         'media_player',
         'turn_off',
         {
@@ -258,7 +256,7 @@ describe('MediaPlayerManager', () => {
 
       await manager.stop('media_player.foo');
 
-      expect(api.getHASSManager().getHASS()?.callService).not.toBeCalled();
+      expect(api.getHASSManager().getHASS()?.callService).not.toHaveBeenCalled();
     });
 
     it('should do nothing without hass state', async () => {
@@ -268,7 +266,7 @@ describe('MediaPlayerManager', () => {
 
       await manager.stop('media_player.foo');
 
-      expect(api.getHASSManager().getHASS()?.callService).not.toBeCalled();
+      expect(api.getHASSManager().getHASS()?.callService).not.toHaveBeenCalled();
     });
   });
 
@@ -282,7 +280,7 @@ describe('MediaPlayerManager', () => {
 
         await manager.playLive('media_player.foo', 'camera');
 
-        expect(api.getHASSManager().getHASS()?.callService).not.toBeCalled();
+        expect(api.getHASSManager().getHASS()?.callService).not.toHaveBeenCalled();
       });
 
       describe('using standard method', () => {
@@ -316,7 +314,7 @@ describe('MediaPlayerManager', () => {
 
           await manager.playLive('media_player.foo', 'camera.foo');
 
-          expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
+          expect(api.getHASSManager().getHASS()?.callService).toHaveBeenCalledWith(
             'media_player',
             'play_media',
             {
@@ -348,7 +346,7 @@ describe('MediaPlayerManager', () => {
 
           await manager.playLive('media_player.foo', 'camera.foo');
 
-          expect(api.getHASSManager().getHASS()?.callService).not.toBeCalled();
+          expect(api.getHASSManager().getHASS()?.callService).not.toHaveBeenCalled();
         });
 
         it('should handle without title and thumbnail', async () => {
@@ -369,7 +367,7 @@ describe('MediaPlayerManager', () => {
 
           await manager.playLive('media_player.foo', 'camera.foo');
 
-          expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
+          expect(api.getHASSManager().getHASS()?.callService).toHaveBeenCalledWith(
             'media_player',
             'play_media',
             {
@@ -408,7 +406,7 @@ describe('MediaPlayerManager', () => {
 
           await manager.playLive('media_player.foo', 'camera.foo');
 
-          expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
+          expect(api.getHASSManager().getHASS()?.callService).toHaveBeenCalledWith(
             'cast',
             'show_lovelace_view',
             {
@@ -476,7 +474,7 @@ describe('MediaPlayerManager', () => {
 
           await manager.playLive('media_player.foo', 'camera.foo');
 
-          expect(api.getHASSManager().getHASS()?.callService).not.toBeCalled();
+          expect(api.getHASSManager().getHASS()?.callService).not.toHaveBeenCalled();
         });
       });
     });
@@ -499,7 +497,7 @@ describe('MediaPlayerManager', () => {
 
           await manager.playMedia('media_player.foo', media);
 
-          expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
+          expect(api.getHASSManager().getHASS()?.callService).toHaveBeenCalledWith(
             'media_player',
             'play_media',
             {

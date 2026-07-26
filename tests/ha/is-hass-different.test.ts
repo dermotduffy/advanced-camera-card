@@ -21,7 +21,7 @@ describe('isHassDifferent', () => {
     const entities = ['light.office'];
 
     expect(isHassDifferent(newHass, oldHass, entities)).toBe(true);
-    expect(getHassDifferences).toBeCalledWith(newHass, oldHass, entities, {
+    expect(getHassDifferences).toHaveBeenCalledWith(newHass, oldHass, entities, {
       firstOnly: true,
     });
   });

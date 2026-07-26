@@ -15,5 +15,5 @@ it('should handle camera_ui action', async () => {
 
   await action.execute(api);
 
-  expect(api.getCameraURLManager().openURL).toBeCalled();
+  expect(api.getCameraURLManager().openURL).toHaveBeenCalled();
 });

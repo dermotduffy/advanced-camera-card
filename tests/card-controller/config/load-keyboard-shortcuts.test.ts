@@ -3,17 +3,18 @@ import { describe, expect, it, vi } from 'vitest';
 import { setKeyboardShortcutsFromConfig } from '../../../src/card-controller/config/load-keyboard-shortcuts';
 import type { PTZAction } from '../../../src/config/schema/actions/custom/ptz';
 import type { PTZKeyboardShortcutName } from '../../../src/config/schema/view';
-import { createCardAPI, createConfig } from '../../test-utils';
+import { createConfig } from '../../config/test-utils';
+import { createCardAPI } from '../../test-utils';
 
 describe('setKeyboardShortcutsFromConfig', () => {
   it('without shortcuts', () => {
     const api = createCardAPI();
     setKeyboardShortcutsFromConfig(api);
 
-    expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(
+    expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalledWith(
       setKeyboardShortcutsFromConfig,
     );
-    expect(api.getAutomationsManager().addAutomations).not.toBeCalled();
+    expect(api.getAutomationsManager().addAutomations).not.toHaveBeenCalled();
   });
 
   it('with shortcuts disabled', () => {
@@ -29,10 +30,10 @@ describe('setKeyboardShortcutsFromConfig', () => {
     );
     setKeyboardShortcutsFromConfig(api);
 
-    expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(
+    expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalledWith(
       setKeyboardShortcutsFromConfig,
     );
-    expect(api.getAutomationsManager().addAutomations).not.toBeCalled();
+    expect(api.getAutomationsManager().addAutomations).not.toHaveBeenCalled();
   });
 
   describe('PTZ shortcuts', () => {
@@ -66,10 +67,10 @@ describe('setKeyboardShortcutsFromConfig', () => {
 
         setKeyboardShortcutsFromConfig(api);
 
-        expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(
+        expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalledWith(
           setKeyboardShortcutsFromConfig,
         );
-        expect(api.getAutomationsManager().addAutomations).toBeCalledWith([
+        expect(api.getAutomationsManager().addAutomations).toHaveBeenCalledWith([
           {
             actions: [
               {
@@ -119,10 +120,10 @@ describe('setKeyboardShortcutsFromConfig', () => {
 
         setKeyboardShortcutsFromConfig(api);
 
-        expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(
+        expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalledWith(
           setKeyboardShortcutsFromConfig,
         );
-        expect(api.getAutomationsManager().addAutomations).toBeCalledWith(
+        expect(api.getAutomationsManager().addAutomations).toHaveBeenCalledWith(
           expect.arrayContaining([
             {
               actions: [

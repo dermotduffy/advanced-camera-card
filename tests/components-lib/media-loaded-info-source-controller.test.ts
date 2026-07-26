@@ -17,7 +17,7 @@ describe('MediaLoadedInfoSourceController', () => {
       getTargetID: () => 'target-1',
     });
 
-    expect(host.addController).toBeCalledWith(controller);
+    expect(host.addController).toHaveBeenCalledWith(controller);
   });
 
   describe('set', () => {
@@ -32,7 +32,7 @@ describe('MediaLoadedInfoSourceController', () => {
 
       controller.set(createMediaLoadedInfo());
 
-      expect(handler).not.toBeCalled();
+      expect(handler).not.toHaveBeenCalled();
     });
 
     it('should dispatch a bubbling, composed event with info+targetID and signal', () => {
@@ -46,7 +46,7 @@ describe('MediaLoadedInfoSourceController', () => {
 
       controller.set(createMediaLoadedInfo({ width: 320, height: 240 }));
 
-      expect(handler).toBeCalledTimes(1);
+      expect(handler).toHaveBeenCalledTimes(1);
       const ev = handler.mock.calls[0][0] as CustomEvent;
       expect(ev.bubbles).toBe(true);
       expect(ev.composed).toBe(true);
@@ -85,7 +85,7 @@ describe('MediaLoadedInfoSourceController', () => {
         createMediaLoadedInfo({ mediaPlayerController: player, technology: ['hls'] }),
       );
 
-      expect(handler).toBeCalledTimes(1);
+      expect(handler).toHaveBeenCalledTimes(1);
     });
 
     it('should redispatch when mediaPlayerController reference differs', () => {
@@ -103,7 +103,7 @@ describe('MediaLoadedInfoSourceController', () => {
       controller.set(createMediaLoadedInfo({ mediaPlayerController: player1 }));
       controller.set(createMediaLoadedInfo({ mediaPlayerController: player2 }));
 
-      expect(handler).toBeCalledTimes(2);
+      expect(handler).toHaveBeenCalledTimes(2);
     });
 
     it('should redispatch when getTargetID changes between calls', () => {
@@ -120,7 +120,7 @@ describe('MediaLoadedInfoSourceController', () => {
       targetID = 'target-2';
       controller.set(createMediaLoadedInfo());
 
-      expect(handler).toBeCalledTimes(2);
+      expect(handler).toHaveBeenCalledTimes(2);
       expect((handler.mock.calls[0][0] as CustomEvent).detail.info.targetID).toBe(
         'target-1',
       );
@@ -172,7 +172,7 @@ describe('MediaLoadedInfoSourceController', () => {
       controller.hostDisconnected();
       controller.hostConnected();
 
-      expect(handler).toBeCalledTimes(2);
+      expect(handler).toHaveBeenCalledTimes(2);
       const secondSignal = (handler.mock.calls[1][0] as CustomEvent).detail.signal;
 
       // The original signal aborted on disconnect, the new one is fresh.
@@ -196,7 +196,7 @@ describe('MediaLoadedInfoSourceController', () => {
 
       controller.hostConnected();
 
-      expect(handler).not.toBeCalled();
+      expect(handler).not.toHaveBeenCalled();
     });
 
     it('should not redispatch if a registration is already active', () => {
@@ -212,7 +212,7 @@ describe('MediaLoadedInfoSourceController', () => {
       // Active registration, no disconnect -- connect should be a no-op.
       controller.hostConnected();
 
-      expect(handler).toBeCalledTimes(1);
+      expect(handler).toHaveBeenCalledTimes(1);
     });
 
     it('should not replay stale info after targetID flips during disconnect', () => {
@@ -228,7 +228,7 @@ describe('MediaLoadedInfoSourceController', () => {
       host.addEventListener('advanced-camera-card:media:loaded', handler);
 
       controller.set(createMediaLoadedInfo());
-      expect(handler).toBeCalledTimes(1);
+      expect(handler).toHaveBeenCalledTimes(1);
 
       controller.hostDisconnected();
 
@@ -237,11 +237,11 @@ describe('MediaLoadedInfoSourceController', () => {
       controller.hostConnected();
 
       // No re-dispatch -- the stale cache was discarded.
-      expect(handler).toBeCalledTimes(1);
+      expect(handler).toHaveBeenCalledTimes(1);
 
       // A subsequent set() under the new target dispatches fresh.
       controller.set(createMediaLoadedInfo({ width: 320, height: 240 }));
-      expect(handler).toBeCalledTimes(2);
+      expect(handler).toHaveBeenCalledTimes(2);
       expect((handler.mock.calls[1][0] as CustomEvent).detail.info.targetID).toBe(
         'target-2',
       );
@@ -265,7 +265,7 @@ describe('MediaLoadedInfoSourceController', () => {
 
       controller.hostDisconnected();
 
-      expect(cleanup).toBeCalled();
+      expect(cleanup).toHaveBeenCalled();
       expect(signal.aborted).toBe(true);
     });
 

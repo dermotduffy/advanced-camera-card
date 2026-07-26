@@ -3,7 +3,8 @@ import { mock } from 'vitest-mock-extended';
 
 import { setFoldersFromConfig } from '../../../src/card-controller/config/load-folders';
 import type { FoldersManager } from '../../../src/card-controller/folders/manager';
-import { createCardAPI, createConfig, createFolder } from '../../test-utils';
+import { createConfig } from '../../config/test-utils';
+import { createCardAPI, createFolder } from '../../test-utils';
 
 describe('setFoldersFromConfig', () => {
   it('should replace folders', () => {
@@ -19,8 +20,8 @@ describe('setFoldersFromConfig', () => {
 
     setFoldersFromConfig(api);
 
-    expect(foldersManager.deleteFolders).toBeCalled();
-    expect(foldersManager.addFolders).toBeCalledWith(folders);
+    expect(foldersManager.deleteFolders).toHaveBeenCalled();
+    expect(foldersManager.addFolders).toHaveBeenCalledWith(folders);
   });
 
   it('should handle exceptions', () => {
@@ -40,7 +41,7 @@ describe('setFoldersFromConfig', () => {
 
     setFoldersFromConfig(api);
 
-    expect(api.getIssueManager().trigger).toBeCalledWith('config_error', {
+    expect(api.getIssueManager().trigger).toHaveBeenCalledWith('config_error', {
       error,
     });
   });

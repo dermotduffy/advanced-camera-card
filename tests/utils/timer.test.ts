@@ -23,12 +23,12 @@ describe('Timer', () => {
     timer.start(10, handler);
 
     expect(timer.isRunning()).toBeTruthy();
-    expect(handler).not.toBeCalled();
+    expect(handler).not.toHaveBeenCalled();
 
     vi.runOnlyPendingTimers();
 
     expect(timer.isRunning()).toBeFalsy();
-    expect(handler).toBeCalled();
+    expect(handler).toHaveBeenCalled();
   });
 
   it('should not fire when stopped', () => {
@@ -37,14 +37,14 @@ describe('Timer', () => {
     timer.start(10, handler);
 
     expect(timer.isRunning()).toBeTruthy();
-    expect(handler).not.toBeCalled();
+    expect(handler).not.toHaveBeenCalled();
 
     timer.stop();
 
     vi.runOnlyPendingTimers();
 
     expect(timer.isRunning()).toBeFalsy();
-    expect(handler).not.toBeCalled();
+    expect(handler).not.toHaveBeenCalled();
   });
 
   it('should fire repeatedly when started', () => {
@@ -53,17 +53,17 @@ describe('Timer', () => {
     timer.startRepeated(10, handler);
 
     expect(timer.isRunning()).toBeTruthy();
-    expect(handler).not.toBeCalled();
+    expect(handler).not.toHaveBeenCalled();
 
     vi.runOnlyPendingTimers();
 
     expect(timer.isRunning()).toBeTruthy();
-    expect(handler).toBeCalledTimes(1);
+    expect(handler).toHaveBeenCalledTimes(1);
 
     vi.runOnlyPendingTimers();
 
     expect(timer.isRunning()).toBeTruthy();
-    expect(handler).toBeCalledTimes(2);
+    expect(handler).toHaveBeenCalledTimes(2);
   });
 
   it('should not fire repeatedly when stopped', () => {
@@ -72,13 +72,13 @@ describe('Timer', () => {
     timer.startRepeated(10, handler);
 
     expect(timer.isRunning()).toBeTruthy();
-    expect(handler).not.toBeCalled();
+    expect(handler).not.toHaveBeenCalled();
 
     timer.stop();
 
     vi.runOnlyPendingTimers();
 
     expect(timer.isRunning()).toBeFalsy();
-    expect(handler).not.toBeCalled();
+    expect(handler).not.toHaveBeenCalled();
   });
 });

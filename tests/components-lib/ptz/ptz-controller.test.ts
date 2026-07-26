@@ -8,7 +8,11 @@ import {
   type PTZControlsConfig,
 } from '../../../src/config/schema/common/controls/ptz';
 import { PTZMovementType } from '../../../src/types';
-import { createCameraManager, createCapabilities, createStore } from '../../test-utils';
+import {
+  createCameraManager,
+  createCapabilities,
+  createStore,
+} from '../../camera-manager/test-utils';
 
 const createConfig = (config?: Partial<PTZControlsConfig>): PTZControlsConfig => {
   return ptzControlsConfigSchema.parse({
@@ -405,8 +409,8 @@ describe('PTZController', () => {
 
       controller.toggleTypeHandler(ev, 'gestures');
 
-      expect(ev.stopPropagation).toBeCalled();
-      expect(handler).toBeCalledWith(
+      expect(ev.stopPropagation).toHaveBeenCalled();
+      expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({
           detail: {
             actions: {
@@ -429,7 +433,7 @@ describe('PTZController', () => {
 
       controller.toggleTypeHandler(ev, 'buttons');
 
-      expect(handler).toBeCalledWith(
+      expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({
           detail: {
             actions: {
@@ -452,7 +456,7 @@ describe('PTZController', () => {
 
       controller.toggleTypeHandler(ev);
 
-      expect(handler).toBeCalledWith(
+      expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({
           detail: {
             actions: {
@@ -487,7 +491,7 @@ describe('PTZController', () => {
         config,
       );
 
-      expect(handler).toBeCalledWith(
+      expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({
           detail: {
             actions: action,
@@ -508,7 +512,7 @@ describe('PTZController', () => {
         new CustomEvent<{ action: string }>('@action', { detail: { action: 'tap' } }),
       );
 
-      expect(handler).not.toBeCalled();
+      expect(handler).not.toHaveBeenCalled();
     });
 
     it('should not call action without hass', () => {
@@ -522,7 +526,7 @@ describe('PTZController', () => {
         new CustomEvent<{ action: string }>('@action', { detail: { action: 'tap' } }),
       );
 
-      expect(handler).not.toBeCalled();
+      expect(handler).not.toHaveBeenCalled();
     });
   });
 });

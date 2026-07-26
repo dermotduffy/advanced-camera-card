@@ -8,6 +8,10 @@ import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout';
 
 const ROTATED_ATTRIBUTE = 'rotated';
 
+// Resizes arrive in bursts as the browser settles the layout, so only the last
+// one in a burst is acted upon.
+export const RESIZE_DEBOUNCE_SECONDS = 0.1;
+
 interface MediaDimensions {
   width: number;
   height: number;
@@ -32,7 +36,9 @@ export class MediaDimensionsContainerController implements ReactiveController {
   private _innerContainer: HTMLElement | null = null;
   private _outerContainer: HTMLElement | null = null;
 
-  public resize = debounce(this._resize.bind(this), 100, { trailing: true });
+  public resize = debounce(this._resize.bind(this), RESIZE_DEBOUNCE_SECONDS * 1000, {
+    trailing: true,
+  });
   private _resizeObserver = new ResizeObserver(this.resize);
 
   private _mediaDimensions: MediaDimensions | null = null;

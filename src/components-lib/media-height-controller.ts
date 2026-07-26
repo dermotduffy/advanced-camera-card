@@ -1,5 +1,9 @@
 import { debounce, isEqual } from 'lodash-es';
 
+// Balancing act: Debounce to avoid excessive calls to setHeight, when new media
+// is loading the player may be a much smaller height momentarily.
+export const SET_HEIGHT_DEBOUNCE_SECONDS = 0.3;
+
 export class MediaHeightController {
   private _host: HTMLElement;
   private _selector: string;
@@ -13,9 +17,7 @@ export class MediaHeightController {
 
   private _debouncedSetHeight = debounce(
     () => this._setHeight(),
-    // Balancing act: Debounce to avoid excessive calls to setHeight, when new
-    // media is loading the player may be a much smaller height momentarily.
-    300,
+    SET_HEIGHT_DEBOUNCE_SECONDS * 1000,
     {
       trailing: true,
       leading: false,

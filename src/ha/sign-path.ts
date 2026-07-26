@@ -25,9 +25,6 @@ export async function homeAssistantSignPath(
     signedPathSchema,
     request,
   );
-  if (!response) {
-    return null;
-  }
   return hass.hassUrl(response.path);
 }
 

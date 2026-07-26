@@ -5,7 +5,8 @@ import { mock } from 'vitest-mock-extended';
 import type { CameraManager } from '../../../../src/camera-manager/manager';
 import { ThumbnailFeatureController } from '../../../../src/components-lib/thumbnail/feature/controller';
 import { ViewFolder } from '../../../../src/view/item';
-import { createFolder, TestViewMedia } from '../../../test-utils';
+import { createFolder } from '../../../test-utils';
+import { TestViewMedia } from '../../../view/test-utils';
 
 describe('ThumbnailFeatureController', () => {
   const itemWithTime = new TestViewMedia({

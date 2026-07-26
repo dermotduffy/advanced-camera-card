@@ -46,9 +46,13 @@ describe('ToggleAction', () => {
         const action = new ToggleAction({}, { action: 'toggle' }, { entity: entityID });
         await action.execute(api);
 
-        expect(hass.callService).toBeCalledWith(expectedServiceDomain, expectedService, {
-          entity_id: entityID,
-        });
+        expect(hass.callService).toHaveBeenCalledWith(
+          expectedServiceDomain,
+          expectedService,
+          {
+            entity_id: entityID,
+          },
+        );
       },
     );
   });
@@ -62,7 +66,7 @@ describe('ToggleAction', () => {
 
     await action.execute(api);
 
-    expect(hass.callService).not.toBeCalled();
+    expect(hass.callService).not.toHaveBeenCalled();
   });
 
   it('should do nothing without an entity state', async () => {
@@ -77,6 +81,6 @@ describe('ToggleAction', () => {
     );
     await action.execute(api);
 
-    expect(hass.callService).not.toBeCalled();
+    expect(hass.callService).not.toHaveBeenCalled();
   });
 });

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { findBestMediaTimeIndex } from '../../src/utils/find-best-media-time-index';
 import { ViewFolder } from '../../src/view/item';
-import { TestViewMedia } from '../test-utils';
+import { TestViewMedia } from '../view/test-utils';
 
 describe('findBestMediaTimeIndex', () => {
   it('should handle non-media items', () => {

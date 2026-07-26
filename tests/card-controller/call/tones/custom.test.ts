@@ -59,14 +59,14 @@ describe('start', () => {
   it('should construct an Audio element with the configured URL', () => {
     new CustomTone('http://example/ring.mp3', 0).start();
 
-    expect(audio.ctor).toBeCalledWith('http://example/ring.mp3');
+    expect(audio.ctor).toHaveBeenCalledWith('http://example/ring.mp3');
   });
 
   it('should loop indefinitely when repeat is 0', () => {
     new CustomTone('http://example/ring.mp3', 0).start();
 
     expect(audio.instances[0].loop).toBe(true);
-    expect(audio.instances[0].play).toBeCalled();
+    expect(audio.instances[0].play).toHaveBeenCalled();
   });
 
   it('should re-play (not loop natively) when repeat is finite', () => {
@@ -76,14 +76,14 @@ describe('start', () => {
     // Observable proof the 'ended' listener was registered: dispatching the
     // event triggers a second play().
     audio.instances[0].dispatchEvent(new Event('ended'));
-    expect(audio.instances[0].play).toBeCalledTimes(2);
+    expect(audio.instances[0].play).toHaveBeenCalledTimes(2);
   });
 
   it('should reset currentTime before play', () => {
     new CustomTone('http://example/ring.mp3', 0).start();
 
     expect(audio.instances[0].currentTime).toBe(0);
-    expect(audio.instances[0].play).toBeCalled();
+    expect(audio.instances[0].play).toHaveBeenCalled();
   });
 
   it('should no-op when called twice without stop', () => {
@@ -92,7 +92,7 @@ describe('start', () => {
     tone.start();
     tone.start();
 
-    expect(audio.ctor).toBeCalledTimes(1);
+    expect(audio.ctor).toHaveBeenCalledTimes(1);
   });
 
   it('should fire finishedHandler when Audio construction throws', () => {
@@ -103,7 +103,7 @@ describe('start', () => {
 
     new CustomTone('http://example/ring.mp3', 0).start(onFinished);
 
-    expect(onFinished).toBeCalled();
+    expect(onFinished).toHaveBeenCalled();
   });
 
   it('should fire finishedHandler when play() rejects (e.g. autoplay block)', async () => {
@@ -116,7 +116,7 @@ describe('start', () => {
 
     await flushPromises();
 
-    expect(onFinished).toBeCalled();
+    expect(onFinished).toHaveBeenCalled();
   });
 });
 
@@ -128,15 +128,15 @@ describe('repeat counter', () => {
 
     // Iteration 1 already started by `start()`. Two more 'ended' events
     // should re-play, and the third 'ended' should finish.
-    expect(audio.instances[0].play).toBeCalledTimes(1);
+    expect(audio.instances[0].play).toHaveBeenCalledTimes(1);
     audio.instances[0].dispatchEvent(new Event('ended'));
-    expect(audio.instances[0].play).toBeCalledTimes(2);
+    expect(audio.instances[0].play).toHaveBeenCalledTimes(2);
     audio.instances[0].dispatchEvent(new Event('ended'));
-    expect(audio.instances[0].play).toBeCalledTimes(3);
-    expect(onFinished).not.toBeCalled();
+    expect(audio.instances[0].play).toHaveBeenCalledTimes(3);
+    expect(onFinished).not.toHaveBeenCalled();
     audio.instances[0].dispatchEvent(new Event('ended'));
 
-    expect(onFinished).toBeCalledTimes(1);
+    expect(onFinished).toHaveBeenCalledTimes(1);
   });
 
   it('should ignore ended events after stop', () => {
@@ -150,7 +150,7 @@ describe('repeat counter', () => {
     // no-op as far as the source is concerned.
     element.dispatchEvent(new Event('ended'));
 
-    expect(onFinished).not.toBeCalled();
+    expect(onFinished).not.toHaveBeenCalled();
   });
 });
 
@@ -162,11 +162,11 @@ describe('stop', () => {
 
     tone.stop();
 
-    expect(element.pause).toBeCalled();
+    expect(element.pause).toHaveBeenCalled();
     // Confirm the 'ended' listener is gone: dispatching it must not re-play.
     vi.mocked(HTMLMediaElement.prototype.play).mockClear();
     element.dispatchEvent(new Event('ended'));
-    expect(element.play).not.toBeCalled();
+    expect(element.play).not.toHaveBeenCalled();
   });
 
   it('should not fire finishedHandler on external stop', () => {
@@ -176,7 +176,7 @@ describe('stop', () => {
 
     tone.stop();
 
-    expect(onFinished).not.toBeCalled();
+    expect(onFinished).not.toHaveBeenCalled();
   });
 
   it('should be safe to call before start', () => {

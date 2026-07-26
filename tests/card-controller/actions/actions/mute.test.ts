@@ -23,5 +23,5 @@ it('should handle mute action', async () => {
 
   await action.execute(api);
 
-  expect(mediaPlayerController.mute).toBeCalled();
+  expect(mediaPlayerController.mute).toHaveBeenCalled();
 });

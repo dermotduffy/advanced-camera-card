@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { CameraSelectAction } from '../../../../src/card-controller/actions/actions/camera-select';
-import { createCardAPI, createConfig, createView } from '../../../test-utils';
+import { createConfig } from '../../../config/test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView } from '../../../view/test-utils';
 
 describe('should handle camera_select action', () => {
   it('with valid camera and view', async () => {
@@ -19,7 +21,7 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith(
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
           view: 'live',
@@ -49,7 +51,7 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toHaveBeenCalled();
   });
 
   it('without config', async () => {
@@ -72,7 +74,7 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith(
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
           view: 'timeline',
@@ -110,7 +112,7 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith(
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
           view: 'clips',
@@ -139,7 +141,7 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith(
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
           view: 'live',
@@ -167,7 +169,7 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toHaveBeenCalled();
   });
 
   it('without a current view', async () => {
@@ -184,6 +186,6 @@ describe('should handle camera_select action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toHaveBeenCalled();
   });
 });

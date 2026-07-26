@@ -45,6 +45,6 @@ describe('getMediaDownloadPath', () => {
     expect(await getMediaDownloadPath(hass, 'id-1', resolvedMediaCache)).toEqual({
       endpoint: 'canonicalized:/media/path.mp4',
     });
-    expect(resolveMedia).toBeCalledWith(hass, 'id-1', resolvedMediaCache);
+    expect(resolveMedia).toHaveBeenCalledWith(hass, 'id-1', resolvedMediaCache);
   });
 });

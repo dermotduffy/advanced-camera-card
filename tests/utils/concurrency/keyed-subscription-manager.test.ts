@@ -18,7 +18,7 @@ describe('KeyedSubscriptionManager', () => {
     await manager.subscribe({ key: 'a', callback: vi.fn() }, subscribeFn);
     await manager.subscribe({ key: 'a', callback: vi.fn() }, subscribeFn);
 
-    expect(subscribeFn).toBeCalledTimes(1);
+    expect(subscribeFn).toHaveBeenCalledTimes(1);
   });
 
   it('should open a separate subscription for each distinct key', async () => {
@@ -28,7 +28,7 @@ describe('KeyedSubscriptionManager', () => {
     await manager.subscribe({ key: 'a', callback: vi.fn() }, subscribeFn);
     await manager.subscribe({ key: 'b', callback: vi.fn() }, subscribeFn);
 
-    expect(subscribeFn).toBeCalledTimes(2);
+    expect(subscribeFn).toHaveBeenCalledTimes(2);
   });
 
   it('should tear down the subscription only when the last subscriber for a key unsubscribes', async () => {
@@ -42,10 +42,10 @@ describe('KeyedSubscriptionManager', () => {
     await manager.subscribe(req2, subscribeFn);
 
     await manager.unsubscribe(req1);
-    expect(unsub).not.toBeCalled();
+    expect(unsub).not.toHaveBeenCalled();
 
     await manager.unsubscribe(req2);
-    expect(unsub).toBeCalledTimes(1);
+    expect(unsub).toHaveBeenCalledTimes(1);
   });
 
   it('should await a pending subscribe before tearing down when unsubscribed mid-flight', async () => {
@@ -66,7 +66,7 @@ describe('KeyedSubscriptionManager', () => {
     await subscribePromise;
     await unsubscribePromise;
 
-    expect(unsub).toBeCalledTimes(1);
+    expect(unsub).toHaveBeenCalledTimes(1);
   });
 
   it('should expose the requests matching a given key', async () => {
@@ -101,7 +101,7 @@ describe('KeyedSubscriptionManager', () => {
     // A subsequent successful subscribe should re-attempt the underlying call.
     const successFn = vi.fn().mockResolvedValue(vi.fn());
     await manager.subscribe(req, successFn);
-    expect(successFn).toBeCalledTimes(1);
+    expect(successFn).toHaveBeenCalledTimes(1);
     expect(manager.getRequestsForKey('a')).toEqual([req]);
   });
 
@@ -115,7 +115,7 @@ describe('KeyedSubscriptionManager', () => {
 
     await manager.unsubscribe({ key: 'a', callback: vi.fn() });
 
-    expect(unsub).not.toBeCalled();
+    expect(unsub).not.toHaveBeenCalled();
     expect(manager.getRequestsForKey('a')).toEqual([subscribed]);
   });
 });

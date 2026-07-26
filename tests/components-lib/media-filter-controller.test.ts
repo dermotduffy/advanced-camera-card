@@ -32,14 +32,10 @@ import {
 import { QuerySource } from '../../src/query-source';
 import type { Severity } from '../../src/severity';
 import { UnifiedQuery } from '../../src/view/unified-query';
-import {
-  createCameraConfig,
-  createCameraManager,
-  createLitElement,
-  createPerformanceConfig,
-  createStore,
-  createView,
-} from '../test-utils';
+import { createCameraManager, createStore } from '../camera-manager/test-utils';
+import { createCameraConfig, createPerformanceConfig } from '../config/test-utils';
+import { createLitElement } from '../test-utils';
+import { createView } from '../view/test-utils';
 
 const createCameraStore = (options?: { capabilities: Capabilities }) => {
   return createStore([
@@ -467,7 +463,7 @@ describe('MediaFilterController', () => {
         const host = createLitElement();
         const controller = new MediaFilterController(host);
         await controller.computeMetadataOptions(cameraManager);
-        expect(host.requestUpdate).not.toBeCalled();
+        expect(host.requestUpdate).not.toHaveBeenCalled();
       });
 
       it('with metadata for what', async () => {
@@ -483,7 +479,7 @@ describe('MediaFilterController', () => {
           { value: 'car', label: 'Car' },
           { value: 'person', label: 'Person' },
         ]);
-        expect(host.requestUpdate).toBeCalled();
+        expect(host.requestUpdate).toHaveBeenCalled();
       });
 
       it('with metadata for where', async () => {
@@ -499,7 +495,7 @@ describe('MediaFilterController', () => {
           { value: 'back_yard', label: 'Back Yard' },
           { value: 'front_door', label: 'Front Door' },
         ]);
-        expect(host.requestUpdate).toBeCalled();
+        expect(host.requestUpdate).toHaveBeenCalled();
       });
 
       it('with metadata for tags', async () => {
@@ -515,7 +511,7 @@ describe('MediaFilterController', () => {
           { value: 'tag-1', label: 'Tag-1' },
           { value: 'tag-2', label: 'Tag-2' },
         ]);
-        expect(host.requestUpdate).toBeCalled();
+        expect(host.requestUpdate).toHaveBeenCalled();
       });
 
       it('with metadata for days', async () => {
@@ -536,7 +532,7 @@ describe('MediaFilterController', () => {
             }),
           ]),
         );
-        expect(host.requestUpdate).toBeCalled();
+        expect(host.requestUpdate).toHaveBeenCalled();
       });
     });
   });
@@ -555,7 +551,7 @@ describe('MediaFilterController', () => {
         { when: {} },
       );
 
-      expect(viewManager.setViewByParametersWithExistingQuery).not.toBeCalled();
+      expect(viewManager.setViewByParametersWithExistingQuery).not.toHaveBeenCalled();
     });
 
     describe('with events media type', () => {
@@ -593,7 +589,7 @@ describe('MediaFilterController', () => {
             },
           );
 
-          expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
+          expect(viewManager.setViewByParametersWithExistingQuery).toHaveBeenCalledWith({
             params: expect.objectContaining({
               camera: 'camera.kitchen',
             }),
@@ -615,7 +611,7 @@ describe('MediaFilterController', () => {
             limit: 11,
           });
 
-          expect(host.requestUpdate).toBeCalled();
+          expect(host.requestUpdate).toHaveBeenCalled();
         },
       );
     });
@@ -647,7 +643,7 @@ describe('MediaFilterController', () => {
         },
       );
 
-      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
+      expect(viewManager.setViewByParametersWithExistingQuery).toHaveBeenCalledWith({
         params: expect.objectContaining({
           camera: 'camera.kitchen',
         }),
@@ -664,7 +660,7 @@ describe('MediaFilterController', () => {
         limit: 11,
       });
 
-      expect(host.requestUpdate).toBeCalled();
+      expect(host.requestUpdate).toHaveBeenCalled();
     });
 
     it('with reviews media type', async () => {
@@ -687,7 +683,7 @@ describe('MediaFilterController', () => {
         },
       );
 
-      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalled();
+      expect(viewManager.setViewByParametersWithExistingQuery).toHaveBeenCalled();
 
       const nodes = getQueryNodes(viewManager);
       expect(nodes).toHaveLength(1);
@@ -717,7 +713,7 @@ describe('MediaFilterController', () => {
         },
       );
 
-      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalled();
+      expect(viewManager.setViewByParametersWithExistingQuery).toHaveBeenCalled();
 
       const nodes = getQueryNodes(viewManager);
       expect(nodes).toHaveLength(1);
@@ -746,7 +742,7 @@ describe('MediaFilterController', () => {
         },
       );
 
-      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalled();
+      expect(viewManager.setViewByParametersWithExistingQuery).toHaveBeenCalled();
 
       const nodes = getQueryNodes(viewManager);
       expect(nodes).toHaveLength(2);
@@ -772,7 +768,7 @@ describe('MediaFilterController', () => {
         },
       );
 
-      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
+      expect(viewManager.setViewByParametersWithExistingQuery).toHaveBeenCalledWith({
         params: expect.objectContaining({
           camera: 'camera.kitchen',
         }),
@@ -805,7 +801,7 @@ describe('MediaFilterController', () => {
         },
       );
 
-      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
+      expect(viewManager.setViewByParametersWithExistingQuery).toHaveBeenCalledWith({
         params: expect.objectContaining({
           camera: 'camera.kitchen',
         }),
@@ -837,7 +833,7 @@ describe('MediaFilterController', () => {
         },
       );
 
-      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalled();
+      expect(viewManager.setViewByParametersWithExistingQuery).toHaveBeenCalled();
 
       const nodes = getQueryNodes(viewManager);
       // All 4 types selected for the single camera
@@ -869,7 +865,7 @@ describe('MediaFilterController', () => {
         },
       );
 
-      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
+      expect(viewManager.setViewByParametersWithExistingQuery).toHaveBeenCalledWith({
         params: {
           query: expect.any(UnifiedQuery),
         },

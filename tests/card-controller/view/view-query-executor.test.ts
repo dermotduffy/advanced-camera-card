@@ -10,17 +10,17 @@ import { QuerySource } from '../../../src/query-source';
 import { UnifiedQuery } from '../../../src/view/unified-query';
 import { View } from '../../../src/view/view';
 import {
-  createCameraConfig,
   createCameraManager,
   createCapabilities,
-  createCardAPI,
+  createStore,
+} from '../../camera-manager/test-utils';
+import {
+  createCameraConfig,
   createConfig,
   createPerformanceConfig,
-  createStore,
-  createView,
-  isEventQuery,
-  TestViewMedia,
-} from '../../test-utils';
+} from '../../config/test-utils';
+import { createCardAPI } from '../../test-utils';
+import { createView, isEventQuery, TestViewMedia } from '../../view/test-utils';
 import { createPopulatedAPI } from './test-utils';
 
 describe('ViewQueryExecutor', () => {

@@ -9,7 +9,8 @@ import type { FolderConfig } from '../../../src/config/schema/folders';
 import { QuerySource } from '../../../src/query-source';
 import type { Endpoint } from '../../../src/types';
 import { ViewFolder } from '../../../src/view/item';
-import { createFolder, createHASS, TestViewMedia } from '../../test-utils';
+import { createFolder, createHASS } from '../../test-utils';
+import { TestViewMedia } from '../../view/test-utils';
 
 vi.mock('../../../src/card-controller/folders/ha/engine');
 vi.mock('../../../../src/utils/ha/download');
@@ -134,7 +135,7 @@ describe('FoldersExecutor', () => {
 
       await executor.favorite(hass, item, true);
 
-      expect(haFolderEngine.favorite).toBeCalledWith(hass, item, true);
+      expect(haFolderEngine.favorite).toHaveBeenCalledWith(hass, item, true);
     });
   });
 
@@ -153,7 +154,10 @@ describe('FoldersExecutor', () => {
       const executor = new FoldersExecutor(templateManager, { ha: haFolderEngine });
 
       expect(executor.generateChildFolderQuery(query, viewFolder)).toEqual(query);
-      expect(haFolderEngine.generateChildFolderQuery).toBeCalledWith(query, viewFolder);
+      expect(haFolderEngine.generateChildFolderQuery).toHaveBeenCalledWith(
+        query,
+        viewFolder,
+      );
     });
 
     it('should return null for non-existent folder engine', () => {

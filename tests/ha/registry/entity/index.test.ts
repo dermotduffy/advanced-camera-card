@@ -2,10 +2,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { EntityRegistryManagerLive } from '../../../../src/ha/registry/entity';
 import { EntityCache } from '../../../../src/ha/registry/entity/types';
-import { homeAssistantWSRequest } from '../../../../src/ha/ws-request';
+import { AdvancedCameraCardError } from '../../../../src/types';
 import { createHASS, createRegistryEntity } from '../../../test-utils.js';
 
-vi.mock('../../../../src/ha/ws-request');
 vi.spyOn(global.console, 'warn').mockImplementation(() => true);
 
 describe('EntityRegistryManager', () => {
@@ -20,32 +19,38 @@ describe('EntityRegistryManager', () => {
 
       cache.set('test', testEntity);
 
+      const hass = createHASS();
       const manager = new EntityRegistryManagerLive(cache);
-      expect(await manager.getEntity(createHASS(), 'test')).toEqual(testEntity);
+      expect(await manager.getEntity(hass, 'test')).toEqual(testEntity);
 
-      expect(homeAssistantWSRequest).not.toHaveBeenCalled();
+      expect(hass.callWS).not.toHaveBeenCalled();
     });
 
     it('should fetch and cache when not cached', async () => {
       const testEntity = createRegistryEntity({ entity_id: 'test' });
 
+      const hass = createHASS();
       const manager = new EntityRegistryManagerLive(new EntityCache());
-      vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce(testEntity);
+      vi.mocked(hass.callWS).mockResolvedValueOnce(testEntity);
 
-      expect(await manager.getEntity(createHASS(), 'test')).toEqual(testEntity);
-      expect(homeAssistantWSRequest).toBeCalledTimes(1);
+      expect(await manager.getEntity(hass, 'test')).toEqual(testEntity);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
 
-      expect(await manager.getEntity(createHASS(), 'test')).toEqual(testEntity);
-      expect(homeAssistantWSRequest).toBeCalledTimes(1);
+      expect(await manager.getEntity(hass, 'test')).toEqual(testEntity);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
     });
 
     it('should return null when entity does not exist', async () => {
-      vi.mocked(homeAssistantWSRequest).mockRejectedValueOnce(new Error('Not found'));
+      const hass = createHASS();
+      vi.mocked(hass.callWS).mockRejectedValueOnce(new Error('Not found'));
 
       const manager = new EntityRegistryManagerLive(new EntityCache());
-      expect(await manager.getEntity(createHASS(), 'missing')).toBeNull();
+      expect(await manager.getEntity(hass, 'missing')).toBeNull();
 
-      vi.mocked(expect(console.warn)).toBeCalledWith('Not found');
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.any(AdvancedCameraCardError),
+        expect.anything(),
+      );
     });
   });
 
@@ -56,57 +61,58 @@ describe('EntityRegistryManager', () => {
     const cache = new EntityCache();
     cache.set('cached', cachedEntity);
 
+    const hass = createHASS();
     const manager = new EntityRegistryManagerLive(cache);
-    vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce(notCachedEntity);
-    vi.mocked(homeAssistantWSRequest).mockRejectedValueOnce(new Error('Not found'));
+    vi.mocked(hass.callWS).mockResolvedValueOnce(notCachedEntity);
+    vi.mocked(hass.callWS).mockRejectedValueOnce(new Error('Not found'));
 
-    expect(
-      await manager.getEntities(createHASS(), ['cached', 'not-cached', 'missing']),
-    ).toEqual(
+    expect(await manager.getEntities(hass, ['cached', 'not-cached', 'missing'])).toEqual(
       new Map([
         ['cached', cachedEntity],
         ['not-cached', notCachedEntity],
       ]),
     );
 
-    vi.mocked(expect(console.warn)).toBeCalledWith('Not found');
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.any(AdvancedCameraCardError),
+      expect.anything(),
+    );
   });
 
   describe('fetchEntityList', async () => {
     it('should fetch entire entity list once', async () => {
       const hass = createHASS();
       const entity = createRegistryEntity({ entity_id: 'cached' });
-      vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce([entity]);
+      vi.mocked(hass.callWS).mockResolvedValueOnce([entity]);
 
       const manager = new EntityRegistryManagerLive(new EntityCache());
 
       await manager.fetchEntityList(hass);
 
-      expect(homeAssistantWSRequest).toBeCalledTimes(1);
-      expect(homeAssistantWSRequest).toBeCalledWith(
-        expect.anything(),
-        expect.anything(),
-        {
-          type: 'config/entity_registry/list',
-        },
-      );
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
+      expect(hass.callWS).toHaveBeenCalledWith({
+        type: 'config/entity_registry/list',
+      });
 
       expect(await manager.getEntity(hass, 'cached')).toEqual(entity);
-      expect(homeAssistantWSRequest).toBeCalledTimes(1);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
 
       await manager.fetchEntityList(hass);
-      expect(homeAssistantWSRequest).toBeCalledTimes(1);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
     });
 
     it('should log to console on error', async () => {
       const hass = createHASS();
-      vi.mocked(homeAssistantWSRequest).mockRejectedValueOnce(new Error('Fetch error'));
+      vi.mocked(hass.callWS).mockRejectedValueOnce(new Error('Fetch error'));
 
       const manager = new EntityRegistryManagerLive(new EntityCache());
 
       await manager.fetchEntityList(hass);
 
-      vi.mocked(expect(console.warn)).toBeCalledWith('Fetch error');
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.any(AdvancedCameraCardError),
+        expect.anything(),
+      );
     });
   });
 
@@ -115,10 +121,7 @@ describe('EntityRegistryManager', () => {
     const notMatchingEntity = createRegistryEntity({ entity_id: 'not-matching' });
     const hass = createHASS();
 
-    vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce([
-      matchingEntity,
-      notMatchingEntity,
-    ]);
+    vi.mocked(hass.callWS).mockResolvedValueOnce([matchingEntity, notMatchingEntity]);
 
     const manager = new EntityRegistryManagerLive(new EntityCache());
     expect(

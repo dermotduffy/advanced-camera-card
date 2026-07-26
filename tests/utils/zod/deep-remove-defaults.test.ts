@@ -326,7 +326,7 @@ describe('deepNoDefaults', () => {
         value: () => ({}) as unknown as z.core.$ZodType,
       });
 
-      expect(() => deepRemoveDefaults(schema)).toThrowError(
+      expect(() => deepRemoveDefaults(schema)).toThrow(
         'deepRemoveDefaults supports full zod schemas only',
       );
     });

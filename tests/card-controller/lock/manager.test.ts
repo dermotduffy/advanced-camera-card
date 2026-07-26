@@ -12,7 +12,8 @@ import {
   createSubstreamOnAction,
   createViewAction,
 } from '../../../src/utils/action';
-import { createCardAPI, createConfig } from '../../test-utils';
+import { createConfig } from '../../config/test-utils';
+import { createCardAPI } from '../../test-utils';
 
 const setCallLock = (api: CardController, lock: boolean): void => {
   vi.mocked(api.getConfigManager().getConfig).mockReturnValue(

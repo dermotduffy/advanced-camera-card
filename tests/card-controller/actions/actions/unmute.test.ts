@@ -23,5 +23,5 @@ it('should handle unmute action', async () => {
 
   await action.execute(api);
 
-  expect(mediaPlayerController.unmute).toBeCalled();
+  expect(mediaPlayerController.unmute).toHaveBeenCalled();
 });

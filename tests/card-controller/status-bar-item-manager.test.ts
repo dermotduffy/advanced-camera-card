@@ -3,13 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
 import type { StatusBarString } from '../../src/config/schema/actions/types';
 import { QueryResults } from '../../src/view/query-results';
-import {
-  createCameraManager,
-  createCardAPI,
-  createStore,
-  createView,
-  TestViewMedia,
-} from '../test-utils';
+import { createCameraManager, createStore } from '../camera-manager/test-utils';
+import { createCardAPI } from '../test-utils';
+import { createView, TestViewMedia } from '../view/test-utils';
 
 describe('StatusBarItemManager', () => {
   const testItem: StatusBarString = {

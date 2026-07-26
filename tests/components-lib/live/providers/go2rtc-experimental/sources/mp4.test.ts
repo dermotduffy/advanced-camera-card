@@ -93,7 +93,7 @@ describe('MP4StreamSource', () => {
     channel.binaryCallback?.(frame());
 
     // Second frame reuses the same decoder rather than creating another.
-    expect(createVideoElement).toBeCalledTimes(1);
+    expect(createVideoElement).toHaveBeenCalledTimes(1);
   });
 
   it('should draw a decoded frame and show it as an image', async () => {
@@ -103,12 +103,12 @@ describe('MP4StreamSource', () => {
     decoderVideo.dispatchEvent(new Event('loadeddata'));
     await flushPromises();
 
-    expect(canvas.context?.drawImage).toBeCalled();
-    expect(showFrame).toBeCalledTimes(1);
+    expect(canvas.context?.drawImage).toHaveBeenCalled();
+    expect(showFrame).toHaveBeenCalledTimes(1);
     const shown = showFrame.mock.calls[0][0] as Blob;
     expect(shown).toBeInstanceOf(Blob);
     expect(shown.type).toBe('image/jpeg');
-    expect(loadedCallback).toBeCalledTimes(1);
+    expect(loadedCallback).toHaveBeenCalledTimes(1);
   });
 
   it('should report loaded only on the first drawn frame', async () => {
@@ -121,7 +121,7 @@ describe('MP4StreamSource', () => {
     decoderVideo.dispatchEvent(new Event('loadeddata'));
     await flushPromises();
 
-    expect(loadedCallback).toBeCalledTimes(1);
+    expect(loadedCallback).toHaveBeenCalledTimes(1);
   });
 
   it('should not show a frame when the canvas produces no blob', () => {
@@ -131,7 +131,7 @@ describe('MP4StreamSource', () => {
     channel.binaryCallback?.(frame());
     decoderVideo.dispatchEvent(new Event('loadeddata'));
 
-    expect(showFrame).not.toBeCalled();
+    expect(showFrame).not.toHaveBeenCalled();
   });
 
   it('should do nothing when the canvas has no 2d context', () => {
@@ -141,7 +141,7 @@ describe('MP4StreamSource', () => {
     channel.binaryCallback?.(frame());
     decoderVideo.dispatchEvent(new Event('loadeddata'));
 
-    expect(showFrame).not.toBeCalled();
+    expect(showFrame).not.toHaveBeenCalled();
   });
 
   it('should fail on a server error for mp4', () => {
@@ -149,7 +149,7 @@ describe('MP4StreamSource', () => {
     source.start();
     channel.receiveMessage({ type: 'error', value: 'mp4: stream not found' });
 
-    expect(failedCallback).toBeCalledWith('server_error');
+    expect(failedCallback).toHaveBeenCalledWith('server_error');
   });
 
   it('should clear the decoder on stop', () => {
@@ -172,7 +172,7 @@ describe('MP4StreamSource', () => {
     // surface.
     decoderVideo.dispatchEvent(new Event('loadeddata'));
 
-    expect(showFrame).not.toBeCalled();
+    expect(showFrame).not.toHaveBeenCalled();
   });
 
   describe('first-frame timeout', () => {
@@ -181,7 +181,7 @@ describe('MP4StreamSource', () => {
       source.start();
       vi.advanceTimersByTime(5 * 1000);
 
-      expect(failedCallback).toBeCalledWith('connect_timeout');
+      expect(failedCallback).toHaveBeenCalledWith('connect_timeout');
     });
 
     it('should not fail once a frame has been drawn', () => {
@@ -191,7 +191,7 @@ describe('MP4StreamSource', () => {
       decoderVideo.dispatchEvent(new Event('loadeddata'));
       vi.advanceTimersByTime(5 * 1000);
 
-      expect(failedCallback).not.toBeCalled();
+      expect(failedCallback).not.toHaveBeenCalled();
     });
 
     it('should not fail after stop', () => {
@@ -200,7 +200,7 @@ describe('MP4StreamSource', () => {
       source.stop();
       vi.advanceTimersByTime(5 * 1000);
 
-      expect(failedCallback).not.toBeCalled();
+      expect(failedCallback).not.toHaveBeenCalled();
     });
   });
 

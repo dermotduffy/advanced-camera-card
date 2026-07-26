@@ -100,7 +100,7 @@ describe('MediaGridController', () => {
   it('should be constructable', () => {
     const controller = createController(createParent());
     expect(controller).toBeTruthy();
-    expect(masonry.layout).toBeCalled();
+    expect(masonry.layout).toHaveBeenCalled();
   });
 
   it('should set grid contents correctly from regular elements', () => {
@@ -115,7 +115,7 @@ describe('MediaGridController', () => {
       ]),
     );
     expect(controller.getGridSize()).toBe(3);
-    expect(masonry.layout).toBeCalled();
+    expect(masonry.layout).toHaveBeenCalled();
   });
 
   it('should set grid contents correctly from slotted elements', () => {
@@ -205,12 +205,12 @@ describe('MediaGridController', () => {
     }
 
     // The grid signals its own state change via media-grid:unselected.
-    expect(unselectedHandler).toBeCalledTimes(1);
+    expect(unselectedHandler).toHaveBeenCalledTimes(1);
 
     // Unselecting a second time should do nothing.
     controller.unselectAll();
 
-    expect(unselectedHandler).toBeCalledTimes(1);
+    expect(unselectedHandler).toHaveBeenCalledTimes(1);
   });
 
   it('should select in constructor', () => {
@@ -337,7 +337,7 @@ describe('MediaGridController', () => {
     const children = createChildren();
     const parent = createParent({ children: children });
     createController(parent);
-    expect(Masonry).toBeCalledWith(
+    expect(Masonry).toHaveBeenCalledWith(
       parent,
       expect.objectContaining({
         initLayout: false,
@@ -350,7 +350,7 @@ describe('MediaGridController', () => {
   it('should set default column size correctly', () => {
     const parent = createParent({ children: createChildren() });
     createController(parent);
-    expect(Masonry).toBeCalledWith(
+    expect(Masonry).toHaveBeenCalledWith(
       parent,
       expect.objectContaining({
         columnWidth: 245,
@@ -368,8 +368,8 @@ describe('MediaGridController', () => {
 
     // The cells are unchanged, so the new column width is applied to the
     // existing Masonry instance rather than by constructing a new one.
-    expect(Masonry).toBeCalledTimes(1);
-    expect(masonry.option).toBeCalledWith(
+    expect(Masonry).toHaveBeenCalledTimes(1);
+    expect(masonry.option).toHaveBeenCalledWith(
       expect.objectContaining({
         columnWidth: 1499,
       }),
@@ -384,13 +384,13 @@ describe('MediaGridController', () => {
     createSlotHost({ slot: slot, children: createChildren() });
     createController(slot);
 
-    expect(Masonry).toBeCalledTimes(1);
-    expect(masonry.destroy).not.toBeCalled();
+    expect(Masonry).toHaveBeenCalledTimes(1);
+    expect(masonry.destroy).not.toHaveBeenCalled();
 
     slot.dispatchEvent(new Event('slotchange'));
 
-    expect(Masonry).toBeCalledTimes(1);
-    expect(masonry.destroy).not.toBeCalled();
+    expect(Masonry).toHaveBeenCalledTimes(1);
+    expect(masonry.destroy).not.toHaveBeenCalled();
   });
 
   it('should rebuild the grid and lay it out when the cells change', () => {
@@ -398,17 +398,17 @@ describe('MediaGridController', () => {
     const host = createSlotHost({ slot: slot, children: createChildren() });
     createController(slot);
 
-    expect(Masonry).toBeCalledTimes(1);
+    expect(Masonry).toHaveBeenCalledTimes(1);
 
     host.replaceChildren(...createChildren());
     slot.dispatchEvent(new Event('slotchange'));
 
-    expect(Masonry).toBeCalledTimes(2);
-    expect(masonry.destroy).toBeCalledTimes(1);
+    expect(Masonry).toHaveBeenCalledTimes(2);
+    expect(masonry.destroy).toHaveBeenCalledTimes(1);
 
     // A rebuild leaves the cells unpositioned, so the layout must not be left
     // to the throttle.
-    expect(masonry.layout).toBeCalled();
+    expect(masonry.layout).toHaveBeenCalled();
   });
 
   it('should rebuild the grid when the number of cells changes', () => {
@@ -416,13 +416,13 @@ describe('MediaGridController', () => {
     const host = createSlotHost({ slot: slot, children: createChildren() });
     createController(slot);
 
-    expect(Masonry).toBeCalledTimes(1);
+    expect(Masonry).toHaveBeenCalledTimes(1);
 
     host.append(...createChildren(['new-cell']));
     slot.dispatchEvent(new Event('slotchange'));
 
-    expect(Masonry).toBeCalledTimes(2);
-    expect(masonry.destroy).toBeCalledTimes(1);
+    expect(Masonry).toHaveBeenCalledTimes(2);
+    expect(masonry.destroy).toHaveBeenCalledTimes(1);
   });
 
   it('should not use more columns than the items ask for', () => {
@@ -431,7 +431,7 @@ describe('MediaGridController', () => {
 
     // The lone item takes the whole grid. Sizing from the width alone would
     // give it 1 of 5 columns, with the other 4 left empty.
-    expect(Masonry).toBeCalledWith(
+    expect(Masonry).toHaveBeenCalledWith(
       parent,
       expect.objectContaining({
         columnWidth: 3000,
@@ -448,7 +448,7 @@ describe('MediaGridController', () => {
 
     // Sizing from the width alone would give the lone item half of a default
     // width card.
-    expect(Masonry).toBeCalledWith(
+    expect(Masonry).toHaveBeenCalledWith(
       parent,
       expect.objectContaining({
         columnWidth: 492,
@@ -463,7 +463,7 @@ describe('MediaGridController', () => {
     const parent = createParent({ width: 3000 });
     createController(parent);
 
-    expect(Masonry).toBeCalledWith(
+    expect(Masonry).toHaveBeenCalledWith(
       parent,
       expect.objectContaining({
         columnWidth: 3000,
@@ -479,7 +479,7 @@ describe('MediaGridController', () => {
     const controller = createController(parent);
     controller.setDisplayConfig({ mode: 'grid', grid_columns: 4 });
 
-    expect(masonry.option).toBeCalledWith(
+    expect(masonry.option).toHaveBeenCalledWith(
       expect.objectContaining({
         columnWidth: 749,
       }),
@@ -498,7 +498,7 @@ describe('MediaGridController', () => {
 
     // The items ask for 4 columns: 2 for the selection (the default
     // `grid_selected_width_factor`) and 1 for each of its siblings.
-    expect(Masonry).toBeCalledWith(
+    expect(Masonry).toHaveBeenCalledWith(
       parent,
       expect.objectContaining({
         columnWidth: 749,
@@ -515,7 +515,7 @@ describe('MediaGridController', () => {
 
     // A selection is normally reserved extra columns, but a lone item cannot be
     // wider than the grid and so cannot use them.
-    expect(Masonry).toBeCalledWith(
+    expect(Masonry).toHaveBeenCalledWith(
       parent,
       expect.objectContaining({
         columnWidth: 3000,
@@ -533,7 +533,7 @@ describe('MediaGridController', () => {
 
     // 3 columns for the selection and 1 for each sibling exhausts the 5
     // columns the width allows.
-    expect(masonry.option).toBeCalledWith(
+    expect(masonry.option).toHaveBeenCalledWith(
       expect.objectContaining({
         columnWidth: 599,
       }),
@@ -551,7 +551,7 @@ describe('MediaGridController', () => {
 
     // The items span 4 columns, and the widest needs 2 more when selected.
     // Ignoring the width factor would give 4 columns of 1049px.
-    expect(Masonry).toBeCalledWith(
+    expect(Masonry).toHaveBeenCalledWith(
       parent,
       expect.objectContaining({
         columnWidth: 699,
@@ -569,7 +569,7 @@ describe('MediaGridController', () => {
 
     // Each item asks for one column: the selection fills exactly one at 0.5 x
     // 2, and a half-width sibling still occupies a whole one.
-    expect(Masonry).toBeCalledWith(
+    expect(Masonry).toHaveBeenCalledWith(
       parent,
       expect.objectContaining({
         columnWidth: 599,
@@ -584,7 +584,7 @@ describe('MediaGridController', () => {
 
     // Room for a selection is reserved whether or not there is one, so the
     // three items ask for 4 columns either way.
-    expect(Masonry).toBeCalledWith(
+    expect(Masonry).toHaveBeenCalledWith(
       parent,
       expect.objectContaining({
         columnWidth: 749,
@@ -596,14 +596,14 @@ describe('MediaGridController', () => {
 
     // Selecting an item would otherwise resize the items the user did not
     // interact with.
-    expect(masonry.option).not.toBeCalled();
+    expect(masonry.option).not.toHaveBeenCalled();
     expect(
       parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
     ).toBe('749px');
 
     controller.unselectAll();
 
-    expect(masonry.option).not.toBeCalled();
+    expect(masonry.option).not.toHaveBeenCalled();
     expect(
       parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
     ).toBe('749px');
@@ -642,8 +642,8 @@ describe('MediaGridController', () => {
     // Click is consumed; the controller dispatches the selection request but
     // does NOT mutate local state. The authoritative selection is applied by
     // the parent via `selectCell` once it propagates back.
-    expect(clickHandler).not.toBeCalled();
-    expect(selectedHandler).toBeCalledTimes(1);
+    expect(clickHandler).not.toHaveBeenCalled();
+    expect(selectedHandler).toHaveBeenCalledTimes(1);
     expect(selectedHandler.mock.calls[0][0].detail).toEqual({ selected: '1' });
     expect(controller.getSelected()).toBeNull();
   });
@@ -659,7 +659,7 @@ describe('MediaGridController', () => {
     children[1].click();
 
     // Click will be allowed through.
-    expect(clickHandler).toBeCalled();
+    expect(clickHandler).toHaveBeenCalled();
     expect(controller.getSelected()).toBe('1');
   });
 
@@ -668,14 +668,14 @@ describe('MediaGridController', () => {
 
     vi.mocked(masonry.layout)?.mockClear();
     triggerResizeObserver('cell');
-    expect(masonry.layout).toBeCalled();
+    expect(masonry.layout).toHaveBeenCalled();
   });
 
   it('should update masonry column width when host size changes', () => {
     const children = createChildren();
     const parent = createParent({ children: children });
     createController(parent);
-    expect(Masonry).toBeCalledWith(
+    expect(Masonry).toHaveBeenCalledWith(
       parent,
       expect.objectContaining({
         columnWidth: 245,
@@ -696,12 +696,12 @@ describe('MediaGridController', () => {
 
     // Masonry should not be recreated, but column width should be updated
     // via option() and layout should be called.
-    expect(Masonry).not.toBeCalled();
-    expect(masonry.option).toBeCalledWith({ columnWidth: 749 });
+    expect(Masonry).not.toHaveBeenCalled();
+    expect(masonry.option).toHaveBeenCalledWith({ columnWidth: 749 });
     expect(
       parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
     ).toBe('749px');
-    expect(masonry.layout).toBeCalled();
+    expect(masonry.layout).toHaveBeenCalled();
 
     // Clear mock state.
     vi.mocked(Masonry).mockClear();
@@ -710,9 +710,9 @@ describe('MediaGridController', () => {
 
     // Trigger with the same sizes.
     triggerResizeObserver('host');
-    expect(Masonry).not.toBeCalled();
-    expect(masonry.option).not.toBeCalled();
-    expect(masonry.layout).not.toBeCalled();
+    expect(Masonry).not.toHaveBeenCalled();
+    expect(masonry.option).not.toHaveBeenCalled();
+    expect(masonry.layout).not.toHaveBeenCalled();
   });
 
   describe('describe should sort grid elements correctly', () => {

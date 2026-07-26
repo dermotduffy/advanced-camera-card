@@ -25,7 +25,7 @@ describe('ActionSet', () => {
 
     const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
     await set.execute(api);
-    expect(consoleSpy).toBeCalled();
+    expect(consoleSpy).toHaveBeenCalled();
   });
 
   it('should not execute invalid action', async () => {
@@ -39,7 +39,7 @@ describe('ActionSet', () => {
 
     const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
     await set.execute(api);
-    expect(consoleSpy).not.toBeCalled();
+    expect(consoleSpy).not.toHaveBeenCalled();
   });
 
   it('should stop execution', async () => {
@@ -50,6 +50,6 @@ describe('ActionSet', () => {
     const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
     await set.stop();
     await set.execute(api);
-    expect(consoleSpy).not.toBeCalled();
+    expect(consoleSpy).not.toHaveBeenCalled();
   });
 });

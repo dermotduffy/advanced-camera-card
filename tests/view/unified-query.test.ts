@@ -10,7 +10,7 @@ import {
   createReviewQuery,
   isEventQuery,
   isFolderQuery,
-} from '../test-utils';
+} from './test-utils';
 
 describe('UnifiedQuery', () => {
   describe('Node Management', () => {

@@ -38,7 +38,7 @@ describe('homeAssistantWSRequest', () => {
 
     await expect(
       homeAssistantWSRequest(hass, resolvedMediaSchema, request),
-    ).rejects.toThrowError(/Failed to receive response/);
+    ).rejects.toThrow(/Failed to receive response/);
   });
 
   it('should throw on empty response', async () => {
@@ -47,7 +47,7 @@ describe('homeAssistantWSRequest', () => {
 
     await expect(
       homeAssistantWSRequest(hass, resolvedMediaSchema, request),
-    ).rejects.toThrowError(/Received empty response/);
+    ).rejects.toThrow(/Received empty response/);
   });
 
   it('should throw error on parse failure', async () => {
@@ -56,7 +56,7 @@ describe('homeAssistantWSRequest', () => {
 
     await expect(
       homeAssistantWSRequest(hass, resolvedMediaSchema, request),
-    ).rejects.toThrowError(/Received invalid response/);
+    ).rejects.toThrow(/Received invalid response/);
   });
 
   it('should throw on JSON parse failure', async () => {
@@ -67,6 +67,6 @@ describe('homeAssistantWSRequest', () => {
 
     await expect(
       homeAssistantWSRequest(hass, resolvedMediaSchema, request, true),
-    ).rejects.toThrowError(/Received invalid response/);
+    ).rejects.toThrow(/Received invalid response/);
   });
 });

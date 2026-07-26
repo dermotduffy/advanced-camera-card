@@ -15,5 +15,5 @@ it('should handle expand action', async () => {
 
   await action.execute(api);
 
-  expect(api.getExpandManager().toggleExpanded).toBeCalled();
+  expect(api.getExpandManager().toggleExpanded).toHaveBeenCalled();
 });

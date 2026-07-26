@@ -16,16 +16,15 @@ import type { TriggerOfType } from '../../../src/condition-trigger/triggers/trig
 import type { RingtoneConfig } from '../../../src/config/schema/live';
 import type { AdvancedCameraCardConfig } from '../../../src/config/schema/types';
 import { View } from '../../../src/view/view';
-import { createTriggerEvaluatorContext } from '../../condition-trigger/triggers/triggers/test-utils';
 import {
-  createCameraConfig,
   createCameraManager,
   createCapabilities,
-  createCardAPI,
-  createConfig,
   createStore,
-  createView,
-} from '../../test-utils';
+} from '../../camera-manager/test-utils';
+import { createTriggerEvaluatorContext } from '../../condition-trigger/triggers/triggers/test-utils';
+import { createCameraConfig, createConfig } from '../../config/test-utils';
+import { createCardAPI } from '../../test-utils';
+import { createView } from '../../view/test-utils';
 
 // Replace Ringtone with a fresh `mock<Ringtone>()` per construction so each
 // CallManager gets an isolated, type-safe ringtone we can assert on. The
@@ -130,7 +129,7 @@ describe('start', () => {
 
     expect(await new CallManager(api).start()).toBe(false);
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 
   it('should do nothing when already active for the camera', async () => {
@@ -141,7 +140,7 @@ describe('start', () => {
     vi.mocked(api.getViewManager().setViewByParameters).mockClear();
     expect(await manager.start()).toBe(true);
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 
   it('should start a call on the selected camera', async () => {
@@ -149,7 +148,7 @@ describe('start', () => {
 
     expect(await new CallManager(api).start()).toBe(true);
 
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith({
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
@@ -162,7 +161,7 @@ describe('start', () => {
 
     expect(await new CallManager(api).start()).toBe(true);
 
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith({
       params: { view: 'live', camera: 'camera.office' },
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
@@ -176,11 +175,11 @@ describe('start', () => {
 
     expect(await new CallManager(api).start()).toBe(true);
 
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith({
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
-    expect(api.getViewManager().setViewByParameters).not.toBeCalledWith(
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalledWith(
       expect.objectContaining({ params: expect.anything() }),
     );
   });
@@ -251,7 +250,7 @@ describe('start', () => {
     expect(call?.cameraID).toBe('camera.office');
     expect(call?.previousView?.view).toBe('folder');
     expect(call?.previousView?.camera).toBeNull();
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith({
       params: { view: 'live', camera: 'camera.office' },
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
@@ -280,7 +279,7 @@ describe('start', () => {
     expect(call?.cameraID).toBe('camera.garage');
     expect(call?.previousView?.view).toBe('live');
     expect(call?.previousView?.camera).toBe('camera.office');
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith({
       params: { view: 'live', camera: 'camera.garage' },
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
@@ -321,8 +320,8 @@ describe('start', () => {
 
     expect(await new CallManager(api).start({ cameraID: 'camera.unknown' })).toBe(false);
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
-    expect(api.getNotificationManager().setNotification).toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalled();
   });
 
   it('should abort when the requested stream is not 2-way audio of the parent camera', async () => {
@@ -347,8 +346,8 @@ describe('start', () => {
       }),
     ).toBe(false);
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
-    expect(api.getNotificationManager().setNotification).toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalled();
   });
 
   it('should supersede an active call on a different camera', async () => {
@@ -439,8 +438,8 @@ describe('start', () => {
 
     expect(await new CallManager(api).start()).toBe(false);
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
-    expect(api.getNotificationManager().setNotification).toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalled();
   });
 
   it('should engage the active substream when it is call-capable', async () => {
@@ -464,7 +463,7 @@ describe('start', () => {
 
     expect(await manager.start()).toBe(true);
 
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith({
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
@@ -493,7 +492,7 @@ describe('start', () => {
 
     expect(await new CallManager(api).start()).toBe(true);
 
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith({
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
@@ -507,8 +506,8 @@ describe('start', () => {
 
     expect(await new CallManager(api).start()).toBe(false);
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
-    expect(api.getNotificationManager().setNotification).toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalled();
   });
 
   it('should abort when the microphone is forbidden', async () => {
@@ -519,8 +518,8 @@ describe('start', () => {
 
     expect(await new CallManager(api).start()).toBe(false);
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
-    expect(api.getNotificationManager().setNotification).toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalled();
   });
 
   it('should connect the microphone when not already connected', async () => {
@@ -532,8 +531,8 @@ describe('start', () => {
 
     expect(await new CallManager(api).start()).toBe(true);
 
-    expect(api.getMicrophoneManager().connect).toBeCalled();
-    expect(api.getViewManager().setViewByParameters).toBeCalled();
+    expect(api.getMicrophoneManager().connect).toHaveBeenCalled();
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalled();
   });
 
   it('should abort when connecting the microphone fails', async () => {
@@ -545,8 +544,8 @@ describe('start', () => {
 
     expect(await new CallManager(api).start()).toBe(false);
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
-    expect(api.getNotificationManager().setNotification).toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalled();
   });
 
   it('should ring an inbound call without connecting the microphone', async () => {
@@ -562,8 +561,8 @@ describe('start', () => {
     // that would fail must not stop the call from ringing.
     expect(await manager.start({ inbound: true })).toBe(true);
 
-    expect(api.getMicrophoneManager().connect).not.toBeCalled();
-    expect(getRingtone().start).toBeCalled();
+    expect(api.getMicrophoneManager().connect).not.toHaveBeenCalled();
+    expect(getRingtone().start).toHaveBeenCalled();
   });
 
   it('should ring an inbound call when the microphone is forbidden', async () => {
@@ -578,7 +577,7 @@ describe('start', () => {
     // microphone, and answering retries the connect.
     expect(await manager.start({ inbound: true })).toBe(true);
 
-    expect(getRingtone().start).toBeCalled();
+    expect(getRingtone().start).toHaveBeenCalled();
   });
 
   it('should abort an inbound call when the microphone is unsupported', async () => {
@@ -593,7 +592,7 @@ describe('start', () => {
     // supporting it while the page is loaded, so the call can never be taken.
     expect(await manager.start({ inbound: true })).toBe(false);
 
-    expect(getRingtone().start).not.toBeCalled();
+    expect(getRingtone().start).not.toHaveBeenCalled();
   });
 });
 
@@ -692,7 +691,7 @@ describe('end', () => {
 
     expect(new CallManager(api).end()).toBe(false);
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 
   it('should end an active call', async () => {
@@ -704,7 +703,7 @@ describe('end', () => {
     expect(manager.end()).toBe(true);
 
     expect(manager.isActive()).toBe(false);
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith({
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
@@ -734,7 +733,7 @@ describe('end', () => {
     expect(manager.end()).toBe(true);
 
     // The recorded pre-call substream (`camera.sub`) is reinstated.
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith({
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
@@ -749,7 +748,9 @@ describe('end', () => {
 
     expect(manager.end()).toBe(true);
 
-    expect(api.getViewManager().setViewByParametersWithExistingQuery).toBeCalledWith({
+    expect(
+      api.getViewManager().setViewByParametersWithExistingQuery,
+    ).toHaveBeenCalledWith({
       baseView: expect.any(View),
       force: true,
     });
@@ -770,11 +771,13 @@ describe('end', () => {
     expect(manager.end()).toBe(true);
 
     // No navigation: only the substream is undone.
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith({
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
-    expect(api.getViewManager().setViewByParametersWithExistingQuery).not.toBeCalled();
+    expect(
+      api.getViewManager().setViewByParametersWithExistingQuery,
+    ).not.toHaveBeenCalled();
   });
 
   it('should return to a camera-less pre-call view on an explicit end', async () => {
@@ -957,7 +960,7 @@ describe('condition state changes', () => {
     });
 
     expect(manager.isActive()).toBe(false);
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith({
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
@@ -979,7 +982,9 @@ describe('condition state changes', () => {
     });
 
     expect(manager.isActive()).toBe(false);
-    expect(api.getViewManager().setViewByParametersWithExistingQuery).not.toBeCalled();
+    expect(
+      api.getViewManager().setViewByParametersWithExistingQuery,
+    ).not.toHaveBeenCalled();
   });
 
   it('should end the call when the view leaves live', async () => {
@@ -996,7 +1001,7 @@ describe('condition state changes', () => {
     });
 
     expect(manager.isActive()).toBe(false);
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+    expect(api.getViewManager().setViewByParameters).toHaveBeenCalledWith({
       modifiers: [expect.any(SubstreamViewModifier)],
       force: true,
     });
@@ -1027,7 +1032,7 @@ describe('condition state changes', () => {
       new: { camera: 'camera.other' },
     });
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 
   it('should end the call when the substream changes away', async () => {
@@ -1103,7 +1108,7 @@ describe('initialize / uninitialize', () => {
     const api = createAPI();
     new CallManager(api);
 
-    expect(api.getConditionStateManager().addListener).not.toBeCalled();
+    expect(api.getConditionStateManager().addListener).not.toHaveBeenCalled();
   });
 
   it('should register the condition state listener on initialize', () => {
@@ -1112,7 +1117,7 @@ describe('initialize / uninitialize', () => {
 
     manager.initialize();
 
-    expect(api.getConditionStateManager().addListener).toBeCalled();
+    expect(api.getConditionStateManager().addListener).toHaveBeenCalled();
   });
 
   it('should remove the condition state listener on uninitialize', () => {
@@ -1123,7 +1128,7 @@ describe('initialize / uninitialize', () => {
 
     manager.uninitialize();
 
-    expect(api.getConditionStateManager().removeListener).toBeCalledWith(listener);
+    expect(api.getConditionStateManager().removeListener).toHaveBeenCalledWith(listener);
   });
 
   it('should tear down any active call session on uninitialize', async () => {
@@ -1156,7 +1161,7 @@ describe('initialize / uninitialize', () => {
       new: { camera: 'camera.other', view: 'live' },
     });
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 });
 
@@ -1179,7 +1184,7 @@ describe('inbound option', () => {
 
     expect(await new CallManager(api).start({ inbound: true })).toBe(false);
 
-    expect(api.getNotificationManager().setNotification).not.toBeCalled();
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
   });
 
   it('should suppress notification when the microphone is unsupported', async () => {
@@ -1190,7 +1195,7 @@ describe('inbound option', () => {
 
     expect(await new CallManager(api).start({ inbound: true })).toBe(false);
 
-    expect(api.getNotificationManager().setNotification).not.toBeCalled();
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
   });
 
   it('should suppress notification when an explicit stream is not 2-way audio', async () => {
@@ -1203,7 +1208,7 @@ describe('inbound option', () => {
       }),
     ).toBe(false);
 
-    expect(api.getNotificationManager().setNotification).not.toBeCalled();
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
   });
 
   it('should suppress notification when no stream supports 2-way audio', async () => {
@@ -1219,7 +1224,7 @@ describe('inbound option', () => {
 
     expect(await new CallManager(api).start({ inbound: true })).toBe(false);
 
-    expect(api.getNotificationManager().setNotification).not.toBeCalled();
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
   });
 
   it('should record the call as inbound on the session', async () => {
@@ -1274,7 +1279,7 @@ describe('answer', () => {
     expect(await manager.start({ inbound: true })).toBe(true);
 
     expect(manager.getCall()?.answered).toBe(false);
-    expect(getRingtone().start).toBeCalled();
+    expect(getRingtone().start).toHaveBeenCalled();
   });
 
   it('should no-op when no call is active', async () => {
@@ -1298,8 +1303,8 @@ describe('answer', () => {
 
     expect(await manager.answer()).toBe(false);
 
-    expect(getRingtone().stop).not.toBeCalled();
-    expect(api.getCardElementManager().update).not.toBeCalled();
+    expect(getRingtone().stop).not.toHaveBeenCalled();
+    expect(api.getCardElementManager().update).not.toHaveBeenCalled();
   });
 
   it('should mark answered and replace the session immutably', async () => {
@@ -1345,7 +1350,7 @@ describe('answer', () => {
 
       expect(await manager.answer()).toBe(true);
 
-      expect(getRingtone().stop).toBeCalled();
+      expect(getRingtone().stop).toHaveBeenCalled();
 
       // Timer was armed and should now be cancelled: advancing past the
       // timeout must not end the (now-answered) call.
@@ -1369,7 +1374,7 @@ describe('answer', () => {
 
     expect(await manager.answer()).toBe(true);
 
-    expect(api.getMicrophoneManager().connect).toBeCalled();
+    expect(api.getMicrophoneManager().connect).toHaveBeenCalled();
   });
 
   it('should silence the ringtone before the microphone connect', async () => {
@@ -1393,7 +1398,7 @@ describe('answer', () => {
 
     // The user has acknowledged the ring, so it must stop without waiting for a
     // microphone permission prompt to be dealt with.
-    expect(getRingtone().stop).toBeCalled();
+    expect(getRingtone().stop).toHaveBeenCalled();
 
     resolveConnect();
     expect(await answerPromise).toBe(true);
@@ -1414,7 +1419,7 @@ describe('answer', () => {
 
     // Answering is an explicit user gesture, so the failure is surfaced and the
     // call remains answerable.
-    expect(api.getNotificationManager().setNotification).toBeCalled();
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalled();
     expect(manager.getCall()?.answered).toBe(false);
   });
 
@@ -1433,7 +1438,7 @@ describe('answer', () => {
     // The card subtree depends on `getCall().answered`, which the manager
     // mutates outside the view-manager epoch -- so `update()` is what drives
     // the re-render through to the call-controls overlay.
-    expect(api.getCardElementManager().update).toBeCalled();
+    expect(api.getCardElementManager().update).toHaveBeenCalled();
   });
 
   it('should not mark non-inbound (outbound) calls via answer (already answered)', async () => {
@@ -1483,12 +1488,12 @@ describe('microphone usage', () => {
 
     expect(await manager.start()).toBe(true);
 
-    expect(api.getMicrophoneManager().startUsing).toBeCalledTimes(1);
-    expect(api.getMicrophoneManager().stopUsing).not.toBeCalled();
+    expect(api.getMicrophoneManager().startUsing).toHaveBeenCalledTimes(1);
+    expect(api.getMicrophoneManager().stopUsing).not.toHaveBeenCalled();
 
     manager.end();
 
-    expect(api.getMicrophoneManager().stopUsing).toBeCalledTimes(1);
+    expect(api.getMicrophoneManager().stopUsing).toHaveBeenCalledTimes(1);
   });
 
   it('should not mark the microphone in use when the start is aborted', async () => {
@@ -1500,7 +1505,7 @@ describe('microphone usage', () => {
 
     expect(await new CallManager(api).start()).toBe(false);
 
-    expect(api.getMicrophoneManager().startUsing).not.toBeCalled();
+    expect(api.getMicrophoneManager().startUsing).not.toHaveBeenCalled();
   });
 
   it('should keep the microphone in use when a call supersedes another', async () => {
@@ -1522,8 +1527,8 @@ describe('microphone usage', () => {
     expect(await manager.start()).toBe(true);
     expect(await manager.start({ cameraID: 'camera.garage' })).toBe(true);
 
-    expect(api.getMicrophoneManager().startUsing).toBeCalledTimes(2);
-    expect(api.getMicrophoneManager().stopUsing).toBeCalledTimes(1);
+    expect(api.getMicrophoneManager().startUsing).toHaveBeenCalledTimes(2);
+    expect(api.getMicrophoneManager().stopUsing).toHaveBeenCalledTimes(1);
   });
 
   it('should mark the microphone unused on uninitialization', async () => {
@@ -1533,7 +1538,7 @@ describe('microphone usage', () => {
     expect(await manager.start()).toBe(true);
     manager.uninitialize();
 
-    expect(api.getMicrophoneManager().stopUsing).toBeCalledTimes(1);
+    expect(api.getMicrophoneManager().stopUsing).toHaveBeenCalledTimes(1);
   });
 
   it('should not mark the microphone unused when uninitializing without a call', () => {
@@ -1541,7 +1546,7 @@ describe('microphone usage', () => {
 
     new CallManager(api).uninitialize();
 
-    expect(api.getMicrophoneManager().stopUsing).not.toBeCalled();
+    expect(api.getMicrophoneManager().stopUsing).not.toHaveBeenCalled();
   });
 });
 
@@ -1559,7 +1564,7 @@ describe('ringtone', () => {
 
     expect(await manager.start({ inbound: true })).toBe(true);
 
-    expect(getRingtone().start).toBeCalledWith(expect.objectContaining(ringtone));
+    expect(getRingtone().start).toHaveBeenCalledWith(expect.objectContaining(ringtone));
   });
 
   it('should not start the ringtone for a non-inbound call', async () => {
@@ -1572,7 +1577,7 @@ describe('ringtone', () => {
 
     expect(await manager.start()).toBe(true);
 
-    expect(getRingtone().start).not.toBeCalled();
+    expect(getRingtone().start).not.toHaveBeenCalled();
   });
 
   it("should not start the ringtone when type is 'none'", async () => {
@@ -1585,7 +1590,7 @@ describe('ringtone', () => {
 
     expect(await manager.start({ inbound: true })).toBe(true);
 
-    expect(getRingtone().start).not.toBeCalled();
+    expect(getRingtone().start).not.toHaveBeenCalled();
   });
 
   it('should stop the ringtone when the call ends', async () => {
@@ -1600,7 +1605,7 @@ describe('ringtone', () => {
 
     expect(manager.end()).toBe(true);
 
-    expect(getRingtone().stop).toBeCalled();
+    expect(getRingtone().stop).toHaveBeenCalled();
   });
 
   it('should stop the ringtone on uninitialize', async () => {
@@ -1615,7 +1620,7 @@ describe('ringtone', () => {
 
     manager.uninitialize();
 
-    expect(getRingtone().stop).toBeCalled();
+    expect(getRingtone().stop).toHaveBeenCalled();
   });
 });
 
@@ -1764,7 +1769,7 @@ describe('session end during setState', () => {
 
     expect(await manager.start({ inbound: true })).toBe(false);
 
-    expect(getRingtone().start).not.toBeCalled();
+    expect(getRingtone().start).not.toHaveBeenCalled();
     expect(manager.isActive()).toBe(false);
   });
 });
@@ -1790,7 +1795,7 @@ describe('state changes during in-flight start', () => {
 
     expect(await startPromise).toBe(false);
     expect(manager.isActive()).toBe(false);
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 
   it('should not install a session when uninitialized and re-initialized mid-await', async () => {
@@ -1814,7 +1819,7 @@ describe('state changes during in-flight start', () => {
 
     expect(await startPromise).toBe(false);
     expect(manager.isActive()).toBe(false);
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 
   it('should supersede a session installed by another start mid-await', async () => {
@@ -1853,8 +1858,8 @@ describe('state changes during in-flight start', () => {
     // overwrite it, leaving exactly one live session and no stranded microphone
     // marking.
     expect(manager.getCall()?.cameraID).toBe('camera.garage');
-    expect(api.getMicrophoneManager().startUsing).toBeCalledTimes(2);
-    expect(api.getMicrophoneManager().stopUsing).toBeCalledTimes(1);
+    expect(api.getMicrophoneManager().startUsing).toHaveBeenCalledTimes(2);
+    expect(api.getMicrophoneManager().stopUsing).toHaveBeenCalledTimes(1);
   });
 
   it('should suppress the microphone-failure notification when uninitialized mid-await', async () => {
@@ -1876,7 +1881,7 @@ describe('state changes during in-flight start', () => {
     rejectConnect(new Error('denied'));
 
     expect(await startPromise).toBe(false);
-    expect(api.getNotificationManager().setNotification).not.toBeCalled();
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
   });
 });
 
@@ -1939,7 +1944,7 @@ describe('state changes during in-flight answer', () => {
     rejectConnect(new Error('denied'));
 
     expect(await answerPromise).toBe(false);
-    expect(api.getNotificationManager().setNotification).not.toBeCalled();
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
   });
 
   it('should not answer a session that ended mid-await', async () => {

@@ -7,7 +7,8 @@ import {
   getReviewedQueryFilterFromConfig,
   getReviewedQueryFilterFromQuery,
 } from '../../../src/view/utils/query-filter';
-import { createEventQuery, createFolder, TestViewMedia } from '../../test-utils';
+import { createFolder } from '../../test-utils';
+import { createEventQuery, TestViewMedia } from '../test-utils';
 
 describe('query-filter', () => {
   describe('getReviewedQueryFilterFromQuery', () => {

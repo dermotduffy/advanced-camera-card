@@ -20,7 +20,7 @@ describe('PerformActionAction', () => {
     );
     await action.execute(api);
 
-    expect(hass.callService).toBeCalledWith(
+    expect(hass.callService).toHaveBeenCalledWith(
       'light',
       'turn_on',
       {

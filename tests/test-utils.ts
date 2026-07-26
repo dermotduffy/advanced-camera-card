@@ -9,24 +9,12 @@ import screenfull from 'screenfull';
 import { expect, onTestFinished, vi, type Mock } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { Camera } from '../src/camera-manager/camera';
-import { Capabilities } from '../src/camera-manager/capabilities';
-import type { CameraManagerEngine } from '../src/camera-manager/engine';
 import type {
   FrigateEvent,
   FrigateRecording,
   FrigateReview,
 } from '../src/camera-manager/frigate/types';
-import { GenericCameraManagerEngine } from '../src/camera-manager/generic/engine-generic';
 import type { CameraManager } from '../src/camera-manager/manager';
-import { CameraManagerStore } from '../src/camera-manager/store';
-import {
-  QueryType,
-  type CameraEventCallback,
-  type EventQuery,
-  type RecordingQuery,
-  type ReviewQuery,
-} from '../src/camera-manager/types';
 import type { ActionsManager } from '../src/card-controller/actions/actions-manager';
 import type { AutomationsManager } from '../src/card-controller/automations-manager';
 import type { CallManager } from '../src/card-controller/call/manager';
@@ -42,7 +30,6 @@ import type { DefaultManager } from '../src/card-controller/default-manager';
 import type { EffectsManager } from '../src/card-controller/effects/effects-manager';
 import type { ExpandManager } from '../src/card-controller/expand-manager';
 import type { FoldersManager } from '../src/card-controller/folders/manager';
-import type { FolderQuery } from '../src/card-controller/folders/types';
 import type { FullscreenManager } from '../src/card-controller/fullscreen/fullscreen-manager';
 import type { EventWatcherSubscriptionInterface } from '../src/card-controller/hass/event-watcher';
 import type { HASSManager } from '../src/card-controller/hass/hass-manager';
@@ -67,17 +54,7 @@ import type { ViewItemManager } from '../src/card-controller/view/item-manager';
 import type { ViewManager } from '../src/card-controller/view/view-manager';
 import type { SubmenuInteraction, SubmenuItem } from '../src/components/submenu/types';
 import type { ConditionStateManager } from '../src/condition-trigger/conditions/state-manager';
-import { cameraConfigSchema, type CameraConfig } from '../src/config/schema/cameras';
 import type { FolderConfig } from '../src/config/schema/folders';
-import {
-  performanceConfigSchema,
-  type PerformanceConfig,
-} from '../src/config/schema/performance';
-import {
-  advancedCameraCardConfigSchema,
-  type AdvancedCameraCardConfig,
-} from '../src/config/schema/types';
-import type { RawAdvancedCameraCardConfig } from '../src/config/types';
 import type {
   BrowseMedia,
   BrowseMediaMetadata,
@@ -87,57 +64,12 @@ import type { Device } from '../src/ha/registry/device/types';
 import type { Entity, EntityRegistryManager } from '../src/ha/registry/entity/types';
 import type { HASSListener, HASSSource } from '../src/ha/source';
 import type { CurrentUser, HassStateDifference, HomeAssistant } from '../src/ha/types';
-import { QuerySource } from '../src/query-source';
-import type { Severity } from '../src/severity';
 import type {
-  CapabilitiesRaw,
   Interaction,
   MediaLoadedInfo,
   MediaLoadedInfoEventDetail,
 } from '../src/types';
-import {
-  ViewMedia,
-  ViewMediaType,
-  type EventViewMedia,
-  type ReviewViewMedia,
-} from '../src/view/item';
-import { QueryResults } from '../src/view/query-results';
 import type { ViewItemCapabilities } from '../src/view/types';
-import { View, type ViewParameters } from '../src/view/view';
-
-export const createCameraConfig = (config?: unknown): CameraConfig => {
-  return cameraConfigSchema.parse(config ?? {});
-};
-
-export const createRawConfig = (
-  config?: Partial<RawAdvancedCameraCardConfig>,
-): RawAdvancedCameraCardConfig => {
-  return {
-    type: 'advanced-camera-card',
-    cameras: [{}],
-    ...config,
-  };
-};
-
-export const createConfig = (
-  config?: RawAdvancedCameraCardConfig,
-): AdvancedCameraCardConfig => {
-  return advancedCameraCardConfigSchema.parse(createRawConfig(config));
-};
-
-export const createInitializedCamera = async (
-  config: CameraConfig,
-  engine: CameraManagerEngine,
-  capabilities?: Capabilities,
-  stateWatcher?: StateWatcherSubscriptionInterface,
-): Promise<Camera> => {
-  const camera = new Camera(config, engine);
-  await camera.initialize({
-    hassManager: createHASSManager({ stateWatcher }),
-    ...(capabilities ? { capabilityOptions: { capabilities } } : {}),
-  });
-  return camera;
-};
 
 export const createHASS = (states?: HassEntities, user?: CurrentUser): HomeAssistant => {
   const hass = mock<HomeAssistant>();
@@ -307,85 +239,6 @@ export const createFrigateReview = (review?: Partial<FrigateReview>) => {
   };
 };
 
-export const createView = (options?: Partial<ViewParameters>): View => {
-  return new View({
-    view: 'live',
-    camera: 'camera',
-    ...options,
-  });
-};
-
-export const createViewWithMedia = (options?: Partial<ViewParameters>): View => {
-  const media = generateViewMediaArray({ count: 5 });
-  return createView({
-    queryResults: new QueryResults({
-      results: media,
-      selectedIndex: 0,
-    }),
-    ...options,
-  });
-};
-
-export const createStore = (
-  cameras?: {
-    cameraID: string;
-    engine?: CameraManagerEngine;
-    config?: CameraConfig;
-    capabilities?: Capabilities | null;
-    eventCallback?: CameraEventCallback;
-  }[],
-): CameraManagerStore => {
-  const store = new CameraManagerStore();
-  for (const cameraProps of cameras ?? []) {
-    const eventCallback = cameraProps.eventCallback ?? vi.fn();
-    const capabilities =
-      cameraProps.capabilities === undefined
-        ? createCapabilities()
-        : cameraProps.capabilities ?? undefined;
-    const camera = new Camera(
-      cameraProps.config ?? createCameraConfig(),
-      cameraProps.engine ??
-        new GenericCameraManagerEngine(
-          createHASSManager(),
-          mock<EntityRegistryManager>(),
-          eventCallback,
-        ),
-      { eventCallback, capabilities },
-    );
-    camera.setID(cameraProps.cameraID);
-    store.addCamera(camera);
-  }
-  return store;
-};
-
-export const createCameraManager = (store?: CameraManagerStore): CameraManager => {
-  const cameraStore = store ?? createStore();
-  const cameraManager = mock<CameraManager>();
-  vi.mocked(cameraManager.getStore).mockReturnValue(cameraStore);
-  vi.mocked(cameraManager.getCameraCapabilities).mockImplementation(
-    (cameraID: string): Capabilities | null => {
-      return cameraStore.getCamera(cameraID)?.getCapabilities() ?? null;
-    },
-  );
-
-  return cameraManager;
-};
-
-export const createCapabilities = (capabilities?: CapabilitiesRaw): Capabilities => {
-  return new Capabilities({
-    'favorite-events': false,
-    'favorite-recordings': false,
-    'remote-control-entity': true,
-    clips: false,
-    live: false,
-    recordings: false,
-    seek: false,
-    snapshots: false,
-    trigger: true,
-    ...capabilities,
-  });
-};
-
 export const createMediaCapabilities = (
   options?: Partial<ViewItemCapabilities>,
 ): ViewItemCapabilities => {
@@ -433,154 +286,6 @@ export const createMediaLoadedInfoEvent = (options?: {
   return ev;
 };
 
-export const createPerformanceConfig = (config: unknown): PerformanceConfig => {
-  return performanceConfigSchema.parse(config);
-};
-
-export const generateViewMediaArray = (options?: {
-  cameraIDs?: string[];
-  count?: number;
-}): ViewMedia[] => {
-  const media: ViewMedia[] = [];
-  for (let i = 0; i < (options?.count ?? 100); ++i) {
-    for (const cameraID of options?.cameraIDs ?? ['kitchen', 'office']) {
-      media.push(
-        new TestViewMedia({
-          cameraID: cameraID,
-          id: `id-${cameraID}-${i}`,
-        }),
-      );
-    }
-  }
-  return media;
-};
-
-// ViewMedia itself has no native way to set startTime and ID that aren't linked
-// to an engine.
-export class TestViewMedia extends ViewMedia implements EventViewMedia, ReviewViewMedia {
-  private _icon: string | null = null;
-  private _id: string | null;
-  private _startTime: Date | null;
-  private _endTime: Date | null;
-  private _inProgress: boolean | null;
-  private _contentID: string | null;
-  private _title: string | null;
-  private _thumbnail: string | null;
-  private _what: string[] | null = null;
-  private _score: number | null = null;
-  private _tags: string[] | null = null;
-  private _where: string[] | null = null;
-  private _severity: Severity | null = null;
-  private _reviewed: boolean | null = null;
-  private _description: string | null = null;
-  private _favorite: boolean | null = null;
-
-  constructor(options?: {
-    id?: string | null;
-    startTime?: Date | null;
-    mediaType?: ViewMediaType;
-    cameraID?: string | null;
-    folder?: FolderConfig | null;
-    endTime?: Date | null;
-    inProgress?: boolean;
-    contentID?: string;
-    title?: string | null;
-    description?: string | null;
-    thumbnail?: string | null;
-    icon?: string | null;
-    what?: string[] | null;
-    score?: number | null;
-    tags?: string[] | null;
-    where?: string[] | null;
-    severity?: Severity | null;
-    reviewed?: boolean | null;
-    favorite?: boolean | null;
-  }) {
-    super(options?.mediaType ?? ViewMediaType.Clip, {
-      ...(options?.cameraID !== null &&
-        !options?.folder && { cameraID: options?.cameraID ?? 'camera' }),
-      ...(options?.folder && { folder: options.folder }),
-    });
-    this._id = options?.id !== undefined ? options.id : 'id';
-    this._startTime = options?.startTime ?? null;
-    this._endTime = options?.endTime ?? null;
-    this._inProgress = options?.inProgress !== undefined ? options.inProgress : false;
-    this._contentID = options?.contentID ?? null;
-    this._title = options?.title !== undefined ? options.title : null;
-    this._description = options?.description !== undefined ? options.description : null;
-    this._thumbnail = options?.thumbnail !== undefined ? options.thumbnail : null;
-    this._icon = options?.icon !== undefined ? options.icon : null;
-    this._what = options?.what !== undefined ? options.what : null;
-    this._score = options?.score !== undefined ? options.score : null;
-    this._tags = options?.tags !== undefined ? options.tags : null;
-    this._where = options?.where !== undefined ? options.where : null;
-    this._severity = options?.severity !== undefined ? options.severity : null;
-    this._reviewed = options?.reviewed !== undefined ? options.reviewed : null;
-    this._favorite = options?.favorite !== undefined ? options.favorite : null;
-  }
-  public getIcon(): string | null {
-    return this._icon;
-  }
-  public getID(): string | null {
-    return this._id;
-  }
-  public getStartTime(): Date | null {
-    return this._startTime;
-  }
-  public getEndTime(): Date | null {
-    return this._endTime;
-  }
-  public inProgress(): boolean | null {
-    return this._inProgress;
-  }
-  public getContentID(): string | null {
-    return this._contentID;
-  }
-  public getTitle(): string | null {
-    return this._title;
-  }
-  public getDescription(): string | null {
-    return this._description;
-  }
-  public getThumbnail(): string | null {
-    return this._thumbnail;
-  }
-  public getWhat(): string[] | null {
-    return this._what;
-  }
-  public getScore(): number | null {
-    return this._score;
-  }
-  public getTags(): string[] | null {
-    return this._tags;
-  }
-  public getWhere(): string[] | null {
-    return this._where;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public isGroupableWith(_that: EventViewMedia): boolean {
-    return false;
-  }
-  public getSeverity(): Severity | null {
-    return this._severity;
-  }
-  public isReviewed(): boolean | null {
-    return this._reviewed;
-  }
-  public setReviewed(reviewed: boolean): void {
-    this._reviewed = reviewed;
-  }
-  public isFavorite(): boolean | null {
-    return this._favorite;
-  }
-  public setFavorite(favorite: boolean): void {
-    this._favorite = favorite;
-  }
-}
-
-// jsdom does not implement `window.matchMedia`, so it has to be installed
-// before a test can control what it returns. Must be called from inside a test
-// or a test hook, as the stub is removed once the test finishes.
 export const stubMatchMedia = (): Mock => {
   const matchMedia = vi.fn();
   vi.stubGlobal('matchMedia', matchMedia);
@@ -982,60 +687,3 @@ export const createRichBrowseMedia = (
     },
   };
 };
-
-export const createEventQuery = (
-  cameraID: string,
-  options?: Partial<EventQuery>,
-): EventQuery => ({
-  source: QuerySource.Camera,
-  type: QueryType.Event,
-  cameraIDs: new Set([cameraID]),
-  ...options,
-});
-
-export const createReviewQuery = (
-  cameraID: string,
-  options?: Partial<ReviewQuery>,
-): ReviewQuery => ({
-  source: QuerySource.Camera,
-  type: QueryType.Review,
-  cameraIDs: new Set([cameraID]),
-  ...options,
-});
-
-export const createRecordingQuery = (
-  cameraID: string,
-  options?: Partial<RecordingQuery>,
-): RecordingQuery => ({
-  source: QuerySource.Camera,
-  type: QueryType.Recording,
-  cameraIDs: new Set([cameraID]),
-  ...options,
-});
-
-export const createFolderQuery = (folderId: string): FolderQuery => ({
-  source: QuerySource.Folder,
-  folder: { id: folderId, type: 'ha', title: folderId },
-  path: [{ ha: { id: 'Root' } }],
-});
-
-export const isEventQuery = (node: {
-  source: QuerySource;
-  type?: QueryType;
-}): node is EventQuery =>
-  node.source === QuerySource.Camera && node.type === QueryType.Event;
-
-export const isRecordingQuery = (node: {
-  source: QuerySource;
-  type?: QueryType;
-}): node is RecordingQuery =>
-  node.source === QuerySource.Camera && node.type === QueryType.Recording;
-
-export const isReviewQuery = (node: {
-  source: QuerySource;
-  type?: QueryType;
-}): node is ReviewQuery =>
-  node.source === QuerySource.Camera && node.type === QueryType.Review;
-
-export const isFolderQuery = (node: { source: QuerySource }): node is FolderQuery =>
-  node.source === QuerySource.Folder;

@@ -11,11 +11,11 @@ import {
   isViewSupportedByCamera,
 } from '../../src/view/view-support';
 import {
-  createCameraConfig,
   createCameraManager,
   createCapabilities,
   createStore,
-} from '../test-utils';
+} from '../camera-manager/test-utils';
+import { createCameraConfig } from '../config/test-utils';
 
 describe('getCameraIDsWithCapabilityForView', () => {
   describe('views that are always supported', () => {

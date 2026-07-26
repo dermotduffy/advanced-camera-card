@@ -90,7 +90,7 @@ describe('ImageMediaPlayerController', () => {
       );
 
       expect(await controller.getScreenshotURL()).toBe(url);
-      expect(screenshotImage).not.toBeCalled();
+      expect(screenshotImage).not.toHaveBeenCalled();
     });
   });
 
@@ -135,7 +135,7 @@ describe('ImageMediaPlayerController', () => {
 
       await controller.playback?.play();
 
-      expect(updateControl.start).toBeCalled();
+      expect(updateControl.start).toHaveBeenCalled();
     });
 
     it('should stop the update loop on pause', async () => {
@@ -148,7 +148,7 @@ describe('ImageMediaPlayerController', () => {
 
       await controller.playback?.pause();
 
-      expect(updateControl.stop).toBeCalled();
+      expect(updateControl.stop).toHaveBeenCalled();
     });
 
     it('should report paused when the update loop is not running', () => {

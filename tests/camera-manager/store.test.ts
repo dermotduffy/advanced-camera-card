@@ -9,12 +9,10 @@ import { Engine } from '../../src/camera-manager/types.js';
 import type { DeviceRegistryManager } from '../../src/ha/registry/device/index.js';
 import type { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
 import type { ResolvedMediaCache } from '../../src/ha/resolved-media.js';
-import {
-  createCameraConfig,
-  createHASSManager,
-  createInitializedCamera,
-  TestViewMedia,
-} from '../test-utils.js';
+import { createCameraConfig } from '../config/test-utils';
+import { createHASSManager } from '../test-utils.js';
+import { TestViewMedia } from '../view/test-utils';
+import { createInitializedCamera } from './test-utils';
 
 describe('CameraManagerStore', async () => {
   const configVisible = createCameraConfig({
@@ -144,7 +142,7 @@ describe('CameraManagerStore', async () => {
 
     expect(store.getCameraCount()).toBe(0);
     for (const camera of cameras) {
-      expect(camera.destroy).toBeCalled();
+      expect(camera.destroy).toHaveBeenCalled();
     }
   });
 
@@ -381,10 +379,10 @@ describe('CameraManagerStore', async () => {
     expect(store.getCamera('camera-3')).toBe(camera_3_new);
     expect(store.getCamera('camera-4')).toBe(camera_4);
 
-    expect(camera_1.destroy).toBeCalled();
-    expect(camera_2.destroy).not.toBeCalled();
-    expect(camera_3.destroy).toBeCalled();
-    expect(camera_3_new.destroy).not.toBeCalled();
-    expect(camera_4.destroy).not.toBeCalled();
+    expect(camera_1.destroy).toHaveBeenCalled();
+    expect(camera_2.destroy).not.toHaveBeenCalled();
+    expect(camera_3.destroy).toHaveBeenCalled();
+    expect(camera_3_new.destroy).not.toHaveBeenCalled();
+    expect(camera_4.destroy).not.toHaveBeenCalled();
   });
 });

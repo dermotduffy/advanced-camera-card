@@ -77,7 +77,7 @@ describe('InitializationIssue', () => {
     const tapAction = control.actions?.tap_action as InternalCallbackActionConfig;
     await tapAction.callback(api);
 
-    expect(api.getIssueManager().retry).toBeCalledWith('initialization', true);
+    expect(api.getIssueManager().retry).toHaveBeenCalledWith('initialization', true);
   });
 
   describe('detectDynamic', () => {
@@ -190,8 +190,8 @@ describe('InitializationIssue', () => {
 
       expect(result).toBe(false);
       expect(issue.hasIssue()).toBe(false);
-      expect(api.getInitializationManager().uninitializeMandatory).toBeCalled();
-      expect(api.getCameraManager().destroy).toBeCalled();
+      expect(api.getInitializationManager().uninitializeMandatory).toHaveBeenCalled();
+      expect(api.getCameraManager().destroy).toHaveBeenCalled();
     });
 
     it('should be a no-op while a retry is already in flight', () => {
@@ -205,8 +205,10 @@ describe('InitializationIssue', () => {
       const result = issue.retry();
 
       expect(result).toBe(false);
-      expect(api.getInitializationManager().uninitializeMandatory).not.toBeCalled();
-      expect(api.getCameraManager().destroy).not.toBeCalled();
+      expect(
+        api.getInitializationManager().uninitializeMandatory,
+      ).not.toHaveBeenCalled();
+      expect(api.getCameraManager().destroy).not.toHaveBeenCalled();
     });
   });
 

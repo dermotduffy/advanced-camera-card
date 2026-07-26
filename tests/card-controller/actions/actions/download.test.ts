@@ -2,7 +2,8 @@ import { expect, it, vi } from 'vitest';
 
 import { DownloadAction } from '../../../../src/card-controller/actions/actions/download';
 import { QueryResults } from '../../../../src/view/query-results';
-import { createCardAPI, createView, TestViewMedia } from '../../../test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView, TestViewMedia } from '../../../view/test-utils';
 
 it('should handle download action with selected media', async () => {
   const api = createCardAPI();
@@ -23,7 +24,7 @@ it('should handle download action with selected media', async () => {
 
   await action.execute(api);
 
-  expect(api.getViewItemManager().download).toBeCalledWith(selectedMedia);
+  expect(api.getViewItemManager().download).toHaveBeenCalledWith(selectedMedia);
 });
 
 it('should handle download action without selected media', async () => {
@@ -40,5 +41,5 @@ it('should handle download action without selected media', async () => {
 
   await action.execute(api);
 
-  expect(api.getViewItemManager().download).not.toBeCalled();
+  expect(api.getViewItemManager().download).not.toHaveBeenCalled();
 });

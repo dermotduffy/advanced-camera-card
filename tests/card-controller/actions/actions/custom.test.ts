@@ -29,7 +29,7 @@ describe('CustomAction', () => {
 
     await action.execute(api);
 
-    expect(handler).toBeCalledWith(
+    expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({
         detail: { action: 'fire-dom-event', foo: 'bar', 1: 2 },
       }),

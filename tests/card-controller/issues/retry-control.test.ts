@@ -20,6 +20,6 @@ describe('createRetryControl', () => {
     const tapAction = control.actions?.tap_action as InternalCallbackActionConfig;
     await tapAction.callback(api);
 
-    expect(api.getIssueManager().retry).toBeCalledWith('media_query', true);
+    expect(api.getIssueManager().retry).toHaveBeenCalledWith('media_query', true);
   });
 });

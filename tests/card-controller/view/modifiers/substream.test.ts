@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { SubstreamViewModifier } from '../../../../src/card-controller/view/modifiers/substream';
-import { createView } from '../../../test-utils';
+import { createView } from '../../../view/test-utils';
 
 describe('SubstreamViewModifier', () => {
   it('should write the override for the selected camera', () => {

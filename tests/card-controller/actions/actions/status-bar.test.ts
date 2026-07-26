@@ -17,7 +17,9 @@ describe('should handle status bar action', () => {
 
     await action.execute(api);
 
-    expect(api.getStatusBarItemManager().removeAllDynamicStatusBarItems).toBeCalled();
+    expect(
+      api.getStatusBarItemManager().removeAllDynamicStatusBarItems,
+    ).toHaveBeenCalled();
   });
 
   it('add', async () => {
@@ -39,7 +41,9 @@ describe('should handle status bar action', () => {
 
     await action.execute(api);
 
-    expect(api.getStatusBarItemManager().addDynamicStatusBarItem).toBeCalledWith(item);
+    expect(api.getStatusBarItemManager().addDynamicStatusBarItem).toHaveBeenCalledWith(
+      item,
+    );
   });
 
   it('remove', async () => {
@@ -61,8 +65,8 @@ describe('should handle status bar action', () => {
 
     await action.execute(api);
 
-    expect(api.getStatusBarItemManager().removeDynamicStatusBarItem).toBeCalledWith(
-      item,
-    );
+    expect(
+      api.getStatusBarItemManager().removeDynamicStatusBarItem,
+    ).toHaveBeenCalledWith(item);
   });
 });

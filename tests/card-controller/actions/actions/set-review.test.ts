@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { SetReviewAction } from '../../../../src/card-controller/actions/actions/set-review';
 import { ViewMediaType } from '../../../../src/view/item';
 import { QueryResults } from '../../../../src/view/query-results';
-import { createCardAPI, createView, TestViewMedia } from '../../../test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView, TestViewMedia } from '../../../view/test-utils';
 
 describe('SetReviewAction', () => {
   it('should toggle item reviewed state', async () => {
@@ -27,13 +28,13 @@ describe('SetReviewAction', () => {
     );
     await action.execute(api);
 
-    expect(api.getViewItemManager().reviewMedia).toBeCalledWith(item, true);
+    expect(api.getViewItemManager().reviewMedia).toHaveBeenCalledWith(item, true);
 
     // toggleReviewed mutates the item in-place
     expect(item.isReviewed()).toBe(true);
 
     // Verify UI update is triggered to refresh menu icon
-    expect(api.getCardElementManager().update).toBeCalled();
+    expect(api.getCardElementManager().update).toHaveBeenCalled();
   });
 
   it('should set reviewed to true when requested and currently false', async () => {
@@ -58,7 +59,7 @@ describe('SetReviewAction', () => {
     );
     await action.execute(api);
 
-    expect(api.getViewItemManager().reviewMedia).toBeCalledWith(item, true);
+    expect(api.getViewItemManager().reviewMedia).toHaveBeenCalledWith(item, true);
     expect(item.isReviewed()).toBe(true);
   });
 
@@ -84,7 +85,7 @@ describe('SetReviewAction', () => {
     );
     await action.execute(api);
 
-    expect(api.getViewItemManager().reviewMedia).not.toBeCalled();
+    expect(api.getViewItemManager().reviewMedia).not.toHaveBeenCalled();
   });
 
   it('should not act on non-review media', async () => {
@@ -108,7 +109,7 @@ describe('SetReviewAction', () => {
     );
     await action.execute(api);
 
-    expect(api.getViewItemManager().reviewMedia).not.toBeCalled();
+    expect(api.getViewItemManager().reviewMedia).not.toHaveBeenCalled();
   });
 
   it('should not act without a view', async () => {
@@ -125,7 +126,7 @@ describe('SetReviewAction', () => {
     );
     await action.execute(api);
 
-    expect(api.getViewItemManager().reviewMedia).not.toBeCalled();
+    expect(api.getViewItemManager().reviewMedia).not.toHaveBeenCalled();
   });
 
   it('should not act without query results', async () => {
@@ -143,7 +144,7 @@ describe('SetReviewAction', () => {
     );
     await action.execute(api);
 
-    expect(api.getViewItemManager().reviewMedia).not.toBeCalled();
+    expect(api.getViewItemManager().reviewMedia).not.toHaveBeenCalled();
   });
 
   it('should not update UI if review action fails', async () => {
@@ -170,7 +171,7 @@ describe('SetReviewAction', () => {
     );
     await action.execute(api);
 
-    expect(api.getViewItemManager().reviewMedia).toBeCalledWith(item, true);
-    expect(api.getCardElementManager().update).not.toBeCalled();
+    expect(api.getViewItemManager().reviewMedia).toHaveBeenCalledWith(item, true);
+    expect(api.getCardElementManager().update).not.toHaveBeenCalled();
   });
 });

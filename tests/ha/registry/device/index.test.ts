@@ -2,10 +2,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { DeviceRegistryManager } from '../../../../src/ha/registry/device';
 import { DeviceCache } from '../../../../src/ha/registry/device/types';
-import { homeAssistantWSRequest } from '../../../../src/ha/ws-request';
+import { AdvancedCameraCardError } from '../../../../src/types';
 import { createHASS, createRegistryDevice } from '../../../test-utils.js';
 
-vi.mock('../../../../src/ha/ws-request');
 vi.spyOn(global.console, 'warn').mockImplementation(() => true);
 
 describe('DeviceRegistryManager', () => {
@@ -20,37 +19,43 @@ describe('DeviceRegistryManager', () => {
 
       cache.set('test', testDevice);
 
+      const hass = createHASS();
       const manager = new DeviceRegistryManager(cache);
-      expect(await manager.getDevice(createHASS(), 'test')).toEqual(testDevice);
+      expect(await manager.getDevice(hass, 'test')).toEqual(testDevice);
 
-      expect(homeAssistantWSRequest).not.toHaveBeenCalled();
+      expect(hass.callWS).not.toHaveBeenCalled();
     });
 
     it('should fetch and cache when not cached', async () => {
       const testDevice = createRegistryDevice({ id: 'test' });
 
+      const hass = createHASS();
       const manager = new DeviceRegistryManager(new DeviceCache());
-      vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce([testDevice]);
+      vi.mocked(hass.callWS).mockResolvedValueOnce([testDevice]);
 
-      expect(await manager.getDevice(createHASS(), 'test')).toEqual(testDevice);
-      expect(homeAssistantWSRequest).toBeCalledTimes(1);
+      expect(await manager.getDevice(hass, 'test')).toEqual(testDevice);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
 
-      expect(await manager.getDevice(createHASS(), 'test')).toEqual(testDevice);
-      expect(homeAssistantWSRequest).toBeCalledTimes(1);
+      expect(await manager.getDevice(hass, 'test')).toEqual(testDevice);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
 
-      expect(await manager.getDevice(createHASS(), 'missing')).toBeNull();
+      expect(await manager.getDevice(hass, 'missing')).toBeNull();
 
       // The fetch call is called exactly once.
-      expect(homeAssistantWSRequest).toBeCalledTimes(1);
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
     });
 
     it('should return null when fetch fails', async () => {
-      vi.mocked(homeAssistantWSRequest).mockRejectedValueOnce(new Error('Fetch error'));
+      const hass = createHASS();
+      vi.mocked(hass.callWS).mockRejectedValueOnce(new Error('Fetch error'));
 
       const manager = new DeviceRegistryManager(new DeviceCache());
-      expect(await manager.getDevice(createHASS(), 'test')).toBeNull();
+      expect(await manager.getDevice(hass, 'test')).toBeNull();
 
-      vi.mocked(expect(console.warn)).toBeCalledWith('Fetch error');
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.any(AdvancedCameraCardError),
+        expect.anything(),
+      );
     });
   });
 
@@ -59,10 +64,7 @@ describe('DeviceRegistryManager', () => {
     const notMatchingDevice = createRegistryDevice({ id: 'not-matching' });
     const hass = createHASS();
 
-    vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce([
-      matchingDevice,
-      notMatchingDevice,
-    ]);
+    vi.mocked(hass.callWS).mockResolvedValueOnce([matchingDevice, notMatchingDevice]);
 
     const manager = new DeviceRegistryManager(new DeviceCache());
     expect(

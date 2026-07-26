@@ -10,10 +10,10 @@ import {
   type LiveError,
 } from '../../../../src/components-lib/live/utils/dispatch-live-error';
 import type { LivenessCallback, MediaPlayerController } from '../../../../src/types';
+import { createCameraConfig } from '../../../config/test-utils';
 import {
   callIntersectionHandler,
   callStateWatcherCallback,
-  createCameraConfig,
   createHASS,
   createLitElement,
   createMediaLoadedInfo,

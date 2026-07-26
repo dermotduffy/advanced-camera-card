@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { TemplateManager } from '../../../src/card-controller/templates/index';
+import { createConfig } from '../../config/test-utils';
 import {
-  createConfig,
   createHASS,
   createStateEntity,
   stubConnectedHomeAssistant,
@@ -55,7 +55,7 @@ describe('TemplateManager', () => {
 
       manager.renderRecursively(createHASS(), '{{ acc.camera }}');
 
-      expect(loadRenderer).toBeCalled();
+      expect(loadRenderer).toHaveBeenCalled();
     });
 
     it('should swallow a load failure when priming on an unloaded render', () => {

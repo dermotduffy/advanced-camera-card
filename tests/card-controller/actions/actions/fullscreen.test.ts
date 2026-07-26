@@ -15,5 +15,5 @@ it('should handle fullscreen action', async () => {
 
   await action.execute(api);
 
-  expect(api.getFullscreenManager().toggleFullscreen).toBeCalled();
+  expect(api.getFullscreenManager().toggleFullscreen).toHaveBeenCalled();
 });

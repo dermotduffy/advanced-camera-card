@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { getStreamCameraID, hasSubstream } from '../../src/view/substream';
-import { createView } from '../test-utils';
+import { createView } from './test-utils';
 
 describe('getStreamCameraID / hasSubstream', () => {
   it('should report a substream override', () => {

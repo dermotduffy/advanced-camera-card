@@ -6,13 +6,9 @@ import type { CameraManagerStore } from '../../src/camera-manager/store';
 import type { FoldersManager } from '../../src/card-controller/folders/manager';
 import { UnifiedQueryBuilder } from '../../src/view/unified-query-builder';
 import { UnifiedQueryTransformer } from '../../src/view/unified-query-transformer';
-import {
-  createCapabilities,
-  createFolder,
-  isEventQuery,
-  isFolderQuery,
-  isRecordingQuery,
-} from '../test-utils';
+import { createCapabilities } from '../camera-manager/test-utils';
+import { createFolder } from '../test-utils';
+import { isEventQuery, isFolderQuery, isRecordingQuery } from './test-utils';
 
 const createMocks = () => {
   const cameraManager = mock<CameraManager>();

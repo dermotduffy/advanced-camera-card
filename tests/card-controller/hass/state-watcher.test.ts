@@ -63,8 +63,8 @@ describe('StateWatcher', () => {
       }),
     );
 
-    expect(callback).toBeCalledTimes(1);
-    expect(callback).toBeCalledWith(
+    expect(callback).toHaveBeenCalledTimes(1);
+    expect(callback).toHaveBeenCalledWith(
       expect.objectContaining({
         entityID: 'binary_sensor.bar',
         oldState: createStateEntity({ state: 'off' }),
@@ -86,7 +86,7 @@ describe('StateWatcher', () => {
       }),
     );
 
-    expect(callback).not.toBeCalled();
+    expect(callback).not.toHaveBeenCalled();
   });
 
   it('should not call back without state change', () => {
@@ -105,7 +105,7 @@ describe('StateWatcher', () => {
       }),
     );
 
-    expect(callback).not.toBeCalled();
+    expect(callback).not.toHaveBeenCalled();
   });
 
   it('should not call back when unsubscribed', () => {
@@ -125,6 +125,6 @@ describe('StateWatcher', () => {
       }),
     );
 
-    expect(callback).not.toBeCalled();
+    expect(callback).not.toHaveBeenCalled();
   });
 });

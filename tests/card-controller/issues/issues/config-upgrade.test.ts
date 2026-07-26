@@ -27,7 +27,7 @@ describe('ConfigUpgradeIssue', () => {
     await issue.detectStatic();
 
     expect(issue.hasIssue()).toBe(true);
-    expect(isConfigUpgradeable).toBeCalledWith(rawConfig);
+    expect(isConfigUpgradeable).toHaveBeenCalledWith(rawConfig);
   });
 
   it('should detect non-upgradeable config', async () => {

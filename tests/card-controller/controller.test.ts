@@ -113,7 +113,7 @@ describe('CardController', () => {
 
     const controller = new CardController(element, scrollCallback, menuToggleCallback);
 
-    expect(CardElementManager).toBeCalledWith(
+    expect(CardElementManager).toHaveBeenCalledWith(
       controller,
       element,
       scrollCallback,
@@ -137,7 +137,9 @@ describe('CardController', () => {
     const csmListener = calls[0][0];
     const hass = {} as Parameters<typeof csmListener>[0];
     csmListener(hass, null);
-    expect(vi.mocked(ConditionStateManager).mock.instances[0].setState).toBeCalledWith({
+    expect(
+      vi.mocked(ConditionStateManager).mock.instances[0].setState,
+    ).toHaveBeenCalledWith({
       hass,
     });
   });
@@ -372,14 +374,14 @@ describe('CardController', () => {
       createController().hostConnected();
       expect(
         vi.mocked(CardElementManager).mock.instances[0].elementConnected,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
     });
 
     it('should handle hostDisconnected', () => {
       createController().hostDisconnected();
       expect(
         vi.mocked(CardElementManager).mock.instances[0].elementDisconnected,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
     });
   });
 });

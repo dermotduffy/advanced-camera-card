@@ -3,12 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { Capabilities } from '../../../../src/camera-manager/capabilities';
 import { PTZMultiAction } from '../../../../src/card-controller/actions/actions/ptz-multi';
 import { PTZMovementType } from '../../../../src/types';
-import {
-  createCameraManager,
-  createCardAPI,
-  createStore,
-  createView,
-} from '../../../test-utils';
+import { createCameraManager, createStore } from '../../../camera-manager/test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView } from '../../../view/test-utils';
 
 describe('should handle ptz multi action', () => {
   describe.each([
@@ -42,7 +39,7 @@ describe('should handle ptz multi action', () => {
 
       await action.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
         'camera.office',
         'left',
         {
@@ -50,7 +47,7 @@ describe('should handle ptz multi action', () => {
           preset: undefined,
         },
       );
-      expect(api.getViewManager().setViewWithMergedContext).not.toBeCalled();
+      expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
     });
 
     it('should use digital ptz when camera does not have ptz support', async () => {
@@ -79,7 +76,7 @@ describe('should handle ptz multi action', () => {
 
       await action.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).not.toBeCalled();
+      expect(api.getCameraManager().executePTZAction).not.toHaveBeenCalled();
       expect(api.getViewManager().setViewWithMergedContext).toHaveBeenLastCalledWith({
         zoom: {
           'camera.office': {
@@ -117,8 +114,8 @@ describe('should handle ptz multi action', () => {
 
     await action.execute(api);
 
-    expect(api.getCameraManager().executePTZAction).not.toBeCalled();
-    expect(api.getViewManager().setViewWithMergedContext).not.toBeCalled();
+    expect(api.getCameraManager().executePTZAction).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
   });
 
   it('should do nothing with a media-less view without an explicit target_id', async () => {
@@ -146,7 +143,7 @@ describe('should handle ptz multi action', () => {
 
     await action.execute(api);
 
-    expect(api.getCameraManager().executePTZAction).not.toBeCalled();
-    expect(api.getViewManager().setViewWithMergedContext).not.toBeCalled();
+    expect(api.getCameraManager().executePTZAction).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
   });
 });

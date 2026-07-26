@@ -1,15 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { setAutomationsFromConfig } from '../../../src/card-controller/config/load-automations';
-import { createCardAPI, createConfig } from '../../test-utils';
+import { createConfig } from '../../config/test-utils';
+import { createCardAPI } from '../../test-utils';
 
 describe('setAutomationsFromConfig', () => {
   it('without config', () => {
     const api = createCardAPI();
     setAutomationsFromConfig(api);
 
-    expect(api.getAutomationsManager().deleteAutomations).toBeCalled();
-    expect(api.getAutomationsManager().addAutomations).toBeCalledWith([]);
+    expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalled();
+    expect(api.getAutomationsManager().addAutomations).toHaveBeenCalledWith([]);
   });
 
   it('with config', () => {
@@ -33,7 +34,7 @@ describe('setAutomationsFromConfig', () => {
 
     setAutomationsFromConfig(api);
 
-    expect(api.getAutomationsManager().deleteAutomations).toBeCalled();
-    expect(api.getAutomationsManager().addAutomations).toBeCalledWith(automations);
+    expect(api.getAutomationsManager().deleteAutomations).toHaveBeenCalled();
+    expect(api.getAutomationsManager().addAutomations).toHaveBeenCalledWith(automations);
   });
 });

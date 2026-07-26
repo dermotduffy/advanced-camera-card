@@ -403,7 +403,7 @@ describe('StatusBarController', () => {
 
       const controller = new StatusBarController(host);
       controller.actionHandler(createInteractionActionEvent('tap'));
-      expect(handler).not.toBeCalled();
+      expect(handler).not.toHaveBeenCalled();
     });
 
     it('should request action execution', () => {
@@ -422,7 +422,7 @@ describe('StatusBarController', () => {
 
       controller.actionHandler(createInteractionActionEvent('tap'), tapActionConfig);
 
-      expect(handler).toBeCalledWith(
+      expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({
           detail: { actions: [action], config: tapActionConfig },
         }),

@@ -11,12 +11,8 @@ import {
 import { QueryResults } from '../../src/view/query-results';
 import * as targetId from '../../src/view/target-id';
 import { IMAGE_VIEW_TARGET_ID_SENTINEL } from '../../src/view/target-id';
-import {
-  createCameraManager,
-  createStore,
-  createView,
-  TestViewMedia,
-} from '../test-utils';
+import { createCameraManager, createStore } from '../camera-manager/test-utils';
+import { createView, TestViewMedia } from '../view/test-utils';
 
 describe('getPTZTarget', () => {
   describe('in a viewer view', () => {

@@ -26,15 +26,15 @@ import type {
   EntityRegistryManager,
 } from '../../../src/ha/registry/entity/types';
 import { ViewMediaType } from '../../../src/view/item';
+import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
-  createCameraConfig,
-  createCapabilities,
   createHASS,
   createHASSManager,
   createRegistryEntity,
   createStateEntity,
 } from '../../test-utils';
+import { createCapabilities } from '../test-utils';
 
 vi.mock('../../../src/camera-manager/frigate/requests');
 
@@ -98,7 +98,7 @@ describe('FrigateCamera', () => {
               frigateEventWatcher: mock<FrigateEventWatcher>(),
               frigateReviewWatcher: mock<FrigateReviewWatcher>(),
             }),
-        ).rejects.toThrowError(/Could not find camera entity/);
+        ).rejects.toThrow(/Could not find camera entity/);
       });
 
       it('with a valid camera_entity', async () => {
@@ -315,7 +315,7 @@ describe('FrigateCamera', () => {
       expect(camera.getCapabilities()?.has('snapshots')).toBeTruthy();
       expect(camera.getCapabilities()?.has('recordings')).toBeTruthy();
       expect(camera.getCapabilities()?.has('trigger')).toBeTruthy();
-      expect(vi.mocked(getPTZInfo)).toBeCalled();
+      expect(vi.mocked(getPTZInfo)).toHaveBeenCalled();
     });
 
     it('basic birdseye', async () => {
@@ -342,7 +342,7 @@ describe('FrigateCamera', () => {
       expect(camera.getCapabilities()?.has('snapshots')).toBeFalsy();
       expect(camera.getCapabilities()?.has('recordings')).toBeFalsy();
       expect(camera.getCapabilities()?.has('trigger')).toBeTruthy();
-      expect(vi.mocked(getPTZInfo)).not.toBeCalled();
+      expect(vi.mocked(getPTZInfo)).not.toHaveBeenCalled();
     });
 
     describe('with ptz', () => {
@@ -368,7 +368,7 @@ describe('FrigateCamera', () => {
 
         expect(camera.getCapabilities()?.has('ptz')).toBeFalsy();
         expect(camera.getCapabilities()?.hasPTZCapability()).toBeFalsy();
-        expect(consoleSpy).toBeCalled();
+        expect(consoleSpy).toHaveBeenCalled();
       });
 
       it('when getPTZInfo call succeeds with continuous motion', async () => {
@@ -824,7 +824,7 @@ describe('FrigateCamera', () => {
         frigateEventWatcher: eventWatcher,
         frigateReviewWatcher: mock<FrigateReviewWatcher>(),
       });
-      expect(eventWatcher.subscribe).toBeCalledWith(
+      expect(eventWatcher.subscribe).toHaveBeenCalledWith(
         expect.objectContaining({
           instanceID: 'CLIENT_ID',
         }),
@@ -853,7 +853,7 @@ describe('FrigateCamera', () => {
         frigateEventWatcher: eventWatcher,
         frigateReviewWatcher: mock<FrigateReviewWatcher>(),
       });
-      expect(eventWatcher.subscribe).not.toBeCalled();
+      expect(eventWatcher.subscribe).not.toHaveBeenCalled();
     });
 
     it('should not subscribe without trigger capability', async () => {
@@ -878,7 +878,7 @@ describe('FrigateCamera', () => {
         frigateEventWatcher: eventWatcher,
         frigateReviewWatcher: mock<FrigateReviewWatcher>(),
       });
-      expect(eventWatcher.subscribe).not.toBeCalled();
+      expect(eventWatcher.subscribe).not.toHaveBeenCalled();
     });
 
     it('should not subscribe with no camera name', async () => {
@@ -902,7 +902,7 @@ describe('FrigateCamera', () => {
         frigateEventWatcher: eventWatcher,
         frigateReviewWatcher: mock<FrigateReviewWatcher>(),
       });
-      expect(eventWatcher.subscribe).not.toBeCalled();
+      expect(eventWatcher.subscribe).not.toHaveBeenCalled();
     });
 
     it('should unsubscribe on destroy', async () => {
@@ -926,10 +926,10 @@ describe('FrigateCamera', () => {
         frigateEventWatcher: eventWatcher,
         frigateReviewWatcher: mock<FrigateReviewWatcher>(),
       });
-      expect(eventWatcher.unsubscribe).not.toBeCalled();
+      expect(eventWatcher.unsubscribe).not.toHaveBeenCalled();
 
       await camera.destroy();
-      expect(eventWatcher.unsubscribe).toBeCalled();
+      expect(eventWatcher.unsubscribe).toHaveBeenCalled();
     });
 
     it('should not subscribe when destroyed while base initialization is pending', async () => {
@@ -965,22 +965,22 @@ describe('FrigateCamera', () => {
         frigateReviewWatcher: reviewWatcher,
         capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
       });
-      await vi.waitFor(() => expect(entityRegistryManager.getEntity).toBeCalled());
+      await vi.waitFor(() => expect(entityRegistryManager.getEntity).toHaveBeenCalled());
 
       await camera.destroy();
 
       // `_destroyed` short-circuits initialize() after the pending await, so
       // neither watcher is ever subscribed.
-      expect(eventWatcher.subscribe).not.toBeCalled();
-      expect(reviewWatcher.subscribe).not.toBeCalled();
+      expect(eventWatcher.subscribe).not.toHaveBeenCalled();
+      expect(reviewWatcher.subscribe).not.toHaveBeenCalled();
 
       resolveEntity();
       await initializePromise;
 
-      expect(eventWatcher.subscribe).not.toBeCalled();
-      expect(eventWatcher.unsubscribe).not.toBeCalled();
-      expect(reviewWatcher.subscribe).not.toBeCalled();
-      expect(reviewWatcher.unsubscribe).not.toBeCalled();
+      expect(eventWatcher.subscribe).not.toHaveBeenCalled();
+      expect(eventWatcher.unsubscribe).not.toHaveBeenCalled();
+      expect(reviewWatcher.subscribe).not.toHaveBeenCalled();
+      expect(reviewWatcher.unsubscribe).not.toHaveBeenCalled();
     });
 
     describe('should call handler correctly', () => {
@@ -1097,7 +1097,7 @@ describe('FrigateCamera', () => {
             });
 
             if (call) {
-              expect(eventCallback).toBeCalledWith({
+              expect(eventCallback).toHaveBeenCalledWith({
                 type: 'new',
                 cameraID: 'CAMERA_1',
                 id: 'event-1',
@@ -1106,7 +1106,7 @@ describe('FrigateCamera', () => {
                 fidelity: 'high',
               });
             } else {
-              expect(eventCallback).not.toBeCalled();
+              expect(eventCallback).not.toHaveBeenCalled();
             }
           },
         );
@@ -1170,7 +1170,7 @@ describe('FrigateCamera', () => {
             },
           });
 
-          expect(eventCallback).toBeCalledWith({
+          expect(eventCallback).toHaveBeenCalledWith({
             type: 'end',
             cameraID: 'CAMERA_1',
             id: 'event-1',
@@ -1378,7 +1378,7 @@ describe('FrigateCamera', () => {
         frigateEventWatcher: mock<FrigateEventWatcher>(),
         frigateReviewWatcher: reviewWatcher,
       });
-      expect(reviewWatcher.subscribe).toBeCalledWith(
+      expect(reviewWatcher.subscribe).toHaveBeenCalledWith(
         expect.objectContaining({
           instanceID: 'CLIENT_ID',
         }),
@@ -1409,7 +1409,7 @@ describe('FrigateCamera', () => {
         frigateEventWatcher: mock<FrigateEventWatcher>(),
         frigateReviewWatcher: reviewWatcher,
       });
-      expect(reviewWatcher.subscribe).not.toBeCalled();
+      expect(reviewWatcher.subscribe).not.toHaveBeenCalled();
     });
 
     it('should not subscribe to reviews with description only (no severities)', async () => {
@@ -1438,7 +1438,7 @@ describe('FrigateCamera', () => {
         frigateReviewWatcher: reviewWatcher,
       });
       // Severities are required - description alone is not enough
-      expect(reviewWatcher.subscribe).not.toBeCalled();
+      expect(reviewWatcher.subscribe).not.toHaveBeenCalled();
     });
 
     describe('should call handler correctly', () => {
@@ -1495,7 +1495,7 @@ describe('FrigateCamera', () => {
           },
         });
 
-        expect(eventCallback).toBeCalledWith({
+        expect(eventCallback).toHaveBeenCalledWith({
           type: 'new',
           cameraID: 'CAMERA_1',
           id: '123',
@@ -1566,7 +1566,7 @@ describe('FrigateCamera', () => {
           },
         });
 
-        expect(eventCallback).toBeCalledWith({
+        expect(eventCallback).toHaveBeenCalledWith({
           type: 'update',
           cameraID: 'CAMERA_1',
           id: '123',
@@ -1637,7 +1637,7 @@ describe('FrigateCamera', () => {
           },
         });
 
-        expect(eventCallback).toBeCalledWith({
+        expect(eventCallback).toHaveBeenCalledWith({
           type: 'update',
           cameraID: 'CAMERA_1',
           id: '123',
@@ -1995,7 +1995,7 @@ describe('FrigateCamera', () => {
         },
       });
 
-      expect(eventCallback).toBeCalledWith({
+      expect(eventCallback).toHaveBeenCalledWith({
         type: 'end',
         cameraID: 'CAMERA_1',
         id: '123',
@@ -2123,7 +2123,7 @@ describe('FrigateCamera', () => {
             frigateEventWatcher: mock<FrigateEventWatcher>(),
             frigateReviewWatcher: mock<FrigateReviewWatcher>(),
           }),
-        ).rejects.toThrowError(/Could not find camera entity/);
+        ).rejects.toThrow(/Could not find camera entity/);
       });
     });
 
@@ -2284,7 +2284,7 @@ describe('FrigateCamera', () => {
         const executor = mock<ActionsExecutor>();
         await camera.executePTZAction(executor, 'preset');
 
-        expect(executor.executeActions).not.toBeCalled();
+        expect(executor.executeActions).not.toHaveBeenCalled();
       });
 
       it('should ignore actions with configured action', async () => {
@@ -2316,7 +2316,7 @@ describe('FrigateCamera', () => {
         const executor = mock<ActionsExecutor>();
         await camera.executePTZAction(executor, 'left', { phase: 'start' });
 
-        expect(executor.executeActions).toBeCalledTimes(1);
+        expect(executor.executeActions).toHaveBeenCalledTimes(1);
         expect(executor.executeActions).toHaveBeenLastCalledWith({
           actions: {
             action: 'perform-action',

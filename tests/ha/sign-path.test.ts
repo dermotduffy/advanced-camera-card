@@ -4,11 +4,8 @@ import {
   homeAssistantGetSignedURLIfNecessary,
   homeAssistantSignPath,
 } from '../../src/ha/sign-path';
-import { homeAssistantWSRequest } from '../../src/ha/ws-request.js';
-import { signedPathSchema } from '../../src/types';
+import { AdvancedCameraCardError } from '../../src/types';
 import { createHASS } from '../test-utils';
-
-vi.mock('../../src/ha/ws-request.js');
 
 describe('homeAssistantSignPath', () => {
   afterEach(() => {
@@ -20,7 +17,7 @@ describe('homeAssistantSignPath', () => {
     const unsignedPath = 'unsigned/path';
     const expires = 42;
 
-    vi.mocked(homeAssistantWSRequest).mockResolvedValue({
+    vi.mocked(hass.callWS).mockResolvedValue({
       path: 'signed/path',
     });
     vi.mocked(hass.hassUrl).mockImplementation((url) => 'hass:' + url);
@@ -28,16 +25,20 @@ describe('homeAssistantSignPath', () => {
     expect(await homeAssistantSignPath(hass, unsignedPath, expires)).toEqual(
       'hass:signed/path',
     );
-    expect(homeAssistantWSRequest).toBeCalledWith(hass, signedPathSchema, {
+    expect(hass.callWS).toHaveBeenCalledWith({
       type: 'auth/sign_path',
       path: unsignedPath,
       expires,
     });
   });
 
-  it('should return null for null response', async () => {
-    vi.mocked(homeAssistantWSRequest).mockResolvedValue(null);
-    expect(await homeAssistantSignPath(createHASS(), 'unsigned/path', 42)).toBeNull();
+  it('should throw for empty response', async () => {
+    const hass = createHASS();
+    vi.mocked(hass.callWS).mockResolvedValue(null);
+
+    await expect(homeAssistantSignPath(hass, 'unsigned/path', 42)).rejects.toThrow(
+      AdvancedCameraCardError,
+    );
   });
 });
 
@@ -47,24 +48,26 @@ describe('homeAssistantSignEndpoint', () => {
   });
 
   it('should return endpoint URL without signing when sign is false', async () => {
+    const hass = createHASS();
     const endpoint = { endpoint: 'http://example.com', sign: false };
-    expect(await homeAssistantGetSignedURLIfNecessary(createHASS(), endpoint)).toBe(
+    expect(await homeAssistantGetSignedURLIfNecessary(hass, endpoint)).toBe(
       'http://example.com',
     );
-    expect(homeAssistantWSRequest).not.toHaveBeenCalled();
+    expect(hass.callWS).not.toHaveBeenCalled();
   });
 
   it('should return endpoint URL without signing when sign is undefined', async () => {
+    const hass = createHASS();
     const endpoint = { endpoint: 'http://example.com' };
-    expect(await homeAssistantGetSignedURLIfNecessary(createHASS(), endpoint)).toBe(
+    expect(await homeAssistantGetSignedURLIfNecessary(hass, endpoint)).toBe(
       'http://example.com',
     );
-    expect(homeAssistantWSRequest).not.toHaveBeenCalled();
+    expect(hass.callWS).not.toHaveBeenCalled();
   });
 
   it('should sign endpoint when sign is true', async () => {
     const hass = createHASS();
-    vi.mocked(homeAssistantWSRequest).mockResolvedValue({
+    vi.mocked(hass.callWS).mockResolvedValue({
       path: 'signed/path',
     });
     vi.mocked(hass.hassUrl).mockImplementation((url) => 'hass:' + url);
@@ -73,19 +76,20 @@ describe('homeAssistantSignEndpoint', () => {
     expect(await homeAssistantGetSignedURLIfNecessary(hass, endpoint, 60)).toBe(
       'hass:signed/path',
     );
-    expect(homeAssistantWSRequest).toHaveBeenCalledWith(hass, signedPathSchema, {
+    expect(hass.callWS).toHaveBeenCalledWith({
       type: 'auth/sign_path',
       path: 'http://example.com',
       expires: 60,
     });
   });
 
-  it('should return null when signing fails', async () => {
-    vi.mocked(homeAssistantWSRequest).mockResolvedValue(null);
+  it('should throw when signing fails', async () => {
+    const hass = createHASS();
+    vi.mocked(hass.callWS).mockRejectedValue(new Error('connection lost'));
 
     const endpoint = { endpoint: 'http://example.com', sign: true };
-    expect(
-      await homeAssistantGetSignedURLIfNecessary(createHASS(), endpoint),
-    ).toBeNull();
+    await expect(homeAssistantGetSignedURLIfNecessary(hass, endpoint)).rejects.toThrow(
+      AdvancedCameraCardError,
+    );
   });
 });

@@ -1,6 +1,18 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 
-import { MediaDimensionsContainerController } from '../../src/components-lib/media-dimensions-container-controller';
+import {
+  MediaDimensionsContainerController,
+  RESIZE_DEBOUNCE_SECONDS,
+} from '../../src/components-lib/media-dimensions-container-controller';
 import type { CameraDimensionsConfig, Rotation } from '../../src/config/schema/cameras';
 import type { MediaLoadedInfo } from '../../src/types';
 import {
@@ -10,10 +22,6 @@ import {
   getResizeObserver,
   ResizeObserverMock,
 } from '../test-utils';
-
-vi.mock('lodash-es', () => ({
-  debounce: vi.fn((fn) => fn),
-}));
 
 // @vitest-environment jsdom
 describe('MediaDimensionsContainerController', () => {
@@ -44,8 +52,8 @@ describe('MediaDimensionsContainerController', () => {
     const observer = getResizeObserver();
 
     // No resize observer should be created.
-    expect(observer?.observe).not.toBeCalled();
-    expect(eventListener).not.toBeCalled();
+    expect(observer?.observe).not.toHaveBeenCalled();
+    expect(eventListener).not.toHaveBeenCalled();
   });
 
   describe('should connect and disconnect', () => {
@@ -54,14 +62,14 @@ describe('MediaDimensionsContainerController', () => {
       const controller = new MediaDimensionsContainerController(host);
 
       const observer = getResizeObserver();
-      expect(observer?.observe).toBeCalledTimes(0);
+      expect(observer?.observe).toHaveBeenCalledTimes(0);
 
       controller.hostConnected();
-      expect(observer?.observe).toBeCalledWith(host);
-      expect(observer?.observe).toBeCalledTimes(1);
+      expect(observer?.observe).toHaveBeenCalledWith(host);
+      expect(observer?.observe).toHaveBeenCalledTimes(1);
 
       controller.hostDisconnected();
-      expect(observer?.disconnect).toBeCalled();
+      expect(observer?.disconnect).toHaveBeenCalled();
     });
 
     it('should connect and disconnect with a container when host is connected', () => {
@@ -77,13 +85,13 @@ describe('MediaDimensionsContainerController', () => {
       const container = createLitElement();
       controller.setContainers(container);
 
-      expect(observer?.observe).not.toBeCalled();
+      expect(observer?.observe).not.toHaveBeenCalled();
 
       controller.hostDisconnected();
-      expect(observer?.disconnect).toBeCalled();
+      expect(observer?.disconnect).toHaveBeenCalled();
 
       controller.hostConnected();
-      expect(observer?.observe).toBeCalledWith(host);
+      expect(observer?.observe).toHaveBeenCalledWith(host);
     });
   });
 
@@ -614,6 +622,13 @@ describe('MediaDimensionsContainerController', () => {
   });
 
   describe('should respond to slot changes', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('should resize container on slotchange event', () => {
       const host = createLitElement();
       host.getBoundingClientRect = vi.fn().mockReturnValue({
@@ -641,12 +656,20 @@ describe('MediaDimensionsContainerController', () => {
       host.removeAttribute('rotated');
 
       innerContainer.dispatchEvent(new Event('slotchange'));
+      vi.advanceTimersByTime(RESIZE_DEBOUNCE_SECONDS * 1000);
 
       expect(host.hasAttribute('rotated')).toBeTruthy();
     });
   });
 
   describe('should respond to media load', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('should resize container on media load', () => {
       const host = createLitElement();
       host.getBoundingClientRect = vi.fn().mockReturnValue({
@@ -680,6 +703,7 @@ describe('MediaDimensionsContainerController', () => {
       innerContainer.dispatchEvent(
         createMediaLoadedInfoEvent({ info: mediaLoadedInfo }),
       );
+      vi.advanceTimersByTime(RESIZE_DEBOUNCE_SECONDS * 1000);
 
       expect(host.hasAttribute('rotated')).toBeTruthy();
     });

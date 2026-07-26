@@ -83,7 +83,7 @@ describe('ZoomController', () => {
       // Won't zoom without control key.
       const ev_1 = new WheelEvent('wheel', { bubbles: false, deltaY: -120 });
       element.dispatchEvent(ev_1);
-      expect(panzoom.zoomWithWheel).not.toBeCalled();
+      expect(panzoom.zoomWithWheel).not.toHaveBeenCalled();
 
       const ev_2 = new WheelEvent('wheel', {
         bubbles: false,
@@ -91,21 +91,21 @@ describe('ZoomController', () => {
         ctrlKey: true,
       });
       element.dispatchEvent(ev_2);
-      expect(panzoom.zoomWithWheel).toBeCalledWith(ev_2);
+      expect(panzoom.zoomWithWheel).toHaveBeenCalledWith(ev_2);
 
       panzoom.getScale = vi.fn().mockReturnValue(1.2);
 
       const ev_3 = new PointerEvent('pointerdown');
       element.dispatchEvent(ev_3);
-      expect(panzoom.handleDown).toBeCalledWith(ev_3);
+      expect(panzoom.handleDown).toHaveBeenCalledWith(ev_3);
 
       const ev_4 = new PointerEvent('pointermove');
       element.dispatchEvent(ev_4);
-      expect(panzoom.handleMove).toBeCalledWith(ev_4);
+      expect(panzoom.handleMove).toHaveBeenCalledWith(ev_4);
 
       const ev_5 = new PointerEvent('pointerup');
       element.dispatchEvent(ev_5);
-      expect(panzoom.handleUp).toBeCalledWith(ev_5);
+      expect(panzoom.handleUp).toHaveBeenCalledWith(ev_5);
     });
 
     it('should not respond to pointer when not zoomed', () => {
@@ -118,15 +118,15 @@ describe('ZoomController', () => {
 
       const ev_1 = new PointerEvent('pointerdown');
       element.dispatchEvent(ev_1);
-      expect(panzoom.handleDown).not.toBeCalledWith(ev_1);
+      expect(panzoom.handleDown).not.toHaveBeenCalledWith(ev_1);
 
       const ev_2 = new PointerEvent('pointermove');
       element.dispatchEvent(ev_2);
-      expect(panzoom.handleDown).not.toBeCalledWith(ev_2);
+      expect(panzoom.handleDown).not.toHaveBeenCalledWith(ev_2);
 
       const ev_3 = new PointerEvent('pointerup');
       element.dispatchEvent(ev_3);
-      expect(panzoom.handleDown).not.toBeCalledWith(ev_3);
+      expect(panzoom.handleDown).not.toHaveBeenCalledWith(ev_3);
     });
 
     it('should respond with touch', () => {
@@ -143,21 +143,21 @@ describe('ZoomController', () => {
         touches: [createTouch({ target: element }), createTouch({ target: element })],
       });
       element.dispatchEvent(ev_1);
-      expect(panzoom.handleDown).toBeCalledWith(ev_1);
+      expect(panzoom.handleDown).toHaveBeenCalledWith(ev_1);
 
       panzoom.getScale = vi.fn().mockReturnValue(1.2);
 
       const ev_3 = createTouchEvent('touchstart');
       element.dispatchEvent(ev_3);
-      expect(panzoom.handleDown).toBeCalledWith(ev_3);
+      expect(panzoom.handleDown).toHaveBeenCalledWith(ev_3);
 
       const ev_4 = createTouchEvent('touchmove');
       element.dispatchEvent(ev_4);
-      expect(panzoom.handleMove).toBeCalledWith(ev_4);
+      expect(panzoom.handleMove).toHaveBeenCalledWith(ev_4);
 
       const ev_5 = createTouchEvent('touchend');
       element.dispatchEvent(ev_5);
-      expect(panzoom.handleUp).toBeCalledWith(ev_5);
+      expect(panzoom.handleUp).toHaveBeenCalledWith(ev_5);
     });
   });
 
@@ -179,7 +179,7 @@ describe('ZoomController', () => {
     // A click on its own will be fine.
     const click_1 = new MouseEvent('click', { bubbles: true });
     inner.dispatchEvent(click_1);
-    expect(clickHandler).toBeCalledTimes(1);
+    expect(clickHandler).toHaveBeenCalledTimes(1);
 
     // A click after a pointerdown will be ignored.
     const pointerdown_1 = new PointerEvent('pointerdown');
@@ -189,7 +189,7 @@ describe('ZoomController', () => {
     inner.dispatchEvent(click_2);
 
     // Click will have been ignored.
-    //expect(clickHandler).toBeCalledTimes(1);
+    //expect(clickHandler).toHaveBeenCalledTimes(1);
 
     // Simulate being zoomed out.
     panzoom.getScale = vi.fn().mockReturnValue(1.0);
@@ -200,7 +200,7 @@ describe('ZoomController', () => {
     inner.dispatchEvent(click_3);
 
     // Click will have been processed.
-    expect(clickHandler).toBeCalledTimes(2);
+    expect(clickHandler).toHaveBeenCalledTimes(2);
   });
 
   it('deactivate should remove event handlers', () => {
@@ -217,7 +217,7 @@ describe('ZoomController', () => {
       ctrlKey: true,
     });
     element.dispatchEvent(ev_1);
-    expect(panzoom.zoomWithWheel).not.toBeCalled();
+    expect(panzoom.zoomWithWheel).not.toHaveBeenCalled();
   });
 
   describe('should fire events', () => {
@@ -241,8 +241,8 @@ describe('ZoomController', () => {
         },
       });
       element.dispatchEvent(ev_1);
-      expect(zoomedFunc).toBeCalled();
-      expect(unzoomedFunc).not.toBeCalled();
+      expect(zoomedFunc).toHaveBeenCalled();
+      expect(unzoomedFunc).not.toHaveBeenCalled();
 
       const ev_2 = new CustomEvent<PanzoomEventDetail>('panzoomchange', {
         detail: {
@@ -254,7 +254,7 @@ describe('ZoomController', () => {
         },
       });
       element.dispatchEvent(ev_2);
-      expect(unzoomedFunc).toBeCalled();
+      expect(unzoomedFunc).toHaveBeenCalled();
     });
 
     it('when state has not changed or spurious events received', () => {
@@ -279,8 +279,8 @@ describe('ZoomController', () => {
       element.dispatchEvent(ev_1);
 
       // Unzoomed event with scale === 1, this._zoomed will already be false.
-      expect(unzoomedFunc).not.toBeCalled();
-      expect(zoomedFunc).not.toBeCalled();
+      expect(unzoomedFunc).not.toHaveBeenCalled();
+      expect(zoomedFunc).not.toHaveBeenCalled();
 
       const ev_2 = new CustomEvent<PanzoomEventDetail>('panzoomchange', {
         detail: {
@@ -292,12 +292,12 @@ describe('ZoomController', () => {
         },
       });
       element.dispatchEvent(ev_2);
-      expect(zoomedFunc).toBeCalledTimes(1);
-      expect(unzoomedFunc).not.toBeCalled();
+      expect(zoomedFunc).toHaveBeenCalledTimes(1);
+      expect(unzoomedFunc).not.toHaveBeenCalled();
 
       // Another call when already zoomed will be ignored.
       element.dispatchEvent(ev_2);
-      expect(zoomedFunc).toBeCalledTimes(1);
+      expect(zoomedFunc).toHaveBeenCalledTimes(1);
     });
 
     describe('on default/non-default', () => {
@@ -453,11 +453,11 @@ describe('ZoomController', () => {
       controller.setDefaultSettings({ zoom: 2, pan: { x: 3, y: 4 } });
 
       // Controller was not activated, config setting will not update pan/zoom.
-      expect(panzoom.zoom).not.toBeCalled();
-      expect(panzoom.pan).not.toBeCalled();
+      expect(panzoom.zoom).not.toHaveBeenCalled();
+      expect(panzoom.pan).not.toHaveBeenCalled();
 
       controller.activate();
-      expect(Panzoom).toBeCalledWith(
+      expect(Panzoom).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
           contain: 'outside',
@@ -485,8 +485,8 @@ describe('ZoomController', () => {
 
       triggerResizeObserver();
 
-      expect(panzoom.zoom).toBeCalledWith(2, { animate: false });
-      expect(panzoom.pan).toBeCalledWith(115.62, 63.6525, {
+      expect(panzoom.zoom).toHaveBeenCalledWith(2, { animate: false });
+      expect(panzoom.pan).toHaveBeenCalledWith(115.62, 63.6525, {
         animate: true,
         duration: 100,
       });
@@ -504,8 +504,8 @@ describe('ZoomController', () => {
       // This call will do nothing since this is what zoom/pan already are.
       controller.setDefaultSettings({ zoom: 1, pan: { x: 0, y: 0 } });
 
-      expect(panzoom.zoom).not.toBeCalled();
-      expect(panzoom.pan).not.toBeCalled();
+      expect(panzoom.zoom).not.toHaveBeenCalled();
+      expect(panzoom.pan).not.toHaveBeenCalled();
 
       controller.setDefaultSettings({ zoom: 2, pan: { x: 3, y: 4 } });
 
@@ -547,8 +547,8 @@ describe('ZoomController', () => {
 
       controller.setSettings({ zoom: 2 });
 
-      expect(panzoom.zoom).toBeCalledTimes(1);
-      expect(panzoom.pan).toBeCalledTimes(1);
+      expect(panzoom.zoom).toHaveBeenCalledTimes(1);
+      expect(panzoom.pan).toHaveBeenCalledTimes(1);
       expect(panzoom.zoom).toHaveBeenNthCalledWith(1, 2, { animate: false });
       expect(panzoom.pan).toHaveBeenNthCalledWith(1, 0, 0, {
         animate: true,
@@ -559,8 +559,8 @@ describe('ZoomController', () => {
       vi.mocked(panzoom.getPan).mockReturnValue({ x: 0, y: 0 });
       controller.setSettings({ zoom: 2 });
 
-      expect(panzoom.zoom).toBeCalledTimes(1);
-      expect(panzoom.pan).toBeCalledTimes(1);
+      expect(panzoom.zoom).toHaveBeenCalledTimes(1);
+      expect(panzoom.pan).toHaveBeenCalledTimes(1);
     });
 
     it('when config is set to empty', () => {
@@ -577,8 +577,8 @@ describe('ZoomController', () => {
       controller.setSettings({});
 
       // Should fall back to default.
-      expect(panzoom.zoom).toBeCalledWith(2, { animate: false });
-      expect(panzoom.pan).toBeCalledWith(115.62, 63.6525, {
+      expect(panzoom.zoom).toHaveBeenCalledWith(2, { animate: false });
+      expect(panzoom.pan).toHaveBeenCalledWith(115.62, 63.6525, {
         animate: true,
         duration: 100,
       });
@@ -624,8 +624,8 @@ describe('ZoomController', () => {
 
       triggerResizeObserver();
 
-      expect(panzoom.zoom).not.toBeCalled();
-      expect(panzoom.pan).not.toBeCalled();
+      expect(panzoom.zoom).not.toHaveBeenCalled();
+      expect(panzoom.pan).not.toHaveBeenCalled();
     });
 
     it('when element has no size', () => {
@@ -641,8 +641,8 @@ describe('ZoomController', () => {
 
       triggerResizeObserver();
 
-      expect(panzoom.zoom).not.toBeCalled();
-      expect(panzoom.pan).not.toBeCalled();
+      expect(panzoom.zoom).not.toHaveBeenCalled();
+      expect(panzoom.pan).not.toHaveBeenCalled();
     });
   });
 
@@ -673,7 +673,7 @@ describe('ZoomController', () => {
     const ev = new PointerEvent('pointerdown');
     element.dispatchEvent(ev);
 
-    expect(panzoom.handleDown).not.toBeCalled();
+    expect(panzoom.handleDown).not.toHaveBeenCalled();
   });
 
   it('should set touch action on zoom/unzoom', () => {

@@ -15,5 +15,5 @@ it('should handle microphone_connect action', async () => {
 
   await action.execute(api);
 
-  expect(api.getMicrophoneManager().connect).toBeCalled();
+  expect(api.getMicrophoneManager().connect).toHaveBeenCalled();
 });

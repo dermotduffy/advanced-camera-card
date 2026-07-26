@@ -17,7 +17,7 @@ describe('OffscreenVideo', () => {
     const offscreen = new OffscreenVideo(create);
 
     expect(offscreen.get()).toBe(offscreen.get());
-    expect(create).toBeCalledTimes(1);
+    expect(create).toHaveBeenCalledTimes(1);
   });
 
   it('should create a video with the default factory when none is injected', () => {
@@ -48,7 +48,7 @@ describe('OffscreenVideo', () => {
     offscreen.clear();
     offscreen.get();
 
-    expect(create).toBeCalledTimes(2);
+    expect(create).toHaveBeenCalledTimes(2);
   });
 
   it('should tolerate clear when no video is held', () => {

@@ -65,7 +65,7 @@ describe('transformPathURLToPathArray', () => {
   describe('should throw error for non-media source path component', () => {
     it.each(prefixes)('with prefix %s', (urlPrefix: string) => {
       const url = `${urlPrefix}media-browser/browser,does-not-start-with-media-source`;
-      expect(() => transformPathURLToPathArray(url)).toThrowError(
+      expect(() => transformPathURLToPathArray(url)).toThrow(
         /Could not parse media source URL/,
       );
     });

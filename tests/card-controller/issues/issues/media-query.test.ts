@@ -87,7 +87,7 @@ describe('MediaQueryIssue', () => {
       const tapAction = control?.actions?.tap_action as InternalCallbackActionConfig;
       await tapAction.callback(api);
 
-      expect(api.getIssueManager().retry).toBeCalledWith('media_query', true);
+      expect(api.getIssueManager().retry).toHaveBeenCalledWith('media_query', true);
     });
   });
 
@@ -133,7 +133,7 @@ describe('MediaQueryIssue', () => {
       const result = issue.retry();
 
       expect(result).toEqual(true);
-      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
         intent: 'retry',
       });
 
@@ -189,7 +189,9 @@ describe('MediaQueryIssue', () => {
       const result = issue.retry();
 
       expect(result).toBe(true);
-      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledTimes(1);
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledTimes(
+        1,
+      );
     });
 
     it('should stop treating the retry as in flight once the query settles without an outcome', async () => {

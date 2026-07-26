@@ -5,10 +5,10 @@ import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import {
   createCameraManager,
   createCapabilities,
-  createCardAPI,
-  createConfig,
   createStore,
-} from '../../test-utils';
+} from '../../camera-manager/test-utils';
+import { createConfig } from '../../config/test-utils';
+import { createCardAPI } from '../../test-utils';
 
 export const createPopulatedAPI = (
   config?: RawAdvancedCameraCardConfig,

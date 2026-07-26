@@ -3,13 +3,10 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Capabilities } from '../../../../src/camera-manager/capabilities';
 import { PTZAction } from '../../../../src/card-controller/actions/actions/ptz';
 import { PTZMovementType } from '../../../../src/types';
-import {
-  createCameraConfig,
-  createCameraManager,
-  createCardAPI,
-  createStore,
-  createView,
-} from '../../../test-utils';
+import { createCameraManager, createStore } from '../../../camera-manager/test-utils';
+import { createCameraConfig } from '../../../config/test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView } from '../../../view/test-utils';
 
 describe('should handle ptz action', () => {
   it('should execute simple action', async () => {
@@ -39,7 +36,7 @@ describe('should handle ptz action', () => {
 
     await action.execute(api);
 
-    expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+    expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
       'camera.office',
       'left',
       {
@@ -74,7 +71,7 @@ describe('should handle ptz action', () => {
 
       await action.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
         'camera.office',
         'left',
         {
@@ -121,7 +118,7 @@ describe('should handle ptz action', () => {
 
       await action.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
         'camera.office_hd',
         'left',
         {
@@ -149,7 +146,7 @@ describe('should handle ptz action', () => {
 
       await action.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).not.toBeCalled();
+      expect(api.getCameraManager().executePTZAction).not.toHaveBeenCalled();
     });
   });
 
@@ -168,7 +165,7 @@ describe('should handle ptz action', () => {
 
     await action.execute(api);
 
-    expect(api.getCameraManager().executePTZAction).not.toBeCalled();
+    expect(api.getCameraManager().executePTZAction).not.toHaveBeenCalled();
   });
 
   describe('when there is no action', () => {
@@ -195,7 +192,7 @@ describe('should handle ptz action', () => {
 
       await action.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
         'camera.office',
         'preset',
         {
@@ -244,7 +241,7 @@ describe('should handle ptz action', () => {
 
       await action.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
         'camera.office',
         'preset',
         {
@@ -290,7 +287,7 @@ describe('should handle ptz action', () => {
 
       await action.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
         'camera.office',
         'preset',
         {
@@ -328,7 +325,7 @@ describe('should handle ptz action', () => {
 
       await action.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).not.toBeCalled();
+      expect(api.getCameraManager().executePTZAction).not.toHaveBeenCalled();
     });
   });
 
@@ -361,7 +358,7 @@ describe('should handle ptz action', () => {
 
     await action.execute(api);
 
-    expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+    expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
       'camera.office',
       'preset',
       {
@@ -400,7 +397,7 @@ describe('should handle ptz action', () => {
 
     await action.execute(api);
 
-    expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+    expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
       'camera.office',
       'left',
       {
@@ -447,7 +444,7 @@ describe('should handle ptz action', () => {
 
       await action.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
         'camera.office',
         'left',
         {
@@ -456,7 +453,7 @@ describe('should handle ptz action', () => {
       );
 
       vi.runOnlyPendingTimers();
-      expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
         'camera.office',
         'left',
         {
@@ -491,12 +488,12 @@ describe('should handle ptz action', () => {
 
       await action.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).toBeCalledTimes(1);
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(1);
 
       action.stop();
       vi.runOnlyPendingTimers();
 
-      expect(api.getCameraManager().executePTZAction).toBeCalledTimes(1);
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -535,20 +532,20 @@ describe('should handle ptz action', () => {
       });
       await startAction.execute(api);
 
-      expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledWith(
         'camera.office',
         'left',
         {
           phase: undefined,
         },
       );
-      expect(api.getCameraManager().executePTZAction).toBeCalledTimes(1);
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(1);
 
       await vi.runOnlyPendingTimersAsync();
-      expect(api.getCameraManager().executePTZAction).toBeCalledTimes(2);
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(2);
 
       await vi.runOnlyPendingTimersAsync();
-      expect(api.getCameraManager().executePTZAction).toBeCalledTimes(3);
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(3);
 
       const stopAction = new PTZAction(context, {
         action: 'fire-dom-event',
@@ -560,7 +557,7 @@ describe('should handle ptz action', () => {
 
       // There should be no additional calls.
       await vi.runOnlyPendingTimersAsync();
-      expect(api.getCameraManager().executePTZAction).toBeCalledTimes(3);
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(3);
     });
 
     it('should honor stop', async () => {
@@ -590,10 +587,10 @@ describe('should handle ptz action', () => {
       });
 
       await action.execute(api);
-      expect(api.getCameraManager().executePTZAction).toBeCalledTimes(1);
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(1);
 
       await vi.runOnlyPendingTimersAsync();
-      expect(api.getCameraManager().executePTZAction).toBeCalledTimes(2);
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(2);
 
       // Emulate the stop being called while the action is running, but before
       // the *next* timer is scheduled.
@@ -604,7 +601,7 @@ describe('should handle ptz action', () => {
       vi.mocked(cameraManager.executePTZAction).mockReturnValueOnce(promise);
 
       await vi.runOnlyPendingTimersAsync();
-      expect(api.getCameraManager().executePTZAction).toBeCalledTimes(3);
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(3);
 
       action.stop();
 
@@ -612,7 +609,7 @@ describe('should handle ptz action', () => {
       await vi.runOnlyPendingTimersAsync();
 
       // There should be no additional calls.
-      expect(api.getCameraManager().executePTZAction).toBeCalledTimes(3);
+      expect(api.getCameraManager().executePTZAction).toHaveBeenCalledTimes(3);
     });
   });
 });

@@ -4,7 +4,8 @@ import { SubstreamOffAction } from '../../../../src/card-controller/actions/acti
 import { applyViewModifiers } from '../../../../src/card-controller/view/modifiers';
 import { createSubstreamOffAction } from '../../../../src/utils/action';
 import type { View } from '../../../../src/view/view';
-import { createCardAPI, createView } from '../../../test-utils';
+import { createCardAPI } from '../../../test-utils';
+import { createView } from '../../../view/test-utils';
 
 // Runs the off-action for `view` and applies the modifier it produces.
 const applySubstreamOff = async (

@@ -4,7 +4,8 @@ import { mock } from 'vitest-mock-extended';
 import type { CardController } from '../../src/card-controller/controller';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
 import { SubstreamViewModifier } from '../../src/card-controller/view/modifiers/substream';
-import { createCardAPI, createConfig } from '../test-utils';
+import { createConfig } from '../config/test-utils';
+import { createCardAPI } from '../test-utils';
 
 const setQueryString = (qs: string): void => {
   const location: Location = mock<Location>();
@@ -38,8 +39,8 @@ describe('QueryStringManager', () => {
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
     await manager.executeIfNecessary();
 
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 
   describe('should execute view name action from query string', () => {
@@ -67,7 +68,7 @@ describe('QueryStringManager', () => {
       await manager.executeIfNecessary();
       expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
 
-      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
         params: {
           view: viewName,
         },
@@ -91,7 +92,7 @@ describe('QueryStringManager', () => {
       expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
       await manager.executeIfNecessary();
 
-      expect(api.getActionsManager().executeActions).toBeCalledWith({
+      expect(api.getActionsManager().executeActions).toHaveBeenCalledWith({
         actions: [
           {
             action: 'fire-dom-event',
@@ -116,9 +117,9 @@ describe('QueryStringManager', () => {
     await manager.executeIfNecessary();
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
 
-    expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalled();
+    expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 
   it('should execute camera_select action', async () => {
@@ -132,13 +133,13 @@ describe('QueryStringManager', () => {
     await manager.executeIfNecessary();
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
       params: {
         camera: 'camera.office',
       },
     });
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
-    expect(api.getViewManager().setViewDefault).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
   });
 
   it('should execute substream_on with a stream value as a view modifier', async () => {
@@ -152,13 +153,13 @@ describe('QueryStringManager', () => {
     await manager.executeIfNecessary();
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
       modifiers: [new SubstreamViewModifier({ stream: 'camera.office_hd' })],
       params: {},
     });
 
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
-    expect(api.getViewManager().setViewDefault).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
   });
 
   it('should dispatch substream_on without a value as a non-view action', async () => {
@@ -171,7 +172,7 @@ describe('QueryStringManager', () => {
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
     await manager.executeIfNecessary();
 
-    expect(api.getActionsManager().executeActions).toBeCalledWith({
+    expect(api.getActionsManager().executeActions).toHaveBeenCalledWith({
       actions: [
         {
           action: 'fire-dom-event',
@@ -193,11 +194,11 @@ describe('QueryStringManager', () => {
     await manager.executeIfNecessary();
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
       modifiers: [new SubstreamViewModifier()],
       params: {},
     });
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
   });
 
   it('should warn on the legacy live_substream_select URL form', async () => {
@@ -214,9 +215,11 @@ describe('QueryStringManager', () => {
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
     await manager.executeIfNecessary();
 
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
-    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
-    expect(consoleSpy).toBeCalledWith(expect.stringContaining('live_substream_select'));
+    expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('live_substream_select'),
+    );
   });
 
   it('should ignore camera_select without a value', async () => {
@@ -229,9 +232,9 @@ describe('QueryStringManager', () => {
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
     await manager.executeIfNecessary();
 
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
-    expect(api.getViewManager().setViewDefault).not.toBeCalled();
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
   });
 
   it('should handle unknown action', async () => {
@@ -246,10 +249,10 @@ describe('QueryStringManager', () => {
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
     await manager.executeIfNecessary();
 
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
-    expect(api.getViewManager().setViewDefault).not.toBeCalled();
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
-    expect(consoleSpy).toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewDefault).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewByParameters).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalled();
   });
 
   describe('should execute view name action from query string', () => {
@@ -275,7 +278,7 @@ describe('QueryStringManager', () => {
       await manager.executeIfNecessary();
       expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
 
-      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
         params: {
           view: viewName,
         },
@@ -298,13 +301,15 @@ describe('QueryStringManager', () => {
 
       await manager.executeIfNecessary();
 
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledWith({
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toHaveBeenCalledWith({
         params: {
           camera: 'camera.kitchen',
         },
         modifiers: [new SubstreamViewModifier({ stream: 'camera.kitchen_hd' })],
       });
-      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+      expect(
+        api.getViewManager().setViewByParametersWithNewQuery,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle multiple cameras specified', async () => {
@@ -319,7 +324,7 @@ describe('QueryStringManager', () => {
 
       await manager.executeIfNecessary();
 
-      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
         params: {
           camera: 'camera.office',
         },
@@ -337,18 +342,24 @@ describe('QueryStringManager', () => {
     expect(manager.hasViewRelatedActionsToRun()).toBeTruthy();
     await manager.executeIfNecessary();
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledTimes(1);
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledTimes(
+      1,
+    );
 
     await manager.executeIfNecessary();
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledTimes(1);
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledTimes(
+      1,
+    );
 
     manager.requestExecution();
 
     expect(manager.hasViewRelatedActionsToRun()).toBeTruthy();
     await manager.executeIfNecessary();
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledTimes(2);
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledTimes(
+      2,
+    );
   });
 
   it('should execute actions with old frigate-card-action key', async () => {
@@ -364,7 +375,7 @@ describe('QueryStringManager', () => {
     await manager.executeIfNecessary();
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
 
-    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
       params: {
         view: 'clips',
       },
@@ -382,7 +393,7 @@ describe('QueryStringManager', () => {
       expect(manager.hasViewRelatedActionsToRun()).toBeTruthy();
       await manager.executeIfNecessary();
 
-      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
         params: {
           view: 'clips',
         },
@@ -399,8 +410,10 @@ describe('QueryStringManager', () => {
       expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
       await manager.executeIfNecessary();
 
-      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
-      expect(api.getActionsManager().executeActions).not.toBeCalled();
+      expect(
+        api.getViewManager().setViewByParametersWithNewQuery,
+      ).not.toHaveBeenCalled();
+      expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
     });
 
     it('should execute action without card_id on any card', async () => {
@@ -413,7 +426,7 @@ describe('QueryStringManager', () => {
       expect(manager.hasViewRelatedActionsToRun()).toBeTruthy();
       await manager.executeIfNecessary();
 
-      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toHaveBeenCalledWith({
         params: {
           view: 'clips',
         },
@@ -430,7 +443,7 @@ describe('QueryStringManager', () => {
       expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
       await manager.executeIfNecessary();
 
-      expect(api.getActionsManager().executeActions).not.toBeCalled();
+      expect(api.getActionsManager().executeActions).not.toHaveBeenCalled();
     });
 
     it('should execute action when card has no card_id and URL has card_id', async () => {
@@ -443,7 +456,9 @@ describe('QueryStringManager', () => {
       expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
       await manager.executeIfNecessary();
 
-      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+      expect(
+        api.getViewManager().setViewByParametersWithNewQuery,
+      ).not.toHaveBeenCalled();
     });
   });
 });

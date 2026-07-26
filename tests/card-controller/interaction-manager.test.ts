@@ -2,11 +2,8 @@ import { add } from 'date-fns';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { InteractionManager } from '../../src/card-controller/interaction-manager';
-import { createCardAPI, createConfig, createLitElement } from '../test-utils';
-
-vi.mock('lodash-es', () => ({
-  throttle: vi.fn((fn) => Object.assign(fn, { cancel: vi.fn() })),
-}));
+import { createConfig } from '../config/test-utils';
+import { createCardAPI, createLitElement } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('InteractionManager', () => {
@@ -24,7 +21,7 @@ describe('InteractionManager', () => {
     const manager = new InteractionManager(api);
 
     manager.initialize();
-    expect(api.getConditionStateManager().setState).toBeCalledWith({
+    expect(api.getConditionStateManager().setState).toHaveBeenCalledWith({
       interaction: false,
     });
     expect(element.getAttribute('interaction')).toBeNull();
@@ -65,7 +62,7 @@ describe('InteractionManager', () => {
     vi.useFakeTimers();
     vi.setSystemTime(start);
 
-    expect(api.getConditionStateManager().setState).not.toBeCalled();
+    expect(api.getConditionStateManager().setState).not.toHaveBeenCalled();
 
     manager.reportInteraction();
 

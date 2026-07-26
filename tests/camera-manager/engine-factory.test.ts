@@ -12,9 +12,9 @@ import type { CardWideConfig } from '../../src/config/schema/types.js';
 import type { DeviceRegistryManager } from '../../src/ha/registry/device';
 import type { EntityRegistryManager } from '../../src/ha/registry/entity/types.js';
 import type { ResolvedMediaCache } from '../../src/ha/resolved-media.js';
+import { createCameraConfig } from '../config/test-utils';
 import { EntityRegistryManagerMock } from '../ha/registry/entity/mock.js';
 import {
-  createCameraConfig,
   createHASS,
   createHASSManager,
   createRegistryEntity,

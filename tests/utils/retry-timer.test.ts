@@ -17,9 +17,9 @@ describe('RetryTimer', () => {
 
     timer.schedule(cb);
     vi.advanceTimersByTime(999);
-    expect(cb).not.toBeCalled();
+    expect(cb).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
-    expect(cb).toBeCalledTimes(1);
+    expect(cb).toHaveBeenCalledTimes(1);
   });
 
   it('should advance the counter on schedule by default', () => {
@@ -57,9 +57,9 @@ describe('RetryTimer', () => {
 
     // Counter is 1, delay should be base * 2^1 = 2 seconds.
     vi.advanceTimersByTime(1999);
-    expect(cb).not.toBeCalled();
+    expect(cb).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
-    expect(cb).toBeCalledTimes(1);
+    expect(cb).toHaveBeenCalledTimes(1);
   });
 
   it('should cancel a pending callback', () => {
@@ -71,7 +71,7 @@ describe('RetryTimer', () => {
     timer.schedule(cb);
     timer.cancel();
     vi.advanceTimersByTime(10_000);
-    expect(cb).not.toBeCalled();
+    expect(cb).not.toHaveBeenCalled();
   });
 
   it('should reset both the timer and the counter', () => {
@@ -91,7 +91,7 @@ describe('RetryTimer', () => {
     expect(timer.isRunning()).toBe(false);
 
     vi.advanceTimersByTime(10_000);
-    expect(cb).not.toBeCalled();
+    expect(cb).not.toHaveBeenCalled();
   });
 
   it('should report running state', () => {
@@ -133,9 +133,9 @@ describe('RetryTimer', () => {
     timer.advance();
     timer.schedule(cb);
     vi.advanceTimersByTime(29_999);
-    expect(cb).not.toBeCalled();
+    expect(cb).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
-    expect(cb).toBeCalledTimes(1);
+    expect(cb).toHaveBeenCalledTimes(1);
   });
 
   it('should accept a plain number as shorthand for a fixed delay', () => {
@@ -146,9 +146,9 @@ describe('RetryTimer', () => {
     timer.advance();
     timer.schedule(cb);
     vi.advanceTimersByTime(29_999);
-    expect(cb).not.toBeCalled();
+    expect(cb).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
-    expect(cb).toBeCalledTimes(1);
+    expect(cb).toHaveBeenCalledTimes(1);
   });
 
   describe('setOptions', () => {
@@ -171,9 +171,9 @@ describe('RetryTimer', () => {
       });
       timer.schedule(cb);
       vi.advanceTimersByTime(9_999);
-      expect(cb).not.toBeCalled();
+      expect(cb).not.toHaveBeenCalled();
       vi.advanceTimersByTime(1);
-      expect(cb).toBeCalledTimes(1);
+      expect(cb).toHaveBeenCalledTimes(1);
     });
 
     it('should preserve the attempt counter and any pending callback', () => {

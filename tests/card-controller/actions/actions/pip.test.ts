@@ -15,5 +15,5 @@ it('should toggle PIP', async () => {
 
   await action.execute(api);
 
-  expect(api.getPIPManager().togglePIP).toBeCalled();
+  expect(api.getPIPManager().togglePIP).toHaveBeenCalled();
 });

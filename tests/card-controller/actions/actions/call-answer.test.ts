@@ -15,5 +15,5 @@ it('should handle call_answer action', async () => {
 
   await action.execute(api);
 
-  expect(api.getCallManager().answer).toBeCalled();
+  expect(api.getCallManager().answer).toHaveBeenCalled();
 });

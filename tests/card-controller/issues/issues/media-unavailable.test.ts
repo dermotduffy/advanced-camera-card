@@ -69,7 +69,7 @@ describe('MediaUnavailableIssue', () => {
       vi.advanceTimersByTime(10000);
 
       expect(issue.hasIssue()).toBe(true);
-      expect(onChange).toBeCalled();
+      expect(onChange).toHaveBeenCalled();
     });
 
     it('should not start timer when targetID is null (no provider rendering)', () => {
@@ -229,7 +229,7 @@ describe('MediaUnavailableIssue', () => {
       // Full 10s from camera-2's timer start.
       vi.advanceTimersByTime(5000);
       expect(issue.hasIssue()).toBe(true);
-      expect(onChange).toBeCalledTimes(1);
+      expect(onChange).toHaveBeenCalledTimes(1);
     });
 
     it('should not restart timer for same target while running', () => {
@@ -251,7 +251,7 @@ describe('MediaUnavailableIssue', () => {
       // 5 more seconds completes the original 10s timer.
       vi.advanceTimersByTime(5000);
       expect(issue.hasIssue()).toBe(true);
-      expect(onChange).toBeCalledTimes(1);
+      expect(onChange).toHaveBeenCalledTimes(1);
     });
 
     it('should not restart timer when targetID is undefined and matches', () => {
@@ -266,7 +266,7 @@ describe('MediaUnavailableIssue', () => {
 
       vi.advanceTimersByTime(5000);
       expect(issue.hasIssue()).toBe(true);
-      expect(onChange).toBeCalledTimes(1);
+      expect(onChange).toHaveBeenCalledTimes(1);
     });
 
     it('should not restart timer if already timed out', () => {
@@ -275,12 +275,12 @@ describe('MediaUnavailableIssue', () => {
 
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(10000);
-      expect(onChange).toBeCalledTimes(1);
+      expect(onChange).toHaveBeenCalledTimes(1);
 
       // Calling detectDynamic again should not restart timer.
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       vi.advanceTimersByTime(10000);
-      expect(onChange).toBeCalledTimes(1);
+      expect(onChange).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -535,7 +535,10 @@ describe('MediaUnavailableIssue', () => {
       const tapAction = control?.actions?.tap_action as InternalCallbackActionConfig;
       await tapAction.callback(api);
 
-      expect(api.getIssueManager().retry).toBeCalledWith('media_unavailable', true);
+      expect(api.getIssueManager().retry).toHaveBeenCalledWith(
+        'media_unavailable',
+        true,
+      );
     });
   });
 
@@ -618,7 +621,7 @@ describe('MediaUnavailableIssue', () => {
       const result = issue.retry();
 
       expect(result).toEqual(false);
-      expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith({
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
         mediaEpoch: { 'camera-1': 1, 'media-1': 1 },
       });
     });
@@ -633,7 +636,7 @@ describe('MediaUnavailableIssue', () => {
       const result = issue.retry();
 
       expect(result).toEqual(false);
-      expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith({
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
         mediaEpoch: { [IMAGE_VIEW_TARGET_ID_SENTINEL]: 1 },
       });
     });
@@ -650,7 +653,7 @@ describe('MediaUnavailableIssue', () => {
       const result = issue.retry();
 
       expect(result).toEqual(false);
-      expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith({
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
         mediaEpoch: { 'camera-1': 6, 'camera-2': 3 },
       });
     });
@@ -665,7 +668,7 @@ describe('MediaUnavailableIssue', () => {
 
       issue.retry();
 
-      expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith({
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
         mediaEpoch: { 'camera-1': 1 },
       });
     });
@@ -701,7 +704,7 @@ describe('MediaUnavailableIssue', () => {
       vi.advanceTimersByTime(10000);
 
       expect(issue.hasIssue()).toBe(false);
-      expect(onChange).not.toBeCalled();
+      expect(onChange).not.toHaveBeenCalled();
     });
   });
 
@@ -714,7 +717,7 @@ describe('MediaUnavailableIssue', () => {
       issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
       fireMediaLoad(api, 'camera-1');
 
-      expect(onChange).toBeCalled();
+      expect(onChange).toHaveBeenCalled();
     });
 
     it('should unsubscribe from media loads on destroy', () => {
@@ -725,7 +728,7 @@ describe('MediaUnavailableIssue', () => {
 
       issue.destroy();
 
-      expect(unsubscribe).toBeCalled();
+      expect(unsubscribe).toHaveBeenCalled();
     });
   });
 
@@ -746,7 +749,7 @@ describe('MediaUnavailableIssue', () => {
       // offscreen and that time does not count against them.
       vi.advanceTimersByTime(20000);
       expect(issue.hasIssue()).toBe(false);
-      expect(onChange).not.toBeCalled();
+      expect(onChange).not.toHaveBeenCalled();
     });
 
     it('should preserve an already-active issue across suspend', () => {
@@ -780,7 +783,7 @@ describe('MediaUnavailableIssue', () => {
       expect(issue.hasIssue()).toBe(false);
       vi.advanceTimersByTime(1);
       expect(issue.hasIssue()).toBe(true);
-      expect(onChange).toBeCalled();
+      expect(onChange).toHaveBeenCalled();
     });
   });
 });

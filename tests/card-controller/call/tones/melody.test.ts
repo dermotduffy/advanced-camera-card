@@ -22,8 +22,8 @@ describe('MelodyTone', () => {
     expect(audio.oscillators[2].frequency.value).toBe(659.25);
     expect(audio.oscillators[3].frequency.value).toBe(783.99);
     expect(audio.oscillators[4].frequency.value).toBe(261.63);
-    expect(audio.oscillators[0].start).toBeCalledWith(0);
-    expect(audio.oscillators[4].start).toBeCalledWith(0);
+    expect(audio.oscillators[0].start).toHaveBeenCalledWith(0);
+    expect(audio.oscillators[4].start).toHaveBeenCalledWith(0);
 
     // --- V chord (G major) at t=1: sparkle D6, G4 + B4 + D5, hum G3. ---
     expect(audio.oscillators[5].frequency.value).toBe(1174.66);
@@ -31,8 +31,8 @@ describe('MelodyTone', () => {
     expect(audio.oscillators[7].frequency.value).toBe(493.88);
     expect(audio.oscillators[8].frequency.value).toBe(587.33);
     expect(audio.oscillators[9].frequency.value).toBe(196.0);
-    expect(audio.oscillators[5].start).toBeCalledWith(1);
-    expect(audio.oscillators[9].start).toBeCalledWith(1);
+    expect(audio.oscillators[5].start).toHaveBeenCalledWith(1);
+    expect(audio.oscillators[9].start).toHaveBeenCalledWith(1);
 
     // --- I chord (resolution, an octave higher) at t=2. ---
     expect(audio.oscillators[10].frequency.value).toBe(2093.0);
@@ -40,21 +40,21 @@ describe('MelodyTone', () => {
     expect(audio.oscillators[12].frequency.value).toBe(783.99);
     expect(audio.oscillators[13].frequency.value).toBe(1046.5);
     expect(audio.oscillators[14].frequency.value).toBe(329.63);
-    expect(audio.oscillators[10].start).toBeCalledWith(2);
-    expect(audio.oscillators[14].start).toBeCalledWith(2);
+    expect(audio.oscillators[10].start).toHaveBeenCalledWith(2);
+    expect(audio.oscillators[14].start).toHaveBeenCalledWith(2);
   });
 
   it('should give the resolving chord a longer tail than the I and V chords', () => {
     new MelodyTone(0).start();
 
     // I and V chords use default fundDecay=0.6, humDecay=1.1.
-    expect(audio.gainParams[1].setTargetAtTime).toBeCalledWith(0, 0.005, 0.6);
-    expect(audio.gainParams[4].setTargetAtTime).toBeCalledWith(0, 0.005, 1.1);
-    expect(audio.gainParams[6].setTargetAtTime).toBeCalledWith(0, 1.005, 0.6);
-    expect(audio.gainParams[9].setTargetAtTime).toBeCalledWith(0, 1.005, 1.1);
+    expect(audio.gainParams[1].setTargetAtTime).toHaveBeenCalledWith(0, 0.005, 0.6);
+    expect(audio.gainParams[4].setTargetAtTime).toHaveBeenCalledWith(0, 0.005, 1.1);
+    expect(audio.gainParams[6].setTargetAtTime).toHaveBeenCalledWith(0, 1.005, 0.6);
+    expect(audio.gainParams[9].setTargetAtTime).toHaveBeenCalledWith(0, 1.005, 1.1);
 
     // Final I chord overrides to fundDecay=0.9, humDecay=1.4.
-    expect(audio.gainParams[11].setTargetAtTime).toBeCalledWith(0, 2.005, 0.9);
-    expect(audio.gainParams[14].setTargetAtTime).toBeCalledWith(0, 2.005, 1.4);
+    expect(audio.gainParams[11].setTargetAtTime).toHaveBeenCalledWith(0, 2.005, 0.9);
+    expect(audio.gainParams[14].setTargetAtTime).toHaveBeenCalledWith(0, 2.005, 1.4);
   });
 });

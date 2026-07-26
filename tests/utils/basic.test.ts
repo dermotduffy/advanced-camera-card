@@ -193,7 +193,7 @@ describe('runWhenIdleIfSupported', () => {
     window.requestIdleCallback = requestIdle;
     const func = vi.fn();
     runWhenIdleIfSupported(func);
-    expect(requestIdle).toBeCalledWith(func, {});
+    expect(requestIdle).toHaveBeenCalledWith(func, {});
   });
 
   it('should run idle with timeout when supported', () => {
@@ -201,7 +201,7 @@ describe('runWhenIdleIfSupported', () => {
     window.requestIdleCallback = requestIdle;
     const func = vi.fn();
     runWhenIdleIfSupported(func, 10);
-    expect(requestIdle).toBeCalledWith(func, { timeout: 10 });
+    expect(requestIdle).toHaveBeenCalledWith(func, { timeout: 10 });
   });
 });
 

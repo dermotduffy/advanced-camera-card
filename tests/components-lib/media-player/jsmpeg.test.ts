@@ -23,7 +23,7 @@ describe('JSMPEGMediaPlayerController', () => {
 
     await controller.playback.play();
 
-    expect(videoElement.play).toBeCalled();
+    expect(videoElement.play).toHaveBeenCalled();
   });
 
   it('should pause', async () => {
@@ -37,7 +37,7 @@ describe('JSMPEGMediaPlayerController', () => {
 
     await controller.playback.pause();
 
-    expect(videoElement.stop).toBeCalled();
+    expect(videoElement.stop).toHaveBeenCalled();
   });
 
   describe('should mute', async () => {

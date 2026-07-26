@@ -7,9 +7,9 @@ import type { CameraProxyConfig } from '../../../src/camera-manager/types';
 import type { ActionsExecutor } from '../../../src/card-controller/actions/types';
 import type { DeviceRegistryManager } from '../../../src/ha/registry/device';
 import type { EntityRegistryManagerLive } from '../../../src/ha/registry/entity';
+import { createCameraConfig } from '../../config/test-utils';
 import { EntityRegistryManagerMock } from '../../ha/registry/entity/mock';
 import {
-  createCameraConfig,
   createHASS,
   createHASSManager,
   createRegistryEntity,
@@ -107,7 +107,7 @@ describe('ReolinkCamera', () => {
               entityRegistryManager: mock<EntityRegistryManagerLive>(),
               deviceRegistryManager: mock<DeviceRegistryManager>(),
             }),
-        ).rejects.toThrowError('Could not find camera entity');
+        ).rejects.toThrow('Could not find camera entity');
       });
 
       it('without a unique_id', async () => {
@@ -130,7 +130,7 @@ describe('ReolinkCamera', () => {
               entityRegistryManager,
               deviceRegistryManager: mock<DeviceRegistryManager>(),
             }),
-        ).rejects.toThrowError('Could not initialize Reolink camera');
+        ).rejects.toThrow('Could not initialize Reolink camera');
       });
 
       it('without a valid unique_id', async () => {
@@ -153,7 +153,7 @@ describe('ReolinkCamera', () => {
               entityRegistryManager,
               deviceRegistryManager: mock<DeviceRegistryManager>(),
             }),
-        ).rejects.toThrowError('Could not initialize Reolink camera');
+        ).rejects.toThrow('Could not initialize Reolink camera');
       });
 
       it('successfully with a directly connected camera', async () => {
@@ -729,7 +729,7 @@ describe('ReolinkCamera', () => {
       await camera.executePTZAction(executor, 'left');
       await camera.executePTZAction(executor, 'left', { phase: 'start' });
 
-      expect(executor.executeActions).not.toBeCalled();
+      expect(executor.executeActions).not.toHaveBeenCalled();
     });
 
     it('should ignore actions with configured action', async () => {
@@ -758,7 +758,7 @@ describe('ReolinkCamera', () => {
       const executor = mock<ActionsExecutor>();
       await camera.executePTZAction(executor, 'left', { phase: 'start' });
 
-      expect(executor.executeActions).toBeCalledTimes(1);
+      expect(executor.executeActions).toHaveBeenCalledTimes(1);
       expect(executor.executeActions).toHaveBeenLastCalledWith({
         actions: {
           action: 'perform-action',

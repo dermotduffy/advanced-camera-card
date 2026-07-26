@@ -189,7 +189,7 @@ describe('HASSConnectionSubscriptionManager', () => {
       await flushPromises();
 
       // The old era's subscription is closed, not abandoned.
-      expect(calls[0].unsub).toBeCalledTimes(1);
+      expect(calls[0].unsub).toHaveBeenCalledTimes(1);
     });
 
     it('should close old-era subscriptions when HA goes not-ready', async () => {
@@ -206,7 +206,7 @@ describe('HASSConnectionSubscriptionManager', () => {
       push(notReady);
       await flushPromises();
 
-      expect(calls[0].unsub).toBeCalledTimes(1);
+      expect(calls[0].unsub).toHaveBeenCalledTimes(1);
     });
 
     it('should mint a fresh era when reanimating from a dead not-ready era, even with the same Connection', async () => {
@@ -330,14 +330,14 @@ describe('HASSConnectionSubscriptionManager', () => {
 
       manager.subscribe({ key: 'a' }, failing);
       await vi.advanceTimersByTimeAsync(0);
-      expect(failing).toBeCalledTimes(1);
+      expect(failing).toHaveBeenCalledTimes(1);
 
       // HASS pushes do not retry while the retry-timer is scheduled.
       for (let i = 0; i < 10; i++) {
         push(hass);
         await vi.advanceTimersByTimeAsync(0);
       }
-      expect(failing).toBeCalledTimes(1);
+      expect(failing).toHaveBeenCalledTimes(1);
     });
 
     it('should retry after the backoff delay elapses', async () => {
@@ -347,19 +347,19 @@ describe('HASSConnectionSubscriptionManager', () => {
 
       manager.subscribe({ key: 'a' }, failing);
       await vi.advanceTimersByTimeAsync(0);
-      expect(failing).toBeCalledTimes(1);
+      expect(failing).toHaveBeenCalledTimes(1);
 
       // 1st retry: ~1s.
       await vi.advanceTimersByTimeAsync(1000);
-      expect(failing).toBeCalledTimes(2);
+      expect(failing).toHaveBeenCalledTimes(2);
 
       // 2nd retry: ~2s.
       await vi.advanceTimersByTimeAsync(2000);
-      expect(failing).toBeCalledTimes(3);
+      expect(failing).toHaveBeenCalledTimes(3);
 
       // 3rd retry: ~4s.
       await vi.advanceTimersByTimeAsync(4000);
-      expect(failing).toBeCalledTimes(4);
+      expect(failing).toHaveBeenCalledTimes(4);
     });
 
     it('should reset the backoff on a connection swap', async () => {
@@ -434,13 +434,13 @@ describe('HASSConnectionSubscriptionManager', () => {
 
       manager.subscribe({ key: 'a' }, openCallback);
       await flushPromises();
-      expect(openCallback).toBeCalledTimes(1);
+      expect(openCallback).toHaveBeenCalledTimes(1);
 
       // Swap to a new connection BEFORE the first call settles.
       const hass2 = createSwappedHASS();
       push(hass2);
       await flushPromises();
-      expect(openCallback).toBeCalledTimes(2);
+      expect(openCallback).toHaveBeenCalledTimes(2);
 
       // Now reject the stale first call. The catch must NOT wipe the marker for
       // the in-flight second submission, so the next same-connection push must
@@ -450,7 +450,7 @@ describe('HASSConnectionSubscriptionManager', () => {
 
       push(hass2);
       await flushPromises();
-      expect(openCallback).toBeCalledTimes(2);
+      expect(openCallback).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -474,7 +474,7 @@ describe('HASSConnectionSubscriptionManager', () => {
       manager.destroy();
       await flushPromises();
 
-      expect(failingUnsub).toBeCalled();
+      expect(failingUnsub).toHaveBeenCalled();
     });
 
     it('should detach source listener, drain KSM, clear state, and flip guards dead', async () => {
@@ -511,7 +511,7 @@ describe('HASSConnectionSubscriptionManager', () => {
       await flushPromises();
 
       expect(calls).toHaveLength(1);
-      expect(calls[0].unsub).toBeCalledTimes(1);
+      expect(calls[0].unsub).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -556,7 +556,7 @@ describe('HASSConnectionSubscriptionManager', () => {
       manager.unsubscribe(req);
       await flushPromises();
 
-      expect(failingUnsub).toBeCalled();
+      expect(failingUnsub).toHaveBeenCalled();
     });
   });
 
@@ -730,17 +730,17 @@ describe('HASSConnectionSubscriptionManager', () => {
 
       manager.subscribe(req, openCallback);
       await vi.advanceTimersByTimeAsync(0);
-      expect(openCallback).toBeCalledTimes(1);
+      expect(openCallback).toHaveBeenCalledTimes(1);
 
       // Pending timer would fire ~1s from now. retry runs the second attempt
       // synchronously instead of waiting.
       manager.retry(req);
       await flushPromises();
-      expect(openCallback).toBeCalledTimes(2);
+      expect(openCallback).toHaveBeenCalledTimes(2);
 
       // Advance well past the original 1s schedule: nothing further fires.
       await vi.advanceTimersByTimeAsync(10_000);
-      expect(openCallback).toBeCalledTimes(2);
+      expect(openCallback).toHaveBeenCalledTimes(2);
     });
 
     it('should reset the backoff so the next failure schedules at the base delay', async () => {
@@ -755,17 +755,17 @@ describe('HASSConnectionSubscriptionManager', () => {
       await vi.advanceTimersByTimeAsync(0);
       await vi.advanceTimersByTimeAsync(1000);
       await vi.advanceTimersByTimeAsync(2000);
-      expect(failing).toBeCalledTimes(3);
+      expect(failing).toHaveBeenCalledTimes(3);
 
       // User clicks retry: counter resets. Next failure should schedule at ~1s
       // again, not ~8s.
       manager.retry(req);
       await flushPromises();
-      expect(failing).toBeCalledTimes(4);
+      expect(failing).toHaveBeenCalledTimes(4);
       await vi.advanceTimersByTimeAsync(999);
-      expect(failing).toBeCalledTimes(4);
+      expect(failing).toHaveBeenCalledTimes(4);
       await vi.advanceTimersByTimeAsync(1);
-      expect(failing).toBeCalledTimes(5);
+      expect(failing).toHaveBeenCalledTimes(5);
     });
 
     it('should be a no-op for an unknown request', () => {
@@ -785,18 +785,18 @@ describe('HASSConnectionSubscriptionManager', () => {
 
       manager.subscribe(req, openCallback);
       await vi.advanceTimersByTimeAsync(0);
-      expect(openCallback).not.toBeCalled();
+      expect(openCallback).not.toHaveBeenCalled();
 
       manager.retry(req);
       await flushPromises();
-      expect(openCallback).not.toBeCalled();
+      expect(openCallback).not.toHaveBeenCalled();
 
       // Era starts; the request submits.
       const ready = createHASS();
       ready.config.state = STATE_RUNNING;
       push(ready);
       await flushPromises();
-      expect(openCallback).toBeCalledTimes(1);
+      expect(openCallback).toHaveBeenCalledTimes(1);
     });
   });
 });

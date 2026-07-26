@@ -21,5 +21,5 @@ it('should handle log action', async () => {
 
   const spy = vi.spyOn(global.console, 'warn').mockImplementation(() => true);
   await action.execute(api);
-  expect(spy).toBeCalledWith('Hello, world!');
+  expect(spy).toHaveBeenCalledWith('Hello, world!');
 });

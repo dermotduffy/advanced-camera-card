@@ -15,13 +15,10 @@ import {
   MediaTypeSpec,
   UnifiedQueryBuilder,
 } from '../../src/view/unified-query-builder';
-import {
-  createCameraConfig,
-  createCapabilities,
-  createFolder,
-  isRecordingQuery,
-  isReviewQuery,
-} from '../test-utils';
+import { createCapabilities } from '../camera-manager/test-utils';
+import { createCameraConfig } from '../config/test-utils';
+import { createFolder } from '../test-utils';
+import { isRecordingQuery, isReviewQuery } from './test-utils';
 
 // Helper to create FolderQuery for tests
 const createFolderQueryParams = (

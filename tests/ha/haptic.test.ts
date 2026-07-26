@@ -20,6 +20,6 @@ describe('forwardHaptic', () => {
   ])('should call fireHASSEvent with %s', (hapticType: HapticType) => {
     forwardHaptic(hapticType);
 
-    expect(fireHASSEvent).toBeCalledWith(window, 'haptic', hapticType);
+    expect(fireHASSEvent).toHaveBeenCalledWith(window, 'haptic', hapticType);
   });
 });

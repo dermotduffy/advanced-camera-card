@@ -70,14 +70,14 @@ describe('MSEStreamSource', () => {
       const { source, failedCallback } = setup({ unsupported: true });
       source.start();
 
-      expect(failedCallback).toBeCalledWith('unsupported');
+      expect(failedCallback).toHaveBeenCalledWith('unsupported');
     });
 
     it('should attach the media source to the video on start', () => {
       const { source, instance, video } = setup();
       source.start();
 
-      expect(instance.attach).toBeCalledWith(video);
+      expect(instance.attach).toHaveBeenCalledWith(video);
     });
   });
 
@@ -121,7 +121,7 @@ describe('MSEStreamSource', () => {
       instance.fireSourceOpen();
       vi.advanceTimersByTime(5 * 1000);
 
-      expect(failedCallback).toBeCalledWith('negotiation_timeout');
+      expect(failedCallback).toHaveBeenCalledWith('negotiation_timeout');
     });
 
     it('should not time out after a successful negotiation', () => {
@@ -129,14 +129,14 @@ describe('MSEStreamSource', () => {
       negotiate(setupResult);
       vi.advanceTimersByTime(5 * 1000);
 
-      expect(setupResult.failedCallback).not.toBeCalled();
+      expect(setupResult.failedCallback).not.toHaveBeenCalled();
     });
 
     it('should create a source buffer in segments mode on negotiation', () => {
       const setupResult = setup();
       negotiate(setupResult);
 
-      expect(setupResult.instance.addSourceBuffer).toBeCalledWith(
+      expect(setupResult.instance.addSourceBuffer).toHaveBeenCalledWith(
         'video/mp4; codecs="avc1.640029,mp4a.40.2"',
       );
       expect(setupResult.instance.sourceBuffer.mode).toBe('segments');
@@ -148,7 +148,7 @@ describe('MSEStreamSource', () => {
       negotiate(setupResult);
       setupResult.channel.receiveMessage({ type: 'mse', value: 'video/mp4' });
 
-      expect(setupResult.instance.addSourceBuffer).toBeCalledTimes(1);
+      expect(setupResult.instance.addSourceBuffer).toHaveBeenCalledTimes(1);
     });
 
     it('should ignore negotiation responses without a string value', () => {
@@ -156,7 +156,7 @@ describe('MSEStreamSource', () => {
       setupResult.source.start();
       setupResult.channel.receiveMessage({ type: 'mse', value: 42 });
 
-      expect(setupResult.instance.addSourceBuffer).not.toBeCalled();
+      expect(setupResult.instance.addSourceBuffer).not.toHaveBeenCalled();
     });
 
     it('should ignore unrelated messages', () => {
@@ -164,8 +164,8 @@ describe('MSEStreamSource', () => {
       setupResult.source.start();
       setupResult.channel.receiveMessage({ type: 'webrtc/answer', value: 'sdp' });
 
-      expect(setupResult.instance.addSourceBuffer).not.toBeCalled();
-      expect(setupResult.failedCallback).not.toBeCalled();
+      expect(setupResult.instance.addSourceBuffer).not.toHaveBeenCalled();
+      expect(setupResult.failedCallback).not.toHaveBeenCalled();
     });
   });
 
@@ -176,12 +176,12 @@ describe('MSEStreamSource', () => {
       instance.fireSourceOpen();
       channel.receiveMessage({ type: 'error', value: 'mse: stream not found' });
 
-      expect(failedCallback).toBeCalledWith('server_error');
+      expect(failedCallback).toHaveBeenCalledWith('server_error');
 
       // The negotiation timer must have stopped.
       failedCallback.mockClear();
       vi.advanceTimersByTime(5 * 1000);
-      expect(failedCallback).not.toBeCalled();
+      expect(failedCallback).not.toHaveBeenCalled();
     });
 
     it('should ignore server errors for other modes', () => {
@@ -189,7 +189,7 @@ describe('MSEStreamSource', () => {
       source.start();
       channel.receiveMessage({ type: 'error', value: 'webrtc/offer: failed' });
 
-      expect(failedCallback).not.toBeCalled();
+      expect(failedCallback).not.toHaveBeenCalled();
     });
 
     it('should ignore server errors without a string value', () => {
@@ -197,7 +197,7 @@ describe('MSEStreamSource', () => {
       source.start();
       channel.receiveMessage({ type: 'error' });
 
-      expect(failedCallback).not.toBeCalled();
+      expect(failedCallback).not.toHaveBeenCalled();
     });
   });
 
@@ -211,7 +211,7 @@ describe('MSEStreamSource', () => {
       instance.fireSourceOpen();
       channel.receiveMessage({ type: 'mse', value: 'video/mp4' });
 
-      expect(failedCallback).toBeCalledWith('media_error');
+      expect(failedCallback).toHaveBeenCalledWith('media_error');
     });
 
     it('should append binary data directly when idle', () => {
@@ -220,7 +220,7 @@ describe('MSEStreamSource', () => {
       const data = new ArrayBuffer(8);
       setupResult.channel.binaryCallback?.(data);
 
-      expect(setupResult.instance.sourceBuffer.appendBuffer).toBeCalledWith(data);
+      expect(setupResult.instance.sourceBuffer.appendBuffer).toHaveBeenCalledWith(data);
     });
 
     it('should swallow direct append failures', () => {
@@ -233,7 +233,7 @@ describe('MSEStreamSource', () => {
       expect(() =>
         setupResult.channel.binaryCallback?.(new ArrayBuffer(8)),
       ).not.toThrow();
-      expect(setupResult.failedCallback).not.toBeCalled();
+      expect(setupResult.failedCallback).not.toHaveBeenCalled();
     });
 
     it('should stage binary data while the source buffer updates', () => {
@@ -243,12 +243,14 @@ describe('MSEStreamSource', () => {
       const staged = new ArrayBuffer(8);
       setupResult.channel.binaryCallback?.(staged);
 
-      expect(setupResult.instance.sourceBuffer.appendBuffer).not.toBeCalled();
+      expect(setupResult.instance.sourceBuffer.appendBuffer).not.toHaveBeenCalled();
 
       setupResult.instance.sourceBuffer.updating = false;
       setupResult.instance.sourceBuffer.fireUpdateEnd();
 
-      expect(setupResult.instance.sourceBuffer.appendBuffer).toBeCalledWith(staged);
+      expect(setupResult.instance.sourceBuffer.appendBuffer).toHaveBeenCalledWith(
+        staged,
+      );
     });
 
     it('should stage binary data behind earlier staged data', () => {
@@ -263,7 +265,7 @@ describe('MSEStreamSource', () => {
       sourceBuffer.updating = false;
       setupResult.channel.binaryCallback?.(second);
 
-      expect(sourceBuffer.appendBuffer).not.toBeCalled();
+      expect(sourceBuffer.appendBuffer).not.toHaveBeenCalled();
 
       sourceBuffer.fireUpdateEnd();
       expect(sourceBuffer.appendBuffer).toHaveBeenNthCalledWith(1, first);
@@ -279,10 +281,10 @@ describe('MSEStreamSource', () => {
 
       sourceBuffer.updating = true;
       setupResult.channel.binaryCallback?.(new ArrayBuffer(2 * 1024 * 1024));
-      expect(setupResult.failedCallback).not.toBeCalled();
+      expect(setupResult.failedCallback).not.toHaveBeenCalled();
 
       setupResult.channel.binaryCallback?.(new ArrayBuffer(1));
-      expect(setupResult.failedCallback).toBeCalledWith('buffer_overflow');
+      expect(setupResult.failedCallback).toHaveBeenCalledWith('buffer_overflow');
     });
   });
 
@@ -295,7 +297,7 @@ describe('MSEStreamSource', () => {
       sourceBuffer.updating = true;
       sourceBuffer.fireUpdateEnd();
 
-      expect(sourceBuffer.remove).not.toBeCalled();
+      expect(sourceBuffer.remove).not.toHaveBeenCalled();
     });
 
     it('should do nothing on updateend without buffered content', () => {
@@ -303,8 +305,8 @@ describe('MSEStreamSource', () => {
       negotiate(setupResult);
       setupResult.instance.sourceBuffer.fireUpdateEnd();
 
-      expect(setupResult.instance.sourceBuffer.remove).not.toBeCalled();
-      expect(setupResult.instance.setLiveSeekableRange).not.toBeCalled();
+      expect(setupResult.instance.sourceBuffer.remove).not.toHaveBeenCalled();
+      expect(setupResult.instance.setLiveSeekableRange).not.toHaveBeenCalled();
     });
 
     it('should not trim after the media source has closed', () => {
@@ -319,8 +321,8 @@ describe('MSEStreamSource', () => {
       setupResult.instance.isOpen.mockReturnValue(false);
       sourceBuffer.fireUpdateEnd();
 
-      expect(sourceBuffer.remove).not.toBeCalled();
-      expect(setupResult.instance.setLiveSeekableRange).not.toBeCalled();
+      expect(sourceBuffer.remove).not.toHaveBeenCalled();
+      expect(setupResult.instance.setLiveSeekableRange).not.toHaveBeenCalled();
     });
 
     it('should trim media behind the retained window', () => {
@@ -332,8 +334,8 @@ describe('MSEStreamSource', () => {
       sourceBuffer.fireUpdateEnd();
 
       // Retains the last 15s (end 20 -> retainedStart 5).
-      expect(sourceBuffer.remove).toBeCalledWith(0, 5);
-      expect(setupResult.instance.setLiveSeekableRange).toBeCalledWith(5, 20);
+      expect(sourceBuffer.remove).toHaveBeenCalledWith(0, 5);
+      expect(setupResult.instance.setLiveSeekableRange).toHaveBeenCalledWith(5, 20);
     });
 
     it('should not trim when all media is within the retained window', () => {
@@ -344,7 +346,7 @@ describe('MSEStreamSource', () => {
       setupResult.video.currentTime = 19;
       sourceBuffer.fireUpdateEnd();
 
-      expect(sourceBuffer.remove).not.toBeCalled();
+      expect(sourceBuffer.remove).not.toHaveBeenCalled();
     });
 
     it('should not move the playhead when it falls behind the window', () => {
@@ -464,7 +466,7 @@ describe('MSEStreamSource', () => {
       sourceBuffer.fireUpdateEnd();
 
       // Trim still bounds memory, but the playhead and rate are left untouched.
-      expect(sourceBuffer.remove).toBeCalled();
+      expect(sourceBuffer.remove).toHaveBeenCalled();
       expect(setupResult.video.currentTime).toBe(2);
       expect(setupResult.video.playbackRate).toBe(1);
     });
@@ -507,7 +509,7 @@ describe('MSEStreamSource', () => {
       negotiate(setupResult);
       setupResult.video.dispatchEvent(new Event('loadeddata'));
 
-      expect(setupResult.loadedCallback).toBeCalledTimes(1);
+      expect(setupResult.loadedCallback).toHaveBeenCalledTimes(1);
     });
 
     it('should fail on video element errors', () => {
@@ -515,7 +517,7 @@ describe('MSEStreamSource', () => {
       setupResult.source.start();
       setupResult.video.dispatchEvent(new Event('error'));
 
-      expect(setupResult.failedCallback).toBeCalledWith('media_error');
+      expect(setupResult.failedCallback).toHaveBeenCalledWith('media_error');
     });
   });
 
@@ -525,19 +527,19 @@ describe('MSEStreamSource', () => {
       negotiate(setupResult);
       setupResult.source.stop();
 
-      expect(setupResult.instance.detach).toBeCalledWith(setupResult.video);
+      expect(setupResult.instance.detach).toHaveBeenCalledWith(setupResult.video);
       expect(setupResult.channel.binaryCallback).toBeNull();
       expect(setupResult.channel.getMessageCallbackCount()).toBe(0);
       expect(setupResult.instance.getSourceOpenCallbackCount()).toBe(0);
 
       setupResult.video.dispatchEvent(new Event('loadeddata'));
       setupResult.video.dispatchEvent(new Event('error'));
-      expect(setupResult.loadedCallback).not.toBeCalled();
-      expect(setupResult.failedCallback).not.toBeCalled();
+      expect(setupResult.loadedCallback).not.toHaveBeenCalled();
+      expect(setupResult.failedCallback).not.toHaveBeenCalled();
 
       setupResult.instance.sourceBuffer.buffered = createTimeRanges([[0, 20]]);
       setupResult.instance.sourceBuffer.fireUpdateEnd();
-      expect(setupResult.instance.sourceBuffer.remove).not.toBeCalled();
+      expect(setupResult.instance.sourceBuffer.remove).not.toHaveBeenCalled();
     });
 
     it('should stop the negotiation timer on stop', () => {
@@ -547,7 +549,7 @@ describe('MSEStreamSource', () => {
       setupResult.source.stop();
       vi.advanceTimersByTime(5 * 1000);
 
-      expect(setupResult.failedCallback).not.toBeCalled();
+      expect(setupResult.failedCallback).not.toHaveBeenCalled();
     });
 
     it('should tolerate stopping before starting', () => {

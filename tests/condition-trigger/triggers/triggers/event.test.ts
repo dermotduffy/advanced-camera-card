@@ -49,7 +49,7 @@ describe('EventTrigger', () => {
       event_type: 'zha_event',
     });
     trigger.subscribe(callback);
-    expect(eventWatcher.subscribe).toBeCalledTimes(1);
+    expect(eventWatcher.subscribe).toHaveBeenCalledTimes(1);
     expect(vi.mocked(eventWatcher.subscribe).mock.calls[0][0].event_type).toBe(
       'zha_event',
     );
@@ -63,7 +63,7 @@ describe('EventTrigger', () => {
       event_type: ['zha_event', 'zha_event'],
     });
     trigger.subscribe(callback);
-    expect(eventWatcher.subscribe).toBeCalledTimes(1);
+    expect(eventWatcher.subscribe).toHaveBeenCalledTimes(1);
   });
 
   it('should expand list-form event_type into one request per type', () => {
@@ -72,7 +72,7 @@ describe('EventTrigger', () => {
       event_type: ['zha_event', 'deconz_event'],
     });
     trigger.subscribe(callback);
-    expect(eventWatcher.subscribe).toBeCalledTimes(2);
+    expect(eventWatcher.subscribe).toHaveBeenCalledTimes(2);
     expect(vi.mocked(eventWatcher.subscribe).mock.calls[0][0].event_type).toBe(
       'zha_event',
     );
@@ -89,7 +89,7 @@ describe('EventTrigger', () => {
     trigger.subscribe(callback);
     const event = createHASSEvent('zha_event', { command: 'press' });
     callEventCallback(eventWatcher, event);
-    expect(callback).toBeCalledWith({ platform: 'event', event });
+    expect(callback).toHaveBeenCalledWith({ platform: 'event', event });
   });
 
   it('should omit the matcher when neither event_data nor context is set', () => {
@@ -164,7 +164,7 @@ describe('EventTrigger', () => {
     });
     trigger.subscribe(callback);
     trigger.destroy();
-    expect(eventWatcher.unsubscribe).toBeCalledTimes(2);
+    expect(eventWatcher.unsubscribe).toHaveBeenCalledTimes(2);
   });
 
   it('should be a no-op when destroyed without subscribing', () => {
@@ -173,6 +173,6 @@ describe('EventTrigger', () => {
       event_type: 'zha_event',
     });
     trigger.destroy();
-    expect(eventWatcher.unsubscribe).not.toBeCalled();
+    expect(eventWatcher.unsubscribe).not.toHaveBeenCalled();
   });
 });

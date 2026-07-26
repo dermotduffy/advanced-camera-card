@@ -3,7 +3,7 @@ import { expect, it } from 'vitest';
 import { SetQueryViewModifier } from '../../../../src/card-controller/view/modifiers/set-query';
 import { QueryResults } from '../../../../src/view/query-results';
 import { UnifiedQuery } from '../../../../src/view/unified-query';
-import { createView } from '../../../test-utils';
+import { createView } from '../../../view/test-utils';
 
 it('should do nothing without arguments', () => {
   const view = createView();

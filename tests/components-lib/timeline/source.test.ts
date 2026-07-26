@@ -38,12 +38,9 @@ import type { ConditionStateManagerReadonlyInterface } from '../../../src/condit
 import { QuerySource } from '../../../src/query-source';
 import { ViewMediaType } from '../../../src/view/item';
 import { UnifiedQuery, type QueryNode } from '../../../src/view/unified-query';
-import {
-  createCameraManager,
-  createFolder,
-  createStore,
-  TestViewMedia,
-} from '../../test-utils';
+import { createCameraManager, createStore } from '../../camera-manager/test-utils';
+import { createFolder } from '../../test-utils';
+import { TestViewMedia } from '../../view/test-utils';
 
 const CAMERA_ID = 'camera-1';
 const TEST_MEDIA_ID = 'TEST_MEDIA_ID';

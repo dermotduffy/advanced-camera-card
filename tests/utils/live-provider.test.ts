@@ -6,7 +6,8 @@ import {
   isGo2RTCLiveProvider,
   liveProviderSupports2WayAudio,
 } from '../../src/utils/live-provider';
-import { createCameraConfig, createHASS } from '../test-utils';
+import { createCameraConfig } from '../config/test-utils';
+import { createHASS } from '../test-utils';
 
 vi.mock('../../src/camera-manager/utils/go2rtc/audio');
 

@@ -8,7 +8,7 @@ import {
 } from '../../src/utils/screenshot';
 import { QueryResults } from '../../src/view/query-results';
 import { View } from '../../src/view/view';
-import { createView, TestViewMedia } from '../test-utils';
+import { createView, TestViewMedia } from '../view/test-utils';
 
 // @vitest-environment jsdom
 describe('screenshotVideo', () => {

@@ -72,10 +72,10 @@ describe('ImageSurfaceController', () => {
 
       await controller.showFrame(createFrame());
 
-      expect(decoder.decode).toBeCalledTimes(1);
-      expect(URL.createObjectURL).toBeCalledTimes(1);
+      expect(decoder.decode).toHaveBeenCalledTimes(1);
+      expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
       expect(image.getAttribute('src')).toBe(createdURLs()[0]);
-      expect(URL.revokeObjectURL).not.toBeCalled();
+      expect(URL.revokeObjectURL).not.toHaveBeenCalled();
     });
 
     it('should revoke the previous frame when showing the next', async () => {
@@ -85,8 +85,8 @@ describe('ImageSurfaceController', () => {
       await controller.showFrame(createFrame());
 
       expect(image.getAttribute('src')).toBe(createdURLs()[1]);
-      expect(URL.revokeObjectURL).toBeCalledTimes(1);
-      expect(URL.revokeObjectURL).toBeCalledWith(createdURLs()[0]);
+      expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1);
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith(createdURLs()[0]);
     });
 
     it('should keep showing the previous frame until the next has decoded', async () => {
@@ -110,13 +110,13 @@ describe('ImageSurfaceController', () => {
       // The next frame is still decoding off-DOM, so the visible <img> is
       // untouched and the previous URL stays valid (revoking it would blank it).
       expect(image.getAttribute('src')).toBe(createdURLs()[0]);
-      expect(URL.revokeObjectURL).not.toBeCalled();
+      expect(URL.revokeObjectURL).not.toHaveBeenCalled();
 
       releaseSecond();
       await flushPromises();
 
       expect(image.getAttribute('src')).toBe(createdURLs()[1]);
-      expect(URL.revokeObjectURL).toBeCalledWith(createdURLs()[0]);
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith(createdURLs()[0]);
     });
 
     it('should present only the newest frame while a decode is in flight', async () => {
@@ -130,13 +130,13 @@ describe('ImageSurfaceController', () => {
       await flushPromises();
 
       // Only the first frame's decode has started; the rest wait behind it.
-      expect(URL.createObjectURL).toBeCalledTimes(1);
+      expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
 
       releaseDecode();
       await flushPromises();
 
       // The middle frame was superseded, so only the newest is presented next.
-      expect(URL.createObjectURL).toBeCalledTimes(2);
+      expect(URL.createObjectURL).toHaveBeenCalledTimes(2);
       expect(image.getAttribute('src')).toBe(createdURLs()[1]);
     });
 
@@ -148,7 +148,7 @@ describe('ImageSurfaceController', () => {
       await controller.showFrame(createFrame());
 
       expect(image.hasAttribute('src')).toBe(false);
-      expect(URL.revokeObjectURL).toBeCalledWith(createdURLs()[0]);
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith(createdURLs()[0]);
     });
 
     it('should not paint a frame that decoded after the surface detached', async () => {
@@ -165,7 +165,7 @@ describe('ImageSurfaceController', () => {
       await flushPromises();
 
       expect(image.hasAttribute('src')).toBe(false);
-      expect(URL.revokeObjectURL).toBeCalledWith(createdURLs()[0]);
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith(createdURLs()[0]);
     });
 
     it('should do nothing without an image element', async () => {
@@ -173,7 +173,7 @@ describe('ImageSurfaceController', () => {
 
       await controller.showFrame(createFrame());
 
-      expect(URL.createObjectURL).not.toBeCalled();
+      expect(URL.createObjectURL).not.toHaveBeenCalled();
     });
 
     it('should not paint onto a detached element', async () => {
@@ -181,7 +181,7 @@ describe('ImageSurfaceController', () => {
 
       await controller.showFrame(createFrame());
 
-      expect(URL.createObjectURL).not.toBeCalled();
+      expect(URL.createObjectURL).not.toHaveBeenCalled();
     });
   });
 
@@ -192,7 +192,7 @@ describe('ImageSurfaceController', () => {
 
       controller.reset();
 
-      expect(URL.revokeObjectURL).toBeCalledWith(createdURLs()[0]);
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith(createdURLs()[0]);
       expect(image.hasAttribute('src')).toBe(false);
     });
 
@@ -201,7 +201,7 @@ describe('ImageSurfaceController', () => {
 
       controller.reset();
 
-      expect(URL.revokeObjectURL).not.toBeCalled();
+      expect(URL.revokeObjectURL).not.toHaveBeenCalled();
       expect(image.hasAttribute('src')).toBe(false);
     });
 
@@ -226,7 +226,7 @@ describe('ImageSurfaceController', () => {
       const controller = new ImageSurfaceController(createLitElement(), () => null);
 
       expect(() => controller.reset()).not.toThrow();
-      expect(URL.revokeObjectURL).not.toBeCalled();
+      expect(URL.revokeObjectURL).not.toHaveBeenCalled();
     });
   });
 });

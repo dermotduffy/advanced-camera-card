@@ -11,7 +11,7 @@ import { conditionSchema } from '../../src/config/schema/condition-trigger/condi
 import { dimensionsConfigSchema } from '../../src/config/schema/dimensions';
 import { customSchema } from '../../src/config/schema/elements/stock/custom';
 import { conditionalSchema } from '../../src/config/schema/elements/types';
-import { createConfig } from '../test-utils';
+import { createConfig } from './test-utils';
 
 describe('config defaults', () => {
   it('should be as expected', () => {
@@ -1342,7 +1342,7 @@ describe('should refine user_agent_re conditions', () => {
         condition: 'user_agent',
         user_agent_re: '[',
       }),
-    ).toThrowError(/Invalid regular expression/);
+    ).toThrow(/Invalid regular expression/);
   });
 });
 
@@ -1885,7 +1885,7 @@ it('media viewer should not support microphone based conditions', () => {
         auto_unmute: 'microphone' as const,
       },
     }),
-  ).toThrowError();
+  ).toThrow();
 });
 
 describe('automations should require actions', () => {
@@ -1895,7 +1895,7 @@ describe('automations should require actions', () => {
         cameras: [{}],
         automations: [{ triggers: [{ trigger: 'initialized' }], conditions: [] }],
       }),
-    ).toThrowError();
+    ).toThrow();
   });
 });
 
