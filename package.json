@@ -188,7 +188,7 @@
     "format-check": "prettier --check .",
     "rollup": "rollup -c",
     "prune": "knip",
-    "test": "vitest run",
+    "test": "VITEST_GROUP=shared vitest run && VITEST_GROUP=isolated vitest run",
     "coverage": "vitest run --coverage"
   },
   "volta": {
