@@ -18,7 +18,7 @@ import {
 
 export class ZoomController {
   private _element: HTMLElement;
-  private _panzoom?: PanzoomObject;
+  private _panzoom: PanzoomObject | null = null;
 
   // Is the controller zoomed in at all?
   private _zoomed = false;
@@ -184,6 +184,8 @@ export class ZoomController {
 
     this._resizeObserver.disconnect();
     this._element.removeEventListener('panzoomchange', this._debouncedChangeHandler);
+
+    this._panzoom = null;
   }
 
   public setDefaultSettings(config: PartialZoomSettings | null): void {

@@ -655,6 +655,9 @@ describe('ZoomController', () => {
 
     controller.activate();
     expect(controller.isActivated()).toBe(true);
+
+    controller.deactivate();
+    expect(controller.isActivated()).toBe(false);
   });
 
   it('should not zoom or pan when zoom is disabled', () => {
