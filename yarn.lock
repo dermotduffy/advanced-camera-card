@@ -209,10 +209,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dermotduffy/panzoom@npm:^4.5.1":
-  version: 4.5.1
-  resolution: "@dermotduffy/panzoom@npm:4.5.1"
-  checksum: 10c0/566f62a81714f9b836b6c0138cdc9913577c3854fe7ce6b609e26734c6692a3db5c9282945930bb6e83c0a70befa269203694f9aeb588e8831842a698c7b51cf
+"@dermotduffy/panzoom@npm:^4.6.2":
+  version: 4.6.2
+  resolution: "@dermotduffy/panzoom@npm:4.6.2"
+  checksum: 10c0/a9c105a2be9dfd1f20e87dc091263579c0f1f4ce6ea0dfe045aa1c5d8c2aea9417783b3f994276e4a840b4bb78f1a048953d4ce7e056ad4d45ed31fae8158b5e
   languageName: node
   linkType: hard
 
@@ -2324,7 +2324,7 @@ __metadata:
   resolution: "advanced-camera-card@workspace:."
   dependencies:
     "@cycjimmy/jsmpeg-player": "npm:^6.0.5"
-    "@dermotduffy/panzoom": "npm:^4.5.1"
+    "@dermotduffy/panzoom": "npm:^4.6.2"
     "@egjs/hammerjs": "npm:^2.0.17"
     "@eslint/eslintrc": "npm:^3.3.6"
     "@eslint/js": "npm:^9.24.0"
