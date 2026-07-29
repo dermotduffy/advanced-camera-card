@@ -104,6 +104,7 @@ describe('WebRTCCardController', () => {
         type: 'custom:webrtc-camera',
         intersection: 0,
         muted: true,
+        digital_ptz: false,
         entity: 'camera.office',
       });
       expect(asTestCard(element)?.hass).toBe(hass);
@@ -114,7 +115,11 @@ describe('WebRTCCardController', () => {
 
       const element = controller.getElement({
         camera: createCamera({
-          webrtc_card: { muted: false, url: 'https://camera' },
+          webrtc_card: {
+            muted: false,
+            digital_ptz: { mouse_wheel_zoom: true },
+            url: 'https://camera',
+          },
           webrtcCardEndpoint: 'camera.office',
         }),
         hass: createHASS(),
@@ -124,6 +129,7 @@ describe('WebRTCCardController', () => {
         type: 'custom:webrtc-camera',
         intersection: 0,
         muted: false,
+        digital_ptz: { mouse_wheel_zoom: true },
         url: 'https://camera',
       });
     });
@@ -143,6 +149,7 @@ describe('WebRTCCardController', () => {
         type: 'custom:webrtc-camera',
         intersection: 0,
         muted: true,
+        digital_ptz: false,
         entity: 'camera.configured',
       });
     });
@@ -159,6 +166,7 @@ describe('WebRTCCardController', () => {
         type: 'custom:webrtc-camera',
         intersection: 0,
         muted: true,
+        digital_ptz: false,
       });
     });
   });
