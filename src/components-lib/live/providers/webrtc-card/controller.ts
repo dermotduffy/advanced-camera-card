@@ -113,6 +113,13 @@ export class WebRTCCardController implements ReactiveController {
       // See: https://github.com/dermotduffy/advanced-camera-card/issues/1654
       muted: true,
 
+      // webrtc-card's own pan & zoom calls preventDefault() and
+      // stopPropagation() on the wheel and touch gestures it handles, so the
+      // card never receives them. Disable it by default, so the card's own pan &
+      // zoom and gesture PTZ get those gestures instead.
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/2628
+      digital_ptz: false,
+
       ...cameraConfig.webrtc_card,
     };
 

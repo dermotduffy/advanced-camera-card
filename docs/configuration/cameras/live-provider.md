@@ -136,9 +136,6 @@ WebRTC Card support blends the use of the ultra-realtime [WebRTC card live
 view](https://github.com/AlexxIT/WebRTC) with convenient access to Frigate
 events/snapshots/UI. AlexxIT's WebRTC Integration/Card must be installed and configured separately (see [details](https://github.com/AlexxIT/WebRTC)) before it can be used with this card.
 
-> [!NOTE]
-> The `webrtc_card` default configuration disables the WebRTC card's `intersection` parameter (which auto-stops the media when a certain fraction of the video is no longer visible), since it interferes with the card pan & zoom. Instead, see the [`auto_pause`](../live.md) parameter.
-
 ```yaml
 cameras:
   - camera_entity: camera.office
@@ -152,6 +149,17 @@ cameras:
 | `entity` |                                                                                                                                                                                          | The RTSP camera entity to pass to the WebRTC Card for this camera.                                                                                                                                                                                                                              |
 | `url`    | Depends on the camera engine (e.g. Frigate cameras will automatically use the camera name since this is the [recommended setup](https://docs.frigate.video/guides/configuring_go2rtc/)). | The RTSP url to pass to the WebRTC Card, e.g. `rtsp://USERNAME:PASSWORD@CAMERA:554/RTSP_PATH`                                                                                                                                                                                                   |
 | `*`      |                                                                                                                                                                                          | Any options specified in the `webrtc_card:` YAML dictionary are silently passed through to the AlexxIT's WebRTC Card. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides, e.g. `ui: true` will enable the WebRTC Card UI. |
+
+### Defaults
+
+Three WebRTC Card parameters are given a different default to using WebRTC Card
+on its own. Any of them can be explicitly set in `webrtc_card:` to restore the native behavior.
+
+| Parameter      | Default | Reason                                                                                                                                                                                       |
+| -------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `digital_ptz`  | `false` | The WebRTC Card's own pan & zoom consumes the mouse and touch gestures needed for this card's [pan & zoom](../live.md?id=zoomable) and [gesture PTZ](../live.md?id=ptz).                     |
+| `intersection` | `0`     | The WebRTC Card otherwise stops the video once a fraction of it is no longer visible, which is easily triggered by zooming in. See the [`auto_pause`](../live.md?id=live) parameter instead. |
+| `muted`        | `true`  | Advanced Camera Card always starts muted. See the [`auto_mute`](../live.md?id=live) and [`auto_unmute`](../live.md?id=live) parameters to control this.                                      |
 
 ## Fully expanded reference
 
