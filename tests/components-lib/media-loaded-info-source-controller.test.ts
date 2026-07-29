@@ -60,9 +60,6 @@ describe('MediaLoadedInfoSourceController', () => {
       });
       expect(ev.detail.signal).toBeInstanceOf(AbortSignal);
       expect(ev.detail.signal.aborted).toBe(false);
-
-      // A fresh load omits `cached` (only a replay marks it true).
-      expect(ev.detail.cached).toBeUndefined();
     });
 
     it('should dedup structurally-equal info', () => {
@@ -179,10 +176,6 @@ describe('MediaLoadedInfoSourceController', () => {
       expect(firstSignal).not.toBe(secondSignal);
       expect(firstSignal.aborted).toBe(true);
       expect(secondSignal.aborted).toBe(false);
-
-      // The fresh load omits `cached`; the reconnect replay marks it `true`.
-      expect((handler.mock.calls[0][0] as CustomEvent).detail.cached).toBeUndefined();
-      expect((handler.mock.calls[1][0] as CustomEvent).detail.cached).toBe(true);
     });
 
     it('should be a no-op when there is nothing to re-dispatch', () => {
@@ -245,6 +238,79 @@ describe('MediaLoadedInfoSourceController', () => {
       expect((handler.mock.calls[1][0] as CustomEvent).detail.info.targetID).toBe(
         'target-2',
       );
+    });
+  });
+
+  describe('clear', () => {
+    it('should retire the registration so consumers clean up', () => {
+      const host = createLitElement();
+      const controller = new MediaLoadedInfoSourceController(host, {
+        getTargetID: () => 'target-1',
+      });
+
+      const handler = vi.fn();
+      host.addEventListener('advanced-camera-card:media:loaded', handler);
+
+      controller.set(createMediaLoadedInfo());
+      const signal = (handler.mock.calls[0][0] as CustomEvent).detail.signal;
+      const cleanup = vi.fn();
+      signal.addEventListener('abort', cleanup);
+
+      controller.clear();
+
+      expect(cleanup).toHaveBeenCalled();
+      expect(signal.aborted).toBe(true);
+    });
+
+    it('should leave nothing to replay on a later reconnect', () => {
+      const host = createLitElement();
+      const controller = new MediaLoadedInfoSourceController(host, {
+        getTargetID: () => 'target-1',
+      });
+
+      const handler = vi.fn();
+      host.addEventListener('advanced-camera-card:media:loaded', handler);
+
+      controller.set(createMediaLoadedInfo());
+      handler.mockClear();
+
+      // The host destroyed its media, so the reconnect has nothing truthful to
+      // announce: replaying would describe a player that no longer exists.
+      controller.clear();
+      controller.hostDisconnected();
+      controller.hostConnected();
+
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('should announce fresh media after a clear', () => {
+      const host = createLitElement();
+      const controller = new MediaLoadedInfoSourceController(host, {
+        getTargetID: () => 'target-1',
+      });
+
+      const handler = vi.fn();
+      host.addEventListener('advanced-camera-card:media:loaded', handler);
+
+      controller.set(createMediaLoadedInfo());
+      controller.clear();
+      handler.mockClear();
+
+      // The same info is no longer a duplicate: the dedup compares against a
+      // load that has been forgotten.
+      controller.set(createMediaLoadedInfo());
+
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    it('should be safe to call when nothing is active', () => {
+      const host = createLitElement();
+      const controller = new MediaLoadedInfoSourceController(host, {
+        getTargetID: () => 'target-1',
+      });
+
+      // Should not throw.
+      controller.clear();
     });
   });
 

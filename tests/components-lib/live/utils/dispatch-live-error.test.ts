@@ -19,11 +19,11 @@ it('should forward the reason and detail as the event detail', () => {
 
   dispatchLiveErrorEvent(element, {
     reason: 'unsupported',
-    detail: 'Codec not supported',
+    description: 'Codec not supported',
   });
   expect(handler).toHaveBeenCalledWith(
     expect.objectContaining({
-      detail: { reason: 'unsupported', detail: 'Codec not supported' },
+      detail: { reason: 'unsupported', description: 'Codec not supported' },
     }),
   );
 });

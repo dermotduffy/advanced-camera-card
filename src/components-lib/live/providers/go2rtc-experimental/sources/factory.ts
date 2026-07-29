@@ -89,6 +89,7 @@ export interface CreateWebRTCSourceOptions {
   createPeerConnection?: PeerConnectionFactory;
   createMediaStream?: MediaStreamFactory;
   microphoneStream?: MediaStream | null;
+  microphoneErrorCallback?: (error?: string) => void;
 }
 
 export type WebRTCSourceFactory = (

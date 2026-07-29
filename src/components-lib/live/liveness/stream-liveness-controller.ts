@@ -3,7 +3,10 @@ import type { ReactiveController, ReactiveControllerHost } from 'lit';
 import type { Camera } from '../../../camera-manager/camera';
 import type { StateWatcherSubscriptionInterface } from '../../../card-controller/hass/state-watcher';
 import type { MediaUnavailableIssueReason } from '../../../card-controller/issues/issues/media-unavailable';
-import type { IssueTriggerEventData } from '../../../card-controller/issues/types';
+import type {
+  IssueResolveEventData,
+  IssueTriggerEventData,
+} from '../../../card-controller/issues/types';
 import type { CameraConfig } from '../../../config/schema/cameras';
 import type { HomeAssistant } from '../../../ha/types';
 import { fireAdvancedCameraCardEvent } from '../../../utils/fire-advanced-camera-card-event';
@@ -96,6 +99,7 @@ export class StreamLivenessController implements ReactiveController {
   private _host: ReactiveControllerHost & HTMLElement;
   private _config: StreamLivenessControllerConfig;
   private _detectors: LivenessDetector[];
+  private _resetting = false;
 
   constructor(
     host: ReactiveControllerHost & HTMLElement,
@@ -150,7 +154,20 @@ export class StreamLivenessController implements ReactiveController {
 
   // Discard detector state on a stream change (e.g. a stream switch).
   public reset(): void {
-    this._detectors.forEach((detector) => detector.reset?.());
+    // The detectors are cleared one at a time, and clearing one could cause it
+    // report a change (e.g. an entity might be marked as having an unknown
+    // state). Part-way through, some are cleared and some are not, so what they
+    // add up to is meaningless and this controller needs to not take action
+    // during this time. Ignore anything detectors say until the reset is
+    // complete.
+    this._resetting = true;
+    try {
+      this._detectors.forEach((detector) => detector.reset?.());
+    } finally {
+      this._resetting = false;
+    }
+
+    this._onDetectorChange();
   }
 
   // Reduce the detectors to a single verdict. Direct evidence from the media
@@ -179,9 +196,15 @@ export class StreamLivenessController implements ReactiveController {
   }
 
   private _onDetectorChange(): void {
+    if (this._resetting) {
+      return;
+    }
+
     const verdict = this._getVerdict();
     if (verdict.state === 'not_live') {
       this._triggerMediaUnavailableIssue(verdict.reason, verdict.description);
+    } else if (verdict.state === 'live') {
+      this._resolveMediaUnavailableIssue();
     }
     this._host.requestUpdate();
   }
@@ -201,6 +224,17 @@ export class StreamLivenessController implements ReactiveController {
       targetID,
       reason,
       description,
+    });
+  }
+
+  private _resolveMediaUnavailableIssue(): void {
+    const targetID = this._config.getTargetID();
+    if (!targetID) {
+      return;
+    }
+    fireAdvancedCameraCardEvent<IssueResolveEventData>(this._host, 'issue:resolve', {
+      key: 'media_unavailable',
+      targetID,
     });
   }
 }

@@ -4,6 +4,7 @@ import type {
   UnsubscribeCallback,
 } from '../../../../../types';
 import { has2WayAudio, hasAudio } from '../../../../../utils/audio';
+import { isRecord } from '../../../../../utils/basic';
 import { Timer } from '../../../../../utils/timer';
 import {
   createBrowserPeerConnection,
@@ -38,10 +39,32 @@ const WEBRTC_CONNECT_TIMEOUT_SECONDS = 5;
 
 export type MediaStreamFactory = (tracks: MediaStreamTrack[]) => MediaStream;
 
+// What a thrown value has to say for itself, preferring the browser's sentence
+// ("The peer connection is closed") over the bare type name
+// ("InvalidStateError"), which means nothing to the person reading it.
+//
+// DOMException may not inherit from Error, and catch blocks may be handed
+// anything, so extract details structurally rather than using `instanceof
+// Error`.
+const getErrorDescription = (error: unknown): string | null => {
+  if (!isRecord(error)) {
+    return null;
+  }
+  const message = typeof error.message === 'string' ? error.message : '';
+  const name = typeof error.name === 'string' ? error.name : '';
+  return message || name || null;
+};
+
 interface WebRTCStreamSourceOptions {
   createPeerConnection?: PeerConnectionFactory;
   createMediaStream?: MediaStreamFactory;
   microphoneStream?: MediaStream | null;
+
+  // The outbound microphone track could not be attached. Separate from the
+  // stream-source failure channel: a microphone that cannot attach says nothing
+  // about the inbound video which keeps playing. `error` is what the browser
+  // said went wrong, when it said anything.
+  microphoneErrorCallback?: (error?: string) => void;
 }
 
 export class WebRTCStreamSource implements StreamSource {
@@ -52,6 +75,7 @@ export class WebRTCStreamSource implements StreamSource {
   private _createPeerConnection: PeerConnectionFactory;
   private _createMediaStream: MediaStreamFactory;
   private _microphoneStream: MediaStream | null;
+  private _microphoneErrorCallback: ((error?: string) => void) | null;
 
   private _microphoneTransceiver: RTCRtpTransceiver | null = null;
 
@@ -75,6 +99,7 @@ export class WebRTCStreamSource implements StreamSource {
       options?.createMediaStream ?? ((tracks) => new MediaStream(tracks));
 
     this._microphoneStream = options?.microphoneStream ?? null;
+    this._microphoneErrorCallback = options?.microphoneErrorCallback ?? null;
   }
 
   public start(): void {
@@ -183,9 +208,7 @@ export class WebRTCStreamSource implements StreamSource {
     };
   }
 
-  // Swap the outbound microphone track without renegotiating. Guards against a
-  // late rejection from a superseded call (a newer stream, or teardown)
-  // bringing a retired connection back or overwriting a fresher request.
+  // Swap the outbound microphone track without renegotiating.
   public async setMicrophoneStream(stream: MediaStream | null): Promise<void> {
     if (this._microphoneStream === stream) {
       return;
@@ -199,17 +222,27 @@ export class WebRTCStreamSource implements StreamSource {
       return;
     }
 
+    // Whether the awaited microphone request is still the one in effect: a newer
+    // stream, or teardown, retires it, and reporting a retired outcome would
+    // describe something that is no longer being attempted.
+    const isCurrentRequest = (
+      transceiver: RTCRtpTransceiver,
+      stream: MediaStream | null,
+    ): boolean =>
+      transceiver === this._microphoneTransceiver &&
+      this._microphoneStream === stream &&
+      this._pc !== null;
+
     // A microphone stream carries a single audio track; null detaches the sender.
     const desiredTrack = stream?.getAudioTracks()[0] ?? null;
     try {
       await transceiver.sender.replaceTrack(desiredTrack);
-    } catch {
-      const stillCurrent =
-        transceiver === this._microphoneTransceiver &&
-        this._microphoneStream === stream &&
-        this._pc !== null;
-      if (stillCurrent) {
-        this._context.callbacks.failedCallback('two_way_audio_error');
+    } catch (error) {
+      // Only a failed attach is reported. A failed detach leaves nothing for
+      // the user to act on: the track stops being transmitted when the peer
+      // connection closes.
+      if (desiredTrack && isCurrentRequest(transceiver, stream)) {
+        this._microphoneErrorCallback?.(getErrorDescription(error) ?? undefined);
       }
     }
   }

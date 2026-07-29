@@ -100,6 +100,13 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
   disconnectedCallback(): void {
     this._videoRTC = null;
     this._notification = null;
+
+    // A reconnect builds a brand new WebRTC element, so the video that was
+    // announced is gone and must stop being claimed -- otherwise the card would
+    // be told media is loaded during the window where there is no element at
+    // all, and would keep believing it if the replacement never loads.
+    this._mediaLoadedInfoSourceController.clear();
+
     super.disconnectedCallback();
   }
 

@@ -171,6 +171,12 @@ export class AdvancedCameraCardLiveJSMPEG extends LitElement implements MediaPla
       this._jsmpegCanvasElement.remove();
       this._jsmpegCanvasElement = undefined;
     }
+
+    // The player and the canvas it drew on are gone, so the media announced
+    // from them no longer exists and must stop being claimed -- otherwise a
+    // later reconnect would replay it and the card would believe a dead camera
+    // was loaded.
+    this._mediaLoadedInfoSourceController.clear();
   }
 
   connectedCallback(): void {

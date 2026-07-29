@@ -17,9 +17,8 @@ interface ActiveEntry {
 // A change delivered to subscribers: a target's active media loading or
 // unloading, or the selected target changing.
 export type MediaLoadedInfoChange =
-  // A target's media (re)loaded. `cached` marks a replay (a reconnect
-  // re-dispatch, not an actual reload) rather than a genuine load.
-  | { type: 'load'; targetID: string; info: MediaLoadedInfo; cached: boolean }
+  // A target's media (re)loaded, or a reconnect re-dispatched its last load.
+  | { type: 'load'; targetID: string; info: MediaLoadedInfo }
 
   // A target's media was retired.
   | { type: 'unload'; targetID: string }
@@ -68,11 +67,7 @@ export class MediaLoadedInfoManager {
     }
   }
 
-  public set(
-    mediaLoadedInfo: MediaLoadedInfo,
-    owner: MediaLoadedInfoOwner,
-    cached?: boolean,
-  ): void {
+  public set(mediaLoadedInfo: MediaLoadedInfo, owner: MediaLoadedInfoOwner): void {
     if (!isValidMediaLoadedInfo(mediaLoadedInfo) || !mediaLoadedInfo.targetID) {
       return;
     }
@@ -93,12 +88,7 @@ export class MediaLoadedInfoManager {
 
     // Notify for every target, not just the selected one (e.g. a background
     // grid camera).
-    this._notify({
-      type: 'load',
-      targetID,
-      info: mediaLoadedInfo,
-      cached: cached ?? false,
-    });
+    this._notify({ type: 'load', targetID, info: mediaLoadedInfo });
   }
 
   public setSelected(targetID: string | null): void {
@@ -132,7 +122,7 @@ export class MediaLoadedInfoManager {
     if (!(owner instanceof HTMLElement) || !targetID) {
       return;
     }
-    this.set(ev.detail.info, owner, ev.detail.cached);
+    this.set(ev.detail.info, owner);
     onAbort(ev.detail.signal, () => this._clearTarget(targetID, owner));
   }
 

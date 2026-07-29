@@ -1,4 +1,4 @@
-import type { IssueTriggerContext } from 'issue';
+import type { IssueResolveContext, IssueTriggerContext } from 'issue';
 
 import type { ConditionStateChange } from '../../condition-trigger/conditions/types';
 import { contentsChanged, ignoreFunctionIdentity } from '../../utils/basic';
@@ -11,6 +11,7 @@ import type {
   IssueKey,
   IssuePresence,
   IssueReadOnlyState,
+  IssueResolveContextKey,
   IssueTriggerContextKey,
 } from './types';
 
@@ -68,6 +69,16 @@ export class IssueManager {
     context: IssueTriggerContext[K],
   ): void {
     this._stateManager.trigger(key, context);
+    this.evaluate();
+  }
+
+  // Called by components that observe a problem recovering directly (e.g. a
+  // stream that is proven to be delivering media again).
+  public resolve<K extends IssueResolveContextKey>(
+    key: K,
+    context: IssueResolveContext[K],
+  ): void {
+    this._stateManager.resolve(key, context);
     this.evaluate();
   }
 

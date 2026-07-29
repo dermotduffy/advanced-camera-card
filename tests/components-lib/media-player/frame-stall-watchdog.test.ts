@@ -28,6 +28,29 @@ describe('FrameStallWatchdog', () => {
   });
 
   describe('source lifecycle', () => {
+    it('should hand a later subscriber what has already been observed', () => {
+      const watchdog = new FrameStallWatchdog(createConfig());
+      watchdog.subscribe(vi.fn());
+      watchdog.notifyFrame();
+
+      const later = vi.fn();
+      watchdog.subscribe(later);
+
+      // Observation has been continuous, so the frame just seen is current
+      // evidence for the newcomer too.
+      expect(later).toHaveBeenCalledWith(true);
+    });
+
+    it('should tell a later subscriber nothing before anything is observed', () => {
+      const watchdog = new FrameStallWatchdog(createConfig());
+      watchdog.subscribe(vi.fn());
+
+      const later = vi.fn();
+      watchdog.subscribe(later);
+
+      expect(later).not.toHaveBeenCalled();
+    });
+
     it('should start the source only on the first subscriber', () => {
       const config = createConfig();
       const watchdog = new FrameStallWatchdog(config);
@@ -182,6 +205,23 @@ describe('FrameStallWatchdog', () => {
 
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(true);
+    });
+
+    it('should use the stall window in force when the timer is armed', () => {
+      let stallAfterSeconds = 30;
+      const watchdog = new FrameStallWatchdog(
+        createConfig({ getStallAfterSeconds: () => stallAfterSeconds }),
+      );
+      const callback = vi.fn();
+      watchdog.subscribe(callback);
+
+      // The source slows down: the frame that arrives re-arms with the new,
+      // shorter window rather than the one the watchdog started with.
+      stallAfterSeconds = 5;
+      watchdog.notifyFrame();
+      vi.advanceTimersByTime(5 * 1000);
+
+      expect(callback).toHaveBeenLastCalledWith(false);
     });
   });
 

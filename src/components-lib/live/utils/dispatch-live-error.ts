@@ -10,7 +10,7 @@ export interface LiveError {
 
   // Free text naming the specific failure (e.g. "Failed to start WebRTC stream:
   // ..."). Absent when the provider has none.
-  detail?: string;
+  description?: string;
 }
 
 declare global {

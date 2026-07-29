@@ -11,6 +11,8 @@ declare module 'view' {
 declare module 'issue' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface IssueTriggerContext {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  interface IssueResolveContext {}
 }
 declare module 'action' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type

@@ -163,6 +163,26 @@ describe('MediaPlayerLivenessDetector', () => {
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 
+  it('should discard a retained live verdict when watching resumes', async () => {
+    const { detector, onChange, loadMedia } = setup();
+    const { player, fireMediaPlayerLiveness } = createPlayer();
+    detector.subscribe();
+    loadMedia(player);
+    await callIntersectionHandler(true);
+    fireMediaPlayerLiveness(true);
+
+    // Away and back with nothing observed in between. The retained `live`
+    // describes the previous watch, so it must not survive into this one.
+    detector.unsubscribe();
+    onChange.mockClear();
+    detector.subscribe();
+    loadMedia(player);
+    await callIntersectionHandler(true);
+
+    expect(detector.getVerdict()).toEqual({ state: 'unknown' });
+    expect(onChange).toHaveBeenCalled();
+  });
+
   it('should not watch a player without the liveness capability', async () => {
     const { detector, onChange, loadMedia } = setup();
     const player = mock<MediaPlayerController>();

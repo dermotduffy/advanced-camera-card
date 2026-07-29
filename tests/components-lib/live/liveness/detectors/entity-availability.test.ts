@@ -219,6 +219,22 @@ describe('EntityAvailabilityDetector', () => {
     expect(detector.getVerdict()).toEqual({ state: 'unknown' });
   });
 
+  it('should re-check the entity when reset', () => {
+    // always_error makes the re-check produce a verdict immediately rather than
+    // waiting out the grace window.
+    const { detector, setEntityState } = setup({ alwaysError: true });
+    detector.subscribe();
+
+    // An entity that is already unavailable never fires a state change, so
+    // resetting must read it rather than wait to be told.
+    setEntityState('unavailable');
+    detector.reset();
+
+    expect(detector.getVerdict()).toEqual(
+      expect.objectContaining({ state: 'not_live', authority: 'hard' }),
+    );
+  });
+
   it('should do nothing on reset before subscribe', () => {
     const { detector, stateWatcher } = setup();
 

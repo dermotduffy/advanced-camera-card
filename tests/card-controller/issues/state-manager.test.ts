@@ -116,6 +116,46 @@ describe('IssueStateManager', () => {
     });
   });
 
+  describe('resolve', () => {
+    it('should call resolve on the matching issue', () => {
+      const manager = createManager();
+
+      manager.resolve('media_unavailable', { targetID: 'cam1' });
+
+      assert(mockMediaLoad.resolve);
+      expect(mockMediaLoad.resolve).toHaveBeenCalledWith({ targetID: 'cam1' });
+    });
+
+    it('should do nothing for unknown key', () => {
+      const manager = createManager();
+
+      manager.resolve('unknown' as never, {} as never);
+
+      assert(mockMediaLoad.resolve);
+      expect(mockMediaLoad.resolve).not.toHaveBeenCalled();
+    });
+
+    it('should log the issue again after resolving cleared it', () => {
+      const spy = vi.spyOn(console, 'warn').mockReturnValue(undefined);
+      const manager = createManager([mockMediaLoad]);
+      vi.mocked(mockMediaLoad.getIssue).mockReturnValue(createIssueDescription());
+
+      manager.trigger('media_unavailable', { targetID: 'cam1', reason: 'stalled' });
+      expect(spy).toHaveBeenCalledTimes(1);
+
+      // Resolving clears the issue, which releases the dedupe so the next
+      // failure is logged as a new episode rather than silently swallowed.
+      vi.mocked(mockMediaLoad.getIssue).mockReturnValue(null);
+      manager.resolve('media_unavailable', { targetID: 'cam1' });
+
+      vi.mocked(mockMediaLoad.getIssue).mockReturnValue(createIssueDescription());
+      manager.trigger('media_unavailable', { targetID: 'cam1', reason: 'stalled' });
+
+      expect(spy).toHaveBeenCalledTimes(2);
+      spy.mockRestore();
+    });
+  });
+
   describe('detectDynamic', () => {
     it('should call detectDynamic on issues with the given state', () => {
       const manager = createManager();

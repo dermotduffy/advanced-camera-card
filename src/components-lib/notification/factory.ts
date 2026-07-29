@@ -1,5 +1,6 @@
 import type {
   Notification,
+  NotificationContextItem,
   NotificationDetail,
 } from '../../config/schema/actions/types.js';
 import type { Link } from '../../config/schema/common/link.js';
@@ -12,7 +13,7 @@ export interface NotificationOptions {
   icon?: string;
   link?: Link;
   metadata?: NotificationDetail[];
-  context?: object;
+  context?: NotificationContextItem;
   in_progress?: boolean;
 }
 

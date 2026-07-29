@@ -1,4 +1,4 @@
-import type { IssueTriggerContext } from 'issue';
+import type { IssueResolveContext, IssueTriggerContext } from 'issue';
 
 import type { ConditionState } from '../../condition-trigger/conditions/types';
 import type { Notification } from '../../config/schema/actions/types';
@@ -47,6 +47,11 @@ export type IssueTriggerEventData = {
   [K in IssueTriggerContextKey]: { key: K } & IssueTriggerContext[K];
 }[IssueTriggerContextKey];
 
+export type IssueResolveContextKey = keyof IssueResolveContext;
+export type IssueResolveEventData = {
+  [K in IssueResolveContextKey]: { key: K } & IssueResolveContext[K];
+}[IssueResolveContextKey];
+
 export interface Issue {
   readonly key: IssueKey;
 
@@ -58,6 +63,11 @@ export interface Issue {
 
   // Explicitly trigger this issue with key-specific context.
   trigger?(context: IssueTriggerContext[IssueTriggerContextKey]): void;
+
+  // The inverse of `trigger`: the context names what recovered, and only that
+  // part of the issue's state is dropped. Contrast `reset`, which discards
+  // everything the issue is holding.
+  resolve?(context: IssueResolveContext[IssueResolveContextKey]): void;
 
   hasIssue(): boolean;
   getIssue(): IssueDescription | null;

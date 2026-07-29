@@ -7,11 +7,11 @@ import { OffscreenImage } from './offscreen-image';
 import type { ImageSurface } from './session-controller';
 
 // Liveness: while frames are expected, a gap beyond the window is a stall.
-// Omitted -> the surface reports no liveness. `stallWindowSeconds` defaults to
+// Omitted -> the surface reports no liveness. `getStallAfterSeconds` defaults to
 // the standard frame-stall window.
 interface ImageSurfaceLivenessOptions {
   isFrameExpected: () => boolean;
-  stallWindowSeconds?: number;
+  getStallAfterSeconds?: () => number;
 }
 
 interface ImageSurfaceOptions {
