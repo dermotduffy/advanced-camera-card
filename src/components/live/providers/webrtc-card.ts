@@ -10,6 +10,7 @@ import {
 import { customElement, property, state } from 'lit/decorators.js';
 
 import type { Camera } from '../../../camera-manager/camera.js';
+import { WebRTCCardController } from '../../../components-lib/live/providers/webrtc-card/controller.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get-technology-for-video-rtc.js';
 import { MediaLoadedInfoSourceController } from '../../../components-lib/media-loaded-info-source-controller.js';
@@ -82,12 +83,24 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
     getTargetID: () => this.targetID ?? null,
   });
 
+  private _webrtcCardController = new WebRTCCardController(this, {
+    // The video belongs to the discarded element, so it must stop being claimed
+    // -- otherwise the card would be told media is loaded during the window
+    // where there is no element at all, and would keep believing it if the
+    // replacement never loads.
+    destroyCallback: () => this._mediaLoadedInfoSourceController.clear(),
+  });
+
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     return this._mediaPlayerController;
   }
 
   // A task to await the load of the WebRTC component.
-  private _webrtcTask = new Task(this, this._getWebRTCCardElement, () => [1]);
+  private _webrtcTask = new Task(
+    this,
+    () => this._webrtcCardController.awaitRegistration(),
+    () => [1],
+  );
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -100,12 +113,6 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
   disconnectedCallback(): void {
     this._videoRTC = null;
     this._notification = null;
-
-    // A reconnect builds a brand new WebRTC element, so the video that was
-    // announced is gone and must stop being claimed -- otherwise the card would
-    // be told media is loaded during the window where there is no element at
-    // all, and would keep believing it if the replacement never loads.
-    this._mediaLoadedInfoSourceController.clear();
 
     super.disconnectedCallback();
   }
@@ -124,47 +131,6 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
     return this._videoRTC?.video ?? null;
   }
 
-  private async _getWebRTCCardElement(): Promise<CustomElementConstructor | undefined> {
-    await customElements.whenDefined('webrtc-camera');
-    return customElements.get('webrtc-camera');
-  }
-
-  /**
-   * Create the WebRTC element. May throw.
-   */
-  private _createWebRTC(): HTMLElement | null {
-    const webrtcElement = this._webrtcTask.value;
-    const cameraConfig = this.camera?.getConfig();
-    if (webrtcElement && this.hass && cameraConfig) {
-      const webrtc = new webrtcElement() as HTMLElement & {
-        hass: HomeAssistant;
-        setConfig: (config: Record<string, unknown>) => void;
-      };
-      const config = {
-        // By default, webrtc-card will stop the video when 50% of the video is
-        // hidden. This is incompatible with the card zoom support, since the
-        // video will easily stop if the user zooms in too much. Disable this
-        // feature by default.
-        // See: https://github.com/dermotduffy/advanced-camera-card/issues/1614
-        intersection: 0,
-
-        // Advanced Camera Card always starts muted (unlike webrtc-card).
-        // See: https://github.com/dermotduffy/advanced-camera-card/issues/1654
-        muted: true,
-
-        ...cameraConfig.webrtc_card,
-      };
-      const webrtcCardEndpoint = this.camera?.getEndpoints()?.webrtcCard;
-      if (!config.url && !config.entity && webrtcCardEndpoint) {
-        config.entity = webrtcCardEndpoint.endpoint;
-      }
-      webrtc.setConfig(config);
-      webrtc.hass = this.hass;
-      return webrtc;
-    }
-    return null;
-  }
-
   protected render(): TemplateResult | void {
     if (this._notification) {
       return renderNotificationBlock(this._notification);
@@ -173,7 +139,10 @@ export class AdvancedCameraCardLiveWebRTCCard extends LitElement implements Medi
     const render = (): TemplateResult | void => {
       let webrtcElement: HTMLElement | null;
       try {
-        webrtcElement = this._createWebRTC();
+        webrtcElement = this._webrtcCardController.getElement({
+          camera: this.camera,
+          hass: this.hass,
+        });
       } catch (e) {
         this._notification = createMediaNotification({
           title: localize('error.webrtc_card_reported_error'),
