@@ -19,18 +19,12 @@ const fireMediaChange = (
   vi.mocked(api.getMediaLoadedInfoManager().subscribe).mock.calls[0]?.[0]?.(change);
 };
 
-// Simulate a media (re)load for `targetID`. `cached` marks a reconnect replay
-// (a re-dispatch of the last load, not an actual reload).
-const fireMediaLoad = (
-  api: ReturnType<typeof createAPI>,
-  targetID: string,
-  cached = false,
-): void => {
+// Simulate a media (re)load for `targetID`.
+const fireMediaLoad = (api: ReturnType<typeof createAPI>, targetID: string): void => {
   fireMediaChange(api, {
     type: 'load',
     targetID,
     info: createMediaLoadedInfo({ targetID }),
-    cached,
   });
 };
 
@@ -305,21 +299,36 @@ describe('MediaUnavailableIssue', () => {
       expect(issue.hasIssue()).toBe(false);
     });
 
-    it('should clear a target error on a genuine media load', () => {
+    it('should clear a not-loading error on a media load', () => {
       const api = createAPI();
       const issue = new MediaUnavailableIssue(api);
 
-      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       expect(issue.hasIssue()).toBe(true);
 
-      // A genuine (re)load for the target clears the error.
+      // An attached player disproves "media not loading", whoever recorded it.
       fireMediaLoad(api, 'camera-1');
 
       // The error is gone, so this unloaded state falls back to the timer
       // (would not activate until the timeout).
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       expect(issue.hasIssue()).toBe(false);
+    });
+
+    it('should not clear a stream error on a media load', () => {
+      const api = createAPI();
+      const issue = new MediaUnavailableIssue(api);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+
+      // A load only says a player attached -- for a stream that loaded and then
+      // froze, that includes a reconnect replay of the frozen player. Stream
+      // errors clear only via resolve, on real evidence of media flowing.
+      fireMediaLoad(api, 'camera-1');
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+
+      expect(issue.hasIssue()).toBe(true);
     });
 
     it('should keep an errored target active while its media still reads as loaded', () => {
@@ -343,29 +352,10 @@ describe('MediaUnavailableIssue', () => {
       const api = createAPI();
       const issue = new MediaUnavailableIssue(api);
 
-      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
 
       // A load for a different target must not clear camera-1's error.
       fireMediaLoad(api, 'camera-2');
-      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
-
-      expect(issue.hasIssue()).toBe(true);
-    });
-
-    it('should not clear a target error on a reconnect replay', () => {
-      const api = createAPI();
-      const issue = new MediaUnavailableIssue(api);
-
-      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
-
-      fireMediaLoad(
-        api,
-        'camera-1',
-
-        // A cached replay (reconnect re-dispatch) did not actually reload the
-        // media, so it must not clear the error.
-        true,
-      );
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
 
       expect(issue.hasIssue()).toBe(true);
@@ -375,9 +365,9 @@ describe('MediaUnavailableIssue', () => {
       const api = createAPI();
       const issue = new MediaUnavailableIssue(api);
 
-      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
 
-      // Only a genuine load clears; unload / select changes are irrelevant.
+      // Only a load clears; unload / select changes are irrelevant.
       fireMediaChange(api, { type: 'unload', targetID: 'camera-1' });
       fireMediaChange(api, { type: 'select', targetID: 'camera-1' });
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
@@ -396,6 +386,78 @@ describe('MediaUnavailableIssue', () => {
 
       // camera-2 has no error, so it falls back to timeout behavior.
       expect(issue.hasIssue()).toBe(false);
+    });
+  });
+
+  describe('resolve', () => {
+    it('should clear an errored target', () => {
+      const issue = new MediaUnavailableIssue(createAPI());
+
+      issue.trigger({ targetID: 'camera.office', reason: 'stalled' });
+      expect(issue.getNotification().metadata).toEqual([
+        expect.objectContaining({ text: 'camera.office: Stream stalled' }),
+      ]);
+
+      issue.resolve({ targetID: 'camera.office' });
+
+      expect(issue.getNotification().metadata).toBeUndefined();
+    });
+
+    it('should deactivate a target that is proven to be delivering media again', () => {
+      const issue = new MediaUnavailableIssue(createAPI());
+
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      issue.detectDynamic({
+        targetID: 'camera-1',
+        view: 'live',
+        mediaLoadedInfo: createMediaLoadedInfo({ targetID: 'camera-1' }),
+      });
+      expect(issue.hasIssue()).toBe(true);
+
+      issue.resolve({ targetID: 'camera-1' });
+      issue.detectDynamic({
+        targetID: 'camera-1',
+        view: 'live',
+        mediaLoadedInfo: createMediaLoadedInfo({ targetID: 'camera-1' }),
+      });
+
+      expect(issue.hasIssue()).toBe(false);
+    });
+
+    it('should leave other targets errored', () => {
+      const issue = new MediaUnavailableIssue(createAPI());
+
+      issue.trigger({ targetID: 'camera.office', reason: 'stalled' });
+
+      issue.resolve({ targetID: 'camera.garden' });
+
+      expect(issue.getNotification().metadata).toEqual([
+        expect.objectContaining({ text: 'camera.office: Stream stalled' }),
+      ]);
+    });
+
+    it('should cancel the pending-load timer for its target', () => {
+      const onChange = vi.fn();
+      const issue = new MediaUnavailableIssue(createAPI(), onChange);
+
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+
+      issue.resolve({ targetID: 'camera-1' });
+
+      vi.advanceTimersByTime(10000);
+      expect(issue.hasIssue()).toBe(false);
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('should leave the pending-load timer alone for a different target', () => {
+      const issue = new MediaUnavailableIssue(createAPI());
+
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+
+      issue.resolve({ targetID: 'camera-2' });
+
+      vi.advanceTimersByTime(10000);
+      expect(issue.hasIssue()).toBe(true);
     });
   });
 
@@ -673,6 +735,28 @@ describe('MediaUnavailableIssue', () => {
       });
     });
 
+    it('should not retry a stale pending-timer target once its timer has stopped', () => {
+      const api = createAPI();
+      vi.mocked(api.getViewManager().getView).mockReturnValue(mock<View>());
+      const issue = new MediaUnavailableIssue(api);
+
+      // A slow load arms the pending timer for camera.garden.
+      issue.detectDynamic({ targetID: 'camera.garden', view: 'live' });
+
+      // The view moves to a target that already has a hard error. That path
+      // activates immediately and stops the timer, but the stale
+      // _timerTargetID (camera.garden) lingers -- and that target may since
+      // have loaded, so reloading it would be gratuitous.
+      issue.trigger({ targetID: 'camera.office', reason: 'playback_error' });
+      issue.detectDynamic({ targetID: 'camera.office', view: 'live' });
+
+      issue.retry();
+
+      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
+        mediaEpoch: { 'camera.office': 1 },
+      });
+    });
+
     it('should keep errored targets and issue state after retry', () => {
       const api = createAPI();
       vi.mocked(api.getViewManager().getView).mockReturnValue(mock<View>());
@@ -685,8 +769,8 @@ describe('MediaUnavailableIssue', () => {
       issue.retry();
 
       // After retry, the issue stays active and the errored target is preserved
-      // -- no new 10s grace period. A genuine media load would clear everything
-      // (_onMediaLoad drops the errored target).
+      // -- no new 10s grace period. Recovery clears it: a load for a
+      // not-loading error, a resolve for a stream error.
       expect(issue.hasIssue()).toBe(true);
       issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
       expect(issue.hasIssue()).toBe(true);
@@ -714,10 +798,61 @@ describe('MediaUnavailableIssue', () => {
       const onChange = vi.fn();
       const issue = new MediaUnavailableIssue(api, onChange);
 
-      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      issue.trigger({ targetID: 'camera-1', reason: 'not_loading' });
       fireMediaLoad(api, 'camera-1');
 
       expect(onChange).toHaveBeenCalled();
+    });
+
+    it('should not notify onChange when a load changes nothing', () => {
+      const api = createAPI();
+      const onChange = vi.fn();
+      const issue = new MediaUnavailableIssue(api, onChange);
+
+      issue.trigger({ targetID: 'camera-1', reason: 'stalled' });
+      fireMediaLoad(api, 'camera-1');
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('should clear a timer-recorded error when the media later loads', () => {
+      const api = createAPI();
+      const issue = new MediaUnavailableIssue(api);
+
+      // A viewer target has no liveness observer, so a load is the only
+      // recovery signal it will ever produce.
+      issue.detectDynamic({ targetID: 'media-1', view: 'clip' });
+      vi.advanceTimersByTime(10000);
+      expect(issue.getNotification().metadata).toEqual([
+        expect.objectContaining({ text: 'media-1: Media not loading' }),
+      ]);
+
+      fireMediaLoad(api, 'media-1');
+
+      expect(issue.getNotification().metadata).toBeUndefined();
+      issue.detectDynamic({
+        targetID: 'media-1',
+        view: 'clip',
+        mediaLoadedInfo: createMediaLoadedInfo({ targetID: 'media-1' }),
+      });
+      expect(issue.hasIssue()).toBe(false);
+    });
+
+    it('should cancel the pending-load timer when its target genuinely loads', () => {
+      const api = createAPI();
+      const issue = new MediaUnavailableIssue(api);
+
+      // A target starts loading, arming the pending-load timer.
+      issue.detectDynamic({ targetID: 'camera-1', view: 'live' });
+
+      // It loads in the background, so no further detection pass runs for it
+      // (detection only ever covers the current target).
+      fireMediaLoad(api, 'camera-1');
+
+      vi.advanceTimersByTime(10000);
+
+      expect(issue.hasIssue()).toBe(false);
+      expect(issue.getNotification().metadata).toBeUndefined();
     });
 
     it('should unsubscribe from media loads on destroy', () => {

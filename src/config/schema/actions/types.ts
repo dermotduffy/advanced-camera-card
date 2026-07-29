@@ -191,6 +191,7 @@ export type NotificationControl = z.infer<typeof notificationControlSchema>;
 // A context item is a preformatted string or a structured object that is
 // YAML-dumped at render time (see NotificationContextController).
 const notificationContextItemSchema = z.union([z.string(), z.custom<object>(isRecord)]);
+export type NotificationContextItem = z.infer<typeof notificationContextItemSchema>;
 
 const notificationSchema = z.object({
   heading: notificationDetailSchema.optional(),

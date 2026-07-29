@@ -16,10 +16,10 @@ const STALL_MS = STALL_SECONDS * 1000;
 const createImageMediaPlayerWithLiveness = (
   isFrameExpected: () => boolean,
   getImageCallback: () => HTMLImageElement | null,
-  stallWindowSeconds = STALL_SECONDS,
+  stallAfterSeconds = STALL_SECONDS,
 ): ImageMediaPlayerController =>
   new ImageMediaPlayerController(createLitElement(), getImageCallback, {
-    livenessOptions: { isFrameExpected, stallWindowSeconds },
+    livenessOptions: { isFrameExpected, getStallAfterSeconds: () => stallAfterSeconds },
   });
 
 // @vitest-environment jsdom

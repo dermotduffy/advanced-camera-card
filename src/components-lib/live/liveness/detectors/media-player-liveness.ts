@@ -114,6 +114,13 @@ export class MediaPlayerLivenessDetector implements LivenessDetector {
     this._watchedPlayer = target;
 
     if (player?.subscribeLiveness) {
+      // A `live` verdict left over from the last watch means media was flowing
+      // then, not now. Drop it, so `live` always means something seen during
+      // this watch. The `not_live` hold below is kept on purpose.
+      if (this._verdict.state === 'live') {
+        this._setVerdict({ state: 'unknown' });
+      }
+
       // Start (or resume) watching; the verdict stays `unknown` until a real
       // frame or a stall is observed.
       this._unsubscribeLiveness = player.subscribeLiveness((isLive) =>

@@ -945,6 +945,65 @@ describe('endIf', () => {
   });
 });
 
+describe('reportCallMicrophoneError', () => {
+  it('should report a microphone that could not be attached', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    expect(await manager.start()).toBe(true);
+    vi.mocked(api.getNotificationManager().setNotification).mockClear();
+
+    manager.reportCallMicrophoneError('camera.office', 'The peer connection is closed');
+
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalledWith({
+      heading: { text: 'Two-way audio unavailable' },
+      body: { text: 'Your microphone could not be connected.' },
+      context: ['The peer connection is closed'],
+    });
+  });
+
+  it('should omit the context when the browser provided none', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    expect(await manager.start()).toBe(true);
+    vi.mocked(api.getNotificationManager().setNotification).mockClear();
+
+    manager.reportCallMicrophoneError('camera.office');
+
+    expect(api.getNotificationManager().setNotification).toHaveBeenCalledWith(
+      expect.not.objectContaining({ context: expect.anything() }),
+    );
+  });
+
+  it('should not report without a call', () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+
+    new CallManager(api).reportCallMicrophoneError('camera.office');
+
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
+  });
+
+  it('should not report while an inbound call is still ringing', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    expect(await manager.start({ inbound: true })).toBe(true);
+
+    manager.reportCallMicrophoneError('camera.office');
+
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
+  });
+
+  it('should not report for a camera the call is not on', async () => {
+    const api = createAPI({ view: createView({ camera: 'camera.office' }) });
+    const manager = new CallManager(api);
+    expect(await manager.start()).toBe(true);
+    vi.mocked(api.getNotificationManager().setNotification).mockClear();
+
+    manager.reportCallMicrophoneError('camera.other');
+
+    expect(api.getNotificationManager().setNotification).not.toHaveBeenCalled();
+  });
+});
+
 describe('condition state changes', () => {
   it('should end the call when the selected camera changes away', async () => {
     const api = createAPI({ view: createView({ camera: 'camera.office' }) });

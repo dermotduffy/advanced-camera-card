@@ -21,8 +21,9 @@ import {
   type VideoSurface,
 } from '../../../../components-lib/live/providers/go2rtc-experimental/session-controller.js';
 import type { SurfaceKind } from '../../../../components-lib/live/providers/go2rtc-experimental/types.js';
-import { mapFailureReasonToIssueReason } from '../../../../components-lib/live/providers/go2rtc-experimental/utils/failure-reason.js';
+import { mapStreamFailureReasonToIssueReason } from '../../../../components-lib/live/providers/go2rtc-experimental/utils/stream-failure-reason.js';
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
+import { dispatchMicrophoneErrorEvent } from '../../../../components-lib/live/utils/dispatch-microphone-error.js';
 import { MediaLoadedInfoSourceController } from '../../../../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../../../../components-lib/media-player/video.js';
 import {
@@ -163,11 +164,23 @@ export class AdvancedCameraCardGo2RTCExperimental
     // failure's user-facing cause) so the card's media-load retry (reconnecting
     // indicator, backoff, give-up) runs and can name why. The provider renders
     // the error itself (below); the event drives the liveness verdict + retry.
-    errorCallback: (reason) => {
-      this._streamError = mapFailureReasonToIssueReason(reason);
+    streamErrorCallback: (reason) => {
+      this._streamError = mapStreamFailureReasonToIssueReason(reason);
       dispatchLiveErrorEvent(this, { reason: this._streamError });
     },
+
+    microphoneErrorCallback: (error) => this._reportMicrophoneError(error),
   });
+
+  private _reportMicrophoneError(error?: string): void {
+    if (!this.targetID) {
+      return;
+    }
+    dispatchMicrophoneErrorEvent(this, {
+      targetID: this.targetID,
+      description: error,
+    });
+  }
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     return this._activeSurface === 'image'
@@ -186,9 +199,18 @@ export class AdvancedCameraCardGo2RTCExperimental
   disconnectedCallback(): void {
     // Tear down synchronously so streams (e.g. 2-way audio backchannels)
     // release immediately.
+    this._destroyMedia();
+    super.disconnectedCallback();
+  }
+
+  // Drop the session and everything it was playing on. The surfaces keep their
+  // elements but the session has emptied them, so the media that was announced
+  // no longer exists and must stop being claimed -- otherwise a later reconnect
+  // would replay it and the card would believe a dead camera was loaded.
+  private _destroyMedia(): void {
     this._session.reset();
     this._activeSurface = null;
-    super.disconnectedCallback();
+    this._mediaLoadedInfoSourceController.clear();
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -196,8 +218,7 @@ export class AdvancedCameraCardGo2RTCExperimental
       // The session is re-established by `updated()` once the new camera's
       // signed URL resolves; the next commit picks the live surface. Blank the
       // view meanwhile so the previous camera's last frame is not shown.
-      this._session.reset();
-      this._activeSurface = null;
+      this._destroyMedia();
       this._streamError = null;
     }
 
@@ -237,8 +258,7 @@ export class AdvancedCameraCardGo2RTCExperimental
       // drop the session -- otherwise a later URL, even an identical unsigned
       // endpoint, would be skipped by connect()'s identity check and leave the
       // session bound to the removed elements.
-      this._session.reset();
-      this._activeSurface = null;
+      this._destroyMedia();
     }
   }
 

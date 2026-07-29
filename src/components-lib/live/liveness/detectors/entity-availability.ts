@@ -43,7 +43,8 @@ export class EntityAvailabilityDetector implements LivenessDetector {
 
   public subscribe(): void {
     this._active = true;
-    this._watch();
+    this._subscribeOrUnsubscribeFromCameraEntity();
+    this._check();
   }
 
   public unsubscribe(): void {
@@ -56,32 +57,34 @@ export class EntityAvailabilityDetector implements LivenessDetector {
   }
 
   public reset(): void {
-    // Re-point the subscription at the (possibly different) camera entity and
-    // start fresh.
     this._verdict = { state: 'unknown' };
     this._timer.stop();
-    this._watch();
+
+    // A reset is not a stop: watching continues, only what was learned is
+    // forgotten. `getCameraEntity` may now name a different entity, so re-point
+    // the subscription and read that entity now.
+    this._subscribeOrUnsubscribeFromCameraEntity();
+    this._check();
   }
 
   public getVerdict(): LivenessVerdict {
     return this._verdict;
   }
 
-  // Point the subscription at the current camera entity and re-check its state.
-  private _watch(): void {
+  private _subscribeOrUnsubscribeFromCameraEntity(): void {
     if (!this._active) {
       return;
     }
     const stateWatcher = this._config.getStateWatcher();
     const entityID = this._config.getCameraEntity();
-    if (entityID !== this._watchedEntity) {
-      stateWatcher?.unsubscribe(this._onEntityStateChange);
-      this._watchedEntity = entityID;
-      if (entityID) {
-        stateWatcher?.subscribe(this._onEntityStateChange, [entityID]);
-      }
+    if (entityID === this._watchedEntity) {
+      return;
     }
-    this._check();
+    stateWatcher?.unsubscribe(this._onEntityStateChange);
+    this._watchedEntity = entityID;
+    if (entityID) {
+      stateWatcher?.subscribe(this._onEntityStateChange, [entityID]);
+    }
   }
 
   private _onEntityStateChange = (difference: HassStateDifference): void =>
@@ -93,6 +96,9 @@ export class EntityAvailabilityDetector implements LivenessDetector {
     this._evaluate(difference.newState.state);
 
   private _check(): void {
+    if (!this._active) {
+      return;
+    }
     const stateObj = this._watchedEntity
       ? this._config.getHASS()?.states[this._watchedEntity]
       : undefined;

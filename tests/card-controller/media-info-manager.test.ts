@@ -441,25 +441,6 @@ describe('MediaLoadedInfoManager', () => {
         type: 'load',
         targetID: 'target-1',
         info,
-        cached: false,
-      });
-    });
-
-    it('should mark a cached load', () => {
-      const api = createCardAPI();
-      const manager = new MediaLoadedInfoManager(api);
-      const owner = document.createElement('div');
-      const info = createMediaLoadedInfo({ targetID: 'target-1' });
-      const listener = vi.fn();
-
-      manager.subscribe(listener);
-      manager.set(info, owner, true);
-
-      expect(listener).toHaveBeenCalledWith({
-        type: 'load',
-        targetID: 'target-1',
-        info,
-        cached: true,
       });
     });
 

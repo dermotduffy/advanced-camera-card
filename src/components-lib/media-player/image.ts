@@ -20,13 +20,13 @@ export interface ImageUpdateControl {
 }
 
 // Liveness for an image stream: each <img> `load` is a frame; a gap longer than
-// the window while frames are expected is a stall. `stallWindowSeconds`
+// the window while frames are expected is a stall. `getStallAfterSeconds`
 // defaults to the standard frame-stall window (suits a push-fed stream); a
 // timer-refreshed image may set a different one, should be at least its refresh
 // interval.
 interface ImageLivenessOptions {
   isFrameExpected: () => boolean;
-  stallWindowSeconds?: number;
+  getStallAfterSeconds?: () => number;
 }
 
 // Obtaining a screenshot. Defaults to drawing the current <img>; an image
@@ -81,7 +81,7 @@ export class ImageMediaPlayerController implements MediaPlayerController {
     if (livenessOptions) {
       const stallWatchdog = new FrameStallWatchdog({
         isPlaybackExpected: livenessOptions.isFrameExpected,
-        stallAfterSeconds: livenessOptions.stallWindowSeconds,
+        getStallAfterSeconds: livenessOptions.getStallAfterSeconds,
         startSource: () => this._startFrameSource(),
         stopSource: () => this._stopFrameSource(),
       });

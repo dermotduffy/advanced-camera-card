@@ -95,7 +95,6 @@ export interface StreamProfile {
 }
 
 export type StreamSourceFailureReason =
-  | 'two_way_audio_error'
   | 'buffer_overflow'
   | 'connect_timeout'
   | 'media_error'

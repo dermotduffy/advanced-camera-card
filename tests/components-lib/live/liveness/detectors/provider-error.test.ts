@@ -13,6 +13,19 @@ const createHostInDocument = (): HTMLElement => {
 
 // @vitest-environment jsdom
 describe('ProviderErrorDetector', () => {
+  it('should not report a change when reset', () => {
+    const host = createHostInDocument();
+    const onChange = vi.fn();
+    const detector = new ProviderErrorDetector(host, onChange);
+    detector.subscribe();
+    dispatchLiveErrorEvent(host);
+    onChange.mockClear();
+
+    detector.reset();
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it('should start unknown', () => {
     const detector = new ProviderErrorDetector(document.createElement('div'), vi.fn());
 
@@ -43,7 +56,7 @@ describe('ProviderErrorDetector', () => {
 
     dispatchLiveErrorEvent(host, {
       reason: 'unsupported',
-      detail: 'Codec not supported',
+      description: 'Codec not supported',
     });
 
     expect(detector.getVerdict()).toEqual({

@@ -1,4 +1,4 @@
-import type { IssueTriggerContext } from 'issue';
+import type { IssueResolveContext, IssueTriggerContext } from 'issue';
 
 import type { ConditionState } from '../../../condition-trigger/conditions/types.js';
 import type {
@@ -23,7 +23,6 @@ export type MediaUnavailableIssueReason =
   | 'playback_error'
   | 'server_error'
   | 'stalled'
-  | 'two_way_audio_error'
   | 'unsupported';
 
 declare module 'issue' {
@@ -35,6 +34,12 @@ declare module 'issue' {
       // Free text naming the specific failure (e.g. the message a player
       // reported), when the trigger source knew it.
       description?: string;
+    };
+  }
+
+  interface IssueResolveContext {
+    media_unavailable: {
+      targetID: string;
     };
   }
 }
@@ -74,10 +79,6 @@ export const MEDIA_UNAVAILABLE_REASONS: Record<
     localizationKey: 'issues.media_unavailable.reasons.stalled',
     icon: 'mdi:motion-pause',
   },
-  two_way_audio_error: {
-    localizationKey: 'issues.media_unavailable.reasons.two_way_audio_error',
-    icon: 'mdi:microphone-off',
-  },
   unsupported: {
     localizationKey: 'issues.media_unavailable.reasons.unsupported',
     icon: 'mdi:video-off-outline',
@@ -102,21 +103,20 @@ export class MediaUnavailableIssue implements Issue {
     this._api = api;
     this._onChange = onChange ?? null;
 
-    // Clear a target's error on a genuine media (re)load.
+    // React to a target's media loading; unload / select changes are
+    // irrelevant here.
     this._unsubscribeCallback = this._api
       .getMediaLoadedInfoManager()
       .subscribe((change) => {
-        // A reconnect replay (`cached`) did not actually reload the media, and
-        // unload / select changes are irrelevant here; only a genuine load
-        // clears the error.
-        if (change.type === 'load' && !change.cached) {
+        if (change.type === 'load') {
           this._onMediaLoad(change.targetID);
         }
       });
   }
 
   // =========================================================================
-  // Explicit trigger -- called when a component fires an issue:trigger event.
+  // Explicit trigger and resolve -- called when a component fires an
+  // issue:trigger or issue:resolve event.
   // =========================================================================
 
   public trigger(context: IssueTriggerContext['media_unavailable']): void {
@@ -124,6 +124,14 @@ export class MediaUnavailableIssue implements Issue {
       reason: context.reason,
       description: context.description,
     });
+  }
+
+  // A target is proven to be delivering media again. Stronger evidence than a
+  // media load, which only says a player attached, so it clears any recorded
+  // error.
+  public resolve(context: IssueResolveContext['media_unavailable']): void {
+    this._erroredTargets.delete(context.targetID);
+    this._cancelPendingTimer(context.targetID);
   }
 
   // =========================================================================
@@ -139,8 +147,8 @@ export class MediaUnavailableIssue implements Issue {
     // A known error for the current target activates immediately, even if its
     // (frozen) media still reads as loaded (it might be loaded but then
     // reported a playback error that stops playback but leaves the player
-    // attached). Errors are cleared out-of-band by `_onMediaLoad` on a genuine
-    // reload.
+    // attached). Errors are cleared out-of-band, by `resolve` or by
+    // `_onMediaLoad`.
     if (this._hasError(state)) {
       this._activate();
       return;
@@ -155,9 +163,16 @@ export class MediaUnavailableIssue implements Issue {
     this._handlePendingLoad(state);
   }
 
-  // A genuine media (re)load for a target clears its error.
+  // A load proves media attached for the target. That ends any wait on it, and
+  // refutes a `not_loading` error. It is no evidence of recovery for any other
+  // reason, so those clear only via `resolve`.
   private _onMediaLoad(targetID: string): void {
-    if (this._erroredTargets.delete(targetID)) {
+    let changed = this._cancelPendingTimer(targetID);
+    if (this._erroredTargets.get(targetID)?.reason === 'not_loading') {
+      this._erroredTargets.delete(targetID);
+      changed = true;
+    }
+    if (changed) {
       this._onChange?.();
     }
   }
@@ -183,6 +198,7 @@ export class MediaUnavailableIssue implements Issue {
 
   public getNotification(): Notification {
     const targets = new Map(this._erroredTargets);
+
     // The pending-load timer's target is a slow initial load that has not yet
     // errored. Gate on the timer still running: once it is stopped (a hard error
     // on another target took over, or the view moved on), _timerTargetID lingers
@@ -258,10 +274,12 @@ export class MediaUnavailableIssue implements Issue {
 
   public retry(): boolean {
     // Build the set of targets to retry: all errored targets plus the
-    // target the pending timer was tracking (so a user-initiated retry
-    // works even before the timeout fires).
+    // target the pending timer is tracking (so a user-initiated retry
+    // works even before the timeout fires). A stopped timer leaves
+    // _timerTargetID behind, so gate on it still running: that target may
+    // since have loaded.
     const retryTargets = new Set(this._erroredTargets.keys());
-    if (this._timerTargetID) {
+    if (this._timerTargetID && this._timer.isRunning()) {
       retryTargets.add(this._timerTargetID);
     }
 
@@ -269,6 +287,8 @@ export class MediaUnavailableIssue implements Issue {
       return false;
     }
 
+    // Bumping a target's mediaEpoch remounts its provider, which is the card's
+    // only way to rebuild a stream from scratch.
     const view = this._api.getViewManager().getView();
     const mediaEpoch = { ...(view?.context?.mediaEpoch ?? {}) };
     for (const id of retryTargets) {
@@ -276,11 +296,11 @@ export class MediaUnavailableIssue implements Issue {
     }
 
     // Intentionally keep _issueActive, _erroredTargets, and the pending
-    // timer in place. The issue stays visible while the provider
-    // re-attempts loading underneath. If the retry succeeds, the fresh media
-    // load clears everything (_onMediaLoad drops the errored target). If it
-    // fails silently (e.g. bogus stream name), the error stays visible
-    // immediately -- no new 10s grace period.
+    // timer in place. The issue stays visible while the provider re-attempts
+    // loading underneath. If the retry succeeds, the fresh load clears a
+    // not-loading error and the rebuilt provider's liveness observation
+    // resolves a stream error. If it fails silently (e.g. bogus stream name),
+    // the error stays visible immediately -- no new 10s grace period.
     this._api.getViewManager().setViewWithMergedContext({ mediaEpoch });
     return false;
   }
@@ -314,6 +334,17 @@ export class MediaUnavailableIssue implements Issue {
   // Private helpers.
   // =========================================================================
 
+  // Stop waiting on a target's load, if it is the one being waited on. Returns
+  // whether it was.
+  private _cancelPendingTimer(targetID: string): boolean {
+    if (this._timerTargetID !== targetID) {
+      return false;
+    }
+    this._timer.stop();
+    this._timerTargetID = null;
+    return true;
+  }
+
   // Media not yet loaded and no known error: start (or keep) a timeout to catch
   // a slow or failed initial load. No targetID means no provider is rendering
   // media (e.g. the viewer shows "No media to display"), so there's nothing to
@@ -337,7 +368,7 @@ export class MediaUnavailableIssue implements Issue {
       this._timerTargetID = targetID;
       this._timer.start(MEDIA_LOADING_TIMEOUT_SECONDS, () => {
         // Record the error on timeout so retry() knows which epoch to bump.
-        this._erroredTargets.set(targetID, { reason: 'not_loading' });
+        this.trigger({ targetID, reason: 'not_loading' });
         this._activate();
         this._onChange?.();
       });

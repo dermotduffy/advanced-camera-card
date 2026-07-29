@@ -96,7 +96,12 @@ interface Go2RTCSessionCallbacks {
   // stream; a higher level should take over (e.g. the card's media-load retry).
   // The reason is the most recent source failure, or null when there is none
   // (e.g. the socket dropped with no source having reported a cause).
-  errorCallback: (reason: StreamSourceFailureReason | null) => void;
+  streamErrorCallback: (reason: StreamSourceFailureReason | null) => void;
+
+  // The outbound microphone could not be used, so the camera cannot be talked
+  // to. The inbound video is unaffected. `error` is what the source knows about
+  // the failure, when it knows anything.
+  microphoneErrorCallback: (error?: string) => void;
 }
 
 // Injectable platform and factory seams for tests. Every field defaults to
@@ -184,7 +189,7 @@ export class Go2RTCSessionController {
   // The most recent source failure on this connection, handed to the error
   // callback when the session finally gives up so the card can name the cause.
   // Null before any failure and after a healthy commit.
-  private _lastFailureReason: StreamSourceFailureReason | null = null;
+  private _lastStreamFailureReason: StreamSourceFailureReason | null = null;
 
   private _retryTimer = new RetryTimer(RECONNECT_INTERVAL_SECONDS);
 
@@ -227,7 +232,7 @@ export class Go2RTCSessionController {
 
   public reset(): void {
     this._retryTimer.reset();
-    this._lastFailureReason = null;
+    this._lastStreamFailureReason = null;
 
     this._teardownLanes();
     this._channel?.close();
@@ -359,7 +364,7 @@ export class Go2RTCSessionController {
         },
         failedCallback: (reason: StreamSourceFailureReason) => {
           if (source) {
-            this._lastFailureReason = reason;
+            this._lastStreamFailureReason = reason;
             this._logSourceFailure('binary', reason, mode);
             this._handleBinaryFailed(context, source);
           }
@@ -448,7 +453,7 @@ export class Go2RTCSessionController {
         },
         failedCallback: (reason) => {
           if (source) {
-            this._lastFailureReason = reason;
+            this._lastStreamFailureReason = reason;
             this._logSourceFailure('webrtc', reason);
             this._handleWebRTCFailed(context, source);
           }
@@ -458,6 +463,7 @@ export class Go2RTCSessionController {
 
     source = (this._options?.createWebRTCSource ?? createWebRTCSource)(sourceContext, {
       microphoneStream: this._microphoneStream,
+      microphoneErrorCallback: (error) => this._callbacks.microphoneErrorCallback(error),
       createPeerConnection: this._options?.createPeerConnection,
       createMediaStream: this._options?.createMediaStream,
     });
@@ -628,7 +634,7 @@ export class Go2RTCSessionController {
 
   private _reconnectOrEscalateError(context: ConnectionContext): void {
     if (this._retryTimer.getAttempts() >= RECONNECT_MAX_ATTEMPTS) {
-      this._callbacks.errorCallback(this._lastFailureReason);
+      this._callbacks.streamErrorCallback(this._lastStreamFailureReason);
       return;
     }
     this._retryTimer.schedule(() => this._connectChannel(context.url, context.surfaces));
@@ -660,7 +666,7 @@ export class Go2RTCSessionController {
     this._committedSource = source;
 
     this._retryTimer.reset();
-    this._lastFailureReason = null;
+    this._lastStreamFailureReason = null;
 
     if (this._committedSurface && this._committedSurface !== surface) {
       this._resetSurface(context, this._committedSurface);

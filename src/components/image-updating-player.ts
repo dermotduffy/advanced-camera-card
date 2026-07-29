@@ -16,6 +16,7 @@ import type { MediaUnavailableIssueReason } from '../card-controller/issues/issu
 import type { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
+import { FRAME_STALL_SECONDS } from '../components-lib/media-player/frame-stall-watchdog.js';
 import { ImageMediaPlayerController } from '../components-lib/media-player/image.js';
 import { createMediaNotification } from '../components-lib/notification/media.js';
 import {
@@ -176,6 +177,17 @@ export class AdvancedCameraCardImageUpdatingPlayer
         isRunning: () => this._cachedValueController.hasTimer(),
       },
       screenshotProvider: async () => this._cachedValueController.getValue(),
+      livenessOptions: {
+        // Frames are only due while the refresh timer runs. A snapshot with
+        // refreshing switched off shows one picture forever, which is the
+        // configured behaviour and never a stall.
+        isFrameExpected: () => this._cachedValueController.hasTimer(),
+
+        // Allow a whole refresh interval to pass, plus the standard window, so
+        // one slow fetch is not mistaken for a stopped camera.
+        getStallAfterSeconds: () =>
+          (this._getEffectiveRefreshSeconds() ?? 0) + FRAME_STALL_SECONDS,
+      },
     },
   );
 

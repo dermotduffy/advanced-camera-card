@@ -1,4 +1,4 @@
-import type { IssueTriggerContext } from 'issue';
+import type { IssueResolveContext, IssueTriggerContext } from 'issue';
 
 import { summarizeNotification } from '../../components-lib/notification/summarize';
 import type { ConditionState } from '../../condition-trigger/conditions/types';
@@ -11,6 +11,7 @@ import type {
   IssueKey,
   IssuePresence,
   IssueReadOnlyState,
+  IssueResolveContextKey,
   IssueTriggerContextKey,
   KeyedIssueDescription,
 } from './types';
@@ -28,7 +29,8 @@ export class IssueStateManager implements IssueReadOnlyState {
   }
 
   // =========================================================================
-  // Detection -- static (one-shot on init) and dynamic (on every state change).
+  // Detection -- static (one-shot on init), dynamic (on every state change) and
+  // explicit (triggered or resolved by a component).
   // =========================================================================
 
   public async detectStatic(hass: HomeAssistant): Promise<void> {
@@ -53,6 +55,18 @@ export class IssueStateManager implements IssueReadOnlyState {
       return;
     }
     issue.trigger?.(context);
+    this._logIfNew(issue);
+  }
+
+  public resolve<K extends IssueResolveContextKey>(
+    key: K,
+    context: IssueResolveContext[K],
+  ): void {
+    const issue = this._issues.get(key);
+    if (!issue) {
+      return;
+    }
+    issue.resolve?.(context);
     this._logIfNew(issue);
   }
 

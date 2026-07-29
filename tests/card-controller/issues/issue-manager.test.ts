@@ -265,6 +265,45 @@ describe('IssueManager', () => {
     });
   });
 
+  describe('resolve', () => {
+    it('should resolve the issue and update the card once it clears', () => {
+      const api = createCardAPI();
+      const manager = new IssueManager(api);
+
+      const issue = createIssue('media_unavailable', {
+        hasIssue: vi.fn().mockReturnValue(true),
+        getIssue: vi.fn().mockReturnValue(createIssueDescription()),
+        resolve: vi.fn(),
+      });
+      manager.addIssue(issue);
+
+      // Establish the issue as present, then let resolving remove it.
+      manager.evaluate();
+      vi.mocked(api.getCardElementManager().update).mockClear();
+      vi.mocked(issue.getIssue).mockReturnValue(null);
+
+      manager.resolve('media_unavailable', { targetID: 'camera-1' });
+
+      expect(issue.resolve).toHaveBeenCalledWith({ targetID: 'camera-1' });
+      expect(api.getCardElementManager().update).toHaveBeenCalled();
+    });
+
+    it('should stop retrying once resolve removes the last retryable problem', () => {
+      const { manager, issue } = createRetriableSetup();
+      assert(issue.resolve);
+      assert(issue.needsRetry);
+
+      // Arm the retry timer while the problem is unresolved.
+      manager.evaluate();
+
+      vi.mocked(issue.needsRetry).mockReturnValue(false);
+      manager.resolve('media_unavailable', { targetID: 'camera-1' });
+
+      vi.advanceTimersByTime(DEFAULT_RETRY_SECONDS * 1000 * 10);
+      expect(issue.retry).not.toHaveBeenCalled();
+    });
+  });
+
   describe('retry', () => {
     it('should call retry on the manager and reset the timer', () => {
       const { manager, issue } = createRetriableSetup();

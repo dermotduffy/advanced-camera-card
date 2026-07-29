@@ -74,7 +74,7 @@ export class CallManager {
         .getCameraIDsWithCapability('live')
         .has(parentID)
     ) {
-      this._notifyError('error.call_invalid_target', inbound);
+      this._notifyError('error.call_invalid_target', { inbound });
       return false;
     }
 
@@ -261,6 +261,22 @@ export class CallManager {
     return this.end();
   }
 
+  // The microphone could not be used for the call, so it is connected but the
+  // user cannot be heard. `description` is what the reporting layer knows about
+  // the failure, when it knows anything.
+  public reportCallMicrophoneError(targetID: string, description?: string): void {
+    const call = this._call;
+
+    // A report that no longer matches the call in progress describes an attempt
+    // the user has already moved past, e.g. the call ended before the provider
+    // finished reporting.
+    if (!call || !call.answered || call.cameraID !== targetID) {
+      return;
+    }
+
+    this._notifyError('error.call_microphone_failed', { context: description });
+  }
+
   // Tears down everything `initialize()` set up: stops any in-flight ringtone
   // and unanswered timer, drops the active call session, clears the call
   // condition state, and de-registers the condition-state listener. Driven by
@@ -367,14 +383,21 @@ export class CallManager {
   // Helpers
   // =========================================================================
 
-  private _notifyError(messageKey: string, inbound: boolean): void {
-    if (inbound) {
-      // Don't show errors on inbound calls.
+  // `context` is a diagnostic the user can quote when reporting the problem.
+  private _notifyError(
+    messageKey: string,
+    options?: { inbound?: boolean; context?: string },
+  ): void {
+    // An inbound call the user has not answered yet is not something they have
+    // asked for, so a failure to place it is not worth interrupting them with.
+    if (options?.inbound) {
       return;
     }
+    const context = options?.context;
     this._api.getNotificationManager().setNotification(
       createNotificationFromText(localize(messageKey), {
         heading: { text: localize('error.call_unavailable_heading') },
+        ...(context && { context }),
       }),
     );
   }
@@ -385,7 +408,7 @@ export class CallManager {
     const microphoneManager = this._api.getMicrophoneManager();
 
     if (!microphoneManager.isSupported()) {
-      this._notifyError('error.call_microphone_unsupported', inbound);
+      this._notifyError('error.call_microphone_unsupported', { inbound });
       return false;
     }
 
@@ -394,7 +417,7 @@ export class CallManager {
     // there clears the denial, and failing there reports it. An outbound call
     // needs the microphone immediately, so a known denial ends it here.
     if (!inbound && microphoneManager.isForbidden()) {
-      this._notifyError('error.call_microphone_forbidden', inbound);
+      this._notifyError('error.call_microphone_forbidden', { inbound });
       return false;
     }
 
@@ -428,7 +451,7 @@ export class CallManager {
     }
 
     if (!connected) {
-      this._notifyError('error.call_microphone_forbidden', false);
+      this._notifyError('error.call_microphone_forbidden');
       return false;
     }
     return true;
@@ -453,7 +476,7 @@ export class CallManager {
       .getStore()
       .getAllDependentCameras(cameraID, '2-way-audio');
     if (!eligibleCameraIDs.has(streamID)) {
-      this._notifyError('error.call_invalid_target', inbound);
+      this._notifyError('error.call_invalid_target', { inbound });
       return null;
     }
     return streamID;
@@ -480,7 +503,7 @@ export class CallManager {
         .getAllDependentCameras(parentID, '2-way-audio'),
     ];
     if (!candidates.length) {
-      this._notifyError('error.call_no_two_way_audio', inbound);
+      this._notifyError('error.call_no_two_way_audio', { inbound });
       return null;
     }
     return candidates[0];

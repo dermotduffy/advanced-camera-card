@@ -16,8 +16,13 @@ import 'web-dialog';
 import { actionHandler } from './action-handler-directive.js';
 import { ConfigManager } from './card-controller/config/config-manager';
 import { CardController } from './card-controller/controller';
-import type { IssueKey, IssueTriggerEventData } from './card-controller/issues/types.js';
+import type {
+  IssueKey,
+  IssueResolveEventData,
+  IssueTriggerEventData,
+} from './card-controller/issues/types.js';
 import { resolveAutoHideState, type AutoHideState } from './components-lib/auto-hide.js';
+import type { MicrophoneError } from './components-lib/live/utils/dispatch-microphone-error.js';
 import { MenuButtonController } from './components-lib/menu-button-controller';
 
 import './components/effects/effects';
@@ -427,6 +432,16 @@ class AdvancedCameraCard extends LitElement {
             detail: { key, ...context },
           }: CustomEvent<IssueTriggerEventData>) =>
             this._controller.getIssueManager().trigger(key, context)}
+          @advanced-camera-card:issue:resolve=${({
+            detail: { key, ...context },
+          }: CustomEvent<IssueResolveEventData>) =>
+            this._controller.getIssueManager().resolve(key, context)}
+          @advanced-camera-card:microphone:error=${({
+            detail,
+          }: CustomEvent<MicrophoneError>) =>
+            this._controller
+              .getCallManager()
+              .reportCallMicrophoneError(detail.targetID, detail.description)}
           @advanced-camera-card:media:loaded=${(
             ev: CustomEvent<MediaLoadedInfoEventDetail>,
           ) => this._controller.getMediaLoadedInfoManager().handleLoadEvent(ev)}

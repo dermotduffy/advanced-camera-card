@@ -47,7 +47,7 @@ describe('ImageSurfaceController', () => {
 
     it('should have liveness when given liveness options', () => {
       const controller = new ImageSurfaceController(createLitElement(), () => null, {
-        livenessOptions: { isFrameExpected: () => true, stallWindowSeconds: 10 },
+        livenessOptions: { isFrameExpected: () => true, getStallAfterSeconds: () => 10 },
       });
 
       expect(controller.getMediaPlayer().subscribeLiveness).toBeDefined();

@@ -49,7 +49,7 @@ export class ProviderErrorDetector implements LivenessDetector {
         state: 'not_live',
         authority: 'hard',
         reason: ev.detail.reason ?? 'playback_error',
-        description: ev.detail.detail,
+        description: ev.detail.description,
       };
       this._onChange();
     }

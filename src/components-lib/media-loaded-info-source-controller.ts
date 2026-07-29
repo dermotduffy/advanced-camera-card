@@ -38,6 +38,13 @@ type TargetedMediaLoadedInfo = MediaLoadedInfo & { targetID: string };
  * without needing the underlying media to re-fire a load (e.g., HaHlsPlayer
  * keeps the same `<video>`).
  *
+ * That replay assumes the media outlived the detach. A host that instead
+ * destroys its media -- whenever it does so, on disconnect or otherwise -- must
+ * say so with `clear()`, or the replay would describe a player that no longer
+ * exists and consumers will be told media is loaded when none is. `set` and
+ * `clear` are the two halves of the same obligation: report what is really
+ * there.
+ *
  * Aggregator parents (e.g., `ha-camera-stream`) sit on the bubble path; they
  * can `stopPropagation` on inner-leaf events and dispatch their own via their
  * own source controller, so consumers above the boundary only see the
@@ -68,9 +75,9 @@ export class MediaLoadedInfoSourceController implements ReactiveController {
 
   public hostConnected(): void {
     // Two early-returns:
-    //  - `!_lastSet`: nothing to replay -- either the host has never seen a
-    //    media load or the cache was discarded as stale on a prior reconnect
-    //    (see below).
+    //  - `!_lastSet`: nothing to replay -- the host has never seen a media
+    //    load, or destroyed the media it had (`clear`), or the cache was
+    //    discarded as stale on a prior reconnect (see below).
     //  - `_abort` non-null: a dispatch is already live, meaning we're already
     //    registered with consumers. Re-firing would orphan the prior
     //    `AbortController` (no one would ever abort it) and emit a duplicate
@@ -84,8 +91,7 @@ export class MediaLoadedInfoSourceController implements ReactiveController {
     // flipped while we were disconnected. Replaying the cached info under a
     // stale targetID would misregister with the manager.
     if (this._lastSet.targetID === this._config.getTargetID()) {
-      // A reconnect replay of the last load, not a fresh media load.
-      this._dispatchLoad(this._lastSet, true);
+      this._dispatchLoad(this._lastSet);
     } else {
       this._lastSet = null;
     }
@@ -131,16 +137,24 @@ export class MediaLoadedInfoSourceController implements ReactiveController {
     this._dispatchLoad(validated);
   }
 
+  // The media this source announced is gone. Retires the registration through
+  // the same signal a disconnect uses, and forgets the load so nothing is
+  // replayed on a later reconnect: the host must `set` again when it has media
+  // to announce.
+  public clear(): void {
+    this._unload();
+    this._lastSet = null;
+  }
+
   private _unload(): void {
     this._abort?.abort();
     this._abort = null;
   }
 
-  private _dispatchLoad(info: TargetedMediaLoadedInfo, cached?: boolean): void {
+  private _dispatchLoad(info: TargetedMediaLoadedInfo): void {
     this._abort = new AbortController();
     fireAdvancedCameraCardEvent<MediaLoadedInfoEventDetail>(this._host, 'media:loaded', {
       info,
-      cached,
       signal: this._abort.signal,
     });
   }
