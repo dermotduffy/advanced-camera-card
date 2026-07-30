@@ -9,13 +9,21 @@ export class EffectAction extends AdvancedCameraCardAction<EffectActionConfig> {
     const action = this._getAction();
     switch (action.effect_action) {
       case 'start':
-        void api.getEffectsManager().startEffect(action.effect);
+        // An effect runs for its own duration, so it is deliberately not
+        // awaited: doing so would stall the rest of the action set.
+        api
+          .getEffectsManager()
+          .startEffect(action.effect)
+          .catch(() => {});
         break;
       case 'stop':
         api.getEffectsManager().stopEffect(action.effect);
         break;
       case 'toggle':
-        void api.getEffectsManager().toggleEffect(action.effect);
+        api
+          .getEffectsManager()
+          .toggleEffect(action.effect)
+          .catch(() => {});
         break;
     }
   }

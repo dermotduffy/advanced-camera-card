@@ -4,6 +4,7 @@ import { mock } from 'vitest-mock-extended';
 
 import type { CardController } from '../../../src/card-controller/controller';
 import type { ViewFactory } from '../../../src/card-controller/view/factory';
+import { MergeContextViewModifier } from '../../../src/card-controller/view/modifiers/merge-context';
 import { SetQueryViewModifier } from '../../../src/card-controller/view/modifiers/set-query';
 import type {
   QueryExecutorOptions,
@@ -129,6 +130,26 @@ it('should set view with merged context', () => {
   expect(manager.getView()?.camera).toBe('camera');
   expect(manager.getView()?.view).toBe('live');
   expect(manager.getView()?.context).toEqual(context);
+});
+
+it('should set view with modifiers', () => {
+  const api = createInitializedCardAPI();
+  const factory = mock<ViewFactory>();
+
+  const manager = new ViewManager(api, { viewFactory: factory });
+  const modifier = new MergeContextViewModifier({ timeline: {} });
+
+  // Applying modifiers with no existing view does nothing.
+  manager.setViewWithModifiers([modifier]);
+  expect(manager.getView()).toBeNull();
+
+  factory.getViewDefault.mockReturnValue(createView({ view: 'live', camera: 'camera' }));
+  manager.setViewDefault();
+  manager.setViewWithModifiers([modifier]);
+
+  expect(manager.getView()?.camera).toBe('camera');
+  expect(manager.getView()?.view).toBe('live');
+  expect(manager.getView()?.context).toEqual({ timeline: {} });
 });
 
 it('should return epoch', () => {

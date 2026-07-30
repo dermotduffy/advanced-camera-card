@@ -8,7 +8,9 @@ interface ZoomViewContext {
   observed?: ZoomSettingsObserved;
 
   // Populate this to request zoom to a particular scale/x/y. An empty object
-  // will reset to default, null will make no change.
+  // will reset to default, null will make no change. Requests must be written
+  // by `ZoomRequestViewModifier` since an empty object needs to mean "reset to
+  // default" (and a merged empty object != an assigned empty object).
   requested?: PartialZoomSettings | null;
 }
 

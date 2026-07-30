@@ -28,7 +28,7 @@ export class PTZMultiAction extends AdvancedCameraCardAction<PTZMultiActionConfi
       return;
     }
 
-    void (
+    await (
       type === 'ptz' ? this._toPTZAction(targetID) : this._toPTZDigitalAction(targetID)
     ).execute(api);
   }

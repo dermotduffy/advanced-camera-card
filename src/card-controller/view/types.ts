@@ -82,6 +82,7 @@ export interface ViewManagerInterface {
   setViewByParametersWithExistingQuery(options?: ViewFactoryOptions): Promise<void>;
 
   setViewWithMergedContext(context: ViewContext | null): void;
+  setViewWithModifiers(modifiers: ViewModifier[]): void;
 
   hasMajorMediaChange(oldView?: View | null, newView?: View | null): boolean;
 }
