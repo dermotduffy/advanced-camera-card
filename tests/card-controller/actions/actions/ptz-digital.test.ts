@@ -1,13 +1,24 @@
+import type { ViewContext } from 'view';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { PTZDigitalAction } from '../../../../src/card-controller/actions/actions/ptz-digital';
+import type { CardController } from '../../../../src/card-controller/controller';
 import type {
   PartialZoomSettings,
   ZoomSettingsObserved,
 } from '../../../../src/components-lib/zoom/types';
 import type { PTZAction } from '../../../../src/config/schema/actions/custom/ptz';
+import { applySetViewModifiers } from '../../../card-controller/view/test-utils';
 import { createCardAPI } from '../../../test-utils';
 import { createView } from '../../../view/test-utils';
+
+const getRequestedZoom = (
+  api: CardController,
+  context?: ViewContext,
+  n = 0,
+): PartialZoomSettings | null | undefined =>
+  applySetViewModifiers(api.getViewManager(), createView({ context }), n).context?.zoom
+    ?.camera?.requested;
 
 describe('should handle ptz digital action', () => {
   const defaultSettings = {
@@ -48,19 +59,12 @@ describe('should handle ptz digital action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
-      zoom: {
-        camera: {
-          observed: undefined,
-          requested: {
-            pan: {
-              x: 3,
-              y: 4,
-            },
-            zoom: 2,
-          },
-        },
+    expect(getRequestedZoom(api)).toEqual({
+      pan: {
+        x: 3,
+        y: 4,
       },
+      zoom: 2,
     });
   });
 
@@ -78,14 +82,40 @@ describe('should handle ptz digital action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
-      zoom: {
-        camera: {
-          observed: undefined,
-          requested: {},
+    expect(getRequestedZoom(api)).toEqual({});
+  });
+
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/2632
+  it('should return to default when chained after an absolute request', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
+
+    await new PTZDigitalAction(
+      {},
+      {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz_digital',
+        absolute: {
+          zoom: 3,
         },
       },
-    });
+    ).execute(api);
+
+    await new PTZDigitalAction(
+      {},
+      {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'ptz_digital',
+      },
+    ).execute(api);
+
+    // Both actions land on a single view, as they do when an automation runs
+    // them back to back.
+    const view = createView();
+    applySetViewModifiers(api.getViewManager(), view, 0);
+    applySetViewModifiers(api.getViewManager(), view, 1);
+
+    expect(view.context?.zoom?.camera?.requested).toEqual({});
   });
 
   it('should do nothing without a view', async () => {
@@ -102,7 +132,7 @@ describe('should handle ptz digital action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalledWith();
+    expect(api.getViewManager().setViewWithModifiers).not.toHaveBeenCalled();
   });
 
   it('should do nothing without a camera', async () => {
@@ -126,7 +156,7 @@ describe('should handle ptz digital action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewWithMergedContext).not.toHaveBeenCalled();
+    expect(api.getViewManager().setViewWithModifiers).not.toHaveBeenCalled();
   });
 
   describe('should honor ptz_action', () => {
@@ -339,16 +369,11 @@ describe('should handle ptz digital action', () => {
 
         await action.execute(api);
 
-        expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledWith({
-          zoom: {
-            camera: {
-              observed: undefined,
-              requested: {
-                ...defaultSettings,
-                ...expectedSettings,
-              },
-            },
-          },
+        expect(
+          getRequestedZoom(api, { zoom: { camera: { observed: current } } }),
+        ).toEqual({
+          ...defaultSettings,
+          ...expectedSettings,
         });
       },
     );
@@ -380,61 +405,40 @@ describe('should handle ptz digital action', () => {
 
       await action.execute(api);
 
-      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenLastCalledWith({
-        zoom: {
-          camera: {
-            observed: undefined,
-            requested: {
-              ...defaultSettings,
-              pan: {
-                x: 55,
-                y: 50,
-              },
-            },
-          },
+      expect(getRequestedZoom(api)).toEqual({
+        ...defaultSettings,
+        pan: {
+          x: 55,
+          y: 50,
         },
       });
 
       // Update the context to reflect the first step.
+      const observed = createObserved({
+        pan: {
+          x: 55,
+          y: 50,
+        },
+      });
       vi.mocked(api.getViewManager().getView).mockReturnValue(
-        createView({
-          context: {
-            zoom: {
-              camera: {
-                observed: createObserved({
-                  pan: {
-                    x: 55,
-                    y: 50,
-                  },
-                }),
-              },
-            },
-          },
-        }),
+        createView({ context: { zoom: { camera: { observed } } } }),
       );
 
       vi.runOnlyPendingTimers();
 
-      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenLastCalledWith({
-        zoom: {
-          camera: {
-            observed: undefined,
-            requested: {
-              ...defaultSettings,
-              pan: {
-                x: 60,
-                y: 50,
-              },
-            },
-          },
+      expect(getRequestedZoom(api, { zoom: { camera: { observed } } }, 1)).toEqual({
+        ...defaultSettings,
+        pan: {
+          x: 60,
+          y: 50,
         },
       });
-      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledTimes(2);
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(2);
 
       action.stop();
       vi.runOnlyPendingTimers();
 
-      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledTimes(2);
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(2);
     });
 
     it('stop', async () => {
@@ -450,21 +454,14 @@ describe('should handle ptz digital action', () => {
       });
       await startAction.execute(api);
 
-      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenLastCalledWith({
-        zoom: {
-          camera: {
-            observed: undefined,
-            requested: {
-              ...defaultSettings,
-              pan: {
-                x: 55,
-                y: 50,
-              },
-            },
-          },
+      expect(getRequestedZoom(api)).toEqual({
+        ...defaultSettings,
+        pan: {
+          x: 55,
+          y: 50,
         },
       });
-      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledTimes(1);
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(1);
 
       const stopAction = new PTZDigitalAction(context, {
         action: 'fire-dom-event',
@@ -475,7 +472,7 @@ describe('should handle ptz digital action', () => {
 
       vi.runOnlyPendingTimers();
 
-      expect(api.getViewManager().setViewWithMergedContext).toHaveBeenCalledTimes(1);
+      expect(api.getViewManager().setViewWithModifiers).toHaveBeenCalledTimes(1);
     });
   });
 });

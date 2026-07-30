@@ -334,6 +334,12 @@ export class ViewManager implements ViewManagerInterface {
     }
   }
 
+  public setViewWithModifiers(modifiers: ViewModifier[]): void {
+    if (this._view) {
+      return this._setView(applyViewModifiers(this._view.clone(), modifiers));
+    }
+  }
+
   /**
    * Detect if the current view has a major "media change" for the given previous view.
    * @param oldView The previous view.
