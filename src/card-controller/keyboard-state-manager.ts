@@ -1,5 +1,6 @@
 import { isEqual } from 'lodash-es';
 
+import { isFocusWithin } from '../utils/focus';
 import type { CardKeyboardStateAPI, KeysState } from './types';
 
 export class KeyboardStateManager {
@@ -15,6 +16,12 @@ export class KeyboardStateManager {
     element.addEventListener('keydown', this._handleKeydown);
     element.addEventListener('keyup', this._handleKeyup);
     element.addEventListener('blur', this._handleBlur);
+
+    // Must capture, since elements within the card stop pointer events propagating
+    // (e.g. the zoom controller during a pan).
+    element.addEventListener('pointerdown', this._handlePointerdown, {
+      capture: true,
+    });
   }
 
   public uninitialize(): void {
@@ -22,6 +29,9 @@ export class KeyboardStateManager {
     element.removeEventListener('keydown', this._handleKeydown);
     element.removeEventListener('keyup', this._handleKeyup);
     element.removeEventListener('blur', this._handleBlur);
+    element.removeEventListener('pointerdown', this._handlePointerdown, {
+      capture: true,
+    });
 
     // Clear state on disconnect. Without listeners the card cannot know
     // whether a key was released while detached, and stale "down" state
@@ -54,7 +64,30 @@ export class KeyboardStateManager {
     }
   };
 
-  private _handleBlur = (): void => {
+  // Keys are only received when the card or something within it has focus, so
+  // focus is claimed on interaction. The card itself is focused rather than a
+  // child, as a child may be removed by the next render and take focus with it.
+  private _handlePointerdown = (): void => {
+    const element = this._api.getCardElementManager().getElement();
+
+    // Focus already inside the card is left where it is, as taking it would blur
+    // whatever the user is interacting with (e.g. a text field being typed in).
+    if (isFocusWithin(element)) {
+      return;
+    }
+
+    // Taking focus must not scroll the dashboard to bring the card into view.
+    element.focus({ preventScroll: true });
+  };
+
+  private _handleBlur = (ev: FocusEvent): void => {
+    // 'relatedTarget' would be the card element due to event retargeting --
+    // focus gained by another element within the card will be reported as to
+    // the card itself at this level.
+    if (ev.relatedTarget === this._api.getCardElementManager().getElement()) {
+      return;
+    }
+
     if (Object.keys(this._state).length) {
       // State is emptied if the element loses focus.
       this._state = {};

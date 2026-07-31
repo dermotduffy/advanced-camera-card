@@ -72,6 +72,73 @@ describe('KeyboardStateManager', () => {
     });
   });
 
+  it('should not clear state when focus moves within the card', () => {
+    const api = createCardAPI();
+    const element = createLitElement();
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+    const manager = new KeyboardStateManager(api);
+    manager.initialize();
+
+    element.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+    element.dispatchEvent(new FocusEvent('blur', { relatedTarget: element }));
+
+    expect(api.getConditionStateManager().setState).toHaveBeenCalledTimes(1);
+    expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith({
+      keys: {
+        a: { state: 'down', ctrl: false, alt: false, meta: false, shift: false },
+      },
+    });
+  });
+
+  it('should take focus on pointerdown', () => {
+    const api = createCardAPI();
+    const element = createLitElement();
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+    const focus = vi.spyOn(element, 'focus');
+    const manager = new KeyboardStateManager(api);
+    manager.initialize();
+
+    element.dispatchEvent(new Event('pointerdown'));
+
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+  });
+
+  it('should not take focus on pointerdown when focus is already within the card', () => {
+    const api = createCardAPI();
+    const element = createLitElement();
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+    document.body.append(element);
+
+    const child = document.createElement('div');
+    child.setAttribute('tabindex', '0');
+    element.attachShadow({ mode: 'open' }).appendChild(child);
+    child.focus();
+
+    const focus = vi.spyOn(element, 'focus');
+    const manager = new KeyboardStateManager(api);
+    manager.initialize();
+
+    element.dispatchEvent(new Event('pointerdown'));
+
+    expect(focus).not.toHaveBeenCalled();
+
+    element.remove();
+  });
+
+  it('should not take focus on pointerdown after uninitialization', () => {
+    const api = createCardAPI();
+    const element = createLitElement();
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+    const focus = vi.spyOn(element, 'focus');
+    const manager = new KeyboardStateManager(api);
+    manager.initialize();
+    manager.uninitialize();
+
+    element.dispatchEvent(new Event('pointerdown'));
+
+    expect(focus).not.toHaveBeenCalled();
+  });
+
   it('should not act after uninitialization', () => {
     const api = createCardAPI();
     const element = createLitElement();

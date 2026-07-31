@@ -123,6 +123,7 @@ describe('CardElementManager', () => {
 
     expect(element.getAttribute('panel')).toBeNull();
     expect(element.getAttribute('casted')).toBeNull();
+    expect(element.getAttribute('tabindex')).toBe('0');
     expect(api.getFullscreenManager().connect).toHaveBeenCalled();
 
     expect(addEventListener).toHaveBeenCalledWith(
@@ -173,6 +174,7 @@ describe('CardElementManager', () => {
     const element = createCardHTMLElement();
     element.setAttribute('panel', '');
     element.setAttribute('casted', '');
+    element.setAttribute('tabindex', '0');
 
     const removeEventListener = vi.fn();
     element.removeEventListener = removeEventListener;
@@ -190,6 +192,7 @@ describe('CardElementManager', () => {
 
     expect(element.getAttribute('panel')).toBeNull();
     expect(element.getAttribute('casted')).toBeNull();
+    expect(element.getAttribute('tabindex')).toBeNull();
     expect(api.getMediaLoadedInfoManager().clear).toHaveBeenCalled();
     expect(api.getFullscreenManager().disconnect).toHaveBeenCalled();
 

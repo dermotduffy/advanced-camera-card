@@ -454,7 +454,6 @@ class AdvancedCameraCard extends LitElement {
           @advanced-camera-card:media:pause=${
             () => this.requestUpdate() /* Refresh play/pause menu button */
           }
-          @advanced-camera-card:focus=${() => this.focus()}
           @advanced-camera-card:notification:dismiss=${() =>
             this._controller.getNotificationManager().reset()}
         >
