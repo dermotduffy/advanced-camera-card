@@ -50,7 +50,7 @@ interface TargetError {
   description?: string;
 }
 
-const MEDIA_LOADING_TIMEOUT_SECONDS = 10;
+export const MEDIA_LOADING_TIMEOUT_SECONDS = 10;
 
 // The per-cause presentation (localization key + icon), shared by the
 // notification metadata and the reconnecting placeholder so each cause is

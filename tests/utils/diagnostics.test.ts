@@ -2,6 +2,7 @@ import type { HassConfig } from 'home-assistant-js-websocket';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
+import { RELEASE_VERSION_TOKEN } from '../../scripts/release-version.js';
 import type { DeviceRegistryManager } from '../../src/ha/registry/device';
 import { homeAssistantWSRequest } from '../../src/ha/ws-request';
 import { getLanguage } from '../../src/localize/localize';
@@ -22,7 +23,7 @@ vi.mock('../../src/ha/ws-request.js');
 
 describe('getReleaseVersion', () => {
   it('should get release version', () => {
-    expect(getReleaseVersion()).toBe('__ADVANCED_CAMERA_CARD_RELEASE_VERSION__');
+    expect(getReleaseVersion()).toBe(RELEASE_VERSION_TOKEN);
   });
 });
 

@@ -12,38 +12,45 @@ class HomeAssistantElementsLoadError extends AdvancedCameraCardError {
 }
 
 /**
+ * The Home Assistant elements this card renders and expects to already be
+ * registered.
+ */
+export const SIDE_LOADED_ELEMENTS = [
+  'ha-alert',
+  'ha-button',
+  'ha-camera-stream',
+  'ha-card',
+  'ha-combo-box',
+  'ha-dropdown-item',
+  'ha-dropdown',
+  'ha-expansion-panel',
+  'ha-form',
+  'ha-hls-player',
+  'ha-icon-button-prev',
+  'ha-icon-button',
+  'ha-icon',
+  'ha-md-list-item',
+  'ha-md-list',
+  'ha-menu-button',
+  'ha-selector',
+  'ha-sortable',
+  'ha-spinner',
+  'ha-state-icon',
+  'ha-web-rtc-player',
+
+  'hui-conditional-element',
+
+  'mwc-list-item',
+  'state-badge',
+];
+
+/**
  * Side loads the HA elements this card needs. This trickery is unfortunate
  * necessary, see:
  *  - https://github.com/thomasloven/hass-config/wiki/PreLoading-Lovelace-Elements
  */
 export const sideLoadHomeAssistantElements = async (): Promise<void> => {
-  const neededElements = [
-    'ha-alert',
-    'ha-button',
-    'ha-camera-stream',
-    'ha-card',
-    'ha-combo-box',
-    'ha-dropdown-item',
-    'ha-dropdown',
-    'ha-expansion-panel',
-    'ha-form',
-    'ha-hls-player',
-    'ha-icon-button-prev',
-    'ha-icon-button',
-    'ha-icon',
-    'ha-md-list-item',
-    'ha-md-list',
-    'ha-menu-button',
-    'ha-selector',
-    'ha-sortable',
-    'ha-spinner',
-    'ha-state-icon',
-    'ha-web-rtc-player',
-    'mwc-list-item',
-    'state-badge',
-  ];
-
-  if (neededElements.every((element) => customElements.get(element))) {
+  if (SIDE_LOADED_ELEMENTS.every((element) => customElements.get(element))) {
     return;
   }
 

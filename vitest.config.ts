@@ -24,13 +24,21 @@ const EXCLUSIONS = [
 
 const TEST_DIRECTORY = 'tests';
 
+// Tests that mount the card in a real browser. They run from
+// `vitest.browser.config.ts` and cannot run in any of the projects below, so
+// they are kept out of the sweep.
+const BROWSER_TEST_SUFFIX = '.browser.test.ts';
+
 const findTestFiles = (directory: string): string[] => {
   const files: string[] = [];
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name);
     if (entry.isDirectory()) {
       files.push(...findTestFiles(path));
-    } else if (entry.name.endsWith('.test.ts')) {
+    } else if (
+      entry.name.endsWith('.test.ts') &&
+      !entry.name.endsWith(BROWSER_TEST_SUFFIX)
+    ) {
       files.push(path);
     }
   }
@@ -78,7 +86,7 @@ export default defineConfig({
           // Nothing stops these sharing, so they run against a single loaded
           // copy of the source tree. Most of the suite is here, and anything
           // moved out of here pays to import that tree again.
-          name: 'shared-node',
+          name: 'shared',
           include: getInclusions('shared-node'),
           isolate: false,
         },
@@ -100,7 +108,7 @@ export default defineConfig({
           //
           // They share one `document` as well, so a file that redefines part of
           // it must leave the property configurable for the files that follow.
-          name: 'shared-jsdom',
+          name: 'shared (jsdom)',
           include: getInclusions('shared-jsdom'),
           environment: 'jsdom',
           isolate: false,
