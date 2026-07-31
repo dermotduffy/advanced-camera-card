@@ -24,8 +24,11 @@ interface AdvancedCameraCardActionHandlerOptions extends ActionHandlerOptions {
   allowPropagation?: boolean;
 }
 
+// How long a press must last to count as a hold rather than a tap.
+export const ACTION_HANDLER_HOLD_SECONDS = 0.4;
+
 class ActionHandler extends HTMLElement implements ActionHandlerInterface {
-  public holdTime = 0.4;
+  public holdTime = ACTION_HANDLER_HOLD_SECONDS;
 
   private holdTimer = new Timer();
   private doubleClickTimer = new Timer();

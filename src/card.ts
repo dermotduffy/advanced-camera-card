@@ -126,7 +126,7 @@ const advancedCameraCards: AdvancedCameraCard[] = (window.advancedCameraCards ??
 // ***************************************************************************
 
 @customElement('advanced-camera-card')
-class AdvancedCameraCard extends LitElement {
+export class AdvancedCameraCard extends LitElement {
   protected _controller = new CardController(
     this,
     // Callback to scroll the main pane back to the top (example usecase: scrolling

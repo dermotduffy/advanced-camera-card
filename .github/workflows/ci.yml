@@ -38,7 +38,7 @@ jobs:
         run: yarn run format-check
 
   test:
-    name: Test
+    name: Unit Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -52,6 +52,31 @@ jobs:
 
       - name: Test & Coverage
         run: yarn run coverage
+
+  browser-test:
+    name: Browser Test
+
+    # Not yet a required check: the browser suite is new/potentially unstable.
+    continue-on-error: true
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node and Yarn
+        uses: volta-cli/action@v5
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # The browser binary is not in the lockfile, and the media tests need the
+      # proprietary codecs the Chrome for Testing builds carry.
+      - name: Install Chromium
+        run: yarn playwright install --with-deps chromium
+
+      - name: Browser test
+        run: yarn run test:browser
 
   build:
     name: Build

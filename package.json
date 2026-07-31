@@ -68,6 +68,7 @@
     "@types/masonry-layout": "^4.2.8",
     "@typescript-eslint/eslint-plugin": "^8.30.1",
     "@typescript-eslint/parser": "^8.30.1",
+    "@vitest/browser-playwright": "4.1.10",
     "@vitest/coverage-v8": "^4.1.10",
     "conventional-changelog-conventionalcommits": "^8.0.0",
     "docsify-cli": "^4.4.4",
@@ -75,6 +76,7 @@
     "eslint-config-prettier": "^9.1.0",
     "jsdom": "^21.1.2",
     "knip": "^6.29.0",
+    "playwright": "1.62.0",
     "prettier": "^3.3.2",
     "rollup": "^3.29.4",
     "rollup-plugin-git-info": "^1.0.0",
@@ -189,6 +191,7 @@
     "rollup": "rollup -c",
     "prune": "knip",
     "test": "vitest run",
+    "test:browser": "vitest run --config vitest.browser.config.ts",
     "coverage": "vitest run --coverage"
   },
   "volta": {

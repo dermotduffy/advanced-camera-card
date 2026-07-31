@@ -9,6 +9,9 @@ package-lock.json
 /visualizations/
 /coverage/
 
+# Screenshots and attachments the browser test runner writes when a test fails.
+/.vitest/
+
 # https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
 .pnp.*
 .yarn/*

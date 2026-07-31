@@ -11,6 +11,7 @@ import styles from 'rollup-plugin-styler';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 import { cleanDist } from './scripts/clean-dist-plugin.js';
+import { RELEASE_VERSION_TOKEN } from './scripts/release-version.js';
 import { svgPath } from './scripts/svg-path-plugin.js';
 
 const watch = process.env.ROLLUP_WATCH === 'true' || process.env.ROLLUP_WATCH === '1';
@@ -76,8 +77,7 @@ const plugins = [
     preventAssignment: true,
     values: {
       'process.env.NODE_ENV': JSON.stringify(dev ? 'development' : 'production'),
-      __ADVANCED_CAMERA_CARD_RELEASE_VERSION__:
-        process.env.RELEASE_VERSION ?? (dev ? 'dev' : 'pkg'),
+      [RELEASE_VERSION_TOKEN]: process.env.RELEASE_VERSION ?? (dev ? 'dev' : 'pkg'),
     },
   }),
   serveEnabled && serve(serveopts),
