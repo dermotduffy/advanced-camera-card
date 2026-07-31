@@ -2,7 +2,16 @@ import Panzoom, {
   type PanzoomEventDetail,
   type PanzoomObject,
 } from '@dermotduffy/panzoom';
-import { beforeAll, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type Mock,
+} from 'vitest';
 import { mock, mockClear } from 'vitest-mock-extended';
 
 import { ZoomController } from '../../../src/components-lib/zoom/zoom-controller';
@@ -27,6 +36,13 @@ vi.mock('lodash-es', () => ({
 const triggerResizeObserver = (): void => {
   const resizeObserverTrigger = vi.mocked(global.ResizeObserver).mock.calls[0][0];
   resizeObserverTrigger([], mock<ResizeObserver>());
+};
+
+// The controller only activates against an attached element.
+const createAttachedElement = (): HTMLElement => {
+  const element = document.createElement('div');
+  document.body.appendChild(element);
+  return element;
 };
 
 const setElementToDefaultCardSize = (element: HTMLElement, multiple?: number): void => {
@@ -65,15 +81,19 @@ describe('ZoomController', () => {
     mediaSpy.mockReturnValue(<MediaQueryList>{ matches: true });
   });
 
+  afterEach(() => {
+    document.body.replaceChildren();
+  });
+
   it('should be creatable', () => {
-    const element = document.createElement('div');
+    const element = createAttachedElement();
     const zoom = new ZoomController(element);
     expect(zoom).toBeTruthy();
   });
 
   describe('should pan and zoom', () => {
     it('should respond with pointer', () => {
-      const element = document.createElement('div');
+      const element = createAttachedElement();
 
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
@@ -109,7 +129,7 @@ describe('ZoomController', () => {
     });
 
     it('should not respond to pointer when not zoomed', () => {
-      const element = document.createElement('div');
+      const element = createAttachedElement();
 
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
@@ -132,7 +152,7 @@ describe('ZoomController', () => {
     it('should respond with touch', () => {
       mediaSpy.mockReturnValue(<MediaQueryList>{ matches: false });
 
-      const element = document.createElement('div');
+      const element = createAttachedElement();
 
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
@@ -162,8 +182,8 @@ describe('ZoomController', () => {
   });
 
   it('should ignore click after pointerdown', () => {
-    const outer = document.createElement('div');
-    const inner = document.createElement('div');
+    const outer = createAttachedElement();
+    const inner = createAttachedElement();
     outer.appendChild(inner);
     const clickHandler = vi.fn();
     outer.addEventListener('click', clickHandler);
@@ -204,7 +224,7 @@ describe('ZoomController', () => {
   });
 
   it('deactivate should remove event handlers', () => {
-    const element = document.createElement('div');
+    const element = createAttachedElement();
 
     const panzoom = createMockPanZoom();
     vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
@@ -222,7 +242,7 @@ describe('ZoomController', () => {
 
   describe('should fire events', () => {
     it('on zoom/unzoom', () => {
-      const element = document.createElement('div');
+      const element = createAttachedElement();
       const zoomedFunc = vi.fn();
       const unzoomedFunc = vi.fn();
       element.addEventListener('advanced-camera-card:zoom:zoomed', zoomedFunc);
@@ -258,7 +278,7 @@ describe('ZoomController', () => {
     });
 
     it('when state has not changed or spurious events received', () => {
-      const element = document.createElement('div');
+      const element = createAttachedElement();
       const zoomedFunc = vi.fn();
       const unzoomedFunc = vi.fn();
       element.addEventListener('advanced-camera-card:zoom:zoomed', zoomedFunc);
@@ -302,7 +322,7 @@ describe('ZoomController', () => {
 
     describe('on default/non-default', () => {
       it('without explicit default', () => {
-        const element = document.createElement('div');
+        const element = createAttachedElement();
         setElementToDefaultCardSize(element);
 
         const changeFunc = vi.fn();
@@ -347,7 +367,7 @@ describe('ZoomController', () => {
       });
 
       it('with complete explicit default', () => {
-        const element = document.createElement('div');
+        const element = createAttachedElement();
         setElementToDefaultCardSize(element);
 
         const changeFunc = vi.fn();
@@ -393,7 +413,7 @@ describe('ZoomController', () => {
       });
 
       it('with partial explicit default', () => {
-        const element = document.createElement('div');
+        const element = createAttachedElement();
         setElementToDefaultCardSize(element);
 
         const changeFunc = vi.fn();
@@ -446,7 +466,7 @@ describe('ZoomController', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
-      const element = document.createElement('div');
+      const element = createAttachedElement();
       setElementToDefaultCardSize(element);
 
       const controller = new ZoomController(element);
@@ -477,7 +497,7 @@ describe('ZoomController', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
-      const element = document.createElement('div');
+      const element = createAttachedElement();
       setElementToDefaultCardSize(element);
 
       const controller = createAndRegisterZoom(element);
@@ -496,7 +516,7 @@ describe('ZoomController', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
-      const element = document.createElement('div');
+      const element = createAttachedElement();
       setElementToDefaultCardSize(element);
 
       const controller = createAndRegisterZoom(element);
@@ -528,7 +548,7 @@ describe('ZoomController', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
-      const element = document.createElement('div');
+      const element = createAttachedElement();
       setElementToDefaultCardSize(element);
 
       const controller = createAndRegisterZoom(element);
@@ -567,7 +587,7 @@ describe('ZoomController', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
-      const element = document.createElement('div');
+      const element = createAttachedElement();
       setElementToDefaultCardSize(element);
 
       const controller = createAndRegisterZoom(element);
@@ -588,7 +608,7 @@ describe('ZoomController', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
-      const element = document.createElement('div');
+      const element = createAttachedElement();
       setElementToDefaultCardSize(element);
 
       const controller = createAndRegisterZoom(element);
@@ -617,7 +637,7 @@ describe('ZoomController', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
-      const element = document.createElement('div');
+      const element = createAttachedElement();
       setElementToDefaultCardSize(element);
 
       new ZoomController(element);
@@ -632,7 +652,7 @@ describe('ZoomController', () => {
       const panzoom = createMockPanZoom();
       vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
 
-      const element = document.createElement('div');
+      const element = createAttachedElement();
       element.getBoundingClientRect = vi.fn().mockReturnValue({
         width: 0,
         height: 0,
@@ -647,7 +667,7 @@ describe('ZoomController', () => {
   });
 
   it('should report activation state', () => {
-    const element = document.createElement('div');
+    const element = createAttachedElement();
     vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
 
     const controller = new ZoomController(element);
@@ -660,8 +680,26 @@ describe('ZoomController', () => {
     expect(controller.isActivated()).toBe(false);
   });
 
-  it('should not zoom or pan when zoom is disabled', () => {
+  it('should not activate when the element is detached', () => {
     const element = document.createElement('div');
+    vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
+
+    const controller = new ZoomController(element);
+    controller.activate();
+
+    expect(Panzoom).not.toHaveBeenCalled();
+    expect(controller.isActivated()).toBe(false);
+
+    // Activation succeeds once the element is attached.
+    document.body.appendChild(element);
+    controller.activate();
+
+    expect(Panzoom).toHaveBeenCalled();
+    expect(controller.isActivated()).toBe(true);
+  });
+
+  it('should not zoom or pan when zoom is disabled', () => {
+    const element = createAttachedElement();
 
     const panzoom = createMockPanZoom();
     vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
@@ -680,7 +718,7 @@ describe('ZoomController', () => {
   });
 
   it('should set touch action on zoom/unzoom', () => {
-    const element = document.createElement('div');
+    const element = createAttachedElement();
     vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
 
     createAndRegisterZoom(element);

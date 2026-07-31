@@ -111,6 +111,12 @@ export class ZoomController {
   }
 
   public activate(): void {
+    // Panzoom throws if it is constructed against an element that is not
+    // attached to the DOM.
+    if (!this._element.isConnected) {
+      return;
+    }
+
     const config = this._getConfigToUse();
     const converted = this._convertPercentToXYPan(
       config?.pan?.x ?? ZOOM_DEFAULT_PAN_X,
