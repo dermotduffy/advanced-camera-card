@@ -98,6 +98,10 @@ export class CardElementManager {
     this._element.toggleAttribute('panel', isCardInPanel(this._element));
     this._element.toggleAttribute('casted', isBeingCasted());
 
+    // The card must be focusable in its own right, so that it can receive
+    // keyboard events and be reached by tabbing.
+    this._element.setAttribute('tabindex', '0');
+
     this._api.getFullscreenManager().connect();
 
     this._element.addEventListener(

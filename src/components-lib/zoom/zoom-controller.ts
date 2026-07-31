@@ -73,11 +73,6 @@ export class ZoomController {
     // handler in the viewer).
     if (!this._allowClick) {
       ev.stopPropagation();
-
-      // Even though the click is stopped,the card still needs to gain focus so
-      // that keyboard shortcuts will work immediately after the card is clicked
-      // upon.
-      fireAdvancedCameraCardEvent(this._element, 'focus');
     }
     this._allowClick = true;
   };
