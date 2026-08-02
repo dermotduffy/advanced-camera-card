@@ -5,7 +5,7 @@ import type { AdvancedCameraCard } from '../../src/card';
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
 import type { FakeEntityOptions, FakeHASS } from './fake-hass';
 import { defineHAElementStubs } from './ha-element-stubs';
-import { deepQuery, deepQueryAll } from './test-utils';
+import { clickElement, deepQuery, deepQueryAll } from './test-utils';
 
 // Home Assistant's masonry columns are `max-width: 500px`, so this is the width
 // a card usually gets. The card derives height from the media it is showing.
@@ -33,6 +33,19 @@ const DEFAULT_LEDGER_EVENTS = [
 interface ConsoleEntry {
   level: ConsoleLevel;
   args: unknown[];
+}
+
+interface ConsoleWaiter {
+  // The number of occurrences required to satisfy this waiter.
+  count: number;
+  level: ConsoleLevel;
+  message: RegExp;
+  resolve: () => void;
+}
+
+interface ConsoleWaiterOptions {
+  count?: number;
+  level?: ConsoleLevel;
 }
 
 const CONSOLE_LEVELS = ['debug', 'error', 'info', 'log', 'warn'] as const;
@@ -154,12 +167,15 @@ class ConsoleLedger {
   private _entries: ConsoleEntry[] = [];
   private _originals = new Map<ConsoleLevel, (...args: unknown[]) => void>();
 
+  private _waiting: ConsoleWaiter[] = [];
+
   constructor() {
     for (const level of CONSOLE_LEVELS) {
       const original = console[level];
       this._originals.set(level, original);
       console[level] = (...args: unknown[]): void => {
         this._entries.push({ level, args });
+        this._resolveWaiters();
         original(...args);
       };
     }
@@ -175,12 +191,55 @@ class ConsoleLedger {
     return this.getEntries(level).map((entry) => entry.args.map(String).join(' '));
   }
 
+  public countMessages(message: RegExp, level: ConsoleLevel = 'info'): number {
+    return this.getMessages(level).filter((written) => message.test(written)).length;
+  }
+
+  /**
+   * Wait until a message has been written. The card acts on what a test does to
+   * it without waiting to be asked, so a test that presses a key and reads the
+   * log on the next line usually finds nothing there yet.
+   */
+  public async waitForMessage(
+    message: RegExp,
+    options?: ConsoleWaiterOptions,
+  ): Promise<void> {
+    const waiter = {
+      count: options?.count ?? 1,
+      level: options?.level ?? 'info',
+      message,
+    };
+
+    if (this._isSatisfied(waiter)) {
+      return;
+    }
+
+    return await new Promise<void>((resolve) => {
+      this._waiting.push({ ...waiter, resolve });
+    });
+  }
+
+  private _isSatisfied(waiter: Omit<ConsoleWaiter, 'resolve'>): boolean {
+    return this.countMessages(waiter.message, waiter.level) >= waiter.count;
+  }
+
+  private _resolveWaiters(): void {
+    this._waiting = this._waiting.filter((waiter) => {
+      if (!this._isSatisfied(waiter)) {
+        return true;
+      }
+      waiter.resolve();
+      return false;
+    });
+  }
+
   public destroy(): void {
     for (const [level, original] of this._originals) {
       console[level] = original;
     }
     this._originals.clear();
     this._entries = [];
+    this._waiting = [];
   }
 }
 
@@ -194,6 +253,11 @@ export interface MountOptions {
   // how it responds to the room it is given.
   width?: string;
   height?: string;
+
+  // Where that container is placed, as CSS lengths from the page's top left
+  // corner. The page grows to reach it, so a card put beyond the window can
+  // only be brought into view by scrolling.
+  position?: { top?: string; left?: string };
 
   // Console errors required to be logged.
   expectedConsoleErrors?: RegExp[];
@@ -245,6 +309,11 @@ export class MountedCard {
     this._container.style.width = options?.width ?? DEFAULT_CONTAINER_WIDTH;
     if (options?.height) {
       this._container.style.height = options.height;
+    }
+    if (options?.position) {
+      this._container.style.position = 'absolute';
+      this._container.style.top = options.position.top ?? '0';
+      this._container.style.left = options.position.left ?? '0';
     }
     document.body.append(this._container);
 
@@ -378,12 +447,16 @@ export class MountedCard {
   public async clickControl(name: string): Promise<void> {
     const control = await this._findControl(name);
 
-    control.click();
+    await clickElement(control);
   }
 
   /**
    * Press and keep holding a control until the card takes it as a hold, which
    * is a second action several controls carry alongside their tap.
+   *
+   * Assembled from events rather than driven with a real pointer, because
+   * `userEvent` offers whole gestures only (click, hover, drag) and none of
+   * them stops part way through a press.
    */
   public async holdControl(name: string): Promise<void> {
     const control = await this._findControl(name);

@@ -3,31 +3,21 @@ import { describe, expect, it, vi } from 'vitest';
 import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import { MountedCard } from '../../browser/mounted-card';
 import {
+  CARD_INITIALIZED_MESSAGE,
+  createInitializedAutomation,
   createStillCameraHASS,
   createStillImageCameraConfig,
   createStillImageCardConfig,
   isMediaLoadedInfoEventDetail,
 } from '../../browser/test-utils';
 
-const STARTED_MESSAGE = 'card-started';
 const OTHER_CAMERA_ENTITY = 'camera.other';
 
 const createConfig = (
   overrides?: Partial<RawAdvancedCameraCardConfig>,
 ): RawAdvancedCameraCardConfig =>
   createStillImageCardConfig({
-    automations: [
-      {
-        triggers: [{ trigger: 'initialized' }],
-        actions: [
-          {
-            action: 'fire-dom-event',
-            advanced_camera_card_action: 'log',
-            message: STARTED_MESSAGE,
-          },
-        ],
-      },
-    ],
+    automations: [createInitializedAutomation()],
     ...overrides,
   });
 
@@ -38,11 +28,6 @@ const mount = async (
     createConfig(overrides),
     createStillCameraHASS({ cameras: [OTHER_CAMERA_ENTITY] }),
   );
-
-// Only the messages the automation logged, since the card logs other things at
-// the same level.
-const getStartedMessages = (card: MountedCard): string[] =>
-  card.console.getMessages('info').filter((message) => message === STARTED_MESSAGE);
 
 // The cameras the card has actually loaded media for, in order. Media that
 // named no camera is left out, since these are only read to ask which camera
@@ -59,40 +44,40 @@ describe('SessionManager', () => {
   it('should fire an initialized trigger each time the card starts', async () => {
     const card = await mount();
 
-    await vi.waitFor(() => expect(getStartedMessages(card)).toHaveLength(1));
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
 
     // The card leaving the page is a change of the value the trigger watches,
     // and must not fire it.
     card.detach();
     await card.updateComplete;
 
-    expect(getStartedMessages(card)).toHaveLength(1);
+    expect(card.console.countMessages(CARD_INITIALIZED_MESSAGE)).toBe(1);
 
     card.attach();
-    await vi.waitFor(() => expect(getStartedMessages(card)).toHaveLength(2));
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE, { count: 2 });
   });
 
   it('should start the card again once Home Assistant comes back', async () => {
     const card = await mount();
 
-    await vi.waitFor(() => expect(getStartedMessages(card)).toHaveLength(1));
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
 
     // Losing Home Assistant changes the value the trigger watches, and must not
     // fire it.
     card.setConnected(false);
     await card.updateComplete;
 
-    expect(getStartedMessages(card)).toHaveLength(1);
+    expect(card.console.countMessages(CARD_INITIALIZED_MESSAGE)).toBe(1);
 
     card.setConnected(true);
-    await vi.waitFor(() => expect(getStartedMessages(card)).toHaveLength(2));
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE, { count: 2 });
   });
 
   it('should initialize the new cameras without starting the card again', async () => {
     const card = await mount();
 
     await card.events.waitForFirst('advanced-camera-card:media:loaded');
-    await vi.waitFor(() => expect(getStartedMessages(card)).toHaveLength(1));
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
 
     // A camera change is the heaviest configuration change there is: the
     // cameras are destroyed and initialized again.
@@ -107,7 +92,7 @@ describe('SessionManager', () => {
       expect(getLoadedCameraIDs(card)).toContain(OTHER_CAMERA_ENTITY),
     );
 
-    expect(getStartedMessages(card)).toHaveLength(1);
+    expect(card.console.countMessages(CARD_INITIALIZED_MESSAGE)).toBe(1);
   });
 
   it('should apply an override keyed on the card being started every time it starts', async () => {
@@ -127,7 +112,7 @@ describe('SessionManager', () => {
 
     card.detach();
     card.attach();
-    await vi.waitFor(() => expect(getStartedMessages(card)).toHaveLength(2));
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE, { count: 2 });
 
     await card.waitForSelector('advanced-camera-card-menu');
   });
@@ -142,7 +127,7 @@ describe('SessionManager', () => {
 
     card.detach();
     card.attach();
-    await vi.waitFor(() => expect(getStartedMessages(card)).toHaveLength(2));
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE, { count: 2 });
 
     // A card that has been on screen once must not show the loading indicator
     // again when it is re-attached.

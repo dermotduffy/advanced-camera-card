@@ -2,21 +2,19 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { MountedCard } from '../../../browser/mounted-card';
 import {
+  CARD_INITIALIZED_MESSAGE,
+  createInitializedAutomation,
   createStillCameraHASS,
   createStillImageCameraConfig,
   createStillImageCardConfig,
   getBlockNotificationText,
 } from '../../../browser/test-utils';
 
-const STARTED_MESSAGE = 'card-started';
 const INIT_FAILED_ISSUE_HEADING = 'Initialization failed';
 
 // A camera Home Assistant has never heard of, which is what a typo in a
 // configuration looks like and the earliest thing a camera can fail on.
 const MISSING_CAMERA_ENTITY = 'camera.missing';
-
-const getStartedMessages = (card: MountedCard): string[] =>
-  card.console.getMessages('info').filter((message) => message === STARTED_MESSAGE);
 
 const getReportedInitializationFailures = (card: MountedCard): string[] =>
   card.console
@@ -40,18 +38,7 @@ const mountBrokenCard = async (): Promise<MountedCard> =>
       // Automatic retries switched off, so any recovery below can only be the
       // retry control being used.
       view: { issues: { retry_seconds: 0 } },
-      automations: [
-        {
-          triggers: [{ trigger: 'initialized' }],
-          actions: [
-            {
-              action: 'fire-dom-event',
-              advanced_camera_card_action: 'log',
-              message: STARTED_MESSAGE,
-            },
-          ],
-        },
-      ],
+      automations: [createInitializedAutomation()],
     }),
     createStillCameraHASS(),
   );
@@ -63,7 +50,7 @@ describe('InitializationIssue', () => {
     await waitForInitializationFailures(card);
 
     // A card that failed to start has not started, whatever it is showing.
-    expect(getStartedMessages(card)).toHaveLength(0);
+    expect(card.console.countMessages(CARD_INITIALIZED_MESSAGE)).toBe(0);
 
     // The camera the user meant now exists. Nothing recovers on its own from
     // here: automatic retries are off, and a card showing a full-card issue
@@ -71,7 +58,7 @@ describe('InitializationIssue', () => {
     card.setEntityState(MISSING_CAMERA_ENTITY, 'idle');
     await card.clickControl('Retry');
 
-    await vi.waitFor(() => expect(getStartedMessages(card)).toHaveLength(1));
+    await card.console.waitForMessage(CARD_INITIALIZED_MESSAGE);
     await card.events.waitForFirst('advanced-camera-card:media:loaded');
 
     // Starting is not the same as the issue leaving the screen, since a
@@ -95,6 +82,6 @@ describe('InitializationIssue', () => {
     );
     await waitForInitializationFailures(card);
 
-    expect(getStartedMessages(card)).toHaveLength(0);
+    expect(card.console.countMessages(CARD_INITIALIZED_MESSAGE)).toBe(0);
   });
 });

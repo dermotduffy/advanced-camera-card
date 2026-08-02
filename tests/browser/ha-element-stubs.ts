@@ -1,4 +1,5 @@
 import { css, html, LitElement, type TemplateResult } from 'lit';
+import { property } from 'lit/decorators.js';
 
 import { SIDE_LOADED_ELEMENTS } from '../../src/ha/side-load-ha-elements';
 
@@ -79,8 +80,11 @@ class HACardStub extends HAElementStub {
  * A round tap target sized by `--ha-icon-button-size`, which is how Home
  * Assistant's own icon button sizes itself and what the card sets to lay its
  * menu out. Without it a button is only as big as whatever it contains.
+ *
+ * Home Assistant draws a real `<button>` within, so a menu button takes focus
+ * when it is pressed, can be tabbed to, and ignores a press while disabled.
  */
-class HAIconButtonStub extends HAElementStub {
+class HAIconButtonStub extends LitElement {
   static styles = css`
     :host {
       display: inline-flex;
@@ -92,7 +96,26 @@ class HAIconButtonStub extends HAElementStub {
       box-sizing: border-box;
       outline: none;
     }
+    button {
+      align-items: center;
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      display: flex;
+      height: 100%;
+      justify-content: center;
+      padding: 0;
+      width: 100%;
+    }
   `;
+
+  @property({ type: Boolean })
+  public disabled = false;
+
+  protected render(): TemplateResult {
+    return html`<button ?disabled=${this.disabled}><slot></slot></button>`;
+  }
 }
 
 /**
@@ -110,15 +133,58 @@ class HAIconStub extends LitElement {
   `;
 }
 
+interface PictureElementConfig {
+  type: string;
+}
+
+interface ConditionalElementConfig {
+  elements?: PictureElementConfig[];
+}
+
+// Every Home Assistant element takes its own shape of configuration through the
+// same call, and nothing here reads what is passed.
+interface ConfigurableElement extends HTMLElement {
+  setConfig(config: unknown): void;
+}
+
+const isConfigurable = (element: HTMLElement): element is ConfigurableElement =>
+  'setConfig' in element;
+
+const CUSTOM_ELEMENT_PREFIX = 'custom:';
+const CARD_ELEMENT_PREFIX = `${CUSTOM_ELEMENT_PREFIX}advanced-camera-card-`;
+
 /**
  * Home Assistant's conditional picture element, which the card builds one of on
  * every mount to host whatever picture elements are configured.
+ *
+ * Home Assistant creates one element per entry. The card's own menu and status
+ * bar items are elements that ask to be added when they are connected, so
+ * without that a configured menu button never reaches the menu.
+ *
+ * Only the card's own elements are created here. Other elements (e.g. Home
+ * Assistant's `icon` or `image`) are skipped, so a test that needs one must add
+ * it to this stub first.
  */
 class HuiConditionalElementStub extends HTMLElement {
   public hass?: unknown;
 
-  public setConfig(): void {
-    // The card only needs the call to succeed; nothing renders from it here.
+  public setConfig(config: ConditionalElementConfig): void {
+    this.replaceChildren();
+
+    for (const element of config.elements ?? []) {
+      if (!element.type.startsWith(CARD_ELEMENT_PREFIX)) {
+        continue;
+      }
+
+      const child = document.createElement(
+        // Example: custom:advanced-camera-card-menu-icon -> advanced-camera-card-menu-icon
+        element.type.slice(CUSTOM_ELEMENT_PREFIX.length),
+      );
+      if (isConfigurable(child)) {
+        child.setConfig(element);
+      }
+      this.append(child);
+    }
   }
 }
 

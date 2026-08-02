@@ -1,5 +1,8 @@
+import { userEvent } from 'vitest/browser';
+
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
 import type { MediaLoadedInfoEventDetail } from '../../src/types';
+import { createLogAction } from '../../src/utils/action';
 import { FakeHASS, type FakeEntityOptions } from './fake-hass';
 
 export const STILL_CAMERA_ENTITY = 'camera.office';
@@ -111,6 +114,20 @@ export const createStillImageCardConfig = (
   ...overrides,
 });
 
+// What an initialized card writes, as the pattern the console is searched for.
+export const CARD_INITIALIZED_MESSAGE = /card initialized/;
+
+/**
+ * An automation that reports every time the card finishes initializing. A card
+ * announces nothing else when it is ready to be acted on, and it initializes
+ * again each time it returns to the page or Home Assistant comes back, so a
+ * test that acts on a card too early sees nothing happen.
+ */
+export const createInitializedAutomation = (): RawAdvancedCameraCardConfig => ({
+  triggers: [{ trigger: 'initialized' }],
+  actions: [createLogAction(CARD_INITIALIZED_MESSAGE.source)],
+});
+
 // `querySelectorAll` does not look inside a shadow root, so a full search has
 // to step through them a level at a time. The node's own root counts because a
 // Lit element renders into that, not into its children.
@@ -183,3 +200,54 @@ export const isLiveMediaShowing = (root: ParentNode): boolean =>
   deepQueryAll(root, 'advanced-camera-card-live-provider').some(
     (provider) => !!deepQuery(provider, MEDIA_SELECTOR),
   );
+
+// `userEvent.keyboard` is given one string naming every key to press, in which
+// a name of more than one character is wrapped in braces (`{Escape}`) and a
+// single character stands for itself.
+// See: https://vitest.dev/guide/browser/interactivity-api.html#userevent-keyboard
+const asKeyboardInput = (key: string): string => (key.length === 1 ? key : `{${key}}`);
+
+export const pressKey = async (key: string): Promise<void> =>
+  await userEvent.keyboard(asKeyboardInput(key));
+
+export const holdKey = async (key: string): Promise<void> =>
+  await userEvent.keyboard(`{${key}>}`);
+
+export const releaseKey = async (key: string): Promise<void> =>
+  await userEvent.keyboard(`{/${key}}`);
+
+export const pressTab = async (): Promise<void> => await userEvent.tab();
+
+/**
+ * Click an element with a real pointer, which is the only kind that carries the
+ * browser's own behaviour: the press moves focus, and an element that stops the
+ * press doing so leaves it where it was.
+ */
+export const clickElement = async (element: Element): Promise<void> =>
+  await userEvent.click(element);
+
+/**
+ * Send a `pointerdown` to an element without moving a real pointer, so the page
+ * stays scrolled where the test left it: `clickElement` scrolls its target into
+ * view before pressing it.
+ *
+ * The browser does nothing of its own with a press it did not itself deliver,
+ * so what follows is only what the card's own listener does.
+ */
+export const dispatchPointerDown = (element: Element): void => {
+  element.dispatchEvent(
+    new PointerEvent('pointerdown', { bubbles: true, composed: true }),
+  );
+};
+
+/**
+ * The element that actually has focus. `document.activeElement` names the
+ * outermost shadow host in the way, since focus is reported per tree.
+ */
+export const getFocusedElement = (): Element | null => {
+  let focused = document.activeElement;
+  while (focused?.shadowRoot?.activeElement) {
+    focused = focused.shadowRoot.activeElement;
+  }
+  return focused;
+};
