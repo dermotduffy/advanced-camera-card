@@ -168,6 +168,16 @@ export class FakeHASS {
     this._renew();
   }
 
+  /**
+   * Drop or restore the WebSocket, as a Home Assistant restart does. Home
+   * Assistant keeps handing the card a `hass` while it is disconnected, which
+   * is why this renews rather than going silent.
+   */
+  public setConnected(connected: boolean): void {
+    this._connected = connected;
+    this._renew();
+  }
+
   private _createEntity(
     entityID: string,
     options: FakeEntityOptions | string,

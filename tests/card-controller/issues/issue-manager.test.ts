@@ -167,10 +167,33 @@ describe('IssueManager', () => {
 
       const hass = createHASS();
       conditionStateManager.setState({ hass });
-      conditionStateManager.setState({ initialized: true });
+      conditionStateManager.setState({ initialized: true, everInitialized: true });
       await flushPromises();
 
       expect(detectStatic).toHaveBeenCalledWith(hass);
+    });
+
+    it('should run static detection once regardless how often the card initializes', async () => {
+      const api = createCardAPI();
+      const conditionStateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(conditionStateManager);
+
+      const manager = new IssueManager(api);
+      const detectStatic = vi.fn().mockResolvedValue(undefined);
+      const issue = createIssue('legacy_resource', { detectStatic });
+      manager.addIssue(issue);
+
+      conditionStateManager.setState({ hass: createHASS() });
+      conditionStateManager.setState({ initialized: true, everInitialized: true });
+
+      // The card gets disconnected/reconnected as it does on a dashboard tab
+      // change. `everInitialized` is unchanged by that, so detection does not
+      // run a second time.
+      conditionStateManager.setState({ initialized: false });
+      conditionStateManager.setState({ initialized: true, everInitialized: true });
+      await flushPromises();
+
+      expect(detectStatic).toHaveBeenCalledTimes(1);
     });
 
     it('should not run static detection when hass is unset', () => {
@@ -183,7 +206,7 @@ describe('IssueManager', () => {
       const issue = createIssue('legacy_resource', { detectStatic });
       manager.addIssue(issue);
 
-      conditionStateManager.setState({ initialized: true });
+      conditionStateManager.setState({ initialized: true, everInitialized: true });
 
       expect(detectStatic).not.toHaveBeenCalled();
     });

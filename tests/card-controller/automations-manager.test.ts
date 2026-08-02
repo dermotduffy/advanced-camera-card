@@ -46,9 +46,9 @@ describe('AutomationsManager', () => {
     it('should do nothing without being initialized', () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
-      vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-        false,
-      );
+      vi.mocked(
+        api.getInitializationManager().areMandatoryAspectsInitialized,
+      ).mockReturnValue(false);
       const stateManager = new ConditionStateManager();
       vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
@@ -63,9 +63,9 @@ describe('AutomationsManager', () => {
     it('should do nothing when an issue is present', () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
-      vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-        true,
-      );
+      vi.mocked(
+        api.getInitializationManager().areMandatoryAspectsInitialized,
+      ).mockReturnValue(true);
       vi.mocked(
         api.getIssueManager().getStateManager().hasFullCardIssue,
       ).mockReturnValue(true);
@@ -85,9 +85,9 @@ describe('AutomationsManager', () => {
   it('should execute actions when triggered', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
-    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-      true,
-    );
+    vi.mocked(
+      api.getInitializationManager().areMandatoryAspectsInitialized,
+    ).mockReturnValue(true);
     const stateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
@@ -113,7 +113,7 @@ describe('AutomationsManager', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
     const isInitialized = vi.mocked(
-      api.getInitializationManager().isInitializedMandatory,
+      api.getInitializationManager().areMandatoryAspectsInitialized,
     );
     isInitialized.mockReturnValue(false);
     const stateManager = new ConditionStateManager();
@@ -139,9 +139,9 @@ describe('AutomationsManager', () => {
   it('should run actions when the ongoing conditions hold', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
-    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-      true,
-    );
+    vi.mocked(
+      api.getInitializationManager().areMandatoryAspectsInitialized,
+    ).mockReturnValue(true);
     const stateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
@@ -167,9 +167,9 @@ describe('AutomationsManager', () => {
   it('should do nothing when the ongoing conditions do not hold', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
-    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-      true,
-    );
+    vi.mocked(
+      api.getInitializationManager().areMandatoryAspectsInitialized,
+    ).mockReturnValue(true);
     const stateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
@@ -192,9 +192,9 @@ describe('AutomationsManager', () => {
   it('should do nothing when the actions are empty', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
-    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-      true,
-    );
+    vi.mocked(
+      api.getInitializationManager().areMandatoryAspectsInitialized,
+    ).mockReturnValue(true);
     const stateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
@@ -214,9 +214,9 @@ describe('AutomationsManager', () => {
   it('should prevent automation loops', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
-    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-      true,
-    );
+    vi.mocked(
+      api.getInitializationManager().areMandatoryAspectsInitialized,
+    ).mockReturnValue(true);
     const stateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
@@ -259,9 +259,9 @@ describe('AutomationsManager', () => {
   it('should reset the nested-execution counter after an overflow', async () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
-    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-      true,
-    );
+    vi.mocked(
+      api.getInitializationManager().areMandatoryAspectsInitialized,
+    ).mockReturnValue(true);
     const stateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
@@ -307,9 +307,9 @@ describe('AutomationsManager', () => {
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
     vi.mocked(api.getHASSManager().getEventWatcher).mockReturnValue(eventWatcher);
-    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-      true,
-    );
+    vi.mocked(
+      api.getInitializationManager().areMandatoryAspectsInitialized,
+    ).mockReturnValue(true);
     const stateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
@@ -336,9 +336,9 @@ describe('AutomationsManager', () => {
   it('should delete automations', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
-    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-      true,
-    );
+    vi.mocked(
+      api.getInitializationManager().areMandatoryAspectsInitialized,
+    ).mockReturnValue(true);
     const stateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 

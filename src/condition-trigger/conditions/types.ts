@@ -26,13 +26,18 @@ export interface ConditionState {
   displayMode?: ViewDisplayMode;
   expand?: boolean;
   fullscreen?: boolean;
-  initialized?: boolean;
   interaction?: boolean;
   keys?: KeysState;
   mediaLoadedInfo?: MediaLoadedInfo | null;
   microphone?: MicrophoneState;
   panel?: boolean;
   hass?: HomeAssistant;
+
+  // Initialization:
+  // - Currently initialized.
+  initialized?: boolean;
+  // - Ever initialized.
+  everInitialized?: boolean;
 
   // Generic media target identifier. See @view/target-id for details.
   targetID?: string;

@@ -6,6 +6,6 @@ export class InitializedTrigger extends ConditionStateTriggerBase<
   TriggerOfType<'initialized'>
 > {
   protected _getValue(state: ConditionState): unknown {
-    return state.initialized;
+    return this._trigger.ever ? state.everInitialized : state.initialized;
   }
 }

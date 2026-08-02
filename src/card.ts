@@ -360,7 +360,7 @@ export class AdvancedCameraCard extends LitElement {
   }
 
   protected updated(): void {
-    if (this._controller.getInitializationManager().isInitializedMandatory()) {
+    if (this._controller.getInitializationManager().areMandatoryAspectsInitialized()) {
       void this._controller.getQueryStringManager().executeIfNecessary();
     }
   }
@@ -461,6 +461,7 @@ export class AdvancedCameraCard extends LitElement {
             ? html`<advanced-camera-card-loading
                 .loaded=${this._controller
                   .getInitializationManager()
+                  .getSessionManager()
                   .wasEverInitialized()}
                 .effectsManager=${this._config?.performance?.features
                   .card_loading_effects !== false
@@ -503,7 +504,7 @@ export class AdvancedCameraCard extends LitElement {
           </div>
           ${this._renderMenuStatusContainer('bottom')}
           ${this._config?.elements &&
-          this._controller.getInitializationManager().isInitializedMandatory()
+          this._controller.getInitializationManager().areMandatoryAspectsInitialized()
             ? // Elements need to render after the main views so it can render 'on
               // top'. They are held until the card is initialized: the template
               // renderer loads lazily as a mandatory init aspect (when the

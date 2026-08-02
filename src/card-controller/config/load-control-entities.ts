@@ -71,6 +71,21 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
       triggers: [
         {
           trigger: 'initialized' as const,
+
+          // A card initializes more than once -- on return to a dashboard tab,
+          // and after Home Assistant restarts -- and the two priorities want
+          // different answers to whether this should run again each time.
+          //
+          // `entity` reads the entity and changes only what the card displays.
+          // Repeating it is safe (it does nothing when the two already agree)
+          // and is the only way to pick up an entity change made while the card
+          // was unable to act on it.
+          //
+          // `card` writes the entity. Repeating it is not safe: a card that has
+          // just re-initialized is showing a freshly-defaulted view, not
+          // anything the user chose, so a second run would overwrite a
+          // selection the card never authored.
+          ever: cameraPriority === 'card',
         },
       ],
       actions: [

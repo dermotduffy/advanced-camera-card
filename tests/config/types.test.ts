@@ -890,13 +890,13 @@ describe('config defaults', () => {
 
   it('should include all conditions', () => {
     const conditions = [
-      { condition: 'and', conditions: [{ condition: 'initialized' }] },
+      { condition: 'and', conditions: [{ condition: 'initialized', ever: false }] },
       { condition: 'call', call: ['ringing', 'answered'] },
       { condition: 'camera', cameras: ['camera.office'] },
       { condition: 'display_mode', display_mode: 'single' },
       { condition: 'expand', expand: true },
       { condition: 'fullscreen', fullscreen: true },
-      { condition: 'initialized' },
+      { condition: 'initialized', ever: false },
       { condition: 'interaction', interaction: true },
       {
         condition: 'key',
@@ -909,14 +909,14 @@ describe('config defaults', () => {
       },
       { condition: 'media_loaded', media_loaded: true },
       { condition: 'microphone', muted: true },
-      { condition: 'not', conditions: [{ condition: 'initialized' }] },
+      { condition: 'not', conditions: [{ condition: 'initialized', ever: false }] },
       {
         condition: 'numeric_state',
         entity_id: 'sensor.office_temperature',
         above: 10,
         below: 20,
       },
-      { condition: 'or', conditions: [{ condition: 'initialized' }] },
+      { condition: 'or', conditions: [{ condition: 'initialized', ever: false }] },
       { condition: 'screen', media_query: '(orientation: landscape)' },
       {
         condition: 'state',
@@ -1934,7 +1934,7 @@ describe('automations should accept Home Assistant input shorthands', () => {
       },
     ]);
 
-    expect(result[0].triggers).toEqual([{ trigger: 'initialized' }]);
+    expect(result[0].triggers).toEqual([{ trigger: 'initialized', ever: false }]);
   });
 
   it('should reject a non-object automation', () => {

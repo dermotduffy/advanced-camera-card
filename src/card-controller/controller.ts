@@ -26,7 +26,7 @@ import { ExpandManager } from './expand-manager';
 import { FoldersManager } from './folders/manager';
 import { FullscreenManager } from './fullscreen/fullscreen-manager';
 import { HASSManager } from './hass/hass-manager';
-import { InitializationManager } from './initialization-manager';
+import { InitializationManager } from './initialization/initialization-manager';
 import { InteractionManager } from './interaction-manager';
 import { createIssueManager } from './issues/factory';
 import type { IssueManager } from './issues/issue-manager';

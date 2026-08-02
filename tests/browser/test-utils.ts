@@ -1,4 +1,5 @@
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
+import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { FakeHASS, type FakeEntityOptions } from './fake-hass';
 
 export const STILL_CAMERA_ENTITY = 'camera.office';
@@ -157,6 +158,23 @@ export const deepQueryAll = <T extends Element = Element>(
   ...root.querySelectorAll<T>(selector),
   ...getImmediateShadowRoots(root).flatMap((child) => deepQueryAll<T>(child, selector)),
 ];
+
+export const isMediaLoadedInfoEventDetail = (
+  detail: unknown,
+): detail is MediaLoadedInfoEventDetail =>
+  !!detail &&
+  typeof detail === 'object' &&
+  'info' in detail &&
+  'signal' in detail &&
+  detail.signal instanceof AbortSignal;
+
+/**
+ * The text of a block notification rendered in place of content (e.g. full-card
+ * issues).
+ */
+export const getBlockNotificationText = (root: ParentNode): string =>
+  deepQuery(root, 'advanced-camera-card-notification-block')?.shadowRoot?.textContent ??
+  '';
 
 // Everything a provider can draw media on: an image, a video, or a canvas.
 const MEDIA_SELECTOR = 'img, video, canvas';

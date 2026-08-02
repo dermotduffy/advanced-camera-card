@@ -15,7 +15,7 @@ import { computeDomain } from '../../ha/compute-domain.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
 import { getParseError } from '../../utils/zod/parse-errors.js';
-import { InitializationAspect } from '../initialization-manager.js';
+import { InitializationAspect } from '../initialization/initialization-manager.js';
 import { TemplateManager } from '../templates';
 import type { CardConfigAPI } from '../types.js';
 import { ConfigParseError } from './error.js';
@@ -152,7 +152,7 @@ export class ConfigManager {
     });
     this._api.getMediaLoadedInfoManager().clear();
 
-    this._api.getInitializationManager().uninitialize(InitializationAspect.VIEW);
+    this._api.getInitializationManager().invalidateAspect(InitializationAspect.VIEW);
     this._api.getViewManager().reset();
 
     this._api.getStatusBarItemManager().removeAllDynamicStatusBarItems();
@@ -234,7 +234,9 @@ export class ConfigManager {
     runIfChanged(
       (config) => [config.cameras, config.cameras_global],
       () => {
-        this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
+        this._api
+          .getInitializationManager()
+          .invalidateAspect(InitializationAspect.CAMERAS);
         void this._api.getCameraManager().destroy();
       },
       true,
@@ -244,7 +246,7 @@ export class ConfigManager {
       () => {
         this._api
           .getInitializationManager()
-          .uninitialize(InitializationAspect.MICROPHONE_CONNECT);
+          .invalidateAspect(InitializationAspect.MICROPHONE_CONNECT);
       },
       true,
     );
@@ -267,7 +269,7 @@ export class ConfigManager {
     // InitializationManager.
     if (
       this._overriddenConfig &&
-      this._api.getInitializationManager().isInitializedMandatory()
+      this._api.getInitializationManager().areMandatoryAspectsInitialized()
     ) {
       this._api.getConditionStateManager().setState({
         config: this._overriddenConfig,

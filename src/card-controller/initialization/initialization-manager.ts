@@ -1,12 +1,12 @@
-import { STATE_RUNNING } from 'home-assistant-js-websocket';
 import PQueue from 'p-queue';
 
-import { isHassReady } from '../ha/is-hass-ready';
-import { sideLoadHomeAssistantElements } from '../ha/side-load-ha-elements';
-import { loadLanguages } from '../localize/localize';
-import { errorToConsole } from '../utils/basic';
-import { Initializer } from '../utils/initializer/initializer';
-import type { CardInitializerAPI } from './types';
+import { isHassReady } from '../../ha/is-hass-ready';
+import { sideLoadHomeAssistantElements } from '../../ha/side-load-ha-elements';
+import { loadLanguages } from '../../localize/localize';
+import { errorToConsole } from '../../utils/basic';
+import { Initializer } from '../../utils/initializer/initializer';
+import type { CardInitializerAPI } from '../types';
+import { SessionManager } from './session-manager';
 
 export enum InitializationAspect {
   LANGUAGES = 'languages',
@@ -40,22 +40,30 @@ export class InitializationManager {
   // initialization" (above) are followed.
   private _initializationQueue = new PQueue({ concurrency: 1 });
   private _initializer: Initializer;
-  private _everInitialized = false;
 
-  constructor(api: CardInitializerAPI, initializer?: Initializer) {
+  // Tracks an "initialization session" (the "useful" card time between full
+  // readiness -> disconnection of various kinds).
+  private _sessionManager: SessionManager;
+
+  constructor(
+    api: CardInitializerAPI,
+    initializer?: Initializer,
+    sessionManager?: SessionManager,
+  ) {
     this._api = api;
     this._initializer = initializer ?? new Initializer();
+    this._sessionManager = sessionManager ?? new SessionManager(api);
   }
 
-  public wasEverInitialized(): boolean {
-    return this._everInitialized;
+  public getSessionManager(): SessionManager {
+    return this._sessionManager;
   }
 
   public isInitialized(aspect: InitializationAspect): boolean {
     return this._initializer.isInitialized(aspect);
   }
 
-  public isInitializedMandatory(): boolean {
+  public areMandatoryAspectsInitialized(): boolean {
     const config = this._api.getConfigManager().getConfig();
     if (!config) {
       return false;
@@ -77,10 +85,16 @@ export class InitializationManager {
   }
 
   // The one place that decides whether to (re)start mandatory initialization,
-  // so callers don't re-check the conditions themselves. Called on every render
+  // so callers don't check the conditions themselves. Called on every render
   // (from the card's shouldUpdate) and whenever hass changes (from
   // HASSManager); a reconnect or a cleared issue reaches it by causing a
   // render.
+  //
+  // The check here is only to keep cost down: a card that has finished
+  // initializing re-renders often, and without it each of those renders would
+  // queue an attempt that does nothing. `_initializeMandatory()` checks the
+  // same conditions again when it actually runs, and that is the one that
+  // matters for correctness.
   public triggerInitialization(): void {
     if (!this._shouldInitializeMandatory()) {
       return;
@@ -93,7 +107,7 @@ export class InitializationManager {
       this._api.getConfigManager().hasConfig() &&
       this._api.getCardElementManager().isConnected() &&
       isHassReady(this._api.getHASSManager().getHASS()) &&
-      !this.isInitializedMandatory() &&
+      !this.areMandatoryAspectsInitialized() &&
       // Don't start while a full-card issue (e.g. the "Home Assistant is
       // starting" notice) is shown: each initialization step aborts as soon as
       // it sees one, so an attempt now would be wasted. The card tries again
@@ -112,21 +126,24 @@ export class InitializationManager {
 
   private async _initializeMandatory(): Promise<void> {
     const hass = this._api.getHASSManager().getHASS();
-    if (!hass || this.isInitializedMandatory()) {
+
+    // The authoritative check, made when the attempt actually runs rather than
+    // when it was queued: an attempt can sit in the queue behind another one,
+    // and the card may be detached, lose Home Assistant, or finish initializing
+    // while it waits. This is what stops a stale attempt running.
+    //
+    // The `isHassReady` call also narrows `hass` for the steps below. Its
+    // RUNNING requirement waits out a Home Assistant that is still loading
+    // integrations, against which integration-specific WS calls fail with
+    // "Unknown command".
+    if (!isHassReady(hass) || !this._shouldInitializeMandatory()) {
       return;
     }
 
-    // Wait until HA has finished loading integrations before attempting init.
-    // Otherwise integration-specific WS calls (e.g. Frigate event
-    // subscriptions) fail with "Unknown command" against a half-loaded HA. The
-    // HASSManager will trigger another init attempt as soon as
-    // hass.config.state transitions to RUNNING.
-    if (hass.config?.state !== STATE_RUNNING) {
-      return;
-    }
+    const token = this._sessionManager.startInitialization();
 
     if (
-      !(await this._tryInitialize(() =>
+      !(await this._runStep(token, () =>
         this._initializer.initializeMultipleIfNecessary({
           // Caution: Ensure nothing in this set of initializers requires
           // config or languages since they will not yet have been initialized.
@@ -142,13 +159,17 @@ export class InitializationManager {
       return;
     }
 
-    const config = this._api.getConfigManager().getConfig();
-    if (!config) {
+    // The configuration may have vanished during the await above. The CAMERAS
+    // initializer returns void and quietly does nothing without a
+    // configuration, which would mark the aspect initialized against nothing
+    // -- so stop before it runs.
+    if (!this._api.getConfigManager().hasConfig()) {
+      this._sessionManager.reportInitializationDeclined(token);
       return;
     }
 
     if (
-      !(await this._tryInitialize(() =>
+      !(await this._runStep(token, () =>
         this._initializer.initializeMultipleIfNecessary({
           [InitializationAspect.CAMERAS]: async () => {
             // Recreate the camera manager to guarantee an immediate re-render.
@@ -185,7 +206,7 @@ export class InitializationManager {
     }
 
     if (
-      !(await this._tryInitialize(() =>
+      !(await this._runStep(token, () =>
         this._initializer.initializeIfNecessary(
           InitializationAspect.VIEW,
           this._api.getViewManager().initialize,
@@ -196,7 +217,7 @@ export class InitializationManager {
     }
 
     if (
-      !(await this._tryInitialize(() =>
+      !(await this._runStep(token, () =>
         this._initializer.initializeIfNecessary(
           InitializationAspect.INITIAL_TRIGGER,
           async () => {
@@ -211,57 +232,74 @@ export class InitializationManager {
       return;
     }
 
-    this._everInitialized = true;
+    // The config is read here, at the last moment, so the card is never
+    // reported as started against a configuration that a change during the
+    // awaits above has already replaced. It is written to condition state here,
+    // rather than by the ConfigManager, to ensure actions (that trigger on
+    // config change) are not run before hass is available and the card is
+    // initialized (the first config is set in the card *before* hass is set in
+    // the card).
+    const config = this._api.getConfigManager().getConfig();
+    if (
+      !config ||
+      !this._sessionManager.isCurrentInitialization(token) ||
+      !this.areMandatoryAspectsInitialized()
+    ) {
+      this._sessionManager.reportInitializationDeclined(token);
+      return;
+    }
 
     // Subscribe any automations now: the template renderer (a mandatory
     // automation trigger evaluators can baseline pre-trigger (which potentially
-    // involves rendering templates). This must run before the `setState` below
-    // so that triggers watching `config`/`initialized` are attached in time to
+    // involves rendering templates). This must run before the report below so
+    // that triggers watching `config`/`initialized` are attached in time to
     // fire on *that* very change.
     this._api.getAutomationsManager().subscribe();
 
-    // When the card is initialized, both the initialization state (will never
-    // change again), and the config are set in the condition state. The
-    // config is set here, rather than in the ConfigManager, in order to
-    // ensure actions (that trigger on config change) are not run before hass
-    // is available and the card is initialzied (the first config is set in
-    // the card *before* hass is set in the card).
-    this._api.getConditionStateManager().setState({
-      config: config,
-      initialized: this._everInitialized,
-    });
+    this._sessionManager.reportInitializationSucceeded(token, config);
 
     this._api.getCardElementManager().update();
   }
 
-  private async _tryInitialize(fn: () => Promise<boolean>): Promise<boolean> {
+  // Run one step of initialization, telling the session manager the outcome and
+  // returning whether the remaining steps should run.
+  //
+  // A step "declines" when it raises no error of its own but yet the
+  // initialization process should not continue.
+  private async _runStep(token: number, fn: () => Promise<boolean>): Promise<boolean> {
     let initialized = false;
     try {
       initialized = await fn();
     } catch (e: unknown) {
-      if (e instanceof Error) {
-        errorToConsole(e);
+      if (this._sessionManager.isCurrentInitialization(token)) {
+        if (e instanceof Error) {
+          errorToConsole(e);
+        }
+        this._api.getIssueManager().trigger('initialization', { error: e });
+        this._sessionManager.reportInitializationFailed(token);
       }
-      this._setInitializationIssue(e);
       return false;
     }
 
-    if (this._api.getIssueManager().getStateManager().hasFullCardIssue()) {
+    if (
+      !initialized ||
+      this._api.getIssueManager().getStateManager().hasFullCardIssue()
+    ) {
+      this._sessionManager.reportInitializationDeclined(token);
       return false;
     }
 
-    return initialized;
+    return true;
   }
 
-  private _setInitializationIssue(error: unknown): void {
-    this._api.getIssueManager().trigger('initialization', { error });
-  }
-
-  public uninitialize(aspect: InitializationAspect): void {
+  public invalidateAspect(aspect: InitializationAspect): void {
     this._initializer.uninitialize(aspect);
   }
 
-  public uninitializeMandatory(): void {
+  // Mark every mandatory aspect uninitialized, so a fresh initialization starts
+  // from nothing. Which aspects those are is this class's own question -- see
+  // `areMandatoryAspectsInitialized()`.
+  public invalidateMandatoryAspects(): void {
     for (const aspect of [
       InitializationAspect.CAMERAS,
       InitializationAspect.MICROPHONE_CONNECT,

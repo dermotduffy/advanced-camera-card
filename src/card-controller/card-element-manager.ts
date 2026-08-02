@@ -8,7 +8,7 @@ import { isAncestorInEventPath } from '../utils/event-ancestor';
 import type { CardMediaReviewEventTarget } from '../utils/review';
 import type { ViewItem } from '../view/item';
 import type { ActionExecutionRequestEventTarget } from './actions/utils/execution-request';
-import { InitializationAspect } from './initialization-manager';
+import { InitializationAspect } from './initialization/initialization-manager';
 import type { CardElementAPI } from './types';
 
 export type ScrollCallback = () => void;
@@ -201,10 +201,14 @@ export class CardElementManager {
     this._api.getCameraTriggersManager().reset();
 
     this._api.getCallManager().uninitialize();
-    this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
-    this._api
-      .getInitializationManager()
-      .uninitialize(InitializationAspect.INITIAL_TRIGGER);
+
+    // The view is deliberately left initialized, so the user returns to what
+    // they left. Leaving the page ends the card's initialization session.
+    const initializationManager = this._api.getInitializationManager();
+    initializationManager.invalidateAspect(InitializationAspect.CAMERAS);
+    initializationManager.invalidateAspect(InitializationAspect.INITIAL_TRIGGER);
+    initializationManager.getSessionManager().end();
+
     void this._api.getCameraManager().destroy();
 
     this._element.removeEventListener(

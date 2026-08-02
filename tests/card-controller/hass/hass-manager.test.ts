@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EventWatcher } from '../../../src/card-controller/hass/event-watcher';
 import { HASSManager } from '../../../src/card-controller/hass/hass-manager';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
+import { InitializationAspect } from '../../../src/card-controller/initialization/initialization-manager';
 import { createCameraManager, createStore } from '../../camera-manager/test-utils';
 import { createCameraConfig, createConfig } from '../../config/test-utils';
 import { createCardAPI, createHASS, createStateEntity } from '../../test-utils';
@@ -98,6 +99,50 @@ describe('HASSManager', () => {
   });
 
   describe('should handle connection state change when', () => {
+    it('should end the session on ready → lost transition', () => {
+      const api = createCardAPI();
+      const manager = new HASSManager(api);
+
+      const readyHASS = createHASS();
+      readyHASS.connected = true;
+      readyHASS.config.state = STATE_RUNNING;
+      manager.setHASS(readyHASS);
+
+      expect(
+        api.getInitializationManager().getSessionManager().end,
+      ).not.toHaveBeenCalled();
+
+      const disconnectedHASS = createHASS();
+      disconnectedHASS.connected = false;
+      manager.setHASS(disconnectedHASS);
+
+      // A card cannot be started without Home Assistant, so the session ends
+      // when it goes away rather than when it returns. The aspects built during
+      // the session are untouched until then.
+      expect(api.getInitializationManager().getSessionManager().end).toHaveBeenCalled();
+      expect(api.getInitializationManager().invalidateAspect).not.toHaveBeenCalled();
+    });
+
+    // Ending it would be unrecoverable: a call with no hass leaves `_hass`
+    // untouched, so the next ready hass does not look like a transition and
+    // nothing would restart the session.
+    it('should not end the session when given no hass at all', () => {
+      const api = createCardAPI();
+      const manager = new HASSManager(api);
+
+      const readyHASS = createHASS();
+      readyHASS.connected = true;
+      readyHASS.config.state = STATE_RUNNING;
+      manager.setHASS(readyHASS);
+
+      manager.setHASS(null);
+      manager.setHASS();
+
+      expect(
+        api.getInitializationManager().getSessionManager().end,
+      ).not.toHaveBeenCalled();
+    });
+
     it('should reinitialize cameras and view on lost → ready transition', () => {
       const api = createCardAPI();
       const manager = new HASSManager(api);
@@ -122,14 +167,13 @@ describe('HASSManager', () => {
       // Cameras and view should be uninitialized so they get re-subscribed
       // to event sources (e.g. Frigate WebSocket events) on the next
       // render cycle.
-      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
-        'cameras',
+      expect(api.getInitializationManager().invalidateAspect).toHaveBeenCalledWith(
+        InitializationAspect.CAMERAS,
+      );
+      expect(api.getInitializationManager().invalidateAspect).toHaveBeenCalledWith(
+        InitializationAspect.VIEW,
       );
       expect(api.getCameraManager().destroy).toHaveBeenCalled();
-      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith('view');
-      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
-        'initial-trigger',
-      );
     });
 
     it('should reinitialize on starting → ready transition (integrations finished loading)', () => {
@@ -143,7 +187,7 @@ describe('HASSManager', () => {
       manager.setHASS(startingHASS);
 
       // No reinit yet -- HA isn't fully ready.
-      expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalled();
+      expect(api.getInitializationManager().invalidateAspect).not.toHaveBeenCalled();
       expect(api.getCameraManager().destroy).not.toHaveBeenCalled();
 
       // HA finishes booting.
@@ -152,14 +196,13 @@ describe('HASSManager', () => {
       readyHASS.config.state = STATE_RUNNING;
       manager.setHASS(readyHASS);
 
-      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
-        'cameras',
+      expect(api.getInitializationManager().invalidateAspect).toHaveBeenCalledWith(
+        InitializationAspect.CAMERAS,
+      );
+      expect(api.getInitializationManager().invalidateAspect).toHaveBeenCalledWith(
+        InitializationAspect.VIEW,
       );
       expect(api.getCameraManager().destroy).toHaveBeenCalled();
-      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith('view');
-      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
-        'initial-trigger',
-      );
     });
 
     it('should not reinitialize on lost → starting transition', () => {
@@ -176,7 +219,7 @@ describe('HASSManager', () => {
       manager.setHASS(startingHASS);
 
       // WS came back but integrations still loading -- wait for RUNNING.
-      expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalled();
+      expect(api.getInitializationManager().invalidateAspect).not.toHaveBeenCalled();
       expect(api.getCameraManager().destroy).not.toHaveBeenCalled();
     });
 
@@ -192,7 +235,7 @@ describe('HASSManager', () => {
       // First-ever hass set -- there's no "previous not-ready state" to
       // transition from, so the normal first-load init flow applies and we must
       // not blow away cameras.
-      expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalled();
+      expect(api.getInitializationManager().invalidateAspect).not.toHaveBeenCalled();
       expect(api.getCameraManager().destroy).not.toHaveBeenCalled();
     });
 
@@ -210,7 +253,7 @@ describe('HASSManager', () => {
       anotherReadyHASS.config.state = STATE_RUNNING;
       manager.setHASS(anotherReadyHASS);
 
-      expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalled();
+      expect(api.getInitializationManager().invalidateAspect).not.toHaveBeenCalled();
       expect(api.getCameraManager().destroy).not.toHaveBeenCalled();
     });
 

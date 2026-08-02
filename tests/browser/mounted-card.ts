@@ -312,6 +312,36 @@ export class MountedCard {
   }
 
   /**
+   * Drop or restore the connection to Home Assistant, then hand the card the
+   * resulting `hass`.
+   */
+  public setConnected(connected: boolean): void {
+    this._hass.setConnected(connected);
+    this.card.hass = this._hass.getHASS();
+  }
+
+  /**
+   * Give the card a new configuration.
+   */
+  public setConfig(config: RawAdvancedCameraCardConfig): void {
+    this.card.setConfig(config);
+  }
+
+  /**
+   * Take the card off the page.
+   */
+  public detach(): void {
+    this.card.remove();
+  }
+
+  /**
+   * Put the card back on the page.
+   */
+  public attach(): void {
+    this._container.append(this.card);
+  }
+
+  /**
    * Resolves once the card itself has rendered, which says nothing about the
    * elements beneath it.
    */

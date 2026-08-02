@@ -4,7 +4,7 @@ import { log } from '../../utils/debug';
 import { getStreamCameraID } from '../../view/substream';
 import { getViewTargetID } from '../../view/target-id';
 import type { View } from '../../view/view';
-import { InitializationAspect } from '../initialization-manager';
+import { InitializationAspect } from '../initialization/initialization-manager';
 import type { CardViewAPI } from '../types';
 import { ViewFactory } from './factory';
 import { applyViewModifiers } from './modifiers';
