@@ -295,9 +295,16 @@ triggers:
 
 ## `initialized`
 
-Matches whether the card has finished initializing. As a **condition**, true
-once the card is initialized; as a **trigger**, fires when the card initializes
-(useful for running an [automation](./automations.md) on card start).
+Matches whether the card is up and usable.
+
+A card starts more than once: returning to its dashboard tab, restarting Home
+Assistant, and recovering from an error all start it again. It stops being
+started when it is taken off the page, when the Home Assistant connection is
+lost, or when starting up fails.
+
+As a **condition**, `true` while the card has finished starting up -- usable,
+not merely present. As a **trigger**, fires each time the card finishes starting
+up, useful for running an [automation](./automations.md) on card start.
 
 ```yaml
 # As a condition:
@@ -308,9 +315,10 @@ triggers:
   - trigger: initialized
 ```
 
-| Parameter               | Description            |
-| ----------------------- | ---------------------- |
-| `condition` / `trigger` | Must be `initialized`. |
+| Parameter               | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ----------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` / `trigger` |         | Must be `initialized`.                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `ever`                  | `false` | Match whether the card is started now (`false`), or whether it has _ever_ finished starting up (`true`). A trigger using `true` fires on a card's first start only, and not on later ones (e.g. returning to a dashboard tab previously visited). Reloading the page, a Home Assistant restart or changing the card config (excluding [overrides](./overrides.md)) will cause a brand new card to be (unavoidably) built. |
 
 ## `interaction`
 
@@ -785,6 +793,7 @@ conditions:
   - condition: fullscreen
     fullscreen: true
   - condition: initialized
+    ever: false
   - condition: interaction
     interaction: true
   - condition: key
@@ -863,6 +872,7 @@ triggers:
   - trigger: fullscreen
     fullscreen: true
   - trigger: initialized
+    ever: false
   - trigger: interaction
     interaction: true
   - trigger: key

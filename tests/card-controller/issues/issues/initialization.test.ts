@@ -6,11 +6,11 @@ import type { InternalCallbackActionConfig } from '../../../../src/config/schema
 import { createCardAPI } from '../../../test-utils';
 
 describe('InitializationIssue', () => {
-  const createAPI = (isInitializedMandatory = false): CardController => {
+  const createAPI = (areMandatoryAspectsInitialized = false): CardController => {
     const api = createCardAPI();
-    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-      isInitializedMandatory,
-    );
+    vi.mocked(
+      api.getInitializationManager().areMandatoryAspectsInitialized,
+    ).mockReturnValue(areMandatoryAspectsInitialized);
     return api;
   };
 
@@ -190,8 +190,14 @@ describe('InitializationIssue', () => {
 
       expect(result).toBe(false);
       expect(issue.hasIssue()).toBe(false);
-      expect(api.getInitializationManager().uninitializeMandatory).toHaveBeenCalled();
+      expect(
+        api.getInitializationManager().invalidateMandatoryAspects,
+      ).toHaveBeenCalled();
       expect(api.getCameraManager().destroy).toHaveBeenCalled();
+
+      // What follows is a fresh attempt at starting the card, so the previous
+      // session is ended here.
+      expect(api.getInitializationManager().getSessionManager().end).toHaveBeenCalled();
     });
 
     it('should be a no-op while a retry is already in flight', () => {
@@ -199,14 +205,14 @@ describe('InitializationIssue', () => {
       const issue = new InitializationIssue(api);
       issue.trigger({ error: new Error('init failed') });
       issue.retry();
-      vi.mocked(api.getInitializationManager().uninitializeMandatory).mockClear();
+      vi.mocked(api.getInitializationManager().invalidateMandatoryAspects).mockClear();
       vi.mocked(api.getCameraManager().destroy).mockClear();
 
       const result = issue.retry();
 
       expect(result).toBe(false);
       expect(
-        api.getInitializationManager().uninitializeMandatory,
+        api.getInitializationManager().invalidateMandatoryAspects,
       ).not.toHaveBeenCalled();
       expect(api.getCameraManager().destroy).not.toHaveBeenCalled();
     });

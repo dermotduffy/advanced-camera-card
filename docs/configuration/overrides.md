@@ -13,6 +13,14 @@ overrides:
 > [!WARNING]
 > Whilst all configuration parameters are theoretically overridable, in some instances a configuration variable may only be consulted on startup or changing its value may negatively impact behavior -- override results may vary!
 
+> [!WARNING]
+> Avoid an override whose `conditions` depend on a value that the override itself
+> changes. Applying it changes what its own conditions were matching, so it may
+> turn itself on and off repeatedly, or undo the very change that applied it. Examples: a [`camera`](conditions-triggers.md?id=camera) condition that sets
+> `cameras`, an
+> [`initialized`](conditions-triggers.md?id=initialized) condition that sets
+> anything the card must start up again to use.
+
 The top-level `overrides` configuration block expects a list, with each list
 item containing `conditions` and at least one of `merge`, `delete` or `set` specified.
 

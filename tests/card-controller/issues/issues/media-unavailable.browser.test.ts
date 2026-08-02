@@ -16,6 +16,7 @@ import {
   createUnansweredMediaURL,
   deepQuery,
   deepQueryAll,
+  getBlockNotificationText,
   isLiveMediaShowing,
   STILL_CAMERA_ENTITY,
 } from '../../../browser/test-utils';
@@ -102,10 +103,6 @@ const mountCardDualCameras = async (): Promise<MountedCard> => {
   return card;
 };
 
-const getNotificationText = (card: MountedCard): string =>
-  deepQuery(card.card, 'advanced-camera-card-notification-block')?.shadowRoot
-    ?.textContent ?? '';
-
 beforeEach(() => {
   vi.useFakeTimers();
 });
@@ -160,8 +157,8 @@ describe('MediaUnavailableIssue', () => {
 
     // Which camera, not just that something is wrong: with several on screen a
     // report that does not say which one leaves the user to guess.
-    expect(getNotificationText(card)).toContain('Camera entity unavailable');
-    expect(getNotificationText(card)).toContain(SECOND_CAMERA_ENTITY);
+    expect(getBlockNotificationText(card.card)).toContain('Camera entity unavailable');
+    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_ENTITY);
   });
 
   it('should leave the cameras that are still working alone', async () => {
@@ -190,8 +187,8 @@ describe('MediaUnavailableIssue', () => {
     await card.events.waitForFirst('advanced-camera-card:issue:trigger');
     await waitForIssueReported(card);
 
-    expect(getNotificationText(card)).toContain('Could not load image');
-    expect(getNotificationText(card)).toContain(STILL_CAMERA_ENTITY);
+    expect(getBlockNotificationText(card.card)).toContain('Could not load image');
+    expect(getBlockNotificationText(card.card)).toContain(STILL_CAMERA_ENTITY);
   });
 
   it('should clear the report once the camera delivers media again', async () => {
@@ -369,7 +366,7 @@ describe('MediaUnavailableIssue', () => {
 
     // Stalled rather than failed: the picture on screen is real but frozen, and
     // saying so is the difference between "this is old" and "this is broken".
-    expect(getNotificationText(card)).toContain('Stream stalled');
+    expect(getBlockNotificationText(card.card)).toContain('Stream stalled');
   });
 
   it('should report a player that reports a playback error', async () => {
@@ -383,7 +380,9 @@ describe('MediaUnavailableIssue', () => {
     await card.events.waitForFirst('advanced-camera-card:issue:trigger');
     await waitForIssueReported(card);
 
-    expect(getNotificationText(card)).toContain('Could not get camera endpoint');
+    expect(getBlockNotificationText(card.card)).toContain(
+      'Could not get camera endpoint',
+    );
 
     await card.clickControl(REPORT_TITLE);
     await card.waitForSelector('advanced-camera-card-notification');

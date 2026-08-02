@@ -23,7 +23,7 @@ export const RETRY_EXPONENTIAL_MAX_SECONDS = 600;
 
 // Wraps the passive IssueStateManager with reaction logic. A single
 // condition-state listener drives everything: it runs one-shot static detection
-// when mandatory-init completes (`initialized` transitions to true), then
+// when mandatory-init first completes (`everInitialized` becomes true), then
 // evaluates dynamic issues on every subsequent state change, schedules retries,
 // and updates the card. Full-card issues are rendered by card.ts via
 // getStateManager().getFullCardIssue(). Non-full-card issue notifications are
@@ -183,14 +183,14 @@ export class IssueManager {
   // Drives both one-shot static detection (on mandatory-init completion) and
   // normal re-evaluation (on any condition-state change).
   //
-  // `initialized: true` in the change payload means mandatory initialization
-  // just finished -- see InitializationManager._initializeMandatory. That's
-  // also the earliest point at which the full HASS object is guaranteed
+  // `everInitialized` is set when mandatory initialization first completes --
+  // see InitializationManager._initializeMandatory -- and is never cleared, so
+  // this block runs exactly once however many times the card initializes. That
+  // is also the earliest point at which the full HASS object is guaranteed
   // ready for websocket calls (e.g. LegacyResourceIssue's lovelace/resources
-  // fetch). Because `initialized` is latched (its comment notes it never
-  // changes again), this block fires exactly once per IssueManager life.
+  // fetch).
   private _onStateChange(change: ConditionStateChange): void {
-    if (change.change.initialized === true && change.new.hass) {
+    if (change.change.everInitialized === true && change.new.hass) {
       void this._stateManager.detectStatic(change.new.hass).then(() => this.evaluate());
     }
     this.evaluate();

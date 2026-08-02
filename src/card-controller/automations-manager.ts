@@ -56,7 +56,7 @@ export class AutomationsManager {
       // automation once initialization completes so that the trigger evaluators
       // baseline their initial pre-trigger value against a card whose template
       // renderer has loaded.
-      if (this._api.getInitializationManager().isInitializedMandatory()) {
+      if (this._api.getInitializationManager().areMandatoryAspectsInitialized()) {
         triggers.subscribe();
       }
     }
@@ -83,7 +83,7 @@ export class AutomationsManager {
       // Never execute automations if the card hasn't finished initializing, as
       // it could cause a view change when camera loads are not finished.
       // See: https://github.com/dermotduffy/advanced-camera-card/issues/1407
-      !this._api.getInitializationManager().isInitializedMandatory() ||
+      !this._api.getInitializationManager().areMandatoryAspectsInitialized() ||
       // Never execute automations if there's an error (as our automation loop
       // avoidance -- which shows as an error -- would not work!).
       this._api.getIssueManager().getStateManager().hasFullCardIssue()

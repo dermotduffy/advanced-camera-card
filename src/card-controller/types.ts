@@ -17,7 +17,7 @@ import type { ExpandManager } from './expand-manager';
 import type { FoldersManager } from './folders/manager';
 import type { FullscreenManager } from './fullscreen/fullscreen-manager';
 import type { HASSManager } from './hass/hass-manager';
-import type { InitializationManager } from './initialization-manager';
+import type { InitializationManager } from './initialization/initialization-manager';
 import type { InteractionManager } from './interaction-manager';
 import type { IssueManager } from './issues/issue-manager';
 import type { KeyboardStateManager } from './keyboard-state-manager';
@@ -305,6 +305,10 @@ export interface CardQueryStringAPI {
   getCardElementManager(): CardElementManager;
   getConfigManager(): ConfigManager;
   getViewManager(): ViewManager;
+}
+
+export interface CardSessionAPI {
+  getConditionStateManager(): ConditionStateManager;
 }
 
 export interface CardStatusBarAPI {

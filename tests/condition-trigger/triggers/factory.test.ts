@@ -52,7 +52,7 @@ describe('createTriggerEvaluator', () => {
     [{ trigger: 'microphone', muted: true }, MicrophoneTrigger],
     [{ trigger: 'triggered' }, TriggeredTrigger],
     [{ trigger: 'view', views: ['live'] }, ViewTrigger],
-    [{ trigger: 'initialized' }, InitializedTrigger],
+    [{ trigger: 'initialized', ever: false }, InitializedTrigger],
     [{ trigger: 'key', key: 'a' }, KeyTrigger],
     [{ trigger: 'screen' }, ScreenTrigger],
   ])('should create the dedicated evaluator for a %o trigger', (trigger, expected) => {

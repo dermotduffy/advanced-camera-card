@@ -5,7 +5,7 @@ import { AutomationsManager } from '../../../src/card-controller/automations-man
 import { ConfigManager } from '../../../src/card-controller/config/config-manager';
 import { setRemoteControlEntityFromConfig } from '../../../src/card-controller/config/load-control-entities';
 import { setKeyboardShortcutsFromConfig } from '../../../src/card-controller/config/load-keyboard-shortcuts';
-import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
+import { InitializationAspect } from '../../../src/card-controller/initialization/initialization-manager';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import type { Automation } from '../../../src/config/schema/automations';
 import type { Trigger } from '../../../src/config/schema/condition-trigger/triggers/types';
@@ -25,7 +25,7 @@ import {
  */
 function createConfigManagerTestSetup(options?: {
   hasHASS?: boolean;
-  isInitializedMandatory?: boolean;
+  areMandatoryAspectsInitialized?: boolean;
 }) {
   const api = createCardAPI();
   const stateManager = new ConditionStateManager();
@@ -34,9 +34,9 @@ function createConfigManagerTestSetup(options?: {
   const automationsManager = new AutomationsManager(api);
   vi.mocked(api.getAutomationsManager).mockReturnValue(automationsManager);
   vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(options?.hasHASS ?? true);
-  vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-    options?.isInitializedMandatory ?? true,
-  );
+  vi.mocked(
+    api.getInitializationManager().areMandatoryAspectsInitialized,
+  ).mockReturnValue(options?.areMandatoryAspectsInitialized ?? true);
 
   const manager = new ConfigManager(api);
   vi.mocked(api.getConfigManager).mockReturnValue(manager);
@@ -400,13 +400,13 @@ describe('ConfigManager', () => {
 
         manager.setConfig(config);
 
-        expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalledWith(
+        expect(api.getInitializationManager().invalidateAspect).not.toHaveBeenCalledWith(
           InitializationAspect.CAMERAS,
         );
 
         stateManager.setState({ fullscreen: true });
 
-        expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
+        expect(api.getInitializationManager().invalidateAspect).toHaveBeenCalledWith(
           InitializationAspect.CAMERAS,
         );
       });
@@ -432,13 +432,13 @@ describe('ConfigManager', () => {
 
         manager.setConfig(config);
 
-        expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalledWith(
+        expect(api.getInitializationManager().invalidateAspect).not.toHaveBeenCalledWith(
           InitializationAspect.CAMERAS,
         );
 
         stateManager.setState({ fullscreen: true });
 
-        expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
+        expect(api.getInitializationManager().invalidateAspect).toHaveBeenCalledWith(
           InitializationAspect.CAMERAS,
         );
       });
@@ -464,13 +464,13 @@ describe('ConfigManager', () => {
 
         manager.setConfig(config);
 
-        expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalledWith(
+        expect(api.getInitializationManager().invalidateAspect).not.toHaveBeenCalledWith(
           InitializationAspect.MICROPHONE_CONNECT,
         );
 
         stateManager.setState({ fullscreen: true });
 
-        expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
+        expect(api.getInitializationManager().invalidateAspect).toHaveBeenCalledWith(
           InitializationAspect.MICROPHONE_CONNECT,
         );
       });
@@ -510,9 +510,9 @@ describe('ConfigManager', () => {
           expect.objectContaining({ change: { config: expect.anything() } }),
         );
 
-        vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-          true,
-        );
+        vi.mocked(
+          api.getInitializationManager().areMandatoryAspectsInitialized,
+        ).mockReturnValue(true);
         stateManager.setState({ fullscreen: true });
 
         await flushPromises();

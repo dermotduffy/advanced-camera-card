@@ -3,7 +3,7 @@ import type { HASSListener } from '../../ha/source';
 import type { HomeAssistant } from '../../ha/types';
 import type { UnsubscribeCallback } from '../../types';
 import { log } from '../../utils/debug';
-import { InitializationAspect } from '../initialization-manager';
+import { InitializationAspect } from '../initialization/initialization-manager';
 import type { CardHASSAPI } from '../types';
 import { EventWatcher, type EventWatcherSubscriptionInterface } from './event-watcher';
 import { StateWatcher, type StateWatcherSubscriptionInterface } from './state-watcher';
@@ -48,12 +48,27 @@ export class HASSManager implements HASSManagerReadonlyInterface {
   }
 
   public setHASS(hass?: HomeAssistant | null): void {
+    // No hass at all is an absence of news rather than a change, so nothing
+    // below it runs and `_hass` keeps whatever it last held.
+    if (!hass) {
+      return;
+    }
+
+    const wasReady = !!this._hass && isHassReady(this._hass);
+    const isReady = isHassReady(hass);
+
+    // A card cannot be started without Home Assistant, so losing it ends the
+    // card's initialization session. The aspects initialized during that
+    // session are left in place until it returns, when they are initialized
+    // again against whatever entities it comes back with.
+    if (wasReady && !isReady) {
+      this._api.getInitializationManager().getSessionManager().end();
+    }
+
     // When HA goes from "not ready" to "ready" (WebSocket reconnected AND all
     // integrations finished loading), rebuild cameras and the view from
     // scratch: the available entities may have changed while it was down.
-    const becameReady = !!this._hass && !isHassReady(this._hass) && isHassReady(hass);
-
-    if (becameReady) {
+    if (!!this._hass && !wasReady && isReady) {
       // Tear cameras down before the listeners below see the new hass,
       // otherwise they would briefly rebuild against the old entities.
       log(
@@ -61,16 +76,14 @@ export class HASSManager implements HASSManagerReadonlyInterface {
         'Advanced Camera Card: HA fully ready, reinitializing...',
       );
 
-      this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
-      void this._api.getCameraManager().destroy();
-      this._api.getInitializationManager().uninitialize(InitializationAspect.VIEW);
-      this._api
-        .getInitializationManager()
-        .uninitialize(InitializationAspect.INITIAL_TRIGGER);
-    }
+      // The entities may differ from those the cameras and the view were
+      // initialized against, so both are initialized again.
+      const initializationManager = this._api.getInitializationManager();
+      initializationManager.invalidateAspect(InitializationAspect.CAMERAS);
+      initializationManager.invalidateAspect(InitializationAspect.VIEW);
+      initializationManager.invalidateAspect(InitializationAspect.INITIAL_TRIGGER);
 
-    if (!hass) {
-      return;
+      void this._api.getCameraManager().destroy();
     }
 
     const oldHass = this._hass;

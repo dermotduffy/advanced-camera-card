@@ -35,7 +35,8 @@ import type { EventWatcherSubscriptionInterface } from '../src/card-controller/h
 import type { HASSManager } from '../src/card-controller/hass/hass-manager';
 import type { StateWatcherSubscriptionInterface } from '../src/card-controller/hass/state-watcher';
 import type { HASSManagerReadonlyInterface } from '../src/card-controller/hass/types';
-import type { InitializationManager } from '../src/card-controller/initialization-manager';
+import type { InitializationManager } from '../src/card-controller/initialization/initialization-manager';
+import type { SessionManager } from '../src/card-controller/initialization/session-manager';
 import type { InteractionManager } from '../src/card-controller/interaction-manager';
 import type { IssueManager } from '../src/card-controller/issues/issue-manager';
 import type { IssueStateManager } from '../src/card-controller/issues/state-manager';
@@ -525,7 +526,11 @@ export const createCardAPI = (): CardController => {
   api.getFoldersManager.mockReturnValue(mock<FoldersManager>());
   api.getFullscreenManager.mockReturnValue(mock<FullscreenManager>());
   api.getHASSManager.mockReturnValue(mock<HASSManager>());
-  api.getInitializationManager.mockReturnValue(mock<InitializationManager>());
+
+  const initializationManager = mock<InitializationManager>();
+  initializationManager.getSessionManager.mockReturnValue(mock<SessionManager>());
+
+  api.getInitializationManager.mockReturnValue(initializationManager);
   api.getInteractionManager.mockReturnValue(mock<InteractionManager>());
   api.getKeyboardStateManager.mockReturnValue(mock<KeyboardStateManager>());
   api.getLockManager.mockReturnValue(mock<LockManager>());

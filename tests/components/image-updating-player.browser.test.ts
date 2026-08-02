@@ -5,6 +5,7 @@ import { MountedCard } from '../browser/mounted-card';
 import {
   createStillCameraHASS,
   createStillImageCardConfig,
+  isMediaLoadedInfoEventDetail,
   STILL_CAMERA_ENTITY,
 } from '../browser/test-utils';
 
@@ -24,15 +25,6 @@ const mount = async (): Promise<MountedCard> => {
   const hass = createStillCameraHASS({ entities: { [UNRELATED_ENTITY]: 'off' } });
   return await MountedCard.create(createStillImageCardConfig(), hass);
 };
-
-const isMediaLoadedInfoEventDetail = (
-  detail: unknown,
-): detail is MediaLoadedInfoEventDetail =>
-  !!detail &&
-  typeof detail === 'object' &&
-  'info' in detail &&
-  'signal' in detail &&
-  detail.signal instanceof AbortSignal;
 
 const getMediaLoadedInfos = (card: MountedCard): MediaLoadedInfoEventDetail[] =>
   card.events

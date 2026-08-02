@@ -3,6 +3,7 @@ import { mock } from 'vitest-mock-extended';
 
 import { CardElementManager } from '../../src/card-controller/card-element-manager';
 import type { StateWatcher } from '../../src/card-controller/hass/state-watcher';
+import { InitializationAspect } from '../../src/card-controller/initialization/initialization-manager';
 import { QueryResults } from '../../src/view/query-results';
 import { View } from '../../src/view/view';
 import { createConfig } from '../config/test-utils';
@@ -238,7 +239,13 @@ describe('CardElementManager', () => {
     expect(api.getKeyboardStateManager().uninitialize).toHaveBeenCalled();
     expect(api.getActionsManager().uninitialize).toHaveBeenCalled();
     expect(api.getCallManager().uninitialize).toHaveBeenCalled();
-    expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith('cameras');
+    expect(api.getInitializationManager().invalidateAspect).toHaveBeenCalledWith(
+      InitializationAspect.CAMERAS,
+    );
+    expect(api.getInitializationManager().invalidateAspect).toHaveBeenCalledWith(
+      InitializationAspect.INITIAL_TRIGGER,
+    );
+    expect(api.getInitializationManager().getSessionManager().end).toHaveBeenCalled();
   });
 
   describe('should update card when', () => {

@@ -96,6 +96,10 @@ describe('setRemoteControlEntityFromConfig', () => {
         triggers: [
           {
             trigger: 'initialized',
+
+            // Writes the entity, so it asserts the card's camera once and does
+            // not repeat on a later initialization.
+            ever: true,
           },
         ],
         tag: setRemoteControlEntityFromConfig,
@@ -178,6 +182,10 @@ describe('setRemoteControlEntityFromConfig', () => {
         triggers: [
           {
             trigger: 'initialized',
+
+            // Only updates the card, so it repeats on every initialization and
+            // picks up an entity change made while the card could not act.
+            ever: false,
           },
         ],
         tag: setRemoteControlEntityFromConfig,
@@ -659,9 +667,9 @@ describe('setRemoteControlEntityFromConfig', () => {
         .calls[0][0];
 
       vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
-      vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-        true,
-      );
+      vi.mocked(
+        api.getInitializationManager().areMandatoryAspectsInitialized,
+      ).mockReturnValue(true);
       const stateManager = new ConditionStateManager();
       vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 

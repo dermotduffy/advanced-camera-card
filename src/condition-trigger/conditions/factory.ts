@@ -62,7 +62,7 @@ export const createConditionEvaluator = (
     case 'user_agent':
       return new UserAgentConditionEvaluator(condition);
     case 'initialized':
-      return new InitializedConditionEvaluator();
+      return new InitializedConditionEvaluator(condition);
     case 'template':
       return new TemplateConditionEvaluator(condition, context);
     case 'or':
@@ -123,6 +123,8 @@ export const createConditionEvaluatorForTrigger = (
       return new ExpandConditionEvaluator(trigger);
     case 'fullscreen':
       return new FullscreenConditionEvaluator(trigger);
+    case 'initialized':
+      return new InitializedConditionEvaluator(trigger);
     case 'interaction':
       return new InteractionConditionEvaluator(trigger);
     case 'key':

@@ -1,8 +1,19 @@
+import type { InitializedBase } from '../../../config/schema/condition-trigger/common/initialized';
 import type { ConditionsEvaluationResult, ConditionState } from '../types';
 import type { ConditionEvaluator } from './types';
 
 export class InitializedConditionEvaluator implements ConditionEvaluator {
+  private _condition: InitializedBase;
+
+  constructor(condition: InitializedBase) {
+    this._condition = condition;
+  }
+
   public evaluate(newState?: ConditionState): ConditionsEvaluationResult {
-    return { result: !!newState?.initialized };
+    return {
+      result: !!(this._condition.ever
+        ? newState?.everInitialized
+        : newState?.initialized),
+    };
   }
 }

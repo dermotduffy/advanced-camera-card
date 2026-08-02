@@ -47,7 +47,7 @@ export class InitializationIssue extends AbstractErrorIssue {
   }
 
   public detectDynamic(): void {
-    if (!this._api.getInitializationManager().isInitializedMandatory()) {
+    if (!this._api.getInitializationManager().areMandatoryAspectsInitialized()) {
       return;
     }
     // The success settle: mandatory init completed, so there is no error to show
@@ -88,7 +88,8 @@ export class InitializationIssue extends AbstractErrorIssue {
     // render cycle. destroy() releases the existing CameraManager's held
     // resources (WebSocket subscriptions, listeners) before the CAMERAS
     // init aspect replaces the instance via createCameraManager().
-    this._api.getInitializationManager().uninitializeMandatory();
+    this._api.getInitializationManager().invalidateMandatoryAspects();
+    this._api.getInitializationManager().getSessionManager().end();
     void this._api.getCameraManager().destroy();
     return false;
   }
