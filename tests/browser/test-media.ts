@@ -20,9 +20,10 @@ export const isTestMediaInUse = (): boolean => inUse;
  *   token      Which counter the request belongs to, so that a test's
  *              behaviour does not depend on what ran before it.
  *   responses  The status to answer each request with, in order: `200` serves
- *              the file and anything else is sent as an empty error. Once the
- *              list runs out, requests are never answered at all, which is how
- *              a camera goes quiet.
+ *              the file and anything else is sent as an empty error.
+ *              repeat     What to do once the `responses` list is exhausted:
+ *              answer every request after it as the last one was, or never
+ *              answer again (i.e. camera going quiet).
  *
  * Answered from within the page rather than by a server, because a request the
  * page is still waiting on holds one of the handful of connections a browser
@@ -51,11 +52,12 @@ const worker = setupWorker(
     const answered = requestCounts.get(token) ?? 0;
     requestCounts.set(token, answered + 1);
 
-    if (answered >= responses.length) {
+    const isPastEnd = answered >= responses.length;
+    if (isPastEnd && url.searchParams.get('repeat') !== 'true') {
       await delay('infinite');
     }
 
-    const status = responses[answered];
+    const status = responses[isPastEnd ? responses.length - 1 : answered];
     if (status !== HTTP_OK) {
       return new HttpResponse(null, { status });
     }

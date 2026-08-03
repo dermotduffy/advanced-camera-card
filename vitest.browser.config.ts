@@ -107,11 +107,9 @@ export default defineConfig({
       screenshotDirectory: '.vitest/screenshots',
     },
 
-    // Hide console writing to keep output clean, as the unit tests do. What
-    // the card writes is still captured in the page, where a test can assert on
-    // it -- a `log` action is only observable there.
-    //
-    // Console logging is not surpressed in the CI.
-    onConsoleLog: () => !!process.env.CI,
+    // Keep the output clean, as the unit tests do, but hand over everything a
+    // failing test wrote: much of what the card reports is written nowhere
+    // else, and on CI nobody can look at the card themselves.
+    silent: 'passed-only',
   },
 });

@@ -40,13 +40,14 @@ const HTTP_NOT_FOUND = 404;
 const HTTP_OK = 200;
 
 /**
- * A media URL answered with the given statuses in order, and never answered at
- * all once they run out.
+ * A media URL answered with the given statuses in order. Once they run out
+ * every request after them is answered as the last one was, or, if the camera
+ * is meant to go quiet, never answered at all.
  *
  * Every URL carries its own counter, since one worker serves every test in a
  * file and a shared counter would make a test depend on what ran before it.
  */
-const createMediaURL = (responses: number[]): string => {
+const createMediaURL = (responses: number[], repeat = false): string => {
   if (!isTestMediaInUse()) {
     throw new Error(
       'Media that misbehaves must be served in a file using useTestMedia().',
@@ -58,21 +59,23 @@ const createMediaURL = (responses: number[]): string => {
     new URLSearchParams({
       token: crypto.randomUUID(),
       responses: responses.join(','),
+      repeat: String(repeat),
     }).toString()
   );
 };
 
 /**
- * A media URL that fails the given number of times and then works, so a test
- * can make a camera recover rather than only fail.
+ * A media URL that fails the given number of times and then works from there
+ * on, so a test can make a camera recover rather than only fail.
  */
 export const createTemporarilyFailingMediaURL = (failures: number): string =>
-  createMediaURL([...Array(failures).fill(HTTP_NOT_FOUND), HTTP_OK]);
+  createMediaURL([...Array(failures).fill(HTTP_NOT_FOUND), HTTP_OK], true);
 
 /**
  * A media URL that never works, for a camera that is simply broken.
  */
-export const createFailingMediaURL = (): string => createMediaURL([HTTP_NOT_FOUND]);
+export const createFailingMediaURL = (): string =>
+  createMediaURL([HTTP_NOT_FOUND], true);
 
 /**
  * A media URL that is never answered, for a camera that accepts the request and
