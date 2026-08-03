@@ -76,6 +76,7 @@
     "eslint-config-prettier": "^9.1.0",
     "jsdom": "^21.1.2",
     "knip": "^6.29.0",
+    "msw": "^2.15.0",
     "playwright": "1.62.0",
     "prettier": "^3.3.2",
     "rollup": "^3.29.4",
@@ -197,5 +198,10 @@
   "volta": {
     "node": "22.14.0",
     "yarn": "4.9.1"
+  },
+  "msw": {
+    "workerDirectory": [
+      "tests/browser/public"
+    ]
   }
 }

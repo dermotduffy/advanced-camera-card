@@ -4,7 +4,6 @@ import { defineConfig } from 'vitest/config';
 import { releaseVersion } from './scripts/release-version-plugin.js';
 import { scssString } from './scripts/scss-string-plugin.js';
 import { svgPath } from './scripts/svg-path-plugin.js';
-import { testMediaServer } from './scripts/test-media-server-plugin.js';
 
 // Browser tests mount the real card in Chromium. They live in their own config
 // rather than as a fourth project in `vitest.config.ts` because `vitest run`
@@ -16,7 +15,15 @@ export default defineConfig({
   // same asset shapes the Rollup build's plugins do: an SVG becomes the `{
   // path, viewBox }` a custom iconset serves, SCSS becomes the string
   // `unsafeCSS` takes. `svgPath` is the build's own plugin, reused unchanged.
-  plugins: [releaseVersion(), scssString(), svgPath(), testMediaServer()],
+  plugins: [releaseVersion(), scssString(), svgPath()],
+
+  // Where the Mock Service Worker script is served from, which Vite serves at
+  // the root of the page. Named rather than left at its default of `public/` in
+  // the project root, which is the directory a Vite build copies into its
+  // output: nothing a test needs belongs in a released card.
+  //
+  // See tests/browser/public/README.md .
+  publicDir: 'tests/browser/public',
 
   resolve: {
     // Several dependencies declare their own Lit. Two copies in one page do not
@@ -91,7 +98,11 @@ export default defineConfig({
       // screenshot taken when one fails.
       viewport: { width: 1280, height: 800 },
 
-      instances: [{ browser: 'chromium' }],
+      instances: [
+        { browser: 'chromium' },
+        { browser: 'firefox' },
+        { browser: 'webkit' },
+      ],
 
       screenshotDirectory: '.vitest/screenshots',
     },

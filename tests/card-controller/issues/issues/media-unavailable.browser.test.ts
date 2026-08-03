@@ -6,6 +6,7 @@ import { LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS } from '../../../../src/compo
 import { FRAME_STALL_SECONDS } from '../../../../src/components-lib/media-player/frame-stall-watchdog';
 import type { RawAdvancedCameraCardConfig } from '../../../../src/config/types';
 import { MountedCard, type MountOptions } from '../../../browser/mounted-card';
+import { useTestMedia } from '../../../browser/test-media';
 import {
   createFailingMediaURL,
   createStallingMediaURL,
@@ -39,11 +40,7 @@ const findReport = (card: MountedCard): Element | null =>
 const isIssueReported = (card: MountedCard): boolean => !!findReport(card);
 
 const waitForIssueReported = async (card: MountedCard): Promise<void> => {
-  await vi.waitFor(() => {
-    if (!findReport(card)) {
-      throw new Error(`The issue was not reported: ${REPORT_TITLE}`);
-    }
-  });
+  await card.waitForRender(() => findReport(card));
 };
 
 interface MountCardOptions extends MountOptions {
@@ -102,6 +99,10 @@ const mountCardDualCameras = async (): Promise<MountedCard> => {
 
   return card;
 };
+
+// Several test cameras here intentionally fail, hang or go quiet, which is
+// served from within the page rather than by the dev server.
+useTestMedia();
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -333,6 +334,12 @@ describe('MediaUnavailableIssue', () => {
 
   it('should report media that stalls after it has loaded', async () => {
     const refreshSeconds = 2;
+
+    // Double the window the watchdog itself is using. The second half is slack:
+    // the watchdog begins watching in real time, so the loop below can step the
+    // clock a few times before that window has even begun.
+    const reportSecondsAllowed = (refreshSeconds + FRAME_STALL_SECONDS) * 2;
+
     const card = await mountCard({
       cameras: [
         {
@@ -352,16 +359,23 @@ describe('MediaUnavailableIssue', () => {
     });
 
     await card.events.waitForFirst('advanced-camera-card:media:loaded');
+    expect(card.events.getEntries('advanced-camera-card:issue:trigger')).toHaveLength(0);
 
-    // One missed refresh is not a stall. A camera gets a whole refresh interval
-    // on top of the standard window before silence is held against it.
-    await card.advanceSeconds(refreshSeconds + FRAME_STALL_SECONDS - 1);
-    expect(isIssueReported(card)).toBe(false);
+    // Advance a second at a time rather than in one jump. The watchdog only
+    // starts counting once the player has begun watching for images, which
+    // happens in real time. A jump would spend the whole allowance before that
+    // point, and the counting would then start from the end of it: no stall
+    // would ever be reported and this test would fail. Stepping lets the player
+    // begin watching, after which the clock moves through a window that is
+    // actually being counted.
+    for (
+      let second = 0;
+      second < reportSecondsAllowed && !isIssueReported(card);
+      second++
+    ) {
+      await card.advanceSeconds(1);
+    }
 
-    // Past it. The window is measured from a real media load rather than from
-    // anything on the card's clock, so landing exactly on the deadline is a
-    // race: step over it instead.
-    await card.advanceSeconds(2);
     expect(isIssueReported(card)).toBe(true);
 
     // Stalled rather than failed: the picture on screen is real but frozen, and

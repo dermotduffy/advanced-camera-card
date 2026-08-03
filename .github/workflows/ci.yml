@@ -70,10 +70,8 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      # The browser binary is not in the lockfile, and the media tests need the
-      # proprietary codecs the Chrome for Testing builds carry.
-      - name: Install Chromium
-        run: yarn playwright install --with-deps chromium
+      - name: Install browsers
+        run: yarn playwright install --with-deps chromium firefox webkit
 
       - name: Browser test
         run: yarn run test:browser

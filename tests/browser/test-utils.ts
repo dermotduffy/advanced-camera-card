@@ -4,14 +4,15 @@ import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
 import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { createLogAction } from '../../src/utils/action';
 import { FakeHASS, type FakeEntityOptions } from './fake-hass';
+import { isTestMediaInUse } from './test-media';
 
 export const STILL_CAMERA_ENTITY = 'camera.office';
 
 const STILL_FIXTURE_FILENAME = 'still-red.png';
 
 // A same-origin still red image, served by the Vite dev server. The same image
-// is also served by the test-media plugin, which can be asked to misbehave in
-// useful ways. See test-media-server-plugin.js .
+// is handed on by the worker in test-media.ts, which can be asked to misbehave
+// in useful ways.
 const STILL_FIXTURE_URL = `/tests/browser/fixtures/${STILL_FIXTURE_FILENAME}`;
 
 /**
@@ -42,15 +43,24 @@ const HTTP_OK = 200;
  * A media URL answered with the given statuses in order, and never answered at
  * all once they run out.
  *
- * Every URL carries its own counter, since one server serves a whole run and a
- * shared counter would make a test depend on what ran before it.
+ * Every URL carries its own counter, since one worker serves every test in a
+ * file and a shared counter would make a test depend on what ran before it.
  */
-const createMediaURL = (responses: number[]): string =>
-  `/test-media/${STILL_FIXTURE_FILENAME}?` +
-  new URLSearchParams({
-    token: crypto.randomUUID(),
-    responses: responses.join(','),
-  }).toString();
+const createMediaURL = (responses: number[]): string => {
+  if (!isTestMediaInUse()) {
+    throw new Error(
+      'Media that misbehaves must be served in a file using useTestMedia().',
+    );
+  }
+
+  return (
+    `/test-media/${STILL_FIXTURE_FILENAME}?` +
+    new URLSearchParams({
+      token: crypto.randomUUID(),
+      responses: responses.join(','),
+    }).toString()
+  );
+};
 
 /**
  * A media URL that fails the given number of times and then works, so a test
@@ -140,6 +150,12 @@ const getImmediateShadowRoots = (root: ParentNode): ShadowRoot[] => {
   }
   return roots;
 };
+
+/**
+ * Get every shadow root at or below an element.
+ */
+export const getAllShadowRoots = (root: ParentNode): ShadowRoot[] =>
+  getImmediateShadowRoots(root).flatMap((child) => [child, ...getAllShadowRoots(child)]);
 
 /**
  * Search an element and every shadow root beneath it. The card nests its own

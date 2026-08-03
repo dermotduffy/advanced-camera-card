@@ -5,11 +5,77 @@ import type { AdvancedCameraCard } from '../../src/card';
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
 import type { FakeEntityOptions, FakeHASS } from './fake-hass';
 import { defineHAElementStubs } from './ha-element-stubs';
-import { clickElement, deepQuery, deepQueryAll } from './test-utils';
+import { clickElement, deepQuery, deepQueryAll, getAllShadowRoots } from './test-utils';
 
 // Home Assistant's masonry columns are `max-width: 500px`, so this is the width
 // a card usually gets. The card derives height from the media it is showing.
 const DEFAULT_CONTAINER_WIDTH = '500px';
+
+// Everything a rendered element can arrive as: drawn, moved, retitled or
+// relabelled.
+const RENDER_MUTATIONS = {
+  attributes: true,
+  characterData: true,
+  childList: true,
+  subtree: true,
+};
+
+/**
+ * Wait for something the card draws.
+ *
+ * A `MutationObserver` reports a change when it happens and has no clock of its
+ * own to run (so no clash with fake vs real timers used elsewhere in the test).
+ * Alternatives on offer (e.g. `vi.waitFor`, `expect.element`) poll a timer,
+ * which under a fake clock is the card's timer so each each poll advances the
+ * card's own test clock by the interval between polls.
+ *
+ * If the predicate is never "found", the test will fail on the Vitest timeout.
+ *
+ * Known limitation: the browser reports changes within a root being watched,
+ * never the creation of a root itself. A new root is picked up because whatever
+ * created it also changed a watched root; one created with nothing else
+ * changing around it would be missed until the timeout. Everything the card
+ * draws is a LIT element, which creates its root as the element is added to the
+ * page, so the root above it always changes at the same moment and nothing is
+ * missed.
+ */
+const waitForRender = async <T>(root: Element, find: () => T | null): Promise<T> => {
+  const observers: MutationObserver[] = [];
+  const observed = new Set<Node>();
+  const stopObserving = (): void =>
+    observers.forEach((observer) => observer.disconnect());
+
+  // Cover our bases: if this method call never settles, the `finally` never
+  // runs. Also stop observing during test teardown.
+  onTestFinished(stopObserving);
+
+  try {
+    return await new Promise<T>((resolve) => {
+      const check = (): void => {
+        // Watch all shadow roots we're not already watching.
+        for (const node of [root, ...getAllShadowRoots(root)]) {
+          if (!observed.has(node)) {
+            observed.add(node);
+
+            const observer = new MutationObserver(check);
+            observer.observe(node, RENDER_MUTATIONS);
+            observers.push(observer);
+          }
+        }
+
+        // Attempt to find.
+        const found = find();
+        if (found) {
+          resolve(found);
+        }
+      };
+
+      check();
+    });
+  } finally {
+    stopObserving();
+  }
+};
 
 // The card events worth recording by default. There is no way to listen for a
 // prefix, so every name a ledger reports has to be named somewhere; this is the
@@ -432,13 +498,15 @@ export class MountedCard {
   public async waitForSelector<T extends Element = Element>(
     selector: string,
   ): Promise<T> {
-    return await vi.waitFor(() => {
-      const found = deepQuery<T>(this.card, selector);
-      if (!found) {
-        throw new Error(`No element matched: ${selector}`);
-      }
-      return found;
-    });
+    return await this.waitForRender(() => deepQuery<T>(this.card, selector));
+  }
+
+  /**
+   * Wait for something the card renders that a selector cannot describe. Use
+   * instead of `vi.waitFor` which interferes with fake `card` time.
+   */
+  public async waitForRender<T>(find: () => T | null): Promise<T> {
+    return await waitForRender(this.card, find);
   }
 
   /**
@@ -461,9 +529,12 @@ export class MountedCard {
   public async holdControl(name: string): Promise<void> {
     const control = await this._findControl(name);
 
-    control.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    // Composed as well as bubbling: a real press crosses the shadow boundaries
+    // between a control and whatever is listening above it.
+    const press = { bubbles: true, composed: true };
+    control.dispatchEvent(new MouseEvent('mousedown', press));
     await vi.advanceTimersByTimeAsync(ACTION_HANDLER_HOLD_SECONDS * 1000);
-    control.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+    control.dispatchEvent(new MouseEvent('mouseup', press));
 
     // The card takes the click, not the mouseup, as the end of a press. A real
     // pointer sends both, in this order.
@@ -471,14 +542,11 @@ export class MountedCard {
   }
 
   private async _findControl(name: string): Promise<HTMLElement> {
-    return await vi.waitFor(() => {
+    return await this.waitForRender(() => {
       const found = deepQueryAll(this.card, '*').find(
         (element) => getControlName(element) === name,
       );
-      if (!(found instanceof HTMLElement)) {
-        throw new Error(`Could not find control named: ${name}`);
-      }
-      return found;
+      return found instanceof HTMLElement ? found : null;
     });
   }
 
