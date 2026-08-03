@@ -1,4 +1,5 @@
 import { errorToConsole } from '../../../utils/basic';
+import { OnceRunner } from '../../../utils/concurrency/once-runner';
 import type { HomeAssistant } from '../../types';
 import { homeAssistantWSRequest } from '../../ws-request';
 import {
@@ -10,7 +11,7 @@ import {
 
 export class DeviceRegistryManager {
   private _cache: DeviceCache;
-  private _fetchedDeviceList = false;
+  private _deviceListFetch = new OnceRunner();
 
   constructor(cache: DeviceCache) {
     this._cache = cache;
@@ -35,22 +36,21 @@ export class DeviceRegistryManager {
   }
 
   private async _fetchDeviceList(hass: HomeAssistant): Promise<void> {
-    if (this._fetchedDeviceList) {
-      return;
-    }
-
-    let deviceList: DeviceList | null = null;
     try {
-      deviceList = await homeAssistantWSRequest<DeviceList>(hass, deviceListSchema, {
-        type: 'config/device_registry/list',
+      await this._deviceListFetch.run(async () => {
+        const deviceList = await homeAssistantWSRequest<DeviceList>(
+          hass,
+          deviceListSchema,
+          {
+            type: 'config/device_registry/list',
+          },
+        );
+        deviceList.forEach((device) => {
+          this._cache.set(device.id, device);
+        });
       });
     } catch (e) {
       errorToConsole(e);
-      return;
     }
-    deviceList.forEach((device) => {
-      this._cache.set(device.id, device);
-    });
-    this._fetchedDeviceList = true;
   }
 }
