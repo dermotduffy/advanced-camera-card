@@ -249,9 +249,7 @@ describe('MediaUnavailableIssue', () => {
 
     const card = await mountCard({
       // A fixed interval rather than the default backoff, which jitters every
-      // delay by a random half. Backoff itself is tested in unittests. Short,
-      // because this is real time, but long enough that a failed request is
-      // reported before the next attempt replaces it.
+      // delay by a random half. Backoff itself is tested in unittests.
       //
       // Caution: As this test must use the real clock, this directly adds to
       // the test runtime.
@@ -265,9 +263,11 @@ describe('MediaUnavailableIssue', () => {
     });
 
     // Two failures: the first attempt, and a retry after it. Giving up after
-    // one would leave a camera dark that was about to come back.
+    // one would leave a camera dark that was about to come back. Taken from the
+    // event rather than from what is on screen: the report is only up until the
+    // attempt that succeeds, and on a slow machine the camera can come back
+    // before the failure has been drawn at all.
     await card.events.waitForCount('advanced-camera-card:issue:trigger', 2);
-    await waitForIssueReported(card);
 
     // The third attempt is served.
     await card.events.waitForFirst('advanced-camera-card:media:loaded');
