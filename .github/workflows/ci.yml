@@ -61,7 +61,14 @@ jobs:
     # Use Playwright's own image to avoid having to (slowly) install browsers
     # and dependencies. The tag has to name the `playwright` version in
     # package.json .
-    container: mcr.microsoft.com/playwright:v1.62.0-noble
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.0-noble
+
+      # As the image's own user rather than root, which Firefox refuses to run
+      # as when the home directory belongs to somebody else.
+      #
+      # See https://playwright.dev/docs/ci#via-containers .
+      options: --user 1001
 
     strategy:
       # One browser failing does not invalidate the others.
