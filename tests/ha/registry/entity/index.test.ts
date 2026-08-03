@@ -101,6 +101,41 @@ describe('EntityRegistryManager', () => {
       expect(hass.callWS).toHaveBeenCalledTimes(1);
     });
 
+    it('should fetch once for callers that arrive while a fetch is running', async () => {
+      const hass = createHASS();
+      const entity = createRegistryEntity({ entity_id: 'cached' });
+      vi.mocked(hass.callWS).mockResolvedValueOnce([entity]);
+
+      const manager = new EntityRegistryManagerLive(new EntityCache());
+
+      await Promise.all([manager.fetchEntityList(hass), manager.fetchEntityList(hass)]);
+
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
+      expect(await manager.getEntity(hass, 'cached')).toEqual(entity);
+    });
+
+    it('should use the first caller hass for callers that join a running fetch', async () => {
+      const entity = createRegistryEntity({ entity_id: 'cached' });
+
+      const firstHASS = createHASS();
+      vi.mocked(firstHASS.callWS).mockResolvedValueOnce([entity]);
+
+      // A later `hass` arrives mid-fetch (Home Assistant replaces the object on
+      // every state update). The joining caller uses the running fetch, so its
+      // own `hass` is never called.
+      const laterHASS = createHASS();
+
+      const manager = new EntityRegistryManagerLive(new EntityCache());
+
+      await Promise.all([
+        manager.fetchEntityList(firstHASS),
+        manager.fetchEntityList(laterHASS),
+      ]);
+
+      expect(firstHASS.callWS).toHaveBeenCalledTimes(1);
+      expect(laterHASS.callWS).not.toHaveBeenCalled();
+    });
+
     it('should log to console on error', async () => {
       const hass = createHASS();
       vi.mocked(hass.callWS).mockRejectedValueOnce(new Error('Fetch error'));
@@ -113,6 +148,22 @@ describe('EntityRegistryManager', () => {
         expect.any(AdvancedCameraCardError),
         expect.anything(),
       );
+    });
+
+    it('should fetch again after a failure', async () => {
+      const hass = createHASS();
+      const entity = createRegistryEntity({ entity_id: 'cached' });
+      vi.mocked(hass.callWS)
+        .mockRejectedValueOnce(new Error('Fetch error'))
+        .mockResolvedValueOnce([entity]);
+
+      const manager = new EntityRegistryManagerLive(new EntityCache());
+
+      await manager.fetchEntityList(hass);
+      await manager.fetchEntityList(hass);
+
+      expect(hass.callWS).toHaveBeenCalledTimes(2);
+      expect(await manager.getEntity(hass, 'cached')).toEqual(entity);
     });
   });
 

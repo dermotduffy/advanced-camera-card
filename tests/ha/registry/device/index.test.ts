@@ -45,6 +45,23 @@ describe('DeviceRegistryManager', () => {
       expect(hass.callWS).toHaveBeenCalledTimes(1);
     });
 
+    it('should fetch once for callers that arrive while a fetch is running', async () => {
+      const testDevice = createRegistryDevice({ id: 'test' });
+
+      const hass = createHASS();
+      const manager = new DeviceRegistryManager(new DeviceCache());
+      vi.mocked(hass.callWS).mockResolvedValueOnce([testDevice]);
+
+      expect(
+        await Promise.all([
+          manager.getDevice(hass, 'test'),
+          manager.getDevice(hass, 'test'),
+        ]),
+      ).toEqual([testDevice, testDevice]);
+
+      expect(hass.callWS).toHaveBeenCalledTimes(1);
+    });
+
     it('should return null when fetch fails', async () => {
       const hass = createHASS();
       vi.mocked(hass.callWS).mockRejectedValueOnce(new Error('Fetch error'));
@@ -56,6 +73,22 @@ describe('DeviceRegistryManager', () => {
         expect.any(AdvancedCameraCardError),
         expect.anything(),
       );
+    });
+
+    it('should fetch again after a failure', async () => {
+      const testDevice = createRegistryDevice({ id: 'test' });
+
+      const hass = createHASS();
+      vi.mocked(hass.callWS)
+        .mockRejectedValueOnce(new Error('Fetch error'))
+        .mockResolvedValueOnce([testDevice]);
+
+      const manager = new DeviceRegistryManager(new DeviceCache());
+
+      expect(await manager.getDevice(hass, 'test')).toBeNull();
+      expect(await manager.getDevice(hass, 'test')).toEqual(testDevice);
+
+      expect(hass.callWS).toHaveBeenCalledTimes(2);
     });
   });
 

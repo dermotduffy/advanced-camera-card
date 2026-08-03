@@ -1,4 +1,5 @@
 import { errorToConsole } from '../../../utils/basic.js';
+import { OnceRunner } from '../../../utils/concurrency/once-runner.js';
 import type { HomeAssistant } from '../../types.js';
 import { homeAssistantWSRequest } from '../../ws-request.js';
 import {
@@ -16,7 +17,7 @@ import {
 
 export class EntityRegistryManagerLive implements EntityRegistryManager {
   private _cache: EntityCache;
-  private _fetchedEntityList = false;
+  private _entityListFetch = new OnceRunner();
 
   constructor(cache: EntityCache) {
     this._cache = cache;
@@ -69,22 +70,21 @@ export class EntityRegistryManagerLive implements EntityRegistryManager {
   }
 
   public async fetchEntityList(hass: HomeAssistant): Promise<void> {
-    if (this._fetchedEntityList) {
-      return;
-    }
-
-    let entityList: EntityList | null = null;
     try {
-      entityList = await homeAssistantWSRequest<EntityList>(hass, entityListSchema, {
-        type: 'config/entity_registry/list',
+      await this._entityListFetch.run(async () => {
+        const entityList = await homeAssistantWSRequest<EntityList>(
+          hass,
+          entityListSchema,
+          {
+            type: 'config/entity_registry/list',
+          },
+        );
+        entityList.forEach((entity) => {
+          this._cache.set(entity.entity_id, entity);
+        });
       });
     } catch (e) {
       errorToConsole(e);
-      return;
     }
-    entityList.forEach((entity) => {
-      this._cache.set(entity.entity_id, entity);
-    });
-    this._fetchedEntityList = true;
   }
 }
