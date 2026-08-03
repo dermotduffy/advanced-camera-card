@@ -56,10 +56,12 @@ jobs:
   browser-test:
     name: Test / Browser / ${{ matrix.name }}
 
-    # Not yet a required check: the browser suite is new/potentially unstable.
-    continue-on-error: true
-
     runs-on: ubuntu-latest
+
+    # Use Playwright's own image to avoid having to (slowly) install browsers
+    # and dependencies. The tag has to name the `playwright` version in
+    # package.json .
+    container: mcr.microsoft.com/playwright:v1.62.0-noble
 
     strategy:
       # One browser failing does not invalidate the others.
@@ -84,18 +86,6 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
-
-      # A browser is several hundred megabytes: cache it keyed by project dependencies.
-      - name: Cache the browser
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('yarn.lock') }}
-
-      # Downloads nothing when the cache had it, but still installs the system
-      # libraries the browser needs, which live outside the cached directory.
-      - name: Install browser
-        run: yarn playwright install --with-deps ${{ matrix.browser }}
 
       - name: Browser test
         run: yarn run test:browser
