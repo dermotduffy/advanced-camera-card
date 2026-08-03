@@ -4,7 +4,22 @@ import { defineConfig } from 'vitest/config';
 import { releaseVersion } from './scripts/release-version-plugin.js';
 import { scssString } from './scripts/scss-string-plugin.js';
 import { svgPath } from './scripts/svg-path-plugin.js';
-import { testMediaServer } from './scripts/test-media-server-plugin.js';
+
+const BROWSERS = ['chromium', 'firefox', 'webkit'] as const;
+type Browser = (typeof BROWSERS)[number];
+
+const isBrowser = (name: string): name is Browser =>
+  BROWSERS.some((browser) => browser === name);
+
+const requestedBrowser = process.env.VITEST_BROWSER;
+if (requestedBrowser !== undefined && !isBrowser(requestedBrowser)) {
+  throw new Error(`Unknown browser: ${requestedBrowser}`);
+}
+
+// Which browsers to run, all of them unless one is named. CI names one per job
+// so that the three run at the same time on separate machines rather than one
+// after another on one.
+const browsers = requestedBrowser ? [requestedBrowser] : BROWSERS;
 
 // Browser tests mount the real card in Chromium. They live in their own config
 // rather than as a fourth project in `vitest.config.ts` because `vitest run`
@@ -16,7 +31,15 @@ export default defineConfig({
   // same asset shapes the Rollup build's plugins do: an SVG becomes the `{
   // path, viewBox }` a custom iconset serves, SCSS becomes the string
   // `unsafeCSS` takes. `svgPath` is the build's own plugin, reused unchanged.
-  plugins: [releaseVersion(), scssString(), svgPath(), testMediaServer()],
+  plugins: [releaseVersion(), scssString(), svgPath()],
+
+  // Where the Mock Service Worker script is served from, which Vite serves at
+  // the root of the page. Named rather than left at its default of `public/` in
+  // the project root, which is the directory a Vite build copies into its
+  // output: nothing a test needs belongs in a released card.
+  //
+  // See tests/browser/public/README.md .
+  publicDir: 'tests/browser/public',
 
   resolve: {
     // Several dependencies declare their own Lit. Two copies in one page do not
@@ -72,6 +95,10 @@ export default defineConfig({
     // at one directory that `.gitignore` can name once.
     attachmentsDir: '.vitest/attachments',
 
+    // When to name a test in the output for taking too long. Browser tests blow
+    // past the default of 300ms.
+    slowTestThreshold: 10000,
+
     server: {
       deps: {
         // These dependencies import without extensions.
@@ -91,14 +118,14 @@ export default defineConfig({
       // screenshot taken when one fails.
       viewport: { width: 1280, height: 800 },
 
-      instances: [{ browser: 'chromium' }],
+      instances: browsers.map((browser: Browser) => ({ browser })),
 
       screenshotDirectory: '.vitest/screenshots',
     },
 
-    // Hide console writing to keep output clean, as the unit tests do. What
-    // the card writes is still captured in the page, where a test can assert on
-    // it -- a `log` action is only observable there.
-    onConsoleLog: () => false,
+    // Keep the output clean, as the unit tests do, but hand over everything a
+    // failing test wrote: much of what the card reports is written nowhere
+    // else, and on CI nobody can look at the card themselves.
+    silent: 'passed-only',
   },
 });

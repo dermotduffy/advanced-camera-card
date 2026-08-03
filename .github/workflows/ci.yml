@@ -38,7 +38,7 @@ jobs:
         run: yarn run format-check
 
   test:
-    name: Unit Test
+    name: Test / Unit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -54,12 +54,36 @@ jobs:
         run: yarn run coverage
 
   browser-test:
-    name: Browser Test
-
-    # Not yet a required check: the browser suite is new/potentially unstable.
-    continue-on-error: true
+    name: Test / Browser / ${{ matrix.name }}
 
     runs-on: ubuntu-latest
+
+    # Use Playwright's own image to avoid having to (slowly) install browsers
+    # and dependencies. The tag has to name the `playwright` version in
+    # package.json .
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.0-noble
+
+      # As the image's own user rather than root, which Firefox refuses to run
+      # as when the home directory belongs to somebody else.
+      #
+      # See https://playwright.dev/docs/ci#via-containers .
+      options: --user 1001
+
+    strategy:
+      # One browser failing does not invalidate the others.
+      fail-fast: false
+      matrix:
+        # `name` is only how the browser is written for a human: it titles the
+        # job, while `browser` is the name Playwright knows it by.
+        include:
+          - browser: chromium
+            name: Chromium
+          - browser: firefox
+            name: Firefox
+          - browser: webkit
+            name: WebKit
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -70,13 +94,18 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      # The browser binary is not in the lockfile, and the media tests need the
-      # proprietary codecs the Chrome for Testing builds carry.
-      - name: Install Chromium
-        run: yarn playwright install --with-deps chromium
-
       - name: Browser test
         run: yarn run test:browser
+        env:
+          VITEST_BROWSER: ${{ matrix.browser }}
+
+      - name: Upload browser test failures
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: browser-test-failures-${{ matrix.browser }}
+          path: .vitest/
+          if-no-files-found: ignore
 
   build:
     name: Build

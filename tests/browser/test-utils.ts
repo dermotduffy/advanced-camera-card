@@ -4,14 +4,15 @@ import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
 import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { createLogAction } from '../../src/utils/action';
 import { FakeHASS, type FakeEntityOptions } from './fake-hass';
+import { isTestMediaInUse } from './test-media';
 
 export const STILL_CAMERA_ENTITY = 'camera.office';
 
 const STILL_FIXTURE_FILENAME = 'still-red.png';
 
 // A same-origin still red image, served by the Vite dev server. The same image
-// is also served by the test-media plugin, which can be asked to misbehave in
-// useful ways. See test-media-server-plugin.js .
+// is handed on by the worker in test-media.ts, which can be asked to misbehave
+// in useful ways.
 const STILL_FIXTURE_URL = `/tests/browser/fixtures/${STILL_FIXTURE_FILENAME}`;
 
 /**
@@ -39,30 +40,42 @@ const HTTP_NOT_FOUND = 404;
 const HTTP_OK = 200;
 
 /**
- * A media URL answered with the given statuses in order, and never answered at
- * all once they run out.
+ * A media URL answered with the given statuses in order. Once they run out
+ * every request after them is answered as the last one was, or, if the camera
+ * is meant to go quiet, never answered at all.
  *
- * Every URL carries its own counter, since one server serves a whole run and a
- * shared counter would make a test depend on what ran before it.
+ * Every URL carries its own counter, since one worker serves every test in a
+ * file and a shared counter would make a test depend on what ran before it.
  */
-const createMediaURL = (responses: number[]): string =>
-  `/test-media/${STILL_FIXTURE_FILENAME}?` +
-  new URLSearchParams({
-    token: crypto.randomUUID(),
-    responses: responses.join(','),
-  }).toString();
+const createMediaURL = (responses: number[], repeat = false): string => {
+  if (!isTestMediaInUse()) {
+    throw new Error(
+      'Media that misbehaves must be served in a file using useTestMedia().',
+    );
+  }
+
+  return (
+    `/test-media/${STILL_FIXTURE_FILENAME}?` +
+    new URLSearchParams({
+      token: crypto.randomUUID(),
+      responses: responses.join(','),
+      repeat: String(repeat),
+    }).toString()
+  );
+};
 
 /**
- * A media URL that fails the given number of times and then works, so a test
- * can make a camera recover rather than only fail.
+ * A media URL that fails the given number of times and then works from there
+ * on, so a test can make a camera recover rather than only fail.
  */
 export const createTemporarilyFailingMediaURL = (failures: number): string =>
-  createMediaURL([...Array(failures).fill(HTTP_NOT_FOUND), HTTP_OK]);
+  createMediaURL([...Array(failures).fill(HTTP_NOT_FOUND), HTTP_OK], true);
 
 /**
  * A media URL that never works, for a camera that is simply broken.
  */
-export const createFailingMediaURL = (): string => createMediaURL([HTTP_NOT_FOUND]);
+export const createFailingMediaURL = (): string =>
+  createMediaURL([HTTP_NOT_FOUND], true);
 
 /**
  * A media URL that is never answered, for a camera that accepts the request and
@@ -140,6 +153,12 @@ const getImmediateShadowRoots = (root: ParentNode): ShadowRoot[] => {
   }
   return roots;
 };
+
+/**
+ * Get every shadow root at or below an element.
+ */
+export const getAllShadowRoots = (root: ParentNode): ShadowRoot[] =>
+  getImmediateShadowRoots(root).flatMap((child) => [child, ...getAllShadowRoots(child)]);
 
 /**
  * Search an element and every shadow root beneath it. The card nests its own
