@@ -21,6 +21,30 @@ const RENDER_MUTATIONS = {
 };
 
 /**
+ * Provides debug information when a test ends (e.g. timeout), by reporting
+ * expected things that didn't happen. Helps narrow down a hanging test to the
+ * precise unmet expectation.
+ */
+const reportIfNeverHappens = (
+  description: string,
+  cleanUp?: () => void,
+): (() => void) => {
+  let happened = false;
+
+  onTestFinished(() => {
+    cleanUp?.();
+
+    if (!happened) {
+      throw new Error(`Never happened: ${description}`);
+    }
+  });
+
+  return () => {
+    happened = true;
+  };
+};
+
+/**
  * Wait for something the card draws.
  *
  * A `MutationObserver` reports a change when it happens and has no clock of its
@@ -29,7 +53,9 @@ const RENDER_MUTATIONS = {
  * which under a fake clock is the card's timer so each each poll advances the
  * card's own test clock by the interval between polls.
  *
- * If the predicate is never "found", the test will fail on the Vitest timeout.
+ * If the predicate is never "found", the test will fail on the Vitest timeout,
+ * which names only the test. `description` is reported alongside it, to say
+ * which wait it was that never finished.
  *
  * Known limitation: the browser reports changes within a root being watched,
  * never the creation of a root itself. A new root is picked up because whatever
@@ -39,15 +65,17 @@ const RENDER_MUTATIONS = {
  * page, so the root above it always changes at the same moment and nothing is
  * missed.
  */
-const waitForRender = async <T>(root: Element, find: () => T | null): Promise<T> => {
+const waitForRender = async <T>(
+  root: Element,
+  find: () => T | null,
+  description: string,
+): Promise<T> => {
   const observers: MutationObserver[] = [];
   const observed = new Set<Node>();
   const stopObserving = (): void =>
     observers.forEach((observer) => observer.disconnect());
 
-  // Cover our bases: if this method call never settles, the `finally` never
-  // runs. Also stop observing during test teardown.
-  onTestFinished(stopObserving);
+  const happened = reportIfNeverHappens(description, stopObserving);
 
   try {
     return await new Promise<T>((resolve) => {
@@ -64,9 +92,10 @@ const waitForRender = async <T>(root: Element, find: () => T | null): Promise<T>
         }
 
         // Attempt to find.
-        const found = find();
-        if (found) {
-          resolve(found);
+        const match = find();
+        if (match) {
+          happened();
+          resolve(match);
         }
       };
 
@@ -207,8 +236,19 @@ class EventLedger {
       return recorded[count - 1];
     }
 
+    const happened = reportIfNeverHappens(`${type} firing ${count} time(s)`);
+
     return await new Promise<EventEntry>((resolve) => {
-      this._waiting.set(type, [...(this._waiting.get(type) ?? []), { count, resolve }]);
+      this._waiting.set(type, [
+        ...(this._waiting.get(type) ?? []),
+        {
+          count,
+          resolve: (entry: EventEntry): void => {
+            happened();
+            resolve(entry);
+          },
+        },
+      ]);
     });
   }
 
@@ -280,8 +320,18 @@ class ConsoleLedger {
       return;
     }
 
+    const happened = reportIfNeverHappens(
+      `${waiter.level} being written ${waiter.count} time(s): ${message.source}`,
+    );
+
     return await new Promise<void>((resolve) => {
-      this._waiting.push({ ...waiter, resolve });
+      this._waiting.push({
+        ...waiter,
+        resolve: (): void => {
+          happened();
+          resolve();
+        },
+      });
     });
   }
 
@@ -498,15 +548,21 @@ export class MountedCard {
   public async waitForSelector<T extends Element = Element>(
     selector: string,
   ): Promise<T> {
-    return await this.waitForRender(() => deepQuery<T>(this.card, selector));
+    return await this.waitForRender(
+      () => deepQuery<T>(this.card, selector),
+      `an element matching ${selector}`,
+    );
   }
 
   /**
    * Wait for something the card renders that a selector cannot describe. Use
    * instead of `vi.waitFor` which interferes with fake `card` time.
+   *
+   * `description` names what is being waited for (so it can be displayed if not
+   * found, for debugging purposes).
    */
-  public async waitForRender<T>(find: () => T | null): Promise<T> {
-    return await waitForRender(this.card, find);
+  public async waitForRender<T>(find: () => T | null, description: string): Promise<T> {
+    return await waitForRender(this.card, find, description);
   }
 
   /**
@@ -547,7 +603,7 @@ export class MountedCard {
         (element) => getControlName(element) === name,
       );
       return found instanceof HTMLElement ? found : null;
-    });
+    }, `a control named ${name}`);
   }
 
   public destroy(): void {

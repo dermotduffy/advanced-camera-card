@@ -24,23 +24,24 @@ import {
 
 const SECOND_CAMERA_ENTITY = 'camera.hallway';
 
-const REPORT_TITLE = 'Media unavailable';
+const MEDIA_ISSUE_TITLE = 'Media unavailable';
 
 // Holding this reaches the diagnostics view, the only view showing no media
 // that a camera without a media browsing engine can get to.
 const IRIS_CONTROL = 'Iris / Default View / Unhide menu';
 
-// Only the status bar counts as the report. The notification behind it carries
-// the same title, so a wider search would answer a different question.
-const findReport = (card: MountedCard): Element | null =>
+const findIssue = (card: MountedCard): Element | null =>
   deepQuery(card.card, 'advanced-camera-card-status-bar')?.shadowRoot?.querySelector(
-    `[title="${REPORT_TITLE}"]`,
+    `[title="${MEDIA_ISSUE_TITLE}"]`,
   ) ?? null;
 
-const isIssueReported = (card: MountedCard): boolean => !!findReport(card);
+const isIssueReported = (card: MountedCard): boolean => !!findIssue(card);
 
 const waitForIssueReported = async (card: MountedCard): Promise<void> => {
-  await card.waitForRender(() => findReport(card));
+  await card.waitForRender(
+    () => findIssue(card),
+    `the ${MEDIA_ISSUE_TITLE} issue being reported`,
+  );
 };
 
 interface MountCardOptions extends MountOptions {
@@ -48,8 +49,8 @@ interface MountCardOptions extends MountOptions {
 }
 
 /**
- * Every test here needs the status bar rendered, since that is where the report
- * appears.
+ * Every test here needs the status bar rendered, since that is where an issue
+ * is reported.
  */
 const mountCard = async (
   config?: Partial<RawAdvancedCameraCardConfig>,
@@ -143,7 +144,7 @@ describe('MediaUnavailableIssue', () => {
 
     card.setEntityState(STILL_CAMERA_ENTITY, 'idle');
 
-    // Well past the point the report would have appeared had the blip not
+    // Well past the point the issue report would have appeared had the blip not
     // ended. Nothing should ever have been shown.
     await card.advanceSeconds(LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS * 4);
 
@@ -155,9 +156,10 @@ describe('MediaUnavailableIssue', () => {
 
     card.setEntityState(SECOND_CAMERA_ENTITY, 'unavailable');
     await card.advanceSeconds(LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS);
+    await card.waitForSelector('advanced-camera-card-notification-block');
 
-    // Which camera, not just that something is wrong: with several on screen a
-    // report that does not say which one leaves the user to guess.
+    // Which camera, not just that something is wrong: with several on screen an
+    // issue report that does not say which one leaves the user guessing.
     expect(getBlockNotificationText(card.card)).toContain('Camera entity unavailable');
     expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_ENTITY);
   });
@@ -167,6 +169,7 @@ describe('MediaUnavailableIssue', () => {
 
     card.setEntityState(SECOND_CAMERA_ENTITY, 'unavailable');
     await card.advanceSeconds(LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS);
+    await card.waitForSelector('advanced-camera-card-notification-block');
 
     // One camera failing must not take the other down with it.
     expect(
@@ -192,7 +195,7 @@ describe('MediaUnavailableIssue', () => {
     expect(getBlockNotificationText(card.card)).toContain(STILL_CAMERA_ENTITY);
   });
 
-  it('should clear the report once the camera delivers media again', async () => {
+  it('should clear the issue report once the camera delivers media again', async () => {
     const card = await mountCard({
       cameras: [
         createStillImageCameraConfig(
@@ -206,15 +209,15 @@ describe('MediaUnavailableIssue', () => {
     await waitForIssueReported(card);
 
     // Nothing here asks the card to try again. A camera that has come back must
-    // be picked up by the card's own retry, or the report stays up forever for
-    // a user who is looking at a working camera.
+    // be picked up by the card's own retry, or the issue report stays up
+    // forever for a user who is looking at a working camera.
     await card.advanceSeconds(RETRY_EXPONENTIAL_BASE_SECONDS);
     await card.events.waitForFirst('advanced-camera-card:media:loaded');
 
     expect(isIssueReported(card)).toBe(false);
 
-    // The picture is back, so the cleared report is not the card having thrown
-    // the whole live view away.
+    // The picture is back, so the cleared issue report is not the card having
+    // thrown the whole live view away.
     expect(isLiveMediaShowing(card.card)).toBe(true);
   });
 
@@ -264,9 +267,9 @@ describe('MediaUnavailableIssue', () => {
 
     // Two failures: the first attempt, and a retry after it. Giving up after
     // one would leave a camera dark that was about to come back. Taken from the
-    // event rather than from what is on screen: the report is only up until the
-    // attempt that succeeds, and on a slow machine the camera can come back
-    // before the failure has been drawn at all.
+    // event rather than from what is on screen: the issue report is only up
+    // until the attempt that succeeds, and on a slow machine the camera can
+    // come back before the failure has been drawn at all.
     await card.events.waitForCount('advanced-camera-card:issue:trigger', 2);
 
     // The third attempt is served.
@@ -295,8 +298,9 @@ describe('MediaUnavailableIssue', () => {
     await card.events.waitForFirst('advanced-camera-card:issue:trigger');
 
     // The status bar only summarises. Everything a user can do about the
-    // failure is behind it, which is the point of the report being clickable.
-    await card.clickControl(REPORT_TITLE);
+    // failure is behind it, which is the point of the issue report being
+    // clickable.
+    await card.clickControl(MEDIA_ISSUE_TITLE);
     await card.clickControl('Retry');
 
     await card.events.waitForFirst('advanced-camera-card:media:loaded');
@@ -316,15 +320,16 @@ describe('MediaUnavailableIssue', () => {
     await card.events.waitForFirst('advanced-camera-card:issue:trigger');
     await waitForIssueReported(card);
 
-    // Diagnostics shows no media at all, so there is nothing for the report to
-    // be about and complaining there would be noise on an unrelated screen.
+    // Diagnostics shows no media at all, so there is nothing for an issue
+    // report to be about and complaining there would be noise on an unrelated
+    // screen.
     await card.holdControl(IRIS_CONTROL);
     await card.waitForSelector('advanced-camera-card-diagnostics');
 
     expect(isIssueReported(card)).toBe(false);
 
-    // Returning to the camera brings the report back. Leaving the view is not
-    // an answer to the failure, and coming back to a silently broken camera
+    // Returning to the camera brings the issue report back. Leaving the view is
+    // not an answer to the failure, and coming back to a silently broken camera
     // would be worse than never having been told.
     await card.clickControl('Live view');
     await waitForIssueReported(card);
@@ -398,7 +403,7 @@ describe('MediaUnavailableIssue', () => {
       'Could not get camera endpoint',
     );
 
-    await card.clickControl(REPORT_TITLE);
+    await card.clickControl(MEDIA_ISSUE_TITLE);
     await card.waitForSelector('advanced-camera-card-notification');
 
     expect(

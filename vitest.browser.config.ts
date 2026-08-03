@@ -110,6 +110,8 @@ export default defineConfig({
     // Hide console writing to keep output clean, as the unit tests do. What
     // the card writes is still captured in the page, where a test can assert on
     // it -- a `log` action is only observable there.
-    onConsoleLog: () => false,
+    //
+    // Console logging is not surpressed in the CI.
+    onConsoleLog: () => !!process.env.CI,
   },
 });

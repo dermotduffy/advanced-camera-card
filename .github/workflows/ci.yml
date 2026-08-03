@@ -76,6 +76,14 @@ jobs:
       - name: Browser test
         run: yarn run test:browser
 
+      - name: Upload browser test failures
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: browser-test-failures
+          path: .vitest/
+          if-no-files-found: ignore
+
   build:
     name: Build
     runs-on: ubuntu-latest
