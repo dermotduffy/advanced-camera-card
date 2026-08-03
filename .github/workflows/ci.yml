@@ -38,7 +38,7 @@ jobs:
         run: yarn run format-check
 
   test:
-    name: Unit Test
+    name: Test / Unit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -54,12 +54,27 @@ jobs:
         run: yarn run coverage
 
   browser-test:
-    name: Browser Test
+    name: Test / Browser / ${{ matrix.name }}
 
     # Not yet a required check: the browser suite is new/potentially unstable.
     continue-on-error: true
 
     runs-on: ubuntu-latest
+
+    strategy:
+      # One browser failing does not invalidate the others.
+      fail-fast: false
+      matrix:
+        # `name` is only how the browser is written for a human: it titles the
+        # job, while `browser` is the name Playwright knows it by.
+        include:
+          - browser: chromium
+            name: Chromium
+          - browser: firefox
+            name: Firefox
+          - browser: webkit
+            name: WebKit
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -70,17 +85,28 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Install browsers
-        run: yarn playwright install --with-deps chromium firefox webkit
+      # A browser is several hundred megabytes: cache it keyed by project dependencies.
+      - name: Cache the browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('yarn.lock') }}
+
+      # Downloads nothing when the cache had it, but still installs the system
+      # libraries the browser needs, which live outside the cached directory.
+      - name: Install browser
+        run: yarn playwright install --with-deps ${{ matrix.browser }}
 
       - name: Browser test
         run: yarn run test:browser
+        env:
+          VITEST_BROWSER: ${{ matrix.browser }}
 
       - name: Upload browser test failures
         if: failure()
         uses: actions/upload-artifact@v6
         with:
-          name: browser-test-failures
+          name: browser-test-failures-${{ matrix.browser }}
           path: .vitest/
           if-no-files-found: ignore
 

@@ -5,6 +5,22 @@ import { releaseVersion } from './scripts/release-version-plugin.js';
 import { scssString } from './scripts/scss-string-plugin.js';
 import { svgPath } from './scripts/svg-path-plugin.js';
 
+const BROWSERS = ['chromium', 'firefox', 'webkit'] as const;
+type Browser = (typeof BROWSERS)[number];
+
+const isBrowser = (name: string): name is Browser =>
+  BROWSERS.some((browser) => browser === name);
+
+const requestedBrowser = process.env.VITEST_BROWSER;
+if (requestedBrowser !== undefined && !isBrowser(requestedBrowser)) {
+  throw new Error(`Unknown browser: ${requestedBrowser}`);
+}
+
+// Which browsers to run, all of them unless one is named. CI names one per job
+// so that the three run at the same time on separate machines rather than one
+// after another on one.
+const browsers = requestedBrowser ? [requestedBrowser] : BROWSERS;
+
 // Browser tests mount the real card in Chromium. They live in their own config
 // rather than as a fourth project in `vitest.config.ts` because `vitest run`
 // executes every configured project: without splitting browser tests would
@@ -79,6 +95,10 @@ export default defineConfig({
     // at one directory that `.gitignore` can name once.
     attachmentsDir: '.vitest/attachments',
 
+    // When to name a test in the output for taking too long. Browser tests blow
+    // past the default of 300ms.
+    slowTestThreshold: 10000,
+
     server: {
       deps: {
         // These dependencies import without extensions.
@@ -98,11 +118,7 @@ export default defineConfig({
       // screenshot taken when one fails.
       viewport: { width: 1280, height: 800 },
 
-      instances: [
-        { browser: 'chromium' },
-        { browser: 'firefox' },
-        { browser: 'webkit' },
-      ],
+      instances: browsers.map((browser: Browser) => ({ browser })),
 
       screenshotDirectory: '.vitest/screenshots',
     },
