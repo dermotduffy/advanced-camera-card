@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
-import { MountedCard } from '../../browser/mounted-card';
+import { MountedCardFactory, type MountedCard } from '../../browser/mounted-card';
 import {
   CARD_INITIALIZED_MESSAGE,
   createInitializedAutomation,
@@ -24,7 +24,7 @@ const createConfig = (
 const mount = async (
   overrides?: Partial<RawAdvancedCameraCardConfig>,
 ): Promise<MountedCard> =>
-  await MountedCard.create(
+  await MountedCardFactory.createFromSource(
     createConfig(overrides),
     createStillCameraHASS({ cameras: [OTHER_CAMERA_ENTITY] }),
   );

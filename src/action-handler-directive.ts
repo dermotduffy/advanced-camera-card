@@ -6,6 +6,7 @@ import {
   type DirectiveParameters,
 } from 'lit/directive.js';
 
+import { ACTION_HANDLER_HOLD_SECONDS } from './const.js';
 import { fireHASSEvent } from './ha/fire-hass-event.js';
 import type { ActionHandlerDetail, ActionHandlerOptions } from './ha/types.js';
 import { stopEventFromActivatingCardWideActions } from './utils/action.js';
@@ -23,9 +24,6 @@ interface ActionHandlerElement extends HTMLElement {
 interface AdvancedCameraCardActionHandlerOptions extends ActionHandlerOptions {
   allowPropagation?: boolean;
 }
-
-// How long a press must last to count as a hold rather than a tap.
-export const ACTION_HANDLER_HOLD_SECONDS = 0.4;
 
 class ActionHandler extends HTMLElement implements ActionHandlerInterface {
   public holdTime = ACTION_HANDLER_HOLD_SECONDS;

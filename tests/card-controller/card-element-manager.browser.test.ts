@@ -1,7 +1,7 @@
 import { describe, expect, it, onTestFinished } from 'vitest';
 
 import { createLogAction } from '../../src/utils/action';
-import { MountedCard } from '../browser/mounted-card';
+import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
 import {
   CARD_INITIALIZED_MESSAGE,
   createInitializedAutomation,
@@ -18,7 +18,7 @@ import {
 const KEY_MESSAGE = /key pressed/;
 
 const mountCard = async (): Promise<MountedCard> => {
-  const card = await MountedCard.create(
+  const card = await MountedCardFactory.createFromSource(
     createStillImageCardConfig({
       automations: [
         createInitializedAutomation(),

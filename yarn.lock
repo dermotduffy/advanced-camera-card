@@ -2527,6 +2527,7 @@ __metadata:
     docsify-cli: "npm:^4.4.4"
     embla-carousel: "npm:^8.6.0"
     embla-carousel-wheel-gestures: "npm:^8.0.1"
+    es-module-lexer: "npm:^2.3.1"
     eslint: "npm:^9.24.0"
     eslint-config-prettier: "npm:^9.1.0"
     ha-nunjucks: "npm:~1.6.2"
@@ -4216,7 +4217,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"es-module-lexer@npm:^2.0.0":
+"es-module-lexer@npm:^2.0.0, es-module-lexer@npm:^2.3.1":
   version: 2.3.1
   resolution: "es-module-lexer@npm:2.3.1"
   checksum: 10c0/ada8b222772b5b8ea92eb6054c383233207418621855a07b480fdd36979b658a41414be09e793fcdd8a67a182741475f47830a01ff2ebd4353d7f6965c7c45f9

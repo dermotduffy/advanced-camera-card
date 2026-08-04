@@ -16,6 +16,13 @@ export const TROUBLESHOOTING_MEDIA_URL =
   `${TROUBLESHOOTING_URL}?id=media-unavailable` as const;
 
 // ===========================================================================
+// Interaction Constants
+// ===========================================================================
+
+// How long a press must last to count as a hold rather than a tap.
+export const ACTION_HANDLER_HOLD_SECONDS = 0.4;
+
+// ===========================================================================
 // Media Constants
 // ===========================================================================
 

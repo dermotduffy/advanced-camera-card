@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { MountedCard } from '../../../browser/mounted-card';
+import { MountedCardFactory, type MountedCard } from '../../../browser/mounted-card';
 import {
   CARD_INITIALIZED_MESSAGE,
   createInitializedAutomation,
@@ -31,7 +31,7 @@ const waitForInitializationFailures = async (card: MountedCard): Promise<void> =
  * is what makes it initializable, which a test does with `setEntityState`.
  */
 const mountBrokenCard = async (): Promise<MountedCard> =>
-  await MountedCard.create(
+  await MountedCardFactory.createFromSource(
     createStillImageCardConfig({
       cameras: [createStillImageCameraConfig(MISSING_CAMERA_ENTITY)],
 

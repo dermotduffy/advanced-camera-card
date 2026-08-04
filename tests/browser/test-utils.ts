@@ -96,6 +96,9 @@ export interface StillCameraHASSOptions {
 
   // Anything else the card should be able to see, as entity ID to state.
   entities?: Record<string, FakeEntityOptions | string>;
+
+  // The language Home Assistant is set to for translation tests.
+  language?: string;
 }
 
 /**
@@ -111,6 +114,7 @@ export const createStillCameraHASS = (options?: StillCameraHASSOptions): FakeHAS
       ...options?.entities,
     },
     registry: Object.fromEntries(cameras.map((camera) => [camera, {}])),
+    ...(options?.language && { language: options.language }),
   });
 };
 

@@ -1,8 +1,8 @@
 import { expect, onTestFinished, vi } from 'vitest';
 
-import { ACTION_HANDLER_HOLD_SECONDS } from '../../src/action-handler-directive';
 import type { AdvancedCameraCard } from '../../src/card';
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
+import { ACTION_HANDLER_HOLD_SECONDS } from '../../src/const';
 import type { FakeEntityOptions, FakeHASS } from './fake-hass';
 import { defineHAElementStubs } from './ha-element-stubs';
 import { clickElement, deepQuery, deepQueryAll, getAllShadowRoots } from './test-utils';
@@ -400,21 +400,24 @@ export class MountedCard {
   /**
    * The card is ready to observe but not yet rendered: initializing happens
    * after this returns, so a test waits for whatever it will assert on.
+   *
+   * `loadCard` puts the card's elements into the page. Where they come from is
+   * the caller's to decide: `MountedCardFactory` takes them from `src/`, and the
+   * suite covering a build ("dist") takes them from the file the build
+   * produced.
    */
   public static async create(
+    loadCard: () => Promise<unknown>,
     config: RawAdvancedCameraCardConfig,
     hass: FakeHASS,
     options?: MountOptions,
   ): Promise<MountedCard> {
-    // `src/patches` subclasses Home Assistant's three player elements as soon as
-    // those are defined, so the stubs must come first.
-    defineHAElementStubs();
-    await import('../../src/card');
+    await loadCard();
 
     return new MountedCard(config, hass, options);
   }
 
-  private constructor(
+  protected constructor(
     config: RawAdvancedCameraCardConfig,
     hass: FakeHASS,
     options?: MountOptions,
@@ -611,5 +614,26 @@ export class MountedCard {
     this._container.remove();
     this.events.destroy();
     this.console.destroy();
+  }
+}
+
+export class MountedCardFactory {
+  // A card built from `src/`. Constrast with dist.browsers.test.ts .
+  public static async createFromSource(
+    config: RawAdvancedCameraCardConfig,
+    hass: FakeHASS,
+    options?: MountOptions,
+  ): Promise<MountedCard> {
+    return await MountedCard.create(
+      async () => {
+        // `src/patches` subclasses Home Assistant's three player elements as
+        // soon as those are defined, so the stubs must come first.
+        defineHAElementStubs();
+        await import('../../src/card');
+      },
+      config,
+      hass,
+      options,
+    );
   }
 }

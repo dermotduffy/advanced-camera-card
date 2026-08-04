@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { MountedCard } from '../browser/mounted-card';
+import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
 import {
   createStillCameraHASS,
   createStillImageCardConfig,
@@ -10,7 +10,7 @@ const TRIGGER_ENTITY = 'input_boolean.zoom';
 
 const mount = async (): Promise<MountedCard> => {
   const hass = createStillCameraHASS({ entities: { [TRIGGER_ENTITY]: 'off' } });
-  return await MountedCard.create(
+  return await MountedCardFactory.createFromSource(
     createStillImageCardConfig({
       automations: [
         {
