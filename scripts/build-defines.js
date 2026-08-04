@@ -1,0 +1,44 @@
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+
+/**
+ * Asks git something or gives back nothing when it cannot be asked.
+ */
+const askGit = (...args) => {
+  try {
+    return execFileSync('git', args, {
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return '';
+  }
+};
+
+const getPackageVersion = () =>
+  JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8')).version;
+
+/**
+ * What the build stamps into the card, as names for the bundler to substitute.
+ *
+ * `releaseVersion` is the version being released, which only the release
+ * workflow knows; a build without one reports the version in `package.json`, or
+ * a development build the commit it was made from.
+ *
+ * The values are JSON so that a bundler can drop them in as written.
+ */
+export const getBuildDefines = ({ dev, releaseVersion }) => {
+  const gitHash = askGit('rev-parse', '--short', 'HEAD');
+  const developmentVersion = gitHash ? `dev+${gitHash}` : 'dev';
+
+  return {
+    __ADVANCED_CAMERA_CARD_RELEASE_VERSION__: JSON.stringify(
+      releaseVersion ?? (dev ? developmentVersion : getPackageVersion()),
+    ),
+    __ADVANCED_CAMERA_CARD_GIT_HASH__: JSON.stringify(gitHash),
+    __ADVANCED_CAMERA_CARD_GIT_DATE__: JSON.stringify(
+      askGit('log', '-1', '--format=%cI'),
+    ),
+    __ADVANCED_CAMERA_CARD_BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+  };
+};

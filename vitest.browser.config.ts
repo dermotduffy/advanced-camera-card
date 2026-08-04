@@ -2,7 +2,6 @@ import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
 
 import { getBrowsers, type Browser } from './scripts/browsers.js';
-import { releaseVersion } from './scripts/release-version-plugin.js';
 import { scssString } from './scripts/scss-string-plugin.js';
 import { svgPath } from './scripts/svg-path-plugin.js';
 
@@ -14,7 +13,7 @@ export default defineConfig({
   // supply the same asset shapes the build's plugins do: an SVG becomes the
   // `{ path, viewBox }` a custom iconset serves, SCSS the string `unsafeCSS`
   // takes. `svgPath` is the build's own plugin, reused unchanged.
-  plugins: [releaseVersion(), scssString(), svgPath()],
+  plugins: [scssString(), svgPath()],
 
   // Where the Mock Service Worker script is served from, which Vite serves at
   // the root of the page. Named rather than left at its default of `public/` in
