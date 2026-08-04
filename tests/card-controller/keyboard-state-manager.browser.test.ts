@@ -2,7 +2,11 @@ import { assert, describe, expect, it } from 'vitest';
 
 import type { LogActionConfig } from '../../src/config/schema/actions/custom/log';
 import { createLogAction } from '../../src/utils/action';
-import { MountedCard, type MountOptions } from '../browser/mounted-card';
+import {
+  MountedCardFactory,
+  type MountedCard,
+  type MountOptions,
+} from '../browser/mounted-card';
 import {
   CARD_INITIALIZED_MESSAGE,
   clickElement,
@@ -44,7 +48,7 @@ interface MountCardOptions extends MountOptions {
 const mountCard = async (options?: MountCardOptions): Promise<MountedCard> => {
   const { keyMessage, ...mountOptions } = options ?? {};
 
-  const card = await MountedCard.create(
+  const card = await MountedCardFactory.createFromSource(
     createStillImageCardConfig({
       menu: { style: 'outside', buttons: { expand: { enabled: true } } },
       elements: [

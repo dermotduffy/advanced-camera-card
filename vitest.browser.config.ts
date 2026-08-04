@@ -1,36 +1,19 @@
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
 
+import { getBrowsers, type Browser } from './scripts/browsers.js';
 import { releaseVersion } from './scripts/release-version-plugin.js';
 import { scssString } from './scripts/scss-string-plugin.js';
 import { svgPath } from './scripts/svg-path-plugin.js';
 
-const BROWSERS = ['chromium', 'firefox', 'webkit'] as const;
-type Browser = (typeof BROWSERS)[number];
-
-const isBrowser = (name: string): name is Browser =>
-  BROWSERS.some((browser) => browser === name);
-
-const requestedBrowser = process.env.VITEST_BROWSER;
-if (requestedBrowser !== undefined && !isBrowser(requestedBrowser)) {
-  throw new Error(`Unknown browser: ${requestedBrowser}`);
-}
-
-// Which browsers to run, all of them unless one is named. CI names one per job
-// so that the three run at the same time on separate machines rather than one
-// after another on one.
-const browsers = requestedBrowser ? [requestedBrowser] : BROWSERS;
-
-// Browser tests mount the real card in Chromium. They live in their own config
-// rather than as a fourth project in `vitest.config.ts` because `vitest run`
-// executes every configured project: without splitting browser tests would
-// become a way to satisfy the 100% per-file thresholds vs unittests.
+// Browser tests mount the real card in a browser. Their own config rather than
+// a fourth project in `vitest.config.ts`, because `vitest run` executes every
+// project: they would become a way to satisfy the 100% per-file thresholds.
 export default defineConfig({
-  // Tests import `src/` directly rather than a built bundle, so a test and the
-  // card share one process and one set of objects. Vite then has to supply the
-  // same asset shapes the Rollup build's plugins do: an SVG becomes the `{
-  // path, viewBox }` a custom iconset serves, SCSS becomes the string
-  // `unsafeCSS` takes. `svgPath` is the build's own plugin, reused unchanged.
+  // Tests import `src/` directly rather than a built bundle, so Vite has to
+  // supply the same asset shapes the build's plugins do: an SVG becomes the
+  // `{ path, viewBox }` a custom iconset serves, SCSS the string `unsafeCSS`
+  // takes. `svgPath` is the build's own plugin, reused unchanged.
   plugins: [releaseVersion(), scssString(), svgPath()],
 
   // Where the Mock Service Worker script is served from, which Vite serves at
@@ -86,6 +69,11 @@ export default defineConfig({
     name: 'browser',
     include: ['tests/**/*.browser.test.ts'],
 
+    // The tests under `tests/dist` need a card build to exist (in dist/), which
+    // this suite does not require. They have their own config, see
+    // vitest.dist.config.ts .
+    exclude: ['tests/dist/**'],
+
     // Cosmetic: Style the pages as HA does for screenshots.
     setupFiles: ['./tests/browser/style.ts'],
 
@@ -118,7 +106,7 @@ export default defineConfig({
       // screenshot taken when one fails.
       viewport: { width: 1280, height: 800 },
 
-      instances: browsers.map((browser: Browser) => ({ browser })),
+      instances: getBrowsers().map((browser: Browser) => ({ browser })),
 
       screenshotDirectory: '.vitest/screenshots',
     },
