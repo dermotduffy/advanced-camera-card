@@ -1,4 +1,3 @@
-import pkg from '../../package.json';
 import type { IssueKey, IssuePresence } from '../card-controller/issues/types';
 import type { RawAdvancedCameraCardConfig } from '../config/types';
 import { getIntegrationManifest } from '../ha/integration';
@@ -7,6 +6,7 @@ import type { DeviceRegistryManager } from '../ha/registry/device';
 import type { HomeAssistant } from '../ha/types';
 import { HASS_WEB_PROXY_DOMAIN } from '../ha/web-proxy';
 import { getLanguage } from '../localize/localize';
+import { getGitInfo, getReleaseVersion } from './build-info';
 
 type FrigateDevices = Record<string, string>;
 
@@ -20,22 +20,6 @@ interface IntegrationDiagnostics {
   detected: boolean;
   version?: string;
 }
-
-export const getReleaseVersion = (): string => {
-  const releaseVersion: string = '__ADVANCED_CAMERA_CARD_RELEASE_VERSION__';
-
-  /* v8 ignore if: depends on rollup substitution -- @preserve */
-  if (releaseVersion === 'pkg') {
-    return pkg.version;
-  }
-
-  /* v8 ignore if: depends on rollup substitution -- @preserve */
-  if (releaseVersion === 'dev') {
-    return `dev+${pkg['gitAbbrevHash']}`;
-  }
-
-  return releaseVersion;
-};
 
 interface Diagnostics {
   card_version: string;
@@ -103,6 +87,8 @@ export const getDiagnostics = async (
     });
   });
 
+  const gitInfo = getGitInfo();
+
   return {
     card_version: getReleaseVersion(),
     browser: navigator.userAgent,
@@ -110,9 +96,9 @@ export const getDiagnostics = async (
     lang: getLanguage(),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     git: {
-      ...(pkg['gitAbbrevHash'] && { hash: pkg['gitAbbrevHash'] }),
-      ...(pkg['buildDate'] && { build_date: pkg['buildDate'] }),
-      ...(pkg['gitDate'] && { commit_date: pkg['gitDate'] }),
+      ...(gitInfo.hash && { hash: gitInfo.hash }),
+      ...(gitInfo.buildDate && { build_date: gitInfo.buildDate }),
+      ...(gitInfo.commitDate && { commit_date: gitInfo.commitDate }),
     },
     ...(hass && { ha_version: hass.config.version }),
     custom_integrations: {

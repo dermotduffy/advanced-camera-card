@@ -9,7 +9,7 @@ import { customElement, property } from 'lit/decorators.js';
 
 import loadingStyle from '../scss/loading.scss';
 import type { EffectName, EffectsManagerInterface } from '../types';
-import { getReleaseVersion } from '../utils/diagnostics';
+import { getReleaseVersion } from '../utils/build-info.js';
 
 import './icon';
 

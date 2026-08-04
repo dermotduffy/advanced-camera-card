@@ -2,30 +2,24 @@ import type { HassConfig } from 'home-assistant-js-websocket';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
-import { RELEASE_VERSION_TOKEN } from '../../scripts/release-version.js';
 import type { DeviceRegistryManager } from '../../src/ha/registry/device';
 import { homeAssistantWSRequest } from '../../src/ha/ws-request';
 import { getLanguage } from '../../src/localize/localize';
-import { getDiagnostics, getReleaseVersion } from '../../src/utils/diagnostics.js';
+import { getDiagnostics } from '../../src/utils/diagnostics.js';
 import { createHASS, createRegistryDevice } from '../test-utils';
 
-vi.mock('../../package.json', () => ({
-  default: {
-    gitAbbrevHash: 'g4cf13b1',
-    buildDate: 'Tue, 19 Sep 2023 04:59:27 GMT',
-    gitDate: 'Wed, 6 Sep 2023 21:27:28 -0700',
-  },
+vi.mock('../../src/utils/build-info.js', () => ({
+  getReleaseVersion: () => '1.2.3',
+  getGitInfo: () => ({
+    hash: 'g4cf13b1',
+    buildDate: '2023-09-19T04:59:27.000Z',
+    commitDate: '2023-09-06T21:27:28-07:00',
+  }),
 }));
 vi.mock('../../src/ha');
 vi.mock('../../src/localize/localize.js');
 vi.mock('../../src/ha/registry/device/index.js');
 vi.mock('../../src/ha/ws-request.js');
-
-describe('getReleaseVersion', () => {
-  it('should get release version', () => {
-    expect(getReleaseVersion()).toBe(RELEASE_VERSION_TOKEN);
-  });
-});
 
 describe('getDiagnostics', () => {
   const now = new Date('2023-10-01T21:53Z');
@@ -78,13 +72,13 @@ describe('getDiagnostics', () => {
       }),
     ).toEqual({
       browser: 'AdvancedCameraCardTest/1.0',
-      card_version: '__ADVANCED_CAMERA_CARD_RELEASE_VERSION__',
+      card_version: '1.2.3',
       config: {
         cameras: [{ camera_entity: 'camera.office' }],
       },
       git: {
-        build_date: 'Tue, 19 Sep 2023 04:59:27 GMT',
-        commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
+        build_date: '2023-09-19T04:59:27.000Z',
+        commit_date: '2023-09-06T21:27:28-07:00',
         hash: 'g4cf13b1',
       },
       custom_integrations: {
@@ -133,10 +127,10 @@ describe('getDiagnostics', () => {
   it('should fetch diagnostics without hass or config', async () => {
     expect(await getDiagnostics()).toEqual({
       browser: 'AdvancedCameraCardTest/1.0',
-      card_version: '__ADVANCED_CAMERA_CARD_RELEASE_VERSION__',
+      card_version: '1.2.3',
       git: {
-        build_date: 'Tue, 19 Sep 2023 04:59:27 GMT',
-        commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
+        build_date: '2023-09-19T04:59:27.000Z',
+        commit_date: '2023-09-06T21:27:28-07:00',
         hash: 'g4cf13b1',
       },
       custom_integrations: {
@@ -185,10 +179,10 @@ describe('getDiagnostics', () => {
 
     expect(await getDiagnostics(hass, deviceRegistryManager)).toEqual({
       browser: 'AdvancedCameraCardTest/1.0',
-      card_version: '__ADVANCED_CAMERA_CARD_RELEASE_VERSION__',
+      card_version: '1.2.3',
       git: {
-        build_date: 'Tue, 19 Sep 2023 04:59:27 GMT',
-        commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
+        build_date: '2023-09-19T04:59:27.000Z',
+        commit_date: '2023-09-06T21:27:28-07:00',
         hash: 'g4cf13b1',
       },
       custom_integrations: {

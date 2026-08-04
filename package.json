@@ -81,7 +81,6 @@
     "playwright": "1.62.0",
     "prettier": "^3.3.2",
     "rollup": "^3.29.4",
-    "rollup-plugin-git-info": "^1.0.0",
     "rollup-plugin-serve": "^1.1.1",
     "rollup-plugin-styler": "^1.8.0",
     "rollup-plugin-visualizer": "^5.12.0",

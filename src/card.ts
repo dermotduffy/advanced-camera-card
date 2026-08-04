@@ -65,7 +65,7 @@ import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
 import type { MediaLoadedInfoEventDetail } from './types.js';
 import { hasAction } from './utils/action.js';
-import { getReleaseVersion } from './utils/diagnostics';
+import { getReleaseVersion } from './utils/build-info.js';
 
 // ***************************************************************************
 //                         General Card-Wide Notes

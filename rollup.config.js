@@ -5,13 +5,12 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
-import gitInfo from 'rollup-plugin-git-info';
 import serve from 'rollup-plugin-serve';
 import styles from 'rollup-plugin-styler';
 import { visualizer } from 'rollup-plugin-visualizer';
 
+import { getBuildDefines } from './scripts/build-defines.js';
 import { cleanDist } from './scripts/clean-dist-plugin.js';
-import { RELEASE_VERSION_TOKEN } from './scripts/release-version.js';
 import { svgPath } from './scripts/svg-path-plugin.js';
 
 const watch = process.env.ROLLUP_WATCH === 'true' || process.env.ROLLUP_WATCH === '1';
@@ -39,16 +38,6 @@ const serveopts = {
  */
 const plugins = [
   cleanDist(),
-  gitInfo.default(
-    // Limit git-info to the project's own package.json. Without this it also
-    // rewrites any dependency's imported package.json into ESM, which then breaks
-    // the json() plugin downstream (ha-nunjucks imports its own package.json).
-    {
-      enableBuildDate: true,
-      updateVersion: false,
-      include: 'package.json',
-    },
-  ),
   styles({
     modules: false,
     // Behavior of inject mode, without actually injecting style
@@ -72,12 +61,12 @@ const plugins = [
     inlineSources: dev,
     exclude: ['dist/**', 'tests/**/*.test.ts'],
   }),
-  json({ exclude: 'package.json' }),
+  json(),
   replace({
     preventAssignment: true,
     values: {
       'process.env.NODE_ENV': JSON.stringify(dev ? 'development' : 'production'),
-      [RELEASE_VERSION_TOKEN]: process.env.RELEASE_VERSION ?? (dev ? 'dev' : 'pkg'),
+      ...getBuildDefines({ dev, releaseVersion: process.env.RELEASE_VERSION }),
     },
   }),
   serveEnabled && serve(serveopts),
