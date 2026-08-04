@@ -11,7 +11,7 @@ import { customElement, property } from 'lit/decorators.js';
 
 import type { HomeAssistant } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
-import thumbnailFeatureThumbnailStyle from '../../../scss/thumbnail-feature-thumbnail.scss';
+import thumbnailFeatureThumbnailStyle from '../../../scss/thumbnail-feature-thumbnail.scss?inline';
 import { renderTask } from '../../../utils/task';
 import {
   createFetchThumbnailTask,

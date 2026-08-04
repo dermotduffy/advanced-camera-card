@@ -11,7 +11,7 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { VideoMediaPlayerController } from '../components-lib/media-player/video';
-import videoPlayerStyle from '../scss/video-player.scss';
+import videoPlayerStyle from '../scss/video-player.scss?inline';
 import type { MediaPlayer, MediaPlayerController, MediaPlayerElement } from '../types';
 import { mayHaveAudio } from '../utils/audio';
 import {

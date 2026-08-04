@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Rollup",
+      "label": "Vite",
       "type": "shell",
       "command": "yarn",
       "args": ["start"],
@@ -17,8 +17,8 @@
         ],
         "background": {
           "activeOnStart": true,
-          "beginsPattern": "^bundles",
-          "endsPattern": "^created"
+          "beginsPattern": "^build started",
+          "endsPattern": "^built in"
         }
       },
       "isBackground": true,

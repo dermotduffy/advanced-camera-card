@@ -15,7 +15,7 @@ import type { ConfigPath } from '../../components-lib/editor/types';
 import { CONF_FOLDERS } from '../../config/const';
 import type { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
-import editorExpanderBodyStyle from '../../scss/editor-expander-body.scss';
+import editorExpanderBodyStyle from '../../scss/editor-expander-body.scss?inline';
 import { renderDocumentation } from './doc-link';
 import { renderForms } from './form';
 

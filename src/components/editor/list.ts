@@ -9,7 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 
 import { localize } from '../../localize/localize';
-import editorListStyle from '../../scss/editor-list.scss';
+import editorListStyle from '../../scss/editor-list.scss?inline';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 
 import './../icon';

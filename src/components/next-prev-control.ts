@@ -12,7 +12,7 @@ import { isAutoHidden, type AutoHideState } from '../components-lib/auto-hide.js
 import type { NextPreviousControlConfig } from '../config/schema/common/controls/next-previous.js';
 import type { Icon } from '../config/schema/common/icon.js';
 import type { HomeAssistant } from '../ha/types.js';
-import controlStyle from '../scss/next-previous-control.scss';
+import controlStyle from '../scss/next-previous-control.scss?inline';
 import { contentsChanged } from '../utils/basic.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';

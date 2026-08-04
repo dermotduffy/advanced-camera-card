@@ -28,7 +28,7 @@ import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-
 
 import '../components/image-player.js';
 
-import liveHAComponentsStyle from '../scss/live-ha-components.scss';
+import liveHAComponentsStyle from '../scss/live-ha-components.scss?inline';
 import type {
   MediaLoadedInfo,
   MediaLoadedInfoEventDetail,

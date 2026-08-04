@@ -22,7 +22,7 @@ import {
 import { type ImageViewConfig, type ImageViewProxyConfig } from '../config/schema/image';
 import type { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize.js';
-import imageStyle from '../scss/image.scss';
+import imageStyle from '../scss/image.scss?inline';
 import type {
   MediaPlayer,
   MediaPlayerController,

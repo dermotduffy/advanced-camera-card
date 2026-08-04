@@ -7,7 +7,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import fireworkParticleStyle from '../../scss/firework-particle.scss';
+import fireworkParticleStyle from '../../scss/firework-particle.scss?inline';
 
 @customElement('advanced-camera-card-firework-particle')
 export class AdvancedCameraCardFireworkParticle extends LitElement {

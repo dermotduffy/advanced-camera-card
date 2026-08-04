@@ -1,4 +1,4 @@
-@import './z-index.scss';
+@use './z-index.scss' as *;
 
 :host {
   display: block;

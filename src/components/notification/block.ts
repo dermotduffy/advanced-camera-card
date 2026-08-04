@@ -15,7 +15,7 @@ import {
 import { NotificationContextController } from '../../components-lib/notification/notification-context-controller.js';
 import type { Notification } from '../../config/schema/actions/types.js';
 import { localize } from '../../localize/localize.js';
-import notificationBlockStyle from '../../scss/notification-block.scss';
+import notificationBlockStyle from '../../scss/notification-block.scss?inline';
 import {
   renderControl,
   renderDetail,

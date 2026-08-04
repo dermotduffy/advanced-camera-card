@@ -25,7 +25,7 @@ import type { ThumbnailsControlConfig } from '../config/schema/common/controls/t
 import type { CardWideConfig } from '../config/schema/types.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 import type { HomeAssistant } from '../ha/types.js';
-import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
+import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import type { CarouselDirection } from '../utils/embla/carousel-controller.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';

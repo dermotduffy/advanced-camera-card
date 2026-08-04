@@ -12,7 +12,7 @@ import { actionHandler } from '../../action-handler-directive.js';
 import type { LockManagerEpoch } from '../../card-controller/lock/types';
 import type { MenuSubmenu } from '../../config/schema/elements/custom/menu/submenu.js';
 import type { HomeAssistant } from '../../ha/types.js';
-import menuButtonStyle from '../../scss/menu-button.scss';
+import menuButtonStyle from '../../scss/menu-button.scss?inline';
 import { hasAction } from '../../utils/action.js';
 
 import '../icon.js';

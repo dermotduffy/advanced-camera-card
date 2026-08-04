@@ -13,7 +13,7 @@ import { NotificationContextController } from '../../components-lib/notification
 import { NotificationPopupController } from '../../components-lib/notification/notification-popup-controller.js';
 import type { Notification } from '../../config/schema/actions/types.js';
 import { localize } from '../../localize/localize.js';
-import notificationPopupStyle from '../../scss/notification-popup.scss';
+import notificationPopupStyle from '../../scss/notification-popup.scss?inline';
 import {
   renderControl,
   renderDetail,

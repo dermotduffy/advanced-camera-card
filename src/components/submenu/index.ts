@@ -12,7 +12,7 @@ import { actionHandler } from '../../action-handler-directive.js';
 import type { LockManagerEpoch } from '../../card-controller/lock/types';
 import { getEntityTitle } from '../../ha/get-entity-title.js';
 import type { HomeAssistant } from '../../ha/types.js';
-import submenuStyle from '../../scss/submenu.scss';
+import submenuStyle from '../../scss/submenu.scss?inline';
 import {
   hasAction,
   stopEventFromActivatingCardWideActions,

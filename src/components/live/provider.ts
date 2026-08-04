@@ -23,7 +23,7 @@ import type { LiveConfig } from '../../config/schema/live.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
-import liveProviderStyle from '../../scss/live-provider.scss';
+import liveProviderStyle from '../../scss/live-provider.scss?inline';
 import type {
   MediaPlayer,
   MediaPlayerController,

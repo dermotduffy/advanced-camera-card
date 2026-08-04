@@ -27,7 +27,7 @@ import type { RawAdvancedCameraCardConfig } from '../config/types.js';
 import type { DeviceRegistryManager } from '../ha/registry/device/index.js';
 import type { ResolvedMediaCache } from '../ha/resolved-media.js';
 import type { HomeAssistant } from '../ha/types.js';
-import viewsStyle from '../scss/views.scss';
+import viewsStyle from '../scss/views.scss?inline';
 import { contentsChanged } from '../utils/basic.js';
 
 import './surround.js';

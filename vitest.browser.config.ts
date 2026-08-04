@@ -2,7 +2,6 @@ import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
 
 import { getBrowsers, type Browser } from './scripts/browsers.js';
-import { scssString } from './scripts/scss-string-plugin.js';
 import { svgPath } from './scripts/svg-path-plugin.js';
 
 // Browser tests mount the real card in a browser. Their own config rather than
@@ -10,10 +9,10 @@ import { svgPath } from './scripts/svg-path-plugin.js';
 // project: they would become a way to satisfy the 100% per-file thresholds.
 export default defineConfig({
   // Tests import `src/` directly rather than a built bundle, so Vite has to
-  // supply the same asset shapes the build's plugins do: an SVG becomes the
-  // `{ path, viewBox }` a custom iconset serves, SCSS the string `unsafeCSS`
-  // takes. `svgPath` is the build's own plugin, reused unchanged.
-  plugins: [scssString(), svgPath()],
+  // supply the same asset shape the build's plugin does: an SVG becomes the
+  // `{ path, viewBox }` a custom iconset serves. `svgPath` is the build's own
+  // plugin, reused unchanged.
+  plugins: [svgPath()],
 
   // Where the Mock Service Worker script is served from, which Vite serves at
   // the root of the page. Named rather than left at its default of `public/` in
@@ -27,7 +26,7 @@ export default defineConfig({
     // Several dependencies declare their own Lit. Two copies in one page do not
     // recognise each other's directives and template results, which surfaces as
     // "Multiple versions of Lit loaded" followed by render-time type errors.
-    // The build gets one copy from Rollup's resolver; Vite has to be told.
+    // The build gets one copy from its own resolver; the tests have to be told.
     dedupe: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
   },
 
@@ -57,8 +56,8 @@ export default defineConfig({
       scss: {
         // A couple of stylesheets are pulled in by package name (e.g. `@use
         // '@graphiteds/core/css/core.css'`). sass resolves a bare name like
-        // that only if node_modules is on its load path. The build passes the
-        // same directory to `rollup-plugin-styler`.
+        // that only if node_modules is on its load path. The build sets the
+        // same load path.
         loadPaths: ['./node_modules/'],
       },
     },

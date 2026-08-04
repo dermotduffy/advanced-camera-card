@@ -11,7 +11,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { KeyAssignerController } from '../components-lib/key-assigner-controller';
 import type { KeyboardShortcut } from '../config/schema/view';
 import { localize } from '../localize/localize';
-import keyAssignerStyle from '../scss/key-assigner.scss';
+import keyAssignerStyle from '../scss/key-assigner.scss?inline';
 
 import './icon';
 

@@ -11,7 +11,7 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { MediaDimensionsContainerController } from '../components-lib/media-dimensions-container-controller.js';
 import type { CameraDimensionsConfig } from '../config/schema/cameras';
-import mediaDimensionsContainerStyle from '../scss/media-dimensions-container.scss';
+import mediaDimensionsContainerStyle from '../scss/media-dimensions-container.scss?inline';
 
 @customElement('advanced-camera-card-media-dimensions-container')
 export class AdvancedCameraCardMediaDimensionsContainer extends LitElement {

@@ -21,7 +21,7 @@ import '../../components-lib/live/types.js';
 import type { LiveConfig } from '../../config/schema/live.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
 import type { HomeAssistant } from '../../ha/types.js';
-import basicBlockStyle from '../../scss/basic-block.scss';
+import basicBlockStyle from '../../scss/basic-block.scss?inline';
 import { contentsChanged } from '../../utils/basic.js';
 
 import './grid.js';

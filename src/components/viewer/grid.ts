@@ -20,7 +20,7 @@ import type { HomeAssistant } from '../../ha/types.js';
 
 import '../../patches/ha-hls-player.js';
 
-import basicBlockStyle from '../../scss/basic-block.scss';
+import basicBlockStyle from '../../scss/basic-block.scss?inline';
 
 import './carousel';
 

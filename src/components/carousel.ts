@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { TransitionEffect } from '../config/schema/common/transition-effect';
-import carouselStyle from '../scss/carousel.scss';
+import carouselStyle from '../scss/carousel.scss?inline';
 import {
   CarouselController,
   type CarouselDirection,

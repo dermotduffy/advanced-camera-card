@@ -8,7 +8,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
-import surroundBasicStyle from '../scss/surround-basic.scss';
+import surroundBasicStyle from '../scss/surround-basic.scss?inline';
 import { contentsChanged } from '../utils/basic.js';
 
 import './drawer.js';

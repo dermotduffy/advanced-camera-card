@@ -7,7 +7,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import snowflakeStyle from '../../scss/snowflake.scss';
+import snowflakeStyle from '../../scss/snowflake.scss?inline';
 
 @customElement('advanced-camera-card-snowflake')
 export class AdvancedCameraCardSnowflake extends LitElement {

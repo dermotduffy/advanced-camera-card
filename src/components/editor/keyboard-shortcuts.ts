@@ -14,7 +14,7 @@ import { CONF_VIEW_KEYBOARD_SHORTCUTS } from '../../config/const.js';
 import type { KeyboardShortcut } from '../../config/schema/view.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import { localize } from '../../localize/localize.js';
-import editorKeyboardShortcutsStyle from '../../scss/editor-keyboard-shortcuts.scss';
+import editorKeyboardShortcutsStyle from '../../scss/editor-keyboard-shortcuts.scss?inline';
 import { renderDocumentation } from './doc-link.js';
 import { renderForms } from './form.js';
 

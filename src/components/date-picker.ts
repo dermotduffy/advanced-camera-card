@@ -9,7 +9,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { localize } from '../localize/localize';
-import datePickerStyle from '../scss/date-picker.scss';
+import datePickerStyle from '../scss/date-picker.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
 

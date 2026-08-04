@@ -34,7 +34,7 @@ import type { MicrophoneConfig } from '../../../../config/schema/live.js';
 import type { CardWideConfig } from '../../../../config/schema/types.js';
 import type { HomeAssistant } from '../../../../ha/types.js';
 import { localize } from '../../../../localize/localize.js';
-import liveGo2RTCExperimentalStyle from '../../../../scss/live-go2rtc-experimental.scss';
+import liveGo2RTCExperimentalStyle from '../../../../scss/live-go2rtc-experimental.scss?inline';
 import type { MediaPlayer, MediaPlayerController } from '../../../../types.js';
 import {
   dispatchMediaPauseEvent,

@@ -12,7 +12,7 @@ import type { Camera } from '../../../camera-manager/camera.js';
 import type { MediaUnavailableIssueReason } from '../../../card-controller/issues/issues/media-unavailable.js';
 import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import type { HomeAssistant } from '../../../ha/types';
-import basicBlockStyle from '../../../scss/basic-block.scss';
+import basicBlockStyle from '../../../scss/basic-block.scss?inline';
 import type {
   MediaPlayer,
   MediaPlayerController,

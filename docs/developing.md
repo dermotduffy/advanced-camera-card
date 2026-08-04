@@ -24,6 +24,16 @@ Resultant build entry file will be in `dist/advanced-camera-card.js`. This could
 installed via the [manual installation
 instructions](advanced-installation.md?id=manual-installation).
 
+To rebuild as the source changes:
+
+```sh
+$ yarn start
+```
+
+This writes to `dist/` just like a normal build so that Home Assistant reading
+the card from a path on disk picks each rebuild up. To have Home Assistant read
+from a URL instead, use `yarn preview` which serves `dist/` on port 10001.
+
 ## Releasing
 
 ### Release Philosophy

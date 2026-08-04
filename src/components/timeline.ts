@@ -15,7 +15,7 @@ import type { ConditionStateManagerReadonlyInterface } from '../condition-trigge
 import type { TimelineConfig } from '../config/schema/timeline';
 import type { CardWideConfig } from '../config/schema/types';
 import type { HomeAssistant } from '../ha/types';
-import basicBlockStyle from '../scss/basic-block.scss';
+import basicBlockStyle from '../scss/basic-block.scss?inline';
 
 import './surround.js';
 import './timeline-core.js';

@@ -12,8 +12,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  check:
-    name: Check
+  check-code:
+    name: Check / Code
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,7 +37,25 @@ jobs:
       - name: Check formatting
         run: yarn run format-check
 
-  test:
+  # Validates the repository's own metadata, which needs neither the card built
+  # nor Node installed.
+  check-hacs:
+    name: Check / HACS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: HACS validation
+        uses: 'hacs/action@22.5.0'
+        with:
+          category: 'plugin'
+
+          # Don't attempt to load into HACS (as it loads the release, not the
+          # build).
+          ignore: 'hacs'
+
+  test-unit:
     name: Test / Unit
     runs-on: ubuntu-latest
     steps:
@@ -53,7 +71,7 @@ jobs:
       - name: Test & Coverage
         run: yarn run coverage
 
-  browser-test:
+  test-browser:
     name: Test / Browser / ${{ matrix.name }}
 
     runs-on: ubuntu-latest
@@ -107,6 +125,64 @@ jobs:
           path: .vitest/
           if-no-files-found: ignore
 
+  test-dist:
+    name: Test / Dist / ${{ matrix.name }}
+
+    runs-on: ubuntu-latest
+
+    # Use Playwright's own image to avoid having to (slowly) install browsers
+    # and dependencies. The tag has to name the `playwright` version in
+    # package.json .
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.0-noble
+
+      # As the image's own user rather than root, which Firefox refuses to run
+      # as when the home directory belongs to somebody else.
+      #
+      # See https://playwright.dev/docs/ci#via-containers .
+      options: --user 1001
+
+    strategy:
+      # One browser failing does not invalidate the others.
+      fail-fast: false
+      matrix:
+        # `name` is only how the browser is written for a human: it titles the
+        # job, while `browser` is the name Playwright knows it by.
+        include:
+          - browser: chromium
+            name: Chromium
+          - browser: firefox
+            name: Firefox
+          - browser: webkit
+            name: WebKit
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node and Yarn
+        uses: volta-cli/action@v5
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # These tests read a build rather than making one.
+      - name: Build
+        run: yarn run build
+
+      - name: Test the built card
+        run: yarn run test:dist
+        env:
+          VITEST_BROWSER: ${{ matrix.browser }}
+
+      - name: Upload failures
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: dist-test-failures-${{ matrix.browser }}
+          path: .vitest/
+          if-no-files-found: ignore
+
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -122,15 +198,6 @@ jobs:
 
       - name: Build
         run: yarn run build
-
-      - name: HACS build validation
-        uses: 'hacs/action@22.5.0'
-        with:
-          category: 'plugin'
-
-          # Don't attempt to load into HACS (as it loads the release, not the
-          # build).
-          ignore: 'hacs'
 
       - name: Upload javascript
         uses: actions/upload-artifact@v7

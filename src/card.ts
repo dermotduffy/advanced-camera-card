@@ -62,7 +62,7 @@ import { REPO_URL } from './const.js';
 import { registerCustomIconset } from './ha/custom-icons.js';
 import type { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
-import cardStyle from './scss/card.scss';
+import cardStyle from './scss/card.scss?inline';
 import type { MediaLoadedInfoEventDetail } from './types.js';
 import { hasAction } from './utils/action.js';
 import { getReleaseVersion } from './utils/build-info.js';

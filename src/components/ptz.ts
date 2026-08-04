@@ -20,7 +20,7 @@ import type {
 } from '../config/schema/common/controls/ptz.js';
 import type { HomeAssistant } from '../ha/types.js';
 import { localize } from '../localize/localize.js';
-import ptzStyle from '../scss/ptz.scss';
+import ptzStyle from '../scss/ptz.scss?inline';
 import type { Interaction } from '../types.js';
 import { hasAction } from '../utils/action.js';
 import { prettifyTitle } from '../utils/basic.js';

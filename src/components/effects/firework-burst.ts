@@ -8,7 +8,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 
-import fireworkBurstStyle from '../../scss/firework-burst.scss';
+import fireworkBurstStyle from '../../scss/firework-burst.scss?inline';
 
 import './firework-particle';
 

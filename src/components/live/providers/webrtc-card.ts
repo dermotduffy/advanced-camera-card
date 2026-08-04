@@ -20,7 +20,7 @@ import type { Notification } from '../../../config/schema/actions/types.js';
 import type { CardWideConfig } from '../../../config/schema/types.js';
 import type { HomeAssistant } from '../../../ha/types.js';
 import { localize } from '../../../localize/localize.js';
-import liveWebRTCCardStyle from '../../../scss/live-webrtc-card.scss';
+import liveWebRTCCardStyle from '../../../scss/live-webrtc-card.scss?inline';
 import type { MediaPlayer, MediaPlayerController } from '../../../types.js';
 import { mayHaveAudio } from '../../../utils/audio.js';
 import {

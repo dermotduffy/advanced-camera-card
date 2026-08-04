@@ -7,7 +7,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import shamrockStyle from '../../scss/shamrock.scss';
+import shamrockStyle from '../../scss/shamrock.scss?inline';
 
 @customElement('advanced-camera-card-shamrock')
 export class AdvancedCameraCardShamrock extends LitElement {

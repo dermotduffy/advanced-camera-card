@@ -1,4 +1,7 @@
-declare module '*.scss';
+declare module '*.scss?inline' {
+  const css: string;
+  export default css;
+}
 declare module '*.svg' {
   const icon: { path: string; viewBox: string };
   export default icon;
