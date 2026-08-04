@@ -1,4 +1,4 @@
-@import './z-index.scss';
+@use './z-index.scss' as *;
 
 :host {
   // Drawer width sizes to contents.

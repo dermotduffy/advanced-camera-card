@@ -11,7 +11,7 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { ImageMediaPlayerController } from '../components-lib/media-player/image';
-import imagePlayerStyle from '../scss/image-player.scss';
+import imagePlayerStyle from '../scss/image-player.scss?inline';
 import type {
   MediaPlayer,
   MediaPlayerController,

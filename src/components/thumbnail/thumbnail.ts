@@ -6,7 +6,7 @@ import type { FoldersManager } from '../../card-controller/folders/manager.js';
 import type { ViewItemManager } from '../../card-controller/view/item-manager.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import type { HomeAssistant } from '../../ha/types.js';
-import thumbnailStyle from '../../scss/thumbnail.scss';
+import thumbnailStyle from '../../scss/thumbnail.scss?inline';
 import type { ViewItem } from '../../view/item.js';
 
 import './details.js';

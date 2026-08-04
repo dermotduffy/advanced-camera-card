@@ -18,7 +18,7 @@ import type { HomeAssistant } from '../../ha/types.js';
 
 import '../../patches/ha-hls-player.js';
 
-import viewerStyle from '../../scss/viewer.scss';
+import viewerStyle from '../../scss/viewer.scss?inline';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import { renderNoMediaNotification } from '../notification/media.js';
 

@@ -13,8 +13,8 @@ import 'side-drawer';
 
 import type { SideDrawer } from 'side-drawer';
 
-import drawerInjectStyle from '../scss/drawer-inject.scss';
-import drawerStyle from '../scss/drawer.scss';
+import drawerInjectStyle from '../scss/drawer-inject.scss?inline';
+import drawerStyle from '../scss/drawer.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import {
   contentsChanged,

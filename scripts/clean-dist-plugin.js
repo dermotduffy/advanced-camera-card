@@ -1,32 +1,36 @@
-import { existsSync, readdirSync, rmSync } from 'node:fs';
+import { readdirSync, rmSync } from 'node:fs';
+import path from 'node:path';
 
 /**
- * Rollup plugin: deletes prior build artifacts from `dist/` (which otherwise
- * accumulate stale hashed chunks that can be served in place of fresh output).
- * Deletes only top-level build artifacts by extension (no recursion), so
- * anything unexpected in `dist/` survives. Cleans once per process: watch mode
- * cleans at startup, not on every incremental rebuild.
+ * Vite plugin: removes build artifacts an earlier build left behind, which
+ * otherwise accumulate indefinitely as the hashed names change.
  *
- * @type {() => import('rollup').Plugin}
+ * Runs once the new output is on disk, and keeps whatever this build just
+ * wrote, rather than emptying the directory beforehand. This ensures the card
+ * is never briefly missing from a directory Home Assistant is potentially
+ * serving out of. Only the build's own kind of file is removed, by extension
+ * and without recursing, so anything else there survives.
+ *
+ * @type {() => import('vite').Plugin}
  */
-export const cleanDist = () => {
-  let cleaned = false;
-  return {
-    name: 'clean-dist',
-    buildStart() {
-      if (cleaned) {
-        return;
+export const cleanDist = () => ({
+  name: 'clean-dist',
+
+  writeBundle(options, bundle) {
+    if (!options.dir) {
+      return;
+    }
+
+    const written = new Set(Object.keys(bundle));
+
+    for (const entry of readdirSync(options.dir, { withFileTypes: true })) {
+      if (
+        entry.isFile() &&
+        /\.js(\.map)?$/.test(entry.name) &&
+        !written.has(entry.name)
+      ) {
+        rmSync(path.resolve(options.dir, entry.name));
       }
-      cleaned = true;
-      const dist = new URL('../dist/', import.meta.url);
-      if (!existsSync(dist)) {
-        return;
-      }
-      for (const entry of readdirSync(dist, { withFileTypes: true })) {
-        if (entry.isFile() && /\.js(\.map)?$/.test(entry.name)) {
-          rmSync(new URL(entry.name, dist));
-        }
-      }
-    },
-  };
-};
+    }
+  },
+});

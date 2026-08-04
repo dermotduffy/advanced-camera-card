@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { commands } from 'vitest/browser';
 
+import { PUBLIC_ENTRIES, PUBLIC_ENTRY } from '../../scripts/public-entries.js';
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
 import type { FakeHASS } from '../browser/fake-hass';
 import { defineHAElementStubs } from '../browser/ha-element-stubs';
@@ -14,13 +15,7 @@ import {
   createStillImageCardConfig,
   isLiveMediaShowing,
 } from '../browser/test-utils';
-
-// The two filenames a dashboard resource can name. Home Assistant loads one of
-// these directly, so their names are fixed and the rest of the output is
-// hashed.
-const PUBLIC_ENTRY = 'advanced-camera-card.js';
-const LEGACY_ENTRY = 'frigate-hass-card.js';
-const PUBLIC_ENTRIES = [PUBLIC_ENTRY, LEGACY_ENTRY];
+import { loadModule } from './test-utils';
 
 // A facade holds one re-export and nothing else. Generous size, so that this
 // fails on an entry carrying the (whole) card rather than on formatting.
@@ -90,14 +85,7 @@ class BuildMountedCardFactory extends MountedCardFactory {
         // as they exist.
         defineHAElementStubs();
 
-        // The backticks matter! Vite leaves a dynamic import alone
-        // when the file is a quoted string, and rewrites anything
-        // else to append `?import`, which asks for the file as a module and
-        // makes Vite refuse to serve a static one.
-        //
-        // The comment only silences the warning that the name could not be read
-        // at build time.
-        await import(/* @vite-ignore */ `${url}`);
+        await loadModule(url);
       },
       config,
       hass,
@@ -131,6 +119,7 @@ describe('the built card', () => {
   it('should ship a public entry that only re-exports a hashed chunk', async () => {
     const files = await commands.listDistFiles();
     const graph = await commands.getDistImportGraph();
+    const facadeImports = new Set<string>();
 
     for (const entry of PUBLIC_ENTRIES) {
       expect(files).toContain(entry);
@@ -138,13 +127,22 @@ describe('the built card', () => {
       const source = await commands.readFile(`dist/${entry}`);
       expect(source.length).toBeLessThan(MAX_FACADE_BYTES);
 
-      // Everything it names is a real file, and none of it is another entry.
-      const specifiers = [...graph[entry].staticImports, ...graph[entry].dynamicImports];
-      expect(specifiers.length).toBeGreaterThan(0);
-      for (const specifier of specifiers) {
-        expect(files).toContain(getFileName(specifier));
-      }
+      // A facade re-exports one hashed chunk and does nothing else. Anything
+      // more -- a second import, or one reached through another file -- is the
+      // card being split across the name that Home Assistant loads, which is
+      // what the whole arrangement exists to prevent.
+      expect(graph[entry].dynamicImports).toEqual([]);
+      expect(graph[entry].staticImports).toHaveLength(1);
+
+      const imported = getFileName(graph[entry].staticImports[0]);
+      expect(files).toContain(imported);
+      expect(imported).toMatch(/-[A-Za-z0-9_-]{8}\.js$/);
+
+      facadeImports.add(imported);
     }
+
+    // Both public entries should re-export the same chunk.
+    expect(facadeImports.size).toBe(1);
   });
 
   it('should hand the browser the file exactly as it was built', async () => {
@@ -167,6 +165,30 @@ describe('the built card', () => {
     );
 
     expect(offenders).toEqual([]);
+  });
+
+  it('should not fetch lazily loaded code before the card runs', async () => {
+    const graph = await commands.getDistImportGraph();
+
+    // What the browser fetches before the card runs: the entry and everything
+    // reachable from it without a dynamic import. Each file found is appended
+    // and then followed in turn, until nothing new turns up.
+    const fetchedAtStartup = [PUBLIC_ENTRY];
+    for (let index = 0; index < fetchedAtStartup.length; index++) {
+      for (const specifier of graph[fetchedAtStartup[index]]?.staticImports ?? []) {
+        const imported = getFileName(specifier);
+        if (!fetchedAtStartup.includes(imported)) {
+          fetchedAtStartup.push(imported);
+        }
+      }
+    }
+
+    // Verify lazy loading still works. Use the editor as a sample as it is one
+    // of the largest things the card can load, so it is the clearest signal
+    // that chunking has stopped working correctly.
+    const editor = Object.keys(graph).filter((file) => file.startsWith('editor-'));
+    expect(editor).toHaveLength(1);
+    expect(fetchedAtStartup).not.toContain(editor[0]);
   });
 
   it('should only have JavaScript output', async () => {

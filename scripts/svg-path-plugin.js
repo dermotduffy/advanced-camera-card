@@ -1,16 +1,16 @@
 import { readFileSync } from 'node:fs';
 
 /**
- * Rollup/Vite plugin: importing an SVG yields `{ path, viewBox }` extracted at
- * build time, the shape a Home Assistant custom iconset serves. The SVG must
- * be a single-path icon.
+ * Vite plugin: importing an SVG yields `{ path, viewBox }` extracted at build
+ * time, the shape a Home Assistant custom iconset serves. The SVG must be a
+ * single-path icon.
  *
- * @type {() => import('rollup').Plugin}
+ * @type {() => import('vite').Plugin}
  */
 export const svgPath = () => ({
   name: 'svg-path',
 
-  // Vite: run before its builtin asset handling.
+  // Run before Vite's builtin asset handling.
   enforce: 'pre',
 
   load(id) {

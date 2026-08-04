@@ -16,7 +16,7 @@ import {
 import { THUMBNAIL_WIDTH_DEFAULT } from '../../config/schema/common/controls/thumbnails.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
 import type { HomeAssistant } from '../../ha/types.js';
-import galleryCoreStyle from '../../scss/gallery-core.scss';
+import galleryCoreStyle from '../../scss/gallery-core.scss?inline';
 
 import '../progress-indicator.js';
 

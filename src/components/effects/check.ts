@@ -2,7 +2,7 @@ import { html, unsafeCSS, type CSSResultGroup, type TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import checkCircleIcon from '../../images/check-circle.svg';
-import checkStyle from '../../scss/check.scss';
+import checkStyle from '../../scss/check.scss?inline';
 import { BaseEffectComponent } from './base';
 
 @customElement('advanced-camera-card-effect-check')

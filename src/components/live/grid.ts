@@ -18,7 +18,7 @@ import type { MediaGridSelected } from '../../components-lib/media-grid-controll
 import type { LiveConfig } from '../../config/schema/live.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
 import type { HomeAssistant } from '../../ha/types.js';
-import liveGridStyle from '../../scss/live-grid.scss';
+import liveGridStyle from '../../scss/live-grid.scss?inline';
 import { contentsChanged } from '../../utils/basic.js';
 
 import './carousel.js';

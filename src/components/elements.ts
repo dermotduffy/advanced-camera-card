@@ -32,7 +32,7 @@ import type {
 } from '../config/schema/elements/types.js';
 import type { HomeAssistant } from '../ha/types.js';
 import { localize } from '../localize/localize.js';
-import elementsStyle from '../scss/elements.scss';
+import elementsStyle from '../scss/elements.scss?inline';
 import { AdvancedCameraCardError } from '../types.js';
 import { errorToConsole } from '../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';

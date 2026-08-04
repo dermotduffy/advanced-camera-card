@@ -9,7 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 
 import { localize } from '../../localize/localize';
-import editorPageStyle from '../../scss/editor-page.scss';
+import editorPageStyle from '../../scss/editor-page.scss?inline';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event';
 
 // The editor for one item of a list, shown in place of the list itself: a

@@ -30,7 +30,6 @@ jobs:
     outputs:
       new-release-published: ${{ steps.get-next-version.outputs.new-release-published }}
       new-release-version: ${{ steps.get-next-version.outputs.new-release-version }}
-      new-release-git-tag: ${{ steps.get-next-version.outputs.new-release-git-tag }}
 
   release:
     runs-on: ubuntu-latest
@@ -46,7 +45,6 @@ jobs:
       - run: yarn run build
         env:
           RELEASE_VERSION: ${{ needs.get-next-version.outputs.new-release-version }}
-          RELEASE_TAG: ${{ needs.get-next-version.outputs.new-release-git-tag }}
       - uses: thedoctor0/zip-release@0.7.6
         with:
           type: zip

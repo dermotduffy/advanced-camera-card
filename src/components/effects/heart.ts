@@ -7,7 +7,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import heartStyle from '../../scss/heart.scss';
+import heartStyle from '../../scss/heart.scss?inline';
 
 @customElement('advanced-camera-card-heart')
 export class AdvancedCameraCardHeart extends LitElement {

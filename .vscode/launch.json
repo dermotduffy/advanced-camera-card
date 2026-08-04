@@ -7,7 +7,7 @@
       "name": "Launch Chrome against Home Assistant",
       "url": "http://localhost:8123",
       "webRoot": "${workspaceFolder}/dist",
-      "preLaunchTask": "Rollup",
+      "preLaunchTask": "Vite",
       "resolveSourceMapLocations": ["http://localhost:1000/**"]
     }
   ]

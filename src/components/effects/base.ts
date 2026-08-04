@@ -1,7 +1,7 @@
 import { LitElement, unsafeCSS, type CSSResultGroup, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 
-import effectBaseStyle from '../../scss/effect-base.scss';
+import effectBaseStyle from '../../scss/effect-base.scss?inline';
 import { forceReflow } from '../../utils/basic';
 
 export abstract class BaseEffectComponent extends LitElement {

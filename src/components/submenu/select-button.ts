@@ -20,7 +20,7 @@ import { getEntityTitle } from '../../ha/get-entity-title.js';
 import { isHassDifferent } from '../../ha/is-hass-different.js';
 import type { EntityRegistryManager } from '../../ha/registry/entity/types.js';
 import type { HomeAssistant } from '../../ha/types.js';
-import menuButtonStyle from '../../scss/menu-button.scss';
+import menuButtonStyle from '../../scss/menu-button.scss?inline';
 import { createSelectOptionAction, hasAction } from '../../utils/action.js';
 
 import '../icon.js';

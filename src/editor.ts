@@ -29,7 +29,7 @@ import { CONF_CAMERAS } from './config/const.js';
 import type { RawAdvancedCameraCardConfig } from './config/types.js';
 import type { HAFormSchema, HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
-import editorStyle from './scss/editor.scss';
+import editorStyle from './scss/editor.scss?inline';
 import { fireAdvancedCameraCardEvent } from './utils/fire-advanced-camera-card-event.js';
 
 interface EditorSection {

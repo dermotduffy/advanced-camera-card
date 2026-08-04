@@ -18,7 +18,7 @@ import {
 import type { MicrophoneConfig } from '../../../../config/schema/live.js';
 import type { HomeAssistant } from '../../../../ha/types.js';
 import { localize } from '../../../../localize/localize.js';
-import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
+import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss?inline';
 import type { MediaPlayer, MediaPlayerController } from '../../../../types.js';
 import { renderMediaNotification } from '../../../notification/media.js';
 import { VideoRTC } from './video-rtc.js';

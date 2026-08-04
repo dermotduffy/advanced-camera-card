@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { IconController } from '../components-lib/icon-controller';
 import type { InternalIcon } from '../config/schema/common/icon.js';
 import type { HomeAssistant } from '../ha/types';
-import iconStyle from '../scss/icon.scss';
+import iconStyle from '../scss/icon.scss?inline';
 import { contentsChanged } from '../utils/basic.js';
 
 @customElement('advanced-camera-card-icon')

@@ -31,7 +31,7 @@ import type { TransitionEffect } from '../../config/schema/common/transition-eff
 import type { LiveConfig } from '../../config/schema/live.js';
 import { configDefaults, type CardWideConfig } from '../../config/schema/types.js';
 import type { HomeAssistant } from '../../ha/types.js';
-import liveCarouselStyle from '../../scss/live-carousel.scss';
+import liveCarouselStyle from '../../scss/live-carousel.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import type { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { getTextDirection } from '../../utils/text-direction.js';

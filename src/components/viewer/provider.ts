@@ -30,7 +30,7 @@ import type { HomeAssistant, ResolvedMedia } from '../../ha/types.js';
 
 import '../../patches/ha-hls-player.js';
 
-import viewerProviderStyle from '../../scss/viewer-provider.scss';
+import viewerProviderStyle from '../../scss/viewer-provider.scss?inline';
 import type {
   MediaPlayer,
   MediaPlayerController,

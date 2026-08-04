@@ -7,7 +7,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import loadingStyle from '../scss/loading.scss';
+import loadingStyle from '../scss/loading.scss?inline';
 import type { EffectName, EffectsManagerInterface } from '../types';
 import { getReleaseVersion } from '../utils/build-info.js';
 

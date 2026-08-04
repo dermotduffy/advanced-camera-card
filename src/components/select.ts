@@ -12,7 +12,7 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 import { isEqual } from 'lodash-es';
 
 import { grSelectElements } from '../scoped-elements/gr-select';
-import selectStyle from '../scss/select.scss';
+import selectStyle from '../scss/select.scss?inline';
 import { contentsChanged } from '../utils/basic';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
 

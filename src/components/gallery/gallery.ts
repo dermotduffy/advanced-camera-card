@@ -28,7 +28,7 @@ import type { MediaGalleryConfig } from '../../config/schema/media-gallery.js';
 import type { CardWideConfig } from '../../config/schema/types.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../../const.js';
 import type { HomeAssistant } from '../../ha/types.js';
-import galleryStyle from '../../scss/gallery.scss';
+import galleryStyle from '../../scss/gallery.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import type { ViewFolder, ViewItem } from '../../view/item.js';

@@ -20,7 +20,7 @@ import type { CardWideConfig } from '../../../config/schema/types.js';
 import { homeAssistantGetSignedURLIfNecessary } from '../../../ha/sign-path.js';
 import type { HomeAssistant } from '../../../ha/types.js';
 import { localize } from '../../../localize/localize.js';
-import liveJSMPEGStyle from '../../../scss/live-jsmpeg.scss';
+import liveJSMPEGStyle from '../../../scss/live-jsmpeg.scss?inline';
 import type { MediaPlayer, MediaPlayerController } from '../../../types.js';
 import { errorToConsole } from '../../../utils/basic.js';
 import {

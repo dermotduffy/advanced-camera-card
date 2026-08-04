@@ -25,7 +25,7 @@ import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-
 import { VideoMediaPlayerController } from '../components-lib/media-player/video.js';
 import { renderMediaNotification } from '../components/notification/media.js';
 import { localize } from '../localize/localize.js';
-import liveHAComponentsStyle from '../scss/live-ha-components.scss';
+import liveHAComponentsStyle from '../scss/live-ha-components.scss?inline';
 import type { MediaPlayer, MediaPlayerController } from '../types.js';
 import { mayHaveAudio } from '../utils/audio.js';
 import { errorToConsole } from '../utils/basic.js';

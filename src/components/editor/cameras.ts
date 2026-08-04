@@ -20,7 +20,7 @@ import { CONF_CAMERAS } from '../../config/const';
 import type { EditorMode } from '../../config/schema/editor';
 import type { HomeAssistant } from '../../ha/types';
 import { localize } from '../../localize/localize';
-import editorExpanderBodyStyle from '../../scss/editor-expander-body.scss';
+import editorExpanderBodyStyle from '../../scss/editor-expander-body.scss?inline';
 import { renderDocumentation } from './doc-link';
 import { renderForms } from './form';
 

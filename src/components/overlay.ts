@@ -7,7 +7,7 @@ import {
 } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-import overlayStyle from '../scss/overlay.scss';
+import overlayStyle from '../scss/overlay.scss?inline';
 
 @customElement('advanced-camera-card-overlay')
 export class AdvancedCameraCardOverlay extends LitElement {

@@ -16,7 +16,7 @@ import '../../../patches/ha-camera-stream';
 import '../../../patches/ha-hls-player.js';
 import '../../../patches/ha-web-rtc-player.js';
 
-import liveHAStyle from '../../../scss/live-ha.scss';
+import liveHAStyle from '../../../scss/live-ha.scss?inline';
 import type {
   MediaPlayer,
   MediaPlayerController,

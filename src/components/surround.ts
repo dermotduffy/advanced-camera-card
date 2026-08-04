@@ -17,7 +17,7 @@ import type { ThumbnailsControlConfig } from '../config/schema/common/controls/t
 import type { MiniTimelineControlConfig } from '../config/schema/common/controls/timeline.js';
 import type { CardWideConfig } from '../config/schema/types.js';
 import type { HomeAssistant } from '../ha/types.js';
-import basicBlockStyle from '../scss/basic-block.scss';
+import basicBlockStyle from '../scss/basic-block.scss?inline';
 import { contentsChanged } from '../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
 

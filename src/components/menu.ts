@@ -17,7 +17,7 @@ import type { MenuConfig } from '../config/schema/menu.js';
 import { getEntityTitle } from '../ha/get-entity-title.js';
 import type { EntityRegistryManager } from '../ha/registry/entity/types.js';
 import type { HomeAssistant } from '../ha/types.js';
-import menuStyle from '../scss/menu.scss';
+import menuStyle from '../scss/menu.scss?inline';
 import { hasAction } from '../utils/action.js';
 import { contentsChanged } from '../utils/basic.js';
 

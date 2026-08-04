@@ -11,7 +11,7 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { MediaGridController } from '../components-lib/media-grid-controller.js';
 import type { ViewDisplayConfig } from '../config/schema/common/display.js';
-import mediaGridStyle from '../scss/media-grid.scss';
+import mediaGridStyle from '../scss/media-grid.scss?inline';
 
 @customElement('advanced-camera-card-media-grid')
 export class AdvancedCameraCardMediaGrid extends LitElement {

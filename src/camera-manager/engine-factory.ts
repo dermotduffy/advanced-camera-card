@@ -8,6 +8,9 @@ import type { HomeAssistant } from '../ha/types';
 import { RecordingSegmentsCache } from './cache';
 import type { CameraManagerEngine } from './engine';
 import { CameraNoEntityError } from './error';
+// Every other engine subclasses GenericCameraManagerEngine so it is loaded no
+// matter what -- no lazy loading is useful.
+import { GenericCameraManagerEngine } from './generic/engine-generic';
 import { CameraManagerRequestCache, Engine, type CameraEventCallback } from './types';
 import { getCameraEntityFromConfig } from './utils/camera-entity-from-config';
 
@@ -36,7 +39,6 @@ export class CameraManagerEngineFactory {
     let cameraManagerEngine: CameraManagerEngine;
     switch (engine) {
       case Engine.Generic:
-        const { GenericCameraManagerEngine } = await import('./generic/engine-generic');
         cameraManagerEngine = new GenericCameraManagerEngine(
           options.hassManager,
           this._entityRegistryManager,

@@ -13,7 +13,7 @@ import { dispatchActionExecutionRequest } from '../card-controller/actions/utils
 import type { MicrophoneState } from '../card-controller/types.js';
 import type { ActionConfig } from '../config/schema/actions/types.js';
 import { localize } from '../localize/localize.js';
-import callControlsStyle from '../scss/call-controls.scss';
+import callControlsStyle from '../scss/call-controls.scss?inline';
 import {
   createCallAnswerAction,
   createCallEndAction,

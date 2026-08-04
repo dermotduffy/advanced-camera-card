@@ -14,7 +14,7 @@ import type { CameraManager } from '../../camera-manager/manager';
 import { MediaNotificationController } from '../../components-lib/media/notification-controller';
 import type { NotificationDetail } from '../../config/schema/actions/types';
 import type { HomeAssistant } from '../../ha/types';
-import thumbnailDetailsStyle from '../../scss/thumbnail-details.scss';
+import thumbnailDetailsStyle from '../../scss/thumbnail-details.scss?inline';
 import type { ViewItem } from '../../view/item';
 
 import '../icon';

@@ -21,7 +21,7 @@ import {
 import type { CardWideConfig } from '../config/schema/types';
 import type { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
-import mediaFilterStyle from '../scss/media-filter.scss';
+import mediaFilterStyle from '../scss/media-filter.scss?inline';
 import { AdvancedCameraCardDatePicker } from './date-picker';
 
 import './date-picker.js';

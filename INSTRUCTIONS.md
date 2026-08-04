@@ -2,7 +2,7 @@
 
 ## Stack & Workflow
 
-TypeScript (strict), Lit v3, Zod, Vitest, Rollup, Yarn.
+TypeScript (strict), Lit v3, Zod, Vitest, Vite, Yarn.
 
 Commands: `yarn install`, `yarn run build`, `yarn run test`, `yarn run coverage`, `yarn run format`, `yarn run lint`, `yarn run prune`, `yarn run docs-check-links`.
 

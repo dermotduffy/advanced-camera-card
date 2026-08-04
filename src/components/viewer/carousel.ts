@@ -27,7 +27,7 @@ import { localize } from '../../localize/localize.js';
 
 import '../../patches/ha-hls-player.js';
 
-import viewerCarouselStyle from '../../scss/viewer-carousel.scss';
+import viewerCarouselStyle from '../../scss/viewer-carousel.scss?inline';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { contentsChanged } from '../../utils/basic.js';
 import type { CarouselSelected } from '../../utils/embla/carousel-controller.js';

@@ -13,7 +13,7 @@ import type { RawAdvancedCameraCardConfig } from '../config/types';
 import type { DeviceRegistryManager } from '../ha/registry/device';
 import type { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
-import basicBlockStyle from '../scss/basic-block.scss';
+import basicBlockStyle from '../scss/basic-block.scss?inline';
 import { getDiagnostics } from '../utils/diagnostics';
 import { renderNotificationBlockFromText } from './notification/block';
 

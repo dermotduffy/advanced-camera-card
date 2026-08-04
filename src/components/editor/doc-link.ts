@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { getDocURL } from '../../components-lib/editor/doc-links';
 import type { ConfigPath } from '../../components-lib/editor/types';
 import { localize } from '../../localize/localize';
-import editorDocLinkStyle from '../../scss/editor-doc-link.scss';
+import editorDocLinkStyle from '../../scss/editor-doc-link.scss?inline';
 
 // A self-styled documentation link row. Carries its own styles so it renders
 // correctly when passed into the shadow DOM of Home Assistant elements (e.g. as

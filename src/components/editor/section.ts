@@ -16,7 +16,7 @@ import type { FormRequest } from '../../components-lib/editor/schema/registry';
 import { SectionController } from '../../components-lib/editor/section-controller';
 import type { ConfigPath } from '../../components-lib/editor/types';
 import type { HomeAssistant } from '../../ha/types';
-import editorSectionStyle from '../../scss/editor-section.scss';
+import editorSectionStyle from '../../scss/editor-section.scss?inline';
 import { renderDocumentation } from './doc-link';
 import { renderForms } from './form';
 

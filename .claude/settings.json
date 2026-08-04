@@ -8,7 +8,7 @@
       "Bash(yarn prettier *)",
       "Bash(npx tsc --noEmit *)",
       "Bash(npx eslint *)",
-      "Bash(npx rollup -c *)",
+      "Bash(npx vite build *)",
       "Read(~/.claude/projects/**)"
     ]
   }

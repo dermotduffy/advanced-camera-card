@@ -20,7 +20,7 @@ import {
 import { ThumbnailFeatureController } from '../../../components-lib/thumbnail/feature/controller';
 import type { HomeAssistant } from '../../../ha/types';
 import { localize } from '../../../localize/localize';
-import thumbnailFeatureStyle from '../../../scss/thumbnail-feature.scss';
+import thumbnailFeatureStyle from '../../../scss/thumbnail-feature.scss?inline';
 import {
   createNotificationAction,
   stopEventFromActivatingCardWideActions,

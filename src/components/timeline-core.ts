@@ -26,7 +26,7 @@ import type { TimelineCoreComponentConfig } from '../config/schema/common/contro
 import type { CardWideConfig } from '../config/schema/types';
 import type { HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
-import timelineCoreStyle from '../scss/timeline-core.scss';
+import timelineCoreStyle from '../scss/timeline-core.scss?inline';
 import { contentsChanged } from '../utils/basic';
 
 import './date-picker.js';

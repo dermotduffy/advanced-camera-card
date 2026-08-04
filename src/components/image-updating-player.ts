@@ -31,7 +31,7 @@ import { isHassDifferent } from '../ha/is-hass-different.js';
 import type { HomeAssistant } from '../ha/types.js';
 import defaultImage from '../images/iris-screensaver.jpg';
 import { localize } from '../localize/localize.js';
-import imageUpdatingPlayerStyle from '../scss/image-updating-player.scss';
+import imageUpdatingPlayerStyle from '../scss/image-updating-player.scss?inline';
 import type { MediaPlayer, MediaPlayerController } from '../types.js';
 import { contentsChanged } from '../utils/basic.js';
 import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event.js';
