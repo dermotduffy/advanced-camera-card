@@ -14,7 +14,7 @@ import {
   type PTZCapabilities,
 } from '../../types';
 import { createSelectOptionAction } from '../../utils/action.js';
-import type { Camera, CameraInitializationOptions } from '../camera';
+import type { CameraInitializationOptions } from '../camera';
 import { EntityCamera } from '../entity-camera';
 import { ReolinkInitializationError } from '../error';
 import type { CameraEndpointsContext, CameraProxyConfig } from '../types';
@@ -77,7 +77,7 @@ const PTZ_BUTTON_ENTITY_KEYS: readonly (keyof PTZButtonEntities)[] = [
   'zoom_out',
 ];
 
-export class ReolinkCamera extends EntityCamera {
+export class ReolinkCamera extends EntityCamera<ReolinkCameraInitializationOptions> {
   // The HostID identifying the camera or NVR.
   private _reolinkHostID: string | null = null;
 
@@ -89,16 +89,6 @@ export class ReolinkCamera extends EntityCamera {
 
   // Entities used for PTZ control.
   private _ptzEntities: PTZEntities | null = null;
-
-  /**
-   * Reolink cameras require additional options not present in the base class
-   * initialization options, so this ~empty method is used to expand the type
-   * expectations. Without this, callers cannot specify objects (e.g. the device
-   * registry) without TypeScript errors.
-   */
-  public async initialize(options: ReolinkCameraInitializationOptions): Promise<Camera> {
-    return super.initialize(options);
-  }
 
   private async _getChannelFromConfigurationURL(
     hass: HomeAssistant,
@@ -171,11 +161,11 @@ export class ReolinkCamera extends EntityCamera {
     this._reolinkCameraUID = reolinkCameraUID;
   }
 
-  protected async _initialize(
+  protected async _initializeBeforeCapabilities(
     hass: HomeAssistant,
     options: ReolinkCameraInitializationOptions,
   ): Promise<void> {
-    await super._initialize(hass, options);
+    await super._initializeBeforeCapabilities(hass, options);
     await this._initializeChannel(hass, options.deviceRegistryManager);
     this._ptzEntities = await this._getPTZEntities(hass, options.entityRegistryManager);
   }

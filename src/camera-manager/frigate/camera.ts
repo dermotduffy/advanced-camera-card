@@ -46,27 +46,25 @@ export const isBirdseye = (cameraConfig: CameraConfig): boolean => {
   return cameraConfig.frigate.camera_name === CAMERA_BIRDSEYE;
 };
 
-export class FrigateCamera extends Camera {
+export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
   // Short-circuits subscription when destroy() was invoked while base
   // initialization was still awaiting. Set BEFORE awaiting `super.destroy()` so
   // an in-flight initialize() sees the flip immediately.
   private _destroyed = false;
 
-  public async initialize(options: FrigateCameraInitializationOptions): Promise<Camera> {
-    await super.initialize(options);
-
-    // A destroy() during the await above means the camera is being torn down;
-    // it must not register live subscriptions afterward.
+  protected override async _initializeAfterCapabilities(
+    options: FrigateCameraInitializationOptions,
+  ): Promise<void> {
+    // A destroy() while the base class was still initializing means the camera
+    // is being torn down; it must not register live subscriptions afterward.
     if (this._destroyed) {
-      return this;
+      return;
     }
 
     if (this._capabilities?.has('trigger')) {
       this._subscribeToEvents(options.frigateEventWatcher);
       this._subscribeToReviews(options.frigateReviewWatcher);
     }
-
-    return this;
   }
 
   public override async destroy(): Promise<void> {
@@ -124,7 +122,9 @@ export class FrigateCamera extends Camera {
     return true;
   }
 
-  protected override async _initialize(hass: HomeAssistant): Promise<void> {
+  protected override async _initializeBeforeCapabilities(
+    hass: HomeAssistant,
+  ): Promise<void> {
     const config = this.getConfig();
     const hasCameraName = !!config.frigate?.camera_name;
     const cameraEntity = getCameraEntityFromConfig(config);

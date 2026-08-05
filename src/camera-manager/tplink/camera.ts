@@ -23,14 +23,14 @@ interface PTZEntities {
 }
 type PTZEntity = keyof PTZEntities;
 
-export class TPLinkCamera extends EntityCamera {
+export class TPLinkCamera extends EntityCamera<TPLinkCameraInitializationOptions> {
   private _ptzEntities: PTZEntities | null = null;
 
-  protected async _initialize(
+  protected async _initializeBeforeCapabilities(
     hass: HomeAssistant,
     options: TPLinkCameraInitializationOptions,
   ): Promise<void> {
-    await super._initialize(hass, options);
+    await super._initializeBeforeCapabilities(hass, options);
     this._ptzEntities = await this._getPTZEntities(hass, options.entityRegistryManager);
   }
 
