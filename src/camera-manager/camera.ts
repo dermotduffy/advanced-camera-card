@@ -17,7 +17,7 @@ import type { Entity, EntityRegistryManager } from '../ha/registry/entity/types'
 import type { HassStateDifference, HomeAssistant } from '../ha/types';
 import { localize } from '../localize/localize';
 import type { CapabilitiesRaw, CapabilityKey, Endpoint } from '../types';
-import { arrayify } from '../utils/basic';
+import { arrayify, errorToConsole } from '../utils/basic';
 import {
   isGo2RTCLiveProvider,
   liveProviderSupports2WayAudio,
@@ -56,7 +56,9 @@ export interface CameraInitializationOptions {
 
 type DestroyCallback = () => void | Promise<void>;
 
-export class Camera {
+export class Camera<
+  Options extends CameraInitializationOptions = CameraInitializationOptions,
+> {
   protected _config: CameraConfig;
   protected _engine: CameraManagerEngine;
   protected _capabilities?: Capabilities;
@@ -87,7 +89,7 @@ export class Camera {
     return this._initialized;
   }
 
-  async initialize(options: CameraInitializationOptions): Promise<Camera> {
+  async initialize(options: Options): Promise<this> {
     // Freeze a single HASS snapshot for the whole (async, multi-step)
     // initialization so every step observes a consistent entity world; live
     // subscriptions below still use the manager's current watchers.
@@ -96,40 +98,55 @@ export class Camera {
       return this;
     }
 
-    this._entity = await this._resolveEntity(hass, options);
-    await this._initialize(hass, options);
+    // Subscriptions are registered part-way through, so a later failure would
+    // otherwise strand them on a camera nobody holds a reference to.
+    try {
+      this._entity = await this._resolveEntity(hass, options);
+      await this._initializeBeforeCapabilities(hass, options);
 
-    this._capabilities =
-      options.capabilityOptions?.capabilities ??
-      this._capabilities ??
-      (await this._buildCapabilities(hass, options));
+      this._capabilities =
+        options.capabilityOptions?.capabilities ??
+        this._capabilities ??
+        (await this._buildCapabilities(hass, options));
 
-    // The else path is tested, but the `v8` coverage provider miscounts it: a
-    // missing `else` is given the count of the `if` statement minus the count
-    // of its body, and the engine only counts code after an `await` for the
-    // calls that actually paused there. Calls that took an earlier `??` value
-    // above skipped the `await`, which makes the first number the smaller one
-    // and the result negative.
-    // See: https://github.com/AriPerkkio/ast-v8-to-istanbul/issues/148
-    /* v8 ignore else -- @preserve */
-    if (this._capabilities.has('trigger')) {
-      await this._getTriggerEntities(hass, options);
-      this._config.triggers.entities = uniq(this._config.triggers.entities);
+      // The else path is tested, but the `v8` coverage provider miscounts it: a
+      // missing `else` is given the count of the `if` statement minus the count
+      // of its body, and the engine only counts code after an `await` for the
+      // calls that actually paused there. Calls that took an earlier `??` value
+      // above skipped the `await`, which makes the first number the smaller one
+      // and the result negative.
+      // See: https://github.com/AriPerkkio/ast-v8-to-istanbul/issues/148
+      /* v8 ignore else -- @preserve */
+      if (this._capabilities.has('trigger')) {
+        await this._getTriggerEntities(hass, options);
+        this._config.triggers.entities = uniq(this._config.triggers.entities);
 
-      // Subscribe to state based triggers (sync; no race with destroy).
-      const stateWatcher = options.hassManager.getStateWatcher();
-      stateWatcher.subscribe(this._stateChangeHandler, this._config.triggers.entities);
-      this._onDestroy(() => stateWatcher.unsubscribe(this._stateChangeHandler));
+        // Subscribe to state based triggers (sync; no race with destroy).
+        const stateWatcher = options.hassManager.getStateWatcher();
+        stateWatcher.subscribe(this._stateChangeHandler, this._config.triggers.entities);
+        this._onDestroy(() => stateWatcher.unsubscribe(this._stateChangeHandler));
 
-      // Subscribe to event based triggers. List-form `event_type` expands into
-      // one subscription per type sharing the same data/context matcher.
-      const eventWatcher = options.hassManager.getEventWatcher();
-      for (const event of this._config.triggers.events) {
-        for (const request of this._buildEventSubscriptionRequests(event)) {
-          eventWatcher.subscribe(request);
-          this._onDestroy(() => eventWatcher.unsubscribe(request));
+        // Subscribe to event based triggers. List-form `event_type` expands into
+        // one subscription per type sharing the same data/context matcher.
+        const eventWatcher = options.hassManager.getEventWatcher();
+        for (const event of this._config.triggers.events) {
+          for (const request of this._buildEventSubscriptionRequests(event)) {
+            eventWatcher.subscribe(request);
+            this._onDestroy(() => eventWatcher.unsubscribe(request));
+          }
         }
       }
+
+      await this._initializeAfterCapabilities(options);
+    } catch (e) {
+      try {
+        await this.destroy();
+      } catch (destroyError: unknown) {
+        // A camera that cannot clean up must not replace the failure that is
+        // actually worth reporting.
+        errorToConsole(destroyError);
+      }
+      throw e;
     }
 
     this._initialized = true;
@@ -160,7 +177,7 @@ export class Camera {
 
   private async _resolveEntity(
     hass: HomeAssistant,
-    options: CameraInitializationOptions,
+    options: Options,
   ): Promise<Entity | null> {
     const cameraEntityID = getCameraEntityFromConfig(this._config);
     if (!cameraEntityID || !options.entityRegistryManager) {
@@ -175,14 +192,14 @@ export class Camera {
    */
   protected async _getTriggerEntities(
     hass: HomeAssistant,
-    options: CameraInitializationOptions,
+    options: Options,
   ): Promise<void> {
     await this._getDoorbellEntities(hass, options);
   }
 
   private async _getDoorbellEntities(
     hass: HomeAssistant,
-    options: CameraInitializationOptions,
+    options: Options,
   ): Promise<void> {
     if (
       !this._config.triggers.doorbell ||
@@ -216,16 +233,26 @@ export class Camera {
   /**
    * Subclass initialization hook. Override for async initialization work.
    */
-  protected async _initialize(
+  protected async _initializeBeforeCapabilities(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _hass: HomeAssistant,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _options: CameraInitializationOptions,
+    _options: Options,
+  ): Promise<void> {}
+
+  /**
+   * Subclass initialization hook for work that needs the built capabilities.
+   * Runs inside the initialization guard, so whatever it registers is released
+   * if it, or anything after it, throws.
+   */
+  protected async _initializeAfterCapabilities(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _options: Options,
   ): Promise<void> {}
 
   protected async _buildCapabilities(
     hass: HomeAssistant,
-    options: CameraInitializationOptions,
+    options: Options,
   ): Promise<Capabilities> {
     const rawCapabilities = await this._getRawCapabilities(hass, options);
     const config = this.getConfig();
@@ -271,7 +298,7 @@ export class Camera {
    */
   protected async _getRawCapabilities(
     _hass: HomeAssistant,
-    options: CameraInitializationOptions,
+    options: Options,
   ): Promise<CapabilitiesRaw> {
     return {
       live: true,

@@ -19,6 +19,7 @@ import type {
   FrigateReviewWatcher,
 } from '../../../src/camera-manager/frigate/watcher';
 import type { ActionsExecutor } from '../../../src/card-controller/actions/types';
+import type { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import type { PTZAction } from '../../../src/config/schema/actions/custom/ptz';
 import type { CameraTriggerMediaEventType } from '../../../src/config/schema/cameras';
 import type {
@@ -831,6 +832,46 @@ describe('FrigateCamera', () => {
       );
     });
 
+    it('should release base class subscriptions when subscribing throws', async () => {
+      const camera = new FrigateCamera(
+        createCameraConfig({
+          frigate: {
+            client_id: 'CLIENT_ID',
+            camera_name: 'CAMERA',
+          },
+          triggers: {
+            media_events: ['events'],
+            entities: ['binary_sensor.motion'],
+          },
+        }),
+        mock<CameraManagerEngine>(),
+      );
+
+      const error = new Error('subscribe failed');
+      const eventWatcher = mock<FrigateEventWatcher>();
+      vi.mocked(eventWatcher.subscribe).mockImplementation(() => {
+        throw error;
+      });
+
+      const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+
+      await expect(
+        camera.initialize({
+          hassManager: createHASSManager({ stateWatcher }),
+          entityRegistryManager: mock<EntityRegistryManager>(),
+          frigateEventWatcher: eventWatcher,
+          frigateReviewWatcher: mock<FrigateReviewWatcher>(),
+        }),
+      ).rejects.toThrow(error);
+
+      // The state subscription belongs to the base class, which registered it
+      // before `_initializeAfterCapabilities` ran and therefore before this
+      // failure. Nothing here knows about it, so destroying the whole camera is
+      // the only thing that can release it.
+      expect(stateWatcher.subscribe).toHaveBeenCalled();
+      expect(stateWatcher.unsubscribe).toHaveBeenCalled();
+    });
+
     it('should not subscribe with no trigger events', async () => {
       const camera = new FrigateCamera(
         createCameraConfig({
@@ -969,8 +1010,8 @@ describe('FrigateCamera', () => {
 
       await camera.destroy();
 
-      // `_destroyed` short-circuits initialize() after the pending await, so
-      // neither watcher is ever subscribed.
+      // `_destroyed` short-circuits `_initializeAfterCapabilities`, so neither
+      // watcher is ever subscribed.
       expect(eventWatcher.subscribe).not.toHaveBeenCalled();
       expect(reviewWatcher.subscribe).not.toHaveBeenCalled();
 

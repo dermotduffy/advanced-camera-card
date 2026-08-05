@@ -101,6 +101,7 @@ export class FakeHASS {
   private _isAdmin: boolean;
   private _handlers = new Map<string, WSCommandHandler>();
   private _commandLog: MessageBase[] = [];
+  private _openEventSubscriptions = 0;
 
   constructor(options?: FakeHASSOptions) {
     this._language = options?.language ?? 'en';
@@ -127,6 +128,13 @@ export class FakeHASS {
    */
   public registerCommand(type: string, handler: WSCommandHandler): void {
     this._handlers.set(type, handler);
+  }
+
+  /**
+   * Number of event subscriptions not yet released.
+   */
+  public getOpenEventSubscriptionCount(): number {
+    return this._openEventSubscriptions;
   }
 
   /**
@@ -202,7 +210,13 @@ export class FakeHASS {
   private _createConnection(): Connection {
     const connection = mock<Connection>();
     connection.subscribeMessage.mockResolvedValue(() => Promise.resolve());
-    connection.subscribeEvents.mockResolvedValue(() => Promise.resolve());
+    connection.subscribeEvents.mockImplementation(async () => {
+      this._openEventSubscriptions++;
+      return () => {
+        this._openEventSubscriptions--;
+        return Promise.resolve();
+      };
+    });
 
     // `callWS` and `sendMessagePromise` are the same request/response channel,
     // so both go through one handler table. Given two tables, a command

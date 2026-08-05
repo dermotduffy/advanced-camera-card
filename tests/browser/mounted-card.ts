@@ -492,6 +492,13 @@ export class MountedCard {
   }
 
   /**
+   * How many Home Assistant event subscriptions the card currently holds open.
+   */
+  public getOpenEventSubscriptionCount(): number {
+    return this._hass.getOpenEventSubscriptionCount();
+  }
+
+  /**
    * Hand the card a new `hass` with nothing in it changed.
    */
   public renewHASS(): void {

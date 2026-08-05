@@ -16,6 +16,7 @@ import {
   CameraQueryClassifier,
   QueryResultClassifier,
 } from '../../src/camera-manager/manager.js';
+import type { CameraManagerStore } from '../../src/camera-manager/store.js';
 import {
   Engine,
   QueryResultsType,
@@ -266,6 +267,11 @@ describe('CameraManager', () => {
     engine?: CameraManagerEngine,
     cameras: {
       config?: CameraConfig;
+
+      // Replaces what the engine does for this camera, for cases the default
+      // path cannot express (e.g. failing, or completing out of order).
+      createCamera?: (cameraConfig: CameraConfig) => Promise<Camera>;
+
       engineType?: Engine | null;
       capabilties?: Capabilities;
       stateWatcher?: StateWatcherSubscriptionInterface;
@@ -290,13 +296,14 @@ describe('CameraManager', () => {
         camera.engineType === undefined ? Engine.Generic : camera.engineType;
       if (engineType) {
         vi.mocked(mockEngine.createCamera).mockImplementationOnce(
-          async (cameraConfig: CameraConfig): Promise<Camera> =>
-            await createInitializedCamera(
-              cameraConfig,
-              mockEngine,
-              camera.capabilties ?? createCapabilities(),
-              camera.stateWatcher,
-            ),
+          camera.createCamera ??
+            (async (cameraConfig: CameraConfig): Promise<Camera> =>
+              await createInitializedCamera(
+                cameraConfig,
+                mockEngine,
+                camera.capabilties ?? createCapabilities(),
+                camera.stateWatcher,
+              )),
         );
       }
       vi.mocked(mockFactory.getEngineForCamera).mockResolvedValueOnce(engineType);
@@ -435,6 +442,237 @@ describe('CameraManager', () => {
       await manager.initializeCamerasFromConfig().catch(() => order.push('throw'));
 
       expect(order).toEqual(['destroy-done', 'destroy-done', 'throw']);
+    });
+
+    describe('should handle a camera that fails to initialize', () => {
+      const createAPI = (): CardController => {
+        const api = createCardAPI();
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+        return api;
+      };
+
+      it('should destroy a camera that initialized before the failure', async () => {
+        const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+        const error = new Error('initialization failed');
+
+        const manager = createCameraManager(createAPI(), mock<CameraManagerEngine>(), [
+          { capabilties: createCapabilities({ trigger: true }), stateWatcher },
+          { createCamera: () => Promise.reject(error) },
+        ]);
+
+        await expect(manager.initializeCamerasFromConfig()).rejects.toThrow(error);
+
+        expect(stateWatcher.unsubscribe).toHaveBeenCalled();
+        expect(manager.getStore().getCameraCount()).toBe(0);
+      });
+
+      it('should destroy a camera that initialized after the failure', async () => {
+        const engine = mock<CameraManagerEngine>();
+        const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+        const error = new Error('initialization failed');
+
+        let releaseSlowCamera: () => void = () => {};
+        const slowCameraReady = new Promise<void>((resolve) => {
+          releaseSlowCamera = resolve;
+        });
+
+        const manager = createCameraManager(createAPI(), engine, [
+          { createCamera: () => Promise.reject(error) },
+          {
+            createCamera: async (cameraConfig) => {
+              await slowCameraReady;
+              return await createInitializedCamera(
+                cameraConfig,
+                engine,
+                createCapabilities({ trigger: true }),
+                stateWatcher,
+              );
+            },
+          },
+        ]);
+
+        const initialization = manager.initializeCamerasFromConfig();
+        releaseSlowCamera();
+
+        await expect(initialization).rejects.toThrow(error);
+
+        expect(stateWatcher.unsubscribe).toHaveBeenCalled();
+      });
+
+      it('should report the initialization failure when a camera cannot be destroyed', async () => {
+        const error = new Error('initialization failed');
+
+        const unluckyWatcher = mock<StateWatcherSubscriptionInterface>();
+        vi.mocked(unluckyWatcher.unsubscribe).mockRejectedValue(
+          new Error('destroy failed'),
+        );
+
+        // Destroy completion is observable through the trigger-path
+        // unsubscribe, without spying on any Camera method.
+        const slowWatcher = mock<StateWatcherSubscriptionInterface>();
+        let releaseSlowDestroy: () => void = () => {};
+        vi.mocked(slowWatcher.unsubscribe).mockImplementation(
+          () =>
+            new Promise<void>((resolve) => {
+              releaseSlowDestroy = resolve;
+            }),
+        );
+
+        const cameraEntry = { capabilties: createCapabilities({ trigger: true }) };
+        const manager = createCameraManager(createAPI(), mock<CameraManagerEngine>(), [
+          { ...cameraEntry, stateWatcher: unluckyWatcher },
+          { ...cameraEntry, stateWatcher: slowWatcher },
+          { createCamera: () => Promise.reject(error) },
+        ]);
+
+        let settled = false;
+        const initialization = manager
+          .initializeCamerasFromConfig()
+          .catch((e: unknown) => {
+            settled = true;
+            throw e;
+          });
+
+        await vi.waitFor(() => expect(slowWatcher.unsubscribe).toHaveBeenCalled());
+        expect(settled).toBe(false);
+
+        releaseSlowDestroy();
+
+        // The failing destroy neither masks the initialization error nor
+        // prevents the other camera from being destroyed.
+        await expect(initialization).rejects.toThrow(error);
+        expect(unluckyWatcher.unsubscribe).toHaveBeenCalled();
+      });
+    });
+
+    describe('should discard cameras nothing will own', () => {
+      const createSlowManager = (): {
+        manager: CameraManager;
+        stateWatcher: StateWatcherSubscriptionInterface;
+        releaseCamera: () => void;
+      } => {
+        const api = createCardAPI();
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+        const engine = mock<CameraManagerEngine>();
+        const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+
+        let releaseCamera: () => void = () => {};
+        const cameraReady = new Promise<void>((resolve) => {
+          releaseCamera = resolve;
+        });
+
+        const manager = createCameraManager(api, engine, [
+          {
+            createCamera: async (cameraConfig) => {
+              await cameraReady;
+              return await createInitializedCamera(
+                cameraConfig,
+                engine,
+                createCapabilities({ trigger: true }),
+                stateWatcher,
+              );
+            },
+          },
+        ]);
+
+        return { manager, stateWatcher, releaseCamera: () => releaseCamera() };
+      };
+
+      it('should destroy cameras built after the manager was destroyed', async () => {
+        const { manager, stateWatcher, releaseCamera } = createSlowManager();
+
+        const initialization = manager.initializeCamerasFromConfig();
+        await manager.destroy();
+        releaseCamera();
+        await initialization;
+
+        expect(stateWatcher.unsubscribe).toHaveBeenCalled();
+        expect(manager.getStore().getCameraCount()).toBe(0);
+      });
+
+      it('should destroy cameras built by a superseded initialization', async () => {
+        const { manager, stateWatcher, releaseCamera } = createSlowManager();
+
+        const superseded = manager.initializeCamerasFromConfig();
+
+        // A second initialization takes over. It cannot build cameras of its
+        // own from the exhausted mocks; what is under test is that the first
+        // initialization's cameras are discarded rather than stored.
+        const current = manager.initializeCamerasFromConfig();
+        releaseCamera();
+
+        await expect(current).rejects.toThrow(CameraNoEngineError);
+        await superseded;
+
+        expect(stateWatcher.unsubscribe).toHaveBeenCalled();
+        expect(manager.getStore().getCameraCount()).toBe(0);
+      });
+
+      it('should discard cameras superseded by a call that cannot proceed', async () => {
+        const { manager, stateWatcher, releaseCamera } = createSlowManager();
+
+        const superseded = manager.initializeCamerasFromConfig();
+
+        // A newer call that returns early still supersedes: the cameras being
+        // built belong to a configuration that no longer applies.
+        vi.mocked(manager['_api'].getConfigManager().getConfig).mockReturnValue(null);
+        await manager.initializeCamerasFromConfig();
+
+        releaseCamera();
+        await superseded;
+
+        expect(stateWatcher.unsubscribe).toHaveBeenCalled();
+        expect(manager.getStore().getCameraCount()).toBe(0);
+      });
+
+      it('should not reset the store while a commit is in flight', async () => {
+        const api = createCardAPI();
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+        vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+          createConfig({ cameras: [{ id: 'id', engine: 'generic' }] }),
+        );
+
+        const engine = mock<CameraManagerEngine>();
+        const factory = mock<CameraManagerEngineFactory>();
+        vi.mocked(factory.createEngine).mockResolvedValue(engine);
+        vi.mocked(factory.getEngineForCamera).mockResolvedValue(Engine.Generic);
+        vi.mocked(engine.createCamera).mockImplementation(
+          async (cameraConfig: CameraConfig) =>
+            await createInitializedCamera(cameraConfig, engine, createCapabilities()),
+        );
+
+        // The real store mutates incrementally; a mock makes the commit window
+        // externally controllable.
+        const order: string[] = [];
+        const store = mock<CameraManagerStore>();
+        let releaseCommit: () => void = () => {};
+        vi.mocked(store.setCameras).mockImplementation(
+          () =>
+            new Promise<void>((resolve) => {
+              order.push('commit-start');
+              releaseCommit = () => {
+                order.push('commit-end');
+                resolve();
+              };
+            }),
+        );
+        vi.mocked(store.reset).mockImplementation(async () => {
+          order.push('reset');
+        });
+
+        const manager = new CameraManager(api, { factory, store });
+
+        const initialization = manager.initializeCamerasFromConfig();
+        await vi.waitFor(() => expect(store.setCameras).toHaveBeenCalled());
+
+        const destruction = manager.destroy();
+        releaseCommit();
+        await Promise.all([initialization, destruction]);
+
+        // The reset waits for the commit rather than interleaving with it.
+        expect(order).toEqual(['commit-start', 'commit-end', 'reset']);
+      });
     });
 
     it('should reject missing engine', async () => {

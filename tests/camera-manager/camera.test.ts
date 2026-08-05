@@ -726,6 +726,66 @@ describe('Camera', () => {
       expect(eventWatcher.unsubscribe).toHaveBeenCalled();
     });
 
+    it('should release earlier subscriptions when a later subscription throws', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          id: 'camera_1',
+          triggers: {
+            events: [{ event_type: 'zha_event' }],
+          },
+        }),
+        new GenericCameraManagerEngine(createHASSManager()),
+      );
+
+      const error = new Error('subscribe failed');
+      const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+      const eventWatcher = mock<EventWatcherSubscriptionInterface>();
+      vi.mocked(eventWatcher.subscribe).mockImplementation(() => {
+        throw error;
+      });
+
+      await expect(
+        camera.initialize({
+          hassManager: createHASSManager({ stateWatcher, eventWatcher }),
+          capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
+        }),
+      ).rejects.toThrow(error);
+
+      // The state subscription was registered before the failure, so nothing
+      // else can release it.
+      expect(stateWatcher.subscribe).toHaveBeenCalled();
+      expect(stateWatcher.unsubscribe).toHaveBeenCalled();
+    });
+
+    it('should report the initialization failure when cleanup also fails', async () => {
+      const camera = new Camera(
+        createCameraConfig({
+          id: 'camera_1',
+          triggers: {
+            events: [{ event_type: 'zha_event' }],
+          },
+        }),
+        new GenericCameraManagerEngine(createHASSManager()),
+      );
+
+      const error = new Error('subscribe failed');
+      const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+      vi.mocked(stateWatcher.unsubscribe).mockRejectedValue(new Error('destroy failed'));
+      const eventWatcher = mock<EventWatcherSubscriptionInterface>();
+      vi.mocked(eventWatcher.subscribe).mockImplementation(() => {
+        throw error;
+      });
+
+      await expect(
+        camera.initialize({
+          hassManager: createHASSManager({ stateWatcher, eventWatcher }),
+          capabilityOptions: { capabilities: createCapabilities({ trigger: true }) },
+        }),
+      ).rejects.toThrow(error);
+
+      expect(stateWatcher.unsubscribe).toHaveBeenCalled();
+    });
+
     it('should attach a context-only matcher when only a context filter is set', async () => {
       const camera = new Camera(
         createCameraConfig({

@@ -16,15 +16,18 @@ import type { Endpoint } from '../types.js';
 import {
   allPromises,
   arrayify,
+  errorToConsole,
   isTruthy,
   recursivelyMergeObjectsNotArrays,
   setify,
 } from '../utils/basic.js';
 import { getCameraID } from '../utils/camera.js';
+import { Generation } from '../utils/concurrency/generation.js';
 import { log } from '../utils/debug.js';
 import { ViewItemClassifier } from '../view/item-classifier.js';
 import type { ViewItem, ViewMedia } from '../view/item.js';
 import type { ViewItemCapabilities } from '../view/types.js';
+import type { Camera } from './camera.js';
 import { Capabilities } from './capabilities.js';
 import { CameraManagerEngineFactory } from './engine-factory.js';
 import type { CameraManagerEngine } from './engine.js';
@@ -137,6 +140,14 @@ export class CameraManager {
   private _store: CameraManagerStore;
   private _requestLimit = new PQueue();
 
+  // Cameras take time to build, so a teardown or a newer initialization can
+  // arrive mid-build and leave the finished cameras with no owner.
+  private _generation = new Generation();
+
+  // Handing cameras to the store is not atomic, so commits and teardowns run
+  // one at a time and cannot observe each other half-applied.
+  private _storeCommits = new PQueue({ concurrency: 1 });
+
   constructor(
     api: CardCameraAPI,
     options?: {
@@ -155,6 +166,11 @@ export class CameraManager {
   }
 
   public async initializeCamerasFromConfig(): Promise<void> {
+    // Taken before the early return below: a call that cannot proceed still
+    // supersedes an older one whose cameras are being built from a
+    // configuration that no longer applies.
+    const generation = this._generation.next();
+
     const config = this._api.getConfigManager().getConfig();
     const hass = this._api.getHASSManager().getHASS();
 
@@ -173,11 +189,12 @@ export class CameraManager {
       recursivelyMergeObjectsNotArrays(config?.cameras_global, camera),
     );
 
-    await this._initializeCameras(cameras);
+    await this._initializeCameras(cameras, generation);
   }
 
   public async destroy(): Promise<void> {
-    await this._store.reset();
+    this._generation.invalidate();
+    await this._storeCommits.add(() => this._store.reset());
   }
 
   private async _getEnginesForCameras(
@@ -221,7 +238,74 @@ export class CameraManager {
     return output;
   }
 
-  private async _initializeCameras(camerasConfig: CameraConfig[]): Promise<void> {
+  /**
+   * Create a camera for each engine, and assign each its ID. An initialized
+   * camera holds live subscriptions, so either every camera is returned ready
+   * for the store to own, or none survive: any failure destroys all of them
+   * before throwing.
+   */
+  private async _createCameras(
+    engineByConfig: Map<CameraConfig, CameraManagerEngine>,
+  ): Promise<Camera[]> {
+    // A camera that fails is taken out of the results rather than abandoning
+    // the others mid-flight, which would leave an initialized camera with
+    // nobody holding a reference to it.
+    const failures: unknown[] = [];
+    const cameras = (
+      await allPromises(engineByConfig, ([cameraConfig, engine]) =>
+        engine.createCamera(cameraConfig).catch((error: unknown) => {
+          failures.push(error);
+          return null;
+        }),
+      )
+    ).filter(isTruthy);
+
+    try {
+      if (failures.length) {
+        throw failures[0];
+      }
+
+      const cameraIDs: Set<string> = new Set();
+
+      // Do the additions based off the result-order, to ensure the map order is
+      // preserved.
+      for (const camera of cameras) {
+        const cameraID = getCameraID(camera.getConfig());
+
+        if (!cameraID) {
+          throw new CameraNoIDError(camera.getConfig());
+        }
+
+        if (cameraIDs.has(cameraID)) {
+          throw new CameraDuplicateIDError(camera.getConfig());
+        }
+
+        // Always ensure the actual ID used in the card is in the configuration itself.
+        camera.setID(cameraID);
+        cameraIDs.add(cameraID);
+      }
+    } catch (e) {
+      await this._destroyCameras(cameras);
+      throw e;
+    }
+
+    return cameras;
+  }
+
+  private async _destroyCameras(cameras: Camera[]): Promise<void> {
+    await allPromises(cameras, async (camera) => {
+      try {
+        await camera.destroy();
+      } catch (error: unknown) {
+        errorToConsole(error);
+      }
+    });
+  }
+
+  private async _initializeCameras(
+    camerasConfig: CameraConfig[],
+    generation: number,
+  ): Promise<void> {
     const initializationStartTime = new Date();
     const hass = this._api.getHASSManager().getHASS();
 
@@ -230,19 +314,13 @@ export class CameraManager {
       return;
     }
 
-    const hasAutoTriggers = (config: CameraConfig): boolean => {
-      return (
-        config.triggers.motion || config.triggers.occupancy || config.triggers.doorbell
-      );
-    };
+    const requiresAutoTriggerDetection = camerasConfig.some(
+      ({ triggers }) => triggers.motion || triggers.occupancy || triggers.doorbell,
+    );
 
-    if (
-      // If any camera requires automatic trigger detection ...
-      camerasConfig.some((config) => hasAutoTriggers(config))
-    ) {
-      // ... then we need to populate the entity cache by fetching all entities
-      // from Home Assistant. Attempt to do this once upfront, to avoid each
-      // camera doing needing to fetch entity state.
+    if (requiresAutoTriggerDetection) {
+      // Populate the entity cache by fetching all entities from Home Assistant
+      // once upfront, to avoid each camera needing to fetch entity state.
       await this._api.getEntityRegistryManager().fetchEntityList(hass);
     }
 
@@ -250,38 +328,21 @@ export class CameraManager {
     // engine. See: https://github.com/dermotduffy/advanced-camera-card/issues/941
     const engineByConfig = await this._getEnginesForCameras(camerasConfig);
 
-    // Configuration is initialized in parallel.
-    const cameras = await allPromises(
-      engineByConfig.entries(),
-      async ([cameraConfig, engine]) => await engine.createCamera(cameraConfig),
-    );
+    const cameras = await this._createCameras(engineByConfig);
 
-    const destroyCameras = async () => {
-      await allPromises(cameras, (camera) => camera.destroy());
-    };
-    const cameraIDs: Set<string> = new Set();
-
-    // Do the additions based off the result-order, to ensure the map order is
-    // preserved.
-    for (const camera of cameras) {
-      const cameraID = getCameraID(camera.getConfig());
-
-      if (!cameraID) {
-        await destroyCameras();
-        throw new CameraNoIDError(camera.getConfig());
+    // The store mutates incrementally, so staleness is re-checked inside the
+    // queue rather than before it: a teardown or a later initialization that
+    // arrives mid-commit would otherwise interleave with this one.
+    await this._storeCommits.add(async () => {
+      // Nothing will ever own these cameras, so they are destroyed instead of
+      // being handed to a store that has moved on.
+      if (!this._generation.isCurrent(generation)) {
+        await this._destroyCameras(cameras);
+        return;
       }
 
-      if (cameraIDs.has(cameraID)) {
-        await destroyCameras();
-        throw new CameraDuplicateIDError(camera.getConfig());
-      }
-
-      // Always ensure the actual ID used in the card is in the configuration itself.
-      camera.setID(cameraID);
-      cameraIDs.add(cameraID);
-    }
-
-    await this._store.setCameras(cameras);
+      await this._store.setCameras(cameras);
+    });
 
     log(
       this._api.getConfigManager().getCardWideConfig(),

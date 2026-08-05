@@ -8,14 +8,16 @@ import { CameraNoEntityError } from './error';
  * subclass turns absence into an error for engines that cannot function
  * without it (motionEye, Reolink, TPLink).
  */
-export class EntityCamera extends Camera {
-  protected override async _initialize(
+export class EntityCamera<
+  Options extends CameraInitializationOptions = CameraInitializationOptions,
+> extends Camera<Options> {
+  protected override async _initializeBeforeCapabilities(
     hass: HomeAssistant,
-    options: CameraInitializationOptions,
+    options: Options,
   ): Promise<void> {
     if (!this._entity) {
       throw new CameraNoEntityError(this.getConfig());
     }
-    await super._initialize(hass, options);
+    await super._initializeBeforeCapabilities(hass, options);
   }
 }
