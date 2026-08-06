@@ -1,19 +1,19 @@
 import { userEvent } from 'vitest/browser';
 
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
+import type { Entity } from '../../src/ha/registry/entity/types';
 import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { createLogAction } from '../../src/utils/action';
 import { FakeHASS, type FakeEntityOptions } from './fake-hass';
-import { isTestMediaInUse } from './test-media';
+import { createFixtureURL, SNAPSHOT_FIXTURE_FILENAME } from './fixtures';
+import { createTestMediaURL } from './test-media';
 
-export const STILL_CAMERA_ENTITY = 'camera.office';
-
-const STILL_FIXTURE_FILENAME = 'still-red.png';
+export const CAMERA_ENTITY = 'camera.office';
 
 // A same-origin still red image, served by the Vite dev server. The same image
 // is handed on by the worker in test-media.ts, which can be asked to misbehave
 // in useful ways.
-const STILL_FIXTURE_URL = `/tests/browser/fixtures/${STILL_FIXTURE_FILENAME}`;
+const STILL_FIXTURE_URL = createFixtureURL(SNAPSHOT_FIXTURE_FILENAME);
 
 /**
  * A card showing one still image and nothing else: no stream, no transport and
@@ -24,7 +24,7 @@ const STILL_FIXTURE_URL = `/tests/browser/fixtures/${STILL_FIXTURE_FILENAME}`;
  * configuration error instead of the image.
  */
 export const createStillImageCameraConfig = (
-  cameraEntity: string = STILL_CAMERA_ENTITY,
+  cameraEntity: string = CAMERA_ENTITY,
   url: string = STILL_FIXTURE_URL,
 ): RawAdvancedCameraCardConfig => ({
   camera_entity: cameraEntity,
@@ -40,61 +40,52 @@ const HTTP_NOT_FOUND = 404;
 const HTTP_OK = 200;
 
 /**
- * A media URL answered with the given statuses in order. Once they run out
- * every request after them is answered as the last one was, or, if the camera
- * is meant to go quiet, never answered at all.
- *
- * Every URL carries its own counter, since one worker serves every test in a
- * file and a shared counter would make a test depend on what ran before it.
- */
-const createMediaURL = (responses: number[], repeat = false): string => {
-  if (!isTestMediaInUse()) {
-    throw new Error(
-      'Media that misbehaves must be served in a file using useTestMedia().',
-    );
-  }
-
-  return (
-    `/test-media/${STILL_FIXTURE_FILENAME}?` +
-    new URLSearchParams({
-      token: crypto.randomUUID(),
-      responses: responses.join(','),
-      repeat: String(repeat),
-    }).toString()
-  );
-};
-
-/**
  * A media URL that fails the given number of times and then works from there
  * on, so a test can make a camera recover rather than only fail.
  */
-export const createTemporarilyFailingMediaURL = (failures: number): string =>
-  createMediaURL([...Array(failures).fill(HTTP_NOT_FOUND), HTTP_OK], true);
+export const createTemporarilyFailingMediaURL = (
+  failures: number,
+  filename?: string,
+): string =>
+  createTestMediaURL([...Array(failures).fill(HTTP_NOT_FOUND), HTTP_OK], true, filename);
 
 /**
  * A media URL that never works, for a camera that is simply broken.
  */
 export const createFailingMediaURL = (): string =>
-  createMediaURL([HTTP_NOT_FOUND], true);
+  createTestMediaURL([HTTP_NOT_FOUND], true);
 
 /**
  * A media URL that is never answered, for a camera that accepts the request and
  * then says nothing. Silence is a different failure from a refusal, and the
  * only one that can run a loading timeout out.
  */
-export const createUnansweredMediaURL = (): string => createMediaURL([]);
+export const createUnansweredMediaURL = (): string => createTestMediaURL([]);
 
 /**
  * A media URL that answers once and is then never answered again, for a camera
  * that delivers a picture and goes quiet behind it.
  */
-export const createStallingMediaURL = (): string => createMediaURL([HTTP_OK]);
+export const createStallingMediaURL = (filename?: string): string =>
+  createTestMediaURL([HTTP_OK], false, filename);
+
+export interface FakeCameraDescription {
+  entityID: string;
+  entity: FakeEntityOptions;
+  registry: Partial<Entity>;
+}
+
+export const createGenericCameraDescription = (
+  entityID: string = CAMERA_ENTITY,
+): FakeCameraDescription => ({
+  entityID,
+  entity: { state: 'idle' },
+  registry: {},
+});
 
 export interface CameraHASSOptions {
-  // Camera entities beyond the default one.
-  cameras?: string[];
-
-  // Anything else the card should be able to see, as entity ID to state.
+  // Anything that is not a camera the card should be able to see, such as a
+  // motion sensor. These get a state and no entity registry entry.
   entities?: Record<string, FakeEntityOptions | string>;
 
   // The language Home Assistant is set to for translation tests.
@@ -105,17 +96,43 @@ export interface CameraHASSOptions {
  * A Home Assistant holding the cameras a card is about to be given, which is
  * the minimum any browser test needs before it can mount anything.
  */
-export const createCameraHASS = (options?: CameraHASSOptions): FakeHASS => {
-  const cameras = [STILL_CAMERA_ENTITY, ...(options?.cameras ?? [])];
-
-  return new FakeHASS({
+export const createCameraHASS = (
+  cameras: FakeCameraDescription[],
+  options?: CameraHASSOptions,
+): FakeHASS =>
+  new FakeHASS({
     entities: {
-      ...Object.fromEntries(cameras.map((camera) => [camera, { state: 'idle' }])),
+      ...Object.fromEntries(cameras.map((camera) => [camera.entityID, camera.entity])),
       ...options?.entities,
     },
-    registry: Object.fromEntries(cameras.map((camera) => [camera, {}])),
+    registry: Object.fromEntries(
+      cameras.map((camera) => [camera.entityID, camera.registry]),
+    ),
     ...(options?.language && { language: options.language }),
   });
+
+export interface GenericCameraHASSOptions extends CameraHASSOptions {
+  // Camera entities beyond `CAMERA_ENTITY`, which is always present. Each gets
+  // a state and an entity registry entry, which is what the card reads to
+  // resolve a camera and choose its engine.
+  cameras?: string[];
+}
+
+/**
+ * A Home Assistant whose cameras all belong to no named integration, for a test
+ * that is about the card rather than about where its media comes from.
+ */
+export const createGenericCameraHASS = (
+  options?: GenericCameraHASSOptions,
+): FakeHASS => {
+  const { cameras, ...hassOptions } = options ?? {};
+
+  return createCameraHASS(
+    [CAMERA_ENTITY, ...(cameras ?? [])].map((camera) =>
+      createGenericCameraDescription(camera),
+    ),
+    hassOptions,
+  );
 };
 
 export const createStillImageCardConfig = (

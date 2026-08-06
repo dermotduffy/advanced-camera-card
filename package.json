@@ -63,6 +63,7 @@
     "@typescript-eslint/parser": "^8.30.1",
     "@vitest/browser-playwright": "4.1.10",
     "@vitest/coverage-v8": "^4.1.10",
+    "@webcomponents/scoped-custom-element-registry": "0.0.10",
     "conventional-changelog-conventionalcommits": "^8.0.0",
     "docsify-cli": "^4.4.4",
     "es-module-lexer": "^2.3.1",

@@ -12,8 +12,9 @@ import {
 } from '../../../browser/mounted-card';
 import { useTestMedia } from '../../../browser/test-media';
 import {
-  createCameraHASS,
+  CAMERA_ENTITY,
   createFailingMediaURL,
+  createGenericCameraHASS,
   createStallingMediaURL,
   createStillImageCameraConfig,
   createStillImageCardConfig,
@@ -23,8 +24,8 @@ import {
   deepQueryAll,
   getBlockNotificationText,
   isLiveMediaShowing,
-  STILL_CAMERA_ENTITY,
   type CameraHASSOptions,
+  type GenericCameraHASSOptions,
 } from '../../../browser/test-utils';
 
 const SECOND_CAMERA_ENTITY = 'camera.hallway';
@@ -69,7 +70,7 @@ const waitForIssueCleared = async (card: MountedCard): Promise<void> => {
   );
 };
 
-interface MountCardOptions extends MountOptions, CameraHASSOptions {}
+interface MountCardOptions extends MountOptions, GenericCameraHASSOptions {}
 
 /**
  * Every test here needs the status bar rendered, since that is where an issue
@@ -83,7 +84,7 @@ const mountCard = async (
 
   return await MountedCardFactory.createFromSource(
     createStillImageCardConfig({ status_bar: { style: 'outside' }, ...config }),
-    createCameraHASS({ cameras, entities, language }),
+    createGenericCameraHASS({ cameras, entities, language }),
     mountOptions,
   );
 };
@@ -159,7 +160,7 @@ describe('MediaUnavailableIssue', () => {
   it('should wait out the grace period before reporting an unavailable camera', async () => {
     const card = await mountCardSingleCamera();
 
-    card.setEntityState(STILL_CAMERA_ENTITY, 'unavailable');
+    card.setEntityState(CAMERA_ENTITY, 'unavailable');
 
     // Just short of the grace period: reporting here would alarm on a camera
     // that is about to come back.
@@ -173,10 +174,10 @@ describe('MediaUnavailableIssue', () => {
   it('should never report a camera that recovers within the grace period', async () => {
     const card = await mountCardSingleCamera();
 
-    card.setEntityState(STILL_CAMERA_ENTITY, 'unavailable');
+    card.setEntityState(CAMERA_ENTITY, 'unavailable');
     await card.advanceSeconds(LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS - 1);
 
-    card.setEntityState(STILL_CAMERA_ENTITY, 'idle');
+    card.setEntityState(CAMERA_ENTITY, 'idle');
 
     // Well past the point the issue report would have appeared had the blip not
     // ended. Nothing should ever have been shown.
@@ -357,9 +358,7 @@ describe('MediaUnavailableIssue', () => {
 
   it('should report a camera whose media fails to load', async () => {
     const card = await mountCard({
-      cameras: [
-        createStillImageCameraConfig(STILL_CAMERA_ENTITY, createFailingMediaURL()),
-      ],
+      cameras: [createStillImageCameraConfig(CAMERA_ENTITY, createFailingMediaURL())],
     });
 
     // The entity is present and healthy, so the failed fetch is the only thing
@@ -369,16 +368,13 @@ describe('MediaUnavailableIssue', () => {
     await waitForIssueReported(card);
 
     expect(getBlockNotificationText(card.card)).toContain('Could not load image');
-    expect(getBlockNotificationText(card.card)).toContain(STILL_CAMERA_ENTITY);
+    expect(getBlockNotificationText(card.card)).toContain(CAMERA_ENTITY);
   });
 
   it('should clear the issue report once the camera delivers media again', async () => {
     const card = await mountCard({
       cameras: [
-        createStillImageCameraConfig(
-          STILL_CAMERA_ENTITY,
-          createTemporarilyFailingMediaURL(1),
-        ),
+        createStillImageCameraConfig(CAMERA_ENTITY, createTemporarilyFailingMediaURL(1)),
       ],
     });
 
@@ -400,9 +396,7 @@ describe('MediaUnavailableIssue', () => {
 
   it('should wait out the loading timeout before reporting a slow camera', async () => {
     const card = await mountCard({
-      cameras: [
-        createStillImageCameraConfig(STILL_CAMERA_ENTITY, createUnansweredMediaURL()),
-      ],
+      cameras: [createStillImageCameraConfig(CAMERA_ENTITY, createUnansweredMediaURL())],
     });
 
     // Nothing is waited on until there is a player asking for media, so let one
@@ -437,10 +431,7 @@ describe('MediaUnavailableIssue', () => {
       // the test runtime.
       view: { issues: { retry_seconds: 0.1 } },
       cameras: [
-        createStillImageCameraConfig(
-          STILL_CAMERA_ENTITY,
-          createTemporarilyFailingMediaURL(2),
-        ),
+        createStillImageCameraConfig(CAMERA_ENTITY, createTemporarilyFailingMediaURL(2)),
       ],
     });
 
@@ -465,10 +456,7 @@ describe('MediaUnavailableIssue', () => {
       // Automatic retries switched off.
       view: { issues: { retry_seconds: 0 } },
       cameras: [
-        createStillImageCameraConfig(
-          STILL_CAMERA_ENTITY,
-          createTemporarilyFailingMediaURL(1),
-        ),
+        createStillImageCameraConfig(CAMERA_ENTITY, createTemporarilyFailingMediaURL(1)),
       ],
     });
 
@@ -489,9 +477,7 @@ describe('MediaUnavailableIssue', () => {
   it('should not report while a non-media view is showing', async () => {
     const card = await mountCard({
       menu: { style: 'outside' },
-      cameras: [
-        createStillImageCameraConfig(STILL_CAMERA_ENTITY, createFailingMediaURL()),
-      ],
+      cameras: [createStillImageCameraConfig(CAMERA_ENTITY, createFailingMediaURL())],
     });
 
     await card.events.waitForFirst('advanced-camera-card:issue:trigger');
@@ -525,7 +511,7 @@ describe('MediaUnavailableIssue', () => {
     const card = await mountCard({
       cameras: [
         {
-          camera_entity: STILL_CAMERA_ENTITY,
+          camera_entity: CAMERA_ENTITY,
           live_provider: 'image',
           image: {
             mode: 'url',
@@ -575,15 +561,15 @@ describe('MediaUnavailableIssue', () => {
         status_bar: { style: 'outside' },
         cameras: [
           {
-            camera_entity: STILL_CAMERA_ENTITY,
+            camera_entity: CAMERA_ENTITY,
             live_provider: 'image',
             image: { mode: 'camera' },
           },
         ],
       }),
-      createCameraHASS({
+      createGenericCameraHASS({
         entities: {
-          [STILL_CAMERA_ENTITY]: {
+          [CAMERA_ENTITY]: {
             state: 'idle',
             attributes: { entity_picture: createFailingMediaURL() },
           },
@@ -608,7 +594,7 @@ describe('MediaUnavailableIssue', () => {
       // A provider given nothing to play. It reports that it failed without
       // saying why, which is what a playback error is: every other reason
       // here is one the card was able to name.
-      cameras: [{ camera_entity: STILL_CAMERA_ENTITY, live_provider: 'go2rtc' }],
+      cameras: [{ camera_entity: CAMERA_ENTITY, live_provider: 'go2rtc' }],
     });
 
     await card.events.waitForFirst('advanced-camera-card:issue:trigger');

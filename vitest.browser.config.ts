@@ -72,8 +72,13 @@ export default defineConfig({
     // vitest.dist.config.ts .
     exclude: ['tests/dist/**'],
 
-    // Cosmetic: Style the pages as HA does for screenshots.
-    setupFiles: ['./tests/browser/style.ts'],
+    setupFiles: [
+      // Must run before anything defines an element.
+      './tests/browser/scoped-custom-element-registry.ts',
+
+      // Cosmetic: Style the pages as HA does for screenshots.
+      './tests/browser/style.ts',
+    ],
 
     // A failing test leaves a screenshot and any attachments behind. Both
     // default to somewhere else -- a `__screenshots__` directory next to the

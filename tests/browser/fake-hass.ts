@@ -9,12 +9,21 @@ import {
 import { mock } from 'vitest-mock-extended';
 
 import type { Entity } from '../../src/ha/registry/entity/types';
-import type { HomeAssistant } from '../../src/ha/types';
+import type { HomeAssistant, ResolvedMedia } from '../../src/ha/types';
 import { createRegistryEntity, createStateEntity } from '../test-utils';
 
 // A WebSocket command handler. Returning a rejected promise models a command
 // Home Assistant refuses; throwing models a malformed request.
 export type WSCommandHandler = (message: MessageBase) => Promise<unknown> | unknown;
+
+// A handler for an authenticated HTTP request.
+export type PathHandler = (path: string) => Promise<Response> | Response;
+
+// A handler that turns a media content ID into something playable (i.e. HA
+// media source).
+export type MediaSourceHandler = (
+  contentID: string,
+) => Promise<ResolvedMedia> | ResolvedMedia;
 
 export interface FakeEntityOptions {
   state?: string;
@@ -100,6 +109,8 @@ export class FakeHASS {
   private _language: string;
   private _isAdmin: boolean;
   private _handlers = new Map<string, WSCommandHandler>();
+  private _pathHandlers: { pattern: RegExp; handler: PathHandler }[] = [];
+  private _mediaSources: { pattern: RegExp; handler: MediaSourceHandler }[] = [];
   private _commandLog: MessageBase[] = [];
   private _openEventSubscriptions = 0;
 
@@ -128,6 +139,22 @@ export class FakeHASS {
    */
   public registerCommand(type: string, handler: WSCommandHandler): void {
     this._handlers.set(type, handler);
+  }
+
+  /**
+   * Register a handler for the paths an authenticated fetch may ask for. The
+   * first pattern registered that matches answers.
+   */
+  public registerPath(pattern: RegExp, handler: PathHandler): void {
+    this._pathHandlers.push({ pattern, handler });
+  }
+
+  /**
+   * Register a handler for the media content IDs an integration can resolve. The
+   * first pattern registered that matches answers.
+   */
+  public registerMediaSource(pattern: RegExp, handler: MediaSourceHandler): void {
+    this._mediaSources.push({ pattern, handler });
   }
 
   /**
@@ -240,10 +267,28 @@ export class FakeHASS {
       ...this._registry.values(),
     ]);
     this.registerCommand('lovelace/resources', () => []);
+    this.registerCommand('media_source/resolve_media', (message) =>
+      this._resolveMedia(message),
+    );
 
     // Not a card command: `ha-nunjucks` fetches the label registry once when a
     // template first renders.
     this.registerCommand('config/label_registry/list', () => []);
+  }
+
+  private async _resolveMedia(message: MessageBase): Promise<ResolvedMedia> {
+    const contentID: unknown = message['media_content_id'];
+    if (typeof contentID !== 'string') {
+      throw new Error(
+        `FakeHASS was asked to resolve media without a content ID: ${JSON.stringify(contentID)}`,
+      );
+    }
+
+    const match = this._mediaSources.find(({ pattern }) => pattern.test(contentID));
+    if (!match) {
+      throw new Error(`FakeHASS has no media source for: ${contentID}`);
+    }
+    return await match.handler(contentID);
   }
 
   private async _callWS<T>(message: MessageBase): Promise<T> {
@@ -259,6 +304,18 @@ export class FakeHASS {
     // its claim about the shape. Callers parse what they get with Zod, so a
     // handler returning the wrong shape surfaces there.
     return (await handler(message)) as unknown as T;
+  }
+
+  private _hassUrl(path?: string): string {
+    return new URL(path ?? '/', window.location.href).href;
+  }
+
+  private async _fetchWithAuth(path: string): Promise<Response> {
+    const match = this._pathHandlers.find(({ pattern }) => pattern.test(path));
+    if (!match) {
+      throw new Error(`FakeHASS received a request for an unregistered path: ${path}`);
+    }
+    return await match.handler(path);
   }
 
   private _unsupported(name: string): () => never {
@@ -300,15 +357,15 @@ export class FakeHASS {
       },
 
       callWS: (message) => this._callWS(message),
-      hassUrl: (path?: string) => new URL(path ?? '/', window.location.href).href,
+      hassUrl: (path?: string) => this._hassUrl(path),
       localize: (key: string) => key,
+      fetchWithAuth: (path: string) => this._fetchWithAuth(path),
 
       // Everything the card can call has to either work or fail loudly. A
       // method that quietly returns nothing would let a card start depending on
       // it without any test noticing.
       callService: this._unsupported('callService'),
       callApi: this._unsupported('callApi'),
-      fetchWithAuth: this._unsupported('fetchWithAuth'),
       sendWS: this._unsupported('sendWS'),
     };
   }

@@ -4,7 +4,7 @@ import type { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import { MountedCardFactory, type MountedCard } from '../../browser/mounted-card';
 import {
   CARD_INITIALIZED_MESSAGE,
-  createCameraHASS,
+  createGenericCameraHASS,
   createInitializedAutomation,
   createStillImageCameraConfig,
   createStillImageCardConfig,
@@ -26,7 +26,7 @@ const mount = async (
 ): Promise<MountedCard> =>
   await MountedCardFactory.createFromSource(
     createConfig(overrides),
-    createCameraHASS({ cameras: [OTHER_CAMERA_ENTITY] }),
+    createGenericCameraHASS({ cameras: [OTHER_CAMERA_ENTITY] }),
   );
 
 // The cameras the card has actually loaded media for, in order. Media that
