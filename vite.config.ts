@@ -1,6 +1,7 @@
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 
+import { buildDate } from './scripts/build-date-plugin.js';
 import { getBuildDefines } from './scripts/build-defines.js';
 import { cleanDist } from './scripts/clean-dist-plugin.js';
 import { facadeEntry } from './scripts/facade-entry-plugin.js';
@@ -24,6 +25,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       cleanDist(),
       svgPath(),
+      buildDate(),
       facadeEntry({ publicFileNames: PUBLIC_ENTRIES }),
       visualizer({ filename: 'visualizations/treemap.html', template: 'treemap' }),
     ],
