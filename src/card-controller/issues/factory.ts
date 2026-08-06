@@ -32,7 +32,7 @@ export const createIssueManager = (
   manager.addIssue(new InitializationIssue(api));
   manager.addIssue(new LegacyResourceIssue(changeCallback));
   manager.addIssue(new MediaQueryIssue(api));
-  manager.addIssue(new MediaUnavailableIssue(api, changeCallback));
+  manager.addIssue(new MediaUnavailableIssue(api));
 
   return manager;
 };

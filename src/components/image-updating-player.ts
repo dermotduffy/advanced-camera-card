@@ -126,6 +126,13 @@ export class AdvancedCameraCardImageUpdatingPlayer
 
   private _refImage: Ref<HTMLImageElement> = createRef();
 
+  // Whether the <img> currently holds the stock image swapped in by
+  // `_forceSafeImage` rather than the intended media. The safe image load must
+  // not be announced as real media arriving, which may otherwise report a
+  // broken camera as healthy. Cleared on the next render, which restores the
+  // real source.
+  private _showingSafeImage = false;
+
   private _cachedValueController = new CachedValueController(
     this,
     () => this._getEffectiveRefreshSeconds(),
@@ -234,6 +241,10 @@ export class AdvancedCameraCardImageUpdatingPlayer
    * @param _changedProps The changed properties
    */
   protected willUpdate(changedProps: PropertyValues): void {
+    // The render (below) restores the real source (via `live()`), so its load
+    // is the real media again.
+    this._showingSafeImage = false;
+
     const relevantEntity = this._getRelevantEntityForMode(
       resolveImageMode({
         imageConfig: this.imageConfig,
@@ -454,6 +465,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
    */
   private _forceSafeImage(stockOnly?: boolean): void {
     if (this._refImage.value) {
+      this._showingSafeImage = true;
       // Avoid restoring the raw configured URL when proxying is enabled, since
       // that would bypass the proxied/signed URL path on visibility changes.
       const configuredURL =
@@ -495,6 +507,10 @@ export class AdvancedCameraCardImageUpdatingPlayer
             ${ref(this._refImage)}
             src=${live(src)}
             @load=${(ev: Event) => {
+              if (this._showingSafeImage) {
+                return;
+              }
+
               const mediaLoadedInfo = createMediaLoadedInfo(ev, {
                 mediaPlayerController: this._mediaPlayerController,
                 capabilities: {

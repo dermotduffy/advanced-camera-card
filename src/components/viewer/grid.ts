@@ -17,6 +17,7 @@ import type { CardWideConfig } from '../../config/schema/types.js';
 import type { ViewerConfig } from '../../config/schema/viewer.js';
 import type { ResolvedMediaCache } from '../../ha/resolved-media.js';
 import type { HomeAssistant } from '../../ha/types.js';
+import { getViewerGridCameraIDs } from '../../view/layout.js';
 
 import '../../patches/ha-hls-player.js';
 
@@ -75,19 +76,14 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('viewManagerEpoch') && this._needsGrid()) {
+    if (changedProps.has('viewManagerEpoch') && this._getGridCameraIDs()) {
       void import('../media-grid.js');
     }
   }
 
-  private _needsGrid(): boolean {
+  private _getGridCameraIDs(): Set<string> | null {
     const view = this.viewManagerEpoch?.manager.getView();
-    const cameraIDs = view?.queryResults?.getCameraIDs();
-    return (
-      !!view?.isGrid() &&
-      !!view?.supportsMultipleDisplayModes() &&
-      (cameraIDs?.size ?? 0) > 1
-    );
+    return view ? getViewerGridCameraIDs(view) : null;
   }
 
   private _gridSelectCamera(cameraID: string): void {
@@ -103,15 +99,14 @@ export class AdvancedCameraCardViewerGrid extends LitElement {
   }
 
   protected render(): TemplateResult {
-    const view = this.viewManagerEpoch?.manager.getView();
-    const cameraIDs = view?.queryResults?.getCameraIDs();
-    if (!cameraIDs || !this._needsGrid()) {
+    const cameraIDs = this._getGridCameraIDs();
+    if (!cameraIDs) {
       return this._renderCarousel();
     }
 
     return html`
       <advanced-camera-card-media-grid
-        .selected=${view?.camera}
+        .selected=${this.viewManagerEpoch?.manager.getView()?.camera}
         .displayConfig=${this.viewerConfig?.display}
         @advanced-camera-card:media-grid:selected=${(
           ev: CustomEvent<MediaGridSelected>,

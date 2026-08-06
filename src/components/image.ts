@@ -12,6 +12,7 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { CameraManager } from '../camera-manager/manager';
 import type { ViewManagerEpoch } from '../card-controller/view/types';
+import { MediaLoadWatchdogController } from '../components-lib/media-load-watchdog-controller';
 import type { ZoomSettingsObserved } from '../components-lib/zoom/types';
 import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context';
 import type { CameraConfig } from '../config/schema/cameras';
@@ -58,6 +59,40 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
   public imageConfig?: ImageViewConfig;
 
   private _refImage: Ref<MediaPlayerElement> = createRef();
+
+  constructor() {
+    super();
+
+    // No lazy loading: Reports the image as a media_unavailable issue if it
+    // never arrives.
+    new MediaLoadWatchdogController(this, {
+      getTargetID: () => IMAGE_VIEW_TARGET_ID_SENTINEL,
+      isLoadExpected: () =>
+        // A misconfigured image already shows why nothing can be drawn, and
+        // reloading it cannot change the configuration.
+        !!this.hass && !this._getConfigurationError(),
+
+      // Player is keyed on epoch.
+      getAttemptID: () => this._getMediaEpoch(),
+    });
+  }
+
+  private _getMediaEpoch(): number {
+    const view = this.viewManagerEpoch?.manager.getView();
+    return view?.context?.mediaEpoch?.[IMAGE_VIEW_TARGET_ID_SENTINEL] ?? 0;
+  }
+
+  // Returns the reason no image can be shown at all, or null when one can.
+  // `camera` mode has nothing to draw from without a camera.
+  private _getConfigurationError(): string | null {
+    const mode = resolveImageMode({
+      imageConfig: this.imageConfig,
+      cameraConfig: this.cameraConfig,
+    });
+    return mode === 'camera' && !this.cameraConfig
+      ? localize('error.no_camera_for_image')
+      : null;
+  }
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
     await this.updateComplete;
@@ -118,24 +153,18 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
       return;
     }
 
-    // Determine if this image mode requires a camera
-    const mode = resolveImageMode({
-      imageConfig: this.imageConfig,
-      cameraConfig: this.cameraConfig,
-    });
-
-    if (mode === 'camera' && !this.cameraConfig) {
-      return renderNotificationBlockFromText(localize('error.no_camera_for_image'), {
+    const configurationError = this._getConfigurationError();
+    if (configurationError) {
+      return renderNotificationBlockFromText(configurationError, {
         icon: 'mdi:camera-off',
       });
     }
 
     const view = this.viewManagerEpoch?.manager.getView();
-    const mediaEpoch = view?.context?.mediaEpoch?.[IMAGE_VIEW_TARGET_ID_SENTINEL] ?? 0;
 
     return this._renderContainer(html`
       ${keyed(
-        mediaEpoch,
+        this._getMediaEpoch(),
         html`
           <advanced-camera-card-image-updating-player
             ${ref(this._refImage)}

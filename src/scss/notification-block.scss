@@ -29,7 +29,9 @@
   padding: 24px;
   max-width: min(92%, 500px);
   max-height: 100%;
-  overflow-y: auto;
+
+  // A container that cannot usefully be scrolled can set this to 'hidden'.
+  overflow-y: var(--advanced-camera-card-notification-block-overflow-y, auto);
   scrollbar-width: thin;
   text-align: center;
 }

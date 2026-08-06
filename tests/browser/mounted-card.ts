@@ -607,10 +607,31 @@ export class MountedCard {
     control.click();
   }
 
+  /**
+   * Click the control that steps a carousel one item along.
+   *
+   * These carry the name of whatever they move to rather than a name of their
+   * own, which several other controls also carry, so they are reached by the
+   * side they sit on instead. Which side moves forward depends on the reading
+   * direction of the page, exactly as it does for the user.
+   */
+  public async clickNextPreviousControl(side: 'left' | 'right'): Promise<void> {
+    const control = await this.waitForRender(
+      () => deepQuery<HTMLElement>(this.card, `ha-icon-button.controls.${side}`),
+      `the ${side} carousel control`,
+    );
+
+    await clickElement(control);
+  }
+
   private async _findControl(name: string): Promise<HTMLElement> {
     return await this.waitForRender(() => {
       const found = deepQueryAll(this.card, '*').find(
-        (element) => getControlName(element) === name,
+        (element) =>
+          getControlName(element) === name &&
+          // A control the user can press occupies space. An element that only
+          // wraps one can carry the same name while having no box of its own.
+          !!element.getBoundingClientRect().width,
       );
       return found instanceof HTMLElement ? found : null;
     }, `a control named ${name}`);

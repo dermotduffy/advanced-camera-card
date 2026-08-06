@@ -20,6 +20,7 @@ import type { CardWideConfig } from '../../config/schema/types.js';
 import type { HomeAssistant } from '../../ha/types.js';
 import liveGridStyle from '../../scss/live-grid.scss?inline';
 import { contentsChanged } from '../../utils/basic.js';
+import { getLiveGridCameraIDs } from '../../view/layout.js';
 
 import './carousel.js';
 
@@ -97,26 +98,22 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
     });
   }
 
-  private _needsGrid(): boolean {
-    const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
+  private _getGridCameraIDs(): Set<string> | null {
     const view = this.viewManagerEpoch?.manager.getView();
-    return (
-      !!view?.isGrid() &&
-      !!view?.supportsMultipleDisplayModes() &&
-      !!cameraIDs &&
-      cameraIDs.size > 1
-    );
+    return view && this.cameraManager
+      ? getLiveGridCameraIDs(view, this.cameraManager)
+      : null;
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('viewManagerEpoch') && this._needsGrid()) {
+    if (changedProps.has('viewManagerEpoch') && this._getGridCameraIDs()) {
       void import('../media-grid.js');
     }
   }
 
   protected render(): TemplateResult | void {
-    const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
-    if (!cameraIDs?.size || !this._needsGrid()) {
+    const cameraIDs = this._getGridCameraIDs();
+    if (!cameraIDs) {
       return this._renderCarousel();
     }
 

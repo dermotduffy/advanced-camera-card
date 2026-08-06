@@ -14,6 +14,7 @@ import type { CameraManager } from '../../camera-manager/manager.js';
 import { QueryType } from '../../camera-manager/types.js';
 import type { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
+import { MediaLoadWatchdogController } from '../../components-lib/media-load-watchdog-controller.js';
 import {
   getSignedURLErrorText,
   SignedURLController,
@@ -36,6 +37,7 @@ import type {
   MediaPlayerController,
   MediaPlayerElement,
 } from '../../types.js';
+import { Generation } from '../../utils/concurrency/generation.js';
 import { classifyMimeType } from '../../utils/mime-type.js';
 import { ViewItemClassifier } from '../../view/item-classifier.js';
 import type { ViewMedia } from '../../view/item.js';
@@ -77,6 +79,9 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
 
   private _resolvedMedia: ResolvedMedia | null = null;
 
+  // Drops a slow resolution for media the provider has since moved off.
+  private _resolveGeneration = new Generation();
+
   private _signedURLController = new SignedURLController(this, () => {
     if (!this.hass || !this._resolvedMedia) {
       return {};
@@ -99,6 +104,12 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   constructor() {
     super();
     this._lazyLoadController.addListener((loaded) => loaded && this._resolveURL());
+
+    // Watch for media load failure (including resolving media ID and signing).
+    new MediaLoadWatchdogController(this, {
+      getTargetID: () => this.media?.getID() ?? null,
+      isLoadExpected: () => this._shouldLoad(),
+    });
   }
 
   public async getMediaPlayerController(): Promise<MediaPlayerController | null> {
@@ -140,19 +151,28 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
 
   private async _resolveURL(): Promise<void> {
     const contentID = this.media?.getContentID();
-    if (!contentID || !this.hass || !this._lazyLoadController?.isLoaded()) {
+    if (!contentID || !this.hass || !this._shouldLoad()) {
+      this._resolveGeneration.invalidate();
       this._resolvedMedia = null;
       return;
     }
+
+    const generation = this._resolveGeneration.next();
 
     // Clear immediately so the SignedURLController doesn't see a stale URL
     // from the previous media item during the async gap.
     this._resolvedMedia = null;
 
-    this._resolvedMedia =
+    const resolved =
       this.resolvedMediaCache?.get(contentID) ??
       (await resolveMedia(this.hass, contentID, this.resolvedMediaCache)) ??
       null;
+
+    if (!this._resolveGeneration.isCurrent(generation)) {
+      return;
+    }
+
+    this._resolvedMedia = resolved;
     this.requestUpdate();
   }
 
@@ -175,6 +195,10 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
     if (changedProps.has('viewerConfig') && this.viewerConfig?.zoomable) {
       void import('../zoomer.js');
     }
+  }
+
+  private _shouldLoad(): boolean {
+    return this._lazyLoadController.isLoaded();
   }
 
   private _getRelevantCameraConfig(): CameraConfig | null {
@@ -233,12 +257,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   }
 
   protected render(): TemplateResult | void {
-    if (
-      !this._lazyLoadController?.isLoaded() ||
-      !this.media ||
-      !this.hass ||
-      !this.viewerConfig
-    ) {
+    if (!this._shouldLoad() || !this.media || !this.hass || !this.viewerConfig) {
       return;
     }
 

@@ -70,7 +70,7 @@ const isGalleryViewName = (view?: AdvancedCameraCardView): boolean =>
 const isAnyFolderViewName = (view?: AdvancedCameraCardView): boolean =>
   !!view && FOLDER_VIEW_NAMES.includes(view);
 
-export const isAnyMediaViewName = (view?: AdvancedCameraCardView): boolean =>
+const isAnyMediaViewName = (view?: AdvancedCameraCardView): boolean =>
   isViewerViewName(view) || view === 'live' || view === 'image';
 
 export class View {

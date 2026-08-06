@@ -10,8 +10,8 @@ import {
 import {
   CARD_INITIALIZED_MESSAGE,
   clickElement,
+  createCameraHASS,
   createInitializedAutomation,
-  createStillCameraHASS,
   createStillImageCardConfig,
   dispatchPointerDown,
   getFocusedElement,
@@ -106,7 +106,7 @@ const mountCard = async (options?: MountCardOptions): Promise<MountedCard> => {
         },
       ],
     }),
-    createStillCameraHASS({ entities: { [ZOOM_ENTITY]: 'off' } }),
+    createCameraHASS({ entities: { [ZOOM_ENTITY]: 'off' } }),
     mountOptions,
   );
 
