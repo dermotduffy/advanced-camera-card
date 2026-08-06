@@ -11,7 +11,7 @@ import {
   type MountOptions,
 } from '../browser/mounted-card';
 import {
-  createStillCameraHASS,
+  createCameraHASS,
   createStillImageCardConfig,
   isLiveMediaShowing,
 } from '../browser/test-utils';
@@ -99,7 +99,7 @@ class BuildMountedCardFactory extends MountedCardFactory {
  * rather than from `src/`.
  */
 const mountBuiltCard = async (
-  hass: FakeHASS = createStillCameraHASS(),
+  hass: FakeHASS = createCameraHASS(),
 ): Promise<MountedCard> =>
   await BuildMountedCardFactory.createFromBuild(
     `/${PUBLIC_ENTRY}?hacstag=${HACSTAG}`,
@@ -243,7 +243,7 @@ describe('the built card', () => {
     // Clear resource timings to only measure the impact of mounting the card.
     performance.clearResourceTimings();
 
-    const mounted = await mountBuiltCard(createStillCameraHASS({ language: 'de' }));
+    const mounted = await mountBuiltCard(createCameraHASS({ language: 'de' }));
     await mounted.events.waitForFirst('advanced-camera-card:media:loaded');
 
     expect(getLanguageChunks()).toEqual([expect.stringMatching(/^lang-de-/)]);

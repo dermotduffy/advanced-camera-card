@@ -24,6 +24,7 @@ import {
   createMediaLoadedInfo,
   flushPromises,
 } from '../../test-utils';
+import { createView } from '../../view/test-utils';
 
 const DEFAULT_RETRY_SECONDS = 1;
 
@@ -120,6 +121,9 @@ describe('IssueManager', () => {
     const api = createCardAPI();
     const conditionStateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(conditionStateManager);
+    vi.mocked(api.getViewManager().getView).mockReturnValue(
+      createView({ view: 'live', camera: 'camera.office' }),
+    );
 
     const manager = new IssueManager(api);
     const issue = new MediaUnavailableIssue(api);

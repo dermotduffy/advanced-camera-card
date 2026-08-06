@@ -17,6 +17,7 @@ import { MEDIA_UNAVAILABLE_REASONS } from '../../card-controller/issues/issues/m
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { isAudioIntendedOnLoad } from '../../components-lib/live/audio-intent.js';
 import { StreamLivenessController } from '../../components-lib/live/liveness/stream-liveness-controller.js';
+import { MediaLoadWatchdogController } from '../../components-lib/media-load-watchdog-controller.js';
 import { MediaLoadedInfoSinkController } from '../../components-lib/media-loaded-info-sink-controller.js';
 import type { PartialZoomSettings } from '../../components-lib/zoom/types.js';
 import type { LiveConfig } from '../../config/schema/live.js';
@@ -110,6 +111,24 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
+  constructor() {
+    super();
+
+    // Watch for media that fails to load. The constructor registers it as a
+    // controller on this host.
+    new MediaLoadWatchdogController(this, {
+      getTargetID: () => this.targetID ?? null,
+      isLoadExpected: () =>
+        this._shouldLoad() &&
+        // Don't report media unavailable for configuration errors as retries
+        // cannot possible help, and a message is already rendered.
+        !this._getConfigurationError() &&
+        // Specific > generic: Don't replace existing failures flagged with
+        // liveness detectors.
+        !this._streamLivenessController.getFailure(),
+    });
+  }
+
   // A note on dynamic imports:
   //
   // We gather the dynamic live provider import promises and do not consider the
@@ -181,6 +200,33 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     }
   }
 
+  // Whether this provider should be loading media at all.
+  private _shouldLoad(): boolean {
+    return this._lazyLoadController.isLoaded();
+  }
+
+  // Returns the reason this camera cannot stream at all, or null when it can.
+  private _getConfigurationError(): string | null {
+    const cameraConfig = this.camera?.getConfig();
+    const provider = getResolvedLiveProvider(cameraConfig);
+
+    if (
+      provider !== 'ha' &&
+      provider !== 'image' &&
+      !(cameraConfig?.camera_entity && cameraConfig.always_error_if_entity_unavailable)
+    ) {
+      return null;
+    }
+
+    if (!cameraConfig?.camera_entity) {
+      return localize('error.no_live_camera');
+    }
+    if (!this.hass?.states[cameraConfig.camera_entity]) {
+      return localize('error.live_camera_not_found');
+    }
+    return null;
+  }
+
   override async getUpdateComplete(): Promise<boolean> {
     // See 'A note on dynamic imports' above for explanation of why this is
     // necessary.
@@ -234,7 +280,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
   protected render(): TemplateResult | void {
     const cameraConfig = this.camera?.getConfig();
     if (
-      !this._lazyLoadController?.isLoaded() ||
+      !this._shouldLoad() ||
       !this.hass ||
       !this.liveConfig ||
       !this.camera ||
@@ -262,31 +308,14 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
     const provider = getResolvedLiveProvider(this.camera?.getConfig());
 
-    // `ha`/`image` cannot stream without a camera entity, so validate that
-    // here. Entity *availability* (including the always_error immediate path)
-    // is owned by the liveness controller's EntityAvailabilityDetector and
-    // surfaces via getFailure() below, for all providers.
-    if (
-      provider === 'ha' ||
-      provider === 'image' ||
-      (cameraConfig?.camera_entity && cameraConfig.always_error_if_entity_unavailable)
-    ) {
-      if (!cameraConfig?.camera_entity) {
-        return renderMediaNotification({
-          icon: 'mdi:camera',
-          title: localize('error.configuration_error'),
-          detail: localize('error.no_live_camera'),
-          targetTitle: this.cameraTitle,
-        });
-      }
-      if (!this.hass.states[cameraConfig.camera_entity]) {
-        return renderMediaNotification({
-          icon: 'mdi:camera',
-          title: localize('error.configuration_error'),
-          detail: localize('error.live_camera_not_found'),
-          targetTitle: this.cameraTitle,
-        });
-      }
+    const configurationError = this._getConfigurationError();
+    if (configurationError) {
+      return renderMediaNotification({
+        icon: 'mdi:camera',
+        title: localize('error.configuration_error'),
+        detail: configurationError,
+        targetTitle: this.cameraTitle,
+      });
     }
 
     const failure = this._streamLivenessController.getFailure();

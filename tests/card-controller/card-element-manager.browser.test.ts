@@ -4,8 +4,8 @@ import { createLogAction } from '../../src/utils/action';
 import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
 import {
   CARD_INITIALIZED_MESSAGE,
+  createCameraHASS,
   createInitializedAutomation,
-  createStillCameraHASS,
   createStillImageCardConfig,
   deepQueryAll,
   getFocusedElement,
@@ -28,7 +28,7 @@ const mountCard = async (): Promise<MountedCard> => {
         },
       ],
     }),
-    createStillCameraHASS(),
+    createCameraHASS(),
   );
 
   await card.events.waitForFirst('advanced-camera-card:media:loaded');

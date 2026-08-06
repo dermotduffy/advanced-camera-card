@@ -41,7 +41,7 @@ export interface ConditionState {
 
   // Generic media target identifier. See @view/target-id for details.
   targetID?: string;
-  triggered?: Set<string>;
+  triggered?: ReadonlySet<string>;
   userAgent?: string;
   view?: AdvancedCameraCardView;
 }

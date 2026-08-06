@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { MountedCardFactory } from '../browser/mounted-card';
-import {
-  createStillCameraHASS,
-  createStillImageCardConfig,
-} from '../browser/test-utils';
+import { createCameraHASS, createStillImageCardConfig } from '../browser/test-utils';
 
 // A colour the dark theme sets and the card carries no other way. Reading it
 // back proves the stylesheet reached the card rather than merely compiling.
@@ -14,7 +11,7 @@ const DARK_PRIMARY_BACKGROUND = '#111111';
 const mountThemed = async (themes: string[]) =>
   await MountedCardFactory.createFromSource(
     createStillImageCardConfig({ view: { theme: { themes } } }),
-    createStillCameraHASS(),
+    createCameraHASS(),
   );
 
 describe('themes', () => {

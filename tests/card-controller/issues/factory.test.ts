@@ -5,6 +5,7 @@ import { createIssueManager } from '../../../src/card-controller/issues/factory'
 import { IssueManager } from '../../../src/card-controller/issues/issue-manager';
 import { ConditionStateManager } from '../../../src/condition-trigger/conditions/state-manager';
 import { createCardAPI } from '../../test-utils';
+import { createView } from '../../view/test-utils';
 import { createSubscriptionHealth } from '../test-utils';
 
 describe('createIssueManager', () => {
@@ -77,23 +78,49 @@ describe('createIssueManager', () => {
     ]);
   });
 
-  it('should wire changeCallback so timer-based issues activate via evaluate', () => {
+  it('should wire changeCallback so an issue can ask for a re-evaluation', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(new ConditionStateManager());
+    const health = createSubscriptionHealth();
+
+    const manager = createIssueManager(api, health);
+    vi.mocked(api.getCardElementManager().update).mockClear();
+
+    // A subscription starts failing. Nothing has asked the IssueManager to
+    // re-evaluate, so it does not know yet.
+    health.getFailures.mockReturnValue([{ key: 'camera-1', error: 'failed' }]);
+    expect(api.getCardElementManager().update).not.toHaveBeenCalled();
+
+    // The callback EventSubscriptionIssue registered is what asks it to
+    // re-evaluate.
+    const changeCallback = health.addListener.mock.calls[0][0];
+    changeCallback();
+
+    expect(manager.getStateManager().getIssuePresence().has('event_subscription')).toBe(
+      true,
+    );
+    expect(api.getCardElementManager().update).toHaveBeenCalled();
+  });
+
+  it('should report a media failure raised by a component', () => {
     const api = createCardAPI();
     const stateManager = new ConditionStateManager();
     vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+    vi.mocked(api.getViewManager().getView).mockReturnValue(
+      createView({ view: 'live', camera: 'camera-1' }),
+    );
 
     const manager = createIssueManager(api, createSubscriptionHealth());
 
-    // Setting view starts the media_unavailable timer (via the condition state
-    // listener → evaluate → detectDynamic).
     stateManager.setState({ targetID: 'camera-1', view: 'live' });
     expect(manager.getStateManager().getIssuePresence().has('media_unavailable')).toBe(
       false,
     );
 
-    // After the timeout, the changeCallback fires evaluate which
-    // updates the card element.
-    vi.advanceTimersByTime(10000);
+    manager.trigger('media_unavailable', {
+      targetID: 'camera-1',
+      reason: 'not_loading',
+    });
 
     expect(manager.getStateManager().getIssuePresence().has('media_unavailable')).toBe(
       true,

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
 import {
-  createStillCameraHASS,
+  createCameraHASS,
   createStillImageCardConfig,
   isMediaLoadedInfoEventDetail,
   STILL_CAMERA_ENTITY,
@@ -22,7 +22,7 @@ interface RenderedElement extends Element {
 }
 
 const mount = async (): Promise<MountedCard> => {
-  const hass = createStillCameraHASS({ entities: { [UNRELATED_ENTITY]: 'off' } });
+  const hass = createCameraHASS({ entities: { [UNRELATED_ENTITY]: 'off' } });
   return await MountedCardFactory.createFromSource(createStillImageCardConfig(), hass);
 };
 

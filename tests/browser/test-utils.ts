@@ -90,7 +90,7 @@ export const createUnansweredMediaURL = (): string => createMediaURL([]);
  */
 export const createStallingMediaURL = (): string => createMediaURL([HTTP_OK]);
 
-export interface StillCameraHASSOptions {
+export interface CameraHASSOptions {
   // Camera entities beyond the default one.
   cameras?: string[];
 
@@ -105,7 +105,7 @@ export interface StillCameraHASSOptions {
  * A Home Assistant holding the cameras a card is about to be given, which is
  * the minimum any browser test needs before it can mount anything.
  */
-export const createStillCameraHASS = (options?: StillCameraHASSOptions): FakeHASS => {
+export const createCameraHASS = (options?: CameraHASSOptions): FakeHASS => {
   const cameras = [STILL_CAMERA_ENTITY, ...(options?.cameras ?? [])];
 
   return new FakeHASS({

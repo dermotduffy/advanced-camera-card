@@ -37,11 +37,17 @@
   // not change in size (even border-box sizing appears to allow size to change
   // when the element has a non-fixed height).
   border: var(--advanced-camera-card-grid-border-size) solid transparent;
+
+  // Unselected cells cannot be usefully scrolled, so ensure notifications do
+  // not show scrollbars.
+  --advanced-camera-card-notification-block-overflow-y: hidden;
 }
 
 ::slotted([selected]) {
   border: var(--advanced-camera-card-grid-border-size) solid
     var(--advanced-camera-card-grid-selected-border-color);
+
+  --advanced-camera-card-notification-block-overflow-y: auto;
 
   // Selected width = columns × selection factor, capped at 100%.
   width: min(

@@ -1,8 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RETRY_EXPONENTIAL_BASE_SECONDS } from '../../../../src/card-controller/issues/issue-manager';
-import { MEDIA_LOADING_TIMEOUT_SECONDS } from '../../../../src/card-controller/issues/issues/media-unavailable';
 import { LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS } from '../../../../src/components-lib/live/liveness/detectors/entity-availability';
+import { MEDIA_LOADING_TIMEOUT_SECONDS } from '../../../../src/components-lib/media-load-watchdog-controller';
 import { FRAME_STALL_SECONDS } from '../../../../src/components-lib/media-player/frame-stall-watchdog';
 import type { RawAdvancedCameraCardConfig } from '../../../../src/config/types';
 import {
@@ -12,9 +12,9 @@ import {
 } from '../../../browser/mounted-card';
 import { useTestMedia } from '../../../browser/test-media';
 import {
+  createCameraHASS,
   createFailingMediaURL,
   createStallingMediaURL,
-  createStillCameraHASS,
   createStillImageCameraConfig,
   createStillImageCardConfig,
   createTemporarilyFailingMediaURL,
@@ -24,9 +24,12 @@ import {
   getBlockNotificationText,
   isLiveMediaShowing,
   STILL_CAMERA_ENTITY,
+  type CameraHASSOptions,
 } from '../../../browser/test-utils';
 
 const SECOND_CAMERA_ENTITY = 'camera.hallway';
+
+const OVERRIDE_ENTITY = 'input_boolean.override';
 
 const MEDIA_ISSUE_TITLE = 'Media unavailable';
 
@@ -41,6 +44,17 @@ const findIssue = (card: MountedCard): Element | null =>
 
 const isIssueReported = (card: MountedCard): boolean => !!findIssue(card);
 
+// Resolve once `image` holds a picture that actually loaded. A failed load also
+// marks the element complete, so the decoded size is what separates the two.
+const waitForImageLoaded = async (image: HTMLImageElement): Promise<void> =>
+  await new Promise<void>((resolve) => {
+    if (image.complete && image.naturalWidth > 0) {
+      resolve();
+    } else {
+      image.addEventListener('load', () => resolve(), { once: true });
+    }
+  });
+
 const waitForIssueReported = async (card: MountedCard): Promise<void> => {
   await card.waitForRender(
     () => findIssue(card),
@@ -48,9 +62,14 @@ const waitForIssueReported = async (card: MountedCard): Promise<void> => {
   );
 };
 
-interface MountCardOptions extends MountOptions {
-  cameras?: string[];
-}
+const waitForIssueCleared = async (card: MountedCard): Promise<void> => {
+  await card.waitForRender(
+    () => !findIssue(card) || null,
+    `the ${MEDIA_ISSUE_TITLE} issue being cleared`,
+  );
+};
+
+interface MountCardOptions extends MountOptions, CameraHASSOptions {}
 
 /**
  * Every test here needs the status bar rendered, since that is where an issue
@@ -60,11 +79,11 @@ const mountCard = async (
   config?: Partial<RawAdvancedCameraCardConfig>,
   options?: MountCardOptions,
 ): Promise<MountedCard> => {
-  const { cameras, ...mountOptions } = options ?? {};
+  const { cameras, entities, language, ...mountOptions } = options ?? {};
 
   return await MountedCardFactory.createFromSource(
     createStillImageCardConfig({ status_bar: { style: 'outside' }, ...config }),
-    createStillCameraHASS({ cameras }),
+    createCameraHASS({ cameras, entities, language }),
     mountOptions,
   );
 };
@@ -77,17 +96,22 @@ const mountCardSingleCamera = async (): Promise<MountedCard> => {
   return card;
 };
 
-const mountCardDualCameras = async (): Promise<MountedCard> => {
-  const card = await mountCard(
-    {
-      live: { display: { mode: 'grid' } },
-      cameras: [
-        createStillImageCameraConfig(),
-        createStillImageCameraConfig(SECOND_CAMERA_ENTITY),
-      ],
-    },
+/**
+ * A grid of the two standard cameras, which differ only in how they are
+ * configured to behave.
+ */
+const mountCardGrid = async (
+  cameras: RawAdvancedCameraCardConfig[],
+  options?: {
+    config?: Partial<RawAdvancedCameraCardConfig>;
+    entities?: CameraHASSOptions['entities'];
+  },
+): Promise<MountedCard> =>
+  await mountCard(
+    { live: { display: { mode: 'grid' } }, cameras, ...options?.config },
     {
       cameras: [SECOND_CAMERA_ENTITY],
+      ...(options?.entities && { entities: options.entities }),
 
       // The grid observes both its own size and its cells', so a cell resize
       // can resize the host and vice versa. Chromium reports each round it has
@@ -99,6 +123,12 @@ const mountCardDualCameras = async (): Promise<MountedCard> => {
       toleratedConsoleErrors: [/ResizeObserver loop completed/],
     },
   );
+
+const mountCardDualCameras = async (): Promise<MountedCard> => {
+  const card = await mountCardGrid([
+    createStillImageCameraConfig(),
+    createStillImageCameraConfig(SECOND_CAMERA_ENTITY),
+  ]);
 
   await card.events.waitForFirst('advanced-camera-card:media:loaded');
 
@@ -180,6 +210,149 @@ describe('MediaUnavailableIssue', () => {
       deepQueryAll(card.card, 'advanced-camera-card-notification-block'),
     ).toHaveLength(1);
     expect(isLiveMediaShowing(card.card)).toBe(true);
+  });
+
+  it('should offer no scrollbar on a failed grid camera that is not selected', async () => {
+    const card = await mountCardDualCameras();
+
+    card.setEntityState(SECOND_CAMERA_ENTITY, 'unavailable');
+    await card.advanceSeconds(LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS);
+    const block = await card.waitForSelector('advanced-camera-card-notification-block');
+
+    // Unselected cells cannot usefully be scrolled, so a scrollbar is not offered.
+    const content = block.shadowRoot?.querySelector('.content');
+    assert(content);
+
+    expect(getComputedStyle(content).overflowY).toBe('hidden');
+  });
+
+  it('should trigger an issue for an unselected grid camera and recover it', async () => {
+    // Every camera in a grid is on screen, so any of them failing triggers an
+    // issue, not only the camera that happens to be selected.
+    // See: https://github.com/dermotduffy/advanced-camera-card/issues/2637
+    const card = await mountCardGrid([
+      createStillImageCameraConfig(),
+      createStillImageCameraConfig(
+        SECOND_CAMERA_ENTITY,
+        createTemporarilyFailingMediaURL(1),
+      ),
+    ]);
+
+    await card.events.waitForFirst('advanced-camera-card:issue:trigger');
+    await waitForIssueReported(card);
+
+    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_ENTITY);
+
+    // Nothing here asks the card to try again: the retry runs on its own.
+    await card.advanceSeconds(RETRY_EXPONENTIAL_BASE_SECONDS);
+    await waitForIssueCleared(card);
+
+    expect(isLiveMediaShowing(card.card)).toBe(true);
+  });
+
+  it('should trigger an issue for a camera added to a grid by an override', async () => {
+    // Overrides don't recreate views. If an override changes the cameras,
+    // issues should be created for newly added cameras.
+    const card = await mountCardGrid([createStillImageCameraConfig()], {
+      entities: { [OVERRIDE_ENTITY]: 'off' },
+      config: {
+        overrides: [
+          {
+            conditions: [{ condition: 'state', entity: OVERRIDE_ENTITY, state: 'on' }],
+            set: {
+              cameras: [
+                createStillImageCameraConfig(),
+                createStillImageCameraConfig(
+                  SECOND_CAMERA_ENTITY,
+                  createFailingMediaURL(),
+                ),
+              ],
+            },
+          },
+        ],
+      },
+    });
+
+    await card.events.waitForFirst('advanced-camera-card:media:loaded');
+    expect(isIssueReported(card)).toBe(false);
+
+    card.setEntityState(OVERRIDE_ENTITY, 'on');
+
+    await card.events.waitForFirst('advanced-camera-card:issue:trigger');
+    await waitForIssueReported(card);
+
+    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_ENTITY);
+  });
+
+  it('should stay silent about a carousel camera that is not on screen', async () => {
+    // A carousel camera that has loaded and failed triggers no issue while it
+    // is off screen. Lazy loading is off so that it does load and fail, rather
+    // than the test passing because nothing was watching it.
+    const card = await mountCard(
+      {
+        live: { lazy_load: false },
+        cameras: [
+          createStillImageCameraConfig(),
+          createStillImageCameraConfig(SECOND_CAMERA_ENTITY),
+        ],
+      },
+      { cameras: [SECOND_CAMERA_ENTITY] },
+    );
+    await card.events.waitForFirst('advanced-camera-card:media:loaded');
+
+    card.setEntityState(SECOND_CAMERA_ENTITY, 'unavailable');
+    await card.advanceSeconds(LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS * 4);
+
+    expect(isIssueReported(card)).toBe(false);
+
+    // Step the carousel on to that same camera, which reports the failure it
+    // already had. The silence above was the scoping, not an absence of
+    // anything watching.
+    await card.clickNextPreviousControl('right');
+    await waitForIssueReported(card);
+
+    expect(getBlockNotificationText(card.card)).toContain(SECOND_CAMERA_ENTITY);
+  });
+
+  it('should keep an issue across a detach and re-attach', async () => {
+    const card = await mountCardDualCameras();
+
+    card.setEntityState(SECOND_CAMERA_ENTITY, 'unavailable');
+    await card.advanceSeconds(LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS);
+    await waitForIssueReported(card);
+
+    card.detach();
+    card.attach();
+    await card.updateComplete;
+
+    // The clock has not moved, so a failure found all over again could not have
+    // been reported yet. This is the issue from before the detach.
+    expect(isIssueReported(card)).toBe(true);
+  });
+
+  it('should trigger an issue for a grid camera that goes quiet without failing', async () => {
+    // No active errors, just an unanswered load on an unselected camera.
+    const card = await mountCardGrid([
+      createStillImageCameraConfig(),
+      createStillImageCameraConfig(SECOND_CAMERA_ENTITY, createUnansweredMediaURL()),
+    ]);
+
+    // Nothing is waited on until the cell has a player asking for media.
+    await card.waitForSelector('advanced-camera-card-live-image');
+
+    await card.advanceSeconds(MEDIA_LOADING_TIMEOUT_SECONDS - 1);
+    expect(isIssueReported(card)).toBe(false);
+
+    await card.advanceSeconds(1);
+    await waitForIssueReported(card);
+
+    // The cell itself is still showing that it is waiting, so which camera has
+    // given up is only knowable from the issue.
+    await card.clickControl(MEDIA_ISSUE_TITLE);
+    const notification = await card.waitForSelector('advanced-camera-card-notification');
+
+    expect(notification.shadowRoot?.textContent).toContain(SECOND_CAMERA_ENTITY);
+    expect(notification.shadowRoot?.textContent).toContain('Media not loading');
   });
 
   it('should report a camera whose media fails to load', async () => {
@@ -390,6 +563,44 @@ describe('MediaUnavailableIssue', () => {
     // Stalled rather than failed: the picture on screen is real but frozen, and
     // saying so is the difference between "this is old" and "this is broken".
     expect(getBlockNotificationText(card.card)).toContain('Stream stalled');
+  });
+
+  it('should trigger an issue for a camera picture that falls back to a stock image', async () => {
+    // A camera-mode image that cannot be fetched swaps in a bundled stock
+    // picture, so something is always on screen. That substitute must not be
+    // announced as the camera's media arriving, or the failure it replaced
+    // would be reported as recovered.
+    const card = await MountedCardFactory.createFromSource(
+      createStillImageCardConfig({
+        status_bar: { style: 'outside' },
+        cameras: [
+          {
+            camera_entity: STILL_CAMERA_ENTITY,
+            live_provider: 'image',
+            image: { mode: 'camera' },
+          },
+        ],
+      }),
+      createCameraHASS({
+        entities: {
+          [STILL_CAMERA_ENTITY]: {
+            state: 'idle',
+            attributes: { entity_picture: createFailingMediaURL() },
+          },
+        },
+      }),
+    );
+
+    const image = await card.waitForSelector<HTMLImageElement>('img');
+    await card.events.waitForFirst('advanced-camera-card:issue:trigger');
+
+    // The stock picture is being swapped into the same element. Wait for that
+    // load specifically: it is the one that could be mistaken for the camera's
+    // media arriving.
+    await waitForImageLoaded(image);
+
+    expect(isIssueReported(card)).toBe(true);
+    expect(card.events.getEntries('advanced-camera-card:media:loaded')).toHaveLength(0);
   });
 
   it('should report a player that reports a playback error', async () => {
