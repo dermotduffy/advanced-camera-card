@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import type { ThemeName } from '../../src/config/schema/view';
 import { MountedCardFactory } from '../browser/mounted-card';
 import {
   createGenericCameraHASS,
@@ -11,7 +12,7 @@ import {
 // See src/scss/themes/dark.scss .
 const DARK_PRIMARY_BACKGROUND = '#111111';
 
-const mountThemed = async (themes: string[]) =>
+const mountThemed = async (themes: ThemeName[]) =>
   await MountedCardFactory.createFromSource(
     createStillImageCardConfig({ view: { theme: { themes } } }),
     createGenericCameraHASS(),

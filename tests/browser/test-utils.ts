@@ -1,11 +1,16 @@
 import { userEvent } from 'vitest/browser';
 
-import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
+import type {
+  PartialAdvancedCameraCardConfig,
+  RawAdvancedCameraCardConfig,
+} from '../../src/config/types';
 import type { Entity } from '../../src/ha/registry/entity/types';
 import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { createLogAction } from '../../src/utils/action';
+import { isTruthy } from '../../src/utils/basic';
 import { FakeHASS, type FakeEntityOptions } from './fake-hass';
 import { createFixtureURL, SNAPSHOT_FIXTURE_FILENAME } from './fixtures';
+import type { MountedCard } from './mounted-card';
 import { createTestMediaURL } from './test-media';
 
 export const CAMERA_ENTITY = 'camera.office';
@@ -75,7 +80,7 @@ export interface FakeCameraDescription {
   registry: Partial<Entity>;
 }
 
-export const createGenericCameraDescription = (
+const createGenericCameraDescription = (
   entityID: string = CAMERA_ENTITY,
 ): FakeCameraDescription => ({
   entityID,
@@ -136,8 +141,8 @@ export const createGenericCameraHASS = (
 };
 
 export const createStillImageCardConfig = (
-  overrides?: Partial<RawAdvancedCameraCardConfig>,
-): RawAdvancedCameraCardConfig => ({
+  overrides?: PartialAdvancedCameraCardConfig,
+): PartialAdvancedCameraCardConfig => ({
   type: 'custom:advanced-camera-card',
   cameras: [createStillImageCameraConfig()],
 
@@ -240,6 +245,149 @@ export const isLiveMediaShowing = (root: ParentNode): boolean =>
   deepQueryAll(root, 'advanced-camera-card-live-provider').some(
     (provider) => !!deepQuery(provider, MEDIA_SELECTOR),
   );
+
+/**
+ * Wait until the card has been told an element is on screen.
+ *
+ * Parts of the card only begin work once an element becomes visible, being
+ * notified by an `IntersectionObserver`. A test cannot reach those observers,
+ * but it can make one of its own: a document notifies its observers in the
+ * order they were created, so one created after the card's is strictly called
+ * after them. As such, by the time this function reports the element, the
+ * card's intersection observer callback has already run and whatever it started
+ * is deterministically under way.
+ *
+ * Name the element the card is itself watching, e.g.
+ * `advanced-camera-card-live-provider` for liveness detection. It is waited for
+ * rather than taken as an element, since the card makes its observer when the
+ * element connects: observing beforehand would make this the earlier of the two
+ * and run the ordering above the other way.
+ */
+export const waitUntilObservedVisible = async (
+  card: MountedCard,
+  selector: string,
+): Promise<void> => {
+  const element = await card.waitForSelector(selector);
+
+  await new Promise<void>((resolve) => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        observer.disconnect();
+        resolve();
+      }
+    });
+    observer.observe(element);
+  });
+};
+
+/**
+ * Where a media element is being served from.
+ */
+const getMediaURL = (media: Element): string | null => {
+  if (media instanceof HTMLImageElement || media instanceof HTMLMediaElement) {
+    return media.currentSrc || media.getAttribute('src') || null;
+  }
+  return null;
+};
+
+/**
+ * Every media the media viewer has loaded, in the order it rendered them. The
+ * viewer holds a provider per media item and each loads once it has been on
+ * screen, so this is one entry per media a test has visited.
+ */
+export const getMediaViewerMediaURLs = (root: ParentNode): string[] =>
+  deepQueryAll(root, 'advanced-camera-card-viewer-provider')
+    .map((provider) => deepQuery(provider, MEDIA_SELECTOR))
+    .map((media) => (media ? getMediaURL(media) : null))
+    .filter((url) => url !== null);
+
+/**
+ * The thumbnails on screen.
+ */
+export const getThumbnails = (root: ParentNode): HTMLElement[] =>
+  deepQueryAll<HTMLElement>(root, 'advanced-camera-card-thumbnail');
+
+export const getSelectedThumbnail = (root: ParentNode): HTMLElement | null =>
+  deepQuery<HTMLElement>(root, 'advanced-camera-card-thumbnail.slide-selected');
+
+export const clickThumbnail = async (root: ParentNode, index: number): Promise<void> => {
+  const thumbnail = getThumbnails(root)[index];
+  if (!thumbnail) {
+    throw new Error(`There is no thumbnail at index ${index} to click`);
+  }
+  await clickElement(thumbnail);
+};
+
+export const waitForThumbnails = async (
+  card: MountedCard,
+  count: number,
+): Promise<void> => {
+  await card.waitForRender(
+    () => (getThumbnails(card.card).length >= count ? true : null),
+    `${count} thumbnail(s)`,
+  );
+};
+
+/**
+ * Wait until the media viewer has loaded a media whose URL contains the given
+ * text, which is how a test waits for the media it asked for to arrive.
+ */
+export const waitForMediaViewerMedia = async (
+  card: MountedCard,
+  url: string,
+): Promise<void> => {
+  await card.waitForRender(
+    () =>
+      getMediaViewerMediaURLs(card.card).some((shown) => shown.includes(url)) || null,
+    `the media viewer showing ${url}`,
+  );
+};
+
+/**
+ * Move the media viewer to the next or previous media.
+ *
+ * A next/previous control has no size of its own: what is drawn and positioned
+ * is within it, so that is what a real pointer can reach.
+ */
+export const clickNextPreviousMedia = async (
+  root: ParentNode,
+  side: 'left' | 'right',
+): Promise<void> => {
+  const control = deepQuery(
+    root,
+    `advanced-camera-card-next-previous-control[slot="${side}"]`,
+  );
+  const clickable = control ? deepQuery(control, '.controls') : null;
+  if (!clickable) {
+    throw new Error(`The media viewer is showing no ${side} control`);
+  }
+  await clickElement(clickable);
+};
+
+// Everything the status bar is displaying gets this class, whether it is a
+// string, an icon or an image.
+const STATUS_BAR_ITEM_SELECTOR = '.item';
+
+const getStatusBarItems = (root: ParentNode): Element[] => [
+  ...(deepQuery(root, 'advanced-camera-card-status-bar')?.shadowRoot?.querySelectorAll(
+    STATUS_BAR_ITEM_SELECTOR,
+  ) ?? []),
+];
+
+/**
+ * What the status bar is displaying, one entry per item, in the order shown.
+ * Items with no text of their own (an icon, an image) are omitted.
+ */
+export const getStatusBarStrings = (root: ParentNode): string[] =>
+  getStatusBarItems(root)
+    .map((item) => (item.textContent ?? '').trim())
+    .filter(isTruthy);
+
+/**
+ * Get a status bar item by the title it carries.
+ */
+export const getStatusBarItem = (root: ParentNode, title: string): Element | null =>
+  getStatusBarItems(root).find((item) => item.getAttribute('title') === title) ?? null;
 
 // `userEvent.keyboard` is given one string naming every key to press, in which
 // a name of more than one character is wrapped in braces (`{Escape}`) and a

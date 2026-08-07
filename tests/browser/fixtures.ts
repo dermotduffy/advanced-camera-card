@@ -7,7 +7,7 @@ const FIXTURES_PATH = '/tests/browser/fixtures';
 // a snapshot, or a live view drawn from stills.
 export const SNAPSHOT_FIXTURE_FILENAME = 'still-red.png';
 
-// Ten seconds of red, standing in for a recorded clip. See fixtures/README.md .
+// Ten seconds of red, standing in for an event's clip. See fixtures/README.md .
 export const CLIP_FIXTURE_FILENAME = 'clip.webm';
 
 export const createFixtureURL = (filename: string): string =>

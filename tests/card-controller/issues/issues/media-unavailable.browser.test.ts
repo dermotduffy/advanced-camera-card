@@ -23,7 +23,9 @@ import {
   deepQuery,
   deepQueryAll,
   getBlockNotificationText,
+  getStatusBarItem,
   isLiveMediaShowing,
+  waitUntilObservedVisible,
   type CameraHASSOptions,
   type GenericCameraHASSOptions,
 } from '../../../browser/test-utils';
@@ -39,11 +41,14 @@ const MEDIA_ISSUE_TITLE = 'Media unavailable';
 const IRIS_CONTROL = 'Iris / Default View / Unhide menu';
 
 const findIssue = (card: MountedCard): Element | null =>
-  deepQuery(card.card, 'advanced-camera-card-status-bar')?.shadowRoot?.querySelector(
-    `[title="${MEDIA_ISSUE_TITLE}"]`,
-  ) ?? null;
+  getStatusBarItem(card.card, MEDIA_ISSUE_TITLE);
 
 const isIssueReported = (card: MountedCard): boolean => !!findIssue(card);
+
+const getIssueReason = (detail: unknown): string | null =>
+  detail && typeof detail === 'object' && 'reason' in detail
+    ? String(detail.reason)
+    : null;
 
 // Resolve once `image` holds a picture that actually loaded. A failed load also
 // marks the element complete, so the decoded size is what separates the two.
@@ -418,7 +423,7 @@ describe('MediaUnavailableIssue', () => {
   it('should keep retrying a camera that is still broken', async () => {
     // Must use the real clock: fake time moves the card's timers instantly, so
     // a request would never get a chance to answer between one retry and the
-    // next.
+    // next, and the card would call the attempt slow instead of failed.
     vi.useRealTimers();
 
     const card = await mountCard({
@@ -440,15 +445,20 @@ describe('MediaUnavailableIssue', () => {
     await card.events.waitForCount('advanced-camera-card:issue:trigger', 2);
     await waitForIssueReported(card);
 
-    // The third attempt is served.
+    // The third attempt is served. Clearing the issue is a render that follows
+    // the media arriving rather than accompanying it, so it is waited for.
     await card.events.waitForFirst('advanced-camera-card:media:loaded');
+    await waitForIssueCleared(card);
 
-    expect(isIssueReported(card)).toBe(false);
     expect(isLiveMediaShowing(card.card)).toBe(true);
 
     // Exactly the two attempts that failed, so the retry ran once rather than
     // spinning until something happened to work.
-    expect(card.events.getEntries('advanced-camera-card:issue:trigger')).toHaveLength(2);
+    expect(
+      card.events
+        .getEntries('advanced-camera-card:issue:trigger')
+        .map((entry) => getIssueReason(entry.detail)),
+    ).toEqual(['not_loading', 'not_loading']);
   });
 
   it('should re-attempt when the retry control is used', async () => {
@@ -503,11 +513,6 @@ describe('MediaUnavailableIssue', () => {
   it('should report media that stalls after it has loaded', async () => {
     const refreshSeconds = 2;
 
-    // Double the window the watchdog itself is using. The second half is slack:
-    // the watchdog begins watching in real time, so the loop below can step the
-    // clock a few times before that window has even begun.
-    const reportSecondsAllowed = (refreshSeconds + FRAME_STALL_SECONDS) * 2;
-
     const card = await mountCard({
       cameras: [
         {
@@ -529,22 +534,16 @@ describe('MediaUnavailableIssue', () => {
     await card.events.waitForFirst('advanced-camera-card:media:loaded');
     expect(card.events.getEntries('advanced-camera-card:issue:trigger')).toHaveLength(0);
 
-    // Advance a second at a time rather than in one jump. The watchdog only
-    // starts counting once the player has begun watching for images, which
-    // happens in real time. A jump would spend the whole allowance before that
-    // point, and the counting would then start from the end of it: no stall
-    // would ever be reported and this test would fail. Stepping lets the player
-    // begin watching, after which the clock moves through a window that is
-    // actually being counted.
-    for (
-      let second = 0;
-      second < reportSecondsAllowed && !isIssueReported(card);
-      second++
-    ) {
-      await card.advanceSeconds(1);
-    }
+    // The card only starts its stall timer once the player has both loaded and
+    // come on screen. The load is waited for above, so waiting for the provider
+    // to be seen means the timer is running and the clock can be jumped through
+    // it.
+    await waitUntilObservedVisible(card, 'advanced-camera-card-live-provider');
 
-    expect(isIssueReported(card)).toBe(true);
+    // A refreshing picture is allowed a whole refresh interval on top of the
+    // standard window, so that one slow fetch is not called a stall.
+    await card.advanceSeconds(refreshSeconds + FRAME_STALL_SECONDS);
+    await waitForIssueReported(card);
 
     // Stalled rather than failed: the picture on screen is real but frozen, and
     // saying so is the difference between "this is old" and "this is broken".

@@ -67,6 +67,11 @@ export default defineConfig({
     name: 'browser',
     include: ['tests/**/*.browser.test.ts'],
 
+    // One file at a time. Files otherwise share a browser, in which only one of
+    // them can hold focus, so a test driving the keyboard loses it to whichever
+    // sibling clicks next. Measured no slower than running in parallel.
+    fileParallelism: false,
+
     // The tests under `tests/dist` need a card build to exist (in dist/), which
     // this suite does not require. They have their own config, see
     // vitest.dist.config.ts .
@@ -89,6 +94,11 @@ export default defineConfig({
     // When to name a test in the output for taking too long. Browser tests blow
     // past the default of 300ms.
     slowTestThreshold: 10000,
+
+    // How long a test may take before it is called a hang. Mounting a real card
+    // in three browsers at once is expensive, and a machine running something
+    // else alongside can push a healthy test past the default of 5 seconds.
+    testTimeout: 30000,
 
     server: {
       deps: {

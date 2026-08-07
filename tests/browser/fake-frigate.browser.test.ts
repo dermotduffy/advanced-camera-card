@@ -16,7 +16,7 @@ import { CAMERA_ENTITY, createCameraHASS } from './test-utils';
 const CAMERA_NAME = getTestFrigateCameraName(CAMERA_ENTITY);
 const OTHER_CAMERA_NAME = 'hallway';
 
-// Times are the seconds Frigate counts in, and only their order matters here.
+// Frigate timestamps are Unix seconds. Only their order matters here.
 const EARLIER = 1000;
 const LATER = 2000;
 
@@ -243,7 +243,7 @@ describe('FakeFrigate', () => {
       );
     });
 
-    it('should refuse media the event never recorded', async () => {
+    it('should refuse media the event does not have', async () => {
       const { hass } = createFrigate([createEvent('one', { has_clip: false })]);
 
       await expect(resolveMedia(hass, createContentID('one', 'clips'))).rejects.toThrow(
@@ -271,7 +271,7 @@ describe('FakeFrigate', () => {
         '/somewhere-else.webm',
       );
 
-      // The snapshot is a separate recording and is left where it was.
+      // The snapshot is a separate media item and is left where it was.
       expect(
         (await resolveMedia(hass, createContentID('one', 'snapshots'))).url,
       ).toContain('still-red.png');

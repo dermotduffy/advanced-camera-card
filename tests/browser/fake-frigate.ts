@@ -3,14 +3,22 @@ import type { MessageBase } from 'home-assistant-js-websocket';
 
 import type { NativeFrigateEventQuery } from '../../src/camera-manager/frigate/requests';
 import type { EventSummary, FrigateEvent } from '../../src/camera-manager/frigate/types';
+import type { PartialAdvancedCameraCardConfig } from '../../src/config/types';
 import type { ResolvedMedia } from '../../src/ha/types';
+import { createFrigateEvent } from '../test-utils';
 import type { FakeHASS, WSCommandHandler } from './fake-hass';
 import {
   CLIP_FIXTURE_FILENAME,
   createFixtureURL,
   SNAPSHOT_FIXTURE_FILENAME,
 } from './fixtures';
-import { CAMERA_ENTITY, type FakeCameraDescription } from './test-utils';
+import { MountedCardFactory, type MountedCard } from './mounted-card';
+import {
+  CAMERA_ENTITY,
+  createCameraHASS,
+  createStillImageCardConfig,
+  type FakeCameraDescription,
+} from './test-utils';
 
 export const FRIGATE_CLIENT_ID = 'frigate';
 export type FrigateMediaType = 'clips' | 'snapshots';
@@ -37,6 +45,50 @@ export const createFrigateCameraDescription = (
     config_entry_id: FRIGATE_CONFIG_ENTRY_ID,
   },
 });
+
+// Frigate timestamps are UNIX seconds. Two of them, so a test can have an event
+// on each side of the other.
+export const EVENT_TIME_OLDER = 1754300000;
+export const EVENT_TIME_NEWER = 1754310000;
+
+const EVENT_DURATION_SECONDS = 10;
+
+export const createTestFrigateEvent = (
+  id: string,
+  startTime: number,
+  event?: Partial<FrigateEvent>,
+): FrigateEvent =>
+  createFrigateEvent({
+    camera: getTestFrigateCameraName(CAMERA_ENTITY),
+    id,
+    start_time: startTime,
+    end_time: startTime + EVENT_DURATION_SECONDS,
+    ...event,
+  });
+
+export interface CardWithFrigate {
+  card: MountedCard;
+  frigate: FakeFrigate;
+}
+
+/**
+ * A card whose camera is Frigate's, with the given events already detected.
+ */
+export const mountCardWithFrigate = async (
+  events: FrigateEvent[],
+  config?: PartialAdvancedCameraCardConfig,
+): Promise<CardWithFrigate> => {
+  const hass = createCameraHASS([createFrigateCameraDescription()]);
+  const frigate = new FakeFrigate(hass);
+  frigate.setEvents(events);
+
+  const card = await MountedCardFactory.createFromSource(
+    createStillImageCardConfig(config),
+    hass,
+  );
+
+  return { card, frigate };
+};
 
 // An event's media content ID, as `getEventMediaContentID` builds it:
 // media-source://frigate/<client>/event/<clips|snapshots>/<camera>/<id>
@@ -167,7 +219,7 @@ const matchesEventQuery = (event: FrigateEvent, query: EventQuery): boolean =>
 
 /**
  * A Frigate instance behind a `FakeHASS`. Holds the events a test wants a camera
- * to have recorded, and answers what the card asks about them.
+ * to have detected, and answers what the card asks about them.
  *
  * Any missing functionality returns an error.
  */
@@ -199,8 +251,8 @@ export class FakeFrigate {
       this._answerAsFrigate(['timezone'], () => this._summariseEvents()),
     );
 
-    // Nothing here records. The media filter and the viewer's seek still ask, and
-    // an unanswered request is an error.
+    // This Frigate keeps no recordings and cannot be given any. The media filter
+    // and the viewer's seek still ask, and an unanswered request is an error.
     hass.registerCommand(
       'frigate/recordings/summary',
       this._answerAsFrigate(['camera', 'timezone'], () => []),
@@ -208,6 +260,26 @@ export class FakeFrigate {
     hass.registerCommand(
       'frigate/recordings/get',
       this._answerAsFrigate(['after', 'before', 'camera'], () => []),
+    );
+
+    // Fake Frigate has no review items and cannot be given any. The live view
+    // asks for them on startup, so leaving this unanswered would raise a media
+    // query issue on every card.
+    hass.registerCommand(
+      'frigate/reviews/get',
+      this._answerAsFrigate(
+        [
+          'after',
+          'before',
+          'cameras',
+          'labels',
+          'limit',
+          'reviewed',
+          'severity',
+          'zones',
+        ],
+        () => [],
+      ),
     );
     hass.registerCommand(
       'frigate/ptz/info',
@@ -221,7 +293,7 @@ export class FakeFrigate {
   }
 
   /**
-   * The events this Frigate has recorded. Held newest first, as Frigate returns them.
+   * The events this Frigate instance has. Held newest first, as Frigate returns them.
    */
   public setEvents(events: FrigateEvent[]): void {
     this._events = [...events].sort((a, b) => b.start_time - a.start_time);
