@@ -4,6 +4,7 @@ import { beforeAll } from 'vitest';
 
 import { createFixtureURL, SNAPSHOT_FIXTURE_FILENAME } from './fixtures';
 
+const HTTP_NOT_FOUND = 404;
 const HTTP_OK = 200;
 
 // Where this worker answers.
@@ -20,7 +21,7 @@ let inUse = false;
 /**
  * See the worker below for what `responses` and `repeat` ask it to do.
  */
-export const createTestMediaURL = (
+const createTestMediaURL = (
   responses: number[],
   repeat = false,
   filename: string = SNAPSHOT_FIXTURE_FILENAME,
@@ -43,6 +44,36 @@ export const createTestMediaURL = (
     }).toString()
   );
 };
+
+/**
+ * A media URL that fails the given number of times and then works from there
+ * on, so a test can make a camera recover rather than only fail.
+ */
+export const createTemporarilyFailingMediaURL = (
+  failures: number,
+  filename?: string,
+): string =>
+  createTestMediaURL([...Array(failures).fill(HTTP_NOT_FOUND), HTTP_OK], true, filename);
+
+/**
+ * A media URL that never works, for a camera that is simply broken.
+ */
+export const createFailingMediaURL = (): string =>
+  createTestMediaURL([HTTP_NOT_FOUND], true);
+
+/**
+ * A media URL that is never answered, for a camera that accepts the request and
+ * then says nothing. Silence is a different failure from a refusal, and the
+ * only one that can run a loading timeout out.
+ */
+export const createUnansweredMediaURL = (): string => createTestMediaURL([]);
+
+/**
+ * A media URL that answers once and is then never answered again, for a camera
+ * that delivers a picture and goes quiet behind it.
+ */
+export const createStallingMediaURL = (filename?: string): string =>
+  createTestMediaURL([HTTP_OK], false, filename);
 
 /**
  * Serves a fixture at `/test-media/<file>`, behaving as the query asks:
@@ -71,7 +102,7 @@ const worker = setupWorker(
     const url = new URL(request.url);
     const token = url.searchParams.get('token');
     if (!token) {
-      return new HttpResponse(null, { status: 404 });
+      return new HttpResponse(null, { status: HTTP_NOT_FOUND });
     }
 
     const responses = (url.searchParams.get('responses') ?? '')

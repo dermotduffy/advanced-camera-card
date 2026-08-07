@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { FrigateEvent } from '../../../src/camera-manager/frigate/types';
 import type { PartialAdvancedCameraCardConfig } from '../../../src/config/types';
+import { deepQuery } from '../../browser/dom';
 import {
   createTestFrigateEvent,
   EVENT_TIME_NEWER,
@@ -11,7 +12,6 @@ import {
 import type { MountedCard } from '../../browser/mounted-card';
 import {
   clickThumbnail,
-  deepQuery,
   getBlockNotificationText,
   getMediaViewerMediaURLs,
   getThumbnails,

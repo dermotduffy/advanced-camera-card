@@ -3,9 +3,9 @@ import { expect, onTestFinished, vi } from 'vitest';
 import type { AdvancedCameraCard } from '../../src/card';
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
 import { ACTION_HANDLER_HOLD_SECONDS } from '../../src/const';
+import { clickElement, deepQuery, deepQueryAll, getAllShadowRoots } from './dom';
 import type { FakeEntityOptions, FakeHASS } from './fake-hass';
 import { defineHAElementStubs } from './ha-element-stubs';
-import { clickElement, deepQuery, deepQueryAll, getAllShadowRoots } from './test-utils';
 
 // Home Assistant's masonry columns are `max-width: 500px`, so this is the width
 // a card usually gets. The card derives height from the media it is showing.

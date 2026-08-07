@@ -3,21 +3,23 @@ import { assert, describe, expect, it } from 'vitest';
 import type { LogActionConfig } from '../../src/config/schema/actions/custom/log';
 import { createLogAction } from '../../src/utils/action';
 import {
+  clickElement,
+  dispatchPointerDown,
+  getFocusedElement,
+  holdKey,
+  pressKey,
+  releaseKey,
+} from '../browser/dom';
+import {
   MountedCardFactory,
   type MountedCard,
   type MountOptions,
 } from '../browser/mounted-card';
 import {
   CARD_INITIALIZED_MESSAGE,
-  clickElement,
   createGenericCameraHASS,
   createInitializedAutomation,
   createStillImageCardConfig,
-  dispatchPointerDown,
-  getFocusedElement,
-  holdKey,
-  pressKey,
-  releaseKey,
 } from '../browser/test-utils';
 
 const ZOOM_ENTITY = 'input_boolean.zoom';

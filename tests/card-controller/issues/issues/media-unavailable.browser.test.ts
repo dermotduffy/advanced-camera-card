@@ -5,23 +5,24 @@ import { LIVENESS_ENTITY_UNAVAILABLE_GRACE_SECONDS } from '../../../../src/compo
 import { MEDIA_LOADING_TIMEOUT_SECONDS } from '../../../../src/components-lib/media-load-watchdog-controller';
 import { FRAME_STALL_SECONDS } from '../../../../src/components-lib/media-player/frame-stall-watchdog';
 import type { RawAdvancedCameraCardConfig } from '../../../../src/config/types';
+import { deepQuery, deepQueryAll } from '../../../browser/dom';
 import {
   MountedCardFactory,
   type MountedCard,
   type MountOptions,
 } from '../../../browser/mounted-card';
-import { useTestMedia } from '../../../browser/test-media';
 import {
-  CAMERA_ENTITY,
   createFailingMediaURL,
-  createGenericCameraHASS,
   createStallingMediaURL,
-  createStillImageCameraConfig,
-  createStillImageCardConfig,
   createTemporarilyFailingMediaURL,
   createUnansweredMediaURL,
-  deepQuery,
-  deepQueryAll,
+  useTestMedia,
+} from '../../../browser/test-media';
+import {
+  CAMERA_ENTITY,
+  createGenericCameraHASS,
+  createStillImageCameraConfig,
+  createStillImageCardConfig,
   getBlockNotificationText,
   getStatusBarItem,
   isLiveMediaShowing,
