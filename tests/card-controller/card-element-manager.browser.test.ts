@@ -1,16 +1,13 @@
 import { describe, expect, it, onTestFinished } from 'vitest';
 
 import { createLogAction } from '../../src/utils/action';
+import { deepQueryAll, getFocusedElement, pressKey, pressTab } from '../browser/dom';
 import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
 import {
   CARD_INITIALIZED_MESSAGE,
   createGenericCameraHASS,
   createInitializedAutomation,
   createStillImageCardConfig,
-  deepQueryAll,
-  getFocusedElement,
-  pressKey,
-  pressTab,
 } from '../browser/test-utils';
 
 // What the automation writes when it runs, written as the pattern the console

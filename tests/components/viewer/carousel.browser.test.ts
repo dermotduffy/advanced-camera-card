@@ -2,6 +2,7 @@ import { assert, describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import { MEDIA_LOADING_TIMEOUT_SECONDS } from '../../../src/components-lib/media-load-watchdog-controller';
 import type { PartialAdvancedCameraCardConfig } from '../../../src/config/types';
+import { clickElement, deepQuery } from '../../browser/dom';
 import {
   createTestFrigateEvent,
   EVENT_TIME_NEWER,
@@ -9,13 +10,10 @@ import {
   mountCardWithFrigate,
 } from '../../browser/fake-frigate';
 import type { MountedCard } from '../../browser/mounted-card';
-import { useTestMedia } from '../../browser/test-media';
+import { createFailingMediaURL, useTestMedia } from '../../browser/test-media';
 import {
-  clickElement,
   clickNextPreviousMedia,
   clickThumbnail,
-  createFailingMediaURL,
-  deepQuery,
   getMediaViewerMediaURLs,
   getSelectedThumbnail,
   getStatusBarItem,
