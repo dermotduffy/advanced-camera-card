@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { MountedCardFactory, type MountedCard } from '../../../browser/mounted-card';
 import {
   CARD_INITIALIZED_MESSAGE,
-  createCameraHASS,
+  createGenericCameraHASS,
   createInitializedAutomation,
   createStillImageCameraConfig,
   createStillImageCardConfig,
@@ -40,7 +40,7 @@ const mountBrokenCard = async (): Promise<MountedCard> =>
       view: { issues: { retry_seconds: 0 } },
       automations: [createInitializedAutomation()],
     }),
-    createCameraHASS(),
+    createGenericCameraHASS(),
   );
 
 describe('InitializationIssue', () => {

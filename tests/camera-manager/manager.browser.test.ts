@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { RawAdvancedCameraCardConfig } from '../../src/config/types';
 import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
 import {
-  createCameraHASS,
+  createGenericCameraHASS,
   createStillImageCameraConfig,
   createStillImageCardConfig,
   getBlockNotificationText,
@@ -43,7 +43,7 @@ describe('CameraManager', () => {
         ],
         view: { issues: { retry_seconds: 0 } },
       }),
-      createCameraHASS({
+      createGenericCameraHASS({
         cameras: [TRIGGERING_CAMERA_ENTITY, OTHER_TRIGGERING_CAMERA_ENTITY],
       }),
     );
@@ -64,7 +64,7 @@ describe('CameraManager', () => {
       createStillImageCardConfig({
         cameras: [createSubscribingCameraConfig(TRIGGERING_CAMERA_ENTITY)],
       }),
-      createCameraHASS({ cameras: [TRIGGERING_CAMERA_ENTITY] }),
+      createGenericCameraHASS({ cameras: [TRIGGERING_CAMERA_ENTITY] }),
     );
 
     await vi.waitFor(() => expect(card.getOpenEventSubscriptionCount()).toBe(1));

@@ -148,6 +148,70 @@ describe('FakeHASS', () => {
     });
   });
 
+  describe('authenticated fetches', () => {
+    it('should answer a registered path', async () => {
+      const hass = createFakeHASS();
+      hass.registerPath(/^\/api\/thumbnail\/.+$/, (path) => new Response(path));
+
+      const response = await hass.getHASS().fetchWithAuth('/api/thumbnail/1');
+
+      await expect(response.text()).resolves.toBe('/api/thumbnail/1');
+    });
+
+    it('should reject an unregistered path', async () => {
+      const hass = createFakeHASS();
+
+      await expect(hass.getHASS().fetchWithAuth('/api/thumbnail/1')).rejects.toThrow(
+        'FakeHASS received a request for an unregistered path: /api/thumbnail/1',
+      );
+    });
+  });
+
+  describe('media sources', () => {
+    const resolveMedia = async (hass: FakeHASS, contentID: unknown): Promise<unknown> =>
+      await hass
+        .getHASS()
+        .callWS({ type: 'media_source/resolve_media', media_content_id: contentID });
+
+    it('should resolve a content ID with the source that claims it', async () => {
+      const hass = createFakeHASS();
+      hass.registerMediaSource(/^media-source:\/\/other\//, () => ({
+        url: '/other.mp4',
+        mime_type: 'video/mp4',
+      }));
+      hass.registerMediaSource(/^media-source:\/\/mine\//, (contentID) => ({
+        url: `/mine.mp4?id=${contentID}`,
+        mime_type: 'video/mp4',
+      }));
+
+      // Demonstrate that two sources coexist.
+      expect(await resolveMedia(hass, 'media-source://mine/1')).toEqual({
+        url: '/mine.mp4?id=media-source://mine/1',
+        mime_type: 'video/mp4',
+      });
+      expect(await resolveMedia(hass, 'media-source://other/1')).toEqual({
+        url: '/other.mp4',
+        mime_type: 'video/mp4',
+      });
+    });
+
+    it('should reject a content ID no source claims', async () => {
+      const hass = createFakeHASS();
+
+      await expect(resolveMedia(hass, 'media-source://mine/1')).rejects.toThrow(
+        'FakeHASS has no media source for: media-source://mine/1',
+      );
+    });
+
+    it('should reject a request carrying no content ID', async () => {
+      const hass = createFakeHASS();
+
+      await expect(resolveMedia(hass, undefined)).rejects.toThrow(
+        'FakeHASS was asked to resolve media without a content ID',
+      );
+    });
+  });
+
   describe('unimplemented methods', () => {
     it('should throw rather than quietly do nothing', () => {
       const hass = createFakeHASS().getHASS();

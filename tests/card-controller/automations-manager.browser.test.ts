@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
-import { createCameraHASS, createStillImageCardConfig } from '../browser/test-utils';
+import {
+  createGenericCameraHASS,
+  createStillImageCardConfig,
+} from '../browser/test-utils';
 
 const TRIGGER_ENTITY = 'input_boolean.zoom';
 
 const mount = async (): Promise<MountedCard> => {
-  const hass = createCameraHASS({ entities: { [TRIGGER_ENTITY]: 'off' } });
+  const hass = createGenericCameraHASS({ entities: { [TRIGGER_ENTITY]: 'off' } });
   return await MountedCardFactory.createFromSource(
     createStillImageCardConfig({
       automations: [

@@ -2,7 +2,12 @@ import { delay, http, HttpResponse } from 'msw';
 import { setupWorker } from 'msw/browser';
 import { beforeAll } from 'vitest';
 
+import { createFixtureURL, SNAPSHOT_FIXTURE_FILENAME } from './fixtures';
+
 const HTTP_OK = 200;
+
+// Where this worker answers.
+const TEST_MEDIA_PATH = '/test-media';
 
 // Requests answered per token, so `responses` can be read as a sequence. One
 // page runs one test file, so nothing here is shared with another file.
@@ -12,7 +17,32 @@ const requestCounts = new Map<string, number>();
 // the worker can answer cannot be built without it.
 let inUse = false;
 
-export const isTestMediaInUse = (): boolean => inUse;
+/**
+ * See the worker below for what `responses` and `repeat` ask it to do.
+ */
+export const createTestMediaURL = (
+  responses: number[],
+  repeat = false,
+  filename: string = SNAPSHOT_FIXTURE_FILENAME,
+): string => {
+  if (!inUse) {
+    throw new Error(
+      'Media that misbehaves must be served in a file using useTestMedia().',
+    );
+  }
+
+  return (
+    // TEST_MEDIA_PATH is intercepted by MSW to allow off-wire testing --
+    // without the potential for consuming connections which the browser might
+    // need for loading JS itself.
+    `${TEST_MEDIA_PATH}/${filename}?` +
+    new URLSearchParams({
+      token: crypto.randomUUID(),
+      responses: responses.join(','),
+      repeat: String(repeat),
+    }).toString()
+  );
+};
 
 /**
  * Serves a fixture at `/test-media/<file>`, behaving as the query asks:
@@ -21,9 +51,9 @@ export const isTestMediaInUse = (): boolean => inUse;
  *              behaviour does not depend on what ran before it.
  *   responses  The status to answer each request with, in order: `200` serves
  *              the file and anything else is sent as an empty error.
- *              repeat     What to do once the `responses` list is exhausted:
- *              answer every request after it as the last one was, or never
- *              answer again (i.e. camera going quiet).
+ *   repeat     What to do once the `responses` list is exhausted: answer every
+ *              request after it as the last one was, or never answer again
+ *              (i.e. camera going quiet).
  *
  * Answered from within the page rather than by a server, because a request the
  * page is still waiting on holds one of the handful of connections a browser
@@ -37,7 +67,7 @@ export const isTestMediaInUse = (): boolean => inUse;
  * it would not.
  */
 const worker = setupWorker(
-  http.get('/test-media/:file', async ({ request, params }) => {
+  http.get(`${TEST_MEDIA_PATH}/:file`, async ({ request, params }) => {
     const url = new URL(request.url);
     const token = url.searchParams.get('token');
     if (!token) {
@@ -64,7 +94,7 @@ const worker = setupWorker(
 
     // The fixture itself is served by the dev server. A name is sent rather
     // than a path, so nothing outside the fixtures themselves is reachable.
-    const fixture = await fetch(`/tests/browser/fixtures/${String(params.file)}`);
+    const fixture = await fetch(createFixtureURL(String(params.file)));
 
     return fixture.ok
       ? new HttpResponse(await fixture.arrayBuffer(), {

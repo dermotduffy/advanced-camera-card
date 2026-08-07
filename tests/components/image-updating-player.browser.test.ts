@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest';
 import type { MediaLoadedInfoEventDetail } from '../../src/types';
 import { MountedCardFactory, type MountedCard } from '../browser/mounted-card';
 import {
-  createCameraHASS,
+  CAMERA_ENTITY,
+  createGenericCameraHASS,
   createStillImageCardConfig,
   isMediaLoadedInfoEventDetail,
-  STILL_CAMERA_ENTITY,
 } from '../browser/test-utils';
 
 const UNRELATED_ENTITY = 'input_boolean.unrelated';
@@ -22,7 +22,7 @@ interface RenderedElement extends Element {
 }
 
 const mount = async (): Promise<MountedCard> => {
-  const hass = createCameraHASS({ entities: { [UNRELATED_ENTITY]: 'off' } });
+  const hass = createGenericCameraHASS({ entities: { [UNRELATED_ENTITY]: 'off' } });
   return await MountedCardFactory.createFromSource(createStillImageCardConfig(), hass);
 };
 
@@ -54,7 +54,7 @@ describe('AdvancedCameraCardImageUpdatingPlayer', () => {
 
     const loads = getMediaLoadedInfos(card);
     expect(loads).toHaveLength(1);
-    expect(loads[0].info.targetID).toBe(STILL_CAMERA_ENTITY);
+    expect(loads[0].info.targetID).toBe(CAMERA_ENTITY);
   });
 
   it('should announce the size of the media itself', async () => {
