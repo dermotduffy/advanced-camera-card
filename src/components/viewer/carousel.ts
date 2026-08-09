@@ -209,7 +209,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     for (let i = 0; i < this._media.length; ++i) {
       const media = this._media[i];
       if (media) {
-        const slide = this._renderMediaItem(media);
+        const slide = this._renderMediaItem(media, i === this._selected);
         if (slide) {
           slides[i] = slide;
         }
@@ -459,7 +459,10 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
     }
   }
 
-  private _renderMediaItem(media: ViewMedia): TemplateResult | null {
+  private _renderMediaItem(
+    media: ViewMedia,
+    isSelected: boolean,
+  ): TemplateResult | null {
     const view = this.viewManagerEpoch?.manager.getView();
     if (!this.hass || !view || !this.viewerConfig) {
       return null;
@@ -479,6 +482,7 @@ export class AdvancedCameraCardViewerCarousel extends LitElement {
           .resolvedMediaCache=${this.resolvedMediaCache}
           .cameraManager=${this.cameraManager}
           .cardWideConfig=${this.cardWideConfig}
+          .forceSelected=${isSelected}
         ></advanced-camera-card-viewer-provider>`,
       )}
     </div>`;

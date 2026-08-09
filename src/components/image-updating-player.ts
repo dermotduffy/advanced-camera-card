@@ -13,7 +13,6 @@ import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
 import type { MediaUnavailableIssueReason } from '../card-controller/issues/issues/media-unavailable.js';
-import type { IssueTriggerEventData } from '../card-controller/issues/types.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { MediaLoadedInfoSourceController } from '../components-lib/media-loaded-info-source-controller.js';
 import { FRAME_STALL_SECONDS } from '../components-lib/media-player/frame-stall-watchdog.js';
@@ -212,7 +211,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
    * @returns `true` if the element should be updated.
    */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    if (!this.hass || document.visibilityState !== 'visible') {
+    if (!this.isConnected || !this.hass || document.visibilityState !== 'visible') {
       return false;
     }
 
@@ -279,6 +278,12 @@ export class AdvancedCameraCardImageUpdatingPlayer
   }
 
   private _dispatchError(reason: MediaUnavailableIssueReason): void {
+    // An image request can fail after this player has left the DOM. Ignore
+    // such failures: they describe media that is no longer shown.
+    if (!this.isConnected) {
+      return;
+    }
+
     fireAdvancedCameraCardEvent(this, 'image-updating-player:error', reason, {
       bubbles: false,
       composed: false,
@@ -530,23 +535,9 @@ export class AdvancedCameraCardImageUpdatingPlayer
                 this._forceSafeImage(true);
               } else if (mode === 'url') {
                 this._imageLoadError = true;
+              }
 
-                // Report the failure to the parent. A live context marks the
-                // stream not-live so its wrapper stops covering the error with a
-                // loading overlay; the plain image view ignores it.
-                this._dispatchError('not_loading');
-              }
-              if (this.targetID) {
-                fireAdvancedCameraCardEvent<IssueTriggerEventData>(
-                  this,
-                  'issue:trigger',
-                  {
-                    key: 'media_unavailable',
-                    targetID: this.targetID,
-                    reason: 'not_loading',
-                  },
-                );
-              }
+              this._dispatchError('not_loading');
             }}
           />
         `

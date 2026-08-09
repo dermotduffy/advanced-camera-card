@@ -1,14 +1,13 @@
 import type { ReactiveController, ReactiveControllerHost } from 'lit';
 
-import type {
-  IssueResolveEventData,
-  IssueTriggerEventData,
-} from '../card-controller/issues/types';
 import type { MediaLoadedInfoEventDetail } from '../types';
 import { onAbort } from '../utils/abort-signal';
 import { Generation } from '../utils/concurrency/generation';
-import { fireAdvancedCameraCardEvent } from '../utils/fire-advanced-camera-card-event';
 import { Timer } from '../utils/timer';
+import {
+  resolveMediaUnavailableIssue,
+  triggerMediaUnavailableIssue,
+} from './media-unavailable-issue';
 
 const MEDIA_LOADED_EVENT = 'advanced-camera-card:media:loaded';
 
@@ -125,8 +124,10 @@ export class MediaLoadWatchdogController implements ReactiveController {
     this._mediaLoaded = true;
     const generation = this._loadGeneration.next();
 
-    // Media arriving disproves a not-loading failure whoever reported it.
-    this._resolveFailure(targetID);
+    if (this._reportedTargetID === targetID) {
+      this._reportedTargetID = null;
+    }
+    resolveMediaUnavailableIssue(this._host, { targetID, cause: 'media-loaded' });
 
     // Media going away is not itself a failure, but a load that is still
     // expected afterwards needs a fresh wait. This is recorded whether or not
@@ -141,20 +142,6 @@ export class MediaLoadWatchdogController implements ReactiveController {
     });
   };
 
-  // Clear a target's not-loading failure, whichever component reported it.
-  // Naming the reason leaves a failure reported for any other reason alone.
-  private _resolveFailure(targetID: string): void {
-    if (this._reportedTargetID === targetID) {
-      this._reportedTargetID = null;
-    }
-
-    fireAdvancedCameraCardEvent<IssueResolveEventData>(this._host, 'issue:resolve', {
-      key: 'media_unavailable',
-      targetID,
-      reason: 'not_loading',
-    });
-  }
-
   // Discard everything learned about a previous target, or a previous attempt
   // at the same one.
   private _syncAttempt(): void {
@@ -164,10 +151,15 @@ export class MediaLoadWatchdogController implements ReactiveController {
       return;
     }
 
-    // If an abandoned target was previously reported, resolve it so it's not
-    // stuck forever
+    // If an issue was triggered for a target since abandoned, resolve it so it
+    // is not stuck forever, scoped to not-loading since that is all this
+    // watchdog triggers.
     if (this._reportedTargetID && this._reportedTargetID !== targetID) {
-      this._resolveFailure(this._reportedTargetID);
+      resolveMediaUnavailableIssue(this._host, {
+        targetID: this._reportedTargetID,
+        reason: 'not_loading',
+      });
+      this._reportedTargetID = null;
     }
 
     this._targetID = targetID;
@@ -210,10 +202,6 @@ export class MediaLoadWatchdogController implements ReactiveController {
 
     this._fired = true;
     this._reportedTargetID = targetID;
-    fireAdvancedCameraCardEvent<IssueTriggerEventData>(this._host, 'issue:trigger', {
-      key: 'media_unavailable',
-      targetID,
-      reason: 'not_loading',
-    });
+    triggerMediaUnavailableIssue(this._host, { targetID, reason: 'not_loading' });
   }
 }

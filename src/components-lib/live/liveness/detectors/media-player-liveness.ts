@@ -7,7 +7,11 @@ import type {
 } from '../../../../types';
 import { onAbort } from '../../../../utils/abort-signal';
 import { VisibilityObserver } from '../../../visibility-observer';
-import type { LivenessDetector, LivenessVerdict } from '../stream-liveness-controller';
+import type {
+  LivenessDetector,
+  LivenessInvalidationCause,
+  LivenessVerdict,
+} from '../stream-liveness-controller';
 
 const MEDIA_LOADED_EVENT = 'advanced-camera-card:media:loaded';
 
@@ -61,19 +65,22 @@ export class MediaPlayerLivenessDetector implements LivenessDetector {
   }
 
   public unsubscribe(): void {
-    // Retain the verdict so a reconnect resumes where it left off; use reset()
-    // to discard it.
+    // Retain the verdict so a reconnect resumes where it left off; use
+    // invalidate() to discard it.
     this._host.removeEventListener(MEDIA_LOADED_EVENT, this._onMediaLoaded);
     this._visibilityObserver?.destroy();
     this._visibilityObserver = null;
     this._unwatch();
   }
 
-  public reset(): void {
-    // The underlying stream changed (e.g. a substream switch): discard the
-    // verdict and re-evaluate against the new media.
-    this._unwatch();
-    this._setVerdict({ state: 'unknown' });
+  public invalidate(cause: LivenessInvalidationCause): void {
+    // A stall is a failure of media that had already loaded, so an invalidation
+    // with cause 'media-loaded' proves nothing as far as this detector is
+    // concerned. Only a changed stream/camera discards the verdict.
+    if (cause === 'stream-changed') {
+      this._unwatch();
+      this._setVerdict({ state: 'unknown' });
+    }
   }
 
   public getVerdict(): LivenessVerdict {

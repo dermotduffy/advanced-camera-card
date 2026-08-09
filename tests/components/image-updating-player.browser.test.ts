@@ -11,6 +11,8 @@ import {
 
 const UNRELATED_ENTITY = 'input_boolean.unrelated';
 
+const IMAGE_ERROR_EVENT = 'advanced-camera-card:image-updating-player:error';
+
 // The size of the static image fixture the player loads. Everything downstream
 // sizes the card from what the player measured, so these are read from the
 // media rather than declared anywhere in the configuration.
@@ -55,6 +57,28 @@ describe('AdvancedCameraCardImageUpdatingPlayer', () => {
     const loads = getMediaLoadedInfos(card);
     expect(loads).toHaveLength(1);
     expect(loads[0].info.targetID).toBe(CAMERA_ENTITY);
+  });
+
+  it('should ignore an image failure that arrives after the card leaves the page', async () => {
+    const card = await mount();
+    const player = await card.waitForSelector(
+      'advanced-camera-card-image-updating-player',
+    );
+    const image = await card.waitForSelector('img');
+
+    const failures: Event[] = [];
+    player.addEventListener(IMAGE_ERROR_EVENT, (ev) => failures.push(ev));
+
+    image.dispatchEvent(new Event('error'));
+    expect(failures).toHaveLength(1);
+
+    // The browser answers a request the player made before the card came off
+    // the page. Nobody is looking at the media it was for, so the player must
+    // say nothing about it.
+    card.detach();
+    image.dispatchEvent(new Event('error'));
+
+    expect(failures).toHaveLength(1);
   });
 
   it('should announce the size of the media itself', async () => {

@@ -35,12 +35,22 @@ declare module 'issue' {
   }
 
   interface IssueResolveContext {
-    media_unavailable: {
-      targetID: string;
-
-      // Optionally limits the clearing to one kind of failure.
-      reason?: MediaUnavailableIssueReason;
-    };
+    // Either a resolve scoped to (at most) one named kind of failure, or the
+    // statement that the target's media has loaded, which resolves whichever
+    // failures have `resetOnLoad`. Only real media is ever announced as loaded:
+    // the card's substitute pictures (a loading or stock image) are not, so
+    // they can never make this statement.
+    media_unavailable: { targetID: string } & (
+      | {
+          // Optionally limits the clearing to one kind of failure.
+          reason?: MediaUnavailableIssueReason;
+          cause?: never;
+        }
+      | {
+          reason?: never;
+          cause: 'media-loaded';
+        }
+    );
   }
 }
 
@@ -52,34 +62,46 @@ interface TargetError {
 
 // The per-cause presentation (localization key + icon), shared by the
 // notification metadata and the reconnecting placeholder so each cause is
-// described in exactly one place.
+// described in exactly one place. `resetOnLoad` means a media load will reset
+// this issue reason.
 export const MEDIA_UNAVAILABLE_REASONS: Record<
   MediaUnavailableIssueReason,
-  { localizationKey: string; icon: string }
+  { localizationKey: string; icon: string; resetOnLoad: boolean }
 > = {
   entity_unavailable: {
     localizationKey: 'issues.media_unavailable.reasons.entity_unavailable',
     icon: 'mdi:cctv-off',
+    resetOnLoad: false,
   },
   not_loading: {
     localizationKey: 'issues.media_unavailable.reasons.not_loading',
     icon: 'mdi:progress-helper',
+    resetOnLoad: true,
   },
   playback_error: {
     localizationKey: 'issues.media_unavailable.reasons.playback_error',
     icon: 'mdi:alert-circle',
+
+    // A player can load media and still fail to play it.
+    resetOnLoad: false,
   },
   server_error: {
     localizationKey: 'issues.media_unavailable.reasons.server_error',
     icon: 'mdi:server-network-off',
+    resetOnLoad: true,
   },
   stalled: {
     localizationKey: 'issues.media_unavailable.reasons.stalled',
     icon: 'mdi:motion-pause',
+    resetOnLoad: false,
   },
   unsupported: {
     localizationKey: 'issues.media_unavailable.reasons.unsupported',
     icon: 'mdi:video-off-outline',
+
+    // Substitute pictures are never announced as loaded media, so a load means
+    // the requested media was delivered in some supported way after all.
+    resetOnLoad: true,
   },
 };
 
@@ -113,7 +135,15 @@ export class MediaUnavailableIssue implements Issue {
 
   public resolve(context: IssueResolveContext['media_unavailable']): void {
     const error = this._erroredTargets.get(context.targetID);
-    if (!error || (context.reason && context.reason !== error.reason)) {
+    if (!error) {
+      return;
+    }
+
+    if (context.cause === 'media-loaded') {
+      if (!MEDIA_UNAVAILABLE_REASONS[error.reason].resetOnLoad) {
+        return;
+      }
+    } else if (context.reason && context.reason !== error.reason) {
       return;
     }
 

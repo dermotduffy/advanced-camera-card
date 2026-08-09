@@ -11,8 +11,10 @@ import { keyed } from 'lit/directives/keyed.js';
 import { createRef, ref, type Ref } from 'lit/directives/ref.js';
 
 import type { CameraManager } from '../camera-manager/manager';
+import type { MediaUnavailableIssueReason } from '../card-controller/issues/issues/media-unavailable';
 import type { ViewManagerEpoch } from '../card-controller/view/types';
 import { MediaLoadWatchdogController } from '../components-lib/media-load-watchdog-controller';
+import { triggerMediaUnavailableIssue } from '../components-lib/media-unavailable-issue';
 import type { ZoomSettingsObserved } from '../components-lib/zoom/types';
 import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context';
 import type { CameraConfig } from '../config/schema/cameras';
@@ -175,6 +177,17 @@ export class AdvancedCameraCardImage extends LitElement implements MediaPlayer {
             .targetID=${IMAGE_VIEW_TARGET_ID_SENTINEL}
             .proxyConfig=${this._resolveProxyConfig(this.imageConfig?.proxy) ??
             undefined}
+            @advanced-camera-card:image-updating-player:error=${(
+              ev: CustomEvent<MediaUnavailableIssueReason>,
+            ) =>
+              // The image view has no liveness detector, so the view triggers
+              // the issue itself. An image's failures are all failures to load.
+              // The load watchdog above resolves them once media eventually
+              // loads.
+              triggerMediaUnavailableIssue(this, {
+                targetID: IMAGE_VIEW_TARGET_ID_SENTINEL,
+                reason: ev.detail,
+              })}
           >
           </advanced-camera-card-image-updating-player>
         `,

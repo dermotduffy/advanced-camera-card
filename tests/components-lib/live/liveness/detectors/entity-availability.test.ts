@@ -214,9 +214,27 @@ describe('EntityAvailabilityDetector', () => {
 
     // Re-point at the (now available) entity from a fresh state.
     setEntityState('streaming');
-    detector.reset();
+    detector.invalidate('stream-changed');
 
     expect(detector.getVerdict()).toEqual({ state: 'unknown' });
+  });
+
+  it('should keep the verdict when media loads', () => {
+    const { detector, fireStateChange } = setup();
+    detector.subscribe();
+    fireStateChange('unavailable');
+    vi.advanceTimersByTime(GRACE_MS);
+
+    // This detector watches the camera entity, so media loading tells it
+    // nothing about the entity it is watching.
+    detector.invalidate('media-loaded');
+
+    expect(detector.getVerdict()).toEqual({
+      state: 'not_live',
+      authority: 'indirect',
+      renderPlaceholder: true,
+      reason: 'entity_unavailable',
+    });
   });
 
   it('should re-check the entity when reset', () => {
@@ -228,7 +246,7 @@ describe('EntityAvailabilityDetector', () => {
     // An entity that is already unavailable never fires a state change, so
     // resetting must read it rather than wait to be told.
     setEntityState('unavailable');
-    detector.reset();
+    detector.invalidate('stream-changed');
 
     expect(detector.getVerdict()).toEqual(
       expect.objectContaining({ state: 'not_live', authority: 'hard' }),
@@ -238,7 +256,7 @@ describe('EntityAvailabilityDetector', () => {
   it('should do nothing on reset before subscribe', () => {
     const { detector, stateWatcher } = setup();
 
-    detector.reset();
+    detector.invalidate('stream-changed');
 
     expect(stateWatcher.subscribe).not.toHaveBeenCalled();
     expect(detector.getVerdict()).toEqual({ state: 'unknown' });
@@ -249,7 +267,7 @@ describe('EntityAvailabilityDetector', () => {
     detector.subscribe();
 
     setCameraEntity(null);
-    detector.reset();
+    detector.invalidate('stream-changed');
 
     expect(stateWatcher.unsubscribe).toHaveBeenCalled();
     expect(detector.getVerdict()).toEqual({ state: 'unknown' });

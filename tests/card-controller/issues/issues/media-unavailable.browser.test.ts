@@ -16,6 +16,7 @@ import {
   createStallingMediaURL,
   createTemporarilyFailingMediaURL,
   createUnansweredMediaURL,
+  getTestMediaRequestCount,
   useTestMedia,
 } from '../../../browser/test-media';
 import {
@@ -375,6 +376,21 @@ describe('MediaUnavailableIssue', () => {
 
     expect(getBlockNotificationText(card.card)).toContain('Could not load image');
     expect(getBlockNotificationText(card.card)).toContain(CAMERA_ENTITY);
+
+    expect(card.events.getEntries('advanced-camera-card:issue:trigger')).toHaveLength(1);
+  });
+
+  it('should trigger an issue for an image view whose media fails to load', async () => {
+    const card = await mountCard({
+      view: { default: 'image' },
+      image: { mode: 'url', url: createFailingMediaURL() },
+    });
+
+    await card.events.waitForFirst('advanced-camera-card:issue:trigger');
+    await waitForIssueReported(card);
+
+    expect(isIssueReported(card)).toBe(true);
+    expect(card.events.getEntries('advanced-camera-card:issue:trigger')).toHaveLength(1);
   });
 
   it('should clear the issue report once the camera delivers media again', async () => {
@@ -463,12 +479,11 @@ describe('MediaUnavailableIssue', () => {
   });
 
   it('should re-attempt when the retry control is used', async () => {
+    const mediaURL = createTemporarilyFailingMediaURL(1);
     const card = await mountCard({
       // Automatic retries switched off.
       view: { issues: { retry_seconds: 0 } },
-      cameras: [
-        createStillImageCameraConfig(CAMERA_ENTITY, createTemporarilyFailingMediaURL(1)),
-      ],
+      cameras: [createStillImageCameraConfig(CAMERA_ENTITY, mediaURL)],
     });
 
     await card.events.waitForFirst('advanced-camera-card:issue:trigger');
@@ -483,6 +498,8 @@ describe('MediaUnavailableIssue', () => {
 
     expect(isIssueReported(card)).toBe(false);
     expect(isLiveMediaShowing(card.card)).toBe(true);
+
+    expect(getTestMediaRequestCount(mediaURL)).toBe(2);
   });
 
   it('should not report while a non-media view is showing', async () => {
@@ -551,7 +568,7 @@ describe('MediaUnavailableIssue', () => {
     expect(getBlockNotificationText(card.card)).toContain('Stream stalled');
   });
 
-  it('should trigger an issue for a camera picture that falls back to a stock image', async () => {
+  it('should trigger an issue for a camera snapshot that falls back to a stock image', async () => {
     // A camera-mode image that cannot be fetched swaps in a bundled stock
     // picture, so something is always on screen. That substitute must not be
     // announced as the camera's media arriving, or the failure it replaced
@@ -587,6 +604,50 @@ describe('MediaUnavailableIssue', () => {
 
     expect(isIssueReported(card)).toBe(true);
     expect(card.events.getEntries('advanced-camera-card:media:loaded')).toHaveLength(0);
+  });
+
+  it('should resolve the issue for a refreshing camera snapshot that recovers by itself', async () => {
+    // Must use the real clock: the picture is refetched on a timer that fake
+    // time would run through instantly, without the fetch in between ever being
+    // answered.
+    vi.useRealTimers();
+
+    const card = await MountedCardFactory.createFromSource(
+      createStillImageCardConfig({
+        status_bar: { style: 'outside' },
+
+        // Automatic retries disabled.
+        view: { issues: { retry_seconds: 0 } },
+        cameras: [
+          {
+            camera_entity: CAMERA_ENTITY,
+            live_provider: 'image',
+            image: { mode: 'camera', refresh_seconds: 1 },
+          },
+        ],
+      }),
+      createGenericCameraHASS({
+        entities: {
+          [CAMERA_ENTITY]: {
+            state: 'idle',
+            attributes: { entity_picture: createTemporarilyFailingMediaURL(1) },
+          },
+        },
+      }),
+    );
+
+    await card.events.waitForFirst('advanced-camera-card:issue:trigger');
+    await waitForIssueReported(card);
+
+    // A picture that is refetched on a timer can recover on its own, and the
+    // issue has to recover with it.
+    await card.events.waitForFirst('advanced-camera-card:media:loaded');
+    await waitForIssueCleared(card);
+
+    expect(isLiveMediaShowing(card.card)).toBe(true);
+
+    // Cameras that fetch each second must not announce failures each second.
+    expect(card.events.getEntries('advanced-camera-card:issue:trigger')).toHaveLength(1);
   });
 
   it('should report a player that reports a playback error', async () => {

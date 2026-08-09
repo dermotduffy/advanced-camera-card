@@ -176,19 +176,20 @@ describe('MediaLoadWatchdogController', () => {
       harness.mediaLoaded('camera-1');
 
       expect(harness.resolveRequests).toEqual([
-        { key: 'media_unavailable', targetID: 'camera-1', reason: 'not_loading' },
+        { key: 'media_unavailable', targetID: 'camera-1', cause: 'media-loaded' },
       ]);
     });
 
-    it('should clear a failure it never reported itself', () => {
+    it('should resolve on a load even when it reported no failure itself', () => {
       const harness = createHarness();
       harness.connect();
 
-      // Another component can report the same kind of failure for this target.
+      // A load resolves whatever failure the target has regardless of the
+      // component that reported it -- not only this watchdog's own timeout.
       harness.mediaLoaded('camera-1');
 
       expect(harness.resolveRequests).toEqual([
-        { key: 'media_unavailable', targetID: 'camera-1', reason: 'not_loading' },
+        { key: 'media_unavailable', targetID: 'camera-1', cause: 'media-loaded' },
       ]);
     });
 
@@ -334,9 +335,11 @@ describe('MediaLoadWatchdogController', () => {
       harness.setTargetID('camera-2');
       harness.mediaLoaded('camera-2');
 
+      // The abandoned target gets only its not-loading failure resolved: no
+      // load arrived for it.
       expect(harness.resolveRequests).toEqual([
         { key: 'media_unavailable', targetID: 'camera-1', reason: 'not_loading' },
-        { key: 'media_unavailable', targetID: 'camera-2', reason: 'not_loading' },
+        { key: 'media_unavailable', targetID: 'camera-2', cause: 'media-loaded' },
       ]);
     });
 

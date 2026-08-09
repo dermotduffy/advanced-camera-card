@@ -804,7 +804,7 @@
     }
   },
   "error": {
-    "awaiting_live": "Waiting for live stream to load...",
+    "awaiting_live": "Waiting for live stream to load",
     "awaiting_media": "Waiting for media to load",
     "call_invalid_target": "The requested camera or stream is not available to call.",
     "call_microphone_failed": "Your microphone could not be connected.",

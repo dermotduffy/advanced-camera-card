@@ -74,6 +74,15 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
+  // Whether to force this slide to behave as if it is selected and
+  // intersecting. Set by the carousel on its currently-selected slide. This is
+  // necessary: `render` below draws nothing until the slide has loaded, and a
+  // slide drawing nothing can have no height for IntersectionObserver to see.
+  // Left to the observer only, the slide would wait to be seen before drawing
+  // anything there was to see. See `LazyLoadConfiguration.forceSelected`.
+  @property({ attribute: false })
+  public forceSelected = false;
+
   private _refProvider: Ref<MediaPlayerElement> = createRef();
   private _lazyLoadController: LazyLoadController = new LazyLoadController(this);
 
@@ -177,9 +186,10 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('viewerConfig')) {
+    if (changedProps.has('viewerConfig') || changedProps.has('forceSelected')) {
       this._lazyLoadController.setConfiguration({
         lazyLoad: this.viewerConfig?.lazy_load,
+        forceSelected: this.forceSelected,
       });
     }
 

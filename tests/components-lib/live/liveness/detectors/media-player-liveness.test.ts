@@ -248,10 +248,32 @@ describe('MediaPlayerLivenessDetector', () => {
     await callIntersectionHandler(true);
     fireMediaPlayerLiveness(false);
 
-    detector.reset();
+    detector.invalidate('stream-changed');
 
     expect(detector.getVerdict()).toEqual({ state: 'unknown' });
     expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('should keep the verdict when media loads', async () => {
+    const { detector, loadMedia } = setup();
+    const { player, unsubscribe, fireMediaPlayerLiveness } = createPlayer();
+    detector.subscribe();
+    loadMedia(player);
+
+    await callIntersectionHandler(true);
+    fireMediaPlayerLiveness(false);
+
+    // The media player reported that media it had already loaded stopped
+    // delivering frames, which another load does not answer.
+    detector.invalidate('media-loaded');
+
+    expect(detector.getVerdict()).toEqual({
+      state: 'not_live',
+      authority: 'direct',
+      renderPlaceholder: true,
+      reason: 'stalled',
+    });
+    expect(unsubscribe).not.toHaveBeenCalled();
   });
 
   it('should tear down the watch and stop listening on unsubscribe', async () => {

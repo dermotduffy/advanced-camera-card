@@ -13,7 +13,7 @@ const createHostInDocument = (): HTMLElement => {
 
 // @vitest-environment jsdom
 describe('ProviderErrorDetector', () => {
-  it('should not report a change when reset', () => {
+  it('should not report a change when the stream changes', () => {
     const host = createHostInDocument();
     const onChange = vi.fn();
     const detector = new ProviderErrorDetector(host, onChange);
@@ -21,7 +21,7 @@ describe('ProviderErrorDetector', () => {
     dispatchLiveErrorEvent(host);
     onChange.mockClear();
 
-    detector.reset();
+    detector.invalidate('stream-changed');
 
     expect(onChange).not.toHaveBeenCalled();
   });
@@ -93,14 +93,14 @@ describe('ProviderErrorDetector', () => {
     document.body.removeEventListener(LIVE_ERROR_EVENT, parentListener);
   });
 
-  it('should discard the verdict on reset', () => {
+  it('should discard the verdict when the stream changes', () => {
     const host = createHostInDocument();
     const detector = new ProviderErrorDetector(host, vi.fn());
     detector.subscribe();
     dispatchLiveErrorEvent(host);
     expect(detector.getVerdict().state).toBe('not_live');
 
-    detector.reset();
+    detector.invalidate('stream-changed');
 
     expect(detector.getVerdict()).toEqual({ state: 'unknown' });
   });
@@ -116,5 +116,32 @@ describe('ProviderErrorDetector', () => {
 
     expect(detector.getVerdict().state).toBe('unknown');
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('should clear the failure when media arrives', () => {
+    const host = createHostInDocument();
+    const detector = new ProviderErrorDetector(host, vi.fn());
+    detector.subscribe();
+    dispatchLiveErrorEvent(host);
+
+    // The provider said it could not deliver the media, and then delivered it.
+    detector.invalidate('media-loaded');
+
+    expect(detector.getVerdict()).toEqual({ state: 'unknown' });
+  });
+
+  it('should report a later error after media cleared the previous one', () => {
+    const host = createHostInDocument();
+    const onChange = vi.fn();
+    const detector = new ProviderErrorDetector(host, onChange);
+    detector.subscribe();
+    dispatchLiveErrorEvent(host);
+    detector.invalidate('media-loaded');
+    onChange.mockClear();
+
+    dispatchLiveErrorEvent(host);
+
+    expect(detector.getVerdict().state).toBe('not_live');
+    expect(onChange).toHaveBeenCalledTimes(1);
   });
 });
