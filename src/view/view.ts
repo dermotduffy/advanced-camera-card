@@ -143,13 +143,15 @@ export class View {
     return this;
   }
 
-  public removeContextProperty(
-    contextKey: keyof ViewContext,
-    removeKey: PropertyKey,
+  public removeContextProperty<T extends keyof ViewContext>(
+    contextKey: T,
+    removeKey: keyof NonNullable<ViewContext[T]>,
   ): View {
     const contextObj = this.context?.[contextKey];
     if (contextObj) {
-      delete contextObj[removeKey];
+      // Cannot use a regular 'delete' here as TypeScript cannot directly index
+      // `contextObj` while its type is still generic.
+      Reflect.deleteProperty(contextObj, removeKey);
     }
     return this;
   }

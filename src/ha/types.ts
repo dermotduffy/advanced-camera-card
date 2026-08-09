@@ -151,7 +151,7 @@ export interface HomeAssistant {
       [key: string]: unknown;
     },
   ) => Promise<Response>;
-  hassUrl(path?): string;
+  hassUrl(path?: string): string;
   sendWS: (msg: MessageBase) => Promise<void>;
   callWS: <T>(msg: MessageBase) => Promise<T>;
 }

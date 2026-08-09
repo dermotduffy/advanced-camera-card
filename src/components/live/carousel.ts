@@ -396,7 +396,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       .autoHideState=${resolveAutoHideState(!!this.call)}
       ?disabled=${!neighbor}
       ?locked=${!!this.locked}
-      @click=${(ev) => {
+      @click=${(ev: Event) => {
         this._setViewCameraID(neighbor?.id);
         stopEventFromActivatingCardWideActions(ev);
       }}

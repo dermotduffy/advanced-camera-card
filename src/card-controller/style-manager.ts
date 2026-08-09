@@ -97,29 +97,25 @@ export class StyleManager {
   }
 
   private _setPerformance(): void {
-    const STYLE_DISABLE_MAP = {
-      box_shadow: {
-        cssKey: '--advanced-camera-card-box-shadow-override',
-        value: 'none',
-      },
-      border_radius: {
-        cssKey: '--advanced-camera-card-border-radius-override',
-        value: '0px',
-      },
-    };
-    const element = this._api.getCardElementManager().getElement();
-    const performance = this._api.getConfigManager().getCardWideConfig()?.performance;
-
-    const styles = performance?.style ?? {};
-    for (const configKey of Object.keys(styles)) {
-      const mapping = STYLE_DISABLE_MAP[configKey];
-      setOrRemoveStyleProperty(
-        element,
-        !styles[configKey],
-        mapping.cssKey,
-        mapping.value,
-      );
+    const styles = this._api.getConfigManager().getCardWideConfig()?.performance?.style;
+    if (!styles) {
+      return;
     }
+
+    const element = this._api.getCardElementManager().getElement();
+
+    setOrRemoveStyleProperty(
+      element,
+      !styles.box_shadow,
+      '--advanced-camera-card-box-shadow-override',
+      'none',
+    );
+    setOrRemoveStyleProperty(
+      element,
+      !styles.border_radius,
+      '--advanced-camera-card-border-radius-override',
+      '0px',
+    );
   }
 
   private _isAspectRatioEnforced(

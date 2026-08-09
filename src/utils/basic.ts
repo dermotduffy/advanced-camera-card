@@ -270,13 +270,15 @@ export const getChildrenFromElement = (parent: HTMLElement): HTMLElement[] => {
 export const recursivelyMergeObjectsNotArrays = <T>(
   ...srcs: (Partial<T> | undefined | null)[]
 ): T => {
-  return mergeWith({}, ...srcs, (_a, b) => (Array.isArray(b) ? b : undefined));
+  return mergeWith({}, ...srcs, (_a: unknown, b: unknown) =>
+    Array.isArray(b) ? b : undefined,
+  );
 };
 
 export const recursivelyMergeObjectsConcatenatingArraysUniquely = <T>(
   ...srcs: (Partial<T> | undefined | null)[]
 ): T => {
-  return mergeWith({}, ...srcs, (a, b) =>
+  return mergeWith({}, ...srcs, (a: unknown, b: unknown) =>
     Array.isArray(a) ? uniq(a.concat(b)) : undefined,
   );
 };

@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash-es';
+import { isEqual, pickBy } from 'lodash-es';
 
 import { SerialRunner } from '../../utils/concurrency/serial-runner';
 import type {
@@ -55,15 +55,17 @@ export class ConditionStateManager implements ConditionStateManagerReadonlyInter
   }
 
   private _calculateTrueChange(change: ConditionState): ConditionState {
-    const changeState: ConditionState = {};
-
-    for (const key of Object.keys(change)) {
-      if (!isEqual(change[key], this._state[key])) {
-        changeState[key] = change[key];
-      }
-    }
-
-    return changeState;
+    return pickBy(
+      change,
+      (value, key) =>
+        !isEqual(
+          value,
+          this._state[
+            // lodash widens the key to `string`, which cannot index ConditionState.
+            key as keyof ConditionState
+          ],
+        ),
+    );
   }
 
   private _callListeners = (stateChange: ConditionStateChange): void => {

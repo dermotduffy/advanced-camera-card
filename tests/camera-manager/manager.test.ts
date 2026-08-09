@@ -27,6 +27,9 @@ import {
   type EventQueryResults,
   type MediaMetadata,
   type QueryResults,
+  type RecordingQuery,
+  type RecordingSegmentsQuery,
+  type ReviewQuery,
 } from '../../src/camera-manager/types.js';
 import type { CardController } from '../../src/card-controller/controller.js';
 import type { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
@@ -752,46 +755,65 @@ describe('CameraManager', () => {
     });
 
     describe('generate default queries', () => {
-      it.each([
-        [
-          QueryType.Event as const,
-          'generateDefaultEventQuery',
-          'generateDefaultEventQueries',
-        ],
-        [
-          QueryType.Recording as const,
-          'generateDefaultRecordingQuery',
-          'generateDefaultRecordingQueries',
-        ],
-        [
-          QueryType.RecordingSegments as const,
-          'generateDefaultRecordingSegmentsQuery',
-          'generateDefaultRecordingSegmentsQueries',
-        ],
-        [
-          QueryType.Review as const,
-          'generateDefaultReviewQuery',
-          'generateDefaultReviewQueries',
-        ],
-      ])(
-        'basic %s',
-        async (
-          queryType: string,
-          engineMethodName: string,
-          managerMethodName: string,
-        ) => {
-          const api = createCardAPI();
-          vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      const setupManagerWithEngine = async () => {
+        const api = createCardAPI();
+        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
-          const engine = mock<CameraManagerEngine>();
-          const manager = createCameraManager(api, engine);
-          await manager.initializeCamerasFromConfig();
+        const engine = mock<CameraManagerEngine>();
+        const manager = createCameraManager(api, engine);
+        await manager.initializeCamerasFromConfig();
 
-          const queries = [{ type: queryType, cameraIDs: new Set(['id']) }];
-          engine[engineMethodName].mockReturnValue(queries);
-          expect(manager[managerMethodName]('id')).toEqual(queries);
-        },
-      );
+        return { engine, manager };
+      };
+
+      it('should generate default event queries', async () => {
+        const { engine, manager } = await setupManagerWithEngine();
+        const queries: EventQuery[] = [baseEventQuery];
+
+        engine.generateDefaultEventQuery.mockReturnValue(queries);
+
+        expect(manager.generateDefaultEventQueries('id')).toEqual(queries);
+      });
+
+      it('should generate default recording queries', async () => {
+        const { engine, manager } = await setupManagerWithEngine();
+        const queries: RecordingQuery[] = [baseRecordingQuery];
+
+        engine.generateDefaultRecordingQuery.mockReturnValue(queries);
+
+        expect(manager.generateDefaultRecordingQueries('id')).toEqual(queries);
+      });
+
+      it('should generate default recording segments queries', async () => {
+        const { engine, manager } = await setupManagerWithEngine();
+        const queries: RecordingSegmentsQuery[] = [
+          {
+            type: QueryType.RecordingSegments,
+            cameraIDs: new Set(['id']),
+            start: new Date(),
+            end: new Date(),
+          },
+        ];
+
+        engine.generateDefaultRecordingSegmentsQuery.mockReturnValue(queries);
+
+        expect(manager.generateDefaultRecordingSegmentsQueries('id')).toEqual(queries);
+      });
+
+      it('should generate default review queries', async () => {
+        const { engine, manager } = await setupManagerWithEngine();
+        const queries: ReviewQuery[] = [
+          {
+            source: QuerySource.Camera,
+            type: QueryType.Review,
+            cameraIDs: new Set(['id']),
+          },
+        ];
+
+        engine.generateDefaultReviewQuery.mockReturnValue(queries);
+
+        expect(manager.generateDefaultReviewQueries('id')).toEqual(queries);
+      });
 
       it('should handle missing camera', async () => {
         const api = createCardAPI();

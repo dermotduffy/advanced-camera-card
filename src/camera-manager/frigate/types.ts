@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import type { Severity } from '../../severity';
 import { dayToDate } from '../../utils/basic';
 import type {
   Engine,
@@ -152,6 +153,13 @@ export const FRIGATE_SEVERITY_MAP = {
 
 export type FrigateReviewSeverity =
   (typeof FRIGATE_SEVERITY_MAP)[keyof typeof FRIGATE_SEVERITY_MAP];
+
+// Maps Frigate severity to card severity. Frigate has no equivalent of the
+// card's `low` severity.
+export const CARD_SEVERITY_MAP = {
+  alert: 'high',
+  detection: 'medium',
+} as const satisfies Record<FrigateReviewSeverity, Severity>;
 
 // Review data schema (only fields we need for display)
 const frigateReviewDataSchema = z.object({

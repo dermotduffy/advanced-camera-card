@@ -5,7 +5,6 @@ import type { PTZAction, PTZActionPhase } from '../../config/schema/actions/cust
 import type { CameraConfig } from '../../config/schema/cameras';
 import type { Entity, EntityRegistryManager } from '../../ha/registry/entity/types';
 import type { HomeAssistant } from '../../ha/types';
-import { SEVERITIES } from '../../severity';
 import {
   PTZMovementType,
   type CapabilitiesRaw,
@@ -24,7 +23,7 @@ import {
 import { getPTZCapabilitiesFromCameraConfig, mergePTZCapabilities } from '../utils/ptz';
 import { getPTZInfo } from './requests';
 import {
-  FRIGATE_SEVERITY_MAP,
+  CARD_SEVERITY_MAP,
   type FrigateEventChange,
   type FrigateReviewChange,
   type PTZInfo,
@@ -610,10 +609,7 @@ export class FrigateCamera extends Camera<FrigateCameraInitializationOptions> {
 
     const reviewConfig = config.triggers.reviews;
 
-    // Map Frigate severity to card severity.
-    const cardSeverity = SEVERITIES.find(
-      (key) => FRIGATE_SEVERITY_MAP[key] === review.after.severity,
-    );
+    const cardSeverity = CARD_SEVERITY_MAP[review.after.severity];
 
     // Check if this is a description update (GenAI added/changed title or scene)
     const isDescriptionUpdate =
